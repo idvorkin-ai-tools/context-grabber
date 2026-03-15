@@ -794,7 +794,8 @@ export default function App() {
 
   async function shareRaw() {
     if (!snapshot) return;
-    const json = JSON.stringify(snapshot, null, 2);
+    const { locationHistory, ...rawData } = snapshot;
+    const json = JSON.stringify(rawData, null, 2);
     await Share.share({
       message: json,
       title: "Context Grabber - Raw Data",
