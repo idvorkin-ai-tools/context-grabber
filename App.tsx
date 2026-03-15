@@ -22,6 +22,7 @@ import type {
 } from "@kingstinct/react-native-healthkit";
 import { buildHealthData, type HealthData } from "./lib/health";
 import { pruneThreshold } from "./lib/location";
+import { buildSummary, formatNumber } from "./lib/summary";
 
 // --- Constants ---
 
@@ -176,6 +177,28 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
     }
   }
 });
+
+// --- MetricCard Component ---
+
+type MetricCardProps = {
+  label: string;
+  value: string;
+  sublabel: string;
+  fullWidth?: boolean;
+};
+
+function MetricCard({ label, value, sublabel, fullWidth }: MetricCardProps) {
+  const isNull = value === "\u2014";
+  return (
+    <View style={[styles.metricCard, fullWidth && styles.metricCardFull]}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={[styles.metricValue, isNull && styles.metricValueNull]}>
+        {value}
+      </Text>
+      <Text style={styles.metricSublabel}>{sublabel}</Text>
+    </View>
+  );
+}
 
 // --- App Component ---
 
@@ -413,6 +436,55 @@ export default function App() {
     });
   }
 
+  const summaryText = snapshot
+    ? buildSummary(snapshot.health, locationCount)
+    : "";
+
+  const h = snapshot?.health;
+
+  const metrics: MetricCardProps[] = snapshot
+    ? [
+        {
+          label: "Steps",
+          value: h?.steps != null ? formatNumber(h.steps) : "\u2014",
+          sublabel: "today",
+        },
+        {
+          label: "Heart Rate",
+          value: h?.heartRate != null ? `${h.heartRate} bpm` : "\u2014",
+          sublabel: "latest",
+        },
+        {
+          label: "Sleep",
+          value: h?.sleepHours != null ? `${h.sleepHours} hrs` : "\u2014",
+          sublabel:
+            h?.bedtime && h?.wakeTime
+              ? `${h.bedtime} \u2013 ${h.wakeTime}`
+              : "last night",
+        },
+        {
+          label: "Active Energy",
+          value: h?.activeEnergy != null ? `${formatNumber(h.activeEnergy)} kcal` : "\u2014",
+          sublabel: "today",
+        },
+        {
+          label: "Walking Distance",
+          value: h?.walkingDistance != null ? `${h.walkingDistance} km` : "\u2014",
+          sublabel: "today",
+        },
+        {
+          label: "Weight",
+          value: h?.weight != null ? `${h.weight} kg` : "\u2014",
+          sublabel: "latest",
+        },
+        {
+          label: "Meditation",
+          value: h?.meditationMinutes != null ? `${h.meditationMinutes} min` : "\u2014",
+          sublabel: "today",
+        },
+      ]
+    : [];
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -434,10 +506,10 @@ export default function App() {
         )}
 
         {/* Tracking Settings */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Location Tracking</Text>
+        <View style={styles.settingsCard}>
+          <Text style={styles.metricLabel}>Location Tracking</Text>
           <View style={styles.settingRow}>
-            <Text style={styles.dataRow}>Background Tracking</Text>
+            <Text style={styles.settingText}>Background Tracking</Text>
             <Switch
               value={trackingEnabled}
               onValueChange={handleTrackingToggle}
@@ -446,7 +518,7 @@ export default function App() {
             />
           </View>
           <View style={styles.settingRow}>
-            <Text style={styles.dataRow}>Retention (days)</Text>
+            <Text style={styles.settingText}>Retention (days)</Text>
             <TextInput
               style={styles.retentionInput}
               value={retentionDays}
@@ -456,66 +528,55 @@ export default function App() {
               selectTextOnFocus
             />
           </View>
-          <Text style={styles.locationCount}>
+          <Text style={styles.locationCountText}>
             {locationCount} location{locationCount !== 1 ? "s" : ""} tracked
           </Text>
         </View>
 
         {snapshot && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Health</Text>
-            <Text style={styles.dataRow}>
-              Steps: {snapshot.health.steps ?? "\u2014"}
-            </Text>
-            <Text style={styles.dataRow}>
-              Heart Rate: {snapshot.health.heartRate ?? "\u2014"} bpm
-            </Text>
-            <Text style={styles.dataRow}>
-              Sleep: {snapshot.health.sleepHours ?? "\u2014"} hrs
-            </Text>
-            <Text style={styles.dataRow}>
-              Bedtime: {snapshot.health.bedtime ?? "\u2014"}
-            </Text>
-            <Text style={styles.dataRow}>
-              Wake: {snapshot.health.wakeTime ?? "\u2014"}
-            </Text>
-            <Text style={styles.dataRow}>
-              Active Energy: {snapshot.health.activeEnergy ?? "\u2014"} kcal
-            </Text>
-            <Text style={styles.dataRow}>
-              Distance: {snapshot.health.walkingDistance ?? "\u2014"} km
-            </Text>
-            <Text style={styles.dataRow}>
-              Weight: {snapshot.health.weight ?? "\u2014"} kg
-            </Text>
-            <Text style={styles.dataRow}>
-              Meditation: {snapshot.health.meditationMinutes ?? "\u2014"} min
-            </Text>
-
-            <Text style={[styles.cardTitle, { marginTop: 16 }]}>Location</Text>
-            {snapshot.location ? (
-              <Text style={styles.dataRow}>
-                {snapshot.location.latitude.toFixed(4)},{" "}
-                {snapshot.location.longitude.toFixed(4)}
-              </Text>
-            ) : (
-              <Text style={styles.dataRow}>Unavailable</Text>
+          <>
+            {summaryText.length > 0 && (
+              <View style={styles.summaryBanner}>
+                <Text style={styles.summaryText}>{summaryText}</Text>
+              </View>
             )}
 
-            {snapshot.locationHistory.length > 0 && (
-              <>
-                <Text style={[styles.cardTitle, { marginTop: 16 }]}>
-                  Location History
+            <View style={styles.metricGrid}>
+              {metrics.map((m, i) => (
+                <MetricCard
+                  key={m.label}
+                  label={m.label}
+                  value={m.value}
+                  sublabel={m.sublabel}
+                  fullWidth={
+                    metrics.length % 2 === 1 && i === metrics.length - 1
+                  }
+                />
+              ))}
+            </View>
+
+            <View style={styles.locationCard}>
+              <Text style={styles.metricLabel}>Location</Text>
+              {snapshot.location ? (
+                <Text style={styles.metricValue}>
+                  {snapshot.location.latitude.toFixed(4)},{" "}
+                  {snapshot.location.longitude.toFixed(4)}
                 </Text>
-                <Text style={styles.dataRow}>
+              ) : (
+                <Text style={[styles.metricValue, styles.metricValueNull]}>
+                  Unavailable
+                </Text>
+              )}
+              {snapshot.locationHistory.length > 0 && (
+                <Text style={styles.locationCountText}>
                   {snapshot.locationHistory.length} point
                   {snapshot.locationHistory.length !== 1 ? "s" : ""} in trail
                 </Text>
-              </>
-            )}
+              )}
+            </View>
 
             <Text style={styles.timestamp}>{snapshot.timestamp}</Text>
-          </View>
+          </>
         )}
       </ScrollView>
 
@@ -570,22 +631,90 @@ const styles = StyleSheet.create({
   contentInner: {
     paddingBottom: 20,
   },
-  card: {
+  summaryBanner: {
+    backgroundColor: "#0f3460",
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+  },
+  summaryText: {
+    color: "#ccc",
+    fontSize: 13,
+    textAlign: "center",
+  },
+  metricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  metricCard: {
+    backgroundColor: "#16213e",
+    borderRadius: 12,
+    padding: 16,
+    width: "48%",
+    marginBottom: 10,
+  },
+  metricCardFull: {
+    width: "100%",
+  },
+  metricLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#4cc9f0",
+    marginBottom: 4,
+  },
+  metricValue: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#e0e0e0",
+  },
+  metricValueNull: {
+    color: "#555",
+  },
+  metricSublabel: {
+    fontSize: 11,
+    color: "#888",
+    marginTop: 2,
+  },
+  locationCard: {
+    backgroundColor: "#16213e",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 2,
+  },
+  settingsCard: {
     backgroundColor: "#16213e",
     borderRadius: 12,
     padding: 16,
     marginTop: 12,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#4cc9f0",
-    marginBottom: 8,
+  settingRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
   },
-  dataRow: {
+  settingText: {
     fontSize: 16,
     color: "#ccc",
-    marginBottom: 4,
+  },
+  retentionInput: {
+    backgroundColor: "#1a1a2e",
+    color: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 16,
+    width: 60,
+    textAlign: "center",
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  locationCountText: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 4,
   },
   timestamp: {
     fontSize: 12,
@@ -623,28 +752,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
-  settingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  retentionInput: {
-    backgroundColor: "#1a1a2e",
-    color: "#fff",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    fontSize: 16,
-    width: 60,
-    textAlign: "center",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  locationCount: {
-    fontSize: 13,
-    color: "#888",
-    marginTop: 4,
   },
 });
