@@ -37,46 +37,42 @@ function rejected(reason = "error"): PromiseRejectedResult {
   return { status: "rejected", reason };
 }
 
+function allRejected(): HealthQueryResults {
+  return [rejected(), rejected(), rejected(), rejected(), rejected(), rejected(), rejected()];
+}
+
 describe("ContextSnapshot shape", () => {
   it("has all required top-level keys", () => {
-    const snapshot = buildSnapshot(
-      [rejected(), rejected(), rejected(), rejected(), rejected()],
-      null,
-    );
+    const snapshot = buildSnapshot(allRejected(), null);
     expect(snapshot).toHaveProperty("timestamp");
     expect(snapshot).toHaveProperty("health");
     expect(snapshot).toHaveProperty("location");
   });
 
   it("timestamp is a valid ISO 8601 string", () => {
-    const snapshot = buildSnapshot(
-      [rejected(), rejected(), rejected(), rejected(), rejected()],
-      null,
-    );
+    const snapshot = buildSnapshot(allRejected(), null);
     const parsed = new Date(snapshot.timestamp);
     expect(parsed.toISOString()).toBe(snapshot.timestamp);
   });
 
-  it("health object has all five metric keys", () => {
-    const snapshot = buildSnapshot(
-      [rejected(), rejected(), rejected(), rejected(), rejected()],
-      null,
-    );
+  it("health object has all metric keys", () => {
+    const snapshot = buildSnapshot(allRejected(), null);
     const keys = Object.keys(snapshot.health).sort();
     expect(keys).toEqual([
       "activeEnergy",
+      "bedtime",
       "heartRate",
+      "meditationMinutes",
       "sleepHours",
       "steps",
+      "wakeTime",
       "walkingDistance",
+      "weight",
     ]);
   });
 
   it("location is null when unavailable", () => {
-    const snapshot = buildSnapshot(
-      [rejected(), rejected(), rejected(), rejected(), rejected()],
-      null,
-    );
+    const snapshot = buildSnapshot(allRejected(), null);
     expect(snapshot.location).toBeNull();
   });
 
@@ -86,10 +82,7 @@ describe("ContextSnapshot shape", () => {
       longitude: -122.3321,
       timestamp: Date.now(),
     };
-    const snapshot = buildSnapshot(
-      [rejected(), rejected(), rejected(), rejected(), rejected()],
-      location,
-    );
+    const snapshot = buildSnapshot(allRejected(), location);
     expect(snapshot.location).toEqual(location);
     expect(typeof snapshot.location!.latitude).toBe("number");
     expect(typeof snapshot.location!.longitude).toBe("number");
@@ -108,6 +101,13 @@ describe("ContextSnapshot shape", () => {
           endDate: "2026-03-15T07:00:00.000Z",
         },
       ]),
+      fulfilled({ quantity: 72.5 }),
+      fulfilled([
+        {
+          startDate: "2026-03-15T08:00:00.000Z",
+          endDate: "2026-03-15T08:20:00.000Z",
+        },
+      ]),
     ];
     const location = {
       latitude: 47.6062,
@@ -121,22 +121,27 @@ describe("ContextSnapshot shape", () => {
     expect(snapshot.health.activeEnergy).toBe(450);
     expect(snapshot.health.walkingDistance).toBe(8.25);
     expect(snapshot.health.sleepHours).toBe(8);
+    expect(snapshot.health.bedtime).toBe("2026-03-14T23:00:00.000Z");
+    expect(snapshot.health.wakeTime).toBe("2026-03-15T07:00:00.000Z");
+    expect(snapshot.health.weight).toBe(72.5);
+    expect(snapshot.health.meditationMinutes).toBe(20);
     expect(snapshot.location).toEqual(location);
     expect(typeof snapshot.timestamp).toBe("string");
   });
 
   it("snapshot with all-null health still serializes to valid JSON", () => {
-    const snapshot = buildSnapshot(
-      [rejected(), rejected(), rejected(), rejected(), rejected()],
-      null,
-    );
+    const snapshot = buildSnapshot(allRejected(), null);
     const json = JSON.stringify(snapshot);
     const parsed = JSON.parse(json);
     expect(parsed.health.steps).toBeNull();
     expect(parsed.health.heartRate).toBeNull();
     expect(parsed.health.sleepHours).toBeNull();
+    expect(parsed.health.bedtime).toBeNull();
+    expect(parsed.health.wakeTime).toBeNull();
     expect(parsed.health.activeEnergy).toBeNull();
     expect(parsed.health.walkingDistance).toBeNull();
+    expect(parsed.health.weight).toBeNull();
+    expect(parsed.health.meditationMinutes).toBeNull();
     expect(parsed.location).toBeNull();
   });
 });
