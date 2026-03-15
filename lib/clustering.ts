@@ -185,10 +185,30 @@ function buildCluster(id: string, points: LocationPoint[]): PlaceCluster {
 
 // ─── Main Entry Point ────────────────────────────────────────────────────────
 
+const MAX_CLUSTER_POINTS = 500;
+
+/**
+ * Downsample points by keeping every Nth point to stay under limit.
+ * Always keeps the first and last point.
+ */
+export function downsample(points: LocationPoint[], maxPoints = MAX_CLUSTER_POINTS): LocationPoint[] {
+  if (points.length <= maxPoints) return points;
+  const step = points.length / maxPoints;
+  const result: LocationPoint[] = [];
+  for (let i = 0; i < maxPoints; i++) {
+    result.push(points[Math.floor(i * step)]);
+  }
+  if (result[result.length - 1] !== points[points.length - 1]) {
+    result[result.length - 1] = points[points.length - 1];
+  }
+  return result;
+}
+
 /**
  * Cluster location history into places.
+ * Downsamples to 500 points if needed for performance.
  * @param points Raw GPS points from SQLite
- * @param epsMeters Distance threshold (default 150m)
+ * @param epsMeters Distance threshold (default 50m)
  * @param minPts Minimum points per cluster (default 3)
  */
 export function clusterLocations(
@@ -200,7 +220,8 @@ export function clusterLocations(
     return { clusters: [], noiseCount: 0, summary: "" };
   }
 
-  const labels = dbscan(points, epsMeters, minPts);
+  const sampled = downsample(points);
+  const labels = dbscan(sampled, epsMeters, minPts);
 
   // Group points by cluster
   const groups = new Map<number, LocationPoint[]>();
@@ -212,7 +233,7 @@ export function clusterLocations(
       continue;
     }
     if (!groups.has(labels[i])) groups.set(labels[i], []);
-    groups.get(labels[i])!.push(points[i]);
+    groups.get(labels[i])!.push(sampled[i]);
   }
 
   // Build clusters, sorted by dwell time descending

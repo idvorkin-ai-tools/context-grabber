@@ -354,6 +354,7 @@ export default function App() {
   const [locationStorageBytes, setLocationStorageBytes] = useState(0);
   const [dbReady, setDbReady] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
   const [settingsVisible, setSettingsVisible] = useState(false);
 
   // Initialize database on mount
@@ -758,7 +759,7 @@ export default function App() {
     if (!snapshot) return;
     setSharing(true);
     try {
-      // Use cached weekly data when available, only fetch what's missing
+      setShareStatus("Fetching health data...");
       const metricKeys: MetricKey[] = [
         "steps", "heartRate", "sleep", "activeEnergy", "walkingDistance",
         "weight", "meditation", "hrv", "restingHeartRate", "exerciseMinutes",
@@ -778,12 +779,15 @@ export default function App() {
         restingHeartRate: allMetrics[8] as DailyValue[],
         exerciseMinutes: allMetrics[9] as DailyValue[],
       };
-      // Cluster location history instead of sharing raw points
       let locationSummary: LocationSummary | null = null;
       if (snapshot.locationHistory.length > 0) {
+        setShareStatus(`Clustering ${snapshot.locationHistory.length} locations...`);
+        // Yield to UI before heavy computation
+        await new Promise((r) => setTimeout(r, 0));
         const { clusters, summary } = clusterLocations(snapshot.locationHistory);
         locationSummary = { clusters, summary };
       }
+      setShareStatus("Sharing...");
       const summaryExport = buildSummaryExport(weeklyData, locationSummary);
       const json = JSON.stringify(summaryExport, null, 2);
       await Share.share({
@@ -794,6 +798,7 @@ export default function App() {
       setError(e.message ?? "Failed to build share data");
     } finally {
       setSharing(false);
+      setShareStatus("");
     }
   }
 
@@ -1065,7 +1070,7 @@ export default function App() {
               disabled={sharing}
             >
               <Text style={styles.buttonText}>
-                {sharing ? "Preparing..." : "\u2197 Summary"}
+                {sharing ? (shareStatus || "Preparing...") : "\u2197 Summary"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
