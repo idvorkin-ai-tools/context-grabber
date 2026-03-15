@@ -14,8 +14,31 @@ export type HealthData = {
   activeEnergy: number | null;
   walkingDistance: number | null;
   weight: number | null;
+  weightDaysLast7: number | null;
   meditationMinutes: number | null;
 };
+
+export type WeightSample = {
+  startDate: string | Date;
+  quantity: number;
+};
+
+/**
+ * Count distinct days with weight measurements from an array of samples.
+ * Returns null if samples is empty or undefined.
+ */
+export function countWeightDays(samples: WeightSample[] | undefined): number | null {
+  if (!samples || samples.length === 0) {
+    return null;
+  }
+  const days = new Set(
+    samples.map((s) => {
+      const d = new Date(s.startDate);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    }),
+  );
+  return days.size;
+}
 
 export type SleepSample = {
   startDate: string | Date;
@@ -90,6 +113,7 @@ export type HealthQueryResults = [
   PromiseSettledResult<SleepSample[]>,
   PromiseSettledResult<{ quantity: number } | null>,
   PromiseSettledResult<MindfulSession[]>,
+  PromiseSettledResult<WeightSample[]>,
 ];
 
 /**
@@ -97,7 +121,7 @@ export type HealthQueryResults = [
  * Rejected promises produce null for that metric — never throws.
  */
 export function buildHealthData(results: HealthQueryResults): HealthData {
-  const [steps, heartRate, activeEnergy, walkingDistance, sleep, weight, meditation] = results;
+  const [steps, heartRate, activeEnergy, walkingDistance, sleep, weight, meditation, weightSamples] = results;
 
   const sleepSamples =
     sleep.status === "fulfilled" ? sleep.value : undefined;
@@ -127,6 +151,10 @@ export function buildHealthData(results: HealthQueryResults): HealthData {
     weight:
       weight.status === "fulfilled"
         ? extractWeight(weight.value)
+        : null,
+    weightDaysLast7:
+      weightSamples.status === "fulfilled"
+        ? countWeightDays(weightSamples.value)
         : null,
     meditationMinutes:
       meditation.status === "fulfilled"

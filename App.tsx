@@ -370,6 +370,11 @@ export default function App() {
       date: { startDate: yesterday, endDate: now },
     };
 
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const weightWeekFilter = {
+      date: { startDate: sevenDaysAgo, endDate: now },
+    };
+
     const results = await Promise.allSettled([
       HealthKit.queryStatisticsForQuantity(QTI.stepCount, ["cumulativeSum"], {
         filter: dateFilter,
@@ -391,6 +396,10 @@ export default function App() {
       HealthKit.queryCategorySamples(CTI.mindfulSession, {
         limit: 0,
         filter: dateFilter,
+      }),
+      HealthKit.queryQuantitySamples(QTI.bodyMass, {
+        limit: 0,
+        filter: weightWeekFilter,
       }),
     ]);
 
@@ -504,7 +513,10 @@ export default function App() {
         {
           label: "Weight",
           value: h?.weight != null ? `${h.weight} kg` : "\u2014",
-          sublabel: "latest",
+          sublabel:
+            h?.weightDaysLast7 != null
+              ? `${h.weightDaysLast7}/7 days weighed`
+              : "latest",
         },
         {
           label: "Meditation",

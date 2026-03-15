@@ -36,6 +36,7 @@ jest.mock('@kingstinct/react-native-healthkit', () => ({
     queryStatisticsForQuantity: jest.fn().mockResolvedValue({ sumQuantity: { quantity: 0 } }),
     getMostRecentQuantitySample: jest.fn().mockResolvedValue(null),
     queryCategorySamples: jest.fn().mockResolvedValue([]),
+    queryQuantitySamples: jest.fn().mockResolvedValue([]),
   },
 }));
 

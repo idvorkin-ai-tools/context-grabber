@@ -2,9 +2,11 @@ import {
   calculateSleepHours,
   calculateMeditationMinutes,
   extractWeight,
+  countWeightDays,
   buildHealthData,
   type SleepSample,
   type MindfulSession,
+  type WeightSample,
   type HealthQueryResults,
 } from "../lib/health";
 
@@ -91,6 +93,7 @@ describe("buildHealthData", () => {
       rejected(),
       rejected(),
       rejected(),
+      rejected(),
     ];
     expect(buildHealthData(results)).toEqual({
       steps: null,
@@ -101,6 +104,7 @@ describe("buildHealthData", () => {
       activeEnergy: null,
       walkingDistance: null,
       weight: null,
+      weightDaysLast7: null,
       meditationMinutes: null,
     });
   });
@@ -124,6 +128,11 @@ describe("buildHealthData", () => {
           endDate: "2026-03-15T08:15:00.000Z",
         },
       ]),
+      fulfilled([
+        { startDate: "2026-03-14T08:00:00.000Z", quantity: 75.5 },
+        { startDate: "2026-03-13T08:00:00.000Z", quantity: 75.4 },
+        { startDate: "2026-03-11T08:00:00.000Z", quantity: 75.3 },
+      ]),
     ];
     const data = buildHealthData(results);
     expect(data.steps).toBe(8433);
@@ -134,6 +143,7 @@ describe("buildHealthData", () => {
     expect(data.bedtime).toBe("2026-03-14T23:00:00.000Z");
     expect(data.wakeTime).toBe("2026-03-15T07:00:00.000Z");
     expect(data.weight).toBe(75.5);
+    expect(data.weightDaysLast7).toBe(3);
     expect(data.meditationMinutes).toBe(15);
   });
 
@@ -146,11 +156,13 @@ describe("buildHealthData", () => {
       fulfilled([]),
       fulfilled(null),
       fulfilled([]),
+      fulfilled([]),
     ];
     const data = buildHealthData(results);
     expect(data.heartRate).toBeNull();
     expect(data.sleepHours).toBeNull();
     expect(data.weight).toBeNull();
+    expect(data.weightDaysLast7).toBeNull();
     expect(data.meditationMinutes).toBeNull();
   });
 
@@ -160,6 +172,7 @@ describe("buildHealthData", () => {
       rejected(),
       fulfilled({}),
       fulfilled({ sumQuantity: undefined }),
+      rejected(),
       rejected(),
       rejected(),
       rejected(),
@@ -184,6 +197,9 @@ describe("buildHealthData", () => {
       ]),
       fulfilled({ quantity: 80.123 }),
       rejected("no mindful data"),
+      fulfilled([
+        { startDate: "2026-03-15T08:00:00.000Z", quantity: 80.123 },
+      ]),
     ];
     const data = buildHealthData(results);
     expect(data.steps).toBe(5000);
@@ -192,6 +208,7 @@ describe("buildHealthData", () => {
     expect(data.walkingDistance).toBeNull();
     expect(data.sleepHours).toBe(3.5);
     expect(data.weight).toBe(80.12);
+    expect(data.weightDaysLast7).toBe(1);
     expect(data.meditationMinutes).toBeNull();
   });
 });
@@ -205,6 +222,30 @@ describe("extractWeight", () => {
   it("returns kg when present", () => {
     expect(extractWeight({ quantity: 75.5 })).toBe(75.5);
     expect(extractWeight({ quantity: 80.123 })).toBe(80.12);
+  });
+});
+
+describe("countWeightDays", () => {
+  it("returns null for undefined or empty input", () => {
+    expect(countWeightDays(undefined)).toBeNull();
+    expect(countWeightDays([])).toBeNull();
+  });
+
+  it("counts distinct days from weight samples", () => {
+    const samples: WeightSample[] = [
+      { startDate: "2026-03-14T08:00:00.000Z", quantity: 75.5 },
+      { startDate: "2026-03-14T20:00:00.000Z", quantity: 75.6 }, // same day
+      { startDate: "2026-03-13T08:00:00.000Z", quantity: 75.4 },
+      { startDate: "2026-03-11T08:00:00.000Z", quantity: 75.3 },
+    ];
+    expect(countWeightDays(samples)).toBe(3);
+  });
+
+  it("returns 1 for a single sample", () => {
+    const samples: WeightSample[] = [
+      { startDate: "2026-03-14T08:00:00.000Z", quantity: 75.5 },
+    ];
+    expect(countWeightDays(samples)).toBe(1);
   });
 });
 

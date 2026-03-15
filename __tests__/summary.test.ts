@@ -11,6 +11,7 @@ function makeHealth(overrides: Partial<HealthData> = {}): HealthData {
     activeEnergy: 450,
     walkingDistance: 5.3,
     weight: null,
+    weightDaysLast7: null,
     meditationMinutes: null,
     ...overrides,
   };
