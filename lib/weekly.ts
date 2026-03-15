@@ -16,23 +16,24 @@ export type MetricKey =
   | "weight"
   | "meditation";
 
-export type ChartType = "bar" | "line" | "range";
+export type ChartType = "bar" | "line";
 
 export type MetricConfig = {
   label: string;
   unit: string;
+  color: string;
   chartType: ChartType;
-  decimals: number;
+  sublabel: string;
 };
 
 export const METRIC_CONFIG: Record<MetricKey, MetricConfig> = {
-  steps: { label: "Steps", unit: "steps", chartType: "bar", decimals: 0 },
-  heartRate: { label: "Heart Rate", unit: "bpm", chartType: "range", decimals: 0 },
-  sleep: { label: "Sleep", unit: "hrs", chartType: "bar", decimals: 1 },
-  activeEnergy: { label: "Active Energy", unit: "kcal", chartType: "bar", decimals: 0 },
-  walkingDistance: { label: "Walking Distance", unit: "km", chartType: "bar", decimals: 2 },
-  weight: { label: "Weight", unit: "kg", chartType: "line", decimals: 1 },
-  meditation: { label: "Meditation", unit: "min", chartType: "bar", decimals: 0 },
+  steps: { label: "Steps", unit: "steps", color: "#4cc9f0", chartType: "bar", sublabel: "today" },
+  heartRate: { label: "Heart Rate", unit: "bpm", color: "#f72585", chartType: "line", sublabel: "latest" },
+  sleep: { label: "Sleep", unit: "hrs", color: "#7b2cbf", chartType: "bar", sublabel: "last night" },
+  activeEnergy: { label: "Active Energy", unit: "kcal", color: "#ff9e00", chartType: "bar", sublabel: "today" },
+  walkingDistance: { label: "Walking Distance", unit: "km", color: "#06d6a0", chartType: "bar", sublabel: "today" },
+  weight: { label: "Weight", unit: "kg", color: "#4895ef", chartType: "line", sublabel: "latest" },
+  meditation: { label: "Meditation", unit: "min", color: "#e0aaff", chartType: "bar", sublabel: "today" },
 };
 
 /** A single-value day bucket (used by most metrics). */
