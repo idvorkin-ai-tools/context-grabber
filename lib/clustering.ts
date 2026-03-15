@@ -66,12 +66,16 @@ export function dbscan(
   let clusterId = 0;
 
   // Grid-based spatial index for fast neighbor lookups
-  // Cell size ~epsMeters in degrees (rough: 1 degree lat ≈ 111km)
-  const cellSize = epsMeters / 111000;
+  // Use median latitude to compute longitude cell size (accounts for latitude shrinkage)
+  const latitudes = points.map((p) => p.latitude).sort((a, b) => a - b);
+  const medianLat = latitudes[Math.floor(latitudes.length / 2)];
+  const latCellSize = epsMeters / 111000; // 1 degree lat ≈ 111km everywhere
+  const lngCellSize = epsMeters / (111000 * Math.cos(medianLat * DEG_TO_RAD)); // shrinks at higher latitudes
+
   const grid = new Map<string, number[]>();
   for (let i = 0; i < n; i++) {
-    const cx = Math.floor(points[i].latitude / cellSize);
-    const cy = Math.floor(points[i].longitude / cellSize);
+    const cx = Math.floor(points[i].latitude / latCellSize);
+    const cy = Math.floor(points[i].longitude / lngCellSize);
     const key = `${cx},${cy}`;
     if (!grid.has(key)) grid.set(key, []);
     grid.get(key)!.push(i);
@@ -81,8 +85,8 @@ export function dbscan(
   const neighbors: number[][] = new Array(n);
   for (let i = 0; i < n; i++) {
     neighbors[i] = [];
-    const cx = Math.floor(points[i].latitude / cellSize);
-    const cy = Math.floor(points[i].longitude / cellSize);
+    const cx = Math.floor(points[i].latitude / latCellSize);
+    const cy = Math.floor(points[i].longitude / lngCellSize);
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         const cell = grid.get(`${cx + dx},${cy + dy}`);
