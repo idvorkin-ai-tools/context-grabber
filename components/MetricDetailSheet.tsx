@@ -1,0 +1,410 @@
+import React, { useEffect, useRef } from "react";
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  PanResponder,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+  ActivityIndicator,
+} from "react-native";
+import {
+  METRIC_CONFIG,
+  computeAverage,
+  type MetricKey,
+  type DailyValue,
+  type HeartRateDaily,
+} from "../lib/weekly";
+import { formatNumber } from "../lib/summary";
+import BarChart from "./BarChart";
+import LineChart from "./LineChart";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type MetricDetailSheetProps = {
+  metricKey: MetricKey;
+  currentValue: string;
+  currentSublabel: string;
+  data: DailyValue[] | HeartRateDaily[] | null; // null = loading
+  error: string | null;
+  onClose: () => void;
+};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const DISMISS_THRESHOLD = 100;
+const SWIPE_START_THRESHOLD = 10;
+const ANIMATION_DURATION = 300;
+const OVERLAY_MAX_OPACITY = 0.6;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDayRow(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+  return `${days[d.getUTCDay()]}, ${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
+}
+
+function isHeartRateData(
+  data: DailyValue[] | HeartRateDaily[],
+): data is HeartRateDaily[] {
+  return data.length > 0 && "avg" in data[0];
+}
+
+function formatHeartRateRow(item: HeartRateDaily): string {
+  if (item.avg === null) return "—";
+  const avg = Math.round(item.avg);
+  if (item.min !== null && item.max !== null) {
+    return `${avg} avg (${Math.round(item.min)}–${Math.round(item.max)})`;
+  }
+  return `${avg}`;
+}
+
+function formatDailyValue(item: DailyValue, unit: string): string {
+  if (item.value === null) return "—";
+  const formatted = Number.isInteger(item.value)
+    ? formatNumber(item.value)
+    : item.value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return `${formatted} ${unit}`;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function MetricDetailSheet({
+  metricKey,
+  currentValue,
+  currentSublabel,
+  data,
+  error,
+  onClose,
+}: MetricDetailSheetProps): React.ReactElement {
+  const screenHeight = Dimensions.get("window").height;
+  const config = METRIC_CONFIG[metricKey];
+
+  // Single animated value drives translateY (0 = visible) and overlay opacity.
+  const animValue = useRef(new Animated.Value(0)).current;
+
+  // Secondary animated value for snap-back during pan gesture.
+  const panOffset = useRef(new Animated.Value(0)).current;
+
+  // Entry animation on mount.
+  useEffect(() => {
+    Animated.timing(animValue, {
+      toValue: 1,
+      duration: ANIMATION_DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [animValue]);
+
+  function dismiss() {
+    Animated.timing(animValue, {
+      toValue: 0,
+      duration: ANIMATION_DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => onClose());
+  }
+
+  // Derived animated styles from animValue (0 = offscreen, 1 = visible).
+  const sheetTranslateY = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [screenHeight, 0],
+  });
+
+  const overlayOpacity = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, OVERLAY_MAX_OPACITY],
+  });
+
+  // Combined translateY: entry animation + pan offset.
+  const combinedTranslateY = Animated.add(sheetTranslateY, panOffset);
+
+  // PanResponder for swipe-to-dismiss on header+chart zone only.
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_evt, gestureState) =>
+        gestureState.dy > SWIPE_START_THRESHOLD,
+      onPanResponderMove: (_evt, gestureState) => {
+        // Clamp to >= 0 (no upward drag past 0).
+        const clamped = Math.max(0, gestureState.dy);
+        panOffset.setValue(clamped);
+      },
+      onPanResponderRelease: (_evt, gestureState) => {
+        if (gestureState.dy > DISMISS_THRESHOLD) {
+          dismiss();
+        } else {
+          // Snap back.
+          Animated.timing(panOffset, {
+            toValue: 0,
+            duration: 200,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        Animated.timing(panOffset, {
+          toValue: 0,
+          duration: 200,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start();
+      },
+    }),
+  ).current;
+
+  // ─── Average ────────────────────────────────────────────────────────────────
+
+  let averageText: string | null = null;
+  if (data !== null && !error) {
+    if (isHeartRateData(data)) {
+      // Build DailyValue array from avg values for computeAverage.
+      const asDaily: DailyValue[] = data.map((d) => ({
+        date: d.date,
+        value: d.avg,
+      }));
+      const avg = computeAverage(asDaily);
+      if (avg !== null) {
+        averageText = `Avg: ${formatNumber(Math.round(avg))} ${config.unit}/day`;
+      }
+    } else {
+      const avg = computeAverage(data);
+      if (avg !== null) {
+        const formatted = Number.isInteger(avg)
+          ? formatNumber(avg)
+          : avg.toLocaleString("en-US", { maximumFractionDigits: 2 });
+        averageText = `Avg: ${formatted} ${config.unit}/day`;
+      }
+    }
+  }
+
+  // ─── Daily rows (most recent first) ─────────────────────────────────────────
+
+  let dailyRows: React.ReactElement[] | null = null;
+  if (data !== null && !error) {
+    const reversed = [...data].reverse();
+    const isHR = isHeartRateData(reversed as DailyValue[] | HeartRateDaily[]);
+
+    dailyRows = reversed.map((item, index) => {
+      const dayLabel = formatDayRow(item.date);
+      const valueLabel = isHR
+        ? formatHeartRateRow(item as HeartRateDaily)
+        : formatDailyValue(item as DailyValue, config.unit);
+
+      return (
+        <View
+          key={item.date}
+          style={[styles.dayRow, index > 0 && styles.dayRowDivider]}
+        >
+          <Text style={styles.dayRowLabel}>{dayLabel}</Text>
+          <Text style={styles.dayRowValue}>{valueLabel}</Text>
+        </View>
+      );
+    });
+  }
+
+  // ─── Chart ──────────────────────────────────────────────────────────────────
+
+  let chartContent: React.ReactElement;
+  if (data === null) {
+    chartContent = (
+      <View style={styles.chartPlaceholder}>
+        <ActivityIndicator color={config.color} size="large" />
+      </View>
+    );
+  } else if (error) {
+    chartContent = (
+      <View style={styles.chartPlaceholder}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  } else if (config.chartType === "bar") {
+    chartContent = (
+      <BarChart data={data as DailyValue[]} color={config.color} unit={config.unit} />
+    );
+  } else {
+    chartContent = (
+      <LineChart data={data} color={config.color} unit={config.unit} />
+    );
+  }
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      {/* Overlay — taps dismiss */}
+      <TouchableWithoutFeedback onPress={dismiss}>
+        <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} />
+      </TouchableWithoutFeedback>
+
+      {/* Sheet */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { transform: [{ translateY: combinedTranslateY }] },
+        ]}
+      >
+        {/* PanResponder zone: drag handle + header + current value + chart */}
+        <View {...panResponder.panHandlers}>
+          {/* Drag handle */}
+          <View style={styles.dragHandleRow}>
+            <View style={styles.dragHandle} />
+          </View>
+
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={[styles.headerTitle, { color: config.color }]}>
+              {config.label}
+            </Text>
+            <Text style={styles.closeButton} onPress={dismiss}>
+              ✕
+            </Text>
+          </View>
+
+          {/* Current value */}
+          <View style={styles.currentValueContainer}>
+            <Text style={styles.currentValue}>{currentValue}</Text>
+            <Text style={styles.currentSublabel}>{currentSublabel}</Text>
+          </View>
+
+          {/* Chart */}
+          <View style={styles.chartContainer}>{chartContent}</View>
+
+          {/* Average line */}
+          {averageText !== null && (
+            <Text style={[styles.averageText, { color: config.color }]}>
+              {averageText}
+            </Text>
+          )}
+        </View>
+
+        {/* Daily breakdown — separate from PanResponder */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {dailyRows}
+        </ScrollView>
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "black",
+  },
+  sheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#111828",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: "90%",
+  },
+  dragHandleRow: {
+    alignItems: "center",
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  dragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#444",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  closeButton: {
+    fontSize: 18,
+    color: "#888",
+    paddingLeft: 16,
+    paddingVertical: 4,
+  },
+  currentValueContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  currentValue: {
+    fontSize: 36,
+    fontWeight: "700",
+    color: "white",
+  },
+  currentSublabel: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 2,
+  },
+  chartContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  chartPlaceholder: {
+    height: 230,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "#888",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  averageText: {
+    fontSize: 13,
+    textAlign: "center",
+    paddingBottom: 12,
+  },
+  scrollView: {
+    flexShrink: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+  },
+  dayRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  dayRowDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#222",
+  },
+  dayRowLabel: {
+    fontSize: 14,
+    color: "#ccc",
+  },
+  dayRowValue: {
+    fontSize: 14,
+    color: "white",
+    fontWeight: "500",
+  },
+});
