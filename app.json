@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "context-grabber-app",
+    "name": "Context Grabber",
     "slug": "context-grabber-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,16 +12,32 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.idvorkin.contextgrabber",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "Context Grabber reads your health data (steps, heart rate, sleep) to provide context for your AI life coach.",
+        "NSLocationWhenInUseUsageDescription": "Context Grabber uses your location to provide context for your AI life coach.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Context Grabber tracks your location in the background to provide context for your AI life coach."
+      }
     },
+    "plugins": [
+      ["@kingstinct/react-native-healthkit", {
+        "NSHealthShareUsageDescription": "Context Grabber reads your health data (steps, heart rate, sleep) to provide context for your AI life coach."
+      }],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Context Grabber uses your location to provide context for your AI life coach."
+        }
+      ]
+    ],
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
