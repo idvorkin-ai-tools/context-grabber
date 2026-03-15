@@ -6,7 +6,7 @@ generate-version:
 
 # Deploy OTA update to production channel (used by `just deploy` builds)
 ota message="OTA update": generate-version
-    CI=1 npx eas-cli update --branch production --message "{{message}}" --environment production
+    CI=1 npx eas-cli update --branch production --message "{{message}}" --environment production --platform ios
 
 # Run tests
 test:
