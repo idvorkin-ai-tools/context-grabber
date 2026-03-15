@@ -15,14 +15,8 @@ import type {
   QuantityTypeIdentifier,
   CategoryTypeIdentifier,
 } from "@kingstinct/react-native-healthkit";
-
-type HealthData = {
-  steps: number | null;
-  heartRate: number | null;
-  sleepHours: number | null;
-  activeEnergy: number | null;
-  walkingDistance: number | null;
-};
+import type { HealthData } from "./lib/health";
+import { buildSummary, formatNumber } from "./lib/summary";
 
 type LocationData = {
   latitude: number;
@@ -48,6 +42,26 @@ const QTI = {
 const CTI = {
   sleep: "HKCategoryTypeIdentifierSleepAnalysis" as CategoryTypeIdentifier,
 };
+
+type MetricCardProps = {
+  label: string;
+  value: string;
+  sublabel: string;
+  fullWidth?: boolean;
+};
+
+function MetricCard({ label, value, sublabel, fullWidth }: MetricCardProps) {
+  const isNull = value === "\u2014";
+  return (
+    <View style={[styles.metricCard, fullWidth && styles.metricCardFull]}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={[styles.metricValue, isNull && styles.metricValueNull]}>
+        {value}
+      </Text>
+      <Text style={styles.metricSublabel}>{sublabel}</Text>
+    </View>
+  );
+}
 
 export default function App() {
   const [snapshot, setSnapshot] = useState<ContextSnapshot | null>(null);
@@ -168,6 +182,56 @@ export default function App() {
     });
   }
 
+  const summaryText = snapshot
+    ? buildSummary(snapshot.health, 0)
+    : "";
+
+  const h = snapshot?.health;
+
+  // Build metric cards data
+  const metrics: MetricCardProps[] = snapshot
+    ? [
+        {
+          label: "Steps",
+          value: h?.steps != null ? formatNumber(h.steps) : "\u2014",
+          sublabel: "today",
+        },
+        {
+          label: "Heart Rate",
+          value: h?.heartRate != null ? `${h.heartRate} bpm` : "\u2014",
+          sublabel: "latest",
+        },
+        {
+          label: "Sleep",
+          value: h?.sleepHours != null ? `${h.sleepHours} hrs` : "\u2014",
+          sublabel:
+            h?.bedtime && h?.wakeTime
+              ? `${h.bedtime} \u2013 ${h.wakeTime}`
+              : "last night",
+        },
+        {
+          label: "Active Energy",
+          value: h?.activeEnergy != null ? `${formatNumber(h.activeEnergy)} kcal` : "\u2014",
+          sublabel: "today",
+        },
+        {
+          label: "Walking Distance",
+          value: h?.walkingDistance != null ? `${h.walkingDistance} km` : "\u2014",
+          sublabel: "today",
+        },
+        {
+          label: "Weight",
+          value: h?.weight != null ? `${h.weight} kg` : "\u2014",
+          sublabel: "latest",
+        },
+        {
+          label: "Meditation",
+          value: h?.meditationMinutes != null ? `${h.meditationMinutes} min` : "\u2014",
+          sublabel: "today",
+        },
+      ]
+    : [];
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -189,36 +253,43 @@ export default function App() {
         )}
 
         {snapshot && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Health</Text>
-            <Text style={styles.dataRow}>
-              Steps: {snapshot.health.steps ?? "—"}
-            </Text>
-            <Text style={styles.dataRow}>
-              Heart Rate: {snapshot.health.heartRate ?? "—"} bpm
-            </Text>
-            <Text style={styles.dataRow}>
-              Sleep: {snapshot.health.sleepHours ?? "—"} hrs
-            </Text>
-            <Text style={styles.dataRow}>
-              Active Energy: {snapshot.health.activeEnergy ?? "—"} kcal
-            </Text>
-            <Text style={styles.dataRow}>
-              Distance: {snapshot.health.walkingDistance ?? "—"} km
-            </Text>
-
-            <Text style={[styles.cardTitle, { marginTop: 16 }]}>Location</Text>
-            {snapshot.location ? (
-              <Text style={styles.dataRow}>
-                {snapshot.location.latitude.toFixed(4)},{" "}
-                {snapshot.location.longitude.toFixed(4)}
-              </Text>
-            ) : (
-              <Text style={styles.dataRow}>Unavailable</Text>
+          <>
+            {summaryText.length > 0 && (
+              <View style={styles.summaryBanner}>
+                <Text style={styles.summaryText}>{summaryText}</Text>
+              </View>
             )}
 
+            <View style={styles.metricGrid}>
+              {metrics.map((m, i) => (
+                <MetricCard
+                  key={m.label}
+                  label={m.label}
+                  value={m.value}
+                  sublabel={m.sublabel}
+                  fullWidth={
+                    metrics.length % 2 === 1 && i === metrics.length - 1
+                  }
+                />
+              ))}
+            </View>
+
+            <View style={styles.locationCard}>
+              <Text style={styles.metricLabel}>Location</Text>
+              {snapshot.location ? (
+                <Text style={styles.metricValue}>
+                  {snapshot.location.latitude.toFixed(4)},{" "}
+                  {snapshot.location.longitude.toFixed(4)}
+                </Text>
+              ) : (
+                <Text style={[styles.metricValue, styles.metricValueNull]}>
+                  Unavailable
+                </Text>
+              )}
+            </View>
+
             <Text style={styles.timestamp}>{snapshot.timestamp}</Text>
-          </View>
+          </>
         )}
       </ScrollView>
 
@@ -273,22 +344,57 @@ const styles = StyleSheet.create({
   contentInner: {
     paddingBottom: 20,
   },
-  card: {
+  summaryBanner: {
+    backgroundColor: "#0f3460",
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+  },
+  summaryText: {
+    color: "#ccc",
+    fontSize: 13,
+    textAlign: "center",
+  },
+  metricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  metricCard: {
     backgroundColor: "#16213e",
     borderRadius: 12,
     padding: 16,
-    marginTop: 12,
+    width: "48%",
+    marginBottom: 10,
   },
-  cardTitle: {
-    fontSize: 18,
+  metricCardFull: {
+    width: "100%",
+  },
+  metricLabel: {
+    fontSize: 13,
     fontWeight: "600",
     color: "#4cc9f0",
-    marginBottom: 8,
-  },
-  dataRow: {
-    fontSize: 16,
-    color: "#ccc",
     marginBottom: 4,
+  },
+  metricValue: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#e0e0e0",
+  },
+  metricValueNull: {
+    color: "#555",
+  },
+  metricSublabel: {
+    fontSize: 11,
+    color: "#888",
+    marginTop: 2,
+  },
+  locationCard: {
+    backgroundColor: "#16213e",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 2,
   },
   timestamp: {
     fontSize: 12,
