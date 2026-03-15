@@ -4,6 +4,9 @@ import {
   downsample,
   clusterLocations,
   formatClusterSummary,
+  formatTimelineSummary,
+  formatLocalTime,
+  buildTimeline,
   type LocationPoint,
   type PlaceCluster,
 } from "../lib/clustering";
@@ -245,8 +248,8 @@ describe("clusterLocations", () => {
       pt(47.6000 + i * 0.0001, -122.3000, ts + i * hourMs),
     );
     const result = clusterLocations(points, 500, 3);
-    expect(result.summary).toContain("Place 1:");
-    expect(result.summary).toContain("h");
+    expect(result.summary).toContain("Place 1");
+    expect(result.summary).toContain("h)"); // e.g. "(4h)"
   });
 });
 
@@ -381,5 +384,101 @@ describe("formatClusterSummary", () => {
       },
     ];
     expect(formatClusterSummary(clusters)).toBe("Place 1: 5h, Place 2: 1.2h");
+  });
+});
+
+// ─── formatLocalTime ─────────────────────────────────────────────────────────
+
+describe("formatLocalTime", () => {
+  it("formats midnight", () => {
+    const ts = new Date(2026, 2, 15, 0, 0, 0).getTime();
+    expect(formatLocalTime(ts)).toBe("Sun 12am");
+  });
+
+  it("formats noon", () => {
+    const ts = new Date(2026, 2, 15, 12, 0, 0).getTime();
+    expect(formatLocalTime(ts)).toBe("Sun 12pm");
+  });
+
+  it("formats time with minutes", () => {
+    const ts = new Date(2026, 2, 15, 22, 30, 0).getTime();
+    expect(formatLocalTime(ts)).toBe("Sun 10:30pm");
+  });
+});
+
+// ─── Timeline ────────────────────────────────────────────────────────────────
+
+describe("buildTimeline and formatTimelineSummary", () => {
+  it("builds timeline from clustered points", () => {
+    // Home 10pm-6am, Work 9am-5pm
+    const homeCluster: PlaceCluster = {
+      id: "place_1", center: { latitude: 47.6062, longitude: -122.3321 },
+      radiusMeters: 30, pointCount: 5, dwellTimeHours: 8,
+      firstVisit: 0, lastVisit: 0,
+    };
+    const workCluster: PlaceCluster = {
+      id: "place_2", center: { latitude: 47.62, longitude: -122.35 },
+      radiusMeters: 50, pointCount: 5, dwellTimeHours: 8,
+      firstVisit: 0, lastVisit: 0,
+    };
+
+    const hourMs = 60 * 60 * 1000;
+    const base = new Date(2026, 2, 14, 22, 0, 0).getTime(); // Sat 10pm
+
+    const points: LocationPoint[] = [];
+    const labels: number[] = [];
+
+    // Home: 10pm-6am (label 0)
+    for (let i = 0; i < 5; i++) {
+      points.push({ latitude: 47.6062, longitude: -122.3321, accuracy: 10, timestamp: base + i * hourMs });
+      labels.push(0);
+    }
+    // Transit (label -1)
+    points.push({ latitude: 47.61, longitude: -122.34, accuracy: 50, timestamp: base + 11 * hourMs });
+    labels.push(-1);
+    // Work: 9am-5pm (label 1)
+    for (let i = 0; i < 5; i++) {
+      points.push({ latitude: 47.62, longitude: -122.35, accuracy: 10, timestamp: base + 11 * hourMs + (i + 1) * hourMs });
+      labels.push(1);
+    }
+
+    const timeline = buildTimeline(points, labels, [homeCluster, workCluster]);
+    // Short transit should be merged away, leaving Home and Work
+    expect(timeline.length).toBeGreaterThanOrEqual(2);
+    expect(timeline[0].placeId).toBe("place_1");
+    expect(timeline[timeline.length - 1].placeId).toBe("place_2");
+  });
+
+  it("clusterLocations returns timeline", () => {
+    const hourMs = 60 * 60 * 1000;
+    const base = Date.UTC(2026, 2, 15, 0, 0, 0);
+    const points: LocationPoint[] = [];
+
+    // 10 points at home over 10 hours
+    for (let i = 0; i < 10; i++) {
+      points.push({
+        latitude: 47.6062 + (Math.random() - 0.5) * 0.0001,
+        longitude: -122.3321 + (Math.random() - 0.5) * 0.0001,
+        accuracy: 10,
+        timestamp: base + i * hourMs,
+      });
+    }
+
+    const result = clusterLocations(points, 50, 3);
+    expect(result.timeline.length).toBeGreaterThanOrEqual(1);
+    expect(result.timeline[0].placeId).toBe("place_1");
+    expect(result.timeline[0].durationHours).toBeGreaterThan(0);
+  });
+
+  it("formats timeline summary as run-length string", () => {
+    const timeline = [
+      { placeId: "place_1", center: { latitude: 0, longitude: 0 }, startTime: "Sat 10pm", endTime: "Sun 6am", durationHours: 8 },
+      { placeId: "place_2", center: { latitude: 0, longitude: 0 }, startTime: "Sun 9am", endTime: "Sun 5pm", durationHours: 8 },
+    ];
+    const summary = formatTimelineSummary(timeline);
+    expect(summary).toContain("Place 1");
+    expect(summary).toContain("Place 2");
+    expect(summary).toContain("10pm");
+    expect(summary).toContain("8h");
   });
 });

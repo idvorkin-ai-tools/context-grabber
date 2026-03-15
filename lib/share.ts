@@ -4,7 +4,7 @@
  */
 
 import type { DailyValue, HeartRateDaily } from "./weekly";
-import type { PlaceCluster } from "./clustering";
+import type { PlaceCluster, PlaceVisit } from "./clustering";
 
 export type DailyExportEntry = {
   date: string; // "YYYY-MM-DD"
@@ -23,6 +23,7 @@ export type DailyExportEntry = {
 
 export type LocationSummary = {
   clusters: PlaceCluster[];
+  timeline: PlaceVisit[];
   summary: string;
 };
 

@@ -784,8 +784,8 @@ export default function App() {
         setShareStatus(`Clustering ${snapshot.locationHistory.length} locations...`);
         // Yield to UI before heavy computation
         await new Promise((r) => setTimeout(r, 0));
-        const { clusters, summary } = clusterLocations(snapshot.locationHistory);
-        locationSummary = { clusters, summary };
+        const { clusters, timeline, summary } = clusterLocations(snapshot.locationHistory);
+        locationSummary = { clusters, timeline, summary };
       }
       setShareStatus("Sharing...");
       const summaryExport = buildSummaryExport(weeklyData, locationSummary);
@@ -807,8 +807,8 @@ export default function App() {
     // Cluster location history instead of sharing raw points
     let locationClusters: LocationSummary | null = null;
     if (snapshot.locationHistory.length > 0) {
-      const { clusters, summary } = clusterLocations(snapshot.locationHistory);
-      locationClusters = { clusters, summary };
+      const { clusters, timeline, summary } = clusterLocations(snapshot.locationHistory);
+      locationClusters = { clusters, timeline, summary };
     }
     const rawExport = {
       timestamp: snapshot.timestamp,

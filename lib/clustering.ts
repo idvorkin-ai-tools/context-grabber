@@ -23,8 +23,17 @@ export type PlaceCluster = {
   lastVisit: number; // UTC unix ms
 };
 
+export type PlaceVisit = {
+  placeId: string; // "place_1", "place_2", or "transit"
+  center: { latitude: number; longitude: number };
+  startTime: string; // local time e.g. "Mon 10:00pm"
+  endTime: string;
+  durationHours: number;
+};
+
 export type ClusterResult = {
   clusters: PlaceCluster[];
+  timeline: PlaceVisit[];
   noiseCount: number;
   summary: string;
 };
@@ -190,6 +199,139 @@ function buildCluster(id: string, points: LocationPoint[]): PlaceCluster {
   };
 }
 
+// ─── Timeline (Run-Length Encoding) ──────────────────────────────────────────
+
+const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Format a UTC timestamp as local time: "Mon 10:00pm" */
+export function formatLocalTime(ts: number): string {
+  const d = new Date(ts);
+  const day = DAY_NAMES_SHORT[d.getDay()];
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const period = h >= 12 ? "pm" : "am";
+  h = h % 12 || 12;
+  const time = m === 0 ? `${h}${period}` : `${h}:${String(m).padStart(2, "0")}${period}`;
+  return `${day} ${time}`;
+}
+
+/**
+ * Build a timeline of place visits from labeled points.
+ * Walk through points in time order. Consecutive points at the same
+ * cluster become one visit. Noise points become "transit" visits.
+ * Short transit gaps (< gapThresholdMs) between same-place visits are merged.
+ */
+export function buildTimeline(
+  points: LocationPoint[],
+  labels: number[],
+  clusters: PlaceCluster[],
+  gapThresholdMs = 30 * 60 * 1000, // 30 minutes
+): PlaceVisit[] {
+  if (points.length === 0) return [];
+
+  // Map union-find root labels to sorted cluster objects
+  const labelToCluster = new Map<number, PlaceCluster>();
+  const uniqueLabels = [...new Set(labels.filter((l) => l !== -1))];
+  // Group points by label to match with clusters by point count + center
+  const labelPoints = new Map<number, LocationPoint[]>();
+  for (let i = 0; i < labels.length; i++) {
+    if (labels[i] === -1) continue;
+    if (!labelPoints.has(labels[i])) labelPoints.set(labels[i], []);
+    labelPoints.get(labels[i])!.push(points[i]);
+  }
+  // Match labels to clusters by comparing centers
+  for (const label of uniqueLabels) {
+    const pts = labelPoints.get(label)!;
+    const avgLat = pts.reduce((s, p) => s + p.latitude, 0) / pts.length;
+    const avgLng = pts.reduce((s, p) => s + p.longitude, 0) / pts.length;
+    // Find matching cluster by closest center
+    let bestCluster = clusters[0];
+    let bestDist = Infinity;
+    for (const c of clusters) {
+      const d = Math.abs(c.center.latitude - Math.round(avgLat * 10000) / 10000) +
+                Math.abs(c.center.longitude - Math.round(avgLng * 10000) / 10000);
+      if (d < bestDist) { bestDist = d; bestCluster = c; }
+    }
+    labelToCluster.set(label, bestCluster);
+  }
+
+  // Sort indices by timestamp
+  const indices = Array.from({ length: points.length }, (_, i) => i);
+  indices.sort((a, b) => points[a].timestamp - points[b].timestamp);
+
+  // Walk through sorted points, building visits
+  type RawVisit = { placeId: string; center: { latitude: number; longitude: number }; startTs: number; endTs: number };
+  const rawVisits: RawVisit[] = [];
+
+  let currentPlaceId: string | null = null;
+  let currentCenter = { latitude: 0, longitude: 0 };
+  let visitStart = 0;
+  let visitEnd = 0;
+
+  for (const idx of indices) {
+    const label = labels[idx];
+    const ts = points[idx].timestamp;
+    let placeId: string;
+    let center: { latitude: number; longitude: number };
+
+    if (label === -1) {
+      placeId = "transit";
+      center = { latitude: points[idx].latitude, longitude: points[idx].longitude };
+    } else {
+      const cluster = labelToCluster.get(label)!;
+      placeId = cluster.id;
+      center = cluster.center;
+    }
+
+    if (placeId === currentPlaceId) {
+      visitEnd = ts;
+    } else {
+      if (currentPlaceId !== null) {
+        rawVisits.push({ placeId: currentPlaceId, center: currentCenter, startTs: visitStart, endTs: visitEnd });
+      }
+      currentPlaceId = placeId;
+      currentCenter = center;
+      visitStart = ts;
+      visitEnd = ts;
+    }
+  }
+  if (currentPlaceId !== null) {
+    rawVisits.push({ placeId: currentPlaceId, center: currentCenter, startTs: visitStart, endTs: visitEnd });
+  }
+
+  // Merge: if same place appears with only short transit gap between, merge them
+  const merged: RawVisit[] = [];
+  for (const visit of rawVisits) {
+    if (
+      merged.length > 0 &&
+      visit.placeId !== "transit" &&
+      merged[merged.length - 1].placeId === visit.placeId &&
+      visit.startTs - merged[merged.length - 1].endTs < gapThresholdMs
+    ) {
+      merged[merged.length - 1].endTs = visit.endTs;
+    } else if (
+      visit.placeId === "transit" &&
+      merged.length > 0 &&
+      visit.endTs - visit.startTs < gapThresholdMs
+    ) {
+      // Skip short transit segments — they'll get absorbed by the merge above
+      // Only skip if it's short enough
+      continue;
+    } else {
+      merged.push({ ...visit });
+    }
+  }
+
+  // Convert to PlaceVisit
+  return merged.map((v) => ({
+    placeId: v.placeId,
+    center: v.center,
+    startTime: formatLocalTime(v.startTs),
+    endTime: formatLocalTime(v.endTs),
+    durationHours: Math.round(((v.endTs - v.startTs) / (1000 * 60 * 60)) * 10) / 10,
+  }));
+}
+
 // ─── Main Entry Point ────────────────────────────────────────────────────────
 
 const MAX_CLUSTER_POINTS = 500;
@@ -224,7 +366,7 @@ export function clusterLocations(
   minPts = 3,
 ): ClusterResult {
   if (points.length === 0) {
-    return { clusters: [], noiseCount: 0, summary: "" };
+    return { clusters: [], timeline: [], noiseCount: 0, summary: "" };
   }
 
   const labels = dbscan(points, epsMeters, minPts);
@@ -253,9 +395,10 @@ export function clusterLocations(
   // Renumber IDs after sorting
   clusters.forEach((c, i) => { c.id = `place_${i + 1}`; });
 
-  const summary = formatClusterSummary(clusters);
+  const timeline = buildTimeline(points, labels, clusters);
+  const summary = formatTimelineSummary(timeline);
 
-  return { clusters, noiseCount, summary };
+  return { clusters, timeline, noiseCount, summary };
 }
 
 // ─── Summary Formatting ──────────────────────────────────────────────────────
@@ -268,5 +411,20 @@ export function formatClusterSummary(clusters: PlaceCluster[]): string {
   if (clusters.length === 0) return "";
   return clusters
     .map((c, i) => `Place ${i + 1}: ${c.dwellTimeHours}h`)
+    .join(", ");
+}
+
+/**
+ * Format timeline as run-length encoded summary.
+ * "Place 1 Mon 10pm–Tue 8am (10h), Place 2 Tue 9am–5pm (8h), ..."
+ */
+export function formatTimelineSummary(timeline: PlaceVisit[]): string {
+  if (timeline.length === 0) return "";
+  return timeline
+    .filter((v) => v.durationHours > 0)
+    .map((v) => {
+      const label = v.placeId === "transit" ? "Transit" : v.placeId.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      return `${label} ${v.startTime}\u2013${v.endTime} (${v.durationHours}h)`;
+    })
     .join(", ");
 }
