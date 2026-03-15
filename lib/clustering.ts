@@ -193,7 +193,7 @@ function buildCluster(id: string, points: LocationPoint[]): PlaceCluster {
  */
 export function clusterLocations(
   points: LocationPoint[],
-  epsMeters = 150,
+  epsMeters = 50,
   minPts = 3,
 ): ClusterResult {
   if (points.length === 0) {
