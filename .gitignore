@@ -44,4 +44,4 @@ yarn-error.*
 .worktrees/
 
 # generated version file
-src/generated_version.ts
+lib/generated_version.ts
