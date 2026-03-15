@@ -122,7 +122,9 @@ export function extractWeight(
  * Represents the shape of Promise.allSettled results from HealthKit queries.
  * Index 0: steps (sumQuantity), 1: heartRate (quantity), 2: activeEnergy (sumQuantity),
  * 3: walkingDistance (sumQuantity), 4: sleep (category samples array),
- * 5: weight (quantity), 6: meditation (category samples array).
+ * 5: weight (quantity), 6: meditation (mindful sessions array),
+ * 7: weightSamples (weight samples array), 8: hrv (quantity),
+ * 9: restingHeartRate (quantity), 10: exerciseTime (sumQuantity).
  */
 export type HealthQueryResults = [
   PromiseSettledResult<{ sumQuantity?: { quantity: number } | null }>,

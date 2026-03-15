@@ -352,6 +352,7 @@ export default function App() {
   const [weeklyError, setWeeklyError] = useState<string | null>(null);
   const [locationStorageBytes, setLocationStorageBytes] = useState(0);
   const [dbReady, setDbReady] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   // Initialize database on mount
   useEffect(() => {
@@ -749,6 +750,7 @@ export default function App() {
 
   async function shareSnapshot() {
     if (!snapshot) return;
+    setSharing(true);
     try {
       const allMetrics = await Promise.all([
         grabWeeklyData("steps"),
@@ -782,6 +784,8 @@ export default function App() {
       });
     } catch (e: any) {
       setError(e.message ?? "Failed to build share data");
+    } finally {
+      setSharing(false);
     }
   }
 
@@ -1005,8 +1009,11 @@ export default function App() {
           <TouchableOpacity
             style={[styles.button, styles.shareButton]}
             onPress={shareSnapshot}
+            disabled={sharing}
           >
-            <Text style={styles.buttonText}>Share JSON</Text>
+            <Text style={styles.buttonText}>
+              {sharing ? "Preparing..." : "Share JSON"}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
