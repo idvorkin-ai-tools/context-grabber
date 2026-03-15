@@ -575,9 +575,11 @@ export default function App() {
         return aggregateHeartRate(mapped, now);
       }
       case "sleep": {
+        // Query 8 days back to capture overnight sessions starting before the 7-day window
+        const eightDaysAgo = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000);
         const samples = await HealthKit.queryCategorySamples(CTI.sleep, {
           limit: 0,
-          filter: dateFilter,
+          filter: { date: { startDate: eightDaysAgo, endDate: now } },
         });
         return aggregateSleep([...samples], now);
       }

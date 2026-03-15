@@ -227,6 +227,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    color: "#888",
+    color: "#666",
   },
 });

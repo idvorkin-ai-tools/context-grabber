@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     fontSize: 11,
-    color: "#888",
+    color: "#666",
     textAlign: "center",
     height: LABEL_HEIGHT,
     lineHeight: LABEL_HEIGHT,

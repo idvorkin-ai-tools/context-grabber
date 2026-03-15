@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   currentValue: {
     fontSize: 36,
     fontWeight: "700",
-    color: "white",
+    color: "#e0e0e0",
   },
   currentSublabel: {
     fontSize: 13,
@@ -377,7 +377,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   averageText: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: "600",
     textAlign: "center",
     paddingBottom: 12,
   },
@@ -399,12 +400,12 @@ const styles = StyleSheet.create({
     borderTopColor: "#222",
   },
   dayRowLabel: {
-    fontSize: 14,
-    color: "#ccc",
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#e0e0e0",
   },
   dayRowValue: {
-    fontSize: 14,
-    color: "white",
-    fontWeight: "500",
+    fontSize: 15,
+    color: "#aaa",
   },
 });
