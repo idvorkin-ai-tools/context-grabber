@@ -27,6 +27,16 @@ import { buildHealthData, type HealthData, type HealthQueryResults } from "./lib
 import { pruneThreshold } from "./lib/location";
 import { buildSummary, formatNumber } from "./lib/summary";
 import { getBuildInfo, formatBuildTimestamp } from "./lib/version";
+import {
+  type MetricKey,
+  type DailyValue,
+  type HeartRateDaily,
+  aggregateHeartRate,
+  aggregateSleep,
+  aggregateMeditation,
+  pickLatestPerDay,
+} from "./lib/weekly";
+import MetricDetailSheet from "./components/MetricDetailSheet";
 
 // --- Constants ---
 
@@ -187,22 +197,28 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
 // --- MetricCard Component ---
 
 type MetricCardProps = {
+  metricKey: MetricKey;
   label: string;
   value: string;
   sublabel: string;
   fullWidth?: boolean;
+  onPress: (key: MetricKey) => void;
 };
 
-function MetricCard({ label, value, sublabel, fullWidth }: MetricCardProps) {
+function MetricCard({ metricKey, label, value, sublabel, fullWidth, onPress }: MetricCardProps) {
   const isNull = value === "\u2014";
   return (
-    <View style={[styles.metricCard, fullWidth && styles.metricCardFull]}>
+    <TouchableOpacity
+      style={[styles.metricCard, fullWidth && styles.metricCardFull]}
+      onPress={() => onPress(metricKey)}
+      activeOpacity={0.7}
+    >
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={[styles.metricValue, isNull && styles.metricValueNull]}>
         {value}
       </Text>
       <Text style={styles.metricSublabel}>{sublabel}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -300,6 +316,10 @@ export default function App() {
   const [locationCount, setLocationCount] = useState(0);
   const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
   const [aboutVisible, setAboutVisible] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>(null);
+  const [weeklyCache, setWeeklyCache] = useState<Partial<Record<MetricKey, DailyValue[] | HeartRateDaily[]>>>({});
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
+  const [weeklyError, setWeeklyError] = useState<string | null>(null);
 
   // Initialize database on mount
   useEffect(() => {
@@ -507,9 +527,101 @@ export default function App() {
     };
   }
 
+  async function grabWeeklyData(metric: MetricKey): Promise<DailyValue[] | HeartRateDaily[]> {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const dateFilter = { date: { startDate: sevenDaysAgo, endDate: now } };
+
+    switch (metric) {
+      case "steps":
+      case "activeEnergy":
+      case "walkingDistance": {
+        const identifier =
+          metric === "steps" ? QTI.stepCount
+          : metric === "activeEnergy" ? QTI.activeEnergy
+          : QTI.distance;
+        const dayPromises = Array.from({ length: 7 }, (_, idx) => {
+          const i = 6 - idx;
+          const dayStart = new Date(now);
+          dayStart.setDate(dayStart.getDate() - i);
+          dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(dayStart);
+          dayEnd.setHours(23, 59, 59, 999);
+          const dateKey = `${dayStart.getFullYear()}-${String(dayStart.getMonth() + 1).padStart(2, "0")}-${String(dayStart.getDate()).padStart(2, "0")}`;
+          return HealthKit.queryStatisticsForQuantity(
+            identifier,
+            ["cumulativeSum"],
+            { filter: { date: { startDate: dayStart, endDate: dayEnd } } },
+          )
+            .then((result) => ({
+              date: dateKey,
+              value: result?.sumQuantity?.quantity != null
+                ? Math.round(result.sumQuantity.quantity * 100) / 100
+                : null,
+            }))
+            .catch(() => ({ date: dateKey, value: null }));
+        });
+        return Promise.all(dayPromises);
+      }
+      case "heartRate": {
+        const samples = await HealthKit.queryQuantitySamples(QTI.heartRate, {
+          limit: 0,
+          filter: dateFilter,
+        });
+        const mapped = samples.map((s: any) => ({
+          startDate: new Date(s.startDate),
+          quantity: s.quantity,
+        }));
+        return aggregateHeartRate(mapped, now);
+      }
+      case "sleep": {
+        const samples = await HealthKit.queryCategorySamples(CTI.sleep, {
+          limit: 0,
+          filter: dateFilter,
+        });
+        return aggregateSleep([...samples], now);
+      }
+      case "weight": {
+        const samples = await HealthKit.queryQuantitySamples(QTI.bodyMass, {
+          limit: 0,
+          filter: dateFilter,
+        });
+        const mapped = samples.map((s: any) => ({
+          startDate: new Date(s.startDate),
+          quantity: s.quantity,
+        }));
+        return pickLatestPerDay(mapped, now);
+      }
+      case "meditation": {
+        const sessions = await HealthKit.queryCategorySamples(CTI.mindfulSession, {
+          limit: 0,
+          filter: dateFilter,
+        });
+        return aggregateMeditation([...sessions], now);
+      }
+    }
+  }
+
+  async function handleMetricPress(key: MetricKey) {
+    setSelectedMetric(key);
+    setWeeklyError(null);
+    if (weeklyCache[key]) return;
+    setWeeklyLoading(true);
+    try {
+      const data = await grabWeeklyData(key);
+      setWeeklyCache((prev) => ({ ...prev, [key]: data }));
+    } catch (e: any) {
+      setWeeklyError(e.message ?? "Failed to load weekly data");
+    } finally {
+      setWeeklyLoading(false);
+    }
+  }
+
   async function grabContext() {
     setLoading(true);
     setError(null);
+    setWeeklyCache({});
+    setWeeklyError(null);
     try {
       await HealthKit.requestAuthorization({
         toRead: [
@@ -571,45 +683,59 @@ export default function App() {
   const metrics: MetricCardProps[] = snapshot
     ? [
         {
+          metricKey: "steps" as MetricKey,
           label: "Steps",
           value: h?.steps != null ? formatNumber(h.steps) : "\u2014",
           sublabel: "today",
+          onPress: handleMetricPress,
         },
         {
+          metricKey: "heartRate" as MetricKey,
           label: "Heart Rate",
           value: h?.heartRate != null ? `${h.heartRate} bpm` : "\u2014",
           sublabel: "latest",
+          onPress: handleMetricPress,
         },
         {
+          metricKey: "sleep" as MetricKey,
           label: "Sleep",
           value: h?.sleepHours != null ? `${h.sleepHours} hrs` : "\u2014",
           sublabel:
             h?.bedtime && h?.wakeTime
               ? `${h.bedtime} \u2013 ${h.wakeTime}`
               : "last night",
+          onPress: handleMetricPress,
         },
         {
+          metricKey: "activeEnergy" as MetricKey,
           label: "Active Energy",
           value: h?.activeEnergy != null ? `${formatNumber(h.activeEnergy)} kcal` : "\u2014",
           sublabel: "today",
+          onPress: handleMetricPress,
         },
         {
+          metricKey: "walkingDistance" as MetricKey,
           label: "Walking Distance",
           value: h?.walkingDistance != null ? `${h.walkingDistance} km` : "\u2014",
           sublabel: "today",
+          onPress: handleMetricPress,
         },
         {
+          metricKey: "weight" as MetricKey,
           label: "Weight",
           value: h?.weight != null ? `${h.weight} kg` : "\u2014",
           sublabel:
             h?.weightDaysLast7 != null
               ? `${h.weightDaysLast7}/7 days weighed`
               : "latest",
+          onPress: handleMetricPress,
         },
         {
+          metricKey: "meditation" as MetricKey,
           label: "Meditation",
           value: h?.meditationMinutes != null ? `${h.meditationMinutes} min` : "\u2014",
           sublabel: "today",
+          onPress: handleMetricPress,
         },
       ]
     : [];
@@ -690,12 +816,12 @@ export default function App() {
               {metrics.map((m, i) => (
                 <MetricCard
                   key={m.label}
+                  metricKey={m.metricKey}
                   label={m.label}
                   value={m.value}
                   sublabel={m.sublabel}
-                  fullWidth={
-                    metrics.length % 2 === 1 && i === metrics.length - 1
-                  }
+                  fullWidth={metrics.length % 2 === 1 && i === metrics.length - 1}
+                  onPress={handleMetricPress}
                 />
               ))}
             </View>
@@ -745,6 +871,23 @@ export default function App() {
           </TouchableOpacity>
         )}
       </View>
+      {selectedMetric && (
+        <MetricDetailSheet
+          metricKey={selectedMetric}
+          currentValue={
+            metrics.find((m) => m.metricKey === selectedMetric)?.value ?? "\u2014"
+          }
+          currentSublabel={
+            metrics.find((m) => m.metricKey === selectedMetric)?.sublabel ?? ""
+          }
+          data={weeklyCache[selectedMetric] ?? null}
+          error={weeklyError}
+          onClose={() => {
+            setSelectedMetric(null);
+            setWeeklyError(null);
+          }}
+        />
+      )}
     </View>
   );
 }
