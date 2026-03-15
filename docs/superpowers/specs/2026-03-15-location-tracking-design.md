@@ -23,7 +23,7 @@ Add background geolocation tracking over time to context-grabber, stored locally
 
 ## Architecture
 
-Single-file app (App.tsx) remains the primary structure. Two additions:
+Single-file app (App.tsx) remains the primary structure. It will grow from ~330 to ~500-600 lines — acceptable for a single-screen app with no routing. If it exceeds ~700 lines, extract SQLite and HealthKit helpers into separate modules.
 
 ### 1. Background Location Tracking
 
@@ -34,17 +34,20 @@ Single-file app (App.tsx) remains the primary structure. Two additions:
 - Battery-friendly — uses cell/wifi triangulation, not continuous GPS
 - Requires "Always" location permission
 
+**Critical constraint**: `TaskManager.defineTask()` MUST be called at module scope (top level of the file), outside any React component. This is an expo-task-manager requirement — placing it inside `App()` will silently fail.
+
 **Flow**:
-1. User enables tracking via toggle in the UI
+1. User enables tracking via toggle in the UI (opt-in, defaults to off)
 2. App requests background location permission
-3. Registers `TaskManager.defineTask()` for location updates
+3. Background task (defined at module scope) handles location events
 4. On each location event: insert into SQLite, prune old entries
 5. Toggle state persisted in SQLite settings table
 
 ### 2. Sleep Detail Extraction
 
 Derive bedtime and wake-up time from existing `HKCategoryTypeIdentifierSleepAnalysis` query:
-- **Bedtime**: `startDate` of first `inBed` or `asleep` sample in the sleep window
+- Sort sleep samples by `startDate` ascending before extracting times
+- **Bedtime**: `startDate` of first sample in the sleep window
 - **Wake time**: `endDate` of last sample in the sleep window
 - No new HealthKit queries needed — uses same data we already fetch
 
@@ -62,22 +65,27 @@ CREATE TABLE IF NOT EXISTS locations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
-  timestamp INTEGER NOT NULL  -- UTC unix milliseconds
+  accuracy REAL,                        -- meters, from coords.accuracy
+  timestamp INTEGER NOT NULL            -- UTC unix milliseconds
 );
 
-CREATE INDEX idx_locations_timestamp ON locations(timestamp);
+CREATE INDEX IF NOT EXISTS idx_locations_timestamp ON locations(timestamp);
 
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+-- Schema versioning
+INSERT OR IGNORE INTO settings (key, value) VALUES ('schema_version', '1');
 ```
 
 **Settings keys**:
-- `tracking_enabled`: "true" / "false"
+- `schema_version`: current schema version (for future migrations)
+- `tracking_enabled`: "true" / "false" (default "false" — opt-in)
 - `retention_days`: number as string (default "30")
 
-**Pruning**: On each insert, delete rows where `timestamp < now - (retention_days * 86400000)`.
+**Pruning**: On app foreground (not every insert), delete rows where `timestamp < now - (retention_days * 86400000)`. Also prune immediately when user reduces retention days.
 
 **Data volume**: ~50 points/day x 30 days = ~1,500 rows. Trivial for SQLite.
 
@@ -102,34 +110,40 @@ type ContextSnapshot = {
     longitude: number;
     timestamp: number;                  // UTC unix ms
   } | null;
-  locationHistory: Array<{             // NEW
+  locationHistory: Array<{             // NEW — full retention window
     latitude: number;
     longitude: number;
+    accuracy: number | null;            // meters
     timestamp: number;                  // UTC unix ms
   }>;
-  settings: {                          // NEW
-    retentionDays: number;
-    trackingEnabled: boolean;
-  };
 };
 ```
 
+Note: `settings` removed from export — it's app metadata, not user context. The AI coach doesn't need to know retention config.
+
+**Export window**: Full retention period (all stored locations). At ~1,500 points max, the JSON is ~100KB — fine for share sheet. The AI receiving it can filter/cluster as needed.
+
 ## New Dependencies
 
-- `expo-task-manager` — background task registration (npm install required)
+- `expo-task-manager` — background task registration (npm install required, add to plugins array in app.json)
 - `expo-sqlite` — already included in Expo SDK 55 (no install needed)
 
 ## Permissions Changes
 
-**app.json additions**:
+**app.json additions** (merged with existing infoPlist, not replacing):
 ```json
 {
+  "plugins": [
+    "expo-task-manager"
+  ],
   "infoPlist": {
     "UIBackgroundModes": ["location"],
     "NSLocationAlwaysAndWhenInUseUsageDescription": "Context Grabber tracks your location in the background to build a location history for your AI life coach."
   }
 }
 ```
+
+Existing `NSLocationWhenInUseUsageDescription` and `NSHealthShareUsageDescription` entries remain unchanged.
 
 **Runtime**: Request `Location.requestBackgroundPermissionsAsync()` when user enables tracking.
 
@@ -150,10 +164,15 @@ type ContextSnapshot = {
 - Background permission denied: show message, keep toggle off
 - SQLite errors: log, don't crash — location tracking is best-effort
 - Sleep sample edge cases (no data, single sample): return null for bedtime/wakeTime
+- Missing settings rows: default to tracking_enabled=false, retention_days=30
 
 ## File Changes
 
-- `App.tsx` — all changes (background task definition, SQLite setup, sleep extraction, UI additions)
-- `app.json` — permission descriptions and UIBackgroundModes
+- `App.tsx` — all changes (background task at module scope, SQLite setup, sleep extraction, UI additions)
+- `app.json` — permission descriptions, UIBackgroundModes, expo-task-manager plugin
 - `package.json` — add expo-task-manager dependency
 - `CLAUDE.md` — update to reflect new capabilities
+
+## Platform Note
+
+This app is iOS-only. All `expo-location` timestamps are milliseconds since epoch on iOS. No Android considerations needed.
