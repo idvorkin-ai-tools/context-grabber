@@ -39,9 +39,9 @@ describe("App rendering", () => {
     expect(getByText("Grab Context")).toBeTruthy();
   });
 
-  it("does not show Share JSON button initially", async () => {
-    const { queryByText } = await renderApp();
-    expect(queryByText("Share JSON")).toBeNull();
+  it("shows Share JSON button after auto-grab on startup", async () => {
+    const { getByText } = await renderApp();
+    expect(getByText("Share JSON")).toBeTruthy();
   });
 
   it("shows tracking settings card with toggle and retention input", async () => {
@@ -89,23 +89,21 @@ describe("App interactions", () => {
   });
 
   it("shows Grabbing... while loading", async () => {
-    // Make health request hang so we can see the loading state
+    // Make health request hang so we can see the loading state (auto-grab triggers on mount)
     let resolveAuth: () => void;
     const authPromise = new Promise<void>((resolve) => {
       resolveAuth = resolve;
     });
     (HealthKit.requestAuthorization as jest.Mock).mockReturnValue(authPromise);
 
-    const { getByText } = await renderApp();
+    const result = render(<App />);
 
-    fireEvent.press(getByText("Grab Context"));
-
-    // Need a microtask tick for setState(loading=true) to take effect
+    // Auto-grab fires on mount, so we should see Grabbing...
     await act(async () => {
       await flushPromises();
     });
 
-    expect(getByText("Grabbing...")).toBeTruthy();
+    expect(result.getByText("Grabbing...")).toBeTruthy();
 
     // Resolve to clean up
     await act(async () => {
@@ -140,16 +138,8 @@ describe("App interactions", () => {
     expect(getByText("Meditation")).toBeTruthy();
   });
 
-  it("shows Share JSON button after grabbing", async () => {
-    const { getByText, queryByText } = await renderApp();
-
-    expect(queryByText("Share JSON")).toBeNull();
-
-    await act(async () => {
-      fireEvent.press(getByText("Grab Context"));
-      await flushPromises();
-    });
-
+  it("shows Share JSON button after auto-grab", async () => {
+    const { getByText } = await renderApp();
     expect(getByText("Share JSON")).toBeTruthy();
   });
 
@@ -302,6 +292,7 @@ describe("Dashboard display after grab", () => {
   });
 
   it("shows summary banner with step count", async () => {
+    // Set up mocks before render so auto-grab picks them up
     (HealthKit.queryStatisticsForQuantity as jest.Mock)
       .mockResolvedValueOnce({ sumQuantity: { quantity: 8432 } }) // steps
       .mockResolvedValueOnce({ sumQuantity: { quantity: 312 } }) // active energy
@@ -313,12 +304,7 @@ describe("Dashboard display after grab", () => {
 
     const { getByText } = await renderApp();
 
-    await act(async () => {
-      fireEvent.press(getByText("Grab Context"));
-      await flushPromises();
-    });
-
-    // Summary banner should contain steps
+    // Auto-grab should have completed with the mocked data
     expect(getByText(/8,432 steps/)).toBeTruthy();
   });
 

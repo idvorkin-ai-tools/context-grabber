@@ -22,19 +22,26 @@ Main UI in `App.tsx` with pure functions extracted into `lib/` modules. Press "G
 
 ## Build & Run
 
+**Prefer `just` commands over running raw commands.** The justfile handles dependencies like version generation automatically.
+
 ```bash
-npm install
-npx expo prebuild --platform ios
-cd ios && pod install && cd ..
-npx expo run:ios --device   # physical iPhone required (HealthKit needs real device)
+just setup        # npm install, prebuild, pod install
+just deploy       # build release and install on iPhone (supports OTA updates)
+just build        # build debug and install on iPhone (needs Metro, no OTA)
+just dev          # start Metro dev server (for debug builds)
+just ota "msg"    # deploy OTA update to production channel
+just test         # run tests
 ```
+
+- `just deploy` — standalone release build. App works without Mac, receives OTA updates.
+- `just build` — debug build. Requires `just dev` running for Metro. Faster iteration, no OTA.
 
 Requires Xcode, Apple ID for signing, Developer Mode on iPhone. Free Apple ID = 7-day app expiry.
 
 ## Testing
 
 ```bash
-npm test          # or: npx jest
+just test         # or: npm test / npx jest
 ```
 
 Tests live in `__tests__/` and cover pure functions only (no device/HealthKit mocking needed):

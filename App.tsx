@@ -158,6 +158,13 @@ async function getLocationCount(db: SQLite.SQLiteDatabase): Promise<number> {
   return row?.count ?? 0;
 }
 
+async function getLocationStorageBytes(db: SQLite.SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ size: number }>(
+    "SELECT SUM(LENGTH(latitude) + LENGTH(longitude) + LENGTH(accuracy) + LENGTH(timestamp) + 20) as size FROM locations",
+  );
+  return row?.size ?? 0;
+}
+
 async function getLocationHistory(
   db: SQLite.SQLiteDatabase,
 ): Promise<LocationHistoryItem[]> {
@@ -339,6 +346,8 @@ export default function App() {
   const [weeklyCache, setWeeklyCache] = useState<Partial<Record<MetricKey, DailyValue[] | HeartRateDaily[]>>>({});
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [weeklyError, setWeeklyError] = useState<string | null>(null);
+  const [locationStorageBytes, setLocationStorageBytes] = useState(0);
+  const [dbReady, setDbReady] = useState(false);
 
   // Initialize database on mount
   useEffect(() => {
@@ -361,12 +370,24 @@ export default function App() {
         await pruneLocations(database, parseInt(days, 10) || 30);
         const countAfterPrune = await getLocationCount(database);
         setLocationCount(countAfterPrune);
+        const storageBytes = await getLocationStorageBytes(database);
+        setLocationStorageBytes(storageBytes);
+        setDbReady(true);
       } catch (e: any) {
         console.error("DB init error:", e);
         setError("Database unavailable. Location tracking and history won't work.");
       }
     })();
   }, []);
+
+  // Auto-grab context on startup once DB is ready
+  const hasAutoGrabbed = useRef(false);
+  useEffect(() => {
+    if (dbReady && !hasAutoGrabbed.current) {
+      hasAutoGrabbed.current = true;
+      grabContext();
+    }
+  }, [dbReady]);
 
   // Prune on app foreground
   useEffect(() => {
@@ -667,6 +688,8 @@ export default function App() {
         try {
           locationHistory = await getLocationHistory(db);
           setLocationCount(locationHistory.length);
+          const storageBytes = await getLocationStorageBytes(db);
+          setLocationStorageBytes(storageBytes);
         } catch (e) {
           console.error("Failed to fetch location history:", e);
         }
@@ -688,7 +711,8 @@ export default function App() {
 
   async function shareSnapshot() {
     if (!snapshot) return;
-    const json = JSON.stringify(snapshot, null, 2);
+    const { location, locationHistory, ...shareData } = snapshot;
+    const json = JSON.stringify(shareData, null, 2);
     await Share.share({
       message: json,
       title: "Context Grabber Snapshot",
@@ -822,6 +846,13 @@ export default function App() {
           </View>
           <Text style={styles.locationCountText}>
             {locationCount} location{locationCount !== 1 ? "s" : ""} tracked
+            {locationStorageBytes > 0
+              ? ` (${locationStorageBytes > 1024 * 1024
+                  ? `${(locationStorageBytes / (1024 * 1024)).toFixed(1)} MB`
+                  : locationStorageBytes > 1024
+                    ? `${(locationStorageBytes / 1024).toFixed(1)} KB`
+                    : `${locationStorageBytes} B`})`
+              : ""}
           </Text>
         </View>
 
