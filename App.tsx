@@ -628,7 +628,7 @@ export default function App() {
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? "Grabbing..." : "Grab Context"}
+            {loading ? "Grabbing... ⏳" : "🤏 Grab Context"}
           </Text>
         </TouchableOpacity>
 
