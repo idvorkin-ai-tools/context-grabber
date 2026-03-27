@@ -42,7 +42,7 @@ import {
   formatDateKey,
 } from "./lib/weekly";
 import { buildSummaryExport, type WeeklyDataMap, type LocationSummary } from "./lib/share";
-import { clusterLocations } from "./lib/clustering";
+import { clusterLocations, clusterLocationsV2 } from "./lib/clustering_v2";
 import { type KnownPlace } from "./lib/places";
 import { computeBoxPlotStats, extractValues, type BoxPlotStats } from "./lib/stats";
 import {
@@ -462,6 +462,7 @@ export default function App() {
   const [trackingExpanded, setTrackingExpanded] = useState(false);
   const [placesExpanded, setPlacesExpanded] = useState(false);
   const [locationExpanded, setLocationExpanded] = useState(false);
+  const [locationSummaryText, setLocationSummaryText] = useState<string | null>(null);
   const [debugExpanded, setDebugExpanded] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<string | null>(null);
 
@@ -1502,7 +1503,13 @@ export default function App() {
 
             <TouchableOpacity
               style={styles.locationCard}
-              onPress={() => setLocationExpanded(true)}
+              onPress={() => {
+                setLocationExpanded(true);
+                if (snapshot.locationHistory.length > 0 && !locationSummaryText) {
+                  const v2 = clusterLocationsV2(snapshot.locationHistory, knownPlaces);
+                  setLocationSummaryText(v2.summaryRecent + "\n\n" + v2.summaryWeekly);
+                }
+              }}
               testID="location-card"
             >
               <Text style={styles.metricLabel}>Location</Text>
@@ -1552,6 +1559,12 @@ export default function App() {
                         {snapshot.locationHistory.length} point{snapshot.locationHistory.length !== 1 ? "s" : ""} in trail
                       </Text>
                     )}
+                    {locationSummaryText && (
+                      <Text style={{ color: "#ccc", fontSize: 12, fontFamily: "Courier", marginTop: 12 }}>
+                        {locationSummaryText}
+                      </Text>
+                    )}
+
                     <TouchableOpacity
                       style={[styles.addPlaceButton, { marginTop: 12 }]}
                       onPress={handleDownloadDatabase}

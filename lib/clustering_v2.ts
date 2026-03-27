@@ -462,6 +462,70 @@ export function clusterLocationsV2(
   return { stays, transit, summaryRecent, summaryWeekly };
 }
 
+// ─── v1-Compatible Wrapper ───────────────────────────────────────────────────
+
+import type { PlaceCluster, PlaceVisit, ClusterResult } from "./clustering";
+
+/**
+ * Drop-in replacement for clusterLocations() from clustering.ts.
+ * Uses the v2 temporal algorithm but returns the v1 output shape.
+ */
+export function clusterLocations(
+  points: LocationPoint[],
+  _epsMeters?: number,
+  _minPts?: number,
+  knownPlaces: KnownPlace[] = [],
+): ClusterResult {
+  const v2 = clusterLocationsV2(points, knownPlaces);
+
+  // Convert stays to PlaceCluster[]
+  // Group stays by placeId to build cluster-level stats
+  const placeStays = new Map<string, Stay[]>();
+  for (const s of v2.stays) {
+    if (!placeStays.has(s.placeId)) placeStays.set(s.placeId, []);
+    placeStays.get(s.placeId)!.push(s);
+  }
+
+  const clusters: PlaceCluster[] = [];
+  for (const [placeId, stays] of placeStays) {
+    const totalPoints = stays.reduce((sum, s) => sum + s.pointCount, 0);
+    const totalMinutes = stays.reduce((sum, s) => sum + s.durationMinutes, 0);
+    const firstVisit = Math.min(...stays.map((s) => s.startTime));
+    const lastVisit = Math.max(...stays.map((s) => s.endTime));
+    // Use the centroid of the longest stay as the cluster center
+    const longest = stays.reduce((a, b) => a.durationMinutes > b.durationMinutes ? a : b);
+    clusters.push({
+      id: placeId,
+      center: { latitude: longest.centroid.latitude, longitude: longest.centroid.longitude },
+      radiusMeters: 0, // v2 doesn't compute per-cluster radius
+      pointCount: totalPoints,
+      dwellTimeHours: Math.round(totalMinutes / 6) / 10,
+      firstVisit,
+      lastVisit,
+    });
+  }
+  clusters.sort((a, b) => b.dwellTimeHours - a.dwellTimeHours);
+
+  // Convert stays to PlaceVisit[] timeline
+  const timeline: PlaceVisit[] = v2.stays
+    .filter((s) => s.durationMinutes > 0)
+    .map((s) => ({
+      placeId: s.placeId,
+      center: { latitude: s.centroid.latitude, longitude: s.centroid.longitude },
+      startTime: formatLocalTime(s.startTime),
+      endTime: formatLocalTime(s.endTime),
+      durationHours: Math.round(s.durationMinutes / 6) / 10,
+    }));
+
+  // Build summary in v1 format (flat timeline string)
+  const summary = timeline
+    .filter((v) => v.durationHours >= 0.5)
+    .map((v) => `${v.placeId} ${v.startTime}\u2013${v.endTime} (${v.durationHours}h)`)
+    .join(", ");
+
+  return { clusters, timeline, noiseCount: 0, summary };
+}
+
 // Export internals for testing
 export { detectStays, mergeStays, assignPlaces, buildTransit, buildSummaryRecent, buildSummaryWeekly };
 export { STAY_RADIUS, MIN_STAY_DURATION, MAX_POINT_GAP, MERGE_GAP, MIN_TRANSIT_SUMMARY, RECENT_DAYS };

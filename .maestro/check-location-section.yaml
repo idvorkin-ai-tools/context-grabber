@@ -6,8 +6,6 @@ appId: com.idvorkin.contextgrabber
     label: "Refresh"
 - waitForAnimationToEnd:
     timeout: 10000
-- scroll
-- takeScreenshot: /tmp/maestro_location_card
 - tapOn:
     id: "location-card"
 - waitForAnimationToEnd:
