@@ -1503,13 +1503,10 @@ export default function App() {
 
             <TouchableOpacity
               style={styles.locationCard}
-              onPress={() => setLocationExpanded(!locationExpanded)}
+              onPress={() => setLocationExpanded(true)}
               testID="location-card"
             >
-              <View style={styles.settingRow}>
-                <Text style={styles.metricLabel}>Location</Text>
-                <Text style={{ color: "#888", fontSize: 16 }}>{locationExpanded ? "\u25B2" : "\u25BC"}</Text>
-              </View>
+              <Text style={styles.metricLabel}>Location</Text>
               {snapshot.location ? (
                 <Text style={styles.metricValue}>
                   {snapshot.location.latitude.toFixed(4)},{" "}
@@ -1528,120 +1525,147 @@ export default function App() {
               )}
             </TouchableOpacity>
 
-            {locationExpanded && (
-              <View style={styles.locationCard}>
-                <TouchableOpacity
-                  style={styles.addPlaceButton}
-                  onPress={handleDownloadDatabase}
-                  testID="export-db-button"
-                >
-                  <Text style={styles.addPlaceButtonText} testID="export-db-status">
-                    {dbExportStatus ?? "Export Database"}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setPlacesExpanded(!placesExpanded)}
-                  style={[styles.settingRow, { marginTop: 12 }]}
-                >
-                  <Text style={styles.metricLabel}>Known Places ({knownPlaces.length})</Text>
-                  <Text style={{ color: "#888", fontSize: 16 }}>{placesExpanded ? "\u25B2" : "\u25BC"}</Text>
-                </TouchableOpacity>
-                {placesExpanded && (
-                <>
-                  <Text style={styles.locationCountText}>
-                    GPS points within radius will use these names instead of generic "Place N" labels
-                  </Text>
-
-                  {knownPlaces.map((place) => (
-                    <View key={place.id} style={styles.knownPlaceRow}>
-                      <View style={styles.knownPlaceInfo}>
-                        <Text style={styles.knownPlaceName}>{place.name}</Text>
-                        <Text style={styles.knownPlaceDetail}>
-                          {place.latitude.toFixed(4)}, {place.longitude.toFixed(4)} ({place.radiusMeters}m)
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => handleDeletePlace(place.id)}
-                        style={styles.knownPlaceDelete}
-                      >
-                        <Text style={styles.knownPlaceDeleteText}>X</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-
-                  <View style={styles.addPlaceForm}>
-                    <TextInput
-                      style={styles.addPlaceInput}
-                      placeholder="Name"
-                      placeholderTextColor="#666"
-                      value={newPlaceName}
-                      onChangeText={setNewPlaceName}
-                    />
-                    <View style={styles.addPlaceCoordRow}>
-                      <TextInput
-                        style={[styles.addPlaceInput, styles.addPlaceCoordInput]}
-                        placeholder="Latitude"
-                        placeholderTextColor="#666"
-                        value={newPlaceLat}
-                        onChangeText={setNewPlaceLat}
-                        keyboardType="decimal-pad"
-                      />
-                      <TextInput
-                        style={[styles.addPlaceInput, styles.addPlaceCoordInput]}
-                        placeholder="Longitude"
-                        placeholderTextColor="#666"
-                        value={newPlaceLng}
-                        onChangeText={setNewPlaceLng}
-                        keyboardType="decimal-pad"
-                      />
-                    </View>
-                    <View style={styles.addPlaceCoordRow}>
-                      <TextInput
-                        style={[styles.addPlaceInput, styles.addPlaceCoordInput]}
-                        placeholder="Radius (m)"
-                        placeholderTextColor="#666"
-                        value={newPlaceRadius}
-                        onChangeText={setNewPlaceRadius}
-                        keyboardType="number-pad"
-                      />
-                      <TouchableOpacity
-                        style={[styles.addPlaceButton, { backgroundColor: "#3d405b" }]}
-                        onPress={handleUseCurrentLocation}
-                      >
-                        <Text style={styles.addPlaceButtonText}>Use Current</Text>
-                      </TouchableOpacity>
-                    </View>
-                    {gpsStatus && (
-                      <Text style={styles.locationCountText}>{gpsStatus}</Text>
+            <Modal
+              visible={locationExpanded}
+              animationType="slide"
+              presentationStyle="pageSheet"
+              onRequestClose={() => setLocationExpanded(false)}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Location</Text>
+                  <TouchableOpacity onPress={() => setLocationExpanded(false)} style={styles.modalCloseButton}>
+                    <Text style={styles.modalCloseText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={styles.modalContent} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 300 }}>
+                  <View style={styles.aboutCard}>
+                    <Text style={styles.metricLabel}>Current Location</Text>
+                    {snapshot.location ? (
+                      <Text style={styles.metricValue}>
+                        {snapshot.location.latitude.toFixed(4)}, {snapshot.location.longitude.toFixed(4)}
+                      </Text>
+                    ) : (
+                      <Text style={[styles.metricValue, styles.metricValueNull]}>Unavailable</Text>
+                    )}
+                    {snapshot.locationHistory.length > 0 && (
+                      <Text style={styles.locationCountText}>
+                        {snapshot.locationHistory.length} point{snapshot.locationHistory.length !== 1 ? "s" : ""} in trail
+                      </Text>
                     )}
                     <TouchableOpacity
-                      style={styles.addPlaceButton}
-                      onPress={handleAddPlace}
+                      style={[styles.addPlaceButton, { marginTop: 12 }]}
+                      onPress={handleDownloadDatabase}
+                      testID="export-db-button"
                     >
-                      <Text style={styles.addPlaceButtonText}>Add Place</Text>
+                      <Text style={styles.addPlaceButtonText} testID="export-db-status">
+                        {dbExportStatus ?? "Export Database"}
+                      </Text>
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={[styles.knownPlaceName, { marginTop: 16 }]}>Import JSON</Text>
-                  <TextInput
-                    style={[styles.addPlaceInput, { height: 80, textAlignVertical: "top" }]}
-                    placeholder='[{"name":"Home","lat":47.64,"lon":-122.30,"radiusMeters":100}]'
-                    placeholderTextColor="#555"
-                    value={importJson}
-                    onChangeText={setImportJson}
-                    multiline
-                  />
-                  <TouchableOpacity
-                    style={styles.addPlaceButton}
-                    onPress={() => handleImportPlacesJson(importJson)}
-                  >
-                    <Text style={styles.addPlaceButtonText}>Import Places</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+                  <View style={styles.aboutCard}>
+                    <TouchableOpacity onPress={() => setPlacesExpanded(!placesExpanded)} style={styles.settingRow}>
+                      <Text style={styles.metricLabel}>Known Places ({knownPlaces.length})</Text>
+                      <Text style={{ color: "#888", fontSize: 16 }}>{placesExpanded ? "\u25B2" : "\u25BC"}</Text>
+                    </TouchableOpacity>
+                    {placesExpanded && (
+                      <>
+                        <Text style={styles.locationCountText}>
+                          GPS points within radius will use these names instead of generic "Place N" labels
+                        </Text>
+
+                        {knownPlaces.map((place) => (
+                          <View key={place.id} style={styles.knownPlaceRow}>
+                            <View style={styles.knownPlaceInfo}>
+                              <Text style={styles.knownPlaceName}>{place.name}</Text>
+                              <Text style={styles.knownPlaceDetail}>
+                                {place.latitude.toFixed(4)}, {place.longitude.toFixed(4)} ({place.radiusMeters}m)
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              onPress={() => handleDeletePlace(place.id)}
+                              style={styles.knownPlaceDelete}
+                            >
+                              <Text style={styles.knownPlaceDeleteText}>X</Text>
+                            </TouchableOpacity>
+                          </View>
+                        ))}
+
+                        <View style={styles.addPlaceForm}>
+                          <TextInput
+                            style={styles.addPlaceInput}
+                            placeholder="Name"
+                            placeholderTextColor="#666"
+                            value={newPlaceName}
+                            onChangeText={setNewPlaceName}
+                          />
+                          <View style={styles.addPlaceCoordRow}>
+                            <TextInput
+                              style={[styles.addPlaceInput, styles.addPlaceCoordInput]}
+                              placeholder="Latitude"
+                              placeholderTextColor="#666"
+                              value={newPlaceLat}
+                              onChangeText={setNewPlaceLat}
+                              keyboardType="decimal-pad"
+                            />
+                            <TextInput
+                              style={[styles.addPlaceInput, styles.addPlaceCoordInput]}
+                              placeholder="Longitude"
+                              placeholderTextColor="#666"
+                              value={newPlaceLng}
+                              onChangeText={setNewPlaceLng}
+                              keyboardType="decimal-pad"
+                            />
+                          </View>
+                          <View style={styles.addPlaceCoordRow}>
+                            <TextInput
+                              style={[styles.addPlaceInput, styles.addPlaceCoordInput]}
+                              placeholder="Radius (m)"
+                              placeholderTextColor="#666"
+                              value={newPlaceRadius}
+                              onChangeText={setNewPlaceRadius}
+                              keyboardType="number-pad"
+                            />
+                            <TouchableOpacity
+                              style={[styles.addPlaceButton, { backgroundColor: "#3d405b" }]}
+                              onPress={handleUseCurrentLocation}
+                            >
+                              <Text style={styles.addPlaceButtonText}>Use Current</Text>
+                            </TouchableOpacity>
+                          </View>
+                          {gpsStatus && (
+                            <Text style={styles.locationCountText}>{gpsStatus}</Text>
+                          )}
+                          <TouchableOpacity
+                            style={styles.addPlaceButton}
+                            onPress={handleAddPlace}
+                          >
+                            <Text style={styles.addPlaceButtonText}>Add Place</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <Text style={[styles.knownPlaceName, { marginTop: 16 }]}>Import JSON</Text>
+                        <TextInput
+                          style={[styles.addPlaceInput, { height: 80, textAlignVertical: "top" }]}
+                          placeholder='[{"name":"Home","lat":47.64,"lon":-122.30,"radiusMeters":100}]'
+                          placeholderTextColor="#555"
+                          value={importJson}
+                          onChangeText={setImportJson}
+                          multiline
+                        />
+                        <TouchableOpacity
+                          style={styles.addPlaceButton}
+                          onPress={() => handleImportPlacesJson(importJson)}
+                        >
+                          <Text style={styles.addPlaceButtonText}>Import Places</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                </ScrollView>
               </View>
-            )}
+            </Modal>
 
             <Text style={styles.timestamp}>{snapshot.timestamp}</Text>
           </>
