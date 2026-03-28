@@ -4,12 +4,27 @@ iOS app (Expo + React Native + TypeScript) that exports HealthKit, GPS, and loca
 
 ## Architecture
 
-Main UI in `App.tsx` with pure functions extracted into `lib/` modules. Press "Grab Context" to snapshot health + location + location history, then share via iOS share sheet.
+Main UI in `App.tsx` (~1800 lines) with pure functions extracted into `lib/` modules. Press "Grab Context" to snapshot health + location + location history, then share via iOS share sheet.
 
-- `lib/health.ts` — HealthKit data processing (sleep hours, weight, meditation, buildHealthData)
+### Lib Modules
+- `lib/health.ts` — HealthKit data processing (sleep interval merge, weight, meditation, buildHealthData)
 - `lib/sleep.ts` — Sleep detail extraction (bedtime/wake time from sleep samples)
-- `lib/location.ts` — Location pruning logic (pruneThreshold)
+- `lib/weekly.ts` — 7-day aggregation per metric (HeartRateDaily, DailyValue, METRIC_CONFIG, bucketByDay)
+- `lib/healthCache.ts` — SQLite cache for computed + raw health data (today always live, past days cached)
+- `lib/clustering_v2.ts` — **Active** location clustering: temporal stay detection, v1-compatible wrapper
+- `lib/clustering.ts` — Legacy v1 grid + union-find clustering (kept for tests, not used in app)
+- `lib/places.ts` — Known place matching (matchPointToPlace, labelPointsWithKnownPlaces)
+- `lib/geo.ts` — Haversine distance
+- `lib/stats.ts` — Box plot statistics (R-7 percentile method)
+- `lib/share.ts` — Export JSON formatting (SummaryExport, RawExport, WeeklyStatsExport)
 - `lib/summary.ts` — Summary text and number formatting (buildSummary, formatNumber, formatTime)
+- `lib/location.ts` — Location pruning logic (pruneThreshold)
+
+### Components
+- `components/MetricDetailSheet.tsx` — Bottom sheet with chart + daily breakdown for each metric
+- `components/BarChart.tsx` — View-based bar chart (steps, energy, etc.)
+- `components/LineChart.tsx` — Line chart with box-and-whisker support (heart rate, HRV, weight)
+- `components/BoxPlot.tsx` — Inline horizontal box plot for metric cards
 
 ## Tech Stack
 
@@ -17,8 +32,12 @@ Main UI in `App.tsx` with pure functions extracted into `lib/` modules. Press "G
 - `@kingstinct/react-native-healthkit` — HealthKit queries
 - `expo-location` — foreground + background GPS
 - `expo-task-manager` — background task registration for location tracking
-- `expo-sqlite` — local storage for location history and settings
+- `expo-sqlite` — local storage for location history, settings, health cache
+- `expo-file-system` — database file access for export
+- `expo-sharing` — iOS share sheet for database export
+- `expo-updates` — OTA update delivery
 - Jest + ts-jest — testing
+- Maestro — iOS simulator UI testing
 
 ## Build & Run
 
@@ -38,6 +57,14 @@ just test         # run tests
 
 Requires Xcode, Apple ID for signing, Developer Mode on iPhone. Free Apple ID = 7-day app expiry.
 
+### Maestro UI Testing
+```bash
+export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+maestro test .maestro/check-about.yaml
+```
+Use `testID` props (not `accessibilityLabel`) for reliable Maestro taps. Maestro cannot interact with native iOS system dialogs (HealthKit permissions).
+
 ## Testing
 
 ```bash
@@ -50,29 +77,55 @@ Tests live in `__tests__/` and cover pure functions only (no device/HealthKit mo
 - `location.test.ts` — pruning threshold calculations
 - `snapshot.test.ts` — context snapshot shape validation
 - `summary.test.ts` — summary builder, formatTime, formatNumber
+- `weekly.test.ts` — formatDateKey, bucketByDay, aggregateHeartRate, aggregateSleep
+- `clustering.test.ts` — v1 grid clustering, timeline, downsample
+- `clustering_v2.test.ts` — v2 stay detection, merging, place assignment, real-data fixture test
+- `places.test.ts` — known place matching, cluster building
+- `stats.test.ts` — box plot statistics, percentile, extractValues
+- `share.test.ts` — dayOfWeek, buildDailyExport, buildWeeklyStats
 - `App.test.tsx` — component rendering, interactions, metric cards
+
+Real GPS fixture data: `__tests__/fixtures/locations.json` (36K+ points from real device)
 
 ## Key Patterns
 
 - All HealthKit queries use `Promise.allSettled()` — individual metric failures return `null`, don't crash the grab
-- `TaskManager.defineTask()` is at MODULE SCOPE (top of App.tsx, outside component) — this is an expo-task-manager requirement
+- `TaskManager.defineTask()` is at MODULE SCOPE (top of App.tsx, outside component) — expo-task-manager requirement
 - Background location tracking is opt-in (defaults to OFF)
 - Location history stored in SQLite with configurable retention (default 30 days)
 - Pruning happens on app foreground and when retention days are reduced
 - All timestamps: UTC unix milliseconds in storage, ISO 8601 UTC in export
+- Day bucketing uses **local time** (not UTC) — "your Tuesday" means local Tuesday
+- Sleep window is **noon-to-noon** (not midnight) — captures overnight sessions correctly
+- Sleep merges overlapping intervals before summing (Watch + iPhone both report same period)
+- Today's health data is always live; past days are cached in SQLite
+- Clustering is computed on-demand (when user opens Location sheet or shares), not on grab
 - Pure functions extracted to `lib/` for testability
 
 ## Data Collected
 
-- Steps, heart rate, sleep (hours + bedtime + wake time), active energy, walking distance (from HealthKit)
-- Weight (most recent, in kg, from HealthKit)
-- Meditation minutes (today's total, from HealthKit)
-- Single GPS coordinate (from expo-location foreground)
-- Location history trail (from background location tracking with balanced accuracy, stored in SQLite)
+- Steps, heart rate, sleep (hours + bedtime + wake time + per-source breakdown), active energy, walking distance
+- Weight (most recent, in kg), HRV (ms), resting heart rate
+- Meditation minutes (today's total)
+- Exercise minutes (today's total, from individual samples)
+- Single GPS coordinate (foreground)
+- Location history trail (background tracking, stored in SQLite)
+- Location clustering summary (temporal stay detection with known places)
 - NOT collected: workout sessions, workout routes
 
-## Settings (SQLite)
+## SQLite Tables
 
-- `tracking_enabled`: "true"/"false" (default "false")
-- `retention_days`: number as string (default "30")
-- `schema_version`: "1"
+- `locations` — GPS breadcrumbs (lat, lng, accuracy, timestamp). Index on timestamp.
+- `settings` — key/value (tracking_enabled, retention_days, schema_version)
+- `known_places` — user-defined places (name, lat, lng, radius_meters)
+- `health_computed_cache` — aggregated daily health values (metric, date_key, data JSON)
+- `health_raw_cache` — raw HealthKit samples (metric, date_key, data JSON)
+- `health_cache_meta` — cache versioning (cache_version=2; bumping purges caches)
+
+## UI Screens
+
+- **Main:** metric grid (10 cards), location card, summary banner, share buttons
+- **Metric Detail Sheet:** chart + 7-day breakdown, sleep source tabs, debug view
+- **Location Detail Sheet:** coordinates, clustering summary, Export Database, Known Places CRUD
+- **Settings Modal:** location tracking toggle, retention days, debug sleep data
+- **About Modal:** build info, OTA updates, repository link
