@@ -48,3 +48,8 @@ yarn-error.*
 
 # generated version file
 lib/generated_version.ts
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
