@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Modal,
   ScrollView,
@@ -15,6 +15,9 @@ import * as Sharing from "expo-sharing";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { type KnownPlace } from "../lib/places";
 import { DB_NAME, getKnownPlaces, addKnownPlace, deleteKnownPlace, type LocationHistoryItem } from "../lib/db";
+import { clusterLocationsV2 } from "../lib/clustering_v2";
+import { buildPlacesDailySummary } from "../lib/places_summary";
+import PlacesDailyBreakdown from "./PlacesDailyBreakdown";
 
 type LocationData = {
   latitude: number;
@@ -56,6 +59,18 @@ export default function LocationDetailSheet({
   const [placesExpanded, setPlacesExpanded] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<string | null>(null);
   const [dbExportStatus, setDbExportStatus] = useState<string | null>(null);
+
+  // Compute per-day places breakdown from location history
+  const placesDailySummary = useMemo(() => {
+    if (locationHistory.length === 0) return [];
+    const points = locationHistory.map((h) => ({
+      latitude: h.latitude,
+      longitude: h.longitude,
+      timestamp: h.timestamp,
+    }));
+    const result = clusterLocationsV2(points, knownPlaces);
+    return buildPlacesDailySummary(result.stays, 7);
+  }, [locationHistory, knownPlaces]);
 
   // --- Handlers ---
 
@@ -216,7 +231,13 @@ export default function LocationDetailSheet({
                 {locationSummaryText}
               </Text>
             )}
+          </View>
 
+          {placesDailySummary.length > 0 && (
+            <PlacesDailyBreakdown days={placesDailySummary} />
+          )}
+
+          <View style={styles.aboutCard}>
             <TouchableOpacity
               style={[styles.addPlaceButton, { marginTop: 12 }]}
               onPress={handleDownloadDatabase}
