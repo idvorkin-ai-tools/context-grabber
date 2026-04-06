@@ -67,6 +67,7 @@ export default function LocationDetailSheet({
       latitude: h.latitude,
       longitude: h.longitude,
       timestamp: h.timestamp,
+      accuracy: h.accuracy ?? 0,
     }));
     const result = clusterLocationsV2(points, knownPlaces);
     return buildPlacesDailySummary(result.stays, 7);

@@ -61,6 +61,7 @@ import MetricDetailSheet from "./components/MetricDetailSheet";
 import BoxPlot from "./components/BoxPlot";
 import SettingsModal from "./components/SettingsModal";
 import LocationDetailSheet from "./components/LocationDetailSheet";
+import GymTimerScreen from "./components/GymTimerScreen";
 
 // --- Constants ---
 
@@ -312,6 +313,7 @@ export default function App() {
   const [knownPlaces, setKnownPlaces] = useState<KnownPlace[]>([]);
   const [locationExpanded, setLocationExpanded] = useState(false);
   const [locationSummaryText, setLocationSummaryText] = useState<string | null>(null);
+  const [gymTimerVisible, setGymTimerVisible] = useState(false);
 
   // Initialize database on mount
   useEffect(() => {
@@ -1133,6 +1135,10 @@ export default function App() {
       ]
     : [];
 
+  if (gymTimerVisible) {
+    return <GymTimerScreen onExit={() => setGymTimerVisible(false)} />;
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -1152,6 +1158,13 @@ export default function App() {
               accessibilityLabel="Refresh"
             >
               <Text style={styles.headerIconText}>{"\u21BB"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerIconButton}
+              onPress={() => setGymTimerVisible(true)}
+              accessibilityLabel="Gym Timer"
+            >
+              <Text style={styles.headerIconText}>{"\u23F1"}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconButton}
