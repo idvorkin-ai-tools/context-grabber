@@ -37,7 +37,8 @@
         }
       ],
       "expo-task-manager",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-audio"
     ],
     "android": {
       "adaptiveIcon": {

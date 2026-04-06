@@ -65,17 +65,10 @@ jest.mock('expo-sharing', () => ({
   shareAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
-// Mock expo-av
-jest.mock('expo-av', () => ({
-  Audio: {
-    setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
-    Sound: {
-      createAsync: jest.fn().mockResolvedValue({
-        sound: {
-          setOnPlaybackStatusUpdate: jest.fn(),
-          unloadAsync: jest.fn().mockResolvedValue(undefined),
-        },
-      }),
-    },
-  },
+// Mock expo-audio
+jest.mock('expo-audio', () => ({
+  useAudioPlayer: jest.fn().mockReturnValue({
+    play: jest.fn(),
+    seekTo: jest.fn(),
+  }),
 }));
