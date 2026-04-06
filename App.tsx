@@ -179,15 +179,21 @@ function AboutModal({
   async function handleCheckForUpdate() {
     try {
       setUpdateStatus("Checking...");
+      const check = await Updates.checkForUpdateAsync();
+      if (!check.isAvailable) {
+        setUpdateStatus(`Up to date (${updateId.slice(-4)})`);
+        return;
+      }
+      setUpdateStatus("Downloading update...");
       const result = await Updates.fetchUpdateAsync();
       if (result.isNew) {
-        setUpdateStatus("Reloading...");
+        setUpdateStatus("Reloading with new update...");
         await Updates.reloadAsync();
       } else {
-        setUpdateStatus("Already up to date");
+        setUpdateStatus(`No new update (${updateId.slice(-4)})`);
       }
     } catch (e: any) {
-      setUpdateStatus(e.message ?? "Update failed");
+      setUpdateStatus(`Error: ${e.message ?? "Update failed"}`);
     }
   }
 
