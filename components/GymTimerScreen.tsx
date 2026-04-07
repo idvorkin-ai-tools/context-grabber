@@ -60,49 +60,40 @@ function phaseLabel(phase: Phase): string {
 
 function RoundsMode({ profile, onReset }: { profile: TimerProfile; onReset: () => void }) {
   const { state, toggle, reset } = useTimer(profile);
-  const liveActivity = useLiveActivity();
-  const prevPhaseRef = useRef(state.phase);
+  const { start: laStart, update: laUpdate, stop: laStop, isActive: laIsActive } = useLiveActivity();
+  const prevPhaseRef = useRef<Phase>("idle");
+  const prevRunningRef = useRef(false);
 
-  // Start Live Activity when timer begins
+  // Manage Live Activity lifecycle based on state transitions
   useEffect(() => {
-    if (state.isRunning && prevPhaseRef.current === "idle" && state.phase === "prep") {
-      liveActivity.start(
-        "GET READY",
-        `Round ${state.currentRound} of ${state.totalRounds}`,
-        Date.now() + state.timeLeft * 1000,
-      );
-    }
+    const wasRunning = prevRunningRef.current;
+    const prevPhase = prevPhaseRef.current;
     prevPhaseRef.current = state.phase;
-  }, [state.phase, state.isRunning]);
+    prevRunningRef.current = state.isRunning;
 
-  // Update Live Activity on phase change or each tick
-  useEffect(() => {
-    if (!state.isRunning || state.phase === "idle") return;
-    const label = phaseLabel(state.phase);
-    if (label) {
-      liveActivity.update(
-        label,
-        `${formatTime(state.timeLeft)} — Round ${state.currentRound}/${state.totalRounds}`,
-        Date.now() + state.timeLeft * 1000,
-      );
-    }
-  }, [state.phase, state.timeLeft, state.currentRound]);
+    const endTimeMs = Date.now() + state.timeLeft * 1000;
+    const roundLabel = `Round ${state.currentRound}/${state.totalRounds}`;
 
-  // Stop Live Activity on done, reset, or pause
-  useEffect(() => {
     if (state.phase === "done") {
-      liveActivity.stop("DONE!", `${state.totalRounds} rounds completed`);
-    } else if (state.phase === "idle" && prevPhaseRef.current !== "idle") {
-      liveActivity.stop();
-    } else if (state.isPaused) {
-      liveActivity.stop("PAUSED", `Round ${state.currentRound}/${state.totalRounds}`);
+      // Timer completed
+      laStop("DONE!", `${state.totalRounds} rounds completed`);
+    } else if (state.phase === "idle" && prevPhase !== "idle") {
+      // Reset
+      laStop();
+    } else if (state.isPaused && wasRunning) {
+      // Just paused
+      laStop("PAUSED", roundLabel);
+    } else if (state.isRunning && !wasRunning) {
+      // Just started or resumed — start/restart Live Activity
+      laStart(phaseLabel(state.phase) || "TIMER", roundLabel, endTimeMs);
+    } else if (state.isRunning && state.phase !== prevPhase) {
+      // Phase changed while running — update (not every tick)
+      laUpdate(phaseLabel(state.phase), roundLabel, endTimeMs);
     }
-  }, [state.phase, state.isPaused]);
+  }, [state.phase, state.isRunning, state.isPaused, state.timeLeft, state.currentRound, state.totalRounds]);
 
-  // Stop Live Activity on unmount (exiting gym timer screen)
-  useEffect(() => {
-    return () => { liveActivity.stop(); };
-  }, []);
+  // Cleanup on unmount
+  useEffect(() => () => { laStop(); }, [laStop]);
 
   return (
     <View style={styles.modeContainer}>

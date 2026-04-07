@@ -36,7 +36,7 @@ export function useLiveActivity() {
 
   const start = useCallback((title: string, subtitle: string, endTimeMs: number) => {
     if (!isAvailable) return;
-    // Stop any existing activity before starting a new one
+    // Always stop existing before starting new — prevents duplicates
     if (activityIdRef.current) stop();
     try {
       const id = LiveActivity.startActivity(
@@ -64,5 +64,7 @@ export function useLiveActivity() {
     }
   }, [isAvailable]);
 
-  return { start, update, stop, isAvailable };
+  const isActive = useCallback(() => activityIdRef.current !== null, []);
+
+  return { start, update, stop, isActive, isAvailable };
 }
