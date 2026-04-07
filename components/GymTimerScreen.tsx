@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from "react-native";
+import { useKeepAwake } from "expo-keep-awake";
 import { useTimer, type TimerProfile, type Phase } from "../lib/gym/useTimer";
 import { useStopwatch, formatStopwatchTime } from "../lib/gym/useStopwatch";
 import { useSets } from "../lib/gym/useSets";
@@ -203,6 +204,7 @@ function SetsMode() {
 // --- Main Screen ---
 
 export default function GymTimerScreen({ onExit }: GymTimerScreenProps) {
+  useKeepAwake();
   const [mode, setMode] = useState<Mode>("rounds");
   const [activePreset, setActivePreset] = useState("30sec");
 

@@ -65,6 +65,11 @@ jest.mock('expo-sharing', () => ({
   shareAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock expo-keep-awake
+jest.mock('expo-keep-awake', () => ({
+  useKeepAwake: jest.fn(),
+}));
+
 // Mock react-native-audio-api
 jest.mock('react-native-audio-api', () => ({
   AudioContext: jest.fn().mockImplementation(() => ({
