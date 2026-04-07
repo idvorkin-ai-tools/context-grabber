@@ -88,14 +88,21 @@ function RoundsMode({ profile, onReset }: { profile: TimerProfile; onReset: () =
     }
   }, [state.phase, state.timeLeft, state.currentRound]);
 
-  // Stop Live Activity on done or reset
+  // Stop Live Activity on done, reset, or pause
   useEffect(() => {
     if (state.phase === "done") {
       liveActivity.stop("DONE!", `${state.totalRounds} rounds completed`);
     } else if (state.phase === "idle" && prevPhaseRef.current !== "idle") {
       liveActivity.stop();
+    } else if (state.isPaused) {
+      liveActivity.stop("PAUSED", `Round ${state.currentRound}/${state.totalRounds}`);
     }
-  }, [state.phase]);
+  }, [state.phase, state.isPaused]);
+
+  // Stop Live Activity on unmount (exiting gym timer screen)
+  useEffect(() => {
+    return () => { liveActivity.stop(); };
+  }, []);
 
   return (
     <View style={styles.modeContainer}>
