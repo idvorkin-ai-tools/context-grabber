@@ -174,6 +174,8 @@ function AboutModal({
   const updateChannel = Updates.channel ?? "N/A";
   const runtimeVersion = Updates.runtimeVersion ?? "N/A";
   const updateId = Updates.updateId ?? "embedded";
+  const updateCreatedAt = Updates.createdAt;
+  const updateMessage = (Updates.manifest as any)?.metadata?.updateMessage ?? null;
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
 
   async function handleCheckForUpdate() {
@@ -263,8 +265,22 @@ function AboutModal({
 
             <View style={styles.aboutRow}>
               <Text style={styles.aboutRowLabel}>Update</Text>
-              <Text style={styles.aboutRowValue}>{updateId}</Text>
+              <Text style={styles.aboutRowValue}>
+                {updateId === "embedded" ? "embedded" : `...${updateId.slice(-8)}`}
+              </Text>
             </View>
+            {updateMessage && (
+              <View style={styles.aboutRow}>
+                <Text style={styles.aboutRowLabel}>Message</Text>
+                <Text style={styles.aboutRowValue}>{updateMessage}</Text>
+              </View>
+            )}
+            {updateCreatedAt && (
+              <View style={styles.aboutRow}>
+                <Text style={styles.aboutRowLabel}>Updated</Text>
+                <Text style={styles.aboutRowValue}>{updateCreatedAt.toLocaleString()}</Text>
+              </View>
+            )}
 
             <TouchableOpacity
               style={[styles.addPlaceButton, { marginTop: 8 }]}
