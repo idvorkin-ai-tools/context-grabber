@@ -175,7 +175,11 @@ function AboutModal({
   const runtimeVersion = Updates.runtimeVersion ?? "N/A";
   const updateId = Updates.updateId ?? "embedded";
   const updateCreatedAt = Updates.createdAt;
-  const updateMessage = (Updates.manifest as any)?.metadata?.updateMessage ?? null;
+  const manifest = Updates.manifest as any;
+  const updateMessage = manifest?.metadata?.updateMessage
+    ?? manifest?.metadata?.message
+    ?? manifest?.extra?.expoClient?.extra?.message
+    ?? (manifest?.metadata ? JSON.stringify(manifest.metadata).slice(0, 80) : null);
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
 
   async function handleCheckForUpdate() {
