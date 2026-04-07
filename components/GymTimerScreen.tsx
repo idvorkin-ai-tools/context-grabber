@@ -60,37 +60,38 @@ function phaseLabel(phase: Phase): string {
 
 function RoundsMode({ profile, onReset }: { profile: TimerProfile; onReset: () => void }) {
   const { state, toggle, reset } = useTimer(profile);
-  const { start: laStart, update: laUpdate, stop: laStop, isActive: laIsActive } = useLiveActivity();
+  const { start: laStart, update: laUpdate, stop: laStop } = useLiveActivity();
   const prevPhaseRef = useRef<Phase>("idle");
   const prevRunningRef = useRef(false);
+  const prevPausedRef = useRef(false);
+  // Snapshot timeLeft at phase boundaries so we don't need it in deps
+  const timeLeftRef = useRef(state.timeLeft);
+  timeLeftRef.current = state.timeLeft;
 
-  // Manage Live Activity lifecycle based on state transitions
+  // Manage Live Activity lifecycle — only fires on phase/running/paused changes
   useEffect(() => {
     const wasRunning = prevRunningRef.current;
+    const wasPaused = prevPausedRef.current;
     const prevPhase = prevPhaseRef.current;
     prevPhaseRef.current = state.phase;
     prevRunningRef.current = state.isRunning;
+    prevPausedRef.current = state.isPaused;
 
-    const endTimeMs = Date.now() + state.timeLeft * 1000;
+    const endTimeMs = Date.now() + timeLeftRef.current * 1000;
     const roundLabel = `Round ${state.currentRound}/${state.totalRounds}`;
 
     if (state.phase === "done") {
-      // Timer completed
       laStop("DONE!", `${state.totalRounds} rounds completed`);
     } else if (state.phase === "idle" && prevPhase !== "idle") {
-      // Reset
       laStop();
-    } else if (state.isPaused && wasRunning) {
-      // Just paused
+    } else if (state.isPaused && !wasPaused && wasRunning) {
       laStop("PAUSED", roundLabel);
     } else if (state.isRunning && !wasRunning) {
-      // Just started or resumed — start/restart Live Activity
       laStart(phaseLabel(state.phase) || "TIMER", roundLabel, endTimeMs);
     } else if (state.isRunning && state.phase !== prevPhase) {
-      // Phase changed while running — update (not every tick)
       laUpdate(phaseLabel(state.phase), roundLabel, endTimeMs);
     }
-  }, [state.phase, state.isRunning, state.isPaused, state.timeLeft, state.currentRound, state.totalRounds]);
+  }, [state.phase, state.isRunning, state.isPaused, state.currentRound, state.totalRounds, laStart, laUpdate, laStop]);
 
   // Cleanup on unmount
   useEffect(() => () => { laStop(); }, [laStop]);
