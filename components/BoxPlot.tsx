@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import type { BoxPlotStats } from "../lib/stats";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -18,7 +18,15 @@ type Props = {
   color: string;
   /** Compact variant: no dot row, slim plot row. Used when stacking multiple. */
   compact?: boolean;
+  /** Per-metric value formatter for the min/max endpoint labels. Defaults to
+   *  1 decimal under 10, comma-separated integer otherwise. */
+  formatValue?: (v: number) => string;
 };
+
+function defaultFormat(v: number): string {
+  if (Math.abs(v) < 10) return v.toFixed(1);
+  return Math.round(v).toLocaleString("en-US");
+}
 
 // ─── BoxPlot ──────────────────────────────────────────────────────────────────
 
@@ -31,7 +39,7 @@ type Props = {
  *
  * All positions are computed as percentages of the full range (min–max).
  */
-export default function BoxPlot({ stats, color, compact = false }: Props): React.JSX.Element {
+export default function BoxPlot({ stats, color, compact = false, formatValue = defaultFormat }: Props): React.JSX.Element {
   const { min, max, p5, p25, p50, p75, p95, values } = stats;
   const range = max - min;
   const plotHeight = compact ? PLOT_HEIGHT_COMPACT : PLOT_HEIGHT;
@@ -58,6 +66,12 @@ export default function BoxPlot({ stats, color, compact = false }: Props): React
             ]}
           />
         </View>
+        {!compact && (
+          <View style={styles.endpointRow}>
+            <Text style={styles.endpointLabel}>{formatValue(min)}</Text>
+            <Text style={styles.endpointLabel}>{formatValue(max)}</Text>
+          </View>
+        )}
       </View>
     );
   }
@@ -149,6 +163,14 @@ export default function BoxPlot({ stats, color, compact = false }: Props): React
           ]}
         />
       </View>
+
+      {/* Endpoint labels: 7-day min on the left, 7-day max on the right. */}
+      {!compact && (
+        <View style={styles.endpointRow}>
+          <Text style={styles.endpointLabel}>{formatValue(min)}</Text>
+          <Text style={styles.endpointLabel}>{formatValue(max)}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -198,5 +220,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 1,
     marginLeft: -(MEDIAN_WIDTH / 2),
+  },
+  endpointRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 2,
+  },
+  endpointLabel: {
+    fontSize: 9,
+    color: "#888",
+    fontVariant: ["tabular-nums"],
   },
 });

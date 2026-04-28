@@ -451,7 +451,7 @@ export default function App() {
   }, []);
 
   // Prune on app foreground + sync counter (daily reset + pull any +1's that
-  // came from the widget while the app was backgrounded).
+  // came from the widget while the app was backgrounded) + refresh stale data.
   useEffect(() => {
     const subscription = AppState.addEventListener("change", async (state) => {
       if (state === "active" && db) {
@@ -482,10 +482,26 @@ export default function App() {
         } catch (e) {
           console.error("Counter sync on foreground error:", e);
         }
+        // Re-grab so tile values + footer timestamp aren't stale from a
+        // previous session. Uses the ref so we always call the latest closure.
+        grabContextRef.current?.();
       }
     });
     return () => subscription.remove();
   }, [db, snapshot]);
+
+  // While the app is foregrounded, re-grab every 30 minutes so tiles don't
+  // go stale during long open sessions. Cleared whenever effect re-runs.
+  useEffect(() => {
+    if (!dbReady) return;
+    const REFRESH_MS = 30 * 60 * 1000;
+    const id = setInterval(() => {
+      if (AppState.currentState === "active") {
+        grabContextRef.current?.();
+      }
+    }, REFRESH_MS);
+    return () => clearInterval(id);
+  }, [dbReady]);
 
   // Counter handlers — increment on tap, reset on the ↺ button.
   // Keep a ref to the increment handler so the deep-link route (registered
@@ -699,7 +715,11 @@ export default function App() {
     if (status !== "granted") {
       return null;
     }
-    const loc = await Location.getCurrentPositionAsync({});
+    // Force a precise fix: the default Balanced accuracy can return a cached
+    // ~100m reading that's hours old when the device has been stationary.
+    const loc = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
     return {
       latitude: loc.coords.latitude,
       longitude: loc.coords.longitude,
