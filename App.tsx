@@ -203,9 +203,11 @@ function MetricCard({
 function AboutModal({
   visible,
   onClose,
+  onExportHeartRate,
 }: {
   visible: boolean;
   onClose: () => void;
+  onExportHeartRate?: (daysBack: number) => Promise<void>;
 }) {
   const buildInfo = getBuildInfo();
   const updateChannel = Updates.channel ?? "N/A";
@@ -214,6 +216,7 @@ function AboutModal({
   const updateCreatedAt = Updates.createdAt;
   const commitMessage = buildInfo.commitMessage;
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [hrExportStatus, setHrExportStatus] = useState<string | null>(null);
 
   async function handleCheckForUpdate() {
     try {
@@ -334,6 +337,43 @@ function AboutModal({
               </TouchableOpacity>
             ) : null}
           </View>
+
+          {onExportHeartRate && (
+            <View style={styles.aboutCard}>
+              <Text style={styles.metricLabel}>Data Export</Text>
+              <Text style={{ color: "#888", fontSize: 12, marginBottom: 10 }}>
+                Heart rate samples + workouts + HRV + active energy as JSON
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {[1, 2, 7].map((days) => (
+                  <TouchableOpacity
+                    key={days}
+                    style={[styles.addPlaceButton, { flex: 1 }]}
+                    disabled={hrExportStatus === "Exporting..."}
+                    onPress={async () => {
+                      try {
+                        setHrExportStatus("Exporting...");
+                        await onExportHeartRate(days);
+                        setHrExportStatus("Shared");
+                        setTimeout(() => setHrExportStatus(null), 2000);
+                      } catch (e: any) {
+                        setHrExportStatus(e.message ?? "Export failed");
+                      }
+                    }}
+                  >
+                    <Text style={styles.addPlaceButtonText}>
+                      HR {days}d
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {hrExportStatus && (
+                <Text style={{ color: "#888", fontSize: 12, marginTop: 8, textAlign: "center" }}>
+                  {hrExportStatus}
+                </Text>
+              )}
+            </View>
+          )}
         </ScrollView>
       </View>
     </Modal>
@@ -1154,6 +1194,18 @@ export default function App() {
     }
   }
 
+  const handleExportHeartRate = useCallback(async (daysBack: number) => {
+    const json = await buildHeartRateExportJson(daysBack);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const path = `${FileSystem.cacheDirectory}heart-rate-${daysBack}d-${stamp}.json`;
+    await FileSystem.writeAsStringAsync(path, json);
+    await Sharing.shareAsync(path, {
+      mimeType: "application/json",
+      dialogTitle: `Heart Rate Export (${daysBack}d)`,
+      UTI: "public.json",
+    });
+  }, []);
+
   async function grabContext() {
     setLoading(true);
     setError(null);
@@ -1487,6 +1539,7 @@ export default function App() {
       <AboutModal
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
+        onExportHeartRate={handleExportHeartRate}
       />
 
       <SettingsModal
@@ -1674,17 +1727,7 @@ export default function App() {
               }
               return JSON.stringify(result, null, 2);
             } : undefined}
-            onExportHeartRate={selectedMetric === "heartRate" ? async (daysBack) => {
-              const json = await buildHeartRateExportJson(daysBack);
-              const stamp = new Date().toISOString().slice(0, 10);
-              const path = `${FileSystem.cacheDirectory}heart-rate-${daysBack}d-${stamp}.json`;
-              await FileSystem.writeAsStringAsync(path, json);
-              await Sharing.shareAsync(path, {
-                mimeType: "application/json",
-                dialogTitle: `Heart Rate Export (${daysBack}d)`,
-                UTI: "public.json",
-              });
-            } : undefined}
+            onExportHeartRate={selectedMetric === "heartRate" ? handleExportHeartRate : undefined}
           />
         );
       })()}
