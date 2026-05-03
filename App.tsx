@@ -387,6 +387,16 @@ function AboutModal({
 export default function App() {
   const [snapshot, setSnapshot] = useState<ContextSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStartedAt, setLoadingStartedAt] = useState<number | null>(null);
+  const [loadingPhase, setLoadingPhase] = useState<string | null>(null);
+  // Tick at 1Hz while loading so the elapsed-seconds counter refreshes —
+  // renders the value of `loadingTick` are otherwise inert.
+  const [loadingTick, setLoadingTick] = useState(0);
+  useEffect(() => {
+    if (!loading) return;
+    const id = setInterval(() => setLoadingTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
   const [error, setError] = useState<string | null>(null);
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [retentionDays, setRetentionDays] = useState("30");
@@ -1234,9 +1244,12 @@ export default function App() {
 
   async function grabContext() {
     setLoading(true);
+    setLoadingStartedAt(Date.now());
+    setLoadingPhase("HealthKit auth");
     setError(null);
-    setWeeklyCache({});
-    setStatsCache({});
+    // Intentionally do NOT blank weeklyCache / statsCache here — same
+    // contract as #33: stale data > no data. prefetchAllWeeklyStats will
+    // overwrite per-metric entries when fresh values land.
     setWeeklyError(null);
     // Kick off an OTA check in parallel. Never awaited.
     void checkForOtaInBackground();
@@ -1257,12 +1270,14 @@ export default function App() {
         ],
       });
 
+      setLoadingPhase("Health + GPS");
       const [health, location] = await Promise.all([
         grabHealthData(),
         grabLocation(),
       ]);
 
       // Fetch location history from SQLite
+      setLoadingPhase("Location history");
       let locationHistory: LocationHistoryItem[] = [];
       if (db) {
         try {
@@ -1298,11 +1313,14 @@ export default function App() {
       // Kick off 7-day prefetch in the background so box plots appear on
       // every card without the user having to tap each one. Not awaited —
       // the UI renders immediately with today's values.
+      setLoadingPhase("Weekly stats");
       void prefetchAllWeeklyStats();
     } catch (e: any) {
       setError(e.message ?? "Something went wrong");
     } finally {
       setLoading(false);
+      setLoadingStartedAt(null);
+      setLoadingPhase(null);
     }
   }
 
@@ -1523,6 +1541,14 @@ export default function App() {
             <Text style={styles.title}>Context Grabber</Text>
           </View>
           <View style={styles.headerButtons}>
+            {loading && loadingStartedAt != null && (
+              <View style={styles.loadingPill}>
+                <Text style={styles.loadingPillText}>
+                  {Math.max(0, Math.floor((Date.now() - loadingStartedAt) / 1000))}s
+                  {loadingPhase ? ` · ${loadingPhase}` : ""}
+                </Text>
+              </View>
+            )}
             <TouchableOpacity
               style={[styles.headerIconButton, loading && { opacity: 0.5 }]}
               onPress={grabContext}
@@ -1951,6 +1977,18 @@ const styles = StyleSheet.create({
     color: "#4cc9f0",
     fontSize: 16,
     fontWeight: "700",
+  },
+  loadingPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: "rgba(76,201,240,0.15)",
+  },
+  loadingPillText: {
+    color: "#4cc9f0",
+    fontSize: 11,
+    fontWeight: "600",
+    fontVariant: ["tabular-nums"],
   },
   updateReadyBanner: {
     marginHorizontal: 20,
