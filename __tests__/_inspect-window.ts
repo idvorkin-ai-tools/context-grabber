@@ -16,9 +16,12 @@ const allHr: HrSample[] = fx.heartRate.map((s: any) => ({
 }));
 
 const workoutStartMs = new Date(w.startDate).getTime();
-// Window: 15 min - 50 min into the workout
-const windowStartMs = workoutStartMs + 15 * 60 * 1000;
-const windowEndMs = workoutStartMs + 50 * 60 * 1000;
+// Default window: minute 0 → 50.  Override with WINDOW_START / WINDOW_END
+// env vars (in minutes) for ad-hoc slicing.
+const windowStartMin = process.env.WINDOW_START ? Number(process.env.WINDOW_START) : 0;
+const windowEndMin = process.env.WINDOW_END ? Number(process.env.WINDOW_END) : 50;
+const windowStartMs = workoutStartMs + windowStartMin * 60 * 1000;
+const windowEndMs = workoutStartMs + windowEndMin * 60 * 1000;
 
 const fmt = (iso: string) => new Date(iso).toISOString().slice(11, 19);
 const fmtMs = (ms: number) => new Date(ms).toISOString().slice(11, 19);
@@ -47,8 +50,17 @@ describe("INSPECT 15-50 min window", () => {
     });
     console.log(`HEURISTIC sets in window (${setsInWindow.length}):`);
     setsInWindow.forEach((s) => {
+      const elapsedMin = Math.floor(
+        (new Date(s.startDate).getTime() - workoutStartMs) / 60000,
+      );
+      const elapsedSec = Math.floor(
+        ((new Date(s.startDate).getTime() - workoutStartMs) % 60000) / 1000,
+      );
+      const recovery = s.recoveryFloorHr != null && s.recoverySec != null
+        ? `↓${s.recoveryFloorHr} in ${s.recoverySec}s`
+        : "—";
       console.log(
-        `  #${String(s.index).padStart(2)} ${fmt(s.startDate)} ${String(s.durationSec).padStart(4)}s peak=${s.peakHr} avg=${s.avgHr} [${s.confidence}] ${s.description}`,
+        `  #${String(s.index).padStart(2)} t+${String(elapsedMin).padStart(2)}:${String(elapsedSec).padStart(2,"0")} ${String(s.durationSec).padStart(3)}s peak=${s.peakHr} avg=${s.avgHr} reps=${s.estimatedReps ?? "—"} [${s.confidence}] recover=${recovery}`,
       );
     });
     console.log("");

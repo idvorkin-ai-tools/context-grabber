@@ -64,24 +64,28 @@ describe("analyzeWorkout — synthetic", () => {
   });
 
   it("detects a single peak bounded by rest", () => {
+    // Set window must span >= MIN_SET_SEC (20s) within SET_DESCENT_BPM (6)
+    // of the peak, so we hold values close to peak across enough samples.
     const samples = mkSamples("2026-01-01T10:00:00.000Z", [
       { offsetSec: 0, bpm: 90 },
       { offsetSec: 5, bpm: 95 },
-      // Set: elevated for ~40s climbing then descending
+      // Set: elevated near peak across ~30s
       { offsetSec: 10, bpm: 130 },
-      { offsetSec: 15, bpm: 145 },
-      { offsetSec: 20, bpm: 152 },
-      { offsetSec: 25, bpm: 150 },
-      { offsetSec: 30, bpm: 148 },
-      { offsetSec: 35, bpm: 145 },
-      { offsetSec: 40, bpm: 140 },
-      { offsetSec: 45, bpm: 130 },
+      { offsetSec: 15, bpm: 148 },
+      { offsetSec: 20, bpm: 150 },
+      { offsetSec: 25, bpm: 152 },
+      { offsetSec: 30, bpm: 152 },
+      { offsetSec: 35, bpm: 151 },
+      { offsetSec: 40, bpm: 150 },
+      { offsetSec: 45, bpm: 148 },
+      { offsetSec: 50, bpm: 140 },
+      { offsetSec: 55, bpm: 130 },
       // Rest
-      { offsetSec: 55, bpm: 100 },
-      { offsetSec: 65, bpm: 95 },
-      { offsetSec: 80, bpm: 90 },
+      { offsetSec: 65, bpm: 100 },
+      { offsetSec: 75, bpm: 95 },
+      { offsetSec: 90, bpm: 90 },
     ]);
-    const result = analyzeWorkout(baseMeta(90), samples);
+    const result = analyzeWorkout(baseMeta(100), samples);
     expect(result.sets).toHaveLength(1);
     expect(result.sets[0].peakHr).toBe(152);
     expect(result.sets[0].recoveryFloorHr).toBeLessThanOrEqual(100);
@@ -110,28 +114,33 @@ describe("analyzeWorkout — synthetic", () => {
     // threshold algorithm (122 > 110 = no rest detected = one giant set).
     // Peak detection should still find both peaks via prominence.
     const samples = mkSamples("2026-01-01T10:00:00.000Z", [
-      // Set A peak
+      // Set A peak — held near peak across ~25s
       { offsetSec: 0, bpm: 130 },
       { offsetSec: 5, bpm: 145 },
-      { offsetSec: 10, bpm: 152 },
-      { offsetSec: 15, bpm: 150 },
-      { offsetSec: 20, bpm: 145 },
-      { offsetSec: 25, bpm: 138 },
+      { offsetSec: 10, bpm: 150 },
+      { offsetSec: 15, bpm: 152 },
+      { offsetSec: 20, bpm: 152 },
+      { offsetSec: 25, bpm: 150 },
+      { offsetSec: 30, bpm: 148 },
+      { offsetSec: 35, bpm: 138 },
       // Shallow recovery — only dips to 122
-      { offsetSec: 35, bpm: 128 },
-      { offsetSec: 50, bpm: 124 },
-      { offsetSec: 65, bpm: 122 },
-      // Set B peak
-      { offsetSec: 75, bpm: 132 },
-      { offsetSec: 80, bpm: 145 },
-      { offsetSec: 85, bpm: 152 },
-      { offsetSec: 90, bpm: 150 },
-      { offsetSec: 95, bpm: 145 },
-      { offsetSec: 100, bpm: 138 },
-      { offsetSec: 110, bpm: 125 },
-      { offsetSec: 125, bpm: 120 },
+      { offsetSec: 45, bpm: 128 },
+      { offsetSec: 60, bpm: 124 },
+      { offsetSec: 75, bpm: 122 },
+      // Set B peak — same shape as A (held near peak across ~25s)
+      { offsetSec: 85, bpm: 132 },
+      { offsetSec: 90, bpm: 145 },
+      { offsetSec: 95, bpm: 150 },
+      { offsetSec: 100, bpm: 152 },
+      { offsetSec: 105, bpm: 152 },
+      { offsetSec: 110, bpm: 150 },
+      { offsetSec: 115, bpm: 148 },
+      { offsetSec: 120, bpm: 145 },
+      { offsetSec: 125, bpm: 138 },
+      { offsetSec: 135, bpm: 125 },
+      { offsetSec: 150, bpm: 120 },
     ]);
-    const result = analyzeWorkout(baseMeta(135), samples);
+    const result = analyzeWorkout(baseMeta(160), samples);
     expect(result.sets.length).toBe(2);
     expect(result.sets[0].peakHr).toBe(152);
     expect(result.sets[1].peakHr).toBe(152);

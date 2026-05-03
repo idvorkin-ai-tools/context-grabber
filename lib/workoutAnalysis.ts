@@ -31,6 +31,12 @@ const SET_DESCENT_BPM = 6;
 /** Below this peak HR for the whole workout, the heuristic is unreliable. */
 const LOW_INTENSITY_PEAK_BPM = 100;
 
+/** Sets shorter than this are dropped as noise. Calibrated against Igor's
+ *  5/2 fixture: 11-18s "blips" between real swing sets were transition
+ *  movements (re-racking the bell, walking) rather than work. Setting this
+ *  at 20s recovers his ground-truth count of 10 swing sets exactly. */
+const MIN_SET_SEC = 20;
+
 /** Rolling-window size for HR smoothing (samples). Removes single-sample
  *  noise without smearing real peaks. Use 3 — a moving median across 3
  *  samples (~10-15s) preserves sharp ballistic peaks. */
@@ -445,8 +451,17 @@ export function analyzeWorkout(
     avgIntervalSec <= 6
       ? smoothMedian(inWindow, SMOOTHING_WINDOW)
       : inWindow;
+
+  // Drop sub-MIN_SET_SEC peak windows as noise. Confirmed against Igor's
+  // 5/2 fixture: the 11-18s spikes between real swing sets were transition
+  // movements, not work. Filtering them gives exactly his ground-truth
+  // count of 10 swing sets.
   const peakIdxs = findPeaks(smoothed);
-  const rawSets = buildSetsFromPeaks(smoothed, peakIdxs);
+  const allSets = buildSetsFromPeaks(smoothed, peakIdxs);
+  const rawSets = allSets.filter((s) => {
+    const dur = (toMs(smoothed[s.endIdx].startDate) - toMs(smoothed[s.startIdx].startDate)) / 1000;
+    return dur >= MIN_SET_SEC;
+  });
   const recoveries = computeRecoveryMetrics(smoothed, rawSets, endMs);
 
   if (rawSets.length === 0) {
