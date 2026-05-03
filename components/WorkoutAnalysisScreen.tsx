@@ -258,6 +258,13 @@ export default function WorkoutAnalysisScreen({
                             <Text style={styles.setStat}>~{s.estimatedReps} reps</Text>
                           )}
                         </View>
+                        {s.recoveryFloorHr != null && s.recoverySec != null && (
+                          <View style={styles.setStatsRow}>
+                            <Text style={styles.recoveryStat}>
+                              ↓ recovers to {s.recoveryFloorHr} in {s.recoverySec}s
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     </View>
                   ))}
@@ -427,6 +434,13 @@ const styles = StyleSheet.create({
     color: "#888",
     fontSize: 11,
     fontVariant: ["tabular-nums"],
+  },
+  recoveryStat: {
+    color: "#6b7280",
+    fontSize: 11,
+    fontStyle: "italic",
+    fontVariant: ["tabular-nums"],
+    marginTop: 2,
   },
   statusCard: {
     padding: 20,

@@ -9,30 +9,32 @@
 // configuration — the entire heuristic is one swap when that changes.
 
 // ─── Tunable thresholds ──────────────────────────────────────────────────────
+//
+// V2 algorithm: peak detection. Find local maxima with prominence
+// (rise from preceding valley AND fall to following valley) above a
+// threshold. Robust to high cardio baselines where between-set HR doesn't
+// fall back to "rest" — the dip-then-climb shape is what matters.
 
-/** Absolute floor for "elevated" HR. Below this, you're not working. */
-const ABS_THRESHOLD_BPM = 110;
+/** Absolute floor — a peak below this is too weak to count as a real set
+ *  (e.g. you walked across the gym). */
+const PEAK_MIN_BPM = 115;
 
-/** Peak-relative floor: a set must be at >= this fraction of peak HR.
- *  Adapts the threshold to the actual session intensity (a low-key recovery
- *  session has a lower bar than a max-effort circuit). */
-const PEAK_FRACTION = 0.65;
+/** A peak must rise this many bpm above the preceding valley AND fall this
+ *  many bpm to the next valley. This is what catches Igor's swing peaks
+ *  even when his between-set recovery only dips to 115-120. */
+const MIN_PROMINENCE_BPM = 8;
 
-/** A working set must sustain elevated HR for at least this many seconds.
- *  Sub-15s blips are noise from sample timing, not real work. */
-const MIN_SET_SEC = 15;
+/** Set window expands outward from the peak until HR drops by this many bpm
+ *  (or hits the edge of the workout / next peak). Defines what's "in" the set. */
+const SET_DESCENT_BPM = 6;
 
-/** Rest = sub-threshold for at least this long. Shorter dips inside an
- *  otherwise-elevated block do not split a set. */
-const MIN_REST_SEC = 15;
-
-/** Largest gap (no HR sample) tolerated inside a single set. HealthKit
- *  sparse-samples sometimes; > 30s of silence splits the set. */
-const MAX_INTRA_SET_GAP_SEC = 30;
-
-/** Below this peak-derived threshold, the heuristic is unreliable — surface
- *  honestly instead of forcing arbitrary set splits. */
+/** Below this peak HR for the whole workout, the heuristic is unreliable. */
 const LOW_INTENSITY_PEAK_BPM = 100;
+
+/** Rolling-window size for HR smoothing (samples). Removes single-sample
+ *  noise without smearing real peaks. Use 3 — a moving median across 3
+ *  samples (~10-15s) preserves sharp ballistic peaks. */
+const SMOOTHING_WINDOW = 3;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,10 +71,17 @@ export type AnalyzedSet = {
   durationSec: number;
   /** Peak HR observed in the set. */
   peakHr: number;
+  /** ISO 8601 timestamp of the peak HR sample. */
+  peakAt: string;
   /** Average HR across the set's samples. */
   avgHr: number;
   /** Number of samples that fell inside the set window. */
   sampleCount: number;
+  /** Lowest HR reached after this set, before the next set begins (or end of
+   *  workout for the last set). null when there's no rest period after. */
+  recoveryFloorHr: number | null;
+  /** Seconds from peak HR to recovery floor. null when no rest after. */
+  recoverySec: number | null;
   /** Rep count estimate (null when set is too long for a rep mapping). */
   estimatedReps: number | null;
   /** Human-friendly description of the set's character. */
@@ -139,89 +148,157 @@ function classifyDuration(durationSec: number): {
 }
 
 function scoreConfidence(
-  set: { startMs: number; endMs: number; samples: HrSample[]; peakHr: number },
-  threshold: number,
-  prevEndMs: number | null,
-  nextStartMs: number | null,
+  prominenceBpm: number,
+  durationSec: number,
+  sampleCount: number,
 ): "green" | "yellow" | "red" {
-  // Marginal sets: barely above threshold, little headroom.
-  if (set.peakHr - threshold < 10) return "red";
-  // Sparse sampling: < 1 sample per 6 seconds inside the set window.
-  const setSec = (set.endMs - set.startMs) / 1000;
-  const samplesPerSec = set.samples.length / Math.max(setSec, 1);
+  // High prominence + decent sample density → confident set.
+  const samplesPerSec = sampleCount / Math.max(durationSec, 1);
+  if (prominenceBpm < MIN_PROMINENCE_BPM + 4) return "red";
   if (samplesPerSec < 1 / 6) return "yellow";
-  // Fuzzy edges: rest period before/after is barely the minimum.
-  const restBeforeSec = prevEndMs != null ? (set.startMs - prevEndMs) / 1000 : Infinity;
-  const restAfterSec = nextStartMs != null ? (nextStartMs - set.endMs) / 1000 : Infinity;
-  if (restBeforeSec < MIN_REST_SEC * 1.5 && restAfterSec < MIN_REST_SEC * 1.5) {
-    return "yellow";
-  }
+  if (prominenceBpm < MIN_PROMINENCE_BPM + 12) return "yellow";
   return "green";
 }
 
-// ─── Set detection ───────────────────────────────────────────────────────────
+// ─── Set detection (peak-prominence algorithm) ───────────────────────────────
 
 type RawSet = {
-  startMs: number;
-  endMs: number;
-  samples: HrSample[];
+  /** Inclusive index in the smoothed sample array where the set begins. */
+  startIdx: number;
+  /** Inclusive index where the set ends. */
+  endIdx: number;
+  /** Index of the peak sample within the set window. */
+  peakIdx: number;
 };
 
-/** Walk the sorted in-window samples and bucket them into elevated runs.
- *  Sub-threshold dips < MIN_REST_SEC are absorbed into the surrounding set;
- *  silence gaps > MAX_INTRA_SET_GAP_SEC always split. */
-function detectRawSets(
-  samples: HrSample[],
-  threshold: number,
-): RawSet[] {
-  const sets: RawSet[] = [];
-  let current: RawSet | null = null;
-  let lastSampleMs: number | null = null;
-  let pendingRestStartMs: number | null = null;
-
-  const closeCurrent = () => {
-    if (current) {
-      sets.push(current);
-      current = null;
-    }
-    pendingRestStartMs = null;
-  };
-
-  for (const s of samples) {
-    const ms = toMs(s.startDate);
-    const elevated = s.bpm >= threshold;
-
-    // Forced split on long sample silence.
-    if (
-      current &&
-      lastSampleMs != null &&
-      (ms - lastSampleMs) / 1000 > MAX_INTRA_SET_GAP_SEC
-    ) {
-      closeCurrent();
-    }
-
-    if (elevated) {
-      if (!current) {
-        current = { startMs: ms, endMs: ms, samples: [s] };
-      } else {
-        current.endMs = ms;
-        current.samples.push(s);
-      }
-      pendingRestStartMs = null;
-    } else if (current) {
-      // Track how long we've been sub-threshold; close set if it crosses
-      // the rest minimum.
-      if (pendingRestStartMs == null) pendingRestStartMs = ms;
-      const restSec = (ms - pendingRestStartMs) / 1000;
-      if (restSec >= MIN_REST_SEC) {
-        closeCurrent();
-      }
-    }
-    lastSampleMs = ms;
+/** Median smoothing across a window centered on each sample. Preserves
+ *  sharp peaks (median is robust) while removing single-sample noise
+ *  spikes. The output array is the same length as the input. */
+function smoothMedian(samples: HrSample[], window: number): HrSample[] {
+  const half = Math.floor(window / 2);
+  const out: HrSample[] = [];
+  for (let i = 0; i < samples.length; i++) {
+    const lo = Math.max(0, i - half);
+    const hi = Math.min(samples.length - 1, i + half);
+    const slice: number[] = [];
+    for (let j = lo; j <= hi; j++) slice.push(samples[j].bpm);
+    slice.sort((a, b) => a - b);
+    const med = slice[Math.floor(slice.length / 2)];
+    out.push({ startDate: samples[i].startDate, bpm: med });
   }
-  closeCurrent();
+  return out;
+}
 
-  return sets.filter((s) => (s.endMs - s.startMs) / 1000 >= MIN_SET_SEC);
+/** Find indices of local maxima with prominence ≥ MIN_PROMINENCE_BPM and
+ *  peak ≥ PEAK_MIN_BPM. Prominence = min(rise from prev valley, fall to
+ *  next valley). */
+function findPeaks(samples: HrSample[]): number[] {
+  if (samples.length < 3) return [];
+  const peaks: number[] = [];
+  // First pass: identify all strict local maxima.
+  const candidateIdx: number[] = [];
+  for (let i = 1; i < samples.length - 1; i++) {
+    if (
+      samples[i].bpm >= PEAK_MIN_BPM &&
+      samples[i].bpm > samples[i - 1].bpm &&
+      samples[i].bpm >= samples[i + 1].bpm
+    ) {
+      candidateIdx.push(i);
+    }
+  }
+  // Second pass: gate by prominence. For each candidate, walk outward to
+  // find the lowest point before the next candidate (left valley) and the
+  // lowest point before the next candidate (right valley).
+  for (let c = 0; c < candidateIdx.length; c++) {
+    const i = candidateIdx[c];
+    const peakBpm = samples[i].bpm;
+    // Left valley: from previous peak (or 0) up to i.
+    const leftBound = c > 0 ? candidateIdx[c - 1] : 0;
+    let leftMin = peakBpm;
+    for (let j = leftBound; j < i; j++) {
+      if (samples[j].bpm < leftMin) leftMin = samples[j].bpm;
+    }
+    // Right valley: from i to next peak (or end).
+    const rightBound = c < candidateIdx.length - 1
+      ? candidateIdx[c + 1]
+      : samples.length - 1;
+    let rightMin = peakBpm;
+    for (let j = i + 1; j <= rightBound; j++) {
+      if (samples[j].bpm < rightMin) rightMin = samples[j].bpm;
+    }
+    const prominence = Math.min(peakBpm - leftMin, peakBpm - rightMin);
+    if (prominence >= MIN_PROMINENCE_BPM) {
+      peaks.push(i);
+    }
+  }
+  return peaks;
+}
+
+/** Expand outward from each peak to define the set window: walk back until
+ *  HR drops by SET_DESCENT_BPM from the peak (or we hit the previous peak's
+ *  midpoint), then walk forward similarly. */
+function buildSetsFromPeaks(
+  samples: HrSample[],
+  peaks: number[],
+): RawSet[] {
+  return peaks.map((peakIdx, k) => {
+    const peakBpm = samples[peakIdx].bpm;
+    const descentFloor = peakBpm - SET_DESCENT_BPM;
+    // Boundary against the previous peak: midpoint between adjacent peaks.
+    const leftBound = k > 0
+      ? Math.floor((peaks[k - 1] + peakIdx) / 2)
+      : 0;
+    const rightBound = k < peaks.length - 1
+      ? Math.floor((peaks[k + 1] + peakIdx) / 2)
+      : samples.length - 1;
+    let startIdx = peakIdx;
+    while (startIdx > leftBound && samples[startIdx - 1].bpm >= descentFloor) {
+      startIdx--;
+    }
+    let endIdx = peakIdx;
+    while (endIdx < rightBound && samples[endIdx + 1].bpm >= descentFloor) {
+      endIdx++;
+    }
+    return { startIdx, endIdx, peakIdx };
+  });
+}
+
+/** Walk between consecutive sets to find each set's recovery floor (lowest
+ *  HR before the next set's window starts) + recovery time (sec from this
+ *  set's peak to that floor). The last set has no following set, so its
+ *  recovery is computed against the end of the workout window. */
+function computeRecoveryMetrics(
+  samples: HrSample[],
+  sets: RawSet[],
+  workoutEndMs: number,
+): Array<{ floorHr: number | null; recoverySec: number | null }> {
+  return sets.map((set, i) => {
+    const restStart = set.endIdx + 1;
+    const restEnd = i < sets.length - 1
+      ? sets[i + 1].startIdx - 1
+      : samples.length - 1;
+    if (restEnd < restStart) {
+      return { floorHr: null, recoverySec: null };
+    }
+    let floorHr = samples[restStart].bpm;
+    let floorIdx = restStart;
+    for (let j = restStart + 1; j <= restEnd; j++) {
+      if (samples[j].bpm < floorHr) {
+        floorHr = samples[j].bpm;
+        floorIdx = j;
+      }
+    }
+    const peakMs = toMs(samples[set.peakIdx].startDate);
+    const floorMs = toMs(samples[floorIdx].startDate);
+    const recoverySec = Math.max(0, Math.round((floorMs - peakMs) / 1000));
+    // Sanity: ignore meaningless 0-sec recoveries (single rest sample at
+    // the very next slot).
+    if (i === sets.length - 1) {
+      const remainingSec = (workoutEndMs - toMs(samples[set.endIdx].startDate)) / 1000;
+      if (remainingSec < 10) return { floorHr: null, recoverySec: null };
+    }
+    return { floorHr, recoverySec };
+  });
 }
 
 // ─── Narrative ───────────────────────────────────────────────────────────────
@@ -328,7 +405,7 @@ export function analyzeWorkout(
       meta,
       sets: [],
       narrative: "No heart rate samples in the workout window — set inference unavailable.",
-      thresholdBpm: ABS_THRESHOLD_BPM,
+      thresholdBpm: PEAK_MIN_BPM,
       peakHrBpm: 0,
       avgHrBpm: 0,
       sampleCount: 0,
@@ -339,10 +416,10 @@ export function analyzeWorkout(
   const peakHr = Math.max(...inWindow.map((s) => s.bpm));
   const avgHr =
     inWindow.reduce((sum, s) => sum + s.bpm, 0) / inWindow.length;
-  const threshold = Math.max(
-    ABS_THRESHOLD_BPM,
-    Math.round(peakHr * PEAK_FRACTION),
-  );
+  // Effective working threshold for the narrative + UI display. Not used
+  // by the peak-detection algorithm itself — left in the result type for
+  // backward-compat with callers that expect to render it.
+  const threshold = Math.max(PEAK_MIN_BPM, Math.round(peakHr * 0.7));
 
   // Low-intensity guard.
   if (peakHr < LOW_INTENSITY_PEAK_BPM) {
@@ -358,35 +435,25 @@ export function analyzeWorkout(
     };
   }
 
-  const rawSets = detectRawSets(inWindow, threshold);
+  // Smooth, find peaks, build set windows. Only smooth when samples are
+  // dense enough that single-sample noise is plausible (≤6s avg interval).
+  // Sparse synthetic data shouldn't be smoothed — the median collapses
+  // legitimate sharp peaks.
+  const totalWindowSec = (endMs - startMs) / 1000;
+  const avgIntervalSec = totalWindowSec / inWindow.length;
+  const smoothed =
+    avgIntervalSec <= 6
+      ? smoothMedian(inWindow, SMOOTHING_WINDOW)
+      : inWindow;
+  const peakIdxs = findPeaks(smoothed);
+  const rawSets = buildSetsFromPeaks(smoothed, peakIdxs);
+  const recoveries = computeRecoveryMetrics(smoothed, rawSets, endMs);
 
-  // All-elevated trace: one giant set spanning the full window.
-  if (
-    rawSets.length === 1 &&
-    (rawSets[0].endMs - rawSets[0].startMs) / 1000 >
-      ((endMs - startMs) / 1000) * 0.85
-  ) {
-    const only = rawSets[0];
-    const onlySamples = only.samples;
-    const onlyAvg = Math.round(
-      onlySamples.reduce((sum, s) => sum + s.bpm, 0) / Math.max(onlySamples.length, 1),
-    );
-    const set: AnalyzedSet = {
-      index: 1,
-      startDate: new Date(only.startMs).toISOString(),
-      endDate: new Date(only.endMs).toISOString(),
-      durationSec: Math.round((only.endMs - only.startMs) / 1000),
-      peakHr: Math.max(...onlySamples.map((s) => s.bpm)),
-      avgHr: onlyAvg,
-      sampleCount: onlySamples.length,
-      estimatedReps: null,
-      description: classifyDuration((only.endMs - only.startMs) / 1000).description,
-      confidence: "yellow",
-    };
+  if (rawSets.length === 0) {
     return {
       meta,
-      sets: [set],
-      narrative: `1 sustained block of ${Math.round(set.durationSec / 60)} min at avg HR ${set.avgHr}. HR never dropped below threshold for the full workout — looks like a continuous piece.`,
+      sets: [],
+      narrative: `Peak HR ${peakHr}, avg ${Math.round(avgHr)}. No prominent set/rest peaks detected — HR pattern looks more like a steady-state piece than discrete sets.`,
       thresholdBpm: threshold,
       peakHrBpm: peakHr,
       avgHrBpm: Math.round(avgHr),
@@ -396,29 +463,42 @@ export function analyzeWorkout(
   }
 
   const sets: AnalyzedSet[] = rawSets.map((raw, i) => {
-    const samples = raw.samples;
-    const setPeak = Math.max(...samples.map((s) => s.bpm));
+    const setSamples = smoothed.slice(raw.startIdx, raw.endIdx + 1);
+    const peakSample = smoothed[raw.peakIdx];
+    const setStart = smoothed[raw.startIdx];
+    const setEnd = smoothed[raw.endIdx];
+    const setPeak = peakSample.bpm;
     const setAvg = Math.round(
-      samples.reduce((sum, s) => sum + s.bpm, 0) / Math.max(samples.length, 1),
+      setSamples.reduce((sum, s) => sum + s.bpm, 0) / Math.max(setSamples.length, 1),
     );
-    const durationSec = Math.round((raw.endMs - raw.startMs) / 1000);
+    const durationSec = Math.round(
+      (toMs(setEnd.startDate) - toMs(setStart.startDate)) / 1000,
+    );
     const { reps, description } = classifyDuration(durationSec);
-    const prevEndMs = i > 0 ? rawSets[i - 1].endMs : null;
-    const nextStartMs = i < rawSets.length - 1 ? rawSets[i + 1].startMs : null;
-    const confidence = scoreConfidence(
-      { ...raw, peakHr: setPeak },
-      threshold,
-      prevEndMs,
-      nextStartMs,
-    );
+    // Prominence: smaller of (peak - left valley) and (peak - right valley).
+    const leftBound = i > 0 ? rawSets[i - 1].peakIdx : 0;
+    const rightBound = i < rawSets.length - 1 ? rawSets[i + 1].peakIdx : smoothed.length - 1;
+    let leftMin = setPeak;
+    for (let j = leftBound; j < raw.peakIdx; j++) {
+      if (smoothed[j].bpm < leftMin) leftMin = smoothed[j].bpm;
+    }
+    let rightMin = setPeak;
+    for (let j = raw.peakIdx + 1; j <= rightBound; j++) {
+      if (smoothed[j].bpm < rightMin) rightMin = smoothed[j].bpm;
+    }
+    const prominence = Math.min(setPeak - leftMin, setPeak - rightMin);
+    const confidence = scoreConfidence(prominence, durationSec, setSamples.length);
     return {
       index: i + 1,
-      startDate: new Date(raw.startMs).toISOString(),
-      endDate: new Date(raw.endMs).toISOString(),
+      startDate: setStart.startDate,
+      endDate: setEnd.startDate,
       durationSec,
       peakHr: setPeak,
+      peakAt: peakSample.startDate,
       avgHr: setAvg,
-      sampleCount: samples.length,
+      sampleCount: setSamples.length,
+      recoveryFloorHr: recoveries[i].floorHr,
+      recoverySec: recoveries[i].recoverySec,
       estimatedReps: reps,
       description,
       confidence,

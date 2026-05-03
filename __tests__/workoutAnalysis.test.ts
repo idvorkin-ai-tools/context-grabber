@@ -63,32 +63,34 @@ describe("analyzeWorkout — synthetic", () => {
     expect(result.warning).toMatch(/low-intensity/i);
   });
 
-  it("detects a single working set bounded by rest", () => {
+  it("detects a single peak bounded by rest", () => {
     const samples = mkSamples("2026-01-01T10:00:00.000Z", [
       { offsetSec: 0, bpm: 90 },
       { offsetSec: 5, bpm: 95 },
-      // Set: elevated for ~30s
-      { offsetSec: 10, bpm: 145 },
-      { offsetSec: 15, bpm: 152 },
-      { offsetSec: 20, bpm: 150 },
-      { offsetSec: 25, bpm: 148 },
-      { offsetSec: 30, bpm: 145 },
-      { offsetSec: 35, bpm: 142 },
+      // Set: elevated for ~40s climbing then descending
+      { offsetSec: 10, bpm: 130 },
+      { offsetSec: 15, bpm: 145 },
+      { offsetSec: 20, bpm: 152 },
+      { offsetSec: 25, bpm: 150 },
+      { offsetSec: 30, bpm: 148 },
+      { offsetSec: 35, bpm: 145 },
       { offsetSec: 40, bpm: 140 },
-      // Rest: drop and stay sub-threshold for >15s
-      { offsetSec: 50, bpm: 95 },
-      { offsetSec: 60, bpm: 90 },
-      { offsetSec: 75, bpm: 88 },
+      { offsetSec: 45, bpm: 130 },
+      // Rest
+      { offsetSec: 55, bpm: 100 },
+      { offsetSec: 65, bpm: 95 },
+      { offsetSec: 80, bpm: 90 },
     ]);
     const result = analyzeWorkout(baseMeta(90), samples);
     expect(result.sets).toHaveLength(1);
     expect(result.sets[0].peakHr).toBe(152);
-    expect(result.sets[0].durationSec).toBeGreaterThanOrEqual(20);
-    expect(result.sets[0].estimatedReps).toBe(10);
+    expect(result.sets[0].recoveryFloorHr).toBeLessThanOrEqual(100);
+    expect(result.sets[0].recoverySec).toBeGreaterThan(0);
   });
 
-  it("collapses an all-elevated trace into a single sustained block", () => {
-    // 6 min of solid 140 — never drops.
+  it("flat-elevated trace yields no peaks (steady-state)", () => {
+    // 6 min of solid 140 — no peak structure. Peak-detection should
+    // surface this honestly rather than fabricating sets.
     const samples: HrSample[] = [];
     for (let s = 0; s <= 360; s += 5) {
       samples.push({
@@ -99,38 +101,41 @@ describe("analyzeWorkout — synthetic", () => {
       });
     }
     const result = analyzeWorkout(baseMeta(360), samples);
-    expect(result.sets).toHaveLength(1);
-    expect(result.narrative).toMatch(/sustained/i);
+    expect(result.sets).toHaveLength(0);
+    expect(result.narrative).toMatch(/steady-state|prominent/i);
   });
 
-  it("splits two sets across a >=15s rest", () => {
+  it("splits two peaks even with shallow recovery (Igor's swing pattern)", () => {
+    // Recovery dips only to 122 between sets — the failure mode of the old
+    // threshold algorithm (122 > 110 = no rest detected = one giant set).
+    // Peak detection should still find both peaks via prominence.
     const samples = mkSamples("2026-01-01T10:00:00.000Z", [
-      // Set A
-      { offsetSec: 0, bpm: 145 },
-      { offsetSec: 5, bpm: 150 },
+      // Set A peak
+      { offsetSec: 0, bpm: 130 },
+      { offsetSec: 5, bpm: 145 },
       { offsetSec: 10, bpm: 152 },
       { offsetSec: 15, bpm: 150 },
-      { offsetSec: 20, bpm: 148 },
-      { offsetSec: 25, bpm: 145 },
-      // Rest (20 sec sub-threshold)
-      { offsetSec: 30, bpm: 95 },
-      { offsetSec: 40, bpm: 90 },
-      { offsetSec: 50, bpm: 88 },
-      // Set B
-      { offsetSec: 60, bpm: 140 },
-      { offsetSec: 65, bpm: 148 },
-      { offsetSec: 70, bpm: 150 },
-      { offsetSec: 75, bpm: 152 },
-      { offsetSec: 80, bpm: 150 },
-      { offsetSec: 85, bpm: 145 },
-      // Rest
-      { offsetSec: 95, bpm: 95 },
-      { offsetSec: 110, bpm: 88 },
+      { offsetSec: 20, bpm: 145 },
+      { offsetSec: 25, bpm: 138 },
+      // Shallow recovery — only dips to 122
+      { offsetSec: 35, bpm: 128 },
+      { offsetSec: 50, bpm: 124 },
+      { offsetSec: 65, bpm: 122 },
+      // Set B peak
+      { offsetSec: 75, bpm: 132 },
+      { offsetSec: 80, bpm: 145 },
+      { offsetSec: 85, bpm: 152 },
+      { offsetSec: 90, bpm: 150 },
+      { offsetSec: 95, bpm: 145 },
+      { offsetSec: 100, bpm: 138 },
+      { offsetSec: 110, bpm: 125 },
+      { offsetSec: 125, bpm: 120 },
     ]);
-    const result = analyzeWorkout(baseMeta(120), samples);
+    const result = analyzeWorkout(baseMeta(135), samples);
     expect(result.sets.length).toBe(2);
-    expect(result.sets[0].index).toBe(1);
-    expect(result.sets[1].index).toBe(2);
+    expect(result.sets[0].peakHr).toBe(152);
+    expect(result.sets[1].peakHr).toBe(152);
+    expect(result.sets[0].recoveryFloorHr).toBeLessThanOrEqual(125);
   });
 });
 
@@ -176,19 +181,34 @@ describe("analyzeWorkout — real fixture (Kettlebility-style 96-min session)", 
     }
   });
 
-  it("every set respects min duration and ordering", () => {
+  it("every set is well-ordered, peak >= avg, and has a peakAt timestamp", () => {
     for (let i = 0; i < result.sets.length; i++) {
       const s = result.sets[i];
-      expect(s.durationSec).toBeGreaterThanOrEqual(15);
-      expect(s.peakHr).toBeGreaterThanOrEqual(result.thresholdBpm);
       expect(s.avgHr).toBeLessThanOrEqual(s.peakHr);
       expect(s.index).toBe(i + 1);
+      expect(s.peakAt).toBeTruthy();
+      expect(new Date(s.peakAt).getTime()).toBeGreaterThanOrEqual(
+        new Date(s.startDate).getTime(),
+      );
+      expect(new Date(s.peakAt).getTime()).toBeLessThanOrEqual(
+        new Date(s.endDate).getTime(),
+      );
       if (i > 0) {
         const prev = result.sets[i - 1];
         expect(new Date(s.startDate).getTime()).toBeGreaterThanOrEqual(
-          new Date(prev.endDate).getTime(),
+          new Date(prev.endDate).getTime() - 1000, // tolerate adjacent boundaries
         );
       }
+    }
+  });
+
+  it("sets have recovery floor + recovery time fields populated", () => {
+    // Inner sets always have a following set, so recovery should be defined.
+    for (let i = 0; i < result.sets.length - 1; i++) {
+      const s = result.sets[i];
+      expect(s.recoveryFloorHr).not.toBeNull();
+      expect(s.recoverySec).not.toBeNull();
+      expect(s.recoveryFloorHr!).toBeLessThanOrEqual(s.peakHr);
     }
   });
 
