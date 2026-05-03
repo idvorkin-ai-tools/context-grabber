@@ -23,6 +23,7 @@ import * as Updates from "expo-updates";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { buildHeartRateExportJson } from "./lib/heartRateExport";
+import WorkoutAnalysisScreen from "./components/WorkoutAnalysisScreen";
 import HealthKit from "@kingstinct/react-native-healthkit";
 import type {
   QuantityTypeIdentifier,
@@ -393,6 +394,7 @@ export default function App() {
   const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
   const [aboutVisible, setAboutVisible] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>(null);
+  const [selectedWorkout, setSelectedWorkout] = useState<WorkoutEntry | null>(null);
   const [weeklyCache, setWeeklyCache] = useState<Partial<Record<MetricKey, DailyValue[] | HeartRateDaily[]>>>({});
   const [sleepDetailedCache, setSleepDetailedCache] = useState<SleepDetailedBundle | null>(null);
   const [sleepTargetHours, setSleepTargetHoursState] = useState<number>(8);
@@ -1202,6 +1204,22 @@ export default function App() {
     }
   }
 
+  const fetchHrSamplesForWindow = useCallback(
+    async (startIso: string, endIso: string) => {
+      const samples = await HealthKit.queryQuantitySamples(QTI.heartRate, {
+        limit: 0,
+        filter: {
+          date: { startDate: new Date(startIso), endDate: new Date(endIso) },
+        },
+      });
+      return samples.map((s: any) => ({
+        startDate: new Date(s.startDate).toISOString(),
+        bpm: s.quantity,
+      }));
+    },
+    [],
+  );
+
   const handleExportHeartRate = useCallback(async (daysBack: number) => {
     const json = await buildHeartRateExportJson(daysBack);
     const stamp = new Date().toISOString().slice(0, 10);
@@ -1741,9 +1759,16 @@ export default function App() {
               return JSON.stringify(result, null, 2);
             } : undefined}
             onExportHeartRate={selectedMetric === "heartRate" ? handleExportHeartRate : undefined}
+            onSelectWorkout={selectedMetric === "exerciseMinutes" ? setSelectedWorkout : undefined}
           />
         );
       })()}
+
+      <WorkoutAnalysisScreen
+        workout={selectedWorkout}
+        onClose={() => setSelectedWorkout(null)}
+        fetchHrSamples={fetchHrSamplesForWindow}
+      />
     </View>
   );
 }

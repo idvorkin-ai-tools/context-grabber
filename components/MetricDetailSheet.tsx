@@ -71,6 +71,8 @@ type MetricDetailSheetProps = {
   /** Heart Rate sheet only: export raw HR + workout samples for the last
    *  N days as a downloadable JSON file (for offline set/rep prototyping). */
   onExportHeartRate?: (daysBack: number) => Promise<void>;
+  /** Exercise sheet only: tapping a workout row opens the analysis screen. */
+  onSelectWorkout?: (workout: WorkoutEntry) => void;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -149,6 +151,7 @@ export default function MetricDetailSheet({
   restingHeartRateWeekly,
   restingHeartRateToday,
   onExportHeartRate,
+  onSelectWorkout,
 }: MetricDetailSheetProps): React.ReactElement {
   const isMovement = metricKey === "movement";
   const isSleep = metricKey === "sleep";
@@ -788,16 +791,28 @@ export default function MetricDetailSheet({
                 <Text style={[styles.workoutTitle, { color: config.color }]}>
                   {headerLabel}{totalText}
                 </Text>
-                {dayWorkouts.map((w, i) => (
-                  <View key={i} style={styles.workoutRow}>
-                    <Text style={styles.workoutName}>{w.activityType}</Text>
-                    <View style={styles.workoutDetails}>
-                      <Text style={styles.workoutPill}>{w.durationMinutes} min</Text>
-                      {w.energyBurned != null && <Text style={styles.workoutPill}>{w.energyBurned} kcal</Text>}
-                      {w.distanceKm != null && <Text style={styles.workoutPill}>{w.distanceKm} km</Text>}
-                    </View>
-                  </View>
-                ))}
+                {dayWorkouts.map((w, i) => {
+                  const tappable = onSelectWorkout && w.startTime && w.endTime;
+                  const Row: any = tappable ? TouchableOpacity : View;
+                  return (
+                    <Row
+                      key={i}
+                      style={styles.workoutRow}
+                      onPress={tappable ? () => onSelectWorkout!(w) : undefined}
+                      activeOpacity={tappable ? 0.6 : 1}
+                    >
+                      <Text style={styles.workoutName}>
+                        {w.activityType}
+                        {tappable ? "  ›" : ""}
+                      </Text>
+                      <View style={styles.workoutDetails}>
+                        <Text style={styles.workoutPill}>{w.durationMinutes} min</Text>
+                        {w.energyBurned != null && <Text style={styles.workoutPill}>{w.energyBurned} kcal</Text>}
+                        {w.distanceKm != null && <Text style={styles.workoutPill}>{w.distanceKm} km</Text>}
+                      </View>
+                    </Row>
+                  );
+                })}
               </View>
             );
           })()}
