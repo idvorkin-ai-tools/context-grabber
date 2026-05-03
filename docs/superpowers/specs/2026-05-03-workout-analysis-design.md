@@ -107,11 +107,11 @@ Examples:
 - **Workout straddles midnight.** Today-only listing means a workout that started yesterday but ended today should still appear under today. Use end-time, not start-time, for the today filter.
 - **Multiple overlapping workouts.** If two HK sources logged the same session (Watch + third-party app), prefer the source with more HR samples and silently drop the duplicate.
 
-## Open questions
+## Decisions
 
-- **Where does the auto-analysis live?** In-app at view time vs precomputed at grab time. View-time is simpler and avoids stale results when the heuristic improves; grab-time is faster on tap. Recommend view-time for v1, with a memoization layer so re-opening the same workout in the same session is instant.
-- **Should the rep heuristic be tunable per user?** Igor's "common movements" map is the seed; other users will need their own. Out of scope for v1, but the heuristic should live in a place that's easy to swap later.
-- **Confidence indicator?** A small per-set confidence dot (green/yellow/red based on how cleanly the set boundary fell) might help Larry weight the input. Worth a follow-up issue if v1 inference quality is mixed.
+- **Analysis runs at view time.** Computed when the Workout Analysis screen opens, not at grab time. Memoized in-session so re-opening the same workout is instant. Lets us iterate the heuristic without invalidating cached results.
+- **No per-user tuning in v1.** The hardcoded thresholds and rep mapping target Igor's training patterns. The heuristic lives in a single isolated module so swapping later is a one-file change. UX dials in based on real use; thresholds get tuned against fixture + live feedback before we expose any user-facing settings.
+- **Per-set confidence dot ships in v1.** Each set row gets a small colored dot (green / yellow / red) indicating how cleanly the set boundary fell — a sharp HR rise + sharp drop on either side scores green, a fuzzy/sparse-sample boundary scores yellow, anything inside a sub-threshold "did this even happen" zone scores red. Helps the user (and Larry) weight the inference at a glance.
 
 ## Related
 
