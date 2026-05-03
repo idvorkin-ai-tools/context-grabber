@@ -34,6 +34,7 @@ import {
   insertLocation, pruneLocations, getLocationCount, getLocationStorageBytes,
   getKnownPlaces, addKnownPlace, deleteKnownPlace, getLocationHistory,
   getSleepTarget, setSleepTarget,
+  getLastSnapshot, setLastSnapshot,
   type LocationHistoryItem,
 } from "./lib/db";
 import {
@@ -443,6 +444,13 @@ export default function App() {
         const widgetSnap = await readWidgetSnapshot();
         const counter = await reconcileFromWidget(database, widgetSnap);
         setCounterValue(counter.value);
+
+        // Hydrate snapshot from last successful grab so tiles paint instantly
+        // on cold start instead of showing em-dashes until the first grab
+        // resolves (#33). Stale data > no data — the in-flight grab will
+        // overwrite this when it succeeds.
+        const cachedSnapshot = await getLastSnapshot<ContextSnapshot>(database);
+        if (cachedSnapshot) setSnapshot(cachedSnapshot);
 
         // Prune on startup
         await pruneLocations(database, parseInt(days, 10) || 30);
@@ -1256,6 +1264,11 @@ export default function App() {
         locationHistory,
       };
       setSnapshot(result);
+      // Persist for cold-start hydration on the next launch (#33). Skip the
+      // bulky locationHistory array — it's reloaded from SQLite directly.
+      if (db) {
+        void setLastSnapshot(db, { ...result, locationHistory: [] });
+      }
       // Fire-and-forget: push today's headline to the home-screen widget's
       // shared suite. Never awaited — widget refresh is best-effort.
       void writeWidgetSnapshot({

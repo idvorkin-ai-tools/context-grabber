@@ -70,6 +70,37 @@ export async function setSetting(
   );
 }
 
+// ─── Last snapshot (cold-start hydration) ────────────────────────────────────
+// Persists the most recent successful grabContext result so cold launch can
+// paint tiles immediately instead of showing em-dashes until the first grab
+// resolves. Stored as a single JSON blob in the settings table — small enough
+// (~few KB) that key/value is simpler than a dedicated schema.
+
+const LAST_SNAPSHOT_KEY = "last_snapshot";
+
+export async function getLastSnapshot<T>(
+  db: SQLite.SQLiteDatabase,
+): Promise<T | null> {
+  const row = await db.getFirstAsync<{ value: string }>(
+    "SELECT value FROM settings WHERE key = ?",
+    [LAST_SNAPSHOT_KEY],
+  );
+  if (!row) return null;
+  try {
+    return JSON.parse(row.value) as T;
+  } catch {
+    // Corrupt blob — drop it so the next successful grab can replace it.
+    return null;
+  }
+}
+
+export async function setLastSnapshot(
+  db: SQLite.SQLiteDatabase,
+  snapshot: unknown,
+): Promise<void> {
+  await setSetting(db, LAST_SNAPSHOT_KEY, JSON.stringify(snapshot));
+}
+
 // ─── Sleep target (hours/night) ──────────────────────────────────────────────
 
 export async function getSleepTarget(db: SQLite.SQLiteDatabase): Promise<number> {
