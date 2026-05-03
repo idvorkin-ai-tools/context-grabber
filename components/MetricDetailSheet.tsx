@@ -68,6 +68,9 @@ type MetricDetailSheetProps = {
    *  dedicated Resting HR card). Only consumed when metricKey === "heartRate". */
   restingHeartRateWeekly?: HeartRateDaily[] | null;
   restingHeartRateToday?: number | null;
+  /** Heart Rate sheet only: export raw HR + workout samples for the last
+   *  N days as a downloadable JSON file (for offline set/rep prototyping). */
+  onExportHeartRate?: (daysBack: number) => Promise<void>;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -145,6 +148,7 @@ export default function MetricDetailSheet({
   sleepTargetHours,
   restingHeartRateWeekly,
   restingHeartRateToday,
+  onExportHeartRate,
 }: MetricDetailSheetProps): React.ReactElement {
   const isMovement = metricKey === "movement";
   const isSleep = metricKey === "sleep";
@@ -162,6 +166,7 @@ export default function MetricDetailSheet({
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [debugVisible, setDebugVisible] = useState(false);
   const [rawCacheJson, setRawCacheJson] = useState<string | null>(null);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
 
   // Default source: pick the one with the most stage detail the first time a
   // bundle arrives. "All" fallback handled by pickDefaultSleepSource.
@@ -849,6 +854,40 @@ export default function MetricDetailSheet({
             </View>
           )}
 
+          {/* Heart Rate raw export — for offline workout / set-rep prototyping. */}
+          {metricKey === "heartRate" && onExportHeartRate && (
+            <View style={styles.hrExportSection}>
+              <Text style={styles.hrExportTitle}>Export Raw Data</Text>
+              <Text style={styles.hrExportSubtitle}>
+                Heart rate samples + workouts + HRV + active energy as JSON
+              </Text>
+              <View style={styles.hrExportRow}>
+                {[1, 2, 7].map((days) => (
+                  <TouchableOpacity
+                    key={days}
+                    style={styles.hrExportButton}
+                    disabled={exportStatus === "Exporting..."}
+                    onPress={async () => {
+                      try {
+                        setExportStatus("Exporting...");
+                        await onExportHeartRate(days);
+                        setExportStatus("Shared");
+                        setTimeout(() => setExportStatus(null), 2000);
+                      } catch (e: any) {
+                        setExportStatus(e.message ?? "Export failed");
+                      }
+                    }}
+                  >
+                    <Text style={styles.hrExportButtonText}>{days}d</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {exportStatus && (
+                <Text style={styles.hrExportStatus}>{exportStatus}</Text>
+              )}
+            </View>
+          )}
+
           {/* Debug button — available for all metrics */}
           {data && data.length > 0 && (
             <View style={styles.debugSection}>
@@ -1204,6 +1243,45 @@ const styles = StyleSheet.create({
   dayWorkoutName: {
     color: "#aaa",
     fontSize: 13,
+  },
+  hrExportSection: {
+    marginTop: 24,
+    paddingHorizontal: 20,
+  },
+  hrExportTitle: {
+    color: "#888",
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  hrExportSubtitle: {
+    color: "#666",
+    fontSize: 12,
+    marginBottom: 10,
+  },
+  hrExportRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  hrExportButton: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  hrExportButtonText: {
+    color: "#e0e0e0",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  hrExportStatus: {
+    marginTop: 8,
+    color: "#888",
+    fontSize: 12,
+    textAlign: "center",
   },
   debugSection: {
     paddingHorizontal: 20,

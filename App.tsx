@@ -20,6 +20,9 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import * as SQLite from "expo-sqlite";
 import * as Updates from "expo-updates";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
+import { buildHeartRateExportJson } from "./lib/heartRateExport";
 import HealthKit from "@kingstinct/react-native-healthkit";
 import type {
   QuantityTypeIdentifier,
@@ -1670,6 +1673,17 @@ export default function App() {
                 result[key] = raw.get(key) ?? null;
               }
               return JSON.stringify(result, null, 2);
+            } : undefined}
+            onExportHeartRate={selectedMetric === "heartRate" ? async (daysBack) => {
+              const json = await buildHeartRateExportJson(daysBack);
+              const stamp = new Date().toISOString().slice(0, 10);
+              const path = `${FileSystem.cacheDirectory}heart-rate-${daysBack}d-${stamp}.json`;
+              await FileSystem.writeAsStringAsync(path, json);
+              await Sharing.shareAsync(path, {
+                mimeType: "application/json",
+                dialogTitle: `Heart Rate Export (${daysBack}d)`,
+                UTI: "public.json",
+              });
             } : undefined}
           />
         );
