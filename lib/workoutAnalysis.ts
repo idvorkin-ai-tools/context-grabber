@@ -37,6 +37,18 @@ const LOW_INTENSITY_PEAK_BPM = 100;
  *  at 20s recovers his ground-truth count of 10 swing sets exactly. */
 const MIN_SET_SEC = 20;
 
+/** Loose-pass values used to rescan inter-set gaps for missed work. Lower
+ *  bars deliberately accept more "maybe" sets — but only inside gaps where
+ *  the standard pass found nothing, so the strict regions stay clean. */
+const LOOSE_MIN_SET_SEC = 15;
+const LOOSE_MIN_PROMINENCE_BPM = 6;
+const LOOSE_PEAK_MIN_BPM = 110;
+
+/** Minimum inter-set gap (sec) that triggers a loose-pass rescan. Gaps
+ *  shorter than this are normal between back-to-back sets — no need to
+ *  search inside them. */
+const LOOSE_RESCAN_MIN_GAP_SEC = 90;
+
 /** Rolling-window size for HR smoothing (samples). Removes single-sample
  *  noise without smearing real peaks. Use 3 — a moving median across 3
  *  samples (~10-15s) preserves sharp ballistic peaks. */
@@ -101,6 +113,11 @@ export type AnalyzedSet = {
    *  needing the algorithm to decide where recovery ends and idle begins.
    *  tSec is seconds from set startDate. */
   trace: Array<{ tSec: number; bpm: number }>;
+  /** Which detection pass surfaced this set. "strict" = found by the main
+   *  detector with normal thresholds. "loose" = recovered from a gap by
+   *  the second pass with relaxed thresholds. UI can dim/flag loose-pass
+   *  sets so the user knows they're lower-confidence finds. */
+  pass: "strict" | "loose";
 };
 
 export type AnalyzedWorkout = {
@@ -201,17 +218,28 @@ function smoothMedian(samples: HrSample[], window: number): HrSample[] {
   return out;
 }
 
-/** Find indices of local maxima with prominence ≥ MIN_PROMINENCE_BPM and
- *  peak ≥ PEAK_MIN_BPM. Prominence = min(rise from prev valley, fall to
+type PeakOpts = {
+  peakMinBpm: number;
+  minProminenceBpm: number;
+  /** Index range to search in (inclusive). Lets the loose pass restrict
+   *  itself to a single inter-set gap instead of the whole workout. */
+  startIdx?: number;
+  endIdx?: number;
+};
+
+/** Find indices of local maxima with prominence ≥ minProminenceBpm and
+ *  peak ≥ peakMinBpm. Prominence = min(rise from prev valley, fall to
  *  next valley). */
-function findPeaks(samples: HrSample[]): number[] {
-  if (samples.length < 3) return [];
+function findPeaks(samples: HrSample[], opts: PeakOpts): number[] {
+  const start = opts.startIdx ?? 0;
+  const end = Math.min(opts.endIdx ?? samples.length - 1, samples.length - 1);
+  if (end - start < 2) return [];
   const peaks: number[] = [];
-  // First pass: identify all strict local maxima.
+  // First pass: identify all strict local maxima within [start, end].
   const candidateIdx: number[] = [];
-  for (let i = 1; i < samples.length - 1; i++) {
+  for (let i = Math.max(start, 1); i <= Math.min(end, samples.length - 2); i++) {
     if (
-      samples[i].bpm >= PEAK_MIN_BPM &&
+      samples[i].bpm >= opts.peakMinBpm &&
       samples[i].bpm > samples[i - 1].bpm &&
       samples[i].bpm >= samples[i + 1].bpm
     ) {
@@ -224,22 +252,22 @@ function findPeaks(samples: HrSample[]): number[] {
   for (let c = 0; c < candidateIdx.length; c++) {
     const i = candidateIdx[c];
     const peakBpm = samples[i].bpm;
-    // Left valley: from previous peak (or 0) up to i.
-    const leftBound = c > 0 ? candidateIdx[c - 1] : 0;
+    // Left valley: from previous peak (or window start) up to i.
+    const leftBound = c > 0 ? candidateIdx[c - 1] : start;
     let leftMin = peakBpm;
     for (let j = leftBound; j < i; j++) {
       if (samples[j].bpm < leftMin) leftMin = samples[j].bpm;
     }
-    // Right valley: from i to next peak (or end).
+    // Right valley: from i to next peak (or window end).
     const rightBound = c < candidateIdx.length - 1
       ? candidateIdx[c + 1]
-      : samples.length - 1;
+      : end;
     let rightMin = peakBpm;
     for (let j = i + 1; j <= rightBound; j++) {
       if (samples[j].bpm < rightMin) rightMin = samples[j].bpm;
     }
     const prominence = Math.min(peakBpm - leftMin, peakBpm - rightMin);
-    if (prominence >= MIN_PROMINENCE_BPM) {
+    if (prominence >= opts.minProminenceBpm) {
       peaks.push(i);
     }
   }
@@ -248,27 +276,50 @@ function findPeaks(samples: HrSample[]): number[] {
 
 /** Expand outward from each peak to define the set window: walk back until
  *  HR drops by SET_DESCENT_BPM from the peak (or we hit the previous peak's
- *  midpoint), then walk forward similarly. */
+ *  midpoint), then walk forward similarly. Optional hard bounds clamp the
+ *  expansion — used by the loose pass to keep loose sets inside their gap
+ *  rather than spilling into neighboring strict sets. */
 function buildSetsFromPeaks(
   samples: HrSample[],
   peaks: number[],
+  hardBounds?: { startIdx: number; endIdx: number },
 ): RawSet[] {
+  const hardStart = hardBounds?.startIdx ?? 0;
+  const hardEnd = hardBounds?.endIdx ?? samples.length - 1;
   return peaks.map((peakIdx, k) => {
     const peakBpm = samples[peakIdx].bpm;
     const descentFloor = peakBpm - SET_DESCENT_BPM;
     // Boundary against the previous peak: midpoint between adjacent peaks.
-    const leftBound = k > 0
-      ? Math.floor((peaks[k - 1] + peakIdx) / 2)
-      : 0;
-    const rightBound = k < peaks.length - 1
-      ? Math.floor((peaks[k + 1] + peakIdx) / 2)
-      : samples.length - 1;
+    // Clamped by the hard bounds so loose-pass expansions stay in their gap.
+    const leftBound = Math.max(
+      hardStart,
+      k > 0 ? Math.floor((peaks[k - 1] + peakIdx) / 2) : 0,
+    );
+    const rightBound = Math.min(
+      hardEnd,
+      k < peaks.length - 1
+        ? Math.floor((peaks[k + 1] + peakIdx) / 2)
+        : samples.length - 1,
+    );
+    // Expand outward while HR is in the [descentFloor, peakBpm] band. The
+    // upper-bound clause (≤ peakBpm) prevents a loose-pass peak from
+    // absorbing a higher-HR shoulder of a neighboring strict set — without
+    // it, set windows can run up the descent slope and end up with avgHr
+    // > peakHr (which is nonsensical).
     let startIdx = peakIdx;
-    while (startIdx > leftBound && samples[startIdx - 1].bpm >= descentFloor) {
+    while (
+      startIdx > leftBound &&
+      samples[startIdx - 1].bpm >= descentFloor &&
+      samples[startIdx - 1].bpm <= peakBpm
+    ) {
       startIdx--;
     }
     let endIdx = peakIdx;
-    while (endIdx < rightBound && samples[endIdx + 1].bpm >= descentFloor) {
+    while (
+      endIdx < rightBound &&
+      samples[endIdx + 1].bpm >= descentFloor &&
+      samples[endIdx + 1].bpm <= peakBpm
+    ) {
       endIdx++;
     }
     return { startIdx, endIdx, peakIdx };
@@ -462,12 +513,58 @@ export function analyzeWorkout(
   // 5/2 fixture: the 11-18s spikes between real swing sets were transition
   // movements, not work. Filtering them gives exactly his ground-truth
   // count of 10 swing sets.
-  const peakIdxs = findPeaks(smoothed);
-  const allSets = buildSetsFromPeaks(smoothed, peakIdxs);
-  const rawSets = allSets.filter((s) => {
-    const dur = (toMs(smoothed[s.endIdx].startDate) - toMs(smoothed[s.startIdx].startDate)) / 1000;
-    return dur >= MIN_SET_SEC;
+  // Strict pass: standard thresholds. Catches well-defined sets with high
+  // prominence and ≥20s sustained work.
+  const strictPeaks = findPeaks(smoothed, {
+    peakMinBpm: PEAK_MIN_BPM,
+    minProminenceBpm: MIN_PROMINENCE_BPM,
   });
+  const strictAllSets = buildSetsFromPeaks(smoothed, strictPeaks);
+  const strictSets = strictAllSets
+    .filter((s) => {
+      const dur = (toMs(smoothed[s.endIdx].startDate) - toMs(smoothed[s.startIdx].startDate)) / 1000;
+      return dur >= MIN_SET_SEC;
+    })
+    .map((s) => ({ ...s, pass: "strict" as const }));
+
+  // Loose pass: rescan every gap between strict sets that's long enough
+  // to plausibly contain missed work. Any set found inside such a gap is
+  // tagged "loose" so the UI can dim/flag it.
+  const loosePass: Array<RawSet & { pass: "loose" }> = [];
+  for (let i = 0; i <= strictSets.length; i++) {
+    const gapStart = i === 0 ? 0 : strictSets[i - 1].endIdx + 1;
+    const gapEnd = i === strictSets.length ? smoothed.length - 1 : strictSets[i].startIdx - 1;
+    if (gapEnd <= gapStart) continue;
+    const gapSec = (toMs(smoothed[gapEnd].startDate) - toMs(smoothed[gapStart].startDate)) / 1000;
+    if (gapSec < LOOSE_RESCAN_MIN_GAP_SEC) continue;
+
+    const loosePeaks = findPeaks(smoothed, {
+      peakMinBpm: LOOSE_PEAK_MIN_BPM,
+      minProminenceBpm: LOOSE_MIN_PROMINENCE_BPM,
+      startIdx: gapStart,
+      endIdx: gapEnd,
+    });
+    if (loosePeaks.length === 0) continue;
+
+    const looseAll = buildSetsFromPeaks(smoothed, loosePeaks, {
+      startIdx: gapStart,
+      endIdx: gapEnd,
+    });
+    for (const s of looseAll) {
+      const dur = (toMs(smoothed[s.endIdx].startDate) - toMs(smoothed[s.startIdx].startDate)) / 1000;
+      if (dur < LOOSE_MIN_SET_SEC) continue;
+      // Belt-and-suspenders: don't let the loose pass cross strict-set
+      // boundaries (it shouldn't given the gap range, but the descent walk
+      // could overshoot).
+      if (s.startIdx <= gapStart - 1 || s.endIdx >= gapEnd + 1) continue;
+      loosePass.push({ ...s, pass: "loose" });
+    }
+  }
+
+  // Merge strict + loose, ordered by startIdx.
+  const rawSets = [...strictSets, ...loosePass].sort(
+    (a, b) => a.startIdx - b.startIdx,
+  );
   const recoveries = computeRecoveryMetrics(smoothed, rawSets, endMs);
 
   if (rawSets.length === 0) {
@@ -535,6 +632,7 @@ export function analyzeWorkout(
       description,
       confidence,
       trace,
+      pass: (raw as RawSet & { pass: "strict" | "loose" }).pass,
     };
   });
 

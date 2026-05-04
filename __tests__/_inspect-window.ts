@@ -26,7 +26,7 @@ const windowEndMs = workoutStartMs + windowEndMin * 60 * 1000;
 const fmt = (iso: string) => new Date(iso).toISOString().slice(11, 19);
 const fmtMs = (ms: number) => new Date(ms).toISOString().slice(11, 19);
 
-describe("INSPECT 15-50 min window", () => {
+describe("INSPECT window", () => {
   it("dumps trace + sets when INSPECT_WINDOW=1", () => {
     if (!process.env.INSPECT_WINDOW) return;
 

@@ -297,7 +297,12 @@ export default function WorkoutAnalysisScreen({
                             </Text>
                             <Text style={styles.setDuration}>{fmtDuration(s.durationSec)}</Text>
                           </View>
-                          <Text style={styles.setDescription}>{s.description}</Text>
+                          <Text style={styles.setDescription}>
+                            {s.description}
+                            {s.pass === "loose" && (
+                              <Text style={styles.looseTag}> · loose</Text>
+                            )}
+                          </Text>
                           <View style={styles.setStatsRow}>
                             <Text style={styles.setStat}>peak {s.peakHr}</Text>
                             <Text style={styles.setStat}>avg {s.avgHr}</Text>
@@ -484,6 +489,11 @@ const styles = StyleSheet.create({
     color: "#aaa",
     fontSize: 12,
     marginBottom: 2,
+  },
+  looseTag: {
+    color: "#fbbf24",
+    fontSize: 11,
+    fontStyle: "italic",
   },
   deltaLine: {
     color: "#7a8595",
