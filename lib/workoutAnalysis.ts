@@ -95,6 +95,12 @@ export type AnalyzedSet = {
   /** Confidence in the set boundary: green = sharp on/off, yellow = fuzzy
    *  edges or sparse samples, red = barely-elevated or marginal. */
   confidence: "green" | "yellow" | "red";
+  /** HR trace from this set's start through the rest gap to the next set's
+   *  start (or workout end for the last set). Lets the UI show all three
+   *  phases — spike, recovery curve, and the flat "idle" tail — without
+   *  needing the algorithm to decide where recovery ends and idle begins.
+   *  tSec is seconds from set startDate. */
+  trace: Array<{ tSec: number; bpm: number }>;
 };
 
 export type AnalyzedWorkout = {
@@ -503,6 +509,17 @@ export function analyzeWorkout(
     }
     const prominence = Math.min(setPeak - leftMin, setPeak - rightMin);
     const confidence = scoreConfidence(prominence, durationSec, setSamples.length);
+    // Build trace: this set's samples + everything until the next set begins
+    // (or the end of the smoothed array for the last set). Captures all three
+    // phases — spike, recovery, and the flat idle tail.
+    const traceEndIdx = i < rawSets.length - 1
+      ? rawSets[i + 1].startIdx - 1
+      : smoothed.length - 1;
+    const setStartMs = toMs(setStart.startDate);
+    const trace = smoothed.slice(raw.startIdx, traceEndIdx + 1).map((s) => ({
+      tSec: Math.round((toMs(s.startDate) - setStartMs) / 1000),
+      bpm: s.bpm,
+    }));
     return {
       index: i + 1,
       startDate: setStart.startDate,
@@ -517,6 +534,7 @@ export function analyzeWorkout(
       estimatedReps: reps,
       description,
       confidence,
+      trace,
     };
   });
 

@@ -20,6 +20,7 @@ import {
   type WorkoutMeta,
 } from "../lib/workoutAnalysis";
 import type { WorkoutEntry } from "../lib/health";
+import RecoverySparkline from "./RecoverySparkline";
 
 type Props = {
   /** The workout to analyze. null hides the modal. */
@@ -260,6 +261,24 @@ export default function WorkoutAnalysisScreen({
                       s.recoveryFloorHr != null
                         ? s.peakHr - s.recoveryFloorHr
                         : null;
+                    // Find indices into the trace for the peak / floor / set-end
+                    // markers so the sparkline can highlight them.
+                    const peakAtSec = Math.round(
+                      (new Date(s.peakAt).getTime() - setStartMs) / 1000,
+                    );
+                    const setEndSec = s.durationSec;
+                    const peakIdx = s.trace.findIndex((p) => p.tSec >= peakAtSec);
+                    const setEndIdx = s.trace.findIndex((p) => p.tSec >= setEndSec);
+                    let floorIdx = -1;
+                    if (s.recoveryFloorHr != null) {
+                      // First trace sample at or below the floor after the peak.
+                      for (let k = Math.max(0, peakIdx); k < s.trace.length; k++) {
+                        if (s.trace[k].bpm <= s.recoveryFloorHr) {
+                          floorIdx = k;
+                          break;
+                        }
+                      }
+                    }
                     return (
                       <View key={s.index} style={styles.setRow}>
                         <View
@@ -294,6 +313,16 @@ export default function WorkoutAnalysisScreen({
                             </View>
                           )}
                         </View>
+                        {s.trace.length >= 2 && (
+                          <RecoverySparkline
+                            trace={s.trace}
+                            width={120}
+                            height={64}
+                            peakIdx={peakIdx >= 0 ? peakIdx : undefined}
+                            floorIdx={floorIdx >= 0 ? floorIdx : undefined}
+                            setEndIdx={setEndIdx >= 0 ? setEndIdx : undefined}
+                          />
+                        )}
                       </View>
                     );
                   })}
@@ -412,6 +441,7 @@ const styles = StyleSheet.create({
   },
   setRow: {
     flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
