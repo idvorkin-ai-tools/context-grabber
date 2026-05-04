@@ -56,9 +56,12 @@ Each inferred set produces:
 
 - Sequence number (1-indexed).
 - Start time (local time, HH:MM:SS).
+- **Time since workout start** — `+M:SS` from set 1's start (or workout start). Lets the user see at a glance how far into the session each set landed.
+- **Rest gap before this set** — wall-clock from previous set's *end* to this set's start, formatted `M:SS rest`. Null for set #1. Surfaces the workout shape: short ~30s rests inside a block vs long ~5min rests between blocks become visually obvious.
 - Duration in seconds.
 - Peak HR during the set.
 - Average HR during the set.
+- Recovery floor and recovery time (lowest HR after the set + seconds from peak to that floor).
 - Rep estimate. The estimate uses a coarse mapping from set duration to rep count for the user's common movement patterns; see "Rep estimation" below. The estimate is allowed to be wrong — the goal is set-level structure for Larry, not authoritative rep counts.
 
 ### Rep estimation

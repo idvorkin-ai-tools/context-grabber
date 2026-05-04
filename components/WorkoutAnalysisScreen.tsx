@@ -49,6 +49,15 @@ function fmtDuration(sec: number): string {
   return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
+/** M:SS format (e.g., 5:42 or 0:24). Used for time deltas — distinct from
+ *  the duration formatter so consecutive deltas stay visually consistent. */
+function fmtMmSs(sec: number): string {
+  const total = Math.max(0, Math.round(sec));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 const CONFIDENCE_COLOR = {
   green: "#4ade80",
   yellow: "#fbbf24",
@@ -236,38 +245,51 @@ export default function WorkoutAnalysisScreen({
                   <Text style={styles.setsLabel}>
                     Sets ({result.sets.length})
                   </Text>
-                  {result.sets.map((s) => (
-                    <View key={s.index} style={styles.setRow}>
-                      <View
-                        style={[
-                          styles.confidenceDot,
-                          { backgroundColor: CONFIDENCE_COLOR[s.confidence] },
-                        ]}
-                      />
-                      <View style={styles.setBody}>
-                        <View style={styles.setHeaderRow}>
-                          <Text style={styles.setIndex}>#{s.index}</Text>
-                          <Text style={styles.setTime}>{fmtLocalHms(s.startDate)}</Text>
-                          <Text style={styles.setDuration}>{fmtDuration(s.durationSec)}</Text>
-                        </View>
-                        <Text style={styles.setDescription}>{s.description}</Text>
-                        <View style={styles.setStatsRow}>
-                          <Text style={styles.setStat}>peak {s.peakHr}</Text>
-                          <Text style={styles.setStat}>avg {s.avgHr}</Text>
-                          {s.estimatedReps != null && (
-                            <Text style={styles.setStat}>~{s.estimatedReps} reps</Text>
+                  {result.sets.map((s, i) => {
+                    const workoutStartMs = new Date(result.meta.startDate).getTime();
+                    const setStartMs = new Date(s.startDate).getTime();
+                    const sinceStartSec = (setStartMs - workoutStartMs) / 1000;
+                    const restSec = i > 0
+                      ? (setStartMs - new Date(result.sets[i - 1].endDate).getTime()) / 1000
+                      : null;
+                    return (
+                      <View key={s.index} style={styles.setRow}>
+                        <View
+                          style={[
+                            styles.confidenceDot,
+                            { backgroundColor: CONFIDENCE_COLOR[s.confidence] },
+                          ]}
+                        />
+                        <View style={styles.setBody}>
+                          <View style={styles.setHeaderRow}>
+                            <Text style={styles.setIndex}>#{s.index}</Text>
+                            <Text style={styles.setTime}>{fmtLocalHms(s.startDate)}</Text>
+                            <Text style={styles.setDuration}>{fmtDuration(s.durationSec)}</Text>
+                          </View>
+                          <Text style={styles.deltaLine}>
+                            {i === 0
+                              ? `+${fmtMmSs(sinceStartSec)} · start`
+                              : `+${fmtMmSs(sinceStartSec)} · ${fmtMmSs(restSec ?? 0)} rest`}
+                          </Text>
+                          <Text style={styles.setDescription}>{s.description}</Text>
+                          <View style={styles.setStatsRow}>
+                            <Text style={styles.setStat}>peak {s.peakHr}</Text>
+                            <Text style={styles.setStat}>avg {s.avgHr}</Text>
+                            {s.estimatedReps != null && (
+                              <Text style={styles.setStat}>~{s.estimatedReps} reps</Text>
+                            )}
+                          </View>
+                          {s.recoveryFloorHr != null && s.recoverySec != null && (
+                            <View style={styles.setStatsRow}>
+                              <Text style={styles.recoveryStat}>
+                                ↓ recovers to {s.recoveryFloorHr} in {s.recoverySec}s
+                              </Text>
+                            </View>
                           )}
                         </View>
-                        {s.recoveryFloorHr != null && s.recoverySec != null && (
-                          <View style={styles.setStatsRow}>
-                            <Text style={styles.recoveryStat}>
-                              ↓ recovers to {s.recoveryFloorHr} in {s.recoverySec}s
-                            </Text>
-                          </View>
-                        )}
                       </View>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               )}
 
@@ -424,6 +446,13 @@ const styles = StyleSheet.create({
   setDescription: {
     color: "#aaa",
     fontSize: 12,
+    marginBottom: 2,
+  },
+  deltaLine: {
+    color: "#7a8595",
+    fontSize: 11,
+    fontStyle: "italic",
+    fontVariant: ["tabular-nums"],
     marginBottom: 2,
   },
   setStatsRow: {
