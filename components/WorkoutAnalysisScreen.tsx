@@ -243,15 +243,23 @@ export default function WorkoutAnalysisScreen({
               {result.sets.length > 0 && (
                 <View style={styles.setsCard}>
                   <Text style={styles.setsLabel}>
-                    Sets ({result.sets.length})
+                    Sets ({result.sets.length}) · started {fmtLocalHms(result.meta.startDate)}
                   </Text>
                   {result.sets.map((s, i) => {
                     const workoutStartMs = new Date(result.meta.startDate).getTime();
                     const setStartMs = new Date(s.startDate).getTime();
                     const sinceStartSec = (setStartMs - workoutStartMs) / 1000;
-                    const restSec = i > 0
-                      ? (setStartMs - new Date(result.sets[i - 1].endDate).getTime()) / 1000
+                    const prev = i > 0 ? result.sets[i - 1] : null;
+                    const restSec = prev
+                      ? (setStartMs - new Date(prev.endDate).getTime()) / 1000
                       : null;
+                    const paceSec = prev
+                      ? (setStartMs - new Date(prev.startDate).getTime()) / 1000
+                      : null;
+                    const drop =
+                      s.recoveryFloorHr != null
+                        ? s.peakHr - s.recoveryFloorHr
+                        : null;
                     return (
                       <View key={s.index} style={styles.setRow}>
                         <View
@@ -263,14 +271,13 @@ export default function WorkoutAnalysisScreen({
                         <View style={styles.setBody}>
                           <View style={styles.setHeaderRow}>
                             <Text style={styles.setIndex}>#{s.index}</Text>
-                            <Text style={styles.setTime}>{fmtLocalHms(s.startDate)}</Text>
+                            <Text style={styles.deltaLine}>
+                              {i === 0
+                                ? "start"
+                                : `+${fmtMmSs(sinceStartSec)} · rest ${fmtMmSs(restSec ?? 0)} · pace ${fmtMmSs(paceSec ?? 0)}`}
+                            </Text>
                             <Text style={styles.setDuration}>{fmtDuration(s.durationSec)}</Text>
                           </View>
-                          <Text style={styles.deltaLine}>
-                            {i === 0
-                              ? `+${fmtMmSs(sinceStartSec)} · start`
-                              : `+${fmtMmSs(sinceStartSec)} · ${fmtMmSs(restSec ?? 0)} rest`}
-                          </Text>
                           <Text style={styles.setDescription}>{s.description}</Text>
                           <View style={styles.setStatsRow}>
                             <Text style={styles.setStat}>peak {s.peakHr}</Text>
@@ -282,7 +289,7 @@ export default function WorkoutAnalysisScreen({
                           {s.recoveryFloorHr != null && s.recoverySec != null && (
                             <View style={styles.setStatsRow}>
                               <Text style={styles.recoveryStat}>
-                                ↓ recovers to {s.recoveryFloorHr} in {s.recoverySec}s
+                                ↓{drop} to {s.recoveryFloorHr} in {s.recoverySec}s
                               </Text>
                             </View>
                           )}
@@ -453,7 +460,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontStyle: "italic",
     fontVariant: ["tabular-nums"],
-    marginBottom: 2,
+    flex: 1,
   },
   setStatsRow: {
     flexDirection: "row",
