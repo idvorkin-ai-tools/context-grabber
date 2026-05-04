@@ -14,6 +14,7 @@ import {
   Alert,
   Modal,
   Linking,
+  RefreshControl,
 
 } from "react-native";
 import * as Location from "expo-location";
@@ -1550,14 +1551,6 @@ export default function App() {
               </View>
             )}
             <TouchableOpacity
-              style={[styles.headerIconButton, loading && { opacity: 0.5 }]}
-              onPress={grabContext}
-              disabled={loading}
-              accessibilityLabel="Refresh"
-            >
-              <Text style={styles.headerIconText}>{"\u21BB"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={styles.headerIconButton}
               onPress={() => setGymTimerVisible(true)}
               accessibilityLabel="Gym Timer"
@@ -1624,6 +1617,13 @@ export default function App() {
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentInner}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={grabContext}
+            tintColor="#4cc9f0"
+          />
+        }
       >
         {error && (
           <View style={styles.errorBox}>

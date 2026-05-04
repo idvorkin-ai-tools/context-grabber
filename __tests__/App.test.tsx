@@ -31,11 +31,6 @@ describe("App rendering", () => {
     expect(getByText("Context Grabber")).toBeTruthy();
   });
 
-  it("shows refresh button in header", async () => {
-    const { getByLabelText } = await renderApp();
-    expect(getByLabelText("Refresh")).toBeTruthy();
-  });
-
   it("shows settings button in header", async () => {
     const { getByLabelText } = await renderApp();
     expect(getByLabelText("Settings")).toBeTruthy();
