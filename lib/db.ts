@@ -1,6 +1,7 @@
 import * as SQLite from "expo-sqlite";
 import { pruneThreshold } from "./location";
 import { initCacheTables } from "./healthCache";
+import { initJournalTables } from "./journalDb";
 import { type KnownPlace } from "./places";
 
 export const DB_NAME = "context-grabber.db";
@@ -45,6 +46,7 @@ export async function initDB(db: SQLite.SQLiteDatabase): Promise<void> {
     INSERT OR IGNORE INTO settings (key, value) VALUES ('sleep_target_hours', '8');
   `);
   await initCacheTables(db);
+  await initJournalTables(db);
 }
 
 export async function getSetting(

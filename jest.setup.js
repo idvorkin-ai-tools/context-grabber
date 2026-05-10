@@ -89,6 +89,14 @@ jest.mock('expo-cloudkit', () => ({
   getAccountStatus: jest.fn().mockResolvedValue('available'),
   saveRecords: jest.fn().mockResolvedValue([{ recordName: 'test-record' }]),
   fetchRecord: jest.fn().mockResolvedValue({ fields: { now: { value: 0 } } }),
+  createZone: jest.fn().mockResolvedValue(undefined),
+  fetchRecordZoneChanges: jest.fn().mockResolvedValue({
+    changedRecords: [],
+    deletedRecordNames: [],
+    syncToken: 'tok',
+    moreComing: false,
+  }),
+  deleteRecords: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock react-native-audio-api

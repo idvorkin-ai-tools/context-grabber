@@ -64,7 +64,9 @@ import { buildSummaryExport, type WeeklyDataMap, type LocationSummary, type Plac
 import { parseDeepLink } from "./lib/deepLink";
 import { writeWidgetSnapshot, readWidgetSnapshot } from "./lib/widgetSnapshot";
 import { getCounter, incrementCounter, resetCounter, reconcileFromWidget } from "./lib/counter";
-import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, type PingResult } from "./lib/cloudkit";
+import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, syncJournal, type PingResult } from "./lib/cloudkit";
+import { getAllEntries, getAllAudio, countEntries } from "./lib/journalDb";
+import { buildJournalExport } from "./lib/journalExport";
 import * as Clipboard from "expo-clipboard";
 import TallyCounter from "./components/TallyCounter";
 import { clusterLocations, clusterLocationsV2 } from "./lib/clustering_v2";
@@ -209,10 +211,16 @@ function AboutModal({
   visible,
   onClose,
   onExportHeartRate,
+  onSyncJournal,
+  onExportJournal,
+  onJournalCounts,
 }: {
   visible: boolean;
   onClose: () => void;
   onExportHeartRate?: (daysBack: number) => Promise<void>;
+  onSyncJournal?: () => Promise<string>;
+  onExportJournal?: () => Promise<string>;
+  onJournalCounts?: () => Promise<{ total: number; pending: number; synced: number; failed: number } | null>;
 }) {
   const buildInfo = getBuildInfo();
   const updateChannel = Updates.channel ?? "N/A";
@@ -226,13 +234,24 @@ function AboutModal({
   const [ckPingStatus, setCkPingStatus] = useState<string | null>(null);
   const [ckLastError, setCkLastError] = useState<string | null>(null);
   const [ckCopyHint, setCkCopyHint] = useState<string | null>(null);
+  const [journalCounts, setJournalCounts] = useState<{
+    total: number;
+    pending: number;
+    synced: number;
+    failed: number;
+  } | null>(null);
+  const [journalSyncStatus, setJournalSyncStatus] = useState<string | null>(null);
+  const [journalExportStatus, setJournalExportStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     cloudKitAccountStatus()
       .then((s) => setCkStatus(s))
       .catch((e) => setCkStatus(`error: ${e?.message ?? e}`));
-  }, [visible]);
+    if (onJournalCounts) {
+      onJournalCounts().then(setJournalCounts);
+    }
+  }, [visible, onJournalCounts]);
 
   async function handleCloudKitPing() {
     setCkPingStatus("Pinging...");
@@ -243,6 +262,29 @@ function AboutModal({
     } else {
       setCkPingStatus(`Failed: ${result.error}`);
       setCkLastError(result.error);
+    }
+  }
+
+  async function handleSyncTap() {
+    if (!onSyncJournal) return;
+    setJournalSyncStatus("Syncing...");
+    const msg = await onSyncJournal();
+    setJournalSyncStatus(msg);
+    if (onJournalCounts) {
+      const counts = await onJournalCounts();
+      setJournalCounts(counts);
+    }
+  }
+
+  async function handleExportTap() {
+    if (!onExportJournal) return;
+    setJournalExportStatus("Exporting...");
+    try {
+      const msg = await onExportJournal();
+      setJournalExportStatus(msg);
+      setTimeout(() => setJournalExportStatus(null), 3000);
+    } catch (e: any) {
+      setJournalExportStatus(`Failed: ${e?.message ?? e}`);
     }
   }
 
@@ -416,6 +458,44 @@ function AboutModal({
               </>
             )}
           </View>
+
+          {(onSyncJournal || onExportJournal) && (
+            <View style={styles.aboutCard}>
+              <Text style={styles.metricLabel}>Journal</Text>
+              {journalCounts && (
+                <View style={styles.aboutRow}>
+                  <Text style={styles.aboutRowLabel}>Entries</Text>
+                  <Text style={styles.aboutRowValue}>
+                    {journalCounts.total} total
+                    {journalCounts.pending > 0 ? ` · ${journalCounts.pending} pending` : ""}
+                    {journalCounts.failed > 0 ? ` · ${journalCounts.failed} failed` : ""}
+                  </Text>
+                </View>
+              )}
+              {onSyncJournal && (
+                <TouchableOpacity
+                  style={[styles.addPlaceButton, { marginTop: 8 }]}
+                  onPress={handleSyncTap}
+                  disabled={journalSyncStatus === "Syncing..."}
+                >
+                  <Text style={styles.addPlaceButtonText}>
+                    {journalSyncStatus ?? "Sync Now"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {onExportJournal && (
+                <TouchableOpacity
+                  style={[styles.addPlaceButton, { marginTop: 6 }]}
+                  onPress={handleExportTap}
+                  disabled={journalExportStatus === "Exporting..."}
+                >
+                  <Text style={styles.addPlaceButtonText}>
+                    {journalExportStatus ?? "Export to JSON"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
           {onExportHeartRate && (
             <View style={styles.aboutCard}>
@@ -1332,6 +1412,35 @@ export default function App() {
     });
   }, []);
 
+  const handleSyncJournal = useCallback(async (): Promise<string> => {
+    if (!db) return "DB not ready";
+    const result = await syncJournal(db);
+    if (!result.ok) return `Failed: ${result.error}`;
+    return `OK · pull ${result.pulled} · push ${result.pushed}${result.deleted ? ` · del ${result.deleted}` : ""} · ${result.durationMs}ms`;
+  }, [db]);
+
+  const handleExportJournal = useCallback(async (): Promise<string> => {
+    if (!db) return "DB not ready";
+    const entries = await getAllEntries(db);
+    const audio = await getAllAudio(db);
+    const exportObj = buildJournalExport(entries, audio);
+    const json = JSON.stringify(exportObj, null, 2);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const path = `${FileSystem.cacheDirectory}journal-${stamp}.json`;
+    await FileSystem.writeAsStringAsync(path, json);
+    await Sharing.shareAsync(path, {
+      mimeType: "application/json",
+      dialogTitle: `Journal Export (${entries.length} entries)`,
+      UTI: "public.json",
+    });
+    return `Shared ${entries.length} entries`;
+  }, [db]);
+
+  const handleJournalCounts = useCallback(async () => {
+    if (!db) return null;
+    return countEntries(db);
+  }, [db]);
+
   async function grabContext() {
     setLoading(true);
     setLoadingStartedAt(Date.now());
@@ -1679,6 +1788,9 @@ export default function App() {
         visible={aboutVisible}
         onClose={() => setAboutVisible(false)}
         onExportHeartRate={handleExportHeartRate}
+        onSyncJournal={handleSyncJournal}
+        onExportJournal={handleExportJournal}
+        onJournalCounts={handleJournalCounts}
       />
 
       <SettingsModal
