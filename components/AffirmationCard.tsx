@@ -34,13 +34,10 @@ const PROMPTS: Record<JournalContext, string> = {
   grateful: "I'm grateful for…",
 };
 
-type Mode = "text" | "voice";
-
 export function AffirmationCard({ visible, onClose, db }: Props) {
   const [index, setIndex] = useState(() => getRandomAffirmationIndex());
   const [picker, setPicker] = useState(false);
   const [context, setContext] = useState<JournalContext>("opportunity");
-  const [mode, setMode] = useState<Mode>(Platform.OS === "ios" ? "voice" : "text");
   const [text, setText] = useState("");
   const [pendingVoice, setPendingVoice] = useState<RecordedVoice | null>(null);
   const [saving, setSaving] = useState(false);
@@ -198,40 +195,32 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
 
           <Text style={styles.prompt}>{PROMPTS[context]}</Text>
 
-          <View style={styles.modeRow}>
-            <ModeButton active={mode === "voice"} label="🎙 Voice" onPress={() => setMode("voice")} />
-            <ModeButton active={mode === "text"} label="⌨️ Text" onPress={() => setMode("text")} />
-          </View>
+          <TextInput
+            style={styles.textInput}
+            placeholder={PROMPTS[context]}
+            placeholderTextColor="#666"
+            multiline
+            value={text}
+            onChangeText={setText}
+          />
 
-          {mode === "text" ? (
-            <TextInput
-              style={styles.textInput}
-              placeholder={PROMPTS[context]}
-              placeholderTextColor="#666"
-              multiline
-              value={text}
-              onChangeText={setText}
-              autoFocus
+          <View style={{ marginTop: 16, alignItems: "center" }}>
+            <VoiceRecorder
+              onRecorded={(v) => setPendingVoice(v)}
+              onError={(m) => setErrorMsg(m)}
+              disabled={saving}
             />
-          ) : (
-            <View style={{ marginTop: 12 }}>
-              <VoiceRecorder
-                onRecorded={(v) => setPendingVoice(v)}
-                onError={(m) => setErrorMsg(m)}
-                disabled={saving}
-              />
-              {pendingVoice && (
-                <View style={styles.voiceReady}>
-                  <Text style={styles.voiceReadyText}>
-                    ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
-                  </Text>
-                  <TouchableOpacity onPress={() => setPendingVoice(null)}>
-                    <Text style={styles.voiceClear}>discard</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          )}
+            {pendingVoice && (
+              <View style={styles.voiceReady}>
+                <Text style={styles.voiceReadyText}>
+                  ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
+                </Text>
+                <TouchableOpacity onPress={() => setPendingVoice(null)}>
+                  <Text style={styles.voiceClear}>discard</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
 
           {errorMsg && (
             <CopyableError
@@ -240,7 +229,6 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
               extra={{
                 affirmation: affirmation.title,
                 ctx: context,
-                mode,
                 hasVoice: pendingVoice ? "yes" : "no",
               }}
               style={{ marginTop: 12 }}
@@ -290,27 +278,6 @@ function ContextButton({
           active && styles.contextBtnTextActive,
         ]}
       >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-function ModeButton({
-  active,
-  label,
-  onPress,
-}: {
-  active: boolean;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.modeBtn, active && styles.modeBtnActive]}
-    >
-      <Text style={[styles.modeBtnText, active && styles.modeBtnTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -384,20 +351,6 @@ const styles = {
     marginTop: 16,
     fontStyle: "italic" as const,
   },
-  modeRow: {
-    flexDirection: "row" as const,
-    gap: 8,
-    marginTop: 8,
-  },
-  modeBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 16,
-  },
-  modeBtnActive: { backgroundColor: "#333" },
-  modeBtnText: { color: "#888", fontSize: 13 },
-  modeBtnTextActive: { color: "#fff" },
   textInput: {
     backgroundColor: "#1a1a1a",
     color: "#fff",

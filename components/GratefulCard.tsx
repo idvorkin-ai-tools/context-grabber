@@ -23,10 +23,7 @@ type Props = {
   db: SQLite.SQLiteDatabase | null;
 };
 
-type Mode = "text" | "voice";
-
 export function GratefulCard({ visible, onClose, db }: Props) {
-  const [mode, setMode] = useState<Mode>(Platform.OS === "ios" ? "voice" : "text");
   const [text, setText] = useState("");
   const [pendingVoice, setPendingVoice] = useState<RecordedVoice | null>(null);
   const [saving, setSaving] = useState(false);
@@ -127,47 +124,38 @@ export function GratefulCard({ visible, onClose, db }: Props) {
           <Text style={styles.heading}>Grateful</Text>
           <Text style={styles.prompt}>I'm grateful for…</Text>
 
-          <View style={styles.modeRow}>
-            <ModeButton active={mode === "voice"} label="🎙 Voice" onPress={() => setMode("voice")} />
-            <ModeButton active={mode === "text"} label="⌨️ Text" onPress={() => setMode("text")} />
-          </View>
+          <TextInput
+            style={styles.textInput}
+            placeholder="I'm grateful for…"
+            placeholderTextColor="#666"
+            multiline
+            value={text}
+            onChangeText={setText}
+          />
 
-          {mode === "text" ? (
-            <TextInput
-              style={styles.textInput}
-              placeholder="I'm grateful for…"
-              placeholderTextColor="#666"
-              multiline
-              value={text}
-              onChangeText={setText}
-              autoFocus
+          <View style={{ marginTop: 16, alignItems: "center" }}>
+            <VoiceRecorder
+              onRecorded={(v) => setPendingVoice(v)}
+              onError={(m) => setErrorMsg(m)}
+              disabled={saving}
             />
-          ) : (
-            <View style={{ marginTop: 12 }}>
-              <VoiceRecorder
-                onRecorded={(v) => setPendingVoice(v)}
-                onError={(m) => setErrorMsg(m)}
-                disabled={saving}
-              />
-              {pendingVoice && (
-                <View style={styles.voiceReady}>
-                  <Text style={styles.voiceReadyText}>
-                    ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
-                  </Text>
-                  <TouchableOpacity onPress={() => setPendingVoice(null)}>
-                    <Text style={styles.voiceClear}>discard</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          )}
+            {pendingVoice && (
+              <View style={styles.voiceReady}>
+                <Text style={styles.voiceReadyText}>
+                  ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
+                </Text>
+                <TouchableOpacity onPress={() => setPendingVoice(null)}>
+                  <Text style={styles.voiceClear}>discard</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
 
           {errorMsg && (
             <CopyableError
               message={errorMsg}
               context="GratefulCard"
               extra={{
-                mode,
                 hasVoice: pendingVoice ? "yes" : "no",
               }}
               style={{ marginTop: 12 }}
@@ -197,27 +185,6 @@ export function GratefulCard({ visible, onClose, db }: Props) {
   );
 }
 
-function ModeButton({
-  active,
-  label,
-  onPress,
-}: {
-  active: boolean;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.modeBtn, active && styles.modeBtnActive]}
-    >
-      <Text style={[styles.modeBtnText, active && styles.modeBtnTextActive]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
 const styles = {
   header: {
     flexDirection: "row" as const,
@@ -244,21 +211,6 @@ const styles = {
     fontStyle: "italic" as const,
     textAlign: "center" as const,
   },
-  modeRow: {
-    flexDirection: "row" as const,
-    gap: 8,
-    marginTop: 18,
-    justifyContent: "center" as const,
-  },
-  modeBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 16,
-  },
-  modeBtnActive: { backgroundColor: "#333" },
-  modeBtnText: { color: "#888", fontSize: 13 },
-  modeBtnTextActive: { color: "#fff" },
   textInput: {
     backgroundColor: "#1a1a1a",
     color: "#fff",
