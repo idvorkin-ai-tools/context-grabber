@@ -2422,13 +2422,16 @@ const styles = StyleSheet.create({
 
 const reflectStyles = StyleSheet.create({
   zone: {
-    marginTop: 16,
-    marginHorizontal: 12,
+    // No horizontal margin — the outer ScrollView already has
+    // paddingHorizontal: 20 (see styles.content), and the surrounding
+    // counterCard / metricGrid have no extra margin, so the Reflect
+    // zone needs none either to line up flush with them.
     backgroundColor: "#0e0e0e",
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
     borderColor: "#1a1a1a",
+    marginBottom: 4,
   },
   headerRow: {
     flexDirection: "row",
