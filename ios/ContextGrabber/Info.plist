@@ -55,6 +55,8 @@
 	<string>Allow $(PRODUCT_NAME) to access your location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Context Grabber uses your location to provide context for your AI life coach.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Context Grabber records short voice notes when you log an affirmation or gratitude, so you can capture thoughts hands-free.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>

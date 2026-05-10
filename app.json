@@ -50,8 +50,16 @@
       [
         "expo-cloudkit",
         {
-          "containerIds": ["iCloud.com.idvorkin.contextgrabber"],
+          "containerIds": [
+            "iCloud.com.idvorkin.contextgrabber"
+          ],
           "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Context Grabber records short voice notes when you log an affirmation or gratitude, so you can capture thoughts hands-free."
         }
       ]
     ],

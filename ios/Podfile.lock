@@ -33,6 +33,8 @@ PODS:
     - Yoga
   - ExpoAsset (55.0.12):
     - ExpoModulesCore
+  - ExpoAudio (55.0.14):
+    - ExpoModulesCore
   - ExpoClipboard (55.0.13):
     - ExpoModulesCore
   - ExpoCloudKit (0.20.8):
@@ -2048,6 +2050,7 @@ DEPENDENCIES:
   - EXManifests (from `../node_modules/expo-manifests/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoCloudKit (from `../node_modules/expo-cloudkit`)
   - "ExpoDomWebView (from `../node_modules/expo/node_modules/@expo/log-box/node_modules/@expo/dom-webview/ios`)"
@@ -2161,6 +2164,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoAudio:
+    :path: "../node_modules/expo-audio/ios"
   ExpoClipboard:
     :path: "../node_modules/expo-clipboard/ios"
   ExpoCloudKit:
@@ -2358,6 +2363,7 @@ SPEC CHECKSUMS:
   EXManifests: 2b53302deb6d7275ae26005b8014f5a1aee42a0e
   Expo: 9a502b466698a5e33c0ba6b749ef50d7f8a02477
   ExpoAsset: 63f22b029eb9aa68d5048f77ff9430f42c770d2c
+  ExpoAudio: a826903abdeba843cde8602bd1c077d808b31f1d
   ExpoClipboard: 5d1b0cd2686406f21e616f2d9b3431259dee2e6a
   ExpoCloudKit: fa9643c3838570ee806ef758062be975807c528a
   ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
