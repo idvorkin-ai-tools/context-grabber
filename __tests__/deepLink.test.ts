@@ -146,3 +146,41 @@ describe("parseDeepLink — counter route", () => {
     expect(parseDeepLink("grabber://counter/reset")).toEqual({ kind: "unknown" });
   });
 });
+
+describe("parseDeepLink — reflect routes", () => {
+  it("parses grabber://reflect/affirm", () => {
+    expect(parseDeepLink("grabber://reflect/affirm")).toEqual({
+      kind: "reflect",
+      surface: "affirm",
+    });
+  });
+
+  it("parses grabber://reflect/grateful", () => {
+    expect(parseDeepLink("grabber://reflect/grateful")).toEqual({
+      kind: "reflect",
+      surface: "grateful",
+    });
+  });
+
+  it("parses grabber://reflect/journal", () => {
+    expect(parseDeepLink("grabber://reflect/journal")).toEqual({
+      kind: "reflect",
+      surface: "journal",
+    });
+  });
+
+  it("works on the long-form bundle-id scheme too", () => {
+    expect(parseDeepLink("com.idvorkin.contextgrabber://reflect/grateful")).toEqual({
+      kind: "reflect",
+      surface: "grateful",
+    });
+  });
+
+  it("returns unknown for /reflect with no surface", () => {
+    expect(parseDeepLink("grabber://reflect")).toEqual({ kind: "unknown" });
+  });
+
+  it("returns unknown for an unrecognized reflect surface", () => {
+    expect(parseDeepLink("grabber://reflect/whatever")).toEqual({ kind: "unknown" });
+  });
+});

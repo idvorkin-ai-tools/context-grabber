@@ -15,6 +15,10 @@ type WidgetBridgeModule = {
     exerciseMinutes?: number;
     counter?: number;
     counterDate?: string; // local YYYY-MM-DD
+    reflectOpportunity?: number;
+    reflectDidIt?: number;
+    reflectGrateful?: number;
+    reflectDate?: string; // local YYYY-MM-DD
     grabbedAt: number; // unix ms
   }) => Promise<void>;
   readSnapshot: () => Promise<{
@@ -49,7 +53,32 @@ type SnapshotInput = {
   exerciseMinutes: number | null;
   /** Today's counter value. Always pushed when present so the widget stays in sync. */
   counter?: number | null;
+  /** Today's Reflect tally. When provided, all three are pushed together
+   *  with today's date so the widget can stale-guard on midnight rollover. */
+  reflect?: { opportunity: number; didIt: number; grateful: number } | null;
 };
+
+/**
+ * Write just the Reflect tally to the App Group, without touching the
+ * health/counter fields. Cheap path used after any journal mutation so
+ * the widget catches up between full health grabs.
+ */
+export async function writeReflectToWidget(opp: number, didIt: number, grateful: number): Promise<void> {
+  if (Platform.OS !== "ios") return;
+  const bridge = (NativeModules as { WidgetBridge?: WidgetBridgeModule }).WidgetBridge;
+  if (!bridge) return;
+  try {
+    await bridge.writeSnapshot({
+      grabbedAt: Date.now(),
+      reflectOpportunity: opp,
+      reflectDidIt: didIt,
+      reflectGrateful: grateful,
+      reflectDate: todayLocalDateKey(),
+    });
+  } catch {
+    // Widget refresh is best-effort.
+  }
+}
 
 function todayLocalDateKey(): string {
   const d = new Date();
@@ -72,6 +101,12 @@ export async function writeWidgetSnapshot(input: SnapshotInput): Promise<void> {
   if (input.counter != null) {
     payload.counter = input.counter;
     payload.counterDate = todayLocalDateKey();
+  }
+  if (input.reflect) {
+    payload.reflectOpportunity = input.reflect.opportunity;
+    payload.reflectDidIt = input.reflect.didIt;
+    payload.reflectGrateful = input.reflect.grateful;
+    payload.reflectDate = todayLocalDateKey();
   }
   try {
     await bridge.writeSnapshot(payload);

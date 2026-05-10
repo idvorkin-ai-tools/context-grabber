@@ -42,6 +42,21 @@ class WidgetBridge: NSObject {
     if let counterDate = payload["counterDate"] as? String {
       defaults.set(counterDate, forKey: "counterDate")
     }
+    // Reflect tally — three small ints. Written whenever the journal
+    // state on the JS side changes (entry saved, journal modal closed,
+    // sync pulled). Read by TodayWidget to render the Reflect strip.
+    if let opp = payload["reflectOpportunity"] as? NSNumber {
+      defaults.set(opp.intValue, forKey: "reflectOpportunity")
+    }
+    if let did = payload["reflectDidIt"] as? NSNumber {
+      defaults.set(did.intValue, forKey: "reflectDidIt")
+    }
+    if let grateful = payload["reflectGrateful"] as? NSNumber {
+      defaults.set(grateful.intValue, forKey: "reflectGrateful")
+    }
+    if let reflectDate = payload["reflectDate"] as? String {
+      defaults.set(reflectDate, forKey: "reflectDate")
+    }
 
     if #available(iOS 14.0, *) {
       WidgetCenter.shared.reloadAllTimelines()

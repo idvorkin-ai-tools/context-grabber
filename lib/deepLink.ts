@@ -13,16 +13,22 @@
  *   timer?preset=<id>&autostart=1  → Gym Timer with preset AND auto-start
  *   timer/stopwatch                → Gym Timer, stopwatch mode
  *   timer/sets                     → Gym Timer, sets mode
+ *   reflect/affirm                 → open Affirmation Card
+ *   reflect/grateful               → open Grateful Card
+ *   reflect/journal                → open Journal screen
  *
  * Unknown URLs return { kind: "unknown" } — callers should treat as "open main".
  */
 
 export type TimerMode = "rounds" | "stopwatch" | "sets";
 
+export type ReflectSurface = "affirm" | "grateful" | "journal";
+
 export type DeepLinkRoute =
   | { kind: "main"; autoGrab: boolean }
   | { kind: "timer"; mode: TimerMode; preset: string | null; autostart: boolean }
   | { kind: "counter"; action: "inc" }
+  | { kind: "reflect"; surface: ReflectSurface }
   | { kind: "unknown" };
 
 const KNOWN_PRESETS = new Set(["30sec", "1min", "2min", "5-1"]);
@@ -64,6 +70,14 @@ export function parseDeepLink(url: string | null | undefined): DeepLinkRoute {
 
   if (segments[0] === "counter" && segments[1] === "inc") {
     return { kind: "counter", action: "inc" };
+  }
+
+  if (segments[0] === "reflect") {
+    const surface = segments[1];
+    if (surface === "affirm" || surface === "grateful" || surface === "journal") {
+      return { kind: "reflect", surface };
+    }
+    return { kind: "unknown" };
   }
 
   if (segments[0] === "timer") {

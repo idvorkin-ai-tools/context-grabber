@@ -62,7 +62,7 @@ import {
 } from "./lib/weekly";
 import { buildSummaryExport, type WeeklyDataMap, type LocationSummary, type PlacesSummary } from "./lib/share";
 import { parseDeepLink } from "./lib/deepLink";
-import { writeWidgetSnapshot, readWidgetSnapshot } from "./lib/widgetSnapshot";
+import { writeWidgetSnapshot, readWidgetSnapshot, writeReflectToWidget } from "./lib/widgetSnapshot";
 import { getCounter, incrementCounter, resetCounter, reconcileFromWidget } from "./lib/counter";
 import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, syncJournal, type PingResult } from "./lib/cloudkit";
 import { getAllEntries, getAllAudio, countEntries, tallyByContextFromDb } from "./lib/journalDb";
@@ -648,6 +648,10 @@ export default function App() {
     try {
       const t = await tallyByContextFromDb(db);
       setReflectTally(t);
+      // Mirror today's tally into the App Group so the home-screen
+      // widget's Reflect strip stays current. Best-effort; silent on
+      // failure (the widget falls back to its last known value).
+      void writeReflectToWidget(t.opportunity, t.didit, t.grateful);
     } catch (e) {
       console.warn("[journal] tally refresh failed:", e);
     }
@@ -682,6 +686,13 @@ export default function App() {
         // iOS 16 fallback: widget tap launches the app, which performs the +1.
         setGymTimerVisible(false);
         counterIncrementRef.current?.();
+      } else if (route.kind === "reflect") {
+        // Widget Reflect strip taps land here. Close anything else and
+        // open the requested card/screen.
+        setGymTimerVisible(false);
+        if (route.surface === "affirm") setAffirmationVisible(true);
+        else if (route.surface === "grateful") setGratefulVisible(true);
+        else if (route.surface === "journal") setJournalVisible(true);
       }
       // kind === "unknown" → no-op (already on whatever screen)
     };

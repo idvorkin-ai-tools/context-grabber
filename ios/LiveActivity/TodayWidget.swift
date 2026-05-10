@@ -13,9 +13,19 @@ struct TodayEntry: TimelineEntry {
   /// CounterIncrementIntent) when `counterDate` doesn't match today's local
   /// date — surfaced here as the value the widget should display.
   let counter: Int
+  /// Today's journal tally (rendered as the Reflect strip). Same
+  /// date-staleness handling as `counter` — values reset to 0 here if
+  /// `reflectDate` doesn't match the local calendar day.
+  let reflectOpp: Int
+  let reflectDid: Int
+  let reflectGrateful: Int
 
   static var empty: TodayEntry {
-    TodayEntry(date: Date(), steps: nil, sleepHours: nil, exerciseMinutes: nil, grabbedAt: nil, counter: 0)
+    TodayEntry(
+      date: Date(), steps: nil, sleepHours: nil, exerciseMinutes: nil,
+      grabbedAt: nil, counter: 0,
+      reflectOpp: 0, reflectDid: 0, reflectGrateful: 0
+    )
   }
 
   /// Attempt to load a snapshot the app wrote to shared UserDefaults.
@@ -32,12 +42,25 @@ struct TodayEntry: TimelineEntry {
     // Counter: read the raw value, but treat it as 0 if its date is stale —
     // the JS side does the same on app foreground; this prevents a yesterday
     // value from appearing on the widget after midnight before the app runs.
+    let today = TodayEntry.todayLocalDateKey()
     let storedDate = suite.string(forKey: "counterDate")
     let storedCounter = suite.object(forKey: "counter") as? Int ?? 0
-    let today = TodayEntry.todayLocalDateKey()
     let counter = (storedDate == today) ? storedCounter : 0
 
-    return TodayEntry(date: Date(), steps: steps, sleepHours: sleep, exerciseMinutes: ex, grabbedAt: grabbedAt, counter: counter)
+    // Reflect tally — same stale-date guard as counter.
+    let reflectDate = suite.string(forKey: "reflectDate")
+    let opp = suite.object(forKey: "reflectOpportunity") as? Int ?? 0
+    let did = suite.object(forKey: "reflectDidIt") as? Int ?? 0
+    let grateful = suite.object(forKey: "reflectGrateful") as? Int ?? 0
+    let isReflectFresh = (reflectDate == today)
+
+    return TodayEntry(
+      date: Date(), steps: steps, sleepHours: sleep, exerciseMinutes: ex,
+      grabbedAt: grabbedAt, counter: counter,
+      reflectOpp: isReflectFresh ? opp : 0,
+      reflectDid: isReflectFresh ? did : 0,
+      reflectGrateful: isReflectFresh ? grateful : 0
+    )
   }
 
   static func todayLocalDateKey() -> String {
@@ -146,6 +169,51 @@ struct TodayWidgetView: View {
               .foregroundColor(.cyan)
               .cornerRadius(8)
           }
+        }
+      }
+
+      Divider().padding(.vertical, 2)
+
+      // Reflect row: today's tally + three deep-link shortcuts. Each tile
+      // launches the app and (via App.tsx deep-link routing) opens the
+      // corresponding card or screen.
+      HStack(spacing: 8) {
+        Text("Reflect")
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundColor(.secondary)
+        Text("☀️\(entry.reflectOpp)  ✓\(entry.reflectDid)  🙏\(entry.reflectGrateful)")
+          .font(.system(size: 12, weight: .medium))
+          .foregroundColor(.primary)
+          .layoutPriority(1)
+        Spacer()
+      }
+      HStack(spacing: 6) {
+        Link(destination: URL(string: "grabber://reflect/affirm")!) {
+          Text("🎯 Affirm")
+            .font(.system(size: 12, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.blue.opacity(0.15))
+            .foregroundColor(.blue)
+            .cornerRadius(8)
+            .frame(maxWidth: .infinity)
+        }
+        Link(destination: URL(string: "grabber://reflect/grateful")!) {
+          Text("🙏 Grateful")
+            .font(.system(size: 12, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.orange.opacity(0.15))
+            .foregroundColor(.orange)
+            .cornerRadius(8)
+            .frame(maxWidth: .infinity)
+        }
+        Link(destination: URL(string: "grabber://reflect/journal")!) {
+          Text("📖 Journal")
+            .font(.system(size: 12, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.gray.opacity(0.15))
+            .foregroundColor(.primary)
+            .cornerRadius(8)
+            .frame(maxWidth: .infinity)
         }
       }
 
