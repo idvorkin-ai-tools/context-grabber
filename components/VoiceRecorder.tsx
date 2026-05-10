@@ -69,7 +69,10 @@ export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Prop
       const path = voiceFilePath(id);
       setPendingId(id);
       startTimeRef.current = Date.now();
-      // expo-audio writes to its own internal path; we move on stop.
+      // expo-audio's documented flow: prepare → record. Without
+      // prepareToRecordAsync the recorder silently no-ops on iOS,
+      // which manifests as "tap does nothing" with no error.
+      await recorder.prepareToRecordAsync();
       recorder.record();
       // Stash the target path on the recorder via closure — used in stop().
       (recorder as any).__targetPath = path;

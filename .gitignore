@@ -1,5 +1,11 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# bd auto-exports its Dolt DB to JSONL on every command. Dolt is the
+# source of truth (synced via `bd dolt push`); the JSONL files are
+# local exports that create merge noise when committed.
+.beads/issues.jsonl
+.beads/beads.jsonl
+
 # dependencies
 node_modules/
 

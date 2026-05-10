@@ -93,6 +93,7 @@ jest.mock('expo-audio', () => {
     record: jest.fn(),
     stop: jest.fn().mockResolvedValue(undefined),
     pause: jest.fn(),
+    prepareToRecordAsync: jest.fn().mockResolvedValue(undefined),
   };
   const player = {
     play: jest.fn(),
@@ -106,6 +107,7 @@ jest.mock('expo-audio', () => {
     useAudioPlayer: jest.fn(() => player),
     useAudioPlayerStatus: jest.fn(() => ({ playing: false, currentTime: 0, duration: 0 })),
     requestRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+    setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
   };
 });
 
