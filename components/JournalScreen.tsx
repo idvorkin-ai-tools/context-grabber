@@ -20,6 +20,7 @@ import {
 import { getAllAudio, getAllEntries } from "../lib/journalDb";
 import { deleteJournalEntry, syncJournal } from "../lib/cloudkit";
 import { AudioPlayer } from "./AudioPlayer";
+import { CopyableError } from "./CopyableError";
 
 type Props = {
   visible: boolean;
@@ -110,9 +111,9 @@ export function JournalScreen({ visible, onClose, db }: Props) {
         </View>
 
         {error && (
-          <Text style={styles.error} selectable>
-            {error}
-          </Text>
+          <View style={{ paddingHorizontal: 16, paddingVertical: 6 }}>
+            <CopyableError message={error} context="JournalScreen" />
+          </View>
         )}
 
         <ScrollView

@@ -20,6 +20,7 @@ import { insertEntry, insertAudio, tallyByContextFromDb } from "../lib/journalDb
 import { syncJournal } from "../lib/cloudkit";
 import { uuidV4 } from "../lib/uuid";
 import { VoiceRecorder, type RecordedVoice } from "./VoiceRecorder";
+import { CopyableError } from "./CopyableError";
 
 type Props = {
   visible: boolean;
@@ -233,9 +234,17 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
           )}
 
           {errorMsg && (
-            <Text style={styles.errorText} selectable>
-              {errorMsg}
-            </Text>
+            <CopyableError
+              message={errorMsg}
+              context="AffirmationCard"
+              extra={{
+                affirmation: affirmation.title,
+                ctx: context,
+                mode,
+                hasVoice: pendingVoice ? "yes" : "no",
+              }}
+              style={{ marginTop: 12 }}
+            />
           )}
           {savedHint && <Text style={styles.savedHint}>{savedHint}</Text>}
 

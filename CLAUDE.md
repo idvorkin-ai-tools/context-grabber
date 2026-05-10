@@ -106,6 +106,7 @@ Specs live in `docs/superpowers/specs/` as `YYYY-MM-DD-<feature>-design.md`; imp
 
 ## Key Patterns
 
+- **Every user-visible error must use `<CopyableError>`** (`components/CopyableError.tsx`). Never render a raw red `<Text>` for an error message. The component renders the message + a "Copy error" button that puts a multi-line diagnostics payload (error, context label, git sha + branch, any extra fields) on the clipboard. Pass `context="ScreenName.operation"` and any state-shaped `extra` so a copied error is debuggable without a session log. Adding raw-text errors will fail review.
 - All HealthKit queries use `Promise.allSettled()` — individual metric failures return `null`, don't crash the grab
 - `TaskManager.defineTask()` is at MODULE SCOPE (top of App.tsx, outside component) — expo-task-manager requirement
 - Background location tracking is opt-in (defaults to OFF)

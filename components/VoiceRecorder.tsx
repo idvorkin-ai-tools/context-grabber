@@ -5,6 +5,7 @@ import {
   useAudioRecorder,
   useAudioRecorderState,
   requestRecordingPermissionsAsync,
+  setAudioModeAsync,
 } from "expo-audio";
 import * as FileSystem from "expo-file-system/legacy";
 import { uuidV4 } from "../lib/uuid";
@@ -55,6 +56,14 @@ export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Prop
           return;
         }
       }
+      // expo-audio refuses to record unless the iOS audio session is
+      // explicitly switched into a recording-capable category. Default
+      // is playback-only; we have to flip allowsRecording before the
+      // first recorder.record() of the session.
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
       await ensureVoiceDir();
       const id = uuidV4();
       const path = voiceFilePath(id);

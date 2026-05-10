@@ -70,6 +70,7 @@ import { buildJournalExport } from "./lib/journalExport";
 import { AffirmationCard } from "./components/AffirmationCard";
 import { GratefulCard } from "./components/GratefulCard";
 import { JournalScreen } from "./components/JournalScreen";
+import { CopyableError } from "./components/CopyableError";
 import * as Clipboard from "expo-clipboard";
 import TallyCounter from "./components/TallyCounter";
 import { clusterLocations, clusterLocationsV2 } from "./lib/clustering_v2";
@@ -236,7 +237,6 @@ function AboutModal({
   const [ckStatus, setCkStatus] = useState<string>("...");
   const [ckPingStatus, setCkPingStatus] = useState<string | null>(null);
   const [ckLastError, setCkLastError] = useState<string | null>(null);
-  const [ckCopyHint, setCkCopyHint] = useState<string | null>(null);
   const [journalCounts, setJournalCounts] = useState<{
     total: number;
     pending: number;
@@ -289,22 +289,6 @@ function AboutModal({
     } catch (e: any) {
       setJournalExportStatus(`Failed: ${e?.message ?? e}`);
     }
-  }
-
-  async function handleCopyError() {
-    if (!ckLastError) return;
-    const buildInfo = getBuildInfo();
-    const payload = [
-      `CloudKit Ping error`,
-      `account: ${ckStatus}`,
-      `error: ${ckLastError}`,
-      `build: ${buildInfo.shortSha} (${buildInfo.branch})`,
-      `runtime: ${runtimeVersion}`,
-      `update: ${updateId}`,
-    ].join("\n");
-    await Clipboard.setStringAsync(payload);
-    setCkCopyHint("Copied");
-    setTimeout(() => setCkCopyHint(null), 2000);
   }
 
   async function handleCheckForUpdate() {
@@ -443,22 +427,15 @@ function AboutModal({
               </Text>
             </TouchableOpacity>
             {ckLastError && (
-              <>
-                <Text
-                  style={{ color: "#ff8a8a", fontSize: 12, marginTop: 8 }}
-                  selectable
-                >
-                  {ckLastError}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.addPlaceButton, { marginTop: 6 }]}
-                  onPress={handleCopyError}
-                >
-                  <Text style={styles.addPlaceButtonText}>
-                    {ckCopyHint ?? "Copy error + diagnostics"}
-                  </Text>
-                </TouchableOpacity>
-              </>
+              <CopyableError
+                message={ckLastError}
+                context="About.CloudKit.Ping"
+                extra={{
+                  account: ckStatus,
+                  runtime: runtimeVersion,
+                  update: updateId,
+                }}
+              />
             )}
           </View>
 
