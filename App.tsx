@@ -1892,6 +1892,38 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
+            <View style={reflectStyles.zone}>
+              <View style={reflectStyles.headerRow}>
+                <Text style={reflectStyles.heading}>Reflect</Text>
+                <Text style={reflectStyles.tally}>
+                  ☀️ {reflectTally.opportunity}  ✓ {reflectTally.didit}  🙏 {reflectTally.grateful}
+                </Text>
+              </View>
+              <View style={reflectStyles.btnRow}>
+                <TouchableOpacity
+                  style={[reflectStyles.btn, reflectStyles.btnAffirm]}
+                  onPress={() => setAffirmationVisible(true)}
+                  testID="reflect-affirm"
+                >
+                  <Text style={reflectStyles.btnText}>🎯 Affirm</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[reflectStyles.btn, reflectStyles.btnGrateful]}
+                  onPress={() => setGratefulVisible(true)}
+                  testID="reflect-grateful"
+                >
+                  <Text style={reflectStyles.btnText}>🙏 Grateful</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[reflectStyles.btn, reflectStyles.btnJournal]}
+                  onPress={() => setJournalVisible(true)}
+                  testID="reflect-journal"
+                >
+                  <Text style={reflectStyles.btnText}>📖 Journal</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.metricGrid}>
               {metrics.map((m) => (
                 <MetricCard
@@ -1948,38 +1980,6 @@ export default function App() {
               setKnownPlaces={setKnownPlaces}
               setError={setError}
             />
-
-            <View style={reflectStyles.zone}>
-              <View style={reflectStyles.headerRow}>
-                <Text style={reflectStyles.heading}>Reflect</Text>
-                <Text style={reflectStyles.tally}>
-                  ☀️ {reflectTally.opportunity}  ✓ {reflectTally.didit}  🙏 {reflectTally.grateful}
-                </Text>
-              </View>
-              <View style={reflectStyles.btnRow}>
-                <TouchableOpacity
-                  style={[reflectStyles.btn, reflectStyles.btnAffirm]}
-                  onPress={() => setAffirmationVisible(true)}
-                  testID="reflect-affirm"
-                >
-                  <Text style={reflectStyles.btnText}>🎯 Affirm</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[reflectStyles.btn, reflectStyles.btnGrateful]}
-                  onPress={() => setGratefulVisible(true)}
-                  testID="reflect-grateful"
-                >
-                  <Text style={reflectStyles.btnText}>🙏 Grateful</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[reflectStyles.btn, reflectStyles.btnJournal]}
-                  onPress={() => setJournalVisible(true)}
-                  testID="reflect-journal"
-                >
-                  <Text style={reflectStyles.btnText}>📖 Journal</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
             <Text style={styles.timestamp}>{snapshot.timestamp}</Text>
           </>
