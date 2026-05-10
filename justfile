@@ -16,7 +16,7 @@ test:
 # NOTE: ios/ is committed to git. Do NOT run `expo prebuild` here — it wipes
 # DEVELOPMENT_TEAM from pbxproj and breaks expo-live-activity. Use
 # `just resync-native` if you need to apply app.json changes to the native project.
-deploy device="Igor iPhone 17" udid="00008150-000A31D10CF2401C": generate-version
+deploy device="Igor iPhone 17" udid="856A38BD-04D3-5D27-8485-E09FEF892783": generate-version
     #!/usr/bin/env bash
     set -euo pipefail
     if [ ! -d ios/Pods ]; then
