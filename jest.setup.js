@@ -98,7 +98,8 @@ jest.mock('expo-audio', () => {
   const player = {
     play: jest.fn(),
     pause: jest.fn(),
-    seekTo: jest.fn(),
+    seekTo: jest.fn().mockResolvedValue(undefined),
+    replace: jest.fn(),
   };
   return {
     RecordingPresets: { HIGH_QUALITY: {}, LOW_QUALITY: {} },

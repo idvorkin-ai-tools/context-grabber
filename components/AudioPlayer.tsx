@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import {
+  useAudioPlayer,
+  useAudioPlayerStatus,
+  setAudioModeAsync,
+} from "expo-audio";
 import * as SQLite from "expo-sqlite";
 import { ensureAudioLocal } from "../lib/cloudkit";
 import { voiceFileExists, voiceFilePath } from "../lib/voiceFiles";
@@ -12,65 +16,90 @@ type Props = {
 };
 
 /**
- * Inline play button for a journal entry's voice note. On first tap,
- * makes sure the file is on disk (downloads from CloudKit if not),
- * then plays. Subsequent taps just toggle play/pause.
+ * Inline play button for a journal entry's voice note. The local file
+ * path is known synchronously (always `documents/voice/<id>.m4a`); the
+ * player is initialised against that path immediately. If the file
+ * doesn't exist on disk yet (entry came from iPad sync), we lazily
+ * download the CKAsset on first tap, then `replace()` the player's
+ * source so it picks up the now-on-disk file.
  */
 export function AudioPlayer({ recordingId, durationMs, db }: Props) {
-  const [localPath, setLocalPath] = useState<string | null>(null);
+  const localPath = voiceFilePath(recordingId);
+  const player = useAudioPlayer({ uri: localPath });
+  const status = useAudioPlayerStatus(player);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasFileRef = useRef(false);
+  const audioSessionPreppedRef = useRef(false);
 
-  // Probe disk on mount — if the file's already cached we can show
-  // the play affordance immediately.
+  // Probe disk on mount so the play button doesn't have to wait on a
+  // download for entries whose files are already cached locally.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const exists = await voiceFileExists(recordingId);
-      if (!cancelled && exists) setLocalPath(voiceFilePath(recordingId));
+      if (!cancelled) hasFileRef.current = exists;
     })();
     return () => {
       cancelled = true;
     };
   }, [recordingId]);
 
-  const player = useAudioPlayer(
-    localPath ? { uri: localPath } : null,
-  );
-  const status = useAudioPlayerStatus(player);
+  async function ensurePlaybackSession() {
+    // After a recording session the iOS audio category is .playAndRecord
+    // with allowsRecording=true; some devices route playback through the
+    // earpiece or refuse to play through expo-audio's playback path in
+    // that state. Flip the session to playback-friendly before the first
+    // play of this player's lifetime.
+    if (audioSessionPreppedRef.current) return;
+    try {
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      });
+      audioSessionPreppedRef.current = true;
+    } catch (e) {
+      // Not fatal — playback may still work. Log only.
+      console.warn("[audio-player] setAudioModeAsync failed:", e);
+    }
+  }
 
-  async function ensureDownloaded(): Promise<string | null> {
-    if (localPath) return localPath;
+  async function ensureDownloaded(): Promise<boolean> {
+    if (hasFileRef.current) return true;
     if (!db) {
       setError("DB not ready");
-      return null;
+      return false;
     }
     setDownloading(true);
     try {
-      const path = await ensureAudioLocal(db, recordingId);
-      setLocalPath(path);
-      return path;
+      await ensureAudioLocal(db, recordingId);
+      hasFileRef.current = true;
+      // The file is now on disk at the same path we initialised the
+      // player against. Force expo-audio to re-load by re-setting source.
+      player.replace({ uri: localPath });
+      return true;
     } catch (e: any) {
       setError(e?.message ?? String(e));
-      return null;
+      return false;
     } finally {
       setDownloading(false);
     }
   }
 
   async function handleTap() {
-    const path = await ensureDownloaded();
-    if (!path) return;
+    setError(null);
+    await ensurePlaybackSession();
+    const ok = await ensureDownloaded();
+    if (!ok) return;
     if (status.playing) {
       player.pause();
     } else {
-      // Restart from beginning if we'd hit the end.
       if (
         status.currentTime &&
         status.duration &&
         status.currentTime >= status.duration - 0.1
       ) {
-        player.seekTo(0);
+        await player.seekTo(0);
       }
       player.play();
     }
