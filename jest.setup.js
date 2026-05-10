@@ -83,6 +83,14 @@ jest.mock('expo-keep-awake', () => ({
   useKeepAwake: jest.fn(),
 }));
 
+// Mock expo-cloudkit (no native module in tests)
+jest.mock('expo-cloudkit', () => ({
+  configure: jest.fn(),
+  getAccountStatus: jest.fn().mockResolvedValue('available'),
+  saveRecords: jest.fn().mockResolvedValue([{ recordName: 'test-record' }]),
+  fetchRecord: jest.fn().mockResolvedValue({ fields: { now: { value: 0 } } }),
+}));
+
 // Mock react-native-audio-api
 jest.mock('react-native-audio-api', () => ({
   AudioContext: jest.fn().mockImplementation(() => ({

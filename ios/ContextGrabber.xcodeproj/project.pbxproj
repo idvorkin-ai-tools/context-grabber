@@ -27,8 +27,8 @@
 		B6FD345A08564D6685C41660 /* View+applyIfPresent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FD47BA835714582B01BCE8A /* View+applyIfPresent.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		D4060797DFE746B29012C884 /* LiveActivityWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C5665F99DD40D8926454AF /* LiveActivityWidgetBundle.swift */; };
-		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		E3BA8072BB9B0CBEBEAA4A0C /* CounterIncrementIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2275BB3BE8143D0FCF632D56 /* CounterIncrementIntent.swift */; };
+		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +64,7 @@
 		15E7D8C385804BB48CE8FB9E /* LiveActivityWidget.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = LiveActivityWidget.swift; sourceTree = "<group>"; };
 		1C112DCC3F60EF15EB00618C /* libPods-ContextGrabber.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ContextGrabber.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CCBEEAAEDDA82CEEF6A5186 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ContextGrabber/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		2275BB3BE8143D0FCF632D56 /* CounterIncrementIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CounterIncrementIntent.swift; sourceTree = "<group>"; };
 		276AFF31D71A0D929EA15ADB /* Pods-ContextGrabber.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ContextGrabber.release.xcconfig"; path = "Target Support Files/Pods-ContextGrabber/Pods-ContextGrabber.release.xcconfig"; sourceTree = "<group>"; };
 		300321A7EE624CD1B0B2F2AE /* Image+dynamic.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = "Image+dynamic.swift"; sourceTree = "<group>"; };
 		38E399933CA04FD2A21966C7 /* LiveActivityView.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = LiveActivityView.swift; sourceTree = "<group>"; };
@@ -85,7 +86,6 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ContextGrabber/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ContextGrabber-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ContextGrabber-Bridging-Header.h"; path = "ContextGrabber/ContextGrabber-Bridging-Header.h"; sourceTree = "<group>"; };
-		2275BB3BE8143D0FCF632D56 /* CounterIncrementIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CounterIncrementIntent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

@@ -64,6 +64,7 @@ import { buildSummaryExport, type WeeklyDataMap, type LocationSummary, type Plac
 import { parseDeepLink } from "./lib/deepLink";
 import { writeWidgetSnapshot, readWidgetSnapshot } from "./lib/widgetSnapshot";
 import { getCounter, incrementCounter, resetCounter, reconcileFromWidget } from "./lib/counter";
+import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, type PingResult } from "./lib/cloudkit";
 import TallyCounter from "./components/TallyCounter";
 import { clusterLocations, clusterLocationsV2 } from "./lib/clustering_v2";
 import { type KnownPlace } from "./lib/places";
@@ -220,6 +221,25 @@ function AboutModal({
   const commitMessage = buildInfo.commitMessage;
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
   const [hrExportStatus, setHrExportStatus] = useState<string | null>(null);
+  const [ckStatus, setCkStatus] = useState<string>("...");
+  const [ckPingStatus, setCkPingStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!visible) return;
+    cloudKitAccountStatus()
+      .then((s) => setCkStatus(s))
+      .catch((e) => setCkStatus(`error: ${e?.message ?? e}`));
+  }, [visible]);
+
+  async function handleCloudKitPing() {
+    setCkPingStatus("Pinging...");
+    const result: PingResult = await pingCloudKit();
+    if (result.ok) {
+      setCkPingStatus(`OK · ${result.roundTripMs}ms · ${result.recordName.slice(0, 8)}…`);
+    } else {
+      setCkPingStatus(`Failed: ${result.error}`);
+    }
+  }
 
   async function handleCheckForUpdate() {
     try {
@@ -341,6 +361,23 @@ function AboutModal({
             ) : null}
           </View>
 
+          <View style={styles.aboutCard}>
+            <Text style={styles.metricLabel}>CloudKit Sync</Text>
+            <View style={styles.aboutRow}>
+              <Text style={styles.aboutRowLabel}>Account</Text>
+              <Text style={styles.aboutRowValue}>{ckStatus}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.addPlaceButton, { marginTop: 8 }]}
+              onPress={handleCloudKitPing}
+              disabled={ckPingStatus === "Pinging..."}
+            >
+              <Text style={styles.addPlaceButtonText}>
+                {ckPingStatus ?? "Ping CloudKit (round-trip a record)"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {onExportHeartRate && (
             <View style={styles.aboutCard}>
               <Text style={styles.metricLabel}>Data Export</Text>
@@ -429,6 +466,19 @@ export default function App() {
   } | null>(null);
   const [otaUpdateReady, setOtaUpdateReady] = useState(false);
   const [counterValue, setCounterValue] = useState(0);
+
+  // Configure CloudKit once at boot. Safe to call before iCloud account is known —
+  // configure() just registers the container ID; account status is checked lazily.
+  useEffect(() => {
+    try {
+      configureCloudKit();
+      cloudKitAccountStatus()
+        .then((s) => console.log("[cloudkit] account status:", s))
+        .catch((e) => console.warn("[cloudkit] status check failed:", e));
+    } catch (e) {
+      console.warn("[cloudkit] configure failed:", e);
+    }
+  }, []);
 
   // Initialize database on mount
   useEffect(() => {

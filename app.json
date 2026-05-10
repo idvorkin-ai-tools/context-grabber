@@ -20,7 +20,8 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Context Grabber tracks your location in the background to build a location history for your AI life coach.",
         "NSSupportsLiveActivities": true,
         "UIBackgroundModes": [
-          "location"
+          "location",
+          "remote-notification"
         ]
       }
     },
@@ -40,7 +41,19 @@
       "expo-task-manager",
       "expo-sharing",
       "react-native-audio-api",
-      ["expo-live-activity", { "enablePushNotifications": false }]
+      [
+        "expo-live-activity",
+        {
+          "enablePushNotifications": false
+        }
+      ],
+      [
+        "expo-cloudkit",
+        {
+          "containerIds": ["iCloud.com.idvorkin.contextgrabber"],
+          "iCloudContainerEnvironment": "Production"
+        }
+      ]
     ],
     "android": {
       "adaptiveIcon": {
