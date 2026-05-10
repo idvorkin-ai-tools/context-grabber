@@ -65,8 +65,11 @@ import { parseDeepLink } from "./lib/deepLink";
 import { writeWidgetSnapshot, readWidgetSnapshot } from "./lib/widgetSnapshot";
 import { getCounter, incrementCounter, resetCounter, reconcileFromWidget } from "./lib/counter";
 import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, syncJournal, type PingResult } from "./lib/cloudkit";
-import { getAllEntries, getAllAudio, countEntries } from "./lib/journalDb";
+import { getAllEntries, getAllAudio, countEntries, tallyByContextFromDb } from "./lib/journalDb";
 import { buildJournalExport } from "./lib/journalExport";
+import { AffirmationCard } from "./components/AffirmationCard";
+import { GratefulCard } from "./components/GratefulCard";
+import { JournalScreen } from "./components/JournalScreen";
 import * as Clipboard from "expo-clipboard";
 import TallyCounter from "./components/TallyCounter";
 import { clusterLocations, clusterLocationsV2 } from "./lib/clustering_v2";
@@ -585,6 +588,10 @@ export default function App() {
   } | null>(null);
   const [otaUpdateReady, setOtaUpdateReady] = useState(false);
   const [counterValue, setCounterValue] = useState(0);
+  const [affirmationVisible, setAffirmationVisible] = useState(false);
+  const [gratefulVisible, setGratefulVisible] = useState(false);
+  const [journalVisible, setJournalVisible] = useState(false);
+  const [reflectTally, setReflectTally] = useState({ opportunity: 0, didit: 0, grateful: 0 });
 
   // Configure CloudKit once at boot. Safe to call before iCloud account is known —
   // configure() just registers the container ID; account status is checked lazily.
@@ -656,6 +663,29 @@ export default function App() {
       grabContext();
     }
   }, [dbReady]);
+
+  // Reflect zone tally — refreshes on db ready, after each modal close,
+  // and when a sync completes from inside a card.
+  const refreshReflectTally = useCallback(async () => {
+    if (!db) return;
+    try {
+      const t = await tallyByContextFromDb(db);
+      setReflectTally(t);
+    } catch (e) {
+      console.warn("[journal] tally refresh failed:", e);
+    }
+  }, [db]);
+
+  useEffect(() => {
+    if (!dbReady) return;
+    void refreshReflectTally();
+  }, [dbReady, refreshReflectTally]);
+
+  // Background sync the journal on app focus (cheap, idempotent).
+  useEffect(() => {
+    if (!dbReady || !db) return;
+    void syncJournal(db).then(() => refreshReflectTally());
+  }, [dbReady, db, refreshReflectTally]);
 
   // Deep link routing. Keep a ref to grabContext so the handler always uses
   // the latest closure (grabContext reads live component state).
@@ -1793,6 +1823,33 @@ export default function App() {
         onJournalCounts={handleJournalCounts}
       />
 
+      <AffirmationCard
+        visible={affirmationVisible}
+        onClose={() => {
+          setAffirmationVisible(false);
+          void refreshReflectTally();
+        }}
+        db={db}
+      />
+
+      <GratefulCard
+        visible={gratefulVisible}
+        onClose={() => {
+          setGratefulVisible(false);
+          void refreshReflectTally();
+        }}
+        db={db}
+      />
+
+      <JournalScreen
+        visible={journalVisible}
+        onClose={() => {
+          setJournalVisible(false);
+          void refreshReflectTally();
+        }}
+        db={db}
+      />
+
       <SettingsModal
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}
@@ -1914,6 +1971,38 @@ export default function App() {
               setKnownPlaces={setKnownPlaces}
               setError={setError}
             />
+
+            <View style={reflectStyles.zone}>
+              <View style={reflectStyles.headerRow}>
+                <Text style={reflectStyles.heading}>Reflect</Text>
+                <Text style={reflectStyles.tally}>
+                  ☀️ {reflectTally.opportunity}  ✓ {reflectTally.didit}  🙏 {reflectTally.grateful}
+                </Text>
+              </View>
+              <View style={reflectStyles.btnRow}>
+                <TouchableOpacity
+                  style={[reflectStyles.btn, reflectStyles.btnAffirm]}
+                  onPress={() => setAffirmationVisible(true)}
+                  testID="reflect-affirm"
+                >
+                  <Text style={reflectStyles.btnText}>🎯 Affirm</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[reflectStyles.btn, reflectStyles.btnGrateful]}
+                  onPress={() => setGratefulVisible(true)}
+                  testID="reflect-grateful"
+                >
+                  <Text style={reflectStyles.btnText}>🙏 Grateful</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[reflectStyles.btn, reflectStyles.btnJournal]}
+                  onPress={() => setJournalVisible(true)}
+                  testID="reflect-journal"
+                >
+                  <Text style={reflectStyles.btnText}>📖 Journal</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             <Text style={styles.timestamp}>{snapshot.timestamp}</Text>
           </>
@@ -2351,4 +2440,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+});
+
+
+const reflectStyles = StyleSheet.create({
+  zone: {
+    marginTop: 16,
+    marginHorizontal: 12,
+    backgroundColor: "#0e0e0e",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  heading: { color: "#fff", fontSize: 14, fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" },
+  tally: { color: "#bbb", fontSize: 13, fontVariant: ["tabular-nums"] },
+  btnRow: { flexDirection: "row", gap: 8 },
+  btn: {
+    flex: 1,
+    paddingVertical: 14,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  btnAffirm: { backgroundColor: "#1a2a3a" },
+  btnGrateful: { backgroundColor: "#2a1f1a" },
+  btnJournal: { backgroundColor: "#1a1a1a" },
+  btnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
 });

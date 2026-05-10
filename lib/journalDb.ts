@@ -217,6 +217,39 @@ export async function countEntries(
   };
 }
 
+// ── Tally for the cards ─────────────────────────────────────────────────────
+// Counts today's entries by context. Today is local-day; we avoid importing
+// `dayKey` here to keep journalDb dependency-light, computing the local
+// midnight bounds inline.
+
+export async function tallyByContextFromDb(
+  db: SQLite.SQLiteDatabase,
+  now: Date = new Date(),
+): Promise<{ opportunity: number; didit: number; grateful: number }> {
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const startMs = start.getTime();
+  const endMs = end.getTime();
+
+  const rows = await db.getAllAsync<{ context: string; n: number }>(
+    `SELECT context, COUNT(*) as n
+       FROM journal_entries
+      WHERE date >= ? AND date < ?
+      GROUP BY context`,
+    [startMs, endMs],
+  );
+  const tally = { opportunity: 0, didit: 0, grateful: 0 };
+  for (const row of rows) {
+    if (isJournalContext(row.context)) {
+      tally[row.context] = row.n;
+    }
+  }
+  return tally;
+}
+
 // ── Audio recordings ────────────────────────────────────────────────────────
 
 type AudioRow = {

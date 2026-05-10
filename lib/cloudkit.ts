@@ -6,23 +6,30 @@ import {
   createZone,
   fetchRecordZoneChanges,
   deleteRecords,
+  downloadAsset,
   type AccountStatus,
   type RecordToSave,
 } from "expo-cloudkit";
 import * as SQLite from "expo-sqlite";
-import type { JournalEntry } from "./journal";
+import type { AudioRecording, JournalEntry } from "./journal";
 import { isJournalContext } from "./journal";
 import {
   deleteEntry as deleteEntryRow,
+  getAudio,
+  getPendingAudio,
   getPendingEntries,
+  insertAudio,
+  markAudioSynced,
   markEntryFailed,
   markEntrySynced,
   upsertSyncedEntry,
 } from "./journalDb";
+import { voiceFilePath } from "./voiceFiles";
 
 const CONTAINER_ID = "iCloud.com.idvorkin.contextgrabber";
 const JOURNAL_ZONE = "JournalZone";
 const JOURNAL_ENTRY_RECORD_TYPE = "JournalEntry";
+const AUDIO_RECORDING_RECORD_TYPE = "AudioRecording";
 
 let configured = false;
 let zoneEnsured = false;
@@ -202,11 +209,12 @@ export async function syncJournal(
 
     const { upserts, deletes } = await pullJournal(db);
     const { pushed } = await pushJournal(db);
+    const { uploaded } = await pushAudio(db);
 
     return {
       ok: true,
       pulled: upserts,
-      pushed,
+      pushed: pushed + uploaded,
       deleted: deletes,
       durationMs: Date.now() - start,
     };
@@ -232,16 +240,40 @@ async function pullJournal(
     const result = await fetchRecordZoneChanges([JOURNAL_ZONE]);
 
     for (const record of result.changedRecords ?? []) {
-      if (record.recordType !== JOURNAL_ENTRY_RECORD_TYPE) continue;
-      const entry = recordToEntry(record as any);
-      if (!entry) continue;
-      await upsertSyncedEntry(
-        db,
-        entry,
-        record.recordName,
-        (record as any).changeTag ?? null,
-      );
-      upserts += 1;
+      if (record.recordType === JOURNAL_ENTRY_RECORD_TYPE) {
+        const entry = recordToEntry(record as any);
+        if (!entry) continue;
+        await upsertSyncedEntry(
+          db,
+          entry,
+          record.recordName,
+          (record as any).changeTag ?? null,
+        );
+        upserts += 1;
+      } else if (record.recordType === AUDIO_RECORDING_RECORD_TYPE) {
+        // Persist metadata only — the asset itself downloads lazily
+        // when the user plays the clip (see ensureAudioLocal).
+        const f = (record as any).fields ?? {};
+        const id = (f.recordingId?.value as string) ?? record.recordName;
+        const durationMs = (f.durationMs?.value as number) ?? 0;
+        const createdAt =
+          (f.createdAtMs?.value as number) ?? Date.now();
+        await insertAudio(db, {
+          id,
+          filePath: voiceFilePath(id),
+          durationMs,
+          createdAt,
+        });
+        // insertAudio leaves sync_state='pending' which would re-upload;
+        // mark synced since this came from server.
+        await markAudioSynced(
+          db,
+          id,
+          record.recordName,
+          (record as any).changeTag ?? null,
+        );
+        upserts += 1;
+      }
     }
 
     for (const deletedName of result.deletedRecordNames ?? []) {
@@ -295,6 +327,93 @@ async function getEntryByRecordName(
     `SELECT sync_state FROM journal_entries WHERE id = ? AND sync_state = 'synced'`,
     [id],
   );
+}
+
+// ── Audio (CKAsset) push/pull ───────────────────────────────────────────────
+
+function audioToRecord(audio: AudioRecording): RecordToSave {
+  // Asset field uses the AssetField shape ({type: 'asset', fileURL}) per
+  // the README; expo-cloudkit's TypeScript only types RecordField, so we
+  // cast at the boundary. Confirmed against expo-cloudkit 0.20.8.
+  return {
+    recordType: AUDIO_RECORDING_RECORD_TYPE,
+    recordName: audio.id,
+    zoneName: JOURNAL_ZONE,
+    fields: {
+      recordingId: { type: "string", value: audio.id },
+      asset: { type: "asset", fileURL: audio.filePath } as any,
+      durationMs: { type: "number", value: audio.durationMs },
+      createdAtMs: { type: "number", value: audio.createdAt },
+    },
+  };
+}
+
+async function pushAudio(
+  db: SQLite.SQLiteDatabase,
+): Promise<{ uploaded: number }> {
+  const pending = await getPendingAudio(db);
+  if (pending.length === 0) return { uploaded: 0 };
+
+  let uploaded = 0;
+  for (const audio of pending) {
+    try {
+      const [saved] = await saveRecords([audioToRecord(audio)]);
+      await markAudioSynced(
+        db,
+        audio.id,
+        saved.recordName,
+        (saved as any).changeTag ?? null,
+      );
+      uploaded += 1;
+    } catch (e) {
+      // Soft fail per-row so one bad upload doesn't block others. The
+      // next sync retries pending rows.
+      console.warn("[cloudkit] audio upload failed:", audio.id, e);
+    }
+  }
+  return { uploaded };
+}
+
+/**
+ * Lazy fetch: download a voice clip from CloudKit on first playback.
+ * Returns the local path the file now lives at.
+ */
+export async function ensureAudioLocal(
+  db: SQLite.SQLiteDatabase,
+  recordingId: string,
+): Promise<string> {
+  configureCloudKit();
+  const localPath = voiceFilePath(recordingId);
+
+  // Local audio_recordings row may not exist yet if this came from a
+  // remote-side entry; query for existence first.
+  const row = await getAudio(db, recordingId);
+
+  // Already on disk → fast path.
+  const FileSystem = await import("expo-file-system/legacy");
+  const info = await FileSystem.getInfoAsync(localPath);
+  if (info.exists) return localPath;
+
+  await ensureJournalZone();
+  const downloaded = await downloadAsset(
+    AUDIO_RECORDING_RECORD_TYPE,
+    recordingId,
+    "asset",
+    localPath,
+    JOURNAL_ZONE,
+  );
+
+  // Backfill SQLite if this is the first time we've seen it locally.
+  if (!row) {
+    await insertAudio(db, {
+      id: recordingId,
+      filePath: localPath,
+      durationMs: 0,
+      createdAt: Date.now(),
+    });
+  }
+
+  return downloaded;
 }
 
 /** Delete an entry locally and from CloudKit. Used by the Journal screen. */

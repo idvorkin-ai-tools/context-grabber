@@ -83,6 +83,32 @@ jest.mock('expo-keep-awake', () => ({
   useKeepAwake: jest.fn(),
 }));
 
+// Mock expo-audio (no native recorder/player in tests)
+jest.mock('expo-audio', () => {
+  const recorder = {
+    id: 'mock',
+    currentTime: 0,
+    isRecording: false,
+    uri: 'file:///mock/recording.m4a',
+    record: jest.fn(),
+    stop: jest.fn().mockResolvedValue(undefined),
+    pause: jest.fn(),
+  };
+  const player = {
+    play: jest.fn(),
+    pause: jest.fn(),
+    seekTo: jest.fn(),
+  };
+  return {
+    RecordingPresets: { HIGH_QUALITY: {}, LOW_QUALITY: {} },
+    useAudioRecorder: jest.fn(() => recorder),
+    useAudioRecorderState: jest.fn(() => ({ isRecording: false, durationMillis: 0 })),
+    useAudioPlayer: jest.fn(() => player),
+    useAudioPlayerStatus: jest.fn(() => ({ playing: false, currentTime: 0, duration: 0 })),
+    requestRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+  };
+});
+
 // Mock expo-cloudkit (no native module in tests)
 jest.mock('expo-cloudkit', () => ({
   configure: jest.fn(),
