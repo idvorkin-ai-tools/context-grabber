@@ -65,6 +65,7 @@ import { parseDeepLink } from "./lib/deepLink";
 import { writeWidgetSnapshot, readWidgetSnapshot } from "./lib/widgetSnapshot";
 import { getCounter, incrementCounter, resetCounter, reconcileFromWidget } from "./lib/counter";
 import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, type PingResult } from "./lib/cloudkit";
+import * as Clipboard from "expo-clipboard";
 import TallyCounter from "./components/TallyCounter";
 import { clusterLocations, clusterLocationsV2 } from "./lib/clustering_v2";
 import { type KnownPlace } from "./lib/places";
@@ -223,6 +224,8 @@ function AboutModal({
   const [hrExportStatus, setHrExportStatus] = useState<string | null>(null);
   const [ckStatus, setCkStatus] = useState<string>("...");
   const [ckPingStatus, setCkPingStatus] = useState<string | null>(null);
+  const [ckLastError, setCkLastError] = useState<string | null>(null);
+  const [ckCopyHint, setCkCopyHint] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
@@ -233,12 +236,30 @@ function AboutModal({
 
   async function handleCloudKitPing() {
     setCkPingStatus("Pinging...");
+    setCkLastError(null);
     const result: PingResult = await pingCloudKit();
     if (result.ok) {
       setCkPingStatus(`OK · ${result.roundTripMs}ms · ${result.recordName.slice(0, 8)}…`);
     } else {
       setCkPingStatus(`Failed: ${result.error}`);
+      setCkLastError(result.error);
     }
+  }
+
+  async function handleCopyError() {
+    if (!ckLastError) return;
+    const buildInfo = getBuildInfo();
+    const payload = [
+      `CloudKit Ping error`,
+      `account: ${ckStatus}`,
+      `error: ${ckLastError}`,
+      `build: ${buildInfo.shortSha} (${buildInfo.branch})`,
+      `runtime: ${runtimeVersion}`,
+      `update: ${updateId}`,
+    ].join("\n");
+    await Clipboard.setStringAsync(payload);
+    setCkCopyHint("Copied");
+    setTimeout(() => setCkCopyHint(null), 2000);
   }
 
   async function handleCheckForUpdate() {
@@ -376,6 +397,24 @@ function AboutModal({
                 {ckPingStatus ?? "Ping CloudKit (round-trip a record)"}
               </Text>
             </TouchableOpacity>
+            {ckLastError && (
+              <>
+                <Text
+                  style={{ color: "#ff8a8a", fontSize: 12, marginTop: 8 }}
+                  selectable
+                >
+                  {ckLastError}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.addPlaceButton, { marginTop: 6 }]}
+                  onPress={handleCopyError}
+                >
+                  <Text style={styles.addPlaceButtonText}>
+                    {ckCopyHint ?? "Copy error + diagnostics"}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
           {onExportHeartRate && (

@@ -53,7 +53,7 @@
           "containerIds": [
             "iCloud.com.idvorkin.contextgrabber"
           ],
-          "iCloudContainerEnvironment": "Production"
+          "iCloudContainerEnvironment": "Development"
         }
       ],
       [
