@@ -1,0 +1,16 @@
+diff --git a/node_modules/expo-cloudkit/expo-module.config.json b/node_modules/expo-cloudkit/expo-module.config.json
+index 14ee6b0..33a368b 100644
+--- a/node_modules/expo-cloudkit/expo-module.config.json
++++ b/node_modules/expo-cloudkit/expo-module.config.json
+@@ -1,7 +1,8 @@
+ {
+-  "platforms": ["ios"],
+-  "ios": {
+-    "modules": ["ExpoCloudKitModule"]
++  "platforms": ["apple"],
++  "apple": {
++    "modules": ["ExpoCloudKitModule"],
++    "podspecPath": "ExpoCloudKit.podspec"
+   },
+   "plugin": "build/plugin/withCloudKit"
+ }
