@@ -92,6 +92,7 @@ struct TodayProvider: TimelineProvider {
 
 struct TodayWidgetView: View {
   let entry: TodayEntry
+  @Environment(\.widgetFamily) var family
 
   private static let dayFormatter: DateFormatter = {
     let f = DateFormatter()
@@ -102,6 +103,22 @@ struct TodayWidgetView: View {
   var body: some View {
     // The widgetURL modifier on the outer VStack sets a default tap → main. The timer-tile
     // Links below override within their own bounds.
+    Group {
+      if family == .systemLarge {
+        largeBody
+      } else {
+        mediumBody
+      }
+    }
+    .padding(12)
+    .widgetURL(URL(string: "grabber://main")!)
+    .widgetBackgroundCompat()
+  }
+
+  /// Original medium layout — health metrics + counter + reflect + timer in
+  /// four compact rows. Stays as-is for users who like the smaller widget.
+  @ViewBuilder
+  private var mediumBody: some View {
     VStack(alignment: .leading, spacing: 8) {
       // Top row: date label + arrow affordance
       HStack {
@@ -257,15 +274,191 @@ struct TodayWidgetView: View {
         }
       }
     }
-    .padding(12)
-    .widgetURL(URL(string: "grabber://main")!)
-    .widgetBackgroundCompat()
+  }
+
+  /// Large layout — same data, much more breathing room. Reflect gets the
+  /// hero treatment: oversized tally numbers and full-width deep-link
+  /// tiles, since Reflect is the daily-use surface this widget exists
+  /// for. Metrics + counter + timer stay along for the ride.
+  @ViewBuilder
+  private var largeBody: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      // Header — date + arrow affordance.
+      HStack {
+        Text("Today · \(Self.dayFormatter.string(from: entry.grabbedAt ?? entry.date))")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundColor(.secondary)
+        Spacer()
+        Image(systemName: "arrow.up.right")
+          .font(.system(size: 12, weight: .bold))
+          .foregroundColor(.secondary)
+      }
+
+      // Metrics — same compact line as medium.
+      HStack(spacing: 8) {
+        Text(entry.steps.map { formatInt($0) } ?? "—")
+          .font(.system(size: 19, weight: .bold))
+        Text("steps").font(.system(size: 13)).foregroundColor(.secondary)
+        Text("·").foregroundColor(.secondary)
+        Text(entry.sleepHours.map { String(format: "%.1fh", $0) } ?? "—")
+          .font(.system(size: 19, weight: .bold))
+        Text("sleep").font(.system(size: 13)).foregroundColor(.secondary)
+        Text("·").foregroundColor(.secondary)
+        Text(entry.exerciseMinutes.map { "\($0) min" } ?? "—")
+          .font(.system(size: 14, weight: .medium))
+      }
+
+      Divider()
+
+      // Reflect block — the hero of the large widget. Oversized tally,
+      // then a full-width row of three tap tiles.
+      VStack(alignment: .leading, spacing: 10) {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+          Text("Reflect")
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.secondary)
+            .textCase(.uppercase)
+          Spacer()
+        }
+        HStack(spacing: 18) {
+          ReflectMetric(emoji: "☀️", value: entry.reflectOpp, label: "opp")
+          ReflectMetric(emoji: "✓", value: entry.reflectDid, label: "did")
+          ReflectMetric(emoji: "🙏", value: entry.reflectGrateful, label: "grateful")
+          Spacer()
+        }
+        HStack(spacing: 8) {
+          Link(destination: URL(string: "grabber://reflect/affirm")!) {
+            ReflectTile(label: "🎯 Affirm", fg: .blue, bg: Color.blue.opacity(0.15))
+          }
+          Link(destination: URL(string: "grabber://reflect/grateful")!) {
+            ReflectTile(label: "🙏 Grateful", fg: .orange, bg: Color.orange.opacity(0.15))
+          }
+          Link(destination: URL(string: "grabber://reflect/journal")!) {
+            ReflectTile(label: "📖 Journal", fg: .primary, bg: Color.gray.opacity(0.15))
+          }
+        }
+      }
+
+      Divider()
+
+      // Counter — same row as medium.
+      HStack(spacing: 8) {
+        Link(destination: URL(string: "grabber://main")!) {
+          HStack(spacing: 8) {
+            TallyMarksView(value: entry.counter, color: .cyan)
+            Text("\(entry.counter)")
+              .font(.custom("Marker Felt", size: 22))
+              .foregroundColor(.cyan)
+              .frame(minWidth: 28, alignment: .trailing)
+          }
+        }
+        Spacer()
+        if #available(iOS 17.0, *) {
+          Button(intent: CounterIncrementIntent()) {
+            Text("+1")
+              .font(.system(size: 13, weight: .bold))
+              .padding(.horizontal, 12).padding(.vertical, 6)
+              .background(Color.cyan.opacity(0.15))
+              .foregroundColor(.cyan)
+              .cornerRadius(8)
+          }
+          .buttonStyle(.plain)
+        } else {
+          Link(destination: URL(string: "grabber://counter/inc")!) {
+            Text("+1")
+              .font(.system(size: 13, weight: .bold))
+              .padding(.horizontal, 12).padding(.vertical, 6)
+              .background(Color.cyan.opacity(0.15))
+              .foregroundColor(.cyan)
+              .cornerRadius(8)
+          }
+        }
+      }
+
+      // Timer presets — same as medium.
+      HStack(spacing: 8) {
+        HStack(spacing: 4) {
+          Image(systemName: "timer")
+          Text("Timer").font(.system(size: 13, weight: .semibold))
+        }
+        .foregroundColor(.secondary)
+        Spacer()
+        Link(destination: URL(string: "grabber://timer?preset=1min&autostart=1")!) {
+          Text("1 MIN")
+            .font(.system(size: 12, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.blue.opacity(0.15))
+            .foregroundColor(.blue)
+            .cornerRadius(8)
+        }
+        Link(destination: URL(string: "grabber://timer?preset=2min&autostart=1")!) {
+          Text("2 MIN")
+            .font(.system(size: 12, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.purple.opacity(0.15))
+            .foregroundColor(.purple)
+            .cornerRadius(8)
+        }
+        Link(destination: URL(string: "grabber://timer?preset=5-1&autostart=1")!) {
+          Text("5-1")
+            .font(.system(size: 12, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(Color.orange.opacity(0.15))
+            .foregroundColor(.orange)
+            .cornerRadius(8)
+        }
+      }
+    }
   }
 
   private func formatInt(_ n: Int) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
     return formatter.string(from: NSNumber(value: n)) ?? "\(n)"
+  }
+}
+
+// MARK: - Reflect subviews (Large widget)
+
+/// One of the three big tally counts in the Large widget's Reflect block.
+/// Emoji + big number + tiny label underneath.
+struct ReflectMetric: View {
+  let emoji: String
+  let value: Int
+  let label: String
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      HStack(spacing: 4) {
+        Text(emoji).font(.system(size: 18))
+        Text("\(value)")
+          .font(.system(size: 28, weight: .bold, design: .rounded))
+          .foregroundColor(.primary)
+          .monospacedDigit()
+      }
+      Text(label)
+        .font(.system(size: 11, weight: .medium))
+        .foregroundColor(.secondary)
+        .textCase(.uppercase)
+    }
+  }
+}
+
+/// Full-width pill in the Large widget's Reflect row. Wrapped in a Link
+/// by the caller so each tile deep-links to its surface.
+struct ReflectTile: View {
+  let label: String
+  let fg: Color
+  let bg: Color
+
+  var body: some View {
+    Text(label)
+      .font(.system(size: 13, weight: .bold))
+      .padding(.horizontal, 10).padding(.vertical, 10)
+      .frame(maxWidth: .infinity)
+      .background(bg)
+      .foregroundColor(fg)
+      .cornerRadius(10)
   }
 }
 
@@ -347,6 +540,6 @@ struct TodayWidget: Widget {
     }
     .configurationDisplayName("Today")
     .description("Today's snapshot + one-tap timers")
-    .supportedFamilies([.systemMedium])
+    .supportedFamilies([.systemMedium, .systemLarge])
   }
 }
