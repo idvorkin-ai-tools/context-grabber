@@ -126,6 +126,24 @@ const CTI = {
     "HKCategoryTypeIdentifierMindfulSession" as CategoryTypeIdentifier,
 };
 
+const EMPTY_HEALTH_DATA: HealthData = {
+  steps: null,
+  heartRate: null,
+  sleepHours: null,
+  bedtime: null,
+  wakeTime: null,
+  sleepBySource: null,
+  activeEnergy: null,
+  walkingDistance: null,
+  weight: null,
+  weightDaysLast7: null,
+  meditationMinutes: null,
+  hrv: null,
+  restingHeartRate: null,
+  exerciseMinutes: null,
+  workouts: [],
+};
+
 // --- Background Location Task (MUST be at module scope) ---
 
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -1470,28 +1488,47 @@ export default function App() {
     setWeeklyError(null);
     // Kick off an OTA check in parallel. Never awaited.
     void checkForOtaInBackground();
+    // HealthKit does not exist on Mac Catalyst. Skip auth + data collection
+    // there; the dashboard renders with health=null placeholders and the rest
+    // of the snapshot pipeline (location, history, journal, share) still works.
+    const isCatalyst = Platform.OS === "ios" && Platform.isMacCatalyst === true;
     try {
-      await HealthKit.requestAuthorization({
-        toRead: [
-          QTI.stepCount,
-          QTI.heartRate,
-          QTI.activeEnergy,
-          QTI.distance,
-          QTI.bodyMass,
-          QTI.hrv,
-          QTI.restingHeartRate,
-          QTI.exerciseTime,
-          CTI.sleep,
-          CTI.mindfulSession,
-          "HKWorkoutTypeIdentifier" as any,
-        ],
-      });
+      if (!isCatalyst) {
+        await HealthKit.requestAuthorization({
+          toRead: [
+            QTI.stepCount,
+            QTI.heartRate,
+            QTI.activeEnergy,
+            QTI.distance,
+            QTI.bodyMass,
+            QTI.hrv,
+            QTI.restingHeartRate,
+            QTI.exerciseTime,
+            CTI.sleep,
+            CTI.mindfulSession,
+            "HKWorkoutTypeIdentifier" as any,
+          ],
+        });
+      }
 
       setLoadingPhase("Health + GPS");
-      const [health, location] = await Promise.all([
-        grabHealthData(),
+      // Wrap each branch so a single failure (or a hung permission sheet on
+      // Mac Catalyst) doesn't abort the whole snapshot. Health failure →
+      // EMPTY_HEALTH_DATA; location failure or timeout → null.
+      const locationWithTimeout = Promise.race<LocationData>([
         grabLocation(),
-      ]);
+        new Promise<LocationData>((resolve) =>
+          setTimeout(() => resolve(null), 10_000),
+        ),
+      ]).catch(() => null);
+      const healthSafe = (isCatalyst
+        ? Promise.resolve(EMPTY_HEALTH_DATA)
+        : grabHealthData()
+      ).catch((e) => {
+        console.warn("grabHealthData failed:", e?.message ?? e);
+        return EMPTY_HEALTH_DATA;
+      });
+      const [health, location] = await Promise.all([healthSafe, locationWithTimeout]);
 
       // Fetch location history from SQLite
       setLoadingPhase("Location history");

@@ -1,0 +1,47 @@
+diff --git a/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift b/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift
+index 6fdf9f5..f58fff4 100644
+--- a/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift
++++ b/node_modules/expo-live-activity/ios/ExpoLiveActivityModule.swift
+@@ -1,5 +1,21 @@
+-import ActivityKit
+ import ExpoModulesCore
++#if targetEnvironment(macCatalyst)
++
++// Mac Catalyst stub — ActivityKit doesn't exist on macOS. Register the
++// module name so JS calls don't crash, but make every method a no-op.
++public class ExpoLiveActivityModule: Module {
++  public func definition() -> ModuleDefinition {
++    Name("ExpoLiveActivity")
++    Function("areActivitiesEnabled") { () -> Bool in false }
++    Function("startActivity") { (_: [String: Any]) -> String? in nil }
++    Function("updateActivity") { (_: String, _: [String: Any]) in }
++    Function("endActivity") { (_: String) in }
++    Function("endAllActivities") { }
++  }
++}
++
++#else
++import ActivityKit
+ 
+ public class ExpoLiveActivityModule: Module {
+   struct LiveActivityState: Record {
+@@ -320,3 +336,5 @@ public class ExpoLiveActivityModule: Module {
+     }
+   }
+ }
++
++#endif
+diff --git a/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift b/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift
+index f71c857..77e5634 100644
+--- a/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift
++++ b/node_modules/expo-live-activity/ios/LiveActivityAttributes.swift
+@@ -1,3 +1,4 @@
++#if !targetEnvironment(macCatalyst)
+ import ActivityKit
+ import Foundation
+ 
+@@ -43,3 +44,4 @@ struct LiveActivityAttributes: ActivityAttributes {
+     var horizontal: Int?
+   }
+ }
++#endif

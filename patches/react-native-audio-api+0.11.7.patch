@@ -1,0 +1,811 @@
+diff --git a/node_modules/react-native-audio-api/RNAudioAPI.podspec b/node_modules/react-native-audio-api/RNAudioAPI.podspec
+index 1a7a947..4f8a86d 100644
+--- a/node_modules/react-native-audio-api/RNAudioAPI.podspec
++++ b/node_modules/react-native-audio-api/RNAudioAPI.podspec
+@@ -5,7 +5,7 @@ package_json = JSON.parse(File.read(File.join(__dir__, "package.json")))
+ $audio_api_config = find_audio_api_config()
+ 
+ $new_arch_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
+-$RN_AUDIO_API_FFMPEG_DISABLED = ENV['DISABLE_AUDIOAPI_FFMPEG'].nil? ? false : ENV['DISABLE_AUDIOAPI_FFMPEG'] == '1' # false by default
++$RN_AUDIO_API_FFMPEG_DISABLED = true # Forced disabled for Mac Catalyst compatibility (no FFmpeg xcframework slice).
+ 
+ fabric_flags = $new_arch_enabled ? '-DRCT_NEW_ARCH_ENABLED' : ''
+ version_flag = "-DAUDIOAPI_VERSION=#{package_json['version']}"
+@@ -30,7 +30,15 @@ Pod::Spec.new do |s|
+ 
+   s.subspec "audioapi" do |ss|
+     ss.source_files = "common/cpp/audioapi/**/*.{cpp,c,h,hpp}"
+-    ss.exclude_files = $RN_AUDIO_API_FFMPEG_DISABLED ? ["common/cpp/audioapi/libs/ffmpeg/**"] : []
++    # Exclude FFmpeg AND the miniaudio libopus/libvorbis decoders. The
++    # decoder sources reference symbols from libopus.a/libvorbis.a which
++    # only exist as prebuilt iOS slices; Catalyst link fails on
++    # undefined `_op_channel_count`, `_ov_open_callbacks`, etc.
++    ss.exclude_files = [
++      "common/cpp/audioapi/libs/ffmpeg/**",
++      "common/cpp/audioapi/libs/miniaudio/decoders/libopus/**",
++      "common/cpp/audioapi/libs/miniaudio/decoders/libvorbis/**",
++    ]
+     ss.header_dir = "audioapi"
+     ss.header_mappings_dir = "common/cpp/audioapi"
+ 
+@@ -66,12 +74,12 @@ Pod::Spec.new do |s|
+   external_dir_relative = "common/cpp/audioapi/external"
+   lib_dir = "$(PROJECT_DIR)/#{rn_audio_dir_relative}/#{external_dir_relative}/$(PLATFORM_NAME)"
+ 
+-  s.ios.vendored_frameworks = $RN_AUDIO_API_FFMPEG_DISABLED ? [] : [
+-    'common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework',
+-    'common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework',
+-    'common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework',
+-    'common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework'
+-  ]
++  # FFmpeg disabled: the lib's vendored xcframeworks ship only iOS slices
++  # (no Catalyst variant), which breaks Catalyst link with "framework
++  # libavcodec not found". Our use of this lib is synthesis-only (Web
++  # Audio oscillators in the gym timer), which doesn't need FFmpeg, so
++  # we ship without it on both iOS and Catalyst.
++  s.ios.vendored_frameworks = []
+ 
+   s.pod_target_xcconfig = {
+     "USE_HEADERMAP" => "YES",
+@@ -89,7 +97,7 @@ Pod::Spec.new do |s|
+       "\"$(PODS_TARGET_SRCROOT)/#{external_dir_relative}/include/opus\"",
+       "\"$(PODS_TARGET_SRCROOT)/#{external_dir_relative}/include/vorbis\"",
+     ]
+-    .concat($RN_AUDIO_API_FFMPEG_DISABLED ? [] : ["\"$(PODS_TARGET_SRCROOT)/#{external_dir_relative}/ffmpeg_include\""])
++    # FFmpeg headers dropped — vendored_frameworks is empty (see above).
+     .concat(worklets_enabled ? ['"$(PODS_ROOT)/Headers/Public/RNWorklets"'] : [])
+     .join(' '),
+     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
+@@ -115,7 +123,24 @@ Pod::Spec.new do |s|
+       "\"$(PODS_ROOT)/#{$audio_api_config[:dynamic_frameworks_worklets_dir]}/Common/cpp\""
+     ] : [])
+     .join(' '),
+-    'OTHER_LDFLAGS' => %W[
++    # Force-load prebuilt static libs only for the iOS SDKs that ship
++    # them. The lib has no Catalyst/macOS .a variants, so Catalyst gets
++    # an inherited LDFLAGS only and loses opus/vorbis/ssl features —
++    # acceptable for the v1 Mac build (which doesn't use codec-heavy
++    # synthesis paths anyway).
++    'OTHER_LDFLAGS' => '$(inherited)',
++    'OTHER_LDFLAGS[sdk=iphoneos*]' => %W[
++      $(inherited)
++      -force_load #{lib_dir}/libopusfile.a
++      -force_load #{lib_dir}/libopus.a
++      -force_load #{lib_dir}/libogg.a
++      -force_load #{lib_dir}/libvorbis.a
++      -force_load #{lib_dir}/libvorbisenc.a
++      -force_load #{lib_dir}/libvorbisfile.a
++      -force_load #{lib_dir}/libssl.a
++      -force_load #{lib_dir}/libcrypto.a
++    ].join(" "),
++    'OTHER_LDFLAGS[sdk=iphonesimulator*]' => %W[
+       $(inherited)
+       -force_load #{lib_dir}/libopusfile.a
+       -force_load #{lib_dir}/libopus.a
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavcodec.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavcodec.so
+new file mode 100755
+index 0000000..96442b8
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavcodec.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavformat.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavformat.so
+new file mode 100755
+index 0000000..60ac543
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavformat.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavutil.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavutil.so
+new file mode 100755
+index 0000000..c9060e7
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libavutil.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libswresample.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libswresample.so
+new file mode 100755
+index 0000000..1c713b2
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/arm64-v8a/libswresample.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavcodec.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavcodec.so
+new file mode 100755
+index 0000000..77eac12
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavcodec.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavformat.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavformat.so
+new file mode 100755
+index 0000000..4586d12
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavformat.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavutil.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavutil.so
+new file mode 100755
+index 0000000..e2254b4
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libavutil.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libswresample.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libswresample.so
+new file mode 100755
+index 0000000..c3e40d2
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/armeabi-v7a/libswresample.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavcodec.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavcodec.so
+new file mode 100755
+index 0000000..6133b04
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavcodec.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavformat.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavformat.so
+new file mode 100755
+index 0000000..251e8a8
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavformat.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavutil.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavutil.so
+new file mode 100755
+index 0000000..6c2811b
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libavutil.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libswresample.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libswresample.so
+new file mode 100755
+index 0000000..4447ff6
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86/libswresample.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavcodec.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavcodec.so
+new file mode 100755
+index 0000000..a5d36ac
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavcodec.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavformat.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavformat.so
+new file mode 100755
+index 0000000..61391b9
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavformat.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavutil.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavutil.so
+new file mode 100755
+index 0000000..115f47a
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libavutil.so differ
+diff --git a/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libswresample.so b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libswresample.so
+new file mode 100755
+index 0000000..225e5e4
+Binary files /dev/null and b/node_modules/react-native-audio-api/android/src/main/jniLibs/x86_64/libswresample.so differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/core/inputs/AudioRecorder.h b/node_modules/react-native-audio-api/common/cpp/audioapi/core/inputs/AudioRecorder.h
+index b0f1fb8..ef5485a 100644
+--- a/node_modules/react-native-audio-api/common/cpp/audioapi/core/inputs/AudioRecorder.h
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/core/inputs/AudioRecorder.h
+@@ -38,7 +38,7 @@ class AudioRecorder {
+   virtual void connect(const std::shared_ptr<RecorderAdapterNode> &node) = 0;
+   virtual void disconnect() = 0;
+ 
+-  virtual Result<NoneType, std::string> setOnAudioReadyCallback(
++  virtual Result<RNAudioNoneType, std::string> setOnAudioReadyCallback(
+       float sampleRate,
+       size_t bufferLength,
+       int channelCount,
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libcrypto.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libcrypto.a
+new file mode 100644
+index 0000000..5cd516d
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libcrypto.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libogg.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libogg.a
+new file mode 100644
+index 0000000..67c00a4
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libogg.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libopus.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libopus.a
+new file mode 100644
+index 0000000..f1f6b24
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libopus.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libopusfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libopusfile.a
+new file mode 100644
+index 0000000..71a9ae4
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libopusfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libssl.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libssl.a
+new file mode 100644
+index 0000000..6a90555
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libssl.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbis.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbis.a
+new file mode 100644
+index 0000000..8f50c53
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbis.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbisenc.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbisenc.a
+new file mode 100644
+index 0000000..f27d5b2
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbisenc.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbisfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbisfile.a
+new file mode 100644
+index 0000000..371e758
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/arm64-v8a/libvorbisfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libcrypto.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libcrypto.a
+new file mode 100644
+index 0000000..fbf39a5
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libcrypto.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libogg.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libogg.a
+new file mode 100644
+index 0000000..537c72d
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libogg.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libopus.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libopus.a
+new file mode 100644
+index 0000000..a6f1533
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libopus.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libopusfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libopusfile.a
+new file mode 100644
+index 0000000..6a7a5e9
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libopusfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libssl.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libssl.a
+new file mode 100644
+index 0000000..226749d
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libssl.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbis.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbis.a
+new file mode 100644
+index 0000000..c34bcc7
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbis.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbisenc.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbisenc.a
+new file mode 100644
+index 0000000..f65f760
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbisenc.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbisfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbisfile.a
+new file mode 100644
+index 0000000..1c7a04e
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/armeabi-v7a/libvorbisfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/Info.plist
+new file mode 100644
+index 0000000..1e743f8
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/Info.plist
+@@ -0,0 +1,44 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>AvailableLibraries</key>
++	<array>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libavcodec.framework/libavcodec</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64</string>
++			<key>LibraryPath</key>
++			<string>libavcodec.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++		</dict>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libavcodec.framework/libavcodec</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64_x86_64-simulator</string>
++			<key>LibraryPath</key>
++			<string>libavcodec.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++				<string>x86_64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++			<key>SupportedPlatformVariant</key>
++			<string>simulator</string>
++		</dict>
++	</array>
++	<key>CFBundlePackageType</key>
++	<string>XFWK</string>
++	<key>XCFrameworkFormatVersion</key>
++	<string>1.0</string>
++</dict>
++</plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64/libavcodec.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64/libavcodec.framework/Info.plist
+new file mode 100644
+index 0000000..12e2b9a
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64/libavcodec.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libavcodec</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libavcodec</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libavcodec</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64/libavcodec.framework/libavcodec b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64/libavcodec.framework/libavcodec
+new file mode 100755
+index 0000000..c76d210
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64/libavcodec.framework/libavcodec differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64_x86_64-simulator/libavcodec.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64_x86_64-simulator/libavcodec.framework/Info.plist
+new file mode 100644
+index 0000000..12e2b9a
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64_x86_64-simulator/libavcodec.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libavcodec</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libavcodec</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libavcodec</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64_x86_64-simulator/libavcodec.framework/libavcodec b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64_x86_64-simulator/libavcodec.framework/libavcodec
+new file mode 100755
+index 0000000..e314d30
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavcodec.xcframework/ios-arm64_x86_64-simulator/libavcodec.framework/libavcodec differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/Info.plist
+new file mode 100644
+index 0000000..7a775c9
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/Info.plist
+@@ -0,0 +1,44 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>AvailableLibraries</key>
++	<array>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libavformat.framework/libavformat</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64</string>
++			<key>LibraryPath</key>
++			<string>libavformat.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++		</dict>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libavformat.framework/libavformat</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64_x86_64-simulator</string>
++			<key>LibraryPath</key>
++			<string>libavformat.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++				<string>x86_64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++			<key>SupportedPlatformVariant</key>
++			<string>simulator</string>
++		</dict>
++	</array>
++	<key>CFBundlePackageType</key>
++	<string>XFWK</string>
++	<key>XCFrameworkFormatVersion</key>
++	<string>1.0</string>
++</dict>
++</plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64/libavformat.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64/libavformat.framework/Info.plist
+new file mode 100644
+index 0000000..88a6f52
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64/libavformat.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libavformat</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libavformat</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libavformat</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64/libavformat.framework/libavformat b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64/libavformat.framework/libavformat
+new file mode 100755
+index 0000000..b5d939c
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64/libavformat.framework/libavformat differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64_x86_64-simulator/libavformat.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64_x86_64-simulator/libavformat.framework/Info.plist
+new file mode 100644
+index 0000000..88a6f52
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64_x86_64-simulator/libavformat.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libavformat</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libavformat</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libavformat</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64_x86_64-simulator/libavformat.framework/libavformat b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64_x86_64-simulator/libavformat.framework/libavformat
+new file mode 100755
+index 0000000..328651f
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavformat.xcframework/ios-arm64_x86_64-simulator/libavformat.framework/libavformat differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/Info.plist
+new file mode 100644
+index 0000000..03a44c2
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/Info.plist
+@@ -0,0 +1,44 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>AvailableLibraries</key>
++	<array>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libavutil.framework/libavutil</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64_x86_64-simulator</string>
++			<key>LibraryPath</key>
++			<string>libavutil.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++				<string>x86_64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++			<key>SupportedPlatformVariant</key>
++			<string>simulator</string>
++		</dict>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libavutil.framework/libavutil</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64</string>
++			<key>LibraryPath</key>
++			<string>libavutil.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++		</dict>
++	</array>
++	<key>CFBundlePackageType</key>
++	<string>XFWK</string>
++	<key>XCFrameworkFormatVersion</key>
++	<string>1.0</string>
++</dict>
++</plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64/libavutil.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64/libavutil.framework/Info.plist
+new file mode 100644
+index 0000000..4eab93f
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64/libavutil.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libavutil</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libavutil</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libavutil</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64/libavutil.framework/libavutil b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64/libavutil.framework/libavutil
+new file mode 100755
+index 0000000..350f907
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64/libavutil.framework/libavutil differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64_x86_64-simulator/libavutil.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64_x86_64-simulator/libavutil.framework/Info.plist
+new file mode 100644
+index 0000000..4eab93f
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64_x86_64-simulator/libavutil.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libavutil</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libavutil</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libavutil</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64_x86_64-simulator/libavutil.framework/libavutil b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64_x86_64-simulator/libavutil.framework/libavutil
+new file mode 100755
+index 0000000..271304f
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libavutil.xcframework/ios-arm64_x86_64-simulator/libavutil.framework/libavutil differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/Info.plist
+new file mode 100644
+index 0000000..a5f2838
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/Info.plist
+@@ -0,0 +1,44 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>AvailableLibraries</key>
++	<array>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libswresample.framework/libswresample</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64_x86_64-simulator</string>
++			<key>LibraryPath</key>
++			<string>libswresample.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++				<string>x86_64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++			<key>SupportedPlatformVariant</key>
++			<string>simulator</string>
++		</dict>
++		<dict>
++			<key>BinaryPath</key>
++			<string>libswresample.framework/libswresample</string>
++			<key>LibraryIdentifier</key>
++			<string>ios-arm64</string>
++			<key>LibraryPath</key>
++			<string>libswresample.framework</string>
++			<key>SupportedArchitectures</key>
++			<array>
++				<string>arm64</string>
++			</array>
++			<key>SupportedPlatform</key>
++			<string>ios</string>
++		</dict>
++	</array>
++	<key>CFBundlePackageType</key>
++	<string>XFWK</string>
++	<key>XCFrameworkFormatVersion</key>
++	<string>1.0</string>
++</dict>
++</plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64/libswresample.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64/libswresample.framework/Info.plist
+new file mode 100644
+index 0000000..4f4efb2
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64/libswresample.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libswresample</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libswresample</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libswresample</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64/libswresample.framework/libswresample b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64/libswresample.framework/libswresample
+new file mode 100755
+index 0000000..1d8a7a2
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64/libswresample.framework/libswresample differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64_x86_64-simulator/libswresample.framework/Info.plist b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64_x86_64-simulator/libswresample.framework/Info.plist
+new file mode 100644
+index 0000000..4f4efb2
+--- /dev/null
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64_x86_64-simulator/libswresample.framework/Info.plist
+@@ -0,0 +1 @@
++<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"> <plist version="1.0"> <dict> <key>CFBundleDevelopmentRegion</key> <string>en</string> <key>CFBundleExecutable</key> <string>libswresample</string> <key>CFBundleIdentifier</key> <string>io.qt.ffmpegkit.libswresample</string> <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string> <key>CFBundleName</key> <string>libswresample</string> <key>CFBundlePackageType</key> <string>FMWK</string> <key>CFBundleShortVersionString</key> <string>7.0.2</string> <key>CFBundleVersion</key> <string>7.0.2</string> <key>CFBundleSignature</key> <string>????</string> <key>MinimumOSVersion</key> <string>16.0</string> <key>CFBundleSupportedPlatforms</key> <array> <string>iPhoneOS</string> </array> <key>NSPrincipalClass</key> <string></string> </dict> </plist>
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64_x86_64-simulator/libswresample.framework/libswresample b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64_x86_64-simulator/libswresample.framework/libswresample
+new file mode 100755
+index 0000000..20ca087
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/ffmpeg_ios/libswresample.xcframework/ios-arm64_x86_64-simulator/libswresample.framework/libswresample differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libcrypto.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libcrypto.a
+new file mode 100644
+index 0000000..135c86f
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libcrypto.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libogg.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libogg.a
+new file mode 100644
+index 0000000..18cb9dc
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libogg.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libopus.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libopus.a
+new file mode 100644
+index 0000000..53206b6
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libopus.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libopusfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libopusfile.a
+new file mode 100644
+index 0000000..0e6dcf3
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libopusfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libssl.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libssl.a
+new file mode 100644
+index 0000000..c2d1281
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libssl.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbis.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbis.a
+new file mode 100644
+index 0000000..e741d12
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbis.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbisenc.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbisenc.a
+new file mode 100644
+index 0000000..f4304bc
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbisenc.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbisfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbisfile.a
+new file mode 100644
+index 0000000..5b3699e
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphoneos/libvorbisfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libcrypto.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libcrypto.a
+new file mode 100644
+index 0000000..032beab
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libcrypto.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libogg.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libogg.a
+new file mode 100644
+index 0000000..c93a4a1
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libogg.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libopus.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libopus.a
+new file mode 100644
+index 0000000..ca83e5f
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libopus.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libopusfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libopusfile.a
+new file mode 100644
+index 0000000..184126a
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libopusfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libssl.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libssl.a
+new file mode 100644
+index 0000000..ec62a19
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libssl.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbis.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbis.a
+new file mode 100644
+index 0000000..b71218f
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbis.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbisenc.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbisenc.a
+new file mode 100644
+index 0000000..a219e1a
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbisenc.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbisfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbisfile.a
+new file mode 100644
+index 0000000..21ed5c5
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/iphonesimulator/libvorbisfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libcrypto.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libcrypto.a
+new file mode 100644
+index 0000000..16d29f7
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libcrypto.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libogg.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libogg.a
+new file mode 100644
+index 0000000..f0deee4
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libogg.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libopus.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libopus.a
+new file mode 100644
+index 0000000..565c451
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libopus.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libopusfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libopusfile.a
+new file mode 100644
+index 0000000..5cbd1ad
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libopusfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libssl.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libssl.a
+new file mode 100644
+index 0000000..0a5f27d
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libssl.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbis.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbis.a
+new file mode 100644
+index 0000000..e0ead0c
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbis.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbisenc.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbisenc.a
+new file mode 100644
+index 0000000..e799d77
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbisenc.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbisfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbisfile.a
+new file mode 100644
+index 0000000..1dfc661
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86/libvorbisfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libcrypto.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libcrypto.a
+new file mode 100644
+index 0000000..be88da9
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libcrypto.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libogg.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libogg.a
+new file mode 100644
+index 0000000..509d35c
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libogg.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libopus.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libopus.a
+new file mode 100644
+index 0000000..7eb0d45
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libopus.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libopusfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libopusfile.a
+new file mode 100644
+index 0000000..77711f4
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libopusfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libssl.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libssl.a
+new file mode 100644
+index 0000000..9091b2e
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libssl.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbis.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbis.a
+new file mode 100644
+index 0000000..cb966fe
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbis.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbisenc.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbisenc.a
+new file mode 100644
+index 0000000..f0aa17f
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbisenc.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbisfile.a b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbisfile.a
+new file mode 100644
+index 0000000..dfb7753
+Binary files /dev/null and b/node_modules/react-native-audio-api/common/cpp/audioapi/external/x86_64/libvorbisfile.a differ
+diff --git a/node_modules/react-native-audio-api/common/cpp/audioapi/utils/Result.hpp b/node_modules/react-native-audio-api/common/cpp/audioapi/utils/Result.hpp
+index 4a90d79..90a299e 100644
+--- a/node_modules/react-native-audio-api/common/cpp/audioapi/utils/Result.hpp
++++ b/node_modules/react-native-audio-api/common/cpp/audioapi/utils/Result.hpp
+@@ -7,13 +7,13 @@
+ #include <type_traits>
+ #include <utility>
+ 
+-struct NoneType {};
+-inline constexpr NoneType None{};
++struct RNAudioNoneType {};
++inline constexpr RNAudioNoneType None{};
+ 
+ /// @brief A Result type that can represent either a success (Ok) or an error (Err).
+ /// @tparam T value type for success
+ /// @tparam E error type for failure
+-/// @note Specializations for void T and/or void E are not provided. Use NoneType instead.
++/// @note Specializations for void T and/or void E are not provided. Use RNAudioNoneType instead.
+ /// Design inspired by Rust's Result type.
+ /// https://doc.rust-lang.org/std/result/
+ ///
+@@ -24,7 +24,7 @@ inline constexpr NoneType None{};
+ ///      return "Error code: " + std::to_string(code);
+ ///    });
+ ///
+-template <typename T = NoneType, typename E = NoneType>
++template <typename T = RNAudioNoneType, typename E = RNAudioNoneType>
+ class Result {
+   struct OkTag {};
+   struct ErrTag {};
+diff --git a/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.h b/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.h
+index 9137b94..49cb577 100644
+--- a/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.h
++++ b/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.h
+@@ -44,7 +44,7 @@ class IOSAudioRecorder : public AudioRecorder {
+   bool isPaused() const override;
+   bool isIdle() const override;
+ 
+-  Result<NoneType, std::string> setOnAudioReadyCallback(
++  Result<RNAudioNoneType, std::string> setOnAudioReadyCallback(
+       float sampleRate,
+       size_t bufferLength,
+       int channelCount,
+diff --git a/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.mm b/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.mm
+index ac6229b..ae50950 100644
+--- a/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.mm
++++ b/node_modules/react-native-audio-api/ios/audioapi/ios/core/IOSAudioRecorder.mm
+@@ -309,7 +309,7 @@ bool IOSAudioRecorder::isIdle() const
+ /// @param channelCount Number of channels for the callback audio data.
+ /// @param callbackId Identifier for the JS callback to be invoked.
+ /// @returns Success status or Error status with message.
+-Result<NoneType, std::string> IOSAudioRecorder::setOnAudioReadyCallback(
++Result<RNAudioNoneType, std::string> IOSAudioRecorder::setOnAudioReadyCallback(
+     float sampleRate,
+     size_t bufferLength,
+     int channelCount,
+@@ -325,14 +325,14 @@ Result<NoneType, std::string> IOSAudioRecorder::setOnAudioReadyCallback(
+                       ->prepare([nativeRecorder_ getInputFormat], [nativeRecorder_ getBufferSize]);
+ 
+     if (result.is_err()) {
+-      return Result<NoneType, std::string>::Err(result.unwrap_err());
++      return Result<RNAudioNoneType, std::string>::Err(result.unwrap_err());
+     }
+   }
+ 
+   dataCallback_->setOnErrorCallback(errorCallbackId_.load(std::memory_order_acquire));
+ 
+   callbackOutputEnabled_.store(true, std::memory_order_release);
+-  return Result<NoneType, std::string>::Ok(None);
++  return Result<RNAudioNoneType, std::string>::Ok(None);
+ }
+ 
+ /// @brief Clears the audio data callback.
+diff --git a/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/AudioDecoder.mm b/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/AudioDecoder.mm
+index 6b2988c..ecc8a43 100644
+--- a/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/AudioDecoder.mm
++++ b/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/AudioDecoder.mm
+@@ -1,8 +1,14 @@
+ #define MINIAUDIO_IMPLEMENTATION
+ #import <audioapi/libs/miniaudio/miniaudio.h>
+ 
++// libopus/libvorbis decoders aren't available on Mac Catalyst — the
++// prebuilt .a files ship only as iOS slices. Skip including these
++// headers and skip the customBackends registration further below on
++// Catalyst, so the link doesn't pull in undefined opus/vorbis symbols.
++#if !TARGET_OS_MACCATALYST
+ #include <audioapi/libs/miniaudio/decoders/libopus/miniaudio_libopus.h>
+ #include <audioapi/libs/miniaudio/decoders/libvorbis/miniaudio_libvorbis.h>
++#endif
+ 
+ #include <audioapi/core/sources/AudioBuffer.h>
+ #include <audioapi/core/utils/AudioDecoder.h>
+@@ -84,11 +90,13 @@ std::shared_ptr<AudioBuffer> AudioDecoder::decodeWithFilePath(
+   }
+   ma_decoder decoder;
+   ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, static_cast<int>(sampleRate));
++#if !TARGET_OS_MACCATALYST
+   ma_decoding_backend_vtable *customBackends[] = {
+       ma_decoding_backend_libvorbis, ma_decoding_backend_libopus};
+ 
+   config.ppCustomBackendVTables = customBackends;
+   config.customBackendCount = sizeof(customBackends) / sizeof(customBackends[0]);
++#endif
+ 
+   if (ma_decoder_init_file(path.c_str(), &config, &decoder) != MA_SUCCESS) {
+     NSLog(@"Failed to initialize decoder for file: %s", path.c_str());
+@@ -124,11 +132,13 @@ AudioDecoder::decodeWithMemoryBlock(const void *data, size_t size, float sampleR
+   ma_decoder decoder;
+   ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, static_cast<int>(sampleRate));
+ 
++#if !TARGET_OS_MACCATALYST
+   ma_decoding_backend_vtable *customBackends[] = {
+       ma_decoding_backend_libvorbis, ma_decoding_backend_libopus};
+ 
+   config.ppCustomBackendVTables = customBackends;
+   config.customBackendCount = sizeof(customBackends) / sizeof(customBackends[0]);
++#endif
+ 
+   if (ma_decoder_init_memory(data, size, &config, &decoder) != MA_SUCCESS) {
+     NSLog(@"Failed to initialize decoder for memory block");
+diff --git a/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.h b/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.h
+index 2c35dde..6870b84 100644
+--- a/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.h
++++ b/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.h
+@@ -27,7 +27,7 @@ class IOSRecorderCallback : public AudioRecorderCallback {
+       uint64_t callbackId);
+   ~IOSRecorderCallback();
+ 
+-  Result<NoneType, std::string> prepare(AVAudioFormat *bufferFormat, size_t maxInputBufferLength);
++  Result<RNAudioNoneType, std::string> prepare(AVAudioFormat *bufferFormat, size_t maxInputBufferLength);
+   void cleanup() override;
+ 
+   void receiveAudioData(const AudioBufferList *audioBufferList, int numFrames);
+diff --git a/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.mm b/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.mm
+index 3293f8f..bd1d0e3 100644
+--- a/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.mm
++++ b/node_modules/react-native-audio-api/ios/audioapi/ios/core/utils/IOSRecorderCallback.mm
+@@ -50,7 +50,7 @@ IOSRecorderCallback::~IOSRecorderCallback()
+ /// @param bufferFormat The format of the incoming audio data.
+ /// @param maxInputBufferLength The maximum length of the input buffer in frames.
+ /// @returns Result indicating success or error with message.
+-Result<NoneType, std::string> IOSRecorderCallback::prepare(
++Result<RNAudioNoneType, std::string> IOSRecorderCallback::prepare(
+     AVAudioFormat *bufferFormat,
+     size_t maxInputBufferLength)
+ {
+@@ -59,12 +59,12 @@ Result<NoneType, std::string> IOSRecorderCallback::prepare(
+     converterInputBufferSize_ = maxInputBufferLength;
+ 
+     if (bufferFormat.sampleRate <= 0 || bufferFormat.channelCount == 0) {
+-      return Result<NoneType, std::string>::Err(
++      return Result<RNAudioNoneType, std::string>::Err(
+           "Invalid input format: sampleRate and channelCount must be greater than 0");
+     }
+ 
+     if (sampleRate_ <= 0 || channelCount_ == 0) {
+-      return Result<NoneType, std::string>::Err(
++      return Result<RNAudioNoneType, std::string>::Err(
+           "Invalid callback format: sampleRate and channelCount must be greater than 0");
+     }
+ 
+@@ -89,7 +89,7 @@ Result<NoneType, std::string> IOSRecorderCallback::prepare(
+                                       frameCapacity:(AVAudioFrameCount)converterOutputBufferSize_];
+   }
+ 
+-  return Result<NoneType, std::string>::Ok(None);
++  return Result<RNAudioNoneType, std::string>::Ok(None);
+ }
+ 
+ /// @brief Cleans up resources used by the IOSRecorderCallback.

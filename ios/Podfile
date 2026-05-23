@@ -18,6 +18,14 @@ ENV['RCT_USE_PREBUILT_RNCORE'] ||= '1' if podfile_properties['ios.buildReactNati
 ENV['RCT_HERMES_V1_ENABLED'] ||= '1' if podfile_properties['expo.useHermesV1'] == 'true'
 platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
 
+# react-native-audio-api ships FFmpeg as an iOS-only xcframework with no
+# Mac Catalyst slice, so Catalyst builds fail at link with
+# "framework 'libavcodec' not found". The gym-timer feature that uses
+# this lib only does Web-Audio synthesis (oscillators), not media file
+# decoding — disabling FFmpeg drops the FFmpeg link without affecting
+# our use case. Set globally so iOS + Catalyst stay in sync.
+$RN_AUDIO_API_FFMPEG_DISABLED = true
+
 prepare_react_native_project!
 
 target 'ContextGrabber' do
@@ -56,8 +64,69 @@ target 'ContextGrabber' do
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
+      :mac_catalyst_enabled => true,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    # ReactNativeHealthkit uses iOS-18 HealthKit APIs gated only by
+    # `@available(iOS 17.0.0, *)` — missing the macCatalyst marker, so
+    # they refuse to compile under our Catalyst 15 deployment floor.
+    # HealthKit has no macOS framework at all, so on Mac the calls will
+    # fail at runtime regardless. Bumping the pod's deployment target
+    # lets the Catalyst build compile; runtime is just "feature
+    # unavailable" on Mac, which is fine.
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'ReactNativeHealthkit'
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0'
+      end
+    end
+
+    # React Native prebuilt xcframeworks (React, ReactNativeDependencies,
+    # hermesvm) ship malformed Mac Catalyst slices: the framework binary
+    # is duplicated as a real file at the root AND under Versions/A,
+    # plus Versions/Current is a duplicate dir instead of a symlink.
+    # codesign refuses to sign such a structure ("bundle format is
+    # ambiguous").
+    #
+    # Fix: rewrite each Catalyst slice into the canonical macOS
+    # framework layout — binary + resource dirs live in Versions/A,
+    # root-level entries become symlinks. Idempotent.
+    require 'fileutils'
+    Dir.glob(File.join(__dir__, 'Pods/**/ios-arm64_x86_64-maccatalyst/*.framework')).each do |fwk|
+      name = File.basename(fwk, '.framework')
+      versions_a = File.join(fwk, 'Versions', 'A')
+      next unless File.directory?(versions_a)
+
+      # Strip unsigned .bundle children (privacy manifests for boost /
+      # folly / glog inside ReactNativeDependencies) — codesign rejects
+      # them as "code object is not signed at all" when sealing the
+      # parent framework, and signing them individually would add yet
+      # another layer of patches. They're App-Store-submission
+      # aggregation hints; not load-bearing at runtime.
+      [fwk, versions_a].each do |dir|
+        Dir.glob(File.join(dir, '*.bundle')).each { |b| FileUtils.rm_rf(b) }
+      end
+
+      # Canonical macOS layout: binary + Headers/Modules/Resources
+      # symlinked to Versions/Current/<entry>.
+      ['Headers', 'Modules', 'Resources', name].each do |entry|
+        root_path = File.join(fwk, entry)
+        a_path = File.join(versions_a, entry)
+        next unless File.exist?(root_path) && !File.symlink?(root_path)
+        unless File.exist?(a_path)
+          FileUtils.mv(root_path, a_path)
+        else
+          FileUtils.rm_rf(root_path)
+        end
+        File.symlink("Versions/Current/#{entry}", root_path)
+      end
+
+      current_path = File.join(fwk, 'Versions', 'Current')
+      if File.exist?(current_path) && !File.symlink?(current_path)
+        FileUtils.rm_rf(current_path)
+      end
+      File.symlink('A', current_path) unless File.exist?(current_path)
+    end
   end
 end
