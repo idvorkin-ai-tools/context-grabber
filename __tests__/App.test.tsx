@@ -1,5 +1,5 @@
 import React from "react";
-import { render, act } from "@testing-library/react-native";
+import { render, act, fireEvent } from "@testing-library/react-native";
 import * as SQLite from "expo-sqlite";
 import HealthKit from "@kingstinct/react-native-healthkit";
 import * as Location from "expo-location";
@@ -16,6 +16,14 @@ async function renderApp() {
     await flushPromises();
   });
   return result;
+}
+
+// Switch to a tab and settle effects.
+async function gotoTab(result: ReturnType<typeof render>, tab: string) {
+  await act(async () => {
+    fireEvent.press(result.getByTestId(`tab-${tab}`));
+    await flushPromises();
+  });
 }
 
 // --- Rendering Tests ---
@@ -72,8 +80,10 @@ describe("App interactions", () => {
     });
   });
 
-  it("shows metric cards after auto-grab", async () => {
-    const { getByText } = await renderApp();
+  it("shows metric cards on Body tab after auto-grab", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "body");
+    const { getByText } = result;
     expect(getByText("Movement")).toBeTruthy();
     expect(getByText("Heart Rate")).toBeTruthy();
     expect(getByText("Sleep")).toBeTruthy();
@@ -89,10 +99,12 @@ describe("App interactions", () => {
     expect(getByText(/Raw/)).toBeTruthy();
   });
 
-  it("shows location coordinates after auto-grab", async () => {
-    const { getByText } = await renderApp();
-    expect(getByText("Location")).toBeTruthy();
-    expect(getByText(/47\.61/)).toBeTruthy();
+  it("shows location coordinates on Places tab after auto-grab", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "places");
+    const { getByText } = result;
+    // PlacesScreen uses toFixed(4), so we match the first 4 digits.
+    expect(getByText(/47\.60/)).toBeTruthy();
     expect(getByText(/-122\.33/)).toBeTruthy();
   });
 });
@@ -120,26 +132,29 @@ describe("MetricCard rendering after grab", () => {
     });
   });
 
-  it("shows em dash for null health values", async () => {
+  it("shows em dash for null health values on Body tab", async () => {
     (HealthKit.queryStatisticsForQuantity as jest.Mock).mockResolvedValue({
       sumQuantity: { quantity: 0 },
     });
     (HealthKit.getMostRecentQuantitySample as jest.Mock).mockResolvedValue(null);
     (HealthKit.queryCategorySamples as jest.Mock).mockResolvedValue([]);
 
-    const { getAllByText } = await renderApp();
-    const dashes = getAllByText("\u2014");
+    const result = await renderApp();
+    await gotoTab(result, "body");
+    const dashes = result.getAllByText("\u2014");
     expect(dashes.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("renders metric card labels and sublabels", async () => {
+  it("renders metric card labels and sublabels on Body tab", async () => {
     (HealthKit.queryStatisticsForQuantity as jest.Mock).mockResolvedValue({
       sumQuantity: { quantity: 0 },
     });
     (HealthKit.getMostRecentQuantitySample as jest.Mock).mockResolvedValue(null);
     (HealthKit.queryCategorySamples as jest.Mock).mockResolvedValue([]);
 
-    const { getByText, getAllByText } = await renderApp();
+    const result = await renderApp();
+    await gotoTab(result, "body");
+    const { getByText, getAllByText } = result;
 
     expect(getByText("Movement")).toBeTruthy();
     expect(getByText("Heart Rate")).toBeTruthy();
@@ -157,7 +172,7 @@ describe("MetricCard rendering after grab", () => {
     expect(latestSublabels.length).toBe(2); // heart rate, hrv
   });
 
-  it("shows all metric cards after grab", async () => {
+  it("shows all metric cards on Body tab after grab", async () => {
     (HealthKit.queryStatisticsForQuantity as jest.Mock).mockResolvedValue({
       sumQuantity: { quantity: 1000 },
     });
@@ -171,7 +186,9 @@ describe("MetricCard rendering after grab", () => {
       },
     ]);
 
-    const { getByText } = await renderApp();
+    const result = await renderApp();
+    await gotoTab(result, "body");
+    const { getByText } = result;
 
     const metricLabels = [
       "Movement", "Heart Rate", "Sleep", "Weight", "Meditation",
@@ -217,7 +234,86 @@ describe("Dashboard display after grab", () => {
     (HealthKit.getMostRecentQuantitySample as jest.Mock).mockResolvedValue(null);
     (HealthKit.queryCategorySamples as jest.Mock).mockResolvedValue([]);
 
+    const result = await renderApp();
+    await gotoTab(result, "places");
+    expect(result.getByText("Unavailable")).toBeTruthy();
+  });
+});
+
+describe("Tab navigation", () => {
+  it("renders the tab bar", async () => {
+    const { getByTestId } = await renderApp();
+    expect(getByTestId("tab-bar")).toBeTruthy();
+  });
+
+  it("renders all six tabs in spec order", async () => {
+    const { getByTestId } = await renderApp();
+    expect(getByTestId("tab-today")).toBeTruthy();
+    expect(getByTestId("tab-body")).toBeTruthy();
+    expect(getByTestId("tab-move")).toBeTruthy();
+    expect(getByTestId("tab-mind")).toBeTruthy();
+    expect(getByTestId("tab-places")).toBeTruthy();
+    expect(getByTestId("tab-roles")).toBeTruthy();
+  });
+
+  it("starts on Today tab", async () => {
     const { getByText } = await renderApp();
-    expect(getByText("Unavailable")).toBeTruthy();
+    expect(getByText("Context Grabber")).toBeTruthy();
+  });
+
+  it("switches to Body tab when its tab is pressed", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "body");
+    // Body tab renders WeekStrip (unique to Body in PR-2)
+    expect(result.getByTestId("week-strip")).toBeTruthy();
+  });
+
+  it("switches to Mind tab and shows mood report + meditation flatline", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "mind");
+    expect(result.getByTestId("mood-report-card")).toBeTruthy();
+    expect(result.getByTestId("meditation-flatline-card")).toBeTruthy();
+    expect(result.getByTestId("mind-affirm")).toBeTruthy();
+    expect(result.getByTestId("mind-grateful")).toBeTruthy();
+    expect(result.getByTestId("mind-journal")).toBeTruthy();
+  });
+
+  it("switches to Places tab and shows the stylized map", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "places");
+    expect(result.getByTestId("stylized-map")).toBeTruthy();
+    expect(result.getByTestId("places-open-detail")).toBeTruthy();
+  });
+
+  it("switches to Roles tab and shows the 11 role rows", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "roles");
+    expect(result.getByTestId("role-row-fit")).toBeTruthy();
+    expect(result.getByTestId("role-row-tori")).toBeTruthy();
+    expect(result.getByTestId("role-row-amelia")).toBeTruthy();
+    expect(result.getByTestId("role-row-zach")).toBeTruthy();
+    expect(result.getByTestId("role-row-smiles")).toBeTruthy();
+    expect(result.getByTestId("roles-add-moment")).toBeTruthy();
+  });
+
+  it("tap '+ Tag moment' opens the role picker sheet", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "roles");
+    await act(async () => {
+      fireEvent.press(result.getByTestId("roles-add-moment"));
+    });
+    // Sheet renders one chip per role
+    expect(result.getByTestId("tag-pick-fit")).toBeTruthy();
+    expect(result.getByTestId("tag-pick-tori")).toBeTruthy();
+  });
+
+  it("Move tab shows the 4 gym timer presets and weekly ring", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "move");
+    expect(result.getByTestId("ring-progress")).toBeTruthy();
+    expect(result.getByTestId("gym-preset-30sec")).toBeTruthy();
+    expect(result.getByTestId("gym-preset-1min")).toBeTruthy();
+    expect(result.getByTestId("gym-preset-2min")).toBeTruthy();
+    expect(result.getByTestId("gym-preset-5-1")).toBeTruthy();
   });
 });
