@@ -99,13 +99,11 @@ describe("App interactions", () => {
     expect(getByText(/Raw/)).toBeTruthy();
   });
 
-  it("shows location coordinates on Places tab after auto-grab", async () => {
+  it("shows current-location marker + copy overlay on Places tab after auto-grab", async () => {
     const result = await renderApp();
     await gotoTab(result, "places");
-    const { getByText } = result;
-    // PlacesScreen uses toFixed(4), so we match the first 4 digits.
-    expect(getByText(/47\.60/)).toBeTruthy();
-    expect(getByText(/-122\.33/)).toBeTruthy();
+    expect(result.getByTestId("map-pin-current")).toBeTruthy();
+    expect(result.getByTestId("map-copy-coords")).toBeTruthy();
   });
 });
 

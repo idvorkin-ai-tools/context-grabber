@@ -226,13 +226,10 @@ export function StylizedMap({
           style={styles.copyOverlay}
           testID="map-copy-coords"
           accessibilityLabel="Copy current coordinates"
+          hitSlop={8}
         >
-          <Text style={styles.copyOverlayCoords}>
-            {currentLocation.latitude.toFixed(4)},{" "}
-            {currentLocation.longitude.toFixed(4)}
-          </Text>
-          <Text style={styles.copyOverlayAction}>
-            {copyState === "copied" ? "✓ Copied" : "Copy"}
+          <Text style={styles.copyOverlayGlyph}>
+            {copyState === "copied" ? "✓" : "📋"}
           </Text>
         </TouchableOpacity>
       )}
@@ -259,23 +256,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 8,
     right: 8,
-    flexDirection: "row",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: "rgba(20, 20, 30, 0.7)",
+    justifyContent: "center",
+    backgroundColor: "rgba(20, 20, 30, 0.65)",
   },
-  copyOverlayCoords: {
-    color: "rgba(255, 255, 255, 0.92)",
-    fontSize: 11,
-    fontVariant: ["tabular-nums"],
-  },
-  copyOverlayAction: {
-    color: "#4cc9f0",
-    fontSize: 11,
-    fontWeight: "700",
+  copyOverlayGlyph: {
+    fontSize: 16,
+    color: "#fff",
+    textAlign: "center",
   },
 });
 
