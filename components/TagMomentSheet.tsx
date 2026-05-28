@@ -39,32 +39,50 @@ export function TagMomentSheet({
   initialRoleId,
   onSaved,
 }: Props) {
-  const [roleId, setRoleId] = useState<RoleId | null>(initialRoleId ?? null);
+  const [selectedRoles, setSelectedRoles] = useState<Set<RoleId>>(() =>
+    initialRoleId ? new Set([initialRoleId]) : new Set(),
+  );
   const [caption, setCaption] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
-      setRoleId(initialRoleId ?? null);
+      setSelectedRoles(initialRoleId ? new Set([initialRoleId]) : new Set());
       setCaption("");
       setError(null);
     }
   }, [visible, initialRoleId]);
 
+  function toggleRole(id: RoleId) {
+    setSelectedRoles((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   async function save() {
-    if (!db || !roleId) return;
+    if (!db || selectedRoles.size === 0) return;
     setSaving(true);
     setError(null);
     try {
-      await insertMoment(db, {
-        roleId,
-        timestamp: Date.now(),
-        what: caption.trim() === "" ? defaultWhat(roleId) : caption.trim(),
-        tag: null,
-        source: "manual",
-        sourceRef: null,
-      });
+      const ts = Date.now();
+      const what =
+        caption.trim() === ""
+          ? defaultWhat([...selectedRoles][0]!)
+          : caption.trim();
+      for (const roleId of selectedRoles) {
+        await insertMoment(db, {
+          roleId,
+          timestamp: ts,
+          what,
+          tag: null,
+          source: "manual",
+          sourceRef: null,
+        });
+      }
       // Best-effort push so the moment lands on other devices quickly.
       // Failure is non-fatal: the row is sync_state='pending' and the
       // next app-foreground sync will retry.
@@ -98,18 +116,20 @@ export function TagMomentSheet({
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.subheading}>Pick a role</Text>
+          <Text style={styles.subheading}>
+            Pick role(s) — tap to toggle
+          </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.rolePicker}
           >
             {ROLES.map((r) => {
-              const selected = roleId === r.id;
+              const selected = selectedRoles.has(r.id);
               return (
                 <Pressable
                   key={r.id}
-                  onPress={() => setRoleId(r.id)}
+                  onPress={() => toggleRole(r.id)}
                   style={[
                     styles.roleChip,
                     selected && {
@@ -118,6 +138,7 @@ export function TagMomentSheet({
                     },
                   ]}
                   testID={`tag-pick-${r.id}`}
+                  accessibilityState={{ selected }}
                 >
                   <RoleAvatar
                     roleId={r.id}
@@ -142,7 +163,11 @@ export function TagMomentSheet({
           <TextInput
             value={caption}
             onChangeText={setCaption}
-            placeholder={roleId ? defaultWhat(roleId) : "date night, gym, call…"}
+            placeholder={
+              selectedRoles.size > 0
+                ? defaultWhat([...selectedRoles][0]!)
+                : "date night, gym, call…"
+            }
             placeholderTextColor="#666"
             style={styles.input}
             multiline
@@ -154,15 +179,17 @@ export function TagMomentSheet({
 
           <TouchableOpacity
             onPress={save}
-            disabled={!roleId || saving}
+            disabled={selectedRoles.size === 0 || saving}
             style={[
               styles.saveBtn,
-              (!roleId || saving) && styles.saveBtnDisabled,
+              (selectedRoles.size === 0 || saving) && styles.saveBtnDisabled,
             ]}
             testID="tag-save"
           >
             <Text style={styles.saveBtnText}>
-              {saving ? "Saving…" : "Save moment"}
+              {saving
+                ? "Saving…"
+                : `Save${selectedRoles.size > 1 ? ` (${selectedRoles.size})` : ""}`}
             </Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>

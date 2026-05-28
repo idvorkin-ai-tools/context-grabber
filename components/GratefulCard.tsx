@@ -13,10 +13,13 @@ import * as SQLite from "expo-sqlite";
 import { createGratitude } from "../lib/journal";
 import { insertEntry, insertAudio, tallyByContextFromDb } from "../lib/journalDb";
 import { recordJournalMoment } from "../lib/autoDetect";
-import { syncJournal } from "../lib/cloudkit";
+import { syncJournal, syncMoments } from "../lib/cloudkit";
+import { insertMoment } from "../lib/roleMoments";
+import type { RoleId } from "../lib/roles";
 import { uuidV4 } from "../lib/uuid";
 import { VoiceRecorder, type RecordedVoice } from "./VoiceRecorder";
 import { CopyableError } from "./CopyableError";
+import { RolePickerChips } from "./RolePickerChips";
 
 type Props = {
   visible: boolean;
@@ -31,6 +34,7 @@ export function GratefulCard({ visible, onClose, db }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [todayCount, setTodayCount] = useState(0);
   const [savedHint, setSavedHint] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Set<RoleId>>(new Set());
 
   useEffect(() => {
     if (!visible) return;
@@ -38,6 +42,7 @@ export function GratefulCard({ visible, onClose, db }: Props) {
     setPendingVoice(null);
     setErrorMsg(null);
     setSavedHint(null);
+    setSelectedRoles(new Set());
     refreshTally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
@@ -80,10 +85,25 @@ export function GratefulCard({ visible, onClose, db }: Props) {
       });
       await insertEntry(db, entry);
       void syncJournal(db);
-      void recordJournalMoment(db, entry);
+      if (selectedRoles.size === 0) {
+        void recordJournalMoment(db, entry);
+      } else {
+        for (const roleId of selectedRoles) {
+          void insertMoment(db, {
+            roleId,
+            timestamp: entry.date,
+            what: entry.text || "Grateful",
+            tag: "grateful",
+            source: "manual",
+            sourceRef: entry.id,
+          });
+        }
+        void syncMoments(db);
+      }
 
       setText("");
       setPendingVoice(null);
+      setSelectedRoles(new Set());
       await refreshTally();
 
       if (stayOpen) {
@@ -133,6 +153,20 @@ export function GratefulCard({ visible, onClose, db }: Props) {
             multiline
             value={text}
             onChangeText={setText}
+          />
+
+          <RolePickerChips
+            selected={selectedRoles}
+            onToggle={(roleId) =>
+              setSelectedRoles((prev) => {
+                const next = new Set(prev);
+                if (next.has(roleId)) next.delete(roleId);
+                else next.add(roleId);
+                return next;
+              })
+            }
+            heading="Tag roles (optional)"
+            testIDPrefix="grateful-role"
           />
 
           <View style={{ marginTop: 16, alignItems: "center" }}>

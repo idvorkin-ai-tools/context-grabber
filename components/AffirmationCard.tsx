@@ -18,10 +18,13 @@ import {
 import { createEntry, type JournalContext } from "../lib/journal";
 import { insertEntry, insertAudio, tallyByContextFromDb } from "../lib/journalDb";
 import { recordJournalMoment } from "../lib/autoDetect";
-import { syncJournal } from "../lib/cloudkit";
+import { syncJournal, syncMoments } from "../lib/cloudkit";
+import { insertMoment } from "../lib/roleMoments";
+import type { RoleId } from "../lib/roles";
 import { uuidV4 } from "../lib/uuid";
 import { VoiceRecorder, type RecordedVoice } from "./VoiceRecorder";
 import { CopyableError } from "./CopyableError";
+import { RolePickerChips } from "./RolePickerChips";
 
 type Props = {
   visible: boolean;
@@ -45,6 +48,7 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [tally, setTally] = useState({ opportunity: 0, didit: 0, grateful: 0 });
   const [savedHint, setSavedHint] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Set<RoleId>>(new Set());
   const lastIndexRef = useRef(index);
 
   const affirmation: Affirmation = AFFIRMATIONS[index];
@@ -59,6 +63,7 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
     setPendingVoice(null);
     setErrorMsg(null);
     setSavedHint(null);
+    setSelectedRoles(new Set());
     refreshTally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
@@ -110,10 +115,29 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
       await insertEntry(db, entry);
       // Best-effort background sync; UI doesn't wait.
       void syncJournal(db);
-      void recordJournalMoment(db, entry);
+      if (selectedRoles.size === 0) {
+        // Auto-tag fallback: emo (existing behavior).
+        void recordJournalMoment(db, entry);
+      } else {
+        // Explicit role tags override the auto-emo default. Insert one
+        // role_moments row per selected role, all sharing source_ref =
+        // entry.id so the role detail's "Recent moments" can group them.
+        for (const roleId of selectedRoles) {
+          void insertMoment(db, {
+            roleId,
+            timestamp: entry.date,
+            what: affirmation.title,
+            tag: context,
+            source: "manual",
+            sourceRef: entry.id,
+          });
+        }
+        void syncMoments(db);
+      }
 
       setText("");
       setPendingVoice(null);
+      setSelectedRoles(new Set());
       await refreshTally();
 
       if (stayOpen) {
@@ -204,6 +228,20 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
             multiline
             value={text}
             onChangeText={setText}
+          />
+
+          <RolePickerChips
+            selected={selectedRoles}
+            onToggle={(roleId) =>
+              setSelectedRoles((prev) => {
+                const next = new Set(prev);
+                if (next.has(roleId)) next.delete(roleId);
+                else next.add(roleId);
+                return next;
+              })
+            }
+            heading="Tag roles (optional)"
+            testIDPrefix="affirm-role"
           />
 
           <View style={{ marginTop: 16, alignItems: "center" }}>

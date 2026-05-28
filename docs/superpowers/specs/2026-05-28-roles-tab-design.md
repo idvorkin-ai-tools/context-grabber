@@ -60,10 +60,20 @@ This is what the Roles tab looks like RIGHT NOW. Iteration target should referen
 ### How to add content (the only currently-supported interactions)
 
 - **Long-press any role row** → opens TagMomentSheet pre-filled with that role.
-- **Tap "+ Tag moment"** top-right → opens TagMomentSheet with no pre-filled role; pick one.
+- **Tap "+ Tag moment"** top-right → opens TagMomentSheet (multi-select).
+- **Tap the role-picker chip strip on an affirmation or gratitude card** → assign one or more roles to the entry before saving; one role_moment row is inserted per selected role, all linked to the same source entry via `source_ref`.
 - **Workouts auto-tag** to `fit` / `habits` after a Grab Context fires `recordWorkoutMoments`.
-- **Journal entries auto-tag** to `emo` via `recordJournalMoment`.
+- **Journal entries** without explicit role tags auto-tag to `emo` via `recordJournalMoment`. If the user picked roles explicitly on the card, the auto-tag is skipped — explicit overrides default.
 - **Meditation auto-tags** to `emo` via `recordMindfulMoment`.
+
+### Multi-role tagging
+
+A moment can be tagged to multiple roles by inserting one `role_moments` row per role, all sharing the same `source_ref` (the originating entry id). This is the data shape; the schema already supports it without migration.
+
+- **Affirmation card** + **Grateful card**: a horizontal chip strip lets the user toggle any of the 11 roles before saving. Selected chips get a role-colored ring + filled background; unselected stay dim. 0–N selections allowed.
+- **TagMomentSheet** (the `+ Tag moment` sheet): the role picker is multi-select. Tapping a role chip toggles it. At least one role must be selected to save.
+- Each selected role yields a distinct `role_moments` row with `source="manual"` (so it syncs via CloudKit) and `source_ref` set to the originating entry id (or null for free-form tag-moment).
+- The role-detail "Recent moments" list shows the moment under every role it's tagged to; deletes propagate per row.
 
 There is no other UI to add or view content currently. Tapping a role row (no long-press) does nothing. There's no detail view.
 
