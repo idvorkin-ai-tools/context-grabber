@@ -38,6 +38,13 @@ export type RoleDef = {
   color: string;
   /** Verbatim or placeholder eulogy passage. */
   eulogyPassage: string;
+  /**
+   * Longer passage from idvork.in/eulogy — multi-paragraph context Igor
+   * surfaces via the role-detail "Show more" expander. Optional; empty
+   * for roles where the short `eulogyPassage` is sufficient. Newlines
+   * are preserved as paragraph breaks.
+   */
+  eulogyFull?: string;
   /** 3–5 identity-marker phrases shown as chips on the role detail. */
   eulogyMarkers: string[];
   /**

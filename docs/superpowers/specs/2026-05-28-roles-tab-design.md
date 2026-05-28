@@ -172,7 +172,7 @@ Leads the export, before the raw HealthKit + location summary.
 What ships in this build:
 
 1. **Header**: medium avatar + full role name + close button.
-2. **Eulogy passage** as a left-bordered block quote, tinted in the role color — verbatim from `ROLES[i].eulogyPassage`.
+2. **Eulogy passage** as a left-bordered block quote, tinted in the role color — verbatim from `ROLES[i].eulogyPassage`. **Expander** below the quote: tap "Show more ▾" to reveal the longer passage (`eulogyFull`, from idvork.in/eulogy) when present, plus the role's identity markers (`eulogyMarkers`) rendered as small chips. Markers exist for every role; `eulogyFull` is optional and starts empty for all 11 — populate per-role as you copy content over.
 3. **Activity card** — this-week score (0–100 large), activity line ("3 gym · 6 days weighed"), attention chip if flagged.
 4. **"+ Tag a moment"** primary CTA in the role color → opens the existing TagMomentSheet pre-filled with this role; sheet stays open behind it; recent-moments list refreshes on save.
 5. **Recent moments** — last ~20 moments for this role from `role_moments` (via `getMomentsForRole`). Each row: time-since stamp, `what`, source chip (`manual` / `auto-workout` / etc).

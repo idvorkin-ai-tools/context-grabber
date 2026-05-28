@@ -46,6 +46,7 @@ export function RoleDetailSheet({
 }: Props) {
   const [moments, setMoments] = useState<RoleMoment[]>([]);
   const [tagSheetVisible, setTagSheetVisible] = useState(false);
+  const [eulogyExpanded, setEulogyExpanded] = useState(false);
 
   const role = roleId ? getRole(roleId) : null;
 
@@ -68,6 +69,11 @@ export function RoleDetailSheet({
   useEffect(() => {
     if (visible) reload();
   }, [visible, reload]);
+
+  // Reset expander state whenever the sheet opens with a different role.
+  useEffect(() => {
+    if (visible) setEulogyExpanded(false);
+  }, [visible, roleId]);
 
   if (!role) {
     return (
@@ -104,6 +110,42 @@ export function RoleDetailSheet({
           >
             <View style={[styles.passage, { borderLeftColor: role.color }]}>
               <Text style={styles.passageText}>{role.eulogyPassage}</Text>
+              {eulogyExpanded && (
+                <>
+                  {role.eulogyFull && (
+                    <Text style={[styles.passageText, styles.passageFull]}>
+                      {role.eulogyFull}
+                    </Text>
+                  )}
+                  {role.eulogyMarkers.length > 0 && (
+                    <View style={styles.markerRow}>
+                      {role.eulogyMarkers.map((marker) => (
+                        <View
+                          key={marker}
+                          style={[
+                            styles.markerChip,
+                            { borderColor: hexWithAlpha(role.color, 0.5) },
+                          ]}
+                        >
+                          <Text style={styles.markerText}>{marker}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+              <TouchableOpacity
+                onPress={() => setEulogyExpanded((v) => !v)}
+                style={styles.expandBtn}
+                testID="role-eulogy-expand"
+                accessibilityLabel={
+                  eulogyExpanded ? "Hide eulogy details" : "Show full eulogy"
+                }
+              >
+                <Text style={[styles.expandBtnText, { color: role.color }]}>
+                  {eulogyExpanded ? "Show less ▴" : "Show more ▾"}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {activity && (
@@ -263,6 +305,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontStyle: "italic",
+  },
+  passageFull: {
+    marginTop: 10,
+    fontStyle: "normal",
+    color: "#bbb",
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  markerRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 10,
+    gap: 6,
+  },
+  markerChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  markerText: {
+    color: "#d0d0d0",
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  expandBtn: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    paddingVertical: 4,
+  },
+  expandBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
   activityCard: {
     backgroundColor: "#16213e",
