@@ -14,6 +14,7 @@ import {
 import type * as SQLite from "expo-sqlite";
 import { ROLES, type RoleId } from "../lib/roles";
 import { insertMoment } from "../lib/roleMoments";
+import { syncMoments } from "../lib/cloudkit";
 import { RoleAvatar } from "./RoleAvatar";
 
 type Props = {
@@ -64,6 +65,10 @@ export function TagMomentSheet({
         source: "manual",
         sourceRef: null,
       });
+      // Best-effort push so the moment lands on other devices quickly.
+      // Failure is non-fatal: the row is sync_state='pending' and the
+      // next app-foreground sync will retry.
+      void syncMoments(db);
       onSaved?.();
       onClose();
     } catch (e: any) {

@@ -118,3 +118,103 @@ export async function deleteMoment(
 ): Promise<void> {
   await db.runAsync("DELETE FROM role_moments WHERE id = ?", [id]);
 }
+
+// ─── CloudKit sync helpers ───────────────────────────────────────────────────
+// Mirror the journal-sync pattern in lib/cloudkit.ts. The schema already
+// carries ck_record_name / ck_change_tag / sync_state from db.ts, so we
+// just need the per-row state-machine operations.
+
+export async function getPendingMoments(
+  db: SQLite.SQLiteDatabase,
+): Promise<RoleMoment[]> {
+  const rows = await db.getAllAsync<{
+    id: string;
+    role_id: RoleId;
+    timestamp: number;
+    what: string;
+    tag: string | null;
+    source: RoleMomentSource;
+    source_ref: string | null;
+  }>(
+    `SELECT id, role_id, timestamp, what, tag, source, source_ref
+       FROM role_moments
+      WHERE sync_state = 'pending'
+      ORDER BY timestamp ASC`,
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    roleId: r.role_id,
+    timestamp: r.timestamp,
+    what: r.what,
+    tag: r.tag,
+    source: r.source,
+    sourceRef: r.source_ref,
+  }));
+}
+
+export async function upsertSyncedMoment(
+  db: SQLite.SQLiteDatabase,
+  m: RoleMoment,
+  ckRecordName: string,
+  ckChangeTag: string | null,
+): Promise<void> {
+  // Server-authoritative insert/update. INSERT OR REPLACE keeps the row's
+  // PK stable across devices since id is the CloudKit recordName too.
+  await db.runAsync(
+    `INSERT OR REPLACE INTO role_moments
+       (id, role_id, timestamp, what, tag, source, source_ref,
+        ck_record_name, ck_change_tag, sync_state)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced')`,
+    [
+      m.id,
+      m.roleId,
+      m.timestamp,
+      m.what,
+      m.tag,
+      m.source,
+      m.sourceRef,
+      ckRecordName,
+      ckChangeTag,
+    ],
+  );
+}
+
+export async function markMomentSynced(
+  db: SQLite.SQLiteDatabase,
+  id: string,
+  ckRecordName: string,
+  ckChangeTag: string | null,
+): Promise<void> {
+  await db.runAsync(
+    `UPDATE role_moments
+        SET ck_record_name = ?,
+            ck_change_tag = ?,
+            sync_state = 'synced'
+      WHERE id = ?`,
+    [ckRecordName, ckChangeTag, id],
+  );
+}
+
+export async function markMomentFailed(
+  db: SQLite.SQLiteDatabase,
+  id: string,
+): Promise<void> {
+  await db.runAsync(
+    `UPDATE role_moments SET sync_state = 'failed' WHERE id = ?`,
+    [id],
+  );
+}
+
+export async function deleteMomentByCloudKitName(
+  db: SQLite.SQLiteDatabase,
+  ckRecordName: string,
+): Promise<void> {
+  // Server told us this row is gone — drop it locally too. We match on
+  // both columns since freshly-pushed rows use id == recordName, while
+  // older rows might only have id set.
+  await db.runAsync(
+    `DELETE FROM role_moments
+      WHERE ck_record_name = ? OR id = ?`,
+    [ckRecordName, ckRecordName],
+  );
+}

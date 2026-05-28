@@ -24,15 +24,37 @@ import {
   markEntrySynced,
   upsertSyncedEntry,
 } from "./journalDb";
+import {
+  deleteMomentByCloudKitName,
+  getPendingMoments,
+  markMomentFailed,
+  markMomentSynced,
+  upsertSyncedMoment,
+  type RoleMoment,
+  type RoleMomentSource,
+} from "./roleMoments";
+import type { RoleId } from "./roles";
 import { voiceFilePath } from "./voiceFiles";
 
 const CONTAINER_ID = "iCloud.com.idvorkin.contextgrabber";
 const JOURNAL_ZONE = "JournalZone";
 const JOURNAL_ENTRY_RECORD_TYPE = "JournalEntry";
 const AUDIO_RECORDING_RECORD_TYPE = "AudioRecording";
+const ROLE_MOMENTS_ZONE = "RoleMomentsZone";
+const ROLE_MOMENT_RECORD_TYPE = "RoleMoment";
+
+const VALID_ROLE_IDS: ReadonlySet<RoleId> = new Set([
+  "smiles", "carfree", "habits", "fit", "emo", "tech",
+  "pro", "family", "tori", "amelia", "zach",
+]);
+const VALID_MOMENT_SOURCES: ReadonlySet<RoleMomentSource> = new Set([
+  "manual", "auto-workout", "auto-mindful",
+  "auto-grateful", "auto-journal", "auto-place",
+]);
 
 let configured = false;
 let zoneEnsured = false;
+let momentZoneEnsured = false;
 
 export function configureCloudKit(): void {
   if (configured) return;
@@ -432,5 +454,191 @@ export async function deleteJournalEntry(
   } catch {
     // If the record never made it to CloudKit, deleteRecords throws —
     // that's fine, the local delete already happened.
+  }
+}
+
+// ─── Role moments sync ─────────────────────────────────────────────────────
+// Same shape as journal sync: CloudKit is the source of truth, SQLite is
+// the local mirror + outbound queue. Manual moments push (sync_state =
+// pending on insert); auto-* moments insert as already 'synced' since
+// they're derived from device-specific signals and shouldn't propagate
+// duplicates across devices.
+
+async function ensureRoleMomentsZone(): Promise<void> {
+  if (momentZoneEnsured) return;
+  configureCloudKit();
+  try {
+    await createZone(ROLE_MOMENTS_ZONE);
+  } catch (e: any) {
+    const msg = String(e?.message ?? e);
+    if (!/already exists/i.test(msg) && !/duplicate/i.test(msg)) throw e;
+  }
+  momentZoneEnsured = true;
+}
+
+function momentToRecord(m: RoleMoment): RecordToSave {
+  return {
+    recordType: ROLE_MOMENT_RECORD_TYPE,
+    recordName: m.id,
+    zoneName: ROLE_MOMENTS_ZONE,
+    fields: {
+      momentId: { type: "string", value: m.id },
+      roleId: { type: "string", value: m.roleId },
+      timestamp: { type: "number", value: m.timestamp },
+      what: { type: "string", value: m.what },
+      tag: { type: "string", value: m.tag ?? "" },
+      source: { type: "string", value: m.source },
+      sourceRef: { type: "string", value: m.sourceRef ?? "" },
+    },
+  };
+}
+
+function recordToMoment(record: {
+  recordName: string;
+  fields: Record<string, { value: unknown } | undefined>;
+}): RoleMoment | null {
+  const f = record.fields;
+  const id = (f.momentId?.value as string) ?? record.recordName;
+  const roleId = f.roleId?.value;
+  const timestamp = f.timestamp?.value;
+  const what = (f.what?.value as string) ?? "";
+  const tag = (f.tag?.value as string) ?? "";
+  const source = f.source?.value;
+  const sourceRef = (f.sourceRef?.value as string) ?? "";
+
+  if (
+    typeof roleId !== "string" ||
+    !VALID_ROLE_IDS.has(roleId as RoleId) ||
+    typeof timestamp !== "number" ||
+    typeof source !== "string" ||
+    !VALID_MOMENT_SOURCES.has(source as RoleMomentSource)
+  ) {
+    return null;
+  }
+  return {
+    id,
+    roleId: roleId as RoleId,
+    timestamp,
+    what,
+    tag: tag || null,
+    source: source as RoleMomentSource,
+    sourceRef: sourceRef || null,
+  };
+}
+
+/** Pull → push for the role-moments zone. Mirrors syncJournal. */
+export async function syncMoments(
+  db: SQLite.SQLiteDatabase,
+): Promise<SyncResult> {
+  const start = Date.now();
+  try {
+    configureCloudKit();
+    const status = await getAccountStatus();
+    if (status !== "available") {
+      return {
+        ok: false,
+        error: `account status: ${status}`,
+        durationMs: Date.now() - start,
+      };
+    }
+    await ensureRoleMomentsZone();
+
+    const { upserts, deletes } = await pullMoments(db);
+    const { pushed } = await pushMoments(db);
+
+    return {
+      ok: true,
+      pulled: upserts,
+      pushed,
+      deleted: deletes,
+      durationMs: Date.now() - start,
+    };
+  } catch (e: any) {
+    return {
+      ok: false,
+      error: e?.message ?? String(e),
+      durationMs: Date.now() - start,
+    };
+  }
+}
+
+async function pullMoments(
+  db: SQLite.SQLiteDatabase,
+): Promise<{ upserts: number; deletes: number }> {
+  let upserts = 0;
+  let deletes = 0;
+
+  while (true) {
+    const result = await fetchRecordZoneChanges([ROLE_MOMENTS_ZONE]);
+
+    for (const record of result.changedRecords ?? []) {
+      if (record.recordType !== ROLE_MOMENT_RECORD_TYPE) continue;
+      const moment = recordToMoment(record as any);
+      if (!moment) continue;
+      await upsertSyncedMoment(
+        db,
+        moment,
+        record.recordName,
+        (record as any).changeTag ?? null,
+      );
+      upserts += 1;
+    }
+
+    for (const deletedName of result.deletedRecordNames ?? []) {
+      await deleteMomentByCloudKitName(db, deletedName);
+      deletes += 1;
+    }
+
+    if (!result.moreComing) break;
+  }
+
+  return { upserts, deletes };
+}
+
+async function pushMoments(
+  db: SQLite.SQLiteDatabase,
+): Promise<{ pushed: number }> {
+  const pending = await getPendingMoments(db);
+  if (pending.length === 0) return { pushed: 0 };
+
+  const records = pending.map(momentToRecord);
+  let pushed = 0;
+  try {
+    const saved = await saveRecords(records);
+    for (const r of saved) {
+      await markMomentSynced(
+        db,
+        r.recordName,
+        r.recordName,
+        (r as any).changeTag ?? null,
+      );
+      pushed += 1;
+    }
+  } catch (e) {
+    // Mark anything still pending as failed so the next pass retries.
+    for (const m of pending) {
+      await markMomentFailed(db, m.id);
+    }
+    throw e;
+  }
+
+  return { pushed };
+}
+
+/** Delete a moment locally and from CloudKit. */
+export async function deleteMomentRecord(
+  db: SQLite.SQLiteDatabase,
+  id: string,
+): Promise<void> {
+  await db.runAsync("DELETE FROM role_moments WHERE id = ?", [id]);
+  configureCloudKit();
+  const status = await getAccountStatus();
+  if (status !== "available") return;
+
+  await ensureRoleMomentsZone();
+  try {
+    await deleteRecords([{ recordName: id, zoneName: ROLE_MOMENTS_ZONE }]);
+  } catch {
+    // Record may never have been pushed; local delete already happened.
   }
 }

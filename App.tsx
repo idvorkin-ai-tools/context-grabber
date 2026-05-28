@@ -64,7 +64,7 @@ import { recordWorkoutMoments } from "./lib/autoDetect";
 import { parseDeepLink } from "./lib/deepLink";
 import { writeWidgetSnapshot, readWidgetSnapshot, writeReflectToWidget } from "./lib/widgetSnapshot";
 import { getCounter, incrementCounter, resetCounter, reconcileFromWidget } from "./lib/counter";
-import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, syncJournal, type PingResult } from "./lib/cloudkit";
+import { configureCloudKit, cloudKitAccountStatus, pingCloudKit, syncJournal, syncMoments, type PingResult } from "./lib/cloudkit";
 import { getAllEntries, getAllAudio, countEntries, tallyByContextFromDb } from "./lib/journalDb";
 import { buildJournalExport } from "./lib/journalExport";
 import { AffirmationCard } from "./components/AffirmationCard";
@@ -620,10 +620,13 @@ export default function App() {
     void refreshReflectTally();
   }, [dbReady, refreshReflectTally]);
 
-  // Background sync the journal on app focus (cheap, idempotent).
+  // Background sync the journal + role moments on app focus (cheap,
+  // idempotent). Run sequentially so a failure in one doesn't break the
+  // other; both fire-and-forget.
   useEffect(() => {
     if (!dbReady || !db) return;
     void syncJournal(db).then(() => refreshReflectTally());
+    void syncMoments(db);
   }, [dbReady, db, refreshReflectTally]);
 
   // Deep link routing. Keep a ref to grabContext so the handler always uses
