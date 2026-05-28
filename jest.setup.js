@@ -128,6 +128,23 @@ jest.mock('expo-cloudkit', () => ({
   deleteRecords: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock react-native-maps (no native MapKit in tests)
+jest.mock('react-native-maps', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const MapView = (props) => React.createElement(View, props, props.children);
+  const Marker = (props) => React.createElement(View, props, props.children);
+  const Polyline = (props) => React.createElement(View, props);
+  return {
+    __esModule: true,
+    default: MapView,
+    Marker,
+    Polyline,
+    PROVIDER_DEFAULT: 'default',
+    PROVIDER_GOOGLE: 'google',
+  };
+});
+
 // Mock react-native-audio-api
 jest.mock('react-native-audio-api', () => ({
   AudioContext: jest.fn().mockImplementation(() => ({

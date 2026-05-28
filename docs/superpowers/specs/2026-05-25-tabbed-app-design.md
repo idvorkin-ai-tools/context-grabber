@@ -65,9 +65,11 @@ Journal (text + voice), Affirmation, Gratitude, Tally Counter, **meditation flat
 
 ### Places
 
-Map + today/yesterday timeline + Known Places CRUD + background tracking toggle + retention stepper + Export DB. Map is a stylized SVG in v1 — no Apple Maps key, no react-native-maps. Same data as today, organized as a real screen instead of a modal.
+Map + today/yesterday timeline + Known Places CRUD + background tracking toggle + retention stepper + Export DB. Map renders real Apple Maps tiles — streets, water, parks — so location context is recognizable at a glance. Known-place pins, the current-location pin, and today's path overlay sit on top of the map tiles. No API key required.
 
-The map also surfaces **today's path** as a polyline overlay: today's visited places connected in chronological order by a thin tinted line, with a small dot at each breadcrumb. Known-place pins and the current-location pin stay rendered on top. When today's path has 0–1 stays, the map renders exactly as before (pins only) — the overlay is purely additive.
+The map surfaces **today's path** as a polyline overlay: today's visited places connected in chronological order by a thin tinted line, with a small dot at each breadcrumb. Known-place pins and the current-location pin stay rendered on top. When today's path has 0–1 stays, the map renders pins only — the overlay is purely additive.
+
+The user can pan and zoom the map freely. On first render, the map auto-frames the bounding box of all visible pins + path with padding.
 
 ### Roles
 
@@ -243,9 +245,11 @@ A QA-style checklist; testable without seeing the code.
 - [ ] Today + Yesterday timeline shows all clusters with start/end times
 - [ ] Known Places CRUD works exactly as the existing LocationDetailSheet
 - [ ] Background tracking toggle, retention stepper, Export DB present and functional
-- [ ] Map renders as a stylized SVG (no Apple Maps); pins anchor to known places
+- [ ] Map renders real Apple Maps tiles (streets, water, parks); no API key required
+- [ ] Pins anchor to known places + current location on top of the map tiles
+- [ ] User can pan and zoom; map auto-frames pins + path on first render
 - [ ] When today has 2+ stays, the map overlays a path polyline (line + dots) connecting them in time order; the current-location and known-place pins still render on top
-- [ ] When today has 0 or 1 stays, no path overlay is drawn (map renders as it did before this feature)
+- [ ] When today has 0 or 1 stays, no path overlay is drawn (map renders pins only on top of tiles)
 
 ### Roles
 
