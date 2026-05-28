@@ -47,7 +47,7 @@ Following the existing user-needs doc:
 
 The current home, polished. The day's headline in a sentence ("Light start — 6,002 steps in, no workout yet. Slept 7.2h after midnight."). A **Grab Context** card that is the headline action — preview of what's about to be sent, fresh/stale chip, one tap to share. A week-at-a-glance strip. Quick-capture tiles that jump into the relevant tab (Gratitude → Mind; Gym Timer → Move; Where today → Places).
 
-Today also surfaces the **same map and current-location card as the Places tab** so the headline answer to "where am I right now" is on the home screen, not buried behind a tab tap. Same StylizedMap with real Apple Maps tiles, today's path overlay, and per-place colored pins.
+Today also surfaces a **map and current-location card** so the headline answer to "where am I right now" is on the home screen, not buried behind a tab tap. The Today map is scoped to **today only** — it shows known-place pins for the places visited today (and the day's path between them), not the full set of known places. This keeps the day's view focused on "where I went today" instead of duplicating the Places tab.
 
 The gear icon top-right opens Settings (today the SettingsModal).
 
@@ -69,7 +69,11 @@ Journal (text + voice), Affirmation, Gratitude, Tally Counter, **meditation flat
 
 Map + today/yesterday timeline + Known Places CRUD + background tracking toggle + retention stepper + Export DB. Map renders real Apple Maps tiles — streets, water, parks — so location context is recognizable at a glance. Known-place pins, the current-location pin, and today's path overlay sit on top of the map tiles. No API key required.
 
-Each known-place pin renders as a colored dot with the place name labelled below it, so they're distinguishable at a glance without tapping. Each place gets a stable color drawn from the **same palette used by the daily-breakdown bars** — so a place that's red in the breakdown is the same red on the map. Same place = same color across sessions and across surfaces (map + breakdown + any future surface). The current-location pin is a distinct cyan dot with a soft halo, labelled "You."
+Each known-place pin renders as a colored dot with the place name labelled below it, so they're distinguishable at a glance without tapping. Each place gets a stable color drawn from the **same palette used by the daily-breakdown bars** — so a place that's red in the breakdown is the same red on the map. Same place = same color across sessions and across surfaces (map + breakdown + any future surface).
+
+Common place types get a **conventional icon** inside the pin chip, inferred from the place name: "Home" → 🏠, "Work" / "Office" → 💼, "Gym" → 🏋️, "Cafe" / "Coffee" → ☕, "School" / "University" → 🎓. The match is case-insensitive substring; places that don't match render with just the name (no icon). The mapping is centralized so new icons can be added without touching pin rendering code.
+
+The current-location pin is a distinct **diamond-shaped cyan marker with a soft halo**, labelled "You" — the shape change makes it instantly distinguishable from the round known-place pins even before reading the label.
 
 The current-location card (lat, lng, time-since stamp) has a **Copy** button that copies the coordinates to the clipboard in `lat, lng` format. The card appears on both the Places tab and the Today tab.
 

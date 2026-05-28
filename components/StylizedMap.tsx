@@ -13,6 +13,7 @@ import {
   PLACE_COLORS,
   UNKNOWN_PLACE_COLOR,
 } from "../lib/places_colors";
+import { iconForPlace } from "../lib/place_icons";
 
 export type PathPoint = {
   lat: number;
@@ -81,10 +82,12 @@ function computeRegion(
 }
 
 function PlacePin({ color, label }: { color: string; label: string }) {
+  const icon = iconForPlace(label);
   return (
     <View style={pinStyles.wrap} pointerEvents="none">
       <View style={[pinStyles.dot, { backgroundColor: color }]} />
       <View style={pinStyles.labelChip}>
+        {icon && <Text style={pinStyles.iconText}>{icon} </Text>}
         <Text style={pinStyles.labelText} numberOfLines={1}>
           {label}
         </Text>
@@ -99,12 +102,11 @@ function CurrentPin() {
       <View style={pinStyles.halo} />
       <View
         style={[
-          pinStyles.dot,
-          pinStyles.currentDot,
+          pinStyles.diamond,
           { backgroundColor: CURRENT_LOCATION_COLOR },
         ]}
       />
-      <View style={pinStyles.labelChip}>
+      <View style={[pinStyles.labelChip, pinStyles.currentLabelChip]}>
         <Text style={pinStyles.labelText}>You</Text>
       </View>
     </View>
@@ -229,26 +231,41 @@ const pinStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  currentDot: { width: 14, height: 14, borderRadius: 7 },
+  diamond: {
+    width: 14,
+    height: 14,
+    borderWidth: 2,
+    borderColor: "#fff",
+    transform: [{ rotate: "45deg" }],
+  },
   halo: {
     position: "absolute",
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: "rgba(76, 201, 240, 0.22)",
-    top: -7,
+    top: -9,
   },
   labelChip: {
-    marginTop: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
     backgroundColor: "rgba(20, 20, 30, 0.85)",
-    maxWidth: 120,
+    maxWidth: 140,
+  },
+  currentLabelChip: {
+    marginTop: 7,
+    backgroundColor: "rgba(76, 201, 240, 0.9)",
   },
   labelText: {
     color: "#fff",
     fontSize: 11,
     fontWeight: "600",
+  },
+  iconText: {
+    fontSize: 11,
   },
 });

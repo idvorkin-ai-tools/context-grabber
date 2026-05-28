@@ -68,9 +68,13 @@ export function TodayScreen({
   onShareSnapshot,
   onShareRaw,
 }: Props) {
-  const { todaysPath, placeColors } = useMemo(() => {
+  const { todaysPath, placeColors, todaysKnownPlaces } = useMemo(() => {
     if (locationHistory.length === 0) {
-      return { todaysPath: [], placeColors: new Map<string, string>() };
+      return {
+        todaysPath: [],
+        placeColors: new Map<string, string>(),
+        todaysKnownPlaces: [] as KnownPlace[],
+      };
     }
     const rawPoints = locationHistory.map((h) => ({
       latitude: h.latitude,
@@ -90,19 +94,27 @@ export function TodayScreen({
       for (const p of day.places) ids.push(p.placeId);
     }
     const colors = assignPlaceColors(ids);
+
     const now = Date.now();
     const dayStart = new Date(now);
     dayStart.setHours(0, 0, 0, 0);
     const startMs = dayStart.getTime();
-    const path = cluster.stays
+    const todaysStays = cluster.stays
       .filter((s) => s.endTime >= startMs && s.startTime <= now)
-      .sort((a, b) => a.startTime - b.startTime)
-      .map((s) => ({
-        lat: s.centroid.latitude,
-        lon: s.centroid.longitude,
-        timestamp: s.startTime,
-      }));
-    return { todaysPath: path, placeColors: colors };
+      .sort((a, b) => a.startTime - b.startTime);
+
+    const path = todaysStays.map((s) => ({
+      lat: s.centroid.latitude,
+      lon: s.centroid.longitude,
+      timestamp: s.startTime,
+    }));
+
+    const todaysPlaceIds = new Set(todaysStays.map((s) => s.placeId));
+    const todaysKnownPlaces = knownPlaces.filter((p) =>
+      todaysPlaceIds.has(p.name),
+    );
+
+    return { todaysPath: path, placeColors: colors, todaysKnownPlaces };
   }, [locationHistory, knownPlaces]);
 
   return (
@@ -171,7 +183,7 @@ export function TodayScreen({
           <>
             <StylizedMap
               currentLocation={snapshot.location}
-              knownPlaces={knownPlaces}
+              knownPlaces={todaysKnownPlaces}
               path={todaysPath}
               placeColors={placeColors}
             />
