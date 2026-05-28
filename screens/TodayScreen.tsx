@@ -11,7 +11,6 @@ import {
 import * as Updates from "expo-updates";
 import TallyCounter from "../components/TallyCounter";
 import { StylizedMap } from "../components/StylizedMap";
-import { CurrentLocationCard } from "../components/CurrentLocationCard";
 import type { ContextSnapshot } from "../lib/appTypes";
 import type { KnownPlace } from "../lib/places";
 import { clusterLocationsV2 } from "../lib/clustering_v2";
@@ -187,8 +186,6 @@ export function TodayScreen({
               path={todaysPath}
               placeColors={placeColors}
             />
-
-            <CurrentLocationCard snapshot={snapshot} />
 
             <View style={styles.counterCard}>
               <TallyCounter

@@ -1,5 +1,6 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import MapView, {
   Marker,
   Polyline,
@@ -128,6 +129,8 @@ export function StylizedMap({
   path,
   placeColors,
 }: Props) {
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+
   const cleanPath = useMemo(
     () =>
       (path ?? []).filter(
@@ -155,6 +158,14 @@ export function StylizedMap({
     latitude: p.lat,
     longitude: p.lon,
   }));
+
+  async function handleCopyCoords() {
+    if (!currentLocation) return;
+    const text = `${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+    await Clipboard.setStringAsync(text);
+    setCopyState("copied");
+    setTimeout(() => setCopyState("idle"), 1500);
+  }
 
   return (
     <View style={[styles.frame, { height }]} testID="stylized-map">
@@ -209,6 +220,22 @@ export function StylizedMap({
           />
         )}
       </MapView>
+      {currentLocation && (
+        <TouchableOpacity
+          onPress={handleCopyCoords}
+          style={styles.copyOverlay}
+          testID="map-copy-coords"
+          accessibilityLabel="Copy current coordinates"
+        >
+          <Text style={styles.copyOverlayCoords}>
+            {currentLocation.latitude.toFixed(4)},{" "}
+            {currentLocation.longitude.toFixed(4)}
+          </Text>
+          <Text style={styles.copyOverlayAction}>
+            {copyState === "copied" ? "✓ Copied" : "Copy"}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -228,6 +255,28 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   emptyText: { color: "#666", fontSize: 12, textAlign: "center" },
+  copyOverlay: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: "rgba(20, 20, 30, 0.7)",
+  },
+  copyOverlayCoords: {
+    color: "rgba(255, 255, 255, 0.92)",
+    fontSize: 11,
+    fontVariant: ["tabular-nums"],
+  },
+  copyOverlayAction: {
+    color: "#4cc9f0",
+    fontSize: 11,
+    fontWeight: "700",
+  },
 });
 
 const pinStyles = StyleSheet.create({

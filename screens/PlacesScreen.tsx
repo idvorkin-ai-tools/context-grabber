@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { StylizedMap } from "../components/StylizedMap";
-import { CurrentLocationCard } from "../components/CurrentLocationCard";
 import PlacesDailyBreakdown, {
   type NamePlaceTarget,
 } from "../components/PlacesDailyBreakdown";
@@ -291,8 +290,6 @@ export function PlacesScreen({
           path={todaysPath}
           placeColors={placeColors}
         />
-
-        <CurrentLocationCard snapshot={snapshot} />
 
         {placesDailySummary.length > 0 && (
           <PlacesDailyBreakdown

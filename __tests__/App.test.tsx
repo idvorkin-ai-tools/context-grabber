@@ -224,7 +224,7 @@ describe("Dashboard display after grab", () => {
     });
   });
 
-  it("shows location as unavailable when permission denied", async () => {
+  it("shows no current-location marker when permission denied", async () => {
     (Location.requestForegroundPermissionsAsync as jest.Mock).mockResolvedValue({
       status: "denied",
     });
@@ -236,7 +236,8 @@ describe("Dashboard display after grab", () => {
 
     const result = await renderApp();
     await gotoTab(result, "places");
-    expect(result.getByText("Unavailable")).toBeTruthy();
+    expect(result.queryByTestId("map-pin-current")).toBeNull();
+    expect(result.queryByTestId("map-copy-coords")).toBeNull();
   });
 });
 

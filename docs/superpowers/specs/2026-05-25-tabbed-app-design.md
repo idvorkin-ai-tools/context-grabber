@@ -75,7 +75,7 @@ Common place types get a **conventional icon** as the pin itself, inferred from 
 
 The current-location pin is a distinct **diamond-shaped cyan marker with a soft halo**, labelled "You" — the shape change makes it instantly distinguishable from the round known-place pins even before reading the label.
 
-The current-location card (lat, lng, time-since stamp) has a **Copy** button that copies the coordinates to the clipboard in `lat, lng` format. The card appears on both the Places tab and the Today tab.
+The map has a **transparent copy chip overlay** in the bottom-right corner showing the current lat/lng in compact form with a Copy button. Tap copies the full-precision coordinates (`lat, lng` to 6 decimals) to the clipboard with a brief "✓ Copied" confirmation. The chip sits on top of the map tiles, doesn't block pin interaction, and replaces the standalone current-location card (which was redundant with the map's "You" marker). Appears on every map surface (Today + Places).
 
 The map surfaces **today's path** as a polyline overlay: today's visited places connected in chronological order by a thin tinted line, with a small dot at each breadcrumb. Known-place pins and the current-location pin stay rendered on top. When today's path has 0–1 stays, the map renders pins only — the overlay is purely additive.
 
