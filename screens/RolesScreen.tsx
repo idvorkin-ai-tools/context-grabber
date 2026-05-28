@@ -18,6 +18,7 @@ import {
 import { getMomentsInRange, type RoleMoment } from "../lib/roleMoments";
 import { RoleAvatar } from "../components/RoleAvatar";
 import { TagMomentSheet } from "../components/TagMomentSheet";
+import { RoleDetailSheet } from "../components/RoleDetailSheet";
 import { EulogySongCard } from "../components/EulogySongCard";
 
 type Props = {
@@ -31,6 +32,7 @@ export function RolesScreen({ db, weeklyCache }: Props) {
   const [tagInitialRole, setTagInitialRole] = useState<RoleId | undefined>(
     undefined,
   );
+  const [detailRoleId, setDetailRoleId] = useState<RoleId | null>(null);
 
   const reload = useCallback(() => {
     if (!db) return;
@@ -79,6 +81,9 @@ export function RolesScreen({ db, weeklyCache }: Props) {
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Roles</Text>
           <Text style={styles.subtitle}>Living my eulogy</Text>
+          <Text style={styles.howto}>
+            Tap a role to see details · long-press to log a moment
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.tagBtn}
@@ -100,6 +105,7 @@ export function RolesScreen({ db, weeklyCache }: Props) {
                 <Pressable
                   key={r.id}
                   style={styles.attentionRow}
+                  onPress={() => setDetailRoleId(r.id)}
                   onLongPress={() => openTagSheet(r.id)}
                   testID={`attention-row-${r.id}`}
                 >
@@ -123,9 +129,10 @@ export function RolesScreen({ db, weeklyCache }: Props) {
             <Pressable
               key={r.id}
               style={styles.roleRow}
+              onPress={() => setDetailRoleId(r.id)}
               onLongPress={() => openTagSheet(r.id)}
               testID={`role-row-${r.id}`}
-              accessibilityHint="Long-press to tag a moment"
+              accessibilityHint="Tap for details, long-press to tag a moment"
             >
               <RoleAvatar roleId={r.id} size={32} ringColor={r.color} />
               <View style={{ flex: 1, marginLeft: 12 }}>
@@ -162,6 +169,18 @@ export function RolesScreen({ db, weeklyCache }: Props) {
         initialRoleId={tagInitialRole}
         onSaved={reload}
       />
+      <RoleDetailSheet
+        visible={detailRoleId != null}
+        roleId={detailRoleId}
+        activity={detailRoleId != null ? activities[detailRoleId] : null}
+        db={db}
+        onClose={() => {
+          setDetailRoleId(null);
+          // Reload top-level moments so any tagging done inside the sheet
+          // flows back into the activity-score recompute.
+          reload();
+        }}
+      />
     </View>
   );
 }
@@ -177,6 +196,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 28, fontWeight: "bold", color: "#e0e0e0" },
   subtitle: { color: "#888", fontSize: 13, marginTop: 2 },
+  howto: { color: "#5a5a6e", fontSize: 11, marginTop: 4 },
   tagBtn: {
     backgroundColor: "rgba(76, 201, 240, 0.18)",
     paddingHorizontal: 12,

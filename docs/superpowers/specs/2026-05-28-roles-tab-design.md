@@ -77,6 +77,7 @@ There is no other UI to add or view content currently. Tapping a role row (no lo
 
 - `role_moments` SQLite table: `id, role_id, timestamp, what, tag, source, source_ref, sync_state`.
 - Sources: `manual`, `auto-workout`, `auto-mindful`, `auto-grateful`, `auto-journal`, `auto-place` (last two types defined but not all wired).
+- **Moments should sync via CloudKit** so tagged moments follow Igor across devices (same pattern as `syncJournal` in `lib/cloudkit.ts`). The `sync_state` column already exists for this; CloudKit zone + push/pull functions are not wired yet. Tracked as a separate bead — orthogonal to the detail sheet, which reads/writes via the existing `lib/roleMoments.ts` API.
 
 ---
 
@@ -160,11 +161,36 @@ Leads the export, before the raw HealthKit + location summary.
 
 ---
 
+## Decisions so far
+
+- **Q1 — headline missing capability: Role detail sheet.** Tap a role → slide-up with eulogy passage + recent moments. **In active build (2026-05-28).** v1 scope is intentionally small (no 52-week strip, no "bring it back" suggestions, no intention composer); see "v1 scope" below.
+- **Q2 — role row tap behavior: tap opens detail (B).** Tap a role row → opens the role detail sheet. Long-press is preserved as a power-user shortcut to log a moment without going through the sheet first.
+- **Q3 — onboarding: persistent sub-header text (A).** A thin grey teaching line under "Living my eulogy": "Tap a role to see details · long-press to log a moment." Cheap, always visible, never dismissed.
+
+### Role detail sheet — v1 scope
+
+What ships in this build:
+
+1. **Header**: medium avatar + full role name + close button.
+2. **Eulogy passage** as a left-bordered block quote, tinted in the role color — verbatim from `ROLES[i].eulogyPassage`.
+3. **Activity card** — this-week score (0–100 large), activity line ("3 gym · 6 days weighed"), attention chip if flagged.
+4. **"+ Tag a moment"** primary CTA in the role color → opens the existing TagMomentSheet pre-filled with this role; sheet stays open behind it; recent-moments list refreshes on save.
+5. **Recent moments** — last ~20 moments for this role from `role_moments` (via `getMomentsForRole`). Each row: time-since stamp, `what`, source chip (`manual` / `auto-workout` / etc).
+6. **Empty state** for recent moments when the role has no logged moments yet — encourages tapping the CTA.
+
+What is explicitly deferred to a later iteration:
+
+- 52-week strip with current-week ring and summary numbers
+- "Bring it back this week" — suggested moments with Add buttons
+- "Set an intention" composer + Today-tab surface for intentions
+- Identity-marker chips ("when Igor met Tori · lifelong partner · Tori-light, Igor-heavy")
+- 2-up signals grid with trend chips and last-shown
+
 ## Open questions (to riff on)
 
 These are the choices that block forward motion. Listed roughly in order of how much they unlock.
 
-### Q1 — What's the headline missing capability?
+### Q1 — What's the headline missing capability? — **picked: Role detail sheet (A)**
 
 The current flat list answers "where am I quiet?" via the attention card. It doesn't answer "what does this role look like over time?" or "what's a specific thing I can do this week?"
 
@@ -183,7 +209,7 @@ Options:
 - **B.** Tap opens the role detail sheet (Q1A); long-press still tags.
 - **C.** Tap opens a tiny inline expansion showing the eulogy passage + recent moments; long-press still tags.
 
-### Q3 — How does Igor learn to work it?
+### Q3 — How does Igor learn to work it? — **picked: persistent sub-header text (A)**
 
 You said "I don't know how to work it." Options:
 - **A.** First-launch coach marks on the Roles tab ("Long-press to tag", "Watch attention chips").
