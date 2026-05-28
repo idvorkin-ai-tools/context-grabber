@@ -93,6 +93,10 @@ The new tab. See its own section below.
 
 A role is an identity thread from Igor's eulogy. Not a goal (goals end). Not a metric (metrics measure one thing). Not a habit (habits are mechanical). The Roles tab is a *living margin note* on idvork.in/eulogy.
 
+### Eulogy song
+
+At the top of the Roles tab — above "Needs attention" and the all-11 list — a small card with the **eulogy song** (an AI-generated pop track summarizing how Igor wants to live). Tap to play; tap again to pause. Bundled as a static asset, no network needed. The card is the tab's mood anchor — the song is the tone the rest of the tab is trying to live up to.
+
 The 11 roles are exactly the ones in the eulogy, in eulogy order:
 
 1. Dealer of smiles & wonder

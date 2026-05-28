@@ -18,6 +18,7 @@ import {
 import { getMomentsInRange, type RoleMoment } from "../lib/roleMoments";
 import { RoleAvatar } from "../components/RoleAvatar";
 import { TagMomentSheet } from "../components/TagMomentSheet";
+import { EulogySongCard } from "../components/EulogySongCard";
 
 type Props = {
   db: SQLite.SQLiteDatabase | null;
@@ -88,6 +89,8 @@ export function RolesScreen({ db, weeklyCache }: Props) {
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
+        <EulogySongCard />
+
         {attention.length > 0 && (
           <View style={styles.attentionCard}>
             <Text style={styles.attentionHeading}>Needs attention</Text>
