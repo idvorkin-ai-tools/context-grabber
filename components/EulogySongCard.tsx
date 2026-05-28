@@ -15,7 +15,18 @@ export function EulogySongCard() {
 
   async function handleToggle() {
     try {
-      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+        // Keep the audio session live when the app backgrounds — without
+        // this, expo-audio's default of `false` lets iOS pause the song
+        // the moment the user switches apps. UIBackgroundModes already
+        // declares "audio" in Info.plist.
+        shouldPlayInBackground: true,
+        // doNotMix is required for the lock-screen / control-center
+        // playback controls to surface this app's now-playing.
+        interruptionMode: "doNotMix",
+      });
     } catch {
       // Not fatal — playback may still work.
     }
