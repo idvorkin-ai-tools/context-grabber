@@ -47,6 +47,8 @@ Following the existing user-needs doc:
 
 The current home, polished. The day's headline in a sentence ("Light start — 6,002 steps in, no workout yet. Slept 7.2h after midnight."). A **Grab Context** card that is the headline action — preview of what's about to be sent, fresh/stale chip, one tap to share. A week-at-a-glance strip. Quick-capture tiles that jump into the relevant tab (Gratitude → Mind; Gym Timer → Move; Where today → Places).
 
+Today also surfaces the **same map and current-location card as the Places tab** so the headline answer to "where am I right now" is on the home screen, not buried behind a tab tap. Same StylizedMap with real Apple Maps tiles, today's path overlay, and per-place colored pins.
+
 The gear icon top-right opens Settings (today the SettingsModal).
 
 ### Body
@@ -66,6 +68,10 @@ Journal (text + voice), Affirmation, Gratitude, Tally Counter, **meditation flat
 ### Places
 
 Map + today/yesterday timeline + Known Places CRUD + background tracking toggle + retention stepper + Export DB. Map renders real Apple Maps tiles — streets, water, parks — so location context is recognizable at a glance. Known-place pins, the current-location pin, and today's path overlay sit on top of the map tiles. No API key required.
+
+Each known-place pin renders as a colored dot with the place name labelled below it, so they're distinguishable at a glance without tapping. Each place gets a stable color drawn from the **same palette used by the daily-breakdown bars** — so a place that's red in the breakdown is the same red on the map. Same place = same color across sessions and across surfaces (map + breakdown + any future surface). The current-location pin is a distinct cyan dot with a soft halo, labelled "You."
+
+The current-location card (lat, lng, time-since stamp) has a **Copy** button that copies the coordinates to the clipboard in `lat, lng` format. The card appears on both the Places tab and the Today tab.
 
 The map surfaces **today's path** as a polyline overlay: today's visited places connected in chronological order by a thin tinted line, with a small dot at each breadcrumb. Known-place pins and the current-location pin stay rendered on top. When today's path has 0–1 stays, the map renders pins only — the overlay is purely additive.
 

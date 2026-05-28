@@ -1,21 +1,17 @@
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { DayStripSegment, PlaceDaySummary } from "../lib/places_summary";
-
-const COLORS = [
-  "#4361ee", "#f72585", "#4cc9f0", "#7209b7", "#3a86a7",
-  "#f77f00", "#06d6a0", "#e63946", "#a8dadc", "#fca311",
-];
-
-// Color used for unnamed "Place N" rows — signals "tap-to-fix / unresolved."
-const UNKNOWN_COLOR = "#fca311";
-const TRANSIT_COLOR = "#4cc9f0";
-const NO_DATA_COLOR = "#555";
-const FUTURE_COLOR = "#2a2a40"; // darker than no-data so it reads as "not yet"
+import {
+  PLACE_COLORS as COLORS,
+  UNKNOWN_PLACE_COLOR as UNKNOWN_COLOR,
+  TRANSIT_COLOR,
+  NO_DATA_COLOR,
+  FUTURE_COLOR,
+  PLACE_N_PATTERN,
+  assignPlaceColors,
+} from "../lib/places_colors";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-const PLACE_N_PATTERN = /^Place \d+$/;
 
 export type NamePlaceTarget = {
   placeId: string;
@@ -54,22 +50,12 @@ function formatTime(ts: number): string {
 export default function PlacesDailyBreakdown({ days, onNamePlace }: Props) {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
-  // Assign colors per known place. Unknown "Place N" rows always use UNKNOWN_COLOR
-  // regardless of their slot in the rotating palette.
   const colorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    const knownPlaces = new Set<string>();
+    const ids: string[] = [];
     for (const day of days) {
-      for (const p of day.places) {
-        if (!PLACE_N_PATTERN.test(p.placeId)) knownPlaces.add(p.placeId);
-      }
+      for (const p of day.places) ids.push(p.placeId);
     }
-    let i = 0;
-    for (const id of knownPlaces) {
-      map.set(id, COLORS[i % COLORS.length]);
-      i++;
-    }
-    return map;
+    return assignPlaceColors(ids);
   }, [days]);
 
   if (days.length === 0) return null;

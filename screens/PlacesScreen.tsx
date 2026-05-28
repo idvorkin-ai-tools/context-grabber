@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { StylizedMap } from "../components/StylizedMap";
+import { CurrentLocationCard } from "../components/CurrentLocationCard";
 import PlacesDailyBreakdown, {
   type NamePlaceTarget,
 } from "../components/PlacesDailyBreakdown";
@@ -18,6 +19,7 @@ import {
   type KnownPlace,
   mergePlaceCircle,
 } from "../lib/places";
+import { assignPlaceColors } from "../lib/places_colors";
 import {
   addKnownPlace,
   getKnownPlaces,
@@ -110,6 +112,16 @@ export function PlacesScreen({
       7,
     );
   }, [clusterResult, rawPoints]);
+
+  // Shared color map for places — same insertion order PlacesDailyBreakdown
+  // uses internally so the map's pin colors match the breakdown's bars.
+  const placeColors = useMemo(() => {
+    const ids: string[] = [];
+    for (const day of placesDailySummary) {
+      for (const p of day.places) ids.push(p.placeId);
+    }
+    return assignPlaceColors(ids);
+  }, [placesDailySummary]);
 
   // Today's path overlay — stay centroids in chronological order, filtered
   // to stays that overlap today's local-time window. Used by StylizedMap to
@@ -277,34 +289,10 @@ export function PlacesScreen({
           currentLocation={snapshot?.location ?? null}
           knownPlaces={knownPlaces}
           path={todaysPath}
+          placeColors={placeColors}
         />
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Current</Text>
-          {snapshot?.location ? (
-            <Text style={styles.summaryValue}>
-              {snapshot.location.latitude.toFixed(4)},{" "}
-              {snapshot.location.longitude.toFixed(4)}
-            </Text>
-          ) : (
-            <Text style={[styles.summaryValue, styles.faint]}>Unavailable</Text>
-          )}
-          <Text style={styles.summarySub}>
-            {(() => {
-              const latestMs = snapshot?.location?.timestamp
-                ?? (snapshot?.locationHistory && snapshot.locationHistory.length > 0
-                  ? snapshot.locationHistory[snapshot.locationHistory.length - 1].timestamp
-                  : null);
-              if (latestMs == null) return "—";
-              const ageMs = Date.now() - latestMs;
-              if (ageMs < 5 * 60 * 1000) return "now";
-              if (ageMs < 60 * 60 * 1000) return `${Math.round(ageMs / 60000)} min ago`;
-              if (ageMs < 24 * 60 * 60 * 1000) return `${Math.round(ageMs / 3600000)} hr ago`;
-              const days = Math.round(ageMs / (24 * 3600000));
-              return days === 1 ? "yesterday" : `${days} days ago`;
-            })()}
-          </Text>
-        </View>
+        <CurrentLocationCard snapshot={snapshot} />
 
         {placesDailySummary.length > 0 && (
           <PlacesDailyBreakdown

@@ -8,6 +8,11 @@ import MapView, {
 } from "react-native-maps";
 import type { KnownPlace } from "../lib/places";
 import type { LocationData } from "../lib/appTypes";
+import {
+  CURRENT_LOCATION_COLOR,
+  PLACE_COLORS,
+  UNKNOWN_PLACE_COLOR,
+} from "../lib/places_colors";
 
 export type PathPoint = {
   lat: number;
@@ -20,6 +25,13 @@ type Props = {
   knownPlaces: KnownPlace[];
   height?: number;
   path?: PathPoint[];
+  /**
+   * Color per known place, keyed by `KnownPlace.name`. When provided, each
+   * pin uses the matching color so the map shares its palette with the
+   * Places-daily-breakdown bars (same place = same color across surfaces).
+   * Missing entries fall back to PLACE_COLORS by index.
+   */
+  placeColors?: Map<string, string>;
 };
 
 const FALLBACK_REGION: Region = {
@@ -68,11 +80,43 @@ function computeRegion(
   };
 }
 
+function PlacePin({ color, label }: { color: string; label: string }) {
+  return (
+    <View style={pinStyles.wrap} pointerEvents="none">
+      <View style={[pinStyles.dot, { backgroundColor: color }]} />
+      <View style={pinStyles.labelChip}>
+        <Text style={pinStyles.labelText} numberOfLines={1}>
+          {label}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function CurrentPin() {
+  return (
+    <View style={pinStyles.wrap} pointerEvents="none">
+      <View style={pinStyles.halo} />
+      <View
+        style={[
+          pinStyles.dot,
+          pinStyles.currentDot,
+          { backgroundColor: CURRENT_LOCATION_COLOR },
+        ]}
+      />
+      <View style={pinStyles.labelChip}>
+        <Text style={pinStyles.labelText}>You</Text>
+      </View>
+    </View>
+  );
+}
+
 export function StylizedMap({
   currentLocation,
   knownPlaces,
   height = 180,
   path,
+  placeColors,
 }: Props) {
   const cleanPath = useMemo(
     () =>
@@ -114,16 +158,23 @@ export function StylizedMap({
         rotateEnabled={false}
         pitchEnabled={false}
       >
-        {knownPlaces.map((p) => (
-          <Marker
-            key={`p-${p.id}`}
-            identifier={`map-pin-p-${p.id}`}
-            testID={`map-pin-p-${p.id}`}
-            coordinate={{ latitude: p.latitude, longitude: p.longitude }}
-            title={p.name}
-            pinColor="orange"
-          />
-        ))}
+        {knownPlaces.map((p, idx) => {
+          const color =
+            placeColors?.get(p.name) ?? PLACE_COLORS[idx % PLACE_COLORS.length];
+          return (
+            <Marker
+              key={`p-${p.id}`}
+              identifier={`map-pin-p-${p.id}`}
+              testID={`map-pin-p-${p.id}`}
+              coordinate={{ latitude: p.latitude, longitude: p.longitude }}
+              title={p.name}
+              anchor={{ x: 0.5, y: 0.5 }}
+              tracksViewChanges={false}
+            >
+              <PlacePin color={color} label={p.name} />
+            </Marker>
+          );
+        })}
         {currentLocation && (
           <Marker
             identifier="map-pin-current"
@@ -133,8 +184,11 @@ export function StylizedMap({
               longitude: currentLocation.longitude,
             }}
             title="You"
-            pinColor="#4cc9f0"
-          />
+            anchor={{ x: 0.5, y: 0.5 }}
+            tracksViewChanges={false}
+          >
+            <CurrentPin />
+          </Marker>
         )}
         {polylineCoords.length >= 2 && (
           <Polyline
@@ -164,4 +218,37 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   emptyText: { color: "#666", fontSize: 12, textAlign: "center" },
+});
+
+const pinStyles = StyleSheet.create({
+  wrap: { alignItems: "center" },
+  dot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  currentDot: { width: 14, height: 14, borderRadius: 7 },
+  halo: {
+    position: "absolute",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(76, 201, 240, 0.22)",
+    top: -7,
+  },
+  labelChip: {
+    marginTop: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: "rgba(20, 20, 30, 0.85)",
+    maxWidth: 120,
+  },
+  labelText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "600",
+  },
 });

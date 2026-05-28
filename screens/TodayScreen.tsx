@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Platform,
   RefreshControl,
@@ -10,7 +10,14 @@ import {
 } from "react-native";
 import * as Updates from "expo-updates";
 import TallyCounter from "../components/TallyCounter";
+import { StylizedMap } from "../components/StylizedMap";
+import { CurrentLocationCard } from "../components/CurrentLocationCard";
 import type { ContextSnapshot } from "../lib/appTypes";
+import type { KnownPlace } from "../lib/places";
+import { clusterLocationsV2 } from "../lib/clustering_v2";
+import { buildPlacesDailySummary } from "../lib/places_summary";
+import { assignPlaceColors } from "../lib/places_colors";
+import type { LocationHistoryItem } from "../lib/db";
 
 type Props = {
   snapshot: ContextSnapshot | null;
@@ -24,6 +31,8 @@ type Props = {
   reflectTally: { opportunity: number; didit: number; grateful: number };
   sharing: boolean;
   shareStatus: string;
+  knownPlaces: KnownPlace[];
+  locationHistory: LocationHistoryItem[];
   onOpenSettings: () => void;
   onOpenAffirmation: () => void;
   onOpenGrateful: () => void;
@@ -47,6 +56,8 @@ export function TodayScreen({
   reflectTally,
   sharing,
   shareStatus,
+  knownPlaces,
+  locationHistory,
   onOpenSettings,
   onOpenAffirmation,
   onOpenGrateful,
@@ -57,6 +68,43 @@ export function TodayScreen({
   onShareSnapshot,
   onShareRaw,
 }: Props) {
+  const { todaysPath, placeColors } = useMemo(() => {
+    if (locationHistory.length === 0) {
+      return { todaysPath: [], placeColors: new Map<string, string>() };
+    }
+    const rawPoints = locationHistory.map((h) => ({
+      latitude: h.latitude,
+      longitude: h.longitude,
+      timestamp: h.timestamp,
+      accuracy: h.accuracy ?? 0,
+    }));
+    const cluster = clusterLocationsV2(rawPoints, knownPlaces);
+    const summary = buildPlacesDailySummary(
+      cluster.stays,
+      cluster.transit,
+      rawPoints,
+      7,
+    );
+    const ids: string[] = [];
+    for (const day of summary) {
+      for (const p of day.places) ids.push(p.placeId);
+    }
+    const colors = assignPlaceColors(ids);
+    const now = Date.now();
+    const dayStart = new Date(now);
+    dayStart.setHours(0, 0, 0, 0);
+    const startMs = dayStart.getTime();
+    const path = cluster.stays
+      .filter((s) => s.endTime >= startMs && s.startTime <= now)
+      .sort((a, b) => a.startTime - b.startTime)
+      .map((s) => ({
+        lat: s.centroid.latitude,
+        lon: s.centroid.longitude,
+        timestamp: s.startTime,
+      }));
+    return { todaysPath: path, placeColors: colors };
+  }, [locationHistory, knownPlaces]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -121,6 +169,15 @@ export function TodayScreen({
 
         {snapshot && (
           <>
+            <StylizedMap
+              currentLocation={snapshot.location}
+              knownPlaces={knownPlaces}
+              path={todaysPath}
+              placeColors={placeColors}
+            />
+
+            <CurrentLocationCard snapshot={snapshot} />
+
             <View style={styles.counterCard}>
               <TallyCounter
                 value={counterValue}

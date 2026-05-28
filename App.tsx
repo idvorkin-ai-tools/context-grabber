@@ -1800,6 +1800,8 @@ export default function App() {
           reflectTally={reflectTally}
           sharing={sharing}
           shareStatus={shareStatus}
+          knownPlaces={knownPlaces}
+          locationHistory={snapshot?.locationHistory ?? []}
           onOpenSettings={() => setSettingsVisible(true)}
           onOpenAffirmation={() => setAffirmationVisible(true)}
           onOpenGrateful={() => setGratefulVisible(true)}
