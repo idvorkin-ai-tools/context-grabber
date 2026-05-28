@@ -89,6 +89,12 @@ The new tab. See its own section below.
 
 ## Roles — deep dive
 
+> **This section has moved.** See [`2026-05-28-roles-tab-design.md`](2026-05-28-roles-tab-design.md) for the full Roles design — including what ships today vs aspirational, the 11 roles, attention rules, auto-detection table, and open questions. The high-level Roles tab summary above (in "The five tabs") remains; the deep-dive content below this line is retained for historical context but the roles-spec is now the authoritative document.
+
+---
+
+### Historical deep-dive (now superseded)
+
 ### What a Role is
 
 A role is an identity thread from Igor's eulogy. Not a goal (goals end). Not a metric (metrics measure one thing). Not a habit (habits are mechanical). The Roles tab is a *living margin note* on idvork.in/eulogy.
