@@ -71,7 +71,7 @@ Map + today/yesterday timeline + Known Places CRUD + background tracking toggle 
 
 Each known-place pin renders as a colored dot with the place name labelled below it, so they're distinguishable at a glance without tapping. Each place gets a stable color drawn from the **same palette used by the daily-breakdown bars** — so a place that's red in the breakdown is the same red on the map. Same place = same color across sessions and across surfaces (map + breakdown + any future surface).
 
-Common place types get a **conventional icon** inside the pin chip, inferred from the place name: "Home" → 🏠, "Work" / "Office" → 💼, "Gym" → 🏋️, "Cafe" / "Coffee" → ☕, "School" / "University" → 🎓. The match is case-insensitive substring; places that don't match render with just the name (no icon). The mapping is centralized so new icons can be added without touching pin rendering code.
+Common place types get a **conventional icon** as the pin itself, inferred from the place name: "Home" → 🏠, "Work" / "Office" → 💼, "Gym" → 🏋️, "Cafe" / "Coffee" → ☕, "School" / "University" → 🎓. Iconed pins are a small white circle with a palette-colored ring around the emoji — no separate dot, no label chip (the icon conveys identity, and the colored ring preserves the per-place palette across the map and the breakdown). The match is case-insensitive substring; places that don't match fall back to the dot+name-chip rendering. The mapping is centralized so new icons can be added without touching pin rendering code.
 
 The current-location pin is a distinct **diamond-shaped cyan marker with a soft halo**, labelled "You" — the shape change makes it instantly distinguishable from the round known-place pins even before reading the label.
 

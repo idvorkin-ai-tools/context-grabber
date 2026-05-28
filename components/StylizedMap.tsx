@@ -83,11 +83,19 @@ function computeRegion(
 
 function PlacePin({ color, label }: { color: string; label: string }) {
   const icon = iconForPlace(label);
+  if (icon) {
+    return (
+      <View style={pinStyles.iconBubble} pointerEvents="none">
+        <View style={[pinStyles.iconRing, { borderColor: color }]}>
+          <Text style={pinStyles.iconGlyph}>{icon}</Text>
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={pinStyles.wrap} pointerEvents="none">
       <View style={[pinStyles.dot, { backgroundColor: color }]} />
       <View style={pinStyles.labelChip}>
-        {icon && <Text style={pinStyles.iconText}>{icon} </Text>}
         <Text style={pinStyles.labelText} numberOfLines={1}>
           {label}
         </Text>
@@ -267,5 +275,19 @@ const pinStyles = StyleSheet.create({
   },
   iconText: {
     fontSize: 11,
+  },
+  iconBubble: { alignItems: "center" },
+  iconRing: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 2.5,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconGlyph: {
+    fontSize: 19,
+    lineHeight: 22,
   },
 });
