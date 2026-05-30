@@ -27,6 +27,67 @@ function newId(): string {
   return `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Resolve the journal entry id a moment points at, or null if the moment
+ * isn't backed by a journal entry. Two source_ref formats exist in the
+ * wild: card-tagged moments store the raw entry id, while auto-emo moments
+ * store `journal:<id>`. Non-journal moments use `workout:`/`mindful:`/
+ * `place:` prefixes (or null) and resolve to null here.
+ */
+export function journalEntryIdFromMoment(m: RoleMoment): string | null {
+  const ref = m.sourceRef;
+  if (!ref) return null;
+  if (ref.startsWith("journal:")) return ref.slice("journal:".length);
+  if (
+    ref.startsWith("workout:") ||
+    ref.startsWith("mindful:") ||
+    ref.startsWith("place:")
+  ) {
+    return null;
+  }
+  // Defensive: auto-detected sources never carry a raw journal id, so a
+  // bare ref only ever comes from card tagging.
+  if (
+    m.source === "auto-workout" ||
+    m.source === "auto-mindful" ||
+    m.source === "auto-place"
+  ) {
+    return null;
+  }
+  return ref;
+}
+
+/**
+ * Journal entry ids tied to a role, for the Journal's role filter. Walks
+ * the role's moments and normalizes every source_ref to an entry id.
+ */
+export async function getEntryIdsForRole(
+  db: SQLite.SQLiteDatabase,
+  roleId: RoleId,
+): Promise<Set<string>> {
+  const rows = await db.getAllAsync<{
+    source: RoleMomentSource;
+    source_ref: string | null;
+  }>(
+    `SELECT source, source_ref FROM role_moments WHERE role_id = ?`,
+    [roleId],
+  );
+  const ids = new Set<string>();
+  for (const r of rows) {
+    const entryId = journalEntryIdFromMoment({
+      id: "",
+      roleId,
+      timestamp: 0,
+      what: "",
+      tag: null,
+      source: r.source,
+      sourceRef: r.source_ref,
+    });
+    if (entryId) ids.add(entryId);
+  }
+  return ids;
+}
+
 export async function insertMoment(
   db: SQLite.SQLiteDatabase,
   m: Omit<RoleMoment, "id">,

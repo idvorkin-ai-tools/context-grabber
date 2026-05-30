@@ -1,6 +1,8 @@
 # Affirmations & Gratitude Journal — Design Spec
 
 > First slice of the Habit Tracker merge ([roadmap](2026-05-10-habit-tracker-merge-design.md)). The full habit grid, weekly targets, and tag groupings come later. This spec is *only* about the affirmation/gratitude/did-it journal — the part Igor uses many times a day.
+>
+> **Role linking:** entries can be tagged to eulogy roles, and the Journal gains a per-role filter — see [2026-05-30-roles-journal-linking-design.md](2026-05-30-roles-journal-linking-design.md).
 
 ## Summary
 

@@ -25,9 +25,11 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   db: SQLite.SQLiteDatabase | null;
+  /** Roles pre-selected when the card opens (e.g. opened from a role detail). */
+  initialRoleIds?: RoleId[];
 };
 
-export function GratefulCard({ visible, onClose, db }: Props) {
+export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
   const [text, setText] = useState("");
   const [pendingVoice, setPendingVoice] = useState<RecordedVoice | null>(null);
   const [saving, setSaving] = useState(false);
@@ -42,7 +44,7 @@ export function GratefulCard({ visible, onClose, db }: Props) {
     setPendingVoice(null);
     setErrorMsg(null);
     setSavedHint(null);
-    setSelectedRoles(new Set());
+    setSelectedRoles(new Set(initialRoleIds ?? []));
     refreshTally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);

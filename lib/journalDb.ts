@@ -172,6 +172,25 @@ export async function getEntry(
   return row ? rowToEntry(row) : null;
 }
 
+/**
+ * Batch-fetch entries by id, newest-first. Used by the role detail sheet
+ * to resolve the journal entries its moments point at. Unknown ids are
+ * silently skipped (the entry may have been deleted).
+ */
+export async function getEntriesByIds(
+  db: SQLite.SQLiteDatabase,
+  ids: string[],
+): Promise<JournalEntry[]> {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => "?").join(", ");
+  const rows = await db.getAllAsync<EntryRow>(
+    `SELECT id, date, context, affirmation, text, audio_id, created_at
+       FROM journal_entries WHERE id IN (${placeholders}) ORDER BY date DESC`,
+    ids,
+  );
+  return rows.map(rowToEntry);
+}
+
 export async function getAllEntries(
   db: SQLite.SQLiteDatabase,
 ): Promise<JournalEntry[]> {

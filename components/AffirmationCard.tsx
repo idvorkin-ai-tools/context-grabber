@@ -30,6 +30,8 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   db: SQLite.SQLiteDatabase | null;
+  /** Roles pre-selected when the card opens (e.g. opened from a role detail). */
+  initialRoleIds?: RoleId[];
 };
 
 const PROMPTS: Record<JournalContext, string> = {
@@ -38,7 +40,7 @@ const PROMPTS: Record<JournalContext, string> = {
   grateful: "I'm grateful for…",
 };
 
-export function AffirmationCard({ visible, onClose, db }: Props) {
+export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props) {
   const [index, setIndex] = useState(() => getRandomAffirmationIndex());
   const [picker, setPicker] = useState(false);
   const [context, setContext] = useState<JournalContext>("opportunity");
@@ -63,7 +65,7 @@ export function AffirmationCard({ visible, onClose, db }: Props) {
     setPendingVoice(null);
     setErrorMsg(null);
     setSavedHint(null);
-    setSelectedRoles(new Set());
+    setSelectedRoles(new Set(initialRoleIds ?? []));
     refreshTally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);

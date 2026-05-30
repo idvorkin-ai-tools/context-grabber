@@ -12,11 +12,20 @@ import type * as SQLite from "expo-sqlite";
 import { getRole, type RoleId, type RoleWeekActivity } from "../lib/roles";
 import {
   getMomentsForRole,
+  journalEntryIdFromMoment,
   type RoleMoment,
   type RoleMomentSource,
 } from "../lib/roleMoments";
+import {
+  getAudio,
+  getEntriesByIds,
+} from "../lib/journalDb";
+import type { AudioRecording, JournalContext, JournalEntry } from "../lib/journal";
 import { RoleAvatar } from "./RoleAvatar";
 import { TagMomentSheet } from "./TagMomentSheet";
+import { AffirmationCard } from "./AffirmationCard";
+import { GratefulCard } from "./GratefulCard";
+import { AudioPlayer } from "./AudioPlayer";
 
 type Props = {
   visible: boolean;
@@ -37,6 +46,13 @@ const SOURCE_LABEL: Record<RoleMomentSource, string> = {
   "auto-place": "place",
 };
 
+/** Singular context label for a moment kicker (CONTEXT_LABEL is plural). */
+const CONTEXT_KICKER: Record<JournalContext, string> = {
+  opportunity: "Opportunity",
+  didit: "Did-It",
+  grateful: "Gratitude",
+};
+
 export function RoleDetailSheet({
   visible,
   roleId,
@@ -45,7 +61,11 @@ export function RoleDetailSheet({
   onClose,
 }: Props) {
   const [moments, setMoments] = useState<RoleMoment[]>([]);
+  const [entryMap, setEntryMap] = useState<Record<string, JournalEntry>>({});
+  const [audioMap, setAudioMap] = useState<Record<string, AudioRecording>>({});
   const [tagSheetVisible, setTagSheetVisible] = useState(false);
+  const [affirmCardVisible, setAffirmCardVisible] = useState(false);
+  const [gratefulCardVisible, setGratefulCardVisible] = useState(false);
   const [eulogyExpanded, setEulogyExpanded] = useState(false);
 
   const role = roleId ? getRole(roleId) : null;
@@ -53,15 +73,40 @@ export function RoleDetailSheet({
   const reload = useCallback(() => {
     if (!db || !roleId) {
       setMoments([]);
+      setEntryMap({});
+      setAudioMap({});
       return;
     }
     void (async () => {
       try {
         const rows = await getMomentsForRole(db, roleId, RECENT_LIMIT);
         setMoments(rows);
+        // Resolve journal-backed moments so the row can show the actual
+        // affirmation/gratitude content + voice, not just a label.
+        const entryIds = Array.from(
+          new Set(
+            rows
+              .map((m) => journalEntryIdFromMoment(m))
+              .filter((id): id is string => id != null),
+          ),
+        );
+        const entries = await getEntriesByIds(db, entryIds);
+        const eMap: Record<string, JournalEntry> = {};
+        for (const e of entries) eMap[e.id] = e;
+        setEntryMap(eMap);
+        const aMap: Record<string, AudioRecording> = {};
+        for (const e of entries) {
+          if (e.audioRecordingId && !aMap[e.audioRecordingId]) {
+            const a = await getAudio(db, e.audioRecordingId);
+            if (a) aMap[e.audioRecordingId] = a;
+          }
+        }
+        setAudioMap(aMap);
       } catch {
         // Tolerate missing table — sheet still renders with empty list.
         setMoments([]);
+        setEntryMap({});
+        setAudioMap({});
       }
     })();
   }, [db, roleId]);
@@ -176,8 +221,26 @@ export function RoleDetailSheet({
             )}
 
             <TouchableOpacity
+              onPress={() => setAffirmCardVisible(true)}
+              style={[styles.createBtn, { backgroundColor: role.color }]}
+              testID="role-detail-log-affirmation"
+            >
+              <Text style={styles.createBtnText}>
+                ✎  Log an affirmation as {role.short}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setGratefulCardVisible(true)}
+              style={[styles.createBtnOutline, { borderColor: role.color }]}
+              testID="role-detail-write-gratitude"
+            >
+              <Text style={[styles.createBtnOutlineText, { color: role.color }]}>
+                ♡  Write a gratitude as {role.short}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => setTagSheetVisible(true)}
-              style={[styles.tagBtn, { backgroundColor: role.color }]}
+              style={styles.tagBtn}
               testID="role-detail-tag-moment"
             >
               <Text style={styles.tagBtnText}>+ Tag a moment</Text>
@@ -191,31 +254,67 @@ export function RoleDetailSheet({
                 </Text>
               </View>
             ) : (
-              moments.map((m) => (
-                <View key={m.id} style={styles.momentRow} testID={`role-moment-${m.id}`}>
-                  <View style={[styles.momentBar, { backgroundColor: role.color }]} />
-                  <View style={styles.momentBody}>
-                    <Text style={styles.momentWhat} numberOfLines={2}>
-                      {m.what}
-                    </Text>
-                    <View style={styles.momentMeta}>
-                      <Text style={styles.momentTime}>
-                        {formatTimeSince(m.timestamp)}
-                      </Text>
-                      <View style={styles.dot} />
-                      <Text style={styles.momentSource}>
-                        {SOURCE_LABEL[m.source] ?? m.source}
-                      </Text>
-                      {m.tag && (
+              moments.map((m) => {
+                const entryId = journalEntryIdFromMoment(m);
+                const entry = entryId ? entryMap[entryId] : undefined;
+                const audio = entry?.audioRecordingId
+                  ? audioMap[entry.audioRecordingId]
+                  : undefined;
+                const kicker =
+                  entry && entry.context !== "grateful"
+                    ? `${entry.affirmationTitle} · ${CONTEXT_KICKER[entry.context]}`
+                    : null;
+                return (
+                  <View key={m.id} style={styles.momentRow} testID={`role-moment-${m.id}`}>
+                    <View style={[styles.momentBar, { backgroundColor: role.color }]} />
+                    <View style={styles.momentBody}>
+                      {kicker && <Text style={styles.momentKicker}>{kicker}</Text>}
+                      {/* Journal-backed moments show the entry's real words +
+                          voice; everything else shows its one-line label. */}
+                      {entry ? (
                         <>
-                          <View style={styles.dot} />
-                          <Text style={styles.momentTag}>#{m.tag}</Text>
+                          {entry.text ? (
+                            <Text style={styles.momentWhat}>{entry.text}</Text>
+                          ) : null}
+                          {entry.audioRecordingId && audio && (
+                            <View style={{ marginTop: entry.text ? 8 : 2 }}>
+                              <AudioPlayer
+                                recordingId={entry.audioRecordingId}
+                                durationMs={audio.durationMs}
+                                db={db}
+                              />
+                            </View>
+                          )}
+                          {entry.audioRecordingId && !audio && (
+                            <Text style={styles.momentPending}>
+                              voice note (pending sync)
+                            </Text>
+                          )}
                         </>
+                      ) : (
+                        <Text style={styles.momentWhat} numberOfLines={2}>
+                          {m.what}
+                        </Text>
                       )}
+                      <View style={styles.momentMeta}>
+                        <Text style={styles.momentTime}>
+                          {formatTimeSince(m.timestamp)}
+                        </Text>
+                        <View style={styles.dot} />
+                        <Text style={styles.momentSource}>
+                          {SOURCE_LABEL[m.source] ?? m.source}
+                        </Text>
+                        {m.tag && (
+                          <>
+                            <View style={styles.dot} />
+                            <Text style={styles.momentTag}>#{m.tag}</Text>
+                          </>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))
+                );
+              })
             )}
           </ScrollView>
         </View>
@@ -227,6 +326,24 @@ export function RoleDetailSheet({
         db={db}
         initialRoleId={role.id}
         onSaved={reload}
+      />
+      <AffirmationCard
+        visible={affirmCardVisible}
+        onClose={() => {
+          setAffirmCardVisible(false);
+          reload();
+        }}
+        db={db}
+        initialRoleIds={[role.id]}
+      />
+      <GratefulCard
+        visible={gratefulCardVisible}
+        onClose={() => {
+          setGratefulCardVisible(false);
+          reload();
+        }}
+        db={db}
+        initialRoleIds={[role.id]}
       />
     </Modal>
   );
@@ -378,13 +495,30 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   activityLine: { color: "#bbb", fontSize: 13, marginTop: 4 },
-  tagBtn: {
+  createBtn: {
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
+    marginBottom: 9,
+  },
+  createBtnText: { color: "#0e1116", fontSize: 15, fontWeight: "700" },
+  createBtnOutline: {
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: "center",
+    borderWidth: 1.5,
+    marginBottom: 9,
+  },
+  createBtnOutlineText: { fontSize: 15, fontWeight: "700" },
+  tagBtn: {
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2f3a55",
     marginBottom: 18,
   },
-  tagBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  tagBtnText: { color: "#aeb6c6", fontSize: 14, fontWeight: "600" },
   sectionHeading: {
     color: "#888",
     fontSize: 11,
@@ -408,6 +542,20 @@ const styles = StyleSheet.create({
   },
   momentBar: { width: 3, borderRadius: 1.5, marginRight: 10 },
   momentBody: { flex: 1 },
+  momentKicker: {
+    color: "#9aa3b2",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+    marginBottom: 3,
+  },
+  momentPending: {
+    color: "#666",
+    fontSize: 12,
+    fontStyle: "italic",
+    marginTop: 4,
+  },
   momentWhat: { color: "#e0e0e0", fontSize: 14, lineHeight: 18 },
   momentMeta: {
     flexDirection: "row",

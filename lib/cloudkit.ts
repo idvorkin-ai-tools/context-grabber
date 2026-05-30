@@ -443,6 +443,9 @@ export async function deleteJournalEntry(
   db: SQLite.SQLiteDatabase,
   id: string,
 ): Promise<void> {
+  // D1: deleting an entry cascades to its linked role moments, so a role
+  // never shows a moment whose underlying reflection is gone.
+  await deleteMomentsForEntry(db, id);
   await deleteEntryRow(db, id);
   configureCloudKit();
   const status = await getAccountStatus();
@@ -623,6 +626,25 @@ async function pushMoments(
   }
 
   return { pushed };
+}
+
+/**
+ * Delete all role moments tied to a journal entry (both source_ref forms:
+ * the raw entry id from card tagging and `journal:<id>` from auto-emo).
+ * Each is removed sync-aware via deleteMomentRecord so CloudKit tombstones
+ * too. Used by deleteJournalEntry for the D1 cascade.
+ */
+export async function deleteMomentsForEntry(
+  db: SQLite.SQLiteDatabase,
+  entryId: string,
+): Promise<void> {
+  const rows = await db.getAllAsync<{ id: string }>(
+    `SELECT id FROM role_moments WHERE source_ref = ? OR source_ref = ?`,
+    [entryId, `journal:${entryId}`],
+  );
+  for (const r of rows) {
+    await deleteMomentRecord(db, r.id);
+  }
 }
 
 /** Delete a moment locally and from CloudKit. */

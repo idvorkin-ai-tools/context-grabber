@@ -75,6 +75,8 @@ A moment can be tagged to multiple roles by inserting one `role_moments` row per
 - Each selected role yields a distinct `role_moments` row with `source="manual"` (so it syncs via CloudKit) and `source_ref` set to the originating entry id (or null for free-form tag-moment).
 - The role-detail "Recent moments" list shows the moment under every role it's tagged to; deletes propagate per row.
 
+> **Reverse direction (role → entries)** is specced separately in [2026-05-30-roles-journal-linking-design.md](2026-05-30-roles-journal-linking-design.md): reading/playing linked entry content from a role, creating an affirmation/gratitude from a role, and browsing the Journal by role.
+
 There is no other UI to add or view content currently. Tapping a role row (no long-press) does nothing. There's no detail view.
 
 ### What's calculated
