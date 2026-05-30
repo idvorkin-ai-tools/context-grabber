@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import {
   RecordingPresets,
@@ -17,6 +23,15 @@ export type RecordedVoice = {
   durationMs: number;
 };
 
+export type VoiceRecorderHandle = {
+  /**
+   * If a recording is in progress, stop + finalize it and return the clip;
+   * otherwise resolve null. Lets the parent's Save action capture an
+   * in-progress recording instead of requiring a separate stop tap.
+   */
+  flush: () => Promise<RecordedVoice | null>;
+};
+
 type Props = {
   onRecorded: (voice: RecordedVoice) => void;
   onError?: (msg: string) => void;
@@ -32,7 +47,8 @@ type Props = {
  * onRecorded — caller is responsible for inserting the AudioRecording
  * row + pairing it with the journal entry.
  */
-export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Props) {
+export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
+  function VoiceRecorder({ onRecorded, onError, autoStart, disabled }, ref) {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const state = useAudioRecorderState(recorder, 250);
   const [permissionAsked, setPermissionAsked] = useState(false);
@@ -45,6 +61,12 @@ export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Prop
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart]);
+
+  // Recreated each render so it always closes over the latest recording
+  // state + stop(); Save calls this to finalize an in-progress clip.
+  useImperativeHandle(ref, () => ({
+    flush: async () => (state.isRecording ? await stop() : null),
+  }));
 
   async function start() {
     try {
@@ -81,7 +103,7 @@ export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Prop
     }
   }
 
-  async function stop() {
+  async function stop(): Promise<RecordedVoice | null> {
     try {
       await recorder.stop();
       const sourceUri = recorder.uri;
@@ -92,19 +114,22 @@ export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Prop
         : 0;
       if (!sourceUri || !id || !targetPath) {
         onError?.("recording produced no file");
-        return;
+        return null;
       }
       // Move the recorder's temp file into our voice/ dir.
       await FileSystem.moveAsync({ from: sourceUri, to: targetPath });
-      onRecorded({
+      const voice: RecordedVoice = {
         recordingId: id,
         filePath: targetPath,
         durationMs: elapsed,
-      });
+      };
+      onRecorded(voice);
       setPendingId(null);
       startTimeRef.current = null;
+      return voice;
     } catch (e: any) {
       onError?.(e?.message ?? String(e));
+      return null;
     }
   }
 
@@ -140,7 +165,7 @@ export function VoiceRecorder({ onRecorded, onError, autoStart, disabled }: Prop
       )}
     </View>
   );
-}
+});
 
 function formatTime(sec: number): string {
   const m = Math.floor(sec / 60);

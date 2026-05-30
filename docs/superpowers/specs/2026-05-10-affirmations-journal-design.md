@@ -46,6 +46,7 @@ Shipping just the journal first (before the habit grid) means Igor gets the high
 - Below the prompt I can either:
   - **Speak**: tap the mic, record up to a few minutes, tap to stop. The card shows live recording state and elapsed time.
   - **Type**: tap the text field, type my note, hit save.
+- If I tap **Save** (or **Save & add another**) while a recording is still in progress, the recording is finalized and attached automatically — I don't have to stop it first — and the mic stops.
 - I can switch between voice and text without losing the card's state.
 - The card defaults to **voice on iPhone**, **text** on iPad/desktop-class devices.
 - I see a small tally at the top of the card showing **today's count** by context (e.g. "Opp: 3 · Did: 1") so I feel the streak.
@@ -108,6 +109,7 @@ A non-technical reader should be able to walk these through on the device:
 - Receive a Humane Tracker `humane-tracker-backup-*.json` via AirDrop and open it with the app. Choose Merge. Past dates from the backup show up in the Journal under their original affirmations and contexts; today's entries logged on the phone are still present.
 - Force-quit the app immediately after saving an entry. Reopen — the entry is still in the Journal.
 - With the Wispr Flow keyboard active, open the Grateful Card and start a dictation. The card stays visible (no black/collapsed screen) while the "Listening" overlay is up, and the dictated text lands in the field intact. Repeat in the Affirmation Card.
+- On the Grateful Card, start a voice recording and — while it's still recording — tap Save. The recording stops, the entry is saved with the voice clip attached, and the mic is no longer active. Same on the Affirmation Card, and for "Save & add another".
 
 ## Open Questions for Igor
 

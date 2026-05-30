@@ -16,7 +16,11 @@ import { syncJournal, syncMoments } from "../lib/cloudkit";
 import { insertMoment } from "../lib/roleMoments";
 import type { RoleId } from "../lib/roles";
 import { uuidV4 } from "../lib/uuid";
-import { VoiceRecorder, type RecordedVoice } from "./VoiceRecorder";
+import {
+  VoiceRecorder,
+  type RecordedVoice,
+  type VoiceRecorderHandle,
+} from "./VoiceRecorder";
 import { CopyableError } from "./CopyableError";
 import { RolePickerChips } from "./RolePickerChips";
 
@@ -41,6 +45,7 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
   // every keystroke. That reconciliation fights dictation/third-party
   // keyboards (Wispr Flow) on multiline inputs. Clear via the ref instead.
   const inputRef = useRef<TextInput>(null);
+  const recorderRef = useRef<VoiceRecorderHandle>(null);
 
   useEffect(() => {
     if (!visible) return;
@@ -65,7 +70,12 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
       setErrorMsg("DB not ready");
       return;
     }
-    if (!text.trim() && !pendingVoice) {
+    // If a recording is still in progress, finalize it so Save captures
+    // the clip (and stops the mic) instead of requiring a separate stop tap.
+    let voice = pendingVoice;
+    const flushed = await recorderRef.current?.flush();
+    if (flushed) voice = flushed;
+    if (!text.trim() && !voice) {
       setErrorMsg("Add a note or record voice first");
       return;
     }
@@ -74,14 +84,14 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
     try {
       const now = Date.now();
       let audioRecordingId: string | null = null;
-      if (pendingVoice) {
+      if (voice) {
         await insertAudio(db, {
-          id: pendingVoice.recordingId,
-          filePath: pendingVoice.filePath,
-          durationMs: pendingVoice.durationMs,
+          id: voice.recordingId,
+          filePath: voice.filePath,
+          durationMs: voice.durationMs,
           createdAt: now,
         });
-        audioRecordingId = pendingVoice.recordingId;
+        audioRecordingId = voice.recordingId;
       }
       const entry = createGratitude({
         id: uuidV4(),
@@ -178,6 +188,7 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
 
           <View style={{ marginTop: 16, alignItems: "center" }}>
             <VoiceRecorder
+              ref={recorderRef}
               onRecorded={(v) => setPendingVoice(v)}
               onError={(m) => setErrorMsg(m)}
               disabled={saving}
