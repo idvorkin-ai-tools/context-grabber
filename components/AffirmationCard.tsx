@@ -1,13 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Modal,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ScrollView,
-  Platform,
-} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 import * as SQLite from "expo-sqlite";
 import {
   AFFIRMATIONS,
@@ -15,19 +7,8 @@ import {
   type Affirmation,
 } from "../lib/affirmations";
 import { createEntry, type JournalContext } from "../lib/journal";
-import { insertEntry, insertAudio, tallyByContextFromDb } from "../lib/journalDb";
-import { recordJournalMoment } from "../lib/autoDetect";
-import { syncJournal, syncMoments } from "../lib/cloudkit";
-import { insertMoment } from "../lib/roleMoments";
 import type { RoleId } from "../lib/roles";
-import { uuidV4 } from "../lib/uuid";
-import {
-  VoiceRecorder,
-  type RecordedVoice,
-  type VoiceRecorderHandle,
-} from "./VoiceRecorder";
-import { CopyableError } from "./CopyableError";
-import { RolePickerChips } from "./RolePickerChips";
+import { EntryComposer } from "./EntryComposer";
 
 type Props = {
   visible: boolean;
@@ -47,42 +28,19 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
   const [index, setIndex] = useState(() => getRandomAffirmationIndex());
   const [picker, setPicker] = useState(false);
   const [context, setContext] = useState<JournalContext>("opportunity");
-  const [text, setText] = useState("");
-  const [pendingVoice, setPendingVoice] = useState<RecordedVoice | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [tally, setTally] = useState({ opportunity: 0, didit: 0, grateful: 0 });
-  const [savedHint, setSavedHint] = useState<string | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<Set<RoleId>>(new Set());
   const lastIndexRef = useRef(index);
-  // Uncontrolled input — see GratefulCard. Avoids value-reconciliation
-  // fighting dictation/third-party keyboards on the multiline field.
-  const inputRef = useRef<TextInput>(null);
-  const recorderRef = useRef<VoiceRecorderHandle>(null);
 
   const affirmation: Affirmation = AFFIRMATIONS[index];
 
-  // Re-randomize on each open.
+  // Re-randomize the affirmation on each open (rotating exposure is the point).
   useEffect(() => {
     if (!visible) return;
     const next = getRandomAffirmationIndex(lastIndexRef.current);
     setIndex(next);
     lastIndexRef.current = next;
-    setText("");
-    inputRef.current?.clear();
-    setPendingVoice(null);
-    setErrorMsg(null);
-    setSavedHint(null);
-    setSelectedRoles(new Set(initialRoleIds ?? []));
-    refreshTally();
+    setPicker(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
-
-  async function refreshTally() {
-    if (!db) return;
-    const t = await tallyByContextFromDb(db);
-    setTally(t);
-  }
 
   function selectAffirmation(i: number) {
     setIndex(i);
@@ -90,227 +48,68 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
     setPicker(false);
   }
 
-  async function handleSave(stayOpen: boolean) {
-    if (!db) {
-      setErrorMsg("DB not ready");
-      return;
-    }
-    // If a recording is still in progress, finalize it so Save captures
-    // the clip (and stops the mic) instead of requiring a separate stop tap.
-    let voice = pendingVoice;
-    const flushed = await recorderRef.current?.flush();
-    if (flushed) voice = flushed;
-    if (!text.trim() && !voice) {
-      setErrorMsg("Add a note or record voice first");
-      return;
-    }
-    setSaving(true);
-    setErrorMsg(null);
-    try {
-      const now = Date.now();
-      let audioRecordingId: string | null = null;
-      if (voice) {
-        await insertAudio(db, {
-          id: voice.recordingId,
-          filePath: voice.filePath,
-          durationMs: voice.durationMs,
-          createdAt: now,
-        });
-        audioRecordingId = voice.recordingId;
-      }
-      const entry = createEntry({
-        id: uuidV4(),
-        date: now,
-        context,
-        affirmationTitle: affirmation.title,
-        text: text.trim(),
-        audioRecordingId,
-        createdAt: now,
-      });
-      await insertEntry(db, entry);
-      // Best-effort background sync; UI doesn't wait.
-      void syncJournal(db);
-      if (selectedRoles.size === 0) {
-        // Auto-tag fallback: emo (existing behavior).
-        void recordJournalMoment(db, entry);
-      } else {
-        // Explicit role tags override the auto-emo default. Insert one
-        // role_moments row per selected role, all sharing source_ref =
-        // entry.id so the role detail's "Recent moments" can group them.
-        for (const roleId of selectedRoles) {
-          void insertMoment(db, {
-            roleId,
-            timestamp: entry.date,
-            what: affirmation.title,
-            tag: context,
-            source: "manual",
-            sourceRef: entry.id,
-          });
-        }
-        void syncMoments(db);
-      }
-
-      setText("");
-      inputRef.current?.clear();
-      setPendingVoice(null);
-      setSelectedRoles(new Set());
-      await refreshTally();
-
-      if (stayOpen) {
-        setSavedHint("Saved · add another");
-        setTimeout(() => setSavedHint(null), 1500);
-      } else {
-        onClose();
-      }
-    } catch (e: any) {
-      setErrorMsg(e?.message ?? String(e));
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
-    <Modal
+    <EntryComposer
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onClose={onClose}
+      db={db}
+      initialRoleIds={initialRoleIds}
+      placeholder={PROMPTS[context]}
+      renderTally={(t) => `☀️ ${t.opportunity}  ✓ ${t.didit}  🙏 ${t.grateful}`}
+      buildEntry={({ id, date, text, audioRecordingId, createdAt }) =>
+        createEntry({
+          id,
+          date,
+          context,
+          affirmationTitle: affirmation.title,
+          text,
+          audioRecordingId,
+          createdAt,
+        })
+      }
+      errorContext="AffirmationCard"
+      errorExtra={{ affirmation: affirmation.title, ctx: context }}
+      roleTestIDPrefix="affirm-role"
     >
-      <View style={{ flex: 1, backgroundColor: "#000" }}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancel}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.tally}>
-            ☀️ {tally.opportunity}  ✓ {tally.didit}  🙏 {tally.grateful}
-          </Text>
-          <View style={{ width: 50 }} />
+      <TouchableOpacity
+        onPress={() => setPicker(!picker)}
+        style={styles.affirmationBlock}
+      >
+        <Text style={styles.affirmationTitle}>{affirmation.title}</Text>
+        <Text style={styles.affirmationSubtitle}>{affirmation.subtitle}</Text>
+        <Text style={styles.swapHint}>tap to choose a different one</Text>
+      </TouchableOpacity>
+
+      {picker && (
+        <View style={styles.pickerBox}>
+          {AFFIRMATIONS.map((a, i) => (
+            <TouchableOpacity
+              key={a.title}
+              onPress={() => selectAffirmation(i)}
+              style={[styles.pickerRow, i === index && styles.pickerRowActive]}
+            >
+              <Text style={styles.pickerTitle}>{a.title}</Text>
+              <Text style={styles.pickerSubtitle}>{a.subtitle}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
+      )}
 
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-        >
-          <TouchableOpacity
-            onPress={() => setPicker(!picker)}
-            style={styles.affirmationBlock}
-          >
-            <Text style={styles.affirmationTitle}>{affirmation.title}</Text>
-            <Text style={styles.affirmationSubtitle}>{affirmation.subtitle}</Text>
-            <Text style={styles.swapHint}>tap to choose a different one</Text>
-          </TouchableOpacity>
-
-          {picker && (
-            <View style={styles.pickerBox}>
-              {AFFIRMATIONS.map((a, i) => (
-                <TouchableOpacity
-                  key={a.title}
-                  onPress={() => selectAffirmation(i)}
-                  style={[
-                    styles.pickerRow,
-                    i === index && styles.pickerRowActive,
-                  ]}
-                >
-                  <Text style={styles.pickerTitle}>{a.title}</Text>
-                  <Text style={styles.pickerSubtitle}>{a.subtitle}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          <View style={styles.contextRow}>
-            <ContextButton
-              active={context === "opportunity"}
-              label="🎯 Opportunity"
-              onPress={() => setContext("opportunity")}
-            />
-            <ContextButton
-              active={context === "didit"}
-              label="✓ Did It"
-              onPress={() => setContext("didit")}
-            />
-          </View>
-
-          <Text style={styles.prompt}>{PROMPTS[context]}</Text>
-
-          <TextInput
-            ref={inputRef}
-            style={styles.textInput}
-            placeholder={PROMPTS[context]}
-            placeholderTextColor="#666"
-            multiline
-            defaultValue=""
-            onChangeText={setText}
-          />
-
-          <RolePickerChips
-            selected={selectedRoles}
-            onToggle={(roleId) =>
-              setSelectedRoles((prev) => {
-                const next = new Set(prev);
-                if (next.has(roleId)) next.delete(roleId);
-                else next.add(roleId);
-                return next;
-              })
-            }
-            heading="Tag roles (optional)"
-            testIDPrefix="affirm-role"
-          />
-
-          <View style={{ marginTop: 16, alignItems: "center" }}>
-            <VoiceRecorder
-              ref={recorderRef}
-              onRecorded={(v) => setPendingVoice(v)}
-              onError={(m) => setErrorMsg(m)}
-              disabled={saving}
-            />
-            {pendingVoice && (
-              <View style={styles.voiceReady}>
-                <Text style={styles.voiceReadyText}>
-                  ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
-                </Text>
-                <TouchableOpacity onPress={() => setPendingVoice(null)}>
-                  <Text style={styles.voiceClear}>discard</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-
-          {errorMsg && (
-            <CopyableError
-              message={errorMsg}
-              context="AffirmationCard"
-              extra={{
-                affirmation: affirmation.title,
-                ctx: context,
-                hasVoice: pendingVoice ? "yes" : "no",
-              }}
-              style={{ marginTop: 12 }}
-            />
-          )}
-          {savedHint && <Text style={styles.savedHint}>{savedHint}</Text>}
-
-          <View style={styles.saveRow}>
-            <TouchableOpacity
-              onPress={() => handleSave(true)}
-              disabled={saving}
-              style={[styles.saveBtn, styles.saveBtnSecondary]}
-            >
-              <Text style={styles.saveBtnText}>Save & add another</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleSave(false)}
-              disabled={saving}
-              style={styles.saveBtn}
-            >
-              <Text style={styles.saveBtnText}>{saving ? "Saving…" : "Save"}</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+      <View style={styles.contextRow}>
+        <ContextButton
+          active={context === "opportunity"}
+          label="🎯 Opportunity"
+          onPress={() => setContext("opportunity")}
+        />
+        <ContextButton
+          active={context === "didit"}
+          label="✓ Did It"
+          onPress={() => setContext("didit")}
+        />
       </View>
-    </Modal>
+
+      <Text style={styles.prompt}>{PROMPTS[context]}</Text>
+    </EntryComposer>
   );
 }
 
@@ -329,10 +128,7 @@ function ContextButton({
       style={[styles.contextBtn, active && styles.contextBtnActive]}
     >
       <Text
-        style={[
-          styles.contextBtnText,
-          active && styles.contextBtnTextActive,
-        ]}
+        style={[styles.contextBtnText, active && styles.contextBtnTextActive]}
       >
         {label}
       </Text>
@@ -341,17 +137,6 @@ function ContextButton({
 }
 
 const styles = {
-  header: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomColor: "#222",
-    borderBottomWidth: 1,
-  },
-  cancel: { color: "#4a9eff", fontSize: 16 },
-  tally: { color: "#bbb", fontSize: 13, fontVariant: ["tabular-nums" as const] },
   affirmationBlock: {
     paddingVertical: 18,
     borderBottomColor: "#222",
@@ -407,51 +192,4 @@ const styles = {
     marginTop: 16,
     fontStyle: "italic" as const,
   },
-  textInput: {
-    backgroundColor: "#1a1a1a",
-    color: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    minHeight: 100,
-    fontSize: 16,
-    marginTop: 12,
-    textAlignVertical: "top" as const,
-  },
-  voiceReady: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-    marginTop: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#1a2a1a",
-    borderRadius: 10,
-  },
-  voiceReadyText: { color: "#7fdf7f", fontSize: 14 },
-  voiceClear: { color: "#ff8a8a", fontSize: 13 },
-  errorText: {
-    color: "#ff8a8a",
-    fontSize: 13,
-    marginTop: 12,
-  },
-  savedHint: {
-    color: "#7fdf7f",
-    fontSize: 13,
-    marginTop: 12,
-    textAlign: "center" as const,
-  },
-  saveRow: {
-    flexDirection: "row" as const,
-    gap: 8,
-    marginTop: 24,
-  },
-  saveBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    backgroundColor: "#0a4a8a",
-    borderRadius: 10,
-    alignItems: "center" as const,
-  },
-  saveBtnSecondary: { backgroundColor: "#222" },
-  saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" as const },
 };

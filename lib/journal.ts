@@ -204,3 +204,19 @@ export function createGratitude(args: {
     affirmationTitle: GRATEFUL_BUCKET,
   });
 }
+
+/**
+ * Label + tag for a role-tag moment derived from a journal entry. Affirmation
+ * entries surface the affirmation title; gratitudes surface the gratitude
+ * text (falling back to "Grateful" for voice-only entries). The tag is always
+ * the entry's context. Pure, so the role-moment shape stays testable.
+ */
+export function momentMetaForEntry(entry: JournalEntry): {
+  what: string;
+  tag: JournalContext;
+} {
+  if (entry.context === "grateful") {
+    return { what: entry.text || "Grateful", tag: entry.context };
+  }
+  return { what: entry.affirmationTitle, tag: entry.context };
+}

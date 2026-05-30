@@ -5,6 +5,7 @@ import {
   groupEntries,
   isJournalContext,
   isKnownAffirmationTitle,
+  momentMetaForEntry,
   tallyByContext,
   type JournalEntry,
 } from "../lib/journal";
@@ -106,6 +107,53 @@ describe("createEntry / createGratitude", () => {
     expect(e.context).toBe("grateful");
     expect(e.affirmationTitle).toBe(GRATEFUL_BUCKET);
     expect(e.text).toBe("morning sun");
+  });
+});
+
+describe("momentMetaForEntry", () => {
+  it("uses the affirmation title + context for an affirmation entry", () => {
+    const e = createEntry({
+      id: "e1",
+      date: D1,
+      context: "opportunity",
+      affirmationTitle: "Do It Anyways",
+      text: "plan a date night",
+    });
+    expect(momentMetaForEntry(e)).toEqual({
+      what: "Do It Anyways",
+      tag: "opportunity",
+    });
+  });
+
+  it("uses the affirmation title even when the entry is voice-only", () => {
+    const e = createEntry({
+      id: "e2",
+      date: D1,
+      context: "didit",
+      affirmationTitle: "An Essentialist",
+      text: "",
+      audioRecordingId: "a1",
+    });
+    expect(momentMetaForEntry(e)).toEqual({
+      what: "An Essentialist",
+      tag: "didit",
+    });
+  });
+
+  it("uses the gratitude text for a grateful entry", () => {
+    const e = createGratitude({ id: "g1", date: D1, text: "morning sun" });
+    expect(momentMetaForEntry(e)).toEqual({
+      what: "morning sun",
+      tag: "grateful",
+    });
+  });
+
+  it("falls back to 'Grateful' for a voice-only gratitude", () => {
+    const e = createGratitude({ id: "g2", date: D1, audioRecordingId: "a2" });
+    expect(momentMetaForEntry(e)).toEqual({
+      what: "Grateful",
+      tag: "grateful",
+    });
   });
 });
 
