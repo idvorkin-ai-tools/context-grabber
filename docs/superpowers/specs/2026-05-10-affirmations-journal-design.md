@@ -89,6 +89,7 @@ Shipping just the journal first (before the habit grid) means Igor gets the high
 ### Day-to-day quality of life
 
 - The cards remember which input mode I used last (voice vs. text) and default to that next time.
+- **Third-party / dictation keyboards work in the text field.** With a dictation keyboard like Wispr Flow, the card must not blank out or collapse when the keyboard (or a tall dictation overlay) expands, and dictated text must not be dropped or scrambled as it lands.
 - Recording survives the card being briefly backgrounded (e.g. control center pulldown) — coming back to the card I can keep recording or save what I have.
 - Entries persist instantly. If I force-quit the app right after saving, the entry is still there next launch.
 - The four canonical affirmations and the Grateful bucket are present from first launch — no setup screen.
@@ -106,6 +107,7 @@ A non-technical reader should be able to walk these through on the device:
 - Press Grab Context, share to Notes. The shared JSON has a `journal.today` block listing every entry from today: each text entry includes its content, each voice entry includes its duration as a reference.
 - Receive a Humane Tracker `humane-tracker-backup-*.json` via AirDrop and open it with the app. Choose Merge. Past dates from the backup show up in the Journal under their original affirmations and contexts; today's entries logged on the phone are still present.
 - Force-quit the app immediately after saving an entry. Reopen — the entry is still in the Journal.
+- With the Wispr Flow keyboard active, open the Grateful Card and start a dictation. The card stays visible (no black/collapsed screen) while the "Listening" overlay is up, and the dictated text lands in the field intact. Repeat in the Affirmation Card.
 
 ## Open Questions for Igor
 

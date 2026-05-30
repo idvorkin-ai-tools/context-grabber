@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import * as SQLite from "expo-sqlite";
@@ -37,10 +36,16 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
   const [todayCount, setTodayCount] = useState(0);
   const [savedHint, setSavedHint] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Set<RoleId>>(new Set());
+  // Uncontrolled input: we mirror text into state for save/validation but
+  // don't drive `value`, so the native field's value isn't reconciled on
+  // every keystroke. That reconciliation fights dictation/third-party
+  // keyboards (Wispr Flow) on multiline inputs. Clear via the ref instead.
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (!visible) return;
     setText("");
+    inputRef.current?.clear();
     setPendingVoice(null);
     setErrorMsg(null);
     setSavedHint(null);
@@ -104,6 +109,7 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
       }
 
       setText("");
+      inputRef.current?.clear();
       setPendingVoice(null);
       setSelectedRoles(new Set());
       await refreshTally();
@@ -128,10 +134,7 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1, backgroundColor: "#000" }}
-      >
+      <View style={{ flex: 1, backgroundColor: "#000" }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.cancel}>Cancel</Text>
@@ -144,16 +147,18 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         >
           <Text style={styles.heading}>Grateful</Text>
           <Text style={styles.prompt}>I'm grateful for…</Text>
 
           <TextInput
+            ref={inputRef}
             style={styles.textInput}
             placeholder="I'm grateful for…"
             placeholderTextColor="#666"
             multiline
-            value={text}
+            defaultValue=""
             onChangeText={setText}
           />
 
@@ -218,7 +223,7 @@ export function GratefulCard({ visible, onClose, db, initialRoleIds }: Props) {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

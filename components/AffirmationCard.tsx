@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import * as SQLite from "expo-sqlite";
@@ -52,6 +51,9 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
   const [savedHint, setSavedHint] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Set<RoleId>>(new Set());
   const lastIndexRef = useRef(index);
+  // Uncontrolled input — see GratefulCard. Avoids value-reconciliation
+  // fighting dictation/third-party keyboards on the multiline field.
+  const inputRef = useRef<TextInput>(null);
 
   const affirmation: Affirmation = AFFIRMATIONS[index];
 
@@ -62,6 +64,7 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
     setIndex(next);
     lastIndexRef.current = next;
     setText("");
+    inputRef.current?.clear();
     setPendingVoice(null);
     setErrorMsg(null);
     setSavedHint(null);
@@ -138,6 +141,7 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
       }
 
       setText("");
+      inputRef.current?.clear();
       setPendingVoice(null);
       setSelectedRoles(new Set());
       await refreshTally();
@@ -162,10 +166,7 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1, backgroundColor: "#000" }}
-      >
+      <View style={{ flex: 1, backgroundColor: "#000" }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.cancel}>Cancel</Text>
@@ -180,6 +181,7 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         >
           <TouchableOpacity
             onPress={() => setPicker(!picker)}
@@ -224,11 +226,12 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
           <Text style={styles.prompt}>{PROMPTS[context]}</Text>
 
           <TextInput
+            ref={inputRef}
             style={styles.textInput}
             placeholder={PROMPTS[context]}
             placeholderTextColor="#666"
             multiline
-            value={text}
+            defaultValue=""
             onChangeText={setText}
           />
 
@@ -295,7 +298,7 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
