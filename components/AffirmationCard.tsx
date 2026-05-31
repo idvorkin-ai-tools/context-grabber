@@ -71,44 +71,49 @@ export function AffirmationCard({ visible, onClose, db, initialRoleIds }: Props)
       errorExtra={{ affirmation: affirmation.title, ctx: context }}
       roleTestIDPrefix="affirm-role"
     >
-      <TouchableOpacity
-        onPress={() => setPicker(!picker)}
-        style={styles.affirmationBlock}
-      >
-        <Text style={styles.affirmationTitle}>{affirmation.title}</Text>
-        <Text style={styles.affirmationSubtitle}>{affirmation.subtitle}</Text>
-        <Text style={styles.swapHint}>tap to choose a different one</Text>
-      </TouchableOpacity>
+      {({ recorder }) => (
+        <>
+          <TouchableOpacity
+            onPress={() => setPicker(!picker)}
+            style={styles.affirmationBlock}
+          >
+            <Text style={styles.affirmationTitle}>{affirmation.title}</Text>
+            <Text style={styles.affirmationSubtitle}>{affirmation.subtitle}</Text>
+            <Text style={styles.swapHint}>tap to choose a different one</Text>
+          </TouchableOpacity>
 
-      {picker && (
-        <View style={styles.pickerBox}>
-          {AFFIRMATIONS.map((a, i) => (
-            <TouchableOpacity
-              key={a.title}
-              onPress={() => selectAffirmation(i)}
-              style={[styles.pickerRow, i === index && styles.pickerRowActive]}
-            >
-              <Text style={styles.pickerTitle}>{a.title}</Text>
-              <Text style={styles.pickerSubtitle}>{a.subtitle}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+          {picker && (
+            <View style={styles.pickerBox}>
+              {AFFIRMATIONS.map((a, i) => (
+                <TouchableOpacity
+                  key={a.title}
+                  onPress={() => selectAffirmation(i)}
+                  style={[styles.pickerRow, i === index && styles.pickerRowActive]}
+                >
+                  <Text style={styles.pickerTitle}>{a.title}</Text>
+                  <Text style={styles.pickerSubtitle}>{a.subtitle}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.contextRow}>
+            <ContextButton
+              active={context === "opportunity"}
+              label="🎯 Opportunity"
+              onPress={() => setContext("opportunity")}
+            />
+            <ContextButton
+              active={context === "didit"}
+              label="✓ Did It"
+              onPress={() => setContext("didit")}
+            />
+            {recorder}
+          </View>
+
+          <Text style={styles.prompt}>{PROMPTS[context]}</Text>
+        </>
       )}
-
-      <View style={styles.contextRow}>
-        <ContextButton
-          active={context === "opportunity"}
-          label="🎯 Opportunity"
-          onPress={() => setContext("opportunity")}
-        />
-        <ContextButton
-          active={context === "didit"}
-          label="✓ Did It"
-          onPress={() => setContext("didit")}
-        />
-      </View>
-
-      <Text style={styles.prompt}>{PROMPTS[context]}</Text>
     </EntryComposer>
   );
 }
@@ -173,6 +178,7 @@ const styles = {
   pickerSubtitle: { color: "#999", fontSize: 12, marginTop: 2 },
   contextRow: {
     flexDirection: "row" as const,
+    alignItems: "center" as const,
     gap: 8,
     marginTop: 18,
   },

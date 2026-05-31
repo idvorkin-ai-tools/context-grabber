@@ -30,6 +30,11 @@ export type VoiceRecorderHandle = {
    * in-progress recording instead of requiring a separate stop tap.
    */
   flush: () => Promise<RecordedVoice | null>;
+  /**
+   * Start a fresh recording. No-op if one is already in progress. Lets the
+   * parent continue a recording streak across "Save & add another".
+   */
+  start: () => Promise<void>;
 };
 
 type Props = {
@@ -38,6 +43,11 @@ type Props = {
   /** Auto-start recording when the recorder mounts (mobile-default UX). */
   autoStart?: boolean;
   disabled?: boolean;
+  /**
+   * Compact circular mic button (for placing in a button row) instead of
+   * the full-width pill. Same tap-to-toggle behavior; red while recording.
+   */
+  compact?: boolean;
 };
 
 /**
@@ -48,7 +58,7 @@ type Props = {
  * row + pairing it with the journal entry.
  */
 export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
-  function VoiceRecorder({ onRecorded, onError, autoStart, disabled }, ref) {
+  function VoiceRecorder({ onRecorded, onError, autoStart, disabled, compact }, ref) {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const state = useAudioRecorderState(recorder, 250);
   const [permissionAsked, setPermissionAsked] = useState(false);
@@ -66,6 +76,9 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
   // state + stop(); Save calls this to finalize an in-progress clip.
   useImperativeHandle(ref, () => ({
     flush: async () => (state.isRecording ? await stop() : null),
+    start: async () => {
+      if (!state.isRecording) await start();
+    },
   }));
 
   async function start() {
@@ -140,11 +153,36 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
       ? Math.floor((Date.now() - startTimeRef.current) / 1000)
       : 0;
 
+  if (compact) {
+    return (
+      <TouchableOpacity
+        onPress={recording ? stop : start}
+        disabled={disabled}
+        testID="voice-record-toggle"
+        accessibilityLabel={recording ? "Stop recording" : "Record voice"}
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: 26,
+          backgroundColor: recording ? "#d44" : "#1a1a1a",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: recording ? 18 : 22 }}>
+          {recording ? "■" : "🎤"}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <View style={{ alignItems: "center" }}>
       <TouchableOpacity
         onPress={recording ? stop : start}
         disabled={disabled}
+        testID="voice-record-toggle"
+        accessibilityLabel={recording ? "Stop recording" : "Record voice"}
         style={{
           backgroundColor: recording ? "#d44" : "#2a2a2a",
           paddingVertical: 14,
