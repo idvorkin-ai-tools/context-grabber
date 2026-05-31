@@ -522,6 +522,7 @@ export default function App() {
   } | null>(null);
   const [otaUpdateReady, setOtaUpdateReady] = useState(false);
   const [counterValue, setCounterValue] = useState(0);
+  const [journalReloadKey, setJournalReloadKey] = useState(0);
   const [affirmationVisible, setAffirmationVisible] = useState(false);
   const [gratefulVisible, setGratefulVisible] = useState(false);
   const [journalVisible, setJournalVisible] = useState(false);
@@ -1827,6 +1828,9 @@ export default function App() {
           exerciseMinutesWeekly={(weeklyCache.exerciseMinutes as DailyValue[] | undefined) ?? null}
           workoutsToday={snapshot?.health.workouts ?? []}
           workoutsByDay={workoutsByDay}
+          counterValue={counterValue}
+          onCounterIncrement={handleCounterIncrement}
+          onCounterReset={handleCounterReset}
           onLaunchPreset={(preset) => {
             setTimerIntent({ mode: "rounds", preset, autostart: false });
             setGymTimerVisible(true);
@@ -1837,14 +1841,12 @@ export default function App() {
       {activeTab === "mind" && (
         <MindScreen
           db={db}
-          counterValue={counterValue}
           todayMeditationMinutes={snapshot?.health.meditationMinutes ?? null}
           weeklyMeditation={(weeklyCache.meditation as DailyValue[] | undefined) ?? null}
           onOpenAffirmation={() => setAffirmationVisible(true)}
           onOpenGrateful={() => setGratefulVisible(true)}
           onOpenJournal={() => setJournalVisible(true)}
-          onCounterIncrement={handleCounterIncrement}
-          onCounterReset={handleCounterReset}
+          journalReloadKey={journalReloadKey}
         />
       )}
       {activeTab === "places" && (
@@ -1879,6 +1881,7 @@ export default function App() {
         onClose={() => {
           setAffirmationVisible(false);
           void refreshReflectTally();
+          setJournalReloadKey((k) => k + 1);
         }}
         db={db}
       />
@@ -1888,6 +1891,7 @@ export default function App() {
         onClose={() => {
           setGratefulVisible(false);
           void refreshReflectTally();
+          setJournalReloadKey((k) => k + 1);
         }}
         db={db}
       />
@@ -1897,6 +1901,7 @@ export default function App() {
         onClose={() => {
           setJournalVisible(false);
           void refreshReflectTally();
+          setJournalReloadKey((k) => k + 1);
         }}
         db={db}
       />

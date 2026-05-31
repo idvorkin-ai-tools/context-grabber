@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { RingProgress } from "../components/RingProgress";
+import TallyCounter from "../components/TallyCounter";
 import type { DailyValue } from "../lib/weekly";
 import type { WorkoutEntry } from "../lib/health";
 
@@ -38,6 +39,10 @@ type Props = {
   onLaunchPreset: (presetId: Preset["id"]) => void;
   /** Tap a workout row → open WorkoutAnalysisScreen. */
   onSelectWorkout: (workout: WorkoutEntry) => void;
+  /** Tap-counter value (relocated from the Mind tab). */
+  counterValue: number;
+  onCounterIncrement: () => void;
+  onCounterReset: () => void;
 };
 
 export function MoveScreen({
@@ -46,6 +51,9 @@ export function MoveScreen({
   workoutsByDay,
   onLaunchPreset,
   onSelectWorkout,
+  counterValue,
+  onCounterIncrement,
+  onCounterReset,
 }: Props) {
   const weeklyTotalMin = useMemo(() => {
     if (!exerciseMinutesWeekly) return 0;
@@ -81,6 +89,31 @@ export function MoveScreen({
         <Text style={styles.title}>Move</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.sectionHeading}>Tally</Text>
+        <View style={styles.counterCard}>
+          <TallyCounter
+            value={counterValue}
+            onPress={onCounterIncrement}
+            testID="move-counter-tally"
+          />
+          <TouchableOpacity
+            onPress={onCounterIncrement}
+            style={styles.counterPlusOne}
+            testID="move-counter-plus-one"
+            accessibilityLabel="Add one to counter"
+          >
+            <Text style={styles.counterPlusOneText}>+1</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onCounterReset}
+            style={styles.counterReset}
+            testID="move-counter-reset"
+            accessibilityLabel="Reset counter"
+          >
+            <Text style={styles.counterResetText}>↺</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.ringRow}>
           <RingProgress
             value={Math.round(weeklyTotalMin)}
@@ -234,4 +267,32 @@ const styles = StyleSheet.create({
   workoutTitle: { color: "#e0e0e0", fontSize: 15, fontWeight: "600" },
   workoutMeta: { color: "#888", fontSize: 12, marginTop: 2 },
   workoutWhen: { color: "#666", fontSize: 12 },
+  counterCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#16213e",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  counterPlusOne: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(76, 201, 240, 0.18)",
+    marginLeft: "auto",
+    marginRight: 8,
+  },
+  counterPlusOneText: { color: "#4cc9f0", fontSize: 15, fontWeight: "700" },
+  counterReset: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2a2a40",
+  },
+  counterResetText: { color: "#888", fontSize: 18, fontWeight: "600" },
 });

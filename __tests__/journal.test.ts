@@ -4,6 +4,7 @@ import {
   dayKey,
   groupEntries,
   groupEntriesByRole,
+  recentEntries,
   isJournalContext,
   isKnownAffirmationTitle,
   momentMetaForEntry,
@@ -353,5 +354,42 @@ describe("groupEntriesByRole", () => {
       "opportunity",
       "grateful",
     ]);
+  });
+});
+
+describe("recentEntries", () => {
+  const NOW = Date.UTC(2026, 4, 31, 12, 0, 0);
+  function at(id: string, msAgo: number) {
+    return createEntry({
+      id,
+      date: NOW - msAgo,
+      context: "opportunity",
+      affirmationTitle: "Do It Anyways",
+      text: id,
+    });
+  }
+  const HOUR = 3600_000;
+
+  it("keeps entries within the window and drops older ones", () => {
+    const inWindow = at("in", 23 * HOUR);
+    const tooOld = at("old", 25 * HOUR);
+    const result = recentEntries([tooOld, inWindow], 24, NOW);
+    expect(result.map((e) => e.id)).toEqual(["in"]);
+  });
+
+  it("sorts newest first", () => {
+    const older = at("older", 10 * HOUR);
+    const newer = at("newer", 1 * HOUR);
+    const result = recentEntries([older, newer], 24, NOW);
+    expect(result.map((e) => e.id)).toEqual(["newer", "older"]);
+  });
+
+  it("includes an entry exactly at the window edge", () => {
+    const edge = at("edge", 24 * HOUR);
+    expect(recentEntries([edge], 24, NOW).map((e) => e.id)).toEqual(["edge"]);
+  });
+
+  it("returns empty for an empty input", () => {
+    expect(recentEntries([], 24, NOW)).toEqual([]);
   });
 });

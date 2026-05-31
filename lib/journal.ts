@@ -225,6 +225,22 @@ export function groupEntriesByRole(
   return days;
 }
 
+/**
+ * Entries logged within the last `hours` (rolling window ending at `now`),
+ * newest first. Pure — powers the Mind tab's "Recent (24h)" list. The edge
+ * is inclusive: an entry exactly `hours` old is kept.
+ */
+export function recentEntries(
+  entries: JournalEntry[],
+  hours: number,
+  now: number,
+): JournalEntry[] {
+  const cutoff = now - hours * 3600_000;
+  return entries
+    .filter((e) => e.date >= cutoff)
+    .sort((a, b) => b.date - a.date);
+}
+
 // ── Tally for the card chip ─────────────────────────────────────────────────
 
 export function tallyByContext(
