@@ -64,6 +64,10 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
   const [permissionAsked, setPermissionAsked] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  // Synchronous recording flag. `state.isRecording` is polled every 250ms,
+  // so it lags real start/stop — a flush()→start() sequence within one tick
+  // would read a stale value. The imperative handle uses this ref instead.
+  const isRecordingRef = useRef(false);
 
   useEffect(() => {
     if (autoStart && !permissionAsked && !state.isRecording) {
@@ -75,13 +79,14 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
   // Recreated each render so it always closes over the latest recording
   // state + stop(); Save calls this to finalize an in-progress clip.
   useImperativeHandle(ref, () => ({
-    flush: async () => (state.isRecording ? await stop() : null),
+    flush: async () => (isRecordingRef.current ? await stop() : null),
     start: async () => {
-      if (!state.isRecording) await start();
+      await start();
     },
   }));
 
   async function start() {
+    if (isRecordingRef.current) return;
     try {
       if (!permissionAsked) {
         const perm = await requestRecordingPermissionsAsync();
@@ -109,6 +114,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
       // which manifests as "tap does nothing" with no error.
       await recorder.prepareToRecordAsync();
       recorder.record();
+      isRecordingRef.current = true;
       // Stash the target path on the recorder via closure — used in stop().
       (recorder as any).__targetPath = path;
     } catch (e: any) {
@@ -117,6 +123,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
   }
 
   async function stop(): Promise<RecordedVoice | null> {
+    isRecordingRef.current = false;
     try {
       await recorder.stop();
       const sourceUri = recorder.uri;
