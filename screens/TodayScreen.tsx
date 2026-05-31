@@ -14,6 +14,7 @@ import { StylizedMap } from "../components/StylizedMap";
 import type { ContextSnapshot } from "../lib/appTypes";
 import type { KnownPlace } from "../lib/places";
 import { clusterLocationsV2 } from "../lib/clustering_v2";
+import { buildTodaysRoute } from "../lib/location";
 import { buildPlacesDailySummary } from "../lib/places_summary";
 import { assignPlaceColors } from "../lib/places_colors";
 import type { LocationHistoryItem } from "../lib/db";
@@ -102,11 +103,9 @@ export function TodayScreen({
       .filter((s) => s.endTime >= startMs && s.startTime <= now)
       .sort((a, b) => a.startTime - b.startTime);
 
-    const path = todaysStays.map((s) => ({
-      lat: s.centroid.latitude,
-      lon: s.centroid.longitude,
-      timestamp: s.startTime,
-    }));
+    // The map line follows the actual GPS breadcrumb trail for today, not
+    // straight segments between stay centroids (see real-route design spec).
+    const path = buildTodaysRoute(rawPoints, now);
 
     const todaysPlaceIds = new Set(todaysStays.map((s) => s.placeId));
     const todaysKnownPlaces = knownPlaces.filter((p) =>
