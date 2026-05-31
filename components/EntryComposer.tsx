@@ -26,6 +26,12 @@ import { RolePickerChips } from "./RolePickerChips";
 
 export type EntryTally = { opportunity: number; didit: number; grateful: number };
 
+/** Composer-owned elements a card can place within its own layout. */
+export type ComposerSlots = {
+  /** The voice-record control (compact mic when a card hosts it inline). */
+  recorder: React.ReactNode;
+};
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -36,8 +42,14 @@ type Props = {
   placeholder: string;
   /** Header right-side tally text, given today's counts. */
   renderTally: (t: EntryTally) => string;
-  /** Card-specific content rendered above the text field. */
-  children?: React.ReactNode;
+  /**
+   * Card-specific content rendered above the text field. Pass a render
+   * function to place composer-owned controls (e.g. the mic) inside the
+   * card's own layout — when a function is given, the composer does NOT
+   * render the recorder itself; the card decides where `slots.recorder`
+   * goes. A plain node keeps the default full-width recorder at the bottom.
+   */
+  children?: React.ReactNode | ((slots: ComposerSlots) => React.ReactNode);
   /** Build the JournalEntry to persist from the composed text/voice. */
   buildEntry: (args: {
     id: string;
@@ -120,6 +132,9 @@ export function EntryComposer({
     let voice = pendingVoice;
     const flushed = await recorderRef.current?.flush();
     if (flushed) voice = flushed;
+    // Were we actively recording at save time? Used below to continue the
+    // recording streak across "Save & add another".
+    const wasRecording = flushed != null;
 
     const text = textRef.current.trim();
     if (!text && !voice) {
@@ -180,6 +195,10 @@ export function EntryComposer({
       if (stayOpen) {
         setSavedHint("Saved · add another");
         setTimeout(() => setSavedHint(null), 1500);
+        // Continue the streak: if we were recording when Save & add another
+        // was tapped, start a fresh recording for the new blank entry so the
+        // user can keep dictating without re-tapping the mic.
+        if (wasRecording) void recorderRef.current?.start();
       } else {
         onClose();
       }
@@ -189,6 +208,19 @@ export function EntryComposer({
       setSaving(false);
     }
   }
+
+  // When children is a render function, the card places the recorder inline
+  // (compact mic in its own row); otherwise the composer renders it full-width.
+  const inline = typeof children === "function";
+  const recorderEl = (
+    <VoiceRecorder
+      ref={recorderRef}
+      compact={inline}
+      onRecorded={(v) => setPendingVoice(v)}
+      onError={(m) => setErrorMsg(m)}
+      disabled={saving}
+    />
+  );
 
   return (
     <Modal
@@ -212,7 +244,11 @@ export function EntryComposer({
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         >
-          {children}
+          {inline
+            ? (children as (slots: ComposerSlots) => React.ReactNode)({
+                recorder: recorderEl,
+              })
+            : children}
 
           <TextInput
             ref={inputRef}
@@ -240,24 +276,23 @@ export function EntryComposer({
             testIDPrefix={roleTestIDPrefix}
           />
 
-          <View style={{ marginTop: 16, alignItems: "center" }}>
-            <VoiceRecorder
-              ref={recorderRef}
-              onRecorded={(v) => setPendingVoice(v)}
-              onError={(m) => setErrorMsg(m)}
-              disabled={saving}
-            />
-            {pendingVoice && (
-              <View style={styles.voiceReady}>
-                <Text style={styles.voiceReadyText}>
-                  ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
-                </Text>
-                <TouchableOpacity onPress={() => setPendingVoice(null)}>
-                  <Text style={styles.voiceClear}>discard</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+          {/* Full-width recorder only when the card didn't place it inline. */}
+          {!inline && (
+            <View style={{ marginTop: 16, alignItems: "center" }}>
+              {recorderEl}
+            </View>
+          )}
+
+          {pendingVoice && (
+            <View style={styles.voiceReady}>
+              <Text style={styles.voiceReadyText}>
+                ✓ voice ready · {Math.round(pendingVoice.durationMs / 1000)}s
+              </Text>
+              <TouchableOpacity onPress={() => setPendingVoice(null)}>
+                <Text style={styles.voiceClear}>discard</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {errorMsg && (
             <CopyableError
