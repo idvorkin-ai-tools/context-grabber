@@ -30,6 +30,11 @@ export type VoiceRecorderHandle = {
    * in-progress recording instead of requiring a separate stop tap.
    */
   flush: () => Promise<RecordedVoice | null>;
+  /**
+   * Start a fresh recording. No-op if one is already in progress. Lets the
+   * parent continue a recording streak across "Save & add another".
+   */
+  start: () => Promise<void>;
 };
 
 type Props = {
@@ -38,6 +43,11 @@ type Props = {
   /** Auto-start recording when the recorder mounts (mobile-default UX). */
   autoStart?: boolean;
   disabled?: boolean;
+  /**
+   * Compact circular mic button (for placing in a button row) instead of
+   * the full-width pill. Same tap-to-toggle behavior; red while recording.
+   */
+  compact?: boolean;
 };
 
 /**
@@ -48,12 +58,16 @@ type Props = {
  * row + pairing it with the journal entry.
  */
 export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
-  function VoiceRecorder({ onRecorded, onError, autoStart, disabled }, ref) {
+  function VoiceRecorder({ onRecorded, onError, autoStart, disabled, compact }, ref) {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const state = useAudioRecorderState(recorder, 250);
   const [permissionAsked, setPermissionAsked] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  // Synchronous recording flag. `state.isRecording` is polled every 250ms,
+  // so it lags real start/stop — a flush()→start() sequence within one tick
+  // would read a stale value. The imperative handle uses this ref instead.
+  const isRecordingRef = useRef(false);
 
   useEffect(() => {
     if (autoStart && !permissionAsked && !state.isRecording) {
@@ -65,10 +79,14 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
   // Recreated each render so it always closes over the latest recording
   // state + stop(); Save calls this to finalize an in-progress clip.
   useImperativeHandle(ref, () => ({
-    flush: async () => (state.isRecording ? await stop() : null),
+    flush: async () => (isRecordingRef.current ? await stop() : null),
+    start: async () => {
+      await start();
+    },
   }));
 
   async function start() {
+    if (isRecordingRef.current) return;
     try {
       if (!permissionAsked) {
         const perm = await requestRecordingPermissionsAsync();
@@ -96,6 +114,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
       // which manifests as "tap does nothing" with no error.
       await recorder.prepareToRecordAsync();
       recorder.record();
+      isRecordingRef.current = true;
       // Stash the target path on the recorder via closure — used in stop().
       (recorder as any).__targetPath = path;
     } catch (e: any) {
@@ -104,6 +123,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
   }
 
   async function stop(): Promise<RecordedVoice | null> {
+    isRecordingRef.current = false;
     try {
       await recorder.stop();
       const sourceUri = recorder.uri;
@@ -140,11 +160,36 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, Props>(
       ? Math.floor((Date.now() - startTimeRef.current) / 1000)
       : 0;
 
+  if (compact) {
+    return (
+      <TouchableOpacity
+        onPress={recording ? stop : start}
+        disabled={disabled}
+        testID="voice-record-toggle"
+        accessibilityLabel={recording ? "Stop recording" : "Record voice"}
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: 26,
+          backgroundColor: recording ? "#d44" : "#1a1a1a",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: recording ? 18 : 22 }}>
+          {recording ? "■" : "🎤"}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <View style={{ alignItems: "center" }}>
       <TouchableOpacity
         onPress={recording ? stop : start}
         disabled={disabled}
+        testID="voice-record-toggle"
+        accessibilityLabel={recording ? "Stop recording" : "Record voice"}
         style={{
           backgroundColor: recording ? "#d44" : "#2a2a2a",
           paddingVertical: 14,
