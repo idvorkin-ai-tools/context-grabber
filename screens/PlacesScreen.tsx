@@ -26,6 +26,7 @@ import {
   type LocationHistoryItem,
 } from "../lib/db";
 import { clusterLocationsV2 } from "../lib/clustering_v2";
+import { buildTodaysRoute } from "../lib/location";
 import { buildPlacesDailySummary } from "../lib/places_summary";
 import { haversineDistance } from "../lib/geo";
 
@@ -122,25 +123,13 @@ export function PlacesScreen({
     return assignPlaceColors(ids);
   }, [placesDailySummary]);
 
-  // Today's path overlay — stay centroids in chronological order, filtered
-  // to stays that overlap today's local-time window. Used by StylizedMap to
-  // draw a polyline between the day's visited known places. Per issue #42
-  // Option A: "Overlay today's location path (breadcrumbs / route)".
-  const todaysPath = useMemo(() => {
-    if (!clusterResult) return [];
-    const now = Date.now();
-    const dayStart = new Date(now);
-    dayStart.setHours(0, 0, 0, 0);
-    const startMs = dayStart.getTime();
-    return clusterResult.stays
-      .filter((s) => s.endTime >= startMs && s.startTime <= now)
-      .sort((a, b) => a.startTime - b.startTime)
-      .map((s) => ({
-        lat: s.centroid.latitude,
-        lon: s.centroid.longitude,
-        timestamp: s.startTime,
-      }));
-  }, [clusterResult]);
+  // Today's path overlay — the actual GPS breadcrumb trail for today (thinned),
+  // so the map line follows the real route rather than straight segments
+  // between visited-place centroids. Per the real-route design spec.
+  const todaysPath = useMemo(
+    () => buildTodaysRoute(rawPoints, Date.now()),
+    [rawPoints],
+  );
 
   // Tap on the [+] button next to a "Place N" row in PlacesDailyBreakdown.
   // Inspect proximity to known places and open either the merge-preview or
