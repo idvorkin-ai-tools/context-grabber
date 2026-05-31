@@ -270,7 +270,7 @@ function MapSurface({
           hitSlop={8}
         >
           <Text style={styles.controlGlyph}>
-            {copyState === "copied" ? "✓" : "📋"}
+            {copyState === "copied" ? "✓" : "⧉"}
           </Text>
         </TouchableOpacity>
       )}
@@ -392,18 +392,19 @@ const styles = StyleSheet.create({
   },
 });
 
-// Control positions differ between embedded (compact, bottom-right stack) and
-// fullscreen (close at top clearing the notch, actions above the home bar).
+// All three controls stack at the top-right, out of the way of the map
+// content. Fullscreen on top, then find-me, then copy. The fullscreen
+// variant starts lower to clear the notch.
 const embeddedPositions = StyleSheet.create({
   fullscreen: { top: 8, right: 8 },
-  findMe: { bottom: 48, right: 8 },
-  copy: { bottom: 8, right: 8 },
+  findMe: { top: 48, right: 8 },
+  copy: { top: 88, right: 8 },
 });
 
 const fsPositions = StyleSheet.create({
   fullscreen: { top: 54, right: 16 },
-  findMe: { bottom: 96, right: 16 },
-  copy: { bottom: 48, right: 16 },
+  findMe: { top: 94, right: 16 },
+  copy: { top: 134, right: 16 },
 });
 
 const pinStyles = StyleSheet.create({
