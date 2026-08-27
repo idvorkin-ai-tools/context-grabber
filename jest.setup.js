@@ -154,6 +154,23 @@ jest.mock('react-native-maps', () => {
   };
 });
 
+// Mock react-native-webview (no WKWebView in tests). Rendered as a plain
+// View that still forwards testID/props so assertions can inspect the
+// media-capture and refresh props we depend on.
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const WebView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      reload: () => {},
+      goBack: () => {},
+      injectJavaScript: () => {},
+    }));
+    return React.createElement(View, props);
+  });
+  return { __esModule: true, WebView, default: WebView };
+});
+
 // Mock react-native-audio-api
 jest.mock('react-native-audio-api', () => ({
   AudioContext: jest.fn().mockImplementation(() => ({

@@ -1,0 +1,219 @@
+import React, { useCallback, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { WebView } from "react-native-webview";
+import { CopyableError } from "../components/CopyableError";
+
+/**
+ * Igor's decision Cockpit. Served only on the tailnet — there is no
+ * public route to it, which is exactly why the app carries no auth for
+ * it. Reaching the host at all is the authentication.
+ */
+export const COCKPIT_URL = "https://c-5004.squeaker-teeth.ts.net";
+
+/** Host portion of COCKPIT_URL, used to decide what stays in the tab. */
+const COCKPIT_HOST = "c-5004.squeaker-teeth.ts.net";
+
+type Props = {
+  /**
+   * False while another tab is showing. The screen stays mounted and is
+   * merely hidden, so the Cockpit keeps its scroll position, its expanded
+   * rows, and any in-flight recording across tab switches.
+   */
+  visible?: boolean;
+  /** Override the loaded URL. Tests only. */
+  url?: string;
+};
+
+export function CockpitScreen({ visible = true, url = COCKPIT_URL }: Props) {
+  const webRef = useRef<WebView>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // Bumped on every manual retry to force a fresh WebView mount — reload()
+  // on a WebView that failed its very first load is unreliable.
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setLoading(true);
+    setReloadKey((k) => k + 1);
+  }, []);
+
+  const handleReload = useCallback(() => {
+    if (error) {
+      handleRetry();
+      return;
+    }
+    setLoading(true);
+    webRef.current?.reload();
+  }, [error, handleRetry]);
+
+  /**
+   * Keep the tab pinned to the Cockpit. Anything on another host (a
+   * GitHub PR link, an external article) is handed to the system
+   * browser instead of turning this tab into a browsing session — which
+   * also keeps the media-capture grant scoped to the one origin.
+   */
+  const handleShouldStartLoad = useCallback(
+    (request: { url: string; navigationType?: string }) => {
+      let host = "";
+      try {
+        host = new URL(request.url).host;
+      } catch {
+        return true;
+      }
+      if (host === COCKPIT_HOST) return true;
+      if (request.url.startsWith("about:")) return true;
+      Linking.openURL(request.url).catch(() => {});
+      return false;
+    },
+    [],
+  );
+
+  return (
+    <View
+      style={[styles.container, !visible && styles.hidden]}
+      testID="cockpit-screen"
+      // Hidden tabs shouldn't be reachable by VoiceOver or Maestro.
+      pointerEvents={visible ? "auto" : "none"}
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>Cockpit</Text>
+        <TouchableOpacity
+          onPress={handleReload}
+          style={styles.reloadBtn}
+          testID="cockpit-reload"
+          accessibilityRole="button"
+          accessibilityLabel="Reload Cockpit"
+        >
+          <Text style={styles.reloadBtnText}>↻</Text>
+        </TouchableOpacity>
+      </View>
+
+      {error ? (
+        <View style={styles.errorPane} testID="cockpit-error">
+          <Text style={styles.errorTitle}>Can&apos;t reach the Cockpit</Text>
+          <Text style={styles.errorHint}>
+            Check that Tailscale is connected and the machine serving the
+            Cockpit is awake.
+          </Text>
+          <Text style={styles.errorUrl} selectable>
+            {url}
+          </Text>
+          <TouchableOpacity
+            onPress={handleRetry}
+            style={styles.retryBtn}
+            testID="cockpit-retry"
+            accessibilityRole="button"
+          >
+            <Text style={styles.retryBtnText}>Try again</Text>
+          </TouchableOpacity>
+          <CopyableError
+            message={error}
+            context="CockpitScreen.load"
+            extra={{ url }}
+          />
+        </View>
+      ) : (
+        <View style={styles.webWrap}>
+          <WebView
+            key={reloadKey}
+            ref={webRef}
+            testID="cockpit-webview"
+            source={{ uri: url }}
+            // --- media: let the Cockpit's voice controls work ---
+            // iOS grants getUserMedia to same-host content and defers to
+            // the system prompt for anything else. The app-level mic
+            // alert is iOS's own (NSMicrophoneUsageDescription is
+            // already declared for voice notes) — no custom UI.
+            mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            allowsAirPlayForMediaPlayback
+            // --- navigation ---
+            onShouldStartLoadWithRequest={handleShouldStartLoad}
+            setSupportMultipleWindows={false}
+            allowsBackForwardNavigationGestures
+            // --- refresh ---
+            pullToRefreshEnabled
+            // --- lifecycle ---
+            onLoadStart={() => setLoading(true)}
+            onLoadEnd={() => setLoading(false)}
+            onError={(e) => {
+              const { description, code } = e.nativeEvent;
+              setLoading(false);
+              setError(`${description ?? "Load failed"} (code ${code})`);
+            }}
+            onHttpError={(e) => {
+              const { statusCode, description } = e.nativeEvent;
+              setLoading(false);
+              setError(
+                `HTTP ${statusCode}${description ? ` — ${description}` : ""}`,
+              );
+            }}
+            // iOS reclaims the web content process on memory pressure while
+            // backgrounded; without this the tab comes back as a white void.
+            onContentProcessDidTerminate={() => webRef.current?.reload()}
+            style={styles.web}
+            // Match the app chrome so the load flash isn't a white slab.
+            containerStyle={styles.webContainer}
+          />
+          {loading && (
+            <View style={styles.loadingOverlay} testID="cockpit-loading">
+              <ActivityIndicator size="large" color="#4cc9f0" />
+              <Text style={styles.loadingText}>Cockpit</Text>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#1a1a2e" },
+  hidden: { display: "none" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 10,
+    backgroundColor: "#0c121f",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#222",
+  },
+  title: { color: "#eee", fontSize: 20, fontWeight: "700" },
+  reloadBtn: { paddingHorizontal: 12, paddingVertical: 6 },
+  reloadBtnText: { color: "#4cc9f0", fontSize: 22, lineHeight: 26 },
+  webWrap: { flex: 1 },
+  web: { flex: 1, backgroundColor: "#1a1a2e" },
+  webContainer: { backgroundColor: "#1a1a2e" },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1a1a2e",
+    gap: 10,
+  },
+  loadingText: { color: "#888", fontSize: 13, letterSpacing: 1 },
+  errorPane: { flex: 1, padding: 24, gap: 12 },
+  errorTitle: { color: "#eee", fontSize: 18, fontWeight: "700" },
+  errorHint: { color: "#aaa", fontSize: 14, lineHeight: 20 },
+  errorUrl: { color: "#4cc9f0", fontSize: 13, fontFamily: "Menlo" },
+  retryBtn: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: "#243447",
+  },
+  retryBtnText: { color: "#4cc9f0", fontSize: 15, fontWeight: "600" },
+});

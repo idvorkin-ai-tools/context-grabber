@@ -245,7 +245,7 @@ describe("Tab navigation", () => {
     expect(getByTestId("tab-bar")).toBeTruthy();
   });
 
-  it("renders all six tabs in spec order", async () => {
+  it("renders all seven tabs in spec order", async () => {
     const { getByTestId } = await renderApp();
     expect(getByTestId("tab-today")).toBeTruthy();
     expect(getByTestId("tab-body")).toBeTruthy();
@@ -253,6 +253,7 @@ describe("Tab navigation", () => {
     expect(getByTestId("tab-mind")).toBeTruthy();
     expect(getByTestId("tab-places")).toBeTruthy();
     expect(getByTestId("tab-roles")).toBeTruthy();
+    expect(getByTestId("tab-cockpit")).toBeTruthy();
   });
 
   it("starts on Today tab", async () => {
@@ -293,6 +294,26 @@ describe("Tab navigation", () => {
     expect(result.getByTestId("role-row-zach")).toBeTruthy();
     expect(result.getByTestId("role-row-smiles")).toBeTruthy();
     expect(result.getByTestId("roles-add-moment")).toBeTruthy();
+  });
+
+  it("switches to Cockpit tab and mounts the web view", async () => {
+    const result = await renderApp();
+    expect(result.queryByTestId("cockpit-webview")).toBeNull();
+    await gotoTab(result, "cockpit");
+    expect(result.getByTestId("cockpit-webview")).toBeTruthy();
+  });
+
+  it("keeps the Cockpit mounted after switching away from it", async () => {
+    const result = await renderApp();
+    await gotoTab(result, "cockpit");
+    await gotoTab(result, "today");
+    // Still mounted (so the web session survives), just hidden — hidden
+    // elements need an explicit opt-in to be queryable.
+    expect(result.queryByTestId("cockpit-webview")).toBeNull();
+    expect(
+      result.getByTestId("cockpit-webview", { includeHiddenElements: true }),
+    ).toBeTruthy();
+    expect(result.getByText("Context Grabber")).toBeTruthy();
   });
 
   it("tap '+ Tag moment' opens the role picker sheet", async () => {
