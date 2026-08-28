@@ -7,7 +7,14 @@ import {
   View,
 } from "react-native";
 
-export type TabId = "today" | "body" | "move" | "mind" | "places" | "roles";
+export type TabId =
+  | "today"
+  | "body"
+  | "move"
+  | "mind"
+  | "places"
+  | "roles"
+  | "cockpit";
 
 type TabDef = { id: TabId; label: string; icon: string };
 
@@ -18,6 +25,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   { id: "mind", label: "Mind", icon: "○" },
   { id: "places", label: "Places", icon: "◆" },
   { id: "roles", label: "Roles", icon: "★" },
+  { id: "cockpit", label: "Cockpit", icon: "✈" },
 ];
 
 type Props = {
@@ -43,7 +51,10 @@ export function TabBar({ active, onChange }: Props) {
             <Text style={[styles.icon, isActive && styles.iconActive]}>
               {t.icon}
             </Text>
-            <Text style={[styles.label, isActive && styles.labelActive]}>
+            <Text
+              style={[styles.label, isActive && styles.labelActive]}
+              numberOfLines={1}
+            >
               {t.label}
             </Text>
           </Pressable>

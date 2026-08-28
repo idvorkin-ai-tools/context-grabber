@@ -19,8 +19,13 @@ test:
 deploy device="Igor iPhone 17" udid="856A38BD-04D3-5D27-8485-E09FEF892783": generate-version
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ ! -d ios/Pods ]; then
-      echo "==> ios/Pods missing — running pod install..."
+    # Pods are stale when they're absent OR when Podfile.lock has moved on
+    # from the installed Pods/Manifest.lock — which is what happens after a
+    # new native module lands in package.json (e.g. react-native-webview).
+    # Without this check the build succeeds and the app red-screens at
+    # runtime with a missing native view manager.
+    if [ ! -d ios/Pods ] || ! diff -q ios/Podfile.lock ios/Pods/Manifest.lock >/dev/null 2>&1; then
+      echo "==> Pods missing or out of date — running pod install..."
       (cd ios && PATH="/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH" pod install)
     fi
     echo "==> Building release..."

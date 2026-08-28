@@ -16,7 +16,7 @@ module.exports = {
       testMatch: ["**/*.test.tsx"],
       testPathIgnorePatterns: ["/__tests__/fixtures/"],
       transformIgnorePatterns: [
-        "node_modules/(?!(react-native|@react-native|expo|react-native-audio-api|expo-location|expo-sqlite|expo-task-manager|expo-status-bar|expo-file-system|expo-sharing|expo-clipboard|@kingstinct|expo-modules-core)/)",
+        "node_modules/(?!(react-native|@react-native|expo|react-native-audio-api|react-native-webview|expo-location|expo-sqlite|expo-task-manager|expo-status-bar|expo-file-system|expo-sharing|expo-clipboard|@kingstinct|expo-modules-core)/)",
       ],
       moduleNameMapper: {
         "\\.(mp3|wav|m4a|aac|aif|aiff)$": "<rootDir>/__tests__/fixtures/audioStub.js",

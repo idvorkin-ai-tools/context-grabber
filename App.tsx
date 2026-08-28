@@ -95,6 +95,7 @@ import { MoveScreen } from "./screens/MoveScreen";
 import { MindScreen } from "./screens/MindScreen";
 import { PlacesScreen } from "./screens/PlacesScreen";
 import { RolesScreen } from "./screens/RolesScreen";
+import { CockpitScreen } from "./screens/CockpitScreen";
 import type { ContextSnapshot, LocationData } from "./lib/appTypes";
 
 // --- Constants ---
@@ -528,6 +529,14 @@ export default function App() {
   const [journalVisible, setJournalVisible] = useState(false);
   const [reflectTally, setReflectTally] = useState({ opportunity: 0, didit: 0, grateful: 0 });
   const [activeTab, setActiveTab] = useState<TabId>("today");
+  // The Cockpit is a live web session — remounting it on every tab switch
+  // would drop scroll position and any in-flight recording. Mount it lazily
+  // on first visit, then keep it mounted and merely hidden.
+  const [cockpitMounted, setCockpitMounted] = useState(false);
+  const handleTabChange = useCallback((id: TabId) => {
+    if (id === "cockpit") setCockpitMounted(true);
+    setActiveTab(id);
+  }, []);
 
   // Configure CloudKit once at boot. Safe to call before iCloud account is known —
   // configure() just registers the container ID; account status is checked lazily.
@@ -1864,8 +1873,9 @@ export default function App() {
       {activeTab === "roles" && (
         <RolesScreen db={db} weeklyCache={weeklyCache} />
       )}
+      {cockpitMounted && <CockpitScreen visible={activeTab === "cockpit"} />}
 
-      <TabBar active={activeTab} onChange={setActiveTab} />
+      <TabBar active={activeTab} onChange={handleTabChange} />
 
       <AboutModal
         visible={aboutVisible}
