@@ -83,6 +83,14 @@ just symbolicate ~/tmp/agent/grabber-logs/crashes/<stamp>.json
 Adding one: `log.event("snake_case_type", ["field": value])`, and a row here in the same change. The rules under
 *Adding a line* hold: numbers in fields, a failure once per spell, boundaries rather than ticks.
 
+**Today's hand, the widget, has no session log** (#230). Its extension writes unified-log lines instead (subsystem
+`com.idvorkin.grabbernative`, category `todays-hand`): `deal_tap` (old, new and stored nonce, pool size, slot,
+and the card index from and to) when a tap on the card runs the intent, and `timeline` (nonce, pool size, the first
+entry's index and card) each time the widget builds its timeline. A tap that changes nothing is one of three:
+no `deal_tap` (the intent never ran), `deal_tap` with no `timeline` after it (the reload never came), or both with
+the same card. On the simulator: `xcrun simctl spawn <udid> log show --last 10m --predicate 'subsystem ==
+"com.idvorkin.grabbernative"'`; on the phone, `log collect` from the Mac.
+
 **From a shake to an issue.** A shake (or *Report a problem* behind the home screen's cog) captures the window, and *Log it*
 writes a `bug_report` event, a line in `Documents/bugs.jsonl` (note, screen, build, `log`, `session_t_ms`,
 `screenshot`) and the picture under `Documents/bugs/<stamp>/`. The report dialog, the shake, the store and its
