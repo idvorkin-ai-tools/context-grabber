@@ -1,5 +1,5 @@
-//  Every known place's icon (story 057): an SF Symbol guessed from the name, else from the nearest Apple Maps point
-//  of interest within the place's radius, else a plain pin; a chosen one wins over every guess and is never guessed
+//  Every known place's icon (story 057): an SF Symbol (or the app's own kettlebell, #260) guessed from the name,
+//  else from the nearest Apple Maps point of interest within the place's radius, else a plain pin; a chosen one wins over every guess and is never guessed
 //  over. The deciding is here; asking Apple Maps and remembering the answer belong to the app.
 
 import Foundation
