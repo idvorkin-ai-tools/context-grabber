@@ -84,7 +84,9 @@ document:
 test:
   instructions: |
     This is an iOS app; the real product runs on Igor's phone and cannot be driven from the gate. Do not
-    launch the iOS Simulator or Maestro, and do not run `just deploy`, `just build`, `just dev`, `just ota`,
+    launch the iOS Simulator or Maestro (only one simulator may run on this Mac at a time: if a step ever needs
+    one, first check `xcrun simctl list devices booted` and wait until it is empty, and shut it down when done),
+    and do not run `just deploy`, `just build`, `just dev`, `just ota`,
     `just setup`, `just resync-native` or `just timer-cues` (they need a device, publish an update, open
     windows, or rewrite committed files). Validate on the host: `npx jest __tests__/<file>` for the touched
     module, and for UI changes a React Native Testing Library test in __tests__/*.test.tsx (the component

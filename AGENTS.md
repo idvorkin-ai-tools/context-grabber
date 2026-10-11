@@ -60,6 +60,9 @@ apply to the React Native app only; the native app has no OTA.
 - **Sanity-check geometry thresholds against the real fixtures** (`__tests__/fixtures/locations.json`,
   `context-grabber.db`) before shipping clustering, place-matching or distance rules; synthetic tests miss what real
   data exposes.
+- **Only one simulator on this Mac at a time.** Before booting one, check `xcrun simctl list devices booted` and
+  wait until it is empty; shut yours down when done (`xcrun simctl shutdown <udid>`). Other agents and other repos'
+  pipelines share this Mac, and two simulators at once starve both.
 - **Background agents** that investigate are read-only, in a worktree, notes under `~/tmp/agent/notes/`; confirm
   scope before an agent that writes to the repo. Reap background commands when done.
 - **Every change goes through the no-mistakes pipeline, and the agent merges it.** The gate is installed in
