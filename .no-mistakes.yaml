@@ -83,13 +83,12 @@ document:
 
 test:
   instructions: |
-    This is an iOS app; the real product runs on Igor's phone and cannot be driven from the gate. Do not
-    launch the iOS Simulator or Maestro (only one simulator may run on this Mac at a time: if a step ever needs
-    one, first check `xcrun simctl list devices booted` and wait until it is empty, and shut it down when done),
-    and do not run `just deploy`, `just build`, `just dev`, `just ota`,
-    `just setup`, `just resync-native` or `just timer-cues` (they need a device, publish an update, open
-    windows, or rewrite committed files). Validate on the host: `npx jest __tests__/<file>` for the touched
-    module, and for UI changes a React Native Testing Library test in __tests__/*.test.tsx (the component
-    project mocks the native modules in jest.setup.js). Report which rung verified the change, and list what
-    only the phone can show (HealthKit, GPS, the audio session, widgets, Live Activities, Shortcuts, the
-    voice bridge) as still to verify by Igor.
+    Host rung only: run the touched module's host tests (`swift test --filter <Tests>` in native/ContextCore,
+    `npx jest __tests__/<file>` for lib/ and the React Native screens) and read the diff. Do not build for, create,
+    or boot a simulator, do not run xcodebuild against a simulator or device, and do not run Maestro: the driving
+    session owns live evidence under the build turn and records it in the PR body (only one simulator may run on
+    this Mac at a time). Do not run `just deploy`, `just build`, `just dev`, `just ota`, `just setup`,
+    `just resync-native` or `just timer-cues` (they need a device, publish an update, open windows, or rewrite
+    committed files). Do not re-run `just test`: the gate already ran it. Report which rung verified the change,
+    and list what only the simulator or the phone can show (HealthKit, GPS, the audio session, widgets, Live
+    Activities, Shortcuts, the voice bridge, iCloud delivery) as "to verify live".
