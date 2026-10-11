@@ -298,8 +298,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 152:
 
 - **Summary:** A report reaches the Mac over iCloud, away from it
-- **Status:** implemented in COMMIT; verified by BUILD
-- **Issues:**
+- **Status:** implemented in [61eeb4b](https://github.com/idvorkin/context-grabber/commit/61eeb4b), with BugKit 0.3.0; verified by a build against 0.3.0 and `just native-test-sim` (reports still save and the automatic report still files; on the simulator, which has no iCloud account, each report is queued for iCloud and retried with backoff, logging `bug_delivery_queued` and `bug_delivery_retry` and no `error`); a report reaching the Mac through iCloud is still to be seen from the phone
 
 #### Use Case:
 - **As a** person who logs problems at the gym, far from the Mac
