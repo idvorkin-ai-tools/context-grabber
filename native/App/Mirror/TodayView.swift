@@ -2,6 +2,7 @@
 //  cards with their week as a box plot, and the two shares. A grab runs on open, on coming back to the front,
 //  every thirty minutes while open, and on a pull.
 
+import BugKit
 import ContextCore
 import SwiftUI
 
@@ -19,7 +20,7 @@ struct TodayView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
         header
-        if let problem = mirror.problem { ProblemView(problem: problem) }
+        if let problem = mirror.problem { BugProblemView(problem: problem, logger: mirror.bugLogger) }
         if let h = mirror.snapshot?.health {
           let line = SummaryText.buildSummary(h, locationCount: 0)
           if !line.isEmpty {

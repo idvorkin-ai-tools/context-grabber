@@ -3,6 +3,7 @@
 //  the stack the build bundled, the session log, its settings in the App Group (so Today's hand skips the same easy
 //  cards), the trainer's voice clips, and silence during a call. Done, and the shake to report, are this app's.
 
+import BugKit
 import SwiftUI
 import ThinkACardCore
 import ThinkACardUI
@@ -16,7 +17,7 @@ struct CardView: View {
   let onDone: () -> Void
 
   @State private var session: PromptSession?
-  @State private var problem: MirrorProblem?
+  @State private var problem: BugProblem?
 
   var body: some View {
     ZStack(alignment: .topLeading) {
@@ -25,7 +26,7 @@ struct CardView: View {
         // Grabber Native routes its own links (grabbernative://card?think=1 reopens this screen counting).
         DealScreen(session: session, handlesURLs: false)
       } else if let problem {
-        ProblemView(problem: problem).padding().frame(maxHeight: .infinity)
+        BugProblemView(problem: problem, logger: app.bugLogger).padding().frame(maxHeight: .infinity)
       }
       Button("Done", action: onDone)
         .font(.body.weight(.semibold))
@@ -49,9 +50,9 @@ struct CardView: View {
       if think { made.tap(via: "home") }
     case .failure(let error):
       app.log.event("card_problem", ["error": error.localizedDescription])
-      problem = MirrorProblem(
-        message: error.localizedDescription, context: "CardView.load",
-        extra: ["think": think ? "yes" : "no", "error": String(describing: error)])
+      problem = .grabber(
+        error.localizedDescription, context: "CardView.load",
+        extra: ["think": .bool(think), "error": .string(String(describing: error))])
     }
   }
 }

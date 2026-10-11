@@ -1,6 +1,7 @@
 //  The mirror's state (stories 002–009, 013, 019, 020–029): the last grab, a grab in progress, and the two
 //  exports. Today and the sheets draw from it; ContextCore does the math.
 
+import BugKit
 import ContextCore
 import SwiftUI
 
@@ -11,7 +12,7 @@ final class MirrorModel: ObservableObject {
   @Published private(set) var phase: String?
   @Published private(set) var grabStartedAt: Date?
   /// The last grab's failure, shown with its state and a copy button.
-  @Published var problem: MirrorProblem?
+  @Published var problem: BugProblem?
   @Published var sleepTarget: Double = 8
   /// The fixture hook's state, on screen for the simulator's UI test: "running", then "done" or "failed".
   @Published var hookStatus: String?
@@ -30,6 +31,9 @@ final class MirrorModel: ObservableObject {
 
   static let lastSnapshotKey = "last_snapshot"
   static let sleepTargetKey = "sleep_target_hours"
+
+  /// For the copyable problem's `copy_error` line.
+  var bugLogger: BugLogger { app.bugLogger }
 
   init(app: AppModel) {
     self.app = app
@@ -87,7 +91,7 @@ final class MirrorModel: ObservableObject {
       phase = "Health access"
       guard HealthKitSource.isAvailable else {
         log.event("health_auth", ["ok": false, "message": "Health is not available on this device"])
-        problem = MirrorProblem(message: "Health is not available on this device.", context: "Today.grab", extra: [:])
+        problem = .grabber("Health is not available on this device.", context: "Today.grab")
         phase = nil
         return
       }
@@ -121,9 +125,9 @@ final class MirrorModel: ObservableObject {
     if failures.isEmpty {
       problem = nil
     } else {
-      problem = MirrorProblem(
-        message: "Health did not answer \(failures.count) of the grab's questions; those read \u{2014}.",
-        context: "Today.grab", extra: Dictionary(failures.map { ($0.query, $0.message) }, uniquingKeysWith: { a, _ in a }))
+      problem = .grabber(
+        "Health did not answer \(failures.count) of the grab's questions; those read \u{2014}.", context: "Today.grab",
+        extra: Dictionary(failures.map { ($0.query, JSONValue.string($0.message)) }, uniquingKeysWith: { a, _ in a }))
     }
     let ms = Int(Date().timeIntervalSince(started) * 1000)
     log.event(
@@ -264,14 +268,9 @@ enum ExportKind: String {
   case summary, raw
 }
 
-/// A failure on screen: the message, where it happened and the state around it, copyable.
-struct MirrorProblem: Equatable {
-  var message: String
-  var context: String
-  var extra: [String: String]
-
-  var copyText: String {
-    ([message, "context: \(context)", "build: \(BuildInfo.sha) \(BuildInfo.branch)"]
-      + extra.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }).joined(separator: "\n")
+extension BugProblem {
+  /// A failure on screen, BugKit's copyable problem, with CG's build line (the sha and the branch).
+  static func grabber(_ message: String, context: String, extra: [String: JSONValue] = [:]) -> BugProblem {
+    BugProblem(message: message, context: context, build: "\(BuildInfo.sha) \(BuildInfo.branch)", extra: extra)
   }
 }

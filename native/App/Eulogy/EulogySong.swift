@@ -3,6 +3,7 @@
 //  (the audio background mode), and the lock screen can pause it.
 
 import AVFoundation
+import BugKit
 import MediaPlayer
 import SwiftUI
 
@@ -14,7 +15,7 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
   @Published private(set) var elapsed: TimeInterval = 0
   @Published private(set) var duration: TimeInterval = 0
   /// What went wrong, copyable with its operation and the player's and session's state (#201).
-  @Published private(set) var failure: MirrorProblem?
+  @Published private(set) var failure: BugProblem?
   /// Why the song is not playing although asked to: a live call (#197).
   @Published private(set) var waiting: String?
   /// Who holds the audio, if anyone: while it answers, the song neither plays nor touches the session.
@@ -24,6 +25,9 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
   private var player: AVAudioPlayer?
   private var ticker: Timer?
   private var remoteWired = false
+
+  /// For the copyable problem's `copy_error` line.
+  var bugLogger: BugLogger { log.bugLogger }
 
   init(log: SessionLog) {
     self.log = log
@@ -178,16 +182,16 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
   }
 
   /// The failure on screen with the state around it: where the song was and what the audio session held.
-  private func problem(_ message: String, _ context: String, _ extra: [String: String]) -> MirrorProblem {
+  private func problem(_ message: String, _ context: String, _ extra: [String: String]) -> BugProblem {
     let session = AVAudioSession.sharedInstance()
-    var state = extra
-    state["at_s"] = String(rounded(player?.currentTime ?? 0))
-    state["duration_s"] = String(rounded(player?.duration ?? 0))
-    state["category"] = session.category.rawValue
-    state["mode"] = session.mode.rawValue
-    state["other_audio"] = String(session.isOtherAudioPlaying)
-    state["outputs"] = session.currentRoute.outputs.map { "\($0.portName) [\($0.portType.rawValue)]" }.joined(separator: ", ")
-    return MirrorProblem(message: message, context: context, extra: state)
+    var state = extra.mapValues(JSONValue.string)
+    state["at_s"] = .double(rounded(player?.currentTime ?? 0))
+    state["duration_s"] = .double(rounded(player?.duration ?? 0))
+    state["category"] = .string(session.category.rawValue)
+    state["mode"] = .string(session.mode.rawValue)
+    state["other_audio"] = .bool(session.isOtherAudioPlaying)
+    state["outputs"] = .string(session.currentRoute.outputs.map { "\($0.portName) [\($0.portType.rawValue)]" }.joined(separator: ", "))
+    return .grabber(message, context: context, extra: state)
   }
 
   /// The lock screen and Control Center: the title, where it is, and play/pause.
@@ -302,7 +306,7 @@ struct EulogySongView: View {
         Text(waiting).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("eulogy-song-waiting")
       }
       if let failure = song.failure {
-        ProblemView(problem: failure).accessibilityIdentifier("eulogy-song-failure")
+        BugProblemView(problem: failure, logger: song.bugLogger).accessibilityIdentifier("eulogy-song-failure")
       }
       Button("Open on Suno", action: openOnSuno)
         .font(.footnote)
