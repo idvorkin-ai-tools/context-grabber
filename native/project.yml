@@ -17,7 +17,7 @@ packages:
   # no tags yet: pinned to a commit, so a change there reaches this app when the revision here moves.
   BugKit:
     url: https://github.com/idvorkin/bug-kit
-    revision: 03dd0cbbf3ca55bc70069349497c6828fa0e1952
+    revision: 94a5ae3fbe8533e64395e4a4288d5056c6dc1102
 settings:
   base:
     DEVELOPMENT_TEAM: 45P6D3439T
@@ -26,6 +26,8 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     # Overridden on the xcodebuild line by the just recipes; Info.plist carries them to BuildInfo.
     GIT_SHA: dev
+    # The report's commit: `git describe --always --dirty`, set by the justfile's builds; honest when missing.
+    BUGKIT_COMMIT: unknown
     GIT_BRANCH: dev
 targets:
   GrabberNative:

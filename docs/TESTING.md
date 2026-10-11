@@ -158,9 +158,9 @@ What the native rungs can and cannot see of the call:
 | Change | Where it must be verified | How |
 |---|---|---|
 | The call's states, frames both ways, captions, mute, restart, the no-first-frame reset and redial, the zeros re-arm, the probe, the five-second counters, audio not arriving, endings | Host | `CallSession*Tests` (fake socket, fake audio layer, a hand-advanced `FakeScheduler`: the jest cases of `callSession.test.ts` translated) |
-| The watchdog's verdicts, the call log's lines and trouble rule, the gist body, requests, GitHub's answers, the ten-gist cap | Host | `CallWatchdogTests`, `CallEventLogTests`, `GistTests` |
+| The watchdog's verdicts, the call log's lines and trouble rule | Host | `CallWatchdogTests`, `CallEventLogTests`; the automatic report's window, cap and format are BugKit's own tests |
 | A whole call in the app: start frame with the client tag, mic frames up, PCM down scheduled, captions, the hang-up's dump, `stt_stop` and `stop` | Simulator | the `call (synthetic)` and `call (real audio)` checks in `sim-smoke.sh` against `scripts/native/fake-bridge.py` |
-| Echo cancellation, the call with the phone locked, interruptions, AirPods and route changes, a real call to Larry, the Keychain token and a real gist, the Call Larry Shortcut | Phone only | call Larry, lock for two minutes, `just pull-logs`, read `call_audio` / `call_stats` / `call_heal`; Diagnostics → Upload |
+| Echo cancellation, the call with the phone locked, interruptions, AirPods and route changes, a real call to Larry, a real troubled call reaching an issue, the Call Larry Shortcut | Phone only | call Larry, lock for two minutes, `just pull-logs`, read `call_audio` / `call_stats` / `call_heal`; after a troubled call, `bug_report_auto` in the log and BugKit's listener (`bug-listener --once`) files *Automatic report: call_trouble* |
 
 What the native rungs can and cannot see of the mirror and Grab Context:
 

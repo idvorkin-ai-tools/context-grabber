@@ -11,7 +11,10 @@ and once a few mic frames have arrived it plays the recognizer and Tony — a pa
 and one second of PCM down — then a turn end. `stop` is answered with `closed`. Every connection's summary is
 appended as one JSON line to the report file, which the smoke script reads beside the app's session log.
 
-Usage: scripts/native/fake-bridge.py <port> <report.jsonl>
+With `drop`, every connection is cut once ten mic frames have arrived, with no `closed`: a call that goes wrong,
+for the automatic report (story 248).
+
+Usage: scripts/native/fake-bridge.py <port> <report.jsonl> [drop]
 """
 
 import asyncio
@@ -30,7 +33,7 @@ def tone(seconds: float, hz: float = 330) -> bytes:
     return b"".join(struct.pack("<h", int(8000 * math.sin(2 * math.pi * hz * i / OUT_RATE))) for i in range(n))
 
 
-async def handle(ws, report_path: str) -> None:
+async def handle(ws, report_path: str, drop: bool) -> None:
     summary = {"start": None, "texts": [], "binary_frames": 0, "binary_bytes": 0, "stopped": False, "diagnostics_bytes": 0}
     spoke = False
     try:
@@ -38,6 +41,10 @@ async def handle(ws, report_path: str) -> None:
             if isinstance(message, bytes):
                 summary["binary_frames"] += 1
                 summary["binary_bytes"] += len(message)
+                if drop and summary["binary_frames"] == 10:
+                    summary["dropped"] = True
+                    await ws.close(code=1011, reason="fake bridge drop")
+                    break
                 if summary["binary_frames"] == 5 and not spoke:
                     spoke = True
                     await ws.send(json.dumps({"type": "stt_partial", "text": "hello"}))
@@ -72,7 +79,8 @@ async def handle(ws, report_path: str) -> None:
 
 async def main() -> None:
     port, report_path = int(sys.argv[1]), sys.argv[2]
-    async with websockets.serve(lambda ws: handle(ws, report_path), "localhost", port, max_size=None):
+    drop = len(sys.argv) > 3 and sys.argv[3] == "drop"
+    async with websockets.serve(lambda ws: handle(ws, report_path, drop), "localhost", port, max_size=None):
         print(f"fake bridge on ws://localhost:{port}", flush=True)
         await asyncio.Future()
 

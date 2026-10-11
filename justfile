@@ -62,7 +62,7 @@ native-build-sim: native-project
     set -uo pipefail
     out=$(xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
-      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" build 2>&1)
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build 2>&1)
     echo "$out" | grep -E "error:|BUILD"
     echo "$out" | grep -q "BUILD SUCCEEDED"
     # Signed to run locally, not unsigned: HealthKit refuses an app without its entitlement, even on the simulator.
@@ -74,7 +74,7 @@ native-sim-health: native-project
     set -uo pipefail
     out=$(xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
-      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
       -only-testing:GrabberNativeUITests/HealthAccessUITests test 2>&1)
     echo "$out" | grep -E "error:|Test Case|TEST (SUCCEEDED|FAILED)"
     echo "$out" | grep -q "TEST SUCCEEDED"
@@ -96,7 +96,7 @@ native-build-device: _phone native-project
     out=$(lockf ~/tmp/agent/locks/xcode-signing.lock xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS,id={{native_device}}" \
       -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
-      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" build 2>&1)
+      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build 2>&1)
     echo "$out" | grep -E "error:|BUILD"
     echo "$out" | grep -q "BUILD SUCCEEDED"
 
@@ -124,6 +124,11 @@ log-summary file:
 # pull-reports --check, from the checkout SwiftPM pinned (build once), else ~/gits/bug-kit
 bugs-check:
     "$(\ls -d native/Build/SourcePackages/checkouts/bug-kit 2>/dev/null || echo ~/gits/bug-kit)/scripts/pull-reports.sh" --check context-grabber
+
+# Watch for new reports, for an agent's Monitor: BugKit's bugs-monitor.sh prints one line per new report, and
+# check_failed / check_ok when the look itself breaks and recovers, so a broken check is never silence
+bugs-monitor:
+    "$(\ls -d native/Build/SourcePackages/checkouts/bug-kit 2>/dev/null || echo ~/gits/bug-kit)/scripts/bugs-monitor.sh" context-grabber
 
 # File each new shake report from the pulled bugs.jsonl as a GitHub issue (skips ones already filed)
 file-bugs:

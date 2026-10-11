@@ -1,6 +1,7 @@
 //  Small pieces the mirror draws with: a card's box plot (story 004), a night's stage strip (stories 007, 008),
 //  the share sheet, a copyable problem, and colours from "#rrggbb".
 
+import BugKit
 import ContextCore
 import SwiftUI
 import UIKit
@@ -120,21 +121,4 @@ struct TextShareSheet: UIViewControllerRepresentable {
     UIActivityViewController(activityItems: [text], applicationActivities: nil)
   }
   func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
-}
-
-/// An error on screen with a way to hand it over (AGENTS.md: every user-visible error is copyable).
-struct ProblemView: View {
-  let problem: MirrorProblem
-  @State private var copied = false
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Label(problem.message, systemImage: "exclamationmark.triangle").foregroundStyle(.red)
-      Button(copied ? "Copied" : "Copy error") {
-        UIPasteboard.general.string = problem.copyText
-        copied = true
-      }
-      .font(.footnote)
-    }
-  }
 }

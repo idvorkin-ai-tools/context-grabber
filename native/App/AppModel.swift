@@ -79,7 +79,7 @@ final class AppModel: ObservableObject {
   init() {
     // BugKit's crash capture first (story 144), so a crash anywhere in the launch comes back: MetricKit, signal and
     // exception files under Documents/crashes, each announced once in this log.
-    CrashReports.shared.install(logger: Self.bugLogger(log))
+    CrashReports.shared.install(logger: log.bugLogger)
     database = AppDatabase(log: log)
     liveActivity = LiveActivityController(log: log)
     tracker = LocationTracker(log: log, store: database.locations)
@@ -101,6 +101,8 @@ final class AppModel: ObservableObject {
     reporter = makeReporter()
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in self?.eulogySong.yield(to: "call") }
+    // Story 248: a troubled call's log as an automatic report, for the Mac's listener to file.
+    call.autoReport = { [weak self] reason, context, files in self?.reporter.autoReport(reason: reason, context: context, files: files) }
     runLaunchHooks()
   }
 
@@ -248,11 +250,7 @@ final class AppModel: ObservableObject {
   }
 
   /// BugKit's events into this launch's log.
-  var bugLogger: BugLogger { Self.bugLogger(log) }
-
-  private static func bugLogger(_ log: SessionLog) -> BugLogger {
-    { type, fields in log.event(type, fields.mapValues(\.foundation)) }
-  }
+  var bugLogger: BugLogger { log.bugLogger }
 
   /// The report dialog, BugKit's (bug-kit migration, step 1). "Log it and another" takes a fresh picture of the
   /// screen underneath (story 142); dictation is off while a call holds the microphone (#239); the simulator hooks
@@ -271,7 +269,8 @@ final class AppModel: ObservableObject {
         context: { ["branch": .string(BuildInfo.branch)] },
         sessionLog: { ("logs/" + log.url.lastPathComponent, Int(Date().timeIntervalSince(log.startedAt) * 1000)) },
         logger: bugLogger,
-        microphoneBusy: { [unowned self] in self.call.snapshot.isActive }),
+        microphoneBusy: { [unowned self] in self.call.snapshot.isActive },
+        flushLog: { log.flush() }),
       options: options)
     reporterStatus = reporter.$lastStatus.compactMap { $0 }.receive(on: RunLoop.main)
       .sink { [weak self] in self?.status = $0 }
@@ -633,4 +632,9 @@ final class AppModel: ObservableObject {
 struct MetricSheetItem: Identifiable, Equatable {
   let key: MetricKey
   var id: String { key.rawValue }
+}
+
+extension SessionLog {
+  /// BugKit's events into this log: BugKit hands JSON values, the log takes Foundation values.
+  var bugLogger: BugLogger { { [self] type, fields in self.event(type, fields.mapValues(\.foundation)) } }
 }

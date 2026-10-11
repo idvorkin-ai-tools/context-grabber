@@ -217,7 +217,8 @@ dump like any other call's.
 **The dump can reach a gist on its own.** When the bridge is not filing
 the dump — it never has — the log can go up as a private gist instead:
 on demand from the fold, or on its own after a troubled call. That is
-its own spec: [Diagnostics gist upload](2026-09-05-diagnostics-gist-upload-design.md).
+its own spec: [Diagnostics gist upload](2026-09-05-diagnostics-gist-upload-design.md). The Swift-native app
+uploads no gist: a troubled call files an automatic report that the Mac's listener picks up (story 248).
 
 **The dump reaches the bridge on its own.** At every hang-up, at every
 automatic redial, and when the bridge fails to acknowledge the microphone,

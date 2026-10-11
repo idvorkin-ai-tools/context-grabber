@@ -5,7 +5,7 @@
 	<key>GitSha</key>
 	<string>$(GIT_SHA)</string>
 	<key>BugKitCommit</key>
-	<string>$(GIT_SHA)</string>
+	<string>$(BUGKIT_COMMIT)</string>
 	<key>GitBranch</key>
 	<string>$(GIT_BRANCH)</string>
 	<key>NSMicrophoneUsageDescription</key>

@@ -5,28 +5,17 @@ set -euo pipefail
 SIM=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
 xcrun simctl boot "$SIM" 2>/dev/null || true
 xcrun simctl install "$SIM" "$APP"
-DOCS="$(xcrun simctl get_app_container "$SIM" "$BUNDLE" data)/Documents"
-fail=0
-newest_log() { ls -t "$DOCS"/logs/*.jsonl 2>/dev/null | head -1; return 0; }  # no logs yet on a fresh install
-# Waits (up to $2 s) until a log newer than $previous_log has an event of type $1, so a slow start cannot reuse
-# the previous launch's result.
-wait_for() {
-  local waited=0
-  while [ "$waited" -lt "$2" ]; do
-    sleep 1; waited=$((waited + 1))
-    local f; f=$(newest_log)
-    [ -n "$f" ] && [ "$f" != "$previous_log" ] && jq -e --arg t "$1" 'select(.type==$t)' "$f" >/dev/null 2>&1 && return 0
-  done
-  fail=1  # a timeout fails the run even if a later assertion finds an old result
-  return 1
-}
-relaunch() {  # env assignments come from the caller's environment (SIMCTL_CHILD_*)
-  xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
-  previous_log=$(newest_log)
-  xcrun simctl launch "$SIM" "$BUNDLE" >/dev/null
-}
-ok() { echo "ok    $1"; }
-bad() { echo "FAIL  $1"; fail=1; }
+# BugKit's smoke-lib: launch freshness (wait only for a log newer than the launch), a timeout that fails the run,
+# error events, the stash; this script keeps CG's checks, fixtures and hooks. From the checkout SwiftPM pinned, else
+# ~/gits/bug-kit.
+root=$(cd "$(dirname "$0")/../.." && pwd)
+BUG_KIT=$(\ls -d "$root/native/Build/SourcePackages/checkouts/bug-kit" 2>/dev/null || echo ~/gits/bug-kit)
+# shellcheck source=/dev/null
+source "$BUG_KIT/scripts/smoke-lib.sh"
+smoke_init "$SIM" "$BUNDLE"
+DOCS=$SMOKE_DOCS
+relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
+bad() { not_ok "$@"; }
 
 # Stories 140, 141: a launch writes a log whose first line names the build, and prunes (even when zero).
 relaunch
@@ -48,7 +37,8 @@ got_note=$(jq -r '.note // empty' <<<"$last")
 got_log=$(jq -r '.log // empty' <<<"$last")
 shot=$(jq -r '.screenshot // empty' <<<"$last")
 screen=$(jq -r '.screen // empty' <<<"$last")
-if [ "$got_note" = "$note" ] && [ "$got_log" = "$(basename "$f")" ] && [ "$screen" = "home" ] \
+# BugKit names the log by its path under Documents (logs/<file>).
+if [ "$got_note" = "$note" ] && [ "$got_log" = "logs/$(basename "$f")" ] && [ "$screen" = "home" ] \
   && [ -n "$shot" ] && [ -s "$DOCS/$shot" ]; then ok "report: note, screen, log $got_log, $shot"
 else bad "report: note '$got_note' log '$got_log' screen '$screen' screenshot '$shot'"; fi
 
@@ -280,7 +270,8 @@ PORT=${CALL_PORT:-8799}
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
 "$(dirname "$0")/fake-bridge.py" "$PORT" "$REPORT" >/dev/null 2>&1 &
 BRIDGE=$!
-trap 'kill $BRIDGE 2>/dev/null || true' EXIT
+DROP=
+trap 'kill $BRIDGE $DROP 2>/dev/null || true; unstash' EXIT  # smoke-lib's trap puts stashed data back
 sleep 2
 # Another bridge already on the port would answer instead and leave this report empty.
 kill -0 "$BRIDGE" 2>/dev/null || bad "call: the fake bridge did not start on port $PORT (is one already running?)"
@@ -324,6 +315,40 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
 call_check synthetic synthetic
 call_check "real audio" ""
 
+# Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a second within ten
+# minutes, across a relaunch, is skipped; a clean call files none. The second fake bridge cuts every connection.
+clean=$(jq -s '[.[] | select(.type=="bug_report_auto")] | length' "$(newest_log)")
+if [ "$clean" = "0" ]; then ok "call: a clean call files no automatic report"; else bad "call: a clean call filed $clean automatic report(s)"; fi
+stash bugs-auto.json  # an earlier run's ten-minute window would skip the first report; put back at exit
+DROP_PORT=$((PORT + 1))
+DROP_REPORT=$(mktemp -t fake-bridge-drop); : >"$DROP_REPORT"
+"$(dirname "$0")/fake-bridge.py" "$DROP_PORT" "$DROP_REPORT" drop >/dev/null 2>&1 &
+DROP=$!
+sleep 2
+kill -0 "$DROP" 2>/dev/null || bad "trouble: the dropping fake bridge did not start on port $DROP_PORT"
+trouble_call() {
+  SIMCTL_CHILD_GRABBER_CALL="ws://localhost:$DROP_PORT" SIMCTL_CHILD_GRABBER_CALL_AUDIO=synthetic relaunch
+  wait_for call_ended 60 || echo "      (timed out waiting for call_ended)"
+  sleep 3
+}
+trouble_call
+f=$(this_log)
+last=$(tail -1 "$DOCS/bugs.jsonl" 2>/dev/null || echo '{}')
+src=$(jq -r '.source // empty' <<<"$last"); why=$(jq -r '.reason // empty' <<<"$last")
+folder=$(jq -r '.folder // empty' <<<"$last"); files=$(jq -r '(.files // []) | join(",")' <<<"$last")
+logged=$(jq -s '[.[] | select(.type=="bug_report_auto")] | length' "$f")
+dropped=$(jq -s '[.[] | select(.dropped == true)] | length' "$DROP_REPORT")
+# BugKit lists a report's files by their path under Documents.
+if [ "$src" = "auto" ] && [ "$why" = "call_trouble" ] && [[ ",$files," == *",$folder/call-log.txt,"* ]] \
+  && [ -s "$DOCS/$folder/call-log.txt" ] && [ "$logged" = "1" ] && [ "$dropped" -ge 1 ]; then
+  ok "trouble: the dropped call filed one automatic report, $folder with $files"
+else
+  bad "trouble: source '$src' reason '$why' folder '$folder' files '$files' bug_report_auto $logged bridge drops $dropped"
+fi
+trouble_call
+require_event bug_report_auto_skipped 'select(.reason == "call_trouble")' "trouble: a second within ten minutes, after a relaunch, is skipped"
+kill "$DROP" 2>/dev/null || true
+
 # Stories 020, 029 (spec step 4): the exports equal, byte for byte, what the React Native app's own code makes of
 # the same week. `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the
 # access `just native-sim-health` grants once (skipped with a note when it has not). Needs typescript from
@@ -354,4 +379,4 @@ mirror_check fixture
 mirror_check healthkit
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
-exit $fail
+smoke_done

@@ -25,7 +25,7 @@ shake to report a problem, crashes that come back with the logs, and a Mac that 
 | Over-the-air updates | Given up. Every change reaches the phone as an install from the Mac. |
 | How to get there | A new app beside the old one, then a cutover. Not screen-by-screen inside the old app, not a big bang. |
 | The Cockpit tab | Critical. It is ported, with real microphones and outputs. |
-| Uploading a log as a private gist | Kept: calls happen away from the Mac. |
+| Uploading a log as a private gist | Replaced 2026-10-11 (Igor): a troubled call files an automatic report on the phone, which the Mac's listener files as an issue once it can reach the phone. No token on the phone, nothing on GitHub until the Mac files it, nothing to clean up. |
 | Line-by-line port | No. Rewrite where a native design is better; the stories are what must stay true. |
 
 Found while scoping: journal and role-moment sync through iCloud is in use, so it is ported. The old
@@ -38,7 +38,7 @@ grid-based place clustering is not used by the app and is not.
 - A problem on the phone reaches a GitHub issue with its evidence in two commands, without Igor copying text.
 - The current app keeps working, unchanged, until the cutover.
 - Nothing on the phone is lost at the cutover: location history, known places, the journal, role moments,
-  settings, the gist token, the widgets' state.
+  settings, the widgets' state.
 
 ## Non-goals
 
@@ -55,7 +55,7 @@ Each step ends with a build on the phone and Igor using it.
 |---|---|
 | 1 | Opens; shows which build it is; keeps a log of every launch; a shake (or a button) files a problem with a screenshot; a crash is reported at the next launch. Nothing else yet. |
 | 2 | The Gym Timer: presets, cues in Igor's voice, music that keeps playing, the LED face and the turn, the accessory log. |
-| 3 | Calling Larry: the call that survives the lock, voices, the call's diagnostics in the same log, the gist upload. |
+| 3 | Calling Larry: the call that survives the lock, voices, the call's diagnostics in the same log, an automatic report when a call goes wrong. |
 | 4 | The mirror (Today, Body, Move, Mind and their detail sheets) and Grab Context. The export is the same JSON, byte for byte, as the current app's for the same data. |
 | 5 | Places: background location, stays, known places, the map, the database export. |
 | 6 | Roles and the journal, synced through iCloud, with voice entries. |
@@ -258,10 +258,12 @@ differences while the two apps live side by side:
   then the call carries no location.
 - **Prime audio is not ported.** It was an experiment for the silent first call in the React Native audio
   engine (#88); the native call builds its audio the same way every time.
-- **The gist token** is entered behind the native home screen's cog under *Diagnostics uploads* and kept in the native
-  app's own Keychain; the old app's token is not shared until the cutover. Automatic upload after a troubled
-  call, the delete-me note, the ten-gist cap and *Delete uploaded diagnostics* behave as stories 094 and 095
-  say.
+- **No gist.** A call that went wrong files an automatic report on the phone: the call's log, why, and the session
+  log's name, with no screenshot and no note (story 248). It waits there until the Mac's listener reaches the phone, which
+  files it as an issue titled *Automatic report: call_trouble*. At most one per ten minutes, so a call that keeps
+  failing does not pile them up; a long log keeps its newest lines within 5 MB. There is no token, no *Diagnostics
+  uploads* screen and nothing to delete afterwards. *Copy diagnostics* still puts the call's log on the clipboard.
+  Stories 094 and 095 describe the React Native app only.
 - **"Call Larry" is a Shortcuts action of the native app too**: it opens Grabber Native on the call screen
   and starts the call on the remembered backend, or brings a live call forward. Links and the widget's ☎ wait
   for step 7.
