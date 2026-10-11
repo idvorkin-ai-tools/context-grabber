@@ -175,7 +175,7 @@ struct PlacePin: View {
 
   var body: some View {
     VStack(spacing: 2) {
-      Image(systemName: symbol).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+      PlaceSymbol(symbol: symbol, font: .system(size: 14, weight: .semibold), size: 16).foregroundStyle(.white)
         .frame(width: 30, height: 30)
         .background(Circle().fill(Color(white: 0.1).opacity(0.85)))
         .overlay(Circle().stroke(color, lineWidth: 3))
@@ -186,6 +186,22 @@ struct PlacePin: View {
     .accessibilityLabel(name)
     .accessibilityIdentifier("place-\(name)")
     .accessibilityValue(symbol)
+  }
+}
+
+/// A place's icon: a system symbol, or the app's own kettlebell (#260), which SF Symbols lacks. `size` is the
+/// kettlebell's, chosen to sit as large as the symbol in `font`.
+struct PlaceSymbol: View {
+  let symbol: String
+  let font: Font
+  let size: CGFloat
+
+  var body: some View {
+    if symbol == PlaceIcons.kettlebell {
+      KettlebellIcon(size: size)
+    } else {
+      Image(systemName: symbol).font(font)
+    }
   }
 }
 

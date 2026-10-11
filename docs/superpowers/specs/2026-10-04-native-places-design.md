@@ -124,6 +124,7 @@ the Known places list. Igor does not have to choose one: the app guesses it, in 
    |---|---|
    | home, house, apartment, apt, condo | a house |
    | work, office, hq | a briefcase |
+   | a word starting "kettlebel" or "kettlebil": kettlebell(s), Kettlebility, Kettlebillity | a kettlebell |
    | gym, fitness, crossfit, yoga, pilates, dojo | a dumbbell |
    | coffee, cafe, café, espresso, starbucks | a cup and saucer |
    | restaurant, diner, bistro, pizza, sushi, grill, kitchen, eatery | a fork and knife |
@@ -140,7 +141,12 @@ the Known places list. Igor does not have to choose one: the app guesses it, in 
    | pool, swim, aquatic | a swimmer |
    | parking, garage | a car |
 
-2. **From Apple Maps**, when the name says nothing ("Kettlebility", "Milstead & Co"). Two questions, in order:
+   The kettlebell is the one rule that matches the start of a word, not the whole word, because Igor's gym is
+   Kettlebility (spelled Kettlebillity on his phone) and no whole word says "gym" there
+   ([#260](https://github.com/idvorkin/context-grabber/issues/260)). The system has no kettlebell glyph, so the app
+   draws one: the same kettlebell as the daily strip's gym.
+
+2. **From Apple Maps**, when the name says nothing ("Milstead & Co"). Two questions, in order:
    - **The business the place is named after.** Apple Maps is searched for the place's name around it; a point of
      interest with the same name (punctuation and case aside: "Milstead & Co." is "Milstead & Co"), or one whose
      name holds it, within 500 m of the place's centre, gives its category's icon. A name is strong evidence and a
@@ -149,7 +155,9 @@ the Known places list. Igor does not have to choose one: the app guesses it, in 
      the nearest one decides, and only if its category has an icon. When the nearest has none — often the place
      itself, uncategorised — nothing is guessed, because the shop next door is not the place. (Checked on the
      simulator against the fixture's places: taking the nearest *iconed* one called Kettlebility a food market,
-     23 m away, and Milstead & Co a restaurant, 8 m away; by name they are a fitness centre and a café.)
+     23 m away, and Milstead & Co a restaurant, 8 m away; by name they are a fitness centre and a café. On Igor's phone, 2026-10-10, the gym was spelled
+     Kettlebillity, the search by name found nothing, and the nearest was a restaurant 8 m away, so the gym showed a
+     fork and knife (#260): the reason for the kettlebell rule.)
 
    The categories with icons: a fitness centre or climbing gym a dumbbell, a café or bakery a cup, a restaurant a
    fork and knife, a food market or store a cart, a park, campground or hike a tree, a school or university a
@@ -162,7 +170,7 @@ the Known places list. Igor does not have to choose one: the app guesses it, in 
 
 **Choosing one.** A tap on a known place opens it: its name, position and radius, its icon with where it came from
 ("Guessed from the name", "From Apple Maps: Fitness center", "No guess: a plain pin", "Chosen"), and a grid of
-twenty icons — house, briefcase, dumbbell, cup, fork and knife, cart, tree, graduation cap, medical case,
+twenty-one icons — house, briefcase, dumbbell, kettlebell, cup, fork and knife, cart, tree, graduation cap, medical case,
 airplane, beach umbrella, columns, book, wine glass, bed, swimmer, two people, car, heart, pin. A tap on one makes
 it the place's icon at once, on the map and in the list; it is remembered and never guessed over, even if the
 place is renamed or grown. *Use the guess* gives the choice back to the guess.

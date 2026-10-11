@@ -106,7 +106,7 @@ struct PlacesView: View {
           places.edit(place, from: "list")
         } label: {
           HStack(spacing: 12) {
-            Image(systemName: places.icon(place).symbol).font(.body.weight(.semibold))
+            PlaceSymbol(symbol: places.icon(place).symbol, font: .body.weight(.semibold), size: 19)
               .foregroundStyle(Color(hex: places.color(place.name))).frame(width: 26)
             VStack(alignment: .leading, spacing: 2) {
               Text(place.name).font(.body.weight(.semibold)).foregroundStyle(.primary)
@@ -358,7 +358,7 @@ struct PlaceEditSheet: View {
       Form {
         Section {
           HStack(spacing: 14) {
-            Image(systemName: icon.symbol).font(.title2.weight(.semibold)).foregroundStyle(.white)
+            PlaceSymbol(symbol: icon.symbol, font: .title2.weight(.semibold), size: 25).foregroundStyle(.white)
               .frame(width: 48, height: 48)
               .background(Circle().fill(Color(white: 0.1).opacity(0.85)))
               .overlay(Circle().stroke(color, lineWidth: 3))
@@ -376,7 +376,7 @@ struct PlaceEditSheet: View {
               Button {
                 places.chooseIcon(symbol, for: place)
               } label: {
-                Image(systemName: symbol).font(.title3).frame(maxWidth: .infinity, minHeight: 48)
+                PlaceSymbol(symbol: symbol, font: .title3, size: 22).frame(maxWidth: .infinity, minHeight: 48)
                   .foregroundStyle(on ? .white : .primary)
                   .background(RoundedRectangle(cornerRadius: 10).fill(on ? color : Color(white: 0.5).opacity(0.15)))
               }

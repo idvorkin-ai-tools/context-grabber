@@ -15,7 +15,7 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(PlaceIcons.guess(fromName: "Mom's House"), "house.fill")
     XCTAssertEqual(PlaceIcons.guess(fromName: "Work"), "briefcase.fill")
     XCTAssertEqual(PlaceIcons.guess(fromName: "My office"), "briefcase.fill")
-    XCTAssertEqual(PlaceIcons.guess(fromName: "Kettlebility gym"), "dumbbell.fill")
+    XCTAssertEqual(PlaceIcons.guess(fromName: "Crossfit gym"), "dumbbell.fill")
     XCTAssertEqual(PlaceIcons.guess(fromName: "24 Hour Fitness"), "dumbbell.fill")
     XCTAssertEqual(PlaceIcons.guess(fromName: "Milstead Coffee"), "cup.and.saucer.fill")
     XCTAssertEqual(PlaceIcons.guess(fromName: "Café Allegro"), "cup.and.saucer.fill")
@@ -29,10 +29,25 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(PlaceIcons.guess(fromName: "Golden Gardens Beach"), "beach.umbrella.fill")
     // Whole words only, and the first rule wins.
     XCTAssertNil(PlaceIcons.guess(fromName: "Homestead"))
-    XCTAssertNil(PlaceIcons.guess(fromName: "Kettlebility"))
     XCTAssertNil(PlaceIcons.guess(fromName: "Milstead & Co"))
     XCTAssertNil(PlaceIcons.guess(fromName: "Barista"), "bar is a word, not a prefix")
     XCTAssertEqual(PlaceIcons.guess(fromName: "Home office"), "house.fill")
+  }
+
+  // #260: Igor's gym is Kettlebility, spelled Kettlebillity on his phone, where Apple Maps' nearest was a restaurant.
+  func testAKettlebellForKettlebellAndKettlebility() {
+    for name in ["Kettlebility", "Kettlebillity", "kettlebell club", "Seattle Kettlebells", "Kettlebility gym"] {
+      XCTAssertEqual(PlaceIcons.guess(fromName: name), PlaceIcons.kettlebell, name)
+    }
+    XCTAssertNil(PlaceIcons.guess(fromName: "Kettle Corn"), "a kettle is not a kettlebell")
+    XCTAssertNil(PlaceIcons.guess(fromName: "Kettleby"), "a town, not a gym")
+    // The name wins over the restaurant Apple Maps remembered; a choice still wins over the name.
+    let restaurant = StoredPlaceIcon(symbol: "fork.knife", source: .maps, category: "MKPOICategoryRestaurant")
+    XCTAssertEqual(
+      PlaceIcons.resolve(name: "Kettlebillity", stored: restaurant),
+      PlaceIcon(symbol: PlaceIcons.kettlebell, source: .name, category: nil, needsLookup: false))
+    XCTAssertEqual(
+      PlaceIcons.resolve(name: "Kettlebillity", stored: StoredPlaceIcon(symbol: "heart.fill", source: .chosen)).symbol, "heart.fill")
   }
 
   private let gym = KnownPlace(id: 13, name: "Kettlebility", latitude: 47.6762, longitude: -122.3187, radiusMeters: 100)
@@ -100,11 +115,11 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(PlaceIcons.resolve(name: "Home", stored: chosen).symbol, "heart.fill", "a choice is never guessed over")
     XCTAssertEqual(PlaceIcons.resolve(name: "Home", stored: chosen).source, .chosen)
     XCTAssertEqual(PlaceIcons.resolve(name: "Home", stored: maps).source, .name, "a renamed place's name wins over old maps")
-    XCTAssertEqual(PlaceIcons.resolve(name: "Kettlebility", stored: maps), PlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter", needsLookup: false))
+    XCTAssertEqual(PlaceIcons.resolve(name: "Milstead & Co", stored: maps), PlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter", needsLookup: false))
     XCTAssertEqual(
-      PlaceIcons.resolve(name: "Kettlebility", stored: StoredPlaceIcon(symbol: "mappin", source: .default)),
+      PlaceIcons.resolve(name: "Milstead & Co", stored: StoredPlaceIcon(symbol: "mappin", source: .default)),
       PlaceIcon(symbol: "mappin", source: .default, category: nil, needsLookup: false))
-    XCTAssertEqual(PlaceIcons.resolve(name: "Kettlebility", stored: nil), PlaceIcon(symbol: "mappin", source: .default, category: nil, needsLookup: true))
+    XCTAssertEqual(PlaceIcons.resolve(name: "Milstead & Co", stored: nil), PlaceIcon(symbol: "mappin", source: .default, category: nil, needsLookup: true))
   }
 
   func testTheTextUnderTheIcon() {
@@ -118,16 +133,17 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(PlaceIcons.sourceText(PlaceIcons.resolve(name: "X", stored: nil)), "Asking Apple Maps…")
   }
 
-  func testTwentyChoicesAndEverySymbolExists() {
-    XCTAssertEqual(PlaceIcons.choices.count, 20)
-    XCTAssertEqual(Set(PlaceIcons.choices).count, 20)
+  func testTwentyOneChoicesAndEverySymbolExists() {
+    XCTAssertEqual(PlaceIcons.choices.count, 21)
+    XCTAssertEqual(Set(PlaceIcons.choices).count, 21)
     // Every icon a guess can give is one the picker offers, so a guess can always be chosen back.
     let guessed = Set(PlaceIcons.categorySymbols.values).union(
-      ["Home", "Work", "gym", "coffee", "pizza", "store", "park", "school", "clinic", "airport", "beach", "church", "library", "bar", "hotel", "pool", "parking"]
+      ["Home", "Work", "gym", "Kettlebility", "coffee", "pizza", "store", "park", "school", "clinic", "airport", "beach", "church", "library", "bar", "hotel", "pool", "parking"]
         .compactMap(PlaceIcons.guess(fromName:)))
     XCTAssertTrue(guessed.isSubset(of: Set(PlaceIcons.choices)), "\(guessed.subtracting(PlaceIcons.choices))")
     #if canImport(AppKit)
-      for symbol in PlaceIcons.choices {
+      // The kettlebell is the app's own drawing; every other icon is a system symbol.
+      for symbol in PlaceIcons.choices where symbol != PlaceIcons.kettlebell {
         XCTAssertNotNil(NSImage(systemSymbolName: symbol, accessibilityDescription: nil), symbol)
       }
     #endif

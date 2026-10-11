@@ -1,6 +1,6 @@
-//  Story 057 (#161): choosing an icon on a known place's screen changes its pin at once, and Use the guess gives
-//  it back. Needs the fixture's places, imported as `just native-test-sim` imports them (PlacesUnnamedUITests says
-//  how); the test puts Home's icon back at the end.
+//  Story 057 (#161, #260): choosing an icon on a known place's screen changes its pin at once, Use the guess gives
+//  it back, and the gym's name gives it a kettlebell. Needs the fixture's places, imported as `just native-test-sim`
+//  imports them (PlacesUnnamedUITests says how); the test puts Home's icon back at the end.
 
 import XCTest
 
@@ -31,5 +31,13 @@ final class PlaceIconUITests: XCTestCase {
     app.buttons["place-done"].tap()
     for _ in 0..<12 where !app.descendants(matching: .any)["place-Home"].isHittable { app.swipeDown() }
     XCTAssertEqual(app.descendants(matching: .any)["place-Home"].value as? String, "house.fill")
+
+    // #260: the gym gets the app's kettlebell from its name, whatever Apple Maps said.
+    let gym = app.descendants(matching: .any)["place-Kettlebility"]
+    XCTAssertTrue(gym.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertEqual(gym.value as? String, "kettlebell")
+    if let shots = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] {
+      try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(shots)/place-kettlebell.png"))
+    }
   }
 }
