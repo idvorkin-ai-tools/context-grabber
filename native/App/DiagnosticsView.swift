@@ -40,29 +40,23 @@ struct DiagnosticsView: View {
               .listRowBackground(Color.clear)
           }
         }
-        // #235: one look for every launcher. The four two by two, then the rest in order: a pair is two tiles
-        // like the four's, a launcher alone one tile the width of two.
+        // #284: every launcher the same small tile, three to a line, and Settings last (#286), never hidden.
         Section {
-          let lines = stride(from: 0, to: arrangement.tiles.count, by: 2).map {
-            Array(arrangement.tiles[$0..<min($0 + 2, arrangement.tiles.count)])
-          } + HomeLayout.lines(arrangement.rows)
-          VStack(spacing: 12) {
-            ForEach(lines, id: \.self) { line in
-              HStack(spacing: 12) {
+          VStack(spacing: 10) {
+            ForEach(HomeLayout.lines(arrangement.tiles + [HomeRow.settings.id]), id: \.self) { line in
+              HStack(spacing: 10) {
                 ForEach(line, id: \.self) { id in
-                  if let row = HomeRow.row(id) {
-                    HomeTile(row: row, model: model, half: line.count == 2 && !arrangement.tiles.contains(id))
-                  }
+                  if let row = HomeRow.row(id) { HomeTile(row: row, model: model) }
                 }
-                // One of the four left alone (the rest hidden) keeps its half, so it still lines up.
-                if line.count == 1, arrangement.tiles.contains(line[0]) { Color.clear.frame(maxWidth: .infinity) }
+                // A short last line keeps its tiles the size of the rest.
+                ForEach(line.count..<HomeLayout.perLine, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity) }
               }
             }
           }
           .listRowInsets(EdgeInsets())
           .listRowBackground(Color.clear)
           if model.homeLayout.visible.isEmpty {
-            Text("Every launcher is hidden. The cog brings them back.").foregroundStyle(.secondary)
+            Text("Every launcher is hidden. Settings brings them back.").foregroundStyle(.secondary)
               .frame(maxWidth: .infinity, alignment: .leading)
           }
         } footer: {
@@ -70,26 +64,12 @@ struct DiagnosticsView: View {
           if !model.status.isEmpty { Text(model.status) }
         }
       }
-      // No bar at all (story 147): the usage card starts under the status bar, and the cog sits in the bottom
-      // corner, over the list's end, where it costs no row.
+      // No bar at all (story 147): the usage card starts under the status bar.
       .toolbar(.hidden, for: .navigationBar)
       .contentMargins(.top, 8, for: .scrollContent)
-      .contentMargins(.bottom, 64, for: .scrollContent)  // the last row scrolls clear of the cog
+      .contentMargins(.bottom, 64, for: .scrollContent)  // the last line scrolls clear of the mini player
       .listSectionSpacing(.compact)
       .environment(\.defaultMinListRowHeight, 30)  // lets the daily strip be slimmer than a list row
-      .overlay(alignment: .bottomTrailing) {
-        Button {
-          model.openHomeSettings()
-        } label: {
-          Image(systemName: "gearshape").font(.title3).padding(12)
-            .background(.regularMaterial, in: Circle())
-            .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 8)
-        .accessibilityLabel("Home screen settings")
-        .accessibilityIdentifier("home-settings")
-      }
       .overlay(alignment: .bottomLeading) {
         if !model.showEulogySong {
           EulogyMiniPlayer(song: model.eulogySong) { model.showEulogySongSheet(from: "mini") }
@@ -224,22 +204,18 @@ private struct TodayCard: View {
 private struct HomeTile: View {
   let row: HomeRow
   @ObservedObject var model: AppModel
-  /// Half of a shared line (#225): the short name.
-  var half = false
 
   var body: some View {
     Button { row.open(model) } label: {
-      HStack(spacing: 10) {
-        LauncherIcon(row: row, size: 32)
-        VStack(alignment: .leading, spacing: 1) {
-          Text(half ? row.short : row.title).font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.85)
-          if row.id == "call" { CallTileStatus(call: model.call) }
-        }
-        Spacer(minLength: 0)
+      // #284: the icon above a one- or two-word name.
+      VStack(spacing: 6) {
+        LauncherIcon(row: row, size: 36)
+        Text(row.short).font(.footnote.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
+        if row.id == "call" { CallTileStatus(call: model.call) }
       }
-      .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
-      .padding(.horizontal, 12)
+      .frame(maxWidth: .infinity, minHeight: 64)
       .padding(.vertical, 10)
+      .padding(.horizontal, 4)
       .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
     }
     .buttonStyle(.plain)

@@ -53,47 +53,26 @@ public struct HomeLayout: Equatable, Sendable {
   }
 
   /// Story 151: what the home screen draws from the visible launchers. Today becomes the card (when it is shown),
-  /// the next four are tiles, the rest rows, all in Igor's order.
+  /// the daily strip sits under it, and every other launcher is a tile, in Igor's order.
   public struct Arrangement: Equatable, Sendable {
     public var todayCard: Bool
-    /// #236: the daily strip under the Today card; never a tile or a row.
+    /// #236: the daily strip under the Today card; never a tile.
     public var dailyStrip: Bool = false
     public var tiles: [String]
-    public var rows: [String]
   }
 
-  public static let tileCount = 4
   public static let dailyStrip = "daily_strip"
+  /// #284: tiles to a line.
+  public static let perLine = 3
 
   public var arrangement: Arrangement {
-    let rest = visible.filter { $0 != "today" && $0 != Self.dailyStrip }
-    return Arrangement(
+    Arrangement(
       todayCard: visible.contains("today"), dailyStrip: visible.contains(Self.dailyStrip),
-      tiles: Array(rest.prefix(Self.tileCount)), rows: Array(rest.dropFirst(Self.tileCount)))
+      tiles: visible.filter { $0 != "today" && $0 != Self.dailyStrip })
   }
 
-  /// #225: launchers that share one line of rows, half each, when both are rows.
-  public static let pairs: [(String, String)] = [("exercise_analyzer", "workout_supermix"), ("eulogy", "eulogy_song")]
-
-  /// The rows as lines: a pair is one line where its first member comes in the order, the rest one each.
-  public static func lines(_ rows: [String]) -> [[String]] {
-    var partner: [String: String] = [:]
-    for (a, b) in pairs where rows.contains(a) && rows.contains(b) {
-      partner[a] = b
-      partner[b] = a
-    }
-    var placed = Set<String>()
-    var lines: [[String]] = []
-    for id in rows where !placed.contains(id) {
-      placed.insert(id)
-      if let other = partner[id] {
-        placed.insert(other)
-        // The pair's own order, wherever in Igor's order it lands.
-        lines.append(pairs.contains { $0.0 == id } ? [id, other] : [other, id])
-      } else {
-        lines.append([id])
-      }
-    }
-    return lines
+  /// The tiles as lines of `perLine`, the last holding what is left.
+  public static func lines(_ tiles: [String]) -> [[String]] {
+    stride(from: 0, to: tiles.count, by: perLine).map { Array(tiles[$0..<min($0 + perLine, tiles.count)]) }
   }
 }
