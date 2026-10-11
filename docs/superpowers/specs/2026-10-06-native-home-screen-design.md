@@ -59,6 +59,13 @@ and points at the cog.
   (#225). The pair sits where the first of the two comes in Igor's order, in that order; hiding one gives the other
   the whole line back. A pair member that is one of the four tiles stays a tile. In half a line the two long
   names are short: *Analyzer* and *Supermix*.
+- **DRAFT, for Igor to confirm (2026-10-11, reports #284–#286): three to a row.** Every launcher under the Today
+  card and the strip becomes a small tile, three to a line, with its icon above a one- or two-word name (*"put three
+  under a row, use shorter words plus the icon"*): Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit,
+  Eulogy, Song, Recent, Random. Pairs and the width-of-two tile go away, since every tile is the same size, and
+  Recent and Random sit side by side in Igor's order (#285). **Settings becomes a tile too**, the last one (#286:
+  *"settings can be a button now"*), and the floating cog goes. A hidden launcher closes the gap. Call Larry's tile
+  still shows a live call under its name.
 - **How a launcher looks** (Igor, 2026-10-08: *"Doesn't it look bad? … think about making it good via
   design"*): each launcher has its own colour, and only its icon carries it, as a white glyph on a small rounded
   square, the way Settings draws its rows. The names are in the ordinary text colour, one size for every row so
@@ -78,6 +85,9 @@ means to do every day, each a glance and a tap.
   can be taken back; a check from breathing or Health stays. A session in another app shows once Today has grabbed,
   because opening the home screen asks Health nothing.
 - **Journal** — a check: a tap marks today written; another tap takes it back.
+- **DRAFT (#287): the strip's icons.** Balloons as a *balloon dog* and the journal as a *feather pen*. SF Symbols
+  has neither (it has a dog, a balloon, and pens: `pencil.tip`, `signature`), so each would be a drawn symbol of our
+  own in the same style, or the nearest system one.
 - **Balloons** — a count of balloons made for others today: 🎈 and the number. A tap adds one; a long press takes
   one off (never below 0). A soft tick on each change.
 - **Magic** — the same counter, for magic done for others: 🪄 and the number.
