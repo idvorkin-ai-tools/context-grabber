@@ -99,6 +99,7 @@ final class AppModel: ObservableObject {
     LinkLauncher.handler = { [weak self] route in self?.open(route: route, from: "shortcut") }
     mirror = MirrorModel(app: self)
     reporter = makeReporter()
+    Task { [delivery] in await delivery.start() }
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in self?.eulogySong.yield(to: "call") }
     // Story 248: a troubled call's log as an automatic report, for the Mac's listener to file.
@@ -113,6 +114,7 @@ final class AppModel: ObservableObject {
     places.prune(reason: "foreground")
     tracker.foreground()
     if showPlaces { places.reload(reason: "foreground") }
+    Task { [delivery] in await delivery.start() }  // story 152: what waited for a connection goes up now
   }
 
   func openPlaces(from source: String) {
@@ -252,6 +254,10 @@ final class AppModel: ObservableObject {
   /// BugKit's events into this launch's log.
   var bugLogger: BugLogger { log.bugLogger }
 
+  /// Story 152: every report saved from this build on also goes up to Igor's private iCloud, where the Mac's listener
+  /// takes it. On, with no switch; one for the app's lifetime, started at launch and again on each foreground.
+  private lazy var delivery = CloudKitReportDelivery(containerIdentifier: "iCloud.com.idvorkin.BugKitReports", logger: bugLogger)
+
   /// The report dialog, BugKit's (bug-kit migration, step 1). "Log it and another" takes a fresh picture of the
   /// screen underneath (story 142); dictation is off while a call holds the microphone (#239); the simulator hooks
   /// keep their names (`GRABBER_BUG`, `GRABBER_SHAKE_AFTER`).
@@ -271,7 +277,7 @@ final class AppModel: ObservableObject {
         logger: bugLogger,
         microphoneBusy: { [unowned self] in self.call.snapshot.isActive },
         flushLog: { log.flush() }),
-      options: options)
+      options: options, delivery: delivery)
     reporterStatus = reporter.$lastStatus.compactMap { $0 }.receive(on: RunLoop.main)
       .sink { [weak self] in self?.status = $0 }
     return reporter

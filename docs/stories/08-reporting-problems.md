@@ -295,6 +295,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 152:
+
+- **Summary:** A report reaches the Mac over iCloud, away from it
+- **Status:** implemented in COMMIT; verified by BUILD
+- **Issues:**
+
+#### Use Case:
+- **As a** person who logs problems at the gym, far from the Mac
+- **I want to** have each report go up to my private iCloud and become an issue without bringing the phone home
+- **so that** a problem is filed while I still remember it, not when the phone next meets the Mac
+
+#### Acceptance Criteria:
+- **Scenario:** A report on cellular
+- **Given:** this build is installed, the phone is signed in to the same iCloud as the Mac, and the Mac's listener is running
+- **When:** I shake, write a note and tap *Log it* with the phone away from the Mac
+- **Then:** the report is saved at once, goes up to iCloud as soon as there is a connection, and the listener files it as one issue on its next poll; reports saved before this build stay on the phone for the pull and are never uploaded
+
+---
+
 ### User Story 246:
 
 - **Summary:** A daily strip: gym, meditation, journal, balloons and magic, at a glance

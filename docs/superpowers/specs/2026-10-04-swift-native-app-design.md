@@ -94,6 +94,16 @@ and stop, each pause the recogniser started over after, and any failure, goes in
 picture stays on the Mac and the issue says where: the issues are public, and a screen can show health, places
 or the journal.
 
+**A report reaches the Mac away from it** (Igor, 2026-10-11, the BugKit 0.3.0 train). Every report saved from now
+on, shaken or automatic, also goes up to Igor's own private iCloud, and the Mac's listener takes it from there on its
+next poll and files it as it would one pulled off the phone. So a problem logged at the gym on cellular becomes an
+issue without the phone ever coming near the Mac. It is on by default, with no switch. Saving is instant and never
+waits for the network; when there is no signal, or iCloud is signed out, the report waits on the phone and goes up
+the next time the app runs with a connection. Reports saved before this build stay on the phone for the Mac to pull
+as before, and are never uploaded. A report too big for iCloud (over 20 MB of attachments) also stays on the phone
+for the pull. Each upload, wait and failure is in the session log. Filing twice still never makes two issues,
+whichever way a report arrives.
+
 **A gentle shake is enough** (Igor, 2026-10-06, #164: *"let it work with less aggressive shakes"*). iOS's own shake
 gesture wants a hard shake. The app also listens to the motion itself: a quick back-and-forth — three changes of
 direction within a second, each flick at least about 1.5 g (Apple does not publish its own threshold; this one
