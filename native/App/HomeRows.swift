@@ -41,6 +41,10 @@ struct HomeRow: Identifiable {
     HomeRow(id: "recent", title: "Recent", icon: "clock.arrow.circlepath", color: .gray) {
       $0.openBlog(BlogLinks.recent, action: "open_recent", from: "home")
     },
+    // Story 247 (#259): a random page of the blog.
+    HomeRow(id: "random", title: "Random", icon: "dice", color: .gray) {
+      $0.openBlog(BlogLinks.random, action: "open_random", from: "home")
+    },
   ]
 
   static let ids = all.map(\.id)
