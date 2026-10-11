@@ -37,7 +37,8 @@ got_note=$(jq -r '.note // empty' <<<"$last")
 got_log=$(jq -r '.log // empty' <<<"$last")
 shot=$(jq -r '.screenshot // empty' <<<"$last")
 screen=$(jq -r '.screen // empty' <<<"$last")
-if [ "$got_note" = "$note" ] && [ "$got_log" = "$(basename "$f")" ] && [ "$screen" = "home" ] \
+# BugKit names the log by its path under Documents (logs/<file>).
+if [ "$got_note" = "$note" ] && [ "$got_log" = "logs/$(basename "$f")" ] && [ "$screen" = "home" ] \
   && [ -n "$shot" ] && [ -s "$DOCS/$shot" ]; then ok "report: note, screen, log $got_log, $shot"
 else bad "report: note '$got_note' log '$got_log' screen '$screen' screenshot '$shot'"; fi
 
@@ -337,7 +338,8 @@ src=$(jq -r '.source // empty' <<<"$last"); why=$(jq -r '.reason // empty' <<<"$
 folder=$(jq -r '.folder // empty' <<<"$last"); files=$(jq -r '(.files // []) | join(",")' <<<"$last")
 logged=$(jq -s '[.[] | select(.type=="bug_report_auto")] | length' "$f")
 dropped=$(jq -s '[.[] | select(.dropped == true)] | length' "$DROP_REPORT")
-if [ "$src" = "auto" ] && [ "$why" = "call_trouble" ] && [[ ",$files," == *",call-log.txt,"* ]] \
+# BugKit lists a report's files by their path under Documents.
+if [ "$src" = "auto" ] && [ "$why" = "call_trouble" ] && [[ ",$files," == *",$folder/call-log.txt,"* ]] \
   && [ -s "$DOCS/$folder/call-log.txt" ] && [ "$logged" = "1" ] && [ "$dropped" -ge 1 ]; then
   ok "trouble: the dropped call filed one automatic report, $folder with $files"
 else
