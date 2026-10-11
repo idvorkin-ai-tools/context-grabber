@@ -62,7 +62,7 @@ native-build-sim: native-project
     set -uo pipefail
     out=$(xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
-      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" build 2>&1)
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build 2>&1)
     echo "$out" | grep -E "error:|BUILD"
     echo "$out" | grep -q "BUILD SUCCEEDED"
     # Signed to run locally, not unsigned: HealthKit refuses an app without its entitlement, even on the simulator.
@@ -74,7 +74,7 @@ native-sim-health: native-project
     set -uo pipefail
     out=$(xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
-      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
       -only-testing:GrabberNativeUITests/HealthAccessUITests test 2>&1)
     echo "$out" | grep -E "error:|Test Case|TEST (SUCCEEDED|FAILED)"
     echo "$out" | grep -q "TEST SUCCEEDED"
@@ -96,7 +96,7 @@ native-build-device: _phone native-project
     out=$(lockf ~/tmp/agent/locks/xcode-signing.lock xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS,id={{native_device}}" \
       -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
-      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" build 2>&1)
+      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build 2>&1)
     echo "$out" | grep -E "error:|BUILD"
     echo "$out" | grep -q "BUILD SUCCEEDED"
 
