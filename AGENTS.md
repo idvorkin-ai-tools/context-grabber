@@ -69,6 +69,12 @@ apply to the React Native app only; the native app has no OTA.
   this repo: `no-mistakes axi run --intent "…"` (or push to the `no-mistakes` remote). When the run reaches
   `checks-passed`, merge the PR yourself and check that its commits reached `origin/main`. Don't wait for PR
   feedback, because nobody gives it: the pipeline is the review.
+- **One pipeline run per train** (Igor, 2026-10-11). Finish the whole stack before the first push, and don't push
+  while a run is in flight unless review or test asked for that fix. Never restart the no-mistakes daemon or reboot
+  while runs are active. Live simulator and device checks happen once, in your build turn, and go in the PR body;
+  the pipeline's test step is host-only.
+- **Review settles in one fix round.** In round 1, fix every error and warning together. In later rounds, fix errors
+  only and decide info findings in one pass. Cap review at two rounds; file the rest as issues.
 - **Architecture is discussed, not assumed**: propose with a trade-off table or a numeric plan, then one "do it".
   Prefer `just` recipes over raw commands — they carry the version generation and the native-surface checks.
 
