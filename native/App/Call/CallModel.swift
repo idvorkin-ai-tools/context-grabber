@@ -140,7 +140,6 @@ final class CallModel: ObservableObject {
       [
         "ended": .string(snapshot.endedReason ?? ""), "problem": .string(snapshot.problem ?? ""),
         "backend": .string(snapshot.backend?.rawValue ?? ""), "voice": .string(snapshot.voice.rawValue),
-        "route": .string(route),
       ],
       [file])
   }
