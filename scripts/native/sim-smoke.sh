@@ -198,7 +198,7 @@ if [ "$paused" = "hook:inhale" ] && [ "$after" = "inhale" ]; then ok "breathe: p
 else bad "breathe: pauses '$paused', steps '$after'"; fi
 
 # Places (stories 040-047, 052, 055). A clean trail, then Context Grabber's real export (the 36 601-point fixture)
-# imported by the hook, shifted by whole weeks so it falls in the last seven days.
+# imported by the hook, shifted by whole days so its newest point falls in the last 24 hours.
 FIXTURE="$(dirname "$0")/../../__tests__/fixtures/context-grabber.db"
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
 rm -f "$DOCS/SQLite/context-grabber.db" "$DOCS/SQLite/context-grabber.db-journal"

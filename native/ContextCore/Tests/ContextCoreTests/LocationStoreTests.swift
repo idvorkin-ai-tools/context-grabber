@@ -8,6 +8,20 @@ final class LocationStoreTests: XCTestCase {
   let day = 86_400_000.0
   let now = 1_780_000_000_000.0
 
+  /// #217: the simulator hook's `recent` shift lands the newest point in the last 24 hours, whatever its age, at
+  /// the same time of day. Whole weeks left it up to six days back, and the last seven days held only one of them.
+  func testTheRecentShiftLandsTheNewestPointInTheLastDay() {
+    let hour = 3_600_000.0
+    for age in [0.0, hour, 23 * hour, day, day + hour, 6 * day + 5 * hour, 13 * day + 23 * hour, 400 * day] {
+      let newest = now - age
+      let shift = LocationStore.recentShiftMs(newest: newest, now: now)
+      let landed = newest + shift
+      XCTAssertLessThanOrEqual(landed, now, "age \(age / hour) h: not in the future")
+      XCTAssertGreaterThan(landed, now - day, "age \(age / hour) h: within the last day")
+      XCTAssertEqual(shift.truncatingRemainder(dividingBy: day), 0, "age \(age / hour) h: whole days, same time of day")
+    }
+  }
+
   func testInsertRangeCountAndPrune() throws {
     let store = try LocationStore(db: SQLiteDatabase())
     try store.insert((0..<40).map { LocationPoint(latitude: 47.6, longitude: -122.3, accuracy: 5, timestamp: now - Double($0) * day - 1.5) })

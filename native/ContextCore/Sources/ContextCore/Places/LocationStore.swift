@@ -187,6 +187,13 @@ public struct LocationStore {
 
   // MARK: - import and export
 
+  /// The simulator hook's `recent` shift for a fixture whose newest point is `newest` (#217): whole days, so every
+  /// point keeps its time of day and the newest lands in the last 24 hours, putting the fixture's last week in the
+  /// last seven days. Whole weeks kept the weekday but could leave the newest point six days back.
+  public static func recentShiftMs(newest: Double, now: Double) -> Double {
+    (((now - newest) / Geo.dayMs).rounded(.down)) * Geo.dayMs
+  }
+
   /// Copies another Context Grabber database's points and known places in. A point already here (same timestamp,
   /// latitude and longitude) is skipped, and so is a place whose name is taken, so importing twice adds nothing.
   /// `shiftMs` moves every imported timestamp (the simulator hook uses it to make an old fixture recent).
