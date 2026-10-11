@@ -227,7 +227,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 112:
 
 - **Summary:** Log the accessory work after a workout with four taps
-- **Status:** implemented in [dc6546e](https://github.com/idvorkin/context-grabber/commit/dc6546e); verified by `accessoryLog.test.ts`, `share.test.ts` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor
+- **Status:** implemented in [dc6546e](https://github.com/idvorkin/context-grabber/commit/dc6546e); verified by `accessoryLog.test.ts`, `share.test.ts` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor; a failed save or history read is a copyable error naming where, the build and the timer's state: [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9), verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook)
+- **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
 
 #### Use Case:
 - **As a** lifter finishing with half lotus and dead hangs
@@ -240,12 +241,18 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I check Half Lotus and Dead Hangs and tap Save
 - **Then:** exactly those two are recorded with the moment of saving, the button reads *Logged ✓* briefly, and the next Grab Context summary lists both with an ISO timestamp and the session date
 
+- **Scenario:** The save fails
+- **Given:** the log cannot be written
+- **When:** I tap Save
+- **Then:** the sheet stays open with my ticks, and shows the failure with a *Copy error* button whose paste names where it happened (the accessory save), the build, the timer's mode and preset, and the items I tried to save; never a bare red line
+
 ---
 
 ### User Story 113:
 
 - **Summary:** See the last seven days of accessory work in the same sheet
-- **Status:** implemented in [340e572](https://github.com/idvorkin/context-grabber/commit/340e572); verified by `accessoryLog.test.ts`, `GymTimerScreen.test.tsx` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor
+- **Status:** implemented in [340e572](https://github.com/idvorkin/context-grabber/commit/340e572); verified by `accessoryLog.test.ts`, `GymTimerScreen.test.tsx` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor; a failed save or history read is a copyable error naming where, the build and the timer's state: [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9), verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook)
+- **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
 
 #### Use Case:
 - **As a** lifter unsure whether yesterday's pigeon stretch got logged
@@ -257,6 +264,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** Half Lotus and Dead Hangs were saved this afternoon and Pigeon Stretch eight days ago
 - **When:** I open *Log Accessory Work* again
 - **Then:** a *Today* group lists one line with the save's wall-clock time and *Half Lotus, Dead Hangs*, the eight-day-old entry is not listed, and with nothing in the window the sheet says *Nothing logged in the last 7 days*
+
+- **Scenario:** The log cannot be read
+- **Given:** the log cannot be read
+- **When:** I open *Log Accessory Work*
+- **Then:** the checklist still works, and the last-seven-days section shows the failure with a *Copy error* button whose paste names where it happened (reading the accessory history), the build and the timer's mode and preset; never a bare red line
 
 ---
 

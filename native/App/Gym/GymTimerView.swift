@@ -1,6 +1,7 @@
 //  The Gym Timer screen (stories 100–116): rounds, a stopwatch and a set counter on a black gym-clock face,
 //  with the accessory-work log underneath. Few large targets; turned on its side, only the time.
 
+import BugKit
 import ContextCore
 import SwiftUI
 import UIKit
@@ -491,8 +492,8 @@ private struct AccessorySheet: View {
   @Environment(\.dismiss) private var dismiss
   @State private var checked: Set<String> = []
   @State private var history: [AccessoryLogDay] = []
-  @State private var error = ""
-  @State private var historyError = ""
+  @State private var error: BugProblem?
+  @State private var historyError: BugProblem?
 
   var body: some View {
     NavigationStack {
@@ -511,11 +512,11 @@ private struct AccessorySheet: View {
             }
             .accessibilityAddTraits(checked.contains(item.id) ? .isSelected : [])
           }
-          if !error.isEmpty { Text(error).foregroundStyle(.red) }
+          if let error { BugProblemView(problem: error, logger: model.bugLogger) }
         }
         Section("Last \(AccessoryLog.windowDays) days") {
-          if !historyError.isEmpty {
-            Text(historyError).foregroundStyle(.red)
+          if let historyError {
+            BugProblemView(problem: historyError, logger: model.bugLogger)
           } else if history.isEmpty {
             Text("Nothing logged in the last \(AccessoryLog.windowDays) days").foregroundStyle(.secondary)
           }
@@ -539,7 +540,12 @@ private struct AccessorySheet: View {
     }
     .presentationDetents([.large])
     .onAppear {
-      do { history = try model.accessoryHistory() } catch { historyError = "Could not read the log: \(error)" }
+      do {
+        history = try model.accessoryHistory()
+      } catch {
+        historyError = .grabber(
+          "Could not read the log: \(error)", context: "GymTimer.accessoryHistory", extra: state)
+      }
     }
   }
 
@@ -551,7 +557,14 @@ private struct AccessorySheet: View {
       onSaved(try model.saveAccessory(ids))
       dismiss()
     } catch {
-      self.error = "Could not save: \(error)"
+      self.error = .grabber(
+        "Could not save: \(error)", context: "GymTimer.accessorySave",
+        extra: state.merging(["items": .string(ids.joined(separator: ","))]) { $1 })
     }
+  }
+
+  /// The timer's state beside either error, so a pasted one says where the timer was.
+  private var state: [String: JSONValue] {
+    ["mode": .string(model.mode.rawValue), "preset": .string(model.presetId), "checked": .int(checked.count)]
   }
 }
