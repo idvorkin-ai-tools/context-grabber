@@ -5,6 +5,7 @@
 
 import AppIntents
 import ContextCore
+import OSLog
 import SwiftUI
 import ThinkACardCore
 import ThinkACardUI
@@ -13,6 +14,9 @@ import WidgetKit
 /// The extension's copy of the stack, loaded once; nil when the build had none.
 private let stack: Deck? = try? TrainerDeck.load().get()
 
+/// The extension has no session log; these lines are read with `log show` (#230: a tap that did not change the card).
+private let widgetLog = Logger(subsystem: "com.idvorkin.grabbernative", category: "todays-hand")
+
 /// A tap on the widget's card: a different card, without opening the app. The widget reloads after it runs.
 struct DealCardIntent: AppIntent {
   static let title: LocalizedStringResource = "Deal another card"
@@ -20,7 +24,13 @@ struct DealCardIntent: AppIntent {
 
   func perform() async throws -> some IntentResult {
     let size = stack.map { TrainerDeck.pool($0).count } ?? CardDeal.cardsPerRun
-    CardStore.set(CardDeal.nonceAfterTap(at: Date(), nonce: CardStore.nonce(), size: size))
+    let now = Date()
+    let old = CardStore.nonce()
+    let new = CardDeal.nonceAfterTap(at: now, nonce: old, size: size)
+    CardStore.set(new)
+    let slot = CardDeal.slot(containing: now)
+    widgetLog.notice(
+      "deal_tap old=\(old, privacy: .public) new=\(new, privacy: .public) stored=\(CardStore.nonce(), privacy: .public) size=\(size, privacy: .public) slot=\(slot, privacy: .public) from=\(CardDeal.index(forSlot: slot, nonce: old, size: size), privacy: .public) to=\(CardDeal.index(forSlot: slot, nonce: new, size: size), privacy: .public)")
     return .result()
   }
 }
@@ -43,7 +53,11 @@ struct TodaysHandWidget: Widget {
     /// Twelve hours of five-minute cards, with the role for each moment's day; then ask again.
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
       let pool = stack.map { TrainerDeck.pool($0) } ?? []
-      let entries = CardDeal.timeline(from: Date(), nonce: CardStore.nonce(), size: max(pool.count, 3)).map {
+      let nonce = CardStore.nonce()
+      let timeline = CardDeal.timeline(from: Date(), nonce: nonce, size: max(pool.count, 3))
+      widgetLog.notice(
+        "timeline nonce=\(nonce, privacy: .public) size=\(pool.count, privacy: .public) first=\(timeline.first?.index ?? -1, privacy: .public) card=\(timeline.first.flatMap { pool.isEmpty ? nil : pool[$0.index].spokenName } ?? "none", privacy: .public)")
+      let entries = timeline.map {
         Entry(date: $0.date, card: pool.isEmpty ? nil : pool[$0.index], role: EulogyRoles.ofDay($0.date))
       }
       completion(Timeline(entries: entries, policy: .atEnd))
