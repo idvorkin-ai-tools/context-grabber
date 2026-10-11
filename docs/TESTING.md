@@ -30,9 +30,9 @@ tables below move here.
 The phone recipes (`native-run-device`, `pull-logs`) need the iPhone's hardware UDID: `DEVICE=<udid>`
 in the environment, or one line in `scripts/native/phone-udid.local`, which is gitignored because the repo is
 public (`xcrun devicectl list devices` shows the id). Without either they stop with a line saying so. (`bugs-check`
-is BugKit's and finds every plugged-in iPhone and iPad itself, no ids.) `pull-logs` and `file-bugs` cover the iPad too: its id is `IPAD=<udid>` or one line in the gitignored
+is BugKit's and finds every plugged-in iPhone and iPad itself, no ids.) `pull-logs` covers the iPad too: its id is `IPAD=<udid>` or one line in the gitignored
 `scripts/native/ipad-udid.local`. Each device's logs, reports and screenshots land in
-`~/tmp/agent/grabber-logs/<phone|ipad>/`, and an issue filed from the iPad says *Report from the iPad*. A device
+`~/tmp/agent/grabber-logs/<phone|ipad>/`. A device
 that is not plugged in or reachable is named and skipped. `native-run-device` builds under the Mac's one signing lock
 (`~/tmp/agent/locks/xcode-signing.lock`, shared with every app and agent), so it waits while another signing build
 runs; run it bare, not inside another `lockf` on that lock.
