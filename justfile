@@ -125,6 +125,11 @@ log-summary file:
 bugs-check:
     "$(\ls -d native/Build/SourcePackages/checkouts/bug-kit 2>/dev/null || echo ~/gits/bug-kit)/scripts/pull-reports.sh" --check context-grabber
 
+# Watch for new reports, for an agent's Monitor: BugKit's bugs-monitor.sh prints one line per new report, and
+# check_failed / check_ok when the look itself breaks and recovers, so a broken check is never silence
+bugs-monitor:
+    "$(\ls -d native/Build/SourcePackages/checkouts/bug-kit 2>/dev/null || echo ~/gits/bug-kit)/scripts/bugs-monitor.sh" context-grabber
+
 # File each new shake report from the pulled bugs.jsonl as a GitHub issue (skips ones already filed)
 file-bugs:
     scripts/native/file-bugs.sh

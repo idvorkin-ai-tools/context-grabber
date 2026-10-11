@@ -89,7 +89,7 @@ writes a `bug_report` event, a line in `Documents/bugs.jsonl` (note, screen, bui
 format are BugKit's (idvorkin/bug-kit). While Igor is on the phone, `just bugs-check` is BugKit's
 `pull-reports.sh --check context-grabber`: it copies each plugged-in iPhone's and iPad's `bugs.jsonl` and prints
 one line per report that is not yet an issue, `new context-grabber <device> <reported_at> <note>`, exiting 1 when
-there are any (an unreachable device is named, not a failure). To watch, loop it under a Monitor, or run BugKit's
+there are any (an unreachable device is named, not a failure). To watch, arm `Monitor(command: "just bugs-monitor")` (BugKit's bugs-monitor.sh: one `new` line per report, and `check_failed` / `check_ok` when the look breaks and recovers), or run BugKit's
 `listener/bug-listener`, which polls and files on its own (CG is in `~/.config/bug-kit/apps.json`). The old
 `bugs-monitor.sh` is gone. Until the listener has filed one real report end to end, file by hand.
 On a line: `just pull-logs && just file-bugs` —
