@@ -280,7 +280,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 094:
 
 - **Summary:** A troubled call uploads its log as a private gist on its own
-- **Status:** implemented in [7504fa6](https://github.com/idvorkin/context-grabber/commit/7504fa6), [8a0a09e](https://github.com/idvorkin/context-grabber/commit/8a0a09e), [670084c](https://github.com/idvorkin/context-grabber/commit/670084c); verified by `gistUpload.test.ts` and on the phone (a device build: the Keychain is native); native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the token entered under Diagnostics uploads on the native home screen; verified by `just native-test` (`GistTests`, the trouble rule in `CallEventLogTests`); a real gist is the phone still to be checked by Igor
+- **Status:** implemented in [7504fa6](https://github.com/idvorkin/context-grabber/commit/7504fa6), [8a0a09e](https://github.com/idvorkin/context-grabber/commit/8a0a09e), [670084c](https://github.com/idvorkin/context-grabber/commit/670084c); verified by `gistUpload.test.ts` and on the phone (a device build: the Keychain is native); native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the token entered under Diagnostics uploads on the native home screen; verified by `just native-test` (`GistTests`, the trouble rule in `CallEventLogTests`); a real gist is the phone still to be checked by Igor; the Swift-native app no longer uploads gists (2026-10-11): it files an automatic report instead, [story 248](#user-story-248)
 
 #### Use Case:
 - **As a** Larry's client who just hung up on a call that went wrong
@@ -300,7 +300,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 095:
 
 - **Summary:** Delete what the phone uploaded, and never pile up gists
-- **Status:** implemented in [7504fa6](https://github.com/idvorkin/context-grabber/commit/7504fa6), [8a0a09e](https://github.com/idvorkin/context-grabber/commit/8a0a09e), [670084c](https://github.com/idvorkin/context-grabber/commit/670084c); verified by `gistUpload.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (`GistTests`: prune, retire, already gone); the phone still to be checked by Igor
+- **Status:** implemented in [7504fa6](https://github.com/idvorkin/context-grabber/commit/7504fa6), [8a0a09e](https://github.com/idvorkin/context-grabber/commit/8a0a09e), [670084c](https://github.com/idvorkin/context-grabber/commit/670084c); verified by `gistUpload.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (`GistTests`: prune, retire, already gone); the phone still to be checked by Igor; the Swift-native app no longer uploads gists (2026-10-11): it files an automatic report instead, [story 248](#user-story-248)
 
 #### Use Case:
 - **As a** Larry's client whose call transcripts are sitting in secret gists
@@ -312,6 +312,45 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app has uploaded three gists and one was already deleted on the laptop
 - **When:** I tap *Delete uploaded diagnostics (3)* in Settings
 - **Then:** it reports *deleted 2 of 3 — 1 already gone*, the count reads 0, the two are gone from GitHub, and only gists this app created were ever touched
+
+---
+
+### User Story 248:
+
+- **Summary:** A call that went wrong files a report on its own, and the Mac files the issue
+- **Status:** not yet implemented
+- **Spec:** [Swift-native app](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+
+#### Use Case:
+- **As a** Larry's client who just hung up on a call that went wrong
+- **I want to** have its log reach a GitHub issue without copying, uploading or a token on the phone
+- **so that** the evidence of every troubled call is there when I sit down at the Mac, and nothing private is posted before then
+
+#### Acceptance Criteria:
+- **Scenario:** A connection is lost mid-call
+- **Given:** the native app on the phone
+- **When:** the bridge dies mid-call and the call ends with *connection lost*
+- **Then:** the phone saves a report on its own, with the call's log, this launch's log and the reason, and no screenshot or note; nothing is uploaded from the phone
+
+- **Scenario:** The Mac picks it up
+- **Given:** a report saved after a troubled call
+- **When:** the Mac's listener next reaches the phone
+- **Then:** it files one GitHub issue titled *Automatic report: call_trouble* with the call's log, once
+
+- **Scenario:** A call that keeps failing
+- **Given:** a report was saved for a troubled call less than ten minutes ago, even across a relaunch
+- **When:** another call ends in trouble
+- **Then:** no second report is saved, and the log says it was skipped; a clean call saves nothing
+
+- **Scenario:** A very long call
+- **Given:** the call's log is longer than the report's 5 MB
+- **When:** the report is saved
+- **Then:** it keeps the newest lines, from a line boundary, and the log says it was cut
+
+- **Scenario:** No gist left behind
+- **Given:** the home screen's cog
+- **When:** I look for *Diagnostics uploads*
+- **Then:** it is gone: no token to enter and nothing to delete; *Copy diagnostics* on the call still copies the log
 
 ---
 

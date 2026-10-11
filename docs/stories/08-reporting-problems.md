@@ -179,7 +179,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** my order and hidden rows are kept and the new launcher shows at the end
 
 - **Scenario:** The diagnostics, out of the way
-- **Given:** I need the build, this launch's log, the gist token or *Report a problem*
+- **Given:** I need the build, this launch's log or *Report a problem*
 - **When:** I tap the cog
 - **Then:** they are under *About and diagnostics* in the sheet, as they were on the home screen, and a shake with the sheet up still opens a report naming the screen *home_settings*
 

@@ -18,7 +18,8 @@ be hidden or moved, and where the diagnostics now live.
 - Igor chooses which launchers show and in what order, and the choice outlasts a relaunch and an update.
 - A launcher added in a later build appears on its own, without Igor doing anything and without his earlier
   choices being lost.
-- The build, the log, the gist token and *Report a problem* are one tap away, not gone.
+- The build, the log and *Report a problem* are one tap away, not gone. (The gist token went with the gist,
+  2026-10-11: a troubled call files an automatic report instead.)
 
 ## Non-goals
 
@@ -97,8 +98,7 @@ Order, hiding and Reset in the cog work as before: moving a launcher into the fi
    switch. A switch off hides that row from the home screen at once; on brings it back in the same place.
    Rows are dragged by their handle to reorder; the home screen follows. A footer says hidden rows still open
    from links and Shortcuts. *Reset to default* puts every row back, in the default order.
-2. **About and diagnostics** — what used to be the bottom of the home screen, unchanged: *Diagnostics uploads*
-   (the gist token, with its line saying whether one is saved), *Build* (commit, branch, version), *This launch*
+2. **About and diagnostics** — what used to be the bottom of the home screen: *Build* (commit, branch, version), *This launch*
    (the log's name and when it started, and where to find logs in Files), and *Report a problem* with its
    reminder that a shake works on any screen.
 
@@ -127,7 +127,7 @@ Order, hiding and Reset in the cog work as before: moving a launcher into the fi
 - Moving a row through the cog moves it on the home screen; after a relaunch the order holds.
 - Reset brings back every row in the default order.
 - A launcher unknown to the remembered order shows at the end; a forgotten one does not break anything.
-- The build, the log, the gist token and *Report a problem* are reachable from the sheet, and a shake with the
+- The build, the log and *Report a problem* are reachable from the sheet, and a shake with the
   sheet up files a report.
 - A hidden journey still opens from its link, Shortcut or launch hook.
 - Every launcher under the Today card is a tile of the same look: the four two by two, a lone launcher one wide
