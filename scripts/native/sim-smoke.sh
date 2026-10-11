@@ -5,28 +5,17 @@ set -euo pipefail
 SIM=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
 xcrun simctl boot "$SIM" 2>/dev/null || true
 xcrun simctl install "$SIM" "$APP"
-DOCS="$(xcrun simctl get_app_container "$SIM" "$BUNDLE" data)/Documents"
-fail=0
-newest_log() { ls -t "$DOCS"/logs/*.jsonl 2>/dev/null | head -1; return 0; }  # no logs yet on a fresh install
-# Waits (up to $2 s) until a log newer than $previous_log has an event of type $1, so a slow start cannot reuse
-# the previous launch's result.
-wait_for() {
-  local waited=0
-  while [ "$waited" -lt "$2" ]; do
-    sleep 1; waited=$((waited + 1))
-    local f; f=$(newest_log)
-    [ -n "$f" ] && [ "$f" != "$previous_log" ] && jq -e --arg t "$1" 'select(.type==$t)' "$f" >/dev/null 2>&1 && return 0
-  done
-  fail=1  # a timeout fails the run even if a later assertion finds an old result
-  return 1
-}
-relaunch() {  # env assignments come from the caller's environment (SIMCTL_CHILD_*)
-  xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
-  previous_log=$(newest_log)
-  xcrun simctl launch "$SIM" "$BUNDLE" >/dev/null
-}
-ok() { echo "ok    $1"; }
-bad() { echo "FAIL  $1"; fail=1; }
+# BugKit's smoke-lib: launch freshness (wait only for a log newer than the launch), a timeout that fails the run,
+# error events, the stash; this script keeps CG's checks, fixtures and hooks. From the checkout SwiftPM pinned, else
+# ~/gits/bug-kit.
+root=$(cd "$(dirname "$0")/../.." && pwd)
+BUG_KIT=$(\ls -d "$root/native/Build/SourcePackages/checkouts/bug-kit" 2>/dev/null || echo ~/gits/bug-kit)
+# shellcheck source=/dev/null
+source "$BUG_KIT/scripts/smoke-lib.sh"
+smoke_init "$SIM" "$BUNDLE"
+DOCS=$SMOKE_DOCS
+relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
+bad() { not_ok "$@"; }
 
 # Stories 140, 141: a launch writes a log whose first line names the build, and prunes (even when zero).
 relaunch
@@ -280,7 +269,7 @@ PORT=${CALL_PORT:-8799}
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
 "$(dirname "$0")/fake-bridge.py" "$PORT" "$REPORT" >/dev/null 2>&1 &
 BRIDGE=$!
-trap 'kill $BRIDGE 2>/dev/null || true' EXIT
+trap 'kill $BRIDGE 2>/dev/null || true; unstash' EXIT  # smoke-lib's trap puts stashed data back
 sleep 2
 # Another bridge already on the port would answer instead and leave this report empty.
 kill -0 "$BRIDGE" 2>/dev/null || bad "call: the fake bridge did not start on port $PORT (is one already running?)"
@@ -354,4 +343,4 @@ mirror_check fixture
 mirror_check healthkit
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
-exit $fail
+smoke_done
