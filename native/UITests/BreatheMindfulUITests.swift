@@ -5,15 +5,18 @@ import XCTest
 
 final class BreatheMindfulUITests: XCTestCase {
   func testAFinishedSessionIsSavedToHealth() throws {
-    throw XCTSkip("Known flake #215: the test cannot answer Health's permission sheet on iOS 27 yet")
     // Today asks to read Health and to write Mindful Minutes, in one sheet; allow it.
     let first = XCUIApplication()
     first.launch()
     let today = first.buttons["home-today-card"]
     XCTAssertTrue(today.waitForExistence(timeout: 15), first.debugDescription)
     today.tap()
-    // Measured 37 s on this Mac (2026-10-08) for Health's sheet to come up; give it 90.
-    XCTAssertTrue(allowHealth(in: first, timeout: 90), "Today asked: \(first.debugDescription)")
+    // Measured 37 s on this Mac (2026-10-08) for Health's sheet to come up; give it 90. No sheet means access was
+    // granted on this simulator before; the Meditation count below is what decides.
+    let sheet = first.navigationBars["Health Access"]
+    if sheet.waitForExistence(timeout: 90) {
+      XCTAssertTrue(HealthSheet.allow(in: first) { !sheet.exists }, "Health's sheet stayed: \(first.debugDescription)")
+    }
     first.terminate()
 
     let app = XCUIApplication()
@@ -31,20 +34,5 @@ final class BreatheMindfulUITests: XCTestCase {
     XCTAssertTrue(meditation.waitForExistence(timeout: 15), app.debugDescription)
     let counted = expectation(for: NSPredicate(format: "label CONTAINS '1 min'"), evaluatedWith: meditation)
     XCTAssertEqual(XCTWaiter().wait(for: [counted], timeout: 30), .completed, "Meditation counts it: \(meditation.label)")
-  }
-
-  /// Health's sheet, in the app: turn everything on and allow. False when no sheet came.
-  private func allowHealth(in app: XCUIApplication, timeout: TimeInterval) -> Bool {
-    let sheet = app.navigationBars["Health Access"]
-    guard sheet.waitForExistence(timeout: timeout) else { return false }
-    app.cells["UIA.Health.AuthSheet.AllCategoryButton"].tap()  // Select All, read and write
-    // On iOS 27 the sheet's Allow is text in its bar, not a button.
-    let allow = app.descendants(matching: .any).matching(NSPredicate(format: "label == 'Allow'")).firstMatch
-    guard allow.waitForExistence(timeout: 10) else {
-      XCTFail("no Allow on Health's sheet: \(app.debugDescription)")
-      return false
-    }
-    allow.tap()
-    return true
   }
 }
