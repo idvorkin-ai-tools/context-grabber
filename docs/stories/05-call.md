@@ -318,7 +318,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 248:
 
 - **Summary:** A call that went wrong files a report on its own, and the Mac files the issue
-- **Status:** not yet implemented
+- **Status:** implemented in [a8ae1f8](https://github.com/idvorkin/context-grabber/commit/a8ae1f8) (the report, the gist gone) and [c8f6382](https://github.com/idvorkin/context-grabber/commit/c8f6382) (the smoke check: a dropped call reports once, a second is skipped); compiled and host tests pass; the simulator, the listener filing one and a real troubled call on the phone not yet
 - **Spec:** [Swift-native app](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
