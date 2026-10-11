@@ -55,7 +55,7 @@ Each step ends with a build on the phone and Igor using it.
 |---|---|
 | 1 | Opens; shows which build it is; keeps a log of every launch; a shake (or a button) files a problem with a screenshot; a crash is reported at the next launch. Nothing else yet. |
 | 2 | The Gym Timer: presets, cues in Igor's voice, music that keeps playing, the LED face and the turn, the accessory log. |
-| 3 | Calling Larry: the call that survives the lock, voices, the call's diagnostics in the same log, the gist upload. |
+| 3 | Calling Larry: the call that survives the lock, voices, the call's diagnostics in the same log, an automatic report when a call goes wrong. |
 | 4 | The mirror (Today, Body, Move, Mind and their detail sheets) and Grab Context. The export is the same JSON, byte for byte, as the current app's for the same data. |
 | 5 | Places: background location, stays, known places, the map, the database export. |
 | 6 | Roles and the journal, synced through iCloud, with voice entries. |

@@ -90,8 +90,7 @@ format are BugKit's (idvorkin/bug-kit). While Igor is on the phone, `just bugs-c
 `pull-reports.sh --check context-grabber`: it copies each plugged-in iPhone's and iPad's `bugs.jsonl` and prints
 one line per report that is not yet an issue, `new context-grabber <device> <reported_at> <note>`, exiting 1 when
 there are any (an unreachable device is named, not a failure). To watch, arm `Monitor(command: "just bugs-monitor")` (BugKit's bugs-monitor.sh: one `new` line per report, and `check_failed` / `check_ok` when the look breaks and recovers), or run BugKit's
-`listener/bug-listener`, which polls and files on its own (CG is in `~/.config/bug-kit/apps.json`). The old
-`bugs-monitor.sh` is gone. Until the listener has filed one real report end to end, file by hand.
+`listener/bug-listener`, which polls and files on its own (CG is in `~/.config/bug-kit/apps.json`). Until the listener has filed one real report end to end, file by hand.
 On a line: `just pull-logs && just file-bugs` —
 one issue per report, carrying the note, the screen, the build and the log's name. The repo is public, so the
 screenshot is never uploaded: the issue names its path under `~/tmp/agent/grabber-logs/` on the Mac. The marker `<!-- bug:<reported_at> -->` makes filing
