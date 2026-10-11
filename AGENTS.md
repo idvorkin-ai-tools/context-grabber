@@ -21,6 +21,7 @@ apply to the React Native app only; the native app has no OTA.
 
 | File | What it settles |
 |---|---|
+| [VISION.md](VISION.md) | what the app is for and who it serves: the humane mirror, the front door, the phone's line to Larry |
 | [docs/TESTING.md](docs/TESTING.md) | the test ladder (host jest → type check → Maestro → phone), which change is verified where, the real-data fixtures, what only the phone can show |
 | [docs/DEBUGGING.md](docs/DEBUGGING.md) | the logs (the call log, the timer log, copyable errors, the gist upload), instrument before theorizing, how a bug goes from the phone to a closed issue |
 | [docs/stories/README.md](docs/stories/README.md) | the spec: user stories per journey, each with its status and commits |
