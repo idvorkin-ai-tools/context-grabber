@@ -1,5 +1,5 @@
-//  Every known place's icon (story 057): an SF Symbol guessed from the name, else from the nearest Apple Maps point
-//  of interest within the place's radius, else a plain pin; a chosen one wins over every guess and is never guessed
+//  Every known place's icon (story 057): an SF Symbol (or the app's own kettlebell, #260) guessed from the name,
+//  else from the nearest Apple Maps point of interest within the place's radius, else a plain pin; a chosen one wins over every guess and is never guessed
 //  over. The deciding is here; asking Apple Maps and remembering the answer belong to the app.
 
 import Foundation
@@ -44,10 +44,12 @@ public struct PointOfInterest: Equatable, Sendable {
 
 public enum PlaceIcons {
   public static let pin = "mappin"
+  /// Not a system symbol (there is no kettlebell glyph): the app draws it, the daily strip's gym kettlebell (#260).
+  public static let kettlebell = "kettlebell"
 
-  /// The picker's twenty, in its order.
+  /// The picker's twenty-one, in its order.
   public static let choices = [
-    "house.fill", "briefcase.fill", "dumbbell.fill", "cup.and.saucer.fill", "fork.knife",
+    "house.fill", "briefcase.fill", "dumbbell.fill", kettlebell, "cup.and.saucer.fill", "fork.knife",
     "cart.fill", "tree.fill", "graduationcap.fill", "cross.case.fill", "airplane",
     "beach.umbrella.fill", "building.columns.fill", "book.fill", "wineglass.fill", "bed.double.fill",
     "figure.pool.swim", "person.2.fill", "car.fill", "heart.fill", pin,
@@ -74,9 +76,11 @@ public enum PlaceIcons {
     (["parking", "garage"], "car.fill"),
   ]
 
-  /// The icon a whole word of the name gives away ("Mom's House", not "Householder"); the first rule wins.
+  /// The icon a whole word of the name gives away ("Mom's House", not "Householder"); the first rule wins. One
+  /// rule reads the start of a word: "kettlebel…" or "kettlebil…" is a kettlebell, for Kettlebility however it is spelled (#260).
   public static func guess(fromName name: String) -> String? {
     let words = Set(name.lowercased().split(whereSeparator: { !($0.isLetter || $0.isNumber) }).map(String.init))
+    if words.contains(where: { $0.hasPrefix("kettlebel") || $0.hasPrefix("kettlebil") }) { return kettlebell }
     return nameRules.first { !$0.words.isDisjoint(with: words) }?.symbol
   }
 
