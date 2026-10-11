@@ -227,8 +227,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 112:
 
 - **Summary:** Log the accessory work after a workout with four taps
-- **Status:** implemented in [dc6546e](https://github.com/idvorkin/context-grabber/commit/dc6546e); verified by `accessoryLog.test.ts`, `share.test.ts` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor; a failed save or history read is a copyable error naming where, the build and the timer's state: [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9), verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook)
-- **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
+- **Status:** implemented in [dc6546e](https://github.com/idvorkin/context-grabber/commit/dc6546e); verified by `accessoryLog.test.ts`, `share.test.ts` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor
 
 #### Use Case:
 - **As a** lifter finishing with half lotus and dead hangs
@@ -241,18 +240,12 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I check Half Lotus and Dead Hangs and tap Save
 - **Then:** exactly those two are recorded with the moment of saving, the button reads *Logged ✓* briefly, and the next Grab Context summary lists both with an ISO timestamp and the session date
 
-- **Scenario:** The save fails
-- **Given:** the log cannot be written
-- **When:** I tap Save
-- **Then:** the sheet stays open with my ticks, and shows the failure with a *Copy error* button whose paste names where it happened (the accessory save), the build, the timer's mode and preset, and the items I tried to save; never a bare red line
-
 ---
 
 ### User Story 113:
 
 - **Summary:** See the last seven days of accessory work in the same sheet
-- **Status:** implemented in [340e572](https://github.com/idvorkin/context-grabber/commit/340e572); verified by `accessoryLog.test.ts`, `GymTimerScreen.test.tsx` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor; a failed save or history read is a copyable error naming where, the build and the timer's state: [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9), verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook)
-- **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
+- **Status:** implemented in [340e572](https://github.com/idvorkin/context-grabber/commit/340e572); verified by `accessoryLog.test.ts`, `GymTimerScreen.test.tsx` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor
 
 #### Use Case:
 - **As a** lifter unsure whether yesterday's pigeon stretch got logged
@@ -264,11 +257,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** Half Lotus and Dead Hangs were saved this afternoon and Pigeon Stretch eight days ago
 - **When:** I open *Log Accessory Work* again
 - **Then:** a *Today* group lists one line with the save's wall-clock time and *Half Lotus, Dead Hangs*, the eight-day-old entry is not listed, and with nothing in the window the sheet says *Nothing logged in the last 7 days*
-
-- **Scenario:** The log cannot be read
-- **Given:** the log cannot be read
-- **When:** I open *Log Accessory Work*
-- **Then:** the checklist still works, and the last-seven-days section shows the failure with a *Copy error* button whose paste names where it happened (reading the accessory history), the build and the timer's mode and preset; never a bare red line
 
 ---
 
@@ -477,3 +465,41 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the Gym Timer is upright with CUSTOM chosen, fresh at 1:00 / 0:10 / 5
 - **When:** I drag the Work drum up a finger's width, tap the bottom of Rest, and flick Work up fast
 - **Then:** Work reads 1:10 with a haptic tick, then several steps more after the flick, always on the ten-second grid and never past 10:00 (a bump there, and it stays); Rest reads 0:20; each drum shows the value one step less faint above and one more faint below; the face shows the new work time before START; the values are remembered as the sliders' were; while running the drums are dim and do nothing; and the session log has one `ui` custom_dial line per gesture
+
+---
+
+### User Story 185:
+
+- **Summary:** A failed accessory save can be copied
+- **Status:** implemented in [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9) (native app); verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook); the phone still to be checked by Igor
+- **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
+
+#### Use Case:
+- **As a** lifter whose accessory log did not save
+- **I want to** copy what went wrong in one tap
+- **so that** the coach's agent can debug it from the paste, without the phone's log
+
+#### Acceptance Criteria:
+- **Scenario:** The save fails
+- **Given:** the log cannot be written
+- **When:** I tap Save
+- **Then:** the sheet stays open with my ticks, and shows the failure with a *Copy error* button whose paste names where it happened (the accessory save), the build, the timer's mode and preset, and the items I tried to save; never a bare red line
+
+---
+
+### User Story 186:
+
+- **Summary:** A log that cannot be read can be copied, and the checklist still works
+- **Status:** implemented in [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9) (native app); verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook); the phone still to be checked by Igor
+- **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
+
+#### Use Case:
+- **As a** lifter opening the accessory sheet when its history will not load
+- **I want to** still tick and save today's work, and copy what went wrong
+- **so that** one broken read costs neither the session nor the evidence
+
+#### Acceptance Criteria:
+- **Scenario:** The log cannot be read
+- **Given:** the log cannot be read
+- **When:** I open *Log Accessory Work*
+- **Then:** the checklist still works, and the last-seven-days section shows the failure with a *Copy error* button whose paste names where it happened (reading the accessory history), the build and the timer's mode and preset; never a bare red line
