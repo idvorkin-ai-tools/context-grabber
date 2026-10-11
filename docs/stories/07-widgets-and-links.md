@@ -325,7 +325,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 245:
 
 - **Summary:** Think of a card in Grabber Native is the trainer's own screen
-- **Status:** native app only: implemented in [cecb31f](https://github.com/idvorkin/context-grabber/commit/cecb31f), with think-a-card-trainer v0.1.0 (its PR #6, D15); verified by a simulator build and the screen read by eye (black, the card large, *Skip easy cards*); `CardUITests` is skipped until it can find the card by name (#229); the ask, the voice and silence during a call not yet checked on the phone
+- **Status:** native app only: implemented in [cecb31f](https://github.com/idvorkin/context-grabber/commit/cecb31f), with think-a-card-trainer v0.1.0 (its PR #6, D15); verified by a simulator build and the screen read by eye (black, the card large, *Skip easy cards*); `CardUITests` runs again on the simulator (#229: the trainer speaks the card in lower case, and the count is told from a two's or three's rank by its size): the row opens the screen counting, the ask deals a new card, a tap switches it, Done goes home; the ask, the voice and silence during a call not yet checked on the phone
 - **Issues:** [#219](https://github.com/idvorkin/context-grabber/issues/219), [#229](https://github.com/idvorkin/context-grabber/issues/229)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 

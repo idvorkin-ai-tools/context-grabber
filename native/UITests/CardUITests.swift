@@ -5,10 +5,10 @@
 import XCTest
 
 final class CardUITests: XCTestCase {
-  private let cardName = NSPredicate(format: "label MATCHES %@", ".* of (Spades|Hearts|Diamonds|Clubs)")
+  // #229: the trainer speaks the card in lower case ("two of spades").
+  private let cardName = NSPredicate(format: "label MATCHES[c] %@", ".* of (spades|hearts|diamonds|clubs)")
 
   func testTheTrainersScreenAsksThenDeals() throws {
-    throw XCTSkip("#229: the card's accessibility label is not yet matched; the screen itself shows correctly")
     let app = XCUIApplication()
     app.launch()
     let row = app.buttons["home-think_a_card"]
@@ -17,13 +17,16 @@ final class CardUITests: XCTestCase {
 
     let card = app.descendants(matching: .any).matching(cardName).firstMatch
     XCTAssertTrue(card.waitForExistence(timeout: 10), app.debugDescription)
-    // The ask started from the row: the count's digit is up beside the card.
-    let count = app.staticTexts.matching(NSPredicate(format: "label IN {'3', '2', '1'}")).firstMatch
-    XCTAssertTrue(count.waitForExistence(timeout: 3), "the count runs: \(app.debugDescription)")
+    // The ask started from the row: the count's digit is up beside the card. The rank is a digit too (a two shows
+    // "2"), so the count is the small one.
+    let count = app.staticTexts.matching(NSPredicate(format: "label IN {'3', '2', '1'}"))
+    let counting = NSPredicate { _, _ in count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 } }
+    expectation(for: counting, evaluatedWith: count)
+    waitForExpectations(timeout: 3)
     shot("card-asking")
     let asked = card.label
     // Three beats, then the new card and no count.
-    let dealt = NSPredicate(format: "exists == false")
+    let dealt = NSPredicate { _, _ in !count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 } }
     expectation(for: dealt, evaluatedWith: count)
     waitForExpectations(timeout: 8)
     XCTAssertNotEqual(card.label, asked, "the ask dealt a new card")
