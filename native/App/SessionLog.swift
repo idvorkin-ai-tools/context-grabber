@@ -40,6 +40,11 @@ final class SessionLog: @unchecked Sendable {
     queue.sync { (try? String(contentsOf: url, encoding: .utf8)) ?? "" }
   }
 
+  /// Waits for every queued event to be written, so a copy of the file (BugKit's reports) holds them.
+  func flush() {
+    queue.sync { try? handle?.synchronize() }
+  }
+
   func event(_ type: String, _ fields: [String: Any] = [:]) {
     let t = Int(Date().timeIntervalSince(startedAt) * 1000)
     queue.async { [self] in

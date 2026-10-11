@@ -1,14 +1,14 @@
 //  The app's one call: owned by AppModel so it outlives the call screen, the lock and the background. Wires
 //  ContextCore's CallSession to the socket, the audio engine and the clock; narrates every `call_*` event into the
-//  session log and this launch's call log; remembers the backend and the voice; uploads the log as a private gist
-//  on a tap or after a troubled call (docs/superpowers/specs/2026-09-05-diagnostics-gist-upload-design.md).
+//  session log and this launch's call log; remembers the backend and the voice; after a troubled call, files the
+//  call's log as a BugKit automatic report, which the Mac's listener turns into an issue (story 248).
 
 import AVFoundation
+import BugKit
 import ContextCore
+import Security
 import SwiftUI
 import UIKit
-
-enum UploadState: Equatable { case idle, uploading, uploaded, failed }
 
 @MainActor
 final class CallModel: ObservableObject {
@@ -17,13 +17,6 @@ final class CallModel: ObservableObject {
   @Published private(set) var route = ""
   /// Bumped on every call event, so an open Diagnostics fold redraws.
   @Published private(set) var logVersion = 0
-  @Published private(set) var upload = UploadState.idle
-  @Published private(set) var uploadError: String?
-  @Published private(set) var uploads: [Gist.Upload] = []
-  @Published private(set) var hasToken = false
-  @Published var autoUpload = true {
-    didSet { database.setSetting(Self.autoKey, autoUpload ? "true" : "false") }
-  }
   @Published var backend = CallBackend.default {
     didSet { database.setSetting(Self.backendKey, backend.rawValue) }
   }
@@ -36,14 +29,17 @@ final class CallModel: ObservableObject {
   private let log: SessionLog
   private let database: AppDatabase
   private var session: CallSession!
-  private var uploadReset: Task<Void, Never>?
+  /// BugKit's automatic report, set by AppModel once its reporter exists: (reason, context, files).
+  var autoReport: ((String, [String: JSONValue], [URL]) -> Void)?
+  /// One stable reason, so BugKit's ten-minute window holds across calls and relaunches.
+  static let troubleReason = "call_trouble"
 
   /// The same keys as the React Native app's settings table, so the cutover keeps the picks.
   private static let backendKey = "call_backend"
   private static let voiceKey = "call_voice"
-  private static let autoKey = "gist_auto_upload"
-  private static let uploadsKey = "gist_uploads"
-  private static let tokenAccount = "gist_token"
+  /// What the gist (story 094, gone from this app) left behind: the token in the Keychain and the uploads' list.
+  private static let gistToken = "gist_token"
+  private static let gistUploads = "gist_uploads"
   static let cockpitURL = "https://c-5004.squeaker-teeth.ts.net"
 
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
@@ -53,9 +49,7 @@ final class CallModel: ObservableObject {
       ?? CallProtocol.bridgeURL(cockpit: Self.cockpitURL) ?? ""
     backend = database.setting(Self.backendKey).flatMap(CallBackend.init(rawValue:)) ?? .default
     voice = database.setting(Self.voiceKey).flatMap(CallVoice.init(rawValue:)) ?? .default
-    autoUpload = database.setting(Self.autoKey) != "false"
-    uploads = Gist.decodeUploads(database.setting(Self.uploadsKey))
-    hasToken = Keychain.get(Self.tokenAccount) != nil
+    forgetGist()
 
     let audio: CallAudio
     if environment["GRABBER_CALL_AUDIO"] == "synthetic" {
@@ -130,10 +124,35 @@ final class CallModel: ObservableObject {
     if snap.state == .ended, was != .ended { onEnded() }
   }
 
-  /// After a troubled call, on its own, when there is a token and the switch is on. The trigger is what the log says.
+  /// After a troubled call, on its own: the call's log as a BugKit automatic report (story 248). The trigger is what
+  /// the log says; BugKit keeps it to one per ten minutes and the log within 5 MB.
   private func onEnded() {
-    guard hasToken, autoUpload, CallEventLog.hadTrouble(events.currentCall) else { return }
-    Task { try? await uploadDiagnostics(why: "troubled call") }
+    guard CallEventLog.hadTrouble(events.currentCall), let autoReport else { return }
+    let file = FileManager.default.temporaryDirectory.appendingPathComponent("call-log.txt")
+    do {
+      try Data(diagnosticsText().utf8).write(to: file, options: .atomic)
+    } catch {
+      log.event("error", ["where": "call_report", "message": "\(error)"])
+      return
+    }
+    autoReport(
+      Self.troubleReason,
+      [
+        "ended": .string(snapshot.endedReason ?? ""), "problem": .string(snapshot.problem ?? ""),
+        "backend": .string(snapshot.backend?.rawValue ?? ""), "voice": .string(snapshot.voice.rawValue),
+        "route": .string(route),
+      ],
+      [file])
+  }
+
+  /// The gist is gone (2026-10-11): its token leaves the Keychain and its list of uploads leaves the settings, once.
+  private func forgetGist() {
+    let token: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "com.idvorkin.grabbernative",
+      kSecAttrAccount as String: Self.gistToken,
+    ]
+    if SecItemDelete(token as CFDictionary) == errSecSuccess { log.event("call_gist", ["action": "token_removed"]) }
+    if let list = database.setting(Self.gistUploads), !list.isEmpty { database.setSetting(Self.gistUploads, "") }
   }
 
   // MARK: - the log
@@ -158,93 +177,5 @@ final class CallModel: ObservableObject {
   func copyDiagnostics() {
     UIPasteboard.general.string = diagnosticsText()
     log.event("ui", ["action": "copy_diagnostics", "events": events.events.count])
-  }
-
-  // MARK: - gists
-
-  var lastUploadURL: String? { uploads.first?.url }
-
-  func setToken(_ token: String) throws {
-    try Keychain.set(Self.tokenAccount, token)
-    hasToken = Keychain.get(Self.tokenAccount) != nil
-    // Never the token itself: only whether there is one.
-    log.event("ui", ["action": "gist_token", "saved": hasToken])
-  }
-
-  func uploadTapped() {
-    upload = .uploading
-    uploadError = nil
-    Task {
-      do {
-        _ = try await uploadDiagnostics(why: "upload requested")
-        upload = .uploaded
-      } catch {
-        uploadError = describe(error)
-        upload = .failed
-      }
-      uploadReset?.cancel()
-      uploadReset = Task {
-        try? await Task.sleep(for: .seconds(2.5))
-        if !Task.isCancelled, upload != .uploading { upload = .idle }
-      }
-    }
-  }
-
-  /// The whole log as a secret gist; the URL on the clipboard and in the log. Throws with the reason.
-  @discardableResult
-  func uploadDiagnostics(why: String) async throws -> String {
-    guard let token = Keychain.get(Self.tokenAccount) else {
-      throw GistError("no GitHub token — home screen → Diagnostics uploads")
-    }
-    let body = Gist.body(at: Date(), why: why, text: diagnosticsText())
-    event("call_gist", ["action": "upload", "why": why, "bytes": body.count])
-    do {
-      let (data, response) = try await URLSession.shared.data(for: Gist.createRequest(token: token, body: body))
-      let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-      let up = try Gist.parseCreate(status: status, body: data, at: Date()).get()
-      event("call_gist", ["action": "uploaded", "ok": true, "why": why, "url": up.url])
-      UIPasteboard.general.string = up.url
-      let all = [up] + uploads
-      remember(all)
-      // The link shows at once; the oldest are retired behind it unless Delete cleared the list meanwhile.
-      let kept = await Gist.retire(all) { id in try await Self.deleteGist(token: token, id: id) }
-      if uploads.contains(up) { remember(kept) }
-      return up.url
-    } catch {
-      event("call_gist", ["action": "upload", "ok": false, "why": why, "message": describe(error)])
-      throw error
-    }
-  }
-
-  /// *Delete uploaded diagnostics (N)*: every gist this app made, one request each.
-  func deleteUploads() async -> String {
-    guard let token = Keychain.get(Self.tokenAccount) else { return "no GitHub token" }
-    let list = uploads
-    var deleted = 0
-    var gone = 0
-    var stuck: [Gist.Upload] = []
-    for u in list {
-      do {
-        if try await Self.deleteGist(token: token, id: u.id) { deleted += 1 } else { gone += 1 }
-      } catch {
-        stuck.append(u)
-      }
-    }
-    remember(stuck)
-    let result =
-      "deleted \(deleted) of \(list.count)" + (gone > 0 ? " — \(gone) already gone" : "")
-      + (stuck.isEmpty ? "" : " — \(stuck.count) failed, kept")
-    event("call_gist", ["action": "delete", "deleted": deleted, "gone": gone, "failed": stuck.count, "ok": stuck.isEmpty])
-    return result
-  }
-
-  private static func deleteGist(token: String, id: String) async throws -> Bool {
-    let (_, response) = try await URLSession.shared.data(for: Gist.deleteRequest(token: token, id: id))
-    return try Gist.parseDelete(status: (response as? HTTPURLResponse)?.statusCode ?? 0).get()
-  }
-
-  private func remember(_ list: [Gist.Upload]) {
-    uploads = list
-    database.setSetting(Self.uploadsKey, Gist.encodeUploads(list))
   }
 }

@@ -265,7 +265,6 @@ private struct CallTileStatus: View {
 private struct HomeSettingsView: View {
   @ObservedObject var model: AppModel
   @Environment(\.dismiss) private var dismiss
-  @State private var showUploads = false
   @State private var showLinks = false
   @State private var showWhatsNew = false
 
@@ -294,17 +293,6 @@ private struct HomeSettingsView: View {
         }
         Section {
           // A button, not a NavigationLink: edit mode (for the drag handles) disables links.
-          Button {
-            showUploads = true
-          } label: {
-            HStack {
-              Text("Diagnostics uploads").foregroundStyle(.primary)
-              Spacer()
-              Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-            }
-          }
-          .tint(.primary)
-          .accessibilityIdentifier("home-diagnostics-uploads")
           Button {
             showWhatsNew = true
           } label: {
@@ -340,7 +328,7 @@ private struct HomeSettingsView: View {
         } header: {
           Text("About and diagnostics")
         } footer: {
-          Text(model.call.hasToken ? "A troubled call's log goes up as a private gist." : "No GitHub token saved.")
+          Text("A troubled call files its log as a report on its own; the Mac files the issue.")
         }
         Section("Build") {
           LabeledContent("Commit", value: BuildInfo.sha)
@@ -365,7 +353,6 @@ private struct HomeSettingsView: View {
       }
       // The reorder handles always showing: dragging is what this sheet is for.
       .environment(\.editMode, .constant(.active))
-      .navigationDestination(isPresented: $showUploads) { GistSettingsView(call: model.call) }
       .navigationDestination(isPresented: $showLinks) { LinksView(log: model.log) }
       .navigationDestination(isPresented: $showWhatsNew) {
         WhatsNewView(feed: model.whatsNew, logger: model.bugLogger, from: "home_settings")

@@ -250,17 +250,8 @@ struct CallView: View {
               copied = false
             }
           }
-          if call.hasToken {
-            Button(uploadLabel) { call.uploadTapped() }.disabled(call.upload == .uploading)
-          }
         }
         .buttonStyle(.bordered)
-        if let error = call.uploadError, call.upload == .failed || call.upload == .idle {
-          Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled)
-        }
-        if let url = call.lastUploadURL {
-          Text(url).font(.caption).textSelection(.enabled)
-        }
         if diagnosticsOpen {
           let _ = call.logVersion
           Text(call.events.lines.suffix(400).joined(separator: "\n"))
@@ -271,15 +262,6 @@ struct CallView: View {
       }
     }
     .accessibilityIdentifier("call-diagnostics")
-  }
-
-  private var uploadLabel: String {
-    switch call.upload {
-    case .idle: return "Upload"
-    case .uploading: return "Uploading…"
-    case .uploaded: return "Uploaded"
-    case .failed: return "Upload failed"
-    }
   }
 }
 
