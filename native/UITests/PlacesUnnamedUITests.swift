@@ -12,11 +12,11 @@ final class PlacesUnnamedUITests: XCTestCase {
     app.launchEnvironment["GRABBER_IMPORT_DB"] = "import-fixture.db,recent"
     app.launchEnvironment["GRABBER_PLACES"] = "map,unnamed"
     app.launch()
-    let dot = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'unnamed-'")).firstMatch
-    guard dot.waitForExistence(timeout: 30) else {
+    let dots = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'unnamed-'"))
+    guard dots.firstMatch.waitForExistence(timeout: 30) else {
       throw XCTSkip("no unnamed place in the last seven days: is import-fixture.db in Documents?")
     }
-    let placeId = String(dot.identifier.dropFirst("unnamed-".count))
+    let before = dots.count
     let name = app.buttons["name-this-place"]
     XCTAssertTrue(name.waitForExistence(timeout: 10), "the hook opens the longest place's card")
     name.tap()
@@ -38,10 +38,11 @@ final class PlacesUnnamedUITests: XCTestCase {
     app.buttons["Save"].tap()
 
     XCTAssertTrue(app.descendants(matching: .any)["UITest Spot"].waitForExistence(timeout: 10), "a named pin now")
-    // The unnamed list is worked out again off the main thread after the save: wait for the dot to go.
-    let dotGone = NSPredicate(format: "exists == false")
-    expectation(for: dotGone, evaluatedWith: app.buttons["unnamed-\(placeId)"])
-    waitForExpectations(timeout: 10)  // its grey dot is gone
+    // The unnamed list is worked out again off the main thread after the save: wait for one dot fewer. Not for
+    // this dot's id to go: ids are ranks ("Place 1"), so the next place takes the named one's id (#261).
+    let fewer = NSPredicate { _, _ in dots.count == before - 1 }
+    expectation(for: fewer, evaluatedWith: nil)
+    waitForExpectations(timeout: 10)
 
     // Put the fixture back: collapse the map and delete the place from Known places.
     app.buttons["Collapse map"].tap()
