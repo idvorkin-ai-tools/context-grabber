@@ -51,7 +51,11 @@ ships inside the app, so it plays offline, the moment it is tapped, and keeps go
   time; if it has never found one, it opens the post itself and says the song could not be found.
 - **Eulogy** (a book) opens idvork.in/eulogy in the browser.
 - **Recent** (a clock) opens idvork.in/recent in the browser.
-- All three are launchers like the others: they can be hidden and moved from the cog. In a phone that already has
+- **Random** (dice), [#259](https://github.com/idvorkin/context-grabber/issues/259), Igor 2026-10-10: *"Add random
+  page"*, a random page of the blog. It opens idvork.in/random in the browser, and the blog picks the page, so
+  every tap lands somewhere different. It needs the network like the other two links; off the network the browser
+  says so, as it does for Eulogy and Recent.
+- All four are launchers like the others: they can be hidden and moved from the cog. In a phone that already has
   its own order, they show at the end of it until moved.
 
 ## Explaining itself
@@ -64,7 +68,8 @@ last time, or fell back to the post.
 
 ## Acceptance criteria
 
-- The three launchers appear on the home screen and open what they name.
+- The four launchers appear on the home screen and open what they name; two taps on Random usually land on two
+  different pages.
 - Eulogy song plays the song inside the app, offline included; it keeps playing with the sheet closed and the
   phone locked, and the lock screen can pause it.
 - Pause, close, reopen: the sheet shows the same place and resumes from it.

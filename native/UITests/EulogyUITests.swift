@@ -1,5 +1,5 @@
-//  Story 137 (#177): Eulogy and Recent leave for the blog; Eulogy song plays in the app, and its sheet's
-//  Open on Suno leaves for the song.
+//  Story 137 (#177): Eulogy and Recent leave for the blog, and so does Random (story 247, #259); Eulogy song plays
+//  in the app, and its sheet's Open on Suno leaves for the song.
 
 import XCTest
 
@@ -14,7 +14,7 @@ final class EulogyUITests: XCTestCase {
   }
 
   func testBlogLaunchersLeaveTheApp() throws {
-    for id in ["eulogy", "recent"] {
+    for id in ["eulogy", "recent", "random"] {
       let app = XCUIApplication()
       app.launch()
       row(id, in: app).tap()

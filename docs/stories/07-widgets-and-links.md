@@ -457,3 +457,28 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the home screen
 - **When:** I tap *Eulogy*, and later *Recent*
 - **Then:** idvork.in/eulogy and idvork.in/recent open in the browser
+
+---
+
+### User Story 247:
+
+- **Summary:** A random page of my blog, one tap away
+- **Issues:** [#259](https://github.com/idvorkin/context-grabber/issues/259)
+- **Status:** implemented (this commit); compiled on the host with `EulogyUITests` extended to tap it, the simulator and the phone not yet
+- **Spec:** [native Eulogy](../superpowers/specs/2026-10-07-native-eulogy-design.md)
+
+#### Use Case:
+- **As someone** whose blog has years of posts he no longer remembers writing
+- **I want to** open a random page of it from the home screen
+- **so that** I reread something I'd forgotten without choosing it
+
+#### Acceptance Criteria:
+- **Scenario:** A random page
+- **Given:** the home screen, online
+- **When:** I tap *Random*
+- **Then:** idvork.in/random opens in the browser and shows a page of the blog the blog picked; tapping again later usually lands somewhere else
+
+- **Scenario:** Like any launcher
+- **Given:** a phone that already has its own order of launchers
+- **When:** this build arrives
+- **Then:** *Random* shows at the end until I move or hide it from the cog
