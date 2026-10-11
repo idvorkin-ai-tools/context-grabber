@@ -555,7 +555,7 @@ final class AppModel: ObservableObject {
     }
     // Places (docs/TESTING.md): import first, so the other hooks see the imported trail.
     if let spec = env["GRABBER_IMPORT_DB"], !spec.isEmpty {
-      // "<file>[,recent]": a path, absolute or under Documents; "recent" shifts it by whole weeks into the last seven days.
+      // "<file>[,recent]": a path, absolute or under Documents; "recent" shifts it by whole days into the last 24 hours.
       let parts = spec.split(separator: ",").map(String.init)
       let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
       let url = parts[0].hasPrefix("/") ? URL(fileURLWithPath: parts[0]) : docs.appendingPathComponent(parts[0])

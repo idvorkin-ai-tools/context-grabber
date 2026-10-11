@@ -421,8 +421,8 @@ final class PlacesModel: ObservableObject {
   }
 
   /// Imports another Context Grabber database (story 055). `url` may be security-scoped (Files, the share sheet).
-  /// `recent` moves the timestamps by whole weeks so the newest point falls in the last seven days (the
-  /// simulator hook, for an old fixture).
+  /// `recent` moves the timestamps by whole days so the newest point falls in the last 24 hours (the simulator
+  /// hook, for an old fixture).
   func importDatabase(_ url: URL, from source: String, recent: Bool = false) {
     guard let store else { return }
     let started = Date()
@@ -434,8 +434,7 @@ final class PlacesModel: ObservableObject {
       try FileManager.default.copyItem(at: url, to: copy)
       var shift = 0.0
       if recent, let newest = try? SQLiteDatabase(path: copy.path).run("SELECT MAX(timestamp) AS t FROM locations").first?["t"]?.doubleValue {
-        let week = 7 * Geo.dayMs
-        shift = floor((Geo.ms(Date()) - newest) / week) * week
+        shift = LocationStore.recentShiftMs(newest: newest, now: Geo.ms(Date()))
       }
       let r = try store.importDatabase(at: copy.path, shiftMs: shift)
       log.event(
