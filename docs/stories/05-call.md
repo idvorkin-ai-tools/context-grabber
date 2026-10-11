@@ -330,7 +330,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A connection is lost mid-call
 - **Given:** the native app on the phone
 - **When:** the bridge dies mid-call and the call ends with *connection lost*
-- **Then:** the phone saves a report on its own, with the call's log, this launch's log and the reason, and no screenshot or note; nothing is uploaded from the phone
+- **Then:** the phone saves a report on its own, with the call's log, the reason and this launch's log named, and no screenshot or note; nothing is uploaded from the phone
 
 - **Scenario:** The Mac picks it up
 - **Given:** a report saved after a troubled call

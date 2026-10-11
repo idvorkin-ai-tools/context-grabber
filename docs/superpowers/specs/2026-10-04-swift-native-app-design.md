@@ -258,8 +258,8 @@ differences while the two apps live side by side:
   then the call carries no location.
 - **Prime audio is not ported.** It was an experiment for the silent first call in the React Native audio
   engine (#88); the native call builds its audio the same way every time.
-- **No gist.** A call that went wrong files an automatic report on the phone: the call's log, the session log and
-  why, with no screenshot and no note (story 248). It waits there until the Mac's listener reaches the phone, which
+- **No gist.** A call that went wrong files an automatic report on the phone: the call's log, why, and the session
+  log's name, with no screenshot and no note (story 248). It waits there until the Mac's listener reaches the phone, which
   files it as an issue titled *Automatic report: call_trouble*. At most one per ten minutes, so a call that keeps
   failing does not pile them up; a long log keeps its newest lines within 5 MB. There is no token, no *Diagnostics
   uploads* screen and nothing to delete afterwards. *Copy diagnostics* still puts the call's log on the clipboard.
