@@ -2,6 +2,7 @@
 //  count, the chosen preset, and which way the phone is turned. The logic is ContextCore's; this class owns the
 //  clock, carries out the engine's effects, remembers, and writes the session log.
 
+import BugKit
 import ContextCore
 import CoreMotion
 import SwiftUI
@@ -283,6 +284,8 @@ final class GymTimerModel: ObservableObject {
   }
 
   // MARK: - accessory work
+
+  var bugLogger: BugLogger { log.bugLogger }
 
   func saveAccessory(_ ids: [String]) throws -> Int {
     guard let accessoryLog = database.accessoryLog else {
