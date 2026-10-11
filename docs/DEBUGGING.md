@@ -89,12 +89,17 @@ writes a `bug_report` event, a line in `Documents/bugs.jsonl` (note, screen, bui
 format are BugKit's (idvorkin/bug-kit). While Igor is on the phone, `just bugs-check` is BugKit's
 `pull-reports.sh --check context-grabber`: it copies each plugged-in iPhone's and iPad's `bugs.jsonl` and prints
 one line per report that is not yet an issue, `new context-grabber <device> <reported_at> <note>`, exiting 1 when
-there are any (an unreachable device is named, not a failure). To watch, arm `Monitor(command: "just bugs-monitor")` (BugKit's bugs-monitor.sh: one `new` line per report, and `check_failed` / `check_ok` when the look breaks and recovers), or run BugKit's
-`listener/bug-listener`, which polls and files on its own (CG is in `~/.config/bug-kit/apps.json`). Until the listener has filed one real report end to end, file by hand.
-On a line: `just pull-logs && just file-bugs` —
-one issue per report, carrying the note, the screen, the build and the log's name. The repo is public, so the
-screenshot is never uploaded: the issue names its path under `~/tmp/agent/grabber-logs/` on the Mac. The marker `<!-- bug:<reported_at> -->` makes filing
-idempotent. Then steps 3–5 of *Bug reports* below, reading the log at the report's `session_t_ms`.
+there are any (an unreachable device is named, not a failure).
+
+**The listener files every report and crash; nobody files by hand.** BugKit's `listener/bug-listener` runs always
+on, in the Herdr pane *listener/bug-listener*, and polls the phone and the iPad every five minutes (CG is in
+`~/.config/bug-kit/apps.json`). Each new report or crash becomes one GitHub issue, carrying the note, the screen,
+the build and the session log, with the screenshot's path on the Mac and no picture uploaded (the repo is public).
+It copies the evidence to `~/tmp/agent/bugs/context-grabber/<device>/`, appends a line to
+`~/tmp/agent/bugs/inbox.jsonl` and sends a Herdr notification. Its steps are in `~/tmp/agent/bugs/listener.log`.
+So an agent never files a report itself; doing so would file it twice. Watch the inbox for this app instead, for
+example `Monitor(command: "tail -n0 -F ~/tmp/agent/bugs/inbox.jsonl | grep --line-buffered context-grabber")`, and
+fix what lands. Then follow steps 3–5 of *Bug reports* below, reading the log at the report's `session_t_ms`.
 
 ## Adding a line
 
@@ -117,9 +122,9 @@ files and not synthesis (2026-09-07).
 
 1. **On the phone**: Igor hits it. He copies the error, copies or uploads the log, or says it in the session. The
    copied payload carries the build line, so nothing needs retyping.
-2. **File it**: one GitHub issue per report (`gh issue create`), with the note, the payload or the gist link, the
-   build line, and what he was doing. A report that arrives by voice gets an issue too, filed by hand with the same
-   evidence, so the trail is complete. Track the work in `bd` when it spans sessions; the issue is where the
+2. **File it**: a shake report or a crash is filed by BugKit's listener on its own (above); never file one yourself.
+   A report that arrives any other way (a copied error or log, or Igor's voice in the session) gets one GitHub issue
+   (`gh issue create`) with the payload, the build line and what he was doing, so the trail is complete. Track the work in `bd` when it spans sessions; the issue is where the
    evidence lives and what the commit closes.
 3. **Before fixing**: find or write the story in [stories/](stories/README.md) that the report belongs to — a bug gets
    an `Issues:` line, a request becomes a story, no story means the spec has a hole — and, when the behaviour will

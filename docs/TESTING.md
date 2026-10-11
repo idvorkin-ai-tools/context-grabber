@@ -30,9 +30,9 @@ tables below move here.
 The phone recipes (`native-run-device`, `pull-logs`) need the iPhone's hardware UDID: `DEVICE=<udid>`
 in the environment, or one line in `scripts/native/phone-udid.local`, which is gitignored because the repo is
 public (`xcrun devicectl list devices` shows the id). Without either they stop with a line saying so. (`bugs-check`
-is BugKit's and finds every plugged-in iPhone and iPad itself, no ids.) `pull-logs` and `file-bugs` cover the iPad too: its id is `IPAD=<udid>` or one line in the gitignored
+is BugKit's and finds every plugged-in iPhone and iPad itself, no ids.) `pull-logs` covers the iPad too: its id is `IPAD=<udid>` or one line in the gitignored
 `scripts/native/ipad-udid.local`. Each device's logs, reports and screenshots land in
-`~/tmp/agent/grabber-logs/<phone|ipad>/`, and an issue filed from the iPad says *Report from the iPad*. A device
+`~/tmp/agent/grabber-logs/<phone|ipad>/`. A device
 that is not plugged in or reachable is named and skipped. `native-run-device` builds under the Mac's one signing lock
 (`~/tmp/agent/locks/xcode-signing.lock`, shared with every app and agent), so it waits while another signing build
 runs; run it bare, not inside another `lockf` on that lock.
@@ -160,7 +160,7 @@ What the native rungs can and cannot see of the call:
 | The call's states, frames both ways, captions, mute, restart, the no-first-frame reset and redial, the zeros re-arm, the probe, the five-second counters, audio not arriving, endings | Host | `CallSession*Tests` (fake socket, fake audio layer, a hand-advanced `FakeScheduler`: the jest cases of `callSession.test.ts` translated) |
 | The watchdog's verdicts, the call log's lines and trouble rule | Host | `CallWatchdogTests`, `CallEventLogTests`; the automatic report's window, cap and format are BugKit's own tests |
 | A whole call in the app: start frame with the client tag, mic frames up, PCM down scheduled, captions, the hang-up's dump, `stt_stop` and `stop` | Simulator | the `call (synthetic)` and `call (real audio)` checks in `sim-smoke.sh` against `scripts/native/fake-bridge.py` |
-| Echo cancellation, the call with the phone locked, interruptions, AirPods and route changes, a real call to Larry, a real troubled call reaching an issue, the Call Larry Shortcut | Phone only | call Larry, lock for two minutes, `just pull-logs`, read `call_audio` / `call_stats` / `call_heal`; after a troubled call, `bug_report_auto` in the log and BugKit's listener (`bug-listener --once`) files *Automatic report: call_trouble* |
+| Echo cancellation, the call with the phone locked, interruptions, AirPods and route changes, a real call to Larry, a real troubled call reaching an issue, the Call Larry Shortcut | Phone only | call Larry, lock for two minutes, `just pull-logs`, read `call_audio` / `call_stats` / `call_heal`; after a troubled call, `bug_report_auto` in the log and the always-on listener files *Automatic report: call_trouble* within five minutes — watch it land in `~/tmp/agent/bugs/inbox.jsonl` |
 
 What the native rungs can and cannot see of the mirror and Grab Context:
 
