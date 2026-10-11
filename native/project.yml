@@ -13,11 +13,11 @@ packages:
   ThinkACard:
     url: https://github.com/idvorkin/think-a-card-trainer
     exactVersion: 0.1.0
-  # The report dialog, shake, dictation and What's new, shared with Exercise Analyzer and Magic Monitor. bug-kit has
-  # no tags yet: pinned to a commit, so a change there reaches this app when the revision here moves.
+  # The report dialog, shake, dictation, What's new and iCloud delivery, shared with the other apps. Pinned to a
+  # release tag exactly: every app and the Mac's reader must speak the same delivery format (bug-kit's rollout trains).
   BugKit:
     url: https://github.com/idvorkin/bug-kit
-    revision: 94a5ae3fbe8533e64395e4a4288d5056c6dc1102
+    exactVersion: 0.3.0
 settings:
   base:
     DEVELOPMENT_TEAM: 45P6D3439T
@@ -63,6 +63,11 @@ targets:
         # The live tile reads the usage reading the app writes here (story 136).
         com.apple.security.application-groups:
           - group.com.idvorkin.grabbernative
+        # Reports go up to Igor's private iCloud for the Mac's listener (story 152): BugKit's shared container.
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.idvorkin.BugKitReports
     dependencies:
       - package: ContextCore
       - package: ThinkACard
