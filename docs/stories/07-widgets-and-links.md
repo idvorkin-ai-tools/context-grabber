@@ -464,7 +464,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A random page of my blog, one tap away
 - **Issues:** [#259](https://github.com/idvorkin/context-grabber/issues/259)
-- **Status:** implemented (this commit); compiled on the host with `EulogyUITests` extended to tap it, the simulator and the phone not yet
+- **Status:** implemented in [2cae69d](https://github.com/idvorkin/context-grabber/commit/2cae69d); compiled on the host with `EulogyUITests` extended to tap it, the simulator and the phone not yet
 - **Spec:** [native Eulogy](../superpowers/specs/2026-10-07-native-eulogy-design.md)
 
 #### Use Case:
