@@ -227,7 +227,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 112:
 
 - **Summary:** Log the accessory work after a workout with four taps
-- **Status:** implemented in [dc6546e](https://github.com/idvorkin/context-grabber/commit/dc6546e); verified by `accessoryLog.test.ts`, `share.test.ts` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor
+- **Status:** implemented in [dc6546e](https://github.com/idvorkin/context-grabber/commit/dc6546e); verified by `accessoryLog.test.ts`, `share.test.ts` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor; a failed save or history read is a copyable error naming where, the build and the timer's state: [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9), verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook)
 - **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
 
 #### Use Case:
@@ -251,7 +251,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 113:
 
 - **Summary:** See the last seven days of accessory work in the same sheet
-- **Status:** implemented in [340e572](https://github.com/idvorkin/context-grabber/commit/340e572); verified by `accessoryLog.test.ts`, `GymTimerScreen.test.tsx` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor
+- **Status:** implemented in [340e572](https://github.com/idvorkin/context-grabber/commit/340e572); verified by `accessoryLog.test.ts`, `GymTimerScreen.test.tsx` and on the phone; native app: [5a284c5](https://github.com/idvorkin/context-grabber/commit/5a284c5), verified by `just native-test` and `just native-test-sim`, the phone still to be checked by Igor; a failed save or history read is a copyable error naming where, the build and the timer's state: [1c632f9](https://github.com/idvorkin/context-grabber/commit/1c632f9), verified by build and `just native-test-sim` (no regression; the failure itself has no simulator hook)
 - **Issues:** [#263](https://github.com/idvorkin/context-grabber/issues/263)
 
 #### Use Case:
