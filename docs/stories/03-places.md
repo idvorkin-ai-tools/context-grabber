@@ -316,7 +316,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** See the places I have not named on the full-screen map, and name them there
 - **Status:** native app: implemented in [df4165a](https://github.com/idvorkin/context-grabber/commit/df4165a); verified by `UnnamedPlacesTests` (on the real fixture: all 7 unnamed places, radius 100 or 110 m holding all but 2 of their 2 340 points) and on the simulator (`PlacesUnnamedUITests`: a grey dot's card names the place and it becomes a named pin; screenshots of the dot, the card and the name card); the phone still to be checked by Igor
-- **Issues:** [#162](https://github.com/idvorkin/context-grabber/issues/162), [#261](https://github.com/idvorkin/context-grabber/issues/261) (its UI test waited for a dot id that the next place takes; the test now waits for one dot fewer: [2dd165e](https://github.com/idvorkin/context-grabber/commit/2dd165e), passes on the simulator 2026-10-11)
+- **Issues:** [#162](https://github.com/idvorkin/context-grabber/issues/162), [#261](https://github.com/idvorkin/context-grabber/issues/261) (its UI test waited for a dot id that the next place takes; the test now waits for one dot fewer: [c821029](https://github.com/idvorkin/context-grabber/commit/c821029), passes on the simulator 2026-10-11)
 
 #### Use Case:
 - **As** someone whose week has stops the breakdown only calls "Place 4"
