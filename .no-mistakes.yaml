@@ -89,7 +89,6 @@ test:
     session owns live evidence under the build turn and records it in the PR body (only one simulator may run on
     this Mac at a time). Do not run `just deploy`, `just build`, `just dev`, `just ota`, `just setup`,
     `just resync-native` or `just timer-cues` (they need a device, publish an update, open windows, or rewrite
-    committed files). Do not re-run `just test`: the gate already ran it (in this worktree it fails only on the
-    uninitialised vendor/igor-timer submodule). Report which rung verified the change, and list what only the
-    simulator or the phone can show (HealthKit, GPS, the audio session, widgets, Live Activities, Shortcuts, the
-    voice bridge, iCloud delivery) as "to verify live".
+    committed files). Do not re-run `just test`: the gate already ran it. Report which rung verified the change,
+    and list what only the simulator or the phone can show (HealthKit, GPS, the audio session, widgets, Live
+    Activities, Shortcuts, the voice bridge, iCloud delivery) as "to verify live".
