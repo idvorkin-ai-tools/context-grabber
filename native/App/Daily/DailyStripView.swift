@@ -31,9 +31,11 @@ struct DailyStripView: View {
       strip.refresh()
     }
     .onAppear { strip.refresh() }
-    .sheet(item: $backdating, onDismiss: { longPressed = false }) { b in
-      BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, day: $0, daysAgo: $1) }
-    }
+    .sheet(
+      item: $backdating, onDismiss: { longPressed = false },
+      content: { b in
+        BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, day: $0, daysAgo: $1) }
+      })
   }
 
   private var gymNote: String? {
