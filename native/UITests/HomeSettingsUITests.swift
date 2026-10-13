@@ -1,4 +1,4 @@
-//  Story 147 on the simulator: a launcher hidden through the home screen's cog stays hidden after a relaunch,
+//  Story 147 on the simulator: a launcher hidden through the home screen's Settings tile stays hidden after a relaunch,
 //  and a launcher moved there stays moved. Run: xcodebuild … -only-testing:GrabberNativeUITests/HomeSettingsUITests
 
 import XCTest

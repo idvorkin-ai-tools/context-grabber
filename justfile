@@ -45,7 +45,6 @@ native_sim_app := "native/Build/Build/Products/Debug-iphonesimulator/GrabberNati
 native_device_app := "native/Build/Build/Products/Debug-iphoneos/GrabberNative.app"
 native_logs := "~/tmp/agent/grabber-logs"
 
-# Native rung 1: ContextCore's host tests on the Mac (seconds)
 native_swift := "native/App native/ContextCore/Sources native/ContextCore/Tests native/UITests native/Widgets native/Shared"
 
 # The native app in swift-format's layout (native/.swift-format), in place.
@@ -61,6 +60,7 @@ native-lint-format:
 native-lint:
     cd native && swiftlint lint --strict --quiet
 
+# Native rung 1: ContextCore's host tests on the Mac (seconds)
 native-test: native-lint-format native-lint
     #!/usr/bin/env bash
     # pipefail: a failing suite must fail the recipe instead of hiding behind tail's exit 0.

@@ -22,7 +22,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Installing the native build
 - **Given:** Context Grabber is on the phone with its data
 - **When:** the native build is installed and opened
-- **Then:** a second app named "Grabber Native" opens on its home screen, whose cog shows the commit and branch it was built from, and Context Grabber still opens with its data untouched
+- **Then:** a second app named "Grabber Native" opens on its home screen, whose Settings tile shows the commit and branch it was built from, and Context Grabber still opens with its data untouched
 
 ---
 
@@ -48,7 +48,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Report a problem in five seconds with the evidence attached
 - **Issues:** [#182](https://github.com/idvorkin/context-grabber/issues/182) (a shake did nothing while a sheet was up), [#239](https://github.com/idvorkin/context-grabber/issues/239) (speak the note), [#249](https://github.com/idvorkin/context-grabber/issues/249) (a pause replaced the note)
-- **Status:** implemented in [89da016](https://github.com/idvorkin/context-grabber/commit/89da016); verified on the simulator (`GRABBER_BUG` hook: the report, its screenshot and the log's name are written) and on the phone (2026-10-04: a shake, a note, the report and its screenshot pulled back); over a sheet (#182): [19f4b7c](https://github.com/idvorkin/context-grabber/commit/19f4b7c), verified by `ShakeOverSheetUITests` on the simulator (the report twice over the cog's sheet, the sheet still there after Cancel; the log's `over`); a real shake over a dialog on the phone not yet; *Log it and another* [a85e228](https://github.com/idvorkin/context-grabber/commit/a85e228), verified by `LogItAndAnotherUITests` on the simulator (two reports stored, each with its own note and picture, the second opened empty with no shake). Speak the note (#239): [3c4f13d](https://github.com/idvorkin/context-grabber/commit/3c4f13d); verified by `ReportDictationUITests` on the simulator (the mic button sits beside the note, on with no call) and its screenshot read by eye; the permission prompts, the spoken words, the music carrying on and the button off during a call are the phone's to check, not yet. A pause no longer replaces the note (#249): [518a2f0](https://github.com/idvorkin/context-grabber/commit/518a2f0); verified by `DictationJoinTests` on the host (revisions of one stretch, a fresh transcription after a pause, one whose clock starts over, typed text kept) and `ReportDictationUITests` / `LogItAndAnotherUITests` still passing on the simulator; the phone not yet, and `dictation_pause` in its log is what will say whether a restart after a pause was the cause; via BugKit since [6afaf90](https://github.com/idvorkin/context-grabber/commit/6afaf90) (the dialog, *Log it and another* re-capturing, the shake over sheets, dictation with the pause join) and [fc95657](https://github.com/idvorkin/context-grabber/commit/fc95657), verified on the simulator (`LogItAndAnotherUITests`, `ShakeOverSheetUITests`, `ReportDictationUITests`); dictation on the phone not yet
+- **Status:** implemented in [89da016](https://github.com/idvorkin/context-grabber/commit/89da016); verified on the simulator (`GRABBER_BUG` hook: the report, its screenshot and the log's name are written) and on the phone (2026-10-04: a shake, a note, the report and its screenshot pulled back); over a sheet (#182): [19f4b7c](https://github.com/idvorkin/context-grabber/commit/19f4b7c), verified by `ShakeOverSheetUITests` on the simulator (the report twice over the cog's sheet, the sheet still there after Cancel; the log's `over`); a real shake over a dialog on the phone not yet; *Log it and another* [a85e228](https://github.com/idvorkin/context-grabber/commit/a85e228), verified by `LogItAndAnotherUITests` on the simulator (two reports stored, each with its own note and picture, the second opened empty with no shake). Speak the note (#239): [3c4f13d](https://github.com/idvorkin/context-grabber/commit/3c4f13d); verified by `ReportDictationUITests` on the simulator (the mic button sits beside the note, on with no call) and its screenshot read by eye; the permission prompts, the spoken words, the music carrying on and the button off during a call are the phone's to check, not yet. A pause no longer replaces the note (#249): [518a2f0](https://github.com/idvorkin/context-grabber/commit/518a2f0); verified by `DictationJoinTests` on the host (revisions of one stretch, a fresh transcription after a pause, one whose clock starts over, typed text kept) and `ReportDictationUITests` / `LogItAndAnotherUITests` still passing on the simulator; the phone not yet, and `dictation_pause` in its log is what will say whether a restart after a pause was the cause; via BugKit since [6afaf90](https://github.com/idvorkin/context-grabber/commit/6afaf90) (the dialog, *Log it and another* re-capturing, the shake over sheets, dictation with the pause join) and [fc95657](https://github.com/idvorkin/context-grabber/commit/fc95657), verified on the simulator (`LogItAndAnotherUITests`, `ShakeOverSheetUITests`, `ReportDictationUITests`); dictation on the phone not yet; a pause no longer doubles the note (BugKit 0.3.2, bug-kit#42: a stretch's revisions replace each other instead of being appended again): [e5f7c0e](https://github.com/idvorkin/context-grabber/commit/e5f7c0e), verified by a build against 0.3.2 and `just native-test-sim`; on the phone not yet
 
 #### Use Case:
 - **As someone** who just saw the app do something wrong
@@ -69,10 +69,10 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Speaking the note
 - **Given:** the report is open, with or without words typed, and no call is up
 - **When:** I tap the microphone and say "the timer skipped the rest", then tap it again
-- **Then:** the words appear in the note as I say them, after anything I had typed, and a pause adds the next words rather than replacing the earlier ones; music that was playing keeps playing; the log has `dictation_start` and `dictation_stop`; and during a call the microphone button is off
+- **Then:** the words appear in the note as I say them, after anything I had typed, and a pause adds the next words rather than replacing the earlier ones, and nothing I said appears twice; music that was playing keeps playing; the log has `dictation_start` and `dictation_stop`; and during a call the microphone button is off
 
 - **Scenario:** A shake over a dialog
-- **Given:** a sheet is up — the home screen's cog, Today's settings, the timer's settings, a Places naming sheet
+- **Given:** a sheet is up — the home screen's Settings sheet, Today's settings, the timer's settings, a Places naming sheet
 - **When:** I shake the phone, then cancel; and shake again
 - **Then:** the report opens over the sheet each time, its picture shows the sheet, and after Cancel or Log it the sheet is still there; the log's `ui` report_problem says what it opened over
 
@@ -180,14 +180,14 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Scenario:** The diagnostics, out of the way
 - **Given:** I need the build, this launch's log or *Report a problem*
-- **When:** I tap the cog
+- **When:** I tap the Settings tile
 - **Then:** they are under *About and diagnostics* in the sheet, as they were on the home screen, and a shake with the sheet up still opens a report naming the screen *home_settings*
 
 
 - **Scenario:** No title
 - **Given:** the app is open on its home screen
 - **When:** I look at the top
-- **Then:** there is no *Grabber Native* title and no empty bar: the usage card starts just under the status bar, and the cog is in the bottom right corner
+- **Then:** there is no *Grabber Native* title and no empty bar: the usage card starts just under the status bar, and *Settings* is the last tile
 
 ---
 
@@ -220,25 +220,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Scenario:** Nothing to show
 - **Given:** a build made without the project's history, or with no story change in thirty days
-- **When:** I open the app and the cog's *What's new*
-- **Then:** the home screen has no What's new row, and *What's new* in the cog's sheet says there is nothing new, with no error
+- **When:** I open the app and Settings' *What's new*
+- **Then:** the home screen has no What's new row, and *What's new* in the Settings sheet says there is nothing new, with no error
 
-- **Scenario:** Dismissed with its ✕, kept in the cog
+- **Scenario:** Dismissed with its ✕, kept in Settings
 - **Given:** the home screen shows *What's new* after a new build
 - **When:** I open it and come back, then tap its ✕, then relaunch the app
-- **Then:** opening leaves the row on the home screen; the ✕ removes it and the relaunch does not bring it back until a build with a newer change; *What's new* in the cog's sheet still opens the list, and the log has `ui` dismiss_whats_new
+- **Then:** opening leaves the row on the home screen; the ✕ removes it and the relaunch does not bring it back until a build with a newer change; *What's new* in the Settings sheet still opens the list, and the log has `ui` dismiss_whats_new
 
 ---
 
 ### User Story 149:
 
-- **Summary:** Reset audio from the cog when the phone's sound gets stuck
+- **Summary:** Reset audio from Settings when the phone's sound gets stuck
 - **Status:** native app only: implemented in [d2f5fe6](https://github.com/idvorkin/context-grabber/commit/d2f5fe6); verified by `ResetAudioUITests` on the simulator (the cog's Reset audio shows the route before and after; the log's `audio_reset` went SoloAmbient → Ambient with nothing refused); stuck music on the phone still to be checked by Igor
 - **Spec:** [Swift-native app — reset audio](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
 - **As** someone whose music stays ducked or whose sound goes to the wrong place after a call or a workout
-- **I want to** tap Reset audio in the home screen's cog
+- **I want to** tap Reset audio in the home screen's Settings
 - **so that** the phone's sound is back without hunting through apps or restarting the phone
 
 #### Acceptance Criteria:
@@ -298,7 +298,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 152:
 
 - **Summary:** A report reaches the Mac over iCloud, away from it
-- **Status:** implemented in [61eeb4b](https://github.com/idvorkin/context-grabber/commit/61eeb4b), with BugKit 0.3.0; verified by a build against 0.3.0 and `just native-test-sim` (reports still save and the automatic report still files; on the simulator, which has no iCloud account, each report is queued for iCloud and retried with backoff, logging `bug_delivery_queued` and `bug_delivery_retry` and no `error`); a report reaching the Mac through iCloud is still to be seen from the phone
+- **Status:** implemented in [61eeb4b](https://github.com/idvorkin/context-grabber/commit/61eeb4b), with BugKit 0.3.0; verified by a build against 0.3.0 and `just native-test-sim` (reports still save and the automatic report still files; on the simulator, which has no iCloud account, each report is queued for iCloud and retried with backoff, logging `bug_delivery_queued` and `bug_delivery_retry` and no `error`); a report reaching the Mac through iCloud is still to be seen from the phone; on BugKit 0.3.2 since [e5f7c0e](https://github.com/idvorkin/context-grabber/commit/e5f7c0e) (the Mac's reader accepts Development-signed apps), verified by a build and `just native-test-sim`; a report arriving over iCloud on the Mac not yet
 
 #### Use Case:
 - **As a** person who logs problems at the gym, far from the Mac

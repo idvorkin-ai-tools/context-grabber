@@ -46,7 +46,7 @@ final class LinksUITests: XCTestCase {
   func testTheLinksScreenCopiesALink() throws {
     let app = XCUIApplication()
     app.launch()
-    // The Links screen sits behind the home screen's cog (story 147).
+    // The Links screen sits behind the home screen's Settings tile (story 147).
     app.openHomeSettings()
     let row = app.buttons["home-links"]
     for _ in 0..<5 where !row.isHittable { app.swipeUp() }

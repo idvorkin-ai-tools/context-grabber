@@ -1,4 +1,4 @@
-//  Story 149: Reset audio in the home screen's cog lets go of the audio and says what it was and is.
+//  Story 149: Reset audio in the home screen's Settings lets go of the audio and says what it was and is.
 
 import XCTest
 

@@ -481,4 +481,4 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Like any launcher
 - **Given:** a phone that already has its own order of launchers
 - **When:** this build arrives
-- **Then:** *Random* shows at the end until I move or hide it from the cog
+- **Then:** *Random* shows at the end until I move or hide it from Settings

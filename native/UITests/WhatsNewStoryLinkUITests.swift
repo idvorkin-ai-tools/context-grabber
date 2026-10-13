@@ -6,7 +6,7 @@ final class WhatsNewStoryLinkUITests: XCTestCase {
   func testAChangeOpensItsStory() throws {
     let app = XCUIApplication()
     app.launch()
-    // Through the cog, which always has it: the home row may have been dismissed already.
+    // Through Settings, which always has it: the home row may have been dismissed already.
     app.openHomeSettings()
     let inCog = app.buttons["home-settings-whats-new"]
     for _ in 0..<5 where !inCog.isHittable { app.swipeUp() }
