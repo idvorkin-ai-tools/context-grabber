@@ -215,12 +215,13 @@ private struct HomeTile: View {
       VStack(spacing: 6) {
         LauncherIcon(row: row, size: 36)
         Text(row.short).font(.footnote.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
-        if row.id == "call" { CallTileStatus(call: model.call) }
       }
       .frame(maxWidth: .infinity, minHeight: 64)
       .padding(.vertical, 10)
       .padding(.horizontal, 4)
       .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+      // A call left running: a corner badge, not a third line, so this tile stays its neighbours' size.
+      .overlay(alignment: .topTrailing) { if row.id == "call" { CallTileStatus(call: model.call) } }
     }
     .buttonStyle(.plain)
     .foregroundStyle(.primary)
@@ -235,7 +236,14 @@ private struct CallTileStatus: View {
   var body: some View {
     if call.snapshot.isActive {
       TimelineView(.periodic(from: .now, by: 1)) { context in
-        Text(call.status(now: context.date)).font(.caption.monospacedDigit()).foregroundStyle(.green)
+        if let badge = call.snapshot.tileBadge(nowMs: context.date.timeIntervalSince1970 * 1000) {
+          Text(badge).font(.caption2.weight(.semibold).monospacedDigit()).lineLimit(1)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .background(Color.green, in: Capsule())
+            .padding(6)
+            .accessibilityIdentifier("home-call-badge")
+        }
       }
     }
   }
