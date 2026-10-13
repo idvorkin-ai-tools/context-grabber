@@ -54,6 +54,18 @@ public struct CallSnapshot: Equatable, Sendable {
   public init() {}
 
   public var isActive: Bool { state == .connecting || state == .live }
+
+  /// The home tile's corner badge for a call left running: one short line, so the Call tile keeps its neighbours'
+  /// size (Codex on #295). `nowMs` is on the clock `startedAt` is.
+  public func tileBadge(nowMs: Double) -> String? {
+    switch state {
+    case .connecting: return "calling\u{2026}"
+    case .live:
+      let s = max(0, Int((nowMs - (startedAt ?? nowMs)) / 1000))
+      return "\(s / 60):\(String(format: "%02d", s % 60))"
+    case .idle, .ended: return nil
+    }
+  }
 }
 
 /// A one-shot timer the scheduler handed out.

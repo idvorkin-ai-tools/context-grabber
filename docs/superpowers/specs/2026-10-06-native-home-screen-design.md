@@ -52,7 +52,7 @@ and points at Settings.
   order: its icon above a one- or two-word name (*"put three under a row, use shorter words plus the icon"*): Call,
   Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random. So Recent and Random
   sit side by side (#285). A hidden launcher closes the gap; a last line with fewer than three keeps the tiles the
-  same size. Call Larry's tile still shows a live call under its name. **Settings is the last tile** (#286:
+  same size. Call Larry's tile still shows a call left running, as a small green badge in its corner — *calling…*, then the running time such as *2:05* — so it stays the size of its neighbours (the full line, with the backend and the voice, is on the Call screen). **Settings is the last tile** (#286:
   *"settings can be a button now"*), always there and never hidden, since it is the way back to a hidden
   launcher; the floating cog is gone.
 - **How a launcher looks** (Igor, 2026-10-08: *"Doesn't it look bad? … think about making it good via
