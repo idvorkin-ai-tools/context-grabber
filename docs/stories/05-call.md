@@ -348,7 +348,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** it keeps the newest lines, from a line boundary, and the log says it was cut
 
 - **Scenario:** No gist left behind
-- **Given:** the home screen's cog
+- **Given:** the home screen's Settings tile
 - **When:** I look for *Diagnostics uploads*
 - **Then:** it is gone: no token to enter and nothing to delete; *Copy diagnostics* on the call still copies the log
 

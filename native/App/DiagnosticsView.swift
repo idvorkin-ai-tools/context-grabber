@@ -1,5 +1,5 @@
-//  The home screen (stories 140, 147): the launchers in Igor's order, and a cog for the rest — which launchers
-//  show, the build, this launch's log and the way to report a problem.
+//  The home screen (stories 140, 147): the launchers in Igor's order, and a Settings tile for the rest — which
+//  launchers show, the build, this launch's log and the way to report a problem.
 
 import BugKit
 import ContextCore
@@ -12,7 +12,7 @@ struct DiagnosticsView: View {
     NavigationStack {
       Form {
         UsageSection(usage: model.usage)
-        // Until its ✕; after that it lives in the cog's sheet (story 148).
+        // Until its ✕; after that it lives in the Settings sheet (story 148).
         if model.whatsNewOnHome {
           Section {
             // BugKit's row: its ✕ remembers the newest change and hides the row until a newer build.
@@ -241,7 +241,7 @@ private struct CallTileStatus: View {
   }
 }
 
-/// Behind the home screen's cog (story 147): the launchers to show and their order, then what used to sit under them.
+/// Behind the home screen's Settings tile (story 147): the launchers to show and their order, then what used to sit under them.
 private struct HomeSettingsView: View {
   @ObservedObject var model: AppModel
   @Environment(\.dismiss) private var dismiss

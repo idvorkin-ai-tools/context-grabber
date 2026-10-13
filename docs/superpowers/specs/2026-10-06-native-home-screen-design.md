@@ -1,4 +1,4 @@
-# Native Home Screen: the launchers, and a cog for the rest — Design Spec
+# Native Home Screen: the launchers, and Settings for the rest — Design Spec
 
 Issue [#166](https://github.com/idvorkin/context-grabber/issues/166). Igor, 2026-10-06: *"Add a settings cog on
 the front page. There's just a lot of stuff here that I don't use."* Story
@@ -9,7 +9,7 @@ the front page. There's just a lot of stuff here that I don't use."* Story
 
 The native app's home screen was a diagnostics list with the journeys on top: below the launchers sat the gist
 token, the build, this launch's log and *Report a problem* — things Igor reads once a week, if that. The home
-screen now holds only the launchers. A cog in the bottom right corner opens a **Home screen** sheet where each launcher can
+screen now holds only the launchers. A *Settings* tile, the last one, opens a **Home screen** sheet where each launcher can
 be hidden or moved, and where the diagnostics now live.
 
 ## Goals

@@ -1,5 +1,5 @@
 //  Story 148: What's new stays on the home screen when opened, leaves on its ✕, stays gone after a relaunch, and
-//  lives in the cog.
+//  lives in Settings.
 
 import XCTest
 

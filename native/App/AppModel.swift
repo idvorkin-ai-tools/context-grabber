@@ -14,7 +14,7 @@ final class AppModel: ObservableObject {
   /// The trail: recording runs whatever screen is in front, and iOS may launch the app just to deliver points.
   let tracker: LocationTracker
   let places: PlacesModel
-  /// Shake (hard or gentle), ⌘I or the cog's button opens BugKit's report dialog (stories 142, 146). Set at the
+  /// Shake (hard or gentle), ⌘I or the Settings button opens BugKit's report dialog (stories 142, 146). Set at the
   /// end of init: its hooks read this model.
   // swiftlint:disable:next implicitly_unwrapped_optional
   private(set) var reporter: BugReporter!
@@ -291,7 +291,7 @@ final class AppModel: ObservableObject {
     return reporter
   }
 
-  /// The cog's *Report a problem*.
+  /// Settings' *Report a problem*.
   func startBugReport(from source: String) {
     log.event("ui", ["action": "report_problem", "from": source, "screen": screen])
     reporter.open(from: .button)

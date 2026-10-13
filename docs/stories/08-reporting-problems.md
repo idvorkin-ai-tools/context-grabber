@@ -22,7 +22,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Installing the native build
 - **Given:** Context Grabber is on the phone with its data
 - **When:** the native build is installed and opened
-- **Then:** a second app named "Grabber Native" opens on its home screen, whose cog shows the commit and branch it was built from, and Context Grabber still opens with its data untouched
+- **Then:** a second app named "Grabber Native" opens on its home screen, whose Settings tile shows the commit and branch it was built from, and Context Grabber still opens with its data untouched
 
 ---
 
@@ -72,7 +72,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the words appear in the note as I say them, after anything I had typed, and a pause adds the next words rather than replacing the earlier ones, and nothing I said appears twice; music that was playing keeps playing; the log has `dictation_start` and `dictation_stop`; and during a call the microphone button is off
 
 - **Scenario:** A shake over a dialog
-- **Given:** a sheet is up — the home screen's cog, Today's settings, the timer's settings, a Places naming sheet
+- **Given:** a sheet is up — the home screen's Settings sheet, Today's settings, the timer's settings, a Places naming sheet
 - **When:** I shake the phone, then cancel; and shake again
 - **Then:** the report opens over the sheet each time, its picture shows the sheet, and after Cancel or Log it the sheet is still there; the log's `ui` report_problem says what it opened over
 
@@ -180,14 +180,14 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Scenario:** The diagnostics, out of the way
 - **Given:** I need the build, this launch's log or *Report a problem*
-- **When:** I tap the cog
+- **When:** I tap the Settings tile
 - **Then:** they are under *About and diagnostics* in the sheet, as they were on the home screen, and a shake with the sheet up still opens a report naming the screen *home_settings*
 
 
 - **Scenario:** No title
 - **Given:** the app is open on its home screen
 - **When:** I look at the top
-- **Then:** there is no *Grabber Native* title and no empty bar: the usage card starts just under the status bar, and the cog is in the bottom right corner
+- **Then:** there is no *Grabber Native* title and no empty bar: the usage card starts just under the status bar, and *Settings* is the last tile
 
 ---
 
@@ -220,25 +220,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Scenario:** Nothing to show
 - **Given:** a build made without the project's history, or with no story change in thirty days
-- **When:** I open the app and the cog's *What's new*
-- **Then:** the home screen has no What's new row, and *What's new* in the cog's sheet says there is nothing new, with no error
+- **When:** I open the app and Settings' *What's new*
+- **Then:** the home screen has no What's new row, and *What's new* in the Settings sheet says there is nothing new, with no error
 
-- **Scenario:** Dismissed with its ✕, kept in the cog
+- **Scenario:** Dismissed with its ✕, kept in Settings
 - **Given:** the home screen shows *What's new* after a new build
 - **When:** I open it and come back, then tap its ✕, then relaunch the app
-- **Then:** opening leaves the row on the home screen; the ✕ removes it and the relaunch does not bring it back until a build with a newer change; *What's new* in the cog's sheet still opens the list, and the log has `ui` dismiss_whats_new
+- **Then:** opening leaves the row on the home screen; the ✕ removes it and the relaunch does not bring it back until a build with a newer change; *What's new* in the Settings sheet still opens the list, and the log has `ui` dismiss_whats_new
 
 ---
 
 ### User Story 149:
 
-- **Summary:** Reset audio from the cog when the phone's sound gets stuck
+- **Summary:** Reset audio from Settings when the phone's sound gets stuck
 - **Status:** native app only: implemented in [d2f5fe6](https://github.com/idvorkin/context-grabber/commit/d2f5fe6); verified by `ResetAudioUITests` on the simulator (the cog's Reset audio shows the route before and after; the log's `audio_reset` went SoloAmbient → Ambient with nothing refused); stuck music on the phone still to be checked by Igor
 - **Spec:** [Swift-native app — reset audio](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
 - **As** someone whose music stays ducked or whose sound goes to the wrong place after a call or a workout
-- **I want to** tap Reset audio in the home screen's cog
+- **I want to** tap Reset audio in the home screen's Settings
 - **so that** the phone's sound is back without hunting through apps or restarting the phone
 
 #### Acceptance Criteria:
