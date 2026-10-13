@@ -421,11 +421,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I start a workout
 - **Then:** Adam says *three, two, one, go*, *rest* and *done*, and each `timer_cue` line in the session log has `voice: adam`
 
-- **Scenario:** Choosing another voice
-- **Given:** the Gym Timer is upright
-- **When:** I tap the gear, then *Australian woman* under *Count voice*
-- **Then:** the checkmark moves to her row, she says *go* once as a sample, the session log has a `ui` line with `action: count_voice` and `voice: aussie`, the next cue is in her voice, and after quitting and reopening the app she is still the one counting
-
 ---
 
 ### User Story 183:
@@ -503,3 +498,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the log cannot be read
 - **When:** I open *Log Accessory Work*
 - **Then:** the checklist still works, and the last-seven-days section shows the failure with a *Copy error* button whose paste names where it happened (reading the accessory history), the build and the timer's mode and preset; never a bare red line
+
+---
+
+### User Story 187:
+
+- **Summary:** Another count voice is chosen from the timer's gear and remembered
+- **Status:** native app only: implemented in [d6ce5b6](https://github.com/idvorkin/context-grabber/commit/d6ce5b6) (split out of story 182, which had two scenarios); verified by `just native-test` (`CountVoiceTests`), a simulator screenshot of the sheet, and `just native-test-sim`'s `aussie` hook check (written, but the Mac's audio was down for its runs); hearing the sample and her count on the phone still to be checked by Igor
+
+#### Use Case:
+- **As a** lifter who wants a different voice today
+- **I want to** choose it once from the timer's gear and keep it
+- **so that** every later workout counts in that voice without choosing again
+
+#### Acceptance Criteria:
+- **Scenario:** Choosing another voice
+- **Given:** the Gym Timer is upright
+- **When:** I tap the gear, then *Australian woman* under *Count voice*
+- **Then:** the checkmark moves to her row, she says *go* once as a sample, the session log has a `ui` line with `action: count_voice` and `voice: aussie`, the next cue is in her voice, and after quitting and reopening the app she is still the one counting
