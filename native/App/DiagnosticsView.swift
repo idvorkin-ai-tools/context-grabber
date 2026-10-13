@@ -269,6 +269,9 @@ private struct HomeSettingsView: View {
           .accessibilityIdentifier("home-settings-launchers")
         }
         Section {
+          // #303 (bug-kit#45): the same About page as Igor's other apps, from the built app's Info.plist.
+          BugKitAboutLink()
+            .accessibilityIdentifier("home-settings-about")
           Button {
             showWhatsNew = true
           } label: {
