@@ -128,10 +128,15 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** Reading the week's sleep
-- **Given:** the sleep target in Settings is 8 h
+- **Given:** the sleep target is 7 h (the default)
 - **and Given:** four nights were short
 - **When:** I open the Sleep sheet
 - **Then:** the bars are stacked by stage with totals under them, a "Sleep debt" line sums the shortfalls (oversleeping earns nothing back), a two-line chart shows bedtime and wake with "±" minutes under it, and each daily row carries a thin stage strip from bedtime to wake
+
+- **Scenario:** Changing the target where the debt is
+- **Given:** the Sleep sheet is open with a target of 7 h
+- **When:** I step the target under the sleep-debt line up to 8 h
+- **Then:** it reads 8 h, the debt line counts against 8 h at once, and the next launch still has 8 h
 
 ---
 

@@ -326,7 +326,7 @@ with these differences while the two apps live side by side:
   midnight (the headline's last night is noon to noon, as story 025 asks); `bedtime` and `wakeTime` in the
   headline are clock times in UTC; `walkingDistanceKm` is in the phone's preferred distance unit (miles on a phone
   set to US units); and a day's steps, energy and distance in `days` keep two decimals.
-- **Settings for the mirror** is the sleep target, kept where the current app keeps it. The current app's About and
+- **Settings for the mirror** is the sleep target, kept where the current app keeps it. It starts at **7 hours** (Igor, 2026-10-13, #301) and can also be changed on the Sleep sheet itself, right under the sleep-debt line, in half-hour steps from 4 to 12; the debt line follows at once. A target already chosen is kept. The current app's About and
   update check have no place here: the native app has no over-the-air updates, and Diagnostics names the build.
 - **Not in this step**, each with its own issue: the map, tally and Reflect row on Today (001, with Places, the
   tally and the journal), the Exercise sheet's activity timeline and workout analysis (010's timeline, 011), the

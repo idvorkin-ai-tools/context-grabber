@@ -225,6 +225,16 @@ struct MetricDetailView: View {
       Text(MirrorText.sleepDebt(debt, target: mirror.sleepTarget))
         .font(.subheadline)
         .foregroundStyle(debt > 4 ? Color(hex: "#e63946") : debt > 2 ? Color(hex: "#f4845f") : .secondary)
+      // #301: the target is changed where its debt is read, not only in Today's settings.
+      Stepper(
+        value: Binding(get: { mirror.sleepTarget }, set: { mirror.setSleepTarget($0) }),
+        in: MirrorModel.sleepTargetRange,
+        step: 0.5
+      ) {
+        LabeledContent("Target", value: "\(SummaryText.js(mirror.sleepTarget)) h")
+      }
+      .font(.subheadline)
+      .accessibilityIdentifier("sleep-target")
       ConsistencyChart(nights: nights, clock: clock)
     } else if mirror.grabbing {
       ProgressView()
