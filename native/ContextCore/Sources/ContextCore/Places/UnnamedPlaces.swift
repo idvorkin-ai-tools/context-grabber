@@ -35,7 +35,7 @@ public enum UnnamedPlaces {
       byId[stay.placeId, default: []].append(stay)
     }
     let places: [UnnamedPlace] = order.map { id in
-      let stays = byId[id]!
+      let stays = byId[id] ?? []
       let weight = Double(max(1, stays.reduce(0) { $0 + $1.pointCount }))
       let centroid = Coordinate(
         latitude: stays.reduce(0) { $0 + $1.centroid.latitude * Double($1.pointCount) } / weight,

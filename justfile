@@ -56,7 +56,12 @@ native-format:
 native-lint-format:
     xcrun swift-format lint --strict --recursive --parallel --configuration native/.swift-format {{native_swift}}
 
-native-test: native-lint-format
+# Fails on any SwiftLint finding (native/.swiftlint.yml: force unwraps, casts, tries and implicitly unwrapped
+# optionals, each allowed only under a `swiftlint:disable:next` with its reason).
+native-lint:
+    cd native && swiftlint lint --strict --quiet
+
+native-test: native-lint-format native-lint
     #!/usr/bin/env bash
     # pipefail: a failing suite must fail the recipe instead of hiding behind tail's exit 0.
     set -uo pipefail

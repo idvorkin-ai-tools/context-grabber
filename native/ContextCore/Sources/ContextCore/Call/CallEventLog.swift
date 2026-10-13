@@ -22,7 +22,7 @@ public struct CallEvent: @unchecked Sendable {
   /// `+12.3s call_ready backend=eleven out_rate=16000` — keys sorted, so two runs diff cleanly.
   public var line: String {
     let stamp = String(format: "+%.1fs", Double(t) / 1000)
-    let pairs = fields.keys.sorted().map { "\($0)=\(Self.render(fields[$0]!))" }
+    let pairs = fields.sorted { $0.key < $1.key }.map { "\($0.key)=\(Self.render($0.value))" }
     return ([stamp, type] + pairs).joined(separator: " ")
   }
 

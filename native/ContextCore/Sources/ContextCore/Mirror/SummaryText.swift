@@ -9,6 +9,8 @@ public enum SummaryText {
   public static func formatTime(_ iso: String) -> String {
     guard let ms = parseISO(iso) else { return "" }
     var utc = Calendar(identifier: .gregorian)
+    // "UTC" always resolves.
+    // swiftlint:disable:next force_unwrapping
     utc.timeZone = TimeZone(identifier: "UTC")!
     let c = utc.dateComponents([.hour, .minute], from: jsDate(ms))
     return clock(c.hour ?? 0, c.minute ?? 0)

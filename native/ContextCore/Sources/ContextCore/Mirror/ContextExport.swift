@@ -73,8 +73,11 @@ public enum ContextExport {
       data.steps.enumerated().map { i, day in
         let hr = data.heartRate[safe: i]
         let heartRate: JSValue =
-          hr.map { $0.avg != nil || $0.min != nil || $0.max != nil } == true
-          ? .object([("avg", .num(hr!.avg)), ("min", .num(hr!.min)), ("max", .num(hr!.max))]) : .null
+          if let hr, hr.avg != nil || hr.min != nil || hr.max != nil {
+            .object([("avg", .num(hr.avg)), ("min", .num(hr.min)), ("max", .num(hr.max))])
+          } else {
+            .null
+          }
         return .object([
           ("date", .string(day.date)),
           ("dayOfWeek", .string(dayOfWeek(day.date, clock: clock))),

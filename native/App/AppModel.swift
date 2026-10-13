@@ -16,6 +16,7 @@ final class AppModel: ObservableObject {
   let places: PlacesModel
   /// Shake (hard or gentle), ⌘I or the cog's button opens BugKit's report dialog (stories 142, 146). Set at the
   /// end of init: its hooks read this model.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   private(set) var reporter: BugReporter!
   private var reporterStatus: AnyCancellable?
 
@@ -72,8 +73,10 @@ final class AppModel: ObservableObject {
   @Published private(set) var homeLayout: HomeLayout
   @Published var showHomeSettings = false
   /// The mirror: the last grab and the exports. Set at the end of init (it reads the database and the log).
+  // swiftlint:disable:next implicitly_unwrapped_optional
   private(set) var mirror: MirrorModel!
   /// The daily strip (#236): made with the mirror, whose last grab says which days had a strength workout.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   private(set) var dailyStrip: DailyStripModel!
 
   init() {

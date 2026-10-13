@@ -85,8 +85,10 @@ struct MetricDetailView: View {
       .frame(height: 200)
     case .daily(let days)?:
       Chart(days.filter { $0.value != nil }, id: \.date) { d in
-        LineMark(x: .value("Day", short(d.date)), y: .value(config.unit, d.value!)).foregroundStyle(color)
-        PointMark(x: .value("Day", short(d.date)), y: .value(config.unit, d.value!)).foregroundStyle(color)
+        if let v = d.value {
+          LineMark(x: .value("Day", short(d.date)), y: .value(config.unit, v)).foregroundStyle(color)
+          PointMark(x: .value("Day", short(d.date)), y: .value(config.unit, v)).foregroundStyle(color)
+        }
       }
       .chartXScale(domain: days.map { short($0.date) })
       .chartYScale(domain: .automatic(includesZero: false))
@@ -146,10 +148,12 @@ struct MetricDetailView: View {
         Text("Resting heart rate").font(.headline)
         Text(today.map { "\(SummaryText.js($0)) bpm latest" } ?? MirrorText.none).foregroundStyle(.secondary)
         Chart(resting.filter { $0.avg != nil }, id: \.date) { d in
-          LineMark(x: .value("Day", short(d.date)), y: .value("bpm", d.avg!)).foregroundStyle(
-            Color(hex: MetricKey.restingHeartRate.config.color))
-          PointMark(x: .value("Day", short(d.date)), y: .value("bpm", d.avg!)).foregroundStyle(
-            Color(hex: MetricKey.restingHeartRate.config.color))
+          if let avg = d.avg {
+            LineMark(x: .value("Day", short(d.date)), y: .value("bpm", avg)).foregroundStyle(
+              Color(hex: MetricKey.restingHeartRate.config.color))
+            PointMark(x: .value("Day", short(d.date)), y: .value("bpm", avg)).foregroundStyle(
+              Color(hex: MetricKey.restingHeartRate.config.color))
+          }
         }
         .chartXScale(domain: resting.map { short($0.date) })
         .chartYScale(domain: .automatic(includesZero: false))
@@ -360,8 +364,10 @@ struct RangeChart: View {
           RectangleMark(x: x, yStart: .value(unit, q1), yEnd: .value(unit, q3), width: 14)
             .foregroundStyle(color.opacity(d.date == todayKey ? 0.55 : 0.3))
         }
-        LineMark(x: x, y: .value(unit, d.avg!)).foregroundStyle(color)
-        PointMark(x: x, y: .value(unit, d.avg!)).foregroundStyle(color)
+        if let avg = d.avg {
+          LineMark(x: x, y: .value(unit, avg)).foregroundStyle(color)
+          PointMark(x: x, y: .value(unit, avg)).foregroundStyle(color)
+        }
       }
     }
     .chartXScale(domain: days.map { label($0.date) })

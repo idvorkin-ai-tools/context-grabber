@@ -1,0 +1,21 @@
+# Correctness only (library plan item 2): swift-format owns the layout (native/.swift-format), so no style rules.
+# A crash on a force is the bug these catch; each one kept is marked where it lives, with why it cannot fail.
+only_rules:
+  - force_unwrapping
+  - force_try
+  - force_cast
+  - implicitly_unwrapped_optional
+included:
+  - App
+  - ContextCore/Sources
+  - Widgets
+  - Shared
+force_unwrapping:
+  severity: error
+force_try:
+  severity: error
+force_cast:
+  severity: error
+implicitly_unwrapped_optional:
+  severity: error
+  mode: all_except_iboutlets

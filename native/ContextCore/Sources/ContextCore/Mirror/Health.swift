@@ -242,7 +242,7 @@ public enum Health {
       bySource[src, default: []].append(s)
     }
     return order.map { source in
-      let sorted = stableSorted(bySource[source]!) { $0.start < $1.start }
+      let sorted = stableSorted(bySource[source] ?? []) { $0.start < $1.start }
       var core = 0.0
       var deep = 0.0
       var rem = 0.0
