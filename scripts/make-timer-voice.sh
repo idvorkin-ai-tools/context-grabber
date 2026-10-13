@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Render one of the native Gym Timer's count voices (story 182) and put its
+# Render one of the native Gym Timer's count voices (stories 182, 187) and put its
 # cues in the app's bundle:
 #
 #   scripts/make-timer-voice.sh <name> <voice_id> <style>

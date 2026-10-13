@@ -198,7 +198,7 @@ struct GymTimerLaunch: Equatable {
   var custom: CustomPreset?
   var autostart = false
   var turn: DeviceTurn?
-  /// A launch hook's count voice: this visit only (story 182).
+  /// A launch hook's count voice: this visit only (story 187).
   var voice: CountVoice?
   /// A launch hook: open with Timer settings up, for a screenshot.
   var settings = false
@@ -441,7 +441,7 @@ private struct StepSlider: View {
 
 // MARK: - Timer settings
 
-/// The gear's sheet (story 182): who says the count. A tap chooses, remembers and plays that voice's "go".
+/// The gear's sheet (story 187): who says the count. A tap chooses, remembers and plays that voice's "go".
 private struct TimerSettingsSheet: View {
   @ObservedObject var model: GymTimerModel
   @Environment(\.dismiss) private var dismiss

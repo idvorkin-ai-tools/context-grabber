@@ -135,7 +135,7 @@ if [ "$la" = "start:GET READY update:WORK update:REST update:WORK end:DONE!" ]; 
 elif [ "$la" = "unavailable:" ]; then ok "live activity: Live Activities are off on this simulator (logged once per session)"
 else bad "live activity: '$la'"; fi
 
-# Story 182: a launch hook picks the Australian woman for this visit; her first cue plays from her own file.
+# Story 187: a launch hook picks the Australian woman for this visit; her first cue plays from her own file.
 SIMCTL_CHILD_GRABBER_COUNT_VOICE=aussie SIMCTL_CHILD_GRABBER_TIMER="10,10,2" relaunch
 wait_for timer_cue 20 || echo "      (timed out waiting for timer_cue)"
 f=$(newest_log)

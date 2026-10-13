@@ -1,4 +1,4 @@
-//  Who says the Gym Timer's count (story 182): Adam by default, Igor's own clone, or an excited Australian woman.
+//  Who says the Gym Timer's count (stories 182, 187): Adam by default, Igor's own clone, or an excited Australian woman.
 //  Remembered in the settings table; each voice is six sound files in the bundle (scripts/make-timer-voice.sh).
 
 public enum CountVoice: String, CaseIterable, Sendable {
