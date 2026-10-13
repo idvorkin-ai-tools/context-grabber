@@ -55,19 +55,23 @@ final class UsageModel: ObservableObject {
       lastLoadFailed = false
       // The live tile draws what was loaded last (story 136); a failed load leaves it, and its age grows.
       let tile = UsageTileStore.write(UsageSnapshot(usage: usage, fetchedAt: loadedAt ?? Date()))
-      log.event("usage", [
-        "action": "load", "reason": reason, "ok": true, "ms": Int(Date().timeIntervalSince(started) * 1000),
-        "present": usage.present ?? false, "drawn": strip != nil,
-        "bars": strip?.bars.map { "\($0.label) \($0.text)" }.joined(separator: ", ") ?? "",
-        "stale": usage.stale ?? false, "pending": usage.pending ?? false, "tile": tile,
-      ])
+      log.event(
+        "usage",
+        [
+          "action": "load", "reason": reason, "ok": true, "ms": Int(Date().timeIntervalSince(started) * 1000),
+          "present": usage.present ?? false, "drawn": strip != nil,
+          "bars": strip?.bars.map { "\($0.label) \($0.text)" }.joined(separator: ", ") ?? "",
+          "stale": usage.stale ?? false, "pending": usage.pending ?? false, "tile": tile,
+        ])
       return usage
     } catch {
       lastLoadFailed = true
-      log.event("usage", [
-        "action": "load", "reason": reason, "ok": false, "ms": Int(Date().timeIntervalSince(started) * 1000),
-        "error": String(describing: error), "kept": strip != nil,
-      ])
+      log.event(
+        "usage",
+        [
+          "action": "load", "reason": reason, "ok": false, "ms": Int(Date().timeIntervalSince(started) * 1000),
+          "error": String(describing: error), "kept": strip != nil,
+        ])
       return nil
     }
   }

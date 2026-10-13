@@ -16,7 +16,8 @@ final class HomeLayoutTests: XCTestCase {
 
   func testTheRememberedOrderAndHiddenRowsHold() {
     let layout = HomeLayout(
-      known: known, storedOrder: "gym_timer,call,today,breathe,places,think_a_card,cockpit", storedHidden: "cockpit,places")
+      known: known, storedOrder: "gym_timer,call,today,breathe,places,think_a_card,cockpit",
+      storedHidden: "cockpit,places")
     XCTAssertEqual(layout.visible, ["gym_timer", "call", "today", "breathe", "think_a_card"])
     XCTAssertEqual(layout.encodedHidden, "places,cockpit")
   }
@@ -91,7 +92,8 @@ final class HomeLayoutTests: XCTestCase {
 
   // #236: the daily strip sits under the Today card; it is never a tile, and hides like one.
   func testTheDailyStripIsNeverATile() {
-    var layout = HomeLayout(known: ["today", "daily_strip", "call", "gym_timer", "cockpit"],
+    var layout = HomeLayout(
+      known: ["today", "daily_strip", "call", "gym_timer", "cockpit"],
       storedOrder: nil, storedHidden: nil)
     XCTAssertTrue(layout.arrangement.dailyStrip)
     XCTAssertEqual(layout.arrangement.tiles, ["call", "gym_timer", "cockpit"])

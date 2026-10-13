@@ -88,7 +88,8 @@ public enum PlacesDaily {
         let s = max(stay.startTime, dayStart)
         let e = min(stay.endTime, dayEnd)
         covered.append(Interval(start: s, end: e))
-        visits.append(PlaceVisit(placeId: stay.placeId, startTime: s, endTime: e, durationMinutes: StayClustering.minutes(ov)))
+        visits.append(
+          PlaceVisit(placeId: stay.placeId, startTime: s, endTime: e, durationMinutes: StayClustering.minutes(ov)))
       }
 
       let split = splitNonStay(uncovered(covered, dayStart, dayEnd), points)
@@ -104,19 +105,25 @@ public enum PlacesDaily {
       while cursor < dayEnd {
         if vi < visits.count, visits[vi].startTime <= cursor {
           let v = visits[vi]
-          strip.append(DayStripSegment(startOffsetMs: cursor - dayStart, endOffsetMs: v.endTime - dayStart, kind: .stay, placeId: v.placeId))
+          strip.append(
+            DayStripSegment(
+              startOffsetMs: cursor - dayStart, endOffsetMs: v.endTime - dayStart, kind: .stay, placeId: v.placeId))
           cursor = v.endTime
           vi += 1
         } else {
           let gapEnd = vi < visits.count ? visits[vi].startTime : dayEnd
           for sub in segmentNonStay(start: cursor, end: gapEnd, points: points) {
-            strip.append(DayStripSegment(startOffsetMs: sub.start - dayStart, endOffsetMs: sub.end - dayStart, kind: sub.kind, placeId: nil))
+            strip.append(
+              DayStripSegment(
+                startOffsetMs: sub.start - dayStart, endOffsetMs: sub.end - dayStart, kind: sub.kind, placeId: nil))
           }
           cursor = gapEnd
         }
       }
       if dayEnd < fullEnd {
-        strip.append(DayStripSegment(startOffsetMs: dayEnd - dayStart, endOffsetMs: fullEnd - dayStart, kind: .future, placeId: nil))
+        strip.append(
+          DayStripSegment(
+            startOffsetMs: dayEnd - dayStart, endOffsetMs: fullEnd - dayStart, kind: .future, placeId: nil))
       }
 
       // Whole minutes; then make stay + transit + no data equal the header, trimming no data first, then transit,
@@ -203,11 +210,14 @@ public enum PlacesDaily {
   }
 
   /// How much of the non-stay time is transit (has evidence) and how much is no data. Points must be sorted.
-  public static func splitNonStay(_ intervals: [(start: Double, end: Double)], _ points: [LocationPoint]) -> (transitMs: Double, noDataMs: Double) {
+  public static func splitNonStay(_ intervals: [(start: Double, end: Double)], _ points: [LocationPoint]) -> (
+    transitMs: Double, noDataMs: Double
+  ) {
     splitNonStay(intervals.map { Interval(start: $0.start, end: $0.end) }, points)
   }
 
-  static func splitNonStay(_ intervals: [Interval], _ points: [LocationPoint]) -> (transitMs: Double, noDataMs: Double) {
+  static func splitNonStay(_ intervals: [Interval], _ points: [LocationPoint]) -> (transitMs: Double, noDataMs: Double)
+  {
     var transit = 0.0
     var total = 0.0
     for iv in intervals where iv.end > iv.start {
@@ -223,7 +233,9 @@ public enum PlacesDaily {
   }
 
   /// One non-stay gap as transit and no-data pieces that tile it exactly. Points must be sorted.
-  public static func segmentNonStay(start: Double, end: Double, points: [LocationPoint]) -> [(start: Double, end: Double, kind: DayStripSegment.Kind)] {
+  public static func segmentNonStay(start: Double, end: Double, points: [LocationPoint]) -> [(
+    start: Double, end: Double, kind: DayStripSegment.Kind
+  )] {
     if end <= start { return [] }
     let runs = evidenceRuns(start: start, end: end, points: points)
       .map { Interval(start: max($0.start, start), end: min($0.end, end)) }
@@ -268,7 +280,8 @@ public enum PlacesDaily {
   /// "2026-04-20" → "Mon Apr 20".
   public static func dayHeader(_ dateKey: String, calendar: Calendar = .current) -> String {
     let parts = dateKey.split(separator: "-").compactMap { Int($0) }
-    guard parts.count == 3, let date = calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2]))
+    guard parts.count == 3,
+      let date = calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2]))
     else { return dateKey }
     return "\(weekdays[calendar.component(.weekday, from: date) - 1]) \(months[parts[1] - 1]) \(parts[2])"
   }

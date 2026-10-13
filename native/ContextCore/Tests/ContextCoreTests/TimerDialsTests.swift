@@ -65,12 +65,14 @@ final class TimerDialsTests: XCTestCase {
     let work = CustomPreset.workRange
     XCTAssertEqual(TimerDials.arcValue(angle: -135, range: work, step: 10), 10)
     XCTAssertEqual(TimerDials.arcValue(angle: 135, range: work, step: 10), 600)
-    XCTAssertEqual(TimerDials.arcValue(angle: 0, range: work, step: 10), 310, "the top is the middle, 5:05, on its step")
+    XCTAssertEqual(
+      TimerDials.arcValue(angle: 0, range: work, step: 10), 310, "the top is the middle, 5:05, on its step")
     XCTAssertEqual(TimerDials.arcValue(angle: 170, range: work, step: 10), 600, "the gap goes to the nearer end")
     XCTAssertEqual(TimerDials.arcValue(angle: -170, range: work, step: 10), 10)
     for value in stride(from: 0, through: 300, by: 10) {
       let a = TimerDials.arcAngle(value: value, range: CustomPreset.restRange)
-      XCTAssertEqual(TimerDials.arcValue(angle: a, range: CustomPreset.restRange, step: 10), value, "round trip \(value)")
+      XCTAssertEqual(
+        TimerDials.arcValue(angle: a, range: CustomPreset.restRange, step: 10), value, "round trip \(value)")
       XCTAssertEqual(value % CustomPreset.stepSeconds, 0)
     }
     XCTAssertEqual(TimerDials.arcAngle(value: 60, range: work), -135 + 50.0 / 590 * 270, accuracy: 1e-9)

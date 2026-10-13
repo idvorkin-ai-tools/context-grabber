@@ -33,6 +33,7 @@ final class BreatheMindfulUITests: XCTestCase {
     let meditation = app.buttons["card-meditation"]
     XCTAssertTrue(meditation.waitForExistence(timeout: 15), app.debugDescription)
     let counted = expectation(for: NSPredicate(format: "label CONTAINS '1 min'"), evaluatedWith: meditation)
-    XCTAssertEqual(XCTWaiter().wait(for: [counted], timeout: 30), .completed, "Meditation counts it: \(meditation.label)")
+    XCTAssertEqual(
+      XCTWaiter().wait(for: [counted], timeout: 30), .completed, "Meditation counts it: \(meditation.label)")
   }
 }

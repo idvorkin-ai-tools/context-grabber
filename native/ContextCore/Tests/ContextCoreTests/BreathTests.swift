@@ -137,7 +137,9 @@ final class BreathRunTests: XCTestCase {
         // Exactly on the step's start, and once a quarter of a second late.
         let late = index % 2 == 0 ? 0.0 : 0.25
         let effects = run.tick(now: Double(t) + late)
-        guard case .phase(_, _, let lateMs)? = effects.first else { return XCTFail("\(inS)/\(outS) step \(index): \(effects)") }
+        guard case .phase(_, _, let lateMs)? = effects.first else {
+          return XCTFail("\(inS)/\(outS) step \(index): \(effects)")
+        }
         XCTAssertEqual(lateMs, Int(late * 1000), "\(inS)/\(outS) step \(index)")
         t += index % 4 < 2 ? inS : outS
       }
@@ -151,11 +153,14 @@ final class BreathRunTests: XCTestCase {
     run.start(now: 1000)
     XCTAssertNil(run.mindfulSpan(now: 1000 + 2 + 40), "40 s breathed is under a minute")
     run.pause(now: 1000 + 2 + 60)
-    XCTAssertEqual(run.mindfulSpan(now: 1200), TimeSpan(start: 1_140_000, end: 1_200_000), "a paused minute is a minute")
+    XCTAssertEqual(
+      run.mindfulSpan(now: 1200), TimeSpan(start: 1_140_000, end: 1_200_000), "a paused minute is a minute")
     run.start(now: 1300)
-    XCTAssertEqual(run.mindfulSpan(now: 1330), TimeSpan(start: 1_240_000, end: 1_330_000), "90 s breathed, the pause left out")
+    XCTAssertEqual(
+      run.mindfulSpan(now: 1330), TimeSpan(start: 1_240_000, end: 1_330_000), "90 s breathed, the pause left out")
     let total = Double(run.plan.totalSeconds)
-    XCTAssertEqual(run.mindfulSpan(now: 5000), TimeSpan(start: (5000 - total) * 1000, end: 5_000_000), "never more than the session")
+    XCTAssertEqual(
+      run.mindfulSpan(now: 5000), TimeSpan(start: (5000 - total) * 1000, end: 5_000_000), "never more than the session")
   }
 
   func testAThirtyCycleSessionDoesNotDrift() {
@@ -279,8 +284,12 @@ final class BreathToneTests: XCTestCase {
 
   /// The old slider's length: its preset when it is one, else Custom at that length both ways.
   func testTheOldSliderLengthCarriesOver() {
-    XCTAssertEqual(BreathSetup.restore { $0 == BreathSetup.breathKey ? "10" : nil }.setup, BreathSetup(preset: 10, customIn: 10, customOut: 10))
-    XCTAssertEqual(BreathSetup.restore { $0 == BreathSetup.breathKey ? "6" : nil }.setup, BreathSetup(preset: nil, customIn: 6, customOut: 6))
+    XCTAssertEqual(
+      BreathSetup.restore { $0 == BreathSetup.breathKey ? "10" : nil }.setup,
+      BreathSetup(preset: 10, customIn: 10, customOut: 10))
+    XCTAssertEqual(
+      BreathSetup.restore { $0 == BreathSetup.breathKey ? "6" : nil }.setup,
+      BreathSetup(preset: nil, customIn: 6, customOut: 6))
   }
 
   func testCustomIsClampedAndPresetsAreEven() {

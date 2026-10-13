@@ -172,7 +172,9 @@ public enum PlaceIcons {
 
   /// What Apple Maps' answers are remembered as: the named business's icon, else the nearest point of interest's,
   /// else a plain pin, so the place is not asked again.
-  public static func stored(named: [PointOfInterest], nearby: [PointOfInterest], for place: KnownPlace) -> StoredPlaceIcon {
+  public static func stored(named: [PointOfInterest], nearby: [PointOfInterest], for place: KnownPlace)
+    -> StoredPlaceIcon
+  {
     if let hit = byName(named, for: place) ?? nearest(nearby, to: place.coordinate, within: searchRadius(for: place)) {
       return StoredPlaceIcon(symbol: hit.symbol, source: .maps, category: hit.category)
     }

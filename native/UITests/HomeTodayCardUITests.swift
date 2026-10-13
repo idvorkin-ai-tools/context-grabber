@@ -16,7 +16,9 @@ final class HomeTodayCardUITests: XCTestCase {
     XCTAssertFalse(card.label.contains("tap to look"), "the card shows the grab: \(card.label)")
     XCTAssertTrue(card.label.contains("as of"), card.label)
     // The daily four lead, as tiles, above the rows.
-    let call = app.buttons["home-call"], places = app.buttons["home-places"], card2 = app.buttons["home-think_a_card"]
+    let call = app.buttons["home-call"]
+    let places = app.buttons["home-places"]
+    let card2 = app.buttons["home-think_a_card"]
     XCTAssertTrue(call.exists && places.exists, app.debugDescription)
     XCTAssertLessThan(places.frame.minY, card2.frame.minY)
     XCTAssertEqual(call.frame.minY, app.buttons["home-gym_timer"].frame.minY, accuracy: 2, "two by two")

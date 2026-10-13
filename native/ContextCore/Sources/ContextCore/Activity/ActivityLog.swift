@@ -6,7 +6,10 @@
 import Foundation
 
 public struct ActivityEntry: Equatable, Sendable {
-  public enum Kind: String, Sendable { case gymTimer = "gym_timer", breathing }
+  public enum Kind: String, Sendable {
+    case gymTimer = "gym_timer"
+    case breathing
+  }
 
   public let id: Int64
   public let kind: Kind
@@ -51,7 +54,9 @@ public struct ActivityLog {
   }
 
   @discardableResult
-  public func log(_ kind: ActivityEntry.Kind, name: String, seconds: Int, at date: Date = Date()) throws -> ActivityEntry {
+  public func log(_ kind: ActivityEntry.Kind, name: String, seconds: Int, at date: Date = Date()) throws
+    -> ActivityEntry
+  {
     let finishedAt = Int64((date.timeIntervalSince1970 * 1000).rounded())
     let dateKey = AccessoryLog.dateKey(date, calendar: calendar)
     let rows = try db.run(

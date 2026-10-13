@@ -45,7 +45,8 @@ final class CallModel: ObservableObject {
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
     self.log = log
     self.database = database
-    bridgeURL = environment["GRABBER_CALL"].flatMap { $0.isEmpty ? nil : $0 }
+    bridgeURL =
+      environment["GRABBER_CALL"].flatMap { $0.isEmpty ? nil : $0 }
       ?? CallProtocol.bridgeURL(cockpit: Self.cockpitURL) ?? ""
     backend = database.setting(Self.backendKey).flatMap(CallBackend.init(rawValue:)) ?? .default
     voice = database.setting(Self.voiceKey).flatMap(CallVoice.init(rawValue:)) ?? .default

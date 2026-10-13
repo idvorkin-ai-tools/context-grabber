@@ -22,7 +22,7 @@ tables below move here.
 
 | Rung | What runs | Command | Time | Answers |
 |---|---|---|---|---|
-| 1 Host | `ContextCore` XCTest (`native/ContextCore`, the platform-free package) | `just native-test` (also run by `just test`) | seconds | everything pure: what a log line can carry, log retention; each ported `lib/` module's logic |
+| 1 Host | swift-format's lint over every native Swift file, then `ContextCore` XCTest (`native/ContextCore`, the platform-free package) | `just native-test` (also run by `just test`; `just native-format` fixes the layout) | seconds | the layout (`native/.swift-format`); everything pure: what a log line can carry, log retention; each ported `lib/` module's logic |
 | 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events |
 | 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, the timer's cues, the card's deal and count, no `error` event |
 | 3 Phone | Grabber Native on the iPhone, beside Context Grabber | `just native-run-device`, then `just pull-logs` | minutes + a person | the shake, and everything the phone-only rows below list |

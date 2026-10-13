@@ -15,13 +15,15 @@ final class HealthMathTests: XCTestCase {
   func testSleepHoursMergesAndRounds() {
     XCTAssertNil(Health.sleepHours(nil))
     XCTAssertNil(Health.sleepHours([]))
-    XCTAssertEqual(Health.sleepHours([SleepSample(start: utc("2026-03-14T23:00:00Z"), end: utc("2026-03-15T07:00:00Z"))]), 8)
+    XCTAssertEqual(
+      Health.sleepHours([SleepSample(start: utc("2026-03-14T23:00:00Z"), end: utc("2026-03-15T07:00:00Z"))]), 8)
     XCTAssertEqual(
       Health.sleepHours([
         SleepSample(start: utc("2026-03-14T23:00:00Z"), end: utc("2026-03-15T02:00:00Z")),
         SleepSample(start: utc("2026-03-15T03:00:00Z"), end: utc("2026-03-15T07:00:00Z")),
       ]), 7)
-    XCTAssertEqual(Health.sleepHours([SleepSample(start: utc("2026-03-14T23:00:00Z"), end: utc("2026-03-15T06:30:00Z"))]), 7.5)
+    XCTAssertEqual(
+      Health.sleepHours([SleepSample(start: utc("2026-03-14T23:00:00Z"), end: utc("2026-03-15T06:30:00Z"))]), 7.5)
     // Watch 23:00–07:00 and phone 23:30–06:30: one night, not two.
     XCTAssertEqual(
       Health.sleepHours([
@@ -68,7 +70,8 @@ final class HealthMathTests: XCTestCase {
 
   func testMeditationWeightAndWeighInDays() {
     XCTAssertNil(Health.meditationMinutes(nil))
-    XCTAssertEqual(Health.meditationMinutes([TimeSpan(start: 0, end: 10 * minute), TimeSpan(start: 0, end: 5.5 * minute)]), 15.5)
+    XCTAssertEqual(
+      Health.meditationMinutes([TimeSpan(start: 0, end: 10 * minute), TimeSpan(start: 0, end: 5.5 * minute)]), 15.5)
     XCTAssertEqual(Health.meditationMinutes([TimeSpan(start: 10 * minute, end: 0)]), 0)
     XCTAssertEqual(Health.extractWeight(82.456), 82.46)
     XCTAssertNil(Health.extractWeight(nil))
@@ -112,7 +115,8 @@ final class HealthMathTests: XCTestCase {
     XCTAssertEqual(w.energyBurned, 210)
     XCTAssertEqual(w.distanceKm, 3.22)
     XCTAssertEqual(w.endTime, "2026-05-01T02:40:22.000Z")
-    let zero = WorkoutRecord(activityType: 9999, start: 0, end: 0, durationSeconds: 0, energyKcal: 0, distanceMeters: 0).entry
+    let zero = WorkoutRecord(activityType: 9999, start: 0, end: 0, durationSeconds: 0, energyKcal: 0, distanceMeters: 0)
+      .entry
     XCTAssertEqual(zero.activityType, "Workout 9999")
     XCTAssertNil(zero.energyBurned)
     XCTAssertNil(zero.distanceKm)
@@ -122,8 +126,15 @@ final class HealthMathTests: XCTestCase {
     var h = HealthData()
     h.steps = 10
     h.bedtime = "2026-03-15T06:00:00.000Z"
-    h.sleepBySource = [("Watch", SourceSleepSummary(bedtime: "a", wakeTime: "b", coreHours: 1, deepHours: 2, remHours: 3, awakeHours: 0.5))]
-    h.workouts = [WorkoutEntry(activityType: "Yoga", durationMinutes: 20, energyBurned: nil, distanceKm: nil, startTime: "s")]
+    h.sleepBySource = [
+      (
+        "Watch",
+        SourceSleepSummary(bedtime: "a", wakeTime: "b", coreHours: 1, deepHours: 2, remHours: 3, awakeHours: 0.5)
+      )
+    ]
+    h.workouts = [
+      WorkoutEntry(activityType: "Yoga", durationMinutes: 20, energyBurned: nil, distanceKm: nil, startTime: "s")
+    ]
     let back = HealthData(json: JSValue.parse(h.json.stringify())!)
     XCTAssertEqual(back, h)
   }
@@ -182,7 +193,9 @@ final class SleepTests: XCTestCase {
 
   func testSleepDebt() {
     func nights(_ v: [Double?]) -> [SleepDaily] {
-      v.map { var n = SleepDaily(date: "2026-03-15"); n.totalHours = $0; return n }
+      v.map {
+        var n = SleepDaily(date: "2026-03-15"); n.totalHours = $0; return n
+      }
     }
     XCTAssertEqual(Sleep.sleepDebt(nights([8, 8, 8, 8, 8, 8, 8]), targetHours: 8), 0)
     XCTAssertEqual(Sleep.sleepDebt(nights([7, 7, 7, 7, 7, 7, 7]), targetHours: 8), 7)
@@ -200,8 +213,10 @@ final class SleepTests: XCTestCase {
     }
     let same = Sleep.consistency(Array(repeating: night(local(14, 23), local(15, 7)), count: 3), clock: la)
     XCTAssertEqual(same, SleepConsistencyStats(bedtimeStdevMinutes: 0, wakeStdevMinutes: 0))
-    XCTAssertEqual(Sleep.consistency([night(local(14, 23), nil), night(local(15, 1), nil)], clock: la).bedtimeStdevMinutes, 60)
-    XCTAssertEqual(Sleep.consistency([night(nil, nil), night(local(15, 7), local(15, 7))], clock: la).bedtimeStdevMinutes, 0)
+    XCTAssertEqual(
+      Sleep.consistency([night(local(14, 23), nil), night(local(15, 1), nil)], clock: la).bedtimeStdevMinutes, 60)
+    XCTAssertEqual(
+      Sleep.consistency([night(nil, nil), night(local(15, 7), local(15, 7))], clock: la).bedtimeStdevMinutes, 0)
   }
 
   func testBundleAndDefaultSource() {
@@ -224,7 +239,9 @@ final class SleepTests: XCTestCase {
   }
 
   func testTrackingGap() {
-    func night(total: Double?, bed: String? = "2026-04-24T05:30:00Z", wake: String? = "2026-04-24T12:30:00Z") -> SleepDaily {
+    func night(total: Double?, bed: String? = "2026-04-24T05:30:00Z", wake: String? = "2026-04-24T12:30:00Z")
+      -> SleepDaily
+    {
       var n = SleepDaily(date: "2026-04-23")
       n.totalHours = total
       n.bedtime = bed
@@ -256,8 +273,10 @@ final class SleepTests: XCTestCase {
     let sleep = SleepSample(start: first, end: first + 8 * hour, value: 3)
     XCTAssertNil(Sleep.onsetMinutes([sleep], firstSleep: first))
     XCTAssertEqual(Sleep.onsetMinutes([awake(-30 * minute, 0), sleep], firstSleep: first), 30)
-    XCTAssertEqual(Sleep.onsetMinutes([awake(-50 * minute, -40 * minute), awake(-20 * minute, 0), sleep], firstSleep: first), 30)
-    XCTAssertEqual(Sleep.onsetMinutes([awake(-4 * hour, -3.5 * hour), awake(-15 * minute, 0), sleep], firstSleep: first), 15)
+    XCTAssertEqual(
+      Sleep.onsetMinutes([awake(-50 * minute, -40 * minute), awake(-20 * minute, 0), sleep], firstSleep: first), 30)
+    XCTAssertEqual(
+      Sleep.onsetMinutes([awake(-4 * hour, -3.5 * hour), awake(-15 * minute, 0), sleep], firstSleep: first), 15)
     XCTAssertEqual(
       Sleep.onsetMinutes(
         [
@@ -265,12 +284,15 @@ final class SleepTests: XCTestCase {
           awake(-20 * minute, 0), sleep,
         ], firstSleep: first), 45)
     XCTAssertNil(Sleep.onsetMinutes([sleep, awake(2 * hour, 2.25 * hour)], firstSleep: first))
-    XCTAssertEqual(Sleep.onsetMinutes([awake(-30 * minute, -10 * minute), awake(-20 * minute, 0), sleep], firstSleep: first), 30)
+    XCTAssertEqual(
+      Sleep.onsetMinutes([awake(-30 * minute, -10 * minute), awake(-20 * minute, 0), sleep], firstSleep: first), 30)
   }
 
   func testMainSessionIgnoresNoise() {
     let t = utc("2026-04-23T00:00:00Z")
-    func s(_ a: Double, _ b: Double, _ v: Int = 3) -> SleepSample { SleepSample(start: t + a * hour, end: t + b * hour, value: v) }
+    func s(_ a: Double, _ b: Double, _ v: Int = 3) -> SleepSample {
+      SleepSample(start: t + a * hour, end: t + b * hour, value: v)
+    }
     XCTAssertNil(Sleep.pickMainSleepSession([]))
     var m = Sleep.pickMainSleepSession([s(0, 2), s(2, 4), s(4.5, 7)])!
     XCTAssertEqual([m.start, m.end], [t, t + 7 * hour])

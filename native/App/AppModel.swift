@@ -86,7 +86,9 @@ final class AppModel: ObservableObject {
     places = PlacesModel(log: log, database: database)
     call = CallModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
     // Before BugKit the ✕ was kept in the database: carry it over once, so a dismissed row stays dismissed.
-    if let seen = database.setting("whats_new_seen"), UserDefaults.standard.string(forKey: WhatsNewSeen.defaultKey) == nil {
+    if let seen = database.setting("whats_new_seen"),
+      UserDefaults.standard.string(forKey: WhatsNewSeen.defaultKey) == nil
+    {
       UserDefaults.standard.set(seen, forKey: WhatsNewSeen.defaultKey)
     }
     homeLayout = HomeLayout(
@@ -103,7 +105,9 @@ final class AppModel: ObservableObject {
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in self?.eulogySong.yield(to: "call") }
     // Story 248: a troubled call's log as an automatic report, for the Mac's listener to file.
-    call.autoReport = { [weak self] reason, context, files in self?.reporter.autoReport(reason: reason, context: context, files: files) }
+    call.autoReport = { [weak self] reason, context, files in
+      self?.reporter.autoReport(reason: reason, context: context, files: files)
+    }
     runLaunchHooks()
   }
 
@@ -256,7 +260,8 @@ final class AppModel: ObservableObject {
 
   /// Story 152: every report saved from this build on also goes up to Igor's private iCloud, where the Mac's listener
   /// takes it. On, with no switch; one for the app's lifetime, started at launch and again on each foreground.
-  private lazy var delivery = CloudKitReportDelivery(containerIdentifier: "iCloud.com.idvorkin.BugKitReports", logger: bugLogger)
+  private lazy var delivery = CloudKitReportDelivery(
+    containerIdentifier: "iCloud.com.idvorkin.BugKitReports", logger: bugLogger)
 
   /// The report dialog, BugKit's (bug-kit migration, step 1). "Log it and another" takes a fresh picture of the
   /// screen underneath (story 142); dictation is off while a call holds the microphone (#239); the simulator hooks
@@ -291,7 +296,11 @@ final class AppModel: ObservableObject {
 
   func openGymTimer(_ launch: GymTimerLaunch = GymTimerLaunch(), from source: String) {
     log.event(
-      "ui", ["action": "open_timer", "from": source, "autostart": launch.autostart, "dial": (launch.dial ?? .shipped).rawValue])
+      "ui",
+      [
+        "action": "open_timer", "from": source, "autostart": launch.autostart,
+        "dial": (launch.dial ?? .shipped).rawValue,
+      ])
     screen = "gym_timer"
     gymTimer = launch
   }
@@ -439,7 +448,8 @@ final class AppModel: ObservableObject {
       }
       let target = song ?? BlogLinks.eulogy
       log.event(
-        "ui", ["action": "open_eulogy_song", "from": source, "song": target.absoluteString, "found": found, "error": failure])
+        "ui",
+        ["action": "open_eulogy_song", "from": source, "song": target.absoluteString, "found": found, "error": failure])
       if song == nil { status = "Couldn't find the eulogy song, so here is the post." }
       await UIApplication.shared.open(target)
     }

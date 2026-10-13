@@ -106,7 +106,9 @@ final class PlacesModel: ObservableObject {
       // A week of breadcrumbs is thousands; 1,200 is a point every few minutes, plenty for a line on a map.
       let weekRoute = PlaceStyle.route(points, now: now, days: dayCount, maxPoints: 1200)
       let calendar = Calendar.current
-      let since = calendar.date(byAdding: .day, value: 1 - dayCount, to: calendar.startOfDay(for: Geo.date(now))).map(Geo.ms) ?? now
+      let since =
+        calendar.date(byAdding: .day, value: 1 - dayCount, to: calendar.startOfDay(for: Geo.date(now))).map(Geo.ms)
+        ?? now
       let unnamed = UnnamedPlaces.summarize(clusters.stays, since: since, until: now)
       await MainActor.run {
         guard mine == self.generation else { return }
@@ -116,14 +118,17 @@ final class PlacesModel: ObservableObject {
         self.weekRoute = weekRoute
         self.unnamed = unnamed
         // A named place leaves the list, and the numbers after it may move: close a card that no longer fits.
-        if let open = self.selectedUnnamed, !unnamed.contains(where: { $0.placeId == open }) { self.selectedUnnamed = nil }
+        if let open = self.selectedUnnamed, !unnamed.contains(where: { $0.placeId == open }) {
+          self.selectedUnnamed = nil
+        }
         self.colors = PlaceStyle.colors(for: days)
         self.loading = false
         self.log.event(
           "places_open",
           [
             "reason": reason, "points": points.count, "known": known.count, "stays": clusters.stays.count,
-            "days": days.count, "today_points": route.count, "week_points": weekRoute.count, "unnamed": unnamed.count, "read_ms": readMs,
+            "days": days.count, "today_points": route.count, "week_points": weekRoute.count, "unnamed": unnamed.count,
+            "read_ms": readMs,
             "ms": Int(Date().timeIntervalSince(started) * 1000),
           ])
       }
@@ -161,7 +166,9 @@ final class PlacesModel: ObservableObject {
       next[place.id] = icon
       if !icon.needsLookup, loggedIcons[place.id] != icon {
         loggedIcons[place.id] = icon
-        var fields: [String: Any] = ["action": "guess", "name": place.name, "symbol": icon.symbol, "source": icon.source.rawValue]
+        var fields: [String: Any] = [
+          "action": "guess", "name": place.name, "symbol": icon.symbol, "source": icon.source.rawValue,
+        ]
         if let category = icon.category { fields["category"] = category }
         log.event("place_icon", fields)
       }
@@ -186,10 +193,14 @@ final class PlacesModel: ObservableObject {
           "ms": Int(Date().timeIntervalSince(started) * 1000),
         ]
         // The five nearest, whatever their category, so a wrong guess can be read from the log.
-        fields["nearby"] = answer.nearby.map { ($0, Geo.distance(place.coordinate, $0.coordinate)) }.sorted { $0.1 < $1.1 }.prefix(5)
+        fields["nearby"] = answer.nearby.map { ($0, Geo.distance(place.coordinate, $0.coordinate)) }.sorted {
+          $0.1 < $1.1
+        }.prefix(5)
           .map { "\(PlaceIcons.categoryName($0.0.category ?? "none")) \(Int($0.1.rounded()))m" }.joined(separator: ", ")
         fields["named_top"] = answer.named.prefix(3)
-          .map { "\($0.name ?? "?") (\(PlaceIcons.categoryName($0.category ?? "none")) \(Int(Geo.distance(place.coordinate, $0.coordinate).rounded()))m)" }
+          .map {
+            "\($0.name ?? "?") (\(PlaceIcons.categoryName($0.category ?? "none")) \(Int(Geo.distance(place.coordinate, $0.coordinate).rounded()))m)"
+          }
           .joined(separator: ", ")
         if let hit = PlaceIcons.byName(answer.named, for: place) {
           fields["by"] = "name"
@@ -212,7 +223,10 @@ final class PlacesModel: ObservableObject {
         guard failedLookups.insert(place.id).inserted else { return }
         log.event(
           "place_icon",
-          ["action": "lookup", "name": place.name, "ok": false, "message": "\(error)", "ms": Int(Date().timeIntervalSince(started) * 1000)])
+          [
+            "action": "lookup", "name": place.name, "ok": false, "message": "\(error)",
+            "ms": Int(Date().timeIntervalSince(started) * 1000),
+          ])
       }
     }
   }
@@ -222,7 +236,12 @@ final class PlacesModel: ObservableObject {
 
   func edit(_ place: KnownPlace, from source: String) {
     editing = place
-    log.event("ui", ["action": "edit_place", "name": place.name, "from": source, "symbol": icon(place).symbol, "source": icon(place).source.rawValue])
+    log.event(
+      "ui",
+      [
+        "action": "edit_place", "name": place.name, "from": source, "symbol": icon(place).symbol,
+        "source": icon(place).source.rawValue,
+      ])
   }
 
   /// The picker on a place's screen: a symbol is chosen and remembered; nil gives the place back to the guess.
@@ -233,7 +252,8 @@ final class PlacesModel: ObservableObject {
       } else {
         try store?.clearPlaceIcon(for: place.id)
       }
-      log.event("place_icon", ["action": symbol == nil ? "clear" : "choose", "name": place.name, "symbol": symbol ?? ""])
+      log.event(
+        "place_icon", ["action": symbol == nil ? "clear" : "choose", "name": place.name, "symbol": symbol ?? ""])
       refreshIcons()
     } catch {
       fail("place_icon", error)
@@ -268,7 +288,10 @@ final class PlacesModel: ObservableObject {
       let removed = try store.prune(retentionDays: days, now: Geo.ms(Date()))
       log.event(
         "prune",
-        ["reason": reason, "retention_days": days, "removed": removed, "ms": Int(Date().timeIntervalSince(started) * 1000)])
+        [
+          "reason": reason, "retention_days": days, "removed": removed,
+          "ms": Int(Date().timeIntervalSince(started) * 1000),
+        ])
     } catch {
       log.event("error", ["where": "prune", "reason": reason, "message": "\(error)"])
     }
@@ -281,7 +304,9 @@ final class PlacesModel: ObservableObject {
   func startNaming(_ placeId: String, on day: PlaceDaySummary) {
     let visits = day.visits.filter { $0.placeId == placeId }
     guard let visit = visits.max(by: { $0.durationMinutes < $1.durationMinutes }),
-      let stay = stays.first(where: { $0.placeId == placeId && $0.startTime <= visit.startTime && $0.endTime >= visit.endTime })
+      let stay = stays.first(where: {
+        $0.placeId == placeId && $0.startTime <= visit.startTime && $0.endTime >= visit.endTime
+      })
     else { return }
     offerNaming(placeId, at: stay.centroid, radius: 100, from: "day")
   }
@@ -311,11 +336,17 @@ final class PlacesModel: ObservableObject {
     selectedUnnamed = placeId
     guard let placeId, let place = unnamed.first(where: { $0.placeId == placeId }) else { return }
     log.event(
-      "ui", ["action": "unnamed_place", "place": placeId, "minutes": place.totalMinutes, "visits": place.visits.count, "from": source])
+      "ui",
+      [
+        "action": "unnamed_place", "place": placeId, "minutes": place.totalMinutes, "visits": place.visits.count,
+        "from": source,
+      ])
   }
 
   func createNew(from card: NamingCard) {
-    if case .merge(let source, let centroid, let radius, _) = card { naming = .name(source: source, centroid: centroid, radius: radius) }
+    if case .merge(let source, let centroid, let radius, _) = card {
+      naming = .name(source: source, centroid: centroid, radius: radius)
+    }
   }
 
   func expand(_ suggestion: KnownPlaces.MergeSuggestion, source: String) {
@@ -325,7 +356,8 @@ final class PlacesModel: ObservableObject {
         "known_place",
         [
           "action": "expand", "name": suggestion.nearest.name, "from": source,
-          "radius_from": Int(suggestion.nearest.radiusMeters.rounded()), "radius_to": Int(suggestion.grown.radiusMeters.rounded()),
+          "radius_from": Int(suggestion.nearest.radiusMeters.rounded()),
+          "radius_to": Int(suggestion.grown.radiusMeters.rounded()),
           "shift_m": Int(suggestion.shift.rounded()),
         ])
       naming = nil
@@ -378,7 +410,9 @@ final class PlacesModel: ObservableObject {
         try store?.addKnownPlace(name: p.name, latitude: p.latitude, longitude: p.longitude, radiusMeters: p.radius)
       }
       log.event("known_place", ["action": "import_json", "count": places.count])
-      status = places.isEmpty ? "No valid places found in the JSON." : "Imported \(places.count) place\(places.count == 1 ? "" : "s")."
+      status =
+        places.isEmpty
+        ? "No valid places found in the JSON." : "Imported \(places.count) place\(places.count == 1 ? "" : "s")."
       reload(reason: "import_places")
     } catch {
       log.event("known_place", ["action": "import_json", "ok": false, "message": "\(error)"])
@@ -411,7 +445,10 @@ final class PlacesModel: ObservableObject {
       let bytes = (try? FileManager.default.attributesOfItem(atPath: file.path)[.size] as? Int) ?? 0
       log.event(
         "export",
-        ["from": source, "ok": true, "bytes": bytes, "points": pointCount, "ms": Int(Date().timeIntervalSince(started) * 1000), "path": file.path])
+        [
+          "from": source, "ok": true, "bytes": bytes, "points": pointCount,
+          "ms": Int(Date().timeIntervalSince(started) * 1000), "path": file.path,
+        ])
       status = "Sharing \(bytes / 1024) KB…"
       exportFile = file
     } catch {
@@ -433,7 +470,10 @@ final class PlacesModel: ObservableObject {
     do {
       try FileManager.default.copyItem(at: url, to: copy)
       var shift = 0.0
-      if recent, let newest = try? SQLiteDatabase(path: copy.path).run("SELECT MAX(timestamp) AS t FROM locations").first?["t"]?.doubleValue {
+      if recent,
+        let newest = try? SQLiteDatabase(path: copy.path).run("SELECT MAX(timestamp) AS t FROM locations").first?["t"]?
+          .doubleValue
+      {
         shift = LocationStore.recentShiftMs(newest: newest, now: Geo.ms(Date()))
       }
       let r = try store.importDatabase(at: copy.path, shiftMs: shift)

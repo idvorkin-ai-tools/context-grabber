@@ -47,8 +47,10 @@ final class DailyStripModel: ObservableObject {
       let elsewhere = DailyStrip.gymDays(tapped: [], timer: timer, workoutsByDay: snapshot?.workoutsByDay ?? [:])
       gymFromElsewhere = elsewhere.contains(today)
       daysSinceGym = DailyStrip.daysSince(tapped.union(elsewhere), today: today)
-      let grabDay = snapshot.flatMap { ISO8601DateFormatter.withFraction.date(from: $0.timestamp) ?? ISO8601DateFormatter().date(from: $0.timestamp) }
-        .map { AccessoryLog.dateKey($0) }
+      let grabDay = snapshot.flatMap {
+        ISO8601DateFormatter.withFraction.date(from: $0.timestamp) ?? ISO8601DateFormatter().date(from: $0.timestamp)
+      }
+      .map { AccessoryLog.dateKey($0) }
       meditationFrom = DailyStrip.meditationSource(
         today: today, activity: timer, healthMinutes: snapshot?.health.meditationMinutes, healthDay: grabDay)
       if gymFromElsewhere {

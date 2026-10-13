@@ -32,9 +32,16 @@ public struct CockpitUsage: Codable, Equatable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case present, pacing, age, stale, pending, resets
-    case weeklyPct = "weekly_pct", modelPct = "model_pct", fablePct = "fable_pct", modelName = "model_name"
-    case resetsIn = "resets_in", elPct = "el_pct", elMinutesLeft = "el_minutes_left", elResetsIn = "el_resets_in"
-    case elAge = "el_age", elStale = "el_stale"
+    case weeklyPct = "weekly_pct"
+    case modelPct = "model_pct"
+    case fablePct = "fable_pct"
+    case modelName = "model_name"
+    case resetsIn = "resets_in"
+    case elPct = "el_pct"
+    case elMinutesLeft = "el_minutes_left"
+    case elResetsIn = "el_resets_in"
+    case elAge = "el_age"
+    case elStale = "el_stale"
   }
 
   public init(
@@ -123,8 +130,10 @@ public struct UsageStrip: Equatable, Sendable {
     } else if claudeStale {
       claudeNote = u.age.flatMap { $0.isEmpty ? nil : "\($0) old" } ?? "old reading"
     } else {
-      let parts = [u.resetsIn.flatMap { $0.isEmpty ? nil : "resets in \($0)" }, u.pacing.flatMap { $0.isEmpty ? nil : $0 }]
-        .compactMap { $0 }
+      let parts = [
+        u.resetsIn.flatMap { $0.isEmpty ? nil : "resets in \($0)" }, u.pacing.flatMap { $0.isEmpty ? nil : $0 },
+      ]
+      .compactMap { $0 }
       claudeNote = parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
     voiceStale = voiceDrawn && u.elStale == true

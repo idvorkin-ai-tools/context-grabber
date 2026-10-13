@@ -155,7 +155,8 @@ final class BreatheModel: ObservableObject {
     log.event(
       "breath_start",
       [
-        "breath": plan.inSeconds, "out": plan.outSeconds, "cycles": plan.cycles, "total": plan.totalSeconds, "cue": cue.rawValue,
+        "breath": plan.inSeconds, "out": plan.outSeconds, "cycles": plan.cycles, "total": plan.totalSeconds,
+        "cue": cue.rawValue,
         "lead_in_ms": Int(leadIn * 1000),
       ])
     keepAwake(true)

@@ -83,10 +83,13 @@ struct StageStrip: View {
       VStack(alignment: .leading, spacing: 2) {
         Canvas { ctx, size in
           let span = wake - bed
-          ctx.fill(Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 4), with: .color(.secondary.opacity(0.12)))
+          ctx.fill(
+            Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 4),
+            with: .color(.secondary.opacity(0.12)))
           // In bed first, so the stages draw over it.
           for s in night.samples.sorted(by: { ($0.value == 0 ? 0 : 1) < ($1.value == 0 ? 0 : 1) }) {
-            let a = max(s.start, bed), b = min(s.end, wake)
+            let a = max(s.start, bed)
+            let b = min(s.end, wake)
             guard b > a else { continue }
             let rect = CGRect(
               x: CGFloat((a - bed) / span) * size.width, y: 0, width: max(CGFloat((b - a) / span) * size.width, 0.5),

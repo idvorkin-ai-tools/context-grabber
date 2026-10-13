@@ -94,7 +94,9 @@ public enum KnownPlaces {
   /// Places from the JSON the Import places field accepts: an array, or an object with `knownPlaces` / `places`;
   /// `lat`/`latitude`, `lon`/`lng`/`longitude`, `radiusMeters`/`radius_meters`/`radius` (100 by default). Entries
   /// without a name or with coordinates out of range are skipped. Throws when the JSON has no such array.
-  public static func parseImportJSON(_ text: String) throws -> [(name: String, latitude: Double, longitude: Double, radius: Double)] {
+  public static func parseImportJSON(_ text: String) throws -> [(
+    name: String, latitude: Double, longitude: Double, radius: Double
+  )] {
     let json = try JSONSerialization.jsonObject(with: Data(text.utf8))
     let items: [Any]
     if let array = json as? [Any] {

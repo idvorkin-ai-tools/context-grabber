@@ -393,6 +393,8 @@ public final class CallSession {
     scheduleStats()
     send(CallProtocol.sttStartFrame(), frame: "stt_start")
     let call = generation
+    // the samples handler and the failure handler, kept apart.
+    // swift-format-ignore: OnlyOneTrailingClosureArgument
     deps.audio.startMic({ [weak self] samples, rate in
       guard let self, call == self.generation else { return }
       self.onMicBuffer(samples, rate)

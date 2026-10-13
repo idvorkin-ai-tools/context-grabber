@@ -97,7 +97,9 @@ public indirect enum JSValue: Equatable, Sendable {
     guard let e = digits.firstIndex(of: "e") else { return "\(n)" }
     let mantissa = digits[..<e].replacingOccurrences(of: ".", with: "")
     let exp = Int(digits[digits.index(after: e)...]) ?? 0
-    let pointAt = (digits[..<e].firstIndex(of: ".").map { digits.distance(from: digits.startIndex, to: $0) } ?? mantissa.count) + exp
+    let pointAt =
+      (digits[..<e].firstIndex(of: ".").map { digits.distance(from: digits.startIndex, to: $0) } ?? mantissa.count)
+      + exp
     var body: String
     if pointAt <= 0 {
       body = "0." + String(repeating: "0", count: -pointAt) + mantissa

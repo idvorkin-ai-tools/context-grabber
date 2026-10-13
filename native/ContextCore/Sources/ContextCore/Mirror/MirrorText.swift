@@ -45,7 +45,9 @@ public enum MirrorText {
       "\(h?.walkingDistance.map { "\(SummaryText.js($0)) km" } ?? "\(none) km") \u{00B7} "
       + "\(h?.activeEnergy.map { "\(SummaryText.formatNumber($0)) kcal" } ?? "\(none) kcal")"
     let exerciseSub: String = {
-      if let w = h?.workouts, !w.isEmpty { return w.map { "\($0.activityType) \(SummaryText.js($0.durationMinutes))m" }.joined(separator: ", ") }
+      if let w = h?.workouts, !w.isEmpty {
+        return w.map { "\($0.activityType) \(SummaryText.js($0.durationMinutes))m" }.joined(separator: ", ")
+      }
       if let m = h?.exerciseMinutes, m > 0 { return "today" }
       return since(.exerciseMinutes)
     }()
@@ -56,9 +58,11 @@ public enum MirrorText {
         let inBed = (wake - bed) / 3_600_000
         if inBed > 0, let asleep = h?.sleepHours {
           // toFixed(1) takes a half up, as Math.round does; "%.1f" alone would round 7.25 to even.
-          return String(format: "%.1fh bed \u{00B7} %@%% eff", round1(inBed), SummaryText.js(jsRound(asleep / inBed * 100)))
+          return String(
+            format: "%.1fh bed \u{00B7} %@%% eff", round1(inBed), SummaryText.js(jsRound(asleep / inBed * 100)))
         }
-        return "\(SummaryText.formatLocalTime(h!.bedtime!, clock: clock)) \u{2013} \(SummaryText.formatLocalTime(h!.wakeTime!, clock: clock))"
+        return
+          "\(SummaryText.formatLocalTime(h!.bedtime!, clock: clock)) \u{2013} \(SummaryText.formatLocalTime(h!.wakeTime!, clock: clock))"
       }
       if let b = h?.bedtime { return "\(SummaryText.formatLocalTime(b, clock: clock)) \u{2013}" }
       if let w = h?.wakeTime { return "\u{2013} \(SummaryText.formatLocalTime(w, clock: clock))" }
@@ -109,7 +113,8 @@ public enum MirrorText {
   public static func heartRateRow(_ d: HeartRateDaily) -> String {
     guard let avg = d.avg else { return none }
     if let lo = d.min, let hi = d.max {
-      return "\(SummaryText.js(jsRound(avg))) avg (\(SummaryText.js(jsRound(lo)))\u{2013}\(SummaryText.js(jsRound(hi))))"
+      return
+        "\(SummaryText.js(jsRound(avg))) avg (\(SummaryText.js(jsRound(lo)))\u{2013}\(SummaryText.js(jsRound(hi))))"
     }
     return SummaryText.js(jsRound(avg))
   }

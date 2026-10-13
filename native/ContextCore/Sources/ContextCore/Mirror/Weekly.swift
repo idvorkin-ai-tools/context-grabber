@@ -32,7 +32,8 @@ public struct MetricConfig: Sendable {
     .steps: MetricConfig(label: "Steps", unit: "steps", color: "#4cc9f0", chartType: .bar, sublabel: "today"),
     .heartRate: MetricConfig(label: "Heart Rate", unit: "bpm", color: "#f72585", chartType: .line, sublabel: "latest"),
     .sleep: MetricConfig(label: "Sleep", unit: "hrs", color: "#7b2cbf", chartType: .bar, sublabel: "last night"),
-    .activeEnergy: MetricConfig(label: "Active Energy", unit: "kcal", color: "#ff9e00", chartType: .bar, sublabel: "today"),
+    .activeEnergy: MetricConfig(
+      label: "Active Energy", unit: "kcal", color: "#ff9e00", chartType: .bar, sublabel: "today"),
     .walkingDistance: MetricConfig(
       label: "Walking Distance", unit: "km", color: "#06d6a0", chartType: .bar, sublabel: "today"),
     .weight: MetricConfig(label: "Weight", unit: "lbs", color: "#4895ef", chartType: .line, sublabel: "latest"),
@@ -40,7 +41,8 @@ public struct MetricConfig: Sendable {
     .hrv: MetricConfig(label: "HRV", unit: "ms", color: "#48bfe3", chartType: .line, sublabel: "latest"),
     .restingHeartRate: MetricConfig(
       label: "Resting HR", unit: "bpm", color: "#f4845f", chartType: .line, sublabel: "latest"),
-    .exerciseMinutes: MetricConfig(label: "Exercise", unit: "min", color: "#57cc99", chartType: .bar, sublabel: "today"),
+    .exerciseMinutes: MetricConfig(
+      label: "Exercise", unit: "min", color: "#57cc99", chartType: .bar, sublabel: "today"),
     .movement: MetricConfig(label: "Movement", unit: "", color: "#4cc9f0", chartType: .line, sublabel: "today"),
   ]
 }
@@ -201,7 +203,9 @@ public enum Weekly {
     var grouped: [String: [TimedReading]] = [:]
     for s in samples {
       let key = clock.dateKey(s.start)
-      if keySet.contains(key) { grouped[key, default: []].append(TimedReading(value: s.quantity, time: isoString(s.start))) }
+      if keySet.contains(key) {
+        grouped[key, default: []].append(TimedReading(value: s.quantity, time: isoString(s.start)))
+      }
     }
     return keys.map { key in
       var day = HeartRateDaily(date: key)
@@ -269,12 +273,17 @@ public enum Weekly {
     let dist = Dictionary(distance.map { ($0.date, $0.value) }, uniquingKeysWith: { _, b in b })
     let en = Dictionary(energy.map { ($0.date, $0.value) }, uniquingKeysWith: { _, b in b })
     let days = steps.map {
-      MovementSeriesDay(dateKey: $0.date, steps: $0.value, distanceKm: dist[$0.date] ?? nil, energyKcal: en[$0.date] ?? nil)
+      MovementSeriesDay(
+        dateKey: $0.date, steps: $0.value, distanceKm: dist[$0.date] ?? nil, energyKcal: en[$0.date] ?? nil)
     }
     func maxOf(_ v: [Double?]) -> Double { v.reduce(0.0) { m, x in x.map { $0 > m ? $0 : m } ?? m } }
     func normalize(_ v: [Double?], _ m: Double) -> [Double?] { v.map { $0.map { $0 / (m > 0 ? m : 1) } } }
-    let s = days.map(\.steps), d = days.map(\.distanceKm), e = days.map(\.energyKcal)
-    let sm = maxOf(s), dm = maxOf(d), em = maxOf(e)
+    let s = days.map(\.steps)
+    let d = days.map(\.distanceKm)
+    let e = days.map(\.energyKcal)
+    let sm = maxOf(s)
+    let dm = maxOf(d)
+    let em = maxOf(e)
     return MovementOverlayData(
       days: days, stepsMax: sm, distanceMax: dm, energyMax: em, stepsNormalized: normalize(s, sm),
       distanceNormalized: normalize(d, dm), energyNormalized: normalize(e, em))

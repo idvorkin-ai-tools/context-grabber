@@ -10,8 +10,9 @@ final class WhatsNewSeenUITests: XCTestCase {
     let row = app.buttons["whats-new-row"]
     XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
     row.tap()
-    XCTAssertTrue(app.otherElements["whats-new"].waitForExistence(timeout: 5) || app.tables["whats-new"].exists
-      || app.collectionViews["whats-new"].exists, app.debugDescription)
+    XCTAssertTrue(
+      app.otherElements["whats-new"].waitForExistence(timeout: 5) || app.tables["whats-new"].exists
+        || app.collectionViews["whats-new"].exists, app.debugDescription)
     app.navigationBars.buttons.element(boundBy: 0).tap()
     // Home again; its top tile, not Settings, which is at the end and would scroll the row away.
     XCTAssertTrue(app.buttons["home-call"].waitForExistence(timeout: 5), app.debugDescription)

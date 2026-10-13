@@ -123,7 +123,8 @@ final class HealthKitSource: HealthSource, @unchecked Sendable {
       sortDescriptors: Self.newestFirst())
     return try await descriptor.result(for: store).map {
       SleepSample(
-        start: jsMillis($0.startDate), end: jsMillis($0.endDate), value: $0.value, source: $0.sourceRevision.source.name)
+        start: jsMillis($0.startDate), end: jsMillis($0.endDate), value: $0.value, source: $0.sourceRevision.source.name
+      )
     }
   }
 
@@ -131,7 +132,9 @@ final class HealthKitSource: HealthSource, @unchecked Sendable {
     let descriptor = HKSampleQueryDescriptor(
       predicates: [.categorySample(type: Self.mindfulType, predicate: Self.range(from, to))],
       sortDescriptors: Self.newestFirst())
-    return try await descriptor.result(for: store).map { TimeSpan(start: jsMillis($0.startDate), end: jsMillis($0.endDate)) }
+    return try await descriptor.result(for: store).map {
+      TimeSpan(start: jsMillis($0.startDate), end: jsMillis($0.endDate))
+    }
   }
 
   func workouts(from: Double, to: Double) async throws -> [WorkoutRecord] {

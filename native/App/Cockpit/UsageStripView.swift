@@ -23,7 +23,9 @@ struct UsageStripView: View {
   @ObservedObject var usage: UsageModel
 
   var body: some View {
-    Button { usage.refresh() } label: {
+    Button {
+      usage.refresh()
+    } label: {
       VStack(alignment: .leading, spacing: 3) {
         HStack(spacing: 12) {
           ForEach(strip.bars, id: \.label) { bar in BarCell(bar: bar) }

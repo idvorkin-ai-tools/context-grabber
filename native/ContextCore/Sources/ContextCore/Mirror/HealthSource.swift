@@ -116,10 +116,18 @@ public struct HealthFixture: Sendable {
   public func shifted(by ms: Double, clock: LocalClock) -> HealthFixture {
     var f = self
     f.now += ms
-    f.quantities = quantities.mapValues { $0.map { var s = $0; s.start += ms; s.end += ms; return s } }
-    f.sleep = sleep.map { var s = $0; s.start += ms; s.end += ms; return s }
+    f.quantities = quantities.mapValues {
+      $0.map {
+        var s = $0; s.start += ms; s.end += ms; return s
+      }
+    }
+    f.sleep = sleep.map {
+      var s = $0; s.start += ms; s.end += ms; return s
+    }
     f.mindful = mindful.map { TimeSpan(start: $0.start + ms, end: $0.end + ms) }
-    f.workouts = workouts.map { var w = $0; w.start += ms; w.end += ms; return w }
+    f.workouts = workouts.map {
+      var w = $0; w.start += ms; w.end += ms; return w
+    }
     f.accessory = accessory.map {
       ($0.itemId, $0.itemName, $0.loggedAt + Int64(ms), clock.dateKey(Double($0.loggedAt) + ms))
     }
@@ -171,7 +179,9 @@ extension HealthFixture {
   /// The fixture as the script reads it (`make-mirror-expected.mjs --fixture`): what the simulator hook saved.
   public var json: JSValue {
     func q(_ s: QuantitySampleRecord) -> JSValue {
-      var f: [(String, JSValue)] = [("start", .number(s.start)), ("end", .number(s.end)), ("value", .number(s.quantity))]
+      var f: [(String, JSValue)] = [
+        ("start", .number(s.start)), ("end", .number(s.end)), ("value", .number(s.quantity)),
+      ]
       if let src = s.source { f.append(("source", .string(src))) }
       return .object(f)
     }
@@ -179,34 +189,55 @@ extension HealthFixture {
       ("timeZone", .string(timeZone)),
       ("now", .number(now)),
       ("quantity", .object(QuantityKind.allCases.map { ($0.rawValue, .array((quantities[$0] ?? []).map(q))) })),
-      ("sleep", .array(sleep.map { s in
-        var f: [(String, JSValue)] = [("start", .number(s.start)), ("end", .number(s.end)), ("value", .int(s.value))]
-        if let src = s.source { f.append(("source", .string(src))) }
-        return .object(f)
-      })),
+      (
+        "sleep",
+        .array(
+          sleep.map { s in
+            var f: [(String, JSValue)] = [
+              ("start", .number(s.start)), ("end", .number(s.end)), ("value", .int(s.value)),
+            ]
+            if let src = s.source { f.append(("source", .string(src))) }
+            return .object(f)
+          })
+      ),
       ("mindful", .array(mindful.map { .object([("start", .number($0.start)), ("end", .number($0.end))]) })),
-      ("workouts", .array(workouts.map {
-        .object([
-          ("activityType", .int($0.activityType)), ("start", .number($0.start)), ("end", .number($0.end)),
-          ("durationSeconds", .number($0.durationSeconds)), ("energyKcal", .num($0.energyKcal)),
-          ("distanceMeters", .num($0.distanceMeters)),
-        ])
-      })),
-      ("accessory", .array(accessory.map {
-        .object([
-          ("itemId", .string($0.itemId)), ("itemName", .string($0.itemName)), ("loggedAt", .number(Double($0.loggedAt))),
-          ("dateKey", .string($0.dateKey)),
-        ])
-      })),
+      (
+        "workouts",
+        .array(
+          workouts.map {
+            .object([
+              ("activityType", .int($0.activityType)), ("start", .number($0.start)), ("end", .number($0.end)),
+              ("durationSeconds", .number($0.durationSeconds)), ("energyKcal", .num($0.energyKcal)),
+              ("distanceMeters", .num($0.distanceMeters)),
+            ])
+          })
+      ),
+      (
+        "accessory",
+        .array(
+          accessory.map {
+            .object([
+              ("itemId", .string($0.itemId)), ("itemName", .string($0.itemName)),
+              ("loggedAt", .number(Double($0.loggedAt))),
+              ("dateKey", .string($0.dateKey)),
+            ])
+          })
+      ),
     ])
   }
 
   /// As Health will hold it once one app saved it all: every sample from that app, and only the kinds it may write.
   public func asSavedBy(source: String, dropping: Set<QuantityKind>) -> HealthFixture {
     var f = self
-    f.quantities = quantities.filter { !dropping.contains($0.key) }.mapValues { $0.map { var s = $0; s.source = source; return s } }
+    f.quantities = quantities.filter { !dropping.contains($0.key) }.mapValues {
+      $0.map {
+        var s = $0; s.source = source; return s
+      }
+    }
     for k in dropping { f.quantities[k] = [] }
-    f.sleep = sleep.map { var s = $0; s.source = source; return s }
+    f.sleep = sleep.map {
+      var s = $0; s.source = source; return s
+    }
     return f
   }
 }

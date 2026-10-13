@@ -176,7 +176,9 @@ public enum AudioBridge {
   }
 
   public static func errorPayload(op: String, message: String, requestId: String? = nil) -> [String: Any] {
-    var payload: [String: Any] = ["type": "audio.error", "op": op, "message": message.isEmpty ? "Unknown audio error" : message]
+    var payload: [String: Any] = [
+      "type": "audio.error", "op": op, "message": message.isEmpty ? "Unknown audio error" : message,
+    ]
     if let requestId { payload["requestId"] = requestId }
     return payload
   }

@@ -20,7 +20,7 @@ final class JSValueTests: XCTestCase {
     XCTAssertEqual(JSValue.formatNumber(1e-7), "1e-7")
     XCTAssertEqual(JSValue.formatNumber(1.5e-7), "1.5e-7")
     XCTAssertEqual(JSValue.formatNumber(1e21), "1e+21")
-    XCTAssertEqual(JSValue.formatNumber(123456789012), "123456789012")
+    XCTAssertEqual(JSValue.formatNumber(123_456_789_012), "123456789012")
     XCTAssertEqual(JSValue.formatNumber(.nan), "null")
   }
 
@@ -30,9 +30,12 @@ final class JSValueTests: XCTestCase {
   }
 
   func testCompactAndIndentedMatchJSONStringify() {
-    let v = JSValue.object([("a", .number(1)), ("b", .array([])), ("c", .object([])), ("d", .array([.null, .bool(true)]))])
+    let v = JSValue.object([
+      ("a", .number(1)), ("b", .array([])), ("c", .object([])), ("d", .array([.null, .bool(true)])),
+    ])
     XCTAssertEqual(v.stringify(), #"{"a":1,"b":[],"c":{},"d":[null,true]}"#)
-    XCTAssertEqual(v.stringify(indent: 2), "{\n  \"a\": 1,\n  \"b\": [],\n  \"c\": {},\n  \"d\": [\n    null,\n    true\n  ]\n}")
+    XCTAssertEqual(
+      v.stringify(indent: 2), "{\n  \"a\": 1,\n  \"b\": [],\n  \"c\": {},\n  \"d\": [\n    null,\n    true\n  ]\n}")
   }
 
   func testParseKeepsKeyOrderAndRoundTrips() {

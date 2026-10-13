@@ -242,7 +242,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     // On a stopped engine, before anything starts: the input and output both run through voice processing.
     do {
       try engine.inputNode.setVoiceProcessingEnabled(true)
-      log("call_audio", ["action": "voice_processing", "ok": true, "enabled": engine.inputNode.isVoiceProcessingEnabled])
+      log(
+        "call_audio", ["action": "voice_processing", "ok": true, "enabled": engine.inputNode.isVoiceProcessingEnabled])
     } catch {
       // The call still works, with echo; say so where a bad call's log will show it.
       log("call_audio", ["action": "voice_processing", "ok": false, "message": describe(error)])
@@ -305,7 +306,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     log(
       "call_audio",
       [
-        "action": "mic_arm", "rate": rate, "channels": Int(format.channelCount), "other_audio": session.isOtherAudioPlaying,
+        "action": "mic_arm", "rate": rate, "channels": Int(format.channelCount),
+        "other_audio": session.isOtherAudioPlaying,
         "input_available": session.isInputAvailable, "route": Self.describeRoute(),
       ])
     firstBufferLogged = false
@@ -322,7 +324,9 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     // (before the tap or by it); started again as it was, the player kept its clock but fed the mixer silence
     // (rx_peak 0.87, mix_peak 0 on the phone). Whatever stopped it, connect the player afresh before the start.
     if !engine.isRunning, playerFormat != nil {
-      log("call_audio", ["action": "reconnect_player", "why": "engine stopped before the mic started it", "was_running": wasRunning])
+      log(
+        "call_audio",
+        ["action": "reconnect_player", "why": "engine stopped before the mic started it", "was_running": wasRunning])
       try connectPlayer()
     }
     try startEngine(why: "mic")
@@ -334,7 +338,9 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     lastBufferAt = nowMs
     if !firstBufferLogged {
       firstBufferLogged = true
-      log("call_audio", ["action": "mic_first_buffer", "samples": samples.count, "rate": rate, "after_ms": (nowMs - armedAt).rounded()])
+      log(
+        "call_audio",
+        ["action": "mic_first_buffer", "samples": samples.count, "rate": rate, "after_ms": (nowMs - armedAt).rounded()])
     }
     if health == CallWatchdog.micStopped { setHealth(nil) }
     main { listener(samples, rate) }
@@ -377,10 +383,12 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       if attempt > 0 { log("call_heal", ["action": "rebuild", "why": why, "ok": true, "attempt": attempt + 1]) }
     } catch {
       let retries = CallWatchdog.rebuildRetryMs
-      log("call_heal", [
-        "action": "rebuild", "why": why, "ok": false, "attempt": attempt + 1, "message": describe(error),
-        "retry_in_ms": attempt < retries.count ? retries[attempt] : -1,
-      ])
+      log(
+        "call_heal",
+        [
+          "action": "rebuild", "why": why, "ok": false, "attempt": attempt + 1, "message": describe(error),
+          "retry_in_ms": attempt < retries.count ? retries[attempt] : -1,
+        ])
       guard attempt < retries.count else { return setHealth(CallWatchdog.audioGone) }
       queue.asyncAfter(deadline: .now() + retries[attempt] / 1000) { [weak self] in
         guard let self else { return }
@@ -491,7 +499,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
         "rx_peak": (Double(rxPeak) * 1000).rounded() / 1000, "mix_peak": (Double(mixPeak) * 1000).rounded() / 1000,
         "mix_buffers": mixBuffers, "engine_running": engine.isRunning, "player_playing": player?.isPlaying ?? false,
         "player_volume": player?.volume ?? -1, "mixer_volume": engine.mainMixerNode.outputVolume,
-        "session_volume": session.outputVolume, "out_rate": outFormat.sampleRate, "out_channels": Int(outFormat.channelCount),
+        "session_volume": session.outputVolume, "out_rate": outFormat.sampleRate,
+        "out_channels": Int(outFormat.channelCount),
         "out_vp": out.isVoiceProcessingEnabled, "in_vp": engine.inputNode.isVoiceProcessingEnabled,
         "category": session.category.rawValue, "mode": session.mode.rawValue, "outputs": outputs,
       ])

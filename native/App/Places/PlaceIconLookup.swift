@@ -17,9 +17,11 @@ enum PlaceIconLookup {
     byName.naturalLanguageQuery = place.name
     byName.resultTypes = .pointOfInterest
     byName.region = MKCoordinateRegion(
-      center: place.coordinate.cl, latitudinalMeters: 2 * PlaceIcons.nameMatchMeters, longitudinalMeters: 2 * PlaceIcons.nameMatchMeters)
+      center: place.coordinate.cl, latitudinalMeters: 2 * PlaceIcons.nameMatchMeters,
+      longitudinalMeters: 2 * PlaceIcons.nameMatchMeters)
     async let named = run(MKLocalSearch(request: byName))
-    async let nearby = run(MKLocalSearch(request: MKLocalPointsOfInterestRequest(center: place.coordinate.cl, radius: radius)))
+    async let nearby = run(
+      MKLocalSearch(request: MKLocalPointsOfInterestRequest(center: place.coordinate.cl, radius: radius)))
     return try await Answer(named: named, nearby: nearby)
   }
 

@@ -8,7 +8,9 @@ final class DailyStripUITests: XCTestCase {
   func testChecksAndCounters() throws {
     let app = XCUIApplication()
     app.launch()
-    let balloons = app.otherElements["strip-balloons"].exists ? app.otherElements["strip-balloons"] : app.descendants(matching: .any)["strip-balloons"]
+    let balloons =
+      app.otherElements["strip-balloons"].exists
+      ? app.otherElements["strip-balloons"] : app.descendants(matching: .any)["strip-balloons"]
     XCTAssertTrue(balloons.waitForExistence(timeout: 15), app.debugDescription)
     let call = app.buttons["home-call"]
     XCTAssertLessThan(balloons.frame.maxY, call.frame.minY, "above the tiles")

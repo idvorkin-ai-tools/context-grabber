@@ -41,7 +41,8 @@ final class CockpitUsageTests: XCTestCase {
 
   func testStaleSaysItsAge() throws {
     let strip = try XCTUnwrap(
-      UsageStrip(CockpitUsage(present: true, weeklyPct: 10, age: "2D", stale: true, elPct: 10, elAge: "3h", elStale: true)))
+      UsageStrip(
+        CockpitUsage(present: true, weeklyPct: 10, age: "2D", stale: true, elPct: 10, elAge: "3h", elStale: true)))
     XCTAssertTrue(strip.claudeStale)
     XCTAssertEqual(strip.claudeNote, "2D old")
     XCTAssertTrue(strip.voiceStale)

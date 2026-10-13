@@ -24,23 +24,36 @@ struct HomeRow: Identifiable {
     HomeRow(id: "today", title: "Today", icon: "heart.text.square", color: .pink) { $0.openToday(from: "home") },
     // #236: not a launcher but the strip under the Today card; a row here so the cog can hide it.
     HomeRow(id: HomeLayout.dailyStrip, title: "Daily strip", icon: "checklist", color: .green) { _ in },
-    HomeRow(id: "gym_timer", title: "Gym Timer", icon: "timer", color: Color(red: 1.0, green: 0.23, blue: 0.19)) { $0.openGymTimer(from: "home") },
+    HomeRow(id: "gym_timer", title: "Gym Timer", icon: "timer", color: Color(red: 1.0, green: 0.23, blue: 0.19)) {
+      $0.openGymTimer(from: "home")
+    },
     HomeRow(id: "breathe", title: "Box breathing", icon: "wind", color: .teal) { $0.openBreathe(from: "home") },
     HomeRow(id: "places", title: "Places", icon: "map", color: .indigo) { $0.openPlaces(from: "home") },
-    HomeRow(id: "think_a_card", title: "Think of a card", icon: "suit.spade.fill", color: .purple) { $0.openCard(think: true, from: "home") },
-    HomeRow(id: "exercise_analyzer", title: "Exercise Analyzer", icon: "figure.strengthtraining.traditional", color: .orange) {
+    HomeRow(id: "think_a_card", title: "Think of a card", icon: "suit.spade.fill", color: .purple) {
+      $0.openCard(think: true, from: "home")
+    },
+    HomeRow(
+      id: "exercise_analyzer", title: "Exercise Analyzer", icon: "figure.strengthtraining.traditional", color: .orange
+    ) {
       $0.openExerciseAnalyzer(from: "home")
     },
     // #220: runs Igor's own shortcut, so YouTube Music plays the mix.
-    HomeRow(id: "workout_supermix", title: "Workout Supermix", icon: "music.note.list", color: Color(red: 1.0, green: 0.0, blue: 0.2)) {
+    HomeRow(
+      id: "workout_supermix", title: "Workout Supermix", icon: "music.note.list",
+      color: Color(red: 1.0, green: 0.0, blue: 0.2)
+    ) {
       $0.openWorkoutSupermix(from: "home")
     },
     HomeRow(id: "cockpit", title: "Cockpit", icon: "gauge.with.dots.needle.67percent", color: .blue) {
       $0.openCockpit(from: "home")
     },
     // Story 137: the blog's daily three.
-    HomeRow(id: "eulogy_song", title: "Eulogy song", icon: "music.note", color: .brown) { $0.playEulogySong(from: "home") },
-    HomeRow(id: "eulogy", title: "Eulogy", icon: "book", color: .brown) { $0.openBlog(BlogLinks.eulogy, action: "open_eulogy", from: "home") },
+    HomeRow(id: "eulogy_song", title: "Eulogy song", icon: "music.note", color: .brown) {
+      $0.playEulogySong(from: "home")
+    },
+    HomeRow(id: "eulogy", title: "Eulogy", icon: "book", color: .brown) {
+      $0.openBlog(BlogLinks.eulogy, action: "open_eulogy", from: "home")
+    },
     HomeRow(id: "recent", title: "Recent", icon: "clock.arrow.circlepath", color: .gray) {
       $0.openBlog(BlogLinks.recent, action: "open_recent", from: "home")
     },
@@ -52,7 +65,9 @@ struct HomeRow: Identifiable {
 
   /// #286: the home screen's last tile, always shown; not one of the launchers Settings arranges, since it is the
   /// way back to them. Its id is the old cog's, so `home-settings` still finds it.
-  static let settings = HomeRow(id: "settings", title: "Settings", icon: "gearshape.fill", color: .gray) { $0.openHomeSettings() }
+  static let settings = HomeRow(id: "settings", title: "Settings", icon: "gearshape.fill", color: .gray) {
+    $0.openHomeSettings()
+  }
 
   static let ids = all.map(\.id)
   private static let byID = Dictionary(uniqueKeysWithValues: (all + [settings]).map { ($0.id, $0) })

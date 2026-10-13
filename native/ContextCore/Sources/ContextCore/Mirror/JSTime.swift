@@ -134,9 +134,10 @@ public struct LocalClock: Sendable {
     let date = jsDate(ms)
     let c = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .nanosecond], from: date)
     let msPart = ms - (ms / 1000).rounded(.down) * 1000
-    guard let d = calendar.date(
-      from: DateComponents(
-        year: c.year, month: c.month, day: (c.day ?? 1) + n, hour: c.hour, minute: c.minute, second: c.second))
+    guard
+      let d = calendar.date(
+        from: DateComponents(
+          year: c.year, month: c.month, day: (c.day ?? 1) + n, hour: c.hour, minute: c.minute, second: c.second))
     else { return .nan }
     return jsMillis(d) + msPart
   }

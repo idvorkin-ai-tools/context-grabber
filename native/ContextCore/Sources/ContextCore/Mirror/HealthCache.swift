@@ -56,7 +56,8 @@ public final class HealthCache: @unchecked Sendable {
       [.text(metric.rawValue), .text(dateKey), .text(data.stringify()), .int(Int64(now))])
   }
 
-  public func putRaw(_ metric: MetricKey, _ dateKey: String, _ data: JSValue, at now: Double = jsMillis(Date())) throws {
+  public func putRaw(_ metric: MetricKey, _ dateKey: String, _ data: JSValue, at now: Double = jsMillis(Date())) throws
+  {
     lock.lock()
     defer { lock.unlock() }
     try db.run(

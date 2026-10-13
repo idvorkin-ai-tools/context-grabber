@@ -90,7 +90,10 @@ public enum PlaceStyle {
   public static func region(places: [Coordinate], you: Coordinate?, path: [Coordinate]) -> Region? {
     let all = places + (you.map { [$0] } ?? []) + path.filter { $0.latitude.isFinite && $0.longitude.isFinite }
     guard let first = all.first else { return nil }
-    var minLat = first.latitude, maxLat = first.latitude, minLng = first.longitude, maxLng = first.longitude
+    var minLat = first.latitude
+    var maxLat = first.latitude
+    var minLng = first.longitude
+    var maxLng = first.longitude
     for c in all {
       minLat = min(minLat, c.latitude)
       maxLat = max(maxLat, c.latitude)

@@ -76,7 +76,8 @@ public struct BreathPlan: Equatable, Sendable {
   public func side(_ phaseIndex: Int) -> Int { phaseIndex % 4 < 2 ? inSeconds : outSeconds }
   /// Seconds from the session's start to the end of step `phaseIndex`.
   public func stepEnd(_ phaseIndex: Int) -> Int {
-    let cycle = phaseIndex / 4, within = phaseIndex % 4
+    let cycle = phaseIndex / 4
+    let within = phaseIndex % 4
     return cycle * cycleSeconds + (0...within).reduce(0) { $0 + side($1) }
   }
 
@@ -282,7 +283,9 @@ public enum BreathTone: String, CaseIterable, Sendable {
     let pcm = PCM.floatToPcm16(samples())
     let dataBytes = UInt32(pcm.count * 2)
     var data = Data()
-    func append<T: FixedWidthInteger>(_ value: T) { withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) } }
+    func append<T: FixedWidthInteger>(_ value: T) {
+      withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) }
+    }
     data.append(contentsOf: Array("RIFF".utf8))
     append(36 + dataBytes)
     data.append(contentsOf: Array("WAVEfmt ".utf8))

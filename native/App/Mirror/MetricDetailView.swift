@@ -113,7 +113,8 @@ struct MetricDetailView: View {
           .foregroundStyle(by: .value("Series", p.series))
       }
       .chartForegroundStyleScale([
-        "Steps": Color(hex: MetricKey.steps.config.color), "Distance": Color(hex: MetricKey.walkingDistance.config.color),
+        "Steps": Color(hex: MetricKey.steps.config.color),
+        "Distance": Color(hex: MetricKey.walkingDistance.config.color),
         "Energy": Color(hex: MetricKey.activeEnergy.config.color),
       ])
       .chartXScale(domain: o.days.map { short($0.dateKey) })
@@ -145,8 +146,10 @@ struct MetricDetailView: View {
         Text("Resting heart rate").font(.headline)
         Text(today.map { "\(SummaryText.js($0)) bpm latest" } ?? MirrorText.none).foregroundStyle(.secondary)
         Chart(resting.filter { $0.avg != nil }, id: \.date) { d in
-          LineMark(x: .value("Day", short(d.date)), y: .value("bpm", d.avg!)).foregroundStyle(Color(hex: MetricKey.restingHeartRate.config.color))
-          PointMark(x: .value("Day", short(d.date)), y: .value("bpm", d.avg!)).foregroundStyle(Color(hex: MetricKey.restingHeartRate.config.color))
+          LineMark(x: .value("Day", short(d.date)), y: .value("bpm", d.avg!)).foregroundStyle(
+            Color(hex: MetricKey.restingHeartRate.config.color))
+          PointMark(x: .value("Day", short(d.date)), y: .value("bpm", d.avg!)).foregroundStyle(
+            Color(hex: MetricKey.restingHeartRate.config.color))
         }
         .chartXScale(domain: resting.map { short($0.date) })
         .chartYScale(domain: .automatic(includesZero: false))
@@ -161,10 +164,15 @@ struct MetricDetailView: View {
     if let bundle = snap?.sleepBundle, let nights {
       let tabs = [Sleep.allSources] + bundle.bySource.keys.sorted()
       if tabs.count > 1 {
-        Picker("Source", selection: Binding(get: { source ?? Sleep.pickDefaultSource(bundle) }, set: {
-          source = $0
-          app.log.event("ui", ["action": "sleep_source", "source": $0])
-        })) {
+        Picker(
+          "Source",
+          selection: Binding(
+            get: { source ?? Sleep.pickDefaultSource(bundle) },
+            set: {
+              source = $0
+              app.log.event("ui", ["action": "sleep_source", "source": $0])
+            })
+        ) {
           ForEach(tabs, id: \.self) { Text($0).tag($0) }
         }
         .pickerStyle(.segmented)
@@ -183,7 +191,8 @@ struct MetricDetailView: View {
         }
       }
       .chartForegroundStyleScale([
-        "Core": StageStyle.color(3), "Deep": StageStyle.color(4), "REM": StageStyle.color(5), "Awake": StageStyle.color(2),
+        "Core": StageStyle.color(3), "Deep": StageStyle.color(4), "REM": StageStyle.color(5),
+        "Awake": StageStyle.color(2),
         "Asleep": StageStyle.color(1),
       ])
       .chartXScale(domain: nights.map { short($0.date) })
@@ -237,8 +246,12 @@ struct MetricDetailView: View {
             HStack {
               Text(MirrorText.dayRow(n.date))
               Spacer()
-              if let onset = MirrorText.onsetTag(n.onsetMinutes) { Text(onset).font(.caption).foregroundStyle(.secondary) }
-              if let gap = MirrorText.gapTag(Sleep.trackingGap(n)) { Text("⚠ \(gap)").font(.caption).foregroundStyle(.orange) }
+              if let onset = MirrorText.onsetTag(n.onsetMinutes) {
+                Text(onset).font(.caption).foregroundStyle(.secondary)
+              }
+              if let gap = MirrorText.gapTag(Sleep.trackingGap(n)) {
+                Text("⚠ \(gap)").font(.caption).foregroundStyle(.orange)
+              }
               Text(n.totalHours.map { "\(SummaryText.js($0))h" } ?? MirrorText.none).monospacedDigit()
             }
             StageStrip(night: n, height: 12, clock: clock)
@@ -250,7 +263,8 @@ struct MetricDetailView: View {
         }
       } else if metric == .movement, let steps = snap?.weekly[.steps]?.daily {
         let o = Weekly.movementOverlay(
-          steps: steps, distance: snap?.weekly[.walkingDistance]?.daily ?? [], energy: snap?.weekly[.activeEnergy]?.daily ?? [])
+          steps: steps, distance: snap?.weekly[.walkingDistance]?.daily ?? [],
+          energy: snap?.weekly[.activeEnergy]?.daily ?? [])
         ForEach(o.days.reversed(), id: \.dateKey) { d in
           VStack(alignment: .leading, spacing: 2) {
             Text(MirrorText.dayRow(d.dateKey))
@@ -371,8 +385,10 @@ struct NightCard: View {
         Text(night.totalHours.map { "\(SummaryText.js($0))h" } ?? MirrorText.none).font(.headline.monospacedDigit())
       }
       if let bed = night.bedtime, let wake = night.wakeTime {
-        Text("\(SummaryText.formatLocalTime(bed, clock: clock)) \u{2013} \(SummaryText.formatLocalTime(wake, clock: clock))")
-          .foregroundStyle(.secondary)
+        Text(
+          "\(SummaryText.formatLocalTime(bed, clock: clock)) \u{2013} \(SummaryText.formatLocalTime(wake, clock: clock))"
+        )
+        .foregroundStyle(.secondary)
         StageStrip(night: night, height: 28, hourLabels: true, clock: clock)
         let total = night.coreHours + night.deepHours + night.remHours + night.awakeHours
         if total > 0 {
@@ -422,17 +438,24 @@ struct ConsistencyChart: View {
         out.append(ConsistencyPoint(date: n.date, kind: "Bedtime", minutes: m))
       }
       if let w = n.wakeTime.flatMap(parseISO) {
-        out.append(ConsistencyPoint(date: n.date, kind: "Wake", minutes: Double(clock.hour(w) * 60 + clock.minute(w)) + 24 * 60))
+        out.append(
+          ConsistencyPoint(date: n.date, kind: "Wake", minutes: Double(clock.hour(w) * 60 + clock.minute(w)) + 24 * 60))
       }
       return out
     }
     VStack(alignment: .leading, spacing: 4) {
       Text("Bedtime and wake").font(.headline)
       Chart(points) { p in
-        LineMark(x: .value("Night", String(MirrorText.dayRow(p.date).prefix(3)) + p.date.suffix(2)), y: .value("Time", p.minutes))
-          .foregroundStyle(by: .value("Line", p.kind))
-        PointMark(x: .value("Night", String(MirrorText.dayRow(p.date).prefix(3)) + p.date.suffix(2)), y: .value("Time", p.minutes))
-          .foregroundStyle(by: .value("Line", p.kind))
+        LineMark(
+          x: .value("Night", String(MirrorText.dayRow(p.date).prefix(3)) + p.date.suffix(2)),
+          y: .value("Time", p.minutes)
+        )
+        .foregroundStyle(by: .value("Line", p.kind))
+        PointMark(
+          x: .value("Night", String(MirrorText.dayRow(p.date).prefix(3)) + p.date.suffix(2)),
+          y: .value("Time", p.minutes)
+        )
+        .foregroundStyle(by: .value("Line", p.kind))
       }
       .chartXScale(domain: nights.map { String(MirrorText.dayRow($0.date).prefix(3)) + $0.date.suffix(2) })
       .chartYScale(domain: .automatic(includesZero: false))
@@ -449,9 +472,11 @@ struct ConsistencyChart: View {
       }
       .chartForegroundStyleScale(["Bedtime": Color(hex: "#7b2cbf"), "Wake": Color(hex: "#ff9e00")])
       .frame(height: 160)
-      Text("Bedtime \(MirrorText.spread(stats.bedtimeStdevMinutes)) · Wake \(MirrorText.spread(stats.wakeStdevMinutes))")
-        .font(.caption)
-        .foregroundStyle(.secondary)
+      Text(
+        "Bedtime \(MirrorText.spread(stats.bedtimeStdevMinutes)) · Wake \(MirrorText.spread(stats.wakeStdevMinutes))"
+      )
+      .font(.caption)
+      .foregroundStyle(.secondary)
     }
   }
 }

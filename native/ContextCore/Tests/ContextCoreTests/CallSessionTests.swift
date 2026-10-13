@@ -30,7 +30,8 @@ final class FakeScheduler: CallScheduler {
 
   func advance(_ ms: Double) {
     let end = now + ms
-    while let next = timers.filter({ !$0.cancelled && $0.due <= end }).min(by: { ($0.due, $0.seq) < ($1.due, $1.seq) }) {
+    while let next = timers.filter({ !$0.cancelled && $0.due <= end }).min(by: { ($0.due, $0.seq) < ($1.due, $1.seq) })
+    {
       timers.removeAll { $0 === next }
       now = next.due
       next.block()
