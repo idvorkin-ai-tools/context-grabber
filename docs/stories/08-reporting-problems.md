@@ -345,3 +345,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** yesterday's strip had a check and counts
 - **When:** midnight passes
 - **Then:** the strip starts fresh, and yesterday's values are kept
+
+- **Scenario:** I did it yesterday
+- **Given:** Gym reads *3d* because I forgot to tap it yesterday
+- **When:** I press and hold Gym, leave the slider on *yesterday* and tap Confirm
+- **Then:** the sheet closes, Gym reads *1d*, today is still unchecked, and the log has `daily_strip` with gym, yesterday's date and `backdated`

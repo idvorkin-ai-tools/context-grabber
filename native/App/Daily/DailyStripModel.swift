@@ -82,6 +82,21 @@ final class DailyStripModel: ObservableObject {
     refresh()
   }
 
+  /// #290: press and hold a check, slide to the day, Confirm: that day counts. It only marks; an earlier day is not
+  /// taken back here.
+  func mark(_ item: DailyItem, daysAgo: Int) {
+    refresh()  // the day may have turned since the sheet opened
+    guard let day = DailyStrip.day(daysAgo, before: today) else { return }
+    do {
+      try store?.set(item, day: day, value: 1)
+    } catch {
+      log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
+      return
+    }
+    log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": 1, "day": day, "backdated": daysAgo])
+    refresh()
+  }
+
   /// One `daily_strip_auto` line per item per day, the first time it is seen green with no tap.
   private func announce(_ item: DailyItem, from: String) {
     guard announced.insert("\(item.rawValue)/\(today)").inserted else { return }

@@ -86,6 +86,15 @@ journal's; a check that came from the timer or Health stays. Every change is in 
 daily_strip, with the item and its new value), and so is each item turning green by itself (`daily_strip_auto`,
 with the item and where it came from). The strip can be hidden from Settings like a launcher.
 
+**An earlier day** (Igor, 2026-10-11, #290: *"Press and hold on a day strip element gives a slider on days since
+forward or backwards. Then confirm to say you did it yesterday. It's a one and done"*). Press and hold Gym,
+Meditation or Journal and a small sheet asks which day: a slider from today back two weeks, starting on
+*yesterday*, its label the day in words and its date (*yesterday · Sun, Oct 11*, *3 days ago · Fri, Oct 9*).
+*Confirm* marks that day done and closes the sheet; *Cancel* closes it with nothing changed. Gym's days since
+follows at once (a gym day yesterday reads *1d*). Marking is all it does: an earlier day is not taken back here.
+The counters keep their long press for one fewer. The log has `ui`, action daily_strip, with the item, the day
+and `backdated`.
+
 Non-goals: choosing other items or adding new ones from the app, streaks, reminders, history charts.
 
 Order, hiding and Reset in Settings work as before.

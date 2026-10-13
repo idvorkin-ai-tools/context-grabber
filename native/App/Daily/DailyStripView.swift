@@ -1,11 +1,16 @@
 //  The daily strip on the home screen (#236, #238, #257; home-screen spec, "The daily strip"): one tight line. Gym,
-//  Meditation and Journal are checks; Balloons and Magic count, a tap for one more and a long press for one fewer.
+//  Meditation and Journal are checks (a press and hold marks an earlier day, #290); Balloons and Magic count, a tap
+//  for one more and a long press for one fewer.
 
 import ContextCore
 import SwiftUI
 
 struct DailyStripView: View {
   @ObservedObject var strip: DailyStripModel
+  /// #290: the check being marked for an earlier day, while its sheet is up.
+  @State private var backdating: Backdate?
+  /// A long press opened the sheet: the button's tap on release is not a second change.
+  @State private var longPressed = false
 
   var body: some View {
     HStack(spacing: 0) {
@@ -26,6 +31,9 @@ struct DailyStripView: View {
       strip.refresh()
     }
     .onAppear { strip.refresh() }
+    .sheet(item: $backdating) { b in
+      BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, daysAgo: $0) }
+    }
   }
 
   private var gymNote: String? {
@@ -37,6 +45,10 @@ struct DailyStripView: View {
     _ item: DailyItem, label: String, done: Bool, note: String?, @ViewBuilder icon: () -> Icon
   ) -> some View {
     Button {
+      if longPressed {
+        longPressed = false
+        return
+      }
       strip.change(item)
     } label: {
       HStack(spacing: 5) {
@@ -53,6 +65,13 @@ struct DailyStripView: View {
     .buttonStyle(.borderless)
     .tint(.primary)  // the colours are the item's own, not the button's blue
     .sensoryFeedback(.selection, trigger: done)
+    .simultaneousGesture(
+      LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+        longPressed = true
+        backdating = Backdate(item: item, label: label)
+      }
+    )
+    .accessibilityAction(named: "Mark an earlier day") { backdating = Backdate(item: item, label: label) }
     .accessibilityLabel(label)
     .accessibilityValue(done ? "done today" : note.map { $0 == "–" ? "never" : "\($0) since" } ?? "not yet")
     .accessibilityIdentifier("strip-\(item.rawValue)")
@@ -99,5 +118,59 @@ struct KettlebellIcon: View {
     }
     .frame(width: size, height: size, alignment: .top)
     .accessibilityHidden(true)
+  }
+}
+
+/// #290: which check the earlier-day sheet is for.
+private struct Backdate: Identifiable {
+  let item: DailyItem
+  let label: String
+  var id: String { item.rawValue }
+}
+
+/// Press and hold a check (#290): slide back to the day it was done, Confirm, and the sheet closes. One and done.
+private struct BackdateSheet: View {
+  let label: String
+  let today: String
+  let confirm: (Int) -> Void
+  @Environment(\.dismiss) private var dismiss
+  /// Today at the right end, two weeks back at the left; starts on yesterday.
+  @State private var position = -1.0
+
+  private var daysAgo: Int { Int(-position) }
+
+  var body: some View {
+    NavigationStack {
+      VStack(spacing: 18) {
+        Text(DailyStrip.backdateLabel(daysAgo, today: today))
+          .font(.title3.weight(.semibold).monospacedDigit())
+          .accessibilityIdentifier("strip-backdate-day")
+        Slider(value: $position, in: -Double(DailyStrip.backdateRange.upperBound)...0, step: 1) {
+          Text("Day")
+        } minimumValueLabel: {
+          Text("2 wk").font(.caption)
+        } maximumValueLabel: {
+          Text("today").font(.caption)
+        }
+        .accessibilityValue(DailyStrip.backdateLabel(daysAgo, today: today))
+        .accessibilityIdentifier("strip-backdate-slider")
+      }
+      .padding()
+      .navigationTitle(label)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") { dismiss() }.accessibilityIdentifier("strip-backdate-cancel")
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Confirm") {
+            confirm(daysAgo)
+            dismiss()
+          }
+          .accessibilityIdentifier("strip-backdate-confirm")
+        }
+      }
+    }
+    .presentationDetents([.height(200)])
   }
 }
