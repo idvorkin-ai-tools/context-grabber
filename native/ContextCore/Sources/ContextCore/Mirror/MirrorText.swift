@@ -97,6 +97,14 @@ public enum MirrorText {
   static let shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   static let shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+  /// #308: a tapped night on the bedtime-and-wake chart. "Sun, Mar 15 · bed 11pm · wake 7:15am", a dash for a time
+  /// Health did not give.
+  public static func bedAndWake(_ night: SleepDaily, clock: LocalClock) -> String {
+    let bed = night.bedtime.map { SummaryText.formatLocalTime($0, clock: clock) }.flatMap { $0.isEmpty ? nil : $0 }
+    let wake = night.wakeTime.map { SummaryText.formatLocalTime($0, clock: clock) }.flatMap { $0.isEmpty ? nil : $0 }
+    return "\(dayRow(night.date)) · bed \(bed ?? none) · wake \(wake ?? none)"
+  }
+
   /// "Sun, Mar 15"
   public static func dayRow(_ dateKey: String) -> String {
     let p = dateKey.split(separator: "-").compactMap { Int($0) }

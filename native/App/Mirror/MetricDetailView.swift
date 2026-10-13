@@ -235,7 +235,9 @@ struct MetricDetailView: View {
       }
       .font(.subheadline)
       .accessibilityIdentifier("sleep-target")
-      ConsistencyChart(nights: nights, clock: clock)
+      ConsistencyChart(nights: nights, clock: clock) { night in
+        app.log.event("ui", ["action": "sleep_clock_night", "night": night ?? "", "open": night != nil])
+      }
     } else if mirror.grabbing {
       ProgressView()
     }
@@ -443,6 +445,9 @@ struct NightCard: View {
 struct ConsistencyChart: View {
   let nights: [SleepDaily]
   let clock: LocalClock
+  /// #308: a night tapped (nil: cleared), for the log.
+  var onSelect: (String?) -> Void = { _ in }
+  @State private var selected: String?
 
   var body: some View {
     let stats = Sleep.consistency(nights, clock: clock)
@@ -455,17 +460,33 @@ struct ConsistencyChart: View {
       Text("Bedtime and wake").font(.headline)
       Chart(points) { p in
         LineMark(
-          x: .value("Night", String(MirrorText.dayRow(p.date).prefix(3)) + p.date.suffix(2)),
+          x: .value("Night", label(p.date)),
           y: .value("Time", p.minutes)
         )
         .foregroundStyle(by: .value("Line", p.kind))
         PointMark(
-          x: .value("Night", String(MirrorText.dayRow(p.date).prefix(3)) + p.date.suffix(2)),
+          x: .value("Night", label(p.date)),
           y: .value("Time", p.minutes)
         )
         .foregroundStyle(by: .value("Line", p.kind))
+        .symbolSize(selected == p.date ? 120 : 30)
+        if selected == p.date, p.kind == "Bedtime" {
+          RuleMark(x: .value("Night", label(p.date))).foregroundStyle(.secondary.opacity(0.3))
+        }
       }
-      .chartXScale(domain: nights.map { String(MirrorText.dayRow($0.date).prefix(3)) + $0.date.suffix(2) })
+      .chartXScale(domain: nights.map { label($0.date) })
+      // #308: a tap on a night's dots names its bed and wake under the chart; a second tap clears it.
+      .chartOverlay { proxy in
+        GeometryReader { _ in
+          Rectangle().fill(.clear).contentShape(Rectangle()).onTapGesture { location in
+            guard let tapped: String = proxy.value(atX: location.x),
+              let night = nights.first(where: { label($0.date) == tapped })
+            else { return }
+            selected = selected == night.date ? nil : night.date
+            onSelect(selected)
+          }
+        }
+      }
       // #307: time runs down, so bedtime is the top line and the gap below it is the night (#306), in whole hours.
       .chartYScale(domain: .automatic(includesZero: false, reversed: true))
       .chartYAxis {
@@ -481,6 +502,11 @@ struct ConsistencyChart: View {
       }
       .chartForegroundStyleScale(["Bedtime": Color(hex: "#7b2cbf"), "Wake": Color(hex: "#ff9e00")])
       .frame(height: 160)
+      if let date = selected, let night = nights.first(where: { $0.date == date }) {
+        Text(MirrorText.bedAndWake(night, clock: clock))
+          .font(.subheadline.monospacedDigit())
+          .accessibilityIdentifier("sleep-clock-night")
+      }
       Text(
         "Bedtime \(MirrorText.spread(stats.bedtimeStdevMinutes)) · Wake \(MirrorText.spread(stats.wakeStdevMinutes))"
       )
@@ -488,4 +514,7 @@ struct ConsistencyChart: View {
       .foregroundStyle(.secondary)
     }
   }
+
+  /// "Sun15": the chart's night labels, unique across a week that crosses a month.
+  private func label(_ date: String) -> String { String(MirrorText.dayRow(date).prefix(3)) + date.suffix(2) }
 }
