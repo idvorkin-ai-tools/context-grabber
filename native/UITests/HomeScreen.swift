@@ -13,4 +13,15 @@ extension XCUIApplication {
     XCTAssertTrue(tile.waitForExistence(timeout: 5), "the Settings tile: \(debugDescription)", file: file, line: line)
     tile.tap()
   }
+
+  /// Settings → Launchers (#302): the page with each launcher's switch, the reorder handles and Reset.
+  func openLaunchers(file: StaticString = #filePath, line: UInt = #line) {
+    openHomeSettings(file: file, line: line)
+    let row = buttons["home-settings-launchers"]
+    XCTAssertTrue(row.waitForExistence(timeout: 5), "the Launchers row: \(debugDescription)", file: file, line: line)
+    row.tap()
+    XCTAssertTrue(
+      navigationBars["Launchers"].waitForExistence(timeout: 5), "the Launchers page: \(debugDescription)", file: file,
+      line: line)
+  }
 }

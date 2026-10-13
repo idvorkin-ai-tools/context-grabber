@@ -92,7 +92,8 @@ Order, hiding and Reset in Settings work as before.
 
 **The Settings tile** (once the cog) opens the **Home screen** sheet, with *Done* at the top right. It has two parts:
 
-1. **Launchers** — every launcher, shown or hidden, in the current order, each with its icon, its name and a
+1. **Launchers** — its own page (#302: *"launchers on its own page under settings"*): the sheet's first row,
+   *Launchers*, opens it, with *Done* still at the top right. It lists every launcher, shown or hidden, in the current order, each with its icon, its name and a
    switch. A switch off hides that row from the home screen at once; on brings it back in the same place.
    Rows are dragged by their handle to reorder; the home screen follows. A footer says hidden rows still open
    from links and Shortcuts. *Reset to default* puts every row back, in the default order.

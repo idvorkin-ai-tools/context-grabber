@@ -10,7 +10,7 @@ final class HomeGridUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     // Igor's default order, whatever an earlier run left.
-    app.openHomeSettings()
+    app.openLaunchers()
     let reset = app.buttons["home-rows-reset"]
     for _ in 0..<6 where !reset.isHittable { app.swipeUp() }
     reset.tap()

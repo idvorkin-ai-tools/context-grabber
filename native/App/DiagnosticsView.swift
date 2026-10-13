@@ -249,7 +249,7 @@ private struct CallTileStatus: View {
   }
 }
 
-/// Behind the home screen's Settings tile (story 147): the launchers to show and their order, then what used to sit under them.
+/// Behind the home screen's Settings tile (story 147): the Launchers page, then what used to sit under the launchers.
 private struct HomeSettingsView: View {
   @ObservedObject var model: AppModel
   @Environment(\.dismiss) private var dismiss
@@ -260,27 +260,15 @@ private struct HomeSettingsView: View {
     NavigationStack {
       List {
         Section {
-          ForEach(model.homeLayout.order, id: \.self) { id in
-            if let row = HomeRow.row(id) {
-              Toggle(isOn: Binding(get: { model.homeLayout.isShown(id) }, set: { model.setHomeRow(id, shown: $0) })) {
-                HStack(spacing: 12) {
-                  LauncherIcon(row: row)
-                  Text(row.title)
-                }
-              }
-              .accessibilityIdentifier("home-row-\(id)")
-            }
+          // #302: the launchers have their own page, so the rest of the sheet is one short list.
+          NavigationLink {
+            HomeLaunchersView(model: model)
+          } label: {
+            Label("Launchers", systemImage: "square.grid.3x3")
           }
-          .onMove { model.moveHomeRows(fromOffsets: $0, toOffset: $1) }
-          Button("Reset to default") { model.resetHomeRows() }
-            .accessibilityIdentifier("home-rows-reset")
-        } header: {
-          Text("Launchers")
-        } footer: {
-          Text("Drag to reorder. A hidden launcher still opens from its link or Shortcut.")
+          .accessibilityIdentifier("home-settings-launchers")
         }
         Section {
-          // A button, not a NavigationLink: edit mode (for the drag handles) disables links.
           Button {
             showWhatsNew = true
           } label: {
@@ -339,8 +327,6 @@ private struct HomeSettingsView: View {
           Text("Or shake the phone on any screen.")
         }
       }
-      // The reorder handles always showing: dragging is what this sheet is for.
-      .environment(\.editMode, .constant(.active))
       .navigationDestination(isPresented: $showLinks) { LinksView(log: model.log) }
       .navigationDestination(isPresented: $showWhatsNew) {
         WhatsNewView(feed: model.whatsNew, logger: model.bugLogger, from: "home_settings")
@@ -351,6 +337,44 @@ private struct HomeSettingsView: View {
         ToolbarItem(placement: .confirmationAction) {
           Button("Done") { dismiss() }.accessibilityIdentifier("home-settings-done")
         }
+      }
+    }
+  }
+}
+
+/// Settings → Launchers (story 147, #302): which launchers the home screen shows and their order.
+private struct HomeLaunchersView: View {
+  @ObservedObject var model: AppModel
+
+  var body: some View {
+    List {
+      Section {
+        ForEach(model.homeLayout.order, id: \.self) { id in
+          if let row = HomeRow.row(id) {
+            Toggle(isOn: Binding(get: { model.homeLayout.isShown(id) }, set: { model.setHomeRow(id, shown: $0) })) {
+              HStack(spacing: 12) {
+                LauncherIcon(row: row)
+                Text(row.title)
+              }
+            }
+            .accessibilityIdentifier("home-row-\(id)")
+          }
+        }
+        .onMove { model.moveHomeRows(fromOffsets: $0, toOffset: $1) }
+        Button("Reset to default") { model.resetHomeRows() }
+          .accessibilityIdentifier("home-rows-reset")
+      } footer: {
+        Text("Drag to reorder. A hidden launcher still opens from its link or Shortcut.")
+      }
+    }
+    // The reorder handles always showing: dragging is what this page is for.
+    .environment(\.editMode, .constant(.active))
+    .navigationTitle("Launchers")
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .confirmationAction) {
+        // Closes the whole sheet, as the sheet's own Done does; a pushed page's dismiss would only pop back.
+        Button("Done") { model.showHomeSettings = false }.accessibilityIdentifier("home-settings-done")
       }
     }
   }
