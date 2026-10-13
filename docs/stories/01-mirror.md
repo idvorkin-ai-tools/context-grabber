@@ -119,7 +119,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 007:
 
 - **Summary:** See how I slept, not only how long: stages, debt against a target, and bedtime consistency
-- **Issues:** [#307](https://github.com/idvorkin/context-grabber/issues/307), [#306](https://github.com/idvorkin/context-grabber/issues/306)
+- **Issues:** [#307](https://github.com/idvorkin/context-grabber/issues/307), [#306](https://github.com/idvorkin/context-grabber/issues/306), [#308](https://github.com/idvorkin/context-grabber/issues/308)
 - **Status:** implemented in [18ed07b](https://github.com/idvorkin/context-grabber/commit/18ed07b); verified by `sleep.test.ts` and on the phone; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), verified by `just native-test` (`testSleepDebt`, `testConsistencyWrapsAroundMidnight`) and a simulator screenshot; the phone still to be checked by Igor.; 7 h by default and changed on the Sleep sheet (#301): [d9c4d0d](https://github.com/idvorkin/context-grabber/commit/d9c4d0d), host-checked only (lint); the simulator and the phone in the next build turn; bedtime on top, the gap the time in bed (#307, #306): [0b73d30](https://github.com/idvorkin/context-grabber/commit/0b73d30), verified by `just native-test` (`testClockNightsPutBedtimeAboveWake`); the simulator and the phone in the next build turn
 
 #### Use Case:
@@ -138,6 +138,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** I went to bed at 11pm and woke at 7am, and the next night 1am to 6am
 - **When:** I look at the bedtime-and-wake chart
 - **Then:** bedtime is the top line and wake the bottom one, the hours run down the side in even steps, and the first night's gap is wider than the second's
+
+- **Scenario:** One night's times from its dots
+- **Given:** the bedtime-and-wake chart shows Sunday, bed at 11pm and wake at 7am
+- **When:** I tap Sunday's dots
+- **Then:** under the chart it reads "Sun, Mar 15 · bed 11pm · wake 7am", Sunday is marked, and a second tap clears it
 
 - **Scenario:** Changing the target where the debt is
 - **Given:** the Sleep sheet is open with a target of 7 h
