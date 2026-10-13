@@ -22,7 +22,7 @@ tables below move here.
 
 | Rung | What runs | Command | Time | Answers |
 |---|---|---|---|---|
-| 1 Host | swift-format's lint over every native Swift file and SwiftLint's (no force unwrap, cast or try, no implicitly unwrapped optional, unless a `swiftlint:disable:next` line gives the reason), then `ContextCore` XCTest (`native/ContextCore`, the platform-free package) | `just native-test` (also run by `just test`; `just native-format` fixes the layout) | seconds | the layout (`native/.swift-format`); everything pure: what a log line can carry, log retention; each ported `lib/` module's logic |
+| 1 Host | swift-format's lint over every native Swift file and SwiftLint's (no force unwrap, cast or try, no implicitly unwrapped optional, unless a `swiftlint:disable:next` line gives the reason), then `ContextCore` XCTest (`native/ContextCore`, the platform-free package), then the device build's signing path with fakes (`scripts/native/test-signing-guard.sh`) | `just native-test` (also run by `just test`; `just native-format` fixes the layout) | seconds | the layout (`native/.swift-format`); everything pure: what a log line can carry, log retention; each ported `lib/` module's logic |
 | 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events |
 | 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, the timer's cues, the card's deal and count, no `error` event |
 | 3 Phone | Grabber Native on the iPhone, beside Context Grabber | `just native-run-device`, then `just pull-logs` | minutes + a person | the shake, and everything the phone-only rows below list |
@@ -35,7 +35,9 @@ is BugKit's and finds every plugged-in iPhone and iPad itself, no ids.) `pull-lo
 `~/tmp/agent/grabber-logs/<phone|ipad>/`. A device
 that is not plugged in or reachable is named and skipped. `native-run-device` builds under the Mac's one signing lock
 (`~/tmp/agent/locks/xcode-signing.lock`, shared with every app and agent), so it waits while another signing build
-runs; run it bare, not inside another `lockf` on that lock.
+runs; run it bare, not inside another `lockf` on that lock. Its xcodebuild runs through BugKit's `signing-guard.sh`
+(bug-kit#53, from the pinned SwiftPM checkout): it waits while the Mac is locked rather than start a provisioning
+build, and Xcode's "No Accounts" fails it with exit 78, so nothing installs.
 
 The simulator cannot be shaken or tapped from a script, so the app reads **launch hooks** from the environment
 (pass them through `simctl` as `SIMCTL_CHILD_<name>`); checks wait for an event in a *new* launch's log instead of
