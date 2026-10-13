@@ -79,7 +79,7 @@ What the native rungs can and cannot see of the home screen (story 147, [spec](s
 | Change | Where it must be verified | How |
 |---|---|---|
 | The remembered order and hidden rows read against this build's rows: a new row at the end, a gone one dropped, moves, store and read back | Host | `HomeLayoutTests` |
-| Hiding and moving a row through the Settings tile, both holding after a relaunch; Reset | Simulator | `HomeSettingsUITests` (`xcodebuild … -only-testing:GrabberNativeUITests/HomeSettingsUITests test`), then the `ui` home_rows lines in the log |
+| Hiding and moving a row on Settings → Launchers, both holding after a relaunch; Reset | Simulator | `HomeSettingsUITests` (`xcodebuild … -only-testing:GrabberNativeUITests/HomeSettingsUITests test`), then the `ui` home_rows lines in the log |
 | Three tiles to a line, Recent beside Random, Settings the last tile (#284–#286) | Simulator | `HomeGridUITests` |
 | The home screen and the sheet, drawn | Simulator screenshot | launch plain, and with `SIMCTL_CHILD_GRABBER_HOME=settings`, then `simctl io screenshot` |
 
