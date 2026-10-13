@@ -30,6 +30,8 @@ final class BreatheModel: ObservableObject {
   @Published private(set) var stage = Stage.setup
   /// The preset chosen (story 241), or nil for Custom.
   @Published private(set) var preset: Int?
+  /// #289: a four-sided pattern, chosen instead of a preset or Custom.
+  @Published private(set) var pattern: BreathPattern?
   @Published private(set) var customIn: Int
   @Published private(set) var customOut: Int
   @Published private(set) var sessionMinutes: Int
@@ -68,6 +70,7 @@ final class BreatheModel: ObservableObject {
     let (setup, seeds) = BreathSetup.restore(database.setting)
     for seed in seeds { database.setSetting(seed.key, seed.value) }
     preset = setup.preset
+    pattern = setup.pattern
     customIn = setup.customIn
     customOut = setup.customOut
     sessionMinutes = database.setting(Self.sessionKey).flatMap(Int.init) ?? BreathPlan.defaultSession
@@ -77,6 +80,7 @@ final class BreatheModel: ObservableObject {
   }
 
   var plan: BreathPlan {
+    if let pattern { return BreathPlan(pattern: pattern, sessionMinutes: sessionMinutes) }
     if let preset { return BreathPlan(breathSeconds: preset, sessionMinutes: sessionMinutes) }
     return BreathPlan(inSeconds: customIn, outSeconds: customOut, sessionMinutes: sessionMinutes)
   }
@@ -86,11 +90,23 @@ final class BreatheModel: ObservableObject {
 
   /// A preset's seconds, or nil for Custom.
   func choosePreset(_ seconds: Int?) {
-    guard seconds != preset else { return }
+    guard seconds != preset || pattern != nil else { return }
+    pattern = nil
+    database.setSetting(BreathSetup.patternKey, "")
     preset = seconds
     if let seconds { database.setSetting(BreathSetup.breathKey, String(seconds)) }
     database.setSetting(BreathSetup.customKey, seconds == nil ? "1" : "0")
     log.event("ui", ["action": "breath_preset", "preset": seconds.map(String.init) ?? "custom"])
+  }
+
+  /// #289: one tap, like a preset; remembered until a preset or Custom is chosen.
+  func choosePattern(_ next: BreathPattern) {
+    guard next != pattern else { return }
+    pattern = next
+    preset = nil
+    database.setSetting(BreathSetup.patternKey, next.key)
+    database.setSetting(BreathSetup.customKey, "0")
+    log.event("ui", ["action": "breath_preset", "preset": next.key])
   }
 
   func setCustomIn(_ seconds: Int) {
@@ -141,7 +157,8 @@ final class BreatheModel: ObservableObject {
       launch.plan
       ?? launch.breath.map { BreathPlan(breathSeconds: $0, sessionMinutes: launch.minutes ?? sessionMinutes) }
       ?? (launch.minutes.map { minutes in
-        preset.map { BreathPlan(breathSeconds: $0, sessionMinutes: minutes) }
+        pattern.map { BreathPlan(pattern: $0, sessionMinutes: minutes) }
+          ?? preset.map { BreathPlan(breathSeconds: $0, sessionMinutes: minutes) }
           ?? BreathPlan(inSeconds: customIn, outSeconds: customOut, sessionMinutes: minutes)
       } ?? self.plan)
     pauseAt = launch.pauseAt
@@ -155,7 +172,8 @@ final class BreatheModel: ObservableObject {
     log.event(
       "breath_start",
       [
-        "breath": plan.inSeconds, "out": plan.outSeconds, "cycles": plan.cycles, "total": plan.totalSeconds,
+        "breath": plan.inSeconds, "hold_in": plan.holdInSeconds, "out": plan.outSeconds,
+        "hold_out": plan.holdOutSeconds, "cycles": plan.cycles, "total": plan.totalSeconds,
         "cue": cue.rawValue,
         "lead_in_ms": Int(leadIn * 1000),
       ])

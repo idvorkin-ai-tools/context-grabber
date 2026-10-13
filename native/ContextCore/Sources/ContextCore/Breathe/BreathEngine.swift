@@ -26,6 +26,31 @@ public enum BreathCue: String, CaseIterable, Equatable, Sendable {
   public var label: String { rawValue.prefix(1).uppercased() + rawValue.dropFirst() }
 }
 
+/// #289: a breath of four sides with their own lengths, chosen with one tap beside the presets.
+public struct BreathPattern: Equatable, Hashable, Sendable {
+  public let inSeconds: Int
+  public let holdInSeconds: Int
+  public let outSeconds: Int
+  public let holdOutSeconds: Int
+
+  /// In 4, hold 4, out 6, hold 2 (Igor, 2026-10-11).
+  public static let fourFourSixTwo = BreathPattern(inSeconds: 4, holdInSeconds: 4, outSeconds: 6, holdOutSeconds: 2)
+  public static let all = [fourFourSixTwo]
+
+  /// "4·4·6·2", on its button.
+  public var label: String {
+    [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map(String.init).joined(separator: "\u{00B7}")
+  }
+  /// "4-4-6-2", in the settings and the log.
+  public var key: String {
+    [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map(String.init).joined(separator: "-")
+  }
+  /// "In 4, hold 4, out 6, hold 2."
+  public var sentence: String { "In \(inSeconds), hold \(holdInSeconds), out \(outSeconds), hold \(holdOutSeconds)." }
+
+  public static func named(_ key: String?) -> BreathPattern? { all.first { $0.key == key } }
+}
+
 public struct BreathPlan: Equatable, Sendable {
   public static let breathRange = 5...15
   public static let sessionRange = 2...15
@@ -36,10 +61,12 @@ public struct BreathPlan: Equatable, Sendable {
   /// Custom's In and Out sliders.
   public static let customRange = 3...15
 
-  /// The inhale and the hold after it.
+  /// The inhale; the hold after it is `holdInSeconds`, the same unless a pattern says otherwise.
   public let inSeconds: Int
-  /// The exhale and the hold after it.
+  /// The exhale; the hold after it is `holdOutSeconds`.
   public let outSeconds: Int
+  public let holdInSeconds: Int
+  public let holdOutSeconds: Int
   public let cycles: Int
 
   /// The whole cycles closest to the session length chosen, never fewer than one (story 161).
@@ -55,25 +82,54 @@ public struct BreathPlan: Equatable, Sendable {
   }
 
   private init(evenOrUneven inSide: Int, _ outSide: Int, sessionMinutes: Int) {
+    self.init(sides: (inSide, inSide, outSide, outSide), sessionMinutes: sessionMinutes)
+  }
+
+  /// A pattern's four sides (#289), as many whole cycles as fit the session best.
+  public init(pattern: BreathPattern, sessionMinutes: Int) {
+    self.init(
+      sides: (pattern.inSeconds, pattern.holdInSeconds, pattern.outSeconds, pattern.holdOutSeconds),
+      sessionMinutes: sessionMinutes)
+  }
+
+  private init(sides: (Int, Int, Int, Int), sessionMinutes: Int) {
     let session = min(Self.sessionRange.upperBound, max(Self.sessionRange.lowerBound, sessionMinutes))
-    inSeconds = inSide
-    outSeconds = outSide
-    cycles = max(1, Int((Double(session * 60) / Double(2 * (inSide + outSide))).rounded()))
+    (inSeconds, holdInSeconds, outSeconds, holdOutSeconds) = sides
+    let cycle = sides.0 + sides.1 + sides.2 + sides.3
+    cycles = max(1, Int((Double(session * 60) / Double(cycle)).rounded()))
   }
 
   /// An exact number of cycles, for a launch hook that wants a session shorter than the sliders allow.
   public init(breathSeconds: Int, cycles: Int) {
     inSeconds = max(1, breathSeconds)
     outSeconds = inSeconds
+    holdInSeconds = inSeconds
+    holdOutSeconds = inSeconds
     self.cycles = max(1, cycles)
   }
 
   /// Four even sides, as every plan was before Custom.
-  public var isEven: Bool { inSeconds == outSeconds }
+  public var isEven: Bool { Set([inSeconds, holdInSeconds, outSeconds, holdOutSeconds]).count == 1 }
+  /// Each hold as long as the breath before it: a preset or Custom, not a pattern.
+  public var isBox: Bool { holdInSeconds == inSeconds && holdOutSeconds == outSeconds }
+  /// The pattern this plan is, if any.
+  public var pattern: BreathPattern? {
+    isBox
+      ? nil
+      : BreathPattern(
+        inSeconds: inSeconds, holdInSeconds: holdInSeconds, outSeconds: outSeconds, holdOutSeconds: holdOutSeconds)
+  }
   /// The side of an even box; for an uneven one, its in side.
   public var breathSeconds: Int { inSeconds }
   /// How long step `phaseIndex` (counted from the session's start) lasts.
-  public func side(_ phaseIndex: Int) -> Int { phaseIndex % 4 < 2 ? inSeconds : outSeconds }
+  public func side(_ phaseIndex: Int) -> Int {
+    switch phaseIndex % 4 {
+    case 0: inSeconds
+    case 1: holdInSeconds
+    case 2: outSeconds
+    default: holdOutSeconds
+    }
+  }
   /// Seconds from the session's start to the end of step `phaseIndex`.
   public func stepEnd(_ phaseIndex: Int) -> Int {
     let cycle = phaseIndex / 4
@@ -81,7 +137,7 @@ public struct BreathPlan: Equatable, Sendable {
     return cycle * cycleSeconds + (0...within).reduce(0) { $0 + side($1) }
   }
 
-  public var cycleSeconds: Int { 2 * (inSeconds + outSeconds) }
+  public var cycleSeconds: Int { inSeconds + holdInSeconds + outSeconds + holdOutSeconds }
   public var totalSeconds: Int { cycles * cycleSeconds }
 
   /// "4 min 48 s"
