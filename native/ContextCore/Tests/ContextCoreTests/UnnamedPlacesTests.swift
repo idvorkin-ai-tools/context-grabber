@@ -11,6 +11,9 @@ private let pacific: Calendar = {
   return c
 }()
 
+// the TypeScript tests' unit constant.
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private let HOUR = 3_600_000.0
 
 private func stay(_ id: String, _ lat: Double, _ lng: Double, _ start: Double, hours: Double, points: Int = 10) -> Stay

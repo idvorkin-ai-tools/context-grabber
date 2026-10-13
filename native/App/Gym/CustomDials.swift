@@ -60,6 +60,8 @@ struct CustomDials: View {
   }
 
   private var rounds: DialValue {
+    // format and the trailing set read as the dial's two halves.
+    // swift-format-ignore: OnlyOneTrailingClosureArgument
     DialValue(
       name: "Rounds", value: model.custom.rounds, range: CustomPreset.roundsRange, step: 1, format: { String($0) },
       color: LED.white

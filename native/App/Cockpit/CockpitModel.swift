@@ -280,6 +280,8 @@ extension CockpitModel: WKNavigationDelegate {
     guard let url = action.request.url else { return decisionHandler(.allow) }
     // Frames inside the page load what they load; the rule is for where the page itself goes.
     if let frame = action.targetFrame, !frame.isMainFrame { return decisionHandler(.allow) }
+    // `where` is a keyword.
+    // swift-format-ignore: AlwaysUseLowerCamelCase
     let where_ = CockpitPage.navigation(to: url, home: home)
     if where_ == .stay { return decisionHandler(.allow) }
     // A Grabber link stays in this app (grabber://call is the page's ☎ fallback); anything else goes to iOS.

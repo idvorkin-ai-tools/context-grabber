@@ -18,7 +18,11 @@ private func local(_ y: Int, _ mo: Int, _ d: Int, _ h: Int = 0, _ mi: Int = 0, _
       from: DateComponents(year: y, month: mo, day: d, hour: h, minute: mi, second: s, nanosecond: ms * 1_000_000))!)
 }
 
+// the TypeScript tests' unit constants, kept for side-by-side reading.
+
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private let MIN = 60_000.0
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private let HOUR = 3_600_000.0
 
 private func pt(_ lat: Double, _ lng: Double, _ t: Double) -> LocationPoint {
