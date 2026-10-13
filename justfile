@@ -114,7 +114,7 @@ native-build-device: _phone native-project
     # BugKit's screen-lock guard (bug-kit#53, docs/ops/signing.md), from the pinned checkout so it matches the pin: a
     # provisioning build never starts while the Mac is locked, and "No Accounts" fails the build (78) before an install.
     guard="{{bugkit_scripts}}/signing-guard.sh"
-    xcodebuild -resolvePackageDependencies -project native/GrabberNative.xcodeproj -derivedDataPath native/Build -quiet || exit 1
+    xcodebuild -resolvePackageDependencies -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build -quiet || exit 1
     [ -x "$guard" ] || { echo "no BugKit signing guard at $guard (BugKit 0.3.3 or later)" >&2; exit 69; }
     scripts/native/xcodebuild-log.sh build-device "BUILD SUCCEEDED" lockf ~/tmp/agent/locks/xcode-signing.lock "$guard" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS,id={{native_device}}" \
