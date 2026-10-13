@@ -45,7 +45,8 @@ native_sim_app := "native/Build/Build/Products/Debug-iphonesimulator/GrabberNati
 native_device_app := "native/Build/Build/Products/Debug-iphoneos/GrabberNative.app"
 native_logs := "~/tmp/agent/grabber-logs"
 
-native_swift := "native/App native/ContextCore/Sources native/ContextCore/Tests native/UITests native/Widgets native/Shared"
+# Every tracked native Swift file: the app, the package (its manifest too), the UI tests, the widgets.
+native_swift := "native/App native/ContextCore/Package.swift native/ContextCore/Sources native/ContextCore/Tests native/UITests native/Widgets native/Shared"
 
 # The native app in swift-format's layout (native/.swift-format), in place.
 native-format:
