@@ -262,8 +262,12 @@ differences while the two apps live side by side:
 - **The microphone that never delivers, the mic that goes quiet, the speaker that stalls, audio that is not
   arriving** are watched and healed by the same rules as stories 087–090, with the same thresholds.
 - **The voice and the backend** are chosen on the call screen and remembered (stories 085, 091). The
-  devices line names the current microphone and output; choosing them by hand, and a USB microphone taking
-  over on its own (story 086), wait for a later step — until then the call goes wherever iOS routes it.
+  devices line names the current microphone and output. **During a call it is a menu** (Igor, 2026-10-13, #293:
+  *"Can't switch microphones"*): *Microphone* lists *Automatic* (iOS's choice, named after the microphone it
+  picked, so a plugged-in USB microphone taking over shows here) and then every microphone by the name iOS gives
+  it; *Output* lists Automatic, Speaker and any headset. The one in use is checked. A pick moves the call within
+  two seconds without dropping it, holds if the route moves under it later in the call, and is handed back to
+  iOS when the call ends. Before a call the line only names the route; the menu belongs to a live call.
 - **Where Igor is (story 092) waits for step 5**, when the native app has locations and known places. Until
   then the call carries no location.
 - **Prime audio is not ported.** It was an experiment for the silent first call in the React Native audio

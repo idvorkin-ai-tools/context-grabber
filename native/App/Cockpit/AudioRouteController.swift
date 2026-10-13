@@ -41,7 +41,7 @@ final class AudioRouteController {
   /// Cockpit opens and the session is in some other shape (first open, or after the Gym Timer set `.playback`), so
   /// opening it again does not touch music that is playing. A live `.voiceChat` is kept.
   func activateIfNeeded() {
-    startObserving()
+    observeRouteChanges()
     guard session.category != .playAndRecord else { return }
     let options: AVAudioSession.CategoryOptions = [.allowBluetoothA2DP, .defaultToSpeaker, .allowBluetoothHFP]
     let mode: AVAudioSession.Mode = session.mode == .voiceChat ? .voiceChat : .default
@@ -131,7 +131,8 @@ final class AudioRouteController {
 
   // MARK: - route changes
 
-  private func startObserving() {
+  /// Puts a remembered choice back when the route moves; the Call screen's devices menu starts it on its first pick.
+  func observeRouteChanges() {
     guard observer == nil else { return }
     observer = NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main

@@ -15,6 +15,10 @@ final class CallModel: ObservableObject {
   @Published private(set) var snapshot = CallSnapshot()
   @Published private(set) var level = 0.0
   @Published private(set) var route = ""
+  /// Story 086, #293: the microphones and outputs the devices menu offers, and what was picked this call (nil: iOS).
+  @Published private(set) var devices: AudioRouteSnapshot?
+  @Published private(set) var chosenInput: String?
+  @Published private(set) var chosenOutput: String?
   /// Bumped on every call event, so an open Diagnostics fold redraws.
   @Published private(set) var logVersion = 0
   @Published var backend = CallBackend.default {
@@ -31,6 +35,10 @@ final class CallModel: ObservableObject {
   // Made at the end of init: its callbacks capture self.
   // swiftlint:disable:next implicitly_unwrapped_optional
   private var session: CallSession!
+  /// Steers the session for the devices menu, and puts a pick back when the route moves mid-call. The Cockpit has
+  /// its own for the page; only one of them is ever asked to hold a choice at a time (a call and the page's capture
+  /// do not share the microphone).
+  private lazy var router = AudioRouteController(log: log)
   /// BugKit's automatic report, set by AppModel once its reporter exists: (reason, context, files).
   var autoReport: ((String, [String: JSONValue], [URL]) -> Void)?
   /// One stable reason, so BugKit's ten-minute window holds across calls and relaunches.
@@ -79,7 +87,10 @@ final class CallModel: ObservableObject {
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
     ) { [weak self] _ in
-      MainActor.assumeIsolated { self?.route = CallAudioEngine.describeRoute() }
+      MainActor.assumeIsolated {
+        self?.route = CallAudioEngine.describeRoute()
+        self?.refreshDevices()
+      }
     }
   }
 
@@ -124,7 +135,55 @@ final class CallModel: ObservableObject {
     let was = snapshot.state
     snapshot = snap
     route = CallAudioEngine.describeRoute()
-    if snap.state == .ended, was != .ended { onEnded() }
+    if snap.isActive { refreshDevices() }
+    if snap.state == .ended, was != .ended {
+      releaseDevices()
+      onEnded()
+    }
+  }
+
+  // MARK: - the devices menu (story 086, #293)
+
+  func refreshDevices() {
+    guard snapshot.isActive else { return }
+    devices = router.snapshot()
+  }
+
+  /// nil hands the microphone back to iOS (Automatic).
+  func chooseInput(_ id: String?) {
+    router.observeRouteChanges()
+    do {
+      try router.setInput(id)
+      chosenInput = id
+      event("call_devices", ["action": "input", "ok": true, "chosen": id ?? "automatic"])
+    } catch {
+      event("call_devices", ["action": "input", "ok": false, "chosen": id ?? "automatic", "message": "\(error)"])
+    }
+    route = CallAudioEngine.describeRoute()
+    refreshDevices()
+  }
+
+  func chooseOutput(_ id: String) {
+    router.observeRouteChanges()
+    do {
+      try router.setOutput(id)
+      chosenOutput = id == AudioRouting.auto ? nil : id
+      event("call_devices", ["action": "output", "ok": true, "chosen": id])
+    } catch {
+      event("call_devices", ["action": "output", "ok": false, "chosen": id, "message": "\(error)"])
+    }
+    route = CallAudioEngine.describeRoute()
+    refreshDevices()
+  }
+
+  /// A pick lasts the call: afterwards iOS routes again, as it would have without one.
+  private func releaseDevices() {
+    guard chosenInput != nil || chosenOutput != nil else { return }
+    if chosenInput != nil { try? router.setInput(nil) }
+    if chosenOutput != nil { try? router.setOutput(AudioRouting.auto) }
+    chosenInput = nil
+    chosenOutput = nil
+    event("call_devices", ["action": "released", "ok": true])
   }
 
   /// After a troubled call, on its own: the call's log as a BugKit automatic report (story 248). The trigger is what
