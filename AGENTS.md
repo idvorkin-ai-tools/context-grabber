@@ -29,6 +29,7 @@ apply to the React Native app only; the native app has no OTA.
 
 ## Rules
 
+- Shared practices for all apps live in idvorkin/bug-kit (README: Shared practices for every app). A bug in BugKit's own code (the report dialog, dictation, the store, crash capture, CloudKit, the listener, What's new) or a practice that applies to every app is filed there and linked from this repo's issue, never fixed here.
 - **Test ladder**: host `just test` (jest, `tsc --noEmit`, `check-deal`, runtime-version check; one jest file in seconds) → Maestro on the simulator
   (`.maestro/`, no HealthKit, cannot tap system dialogs) → the phone (`just ota` for JavaScript, `just deploy` for
   anything native). Verify on the cheapest rung that can see the change and **say which rung you used**. Audio
