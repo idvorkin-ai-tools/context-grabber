@@ -7,9 +7,7 @@ final class WhatsNewStoryLinkUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     // Through the cog, which always has it: the home row may have been dismissed already.
-    let cog = app.buttons["home-settings"]
-    XCTAssertTrue(cog.waitForExistence(timeout: 15), app.debugDescription)
-    cog.tap()
+    app.openHomeSettings()
     let inCog = app.buttons["home-settings-whats-new"]
     for _ in 0..<5 where !inCog.isHittable { app.swipeUp() }
     inCog.tap()

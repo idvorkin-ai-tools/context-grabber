@@ -13,9 +13,7 @@ final class HomeSettingsUITests: XCTestCase {
     app.buttons["home-rows-reset"].tap()  // whatever an earlier run left
     app.buttons["home-settings-done"].tap()
     // Open it again at its top: a swipe down on a sheet closes it, so it is never scrolled back.
-    let cog = app.buttons["home-settings"]
-    XCTAssertTrue(cog.waitForExistence(timeout: 10), app.debugDescription)
-    cog.tap()
+    app.openHomeSettings()
 
     // Drag the Gym Timer above Call Larry by its reorder handle.
     let handle = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS 'Gym Timer'"))
@@ -50,9 +48,7 @@ final class HomeSettingsUITests: XCTestCase {
   }
 
   private func openSheet(_ app: XCUIApplication) {
-    let cog = app.buttons["home-settings"]
-    XCTAssertTrue(cog.waitForExistence(timeout: 10), app.debugDescription)
-    cog.tap()
+    app.openHomeSettings()
     let reset = app.buttons["home-rows-reset"]
     XCTAssertTrue(app.navigationBars["Home screen"].waitForExistence(timeout: 5), app.debugDescription)
     // Reset is under the launchers, below the fold once the list outgrows the screen.
