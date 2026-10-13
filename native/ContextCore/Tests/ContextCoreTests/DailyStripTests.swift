@@ -47,6 +47,31 @@ final class DailyStripTests: XCTestCase {
     XCTAssertEqual(DailyStrip.daysSince(["2026-10-31"], today: "2026-11-02", calendar: calendar), 2)
   }
 
+  /// #290: press and hold a check, slide to the day, Confirm.
+  func testAnEarlierDayToMark() throws {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
+    XCTAssertEqual(DailyStrip.day(1, before: "2026-10-13", calendar: calendar), "2026-10-12")
+    XCTAssertEqual(DailyStrip.day(0, before: "2026-10-13", calendar: calendar), "2026-10-13")
+    XCTAssertEqual(DailyStrip.day(14, before: "2026-10-13", calendar: calendar), "2026-09-29", "across a month")
+    XCTAssertEqual(
+      DailyStrip.day(2, before: "2026-11-02", calendar: calendar), "2026-10-31", "across the clocks going back")
+    XCTAssertNil(DailyStrip.day(1, before: "Tuesday", calendar: calendar))
+    XCTAssertEqual(
+      DailyStrip.backdateLabel(1, today: "2026-10-13", calendar: calendar), "yesterday \u{00B7} Mon, Oct 12")
+    XCTAssertEqual(DailyStrip.backdateLabel(0, today: "2026-10-13", calendar: calendar), "today \u{00B7} Tue, Oct 13")
+    XCTAssertEqual(
+      DailyStrip.backdateLabel(3, today: "2026-10-13", calendar: calendar), "3 days ago \u{00B7} Sat, Oct 10")
+  }
+
+  /// Marking yesterday's gym brings days since down to 1.
+  func testYesterdaysGymMakesItOneDay() throws {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
+    let yesterday = try XCTUnwrap(DailyStrip.day(1, before: "2026-10-13", calendar: calendar))
+    XCTAssertEqual(DailyStrip.daysSince(["2026-10-10", yesterday], today: "2026-10-13", calendar: calendar), 1)
+  }
+
   // #257: meditation counts from a breathing session today, or the last grab's mindful minutes if it was today.
   func testMeditationComesFromBreathingOrHealthToday() {
     let breath = ActivityEntry(id: 1, kind: .breathing, name: "Box", seconds: 240, finishedAt: 0, dateKey: "2026-10-10")

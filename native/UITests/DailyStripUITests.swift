@@ -38,4 +38,20 @@ final class DailyStripUITests: XCTestCase {
     XCTAssertEqual(meditation.frame.midY, journal.frame.midY, accuracy: 2, "one line")
     XCTAssertNotNil(meditation.value as? String)
   }
+
+  /// #290: press and hold a check, the sheet starts on yesterday, Confirm marks it and closes; today is untouched.
+  func testPressAndHoldMarksYesterday() throws {
+    let app = XCUIApplication()
+    app.launch()
+    let journal = app.buttons["strip-journal"]
+    XCTAssertTrue(journal.waitForExistence(timeout: 15), app.debugDescription)
+    let today = journal.value as? String
+    journal.press(forDuration: 1.0)
+    let day = app.staticTexts["strip-backdate-day"]
+    XCTAssertTrue(day.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(day.label.hasPrefix("yesterday"), day.label)
+    app.buttons["strip-backdate-confirm"].tap()
+    XCTAssertTrue(day.waitForNonExistence(timeout: 5), "one and done")
+    XCTAssertEqual(journal.value as? String, today, "yesterday marked, today as it was")
+  }
 }

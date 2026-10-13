@@ -85,6 +85,31 @@ public struct DailyStrip {
     return calendar.dateComponents([.day], from: from, to: to).day
   }
 
+  /// #290: how far back an earlier day can be marked.
+  public static let backdateRange = 0...14
+
+  /// The day `daysAgo` days before `today`, as a date key; nil for a malformed `today`.
+  public static func day(_ daysAgo: Int, before today: String, calendar: Calendar = .current) -> String? {
+    guard let to = date(today, calendar), let d = calendar.date(byAdding: .day, value: -daysAgo, to: to) else {
+      return nil
+    }
+    let c = calendar.dateComponents([.year, .month, .day], from: d)
+    guard let y = c.year, let m = c.month, let dd = c.day else { return nil }
+    return String(format: "%04d-%02d-%02d", y, m, dd)
+  }
+
+  /// The slider's label: "today · Tue, Oct 13", "yesterday · Mon, Oct 12", "3 days ago · Sat, Oct 10".
+  public static func backdateLabel(_ daysAgo: Int, today: String, calendar: Calendar = .current) -> String {
+    let words = daysAgo == 0 ? "today" : daysAgo == 1 ? "yesterday" : "\(daysAgo) days ago"
+    guard let key = day(daysAgo, before: today, calendar: calendar), let d = date(key, calendar) else { return words }
+    let f = DateFormatter()
+    f.calendar = calendar
+    f.timeZone = calendar.timeZone
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "EEE, MMM d"
+    return "\(words) \u{00B7} \(f.string(from: d))"
+  }
+
   private static func date(_ key: String, _ calendar: Calendar) -> Date? {
     let p = key.split(separator: "-").compactMap { Int($0) }
     guard p.count == 3 else { return nil }
