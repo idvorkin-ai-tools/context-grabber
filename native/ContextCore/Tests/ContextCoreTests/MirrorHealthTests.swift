@@ -219,6 +219,33 @@ final class SleepTests: XCTestCase {
       Sleep.consistency([night(nil, nil), night(local(15, 7), local(15, 7))], clock: la).bedtimeStdevMinutes, 0)
   }
 
+  /// #307, #306: one clock for both lines, bedtime the smaller number (the top, with time running down), and the
+  /// gap between them the time in bed.
+  func testClockNightsPutBedtimeAboveWake() {
+    func night(_ date: String, _ bed: Double?, _ wake: Double?) -> SleepDaily {
+      var n = SleepDaily(date: date)
+      n.bedtime = bed.map(isoString)
+      n.wakeTime = wake.map(isoString)
+      return n
+    }
+    let points = Sleep.clockNights(
+      [
+        night("2026-03-14", local(14, 23), local(15, 7)), night("2026-03-15", local(16, 1), local(16, 6)),
+        night("2026-03-16", nil, local(17, 7)),
+      ], clock: la)
+    XCTAssertEqual(points.map(\.date), ["2026-03-14", "2026-03-15", "2026-03-16"])
+    XCTAssertEqual(points[0].bedMinutes, 23 * 60)
+    XCTAssertEqual(points[0].wakeMinutes, 31 * 60)
+    XCTAssertEqual(points[1].bedMinutes, 25 * 60, "a 1am bedtime is after midnight, not before 11pm")
+    for p in points.prefix(2) {
+      XCTAssertLessThan(p.bedMinutes ?? .infinity, p.wakeMinutes ?? 0, "bedtime above wake")
+    }
+    XCTAssertEqual(points[0].hoursInBed, 8)
+    XCTAssertEqual(points[1].hoursInBed, 5)
+    XCTAssertNil(points[2].bedMinutes)
+    XCTAssertNil(points[2].hoursInBed)
+  }
+
   func testBundleAndDefaultSource() {
     XCTAssertEqual(Sleep.detailedBundle(nil, endDate: end, clock: la).bySource.count, 0)
     let b = Sleep.detailedBundle(

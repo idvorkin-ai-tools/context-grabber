@@ -34,6 +34,18 @@ public struct SleepConsistencyStats: Equatable, Sendable {
   public var wakeStdevMinutes: Double
 }
 
+/// One night on the bedtime-and-wake chart (#307, #306), in minutes from the evening's midnight: an 11pm bedtime is
+/// 23h, a 1am one 25h, a 7am wake 31h. Both lines share one clock, so the gap between them is the time in bed.
+public struct SleepClockNight: Equatable, Sendable {
+  public var date: String
+  public var bedMinutes: Double?
+  public var wakeMinutes: Double?
+  public var hoursInBed: Double? {
+    guard let bedMinutes, let wakeMinutes else { return nil }
+    return (wakeMinutes - bedMinutes) / 60
+  }
+}
+
 public struct SleepDetailedBundle: Equatable, Sendable {
   /// Per source, sources sorted by name.
   public var bySource: [String: [SleepDaily]]
@@ -220,6 +232,18 @@ public enum Sleep {
   }
 
   /// Spread of bedtimes and wake times, minutes (a 1am bedtime sits next to 11pm, not 22 hours away).
+  /// Each night's bedtime and wake on one clock, for the chart.
+  public static func clockNights(_ nights: [SleepDaily], clock: LocalClock) -> [SleepClockNight] {
+    nights.map { n in
+      let bed = n.bedtime.flatMap(parseISO).map { b -> Double in
+        let m = Double(clock.hour(b) * 60 + clock.minute(b))
+        return m <= 12 * 60 ? m + 24 * 60 : m
+      }
+      let wake = n.wakeTime.flatMap(parseISO).map { Double(clock.hour($0) * 60 + clock.minute($0)) + 24 * 60 }
+      return SleepClockNight(date: n.date, bedMinutes: bed, wakeMinutes: wake)
+    }
+  }
+
   public static func consistency(_ nights: [SleepDaily], clock: LocalClock) -> SleepConsistencyStats {
     var bed: [Double] = []
     var wake: [Double] = []
