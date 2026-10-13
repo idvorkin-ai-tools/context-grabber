@@ -73,13 +73,10 @@ native-project:
 
 native-build-sim: native-project
     #!/usr/bin/env bash
-    # The grep alone would exit 0 on "BUILD FAILED" and let the smoke run install the previous bundle.
     set -uo pipefail
-    out=$(xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
+    scripts/native/xcodebuild-log.sh build-sim "BUILD SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
-      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build 2>&1)
-    echo "$out" | grep -E "error:|BUILD"
-    echo "$out" | grep -q "BUILD SUCCEEDED"
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build
     # Signed to run locally, not unsigned: HealthKit refuses an app without its entitlement, even on the simulator.
 
 # Once per simulator: grant Health access through Health's own sheet (a UI test taps it; nothing else can) and
@@ -87,12 +84,10 @@ native-build-sim: native-project
 native-sim-health: native-project
     #!/usr/bin/env bash
     set -uo pipefail
-    out=$(xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
+    scripts/native/xcodebuild-log.sh sim-health "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
-      -only-testing:GrabberNativeUITests/HealthAccessUITests test 2>&1)
-    echo "$out" | grep -E "error:|Test Case|TEST (SUCCEEDED|FAILED)"
-    echo "$out" | grep -q "TEST SUCCEEDED"
+      -only-testing:GrabberNativeUITests/HealthAccessUITests test
 
 # Native rung 2: the simulator build driven by launch hooks, judged from its session log
 native-test-sim: native-build-sim
@@ -108,12 +103,10 @@ native-build-device: _phone native-project
     #!/usr/bin/env bash
     set -uo pipefail
     mkdir -p ~/tmp/agent/locks
-    out=$(lockf ~/tmp/agent/locks/xcode-signing.lock xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
+    scripts/native/xcodebuild-log.sh build-device "BUILD SUCCEEDED" lockf ~/tmp/agent/locks/xcode-signing.lock xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS,id={{native_device}}" \
       -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
-      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build 2>&1)
-    echo "$out" | grep -E "error:|BUILD"
-    echo "$out" | grep -q "BUILD SUCCEEDED"
+      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build
 
 # Native rung 3: build, install and launch Grabber Native on the iPhone (a locked phone fails the launch only)
 native-run-device: native-build-device
