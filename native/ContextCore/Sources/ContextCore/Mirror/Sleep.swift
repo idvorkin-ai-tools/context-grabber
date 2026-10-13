@@ -40,10 +40,6 @@ public struct SleepClockNight: Equatable, Sendable {
   public var date: String
   public var bedMinutes: Double?
   public var wakeMinutes: Double?
-  public var hoursInBed: Double? {
-    guard let bedMinutes, let wakeMinutes else { return nil }
-    return (wakeMinutes - bedMinutes) / 60
-  }
 }
 
 public struct SleepDetailedBundle: Equatable, Sendable {
@@ -231,7 +227,6 @@ public enum Sleep {
     return jsRound(gap)
   }
 
-  /// Spread of bedtimes and wake times, minutes (a 1am bedtime sits next to 11pm, not 22 hours away).
   /// Each night's bedtime and wake on one clock, for the chart.
   public static func clockNights(_ nights: [SleepDaily], clock: LocalClock) -> [SleepClockNight] {
     nights.map { n in
@@ -244,6 +239,7 @@ public enum Sleep {
     }
   }
 
+  /// Spread of bedtimes and wake times, minutes (a 1am bedtime sits next to 11pm, not 22 hours away).
   public static func consistency(_ nights: [SleepDaily], clock: LocalClock) -> SleepConsistencyStats {
     var bed: [Double] = []
     var wake: [Double] = []

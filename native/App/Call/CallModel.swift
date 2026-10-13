@@ -151,9 +151,9 @@ final class CallModel: ObservableObject {
 
   /// nil hands the microphone back to iOS (Automatic).
   func chooseInput(_ id: String?) {
-    router.observeRouteChanges()
+    if id == nil { router.forget(output: false) } else { router.observeRouteChanges() }
     do {
-      try router.setInput(id)
+      try router.setInput(id, remember: id != nil)
       chosenInput = id
       event("call_devices", ["action": "input", "ok": true, "chosen": id ?? "automatic"])
     } catch {
@@ -164,10 +164,11 @@ final class CallModel: ObservableObject {
   }
 
   func chooseOutput(_ id: String) {
-    router.observeRouteChanges()
+    let automatic = id == AudioRouting.auto
+    if automatic { router.forget(input: false) } else { router.observeRouteChanges() }
     do {
-      try router.setOutput(id)
-      chosenOutput = id == AudioRouting.auto ? nil : id
+      try router.setOutput(id, remember: !automatic)
+      chosenOutput = automatic ? nil : id
       event("call_devices", ["action": "output", "ok": true, "chosen": id])
     } catch {
       event("call_devices", ["action": "output", "ok": false, "chosen": id, "message": "\(error)"])
@@ -178,9 +179,10 @@ final class CallModel: ObservableObject {
 
   /// A pick lasts the call: afterwards iOS routes again, as it would have without one.
   private func releaseDevices() {
+    router.forget()
     guard chosenInput != nil || chosenOutput != nil else { return }
-    if chosenInput != nil { try? router.setInput(nil) }
-    if chosenOutput != nil { try? router.setOutput(AudioRouting.auto) }
+    if chosenInput != nil { try? router.setInput(nil, remember: false) }
+    if chosenOutput != nil { try? router.setOutput(AudioRouting.auto, remember: false) }
     chosenInput = nil
     chosenOutput = nil
     event("call_devices", ["action": "released", "ok": true])

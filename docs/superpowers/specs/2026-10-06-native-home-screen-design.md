@@ -99,7 +99,7 @@ Non-goals: choosing other items or adding new ones from the app, streaks, remind
 
 Order, hiding and Reset in Settings work as before.
 
-**The Settings tile** (once the cog) opens the **Home screen** sheet, with *Done* at the top right. It has two parts:
+**The Settings tile** (once the cog) opens the **Home screen** sheet, with *Done* at the top right. It has three parts:
 
 1. **Launchers** — its own page (#302: *"launchers on its own page under settings"*): the sheet's first row,
    *Launchers*, opens it, with *Done* still at the top right. It lists every launcher, shown or hidden, in the current order, each with its icon, its name and a

@@ -3,7 +3,7 @@
 # ioreg and caffeinate, and BugKit's real signing guard. Nothing signs, nothing takes the real lock.
 #   1. unlocked, a clean build: the recipe passes, and the guard ran it (caffeinate held the display)
 #   2. "No Accounts" in a build that still printed BUILD SUCCEEDED: the recipe fails with 78, so no install follows
-#   3. the Mac locked: the build does not start
+#   3. the Mac locked: the guard waits, and the build does not start
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 guard_dir=""
@@ -72,6 +72,7 @@ mkdir -p "$MARKS"
 (run locked FAKE_LOCKED=Yes) &
 pid=$!
 sleep 3
+check "the guard is waiting for the Mac to unlock" 'grep -q "Mac is locked; waiting" "$tmp/logs/build-device.log"'
 check "a locked Mac starts no build" '[ ! -e "$MARKS/build" ]'
 # The waiting guard and its wrappers carry the fake device or this test's directory on their command lines.
 pkill -f "id=fake-device" 2>/dev/null

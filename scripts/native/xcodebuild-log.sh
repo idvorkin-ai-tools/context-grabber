@@ -16,7 +16,7 @@ else
   show=(grep -E "error:|BUILD|Test Case|TEST (SUCCEEDED|FAILED)")
 fi
 # Xcode's account tokens never reach the log or the screen.
-"$@" 2>&1 | sed -E 's/(X-Apple-GS-Token|DSESSIONID)([:=] *)[^ ;]+/\1\2<filtered>/g' | tee "$log" | "${show[@]}"
+"$@" 2>&1 | sed -u -E 's/(X-Apple-GS-Token|DSESSIONID)([:=] *)[^ ;]+/\1\2<filtered>/g' | tee "$log" | "${show[@]}"
 # A wrapper may fail a build that printed its done line: BugKit's signing guard exits 78 on "No Accounts".
 status=${PIPESTATUS[0]}
 if [ "$status" -ne 0 ]; then
