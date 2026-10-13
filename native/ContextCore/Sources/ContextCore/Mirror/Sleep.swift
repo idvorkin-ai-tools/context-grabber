@@ -158,10 +158,10 @@ public enum Sleep {
   /// The tab a Sleep sheet opens on: the source with the most stage detail, else All. Ties go alphabetically.
   public static func pickDefaultSource(_ bundle: SleepDetailedBundle) -> String {
     var best: (name: String, score: Double)?
-    for name in bundle.bySource.keys.sorted() {
-      let score = bundle.bySource[name]!.reduce(0.0) { $0 + $1.coreHours + $1.deepHours + $1.remHours }
+    for (name, nights) in bundle.bySource.sorted(by: { $0.key < $1.key }) {
+      let score = nights.reduce(0.0) { $0 + $1.coreHours + $1.deepHours + $1.remHours }
       if score <= 0 { continue }
-      if best == nil || score > best!.score { best = (name, score) }
+      if score > best?.score ?? -.infinity { best = (name, score) }
     }
     return best?.name ?? allSources
   }

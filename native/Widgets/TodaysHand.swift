@@ -83,9 +83,14 @@ struct TodaysHandWidget: Widget {
 }
 
 private enum HandLinks {
+  // AppLink writes these from constants; AppLinkTests reads every route's link back.
+  // swiftlint:disable:next force_unwrapping
   static let home = URL(string: AppLink.link(for: .home))!
+  // swiftlint:disable:next force_unwrapping
   static let think = URL(string: AppLink.link(for: .card(think: true)))!
+  // swiftlint:disable:next force_unwrapping
   static let supermix = URL(string: AppLink.link(for: .supermix))!
+  // swiftlint:disable:next force_unwrapping
   static let call = URL(string: AppLink.link(for: .call(via: nil)))!
 }
 

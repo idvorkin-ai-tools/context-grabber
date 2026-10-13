@@ -13,7 +13,7 @@ installed beside this one: `native/ContextCore/` is the platform-free SwiftPM pa
 committed or hand-edited). Journeys move over one at a time, then it takes this app's bundle id. New work on a
 journey that has moved goes to `native/`; the React Native tree gets fixes only when Igor asks. Rewrite where a
 native design is better — the stories are what must stay true, not the TypeScript. Native recipes: `just
-native-test` (which first runs `native-lint-format`; `native-format` fixes what it finds), `native-test-sim`, `native-run-device`, `pull-logs`, `bugs-check`. Reports and crashes are filed by BugKit's always-on listener on the
+native-test` (which first runs `native-lint-format` and `native-lint`; `native-format` fixes the layout, a SwiftLint finding is rewritten or justified on a `swiftlint:disable:next` line), `native-test-sim`, `native-run-device`, `pull-logs`, `bugs-check`. Reports and crashes are filed by BugKit's always-on listener on the
 Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notification) and fix what lands. The OTA rules below
 apply to the React Native app only; the native app has no OTA.
 

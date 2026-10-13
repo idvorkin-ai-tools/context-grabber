@@ -306,6 +306,8 @@ extension CockpitModel: WKNavigationDelegate {
     decisionHandler(.allow)
   }
 
+  // WebKit's own signature.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
     loadStarted = Date()
     pendingHTTPError = nil
@@ -313,6 +315,8 @@ extension CockpitModel: WKNavigationDelegate {
     setCallLive(false, why: "load")  // a reload ends whatever call the old page had
   }
 
+  // WebKit's own signature.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
     canGoBack = webView.canGoBack
     awayFromHome = webView.url.map { !isStartPage($0) } ?? false
@@ -326,11 +330,15 @@ extension CockpitModel: WKNavigationDelegate {
   }
 
   func webView(
+    // WebKit's own signature.
+    // swiftlint:disable:next implicitly_unwrapped_optional
     _ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error
   ) {
     failed(error)
   }
 
+  // WebKit's own signature.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
     failed(error)
   }

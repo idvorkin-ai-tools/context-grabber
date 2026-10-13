@@ -29,9 +29,14 @@ enum UsageTileStore {
 
 /// The links the medium tile's buttons open: the same as the Links screen's (story 135).
 enum UsageTileLinks {
+  // AppLink writes these from constants; AppLinkTests reads every route's link back.
+  // swiftlint:disable:next force_unwrapping
   static let home = URL(string: AppLink.link(for: .home))!
+  // swiftlint:disable:next force_unwrapping
   static let timer = URL(string: AppLink.link(for: .timer(TimerLink(start: true))))!
+  // swiftlint:disable:next force_unwrapping
   static let breathe = URL(string: AppLink.link(for: .breathe(BreatheLink(start: true))))!
+  // swiftlint:disable:next force_unwrapping
   static let call = URL(string: AppLink.link(for: .call(via: nil)))!
 }
 

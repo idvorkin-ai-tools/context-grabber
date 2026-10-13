@@ -13,7 +13,10 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
 
   static let connectTimeout: TimeInterval = 10
 
+  // Made in init, before anything reads it.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   private var session: URLSession!
+  // swiftlint:disable:next implicitly_unwrapped_optional
   private var task: URLSessionWebSocketTask!
   private var opened = false
   private var gone = false

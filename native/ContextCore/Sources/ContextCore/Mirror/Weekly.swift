@@ -13,6 +13,8 @@ public enum MetricKey: String, CaseIterable, Sendable {
     .exerciseMinutes,
   ]
 
+  // MetricConfig.all, below, names every case.
+  // swiftlint:disable:next force_unwrapping
   public var config: MetricConfig { MetricConfig.all[self]! }
   /// Heart-rate-shaped days (avg, range, quartiles) rather than one value a day.
   public var isRanged: Bool { self == .heartRate || self == .hrv || self == .restingHeartRate }

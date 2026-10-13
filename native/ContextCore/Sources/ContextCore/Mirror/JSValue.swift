@@ -158,7 +158,7 @@ extension JSValue {
   /// From JSONSerialization's objects; object keys come out sorted (their order is lost).
   public static func unordered(_ any: Any) -> JSValue {
     switch any {
-    case let d as [String: Any]: return .object(d.keys.sorted().map { ($0, unordered(d[$0]!)) })
+    case let d as [String: Any]: return .object(d.sorted { $0.key < $1.key }.map { ($0.key, unordered($0.value)) })
     case let a as [Any]: return .array(a.map(unordered))
     case let s as String: return .string(s)
     case let n as NSNumber:

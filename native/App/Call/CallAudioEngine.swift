@@ -157,7 +157,9 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       else { return }
       buffer.frameLength = AVAudioFrameCount(samples.count)
       samples.withUnsafeBufferPointer { src in
-        buffer.floatChannelData![0].update(from: src.baseAddress!, count: samples.count)
+        // An empty chunk has no base address; a float buffer always has channel data.
+        guard let channels = buffer.floatChannelData, let base = src.baseAddress else { return }
+        channels[0].update(from: base, count: samples.count)
       }
       player.scheduleBuffer(buffer, completionHandler: nil)
       let duration = Double(samples.count) / outRate

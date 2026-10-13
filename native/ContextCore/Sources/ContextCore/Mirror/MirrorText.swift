@@ -52,9 +52,7 @@ public enum MirrorText {
       return since(.exerciseMinutes)
     }()
     let sleepSub: String = {
-      let bed = h?.bedtime.flatMap(parseISO)
-      let wake = h?.wakeTime.flatMap(parseISO)
-      if let bed, let wake {
+      if let bedISO = h?.bedtime, let wakeISO = h?.wakeTime, let bed = parseISO(bedISO), let wake = parseISO(wakeISO) {
         let inBed = (wake - bed) / 3_600_000
         if inBed > 0, let asleep = h?.sleepHours {
           // toFixed(1) takes a half up, as Math.round does; "%.1f" alone would round 7.25 to even.
@@ -62,7 +60,7 @@ public enum MirrorText {
             format: "%.1fh bed \u{00B7} %@%% eff", round1(inBed), SummaryText.js(jsRound(asleep / inBed * 100)))
         }
         return
-          "\(SummaryText.formatLocalTime(h!.bedtime!, clock: clock)) \u{2013} \(SummaryText.formatLocalTime(h!.wakeTime!, clock: clock))"
+          "\(SummaryText.formatLocalTime(bedISO, clock: clock)) \u{2013} \(SummaryText.formatLocalTime(wakeISO, clock: clock))"
       }
       if let b = h?.bedtime { return "\(SummaryText.formatLocalTime(b, clock: clock)) \u{2013}" }
       if let w = h?.wakeTime { return "\u{2013} \(SummaryText.formatLocalTime(w, clock: clock))" }
@@ -104,6 +102,8 @@ public enum MirrorText {
     let p = dateKey.split(separator: "-").compactMap { Int($0) }
     guard p.count == 3 else { return dateKey }
     var utc = Calendar(identifier: .gregorian)
+    // "UTC" always resolves.
+    // swiftlint:disable:next force_unwrapping
     utc.timeZone = TimeZone(identifier: "UTC")!
     guard let d = utc.date(from: DateComponents(year: p[0], month: p[1], day: p[2])) else { return dateKey }
     return "\(shortDays[utc.component(.weekday, from: d) - 1]), \(shortMonths[p[1] - 1]) \(p[2])"

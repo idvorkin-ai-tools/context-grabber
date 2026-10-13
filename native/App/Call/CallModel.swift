@@ -28,6 +28,8 @@ final class CallModel: ObservableObject {
   let bridgeURL: String
   private let log: SessionLog
   private let database: AppDatabase
+  // Made at the end of init: its callbacks capture self.
+  // swiftlint:disable:next implicitly_unwrapped_optional
   private var session: CallSession!
   /// BugKit's automatic report, set by AppModel once its reporter exists: (reason, context, files).
   var autoReport: ((String, [String: JSONValue], [URL]) -> Void)?
