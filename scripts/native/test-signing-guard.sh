@@ -21,6 +21,10 @@ fakes=$tmp/bin
 mkdir -p "$fakes"
 cat >"$fakes/xcodebuild" <<'F'
 #!/usr/bin/env bash
+# Like the real one, refuse -derivedDataPath without -scheme (the resolve step once forgot it).
+case " $* " in *" -derivedDataPath "*) case " $* " in *" -scheme "*) ;; *)
+  echo "xcodebuild: error: The flag -scheme, -testProductsPath, or -xctestrun is required when specifying -derivedDataPath." >&2
+  exit 64 ;; esac ;; esac
 case " $* " in *" -resolvePackageDependencies "*) exit 0 ;; esac
 echo "xcodebuild $*" >>"$MARKS/build"
 [ -n "${FAKE_NO_ACCOUNTS:-}" ] && echo "error: No Accounts: Add a new account in Accounts settings."
