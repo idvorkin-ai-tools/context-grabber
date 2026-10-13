@@ -168,6 +168,7 @@ final class CallModel: ObservableObject {
     if automatic { router.forget(input: false) } else { router.observeRouteChanges() }
     do {
       try router.setOutput(id, remember: !automatic)
+      if automatic, chosenOutput != nil, chosenInput == nil { try router.setInput(nil, remember: false) }
       chosenOutput = automatic ? nil : id
       event("call_devices", ["action": "output", "ok": true, "chosen": id])
     } catch {
@@ -181,7 +182,7 @@ final class CallModel: ObservableObject {
   private func releaseDevices() {
     router.forget()
     guard chosenInput != nil || chosenOutput != nil else { return }
-    if chosenInput != nil { try? router.setInput(nil, remember: false) }
+    try? router.setInput(nil, remember: false)
     if chosenOutput != nil { try? router.setOutput(AudioRouting.auto, remember: false) }
     chosenInput = nil
     chosenOutput = nil
