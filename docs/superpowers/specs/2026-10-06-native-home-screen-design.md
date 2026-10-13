@@ -109,6 +109,10 @@ Order, hiding and Reset in Settings work as before.
 2. **About and diagnostics** — what used to be the bottom of the home screen: *Build* (commit, branch, version), *This launch*
    (the log's name and when it started, and where to find logs in Files), and *Report a problem* with its
    reminder that a shake works on any screen.
+3. **About** (#303, the same page in every one of Igor's apps): a row that opens the app's name, its version and
+   build, the commit it was built from as a link to that commit on GitHub, and a link to the repository. A build
+   from uncommitted changes says so and links the commit underneath. A value the build did not record reads
+   *Unknown*, and its link is left out.
 
 **Shake to report** still works everywhere, including with the sheet up; the report names the screen as
 *home_settings*.
@@ -137,6 +141,8 @@ Order, hiding and Reset in Settings work as before.
 - A launcher unknown to the remembered order shows at the end; a forgotten one does not break anything.
 - The build, the log and *Report a problem* are reachable from the sheet, and a shake with the
   sheet up files a report.
+- *About* in the sheet shows the name, version (build) and commit of the build that is running, and both of its
+  links open the commit and the repository on GitHub (#303).
 - A hidden journey still opens from its link, Shortcut or launch hook.
 - Every launcher under the Today card and the strip is the same small tile, three to a line in the remembered
   order, its icon above a short name; a last line with fewer than three keeps the tiles the same size, and
