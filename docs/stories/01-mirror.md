@@ -119,7 +119,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 007:
 
 - **Summary:** See how I slept, not only how long: stages, debt against a target, and bedtime consistency
-- **Status:** implemented in [18ed07b](https://github.com/idvorkin/context-grabber/commit/18ed07b); verified by `sleep.test.ts` and on the phone; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), verified by `just native-test` (`testSleepDebt`, `testConsistencyWrapsAroundMidnight`) and a simulator screenshot; the phone still to be checked by Igor.
+- **Status:** implemented in [18ed07b](https://github.com/idvorkin/context-grabber/commit/18ed07b); verified by `sleep.test.ts` and on the phone; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), verified by `just native-test` (`testSleepDebt`, `testConsistencyWrapsAroundMidnight`) and a simulator screenshot; the phone still to be checked by Igor.; 7 h by default and changed on the Sleep sheet (#301): [d9c4d0d](https://github.com/idvorkin/context-grabber/commit/d9c4d0d), host-checked only (lint); the simulator and the phone in the next build turn
 
 #### Use Case:
 - **As** someone trying to keep a steady bedtime
