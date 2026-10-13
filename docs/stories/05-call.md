@@ -126,7 +126,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 086:
 
 - **Summary:** Choose the microphone and speaker by name, folded away until needed
-- **Status:** implemented in [b8d45ca](https://github.com/idvorkin/context-grabber/commit/b8d45ca), [c1600f0](https://github.com/idvorkin/context-grabber/commit/c1600f0), [0a3812b](https://github.com/idvorkin/context-grabber/commit/0a3812b); verified by `callDevices.test.ts` and on the phone; native app: not yet — the devices line names the route read-only; picking by hand and the USB default wait for a later step (swift-native spec, step 3)
+- **Issues:** [#293](https://github.com/idvorkin/context-grabber/issues/293)
+- **Status:** implemented in [b8d45ca](https://github.com/idvorkin/context-grabber/commit/b8d45ca), [c1600f0](https://github.com/idvorkin/context-grabber/commit/c1600f0), [0a3812b](https://github.com/idvorkin/context-grabber/commit/0a3812b); verified by `callDevices.test.ts` and on the phone; native app: the devices line is a menu during a call (#293): [3bd0779](https://github.com/idvorkin/context-grabber/commit/3bd0779), verified by `CallDevicesTests` (host: Automatic named after the live microphone, the one in use checked, outputs in the audio bridge's order); picking on the phone not yet
 
 #### Use Case:
 - **As a** Larry's client who just put AirPods in

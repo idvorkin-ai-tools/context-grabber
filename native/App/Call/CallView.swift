@@ -92,6 +92,7 @@ struct CallView: View {
       calling
     case .live:
       liveLine
+      devicesMenu
       problemBanner
       captions
     case .idle, .ended:
@@ -148,6 +149,51 @@ struct CallView: View {
       .background(Color(.secondarySystemBackground))
       .onChange(of: text) { _, _ in proxy.scrollTo("live", anchor: .bottom) }
     }
+  }
+
+  /// Story 086, #293: the devices line, a menu during the call: the microphone and the output by name.
+  private var devicesMenu: some View {
+    Menu {
+      if let route = call.devices {
+        Section("Microphone") {
+          ForEach(CallDevices.microphones(route, chosen: call.chosenInput), id: \.name) { item in
+            Button {
+              call.chooseInput(item.id)
+            } label: {
+              deviceLabel(item)
+            }
+          }
+        }
+        Section("Output") {
+          ForEach(CallDevices.outputs(route, chosen: call.chosenOutput), id: \.name) { item in
+            Button {
+              call.chooseOutput(item.id ?? AudioRouting.auto)
+            } label: {
+              deviceLabel(item)
+            }
+          }
+        }
+      }
+    } label: {
+      HStack(spacing: 6) {
+        Image(systemName: "mic")
+        Text(call.route).lineLimit(1).truncationMode(.middle)
+        Spacer(minLength: 4)
+        Image(systemName: "chevron.up.chevron.down")
+      }
+      .font(.footnote)
+      .foregroundStyle(.secondary)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 6)
+      .contentShape(Rectangle())
+    }
+    .simultaneousGesture(TapGesture().onEnded { call.refreshDevices() })
+    .accessibilityLabel("Microphone and output: \(call.route)")
+    .accessibilityIdentifier("call-devices-menu")
+  }
+
+  @ViewBuilder private func deviceLabel(_ item: CallDevices.Item) -> some View {
+    if item.checked { Label(item.name, systemImage: "checkmark") } else { Text(item.name) }
   }
 
   @ViewBuilder private var problemBanner: some View {
