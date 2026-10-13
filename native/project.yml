@@ -45,7 +45,7 @@ targets:
       # The breathing screen's six spoken phrases (scripts/make-breath-words.sh).
       - path: ../assets/audio/breathe
         buildPhase: resources
-      # The other count voices (story 182): <voice>-<cue>.wav, rendered by scripts/make-timer-voice.sh.
+      # The other count voices (stories 182, 187): <voice>-<cue>.wav, rendered by scripts/make-timer-voice.sh.
       - path: ../assets/audio/timer-voices
         buildPhase: resources
       # Story 137: the eulogy song, Igor's download of it from Suno (the post's song as of 2026-10-07).

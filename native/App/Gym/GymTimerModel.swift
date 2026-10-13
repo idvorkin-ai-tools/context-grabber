@@ -207,7 +207,7 @@ final class GymTimerModel: ObservableObject {
     if timer != engine.state { timer = engine.state }
   }
 
-  // MARK: - the count voice (story 182)
+  // MARK: - the count voice (stories 182, 187)
 
   /// Chosen in Timer settings: remembered, used from the next cue, and its "go" played as a sample.
   func chooseCountVoice(_ voice: CountVoice) {

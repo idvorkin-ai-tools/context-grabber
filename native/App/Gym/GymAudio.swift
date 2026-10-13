@@ -5,7 +5,7 @@
 //  session, then lets go with a deactivate-and-reactivate: a paused podcast resumes only on deactivation, and
 //  only when told (`notifyOthersOnDeactivation`). The keepalive is a looping second of -66 dB noise — real
 //  samples, which iOS counts as live output — so the app keeps running, and speaking, with the screen locked.
-//  The cues are sound files, never synthesis, in the chosen count voice (story 182): Adam, Igor's own clone
+//  The cues are sound files, never synthesis, in the chosen count voice (stories 182, 187): Adam, Igor's own clone
 //  (scripts/make-timer-words.sh) or an Australian woman (scripts/make-timer-voice.sh).
 //
 //  Everything runs in order on one queue: a session call can block for a moment and must not stall the face.
