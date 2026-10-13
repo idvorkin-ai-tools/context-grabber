@@ -8,9 +8,13 @@ public struct BreathSetup: Equatable, Sendable {
   public static let customKey = "breathe_custom"
   public static let customInKey = "breathe_custom_in"
   public static let customOutKey = "breathe_custom_out"
+  /// #289: the pattern chosen ("4-4-6-2"), or empty when a preset or Custom is.
+  public static let patternKey = "breathe_pattern"
 
-  /// The preset's seconds, or nil for Custom.
+  /// The preset's seconds, or nil for Custom or a pattern.
   public var preset: Int?
+  /// #289: a pattern, which wins over the preset and Custom while chosen.
+  public var pattern: BreathPattern? = nil
   public var customIn: Int
   public var customOut: Int
 
@@ -27,8 +31,12 @@ public struct BreathSetup: Equatable, Sendable {
     var seeds: [(key: String, value: String)] = []
     if storedIn == nil { seeds.append((customInKey, String(stored))) }
     if storedOut == nil { seeds.append((customOutKey, String(stored))) }
+    let pattern = BreathPattern.named(setting(patternKey))
     return (
-      BreathSetup(preset: custom ? nil : stored, customIn: storedIn ?? stored, customOut: storedOut ?? stored), seeds
+      BreathSetup(
+        preset: custom || pattern != nil ? nil : stored, pattern: pattern, customIn: storedIn ?? stored,
+        customOut: storedOut ?? stored),
+      seeds
     )
   }
 }

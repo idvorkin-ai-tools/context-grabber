@@ -298,4 +298,61 @@ final class BreathToneTests: XCTestCase {
     XCTAssertEqual(BreathPlan.presets, [8, 10, 12, 15])
     XCTAssertTrue(BreathPlan(breathSeconds: 12, sessionMinutes: 5).isEven)
   }
+
+  // MARK: - #289, the 4·4·6·2 pattern
+
+  func testThePatternHasFourSidesOfTheirOwn() {
+    let plan = BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 5)
+    XCTAssertEqual((0..<4).map(plan.side), [4, 4, 6, 2])
+    XCTAssertEqual(plan.cycleSeconds, 16)
+    XCTAssertEqual(plan.cycles, 19, "300 s over 16 s cycles, the closest whole number")
+    XCTAssertEqual((0..<4).map(plan.stepEnd), [4, 8, 14, 16])
+    XCTAssertFalse(plan.isEven)
+    XCTAssertFalse(plan.isBox)
+    XCTAssertEqual(plan.pattern, .fourFourSixTwo)
+    XCTAssertEqual(BreathPattern.fourFourSixTwo.label, "4\u{00B7}4\u{00B7}6\u{00B7}2")
+    XCTAssertEqual(BreathPattern.fourFourSixTwo.sentence, "In 4, hold 4, out 6, hold 2.")
+  }
+
+  func testThePatternsPhasesFallOnTheirOwnSeconds() {
+    let plan = BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 2)
+    XCTAssertEqual(plan.moment(at: 3.9).phase, .inhale)
+    XCTAssertEqual(plan.moment(at: 4.0).phase, .holdFull)
+    XCTAssertEqual(plan.moment(at: 8.0).phase, .exhale)
+    XCTAssertEqual(plan.moment(at: 13.9).phase, .exhale)
+    XCTAssertEqual(plan.moment(at: 14.0).phase, .holdEmpty)
+    XCTAssertEqual(plan.moment(at: 16.0).phase, .inhale)
+    XCTAssertEqual(plan.moment(at: 16.0).cycle, 2)
+    XCTAssertEqual(plan.moment(at: 11.0).phaseProgress, 0.5, accuracy: 1e-9, "3 s into a 6 s exhale")
+  }
+
+  func testEveryStepOfThePatternIsCalledOnTime() {
+    var run = BreathRun(plan: BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 2))
+    run.start(now: 0)
+    var t = 0
+    for index in 0..<8 {
+      let effects = run.tick(now: Double(t))
+      guard case .phase(let phase, _, let lateMs)? = effects.first else { return XCTFail("step \(index): \(effects)") }
+      XCTAssertEqual(phase.rawValue, index % 4)
+      XCTAssertEqual(lateMs, 0, "step \(index)")
+      t += [4, 4, 6, 2][index % 4]
+    }
+  }
+
+  func testThePatternIsRememberedAndNamed() {
+    let restored = BreathSetup.restore {
+      switch $0 {
+      case BreathSetup.breathKey: "12"
+      case BreathSetup.patternKey: "4-4-6-2"
+      default: nil
+      }
+    }.setup
+    XCTAssertEqual(restored.pattern, .fourFourSixTwo)
+    XCTAssertNil(restored.preset, "the pattern wins while chosen")
+    XCTAssertNil(BreathSetup.restore { $0 == BreathSetup.patternKey ? "" : nil }.setup.pattern, "cleared by a preset")
+    XCTAssertEqual(
+      ActivityLog.breathName(BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 5)),
+      "Breathing \u{00B7} 4\u{00B7}4\u{00B7}6\u{00B7}2 \u{00B7} 19 cycles")
+    XCTAssertNil(BreathPlan(inSeconds: 4, outSeconds: 8, sessionMinutes: 1).pattern, "Custom is still a box")
+  }
 }

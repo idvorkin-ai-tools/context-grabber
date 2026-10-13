@@ -35,6 +35,12 @@ empties with you and, if you want, tells you each step by voice or by tone so yo
   side. The choice and Custom's two lengths are remembered. A phone that had a breath length from the old slider
   keeps it: one of the presets lights if it matches, and anything else opens as Custom with In and Out both at
   that length.
+- **4·4·6·2** (Igor, 2026-10-11, #289: *"Breathing pattern 4,4,6,2"*): a pattern beside the presets, one tap like
+  them: breathe in 4 seconds, hold 4, breathe out 6, hold 2 — four sides of their own lengths, 16 seconds a cycle.
+  The line under the title reads *In 4, hold 4, out 6, hold 2.*; the cues, the hold bar and the timing follow each
+  side's own length, and the choice is remembered like a preset. The finished session is named *Breathing ·
+  4·4·6·2 · N cycles*. How the circle draws an uneven pattern (Igor: *"make it a trapezoid"*) is open, proposed on
+  #289 and not part of this change: the ring draws it as it draws every breath.
 - **Session length**: a slider from 2 to 15 minutes, in whole minutes, starting at 5.
 - A summary line under them that changes as either slider moves: **"9 cycles · ends at 4 min 48 s"**. A session
   is always a whole number of cycles — the number closest to the session length chosen, never fewer than one —

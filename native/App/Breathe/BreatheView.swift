@@ -97,8 +97,12 @@ private struct BreatheSetup: View {
         VStack(alignment: .leading, spacing: 0) {
           VStack(alignment: .leading, spacing: 8) {
             Text("Box breathing").font(Face.serif(36)).foregroundStyle(Ink.text)
-            Text(model.preset == nil ? "In and its hold, out and its hold." : "In, hold, out, hold — four even sides.")
-              .font(.subheadline).foregroundStyle(Ink.dim)
+            Text(
+              model.pattern?.sentence
+                ?? (model.preset == nil
+                  ? "In and its hold, out and its hold." : "In, hold, out, hold — four even sides.")
+            )
+            .font(.subheadline).foregroundStyle(Ink.dim)
           }
           .padding(.top, 12)
 
@@ -106,9 +110,11 @@ private struct BreatheSetup: View {
             // Story 241: one tap for a pace, or Custom's own in and out.
             VStack(alignment: .leading, spacing: 12) {
               Eyebrow("Breath length")
-              PresetPicker(selection: model.preset, choose: model.choosePreset)
+              PresetPicker(
+                selection: model.preset, pattern: model.pattern, choose: model.choosePreset,
+                choosePattern: model.choosePattern)
             }
-            if model.preset == nil {
+            if model.preset == nil && model.pattern == nil {
               BreathSlider(
                 title: "In", unit: "s", id: "breathe-in", value: model.customIn, range: BreathPlan.customRange,
                 set: model.setCustomIn)
@@ -240,12 +246,42 @@ private struct BreathSlider: View {
 /// Story 241: 8, 10, 12, 15 seconds a side, or Custom (nil).
 private struct PresetPicker: View {
   let selection: Int?
+  let pattern: BreathPattern?
   let choose: (Int?) -> Void
+  let choosePattern: (BreathPattern) -> Void
 
   var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      presets
+      // #289: four sides of their own, one tap like a preset.
+      HStack(spacing: 8) {
+        ForEach(BreathPattern.all, id: \.self) { p in
+          chip(p.label, on: p == pattern, id: "breathe-pattern-\(p.key)") { choosePattern(p) }
+        }
+      }
+    }
+  }
+
+  private func chip(_ title: String, on: Bool, id: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      Text(title)
+        .font(.system(size: 15, weight: on ? .semibold : .regular)).monospacedDigit()
+        .foregroundStyle(on ? Ink.text : Ink.dim)
+        .padding(.horizontal, 16)
+        .frame(minHeight: 44)
+        .background(Capsule().fill(Color.white.opacity(on ? 0.09 : 0.0)))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(on ? 0.4 : 0.1), lineWidth: 1))
+        .animation(.easeOut(duration: 0.2), value: on)
+    }
+    .buttonStyle(Pressable())
+    .accessibilityAddTraits(on ? .isSelected : [])
+    .accessibilityIdentifier(id)
+  }
+
+  private var presets: some View {
     HStack(spacing: 8) {
       ForEach(BreathPlan.presets.map(Optional.some) + [nil], id: \.self) { preset in
-        let on = preset == selection
+        let on = pattern == nil && preset == selection
         Button(action: { choose(preset) }) {
           Text(preset.map { "\($0) s" } ?? "Custom")
             .font(.system(size: 15, weight: on ? .semibold : .regular)).monospacedDigit()
