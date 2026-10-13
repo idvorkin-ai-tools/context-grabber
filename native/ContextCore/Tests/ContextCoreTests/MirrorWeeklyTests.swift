@@ -254,6 +254,16 @@ final class HealthCacheTests: XCTestCase {
 }
 
 final class MirrorTextTests: XCTestCase {
+  /// #308: a tapped night on the bedtime-and-wake chart, in words.
+  func testBedAndWake() {
+    var n = SleepDaily(date: "2026-03-15")
+    n.bedtime = "2026-03-16T06:00:00.000Z"  // 11pm in LA
+    n.wakeTime = "2026-03-16T14:15:00.000Z"  // 7:15am
+    XCTAssertEqual(MirrorText.bedAndWake(n, clock: la), "Sun, Mar 15 · bed 11pm · wake 7:15am")
+    n.wakeTime = nil
+    XCTAssertEqual(MirrorText.bedAndWake(n, clock: la), "Sun, Mar 15 · bed 11pm · wake \u{2014}")
+  }
+
   let now = la.localTime(year: 2026, month: 3, day: 15, hour: 12)
 
   func testCardsReadAsTheBodyTabDoes() {
