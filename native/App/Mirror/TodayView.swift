@@ -164,7 +164,9 @@ struct MirrorSettingsView: View {
       Form {
         Section {
           Stepper(
-            value: Binding(get: { mirror.sleepTarget }, set: { mirror.setSleepTarget($0) }), in: 4...12, step: 0.5
+            value: Binding(get: { mirror.sleepTarget }, set: { mirror.setSleepTarget($0) }),
+            in: MirrorModel.sleepTargetRange,
+            step: 0.5
           ) {
             LabeledContent("Sleep target", value: "\(SummaryText.js(mirror.sleepTarget)) h")
           }

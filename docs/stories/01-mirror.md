@@ -119,7 +119,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 007:
 
 - **Summary:** See how I slept, not only how long: stages, debt against a target, and bedtime consistency
-- **Status:** implemented in [18ed07b](https://github.com/idvorkin/context-grabber/commit/18ed07b); verified by `sleep.test.ts` and on the phone; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), verified by `just native-test` (`testSleepDebt`, `testConsistencyWrapsAroundMidnight`) and a simulator screenshot; the phone still to be checked by Igor.
+- **Status:** implemented in [18ed07b](https://github.com/idvorkin/context-grabber/commit/18ed07b); verified by `sleep.test.ts` and on the phone; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), verified by `just native-test` (`testSleepDebt`, `testConsistencyWrapsAroundMidnight`) and a simulator screenshot; the phone still to be checked by Igor.; 7 h by default and changed on the Sleep sheet (#301): [d9c4d0d](https://github.com/idvorkin/context-grabber/commit/d9c4d0d), host-checked only (lint); the simulator and the phone in the next build turn
 
 #### Use Case:
 - **As** someone trying to keep a steady bedtime
@@ -128,10 +128,15 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** Reading the week's sleep
-- **Given:** the sleep target in Settings is 8 h
+- **Given:** the sleep target is 7 h (the default)
 - **and Given:** four nights were short
 - **When:** I open the Sleep sheet
 - **Then:** the bars are stacked by stage with totals under them, a "Sleep debt" line sums the shortfalls (oversleeping earns nothing back), a two-line chart shows bedtime and wake with "±" minutes under it, and each daily row carries a thin stage strip from bedtime to wake
+
+- **Scenario:** Changing the target where the debt is
+- **Given:** the Sleep sheet is open with a target of 7 h
+- **When:** I step the target under the sleep-debt line up to 8 h
+- **Then:** it reads 8 h, the debt line counts against 8 h at once, and the next launch still has 8 h
 
 ---
 

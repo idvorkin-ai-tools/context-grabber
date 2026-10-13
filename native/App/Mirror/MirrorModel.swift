@@ -13,7 +13,7 @@ final class MirrorModel: ObservableObject {
   @Published private(set) var grabStartedAt: Date?
   /// The last grab's failure, shown with its state and a copy button.
   @Published var problem: BugProblem?
-  @Published var sleepTarget: Double = 8
+  @Published var sleepTarget: Double = MirrorModel.defaultSleepTarget
   /// The fixture hook's state, on screen for the simulator's UI test: "running", then "done" or "failed".
   @Published var hookStatus: String?
 
@@ -31,6 +31,9 @@ final class MirrorModel: ObservableObject {
 
   static let lastSnapshotKey = "last_snapshot"
   static let sleepTargetKey = "sleep_target_hours"
+  /// #301: seven hours until Igor picks another; a chosen one is kept in the settings.
+  static let defaultSleepTarget: Double = 7
+  static let sleepTargetRange: ClosedRange<Double> = 4...12
 
   /// For the copyable problem's `copy_error` line.
   var bugLogger: BugLogger { app.bugLogger }
