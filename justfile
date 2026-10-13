@@ -59,6 +59,9 @@ native-lint-format:
 # Fails on any SwiftLint finding (native/.swiftlint.yml: force unwraps, casts, tries and implicitly unwrapped
 # optionals, each allowed only under a `swiftlint:disable:next` with its reason).
 native-lint:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    command -v swiftlint >/dev/null || { echo "swiftlint is not installed: just setup (or brew install swiftlint)" >&2; exit 1; }
     cd native && swiftlint lint --strict --quiet
 
 # Native rung 1: ContextCore's host tests on the Mac (seconds)
@@ -208,4 +211,7 @@ dev: generate-version
 # Install dependencies and pods (first-time clone or after resync-native)
 setup:
     npm install
+    # The native app's lint (native-lint, version pinned in native/.swiftlint.yml) and build-log digest (xcbeautify).
+    command -v swiftlint >/dev/null || brew install swiftlint
+    command -v xcbeautify >/dev/null || brew install xcbeautify
     cd ios && pod install
