@@ -40,7 +40,9 @@ public enum TimerDials {
   public static let arcSweep = 270.0
 
   /// `value` moved by whole `steps` of `step`, held in `range`; `hitEnd` when the range stopped it.
-  public static func stepped(_ value: Int, by steps: Int, step: Int, range: ClosedRange<Int>) -> (value: Int, hitEnd: Bool) {
+  public static func stepped(_ value: Int, by steps: Int, step: Int, range: ClosedRange<Int>) -> (
+    value: Int, hitEnd: Bool
+  ) {
     let wanted = value + steps * step
     let held = min(range.upperBound, max(range.lowerBound, wanted))
     return (held, held != wanted)

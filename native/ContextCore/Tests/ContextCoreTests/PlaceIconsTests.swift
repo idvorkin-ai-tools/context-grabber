@@ -47,7 +47,8 @@ final class PlaceIconsTests: XCTestCase {
       PlaceIcons.resolve(name: "Kettlebillity", stored: restaurant),
       PlaceIcon(symbol: PlaceIcons.kettlebell, source: .name, category: nil, needsLookup: false))
     XCTAssertEqual(
-      PlaceIcons.resolve(name: "Kettlebillity", stored: StoredPlaceIcon(symbol: "heart.fill", source: .chosen)).symbol, "heart.fill")
+      PlaceIcons.resolve(name: "Kettlebillity", stored: StoredPlaceIcon(symbol: "heart.fill", source: .chosen)).symbol,
+      "heart.fill")
   }
 
   private let gym = KnownPlace(id: 13, name: "Kettlebility", latitude: 47.6762, longitude: -122.3187, radiusMeters: 100)
@@ -65,26 +66,36 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(hit?.category, "MKPOICategoryFitnessCenter")
     XCTAssertEqual(hit?.distance ?? 0, 20, accuracy: 0.5)
     // Outside the radius: nothing.
-    XCTAssertNil(PlaceIcons.nearest([PointOfInterest(category: "MKPOICategoryRestaurant", coordinate: north(150))], to: gym.coordinate, within: 100))
+    XCTAssertNil(
+      PlaceIcons.nearest(
+        [PointOfInterest(category: "MKPOICategoryRestaurant", coordinate: north(150))], to: gym.coordinate, within: 100)
+    )
     // The real Kettlebility: the nearest thing is uncategorised (the gym itself), a food market 23 m away is not it.
     let real = [
       PointOfInterest(category: nil, coordinate: north(11)),
       PointOfInterest(category: "MKPOICategoryFoodMarket", coordinate: north(23)),
     ]
     XCTAssertNil(PlaceIcons.nearest(real, to: gym.coordinate, within: 100))
-    XCTAssertNil(PlaceIcons.nearest([PointOfInterest(category: "MKPOICategoryBank", coordinate: north(5)), fitness], to: gym.coordinate, within: 100))
+    XCTAssertNil(
+      PlaceIcons.nearest(
+        [PointOfInterest(category: "MKPOICategoryBank", coordinate: north(5)), fitness], to: gym.coordinate, within: 100
+      ))
   }
 
   func testTheBusinessThePlaceIsNamedAfterWins() {
     // As Apple Maps answered on the simulator for the fixture's two unguessable places.
-    let milstead = KnownPlace(id: 2, name: "Milstead & Co", latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 50)
+    let milstead = KnownPlace(
+      id: 2, name: "Milstead & Co", latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 50)
     let named = [
       PointOfInterest(name: "Milstead & Co.", category: "MKPOICategoryCafe", coordinate: north(251)),
       PointOfInterest(name: "Milstead & Co Parking", category: "MKPOICategoryParking", coordinate: north(30)),
     ]
     let nearby = [PointOfInterest(name: "Taco place", category: "MKPOICategoryRestaurant", coordinate: north(8))]
-    XCTAssertEqual(PlaceIcons.byName(named, for: milstead)?.symbol, "cup.and.saucer.fill", "the same name beats a nearer one holding it")
-    XCTAssertEqual(PlaceIcons.byName([named[1]], for: milstead)?.symbol, "car.fill", "a name holding the place's still matches")
+    XCTAssertEqual(
+      PlaceIcons.byName(named, for: milstead)?.symbol, "cup.and.saucer.fill",
+      "the same name beats a nearer one holding it")
+    XCTAssertEqual(
+      PlaceIcons.byName([named[1]], for: milstead)?.symbol, "car.fill", "a name holding the place's still matches")
     XCTAssertEqual(
       PlaceIcons.stored(named: [named[0]], nearby: nearby, for: milstead),
       StoredPlaceIcon(symbol: "cup.and.saucer.fill", source: .maps, category: "MKPOICategoryCafe"))
@@ -94,32 +105,44 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(PlaceIcons.stored(named: [far], nearby: nearby, for: milstead).symbol, "fork.knife")
     let other = PointOfInterest(name: "Fremont Coffee", category: "MKPOICategoryCafe", coordinate: north(10))
     XCTAssertNil(PlaceIcons.byName([other], for: milstead))
-    XCTAssertNil(PlaceIcons.byName([named[0]], for: KnownPlace(id: 3, name: "Co", latitude: 0, longitude: 0, radiusMeters: 50)), "too short a name to match on")
+    XCTAssertNil(
+      PlaceIcons.byName([named[0]], for: KnownPlace(id: 3, name: "Co", latitude: 0, longitude: 0, radiusMeters: 50)),
+      "too short a name to match on")
   }
 
   func testWhatALookupIsRememberedAs() {
     XCTAssertEqual(
-      PlaceIcons.stored(named: [], nearby: [PointOfInterest(category: "MKPOICategoryFitnessCenter", coordinate: north(30))], for: gym),
+      PlaceIcons.stored(
+        named: [], nearby: [PointOfInterest(category: "MKPOICategoryFitnessCenter", coordinate: north(30))], for: gym),
       StoredPlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter"))
-    XCTAssertEqual(PlaceIcons.stored(named: [], nearby: [], for: gym), StoredPlaceIcon(symbol: "mappin", source: .default))
+    XCTAssertEqual(
+      PlaceIcons.stored(named: [], nearby: [], for: gym), StoredPlaceIcon(symbol: "mappin", source: .default))
     // A small place still searches 50 m.
     let tiny = KnownPlace(id: 1, name: "Somewhere", latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 20)
     XCTAssertEqual(PlaceIcons.searchRadius(for: tiny), 50)
     XCTAssertEqual(
-      PlaceIcons.stored(named: [], nearby: [PointOfInterest(category: "MKPOICategoryCafe", coordinate: north(40))], for: tiny).source, .maps)
+      PlaceIcons.stored(
+        named: [], nearby: [PointOfInterest(category: "MKPOICategoryCafe", coordinate: north(40))], for: tiny
+      ).source, .maps)
   }
 
   func testChosenThenNameThenMapsThenAPinWaitingForMaps() {
     let chosen = StoredPlaceIcon(symbol: "heart.fill", source: .chosen)
     let maps = StoredPlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter")
-    XCTAssertEqual(PlaceIcons.resolve(name: "Home", stored: chosen).symbol, "heart.fill", "a choice is never guessed over")
+    XCTAssertEqual(
+      PlaceIcons.resolve(name: "Home", stored: chosen).symbol, "heart.fill", "a choice is never guessed over")
     XCTAssertEqual(PlaceIcons.resolve(name: "Home", stored: chosen).source, .chosen)
-    XCTAssertEqual(PlaceIcons.resolve(name: "Home", stored: maps).source, .name, "a renamed place's name wins over old maps")
-    XCTAssertEqual(PlaceIcons.resolve(name: "Milstead & Co", stored: maps), PlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter", needsLookup: false))
+    XCTAssertEqual(
+      PlaceIcons.resolve(name: "Home", stored: maps).source, .name, "a renamed place's name wins over old maps")
+    XCTAssertEqual(
+      PlaceIcons.resolve(name: "Milstead & Co", stored: maps),
+      PlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter", needsLookup: false))
     XCTAssertEqual(
       PlaceIcons.resolve(name: "Milstead & Co", stored: StoredPlaceIcon(symbol: "mappin", source: .default)),
       PlaceIcon(symbol: "mappin", source: .default, category: nil, needsLookup: false))
-    XCTAssertEqual(PlaceIcons.resolve(name: "Milstead & Co", stored: nil), PlaceIcon(symbol: "mappin", source: .default, category: nil, needsLookup: true))
+    XCTAssertEqual(
+      PlaceIcons.resolve(name: "Milstead & Co", stored: nil),
+      PlaceIcon(symbol: "mappin", source: .default, category: nil, needsLookup: true))
   }
 
   func testTheTextUnderTheIcon() {
@@ -127,7 +150,8 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(PlaceIcons.categoryName("MKPOICategoryCafe"), "Cafe")
     XCTAssertEqual(PlaceIcons.categoryName("MKPOICategoryEVCharger"), "EV charger")
     XCTAssertEqual(
-      PlaceIcons.sourceText(PlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter", needsLookup: false)),
+      PlaceIcons.sourceText(
+        PlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter", needsLookup: false)),
       "From Apple Maps: Fitness center")
     XCTAssertEqual(PlaceIcons.sourceText(PlaceIcons.resolve(name: "Home", stored: nil)), "Guessed from the name")
     XCTAssertEqual(PlaceIcons.sourceText(PlaceIcons.resolve(name: "X", stored: nil)), "Asking Apple Maps…")
@@ -138,8 +162,11 @@ final class PlaceIconsTests: XCTestCase {
     XCTAssertEqual(Set(PlaceIcons.choices).count, 21)
     // Every icon a guess can give is one the picker offers, so a guess can always be chosen back.
     let guessed = Set(PlaceIcons.categorySymbols.values).union(
-      ["Home", "Work", "gym", "Kettlebility", "coffee", "pizza", "store", "park", "school", "clinic", "airport", "beach", "church", "library", "bar", "hotel", "pool", "parking"]
-        .compactMap(PlaceIcons.guess(fromName:)))
+      [
+        "Home", "Work", "gym", "Kettlebility", "coffee", "pizza", "store", "park", "school", "clinic", "airport",
+        "beach", "church", "library", "bar", "hotel", "pool", "parking",
+      ]
+      .compactMap(PlaceIcons.guess(fromName:)))
     XCTAssertTrue(guessed.isSubset(of: Set(PlaceIcons.choices)), "\(guessed.subtracting(PlaceIcons.choices))")
     #if canImport(AppKit)
       // The kettlebell is the app's own drawing; every other icon is a system symbol.
@@ -151,14 +178,16 @@ final class PlaceIconsTests: XCTestCase {
 
   func testIconsAreRememberedBesideTheKnownPlaces() throws {
     let store = try LocationStore(db: SQLiteDatabase(path: ":memory:"))
-    let id = try store.addKnownPlace(name: "Kettlebility", latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 100)
+    let id = try store.addKnownPlace(
+      name: "Kettlebility", latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 100)
     let other = try store.addKnownPlace(name: "Home", latitude: 47.64, longitude: -122.30, radiusMeters: 100)
     let maps = StoredPlaceIcon(symbol: "dumbbell.fill", source: .maps, category: "MKPOICategoryFitnessCenter")
     try store.setPlaceIcon(maps, for: id)
     try store.setPlaceIcon(StoredPlaceIcon(symbol: "heart.fill", source: .chosen), for: other)
     XCTAssertEqual(try store.placeIcons(), [id: maps, other: StoredPlaceIcon(symbol: "heart.fill", source: .chosen)])
     // Growing a place forgets Apple Maps' answer for the old disc, but never a choice.
-    try store.updateKnownPlace(id: id, circle: PlaceCircle(latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 150))
+    try store.updateKnownPlace(
+      id: id, circle: PlaceCircle(latitude: gym.latitude, longitude: gym.longitude, radiusMeters: 150))
     try store.updateKnownPlace(id: other, circle: PlaceCircle(latitude: 47.64, longitude: -122.30, radiusMeters: 150))
     XCTAssertEqual(try store.placeIcons(), [other: StoredPlaceIcon(symbol: "heart.fill", source: .chosen)])
     try store.clearPlaceIcon(for: other)

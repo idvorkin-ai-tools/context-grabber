@@ -47,8 +47,11 @@ final class PlacesFixtureTests: XCTestCase {
   private func load() throws -> (Expected, [LocationPoint], Calendar) {
     let expected = try JSONDecoder().decode(
       Expected.self,
-      from: Data(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/places-expected.json")))
-    let points = try JSONDecoder().decode([LocationPoint].self, from: Data(contentsOf: fixtures.appendingPathComponent("locations.json")))
+      from: Data(
+        contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent(
+          "Fixtures/places-expected.json")))
+    let points = try JSONDecoder().decode(
+      [LocationPoint].self, from: Data(contentsOf: fixtures.appendingPathComponent("locations.json")))
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(identifier: expected.timeZone)!
     return (expected, points, calendar)
@@ -82,7 +85,8 @@ final class PlacesFixtureTests: XCTestCase {
   func testDayCardsMatchTheTypeScript() throws {
     let (expected, points, calendar) = try load()
     let stays = StayClustering.cluster(points, knownPlaces: expected.knownPlaces).stays
-    let sorted = points.enumerated().sorted { ($0.element.timestamp, $0.offset) < ($1.element.timestamp, $1.offset) }.map(\.element)
+    let sorted = points.enumerated().sorted { ($0.element.timestamp, $0.offset) < ($1.element.timestamp, $1.offset) }
+      .map(\.element)
     let days = PlacesDaily.build(stays: stays, points: sorted, days: 14, now: expected.now, calendar: calendar)
     XCTAssertEqual(days.map(\.dateKey), expected.days.map(\.dateKey))
     for (g, e) in zip(days, expected.days) {
@@ -100,7 +104,8 @@ final class PlacesFixtureTests: XCTestCase {
         XCTAssertEqual(gs.placeId, es.placeId, e.dateKey)
       }
       // Within a minute, as in the TypeScript: the stay row is the sum of each place's rounded minutes.
-      XCTAssertLessThanOrEqual(abs(g.totalStayMinutes + g.transitMinutes + g.noDataMinutes - g.elapsedMinutes), 1, "every day adds up")
+      XCTAssertLessThanOrEqual(
+        abs(g.totalStayMinutes + g.transitMinutes + g.noDataMinutes - g.elapsedMinutes), 1, "every day adds up")
     }
     XCTAssertEqual(PlacesDaily.text(days, calendar: calendar), expected.text)
   }
@@ -114,7 +119,8 @@ final class PlacesFixtureTests: XCTestCase {
     let first = try store.importDatabase(at: source)
     XCTAssertEqual(first, ImportResult(pointsAdded: 36_601, pointsAlreadyHere: 0, placesAdded: 4, placesAlreadyHere: 0))
     let second = try store.importDatabase(at: source)
-    XCTAssertEqual(second, ImportResult(pointsAdded: 0, pointsAlreadyHere: 36_601, placesAdded: 0, placesAlreadyHere: 4))
+    XCTAssertEqual(
+      second, ImportResult(pointsAdded: 0, pointsAlreadyHere: 36_601, placesAdded: 0, placesAlreadyHere: 4))
     XCTAssertEqual(try store.count(), 36_601)
     XCTAssertEqual(try store.knownPlaces().map(\.name), ["Home", "Kettlebility", "Milstead & Co", "Work"])
     // The imported trail clusters exactly as the JSON copy of it does.

@@ -59,9 +59,11 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       let at = player.currentTime
       log.event(
         "eulogy_song",
-        ["action": "play_refused", "at": rounded(at), "prepared": player.prepareToPlay(),
-         "other_audio": AVAudioSession.sharedInstance().isOtherAudioPlaying,
-         "category": AVAudioSession.sharedInstance().category.rawValue])
+        [
+          "action": "play_refused", "at": rounded(at), "prepared": player.prepareToPlay(),
+          "other_audio": AVAudioSession.sharedInstance().isOtherAudioPlaying,
+          "category": AVAudioSession.sharedInstance().category.rawValue,
+        ])
       ok = player.play()
       how = "re_prepared"
       if !ok {
@@ -74,7 +76,8 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       }
     }
     let current = self.player ?? player
-    log.event("eulogy_song", ["action": "play", "from": source, "at": rounded(current.currentTime), "ok": ok, "how": how])
+    log.event(
+      "eulogy_song", ["action": "play", "from": source, "at": rounded(current.currentTime), "ok": ok, "how": how])
     failure =
       ok
       ? nil
@@ -117,7 +120,8 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
     guard let player = loaded() else { return }
     let was = player.currentTime
     player.currentTime = min(max(time, 0), player.duration)
-    log.event("eulogy_song", ["action": "seek", "from": source, "was": rounded(was), "at": rounded(player.currentTime)])
+    log.event(
+      "eulogy_song", ["action": "seek", "from": source, "was": rounded(was), "at": rounded(player.currentTime)])
     sync()
   }
 
@@ -148,10 +152,12 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
   }
 
   @objc nonisolated private func interrupted(_ note: Notification) {
-    let began = (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt) == AVAudioSession.InterruptionType.began.rawValue
+    let began =
+      (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt) == AVAudioSession.InterruptionType.began.rawValue
     Task { @MainActor in
       guard let player = self.player else { return }
-      self.log.event("eulogy_song", ["action": began ? "interrupted" : "interruption_ended", "at": self.rounded(player.currentTime)])
+      self.log.event(
+        "eulogy_song", ["action": began ? "interrupted" : "interruption_ended", "at": self.rounded(player.currentTime)])
       self.sync()
     }
   }
@@ -190,7 +196,8 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
     state["category"] = .string(session.category.rawValue)
     state["mode"] = .string(session.mode.rawValue)
     state["other_audio"] = .bool(session.isOtherAudioPlaying)
-    state["outputs"] = .string(session.currentRoute.outputs.map { "\($0.portName) [\($0.portType.rawValue)]" }.joined(separator: ", "))
+    state["outputs"] = .string(
+      session.currentRoute.outputs.map { "\($0.portName) [\($0.portType.rawValue)]" }.joined(separator: ", "))
     return .grabber(message, context: context, extra: state)
   }
 

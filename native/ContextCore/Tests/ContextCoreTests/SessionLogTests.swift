@@ -30,7 +30,9 @@ final class SessionLogLineTests: XCTestCase {
     let line = try decode(
       SessionLogLine.encode(
         type: "x", t: 0,
-        fields: ["ms": 12.3456, "nan": Double.nan, "f": Float(0.5), "nested": ["inf": Double.infinity], "list": [1.006]]))
+        fields: [
+          "ms": 12.3456, "nan": Double.nan, "f": Float(0.5), "nested": ["inf": Double.infinity], "list": [1.006],
+        ]))
     XCTAssertEqual(line["ms"] as? Double, 12.35)
     XCTAssertEqual(line["nan"] as? Double, -1)
     XCTAssertEqual(line["f"] as? Double, 0.5)

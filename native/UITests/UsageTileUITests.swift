@@ -23,8 +23,11 @@ final class UsageTileUITests: XCTestCase {
     let gymTimer = springboard.buttons["Gym Timer"]
     if !gymTimer.waitForExistence(timeout: 3) { addTheMediumTile(springboard) }
     XCTAssertTrue(gymTimer.waitForExistence(timeout: 10), springboard.debugDescription)
-    XCTAssertTrue(springboard.staticTexts["Week 99% left"].exists || springboard.staticTexts.matching(
-      NSPredicate(format: "label BEGINSWITH 'Week ' AND label ENDSWITH ' left'")).firstMatch.exists, "the tile draws the reading")
+    XCTAssertTrue(
+      springboard.staticTexts["Week 99% left"].exists
+        || springboard.staticTexts.matching(
+          NSPredicate(format: "label BEGINSWITH 'Week ' AND label ENDSWITH ' left'")
+        ).firstMatch.exists, "the tile draws the reading")
     shot(springboard, "home-screen")
 
     gymTimer.tap()

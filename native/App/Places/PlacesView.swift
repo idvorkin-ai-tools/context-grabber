@@ -35,8 +35,12 @@ struct PlacesView: View {
 
         Section {
           if places.days.isEmpty {
-            Text(places.loading ? "Reading the trail…" : "No points in the last seven days. Turn on Background Tracking below, or import Context Grabber's database.")
-              .font(.callout).foregroundStyle(.secondary)
+            Text(
+              places.loading
+                ? "Reading the trail…"
+                : "No points in the last seven days. Turn on Background Tracking below, or import Context Grabber's database."
+            )
+            .font(.callout).foregroundStyle(.secondary)
           }
           ForEach(places.days, id: \.dateKey) { day in
             DayCard(day: day, places: places, expanded: expandedDay == day.dateKey) {
@@ -65,7 +69,9 @@ struct PlacesView: View {
         } header: {
           Text("History")
         } footer: {
-          Text("Import copies the points and known places from Context Grabber's Export Database file. Importing the same file again adds nothing.")
+          Text(
+            "Import copies the points and known places from Context Grabber's Export Database file. Importing the same file again adds nothing."
+          )
         }
       }
       .navigationTitle("Places")
@@ -110,8 +116,11 @@ struct PlacesView: View {
               .foregroundStyle(Color(hex: places.color(place.name))).frame(width: 26)
             VStack(alignment: .leading, spacing: 2) {
               Text(place.name).font(.body.weight(.semibold)).foregroundStyle(.primary)
-              Text(String(format: "%.4f, %.4f · r %d m", place.latitude, place.longitude, Int(place.radiusMeters.rounded())))
-                .font(.caption).foregroundStyle(.secondary)
+              Text(
+                String(
+                  format: "%.4f, %.4f · r %d m", place.latitude, place.longitude, Int(place.radiusMeters.rounded()))
+              )
+              .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
@@ -133,7 +142,9 @@ struct PlacesView: View {
         }
         if !gpsStatus.isEmpty { Text(gpsStatus).font(.caption).foregroundStyle(.secondary) }
         Button("Add place") {
-          if places.addPlace(name: addName, latitude: Double(addLat), longitude: Double(addLng), radius: Double(addRadius), from: "form") {
+          if places.addPlace(
+            name: addName, latitude: Double(addLat), longitude: Double(addLng), radius: Double(addRadius), from: "form")
+          {
             addName = ""
             addLat = ""
             addLng = ""
@@ -143,8 +154,10 @@ struct PlacesView: View {
         }
       }
       DisclosureGroup("Import places (JSON)") {
-        TextField(#"[{"name":"Home","lat":47.64,"lon":-122.30,"radiusMeters":100}]"#, text: $importJSON, axis: .vertical)
-          .font(.caption.monospaced()).lineLimit(3...6)
+        TextField(
+          #"[{"name":"Home","lat":47.64,"lon":-122.30,"radiusMeters":100}]"#, text: $importJSON, axis: .vertical
+        )
+        .font(.caption.monospaced()).lineLimit(3...6)
         Button("Import places") {
           places.importPlacesJSON(importJSON)
           importJSON = ""
@@ -179,11 +192,15 @@ struct PlacesView: View {
 
   private var trackingSection: some View {
     Section {
-      Toggle("Background tracking", isOn: Binding(get: { tracker.trackingOn }, set: { tracker.setTracking($0, from: "switch") }))
+      Toggle(
+        "Background tracking",
+        isOn: Binding(get: { tracker.trackingOn }, set: { tracker.setTracking($0, from: "switch") }))
       if !tracker.trackingNote.isEmpty {
         Text(tracker.trackingNote).font(.footnote).foregroundStyle(.orange)
       }
-      Stepper(value: Binding(get: { places.retentionDays }, set: { places.setRetention($0, from: "stepper") }), in: 1...365) {
+      Stepper(
+        value: Binding(get: { places.retentionDays }, set: { places.setRetention($0, from: "stepper") }), in: 1...365
+      ) {
         LabeledContent("Keep", value: "\(places.retentionDays) day\(places.retentionDays == 1 ? "" : "s")")
       }
       LabeledContent("Points stored", value: "\(places.pointCount)")
@@ -191,7 +208,9 @@ struct PlacesView: View {
     } header: {
       Text("Tracking")
     } footer: {
-      Text("Points stay on the phone. Older ones than the retention are deleted when the app opens and when the number is lowered.")
+      Text(
+        "Points stay on the phone. Older ones than the retention are deleted when the app opens and when the number is lowered."
+      )
     }
   }
 }
@@ -213,7 +232,8 @@ struct DayCard: View {
       HStack {
         Text(PlacesDaily.dayHeader(day.dateKey)).font(.headline)
         Spacer()
-        Text(PlacesDaily.formatHours(day.elapsedMinutes)).font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
+        Text(PlacesDaily.formatHours(day.elapsedMinutes)).font(.subheadline.monospacedDigit()).foregroundStyle(
+          .secondary)
       }
       strip
       ForEach(day.places, id: \.placeId) { place in
@@ -221,8 +241,12 @@ struct DayCard: View {
           place.placeId, minutes: place.totalMinutes, color: Color(hex: places.color(place.placeId)),
           name: PlaceStyle.isUnnamed(place.placeId) ? { places.startNaming(place.placeId, on: day) } : nil)
       }
-      if day.transitMinutes > 0 { row("—transit—", minutes: day.transitMinutes, color: Color(hex: PlaceStyle.transit).opacity(0.55), dim: true) }
-      if day.noDataMinutes > 0 { row("—no data—", minutes: day.noDataMinutes, color: Color(hex: PlaceStyle.noData), dim: true) }
+      if day.transitMinutes > 0 {
+        row("—transit—", minutes: day.transitMinutes, color: Color(hex: PlaceStyle.transit).opacity(0.55), dim: true)
+      }
+      if day.noDataMinutes > 0 {
+        row("—no data—", minutes: day.noDataMinutes, color: Color(hex: PlaceStyle.noData), dim: true)
+      }
       if expanded {
         Divider()
         ForEach(Array(day.visits.enumerated()), id: \.offset) { _, v in
@@ -232,7 +256,8 @@ struct DayCard: View {
               .font(.caption.monospacedDigit()).frame(width: 110, alignment: .leading)
             Text(v.placeId).font(.caption).lineLimit(1)
             Spacer()
-            Text(PlacesDaily.formatHours(v.durationMinutes)).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+            Text(PlacesDaily.formatHours(v.durationMinutes)).font(.caption.monospacedDigit()).foregroundStyle(
+              .secondary)
           }
         }
       }
@@ -264,7 +289,9 @@ struct DayCard: View {
     }
   }
 
-  private func row(_ label: String, minutes: Int, color: Color, dim: Bool = false, name: (() -> Void)? = nil) -> some View {
+  private func row(_ label: String, minutes: Int, color: Color, dim: Bool = false, name: (() -> Void)? = nil)
+    -> some View
+  {
     HStack(spacing: 8) {
       GeometryReader { geo in
         RoundedRectangle(cornerRadius: 2).fill(color)
@@ -273,11 +300,14 @@ struct DayCard: View {
       .frame(width: 90, height: 8)
       Text(label).font(.subheadline).foregroundStyle(dim ? .secondary : .primary).lineLimit(1)
       Spacer()
-      Text(PlacesDaily.formatHours(minutes)).font(.subheadline.monospacedDigit()).foregroundStyle(dim ? .secondary : .primary)
+      Text(PlacesDaily.formatHours(minutes)).font(.subheadline.monospacedDigit()).foregroundStyle(
+        dim ? .secondary : .primary)
       if let name {
-        Button(action: name) { Image(systemName: "plus.circle.fill").foregroundStyle(Color(hex: PlaceStyle.unknownPlace)) }
-          .buttonStyle(.borderless)
-          .accessibilityLabel("Name \(label)")
+        Button(action: name) {
+          Image(systemName: "plus.circle.fill").foregroundStyle(Color(hex: PlaceStyle.unknownPlace))
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("Name \(label)")
       }
     }
   }
@@ -316,7 +346,9 @@ struct NamingSheet: View {
           }
           Section {
             Button("Save") {
-              places.addPlace(name: name, latitude: centroid.latitude, longitude: centroid.longitude, radius: Double(radius), from: "name_place")
+              places.addPlace(
+                name: name, latitude: centroid.latitude, longitude: centroid.longitude, radius: Double(radius),
+                from: "name_place")
             }
             .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
           }
@@ -364,8 +396,11 @@ struct PlaceEditSheet: View {
               .overlay(Circle().stroke(color, lineWidth: 3))
             VStack(alignment: .leading, spacing: 2) {
               Text(PlaceIcons.sourceText(icon)).font(.subheadline)
-              Text(String(format: "%.5f, %.5f · r %d m", place.latitude, place.longitude, Int(place.radiusMeters.rounded())))
-                .font(.caption.monospaced()).foregroundStyle(.secondary)
+              Text(
+                String(
+                  format: "%.5f, %.5f · r %d m", place.latitude, place.longitude, Int(place.radiusMeters.rounded()))
+              )
+              .font(.caption.monospaced()).foregroundStyle(.secondary)
             }
           }
         }
@@ -398,7 +433,11 @@ struct PlaceEditSheet: View {
       }
       .navigationTitle(place.name)
       .navigationBarTitleDisplayMode(.inline)
-      .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("place-done") } }
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done") { dismiss() }.accessibilityIdentifier("place-done")
+        }
+      }
     }
   }
 }

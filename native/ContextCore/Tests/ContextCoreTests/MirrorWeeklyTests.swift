@@ -21,22 +21,31 @@ final class WeeklyTests: XCTestCase {
   }
 
   func testBucketByDay() {
-    let samples = [local(15, 9), local(15, 18), local(13, 7), local(1, 7)].map { QuantityReading(start: $0, quantity: 2) }
+    let samples = [local(15, 9), local(15, 18), local(13, 7), local(1, 7)].map {
+      QuantityReading(start: $0, quantity: 2)
+    }
     let days = Weekly.bucketByDay(samples, start: \.start, endDate: end, days: 7, clock: la) { Double($0.count) }
     XCTAssertEqual(days.map(\.value), [nil, nil, nil, nil, 1, nil, 2])
     XCTAssertEqual(
-      Weekly.bucketByDay([QuantityReading](), start: \.start, endDate: end, days: 7, clock: la) { _ in 1 }.compactMap(\.value), [])
+      Weekly.bucketByDay([QuantityReading](), start: \.start, endDate: end, days: 7, clock: la) { _ in 1 }.compactMap(
+        \.value), [])
   }
 
   func testAverage() {
     XCTAssertNil(Weekly.average([]))
     XCTAssertNil(Weekly.average([DailyValue(date: "a", value: nil)]))
-    XCTAssertEqual(Weekly.average([DailyValue(date: "a", value: 10), DailyValue(date: "b", value: nil), DailyValue(date: "c", value: 20)]), 15)
+    XCTAssertEqual(
+      Weekly.average([
+        DailyValue(date: "a", value: 10), DailyValue(date: "b", value: nil), DailyValue(date: "c", value: 20),
+      ]), 15)
     XCTAssertEqual(Weekly.average([10, 10, 11].map { DailyValue(date: "a", value: $0) }), 10.3)
   }
 
   func testHeartRateDays() {
-    let samples = [60, 80, 70, 90].enumerated().map { QuantityReading(start: local(15, 8 + $0.offset), quantity: Double($0.element)) }
+    let samples =
+      [60, 80, 70, 90].enumerated().map {
+        QuantityReading(start: local(15, 8 + $0.offset), quantity: Double($0.element))
+      }
       + [QuantityReading(start: local(14, 9), quantity: 61.0)]
     let days = Weekly.aggregateHeartRate(samples, endDate: end, clock: la)
     XCTAssertEqual(days.count, 7)
@@ -52,7 +61,8 @@ final class WeeklyTests: XCTestCase {
     XCTAssertEqual(days[5].avg, 61)
     XCTAssertEqual(days[5].q1, 61)
     XCTAssertNil(days[0].avg)
-    let thirds = Weekly.aggregateHeartRate([70, 71, 71].map { QuantityReading(start: local(15, 9), quantity: $0) }, endDate: end, clock: la)
+    let thirds = Weekly.aggregateHeartRate(
+      [70, 71, 71].map { QuantityReading(start: local(15, 9), quantity: $0) }, endDate: end, clock: la)
     XCTAssertEqual(thirds[6].avg, 70.7)
   }
 
@@ -98,7 +108,9 @@ final class WeeklyTests: XCTestCase {
 
   func testDaysSinceLast() {
     let now = local(15, 12)
-    func week(_ v: [Double?]) -> [DailyValue] { zip(Weekly.dateKeys(endDate: now, clock: la), v).map { DailyValue(date: $0, value: $1) } }
+    func week(_ v: [Double?]) -> [DailyValue] {
+      zip(Weekly.dateKeys(endDate: now, clock: la), v).map { DailyValue(date: $0, value: $1) }
+    }
     XCTAssertEqual(Weekly.daysSinceLast(week([nil, nil, nil, nil, nil, nil, 5]), now: now, clock: la), 0)
     XCTAssertEqual(Weekly.daysSinceLast(week([nil, nil, nil, nil, nil, 5, nil]), now: now, clock: la), 1)
     XCTAssertEqual(Weekly.daysSinceLast(week([5, nil, nil, nil, nil, 0, nil]), now: now, clock: la), 6)
@@ -113,7 +125,9 @@ final class ContextExportTests: XCTestCase {
   func week(steps: [Double?] = Array(repeating: nil, count: 7)) -> WeeklyDataMap {
     var series: [MetricKey: WeeklySeries] = [:]
     for m in MetricKey.series {
-      series[m] = m.isRanged ? .ranged(keys.map { HeartRateDaily(date: $0) }) : .daily(keys.map { DailyValue(date: $0, value: nil) })
+      series[m] =
+        m.isRanged
+        ? .ranged(keys.map { HeartRateDaily(date: $0) }) : .daily(keys.map { DailyValue(date: $0, value: nil) })
     }
     series[.steps] = .daily(zip(keys, steps).map { DailyValue(date: $0, value: $1) })
     var hr = keys.map { HeartRateDaily(date: $0) }
@@ -159,7 +173,9 @@ final class ContextExportTests: XCTestCase {
     XCTAssertTrue(json.contains(#""weightLbs":181"#))
     XCTAssertTrue(json.contains(#""bedtime":"6am","wakeTime":"1:15pm""#))
     XCTAssertTrue(json.hasSuffix(#""places":null,"accessory":null}"#))
-    for key in ["latitude", "longitude", "center", "radiusMeters", "pointCount", "firstVisit", "lastVisit", "weeklyStats"] {
+    for key in [
+      "latitude", "longitude", "center", "radiusMeters", "pointCount", "firstVisit", "lastVisit", "weeklyStats",
+    ] {
       XCTAssertFalse(json.contains("\"\(key)\""), key)
     }
     let withPlaces = ContextExport.summary(
@@ -170,9 +186,12 @@ final class ContextExportTests: XCTestCase {
 
   func testAccessoryExportOrdersNewestFirstAndLaterRowFirstWithinASave() {
     let e = ContextExport.accessoryExport([
-      AccessoryLogEntry(id: 1, itemId: "half_lotus", itemName: "Half Lotus", loggedAt: 1_777_000_000_000, dateKey: "2026-04-23"),
-      AccessoryLogEntry(id: 2, itemId: "dead_hangs", itemName: "Dead Hangs", loggedAt: 1_777_000_000_000, dateKey: "2026-04-23"),
-      AccessoryLogEntry(id: 3, itemId: "pigeon_stretch", itemName: "Pigeon Stretch", loggedAt: 1_777_100_000_000, dateKey: "2026-04-25"),
+      AccessoryLogEntry(
+        id: 1, itemId: "half_lotus", itemName: "Half Lotus", loggedAt: 1_777_000_000_000, dateKey: "2026-04-23"),
+      AccessoryLogEntry(
+        id: 2, itemId: "dead_hangs", itemName: "Dead Hangs", loggedAt: 1_777_000_000_000, dateKey: "2026-04-23"),
+      AccessoryLogEntry(
+        id: 3, itemId: "pigeon_stretch", itemName: "Pigeon Stretch", loggedAt: 1_777_100_000_000, dateKey: "2026-04-25"),
     ])
     XCTAssertEqual(e.map(\.name), ["Pigeon Stretch", "Dead Hangs", "Half Lotus"])
     XCTAssertEqual(e[1].timestamp, "2026-04-24T03:06:40.000Z")
@@ -182,7 +201,8 @@ final class ContextExportTests: XCTestCase {
 
   func testRawShareIsIndentedWithNullLocationUntilPlacesMoves() {
     let raw = ContextExport.raw(timestamp: "2026-03-15T19:00:00.000Z", health: HealthData()).stringify(indent: 2)
-    XCTAssertTrue(raw.hasPrefix("{\n  \"timestamp\": \"2026-03-15T19:00:00.000Z\",\n  \"health\": {\n    \"steps\": null,"))
+    XCTAssertTrue(
+      raw.hasPrefix("{\n  \"timestamp\": \"2026-03-15T19:00:00.000Z\",\n  \"health\": {\n    \"steps\": null,"))
     XCTAssertTrue(raw.hasSuffix("    \"workouts\": []\n  },\n  \"location\": null,\n  \"locationClusters\": null\n}"))
     XCTAssertFalse(raw.contains("locationHistory"))
   }
@@ -202,12 +222,18 @@ final class HealthCacheTests: XCTestCase {
     let cache = try HealthCache(db: db)
     try cache.putComputed(.steps, "2026-03-14", DailyValue(date: "2026-03-14", value: 8241.37).json)
     try cache.putRaw(.steps, "2026-03-14", .array([]))
-    XCTAssertEqual(try cache.computed(.steps, ["2026-03-14", "2026-03-13"])["2026-03-14"]?.stringify(), #"{"date":"2026-03-14","value":8241.37}"#)
+    XCTAssertEqual(
+      try cache.computed(.steps, ["2026-03-14", "2026-03-13"])["2026-03-14"]?.stringify(),
+      #"{"date":"2026-03-14","value":8241.37}"#)
     XCTAssertEqual(try cache.computed(.hrv, ["2026-03-14"]).count, 0)
     // The React Native app's text reads back.
     try db.run(
       "INSERT OR REPLACE INTO health_computed_cache (metric, date_key, data, cached_at) VALUES ('heartRate', '2026-03-13', ?, 0)",
-      [.text(#"{"date":"2026-03-13","avg":61,"min":61,"max":61,"q1":61,"median":61,"q3":61,"count":1,"raw":[{"value":61,"time":"2026-03-13T16:00:00.000Z"}]}"#)])
+      [
+        .text(
+          #"{"date":"2026-03-13","avg":61,"min":61,"max":61,"q1":61,"median":61,"q3":61,"count":1,"raw":[{"value":61,"time":"2026-03-13T16:00:00.000Z"}]}"#
+        )
+      ])
     let hr = try XCTUnwrap(cache.computed(.heartRate, ["2026-03-13"])["2026-03-13"].flatMap(HeartRateDaily.init(json:)))
     XCTAssertEqual(hr.avg, 61)
     XCTAssertEqual(hr.raw.first?.time, "2026-03-13T16:00:00.000Z")
@@ -276,13 +302,16 @@ final class MirrorTextTests: XCTestCase {
     XCTAssertEqual(MirrorText.dailyValue(DailyValue(date: "x", value: 8241), unit: "steps"), "8,241 steps")
     XCTAssertEqual(MirrorText.dailyValue(DailyValue(date: "x", value: 1380.517), unit: "kcal"), "1,380.52 kcal")
     XCTAssertEqual(
-      MirrorText.average(.steps, series: .daily([DailyValue(date: "a", value: 1000), DailyValue(date: "b", value: 2001)]), sleepNights: nil),
+      MirrorText.average(
+        .steps, series: .daily([DailyValue(date: "a", value: 1000), DailyValue(date: "b", value: 2001)]),
+        sleepNights: nil),
       "Avg: 1,500.5 steps/day")
     var n1 = SleepDaily(date: "a")
     n1.totalHours = 7
     var n2 = SleepDaily(date: "b")
     n2.totalHours = 6.5
-    XCTAssertEqual(MirrorText.average(.sleep, series: nil, sleepNights: [n1, n2, SleepDaily(date: "c")]), "Avg: 6.8 hrs/day")
+    XCTAssertEqual(
+      MirrorText.average(.sleep, series: nil, sleepNights: [n1, n2, SleepDaily(date: "c")]), "Avg: 6.8 hrs/day")
     XCTAssertEqual(MirrorText.sleepDebt(0, target: 8), "Sleep debt: 0m (caught up!)")
     XCTAssertEqual(MirrorText.sleepDebt(3.2, target: 8), "Sleep debt: \u{2212}3h 12m over 7 days (target 8h)")
     XCTAssertEqual(MirrorText.sleepDebt(0.5, target: 7.5), "Sleep debt: \u{2212}30m over 7 days (target 7.5h)")

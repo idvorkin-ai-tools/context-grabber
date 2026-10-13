@@ -17,7 +17,9 @@ public struct BreathSetup: Equatable, Sendable {
   /// What the settings hold. A breath from the old slider becomes its preset if one matches, else Custom at that
   /// length both ways. `seeds` are the Custom sides the settings do not hold yet: saving them now pins them, so a
   /// preset chosen later cannot change an In or Out never touched.
-  public static func restore(_ setting: (String) -> String?) -> (setup: BreathSetup, seeds: [(key: String, value: String)]) {
+  public static func restore(_ setting: (String) -> String?) -> (
+    setup: BreathSetup, seeds: [(key: String, value: String)]
+  ) {
     let stored = setting(breathKey).flatMap(Int.init) ?? BreathPlan.defaultBreath
     let custom = setting(customKey) == "1" || !BreathPlan.presets.contains(stored)
     let storedIn = setting(customInKey).flatMap(Int.init)
@@ -25,6 +27,8 @@ public struct BreathSetup: Equatable, Sendable {
     var seeds: [(key: String, value: String)] = []
     if storedIn == nil { seeds.append((customInKey, String(stored))) }
     if storedOut == nil { seeds.append((customOutKey, String(stored))) }
-    return (BreathSetup(preset: custom ? nil : stored, customIn: storedIn ?? stored, customOut: storedOut ?? stored), seeds)
+    return (
+      BreathSetup(preset: custom ? nil : stored, customIn: storedIn ?? stored, customOut: storedOut ?? stored), seeds
+    )
   }
 }

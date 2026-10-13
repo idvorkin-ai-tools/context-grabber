@@ -75,7 +75,8 @@ public enum StayClustering {
     // A stable sort, as JavaScript's is: points sharing a timestamp keep their stored order.
     let sorted = points.enumerated().sorted { ($0.element.timestamp, $0.offset) < ($1.element.timestamp, $1.offset) }
       .map(\.element)
-    let labels = knownPlaces.isEmpty ? Array(repeating: -1, count: sorted.count) : KnownPlaces.label(sorted, with: knownPlaces)
+    let labels =
+      knownPlaces.isEmpty ? Array(repeating: -1, count: sorted.count) : KnownPlaces.label(sorted, with: knownPlaces)
     let raw = mergeStays(detectStays(sorted, labels))
     let stays = mergeConsecutiveSamePlace(assignPlaces(raw, knownPlaces))
     return StayClusters(stays: stays, transit: buildTransit(stays))
@@ -84,7 +85,9 @@ public enum StayClustering {
   static func detectStays(_ points: [LocationPoint], _ labels: [Int]) -> [RawStay] {
     guard let first = points.first else { return [] }
     var stays: [RawStay] = []
-    var cur = RawStay(lat: first.latitude, lng: first.longitude, start: first.timestamp, end: first.timestamp, count: 1, known: labels[0])
+    var cur = RawStay(
+      lat: first.latitude, lng: first.longitude, start: first.timestamp, end: first.timestamp, count: 1,
+      known: labels[0])
 
     func finalize() {
       if cur.end - cur.start >= minStayMs { stays.append(cur) }
@@ -104,7 +107,8 @@ public enum StayClustering {
       if labelChanged || dist > stayRadius {
         // A known-place change is a boundary even within the radius; so is a move, after any gap.
         finalize()
-        cur = RawStay(lat: p.latitude, lng: p.longitude, start: p.timestamp, end: p.timestamp, count: 1, known: labels[i])
+        cur = RawStay(
+          lat: p.latitude, lng: p.longitude, start: p.timestamp, end: p.timestamp, count: 1, known: labels[i])
       } else {
         // Within the radius: extends the stay after a gap of any length. (The TypeScript tests the gap against
         // four hours first, but both of its branches end the same way.)
@@ -185,7 +189,8 @@ public enum StayClustering {
         prev.centroid = Coordinate(
           latitude: (prev.centroid.latitude * Double(prev.pointCount) + curr.centroid.latitude * Double(curr.pointCount))
             / Double(total),
-          longitude: (prev.centroid.longitude * Double(prev.pointCount) + curr.centroid.longitude * Double(curr.pointCount))
+          longitude: (prev.centroid.longitude * Double(prev.pointCount) + curr.centroid.longitude
+            * Double(curr.pointCount))
             / Double(total))
         prev.endTime = curr.endTime
         prev.pointCount = total

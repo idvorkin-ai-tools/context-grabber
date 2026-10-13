@@ -33,7 +33,8 @@ final class ActivityLogTests: XCTestCase {
     let e = try log.log(.breathing, name: "Box breathing · 8 s · 9 cycles", seconds: 288, at: at)
     XCTAssertEqual(
       e.exportJSON.stringify(),
-      #"{"kind":"breathing","name":"Box breathing · 8 s · 9 cycles","minutes":4.8,"timestamp":"2026-10-05T14:30:00.000Z","date":"2026-10-05"}"#)
+      #"{"kind":"breathing","name":"Box breathing · 8 s · 9 cycles","minutes":4.8,"timestamp":"2026-10-05T14:30:00.000Z","date":"2026-10-05"}"#
+    )
   }
 
   func testNames() {
@@ -43,6 +44,7 @@ final class ActivityLogTests: XCTestCase {
     XCTAssertEqual(ActivityLog.gymSeconds(thirty), 5 + 180 + 25)
     let custom = TimerProfile(name: "custom", workTime: 45, restTime: 15, rounds: 1, prepTime: 5)
     XCTAssertEqual(ActivityLog.gymName(label: "CUSTOM", profile: custom, custom: true), "CUSTOM 0:45 / 0:15 · 1 round")
-    XCTAssertEqual(ActivityLog.breathName(BreathPlan(breathSeconds: 8, sessionMinutes: 5)), "Box breathing · 8 s · 9 cycles")
+    XCTAssertEqual(
+      ActivityLog.breathName(BreathPlan(breathSeconds: 8, sessionMinutes: 5)), "Box breathing · 8 s · 9 cycles")
   }
 }

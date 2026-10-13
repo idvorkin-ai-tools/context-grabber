@@ -51,7 +51,8 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
   /// The Cockpit's countdown style: "23D10H", "14H", "45M".
   public static func countdown(seconds: Double) -> String {
     let minutes = Int(seconds / 60)
-    let days = minutes / 1440, hours = minutes % 1440 / 60
+    let days = minutes / 1440
+    let hours = minutes % 1440 / 60
     if days > 0 { return hours > 0 ? "\(days)D\(hours)H" : "\(days)D" }
     if hours > 0 { return "\(hours)H" }
     return "\(max(1, minutes))M"

@@ -59,7 +59,8 @@ public struct DailyStrip {
   ) -> Set<String> {
     var days = tapped
     days.formUnion(timer.filter { $0.kind == .gymTimer }.map(\.dateKey))
-    for (day, workouts) in workoutsByDay where workouts.contains(where: { strengthWorkouts.contains($0.activityType) }) {
+    for (day, workouts) in workoutsByDay where workouts.contains(where: { strengthWorkouts.contains($0.activityType) })
+    {
       days.insert(day)
     }
     return days

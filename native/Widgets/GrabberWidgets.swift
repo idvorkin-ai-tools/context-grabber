@@ -53,7 +53,9 @@ struct UsageTileWidget: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: UsageTileStore.kind, provider: Provider()) { EntryView(entry: $0) }
       .configurationDisplayName("Usage left")
-      .description("Claude's week, the model and the voice budget left, from the Cockpit. Medium adds Gym Timer, Breathe and Call Larry.")
+      .description(
+        "Claude's week, the model and the voice budget left, from the Cockpit. Medium adds Gym Timer, Breathe and Call Larry."
+      )
       .supportedFamilies([.systemSmall, .systemMedium])
   }
 }

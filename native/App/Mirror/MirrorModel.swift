@@ -109,7 +109,8 @@ final class MirrorModel: ObservableObject {
     phase = "Today"
     let health = await grab.health(now: now)
     let stamp = fixedNow ?? jsMillis(Date())
-    var snap = MirrorSnapshot(timestamp: isoString(stamp), health: health, weekly: snapshot?.weekly ?? [:],
+    var snap = MirrorSnapshot(
+      timestamp: isoString(stamp), health: health, weekly: snapshot?.weekly ?? [:],
       sleepBundle: snapshot?.sleepBundle, workoutsByDay: snapshot?.workoutsByDay ?? [:])
     snapshot = snap  // today shows before the week arrives; stale bars beat none
     phase = "Week"
@@ -135,11 +136,13 @@ final class MirrorModel: ObservableObject {
       [
         "ms": ms, "steps": health.steps as Any, "sleep_hours": health.sleepHours as Any,
         "heart_rate": health.heartRate as Any, "workouts": health.workouts.count,
-        "series": snap.weekly.count, "days_with_steps": (snap.weekly[.steps]?.daily ?? []).filter { $0.value != nil }.count,
+        "series": snap.weekly.count,
+        "days_with_steps": (snap.weekly[.steps]?.daily ?? []).filter { $0.value != nil }.count,
         "failed_queries": failures.count,
       ])
     let stored = JSValue.object([
-      ("timestamp", .string(snap.timestamp)), ("health", health.json), ("location", .null), ("locationHistory", .array([])),
+      ("timestamp", .string(snap.timestamp)), ("health", health.json), ("location", .null),
+      ("locationHistory", .array([])),
     ])
     app.database.setSetting(Self.lastSnapshotKey, stored.stringify())
   }

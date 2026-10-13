@@ -10,7 +10,8 @@ final class PlacesRangeUITests: XCTestCase {
     app.launchEnvironment["GRABBER_IMPORT_DB"] = "import-fixture.db,recent"
     app.launchEnvironment["GRABBER_PLACES"] = "open"
     app.launch()
-    let week = app.buttons["places-range-7"], today = app.buttons["places-range-1"]
+    let week = app.buttons["places-range-7"]
+    let today = app.buttons["places-range-1"]
     XCTAssertTrue(week.waitForExistence(timeout: 30), app.debugDescription)
     today.tap()  // whatever an earlier run left
     XCTAssertTrue(today.isSelected)

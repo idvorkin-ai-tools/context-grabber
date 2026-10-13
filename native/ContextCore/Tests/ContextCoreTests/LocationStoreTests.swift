@@ -24,7 +24,10 @@ final class LocationStoreTests: XCTestCase {
 
   func testInsertRangeCountAndPrune() throws {
     let store = try LocationStore(db: SQLiteDatabase())
-    try store.insert((0..<40).map { LocationPoint(latitude: 47.6, longitude: -122.3, accuracy: 5, timestamp: now - Double($0) * day - 1.5) })
+    try store.insert(
+      (0..<40).map {
+        LocationPoint(latitude: 47.6, longitude: -122.3, accuracy: 5, timestamp: now - Double($0) * day - 1.5)
+      })
     XCTAssertEqual(try store.count(), 40)
     let lastWeek = try store.points(since: now - 7 * day)
     XCTAssertEqual(lastWeek.count, 7)
@@ -94,7 +97,9 @@ final class LocationStoreTests: XCTestCase {
     }
     let other = dir.appendingPathComponent("other.db")
     try SQLiteDatabase(path: other.path).execute("CREATE TABLE things (x INTEGER);")
-    XCTAssertThrowsError(try store.importDatabase(at: other.path)) { XCTAssertEqual($0 as? ImportError, .notContextGrabber) }
+    XCTAssertThrowsError(try store.importDatabase(at: other.path)) {
+      XCTAssertEqual($0 as? ImportError, .notContextGrabber)
+    }
     XCTAssertEqual(try store.count(), 0, "nothing changed")
     // The store is still usable: the failed attach was let go.
     try store.insert([LocationPoint(latitude: 1, longitude: 1, timestamp: 1)])

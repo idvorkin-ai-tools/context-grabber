@@ -30,7 +30,8 @@ struct DealCardIntent: AppIntent {
     CardStore.set(new)
     let slot = CardDeal.slot(containing: now)
     widgetLog.notice(
-      "deal_tap old=\(old, privacy: .public) new=\(new, privacy: .public) stored=\(CardStore.nonce(), privacy: .public) size=\(size, privacy: .public) slot=\(slot, privacy: .public) from=\(CardDeal.index(forSlot: slot, nonce: old, size: size), privacy: .public) to=\(CardDeal.index(forSlot: slot, nonce: new, size: size), privacy: .public)")
+      "deal_tap old=\(old, privacy: .public) new=\(new, privacy: .public) stored=\(CardStore.nonce(), privacy: .public) size=\(size, privacy: .public) slot=\(slot, privacy: .public) from=\(CardDeal.index(forSlot: slot, nonce: old, size: size), privacy: .public) to=\(CardDeal.index(forSlot: slot, nonce: new, size: size), privacy: .public)"
+    )
     return .result()
   }
 }
@@ -56,7 +57,8 @@ struct TodaysHandWidget: Widget {
       let nonce = CardStore.nonce()
       let timeline = CardDeal.timeline(from: Date(), nonce: nonce, size: max(pool.count, 3))
       widgetLog.notice(
-        "timeline nonce=\(nonce, privacy: .public) size=\(pool.count, privacy: .public) first=\(timeline.first?.index ?? -1, privacy: .public) card=\(timeline.first.flatMap { pool.isEmpty ? nil : pool[$0.index].spokenName } ?? "none", privacy: .public)")
+        "timeline nonce=\(nonce, privacy: .public) size=\(pool.count, privacy: .public) first=\(timeline.first?.index ?? -1, privacy: .public) card=\(timeline.first.flatMap { pool.isEmpty ? nil : pool[$0.index].spokenName } ?? "none", privacy: .public)"
+      )
       let entries = timeline.map {
         Entry(date: $0.date, card: pool.isEmpty ? nil : pool[$0.index], role: EulogyRoles.ofDay($0.date))
       }
@@ -125,8 +127,10 @@ private struct HandCard: View {
       if let card {
         CardFace(card: card).padding(.vertical, 18).padding(.horizontal, 10)
       } else {
-        Text("No stack in this build").font(.caption).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(.center)
-          .padding()
+        Text("No stack in this build").font(.caption).foregroundStyle(.white.opacity(0.7)).multilineTextAlignment(
+          .center
+        )
+        .padding()
       }
     }
     .aspectRatio(5 / 7, contentMode: .fit)

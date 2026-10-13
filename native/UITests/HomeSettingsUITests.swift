@@ -19,8 +19,10 @@ final class HomeSettingsUITests: XCTestCase {
     let handle = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS 'Gym Timer'"))
       .firstMatch
     XCTAssertTrue(handle.waitForExistence(timeout: 5), app.debugDescription)
-    let callHandle = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS 'Call Larry'"))
-      .firstMatch
+    let callHandle = app.buttons.matching(
+      NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS 'Call Larry'")
+    )
+    .firstMatch
     // Slow, with a hold before letting go: a quick drag does not register on a loaded simulator.
     handle.press(forDuration: 1.0, thenDragTo: callHandle, withVelocity: .slow, thenHoldForDuration: 0.5)
 

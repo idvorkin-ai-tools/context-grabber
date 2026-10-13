@@ -227,7 +227,8 @@ final class CockpitModel: NSObject, ObservableObject {
       route.logRoute(request.type, snapshot)
       emit(AudioBridge.devicesPayload(snapshot, requestId: request.requestId))
     } catch {
-      emit(AudioBridge.errorPayload(op: request.type, message: error.localizedDescription, requestId: request.requestId))
+      emit(
+        AudioBridge.errorPayload(op: request.type, message: error.localizedDescription, requestId: request.requestId))
     }
   }
 }
@@ -247,7 +248,9 @@ extension CockpitModel: WKScriptMessageHandler {
 extension CockpitModel {
   /// #234: one page back, as Safari's Back.
   func goBack() {
-    log.event("cockpit_back", ["from": webView.url?.absoluteString ?? "", "to": webView.backForwardList.backItem?.url.absoluteString ?? ""])
+    log.event(
+      "cockpit_back",
+      ["from": webView.url?.absoluteString ?? "", "to": webView.backForwardList.backItem?.url.absoluteString ?? ""])
     webView.goBack()
   }
 
@@ -349,12 +352,14 @@ extension CockpitModel: WKUIDelegate {
   /// The microphone is the Cockpit's without a second prompt (iOS's own app-wide alert still comes first); any
   /// other origin gets iOS's prompt.
   func webView(
-    _ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo,
+    _ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+    initiatedByFrame frame: WKFrameInfo,
     type: WKMediaCaptureType, decisionHandler: @escaping @MainActor (WKPermissionDecision) -> Void
   ) {
     let host = origin.host
     let grant = CockpitPage.grantsMicrophone(originHost: host, home: home)
-    log.event("cockpit_media", ["origin": host, "type": type == .microphone ? "microphone" : "camera", "granted": grant])
+    log.event(
+      "cockpit_media", ["origin": host, "type": type == .microphone ? "microphone" : "camera", "granted": grant])
     decisionHandler(grant ? .grant : .prompt)
   }
 

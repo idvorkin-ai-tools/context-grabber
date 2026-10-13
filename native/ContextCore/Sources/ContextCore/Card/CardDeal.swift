@@ -10,7 +10,10 @@ import Foundation
 
 public struct PlayingCard: Equatable, Sendable {
   public enum Suit: String, CaseIterable, Sendable {
-    case spades = "♠", hearts = "♥", diamonds = "♦", clubs = "♣"
+    case spades = "♠"
+    case hearts = "♥"
+    case diamonds = "♦"
+    case clubs = "♣"
     public var isRed: Bool { self == .hearts || self == .diamonds }
   }
 
@@ -66,11 +69,13 @@ public enum CardDeal {
     return moments(from: now, count: timelineSlots).map { moment in
       let s = slot(containing: moment)
       let run = floorDiv(s, size)
-      let deal = deals[run] ?? {
-        let d = fixedDeal(run: run, nonce: nonce, size: size)
-        deals[run] = d
-        return d
-      }()
+      let deal =
+        deals[run]
+        ?? {
+          let d = fixedDeal(run: run, nonce: nonce, size: size)
+          deals[run] = d
+          return d
+        }()
       return (moment, deal[s - run * size])
     }
   }
@@ -129,7 +134,8 @@ public enum CardDeal {
   /// Fisher–Yates over the 52 indices, seeded by the run number and the tap
   /// count.
   public static func rawDeal(run: Int, nonce: Int, size: Int = cardsPerRun) -> [Int] {
-    let seed = (UInt64(bitPattern: Int64(run)) &* 0x9E37_79B9_7F4A_7C15)
+    let seed =
+      (UInt64(bitPattern: Int64(run)) &* 0x9E37_79B9_7F4A_7C15)
       ^ (UInt64(bitPattern: Int64(nonce)) &* 0xBF58_476D_1CE4_E5B9)
       &+ 0x6D65_6D64_6563_6B21  // "memdeck!"
     var rng = SplitMix64(seed: seed)

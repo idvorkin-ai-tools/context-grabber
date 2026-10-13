@@ -15,7 +15,8 @@ final class WhatsNewStoryLinkUITests: XCTestCase {
     let change = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'whats-new-story-'")).firstMatch
     XCTAssertTrue(change.waitForExistence(timeout: 5), "a change is a link: \(app.debugDescription)")
     if let shots = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] {
-      try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(shots)/whats-new-links.png"))
+      try? XCUIScreen.main.screenshot().pngRepresentation.write(
+        to: URL(fileURLWithPath: "\(shots)/whats-new-links.png"))
     }
     change.tap()
     let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")

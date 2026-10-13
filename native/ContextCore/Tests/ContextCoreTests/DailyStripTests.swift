@@ -25,7 +25,9 @@ final class DailyStripTests: XCTestCase {
       ActivityEntry(id: 2, kind: .breathing, name: "Box", seconds: 60, finishedAt: 0, dateKey: "2026-10-06"),
     ]
     let workouts: [String: [WorkoutEntry]] = [
-      "2026-10-07": [WorkoutEntry(activityType: "Functional Strength", durationMinutes: 40, energyBurned: nil, distanceKm: nil)],
+      "2026-10-07": [
+        WorkoutEntry(activityType: "Functional Strength", durationMinutes: 40, energyBurned: nil, distanceKm: nil)
+      ],
       "2026-10-08": [WorkoutEntry(activityType: "Walking", durationMinutes: 40, energyBurned: nil, distanceKm: nil)],
     ]
     XCTAssertEqual(

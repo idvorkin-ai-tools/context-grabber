@@ -72,7 +72,8 @@ public enum UnnamedPlaces {
   public static func visitLine(_ visit: PlaceVisit, calendar: Calendar = .current) -> String {
     let start = Geo.date(visit.startTime)
     let day = PlacesDaily.dayHeader(AccessoryLog.dateKey(start, calendar: calendar), calendar: calendar)
-    let times = "\(AccessoryLog.clockTime(start, calendar: calendar))–\(AccessoryLog.clockTime(Geo.date(visit.endTime), calendar: calendar))"
+    let times =
+      "\(AccessoryLog.clockTime(start, calendar: calendar))–\(AccessoryLog.clockTime(Geo.date(visit.endTime), calendar: calendar))"
     return "\(day) · \(times) · \(PlacesDaily.formatHours(visit.durationMinutes))"
   }
 

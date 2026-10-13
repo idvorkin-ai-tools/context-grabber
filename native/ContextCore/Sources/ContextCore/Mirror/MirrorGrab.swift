@@ -92,7 +92,9 @@ public final class MirrorGrab: @unchecked Sendable {
     async let weight = settle("weight") { try await s.latest(.bodyMass) }
     async let mindful = settle("mindful") { try await s.mindful(from: startOfDay, to: now) }
     async let weights = settle("weight_week") {
-      try await s.samples(.bodyMass, from: sevenDaysAgo, to: now).map { QuantityReading(start: $0.start, quantity: $0.quantity) }
+      try await s.samples(.bodyMass, from: sevenDaysAgo, to: now).map {
+        QuantityReading(start: $0.start, quantity: $0.quantity)
+      }
     }
     async let hrv = settle("hrv") { try await s.latest(.hrv) }
     async let resting = settle("resting_heart_rate") { try await s.latest(.restingHeartRate) }
@@ -142,7 +144,9 @@ public final class MirrorGrab: @unchecked Sendable {
     var raw: [(start: Double, json: JSValue)]
     var bundle: SleepDetailedBundle?
     if metric == .weight {
-      guard case .success(let samples) = await settle("weight_range", { try await s.samples(.bodyMass, from: from, to: now) })
+      guard
+        case .success(let samples) = await settle(
+          "weight_range", { try await s.samples(.bodyMass, from: from, to: now) })
       else { return (nil, nil) }
       let readings = samples.map { QuantityReading(start: $0.start, quantity: $0.quantity) }
       raw = readings.map {
@@ -211,9 +215,11 @@ public final class MirrorGrab: @unchecked Sendable {
     }
     let merged = keys.map { fresh[$0]?.computed ?? hits[$0] }
     if metric.isRanged {
-      return .ranged(zip(keys, merged).map { key, v in v.flatMap(HeartRateDaily.init(json:)) ?? HeartRateDaily(date: key) })
+      return .ranged(
+        zip(keys, merged).map { key, v in v.flatMap(HeartRateDaily.init(json:)) ?? HeartRateDaily(date: key) })
     }
-    return .daily(zip(keys, merged).map { key, v in v.flatMap(DailyValue.init(json:)) ?? DailyValue(date: key, value: nil) })
+    return .daily(
+      zip(keys, merged).map { key, v in v.flatMap(DailyValue.init(json:)) ?? DailyValue(date: key, value: nil) })
   }
 
   /// One day from Health: the computed day and the raw rows the cache keeps. Nil when Health failed.
@@ -232,7 +238,9 @@ public final class MirrorGrab: @unchecked Sendable {
         .array([.object([("date", .string(dateKey)), ("value", .num(value)), ("source", .string("statistics"))])])
       )
     case .exerciseMinutes:
-      guard case .success(let samples) = await settle("exercise_day", { try await s.samples(.exerciseTime, from: dayStart, to: dayEnd) })
+      guard
+        case .success(let samples) = await settle(
+          "exercise_day", { try await s.samples(.exerciseTime, from: dayStart, to: dayEnd) })
       else { return nil }
       let total = samples.reduce(0.0) { $0 + $1.quantity }
       let value = total > 0 ? jsRound(total) : nil
@@ -245,7 +253,9 @@ public final class MirrorGrab: @unchecked Sendable {
       return (DailyValue(date: dateKey, value: value).json, .array(raw))
     case .heartRate, .hrv, .restingHeartRate:
       let kind: QuantityKind = metric == .heartRate ? .heartRate : metric == .hrv ? .hrv : .restingHeartRate
-      guard case .success(let samples) = await settle("\(metric.rawValue)_day", { try await s.samples(kind, from: dayStart, to: dayEnd) })
+      guard
+        case .success(let samples) = await settle(
+          "\(metric.rawValue)_day", { try await s.samples(kind, from: dayStart, to: dayEnd) })
       else { return nil }
       let readings = samples.map { QuantityReading(start: $0.start, quantity: $0.quantity) }
       let day = Weekly.aggregateHeartRate(readings, endDate: dayEnd, days: 1, clock: clock)[0]
@@ -254,7 +264,8 @@ public final class MirrorGrab: @unchecked Sendable {
       }
       return (day.json, .array(raw))
     case .meditation:
-      guard case .success(let sessions) = await settle("mindful_day", { try await s.mindful(from: dayStart, to: dayEnd) })
+      guard
+        case .success(let sessions) = await settle("mindful_day", { try await s.mindful(from: dayStart, to: dayEnd) })
       else { return nil }
       let day = Weekly.aggregateMeditation(sessions, endDate: dayEnd, days: 1, clock: clock)[0]
       let raw: [JSValue] = sessions.map {
@@ -269,7 +280,9 @@ public final class MirrorGrab: @unchecked Sendable {
   /// The week's workouts by the local day they began (the Exercise sheet's lists).
   public func workoutsByDay(now: Double) async -> [String: [WorkoutEntry]] {
     let s = source
-    guard case .success(let workouts) = await settle("workouts_week", { try await s.workouts(from: now - 7 * 24 * 60 * 60 * 1000, to: now) })
+    guard
+      case .success(let workouts) = await settle(
+        "workouts_week", { try await s.workouts(from: now - 7 * 24 * 60 * 60 * 1000, to: now) })
     else { return [:] }
     var byDay: [String: [WorkoutEntry]] = [:]
     for w in workouts { byDay[clock.dateKey(w.start), default: []].append(w.entry) }

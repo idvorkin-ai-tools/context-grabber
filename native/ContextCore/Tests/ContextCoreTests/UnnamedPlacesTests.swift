@@ -13,7 +13,8 @@ private let pacific: Calendar = {
 
 private let HOUR = 3_600_000.0
 
-private func stay(_ id: String, _ lat: Double, _ lng: Double, _ start: Double, hours: Double, points: Int = 10) -> Stay {
+private func stay(_ id: String, _ lat: Double, _ lng: Double, _ start: Double, hours: Double, points: Int = 10) -> Stay
+{
   Stay(
     placeId: id, centroid: Coordinate(latitude: lat, longitude: lng), startTime: start, endTime: start + hours * HOUR,
     durationMinutes: Int(hours * 60), pointCount: points)
@@ -49,7 +50,8 @@ final class UnnamedPlacesTests: XCTestCase {
       stay("Place 10", 47.6, -122.3, t0, hours: 1),
       stay("Place 9", 47.7, -122.3, t0 + 2 * HOUR, hours: 1),
     ]
-    XCTAssertEqual(UnnamedPlaces.summarize(stays, since: t0, until: t0 + 5 * HOUR).map(\.placeId), ["Place 9", "Place 10"])
+    XCTAssertEqual(
+      UnnamedPlaces.summarize(stays, since: t0, until: t0 + 5 * HOUR).map(\.placeId), ["Place 9", "Place 10"])
   }
 
   func testCentroidIsWeightedByPointsAndSpreadIsTheFarthestStay() {
@@ -84,7 +86,8 @@ final class UnnamedPlacesTests: XCTestCase {
     let visit = PlaceVisit(placeId: "Place 3", startTime: start, endTime: start + 2.5 * HOUR, durationMinutes: 150)
     XCTAssertEqual(UnnamedPlaces.visitLine(visit, calendar: pacific), "Mon Mar 23 · 9:10am–11:40am · 2.5h")
     let place = UnnamedPlace(
-      placeId: "Place 3", centroid: Coordinate(latitude: 0, longitude: 0), totalMinutes: 390, visits: [visit, visit, visit],
+      placeId: "Place 3", centroid: Coordinate(latitude: 0, longitude: 0), totalMinutes: 390,
+      visits: [visit, visit, visit],
       spreadMeters: 0)
     XCTAssertEqual(UnnamedPlaces.summaryLine(place, days: 7), "6.5h over 3 visits in the last 7 days")
     var one = place
@@ -97,12 +100,15 @@ final class UnnamedPlacesTests: XCTestCase {
   /// suggestion is the default 100 m or a step over it, and that disc holds the place's points.
   func testTheRealFixture() throws {
     let here = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-    let repo = here.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let repo = here.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+      .deletingLastPathComponent()
     let points = try JSONDecoder().decode(
       [LocationPoint].self, from: Data(contentsOf: repo.appendingPathComponent("__tests__/fixtures/locations.json")))
     struct Expected: Decodable { let knownPlaces: [KnownPlace] }
-    let known = try JSONDecoder().decode(Expected.self, from: Data(contentsOf: here.appendingPathComponent("Fixtures/places-expected.json")))
-      .knownPlaces
+    let known = try JSONDecoder().decode(
+      Expected.self, from: Data(contentsOf: here.appendingPathComponent("Fixtures/places-expected.json"))
+    )
+    .knownPlaces
     let stays = StayClustering.cluster(points, knownPlaces: known).stays
     let all = UnnamedPlaces.summarize(stays, since: -.infinity, until: .infinity)
     XCTAssertEqual(Set(all.map(\.placeId)), Set(stays.map(\.placeId).filter(PlaceStyle.isUnnamed)))

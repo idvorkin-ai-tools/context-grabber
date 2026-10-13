@@ -43,7 +43,8 @@ struct BreatheView: View {
     self.app = app
     self.launch = launch
     self.onExit = onExit
-    _model = StateObject(wrappedValue: BreatheModel(
+    _model = StateObject(
+      wrappedValue: BreatheModel(
         log: app.log, database: app.database, liveActivity: app.liveActivity,
         saveMindful: { [weak app] span, why in app?.saveMindful(span, why: why) }))
   }
@@ -80,7 +81,9 @@ private struct BreatheSetup: View {
         .accessibilityLabel("Close")
         .accessibilityIdentifier("breathe-close")
         Spacer()
-        Button { showStyles = true } label: {
+        Button {
+          showStyles = true
+        } label: {
           Image(systemName: "gearshape").font(.system(size: 17, weight: .regular)).foregroundStyle(Ink.dim)
             .frame(width: 44, height: 44, alignment: .trailing)
         }
@@ -91,54 +94,54 @@ private struct BreatheSetup: View {
 
       // Between the fixed header and Begin, it scrolls: Custom's two sliders make it taller than a phone (story 241).
       ScrollView {
-      VStack(alignment: .leading, spacing: 0) {
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Box breathing").font(Face.serif(36)).foregroundStyle(Ink.text)
-        Text(model.preset == nil ? "In and its hold, out and its hold." : "In, hold, out, hold — four even sides.")
-          .font(.subheadline).foregroundStyle(Ink.dim)
-      }
-      .padding(.top, 12)
+        VStack(alignment: .leading, spacing: 0) {
+          VStack(alignment: .leading, spacing: 8) {
+            Text("Box breathing").font(Face.serif(36)).foregroundStyle(Ink.text)
+            Text(model.preset == nil ? "In and its hold, out and its hold." : "In, hold, out, hold — four even sides.")
+              .font(.subheadline).foregroundStyle(Ink.dim)
+          }
+          .padding(.top, 12)
 
-      VStack(alignment: .leading, spacing: 34) {
-        // Story 241: one tap for a pace, or Custom's own in and out.
-        VStack(alignment: .leading, spacing: 12) {
-          Eyebrow("Breath length")
-          PresetPicker(selection: model.preset, choose: model.choosePreset)
+          VStack(alignment: .leading, spacing: 34) {
+            // Story 241: one tap for a pace, or Custom's own in and out.
+            VStack(alignment: .leading, spacing: 12) {
+              Eyebrow("Breath length")
+              PresetPicker(selection: model.preset, choose: model.choosePreset)
+            }
+            if model.preset == nil {
+              BreathSlider(
+                title: "In", unit: "s", id: "breathe-in", value: model.customIn, range: BreathPlan.customRange,
+                set: model.setCustomIn)
+              BreathSlider(
+                title: "Out", unit: "s", id: "breathe-out", value: model.customOut, range: BreathPlan.customRange,
+                set: model.setCustomOut)
+            }
+            BreathSlider(
+              title: "Session length", unit: "min", id: "breathe-session", value: model.sessionMinutes,
+              range: BreathPlan.sessionRange, set: model.setSession)
+          }
+          .padding(.top, 40)
+
+          VStack(spacing: 0) {
+            Ink.hairline.frame(height: 1)
+            Text(model.plan.summary)
+              .font(.system(size: 15)).monospacedDigit().foregroundStyle(Ink.dim)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(.vertical, 14)
+              .contentTransition(.numericText())
+              .animation(.easeOut(duration: 0.2), value: model.plan)
+              .accessibilityIdentifier("breathe-summary")
+            Ink.hairline.frame(height: 1)
+          }
+          .padding(.top, 28)
+
+          VStack(alignment: .leading, spacing: 12) {
+            Eyebrow("Cue")
+            CuePicker(selection: model.cue, choose: model.chooseCue)
+          }
+          .padding(.top, 28)
+          .padding(.bottom, 24)
         }
-        if model.preset == nil {
-          BreathSlider(
-            title: "In", unit: "s", id: "breathe-in", value: model.customIn, range: BreathPlan.customRange,
-            set: model.setCustomIn)
-          BreathSlider(
-            title: "Out", unit: "s", id: "breathe-out", value: model.customOut, range: BreathPlan.customRange,
-            set: model.setCustomOut)
-        }
-        BreathSlider(
-          title: "Session length", unit: "min", id: "breathe-session", value: model.sessionMinutes,
-          range: BreathPlan.sessionRange, set: model.setSession)
-      }
-      .padding(.top, 40)
-
-      VStack(spacing: 0) {
-        Ink.hairline.frame(height: 1)
-        Text(model.plan.summary)
-          .font(.system(size: 15)).monospacedDigit().foregroundStyle(Ink.dim)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.vertical, 14)
-          .contentTransition(.numericText())
-          .animation(.easeOut(duration: 0.2), value: model.plan)
-          .accessibilityIdentifier("breathe-summary")
-        Ink.hairline.frame(height: 1)
-      }
-      .padding(.top, 28)
-
-      VStack(alignment: .leading, spacing: 12) {
-        Eyebrow("Cue")
-        CuePicker(selection: model.cue, choose: model.chooseCue)
-      }
-      .padding(.top, 28)
-      .padding(.bottom, 24)
-      }
       }
       .scrollBounceBehavior(.basedOnSize)
 
@@ -515,7 +518,9 @@ private struct StylePicker: View {
       LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
         ForEach(BreathStyle.allCases, id: \.self) { style in
           let on = style == model.style
-          Button { model.chooseStyle(style) } label: {
+          Button {
+            model.chooseStyle(style)
+          } label: {
             VStack(spacing: 12) {
               ZStack {
                 Circle().fill(

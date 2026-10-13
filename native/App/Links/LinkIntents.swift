@@ -22,7 +22,11 @@ enum LinkLauncher {
 }
 
 enum TimerPresetOption: String, AppEnum {
-  case thirtySeconds = "30sec", oneMinute = "1min", twoMinutes = "2min", fiveOne = "5-1", custom
+  case thirtySeconds = "30sec"
+  case oneMinute = "1min"
+  case twoMinutes = "2min"
+  case fiveOne = "5-1"
+  case custom
 
   static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Preset")
   static let caseDisplayRepresentations: [TimerPresetOption: DisplayRepresentation] = [

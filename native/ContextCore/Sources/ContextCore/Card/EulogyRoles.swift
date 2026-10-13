@@ -22,7 +22,8 @@ public enum EulogyRoles {
 
   /// The role for the local day `date` is in.
   public static func ofDay(_ date: Date, calendar: Calendar = .current) -> String {
-    let day = calendar.dateComponents([.day], from: Date(timeIntervalSince1970: 0), to: calendar.startOfDay(for: date)).day ?? 0
+    let day =
+      calendar.dateComponents([.day], from: Date(timeIntervalSince1970: 0), to: calendar.startOfDay(for: date)).day ?? 0
     let n = names.count
     return names[((day % n) + n) % n]
   }

@@ -43,7 +43,8 @@ final class EulogyUITests: XCTestCase {
     row("eulogy_song", in: app).tap()
     XCTAssertTrue(toggle.waitForExistence(timeout: 10))
     XCTAssertTrue(waitFor(toggle, "label == 'Pause'", 5), toggle.label)
-    XCTAssertGreaterThanOrEqual(seconds(elapsed.label), seconds(pausedAt), "resumed at \(elapsed.label), paused at \(pausedAt)")
+    XCTAssertGreaterThanOrEqual(
+      seconds(elapsed.label), seconds(pausedAt), "resumed at \(elapsed.label), paused at \(pausedAt)")
   }
 
   /// #195: the scrubber moves the song, restart goes back to the start, and with the sheet closed the small
@@ -55,7 +56,8 @@ final class EulogyUITests: XCTestCase {
     let elapsed = app.staticTexts["eulogy-song-elapsed"]
     XCTAssertTrue(app.buttons["eulogy-song-toggle"].waitForExistence(timeout: 10), app.debugDescription)
     app.sliders["eulogy-song-scrubber"].adjust(toNormalizedSliderPosition: 0.9)
-    XCTAssertTrue(waitFor(elapsed, "label BEGINSWITH '1:' OR label BEGINSWITH '2:'", 10), "scrubbed to \(elapsed.label)")
+    XCTAssertTrue(
+      waitFor(elapsed, "label BEGINSWITH '1:' OR label BEGINSWITH '2:'", 10), "scrubbed to \(elapsed.label)")
     XCTAssertGreaterThanOrEqual(seconds(elapsed.label), 100, elapsed.label)
     app.buttons["eulogy-song-restart"].tap()
     XCTAssertTrue(waitFor(elapsed, "label BEGINSWITH '0:0'", 10), "restarted at \(elapsed.label)")
@@ -80,7 +82,8 @@ final class EulogyUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SONG"] = "missing"
     app.launch()
     row("eulogy_song", in: app).tap()
-    XCTAssertTrue(app.staticTexts["The song is missing from this build."].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(
+      app.staticTexts["The song is missing from this build."].waitForExistence(timeout: 10), app.debugDescription)
     let copy = app.buttons["Copy error"]
     XCTAssertTrue(copy.exists, app.debugDescription)
     copy.tap()

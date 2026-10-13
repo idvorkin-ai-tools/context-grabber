@@ -44,7 +44,8 @@ struct TodayView: View {
         }
         shareButtons
         if let status = mirror.hookStatus {
-          Text("Fixture hook: \(status)").font(.caption2).foregroundStyle(.secondary).accessibilityIdentifier("hook-\(status)")
+          Text("Fixture hook: \(status)").font(.caption2).foregroundStyle(.secondary).accessibilityIdentifier(
+            "hook-\(status)")
         }
       }
       .padding(.horizontal, 16)
@@ -162,7 +163,9 @@ struct MirrorSettingsView: View {
     NavigationStack {
       Form {
         Section {
-          Stepper(value: Binding(get: { mirror.sleepTarget }, set: { mirror.setSleepTarget($0) }), in: 4...12, step: 0.5) {
+          Stepper(
+            value: Binding(get: { mirror.sleepTarget }, set: { mirror.setSleepTarget($0) }), in: 4...12, step: 0.5
+          ) {
             LabeledContent("Sleep target", value: "\(SummaryText.js(mirror.sleepTarget)) h")
           }
         } footer: {

@@ -149,7 +149,8 @@ public struct HealthData: Equatable, Sendable {
         return (
           name,
           SourceSleepSummary(
-            bedtime: bed, wakeTime: wake, coreHours: v["coreHours"]?.double ?? 0, deepHours: v["deepHours"]?.double ?? 0,
+            bedtime: bed, wakeTime: wake, coreHours: v["coreHours"]?.double ?? 0,
+            deepHours: v["deepHours"]?.double ?? 0,
             remHours: v["remHours"]?.double ?? 0, awakeHours: v["awakeHours"]?.double ?? 0)
         )
       }
@@ -242,7 +243,10 @@ public enum Health {
     }
     return order.map { source in
       let sorted = stableSorted(bySource[source]!) { $0.start < $1.start }
-      var core = 0.0, deep = 0.0, rem = 0.0, awake = 0.0
+      var core = 0.0
+      var deep = 0.0
+      var rem = 0.0
+      var awake = 0.0
       for s in sorted {
         let hours = max(0, s.end - s.start) / (1000 * 60 * 60)
         switch s.value {

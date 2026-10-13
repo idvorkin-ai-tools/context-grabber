@@ -22,7 +22,8 @@ struct GymTimerView: View {
   private let onExit: () -> Void
 
   init(app: AppModel, launch: GymTimerLaunch, onExit: @escaping () -> Void) {
-    _model = StateObject(wrappedValue: GymTimerModel(log: app.log, database: app.database, liveActivity: app.liveActivity))
+    _model = StateObject(
+      wrappedValue: GymTimerModel(log: app.log, database: app.database, liveActivity: app.liveActivity))
     self.launch = launch
     self.onExit = onExit
   }
@@ -127,7 +128,9 @@ struct GymTimerView: View {
               .font(.system(size: 12, weight: .semibold))
               .foregroundStyle(model.mode == mode ? accent : Color(white: 0.33))
               .frame(maxWidth: .infinity).padding(.vertical, 14)
-              .overlay(alignment: .top) { (model.mode == mode ? accent : chip).frame(height: model.mode == mode ? 2 : 1) }
+              .overlay(alignment: .top) {
+                (model.mode == mode ? accent : chip).frame(height: model.mode == mode ? 2 : 1)
+              }
           }
         }
       }
@@ -271,17 +274,21 @@ private struct RoundsMode: View {
             format: formatMinutesSeconds
           ) { model.changeCustom(CustomPreset(work: model.custom.work, rest: $0, rounds: model.custom.rounds)) }
           StepSlider(
-            label: "Rounds", value: model.custom.rounds, range: CustomPreset.roundsRange, step: 1, format: { String($0) }
+            label: "Rounds", value: model.custom.rounds, range: CustomPreset.roundsRange, step: 1,
+            format: { String($0) }
           ) { model.changeCustom(CustomPreset(work: model.custom.work, rest: model.custom.rest, rounds: $0)) }
         }
         .disabled(model.locked).opacity(model.locked ? 0.35 : 1)
         .padding(.bottom, 12)
       }
       // With the arc above it, the face gives up a little height so START stays on screen.
-      TimerFace(content: roundsFace(model), width: width, maxHeight: model.presetId == CustomPreset.id && dial == .arc ? 100 : 150)
-        // Story 183: upright the time is a button too, as it is with the phone on its side.
-        .contentShape(Rectangle()).onTapGesture(perform: model.toggleTimer)
-        .accessibilityIdentifier("timer-face")
+      TimerFace(
+        content: roundsFace(model), width: width,
+        maxHeight: model.presetId == CustomPreset.id && dial == .arc ? 100 : 150
+      )
+      // Story 183: upright the time is a button too, as it is with the phone on its side.
+      .contentShape(Rectangle()).onTapGesture(perform: model.toggleTimer)
+      .accessibilityIdentifier("timer-face")
       HStack(spacing: 16) {
         SideButton(title: "RESET", action: model.resetTimer)
         RoundButton(

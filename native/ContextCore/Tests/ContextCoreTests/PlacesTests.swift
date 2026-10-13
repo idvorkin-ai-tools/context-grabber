@@ -13,7 +13,9 @@ private let pacific: Calendar = {
 
 /// Local wall-clock time in the pinned zone, as UTC ms.
 private func local(_ y: Int, _ mo: Int, _ d: Int, _ h: Int = 0, _ mi: Int = 0, _ s: Int = 0, _ ms: Int = 0) -> Double {
-  Geo.ms(pacific.date(from: DateComponents(year: y, month: mo, day: d, hour: h, minute: mi, second: s, nanosecond: ms * 1_000_000))!)
+  Geo.ms(
+    pacific.date(
+      from: DateComponents(year: y, month: mo, day: d, hour: h, minute: mi, second: s, nanosecond: ms * 1_000_000))!)
 }
 
 private let MIN = 60_000.0
@@ -23,12 +25,16 @@ private func pt(_ lat: Double, _ lng: Double, _ t: Double) -> LocationPoint {
   LocationPoint(latitude: lat, longitude: lng, accuracy: 10, timestamp: t)
 }
 
-private func stationary(_ lat: Double, _ lng: Double, _ start: Double, _ count: Int, _ interval: Double = 5 * MIN) -> [LocationPoint] {
+private func stationary(_ lat: Double, _ lng: Double, _ start: Double, _ count: Int, _ interval: Double = 5 * MIN)
+  -> [LocationPoint]
+{
   (0..<count).map { pt(lat, lng, start + Double($0) * interval) }
 }
 
-private let homeLat = 47.6419, homeLng = -122.3045
-private let workLat = 47.6289, workLng = -122.3434
+private let homeLat = 47.6419
+private let homeLng = -122.3045
+private let workLat = 47.6289
+private let workLng = -122.3434
 private let known = [
   KnownPlace(id: 17, name: "Home", latitude: homeLat, longitude: homeLng, radiusMeters: 100),
   KnownPlace(id: 18, name: "Work", latitude: workLat, longitude: workLng, radiusMeters: 200),
@@ -41,7 +47,8 @@ final class GeoTests: XCTestCase {
     XCTAssertEqual(now - Geo.pruneThreshold(retentionDays: 30, now: now), 30 * 86_400_000)
     XCTAssertEqual(Geo.pruneThreshold(retentionDays: 0, now: now), now, "0 days prunes everything before now")
     XCTAssertEqual(Geo.pruneThreshold(retentionDays: -3, now: now), now)
-    XCTAssertGreaterThan(Geo.pruneThreshold(retentionDays: 7, now: now), Geo.pruneThreshold(retentionDays: 30, now: now))
+    XCTAssertGreaterThan(
+      Geo.pruneThreshold(retentionDays: 7, now: now), Geo.pruneThreshold(retentionDays: 30, now: now))
     XCTAssertEqual(now - Geo.pruneThreshold(retentionDays: 1, now: now), 86_400_000)
   }
 
@@ -67,7 +74,8 @@ final class TodaysRouteTests: XCTestCase {
   func p(_ off: Double, _ msAgo: Double) -> LocationPoint { pt(47.6 + off, -122.3, noon - msAgo) }
 
   func testKeepsOnlyTodayInOrder() {
-    let route = PlaceStyle.todaysRoute([p(0.02, HOUR), p(0.01, 2 * HOUR), p(0.5, 30 * HOUR)], now: noon, calendar: pacific)
+    let route = PlaceStyle.todaysRoute(
+      [p(0.02, HOUR), p(0.01, 2 * HOUR), p(0.5, 30 * HOUR)], now: noon, calendar: pacific)
     XCTAssertEqual(route.map(\.timestamp), [noon - 2 * HOUR, noon - HOUR])
     XCTAssertEqual(route[0].latitude, 47.61, accuracy: 1e-6)
     XCTAssertEqual(route[1].latitude, 47.62, accuracy: 1e-6)
@@ -111,7 +119,9 @@ final class TodaysRouteTests: XCTestCase {
     XCTAssertEqual(r.center.latitude, 47.65, accuracy: 1e-9)
     XCTAssertEqual(r.latitudeDelta, 0.1 * 1.4, accuracy: 1e-9)
     XCTAssertNil(PlaceStyle.region(places: [], you: nil, path: []))
-    XCTAssertEqual(PlaceStyle.region(places: [], you: Coordinate(latitude: 1, longitude: 1), path: [])!.latitudeDelta, 0.005 * 1.4, accuracy: 1e-12)
+    XCTAssertEqual(
+      PlaceStyle.region(places: [], you: Coordinate(latitude: 1, longitude: 1), path: [])!.latitudeDelta, 0.005 * 1.4,
+      accuracy: 1e-12)
   }
 }
 
@@ -127,7 +137,8 @@ final class PlaceStyleTests: XCTestCase {
   }
 
   func testCoordinateText() {
-    XCTAssertEqual(PlaceStyle.coordinateText(Coordinate(latitude: 47.6419012, longitude: -122.30448)), "47.641901, -122.304480")
+    XCTAssertEqual(
+      PlaceStyle.coordinateText(Coordinate(latitude: 47.6419012, longitude: -122.30448)), "47.641901, -122.304480")
   }
 }
 
@@ -152,14 +163,17 @@ final class KnownPlacesTests: XCTestCase {
       KnownPlace(id: 1, name: "A", latitude: 47.6062, longitude: -122.3321, radiusMeters: 500),
       KnownPlace(id: 2, name: "B", latitude: 47.6065, longitude: -122.3321, radiusMeters: 500),
     ]
-    XCTAssertEqual(KnownPlaces.match(latitude: 47.6066, longitude: -122.3321, in: overlapping)?.index, 1, "the closest wins")
+    XCTAssertEqual(
+      KnownPlaces.match(latitude: 47.6066, longitude: -122.3321, in: overlapping)?.index, 1, "the closest wins")
   }
 
   func testLabel() {
     XCTAssertEqual(KnownPlaces.label([pt(47.6062, -122.3321, 1), pt(47.62, -122.35, 2)], with: []), [-1, -1])
-    XCTAssertEqual(KnownPlaces.label([pt(47.6062, -122.3321, 1), pt(47.62, -122.35, 2), pt(0, 0, 3)], with: places), [0, 1, -1])
     XCTAssertEqual(
-      KnownPlaces.label([pt(47.6062, -122.3321, 1), pt(47.6063, -122.3322, 2), pt(47.6061, -122.3320, 3)], with: places),
+      KnownPlaces.label([pt(47.6062, -122.3321, 1), pt(47.62, -122.35, 2), pt(0, 0, 3)], with: places), [0, 1, -1])
+    XCTAssertEqual(
+      KnownPlaces.label(
+        [pt(47.6062, -122.3321, 1), pt(47.6063, -122.3322, 2), pt(47.6061, -122.3320, 3)], with: places),
       [0, 0, 0])
   }
 
@@ -179,7 +193,8 @@ final class KnownPlacesTests: XCTestCase {
       XCTAssertGreaterThan(grown.latitude, existing.latitude)
       XCTAssertLessThan(grown.latitude, point.latitude)
       let toOld = Geo.distance(grown.latitude, grown.longitude, existing.latitude, existing.longitude)
-      XCTAssertLessThanOrEqual(Geo.distance(grown.latitude, grown.longitude, point.latitude, point.longitude), grown.radiusMeters)
+      XCTAssertLessThanOrEqual(
+        Geo.distance(grown.latitude, grown.longitude, point.latitude, point.longitude), grown.radiusMeters)
       XCTAssertLessThanOrEqual(toOld + r, grown.radiusMeters + 0.01, "the old disc is inside the new one")
     }
   }
@@ -207,7 +222,8 @@ final class KnownPlacesTests: XCTestCase {
 
   func testImportJSON() throws {
     let parsed = try KnownPlaces.parseImportJSON(
-      #"{"places":[{"name":" Home ","lat":47.64,"lon":-122.30,"radiusMeters":120},{"name":"","lat":1,"lng":1},{"name":"Bad","latitude":91,"longitude":0},{"name":"Gym","latitude":"47.6","longitude":-122.3}]}"#)
+      #"{"places":[{"name":" Home ","lat":47.64,"lon":-122.30,"radiusMeters":120},{"name":"","lat":1,"lng":1},{"name":"Bad","latitude":91,"longitude":0},{"name":"Gym","latitude":"47.6","longitude":-122.3}]}"#
+    )
     XCTAssertEqual(parsed.map(\.name), ["Home", "Gym"])
     XCTAssertEqual(parsed[0].radius, 120)
     XCTAssertEqual(parsed[1].radius, 100)
@@ -228,7 +244,8 @@ final class StayClusteringTests: XCTestCase {
   }
 
   func testTwoPointsSixMinutesApart() {
-    let r = StayClustering.cluster([pt(homeLat, homeLng, now), pt(homeLat + 0.0001, homeLng, now + 6 * MIN)], knownPlaces: known)
+    let r = StayClustering.cluster(
+      [pt(homeLat, homeLng, now), pt(homeLat + 0.0001, homeLng, now + 6 * MIN)], knownPlaces: known)
     XCTAssertEqual(r.stays.count, 1)
     XCTAssertEqual(r.stays[0].placeId, "Home")
     XCTAssertEqual(r.stays[0].pointCount, 2)
@@ -265,7 +282,8 @@ final class StayClusteringTests: XCTestCase {
 
   func testLongGapWithMoveSplits() {
     let r = StayClustering.cluster(
-      stationary(homeLat, homeLng, now, 3, 10 * MIN) + stationary(homeLat + 500 / 111_000, homeLng, now + 5 * HOUR, 3, 10 * MIN),
+      stationary(homeLat, homeLng, now, 3, 10 * MIN)
+        + stationary(homeLat + 500 / 111_000, homeLng, now + 5 * HOUR, 3, 10 * MIN),
       knownPlaces: known)
     XCTAssertEqual(r.stays.count, 2)
     XCTAssertEqual(r.stays[0].placeId, "Home")
@@ -274,7 +292,8 @@ final class StayClusteringTests: XCTestCase {
 
   func testShortVisitDropped() {
     let r = StayClustering.cluster(
-      [pt(homeLat, homeLng, now), pt(homeLat, homeLng, now + 2 * MIN)] + stationary(workLat, workLng, now + 30 * MIN, 3),
+      [pt(homeLat, homeLng, now), pt(homeLat, homeLng, now + 2 * MIN)]
+        + stationary(workLat, workLng, now + 30 * MIN, 3),
       knownPlaces: known)
     XCTAssertEqual(r.stays.map(\.placeId), ["Work"])
   }
@@ -289,7 +308,8 @@ final class StayClusteringTests: XCTestCase {
 
   /// Story 043: "Place N" is stable across days.
   func testSameUnknownPlaceSameIdAcrossDays() {
-    let day1 = local(2026, 3, 25, 10), day2 = local(2026, 3, 26, 10)
+    let day1 = local(2026, 3, 25, 10)
+    let day2 = local(2026, 3, 26, 10)
     let r = StayClustering.cluster(
       stationary(47.70, -122.35, day1, 5, 10 * MIN) + stationary(47.75, -122.40, day1 + 2 * HOUR, 5, 10 * MIN)
         + stationary(47.70, -122.35, day2, 5, 10 * MIN),
@@ -302,8 +322,12 @@ final class StayClusteringTests: XCTestCase {
 
   // Step 5 on its own.
   let t0 = local(2026, 4, 9, 20)
-  func stay(_ id: String, _ start: Double, _ minutes: Int, _ count: Int = 5, lat: Double = homeLat, lng: Double = homeLng) -> Stay {
-    Stay(placeId: id, centroid: Coordinate(latitude: lat, longitude: lng), startTime: start, endTime: start + Double(minutes) * MIN,
+  func stay(
+    _ id: String, _ start: Double, _ minutes: Int, _ count: Int = 5, lat: Double = homeLat, lng: Double = homeLng
+  ) -> Stay {
+    Stay(
+      placeId: id, centroid: Coordinate(latitude: lat, longitude: lng), startTime: start,
+      endTime: start + Double(minutes) * MIN,
       durationMinutes: minutes, pointCount: count)
   }
 
@@ -319,10 +343,15 @@ final class StayClusteringTests: XCTestCase {
     XCTAssertEqual(merged[0].durationMinutes, Int(((night[1].endTime - night[0].startTime) / 60000).rounded()))
 
     XCTAssertEqual(
-      StayClustering.mergeConsecutiveSamePlace([stay("Home", t0, 120), stay("Bar", t0 + 3 * HOUR, 60), stay("Home", t0 + 5 * HOUR, 120)])
-        .map(\.placeId), ["Home", "Bar", "Home"])
-    XCTAssertEqual(StayClustering.mergeConsecutiveSamePlace([stay("Home", t0, 120), stay("Work", t0 + 12 * HOUR, 480)]).count, 2)
-    let three = StayClustering.mergeConsecutiveSamePlace([stay("Home", t0, 60), stay("Home", t0 + 24 * HOUR, 60), stay("Home", t0 + 48 * HOUR, 60)])
+      StayClustering.mergeConsecutiveSamePlace([
+        stay("Home", t0, 120), stay("Bar", t0 + 3 * HOUR, 60), stay("Home", t0 + 5 * HOUR, 120),
+      ])
+      .map(\.placeId), ["Home", "Bar", "Home"])
+    XCTAssertEqual(
+      StayClustering.mergeConsecutiveSamePlace([stay("Home", t0, 120), stay("Work", t0 + 12 * HOUR, 480)]).count, 2)
+    let three = StayClustering.mergeConsecutiveSamePlace([
+      stay("Home", t0, 60), stay("Home", t0 + 24 * HOUR, 60), stay("Home", t0 + 48 * HOUR, 60),
+    ])
     XCTAssertEqual(three.count, 1)
     XCTAssertEqual(three[0].pointCount, 15)
     let work = StayClustering.mergeConsecutiveSamePlace([stay("Work", t0, 300), stay("Work", t0 + 9 * HOUR, 30)])
@@ -338,10 +367,14 @@ final class StayClusteringTests: XCTestCase {
 
 final class PlacesDailyTests: XCTestCase {
   func stay(_ id: String, _ start: Double, _ minutes: Double) -> Stay {
-    Stay(placeId: id, centroid: Coordinate(latitude: 47.6, longitude: -122.3), startTime: start, endTime: start + minutes * MIN,
+    Stay(
+      placeId: id, centroid: Coordinate(latitude: 47.6, longitude: -122.3), startTime: start,
+      endTime: start + minutes * MIN,
       durationMinutes: Int(minutes), pointCount: 10)
   }
-  func point(_ t: Double) -> LocationPoint { LocationPoint(latitude: 47.6, longitude: -122.3, accuracy: 20, timestamp: t) }
+  func point(_ t: Double) -> LocationPoint {
+    LocationPoint(latitude: 47.6, longitude: -122.3, accuracy: 20, timestamp: t)
+  }
   func build(_ stays: [Stay], _ points: [LocationPoint], _ days: Int, _ now: Double) -> [PlaceDaySummary] {
     PlacesDaily.build(stays: stays, points: points, days: days, now: now, calendar: pacific)
   }
@@ -352,26 +385,35 @@ final class PlacesDailyTests: XCTestCase {
 
   func testPlacesSortedByTime() {
     let base = mar15 + 8 * 60 * MIN
-    let d = build([stay("Home", base, 120), stay("Office", base + 180 * MIN, 60), stay("Cafe", base + 300 * MIN, 180)], [], 7, endOf15)
-      .first { $0.dateKey == "2026-03-15" }!
+    let d = build(
+      [stay("Home", base, 120), stay("Office", base + 180 * MIN, 60), stay("Cafe", base + 300 * MIN, 180)], [], 7,
+      endOf15
+    )
+    .first { $0.dateKey == "2026-03-15" }!
     XCTAssertEqual(d.places.map(\.placeId), ["Cafe", "Home", "Office"])
     XCTAssertEqual(d.places.map(\.totalMinutes), [180, 120, 60])
     XCTAssertEqual(d.totalStayMinutes, 360)
   }
 
   func testElapsed() {
-    XCTAssertEqual(build([stay("Home", mar14 + 60 * MIN, 60)], [], 7, noon15).first { $0.dateKey == "2026-03-14" }!.elapsedMinutes, 1440)
+    XCTAssertEqual(
+      build([stay("Home", mar14 + 60 * MIN, 60)], [], 7, noon15).first { $0.dateKey == "2026-03-14" }!.elapsedMinutes,
+      1440)
     XCTAssertEqual(build([stay("Home", mar15, 60)], [], 1, mar15 + 360 * MIN)[0].elapsedMinutes, 360)
   }
 
   func testDaysNewestFirstAndLimited() {
     let keys = build(
-      [stay("Home", local(2026, 3, 13, 1), 60), stay("Home", local(2026, 3, 15, 1), 90), stay("Home", local(2026, 3, 14, 1), 120)], [], 7,
+      [
+        stay("Home", local(2026, 3, 13, 1), 60), stay("Home", local(2026, 3, 15, 1), 90),
+        stay("Home", local(2026, 3, 14, 1), 120),
+      ], [], 7,
       noon15
     ).map(\.dateKey)
     XCTAssertEqual(keys.first, "2026-03-15")
     XCTAssertTrue(keys.contains("2026-03-14") && keys.contains("2026-03-13"))
-    let limited = build((10...14).map { stay("Home", local(2026, 3, $0, 1), 60) }, [], 3, local(2026, 3, 14, 12)).map(\.dateKey)
+    let limited = build((10...14).map { stay("Home", local(2026, 3, $0, 1), 60) }, [], 3, local(2026, 3, 14, 12)).map(
+      \.dateKey)
     XCTAssertEqual(limited, ["2026-03-14", "2026-03-13", "2026-03-12"])
   }
 
@@ -379,7 +421,9 @@ final class PlacesDailyTests: XCTestCase {
     let base = mar15 + 60 * MIN
     let many = (0..<15).map { stay("Place \($0)", base + Double($0) * 10 * MIN, Double(15 - $0) * 10) }
     XCTAssertEqual(build(many, [], 7, noon15)[0].places.count, 10)
-    let d = build([stay("Home", base, 60), stay("Office", base + 120 * MIN, 30), stay("Home", base + 180 * MIN, 90)], [], 7, noon15)[0]
+    let d = build(
+      [stay("Home", base, 60), stay("Office", base + 120 * MIN, 30), stay("Home", base + 180 * MIN, 90)], [], 7, noon15)[
+        0]
     XCTAssertEqual(d.places.map(\.placeId), ["Home", "Office"])
     XCTAssertEqual(d.places.map(\.totalMinutes), [150, 30])
   }
@@ -393,7 +437,8 @@ final class PlacesDailyTests: XCTestCase {
   }
 
   func testStayAcrossMidnightSplits() {
-    let s = Stay(placeId: "Home", centroid: Coordinate(latitude: 47.6, longitude: -122.3), startTime: mar14 + 22 * HOUR,
+    let s = Stay(
+      placeId: "Home", centroid: Coordinate(latitude: 47.6, longitude: -122.3), startTime: mar14 + 22 * HOUR,
       endTime: mar15 + 8 * HOUR, durationMinutes: 600, pointCount: 20)
     let r = build([s], [], 2, noon15)
     XCTAssertEqual(r.first { $0.dateKey == "2026-03-14" }!.totalStayMinutes, 120)
@@ -415,7 +460,8 @@ final class PlacesDailyTests: XCTestCase {
   }
 
   func testStrayPointIsTenMinutes() {
-    let d = build([stay("A", mar15, 60), stay("B", mar15 + 3 * HOUR, 60)], [point(mar15 + 2 * HOUR)], 1, mar15 + 5 * HOUR)[0]
+    let d = build(
+      [stay("A", mar15, 60), stay("B", mar15 + 3 * HOUR, 60)], [point(mar15 + 2 * HOUR)], 1, mar15 + 5 * HOUR)[0]
     XCTAssertTrue((8...12).contains(d.transitMinutes))
     XCTAssertGreaterThanOrEqual(d.noDataMinutes, 108)
   }
@@ -471,7 +517,9 @@ final class PlacesDailyTests: XCTestCase {
 
   /// The one departure from the TypeScript: the day the clocks go forward is 23 hours long.
   func testSpringForwardDayIs23Hours() {
-    let d = build([stay("Home", local(2026, 3, 8, 1), 60)], [], 2, local(2026, 3, 9, 12)).first { $0.dateKey == "2026-03-08" }!
+    let d = build([stay("Home", local(2026, 3, 8, 1), 60)], [], 2, local(2026, 3, 9, 12)).first {
+      $0.dateKey == "2026-03-08"
+    }!
     XCTAssertEqual(d.elapsedMinutes, 23 * 60)
     XCTAssertEqual(d.dayLengthMs, 23 * HOUR)
     XCTAssertEqual(d.totalStayMinutes + d.transitMinutes + d.noDataMinutes, d.elapsedMinutes)
@@ -497,7 +545,8 @@ final class PlacesDailyTests: XCTestCase {
     XCTAssertEqual(PlacesDaily.splitNonStay(all, []).transitMs, 0)
     XCTAssertEqual(PlacesDaily.splitNonStay(all, []).noDataMs, 60 * MIN)
     XCTAssertEqual(PlacesDaily.splitNonStay(all, [point(30 * MIN)]).transitMs, 10 * MIN)
-    XCTAssertEqual(PlacesDaily.splitNonStay(all, [point(20 * MIN), point(28 * MIN), point(35 * MIN)]).transitMs, 25 * MIN)
+    XCTAssertEqual(
+      PlacesDaily.splitNonStay(all, [point(20 * MIN), point(28 * MIN), point(35 * MIN)]).transitMs, 25 * MIN)
     XCTAssertEqual(PlacesDaily.splitNonStay(all, [point(10 * MIN), point(30 * MIN)]).transitMs, 20 * MIN)
     XCTAssertEqual(PlacesDaily.splitNonStay(all, [point(2 * MIN)]).transitMs, 7 * MIN)
   }
@@ -508,11 +557,15 @@ final class PlacesDailyTests: XCTestCase {
         dateKey: key, places: totals.map { .init(placeId: $0.0, totalMinutes: $0.1) }, visits: [], elapsedMinutes: 1440,
         totalStayMinutes: 0, transitMinutes: 0, noDataMinutes: 0, stripSegments: [], dayLengthMs: 86_400_000)
     }
-    XCTAssertEqual(PlacesDaily.text([day("2026-04-20", [("Home", 540), ("Office", 480), ("Gym", 60)])], calendar: pacific),
+    XCTAssertEqual(
+      PlacesDaily.text([day("2026-04-20", [("Home", 540), ("Office", 480), ("Gym", 60)])], calendar: pacific),
       "Mon Apr 20: Home 9h, Office 8h, Gym 1h")
-    XCTAssertEqual(PlacesDaily.text([day("2026-04-21", [("Home", 600)]), day("2026-04-20", [("Office", 480)])], calendar: pacific),
+    XCTAssertEqual(
+      PlacesDaily.text([day("2026-04-21", [("Home", 600)]), day("2026-04-20", [("Office", 480)])], calendar: pacific),
       "Tue Apr 21: Home 10h\nMon Apr 20: Office 8h")
-    XCTAssertEqual(PlacesDaily.text([day("2026-04-20", [("Home", 90), ("Cafe", 45)])], calendar: pacific), "Mon Apr 20: Home 1.5h, Cafe 45m")
+    XCTAssertEqual(
+      PlacesDaily.text([day("2026-04-20", [("Home", 90), ("Cafe", 45)])], calendar: pacific),
+      "Mon Apr 20: Home 1.5h, Cafe 45m")
     XCTAssertEqual(PlacesDaily.text([day("2026-04-20", [])], calendar: pacific), "Mon Apr 20: no known places")
   }
 }

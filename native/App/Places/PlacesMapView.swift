@@ -37,15 +37,20 @@ struct PlacesMapView: View {
       places: places.knownPlaces.map(\.coordinate) + unnamed.map(\.centroid), you: you,
       path: places.shownRoute.map { Coordinate(latitude: $0.latitude, longitude: $0.longitude) }
     ).map {
-      MKCoordinateRegion(center: $0.center.cl, span: MKCoordinateSpan(latitudeDelta: $0.latitudeDelta, longitudeDelta: $0.longitudeDelta))
+      MKCoordinateRegion(
+        center: $0.center.cl, span: MKCoordinateSpan(latitudeDelta: $0.latitudeDelta, longitudeDelta: $0.longitudeDelta)
+      )
     }
   }
 
   var body: some View {
     Map(position: $position) {
       if places.shownRoute.count > 1 {
-        MapPolyline(coordinates: places.shownRoute.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-          .stroke(Color(hex: PlaceStyle.you).opacity(0.85), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        MapPolyline(
+          coordinates: places.shownRoute.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        )
+        .stroke(
+          Color(hex: PlaceStyle.you).opacity(0.85), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
       }
       // Drawn first, so a named pin sits on top where they meet.
       ForEach(unnamed) { place in
@@ -67,7 +72,10 @@ struct PlacesMapView: View {
     .mapStyle(.standard(pointsOfInterest: .excludingAll))
     .overlay(alignment: .topTrailing) {
       VStack(spacing: 8) {
-        control(fullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right", label: fullscreen ? "Collapse map" : "Expand map") {
+        control(
+          fullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right",
+          label: fullscreen ? "Collapse map" : "Expand map"
+        ) {
           log.event("ui", ["action": fullscreen ? "map_collapse" : "map_expand"])
           onToggleFullscreen()
         }
@@ -91,7 +99,8 @@ struct PlacesMapView: View {
       if let you, selected == nil {
         Button {
           UIPasteboard.general.string = PlaceStyle.coordinateText(you)
-          log.event("ui", ["action": "copy_coordinates", "accuracy": Int(tracker.you?.horizontalAccuracy.rounded() ?? -1)])
+          log.event(
+            "ui", ["action": "copy_coordinates", "accuracy": Int(tracker.you?.horizontalAccuracy.rounded() ?? -1)])
           copied = true
           Task {
             try? await Task.sleep(for: .milliseconds(1500))
@@ -121,7 +130,9 @@ struct PlacesMapView: View {
     .onAppear(perform: frame)
     .onChange(of: places.knownPlaces) { _, _ in frame() }
     .onChange(of: places.shownRoute.count) { _, _ in frame() }
-    .onChange(of: places.routeDays) { _, _ in framed = false; frame() }  // a new range: frame it afresh
+    .onChange(of: places.routeDays) { _, _ in
+      framed = false; frame()
+    }  // a new range: frame it afresh
     .onChange(of: places.unnamed.count) { _, _ in frame() }
   }
 
@@ -154,7 +165,9 @@ struct PlacesMapView: View {
     log.event("ui", ["action": "find_me"])
     withAnimation {
       position = .region(
-        MKCoordinateRegion(center: you.cl, span: MKCoordinateSpan(latitudeDelta: PlaceStyle.findMeDelta, longitudeDelta: PlaceStyle.findMeDelta)))
+        MKCoordinateRegion(
+          center: you.cl,
+          span: MKCoordinateSpan(latitudeDelta: PlaceStyle.findMeDelta, longitudeDelta: PlaceStyle.findMeDelta)))
     }
   }
 
@@ -218,8 +231,10 @@ struct UnnamedPin: View {
       VStack(spacing: 2) {
         Circle().fill(Color(white: 0.55).opacity(0.8)).frame(width: size, height: size)
           .overlay(Circle().stroke(selected ? .white : Color(white: 0.85).opacity(0.7), lineWidth: selected ? 3 : 1.5))
-        Text(PlacesDaily.formatHours(place.totalMinutes)).font(.system(size: 9, weight: .medium)).foregroundStyle(.white.opacity(0.9))
-          .padding(.horizontal, 4).padding(.vertical, 1).background(Color.black.opacity(0.45), in: Capsule())
+        Text(PlacesDaily.formatHours(place.totalMinutes)).font(.system(size: 9, weight: .medium)).foregroundStyle(
+          .white.opacity(0.9)
+        )
+        .padding(.horizontal, 4).padding(.vertical, 1).background(Color.black.opacity(0.45), in: Capsule())
       }
       // A finger-sized target around even the smallest dot.
       .frame(minWidth: 44, minHeight: 44)
@@ -299,7 +314,8 @@ struct NamingMap: View {
       }
       if let nearest {
         let at = CLLocationCoordinate2D(latitude: nearest.latitude, longitude: nearest.longitude)
-        MapCircle(center: at, radius: nearest.radiusMeters).foregroundStyle(.blue.opacity(0.15)).stroke(.blue, lineWidth: 2)
+        MapCircle(center: at, radius: nearest.radiusMeters).foregroundStyle(.blue.opacity(0.15)).stroke(
+          .blue, lineWidth: 2)
         Marker(nearest.name, coordinate: at).tint(.blue)
       }
       Marker("Here", systemImage: "mappin", coordinate: centre.cl).tint(.orange)

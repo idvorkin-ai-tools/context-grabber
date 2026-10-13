@@ -12,7 +12,8 @@ public enum BlogLinks {
   /// The Suno song the post embeds, as its song page (which the Suno app opens): the post carries it as an embed
   /// (`suno.com/embed/<id>`) and as a link (`suno.com/song/<id>`). The first one wins; nil when there is none.
   public static func song(inPost html: String) -> URL? {
-    let pattern = #"suno\.com/(?:song|embed)/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"#
+    let pattern =
+      #"suno\.com/(?:song|embed)/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"#
     guard let regex = try? NSRegularExpression(pattern: pattern),
       let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
       let id = Range(match.range(at: 1), in: html)

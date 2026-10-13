@@ -22,7 +22,8 @@ struct HealthFixtureWriter {
     return t
   }
 
-  func save(_ fx: HealthFixture) async throws -> (fixture: HealthFixture, count: Int, source: String, dropped: [String]) {
+  func save(_ fx: HealthFixture) async throws -> (fixture: HealthFixture, count: Int, source: String, dropped: [String])
+  {
     note("mirror_fixture_step", ["step": "authorize"])
     try await hk.requestAuthorization(share: shareTypes)
     note("mirror_fixture_step", ["step": "delete_earlier"])
@@ -37,14 +38,18 @@ struct HealthFixtureWriter {
       for s in fx.quantities[kind] ?? [] {
         objects.append(
           HKQuantitySample(
-            type: type, quantity: HKQuantity(unit: unit, doubleValue: s.quantity), start: jsDate(s.start), end: jsDate(s.end)))
+            type: type, quantity: HKQuantity(unit: unit, doubleValue: s.quantity), start: jsDate(s.start),
+            end: jsDate(s.end)))
       }
     }
     for s in fx.sleep {
-      objects.append(HKCategorySample(type: HealthKitSource.sleepType, value: s.value ?? 1, start: jsDate(s.start), end: jsDate(s.end)))
+      objects.append(
+        HKCategorySample(
+          type: HealthKitSource.sleepType, value: s.value ?? 1, start: jsDate(s.start), end: jsDate(s.end)))
     }
     for s in fx.mindful {
-      objects.append(HKCategorySample(type: HealthKitSource.mindfulType, value: 0, start: jsDate(s.start), end: jsDate(s.end)))
+      objects.append(
+        HKCategorySample(type: HealthKitSource.mindfulType, value: 0, start: jsDate(s.start), end: jsDate(s.end)))
     }
     for w in fx.workouts {
       objects.append(Self.workout(w))

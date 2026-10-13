@@ -68,7 +68,8 @@ final class CardDealSubsetTests: XCTestCase {
         prev = cur
       }
       for run in -5...5 {
-        XCTAssertEqual(Set((0..<size).map { CardDeal.index(forSlot: run * size + $0, nonce: 3, size: size) }).count, size)
+        XCTAssertEqual(
+          Set((0..<size).map { CardDeal.index(forSlot: run * size + $0, nonce: 3, size: size) }).count, size)
       }
       let moment = Date(timeIntervalSince1970: 1_788_000_000)
       let after = CardDeal.nonceAfterTap(at: moment, nonce: 0, size: size)

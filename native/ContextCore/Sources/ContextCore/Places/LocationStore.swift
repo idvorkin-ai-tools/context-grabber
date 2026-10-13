@@ -103,35 +103,43 @@ public struct LocationStore {
   @discardableResult
   public func prune(retentionDays: Int, now: Double) throws -> Int {
     let before = try count()
-    try db.run("DELETE FROM locations WHERE timestamp < ?", [.double(Geo.pruneThreshold(retentionDays: retentionDays, now: now))])
+    try db.run(
+      "DELETE FROM locations WHERE timestamp < ?", [.double(Geo.pruneThreshold(retentionDays: retentionDays, now: now))]
+    )
     return before - (try count())
   }
 
   // MARK: - settings
 
   public func trackingEnabled() throws -> Bool {
-    try db.run("SELECT value FROM settings WHERE key = ?", [.text(Self.trackingKey)]).first?["value"]?.textValue == "true"
+    try db.run("SELECT value FROM settings WHERE key = ?", [.text(Self.trackingKey)]).first?["value"]?.textValue
+      == "true"
   }
 
   public func setTrackingEnabled(_ on: Bool) throws {
-    try db.run("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [.text(Self.trackingKey), .text(on ? "true" : "false")])
+    try db.run(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      [.text(Self.trackingKey), .text(on ? "true" : "false")])
   }
 
   /// The retention in days; a missing or unreadable value is 30, as in the old app.
   public func retentionDays() throws -> Int {
-    let text = try db.run("SELECT value FROM settings WHERE key = ?", [.text(Self.retentionKey)]).first?["value"]?.textValue
+    let text = try db.run("SELECT value FROM settings WHERE key = ?", [.text(Self.retentionKey)]).first?["value"]?
+      .textValue
     return text.flatMap { Int($0) }.flatMap { $0 > 0 ? $0 : nil } ?? Self.defaultRetentionDays
   }
 
   public func setRetentionDays(_ days: Int) throws {
-    try db.run("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [.text(Self.retentionKey), .text(String(days))])
+    try db.run(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [.text(Self.retentionKey), .text(String(days))])
   }
 
   // MARK: - known places
 
   /// By name, as the old app lists them.
   public func knownPlaces() throws -> [KnownPlace] {
-    try db.run("SELECT id, name, latitude, longitude, radius_meters FROM known_places ORDER BY name ASC").compactMap { row in
+    try db.run("SELECT id, name, latitude, longitude, radius_meters FROM known_places ORDER BY name ASC").compactMap {
+      row in
       guard let id = row["id"]?.intValue, let name = row["name"]?.textValue, let lat = row["latitude"]?.doubleValue,
         let lng = row["longitude"]?.doubleValue, let r = row["radius_meters"]?.doubleValue
       else { return nil }
@@ -152,7 +160,9 @@ public struct LocationStore {
     try db.run(
       "UPDATE known_places SET latitude = ?, longitude = ?, radius_meters = ? WHERE id = ?",
       [.double(circle.latitude), .double(circle.longitude), .double(circle.radiusMeters), .int(id)])
-    try db.run("DELETE FROM known_place_icons WHERE place_id = ? AND source != ?", [.int(id), .text(PlaceIconSource.chosen.rawValue)])
+    try db.run(
+      "DELETE FROM known_place_icons WHERE place_id = ? AND source != ?",
+      [.int(id), .text(PlaceIconSource.chosen.rawValue)])
   }
 
   public func deleteKnownPlace(id: Int64) throws {
@@ -206,7 +216,8 @@ public struct LocationStore {
     defer { try? db.execute("DETACH DATABASE src") }
     let tables: Set<String>
     do {
-      tables = Set(try db.run("SELECT name FROM src.sqlite_master WHERE type = 'table'").compactMap { $0["name"]?.textValue })
+      tables = Set(
+        try db.run("SELECT name FROM src.sqlite_master WHERE type = 'table'").compactMap { $0["name"]?.textValue })
     } catch let e as SQLiteError {
       throw ImportError.notADatabase(e.message)
     }
@@ -238,7 +249,8 @@ public struct LocationStore {
              AND NOT EXISTS (SELECT 1 FROM main.known_places m WHERE m.name = s.name)
            ORDER BY s.id
           """)
-        placesAdded = Int(try db.run("SELECT COUNT(*) AS n FROM main.known_places").first?["n"]?.intValue ?? 0) - placesBefore
+        placesAdded =
+          Int(try db.run("SELECT COUNT(*) AS n FROM main.known_places").first?["n"]?.intValue ?? 0) - placesBefore
       }
       try db.execute("COMMIT")
       return ImportResult(

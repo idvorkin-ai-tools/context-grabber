@@ -33,13 +33,15 @@ final class BridgeParseTests: XCTestCase {
   }
 
   func testEverySpellingOfSystemDefaultOnSetInputIsNil() {
-    for raw: [String: Any] in [["type": "audio.setInput"], ["type": "audio.setInput", "id": NSNull()],
-      ["type": "audio.setInput", "id": ""]]
-    {
+    for raw: [String: Any] in [
+      ["type": "audio.setInput"], ["type": "audio.setInput", "id": NSNull()],
+      ["type": "audio.setInput", "id": ""],
+    ] {
       XCTAssertEqual(AudioBridge.parse(msg(raw)), .audio(.setInput(id: nil, requestId: nil)))
     }
     XCTAssertEqual(
-      AudioBridge.parse(msg(["type": "audio.setInput", "id": "mic-bt"])), .audio(.setInput(id: "mic-bt", requestId: nil)))
+      AudioBridge.parse(msg(["type": "audio.setInput", "id": "mic-bt"])),
+      .audio(.setInput(id: "mic-bt", requestId: nil)))
   }
 
   func testIdIsAnAliasOfPortAndSetOutputNeedsADestination() {
@@ -47,7 +49,8 @@ final class BridgeParseTests: XCTestCase {
       AudioBridge.parse(msg(["type": "audio.setOutput", "id": "speaker"])),
       .audio(.setOutput(port: "speaker", requestId: nil)))
     XCTAssertEqual(
-      AudioBridge.parse(msg(["type": "audio.setOutput", "port": "auto"])), .audio(.setOutput(port: "auto", requestId: nil)))
+      AudioBridge.parse(msg(["type": "audio.setOutput", "port": "auto"])),
+      .audio(.setOutput(port: "auto", requestId: nil)))
     XCTAssertNil(AudioBridge.parse(msg(["type": "audio.setOutput"])))
   }
 
@@ -89,10 +92,12 @@ final class BridgePayloadTests: XCTestCase {
     XCTAssertEqual(payload["type"] as? String, "audio.devices")
     XCTAssertEqual(payload["requestId"] as? String, "r9")
     let inputs = payload["inputs"] as! [[String: String]]
-    XCTAssertEqual(inputs, [
-      ["id": "BuiltInMicrophoneBottom", "name": "iPhone Microphone", "type": "MicrophoneBuiltIn"],
-      ["id": "AC:12:34:56:78:9A-tacl", "name": "AirPods Pro", "type": "BluetoothHFP"],
-    ])
+    XCTAssertEqual(
+      inputs,
+      [
+        ["id": "BuiltInMicrophoneBottom", "name": "iPhone Microphone", "type": "MicrophoneBuiltIn"],
+        ["id": "AC:12:34:56:78:9A-tacl", "name": "AirPods Pro", "type": "BluetoothHFP"],
+      ])
     let current = payload["current"] as! [String: [String: String]]
     XCTAssertEqual(current["output"]?["id"], "speaker")
     XCTAssertEqual(
@@ -118,9 +123,11 @@ final class BridgePayloadTests: XCTestCase {
       AudioBridge.json(AudioBridge.readyPayload(available: true)),
       #"{"available":true,"platform":"ios","type":"audio.ready","version":1}"#)
     XCTAssertEqual(
-      AudioBridge.json(AudioBridge.errorPayload(op: "audio.setInput", message: "Input not available: x", requestId: "r3")),
+      AudioBridge.json(
+        AudioBridge.errorPayload(op: "audio.setInput", message: "Input not available: x", requestId: "r3")),
       #"{"message":"Input not available: x","op":"audio.setInput","requestId":"r3","type":"audio.error"}"#)
-    XCTAssertEqual(roundTrip(AudioBridge.errorPayload(op: "x", message: ""))["message"] as? String, "Unknown audio error")
+    XCTAssertEqual(
+      roundTrip(AudioBridge.errorPayload(op: "x", message: ""))["message"] as? String, "Unknown audio error")
   }
 }
 
@@ -148,7 +155,9 @@ private final class FakePage {
   @discardableResult
   func run(_ script: String) -> JavaScriptCore.JSValue? {
     let fn = context.evaluateScript("(function (window, CustomEvent) {\n\(script)\n})")
-    return fn?.call(withArguments: [context.objectForKeyedSubscript("win")!, context.objectForKeyedSubscript("CustomEvent")!])
+    return fn?.call(withArguments: [
+      context.objectForKeyedSubscript("win")!, context.objectForKeyedSubscript("CustomEvent")!,
+    ])
   }
 
   func eval(_ js: String) -> JavaScriptCore.JSValue { context.evaluateScript(js) }
@@ -179,10 +188,12 @@ final class BridgeScriptTests: XCTestCase {
       """)
     XCTAssertTrue(page.sent.allSatisfy { $0.hasPrefix("wk:") })
     // Round trip: what the injected helper emits is exactly what the app parses. Drift is the whole risk.
-    XCTAssertEqual(page.sent.map { AudioBridge.parse(String($0.dropFirst(3))) }, [
-      .audio(.listDevices(requestId: "a")), .audio(.setInput(id: "mic-bt", requestId: "b")),
-      .audio(.setOutput(port: "speaker", requestId: "c")), .audio(.getRoute(requestId: nil)), .callState(live: true),
-    ])
+    XCTAssertEqual(
+      page.sent.map { AudioBridge.parse(String($0.dropFirst(3))) },
+      [
+        .audio(.listDevices(requestId: "a")), .audio(.setInput(id: "mic-bt", requestId: "b")),
+        .audio(.setOutput(port: "speaker", requestId: "c")), .audio(.getRoute(requestId: nil)), .callState(live: true),
+      ])
   }
 
   func testAnExistingReactNativeWebViewIsLeftAlone() {
@@ -261,7 +272,8 @@ final class AudioRoutingTests: XCTestCase {
     let outputs = AudioRouting.outputs(availableInputs: [mic, pods], routeOutputs: [pods, a2dp, speakerPort])
     XCTAssertEqual(outputs.map(\.id), ["auto", "speaker", pods.id, a2dp.id])
     XCTAssertEqual(outputs[0].name, "Automatic")
-    XCTAssertEqual(AudioRouting.outputs(availableInputs: [mic], routeOutputs: [speakerPort]).map(\.id), ["auto", "speaker"])
+    XCTAssertEqual(
+      AudioRouting.outputs(availableInputs: [mic], routeOutputs: [speakerPort]).map(\.id), ["auto", "speaker"])
   }
 
   func testTheLiveSpeakerIsReportedUnderItsSyntheticId() {
@@ -271,13 +283,17 @@ final class AudioRoutingTests: XCTestCase {
   }
 
   func testOutputAliases() {
-    for raw in ["", "auto", "default", "none", "receiver", "Earpiece"] { XCTAssertEqual(AudioRouting.canonicalOutput(raw), "auto") }
+    for raw in ["", "auto", "default", "none", "receiver", "Earpiece"] {
+      XCTAssertEqual(AudioRouting.canonicalOutput(raw), "auto")
+    }
     XCTAssertEqual(AudioRouting.canonicalOutput("BuiltInSpeaker"), "speaker")
     XCTAssertEqual(AudioRouting.canonicalOutput(pods.id), pods.id)
   }
 
   func testOutputMoves() {
-    let move = { (raw: String) in AudioRouting.outputMove(for: raw, availableInputs: [mic, pods], routeOutputs: [self.a2dp]) }
+    let move = { (raw: String) in
+      AudioRouting.outputMove(for: raw, availableInputs: [mic, pods], routeOutputs: [self.a2dp])
+    }
     XCTAssertEqual(move("default"), .clearOverride)
     XCTAssertEqual(move("speaker"), .forceSpeaker)
     XCTAssertEqual(move(pods.id), .preferInput(uid: pods.id))
@@ -311,7 +327,9 @@ final class CockpitPageTests: XCTestCase {
   }
 
   func testJoinsAnExistingQueryAndKeepsTheRouteAfterIt() {
-    XCTAssertEqual(CockpitPage.taggedURL("https://h/?x=1#call/abc", build: "s"), "https://h/?x=1&client=context-grabber&v=s#call/abc")
+    XCTAssertEqual(
+      CockpitPage.taggedURL("https://h/?x=1#call/abc", build: "s"), "https://h/?x=1&client=context-grabber&v=s#call/abc"
+    )
     XCTAssertEqual(CockpitPage.taggedURL("https://h/#calls", build: "s"), "https://h/?client=context-grabber&v=s#calls")
   }
 

@@ -14,7 +14,13 @@
 import Foundation
 
 public enum Segment: Character, CaseIterable, Sendable {
-  case a = "a", b = "b", c = "c", d = "d", e = "e", f = "f", g = "g"
+  case a = "a"
+  case b = "b"
+  case c = "c"
+  case d = "d"
+  case e = "e"
+  case f = "f"
+  case g = "g"
 }
 
 public enum SevenSegment {

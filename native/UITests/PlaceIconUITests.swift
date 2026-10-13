@@ -10,7 +10,9 @@ final class PlaceIconUITests: XCTestCase {
     app.launchEnvironment["GRABBER_PLACES"] = "open,edit:Home"
     app.launch()
     let heart = app.buttons["icon-heart.fill"]
-    guard heart.waitForExistence(timeout: 20) else { throw XCTSkip("no known place called Home: import the fixture first") }
+    guard heart.waitForExistence(timeout: 20) else {
+      throw XCTSkip("no known place called Home: import the fixture first")
+    }
     XCTAssertTrue(app.staticTexts["Guessed from the name"].exists, app.debugDescription)
     heart.tap()
     XCTAssertTrue(app.staticTexts["Chosen"].waitForExistence(timeout: 5))
@@ -37,7 +39,8 @@ final class PlaceIconUITests: XCTestCase {
     XCTAssertTrue(gym.waitForExistence(timeout: 10), app.debugDescription)
     XCTAssertEqual(gym.value as? String, "kettlebell")
     if let shots = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] {
-      try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(shots)/place-kettlebell.png"))
+      try? XCUIScreen.main.screenshot().pngRepresentation.write(
+        to: URL(fileURLWithPath: "\(shots)/place-kettlebell.png"))
     }
   }
 }

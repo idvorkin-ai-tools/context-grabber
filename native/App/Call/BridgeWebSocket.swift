@@ -93,14 +93,16 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
 
   // MARK: - URLSessionWebSocketDelegate (on the main queue)
 
-  func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+  func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?)
+  {
     guard !gone else { return }
     opened = true
     onOpen?()
   }
 
   func urlSession(
-    _ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+    _ session: URLSession, webSocketTask: URLSessionWebSocketTask,
+    didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
     reason: Data?
   ) {
     finish("closed by the bridge (code \(closeCode.rawValue))")

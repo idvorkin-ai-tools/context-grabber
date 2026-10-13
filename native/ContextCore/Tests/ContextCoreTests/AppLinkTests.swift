@@ -57,7 +57,9 @@ final class AppLinkTests: XCTestCase {
   }
 
   func testAnUnknownPresetOpensTheTimerReady() {
-    for link in ["grabbernative://timer?preset=9min", "grabbernative://timer?preset=1,2", "grabbernative://timer?preset=a,b,c"] {
+    for link in [
+      "grabbernative://timer?preset=9min", "grabbernative://timer?preset=1,2", "grabbernative://timer?preset=a,b,c",
+    ] {
       XCTAssertEqual(route(link), .timer(TimerLink()), link)
       XCTAssertFalse(understood(link), link)
     }
@@ -106,9 +108,11 @@ final class AppLinkTests: XCTestCase {
 
   func testEachRouteIsWrittenAsOneLinkThatReadsBackToIt() {
     let routes: [AppRoute] = [
-      .home, .today, .places, .cockpit, .card(think: false), .card(think: true), .supermix, .call(via: nil), .call(via: .drill),
+      .home, .today, .places, .cockpit, .card(think: false), .card(think: true), .supermix, .call(via: nil),
+      .call(via: .drill),
       .timer(TimerLink()), .timer(TimerLink(start: true)), .timer(TimerLink(preset: "1min", start: true)),
-      .timer(TimerLink(preset: "2min")), .timer(TimerLink(custom: CustomPreset(work: 30, rest: 0, rounds: 4), start: true)),
+      .timer(TimerLink(preset: "2min")),
+      .timer(TimerLink(custom: CustomPreset(work: 30, rest: 0, rounds: 4), start: true)),
       .breathe(BreatheLink()), .breathe(BreatheLink(start: true)), .breathe(BreatheLink(minutes: 3, start: true)),
       .breathe(BreatheLink(breath: 7, minutes: 10, start: true)), .breathe(BreatheLink(minutes: 3)),
     ]
@@ -117,7 +121,8 @@ final class AppLinkTests: XCTestCase {
       XCTAssertTrue(link.hasPrefix("grabbernative://"), link)
       XCTAssertEqual(AppLink.parse(link), AppLink.Parsed(route: r, understood: true), link)
     }
-    XCTAssertEqual(AppLink.link(for: .timer(TimerLink(preset: "1min", start: true))), "grabbernative://timer?preset=1min")
+    XCTAssertEqual(
+      AppLink.link(for: .timer(TimerLink(preset: "1min", start: true))), "grabbernative://timer?preset=1min")
     XCTAssertEqual(
       AppLink.link(for: .breathe(BreatheLink(breath: 8, minutes: 5, start: true))),
       "grabbernative://breathe?breath=8&minutes=5")

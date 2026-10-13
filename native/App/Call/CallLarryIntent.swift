@@ -17,7 +17,8 @@ enum CallBackendOption: String, AppEnum {
 
 struct CallLarryIntent: AppIntent {
   static let title: LocalizedStringResource = "Call Larry"
-  static let description = IntentDescription("Start a voice call with Larry in Grabber Native. Keeps going when the phone locks.")
+  static let description = IntentDescription(
+    "Start a voice call with Larry in Grabber Native. Keeps going when the phone locks.")
   static let openAppWhenRun = true
 
   @Parameter(title: "Backend", description: "Leave blank for the remembered backend.")

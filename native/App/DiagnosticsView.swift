@@ -185,7 +185,9 @@ private struct TodayCard: View {
                 Text((card?.value ?? MirrorText.none).replacingOccurrences(of: " asleep", with: ""))
                   .font(.title3.weight(.semibold).monospacedDigit())
                   .lineLimit(1).minimumScaleFactor(0.6)
-                Text(key == .movement ? "Steps" : card?.label ?? key.rawValue).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                Text(key == .movement ? "Steps" : card?.label ?? key.rawValue).font(.caption2).foregroundStyle(
+                  .secondary
+                ).lineLimit(1)
               }
               .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -206,7 +208,9 @@ private struct HomeTile: View {
   @ObservedObject var model: AppModel
 
   var body: some View {
-    Button { row.open(model) } label: {
+    Button {
+      row.open(model)
+    } label: {
       // #284: the icon above a one- or two-word name.
       VStack(spacing: 6) {
         LauncherIcon(row: row, size: 36)

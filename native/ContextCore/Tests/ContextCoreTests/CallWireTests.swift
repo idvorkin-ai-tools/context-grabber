@@ -114,7 +114,8 @@ final class CallProtocolTests: XCTestCase {
     let fields: NSDictionary = [
       "lat": 47.6, "lon": -122.3, "accuracy_m": 12, "at": "2026-09-02T14:52:00.000Z", "place": "Home",
     ]
-    XCTAssertEqual(object(CallProtocol.startFrame(backend: .eleven, location: here))["location"] as? NSDictionary, fields)
+    XCTAssertEqual(
+      object(CallProtocol.startFrame(backend: .eleven, location: here))["location"] as? NSDictionary, fields)
     XCTAssertNil(object(CallProtocol.startFrame(backend: .eleven))["location"])
     let frame = NSMutableDictionary(dictionary: fields)
     frame["type"] = "location"
@@ -139,21 +140,27 @@ final class CallProtocolTests: XCTestCase {
 
   func testJunkAndEventsTheScreenDoesNotRenderAreNil() {
     for junk in [nil, "", "{nope", "[1]", "{\"text\":\"hi\"}"] { XCTAssertNil(CallProtocol.parse(junk)) }
-    for ignored in ["{\"type\":\"turn_metrics\",\"user_ms\":12}", "{\"type\":\"stt_ready\"}", "{\"type\":\"sessions\"}"] {
+    for ignored in [
+      "{\"type\":\"turn_metrics\",\"user_ms\":12}", "{\"type\":\"stt_ready\"}", "{\"type\":\"sessions\"}",
+    ] {
       XCTAssertNil(CallProtocol.parse(ignored))
     }
   }
 
   func testReadyCarriesTheOutputRateDefaultingTo24kForAnOldBridge() {
     XCTAssertEqual(
-      CallProtocol.parse("{\"type\":\"ready\",\"out_rate\":16000,\"backend\":\"eleven\",\"session\":\"abc\",\"tools\":[]}"),
+      CallProtocol.parse(
+        "{\"type\":\"ready\",\"out_rate\":16000,\"backend\":\"eleven\",\"session\":\"abc\",\"tools\":[]}"),
       .ready(outRate: 16000, backend: "eleven", session: "abc"))
     XCTAssertEqual(CallProtocol.parse("{\"type\":\"ready\"}"), .ready(outRate: 24000, backend: "", session: ""))
   }
 
   func testTranscriptsCaptionsControlAndEndings() {
     let cases: [(String, BridgeMessage)] = [
-      ("{\"type\":\"transcript\",\"who\":\"larry\",\"text\":\"Hello.\"}", .transcript(who: "larry", text: "Hello.", source: nil)),
+      (
+        "{\"type\":\"transcript\",\"who\":\"larry\",\"text\":\"Hello.\"}",
+        .transcript(who: "larry", text: "Hello.", source: nil)
+      ),
       (
         "{\"type\":\"transcript\",\"who\":\"igor\",\"text\":\"hi\",\"source\":\"typed\"}",
         .transcript(who: "igor", text: "hi", source: "typed")
@@ -191,7 +198,8 @@ final class CallProtocolTests: XCTestCase {
     XCTAssertEqual(CallProtocol.endingText(CallProtocol.connectionLost), "connection lost")
     XCTAssertEqual(CallProtocol.endingText(""), "session ended")
     XCTAssertEqual(CallProtocol.endingText(nil), "session ended")
-    XCTAssertEqual(CallProtocol.endingText("Gemini Live ended the session: 1011"), "Gemini Live ended the session: 1011")
+    XCTAssertEqual(
+      CallProtocol.endingText("Gemini Live ended the session: 1011"), "Gemini Live ended the session: 1011")
   }
 }
 
@@ -220,6 +228,7 @@ final class CallVoiceTests: XCTestCase {
     XCTAssertEqual(CallVoice.igor.frameFields(for: .gemini).voice, "")
     XCTAssertEqual(CallVoice.igor.frameFields(for: .openai).model, "")
     // The shape the bridge checks: 16–40 of [A-Za-z0-9_-].
-    XCTAssertNotNil(CallVoice.igor.frameFields(for: .eleven).voice.range(of: "^[A-Za-z0-9_-]{16,40}$", options: .regularExpression))
+    XCTAssertNotNil(
+      CallVoice.igor.frameFields(for: .eleven).voice.range(of: "^[A-Za-z0-9_-]{16,40}$", options: .regularExpression))
   }
 }

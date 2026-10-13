@@ -128,8 +128,10 @@ private struct Drum: View {
         LedDisplay(text: dial.format(below.value), color: dial.color, height: small)
           .opacity(below.value == dial.value ? 0 : 0.4)
         Spacer(minLength: 4)
-        Image(systemName: "chevron.up.chevron.down").font(.system(size: 11, weight: .bold)).foregroundStyle(label.opacity(0.6))
-          .padding(.bottom, 8)
+        Image(systemName: "chevron.up.chevron.down").font(.system(size: 11, weight: .bold)).foregroundStyle(
+          label.opacity(0.6)
+        )
+        .padding(.bottom, 8)
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .background(Color.black, in: RoundedRectangle(cornerRadius: 14))
@@ -150,7 +152,11 @@ private struct Drum: View {
             if !moved {
               // A tap: the upper third brings the smaller neighbour in, the lower third the larger.
               let third = geo.size.height / 3
-              if g.location.y < third { _ = dial.move(by: -1) } else if g.location.y > 2 * third { _ = dial.move(by: 1) }
+              if g.location.y < third {
+                _ = dial.move(by: -1)
+              } else if g.location.y > 2 * third {
+                _ = dial.move(by: 1)
+              }
             }
             onEnd(dial, moved ? "drag" : "tap")
             lastY = nil
@@ -271,20 +277,24 @@ private struct TwoHandleArc: View {
         .onEnded { _ in
           onEnd(grabbed == "work" ? work : rest, "arc")
           grabbed = nil
-        })
+        }
+    )
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("Work \(work.format(work.value)), rest \(rest.format(rest.value))")
     .accessibilityIdentifier("dial-arc")
   }
 
   private func ring(_ dial: DialValue, radius: CGFloat) -> some View {
-    let fraction = (TimerDials.arcAngle(value: dial.value, range: dial.range) - TimerDials.arcStart) / TimerDials.arcSweep
+    let fraction =
+      (TimerDials.arcAngle(value: dial.value, range: dial.range) - TimerDials.arcStart) / TimerDials.arcSweep
     let handle = TimerDials.arcAngle(value: dial.value, range: dial.range) * .pi / 180
     // SwiftUI's trim starts at 3 o'clock; turned so the sweep starts at lower left (0° = up, clockwise).
     return ZStack {
       Circle().trim(from: 0, to: 0.75).stroke(panel, style: StrokeStyle(lineWidth: 14, lineCap: .round))
-      Circle().trim(from: 0, to: 0.75 * fraction).stroke(dial.color.opacity(0.85), style: StrokeStyle(lineWidth: 14, lineCap: .round))
-        .shadow(color: dial.color.opacity(0.6), radius: 4)
+      Circle().trim(from: 0, to: 0.75 * fraction).stroke(
+        dial.color.opacity(0.85), style: StrokeStyle(lineWidth: 14, lineCap: .round)
+      )
+      .shadow(color: dial.color.opacity(0.6), radius: 4)
     }
     .rotationEffect(.degrees(135))
     .frame(width: radius * 2, height: radius * 2)

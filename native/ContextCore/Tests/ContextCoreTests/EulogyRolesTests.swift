@@ -15,8 +15,9 @@ final class EulogyRolesTests: XCTestCase {
     let tomorrow = calendar.date(from: DateComponents(year: 2026, month: 10, day: 9, hour: 0, minute: 1))!
     XCTAssertEqual(EulogyRoles.ofDay(morning, calendar: calendar), EulogyRoles.ofDay(night, calendar: calendar))
     XCTAssertNotEqual(EulogyRoles.ofDay(night, calendar: calendar), EulogyRoles.ofDay(tomorrow, calendar: calendar))
-    XCTAssertEqual(EulogyRoles.nextChange(after: night, calendar: calendar),
-                   calendar.date(from: DateComponents(year: 2026, month: 10, day: 9))!)
+    XCTAssertEqual(
+      EulogyRoles.nextChange(after: night, calendar: calendar),
+      calendar.date(from: DateComponents(year: 2026, month: 10, day: 9))!)
   }
 
   func testEachRoleOnceInAnyElevenDays() {

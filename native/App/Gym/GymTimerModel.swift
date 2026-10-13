@@ -130,7 +130,8 @@ final class GymTimerModel: ObservableObject {
       clock?.invalidate()
       clock = nil
       timer = engine.state
-      log.event("timer_pause", ["phase": timer.phase.rawValue, "round": timer.currentRound, "time_left": timer.timeLeft])
+      log.event(
+        "timer_pause", ["phase": timer.phase.rawValue, "round": timer.currentRound, "time_left": timer.timeLeft])
       return
     }
     let p = engine.profile

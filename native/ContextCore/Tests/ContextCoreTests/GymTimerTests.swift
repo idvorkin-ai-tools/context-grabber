@@ -300,7 +300,8 @@ final class CustomPresetTests: XCTestCase {
     XCTAssertEqual(CustomPreset.snap(3, step: 10, range: CustomPreset.workRange), 10)
     XCTAssertEqual(CustomPreset.snap(9999, step: 10, range: CustomPreset.workRange), 600)
     XCTAssertEqual(CustomPreset.snap(-5, step: 10, range: CustomPreset.restRange), 0)
-    XCTAssertEqual(CustomPreset(work: 95, rest: 301, rounds: 0).normalized, CustomPreset(work: 100, rest: 300, rounds: 1))
+    XCTAssertEqual(
+      CustomPreset(work: 95, rest: 301, rounds: 0).normalized, CustomPreset(work: 100, rest: 300, rounds: 1))
     XCTAssertEqual(CustomPreset.decode("{\"rounds\":99}"), CustomPreset(work: 60, rest: 10, rounds: 20))
   }
 

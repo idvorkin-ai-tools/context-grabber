@@ -16,7 +16,9 @@ final class HomeGridUITests: XCTestCase {
     reset.tap()
     app.buttons["home-settings-done"].tap()
 
-    let call = app.buttons["home-call"], timer = app.buttons["home-gym_timer"], breathe = app.buttons["home-breathe"]
+    let call = app.buttons["home-call"]
+    let timer = app.buttons["home-gym_timer"]
+    let breathe = app.buttons["home-breathe"]
     for _ in 0..<6 where !call.isHittable { app.swipeDown() }
     XCTAssertTrue(call.waitForExistence(timeout: 10), app.debugDescription)
     if let shots = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] {
@@ -35,7 +37,9 @@ final class HomeGridUITests: XCTestCase {
     XCTAssertEqual(places.frame.minX, call.frame.minX, accuracy: 2)
 
     // Recent and Random side by side (#285), and Settings alone on the last line, a tile like the rest (#286).
-    let recent = app.buttons["home-recent"], random = app.buttons["home-random"], settings = app.buttons["home-settings"]
+    let recent = app.buttons["home-recent"]
+    let random = app.buttons["home-random"]
+    let settings = app.buttons["home-settings"]
     for _ in 0..<8 where !(settings.exists && settings.isHittable) { app.swipeUp() }
     XCTAssertTrue(recent.exists && random.exists && settings.exists, app.debugDescription)
     XCTAssertEqual(recent.frame.midY, random.frame.midY, accuracy: 4, "Recent and Random share a line")

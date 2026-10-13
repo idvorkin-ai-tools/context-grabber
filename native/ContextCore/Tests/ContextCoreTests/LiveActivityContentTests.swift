@@ -91,7 +91,8 @@ final class BreatheActivityContentTests: XCTestCase {
     XCTAssertEqual([ready.secondsLeft, ready.stepSeconds], [2, 2])
     XCTAssertEqual(ready.key, "ready|running")
     let paused = LiveActivityContent(breath: plan, elapsed: -0.4, leadIn: 2, paused: true, finished: false)!
-    XCTAssertEqual([paused.title, paused.subtitle, paused.compactLabel], ["PAUSED", "Ready · Cycle 1 of 9", "PAUSED 1/9"])
+    XCTAssertEqual(
+      [paused.title, paused.subtitle, paused.compactLabel], ["PAUSED", "Ready · Cycle 1 of 9", "PAUSED 1/9"])
     XCTAssertEqual([paused.secondsLeft, paused.stepSeconds], [1, 2])
     XCTAssertEqual(paused.key, "ready|paused")
     XCTAssertEqual(at(0)!.key, "0|running")
@@ -120,7 +121,8 @@ final class BreatheActivityContentTests: XCTestCase {
     XCTAssertEqual(keys, ["0|running", "1|running", "2|running", "3|running"])
     let paused = at(66.5, paused: true)!
     XCTAssertEqual(paused.key, "8|paused")
-    XCTAssertEqual([paused.title, paused.subtitle, paused.compactLabel], ["PAUSED", "Inhale · Cycle 3 of 9", "PAUSED 3/9"])
+    XCTAssertEqual(
+      [paused.title, paused.subtitle, paused.compactLabel], ["PAUSED", "Inhale · Cycle 3 of 9", "PAUSED 3/9"])
     XCTAssertEqual(paused.secondsLeft, 6)
   }
 
