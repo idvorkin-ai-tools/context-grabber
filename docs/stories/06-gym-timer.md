@@ -407,13 +407,13 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 182:
 
-- **Summary:** Choose the voice that counts the workout
-- **Status:** native app only: implemented in [d6ce5b6](https://github.com/idvorkin/context-grabber/commit/d6ce5b6); verified by `just native-test` (`CountVoiceTests`), a simulator screenshot of the sheet, and `just native-test-sim`'s `voice: adam` check on its one run with working simulator audio (the `aussie` hook check is written but the Mac's audio was down for every later run, main's build included); hearing each voice and the sample on the phone still to be checked by Igor
+- **Summary:** Adam counts the workout until I choose otherwise
+- **Status:** native app only: implemented in [d6ce5b6](https://github.com/idvorkin/context-grabber/commit/d6ce5b6); verified by `just native-test` (`CountVoiceTests`) and `just native-test-sim`'s `voice: adam` check on its one run with working simulator audio; hearing Adam's count on the phone still to be checked by Igor
 
 #### Use Case:
 - **As a** lifter who hears the count from across the gym
-- **I want to** pick who calls *three, two, one, go* — Adam, my own voice, or an excited Australian woman
-- **so that** the count sounds the way I want to hear it today, without anything else about the timer changing
+- **I want to** hear a clear voice call *three, two, one, go* without setting anything up
+- **so that** the first workout counts out loud, and choosing another voice stays optional
 
 #### Acceptance Criteria:
 - **Scenario:** Adam by default
