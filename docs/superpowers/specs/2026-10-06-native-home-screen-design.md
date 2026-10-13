@@ -128,8 +128,9 @@ Order, hiding and Reset in Settings work as before.
 - The build, the log and *Report a problem* are reachable from the sheet, and a shake with the
   sheet up files a report.
 - A hidden journey still opens from its link, Shortcut or launch hook.
-- Every launcher under the Today card is a tile of the same look: the four two by two, a lone launcher one wide
-  tile, a pair two tiles side by side the width of the four's (#235).
+- Every launcher under the Today card and the strip is the same small tile, three to a line in the remembered
+  order, its icon above a short name; a last line with fewer than three keeps the tiles the same size, and
+  *Settings* is always the last tile (#284–#286).
 
 - The daily strip shows Gym, Meditation, Journal, Balloons and Magic in one line under the Today card. A tap checks Gym or
   Journal (a second tap unchecks). A tap adds a balloon or a trick, a long press takes one off, never below 0.
