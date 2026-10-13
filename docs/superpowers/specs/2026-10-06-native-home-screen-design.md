@@ -31,13 +31,13 @@ be hidden or moved, and where the diagnostics now live.
 ## What Igor sees
 
 **The home screen.** No title (Igor, 2026-10-06: *"Get rid of grabber native title"* — the phone already says
-which app this is, and the space goes to the rows), no bar across the top at all (*"Why dead space at the top of my screen"*), a
-cog button in the bottom right corner (*"cog in bottom corner if anywhere"*), and the launchers as large rows
+which app this is, and the space goes to the rows), no bar across the top at all (*"Why dead space at the top of my screen"*), the
+launchers and, after them, a *Settings* tile (a cog in the bottom right corner until #286), the launchers
 in Igor's order: Call Larry, Today, Gym Timer, Box breathing, Places, Think of a card, Cockpit until he changes
 it. No header or footer around them: the old *Ported so far* / *Everything else is still in Context Grabber*
 lines are gone, since every row is ported by definition. Anything that sits above the launchers in a later build
 (a strip, a summary) stays above them. When every launcher is hidden, the home screen says so in one quiet line
-and points at the cog.
+and points at Settings.
 
 **Not just a list** (Igor, 2026-10-07, #189: *"rework the home screen so it's not just a list"*; he chose the
 *Today first* layout). Under the usage strip and What's new:
@@ -47,22 +47,18 @@ and points at the cog.
   made, so opening the app never asks Health for anything; tapping the card opens Today, which grabs fresh. Before
   any grab the card says *Today — tap to look* and opens Today the same way. A number Health did not give is a dash,
   never 0.
-- **The first four launchers as tiles**, two by two, big enough to hit without looking: the first four of Igor's
-  order (Today itself is skipped, since the card is Today). Each tile is the launcher's icon beside its name, one
-  line tall, so the tiles take little height (Igor, 2026-10-08, #225: *"a little bit thinner so I have more
-  available vertical space"*); Call Larry's tile still shows a live call's state under its name.
-- **The rest as tiles too**, under the four, in the same order (Igor, iPad, 2026-10-10, #235: *"if I have two
-  things on a row, they should look like the two things at the top of the boxes so they're consistent"*). One
-  look for every launcher: a launcher alone on its line is one tile the width of two; a pair is two tiles side by
-  side, exactly like the four. No grouped list under the tiles. Two pairs share one line, half
-  each, when both are shown: **Exercise Analyzer** with **Workout Supermix**, and **Eulogy** with **Eulogy song**
-  (#225). The pair sits where the first of the two comes in Igor's order, in that order; hiding one gives the other
-  the whole line back. A pair member that is one of the four tiles stays a tile. In half a line the two long
-  names are short: *Analyzer* and *Supermix*.
+- **Three to a row** (Igor, 2026-10-11, reports #284–#286; superseding the four big tiles and the pairs of #225
+  and #235). Every launcher under the Today card and the strip is the same small tile, three to a line, in Igor's
+  order: its icon above a one- or two-word name (*"put three under a row, use shorter words plus the icon"*): Call,
+  Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random. So Recent and Random
+  sit side by side (#285). A hidden launcher closes the gap; a last line with fewer than three keeps the tiles the
+  same size. Call Larry's tile still shows a live call under its name. **Settings is the last tile** (#286:
+  *"settings can be a button now"*), always there and never hidden, since it is the way back to a hidden
+  launcher; the floating cog is gone.
 - **How a launcher looks** (Igor, 2026-10-08: *"Doesn't it look bad? … think about making it good via
   design"*): each launcher has its own colour, and only its icon carries it, as a white glyph on a small rounded
   square, the way Settings draws its rows. The names are in the ordinary text colour, one size for every row so
-  nothing shrinks to fit. The same icons are on the Today card and in the cog's list of launchers.
+  nothing shrinks to fit. The same icons are on the Today card and in Settings' list of launchers.
 
 **The daily strip** (Igor, iPad, 2026-10-10, #236: *"a little strip for things I want to do every day, like gym,
 and that can get a checkmark … an up/down counter somehow that's still small. I want this all in one strip"*;
@@ -77,8 +73,10 @@ means to do every day, each a glance and a tap.
   the last grab (any meditation app; the app's own breathing writes them too). A tap is the fallback, and a tap
   can be taken back; a check from breathing or Health stays. A session in another app shows once Today has grabbed,
   because opening the home screen asks Health nothing.
-- **Journal** — a check: a tap marks today written; another tap takes it back.
-- **Balloons** — a count of balloons made for others today: 🎈 and the number. A tap adds one; a long press takes
+- **Journal** — a check, shown as a pen signing (Igor, #287: a feather pen; the system has none, so the nearest
+  until one is drawn): a tap marks today written; another tap takes it back.
+- **Balloons** — a count of balloons made for others today, shown as a dog (Igor, #287: a balloon dog; the
+  system has none, so the nearest until one is drawn) and the number. A tap adds one; a long press takes
   one off (never below 0). A soft tick on each change.
 - **Magic** — the same counter, for magic done for others: 🪄 and the number.
 
@@ -86,13 +84,13 @@ Every item starts the day fresh at local midnight; the days before are kept, so 
 Larry, in the export: a later change, not this one). A tapped gym check can be taken back the same way as the
 journal's; a check that came from the timer or Health stays. Every change is in the session log (`ui`, action
 daily_strip, with the item and its new value), and so is each item turning green by itself (`daily_strip_auto`,
-with the item and where it came from). The strip can be hidden from the cog like a launcher.
+with the item and where it came from). The strip can be hidden from Settings like a launcher.
 
 Non-goals: choosing other items or adding new ones from the app, streaks, reminders, history charts.
 
-Order, hiding and Reset in the cog work as before: moving a launcher into the first four makes it a tile.
+Order, hiding and Reset in Settings work as before.
 
-**The cog** opens the **Home screen** sheet, with *Done* at the top right. It has two parts:
+**The Settings tile** (once the cog) opens the **Home screen** sheet, with *Done* at the top right. It has two parts:
 
 1. **Launchers** — every launcher, shown or hidden, in the current order, each with its icon, its name and a
    switch. A switch off hides that row from the home screen at once; on brings it back in the same place.
@@ -122,9 +120,9 @@ Order, hiding and Reset in the cog work as before: moving a launcher into the fi
 
 ## Acceptance criteria
 
-- The home screen shows only the launchers (and anything placed above them), with a cog in the bottom right corner and nothing above the first card but the status bar.
-- Hiding a row through the cog removes it from the home screen; after a relaunch it is still hidden.
-- Moving a row through the cog moves it on the home screen; after a relaunch the order holds.
+- The home screen shows only the launchers (and anything placed above them), with a Settings tile after them and nothing above the first card but the status bar.
+- Hiding a row through Settings removes it from the home screen; after a relaunch it is still hidden.
+- Moving a row through Settings moves it on the home screen; after a relaunch the order holds.
 - Reset brings back every row in the default order.
 - A launcher unknown to the remembered order shows at the end; a forgotten one does not break anything.
 - The build, the log and *Report a problem* are reachable from the sheet, and a shake with the

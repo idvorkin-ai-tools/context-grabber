@@ -66,43 +66,36 @@ final class HomeLayoutTests: XCTestCase {
     XCTAssertEqual(again, layout)
   }
 
-  /// Story 151: Today is the card, the next four the tiles, the rest rows.
-  func testTodayIsTheCardTheNextFourTilesTheRestRows() {
+  /// Story 151: Today is the card; every other launcher is a tile, in Igor's order (#284: three to a line).
+  func testTodayIsTheCardAndEveryOtherLauncherATile() {
     let a = HomeLayout(known: known, storedOrder: nil, storedHidden: nil).arrangement
     XCTAssertTrue(a.todayCard)
-    XCTAssertEqual(a.tiles, ["call", "gym_timer", "breathe", "places"])
-    XCTAssertEqual(a.rows, ["think_a_card", "cockpit"])
+    XCTAssertEqual(a.tiles, ["call", "gym_timer", "breathe", "places", "think_a_card", "cockpit"])
   }
 
-  func testHidingTodayDropsTheCardAndMovingARowUpMakesItATile() {
+  func testHidingTodayDropsTheCardAndTheOrderHolds() {
     let layout = HomeLayout(
       known: known, storedOrder: (["cockpit"] + known.filter { $0 != "cockpit" }).joined(separator: ","),
       storedHidden: "today")
     XCTAssertFalse(layout.arrangement.todayCard)
-    XCTAssertEqual(layout.arrangement.tiles.first, "cockpit")
-    XCTAssertEqual(layout.arrangement.rows, ["places", "think_a_card"])
+    XCTAssertEqual(layout.arrangement.tiles, ["cockpit", "call", "gym_timer", "breathe", "places", "think_a_card"])
   }
 
-  /// #225: the two pairs share a line where the first of them comes, in the pair's own order.
-  func testPairsShareALine() {
-    let rows = ["think_a_card", "eulogy_song", "exercise_analyzer", "cockpit", "eulogy", "recent", "workout_supermix"]
+  /// #284: three to a line; the last line holds what is left.
+  func testTilesGoThreeToALine() {
     XCTAssertEqual(
-      HomeLayout.lines(rows),
-      [["think_a_card"], ["eulogy", "eulogy_song"], ["exercise_analyzer", "workout_supermix"], ["cockpit"], ["recent"]])
+      HomeLayout.lines(["call", "gym_timer", "breathe", "places", "recent", "random", "settings"]),
+      [["call", "gym_timer", "breathe"], ["places", "recent", "random"], ["settings"]])
+    XCTAssertEqual(HomeLayout.lines([]), [])
   }
 
-  func testAPairWithOneHiddenOrATileIsOneRow() {
-    XCTAssertEqual(HomeLayout.lines(["exercise_analyzer", "eulogy"]), [["exercise_analyzer"], ["eulogy"]])
-  }
-
-  // #236: the daily strip sits under the Today card; it is never one of the tiles or rows, and hides like a row.
+  // #236: the daily strip sits under the Today card; it is never a tile, and hides like one.
   func testTheDailyStripIsNeverATile() {
-    var layout = HomeLayout(known: ["today", "daily_strip", "call", "gym_timer", "breathe", "places", "cockpit"],
+    var layout = HomeLayout(known: ["today", "daily_strip", "call", "gym_timer", "cockpit"],
       storedOrder: nil, storedHidden: nil)
     XCTAssertTrue(layout.arrangement.dailyStrip)
-    XCTAssertEqual(layout.arrangement.tiles, ["call", "gym_timer", "breathe", "places"])
+    XCTAssertEqual(layout.arrangement.tiles, ["call", "gym_timer", "cockpit"])
     layout.setShown("daily_strip", false)
     XCTAssertFalse(layout.arrangement.dailyStrip)
-    XCTAssertEqual(layout.arrangement.rows, ["cockpit"])
   }
 }

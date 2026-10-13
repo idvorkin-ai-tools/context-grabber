@@ -11,9 +11,12 @@ struct HomeRow: Identifiable {
   let icon: String
   /// The icon's square, the one colour a launcher carries; the name stays in the text colour.
   let color: Color
-  /// The name in half a line (#225), where the full one would be cut off.
+  /// The name on a tile, a third of a line (#284): one or two words.
   var short: String { Self.shortNames[id] ?? title }
-  private static let shortNames = ["exercise_analyzer": "Analyzer", "workout_supermix": "Supermix"]
+  private static let shortNames = [
+    "call": "Call", "gym_timer": "Timer", "breathe": "Breathe", "think_a_card": "Card", "exercise_analyzer": "Analyzer",
+    "workout_supermix": "Supermix", "eulogy_song": "Song",
+  ]
   let open: @MainActor (AppModel) -> Void
 
   static let all: [HomeRow] = [
@@ -47,8 +50,12 @@ struct HomeRow: Identifiable {
     },
   ]
 
+  /// #286: the home screen's last tile, always shown; not one of the launchers Settings arranges, since it is the
+  /// way back to them. Its id is the old cog's, so `home-settings` still finds it.
+  static let settings = HomeRow(id: "settings", title: "Settings", icon: "gearshape.fill", color: .gray) { $0.openHomeSettings() }
+
   static let ids = all.map(\.id)
-  private static let byID = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
+  private static let byID = Dictionary(uniqueKeysWithValues: (all + [settings]).map { ($0.id, $0) })
   static func row(_ id: String) -> HomeRow? { byID[id] }
 }
 

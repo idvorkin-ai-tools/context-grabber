@@ -6,9 +6,7 @@ final class ResetAudioUITests: XCTestCase {
   func testResetAudioShowsTheRouteBeforeAndAfter() throws {
     let app = XCUIApplication()
     app.launch()
-    let cog = app.buttons["home-settings"]
-    XCTAssertTrue(cog.waitForExistence(timeout: 15), app.debugDescription)
-    cog.tap()
+    app.openHomeSettings()
     let reset = app.buttons["home-reset-audio"]
     for _ in 0..<5 where !reset.isHittable { app.swipeUp() }
     XCTAssertTrue(reset.waitForExistence(timeout: 5), app.debugDescription)

@@ -14,9 +14,11 @@ struct DailyStripView: View {
         Image(systemName: "figure.mind.and.body").font(.system(size: 15))
       }
       check(.journal, label: "Journal", done: strip.value(.journal) > 0, note: nil) {
-        Image(systemName: "book.closed.fill").font(.system(size: 15))
+        // ponytail: #287 asks for a feather pen; SF Symbols has none, so `signature` until a custom symbol is drawn.
+        Image(systemName: "signature").font(.system(size: 15))
       }
-      counter(.balloons, label: "Balloons", icon: "balloon.fill", color: .pink)
+      // ponytail: #287 asks for a balloon dog; SF Symbols has none, so `dog.fill` until a custom symbol is drawn.
+      counter(.balloons, label: "Balloons", icon: "dog.fill", color: .pink)
       counter(.magic, label: "Magic", icon: "wand.and.sparkles", color: .purple)
     }
     .font(.subheadline.weight(.medium))

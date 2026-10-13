@@ -47,9 +47,7 @@ final class LinksUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     // The Links screen sits behind the home screen's cog (story 147).
-    let cog = app.buttons["home-settings"]
-    XCTAssertTrue(cog.waitForExistence(timeout: 10), app.debugDescription)
-    cog.tap()
+    app.openHomeSettings()
     let row = app.buttons["home-links"]
     for _ in 0..<5 where !row.isHittable { app.swipeUp() }
     XCTAssertTrue(row.waitForExistence(timeout: 10), app.debugDescription)
