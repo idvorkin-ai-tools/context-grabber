@@ -111,7 +111,7 @@ just test         # run tests
 - `just deploy` — standalone release build. App works without Mac, receives OTA updates.
 - `just build` — debug build. Requires `just dev` running for Metro. Faster iteration, no OTA.
 
-Requires Xcode, Apple ID for signing, Developer Mode on iPhone. Free Apple ID = 7-day app expiry.
+Requires Xcode, Apple ID for signing, Developer Mode on iPhone, and SwiftLint (`just setup` installs it and xcbeautify with Homebrew; `native/.swiftlint.yml` pins the version). Free Apple ID = 7-day app expiry.
 
 ### Maestro UI Testing
 ```bash
