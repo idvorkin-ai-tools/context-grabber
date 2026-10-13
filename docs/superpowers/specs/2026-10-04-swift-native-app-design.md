@@ -308,7 +308,9 @@ with these differences while the two apps live side by side:
 - **The detail sheets** are drawn with the system's charts: bars for counts, a line with each day's range for
   heart rate, HRV, resting heart rate and weight, the normalized three-line Movement chart, and for Sleep the
   stacked stages, the per-source tabs with *All*, the sleep debt against the target, the bedtime-and-wake chart
-  with its ±, the onset and gap tags, and a tapped night's zoom card. Heart Rate carries resting heart rate under
+  with its ± (time runs down the chart, so bedtime is the top line and wake the bottom one, and the gap
+  between them is the time in bed: a wider gap is a longer night; the time labels are whole hours, evenly
+  spaced; #307, #306), the onset and gap tags, and a tapped night's zoom card. Heart Rate carries resting heart rate under
   its chart.
 - **The exports are the current app's, byte for byte**, for the same Health data and the same accessory log:
   the summary is the same single line of JSON, the raw share the same indented JSON. The share sheet receives the
