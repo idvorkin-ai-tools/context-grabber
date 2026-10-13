@@ -446,18 +446,10 @@ struct ConsistencyChart: View {
 
   var body: some View {
     let stats = Sleep.consistency(nights, clock: clock)
-    let points: [ConsistencyPoint] = nights.flatMap { n -> [ConsistencyPoint] in
-      var out: [ConsistencyPoint] = []
-      if let b = n.bedtime.flatMap(parseISO) {
-        var m = Double(clock.hour(b) * 60 + clock.minute(b))
-        if m <= 12 * 60 { m += 24 * 60 }
-        out.append(ConsistencyPoint(date: n.date, kind: "Bedtime", minutes: m))
+    let points: [ConsistencyPoint] = Sleep.clockNights(nights, clock: clock).flatMap { n in
+      [("Bedtime", n.bedMinutes), ("Wake", n.wakeMinutes)].compactMap { kind, m in
+        m.map { ConsistencyPoint(date: n.date, kind: kind, minutes: $0) }
       }
-      if let w = n.wakeTime.flatMap(parseISO) {
-        out.append(
-          ConsistencyPoint(date: n.date, kind: "Wake", minutes: Double(clock.hour(w) * 60 + clock.minute(w)) + 24 * 60))
-      }
-      return out
     }
     VStack(alignment: .leading, spacing: 4) {
       Text("Bedtime and wake").font(.headline)
@@ -474,9 +466,10 @@ struct ConsistencyChart: View {
         .foregroundStyle(by: .value("Line", p.kind))
       }
       .chartXScale(domain: nights.map { String(MirrorText.dayRow($0.date).prefix(3)) + $0.date.suffix(2) })
-      .chartYScale(domain: .automatic(includesZero: false))
+      // #307: time runs down, so bedtime is the top line and the gap below it is the night (#306), in whole hours.
+      .chartYScale(domain: .automatic(includesZero: false, reversed: true))
       .chartYAxis {
-        AxisMarks { v in
+        AxisMarks(values: .stride(by: 120)) { v in
           AxisGridLine()
           AxisValueLabel {
             if let m = v.as(Double.self) {
