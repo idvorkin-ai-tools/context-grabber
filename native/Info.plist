@@ -6,6 +6,8 @@
 	<string>$(GIT_SHA)</string>
 	<key>BugKitCommit</key>
 	<string>$(BUGKIT_COMMIT)</string>
+	<key>BugKitRepositoryURL</key>
+	<string>https://github.com/idvorkin/context-grabber</string>
 	<key>GitBranch</key>
 	<string>$(GIT_BRANCH)</string>
 	<key>NSMicrophoneUsageDescription</key>

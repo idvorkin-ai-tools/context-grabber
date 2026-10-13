@@ -240,10 +240,10 @@ final class SleepTests: XCTestCase {
     for p in points.prefix(2) {
       XCTAssertLessThan(p.bedMinutes ?? .infinity, p.wakeMinutes ?? 0, "bedtime above wake")
     }
-    XCTAssertEqual(points[0].hoursInBed, 8)
-    XCTAssertEqual(points[1].hoursInBed, 5)
+    for (p, hours) in zip(points, [8.0, 5]) {
+      XCTAssertEqual((p.wakeMinutes ?? 0) - (p.bedMinutes ?? 0), hours * 60, "the gap is the time in bed")
+    }
     XCTAssertNil(points[2].bedMinutes)
-    XCTAssertNil(points[2].hoursInBed)
   }
 
   func testBundleAndDefaultSource() {

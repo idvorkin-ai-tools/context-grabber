@@ -31,9 +31,11 @@ struct DailyStripView: View {
       strip.refresh()
     }
     .onAppear { strip.refresh() }
-    .sheet(item: $backdating) { b in
-      BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, daysAgo: $0) }
-    }
+    .sheet(
+      item: $backdating, onDismiss: { longPressed = false },
+      content: { b in
+        BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, day: $0, daysAgo: $1) }
+      })
   }
 
   private var gymNote: String? {
@@ -132,7 +134,7 @@ private struct Backdate: Identifiable {
 private struct BackdateSheet: View {
   let label: String
   let today: String
-  let confirm: (Int) -> Void
+  let confirm: (String, Int) -> Void
   @Environment(\.dismiss) private var dismiss
   /// Today at the right end, two weeks back at the left; starts on yesterday.
   @State private var position = -1.0
@@ -164,7 +166,7 @@ private struct BackdateSheet: View {
         }
         ToolbarItem(placement: .confirmationAction) {
           Button("Confirm") {
-            confirm(daysAgo)
+            if let day = DailyStrip.day(daysAgo, before: today) { confirm(day, daysAgo) }
             dismiss()
           }
           .accessibilityIdentifier("strip-backdate-confirm")

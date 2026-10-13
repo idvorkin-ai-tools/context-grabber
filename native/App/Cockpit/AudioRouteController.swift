@@ -142,6 +142,18 @@ final class AudioRouteController {
     }
   }
 
+  /// Lets go of a remembered choice, so nothing is put back for it; with no choice left, stops watching the route.
+  func forget(input: Bool = true, output: Bool = true) {
+    if input {
+      desiredInput = nil
+      hasInputPreference = false
+    }
+    if output { desiredOutput = nil }
+    guard !hasInputPreference, desiredOutput == nil, let observer else { return }
+    NotificationCenter.default.removeObserver(observer)
+    self.observer = nil
+  }
+
   private func routeChanged(reason: String) {
     reassert()
     let snap = snapshot()

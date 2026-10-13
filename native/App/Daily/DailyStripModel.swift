@@ -83,10 +83,8 @@ final class DailyStripModel: ObservableObject {
   }
 
   /// #290: press and hold a check, slide to the day, Confirm: that day counts. It only marks; an earlier day is not
-  /// taken back here.
-  func mark(_ item: DailyItem, daysAgo: Int) {
-    refresh()  // the day may have turned since the sheet opened
-    guard let day = DailyStrip.day(daysAgo, before: today) else { return }
+  /// taken back here. The day is the one the sheet showed, even if midnight passed while it was open.
+  func mark(_ item: DailyItem, day: String, daysAgo: Int) {
     do {
       try store?.set(item, day: day, value: 1)
     } catch {

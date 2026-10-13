@@ -44,6 +44,8 @@ native_bundle := "com.idvorkin.grabbernative"
 native_sim_app := "native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app"
 native_device_app := "native/Build/Build/Products/Debug-iphoneos/GrabberNative.app"
 native_logs := "~/tmp/agent/grabber-logs"
+# BugKit's scripts at the pinned version, as SwiftPM checked them out (tests point it elsewhere).
+bugkit_scripts := "native/Build/SourcePackages/checkouts/bug-kit/scripts"
 
 # Every tracked native Swift file: the app, the package (its manifest too), the UI tests, the widgets.
 native_swift := "native/App native/ContextCore/Package.swift native/ContextCore/Sources native/ContextCore/Tests native/UITests native/Widgets native/Shared"
@@ -69,7 +71,9 @@ native-test: native-lint-format native-lint
     #!/usr/bin/env bash
     # pipefail: a failing suite must fail the recipe instead of hiding behind tail's exit 0.
     set -uo pipefail
-    cd native/ContextCore && swift test 2>&1 | grep -E "Test Suite 'All tests'|Executed|failed|error" | tail -20
+    (cd native/ContextCore && swift test 2>&1 | grep -E "Test Suite 'All tests'|Executed|failed|error" | tail -20) || exit 1
+    # The device build's signing path, with fakes: BugKit's screen-lock guard and "No Accounts" (bug-kit#53).
+    scripts/native/test-signing-guard.sh
 
 # GrabberNative.xcodeproj is generated from native/project.yml and not committed
 native-project:
@@ -107,7 +111,12 @@ native-build-device: _phone native-project
     #!/usr/bin/env bash
     set -uo pipefail
     mkdir -p ~/tmp/agent/locks
-    scripts/native/xcodebuild-log.sh build-device "BUILD SUCCEEDED" lockf ~/tmp/agent/locks/xcode-signing.lock xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
+    # BugKit's screen-lock guard (bug-kit#53, docs/ops/signing.md), from the pinned checkout so it matches the pin: a
+    # provisioning build never starts while the Mac is locked, and "No Accounts" fails the build (78) before an install.
+    guard="{{bugkit_scripts}}/signing-guard.sh"
+    xcodebuild -resolvePackageDependencies -project native/GrabberNative.xcodeproj -derivedDataPath native/Build -quiet || exit 1
+    [ -x "$guard" ] || { echo "no BugKit signing guard at $guard (BugKit 0.3.3 or later)" >&2; exit 69; }
+    scripts/native/xcodebuild-log.sh build-device "BUILD SUCCEEDED" lockf ~/tmp/agent/locks/xcode-signing.lock "$guard" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS,id={{native_device}}" \
       -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
       GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build

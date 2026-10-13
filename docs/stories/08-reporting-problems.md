@@ -154,8 +154,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 147:
 
 - **Summary:** The home screen holds only what I open, and Settings holds the rest
-- **Issues:** [#166](https://github.com/idvorkin/context-grabber/issues/166), [#286](https://github.com/idvorkin/context-grabber/issues/286), [#302](https://github.com/idvorkin/context-grabber/issues/302)
-- **Status:** native app: implemented in [80b7186](https://github.com/idvorkin/context-grabber/commit/80b7186) ([spec](../superpowers/specs/2026-10-06-native-home-screen-design.md)); verified by host tests (`HomeLayoutTests`) and on the simulator (`HomeSettingsUITests`: Cockpit hidden and Gym Timer moved to the top through the cog, both still so after a relaunch, Reset puts them back; the log's `ui` home_settings / home_rows lines; screenshots of the home screen and the sheet); the phone still to be checked by Igor; no title, verified by a simulator screenshot: [adfed5a](https://github.com/idvorkin/context-grabber/commit/adfed5a); no bar and the cog in the bottom corner [aa18183](https://github.com/idvorkin/context-grabber/commit/aa18183), verified by `HomeSettingsUITests` and a simulator screenshot; the cog becomes the last tile, *Settings* (#286): [e7948d8](https://github.com/idvorkin/context-grabber/commit/e7948d8), verified on the simulator by `HomeSettingsUITests`, `ResetAudioUITests`, `LinksUITests`, `WhatsNewStoryLinkUITests` and `WhatsNewSeenUITests` (each opens Settings from the tile) and a screenshot read by eye; the phone not yet; the launchers on their own page (#302): [e2dac70](https://github.com/idvorkin/context-grabber/commit/e2dac70), host-checked only (lint); `HomeSettingsUITests` and `HomeGridUITests` on the simulator in the next build turn
+- **Issues:** [#166](https://github.com/idvorkin/context-grabber/issues/166), [#286](https://github.com/idvorkin/context-grabber/issues/286), [#302](https://github.com/idvorkin/context-grabber/issues/302), [#303](https://github.com/idvorkin/context-grabber/issues/303)
+- **Status:** native app: implemented in [80b7186](https://github.com/idvorkin/context-grabber/commit/80b7186) ([spec](../superpowers/specs/2026-10-06-native-home-screen-design.md)); verified by host tests (`HomeLayoutTests`) and on the simulator (`HomeSettingsUITests`: Cockpit hidden and Gym Timer moved to the top through the cog, both still so after a relaunch, Reset puts them back; the log's `ui` home_settings / home_rows lines; screenshots of the home screen and the sheet); the phone still to be checked by Igor; no title, verified by a simulator screenshot: [adfed5a](https://github.com/idvorkin/context-grabber/commit/adfed5a); no bar and the cog in the bottom corner [aa18183](https://github.com/idvorkin/context-grabber/commit/aa18183), verified by `HomeSettingsUITests` and a simulator screenshot; the cog becomes the last tile, *Settings* (#286): [e7948d8](https://github.com/idvorkin/context-grabber/commit/e7948d8), verified on the simulator by `HomeSettingsUITests`, `ResetAudioUITests`, `LinksUITests`, `WhatsNewStoryLinkUITests` and `WhatsNewSeenUITests` (each opens Settings from the tile) and a screenshot read by eye; the phone not yet; the launchers on their own page (#302): [e2dac70](https://github.com/idvorkin/context-grabber/commit/e2dac70), host-checked only (lint); `HomeSettingsUITests` and `HomeGridUITests` on the simulator in the next build turn; the About page from BugKit 0.3.3 (#303): [2d99ac9](https://github.com/idvorkin/context-grabber/commit/2d99ac9), host-checked only (lint, `just native-test`); the built Info.plist and both links in the next build turn
 
 #### Use Case:
 - **As someone** who opens the native app to start a workout, a call or a breath, not to read its build number
@@ -183,6 +183,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I tap the Settings tile
 - **Then:** they are under *About and diagnostics* in the sheet, right under the *Launchers* row rather than below every launcher, and a shake with the sheet up still opens a report naming the screen *home_settings*
 
+
+- **Scenario:** Which build is this
+- **Given:** the Settings sheet is open
+- **When:** I tap *About*
+- **Then:** it shows Grabber Native, its version and build, the short commit it was built from and the repository, and tapping the commit opens that commit on GitHub
 
 - **Scenario:** No title
 - **Given:** the app is open on its home screen
