@@ -120,7 +120,7 @@ Calm and quiet, monochrome on near-black; nothing bright, nothing that counts a 
   stop on and the ends of its range under it. The summary sits on its own line between hairlines. The cue is three
   quiet choices, each with a small symbol; the chosen one is lit. Begin is a full-width white pill at the bottom.
 - **Session**: the circle has a little depth — slightly lighter at its centre than its edge — and the ring glows
-  softly, more as it closes. Time left sits small and dim under the circle.
+  softly, more as it closes. The time and cycles left sit small under the circle, in the word's white.
 - **Done**: the closed ring, small and still, over "Done", the session's length and cycles, and a quiet
   outlined "Back to start".
 
