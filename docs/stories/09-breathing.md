@@ -48,7 +48,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Know how long is left, and pause without losing my place
 - **Issues:** [#281](https://github.com/idvorkin/context-grabber/issues/281)
-- **Status:** implemented in [7c4fb37](https://github.com/idvorkin/context-grabber/commit/7c4fb37); verified by host tests (`BreathRunTests`: pause freezes, resume continues mid-step, the session's length is unchanged); pause moved into the circle in [2e68c97](https://github.com/idvorkin/context-grabber/commit/2e68c97), verified on the simulator (`just native-test-sim`: paused mid-inhale, nothing moved on) and a screenshot of the paused circle; the tap itself not yet on the phone
+- **Status:** implemented in [7c4fb37](https://github.com/idvorkin/context-grabber/commit/7c4fb37); verified by host tests (`BreathRunTests`: pause freezes, resume continues mid-step, the session's length is unchanged); pause moved into the circle in [2e68c97](https://github.com/idvorkin/context-grabber/commit/2e68c97), verified on the simulator (`just native-test-sim`: paused mid-inhale, nothing moved on) and a screenshot of the paused circle; the tap itself not yet on the phone; time and cycles left in white (#281): [efffedb](https://github.com/idvorkin/context-grabber/commit/efffedb), verified by `BreathPlanTests.testLeftCountsTimeAndCycles` (host); the screen in the next build turn
 
 #### Use Case:
 - **As someone** interrupted mid-breath
