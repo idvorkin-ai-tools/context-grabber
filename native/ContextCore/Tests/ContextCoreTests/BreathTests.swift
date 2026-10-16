@@ -73,6 +73,17 @@ final class BreathPlanTests: XCTestCase {
     XCTAssertEqual(plan.moment(at: 30).scale, 0.9, accuracy: 1e-9)
   }
 
+  /// #281: the time and the cycles left, counting the one under way.
+  func testLeftCountsTimeAndCycles() {
+    let plan = BreathPlan(breathSeconds: 8, sessionMinutes: 5)  // 9 cycles of 32 s
+    XCTAssertEqual(plan.cycles, 9)
+    XCTAssertEqual(plan.moment(at: 0).leftText, "4:48 left · 9 cycles")
+    XCTAssertEqual(plan.moment(at: 17).leftText, "4:31 left · 9 cycles")
+    XCTAssertEqual(plan.moment(at: 70).leftText, "3:38 left · 7 cycles")
+    XCTAssertEqual(plan.moment(at: 287.5).leftText, "0:01 left · 1 cycle")
+    XCTAssertEqual(plan.moment(at: 400).leftText, "0:00 left · 0 cycles")
+  }
+
   func testTimeLeftCountsDown() {
     let plan = BreathPlan(breathSeconds: 8, sessionMinutes: 5)
     XCTAssertEqual(plan.moment(at: 17).timeLeftText, "4:31 left")

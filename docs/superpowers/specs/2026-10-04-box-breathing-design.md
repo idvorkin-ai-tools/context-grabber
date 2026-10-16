@@ -61,8 +61,9 @@ A near-black screen with one dark circle in the middle and a white ring that dra
 | Exhale | un-draws from the top back down to the bottom | shrinks to 90% | falling |
 | Hold | gone; the bar fills left to right | 90% | soft tick |
 
-- The step's word — **Inhale**, **Hold**, **Exhale**, **Hold** — is in the circle. Under the circle, small and
-  dim: **"4:31 left"**.
+- The step's word — **Inhale**, **Hold**, **Exhale**, **Hold** — is in the circle. Under the circle, small, in
+  the same white as the word (Igor, #281: *"indicate time and count remaining in that same white color"*): the
+  time and the cycles left, counting the one under way: **"4:31 left · 12 cycles"**, **"0:08 left · 1 cycle"**.
 - The circle's size eases in and out, as a breath does. The ring and the bar move at a constant rate, so they
   read as time.
 - With **Voice**, a calm woman's voice with an Australian accent says "Let's begin", then "Breathe in", "Hold",

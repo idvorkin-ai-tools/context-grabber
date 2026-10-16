@@ -154,7 +154,7 @@ public struct BreathPlan: Equatable, Sendable {
     guard elapsed < total else {
       return BreathMoment(
         phase: .holdEmpty, phaseIndex: cycles * 4, cycle: cycles, phaseProgress: 1, ring: 0, scale: 0.9,
-        secondsLeft: 0, done: true)
+        secondsLeft: 0, cyclesLeft: 0, done: true)
     }
     let t = max(0, elapsed)
     let cycleIndex = Int(t / Double(cycleSeconds))
@@ -185,7 +185,7 @@ public struct BreathPlan: Equatable, Sendable {
     }
     return BreathMoment(
       phase: phase, phaseIndex: index, cycle: index / 4 + 1, phaseProgress: progress, ring: ring,
-      scale: 0.9 + 0.1 * fill, secondsLeft: totalSeconds - Int(t), done: false)
+      scale: 0.9 + 0.1 * fill, secondsLeft: totalSeconds - Int(t), cyclesLeft: cycles - index / 4, done: false)
   }
 }
 
@@ -202,10 +202,14 @@ public struct BreathMoment: Equatable, Sendable {
   /// The circle's size, 0.9…1.
   public let scale: Double
   public let secondsLeft: Int
+  /// The cycles still to breathe, the one under way included; 0 once done.
+  public let cyclesLeft: Int
   public let done: Bool
 
   /// "4:31 left"
   public var timeLeftText: String { String(format: "%d:%02d left", secondsLeft / 60, secondsLeft % 60) }
+  /// #281, under the circle: "4:31 left · 7 cycles", "0:08 left · 1 cycle".
+  public var leftText: String { "\(timeLeftText) · \(cyclesLeft) \(cyclesLeft == 1 ? "cycle" : "cycles")" }
 }
 
 public enum BreathEffect: Equatable, Sendable {
