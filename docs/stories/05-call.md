@@ -241,7 +241,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 092:
 
 - **Summary:** The call tells Larry where I am
-- **Status:** implemented in [b88f34e](https://github.com/idvorkin/context-grabber/commit/b88f34e); verified by `callLocation.test.ts` and on the phone; native app: waits for step 5 (no locations or known places in the native app yet); the start and location frames are ported and tested in `CallSessionLocationTests`
+- **Status:** implemented in [b88f34e](https://github.com/idvorkin/context-grabber/commit/b88f34e); verified by `callLocation.test.ts` and on the phone; native app: wired once Places shipped (#107): [23ff3f2](https://github.com/idvorkin/context-grabber/commit/23ff3f2), verified by `CallLocationTests` (host); the Diagnostics line on a real call in the next build turn; the start and location frames are ported and tested in `CallSessionLocationTests`
 
 #### Use Case:
 - **As a** Larry's client calling from the walk to school

@@ -3,6 +3,7 @@
 import BugKit
 import Combine
 import ContextCore
+import CoreLocation
 import SwiftUI
 
 @MainActor
@@ -19,6 +20,8 @@ final class AppModel: ObservableObject {
   // swiftlint:disable:next implicitly_unwrapped_optional
   private(set) var reporter: BugReporter!
   private var reporterStatus: AnyCancellable?
+  /// #107: the tracker's fixes, passed to a live call.
+  private var callLocationWatch: AnyCancellable?
 
   /// The screen in front, as a report and the log name it. Each ported journey sets it when it appears.
   @Published var screen = "home"
@@ -106,7 +109,15 @@ final class AppModel: ObservableObject {
     reporter = makeReporter()
     Task { [delivery] in await delivery.start() }
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
-    call.willStart = { [weak self] in self?.eulogySong.yield(to: "call") }
+    call.willStart = { [weak self] in
+      self?.eulogySong.yield(to: "call")
+      self?.locateForCall()
+    }
+    // #107: a move during a call goes up too; CallModel sends only the significant ones.
+    callLocationWatch = tracker.$you.compactMap { $0 }.sink { [weak self] fix in
+      guard let self, self.call.snapshot.isActive else { return }
+      self.call.offerLocation(fix, knownPlaces: self.knownPlacesForCall())
+    }
     // Story 248: a troubled call's log as an automatic report, for the Mac's listener to file.
     call.autoReport = { [weak self] reason, context, files in
       self?.reporter.autoReport(reason: reason, context: context, files: files)
@@ -290,6 +301,20 @@ final class AppModel: ObservableObject {
       .sink { [weak self] in self?.status = $0 }
     return reporter
   }
+
+  /// #107: the call starts with where Igor is. Only with permission already given: a call never prompts for it.
+  private func locateForCall() {
+    guard [.authorizedWhenInUse, .authorizedAlways].contains(tracker.authorization) else { return }
+    if let you = tracker.you, -you.timestamp.timeIntervalSinceNow < 60 {
+      call.offerLocation(you, knownPlaces: knownPlacesForCall())
+    }
+    tracker.requestFix(reason: "call") { [weak self] fix in
+      guard let self, let fix, self.call.snapshot.isActive else { return }
+      self.call.offerLocation(fix, knownPlaces: self.knownPlacesForCall())
+    }
+  }
+
+  private func knownPlacesForCall() -> [KnownPlace] { (try? database.locations?.knownPlaces()) ?? [] }
 
   /// Settings' *Report a problem*.
   func startBugReport(from source: String) {

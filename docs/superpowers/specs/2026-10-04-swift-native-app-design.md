@@ -268,8 +268,11 @@ differences while the two apps live side by side:
   it; *Output* lists Automatic, Speaker and any headset. The one in use is checked. A pick moves the call within
   two seconds without dropping it, holds if the route moves under it later in the call, and is handed back to
   iOS when the call ends. Before a call the line only names the route; the menu belongs to a live call.
-- **Where Igor is (story 092) waits for step 5**, when the native app has locations and known places. Until
-  then the call carries no location.
+- **Where Igor is (story 092, #107)**, now that Places has shipped: a call asks for a fresh fix as it starts, and
+  the fix, named for the known place it falls inside when there is one, goes up with the call. Each significant move
+  during the call sends one more: a different known place, or 200 m from the last one sent. Standing still sends
+  none. Diagnostics shows each one (*location: Home (±12 m)*). Without location permission the call simply carries
+  none.
 - **Prime audio is not ported.** It was an experiment for the silent first call in the React Native audio
   engine (#88); the native call builds its audio the same way every time.
 - **No gist.** A call that went wrong files an automatic report on the phone: the call's log, why, and the session
