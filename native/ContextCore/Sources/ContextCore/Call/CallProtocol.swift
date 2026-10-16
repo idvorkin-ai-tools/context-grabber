@@ -67,6 +67,28 @@ public struct CallLocation: Equatable, Sendable {
     self.place = place
   }
 
+  /// A move worth a frame (#107): a different known place, or this far from the last fix sent.
+  public static let significantMoveMeters = 200.0
+
+  /// A fix as the call sends it: six decimals, accuracy rounded (iOS's negative means none), named for the known
+  /// place it falls inside.
+  public static func fix(
+    lat: Double, lon: Double, accuracy: Double?, at: Date, knownPlaces: [KnownPlace]
+  ) -> CallLocation {
+    let place = KnownPlaces.match(latitude: lat, longitude: lon, in: knownPlaces).map { knownPlaces[$0.index].name }
+    return CallLocation(
+      lat: (lat * 1e6).rounded() / 1e6, lon: (lon * 1e6).rounded() / 1e6,
+      accuracyM: accuracy.flatMap { $0 >= 0 ? Int($0.rounded()) : nil },
+      at: isoString(at.timeIntervalSince1970 * 1000), place: place)
+  }
+
+  /// True when `next` deserves a frame after `previous`: the first fix, a different place, or 200 m away.
+  public static func isSignificantMove(from previous: CallLocation?, to next: CallLocation) -> Bool {
+    guard let previous else { return true }
+    if previous.place != next.place { return true }
+    return Geo.distance(previous.lat, previous.lon, next.lat, next.lon) >= significantMoveMeters
+  }
+
   /// What rides the wire — the bridge's snake_case for the accuracy.
   var fields: [String: Any] {
     ["lat": lat, "lon": lon, "accuracy_m": accuracyM ?? NSNull(), "at": at, "place": place ?? NSNull()]

@@ -6,6 +6,7 @@
 import AVFoundation
 import BugKit
 import ContextCore
+import CoreLocation
 import Security
 import SwiftUI
 import UIKit
@@ -15,6 +16,8 @@ final class CallModel: ObservableObject {
   @Published private(set) var snapshot = CallSnapshot()
   @Published private(set) var level = 0.0
   @Published private(set) var route = ""
+  /// #107: the last fix this call sent, so only a significant move sends another.
+  private var sentLocation: CallLocation?
   /// Story 086, #293: the microphones and outputs the devices menu offers, and what was picked this call (nil: iOS).
   @Published private(set) var devices: AudioRouteSnapshot?
   @Published private(set) var chosenInput: String?
@@ -100,6 +103,7 @@ final class CallModel: ObservableObject {
   var willStart: (() -> Void)?
 
   func start(from source: String) {
+    sentLocation = nil
     willStart?()
     log.event("ui", ["action": "call", "from": source, "backend": backend.rawValue, "voice": voice.rawValue])
     session.start(backend, voice: voice)
@@ -140,6 +144,19 @@ final class CallModel: ObservableObject {
       releaseDevices()
       onEnded()
     }
+  }
+
+  // MARK: - where Igor is (story 092, #107)
+
+  /// A fix from the location tracker: before the socket opens it rides the start frame, afterwards it goes as its own
+  /// frame, and only when it is a significant move from the last one sent (a different known place, or 200 m).
+  func offerLocation(_ fix: CLLocation, knownPlaces: [KnownPlace]) {
+    let location = CallLocation.fix(
+      lat: fix.coordinate.latitude, lon: fix.coordinate.longitude, accuracy: fix.horizontalAccuracy,
+      at: fix.timestamp, knownPlaces: knownPlaces)
+    guard CallLocation.isSignificantMove(from: sentLocation, to: location) else { return }
+    sentLocation = location
+    session.setLocation(location)
   }
 
   // MARK: - the devices menu (story 086, #293)
