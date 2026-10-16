@@ -74,6 +74,8 @@ native-test: native-lint-format native-lint
     (cd native/ContextCore && swift test 2>&1 | grep -E "Test Suite 'All tests'|Executed|failed|error" | tail -20) || exit 1
     # The device build's signing path, with fakes: BugKit's screen-lock guard and "No Accounts" (bug-kit#53).
     scripts/native/test-signing-guard.sh
+    # #279: every breathing clip ends in silence, not on a click.
+    scripts/native/test-breath-clips.py
 
 # GrabberNative.xcodeproj is generated from native/project.yml and not committed
 native-project:
