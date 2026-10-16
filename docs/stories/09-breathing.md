@@ -47,6 +47,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 162:
 
 - **Summary:** Know how long is left, and pause without losing my place
+- **Issues:** [#281](https://github.com/idvorkin/context-grabber/issues/281)
 - **Status:** implemented in [7c4fb37](https://github.com/idvorkin/context-grabber/commit/7c4fb37); verified by host tests (`BreathRunTests`: pause freezes, resume continues mid-step, the session's length is unchanged); pause moved into the circle in [2e68c97](https://github.com/idvorkin/context-grabber/commit/2e68c97), verified on the simulator (`just native-test-sim`: paused mid-inhale, nothing moved on) and a screenshot of the paused circle; the tap itself not yet on the phone
 
 #### Use Case:
@@ -60,6 +61,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I tap the circle
 - **Then:** the circle shows a play mark, "Paused" and "tap to resume", and the ring, the circle and "4:44 left" do not move for as long as it stays paused; VoiceOver reads the circle as a "Pause" button while running and "Resume" while paused
 
+
+- **Scenario:** How much is left, at a glance
+- **Given:** a 9-cycle session in its third cycle with 4:31 to go
+- **When:** I look under the circle
+- **Then:** it reads "4:31 left · 7 cycles" in the same white as the word in the circle, and on the last cycle "1 cycle"
 ---
 
 ### User Story 163:
