@@ -389,8 +389,9 @@ private struct BreatheSession: View {
             .accessibilityLabel(model.paused ? "Resume" : "Pause")
             .accessibilityValue(model.paused ? "Paused" : word)
             .accessibilityIdentifier("breathe-pause")
-            Text(moment.timeLeftText)
-              .font(.system(size: 12)).monospacedDigit().tracking(0.6).foregroundStyle(Ink.faint)
+            // #281: the time and the cycles left, in the same white as the word in the circle.
+            Text(moment.leftText)
+              .font(.system(size: 12)).monospacedDigit().tracking(0.6).foregroundStyle(Ink.text)
               .accessibilityIdentifier("breathe-left")
             Spacer()
             Spacer().frame(height: 44)  // balances the back row, so the circle sits at the true centre
