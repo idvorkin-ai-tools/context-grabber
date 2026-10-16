@@ -7,7 +7,8 @@
 # Overrides: VOICE_ID (default "Her - A calm gently spoken Australian female" from the ElevenLabs library,
 # added to Igor's account 2026-10-04), MODEL (default eleven_v3, which reads the [bracketed] direction and does
 # not say it), VOICE and RATE for the `say` path. Silence before and after each phrase is trimmed (ffmpeg), so
-# a phrase starts when its step does.
+# a phrase starts when its step does; each then fades out over 80 ms into 50 ms of silence, so none ends on a
+# click (#279).
 # Spec: docs/superpowers/specs/2026-10-04-box-breathing-design.md
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -45,7 +46,7 @@ for entry in "${PHRASES[@]}"; do
         -X POST "https://api.elevenlabs.io/v1/text-to-speech/$VOICE_ID?output_format=mp3_44100_128" \
         -H "xi-api-key: $ELEVEN_API_KEY" -H "Content-Type: application/json" -H "Accept: audio/mpeg" -d "$body")
       if [ "$http" != "200" ]; then echo "ElevenLabs said $http for \"$text\": $(head -c 300 "$tmp/$name.$take.mp3")" >&2; exit 1; fi
-      ffmpeg -loglevel error -y -i "$tmp/$name.$take.mp3" -af "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,afade=t=in:d=0.02" -ar 44100 -ac 1 -c:a pcm_s16le "$tmp/$name.$take.wav"
+      ffmpeg -loglevel error -y -i "$tmp/$name.$take.mp3" -af "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,afade=t=in:d=0.02,areverse,afade=t=in:d=0.08,areverse,apad=pad_dur=0.05" -ar 44100 -ac 1 -c:a pcm_s16le "$tmp/$name.$take.wav"
       gap=$(python3 -c 'import sys,wave; w=wave.open(sys.argv[1]); print(abs(w.getnframes()/w.getframerate()-float(sys.argv[2])))' "$tmp/$name.$take.wav" "$want")
       if python3 -c 'import sys; sys.exit(0 if float(sys.argv[1]) < float(sys.argv[2]) else 1)' "$gap" "$best_gap"; then best=$take; best_gap=$gap; fi
     done
@@ -53,7 +54,8 @@ for entry in "${PHRASES[@]}"; do
     echo "$name.wav  (ElevenLabs $VOICE_ID: \"$text\")"
   else
     say -v "${VOICE:-Karen}" -r "${RATE:-$rate}" -o "$tmp/$name.aiff" "$text"
-    afconvert -f WAVE -d LEI16@44100 -c 1 "$tmp/$name.aiff" "$out/$name.wav"
+    afconvert -f WAVE -d LEI16@44100 -c 1 "$tmp/$name.aiff" "$tmp/$name.wav"
+    ffmpeg -loglevel error -y -i "$tmp/$name.wav" -af "areverse,afade=t=in:d=0.08,areverse,apad=pad_dur=0.05" -c:a pcm_s16le "$out/$name.wav"
     echo "$name.wav  (${VOICE:-Karen}: \"$text\")"
   fi
 done

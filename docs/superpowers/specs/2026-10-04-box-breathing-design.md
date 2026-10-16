@@ -155,6 +155,7 @@ ahead of time by an ElevenLabs voice: a calm, gently spoken Australian woman, sl
 few takes of each phrase. Rendered without an ElevenLabs key, the Mac's Australian voice (Karen) stands in. If a
 file is ever missing, the phone's own Australian voice says the phrase instead. The longest phrase, "Let's
 begin", fits inside the two-second lead-in.
+Each phrase fades out into silence at its end, so nothing clicks or crackles as it stops (#279).
 
 ## Edge cases
 
@@ -176,6 +177,7 @@ begin", fits inside the two-second lead-in.
   the ring continues from where it stopped, the inhale is not announced again, and the session's own length is
   unchanged. There is no pause button anywhere else on the screen.
 - With Voice, each phrase is heard at the start of its step, in aeroplane mode, and over playing music.
+- No phrase ends on a click or a burst of noise: the last moment of every clip is silent (#279).
 - The cue choice and both sliders are as left after quitting and reopening the app.
 - Finish a 2-minute session: Health shows a 2-minute Mindful Session ending when Done appeared. Leave a session
   with Back after 90 seconds of breathing: Health shows 1 min 30 s; leave after 40 seconds: nothing is saved.

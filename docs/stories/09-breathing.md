@@ -101,7 +101,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 165:
 
 - **Summary:** Be talked through it by a calm voice
-- **Status:** implemented in [7c4fb37](https://github.com/idvorkin/context-grabber/commit/7c4fb37) with the Mac's Australian voice (Karen); the bundled clips since re-rendered with an ElevenLabs calm, gently spoken Australian woman's voice (eleven_v3, best of four takes) in [2e68c97](https://github.com/idvorkin/context-grabber/commit/2e68c97); verified on the simulator (`just native-test-sim`: clips found and played); not yet heard on the phone
+- **Issues:** [#279](https://github.com/idvorkin/context-grabber/issues/279)
+- **Status:** implemented in [7c4fb37](https://github.com/idvorkin/context-grabber/commit/7c4fb37) with the Mac's Australian voice (Karen); the bundled clips since re-rendered with an ElevenLabs calm, gently spoken Australian woman's voice (eleven_v3, best of four takes) in [2e68c97](https://github.com/idvorkin/context-grabber/commit/2e68c97); verified on the simulator (`just native-test-sim`: clips found and played); not yet heard on the phone; the clips fade out instead of clicking (#279): [b411e50](https://github.com/idvorkin/context-grabber/commit/b411e50), verified by `scripts/native/test-breath-clips.py` (host); listening on the phone in the next build turn
 
 #### Use Case:
 - **As someone** who finds tones clinical
