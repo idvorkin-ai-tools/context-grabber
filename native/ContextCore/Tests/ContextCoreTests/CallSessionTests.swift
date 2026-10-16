@@ -545,6 +545,25 @@ final class CallSessionLocationTests: XCTestCase {
     t.session.setLocation(home)
     XCTAssertEqual(t.socket.texts.count, before)
   }
+
+  func testACallsFixDoesNotRideTheNextCallUnlessGivenAgain() {
+    let t = CallHarness()
+    t.goLive(.eleven)
+    t.session.setLocation(home)
+    t.session.stop()
+    var next = t.nextSocket()
+    t.session.clearLocation()
+    t.session.start(.eleven)
+    next.open()
+    XCTAssertNil(next.frames[0]["location"])
+    t.session.stop()
+    next = t.nextSocket()
+    t.session.clearLocation()
+    t.session.setLocation(school)
+    t.session.start(.eleven)
+    next.open()
+    XCTAssertEqual((next.frames[0]["location"] as? [String: Any])?["lat"] as? Double, 47.61)
+  }
 }
 
 final class CallSessionControlsTests: XCTestCase {

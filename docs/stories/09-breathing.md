@@ -57,15 +57,10 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** Pause and resume
-- **Given:** a session halfway through an inhale, showing "4:44 left", with a faint pause mark low in the circle and no pause button anywhere else
+- **Given:** a 9-cycle session halfway through an inhale in its third cycle, showing "4:31 left · 7 cycles" in the same white as the word in the circle (on the last cycle, "1 cycle"), with a faint pause mark low in the circle and no pause button anywhere else
 - **When:** I tap the circle
-- **Then:** the circle shows a play mark, "Paused" and "tap to resume", and the ring, the circle and "4:44 left" do not move for as long as it stays paused; VoiceOver reads the circle as a "Pause" button while running and "Resume" while paused
+- **Then:** the circle shows a play mark, "Paused" and "tap to resume", and the ring, the circle and "4:31 left · 7 cycles" do not move for as long as it stays paused; VoiceOver reads the circle as a "Pause" button while running and "Resume" while paused
 
-
-- **Scenario:** How much is left, at a glance
-- **Given:** a 9-cycle session in its third cycle with 4:31 to go
-- **When:** I look under the circle
-- **Then:** it reads "4:31 left · 7 cycles" in the same white as the word in the circle, and on the last cycle "1 cycle"
 ---
 
 ### User Story 163:

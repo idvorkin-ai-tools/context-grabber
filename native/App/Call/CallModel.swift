@@ -104,6 +104,7 @@ final class CallModel: ObservableObject {
 
   func start(from source: String) {
     sentLocation = nil
+    session.clearLocation()
     willStart?()
     log.event("ui", ["action": "call", "from": source, "backend": backend.rawValue, "voice": voice.rawValue])
     session.start(backend, voice: voice)

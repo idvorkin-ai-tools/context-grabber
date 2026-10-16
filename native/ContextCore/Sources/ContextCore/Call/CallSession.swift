@@ -281,12 +281,16 @@ public final class CallSession {
   }
 
   /// Where Igor is (#107). Before the socket opens it waits for the start frame; once open, while connecting or
-  /// live, it goes as its own frame. Idle or ended, it is remembered for the next call.
+  /// live, it goes as its own frame. Idle or ended, it waits for the next call's start frame, unless
+  /// `clearLocation` forgets it first.
   public func setLocation(_ location: CallLocation) {
     self.location = location
     guard snapshot.isActive, socketOpen else { return }
     send(CallProtocol.locationFrame(location), frame: "location", ["location": location.description])
   }
+
+  /// Forgets the last fix, so a new call carries only a fix given for it.
+  public func clearLocation() { location = nil }
 
   public func setMuted(_ muted: Bool) {
     guard snapshot.muted != muted else { return }
