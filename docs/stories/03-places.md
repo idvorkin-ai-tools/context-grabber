@@ -347,3 +347,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** Home, Work, Kettlebility and Milstead & Co are known, and the phone is online
 - **When:** I open Places, then tap Home in Known places and choose the heart
 - **Then:** Home shows a house and Work a briefcase (from their names), Kettlebility a kettlebell (from its name, however it is spelled: Kettlebillity too) and Milstead & Co a cup (Apple Maps finds the business of that name, a café), each on its pin ringed in its colour with its name in a chip, and beside it in the list; a place neither its name nor Apple Maps settles is a plain pin, and offline that pin stands until Apple Maps can be asked, with nothing complaining; Home's screen says where the icon came from ("Guessed from the name") and offers twenty-one icons, the kettlebell among them; after the heart it says "Chosen", the pin and the row show the heart at once, and the heart stays across launches, renaming or growing the place, until *Use the guess* gives the house back
+
+---
+
+### User Story 058:
+
+- **Summary:** Copy and Find me never vanish
+- **Status:** not yet implemented
+- **Spec:** [native Places, "The map"](../superpowers/specs/2026-10-04-native-places-design.md)
+
+#### Use Case:
+- **As** someone who opens Places before the phone has a fix
+- **I want to** see Copy and Find me where they always are, and be told the fix is coming
+- **so that** the controls never seem to have disappeared
+
+#### Acceptance Criteria:
+- **Scenario:** Before the first fix
+- **Given:** Places is open and the phone has no location fix yet
+- **When:** I tap Copy or Find me
+- **Then:** both controls are on the map, dimmed; the tap asks for a fix and shows "Waiting for a GPS fix…" briefly; nothing is copied and the map does not move; once the fix arrives both brighten and work as before
