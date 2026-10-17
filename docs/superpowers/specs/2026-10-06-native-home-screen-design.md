@@ -168,6 +168,15 @@ usually within a minute, and offline changes catch up when the device is back on
 The log says what the sync did: a device publishing its days (how many months), and another device's change
 arriving (which device, which months), and why a sync could not run.
 
+**A count for an earlier day** (Igor, 2026-10-17, #342: *"If I press and hold on my daily habit strip What's up
+Yesterday or today Like a count"*; proposed, waiting on Igor). Press and hold Balloons or Magic and the same small
+sheet opens, with the day slider starting on *today* and, under it, that day's count with − and + beside it (never
+below 0). Sliding to *yesterday* shows yesterday's count, so a forgotten balloon can be added to the day it was made.
+*Confirm* saves the count shown for the day shown and closes the sheet; *Cancel* changes nothing. Today's number on
+the strip, and the days since, follow at once. This replaces the counters' long press for one fewer: one fewer is
+the − in the sheet. The log has `ui`, action daily_strip, with the item, the day, the new value and `backdated`
+when the day is not today.
+
 Non-goals: choosing other items or adding new ones from the app, streaks, reminders, history charts.
 
 Order, hiding and Reset in Settings work as before.
