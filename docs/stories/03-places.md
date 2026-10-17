@@ -353,7 +353,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 058:
 
 - **Summary:** Copy and Find me never vanish
-- **Status:** not yet implemented
+- **Status:** implemented in [d4660e5](https://github.com/idvorkin/context-grabber/commit/d4660e5); host-checked only (lint); the simulator and the phone in the next build turn
 - **Spec:** [native Places, "The map"](../superpowers/specs/2026-10-04-native-places-design.md)
 
 #### Use Case:
