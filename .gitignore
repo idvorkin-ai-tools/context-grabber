@@ -31,6 +31,14 @@
 /native/Widgets/GrabberWidgets.entitlements
 /native/ContextCore/.build/
 
+# What the retired React Native app left behind in old checkouts
+node_modules/
+.expo/
+/ios/
+lib/generated_version.ts
+.native-build-sha
+*.tsbuildinfo
+
 # worktrees
 .worktrees/
 
