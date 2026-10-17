@@ -132,6 +132,7 @@ final class AppModel: ObservableObject {
     places.prune(reason: "foreground")
     tracker.foreground()
     if showPlaces { places.reload(reason: "foreground") }
+    mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     Task { [delivery] in await delivery.start() }  // story 152: what waited for a connection goes up now
   }
 

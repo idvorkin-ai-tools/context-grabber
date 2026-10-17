@@ -30,6 +30,8 @@ final class MirrorModel: ObservableObject {
   private var grabTask: Task<Void, Never>?
 
   static let lastSnapshotKey = "last_snapshot"
+  /// Set once Health has been asked for access (by a grab from Today), so a refresh can grab without its sheet.
+  static let healthAskedKey = "health_asked"
   static let sleepTargetKey = "sleep_target_hours"
   /// #301: seven hours until Igor picks another; a chosen one is kept in the settings.
   static let defaultSleepTarget: Double = 7
@@ -74,6 +76,14 @@ final class MirrorModel: ObservableObject {
     }
   }
 
+  /// #355: the home card's refresh when the app comes to the front. It runs in the background (`grab` never waits),
+  /// the old numbers stay until the new land, and it does nothing until Health has been asked once, so it can never
+  /// put Health's sheet up by itself.
+  func refresh(reason: String) {
+    guard source is HealthKitSource, app.database.setting(Self.healthAskedKey) == "1" else { return }
+    grab(reason: reason)
+  }
+
   func grabNow(reason: String) async {
     if let running = grabTask {
       await running.value
@@ -101,6 +111,7 @@ final class MirrorModel: ObservableObject {
       do {
         // Story 242: writing Mindful Minutes is asked here too, where Health's sheet can show (not over a cover).
         try await hk.requestAuthorization(share: [HealthKitSource.mindfulType])
+        app.database.setSetting(Self.healthAskedKey, "1")
         log.event("health_auth", ["ok": true])
       } catch {
         // Not fatal: every query then fails on its own and reads "—".

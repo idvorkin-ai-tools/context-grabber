@@ -394,3 +394,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the *Report a problem* sheet opens, the same one a shake opens, and VoiceOver calls the tile *Report a problem*
 
 ---
+
+### User Story 253:
+
+- **Summary:** The Today card refreshes itself each time the app comes to the front
+- **Status:** native app: implemented in COMMIT; the phone in the next build turn (the simulator has no Health data to refresh)
+- **Issues:** [#355](https://github.com/idvorkin/context-grabber/issues/355)
+- **Spec:** [native home screen, "The Today card"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+
+#### Use Case:
+- **As a** person glancing at the home screen
+- **I want to** see today's numbers as they are now, without opening Today
+- **so that** the mirror never shows me this morning's 279 steps after I've walked all afternoon
+
+#### Acceptance Criteria:
+- **Scenario:** Back to the app later
+- **Given:** I have grabbed once before, and the card shows this morning's numbers
+- **When:** I bring the app to the front this afternoon
+- **Then:** the card keeps this morning's numbers until the new ones land, then shows this afternoon's, I can tap and scroll the whole time, and on a fresh install no Health sheet appears
+
+---

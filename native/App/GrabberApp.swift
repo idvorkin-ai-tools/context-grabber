@@ -26,6 +26,7 @@ struct GrabberApp: App {
               model.foreground()
             } else {
               model.tracker.foreground(); model.usage.resume(reason: "launch")
+              model.mirror.refresh(reason: "launch")  // #355: the Today card current, in the background
             }
             wasActive = true
           } else if phase == .background {
