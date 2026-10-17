@@ -214,11 +214,12 @@ private struct HomeTile: View {
     Button {
       row.open(model)
     } label: {
-      // #304: the tile's drawn art and no name (Igor: "words are dups now"), bigger in the space the name took, so the
-      // tile keeps its height. VoiceOver reads the full title below.
-      TileArt(row: row, size: 76)
+      // #304: the tile's drawn art and no name (Igor: "words are dups now"). #354: the art is trimmed to its object
+      // and fills the tile ("tiles same size but icons take up more of it"): 88 points with 4 above and below keeps
+      // the tile at its old 96. VoiceOver reads the full title below.
+      TileArt(row: row, size: 88)
         .frame(maxWidth: .infinity, minHeight: 64)
-        .padding(.vertical, 10)
+        .padding(.vertical, 4)
         .padding(.horizontal, 4)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         // A call left running: a corner badge, not a third line, so this tile stays its neighbours' size.
