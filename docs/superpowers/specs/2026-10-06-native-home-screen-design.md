@@ -87,7 +87,9 @@ and points at Settings.
   calendar. Timer: a steel stopwatch. Breathe: Igor's raccoon meditating in full lotus. Places: a folded map with a
   pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
   gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
-  (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a fan of freshly printed
+  (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). On both stones IGOR is the
+  first thing the eye finds: large letters across most of the stone, cut deep and dark against the pale stone, readable
+  at tile size (Igor, 2026-10-17, #363: *"Make the Igor on the eulogy ones more pronounced so it's very obvious"*). Recent: a fan of freshly printed
   pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Report a problem: a beetle, drawn like a museum specimen. Settings: a brass gear. Settings'
   list of launchers keeps the small glyph squares. Which of the drawings each tile shows is Igor's call and can
   change at any time.
