@@ -73,7 +73,8 @@ struct HomeRow: Identifiable {
 }
 
 /// A home tile's drawn picture (#304): `tile-<id>` in the asset catalog, or the glyph square when a row has none. The
-/// art has no background of its own, so it sits straight on the tile in light and dark.
+/// art has no background of its own, so it sits straight on the tile in light and dark; Exercise Analyzer's is that
+/// app's own icon, teal background and all (#366).
 struct TileArt: View {
   let row: HomeRow
   var size: CGFloat = 56
