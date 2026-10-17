@@ -441,7 +441,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 249:
 
 - **Summary:** The 4·4·6·2 pattern at half the pace
-- **Status:** not yet implemented
+- **Status:** implemented in [991521f](https://github.com/idvorkin/context-grabber/commit/991521f); verified by `BreathTests.testTheDoubledPatternIsTheSameShapeAtHalfThePace` (host); the chip on the simulator and the phone in the next build turn
 - **Spec:** [box breathing, "Breath length"](../superpowers/specs/2026-10-04-box-breathing-design.md)
 
 #### Use Case:
