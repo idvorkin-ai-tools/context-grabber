@@ -1,11 +1,12 @@
 {
   "images" : [
-    { "filename" : "tile-exercise_analyzer.png", "idiom" : "universal" },
     {
-      "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
-      "filename" : "tile-exercise_analyzer-dark.png",
+      "filename" : "tile-exercise_analyzer.png",
       "idiom" : "universal"
     }
   ],
-  "info" : { "author" : "xcode", "version" : 1 }
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
 }
