@@ -8,7 +8,6 @@ enum CardStore {
   /// The large widget, Today's hand (#221).
   static let kind = "TodaysHand"
   private static let key = "memdeck_nonce"
-  private static let shownKey = "memdeck_shown_nonce"
 
   static func nonce() -> Int {
     UserDefaults(suiteName: UsageTileStore.group)?.integer(forKey: key) ?? 0
@@ -16,16 +15,6 @@ enum CardStore {
 
   static func set(_ nonce: Int) {
     UserDefaults(suiteName: UsageTileStore.group)?.set(nonce, forKey: key)
-  }
-
-  /// The count the widget's timeline was last dealt with: what is on screen, even when iOS skipped the redraw after
-  /// a tap (#230). nil before the widget has drawn.
-  static func shownNonce() -> Int? {
-    UserDefaults(suiteName: UsageTileStore.group)?.object(forKey: shownKey) as? Int
-  }
-
-  static func setShown(_ nonce: Int) {
-    UserDefaults(suiteName: UsageTileStore.group)?.set(nonce, forKey: shownKey)
   }
 
   static func reloadWidget() {

@@ -22,11 +22,18 @@ struct DealCardIntent: AppIntent {
   static let title: LocalizedStringResource = "Deal another card"
   static let description = IntentDescription("Deals a different memdeck card on Today's hand.")
 
+  /// The tap count the tapped entry was dealt with: what was on screen, carried by the drawn button itself, so a
+  /// redraw iOS skipped after an earlier tap cannot hide it (#230). nil from Shortcuts.
+  @Parameter(title: "Dealt with") var shown: Int?
+
+  init() {}
+
+  init(shown: Int) { self.shown = shown }
+
   func perform() async throws -> some IntentResult {
     let size = stack.map { TrainerDeck.pool($0).count } ?? CardDeal.cardsPerRun
     let now = Date()
     let old = CardStore.nonce()
-    let shown = CardStore.shownNonce()
     let new = CardDeal.nonceAfterTap(at: now, nonce: old, shown: shown, size: size)
     CardStore.set(new)
     let slot = CardDeal.slot(containing: now)
@@ -40,6 +47,8 @@ struct DealCardIntent: AppIntent {
 struct TodaysHandWidget: Widget {
   struct Entry: TimelineEntry {
     let date: Date
+    /// The tap count this entry was dealt with; its button hands it to the tap.
+    let nonce: Int
     /// nil when the build had no stack.
     let card: Card?
     let role: String
@@ -56,13 +65,13 @@ struct TodaysHandWidget: Widget {
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
       let pool = stack.map { TrainerDeck.pool($0) } ?? []
       let nonce = CardStore.nonce()
-      CardStore.setShown(nonce)
       let timeline = CardDeal.timeline(from: Date(), nonce: nonce, size: max(pool.count, 3))
       widgetLog.notice(
         "timeline nonce=\(nonce, privacy: .public) size=\(pool.count, privacy: .public) first=\(timeline.first?.index ?? -1, privacy: .public) card=\(timeline.first.flatMap { pool.isEmpty ? nil : pool[$0.index].spokenName } ?? "none", privacy: .public)"
       )
       let entries = timeline.map {
-        Entry(date: $0.date, card: pool.isEmpty ? nil : pool[$0.index], role: EulogyRoles.ofDay($0.date))
+        Entry(
+          date: $0.date, nonce: nonce, card: pool.isEmpty ? nil : pool[$0.index], role: EulogyRoles.ofDay($0.date))
       }
       completion(Timeline(entries: entries, policy: .atEnd))
     }
@@ -70,7 +79,7 @@ struct TodaysHandWidget: Widget {
     private func entry(at date: Date, nonce: Int) -> Entry {
       let pool = stack.map { TrainerDeck.pool($0) } ?? []
       let index = CardDeal.index(forSlot: CardDeal.slot(containing: date), nonce: nonce, size: max(pool.count, 3))
-      return Entry(date: date, card: pool.isEmpty ? nil : pool[index], role: EulogyRoles.ofDay(date))
+      return Entry(date: date, nonce: nonce, card: pool.isEmpty ? nil : pool[index], role: EulogyRoles.ofDay(date))
     }
   }
 
@@ -101,7 +110,7 @@ struct TodaysHandView: View {
 
   var body: some View {
     HStack(spacing: 14) {
-      Button(intent: DealCardIntent()) { HandCard(card: entry.card) }
+      Button(intent: DealCardIntent(shown: entry.nonce)) { HandCard(card: entry.card) }
         .buttonStyle(.plain)
       VStack(alignment: .leading, spacing: 8) {
         Text("Today, be")
