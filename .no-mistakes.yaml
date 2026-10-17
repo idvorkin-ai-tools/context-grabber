@@ -94,6 +94,7 @@ test:
     Activities, Shortcuts, the voice bridge, iCloud delivery) as "to verify live".
     If a simulator is ever used despite the above: only one simulator on this Mac at a time, so before booting,
     check `xcrun simctl list devices booted` and wait until it is empty. When done, pass or fail, run
-    `xcrun simctl shutdown` and `xcrun simctl delete` on every device you created, and make sure no `xcodebuild` or
-    `xctest` you started is still running. Bound every `xcodebuild test` with a timeout. (Left-over simulators
-    from test agents slowed this Mac four times since 2026-10-04.)
+    `xcrun simctl shutdown` on every device you or your `xcodebuild` booted, `xcrun simctl delete` on every device
+    you created, and make sure no `xcodebuild` or `xctest` you started is still running. Bound every
+    `xcodebuild test` with a timeout. (Left-over simulators from test agents slowed this Mac four times since
+    2026-10-04.)
