@@ -78,11 +78,16 @@ struct TileArt: View {
   let row: HomeRow
   var size: CGFloat = 56
 
+  /// #362: the metal objects read heavier than the rest, so they sit a little smaller in the same tile.
+  static let smaller: Set<String> = ["gym_timer", "cockpit", "settings"]
+  static func scale(_ id: String) -> CGFloat { smaller.contains(id) ? 0.85 : 1 }
+
   var body: some View {
     if UIImage(named: "tile-\(row.id)") != nil {
       Image("tile-\(row.id)")
         .resizable()
         .interpolation(.high)
+        .frame(width: size * Self.scale(row.id), height: size * Self.scale(row.id))
         .frame(width: size, height: size)
         .accessibilityHidden(true)
     } else {
