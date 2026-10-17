@@ -43,7 +43,9 @@ and points at Settings.
 *Today first* layout). Under the usage strip and What's new:
 
 - **The Today card.** The mirror on the home screen: last night's sleep, today's steps, HRV and exercise
-  minutes, each a big number with its name, and when they were read (*as of 7:10*). It shows the last grab the app
+  minutes, each a big number with its name, and nothing above them: no heading, drawing, time or arrow (Igor,
+  2026-10-17, #355: *"Today header adds nothing, just the content"*). When they were read (*as of 7:10*) is still
+  read out by VoiceOver with the numbers. It shows the last grab the app
   made, so opening the app never asks Health for anything; tapping the card opens Today, which grabs fresh. Before
   any grab the card says *Today — tap to look* and opens Today the same way. A number Health did not give is a dash,
   never 0.
@@ -75,7 +77,7 @@ and points at Settings.
   pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
   gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
   (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a fan of freshly printed
-  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Settings: a brass gear. The Today card's heading shows Today's drawing, small. Settings'
+  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Settings: a brass gear. Settings'
   list of launchers keeps the small glyph squares. Which of the drawings each tile shows is Igor's call and can
   change at any time.
 

@@ -158,21 +158,23 @@ private struct TodayCard: View {
 
   private static let shown: [MetricKey] = [.sleep, .movement, .hrv, .exerciseMinutes]
 
+  /// What VoiceOver reads: the heading the card no longer draws, when the numbers were read, and the numbers.
+  private var spoken: String {
+    guard let snapshot = mirror.snapshot else { return "Today — tap to look" }
+    let numbers = Self.shown.map { key in
+      let card = mirror.cards.first { $0.key == key }
+      let name = key == .movement ? "Steps" : card?.label ?? key.rawValue
+      return "\((card?.value ?? MirrorText.none).replacingOccurrences(of: " asleep", with: "")) \(name)"
+    }
+    return "Today, as of \(SummaryText.formatLocalTime(snapshot.timestamp, clock: mirror.clock)): "
+      + numbers.joined(separator: ", ")
+  }
+
   var body: some View {
     Button(action: open) {
+      // #355: just the numbers, no heading ("Today header adds nothing, just the content"); when they were read is
+      // in the label VoiceOver reads.
       VStack(alignment: .leading, spacing: 10) {
-        HStack {
-          HStack(spacing: 10) {
-            if let row = HomeRow.row("today") { TileArt(row: row, size: 36) }  // #304: its drawn art, as the tiles
-            Text("Today").font(.headline)
-          }
-          Spacer()
-          if let stamp = mirror.snapshot?.timestamp {
-            Text("as of \(SummaryText.formatLocalTime(stamp, clock: mirror.clock))")
-              .font(.caption).foregroundStyle(.secondary)
-          }
-          Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-        }
         if mirror.snapshot == nil {
           Text("Today — tap to look").foregroundStyle(.secondary)
         } else {
@@ -197,6 +199,7 @@ private struct TodayCard: View {
       .padding(.vertical, 4)
     }
     .tint(.primary)
+    .accessibilityLabel(spoken)
     .accessibilityIdentifier("home-today-card")
   }
 }
