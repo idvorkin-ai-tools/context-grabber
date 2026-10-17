@@ -375,3 +375,22 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 252:
+
+- **Summary:** Report a problem is a tile on the home screen
+- **Status:** native app: implemented in [dc2644f](https://github.com/idvorkin/context-grabber/commit/dc2644f); the art check (host); the simulator (`HomeReportTileUITests`) and the phone in the next build turn
+- **Issues:** [#340](https://github.com/idvorkin/context-grabber/issues/340), [#353](https://github.com/idvorkin/context-grabber/issues/353)
+- **Spec:** [native home screen, "Three to a row"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+
+#### Use Case:
+- **As a** person who notices a problem while using the app
+- **I want to** start a report with one tap from the home screen
+- **so that** I don't have to shake the phone or dig into Settings to log it
+
+#### Acceptance Criteria:
+- **Scenario:** Report from home
+- **Given:** I'm on the home screen
+- **When:** I tap the beetle tile
+- **Then:** the *Report a problem* sheet opens, the same one a shake opens, and VoiceOver calls the tile *Report a problem*
+
+---

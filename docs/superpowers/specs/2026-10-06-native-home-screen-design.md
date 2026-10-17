@@ -51,7 +51,10 @@ and points at Settings.
   never 0.
 - **Three to a row** (Igor, 2026-10-11, reports #284–#286; superseding the four big tiles and the pairs of #225
   and #235). Every launcher under the Today card and the strip is the same small tile, three to a line, in Igor's
-  order: Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random. (Each first
+  order: Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random, Report a
+  problem. *Report a problem* opens the same report sheet a shake or Settings opens, so a report is one tap from home
+  (Igor, 2026-10-17, #340: *"log a bug as an option or as a button on the main menu"*, #353: *"add an icon for
+  bug"*); like any launcher, Settings can move or hide it. (Each first
   showed its icon above a one- or two-word name, *"put three under a row, use shorter words plus the icon"*; since
   the drawn art, the picture alone, below.) So Recent and Random
   sit side by side (#285). A hidden launcher closes the gap; a last line with fewer than three keeps the tiles the
@@ -79,7 +82,7 @@ and points at Settings.
   pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
   gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
   (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a fan of freshly printed
-  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Settings: a brass gear. Settings'
+  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Report a problem: a beetle, drawn like a museum specimen. Settings: a brass gear. Settings'
   list of launchers keeps the small glyph squares. Which of the drawings each tile shows is Igor's call and can
   change at any time.
 
