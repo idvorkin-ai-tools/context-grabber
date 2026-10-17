@@ -41,6 +41,10 @@ empties with you and, if you want, tells you each step by voice or by tone so yo
   side's own length, and the choice is remembered like a preset. The finished session is named *Breathing ·
   4·4·6·2 · N cycles*. How the circle draws an uneven pattern (Igor: *"make it a trapezoid"*) is open, proposed on
   #289 and not part of this change: the ring draws it as it draws every breath.
+- **4·4·6·2 ×2** (Igor, 2026-10-17: *"a second version 4,4,6,2 x2 where it's 2 s each, not 1 s"*): a second chip
+  beside 4·4·6·2, the same shape at half the pace: in 8, hold 8, out 12, hold 4, 32 seconds a cycle. The line under
+  the title reads *In 8, hold 8, out 12, hold 4.*, the session is named *Breathing · 4·4·6·2 ×2 · N cycles*, and it is
+  remembered like the other.
 - **Session length**: a slider from 2 to 15 minutes, in whole minutes, starting at 5.
 - A summary line under them that changes as either slider moves: **"9 cycles · ends at 4 min 48 s"**. A session
   is always a whole number of cycles — the number closest to the session length chosen, never fewer than one —

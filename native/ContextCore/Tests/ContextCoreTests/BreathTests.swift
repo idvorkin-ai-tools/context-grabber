@@ -325,6 +325,24 @@ final class BreathToneTests: XCTestCase {
     XCTAssertEqual(BreathPattern.fourFourSixTwo.sentence, "In 4, hold 4, out 6, hold 2.")
   }
 
+  /// Story 249: the same shape at two seconds a count.
+  func testTheDoubledPatternIsTheSameShapeAtHalfThePace() {
+    let slow = BreathPattern.fourFourSixTwoX2
+    let plan = BreathPlan(pattern: slow, sessionMinutes: 5)
+    XCTAssertEqual((0..<4).map(plan.side), [8, 8, 12, 4])
+    XCTAssertEqual(plan.cycleSeconds, 32)
+    XCTAssertEqual(plan.cycles, 9, "300 s over 32 s cycles, the closest whole number")
+    XCTAssertEqual(plan.pattern, slow, "the plan knows it is the doubled pattern, not a new one")
+    XCTAssertEqual(slow.label, "4\u{00B7}4\u{00B7}6\u{00B7}2 \u{00D7}2")
+    XCTAssertEqual(slow.key, "4-4-6-2-x2")
+    XCTAssertEqual(slow.sentence, "In 8, hold 8, out 12, hold 4.")
+    XCTAssertEqual(BreathPattern.named("4-4-6-2-x2"), slow)
+    XCTAssertEqual(BreathPattern.named("4-4-6-2"), .fourFourSixTwo)
+    XCTAssertEqual(BreathPattern.all, [.fourFourSixTwo, slow])
+    XCTAssertEqual(
+      ActivityLog.breathName(plan), "Breathing \u{00B7} 4\u{00B7}4\u{00B7}6\u{00B7}2 \u{00D7}2 \u{00B7} 9 cycles")
+  }
+
   func testThePatternsPhasesFallOnTheirOwnSeconds() {
     let plan = BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 2)
     XCTAssertEqual(plan.moment(at: 3.9).phase, .inhale)
