@@ -322,6 +322,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 250:
+
+- **Summary:** Today's hand: a tap after a skipped redraw still deals a card that is not on screen
+- **Status:** native app only: implemented on branch `native/todays-hand-230` (commit to follow); verified by `CardDealTests` (host: a tap avoids both the card showing and the last tap's card, and fails without the change); the simulator and the phone not yet
+- **Issues:** [#230](https://github.com/idvorkin/context-grabber/issues/230)
+- **Spec:** [Today's hand](../superpowers/specs/2026-10-08-native-large-widget-design.md)
+
+#### Use Case:
+- **As a** memdeck student tapping the big widget for another card
+- **I want to** get a different card every tap, even when iOS was slow to redraw after the last one
+- **so that** a tap never looks like it did nothing
+
+#### Acceptance Criteria:
+- **Scenario:** A tap after iOS skipped the widget's redraw
+- **Given:** *Today's hand* still shows a card from before my last tap, because iOS did not redraw it
+- **When:** I tap the card again
+- **Then:** the widget deals a card that is neither the one on screen nor the one my last tap dealt, and the app does not open
+
+---
+
 ### User Story 245:
 
 - **Summary:** Think of a card in Grabber Native is the trainer's own screen

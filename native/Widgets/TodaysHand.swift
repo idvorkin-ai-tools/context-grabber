@@ -26,11 +26,12 @@ struct DealCardIntent: AppIntent {
     let size = stack.map { TrainerDeck.pool($0).count } ?? CardDeal.cardsPerRun
     let now = Date()
     let old = CardStore.nonce()
-    let new = CardDeal.nonceAfterTap(at: now, nonce: old, size: size)
+    let shown = CardStore.shownNonce()
+    let new = CardDeal.nonceAfterTap(at: now, nonce: old, shown: shown, size: size)
     CardStore.set(new)
     let slot = CardDeal.slot(containing: now)
     widgetLog.notice(
-      "deal_tap old=\(old, privacy: .public) new=\(new, privacy: .public) stored=\(CardStore.nonce(), privacy: .public) size=\(size, privacy: .public) slot=\(slot, privacy: .public) from=\(CardDeal.index(forSlot: slot, nonce: old, size: size), privacy: .public) to=\(CardDeal.index(forSlot: slot, nonce: new, size: size), privacy: .public)"
+      "deal_tap old=\(old, privacy: .public) shown=\(shown.map(String.init) ?? "none", privacy: .public) new=\(new, privacy: .public) stored=\(CardStore.nonce(), privacy: .public) size=\(size, privacy: .public) slot=\(slot, privacy: .public) from=\(CardDeal.index(forSlot: slot, nonce: old, size: size), privacy: .public) to=\(CardDeal.index(forSlot: slot, nonce: new, size: size), privacy: .public)"
     )
     return .result()
   }
@@ -55,6 +56,7 @@ struct TodaysHandWidget: Widget {
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
       let pool = stack.map { TrainerDeck.pool($0) } ?? []
       let nonce = CardStore.nonce()
+      CardStore.setShown(nonce)
       let timeline = CardDeal.timeline(from: Date(), nonce: nonce, size: max(pool.count, 3))
       widgetLog.notice(
         "timeline nonce=\(nonce, privacy: .public) size=\(pool.count, privacy: .public) first=\(timeline.first?.index ?? -1, privacy: .public) card=\(timeline.first.flatMap { pool.isEmpty ? nil : pool[$0.index].spokenName } ?? "none", privacy: .public)"
