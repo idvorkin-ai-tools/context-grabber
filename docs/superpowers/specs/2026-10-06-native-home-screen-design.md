@@ -43,13 +43,22 @@ and points at Settings.
 *Today first* layout). Under the usage strip and What's new:
 
 - **The Today card.** The mirror on the home screen: last night's sleep, today's steps, HRV and exercise
-  minutes, each a big number with its name, and when they were read (*as of 7:10*). It shows the last grab the app
-  made, so opening the app never asks Health for anything; tapping the card opens Today, which grabs fresh. Before
+  minutes, each a big number with its name, and nothing above them: no heading, drawing, time or arrow (Igor,
+  2026-10-17, #355: *"Today header adds nothing, just the content"*). When they were read (*as of 7:10*) is still
+  read out by VoiceOver with the numbers. It shows the last grab, and
+  each time the app comes to the front it grabs again in the background, so the numbers are current without a tap
+  and nothing waits on it: the old numbers stay until the new ones land (Igor, 2026-10-17, #355: *"make sure it runs
+  async in the background so I never block the user"*). That refresh runs only once Health has been asked for
+  everything the grab reads, so opening a fresh install (or a build that reads something new) never asks Health
+  for anything; tapping the card opens Today, which grabs fresh. Before
   any grab the card says *Today — tap to look* and opens Today the same way. A number Health did not give is a dash,
   never 0.
 - **Three to a row** (Igor, 2026-10-11, reports #284–#286; superseding the four big tiles and the pairs of #225
   and #235). Every launcher under the Today card and the strip is the same small tile, three to a line, in Igor's
-  order: Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random. (Each first
+  order: Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random, Report a
+  problem. *Report a problem* opens the same report sheet a shake or Settings opens, so a report is one tap from home
+  (Igor, 2026-10-17, #340: *"log a bug as an option or as a button on the main menu"*, #353: *"add an icon for
+  bug"*); like any launcher, Settings can move or hide it. (Each first
   showed its icon above a one- or two-word name, *"put three under a row, use shorter words plus the icon"*; since
   the drawn art, the picture alone, below.) So Recent and Random
   sit side by side (#285). A hidden launcher closes the gap; a last line with fewer than three keeps the tiles the
@@ -63,7 +72,9 @@ and points at Settings.
   art below.
 - **Drawn art on the tiles** (Igor, 2026-10-13, #304: *"custom icons … bigger tiles"*; settled 2026-10-17: keep
   three to a row, custom art for every tile, judge the size after). Each home tile shows its own picture and
-  no name: the picture says what it is, so it fills the tile in the space a name took (Igor, 2026-10-17: *"words
+  no name: the picture says what it is, so it fills the tile in the space a name took: each picture is cut close to its object, and the object takes up
+  most of its tile, which stays the size it was (Igor, 2026-10-17, #354: *"tiles same size but icons take up more of
+  it"*) (Igor, 2026-10-17: *"words
   are dups now"*, then *"no words"*). VoiceOver still reads each launcher's full name. Objects are painted as refined still-lifes, not cartoons
   (Igor, 2026-10-17: *"less cartoony on everything"*), with no background of their own: each object sits straight
   on its tile, so the art blends into the tile in light mode and in dark (Igor, 2026-10-17: *"more blended into the
@@ -75,7 +86,7 @@ and points at Settings.
   pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
   gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
   (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a fan of freshly printed
-  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Settings: a brass gear. The Today card's heading shows Today's drawing, small. Settings'
+  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Report a problem: a beetle, drawn like a museum specimen. Settings: a brass gear. Settings'
   list of launchers keeps the small glyph squares. Which of the drawings each tile shows is Igor's call and can
   change at any time.
 

@@ -132,6 +132,7 @@ final class AppModel: ObservableObject {
     places.prune(reason: "foreground")
     tracker.foreground()
     if showPlaces { places.reload(reason: "foreground") }
+    mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     Task { [delivery] in await delivery.start() }  // story 152: what waited for a connection goes up now
   }
 
@@ -316,7 +317,7 @@ final class AppModel: ObservableObject {
 
   private func knownPlacesForCall() -> [KnownPlace] { (try? database.locations?.knownPlaces()) ?? [] }
 
-  /// Settings' *Report a problem*.
+  /// *Report a problem*, from Settings or its home tile (story 252).
   func startBugReport(from source: String) {
     log.event("ui", ["action": "report_problem", "from": source, "screen": screen])
     reporter.open(from: .button)

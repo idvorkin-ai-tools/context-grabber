@@ -36,16 +36,20 @@ final class HomeGridUITests: XCTestCase {
     XCTAssertGreaterThan(places.frame.minY, call.frame.maxY, "Places starts the second line")
     XCTAssertEqual(places.frame.minX, call.frame.minX, accuracy: 2)
 
-    // Recent and Random side by side (#285), and Settings alone on the last line, a tile like the rest (#286).
+    // Recent and Random side by side (#285); Settings the last tile, a tile like the rest (#286), after Report a
+    // problem (story 252).
     let recent = app.buttons["home-recent"]
     let random = app.buttons["home-random"]
+    let report = app.buttons["home-report_problem"]
     let settings = app.buttons["home-settings"]
     for _ in 0..<8 where !(settings.exists && settings.isHittable) { app.swipeUp() }
     XCTAssertTrue(recent.exists && random.exists && settings.exists, app.debugDescription)
     XCTAssertEqual(recent.frame.midY, random.frame.midY, accuracy: 4, "Recent and Random share a line")
     XCTAssertGreaterThan(settings.frame.minY, random.frame.maxY, "Settings comes after the launchers")
     XCTAssertEqual(settings.frame.width, recent.frame.width, accuracy: 2, "Settings is a tile like the rest")
-    XCTAssertEqual(settings.frame.minX, call.frame.minX, accuracy: 2, "Settings starts its line")
+    XCTAssertEqual(report.frame.minX, call.frame.minX, accuracy: 2, "Report a problem starts the last line")
+    XCTAssertEqual(settings.frame.midY, report.frame.midY, accuracy: 4, "Settings follows it on the last line")
+    XCTAssertGreaterThan(settings.frame.minX, report.frame.maxX, "Settings is the last tile")
 
     settings.tap()
     XCTAssertTrue(app.navigationBars["Home screen"].waitForExistence(timeout: 5), app.debugDescription)

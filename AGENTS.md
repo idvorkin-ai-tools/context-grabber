@@ -108,7 +108,7 @@ just bugs-check           # unfiled reports on every plugged-in device
 ```
 
 Requires Xcode, an Apple ID signed into Xcode, Developer Mode on the iPhone, and the `just setup` tools
-(`native/.swiftlint.yml` pins SwiftLint's version). The phone's hardware UDID is `DEVICE=<udid>` or the gitignored
+(`native/.swiftlint.yml` pins SwiftLint's version; the tile-art check measures the art with `magick`). The phone's hardware UDID is `DEVICE=<udid>` or the gitignored
 `scripts/native/phone-udid.local`: the repo is public, so device ids are never committed. UI tests run with
 `xcodebuild … -only-testing:GrabberNativeUITests/<Test> test` ([TESTING.md](docs/TESTING.md)).
 
