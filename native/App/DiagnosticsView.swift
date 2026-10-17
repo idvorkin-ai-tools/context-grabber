@@ -211,17 +211,15 @@ private struct HomeTile: View {
     Button {
       row.open(model)
     } label: {
-      // #284: the icon above a one- or two-word name; #304: the tile's drawn art.
-      VStack(spacing: 6) {
-        TileArt(row: row)
-        Text(row.short).font(.footnote.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
-      }
-      .frame(maxWidth: .infinity, minHeight: 64)
-      .padding(.vertical, 10)
-      .padding(.horizontal, 4)
-      .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
-      // A call left running: a corner badge, not a third line, so this tile stays its neighbours' size.
-      .overlay(alignment: .topTrailing) { if row.id == "call" { CallTileStatus(call: model.call) } }
+      // #304: the tile's drawn art and no name (Igor: "words are dups now"), bigger in the space the name took, so the
+      // tile keeps its height. VoiceOver reads the full title below.
+      TileArt(row: row, size: 76)
+        .frame(maxWidth: .infinity, minHeight: 64)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 4)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        // A call left running: a corner badge, not a third line, so this tile stays its neighbours' size.
+        .overlay(alignment: .topTrailing) { if row.id == "call" { CallTileStatus(call: model.call) } }
     }
     .buttonStyle(.plain)
     .foregroundStyle(.primary)

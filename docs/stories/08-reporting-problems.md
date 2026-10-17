@@ -290,7 +290,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The Today card and the tiles
 - **Given:** the app has grabbed at least once
 - **When:** I open the app
-- **Then:** a Today card shows sleep, steps, HRV and exercise from the last grab with when it was read, every other launcher is the same small tile, three to a line in my order, its own drawn picture above a short name (Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random), so Recent and Random share a line, and *Settings* is the last tile; and no Health prompt appears
+- **Then:** a Today card shows sleep, steps, HRV and exercise from the last grab with when it was read, every other launcher is the same small tile, three to a line in my order, each its own drawn picture with no name under it, while VoiceOver reads each name (Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random), so Recent and Random share a line, and *Settings* is the last tile; and no Health prompt appears
 
 - **Scenario:** Before any grab
 - **Given:** a fresh install

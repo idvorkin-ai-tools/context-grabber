@@ -11,12 +11,6 @@ struct HomeRow: Identifiable {
   let icon: String
   /// The icon's square, the one colour a launcher carries; the name stays in the text colour.
   let color: Color
-  /// The name on a tile, a third of a line (#284): one or two words.
-  var short: String { Self.shortNames[id] ?? title }
-  private static let shortNames = [
-    "call": "Call", "gym_timer": "Timer", "breathe": "Breathe", "think_a_card": "Card", "exercise_analyzer": "Analyzer",
-    "workout_supermix": "Supermix", "eulogy_song": "Song",
-  ]
   let open: @MainActor (AppModel) -> Void
 
   static let all: [HomeRow] = [
