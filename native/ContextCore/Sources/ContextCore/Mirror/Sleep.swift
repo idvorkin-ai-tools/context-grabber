@@ -47,6 +47,10 @@ public struct SleepDetailedBundle: Equatable, Sendable {
   public var bySource: [String: [SleepDaily]]
   /// All sources merged.
   public var merged: [SleepDaily]
+
+  /// Bead byo (the old app's PR #154): per-night hours as the export's days — noon to noon, sources merged, the
+  /// main session — so a night that crosses midnight is one value on the day Igor went to bed.
+  public var nightlyHours: [DailyValue] { merged.map { DailyValue(date: $0.date, value: $0.totalHours) } }
 }
 
 public enum Sleep {
@@ -146,14 +150,6 @@ public enum Sleep {
     let spans = samples.map { ($0.start, $0.end) }.filter { $0.1 > $0.0 }
     guard !spans.isEmpty else { return 0 }
     return Health.mergedMillis(spans) / (1000 * 60 * 60)
-  }
-
-  /// Bead byo (the old app's PR #154): per-night hours as the export's days — noon to noon, sources merged, the
-  /// main session — so a night that crosses midnight is one value on the day Igor went to bed.
-  public static func hoursByNight(_ samples: [SleepSample]?, endDate: Double, clock: LocalClock) -> [DailyValue] {
-    detailedBundle(samples, endDate: endDate, clock: clock).merged.map {
-      DailyValue(date: $0.date, value: $0.totalHours)
-    }
   }
 
   /// One series per source plus All; a source with no samples has no tab.

@@ -47,10 +47,11 @@ The home screen lists **Places** under "Ported so far". It opens full screen; *D
    place's colour, with a small name chip under it; **You** as a cyan diamond with a halo; today's recorded path as a line. It is framed to include
    every pin and the path, and free to pan and zoom. Three small controls sit in its corners: **locate** (centre
    on You at neighbourhood zoom), **copy** (puts "lat, lng" to six decimals on the clipboard
-   and shows "✓ Copied" briefly). Both are always there (Igor, 2026-10-17, from the old app's PR #57, where they
-   vanished): with no fix yet they are dimmed, and a tap asks for one and says *Waiting for a GPS fix…* in place of
-   the confirmation, copying nothing, **expand** (the same map full screen, with the same controls; collapse or a
-   swipe down returns). The full-screen map also shows the places that have no name yet (below).
+   and shows "✓ Copied" briefly), **expand** (the same map full screen, with the same controls; collapse or a
+   swipe down returns). Locate and copy are always there (story 058; Igor, 2026-10-17, from the old app's PR #57,
+   where they vanished): with no fix yet they are dimmed, and a tap asks for one and briefly says *Waiting for a GPS
+   fix…* on the map, even with a place selected, copying nothing and leaving the map where it is. The full-screen
+   map also shows the places that have no name yet (below).
    **Today or the last 7 days** (Igor, 2026-10-10, #252: *"Location screen needs to be able to switch between
    today and last seven days"*): a small **Today · 7 days** switch in the map's free corner chooses which path is
    drawn, today's alone or the whole week the day cards cover, and the map reframes to hold it. The choice is
