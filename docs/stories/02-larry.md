@@ -100,7 +100,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 025:
 
 - **Summary:** Sleep hours in the export are real sleep, noon to noon
-- **Status:** implemented in [14e81d0](https://github.com/idvorkin/context-grabber/commit/14e81d0), [7d2c9c9](https://github.com/idvorkin/context-grabber/commit/7d2c9c9); verified by `health.test.ts`, `sleep.test.ts` and on the phone. Supersedes CC-7; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), byte-identical to the TypeScript export: verified by `just native-test` (`MirrorFixtureTests`) and `just native-test-sim` (fixture and the simulator's Health store); the phone still to be checked by Igor.
+- **Status:** implemented in [14e81d0](https://github.com/idvorkin/context-grabber/commit/14e81d0), [7d2c9c9](https://github.com/idvorkin/context-grabber/commit/7d2c9c9); verified by `health.test.ts`, `sleep.test.ts` and on the phone. Supersedes CC-7; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), byte-identical to the TypeScript export: verified by `just native-test` (`MirrorFixtureTests`) and `just native-test-sim` (fixture and the simulator's Health store); the phone still to be checked by Igor.; native: a night counted once on the bed day (bead byo): [1f90c41](https://github.com/idvorkin/context-grabber/commit/1f90c41), verified by `testHoursByNightCountANightOnceOnTheBedDay` and the regenerated fixture parity tests (host)
 - **Issues:** [#11](https://github.com/idvorkin/context-grabber/issues/11)
 
 #### Use Case:
