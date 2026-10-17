@@ -338,7 +338,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A tap after iOS skipped the widget's redraw
 - **Given:** *Today's hand* still shows a card from before my last tap, because iOS did not redraw it
 - **When:** I tap the card again
-- **Then:** the widget deals a card that is neither the one on screen nor the one my last tap dealt, and the app does not open
+- **Then:** the widget deals a card that is not the one on screen, and the app does not open
 
 ---
 
