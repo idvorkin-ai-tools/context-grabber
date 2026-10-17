@@ -74,7 +74,9 @@ and points at Settings.
   three to a row, custom art for every tile, judge the size after). Each home tile shows its own picture and
   no name: the picture says what it is, so it fills the tile in the space a name took: each picture is cut close to its object, and the object takes up
   most of its tile, which stays the size it was (Igor, 2026-10-17, #354: *"tiles same size but icons take up more of
-  it"*) (Igor, 2026-10-17: *"words
+  it"*); the three metal objects (the Gym Timer's stopwatch, the Cockpit's gauge and Settings' gear) sit a little
+  smaller than the rest, at about 85%, so they stop crowding their tiles (Igor, 2026-10-17, #362: *"Metal tiles,
+  just a little bit smaller"*) (Igor, 2026-10-17: *"words
   are dups now"*, then *"no words"*). VoiceOver still reads each launcher's full name. Objects are painted as refined still-lifes, not cartoons
   (Igor, 2026-10-17: *"less cartoony on everything"*), with no background of their own: each object sits straight
   on its tile, so the art blends into the tile in light mode and in dark (Igor, 2026-10-17: *"more blended into the
