@@ -378,7 +378,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 252:
 
 - **Summary:** Report a problem is a tile on the home screen
-- **Status:** native app: implemented in COMMIT; the simulator (`HomeReportTileUITests`) and the phone in the next build turn
+- **Status:** native app: implemented in [dc2644f](https://github.com/idvorkin/context-grabber/commit/dc2644f); the art check (host); the simulator (`HomeReportTileUITests`) and the phone in the next build turn
 - **Issues:** [#340](https://github.com/idvorkin/context-grabber/issues/340), [#353](https://github.com/idvorkin/context-grabber/issues/353)
 - **Spec:** [native home screen, "Three to a row"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
