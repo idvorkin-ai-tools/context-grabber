@@ -413,6 +413,39 @@ final class CallSessionZerosTests: XCTestCase {
     XCTAssertNil(t.session.snapshot.problem)
   }
 
+  /// #364: the heal says whether the mic was ever live and what playback held, before the restart and after it.
+  func testTheRearmSaysWhatTheMicAndThePlaybackHeld() throws {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.statsValue = PlaybackStats(scheduledS: 0.47, playedS: 0.3, clockRunning: true, pendingS: 0.1)
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    let heals = t.events.filter { $0.0 == "call_heal" && $0.1["action"] as? String == "rearm_mic" }.map(\.1)
+    XCTAssertEqual(heals.count, 2, "the heal, then the queue once the engine is back")
+    let before = try XCTUnwrap(heals.first)
+    XCTAssertEqual(before["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm)
+    XCTAssertEqual(before["heard_before"] as? Bool, false)
+    XCTAssertEqual(before["scheduled_s"] as? Double, 0.47)
+    XCTAssertEqual(before["pending_s"] as? Double, 0.1)
+    XCTAssertNotNil(before["rx_frames"] as? Int)
+    let after = try XCTUnwrap(heals.last)
+    XCTAssertEqual(after["ok"] as? Bool, true)
+    XCTAssertEqual(after["played_s"] as? Double, 0.3)
+
+    t.audio.mic(480, value: 0.2)
+    let back = t.events.filter { $0.0 == "call_mic" && $0.1["action"] as? String == "audio_back" }.map(\.1)
+    XCTAssertEqual(back.first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 1, "the first sound, by buffer")
+  }
+
+  func testAMicThatWasLiveBeforeTheZerosSaysSo() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic(480, value: 0.2)
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    let heal = t.events.first { $0.0 == "call_heal" && $0.1["action"] as? String == "rearm_mic" }?.1
+    XCTAssertEqual(heal?["heard_before"] as? Bool, true)
+    XCTAssertEqual(heal?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 1)
+  }
+
   func testAQuietRoomIsNotZeros() {
     let t = CallHarness()
     t.goLive()

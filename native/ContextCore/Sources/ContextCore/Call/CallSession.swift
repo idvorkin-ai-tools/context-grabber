@@ -177,6 +177,8 @@ public final class CallSession {
   private var bridgeProblem: String?
   private var zeroRun = 0
   private var zeroRearmed = false
+  /// #364: whether any mic buffer this call carried sound, so a zero-run heal says if the mic was ever live.
+  private var micHeard = false
   private var firstFrameTimer: CallTimer?
   private var audioReset = false
   /// One automatic redial per dead burst; cleared by a call whose mic delivers.
@@ -514,11 +516,23 @@ public final class CallSession {
     }
   }
 
+  /// What came down and what the speaker has of it, for a heal line: rx frames, then scheduled, played and pending.
+  private func playbackFields() -> [String: Any] {
+    let stats = deps.audio.stats()
+    return [
+      "rx_frames": framesReceived, "scheduled_s": stats?.scheduledS ?? 0, "played_s": stats?.playedS ?? 0,
+      "pending_s": stats?.pendingS ?? 0,
+    ]
+  }
+
   /// The first call after launch used to send exact silence for its whole length (#88). A first second that is
   /// zero to the sample re-arms the mic once; zeros after that are said.
   private func watchForZeros(_ samples: [Float]) {
     guard PCM.isExactSilence(samples) else {
-      if zeroRun >= Self.zeroBuffersBeforeRearm { log("call_mic", ["action": "audio_back"]) }
+      if zeroRun >= Self.zeroBuffersBeforeRearm || (zeroRearmed && !micHeard) {
+        log("call_mic", ["action": "audio_back", "buffers": micBuffers])
+      }
+      micHeard = true
       zeroRun = 0
       if snapshot.problem == Self.micSilent { setProblem(nil) }
       return
@@ -528,10 +542,21 @@ public final class CallSession {
     if !zeroRearmed {
       zeroRearmed = true
       zeroRun = 0
-      log("call_heal", ["action": "rearm_mic", "why": "\(Self.zeroBuffersBeforeRearm) buffers of exact zeros"])
+      log(
+        "call_heal",
+        [
+          "action": "rearm_mic", "why": "\(Self.zeroBuffersBeforeRearm) buffers of exact zeros", "buffers": micBuffers,
+          "heard_before": micHeard,
+        ].merging(playbackFields()) { mine, _ in mine })
       let call = generation
       deps.audio.restartMic { [weak self] error in
-        guard let self, call == self.generation, let error else { return }
+        guard let self, call == self.generation else { return }
+        // #364: the queue again once the engine is back, so what the restart dropped is the difference.
+        guard let error else {
+          self.log(
+            "call_heal", ["action": "rearm_mic", "ok": true].merging(self.playbackFields()) { mine, _ in mine })
+          return
+        }
         self.log("call_heal", ["action": "rearm_mic", "ok": false, "message": describe(error)])
         self.setProblem("microphone failed: \(describe(error))")
       }
@@ -694,6 +719,7 @@ public final class CallSession {
     statsTimer = nil
     zeroRun = 0
     zeroRearmed = false
+    micHeard = false
     micBuffers = 0
     audioReset = false
     firstFrameTimer?.cancel()
