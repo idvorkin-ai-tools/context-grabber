@@ -436,3 +436,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** a session ends
 - **Then:** nothing is saved, breathing works the same, and the session log says Health declined
 
+---
+
+### User Story 249:
+
+- **Summary:** The 4·4·6·2 pattern at half the pace
+- **Status:** not yet implemented
+- **Spec:** [box breathing, "Breath length"](../superpowers/specs/2026-10-04-box-breathing-design.md)
+
+#### Use Case:
+- **As someone** who likes 4·4·6·2's shape but wants it slower
+- **I want to** pick the same pattern at two seconds a count with one tap
+- **so that** a slow session needs no Custom fiddling
+
+#### Acceptance Criteria:
+- **Scenario:** 4·4·6·2 ×2
+- **Given:** the breathing screen
+- **When:** I tap *4·4·6·2 ×2* and Begin
+- **Then:** I breathe in for 8 seconds, hold 8, breathe out for 12 and hold 4; the line under the title reads "In 8, hold 8, out 12, hold 4."; the summary counts cycles of 32 seconds; the finished session is named "Breathing · 4·4·6·2 ×2 · N cycles"; and *4·4·6·2 ×2* is still chosen the next time I open the screen
