@@ -1,5 +1,6 @@
 //  The step-4 acceptance bar: over the same fixture the native grab's exports equal, byte for byte, what the
-//  React Native app's own code produces (scripts/native/make-mirror-expected.mjs wrote the expected files).
+//  React Native app's own code produced. Its script wrote the expected files before that code was removed
+//  (2026-10-17); the files are now the record.
 
 import XCTest
 

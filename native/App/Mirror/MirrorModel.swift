@@ -203,8 +203,8 @@ final class MirrorModel: ObservableObject {
 
   /// GRABBER_MIRROR=fixture: the bundled week, moved to this week, answered without HealthKit.
   /// GRABBER_MIRROR=healthkit: the same week saved into this device's Health store, then grabbed from HealthKit.
-  /// Either way the fixture as grabbed goes to Documents/exports/fixture.json and both exports are written, for
-  /// `make-mirror-expected.mjs --fixture` to compare against.
+  /// Either way the fixture as grabbed goes to Documents/exports/fixture.json and both exports are written, for the
+  /// smoke to check and a person to diff.
   func runFixtureHook(_ mode: String) async {
     hookStatus = "running"
     await run(mode)

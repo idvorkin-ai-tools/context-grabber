@@ -349,12 +349,11 @@ trouble_call
 require_event bug_report_auto_skipped 'select(.reason == "call_trouble")' "trouble: a second within ten minutes, after a relaunch, is skipped"
 kill "$DROP" 2>/dev/null || true
 
-# Stories 020, 029 (spec step 4): the exports equal, byte for byte, what the React Native app's own code makes of
-# the same week. `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the
-# access `just native-sim-health` grants once (skipped with a note when it has not). Needs typescript from
-# node_modules (`npm ci`, or NODE_PATH pointing at a checkout that has it).
-root="$(cd "$(dirname "$0")/../.." && pwd)"
-expected="$HOME/tmp/agent/skill/mirror-smoke"
+# Stories 020, 029 (spec step 4): the grab runs end to end on the simulator, every series arrives and no query fails.
+# `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the access
+# `just native-sim-health` grants once (skipped with a note when it has not). That the exports equal what the React
+# Native app made of the same week is pinned on the host by MirrorFixtureTests against the expected files committed
+# with them (the TypeScript that made those files was removed 2026-10-17).
 mirror_check() {  # $1 = fixture | healthkit
   local before=$fail
   SIMCTL_CHILD_GRABBER_MIRROR="$1" relaunch
@@ -363,13 +362,9 @@ mirror_check() {  # $1 = fixture | healthkit
     bad "mirror ($1): no mirror_fixture_done"; return
   fi
   f=$(newest_log)
-  mkdir -p "$expected/$1"
-  TZ=$(jq -r .timeZone "$DOCS/exports/fixture.json") node --no-warnings "$root/scripts/native/make-mirror-expected.mjs" \
-    --fixture "$DOCS/exports/fixture.json" --out "$expected/$1" >/dev/null
-  if cmp -s "$DOCS/exports/summary.json" "$expected/$1/mirror-summary-expected.json" \
-    && cmp -s "$DOCS/exports/raw.json" "$expected/$1/mirror-raw-expected.json"; then
-    ok "mirror ($1): summary $(wc -c <"$DOCS/exports/summary.json" | tr -d ' ') B and raw byte-identical to the TypeScript"
-  else bad "mirror ($1): exports differ from $expected/$1 (diff them)"; fi
+  [ -s "$DOCS/exports/summary.json" ] && [ -s "$DOCS/exports/raw.json" ] \
+    && ok "mirror ($1): summary $(wc -c <"$DOCS/exports/summary.json" | tr -d ' ') B and raw written" \
+    || bad "mirror ($1): no summary or raw export in $DOCS/exports"
   grabbed=$(jq -c 'select(.type=="mirror_grabbed") | {series, failed_queries}' "$f" | tail -1)
   errors=$(jq -c 'select(.type=="error" or .type=="health_query_failed")' "$f")
   if [ "$(jq -r .series <<<"$grabbed")" = "10" ] && [ -z "$errors" ]; then ok "mirror ($1): 10 series, nothing failed"

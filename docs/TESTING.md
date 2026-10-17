@@ -2,30 +2,15 @@
 
 The rule: every question is answered on the cheapest rung that can answer it, and a change is not "done" until the
 rung that can see it has seen it. Say which rung you used. The rungs are ordered by cost, and the split follows the
-code: everything in `lib/` is platform-free and runs on the host; the UI runs under React Native Testing Library on
-the host too; only what genuinely needs HealthKit, GPS, an audio session, a widget or the voice bridge goes higher.
+code: `native/ContextCore` is platform-free and runs on the host; only what genuinely needs the app, HealthKit, GPS,
+an audio session, a widget or the voice bridge goes higher. (The React Native app this replaced, and its jest and
+Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-04-swift-native-app-design.md).)
 
 | Rung | What runs | Command | Time | Answers |
 |---|---|---|---|---|
-| 1 Host, unit | ts-jest over `lib/` (jest project `unit`) | `just test` (every rung-1 row), or `npx jest __tests__/<file>` | ~15 s for `just test` warm, ~35 s on a cold cache after `npm ci`, seconds for one file | health math, sleep, weekly bucketing, clustering and places against real GPS data, stats, the export shape, summary text, the call's state machine (fake socket and audio), the bridge and call wire formats, the gist upload, the accessory log, deep links, the LED geometry |
-| 1 Host, component | React Native Testing Library over `screens/` and `components/` (jest project `component`, same command) | same | same | rendering, taps, the Gym Timer screen (the turn through the mocked accelerometer, paused, the accessory sheet), metric cards, App interactions |
-| 1 Type check | the TypeScript compiler over the whole app | `npx tsc --noEmit` (also run by `just test`) | part of `just test` | every prop and wire shape |
-| 1 Swift | the memdeck deal's promises under plain `swiftc` | `just check-deal` (also run by `just test`) | seconds | no repeats, one of each per run, a tap always changes the card |
-| 2 Simulator | Maestro flows in `.maestro/` | `maestro test .maestro/<flow>.yaml` | ~1 min each | launch, tapping through by `testID`, screenshots of the About screen, the location sheet, the database export |
-| 3 Phone | the app on Igor's iPhone | `just ota` (JavaScript) · `just deploy` (native) · `just build` + `just dev` (debug, Metro) | minutes + a person | HealthKit, GPS and background location, the audio session (ducking, echo cancellation, the keepalive with the screen locked), Live Activities, widgets, Shortcuts, the Cockpit page, the voice bridge, the Keychain |
-
-## The native app's ladder
-
-The Swift-native app (`native/`, [design spec](superpowers/specs/2026-10-04-swift-native-app-design.md)) is built
-beside this one and has the same three rungs, after Exercise Analyzer's. As journeys move over, their rows in the
-tables below move here.
-
-| Rung | What runs | Command | Time | Answers |
-|---|---|---|---|---|
-| 1 Host | swift-format's lint over every native Swift file and SwiftLint's (no force unwrap, cast or try, no implicitly unwrapped optional, unless a `swiftlint:disable:next` line gives the reason), then `ContextCore` XCTest (`native/ContextCore`, the platform-free package), then the device build's signing path with fakes (`scripts/native/test-signing-guard.sh`), then the asset catalog compiled with actool, every home tile's art present and square (`scripts/native/test-tile-art.sh`) | `just native-test` (also run by `just test`; `just native-format` fixes the layout) | seconds | the layout (`native/.swift-format`); everything pure: what a log line can carry, log retention; each ported `lib/` module's logic |
-| 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events |
-| 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, the timer's cues, the card's deal and count, no `error` event |
-| 3 Phone | Grabber Native on the iPhone, beside Context Grabber | `just native-run-device`, then `just pull-logs` | minutes + a person | the shake, and everything the phone-only rows below list |
+| 1 Host | swift-format's lint over every native Swift file and SwiftLint's (no force unwrap, cast or try, no implicitly unwrapped optional, unless a `swiftlint:disable:next` line gives the reason), then `ContextCore` XCTest (`native/ContextCore`, the platform-free package), then the device build's signing path with fakes (`scripts/native/test-signing-guard.sh`), then the asset catalog compiled with actool, every home tile's art present and square (`scripts/native/test-tile-art.sh`) | `just native-test` (or `just test`; `just native-format` fixes the layout) | seconds | the layout (`native/.swift-format`); everything pure: what a log line can carry, log retention; each ported `lib/` module's logic |
+| 2 Simulator | the app, driven by launch hooks, judged from its session log | `just native-test-sim` | ~1 min | it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events, the card's deal and count |
+| 3 Phone | Grabber Native on the iPhone | `just native-run-device`, then `just pull-logs` | minutes + a person | the shake, and everything the phone-only rows below list |
 
 The phone recipes (`native-run-device`, `pull-logs`) need the iPhone's hardware UDID: `DEVICE=<udid>`
 in the environment, or one line in `scripts/native/phone-udid.local`, which is gitignored because the repo is
@@ -56,7 +41,7 @@ sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim
 | `GRABBER_EXPORT=1` | make the export file as *Export database* does, without the share sheet; `export` names its path, which the smoke opens with `sqlite3` |
 | `GRABBER_CALL=<ws url>` | open the call screen and, a second later, call that bridge as a tap on *Call Larry* would; hang up after `GRABBER_CALL_SECONDS` (default 8). `just native-test-sim` points it at `scripts/native/fake-bridge.py` on `ws://localhost:8799` and reads the `call_*` events and the bridge's own report |
 | `GRABBER_CALL_AUDIO=synthetic` | with `GRABBER_CALL`: a 220 Hz tone for the mic and counted, unplayed playback instead of the audio engine, so the protocol path is checked whatever the simulator's audio does; the smoke run makes the call once this way and once on the real engine |
-| `GRABBER_MIRROR=fixture\|healthkit` | open Today and grab the mirror's fixture week (`mirror-fixture.json`, moved to this week): `fixture` answers from the file, `healthkit` first saves it into the simulator's Health store (never on the phone) and grabs from HealthKit. Either writes `Documents/exports/{fixture,summary,raw}.json` and logs `mirror_fixture_done`; `make-mirror-expected.mjs --fixture` computes what the React Native code makes of the same `fixture.json`, and `sim-smoke.sh` compares bytes. Health's access sheet needs one tap a script cannot make: `just native-sim-health` (a UI test) makes it once per simulator |
+| `GRABBER_MIRROR=fixture\|healthkit` | open Today and grab the mirror's fixture week (`mirror-fixture.json`, moved to this week): `fixture` answers from the file, `healthkit` first saves it into the simulator's Health store (never on the phone) and grabs from HealthKit. Either writes `Documents/exports/{fixture,summary,raw}.json` and logs `mirror_fixture_done`; `sim-smoke.sh` checks both exports were written and the summary's ten series came back with nothing failed. Health's access sheet needs one tap a script cannot make: `just native-sim-health` (a UI test) makes it once per simulator |
 | `GRABBER_METRIC=<key>` | with `GRABBER_MIRROR`: open that metric's sheet after the grab (`sleep`, `movement`, `heartRate`, …), for a screenshot |
 | `GRABBER_TURN=left\|right` | with `GRABBER_TIMER`: draw the timer as if the phone were on that side (the simulator has no accelerometer), for a screenshot of the turned face |
 | `GRABBER_COUNT_VOICE=adam\|igor\|aussie` | with `GRABBER_TIMER` or `GRABBER_TIMER_SETTINGS`: count in that voice for this launch, not remembered and with no sample (story 187); `just native-test-sim` runs `aussie` and reads the first `timer_cue`'s `voice` |
@@ -146,7 +131,7 @@ What the native rungs can and cannot see of Places ([spec](superpowers/specs/202
 | Change | Where it must be verified | How |
 |---|---|---|
 | Stays, the consecutive same-place merge, Place N numbering, known-place matching and growing, the day cards and strips, the daily text, today's route and the map's framing | Host | `StayClusteringTests`, `KnownPlacesTests`, `PlacesDailyTests`, `TodaysRouteTests`, `PlaceStyleTests` (the jest cases, translated, in a pinned time zone) |
-| The same answers as the TypeScript on real data | Host | `PlacesFixtureTests`: the 36 601-point fixture against `Fixtures/places-expected.json`, which `TZ=America/Los_Angeles node scripts/native/make-places-expected.mjs` writes from `lib/` itself (rerun it after `npm ci` when the TypeScript changes) |
+| The same answers as the TypeScript on real data | Host | `PlacesFixtureTests`: the 36 601-point fixture against `Fixtures/places-expected.json`, written from the TypeScript `lib/` before the React Native code was removed (2026-10-17): the file is now the record, changed only by a deliberate behaviour change |
 | The store: insert, range, prune, settings keys, known places, import twice, a file that is not a database, the export snapshot | Host | `LocationStoreTests`, `PlacesFixtureTests.testImportTheRealExportTwice` (real SQLite, in memory or a temp file) |
 | Import of the real export (and again, adding nothing), the export file's contents, tracking on with Always and points stored as the simulator moves, recording resumed at launch, retention lowered pruning at once, no `error` | Simulator | the `places:` and `tracking:` checks in `sim-smoke.sh` |
 | The screen: map with pins, You and today's path, the day cards, full-screen map | Simulator screenshot | the hooks above, then `simctl io screenshot` (`~/tmp/agent/image/places/`) |
@@ -170,7 +155,7 @@ What the native rungs can and cannot see of the mirror and Grab Context:
 | Change | Where it must be verified | How |
 |---|---|---|
 | Health math, sleep nights, the week's series, box plots, card and sheet text, the cache | Host | `MirrorHealthTests`, `MirrorWeeklyTests`, `MirrorBasicsTests` (ports of the jest cases, pinned to America/Los_Angeles) |
-| The export, byte for byte with the React Native app | Host | `MirrorFixtureTests`: the native grab over `mirror-fixture.json` against `mirror-{summary,raw}-expected.json`, which `TZ=America/Los_Angeles node scripts/native/make-mirror-expected.mjs` writes by running the React Native app's own `lib/` (and a transcript of App.tsx's grab) over the same fixture |
+| The export, byte for byte with the React Native app | Host | `MirrorFixtureTests`: the native grab over `mirror-fixture.json` against `mirror-{summary,raw}-expected.json`, written by running the React Native app's own `lib/` (and a transcript of App.tsx's grab) over the same fixture before that code was removed (2026-10-17): the files are now the record |
 | HealthKit's answers (units, overlap, order) giving the same bytes | Simulator | `just native-sim-health` once (a UI test grants Health's two-page access sheet — topics, then *All Recorded Data* — which simctl cannot tap), then the `mirror:` checks in `sim-smoke.sh` |
 | Today and a sheet, drawn | Simulator screenshot | `SIMCTL_CHILD_GRABBER_MIRROR=fixture SIMCTL_CHILD_GRABBER_METRIC=sleep xcrun simctl launch …`, then `simctl io screenshot` |
 | Igor's own Health: the cards equal the current app's Body tab; sources, preferred units; Health's access sheet | Phone only | grab in both apps, compare; `just pull-logs`, read `mirror_grabbed`, `health_query_failed` |
@@ -179,73 +164,20 @@ A new behaviour that only a tap can reach gets a hook and a log event in the sam
 to wait on is not a check. `GrabberNative.xcodeproj` is generated from `native/project.yml` by XcodeGen
 (`just native-project`, run by the build recipes) and is not committed.
 
-## What kind of test goes where
-
-| Change | Where it must be verified | How |
-|---|---|---|
-| Health math: sleep merge, weight, meditation, `buildHealthData` | Host | `__tests__/health.test.ts`, `sleep.test.ts` (noon-to-noon), `weekly.test.ts` (local-day bucketing) |
-| Clustering, place matching, distance and merge thresholds | Host, against real data | `clustering_v2.test.ts`, `places.test.ts` with `__tests__/fixtures/locations.json` (36K real points) and `context-grabber.db` (4 real known places); a threshold is checked against the fixture before it ships (the place-merge gate moved 50 m → 500 m because the tight gate caught 0/10 unmatched stays) |
-| The export | Host | `share.test.ts`, `snapshot.test.ts`, `summary.test.ts`; the JSON is a contract Larry depends on (`docs/user-needs.md`, Export Contract) |
-| The call: state machine, reconnect, captions, ending text | Host | the `callSession` tests with a fake socket and fake audio; `callProtocol` / `audioBridge` / `pcm` tests for the wire formats; `gistUpload` tests for trouble detection and the upload |
-| Gym Timer: phases, rounds, cues timing | Host | `timer.test.ts`; the face and the turn `ledTimer.test.ts`, `GymTimerScreen.test.tsx`; the accessory log `accessoryLog.test.ts` |
-| Screens and components: rendering, taps, sheets | Host | the `*.test.tsx` component project |
-| Deep links, the widget bridge's contract | Host | the `deepLink` tests; the Swift side by `just check-deal` |
-| Layout on a real screen, the About / location / export flows | Simulator | Maestro, `.maestro/*.yaml`, screenshots under `/tmp/maestro_*` |
-| The audio session: ducking around cues, a podcast pausing and resuming, echo cancellation, the mic after a route change | Phone only | run it, then read the timer log (the *Log* button) or the call log (Diagnostics fold); see [DEBUGGING.md](DEBUGGING.md) |
-| HealthKit and GPS data, background tracking, pruning | Phone only | Grab Context, read the cards and the export |
-| Widgets, Live Activity, Shortcuts, App Intents, the lock screen | Phone only, native build | `just deploy`; add the widget, tap it, check the App Group state through the Card tab |
-| The Cockpit page and the voice bridge | Phone on the tailnet | a real call; the call log says what the bridge said |
-| An OTA update | Phone | `just ota`, open the app twice, About shows the running commit message |
-
 Analysis bugs (a wrong stay, a place that did not match, a sleep total that is off) are reproduced on the host first:
-put the data in a fixture or a test, make it fail, fix, then ship. Never tune by reinstalling.
+put the data in a fixture or a test, make it fail, fix, then ship. Never tune by reinstalling. The real-data fixtures
+are `__tests__/fixtures/locations.json` (36K real points), `context-grabber.db` (a real export with 4 known places;
+`sqlite3` opens it on the Mac) and `heart-rate-2d.json`; a geometry threshold is checked against them before it ships
+(the place-merge gate moved 50 m → 500 m because the tight gate caught 0/10 unmatched stays).
 
-## Rung 1: host tests
+## The phone
 
-Two jest projects in `jest.config.js`: `unit` (ts-jest, node, every `*.test.ts`) and `component` (the react-native
-preset, every `*.test.tsx`). `jest.setup.js` mocks the native modules — expo-sqlite, the accelerometer (a test holds
-the phone with `Accelerometer.__emit`), the clipboard, audio files map to a stub. Patterns worth copying:
+`just native-run-device` builds, installs and launches; `just pull-logs` brings back the session logs, reports and
+crashes. What only the phone can show: HealthKit and CoreLocation (and CoreLocation's silence while the phone is
+still), the audio session — the Gym Timer's ducking window, a podcast resuming, echo cancellation on a call, the
+keepalive with the screen locked — the Live Activity and the widgets, Shortcuts and Siri, the Cockpit page over the
+tailnet, and everything visual on an OLED.
 
-- **A stateful fake store** rather than a SQL-shape assertion: `accessoryLog.test.ts` keeps inserted rows and honours
-  the `WHERE` clause, so save → read-back is a real round trip.
-- **`settle()` / `hold(x, y)`** in `GymTimerScreen.test.tsx`: flush effects, tilt the phone.
-- **Real data** for geometry: `__tests__/fixtures/locations.json` and `context-grabber.db` (the `.db` is a real
-  export; `sqlite3` can open it on the Mac).
-- **Fake socket and audio** for the call: `lib/callSession.ts` is platform-free by design so the whole call can run in
-  a test.
-
-A test file per `lib/` module; the list lives in the `__tests__/` directory itself. `npx jest --watch <file>` while
-iterating.
-
-## Rung 2: simulator (Maestro)
-
-```bash
-export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
-export PATH="$JAVA_HOME/bin:$PATH"
-maestro test .maestro/check-about.yaml
-```
-
-Flows: `check-about.yaml` (the About screen), `check-location-section.yaml` (Refresh, then the location sheet),
-`export-db.yaml` (the database export). Use `testID` props, not `accessibilityLabel`, for taps. Maestro cannot tap
-native system dialogs, so a flow that would trigger the HealthKit or location prompt is a phone test; the simulator
-has no health data, and the cards must tolerate empty. Screenshots land in `/tmp/maestro_*`.
-
-## Rung 3: the phone
-
-- **`just ota "message"`** publishes the JavaScript bundle to the production channel. Refuses when the native surface
-  (`ios/`, `modules/`, `patches/`, `package.json`, `app.json`) moved since the last `just deploy` from this Mac, or
-  when `app.json` and `Expo.plist` disagree on the runtime version. The app picks it up on the second open; About
-  shows the running commit message (baked at build time by `scripts/generate-version.js`).
-- **`just deploy`** is the native build: `pod install` every time, the release build, install over `devicectl`,
-  and the `.native-build-sha` marker. Needed for anything native and for a new pod; run
-  `scripts/bump-runtime-version.sh` first when the native surface changed. Never `expo prebuild` here.
-- **`just build` + `just dev`** is the debug build on Metro: faster iteration, no OTA.
-
-What only the phone can show: HealthKit and CoreLocation (and CoreLocation's silence while the phone is still),
-the audio session — the Gym Timer's ducking window, a podcast resuming, VoiceProcessingIO echo cancellation on a
-call, the keepalive with the screen locked — the Live Activity and the widgets, Shortcuts and Siri, the Cockpit page
-over the tailnet, the Keychain, and everything visual on an OLED.
-
-**Log before theorizing.** When a phone symptom is unexplained, the first change is a log line, not a fix. The call
-log, the timer log and every copyable error carry the build they came from. [DEBUGGING.md](DEBUGGING.md) says what
-each holds and how to get it.
+**Log before theorizing.** When a phone symptom is unexplained, the first change is a log line, not a fix. Every
+session log and report carries the build it came from. [DEBUGGING.md](DEBUGGING.md) says what each holds and how to
+get it.

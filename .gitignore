@@ -6,31 +6,13 @@
 .beads/issues.jsonl
 .beads/beads.jsonl
 
-# dependencies
-node_modules/
-
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# Native
-.kotlin/
+# Signing material
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
 
 # macOS
 .DS_Store
@@ -42,18 +24,6 @@ yarn-error.*
 # Claude Code
 .claude/
 
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-# ios/ is committed (see deploy recipe in justfile) — stops expo prebuild from
-# wiping DEVELOPMENT_TEAM and breaking expo-live-activity on every deploy.
-/ios/Pods/
-/ios/build/
-/ios/.xcode.env.local
-/ios/**/xcuserdata/
-/android
-
 # The native app: the project is generated from native/project.yml (just native-project)
 /native/GrabberNative.xcodeproj/
 /native/Build/
@@ -64,8 +34,6 @@ yarn-error.*
 # worktrees
 .worktrees/
 
-# generated version file
-lib/generated_version.ts
 
 # Beads / Dolt files (added by bd init)
 .dolt/
@@ -80,8 +48,6 @@ beads_report_*.md
 .beads/proxieddb/
 
 
-# `just deploy` records the commit the phone carries; `just ota` checks the native surface against it
-.native-build-sha
 
 # The iPhone's hardware UDID for the native recipes (scripts/native/phone-udid.sh); the repo is public
 scripts/native/phone-udid.local
