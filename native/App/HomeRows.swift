@@ -55,6 +55,10 @@ struct HomeRow: Identifiable {
     HomeRow(id: "random", title: "Random", icon: "dice", color: .gray) {
       $0.openBlog(BlogLinks.random, action: "open_random", from: "home")
     },
+    // Story 252 (#340, #353): the report sheet a shake opens, one tap from home.
+    HomeRow(id: "report_problem", title: "Report a problem", icon: "ant.fill", color: .orange) {
+      $0.startBugReport(from: "home")
+    },
   ]
 
   /// #286: the home screen's last tile, always shown; not one of the launchers Settings arranges, since it is the
