@@ -252,7 +252,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A call placed at home
 - **Given:** location permission is granted and Home is a known place
 - **When:** I tap Call Larry and then walk out of the Home radius
-- **Then:** Diagnostics shows *location: Home (±… m)* before or shortly after *live*, one more location line reaches the log within a minute of leaving, and standing still sends none
+- **Then:** Diagnostics shows *location: Home (±… m)* before or shortly after *live*, one more location line reaches the log within a minute of leaving, and standing still sends none; off a known place the log line shows the position to two decimals only
 
 - **Issues:** [#107](https://github.com/idvorkin/context-grabber/issues/107) the ask (still open: what Larry does with it is the bridge's)
 

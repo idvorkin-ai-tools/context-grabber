@@ -271,7 +271,7 @@ differences while the two apps live side by side:
 - **Where Igor is (story 092, #107)**, now that Places has shipped: a call asks for a fresh fix as it starts, and
   the fix, named for the known place it falls inside when there is one, goes up with the call. Each significant move
   during the call sends one more: a different known place, or 200 m from the last one sent. Standing still sends
-  none. Diagnostics shows each one (*location: Home (±12 m)*). Without location permission the call simply carries
+  none. Diagnostics shows each one (*location: Home (±12 m)*), and off a known place only to about a kilometre (*47.62, -122.33 (±65 m)*), since the call's log can leave the phone in a report; the bridge still gets the precise fix. Without location permission the call simply carries
   none.
 - **Prime audio is not ported.** It was an experiment for the silent first call in the React Native audio
   engine (#88); the native call builds its audio the same way every time.
