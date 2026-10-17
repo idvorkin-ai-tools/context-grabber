@@ -22,6 +22,7 @@ struct PlacesMapView: View {
   @State private var copied = false
   /// Story 058: a tap on Copy or Find me before the first fix, answered with "Waiting for a GPS fix…".
   @State private var waiting = false
+  @State private var waitingReset: Task<Void, Never>?
 
   private var you: Coordinate? {
     tracker.you.map { Coordinate(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
@@ -94,6 +95,14 @@ struct PlacesMapView: View {
           places.selectUnnamed(nil, from: "close")
         }
         .padding(.horizontal, 12).padding(.bottom, fullscreen ? 28 : 8)
+      }
+    }
+    .overlay(alignment: .top) {
+      if waiting && selected != nil {
+        Label("Waiting for a GPS fix\u{2026}", systemImage: "location.slash")
+          .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 5)
+          .background(.ultraThinMaterial, in: Capsule())
+          .padding(8)
       }
     }
     .overlay(alignment: .bottomLeading) {
@@ -172,8 +181,9 @@ struct PlacesMapView: View {
     log.event("ui", ["action": "map_waiting_for_fix", "control": control])
     tracker.requestFix(reason: "map_\(control)")
     waiting = true
-    Task {
-      try? await Task.sleep(for: .milliseconds(2000))
+    waitingReset?.cancel()
+    waitingReset = Task {
+      guard (try? await Task.sleep(for: .milliseconds(2000))) != nil else { return }
       waiting = false
     }
   }

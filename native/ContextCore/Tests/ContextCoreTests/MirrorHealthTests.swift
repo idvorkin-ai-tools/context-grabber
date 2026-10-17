@@ -254,7 +254,7 @@ final class SleepTests: XCTestCase {
       SleepSample(start: local(15, 1), end: local(15, 7), value: 4, source: "Watch"),
       SleepSample(start: local(14, 23), end: local(15, 7), value: 1, source: "AutoSleep"),
     ]
-    let days = Sleep.hoursByNight(samples, endDate: end, clock: la)
+    let days = Sleep.detailedBundle(samples, endDate: end, clock: la).nightlyHours
     XCTAssertEqual(days.count, 7)
     XCTAssertEqual(days.first { $0.date == "2026-03-14" }?.value, 8, "the whole night, on the day I went to bed")
     XCTAssertNil(days.first { $0.date == "2026-03-15" }?.value, "not split onto the morning's day")

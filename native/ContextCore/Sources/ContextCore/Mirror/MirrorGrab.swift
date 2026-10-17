@@ -165,8 +165,9 @@ public final class MirrorGrab: @unchecked Sendable {
         return (sample.start, .object(fields))
       }
       // Bead byo: a night counts once, on the bed day — the Sleep sheet's own number, not a midnight split.
-      bundle = Sleep.detailedBundle(samples, endDate: now, clock: clock)
-      days = bundle?.merged.map { DailyValue(date: $0.date, value: $0.totalHours) } ?? []
+      let night = Sleep.detailedBundle(samples, endDate: now, clock: clock)
+      bundle = night
+      days = night.nightlyHours
     }
     if let cache {
       do {
