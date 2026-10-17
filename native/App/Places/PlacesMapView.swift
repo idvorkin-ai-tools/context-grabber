@@ -20,6 +20,8 @@ struct PlacesMapView: View {
   @State private var position: MapCameraPosition = .automatic
   @State private var framed = false
   @State private var copied = false
+  /// Story 058: a tap on Copy or Find me before the first fix, answered with "Waiting for a GPS fix…".
+  @State private var waiting = false
 
   private var you: Coordinate? {
     tracker.you.map { Coordinate(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
@@ -79,9 +81,8 @@ struct PlacesMapView: View {
           log.event("ui", ["action": fullscreen ? "map_collapse" : "map_expand"])
           onToggleFullscreen()
         }
-        if you != nil {
-          control("location.fill", label: "Find me") { findMe() }
-        }
+        // Story 058: always there; dimmed until the first fix.
+        control("location.fill", label: "Find me", dimmed: you == nil) { findMe() }
       }
       .padding(8)
     }
@@ -96,8 +97,9 @@ struct PlacesMapView: View {
       }
     }
     .overlay(alignment: .bottomLeading) {
-      if let you, selected == nil {
+      if selected == nil {
         Button {
+          guard let you else { return waitForFix(from: "copy") }
           UIPasteboard.general.string = PlaceStyle.coordinateText(you)
           log.event(
             "ui", ["action": "copy_coordinates", "accuracy": Int(tracker.you?.horizontalAccuracy.rounded() ?? -1)])
@@ -107,11 +109,16 @@ struct PlacesMapView: View {
             copied = false
           }
         } label: {
-          Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
-            .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 5)
-            .background(.ultraThinMaterial, in: Capsule())
+          Label(
+            waiting ? "Waiting for a GPS fix\u{2026}" : copied ? "Copied" : "Copy",
+            systemImage: waiting ? "location.slash" : copied ? "checkmark" : "doc.on.doc"
+          )
+          .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 5)
+          .background(.ultraThinMaterial, in: Capsule())
+          .opacity(you == nil && !waiting ? 0.45 : 1)
         }
         .accessibilityLabel("Copy coordinates")
+        .accessibilityIdentifier("places-copy")
         .padding(8)
       }
     }
@@ -160,8 +167,19 @@ struct PlacesMapView: View {
     }
   }
 
+  /// Story 058: no fix yet. Ask for one, and say so where the confirmation goes; nothing is copied or moved.
+  private func waitForFix(from control: String) {
+    log.event("ui", ["action": "map_waiting_for_fix", "control": control])
+    tracker.requestFix(reason: "map_\(control)")
+    waiting = true
+    Task {
+      try? await Task.sleep(for: .milliseconds(2000))
+      waiting = false
+    }
+  }
+
   private func findMe() {
-    guard let you else { return }
+    guard let you else { return waitForFix(from: "find_me") }
     log.event("ui", ["action": "find_me"])
     withAnimation {
       position = .region(
@@ -171,9 +189,12 @@ struct PlacesMapView: View {
     }
   }
 
-  private func control(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+  private func control(_ symbol: String, label: String, dimmed: Bool = false, action: @escaping () -> Void)
+    -> some View
+  {
     Button(action: action) {
       Image(systemName: symbol).font(.system(size: 15, weight: .semibold)).frame(width: 36, height: 36)
+        .opacity(dimmed ? 0.45 : 1)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
     }
     .accessibilityLabel(label)
