@@ -90,9 +90,10 @@ Adding one: `log.event("snake_case_type", ["field": value])`, and a row here in 
 and the card index from and to) when a tap on the card runs the intent, and `timeline` (nonce, pool size, the first
 entry's index and card) each time the widget builds its timeline. A tap that changes nothing is one of three:
 no `deal_tap` (the intent never ran), `deal_tap` with no `timeline` after it (the reload never came), or both with
-the same card. `shown` is the nonce the widget last drew with; when it trails `old`, a redraw after an earlier
-tap was skipped, and the tap now avoids that card too. On the simulator: `xcrun simctl spawn <udid> log show --last 10m --predicate 'subsystem ==
-"com.idvorkin.grabbernative"'`; on the phone, `log collect` from the Mac.
+the same card. `shown` is the nonce the widget last built its timeline with (`none` before it first drew); when it
+trails `old`, a redraw after an earlier tap was skipped, and the tap now avoids that card too. On the simulator:
+`xcrun simctl spawn <udid> log show --last 10m --predicate 'subsystem == "com.idvorkin.grabbernative"'`; on the
+phone, `log collect` from the Mac.
 
 **From a shake to an issue.** A shake (or *Report a problem* behind the home screen's Settings tile) captures the window, and *Log it*
 writes a `bug_report` event, a line in `Documents/bugs.jsonl` (note, screen, build, `log`, `session_t_ms`,
