@@ -444,6 +444,12 @@ final class CallSessionZerosTests: XCTestCase {
     let heal = t.events.first { $0.0 == "call_heal" && $0.1["action"] as? String == "rearm_mic" }?.1
     XCTAssertEqual(heal?["heard_before"] as? Bool, true)
     XCTAssertEqual(heal?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 1)
+
+    // Codex on #365: sound → zeros → rearm → sound still says the mic came back.
+    t.audio.mic(480, value: 0.2)
+    let back = t.events.filter { $0.0 == "call_mic" && $0.1["action"] as? String == "audio_back" }.map(\.1)
+    XCTAssertEqual(back.count, 1)
+    XCTAssertEqual(back.first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 2)
   }
 
   func testAQuietRoomIsNotZeros() {

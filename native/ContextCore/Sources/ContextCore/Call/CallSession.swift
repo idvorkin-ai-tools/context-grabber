@@ -179,6 +179,8 @@ public final class CallSession {
   private var zeroRearmed = false
   /// #364: whether any mic buffer this call carried sound, so a zero-run heal says if the mic was ever live.
   private var micHeard = false
+  /// A zero-run rearm is waiting for its first sound, for `audio_back` whether or not the mic was live before.
+  private var awaitingSoundAfterRearm = false
   private var firstFrameTimer: CallTimer?
   private var audioReset = false
   /// One automatic redial per dead burst; cleared by a call whose mic delivers.
@@ -529,9 +531,10 @@ public final class CallSession {
   /// zero to the sample re-arms the mic once; zeros after that are said.
   private func watchForZeros(_ samples: [Float]) {
     guard PCM.isExactSilence(samples) else {
-      if zeroRun >= Self.zeroBuffersBeforeRearm || (zeroRearmed && !micHeard) {
+      if zeroRun >= Self.zeroBuffersBeforeRearm || awaitingSoundAfterRearm {
         log("call_mic", ["action": "audio_back", "buffers": micBuffers])
       }
+      awaitingSoundAfterRearm = false
       micHeard = true
       zeroRun = 0
       if snapshot.problem == Self.micSilent { setProblem(nil) }
@@ -542,6 +545,7 @@ public final class CallSession {
     if !zeroRearmed {
       zeroRearmed = true
       zeroRun = 0
+      awaitingSoundAfterRearm = true
       log(
         "call_heal",
         [
@@ -720,6 +724,7 @@ public final class CallSession {
     zeroRun = 0
     zeroRearmed = false
     micHeard = false
+    awaitingSoundAfterRearm = false
     micBuffers = 0
     audioReset = false
     firstFrameTimer?.cancel()
