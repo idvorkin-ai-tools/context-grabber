@@ -1,4 +1,4 @@
-//  #284–#286: every launcher is the same small tile, three to a line, its icon above a short name; Recent and Random
+//  #284–#286: every launcher is the same small tile, three to a line, its drawn art (#304, no name); Recent and Random
 //  share a line; Settings is the last tile and opens the Home screen sheet (the floating cog is gone).
 
 import XCTest

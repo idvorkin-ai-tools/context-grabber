@@ -49,8 +49,9 @@ and points at Settings.
   never 0.
 - **Three to a row** (Igor, 2026-10-11, reports #284–#286; superseding the four big tiles and the pairs of #225
   and #235). Every launcher under the Today card and the strip is the same small tile, three to a line, in Igor's
-  order: its icon above a one- or two-word name (*"put three under a row, use shorter words plus the icon"*): Call,
-  Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random. So Recent and Random
+  order: Call, Timer, Breathe, Places, Card, Analyzer, Supermix, Cockpit, Song, Eulogy, Recent, Random. (Each first
+  showed its icon above a one- or two-word name, *"put three under a row, use shorter words plus the icon"*; since
+  the drawn art, the picture alone, below.) So Recent and Random
   sit side by side (#285). A hidden launcher closes the gap; a last line with fewer than three keeps the tiles the
   same size. Call Larry's tile still shows a call left running, as a small green badge in its corner — *calling…*, then the running time such as *2:05* — so it stays the size of its neighbours (the full line, with the backend and the voice, is on the Call screen). **Settings is the last tile** (#286:
   *"settings can be a button now"*), always there and never hidden, since it is the way back to a hidden
@@ -61,8 +62,9 @@ and points at Settings.
   nothing shrinks to fit. Settings' list of launchers draws them this way; the tiles and the Today card show the drawn
   art below.
 - **Drawn art on the tiles** (Igor, 2026-10-13, #304: *"custom icons … bigger tiles"*; settled 2026-10-17: keep
-  three to a row, custom art for every tile, judge the size after). Each home tile shows its own picture, larger
-  than the old glyph square, above the same short name. Objects are painted as refined still-lifes, not cartoons
+  three to a row, custom art for every tile, judge the size after). Each home tile shows its own picture and
+  no name: the picture says what it is, so it fills the tile in the space a name took (Igor, 2026-10-17: *"words
+  are dups now"*, then *"no words"*). VoiceOver still reads each launcher's full name. Objects are painted as refined still-lifes, not cartoons
   (Igor, 2026-10-17: *"less cartoony on everything"*), with no background of their own: each object sits straight
   on its tile, so the art blends into the tile in light mode and in dark (Igor, 2026-10-17: *"more blended into the
   background, some kind of transparent, but still works when dark"*, replacing *"give all of them backgrounds the
@@ -72,8 +74,8 @@ and points at Settings.
   calendar. Timer: a steel stopwatch. Breathe: Igor's raccoon meditating in full lotus. Places: a folded map with a
   pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
   gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
-  (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a clock with an
-  arrow. Random: dice. Settings: a brass gear. The Today card's heading shows Today's drawing, small. Settings'
+  (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a fan of freshly printed
+  pages with a red ribbon, so it is not a third round dial beside Timer's stopwatch and Cockpit's gauge. Random: dice. Settings: a brass gear. The Today card's heading shows Today's drawing, small. Settings'
   list of launchers keeps the small glyph squares. Which of the drawings each tile shows is Igor's call and can
   change at any time.
 
@@ -171,7 +173,7 @@ Order, hiding and Reset in Settings work as before.
   links open the commit and the repository on GitHub (#303).
 - A hidden journey still opens from its link, Shortcut or launch hook.
 - Every launcher under the Today card and the strip is the same small tile, three to a line in the remembered
-  order, its icon above a short name; a last line with fewer than three keeps the tiles the same size, and
+  order, its drawn picture with no name under it (VoiceOver reads the name); a last line with fewer than three keeps the tiles the same size, and
   *Settings* is always the last tile (#284–#286).
 
 - The daily strip shows Gym, Meditation, Journal, Balloons and Magic in one line under the Today card. A tap checks Gym or
