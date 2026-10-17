@@ -404,7 +404,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The 4·4·6·2 pattern
 - **Given:** the breathing screen
 - **When:** I tap *4·4·6·2* and Begin
-- **Then:** I breathe in for 4 seconds, hold 4, breathe out for 6 and hold 2, each cue on its own second; the summary counts cycles of 16 seconds; and *4·4·6·2* is still chosen the next time I open the screen
+- **Then:** I breathe in for 4 seconds, hold 4, breathe out for 6 and hold 2, each cue on its own second; four arcs around the circle show the shape (a quarter, a quarter, three-eighths, an eighth), the step under way bright and filling; the summary counts cycles of 16 seconds; and *4·4·6·2* is still chosen the next time I open the screen
 
 ---
 
