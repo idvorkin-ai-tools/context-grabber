@@ -48,8 +48,9 @@ and points at Settings.
   read out by VoiceOver with the numbers. It shows the last grab, and
   each time the app comes to the front it grabs again in the background, so the numbers are current without a tap
   and nothing waits on it: the old numbers stay until the new ones land (Igor, 2026-10-17, #355: *"make sure it runs
-  async in the background so I never block the user"*). That refresh runs only after a first grab, so opening a
-  fresh install never asks Health for anything; tapping the card opens Today, which grabs fresh. Before
+  async in the background so I never block the user"*). That refresh runs only once Health has been asked for
+  everything the grab reads, so opening a fresh install (or a build that reads something new) never asks Health
+  for anything; tapping the card opens Today, which grabs fresh. Before
   any grab the card says *Today — tap to look* and opens Today the same way. A number Health did not give is a dash,
   never 0.
 - **Three to a row** (Igor, 2026-10-11, reports #284–#286; superseding the four big tiles and the pairs of #225
