@@ -398,7 +398,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 253:
 
 - **Summary:** The Today card refreshes itself each time the app comes to the front
-- **Status:** native app: implemented in COMMIT; the phone in the next build turn (the simulator has no Health data to refresh)
+- **Status:** native app: implemented in [576a2cf](https://github.com/idvorkin/context-grabber/commit/576a2cf); lint (host), `HomeTodayCardUITests` on the simulator for the card; the refresh itself on the phone in the next build turn (the simulator has no Health data to refresh)
 - **Issues:** [#355](https://github.com/idvorkin/context-grabber/issues/355)
 - **Spec:** [native home screen, "The Today card"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
