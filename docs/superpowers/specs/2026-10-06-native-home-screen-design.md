@@ -85,7 +85,7 @@ and points at Settings.
   person is Igor, as the raccoon of his blog's eulogy post (rainbow glasses, green shirt, mismatched crocs, soft
   felt; *"people are always Igor from the blog"*). Call: Igor's raccoon on the phone. Today: a heart on a paper
   calendar. Timer: a steel stopwatch. Breathe: Igor's raccoon meditating in full lotus. Places: a folded map with a
-  pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
+  pin. Card: an ace of spades. Analyzer: the Exercise Analyzer app's own icon, the raccoon swinging a kettlebell on teal, with iOS's rounded corners, so the tile reads as "this opens that app" (Igor, 2026-10-17, #366: *"Make exercise analyzer the icon for launching it"*); the one tile that keeps a background, because it is that app's icon. Supermix: headphones. Cockpit: a dashboard
   gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
   (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). On both stones IGOR is the
   first thing the eye finds: large letters across most of the stone, cut deep and dark against the pale stone, readable

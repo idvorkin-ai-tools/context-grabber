@@ -24,15 +24,16 @@ for t in tiles:
         bad.append(f"tile-{t}: {w}x{h}, not square or under 168 px")
     if any(r.get("Opaque") is not False for r in renditions.get(f"tile-{t}", [])):
         bad.append(f"tile-{t}: opaque, so it carries a background square instead of sitting on the tile")
-# Near-black objects vanish on the dark tile, so these carry a light-rimmed dark variant (Codex on #349).
-for t in ("exercise_analyzer", "workout_supermix", "report_problem"):
+# Near-black objects vanish on the dark tile, so these carry a light-rimmed dark variant (Codex on #349). Exercise
+# Analyzer shows the Exercise Analyzer app icon, teal (#366), which reads on either tile.
+for t in ("workout_supermix", "report_problem"):
     if not any(r.get("Appearance") == "UIAppearanceDark" for r in renditions.get(f"tile-{t}", [])):
         bad.append(f"tile-{t}: no dark-mode variant, so the dark object disappears on the dark tile")
 for g in ("strip-poodle", "strip-quill"):
     if assets.get(g, {}).get("Template Mode") != "template":
         bad.append(f"{g}: not a template image")
 for b in bad: print("FAIL tile-art:", b)
-if not bad: print("ok   tile-art: %d transparent tiles (3 with a dark variant) and 2 strip glyphs" % len(tiles))
+if not bad: print("ok   tile-art: %d transparent tiles (2 with a dark variant) and 2 strip glyphs" % len(tiles))
 sys.exit(1 if bad else 0)
 '
 status=$?
