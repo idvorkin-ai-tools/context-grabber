@@ -58,7 +58,22 @@ and points at Settings.
 - **How a launcher looks** (Igor, 2026-10-08: *"Doesn't it look bad? … think about making it good via
   design"*): each launcher has its own colour, and only its icon carries it, as a white glyph on a small rounded
   square, the way Settings draws its rows. The names are in the ordinary text colour, one size for every row so
-  nothing shrinks to fit. The same icons are on the Today card and in Settings' list of launchers.
+  nothing shrinks to fit. Settings' list of launchers draws them this way; the tiles and the Today card show the drawn
+  art below.
+- **Drawn art on the tiles** (Igor, 2026-10-13, #304: *"custom icons … bigger tiles"*; settled 2026-10-17: keep
+  three to a row, custom art for every tile, judge the size after). Each home tile shows its own picture, larger
+  than the old glyph square, above the same short name. Objects are painted as refined still-lifes, not cartoons
+  (Igor, 2026-10-17: *"less cartoony on everything"*), all on the same warm cream (*"give all of them backgrounds
+  the same color"*), with no faces on things. The launcher's own colour stays on Settings' list. Every
+  person is Igor, as the raccoon of his blog's eulogy post (rainbow glasses, green shirt, mismatched crocs, soft
+  felt; *"people are always Igor from the blog"*). Call: Igor's raccoon on the phone. Today: a heart on a paper
+  calendar. Timer: a steel stopwatch. Breathe: Igor's raccoon meditating in full lotus. Places: a folded map with a
+  pin. Card: an ace of spades. Analyzer: a kettlebell beside a bar chart. Supermix: headphones. Cockpit: a dashboard
+  gauge. Song: a gravestone carved IGOR, wearing big, bold headphones. Eulogy: a gravestone carved IGOR above a small heart
+  (Igor, 2026-10-17: *"make headphones more pronounced, write Igor on both stones"*). Recent: a clock with an
+  arrow. Random: dice. Settings: a brass gear. The Today card's heading shows Today's drawing, small. Settings'
+  list of launchers keeps the small glyph squares. Which of the drawings each tile shows is Igor's call and can
+  change at any time.
 
 **The daily strip** (Igor, iPad, 2026-10-10, #236: *"a little strip for things I want to do every day, like gym,
 and that can get a checkmark … an up/down counter somehow that's still small. I want this all in one strip"*;
@@ -73,10 +88,11 @@ means to do every day, each a glance and a tap.
   the last grab (any meditation app; the app's own breathing writes them too). A tap is the fallback, and a tap
   can be taken back; a check from breathing or Health stays. A session in another app shows once Today has grabbed,
   because opening the home screen asks Health nothing.
-- **Journal** — a check, shown as a pen signing (Igor, #287: a feather pen; the system has none, so the nearest
-  until one is drawn): a tap marks today written; another tap takes it back.
-- **Balloons** — a count of balloons made for others today, shown as a dog (Igor, #287: a balloon dog; the
-  system has none, so the nearest until one is drawn) and the number. A tap adds one; a long press takes
+- **Journal** — a check, shown as a drawn quill pen (Igor, #287, #299): a tap marks today written; another tap
+  takes it back.
+- **Balloons** — a count of balloons made for others today, shown as a balloon poodle drawn in outline, one balloon
+  segment per body part, with a domed head, a pom-pom and a forward snout (Igor, #287, #299, 2026-10-17)
+  and the number. A tap adds one; a long press takes
   one off (never below 0). A soft tick on each change.
 - **Magic** — the same counter, for magic done for others: 🪄 and the number.
 
