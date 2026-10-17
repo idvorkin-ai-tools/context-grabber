@@ -53,7 +53,7 @@ say_for() {
 for w in "${WORDS[@]}"; do say_for "$w" >/dev/null; rm -f "$out/$w".*.wav "$out/$w.wav"; done
 
 if [ -n "${ELEVEN_API_KEY:-}" ]; then
-  VOICE_ID=${VOICE_ID:-Nvd5I2HGnOWHNU0ijNEy}   # "Igor" — the clone (lib/callVoices.ts)
+  VOICE_ID=${VOICE_ID:-Nvd5I2HGnOWHNU0ijNEy}   # "Igor" — the clone (CallProtocol.swift)
   MODEL=${MODEL:-eleven_multilingual_v2}
   STABILITY=${STABILITY:-0.9}
   TAKES=${TAKES:-3}

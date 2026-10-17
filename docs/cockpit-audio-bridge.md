@@ -10,9 +10,9 @@ Implemented on the app side by:
 
 | piece | file |
 | --- | --- |
-| protocol (pure, tested) | `lib/audioBridge.ts` |
-| web view wiring | `screens/CockpitScreen.tsx` |
-| native audio session | `modules/audio-route/` (local Expo module, iOS-only) |
+| protocol (pure, tested) | `native/ContextCore/Sources/ContextCore/Cockpit/AudioBridge.swift` |
+| web view wiring | `native/App/Cockpit/CockpitModel.swift` |
+| native audio session | `native/App/Cockpit/AudioRouteController.swift` |
 
 The page consuming it lives in another repository
 (`idvorkin-ai-tools/cockpit`, `index.html` — it moved out of `igor2/decision_queue`
@@ -36,14 +36,16 @@ in `AVAudioSession`. This protocol is the pipe to that layer.
 
 ## Transport
 
-Two directions, two mechanisms, both standard `react-native-webview`.
+Two directions, two mechanisms. The page-facing API is the one the React Native
+app's `react-native-webview` exposed; the native app keeps it with a shim over
+`WKScriptMessageHandler`, so pages need no change.
 
 **Page → app** — `window.ReactNativeWebView.postMessage(JSON.stringify(msg))`,
-received by the web view's `onMessage`. Messages that don't parse as JSON,
+received by the app's script message handler. Messages that don't parse as JSON,
 or whose `type` isn't one of the four below, are ignored and left for any
 other consumer on the page.
 
-**App → page** — the app runs `injectJavaScript` with a snippet that
+**App → page** — the app runs `evaluateJavaScript` with a snippet that
 dispatches a `CustomEvent`:
 
 ```js
@@ -57,7 +59,7 @@ window.addEventListener("cockpit-audio", (e) => handle(e.detail));
 ```
 
 A `CustomEvent` on a named type rather than `MessageEvent` on `window`
-(which is what `webViewRef.postMessage` produces): the page has its own
+(which is what a plain `postMessage` to the page produces): the page has its own
 `message` consumers, and audio traffic has no business landing in them.
 
 Every payload is also written to `window.CockpitAudioBridge.last` **before**
