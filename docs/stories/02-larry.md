@@ -112,7 +112,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A night the Watch and phone both saw
 - **Given:** overlapping samples from two sources for one night
 - **When:** I share the summary
-- **Then:** that day's `sleepHours` is the merged asleep total (Core + Deep + REM, not In Bed), a nap after noon counts toward the following night, and `bedtime` / `wakeTime` are human short times
+- **Then:** that day's `sleepHours` is the merged asleep total (Core + Deep + REM, not In Bed), a nap after noon counts toward the following night, and `bedtime` / `wakeTime` are human short times; in the native app a night that crosses midnight is one value, on the day I went to bed, never split across two days
 
 ---
 
