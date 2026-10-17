@@ -32,23 +32,39 @@ public struct BreathPattern: Equatable, Hashable, Sendable {
   public let holdInSeconds: Int
   public let outSeconds: Int
   public let holdOutSeconds: Int
+  /// Seconds a count (story 249): 1, or 2 for the same shape at half the pace, named "×2".
+  public let pace: Int
+
+  public init(inSeconds: Int, holdInSeconds: Int, outSeconds: Int, holdOutSeconds: Int, pace: Int = 1) {
+    self.inSeconds = inSeconds
+    self.holdInSeconds = holdInSeconds
+    self.outSeconds = outSeconds
+    self.holdOutSeconds = holdOutSeconds
+    self.pace = pace
+  }
 
   /// In 4, hold 4, out 6, hold 2 (Igor, 2026-10-11).
   public static let fourFourSixTwo = BreathPattern(inSeconds: 4, holdInSeconds: 4, outSeconds: 6, holdOutSeconds: 2)
-  public static let all = [fourFourSixTwo]
+  /// Story 249: the same at two seconds a count: in 8, hold 8, out 12, hold 4 (Igor, 2026-10-17).
+  public static let fourFourSixTwoX2 = BreathPattern(
+    inSeconds: 8, holdInSeconds: 8, outSeconds: 12, holdOutSeconds: 4, pace: 2)
+  public static let all = [fourFourSixTwo, fourFourSixTwoX2]
 
-  /// "4·4·6·2", on its button.
+  /// The counts, before the pace: 4, 4, 6, 2 for both.
+  private var counts: [Int] { [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map { $0 / pace } }
+  /// "4·4·6·2", "4·4·6·2 ×2", on its button.
   public var label: String {
-    [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map(String.init).joined(separator: "\u{00B7}")
+    counts.map(String.init).joined(separator: "\u{00B7}") + (pace > 1 ? " \u{00D7}\(pace)" : "")
   }
-  /// "4-4-6-2", in the settings and the log.
-  public var key: String {
-    [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map(String.init).joined(separator: "-")
-  }
+  /// "4-4-6-2", "4-4-6-2-x2", in the settings and the log.
+  public var key: String { counts.map(String.init).joined(separator: "-") + (pace > 1 ? "-x\(pace)" : "") }
   /// "In 4, hold 4, out 6, hold 2."
   public var sentence: String { "In \(inSeconds), hold \(holdInSeconds), out \(outSeconds), hold \(holdOutSeconds)." }
 
   public static func named(_ key: String?) -> BreathPattern? { all.first { $0.key == key } }
+
+  /// The four lengths in seconds, whatever the pace.
+  var sides: [Int] { [inSeconds, holdInSeconds, outSeconds, holdOutSeconds] }
 }
 
 public struct BreathPlan: Equatable, Sendable {
@@ -114,10 +130,11 @@ public struct BreathPlan: Equatable, Sendable {
   public var isBox: Bool { holdInSeconds == inSeconds && holdOutSeconds == outSeconds }
   /// The pattern this plan is, if any.
   public var pattern: BreathPattern? {
-    isBox
-      ? nil
-      : BreathPattern(
-        inSeconds: inSeconds, holdInSeconds: holdInSeconds, outSeconds: outSeconds, holdOutSeconds: holdOutSeconds)
+    guard !isBox else { return nil }
+    let sides = BreathPattern(
+      inSeconds: inSeconds, holdInSeconds: holdInSeconds, outSeconds: outSeconds, holdOutSeconds: holdOutSeconds)
+    // A named pattern keeps its pace (story 249), so 8·8·12·4 reads as 4·4·6·2 ×2.
+    return BreathPattern.all.first { $0.sides == sides.sides } ?? sides
   }
   /// The side of an even box; for an uneven one, its in side.
   public var breathSeconds: Int { inSeconds }
