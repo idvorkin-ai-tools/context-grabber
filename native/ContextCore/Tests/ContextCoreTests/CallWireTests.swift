@@ -124,7 +124,7 @@ final class CallProtocolTests: XCTestCase {
     XCTAssertTrue(object(CallProtocol.locationFrame(nowhere))["place"] is NSNull)
     XCTAssertTrue(object(CallProtocol.locationFrame(nowhere))["accuracy_m"] is NSNull)
     XCTAssertEqual(here.description, "Home (±12 m)")
-    XCTAssertEqual(nowhere.description, "1.0, 2.0")
+    XCTAssertEqual(nowhere.description, "1, 2")
   }
 
   func testTheOtherFramesMatchTheBridgeDocstring() {

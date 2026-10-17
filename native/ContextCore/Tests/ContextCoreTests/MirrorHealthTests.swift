@@ -246,6 +246,22 @@ final class SleepTests: XCTestCase {
     XCTAssertNil(points[2].bedMinutes)
   }
 
+  /// Bead byo (from the old app's PR #154): the export's days count a night once, on the bed day, sources merged.
+  func testHoursByNightCountANightOnceOnTheBedDay() {
+    let samples = [
+      // The Watch writes the night in pieces, one starting after midnight; AutoSleep sees it whole.
+      SleepSample(start: local(14, 23), end: local(15, 1), value: 3, source: "Watch"),
+      SleepSample(start: local(15, 1), end: local(15, 7), value: 4, source: "Watch"),
+      SleepSample(start: local(14, 23), end: local(15, 7), value: 1, source: "AutoSleep"),
+    ]
+    let days = Sleep.hoursByNight(samples, endDate: end, clock: la)
+    XCTAssertEqual(days.count, 7)
+    XCTAssertEqual(days.first { $0.date == "2026-03-14" }?.value, 8, "the whole night, on the day I went to bed")
+    XCTAssertNil(days.first { $0.date == "2026-03-15" }?.value, "not split onto the morning's day")
+    let midnight = Weekly.aggregateSleep(samples, endDate: end, clock: la)
+    XCTAssertNotNil(midnight.first { $0.date == "2026-03-15" }?.value, "the old count split it at midnight")
+  }
+
   func testBundleAndDefaultSource() {
     XCTAssertEqual(Sleep.detailedBundle(nil, endDate: end, clock: la).bySource.count, 0)
     let b = Sleep.detailedBundle(

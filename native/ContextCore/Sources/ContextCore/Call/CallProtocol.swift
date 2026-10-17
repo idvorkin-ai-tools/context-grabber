@@ -94,9 +94,12 @@ public struct CallLocation: Equatable, Sendable {
     ["lat": lat, "lon": lon, "accuracy_m": accuracyM ?? NSNull(), "at": at, "place": place ?? NSNull()]
   }
 
-  /// One log line: `Home (±12 m)` or `47.6062, -122.3321 (±65 m)`.
+  /// One log line: `Home (±12 m)` or `47.62, -122.33 (±65 m)`.
+  /// Off a known place the log keeps two decimals (about a kilometre; bead byo, the old app's PR #154): the call
+  /// log can leave the phone as a report, and the precise fix goes only to the bridge.
   public var description: String {
-    "\(place ?? "\(lat), \(lon)")" + (accuracyM.map { " (±\($0) m)" } ?? "")
+    let rounded = { (x: Double) in SummaryText.js((x * 100).rounded() / 100) }
+    return "\(place ?? "\(rounded(lat)), \(rounded(lon))")" + (accuracyM.map { " (±\($0) m)" } ?? "")
   }
 }
 

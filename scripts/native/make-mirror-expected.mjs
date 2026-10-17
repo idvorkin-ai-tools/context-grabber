@@ -48,7 +48,7 @@ for (const f of ["health", "sleep", "weekly", "stats", "share", "summary", "heal
 const local = createRequire(join(out, "lib", "noop.js"));
 const { buildHealthData, workoutActivityName } = local("./health.js");
 const { buildSleepDetailedBundle } = local("./sleep.js");
-const { aggregateHeartRate, aggregateSleep, aggregateMeditation, pickLatestPerDay, formatDateKey } = local("./weekly.js");
+const { aggregateHeartRate, aggregateMeditation, pickLatestPerDay, formatDateKey } = local("./weekly.js");
 const { buildSummaryExport, buildAccessoryLogExport } = local("./share.js");
 const cache = local("./healthCache.js");
 const accessoryLog = local("./gym/accessoryLog.js");
@@ -353,8 +353,10 @@ async function grabWeeklyRangeQuery(HealthKit, db, metric, nowMs) {
     rawSamples = [...samples].map((s) => ({
       startDate: new Date(s.startDate).toISOString(), endDate: new Date(s.endDate).toISOString(), value: s.value, source: s.sourceName,
     }));
-    results = aggregateSleep(rawSamples, now);
-    buildSleepDetailedBundle(rawSamples, now);
+    // Bead byo (the app's own PR #154, and Grabber Native's one deliberate difference): a night counts once, noon to
+    // noon with the sources merged, on the day Igor went to bed — the bundle's merged nights, not aggregateSleep's
+    // midnight split.
+    results = buildSleepDetailedBundle(rawSamples, now).merged.map((n) => ({ date: n.date, value: n.totalHours }));
   }
   for (const bucket of results) {
     if (bucket.date !== todayKey) {

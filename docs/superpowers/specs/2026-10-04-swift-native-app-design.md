@@ -271,7 +271,7 @@ differences while the two apps live side by side:
 - **Where Igor is (story 092, #107)**, now that Places has shipped: a call asks for a fresh fix as it starts, and
   the fix, named for the known place it falls inside when there is one, goes up with the call. Each significant move
   during the call sends one more: a different known place, or 200 m from the last one sent. Standing still sends
-  none. Diagnostics shows each one (*location: Home (±12 m)*). Without location permission the call simply carries
+  none. Diagnostics shows each one (*location: Home (±12 m)*), and off a known place only to about a kilometre (*47.62, -122.33 (±65 m)*), since the call's log can leave the phone in a report; the bridge still gets the precise fix. Without location permission the call simply carries
   none.
 - **Prime audio is not ported.** It was an experiment for the silent first call in the React Native audio
   engine (#88); the native call builds its audio the same way every time.
@@ -332,10 +332,14 @@ with these differences while the two apps live side by side:
   them; `places` is null until the native Places has its weekly and recent summaries (after step 5); in the raw
   share `location` and `locationClusters` are null until step 5. Every key is still present with the same shape.
 - **Carried over unchanged, on purpose**, because the export must match the current app's byte for byte; each is
-  filed to decide with Igor rather than fixed silently: each day's `sleepHours` in `days` is counted midnight to
-  midnight (the headline's last night is noon to noon, as story 025 asks); `bedtime` and `wakeTime` in the
+  filed to decide with Igor rather than fixed silently: `bedtime` and `wakeTime` in the
   headline are clock times in UTC; `walkingDistanceKm` is in the phone's preferred distance unit (miles on a phone
   set to US units); and a day's steps, energy and distance in `days` keep two decimals.
+- **One deliberate difference from the current app** (Igor, 2026-10-17, from the old app's PR #154): each day's
+  `sleepHours` in `days`, and the week's sleep stats, count a night once, noon to noon with the sources merged, on
+  the day Igor went to bed, the same number the Sleep sheet shows for that night. The current app split a night
+  across two days at midnight (an 11pm–7am night read about 1 h on one day and 7 h on the next). So in the morning
+  today's row has no sleep yet; last night is yesterday's.
 - **Settings for the mirror** is the sleep target, kept where the current app keeps it. It starts at **7 hours** (Igor, 2026-10-13, #301) and can also be changed on the Sleep sheet itself, right under the sleep-debt line, in half-hour steps from 4 to 12; the debt line follows at once. A target already chosen is kept. The current app's About and
   update check have no place here: the native app has no over-the-air updates, and Diagnostics names the build.
 - **Not in this step**, each with its own issue: the map, tally and Reflect row on Today (001, with Places, the

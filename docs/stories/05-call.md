@@ -241,7 +241,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 092:
 
 - **Summary:** The call tells Larry where I am
-- **Status:** implemented in [b88f34e](https://github.com/idvorkin/context-grabber/commit/b88f34e); verified by `callLocation.test.ts` and on the phone; native app: wired once Places shipped (#107): [23ff3f2](https://github.com/idvorkin/context-grabber/commit/23ff3f2), verified by `CallLocationTests` (host); the Diagnostics line on a real call in the next build turn; the start and location frames are ported and tested in `CallSessionLocationTests`
+- **Status:** implemented in [b88f34e](https://github.com/idvorkin/context-grabber/commit/b88f34e); verified by `callLocation.test.ts` and on the phone; native app: wired once Places shipped (#107): [23ff3f2](https://github.com/idvorkin/context-grabber/commit/23ff3f2), verified by `CallLocationTests` (host); the Diagnostics line on a real call in the next build turn; the start and location frames are ported and tested in `CallSessionLocationTests`; the log rounds an off-place fix (bead byo): [1f90c41](https://github.com/idvorkin/context-grabber/commit/1f90c41), verified by `CallLocationTests` (host)
 
 #### Use Case:
 - **As a** Larry's client calling from the walk to school
@@ -252,7 +252,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A call placed at home
 - **Given:** location permission is granted and Home is a known place
 - **When:** I tap Call Larry and then walk out of the Home radius
-- **Then:** Diagnostics shows *location: Home (±… m)* before or shortly after *live*, one more location line reaches the log within a minute of leaving, and standing still sends none
+- **Then:** Diagnostics shows *location: Home (±… m)* before or shortly after *live*, one more location line reaches the log within a minute of leaving, and standing still sends none; off a known place the log line shows the position to two decimals only
 
 - **Issues:** [#107](https://github.com/idvorkin/context-grabber/issues/107) the ask (still open: what Larry does with it is the bridge's)
 
