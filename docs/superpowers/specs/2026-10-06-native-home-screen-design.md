@@ -173,7 +173,7 @@ Order, hiding and Reset in Settings work as before.
   links open the commit and the repository on GitHub (#303).
 - A hidden journey still opens from its link, Shortcut or launch hook.
 - Every launcher under the Today card and the strip is the same small tile, three to a line in the remembered
-  order, its icon above a short name; a last line with fewer than three keeps the tiles the same size, and
+  order, its drawn picture with no name under it (VoiceOver reads the name); a last line with fewer than three keeps the tiles the same size, and
   *Settings* is always the last tile (#284–#286).
 
 - The daily strip shows Gym, Meditation, Journal, Balloons and Magic in one line under the Today card. A tap checks Gym or
