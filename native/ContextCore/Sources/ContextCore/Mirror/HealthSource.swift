@@ -176,7 +176,7 @@ public struct FixtureHealthSource: HealthSource {
 }
 
 extension HealthFixture {
-  /// The fixture as the script reads it (`make-mirror-expected.mjs --fixture`): what the simulator hook saved.
+  /// The fixture as the simulator hook saves it (Documents/exports/fixture.json).
   public var json: JSValue {
     func q(_ s: QuantitySampleRecord) -> JSValue {
       var f: [(String, JSValue)] = [

@@ -1,5 +1,8 @@
 # Context Grabber — Swift Port Specification
 
+> This is the early port plan, kept as history. The React Native app it maps from was removed 2026-10-17; the
+> current design is [docs/superpowers/specs/2026-10-04-swift-native-app-design.md](superpowers/specs/2026-10-04-swift-native-app-design.md).
+
 ## Overview
 
 Single-screen iOS app that reads HealthKit data, captures GPS, maintains a background location trail in SQLite, and exports structured JSON for AI life-coaching. Currently Expo/React Native/TypeScript — porting to native SwiftUI + Swift.

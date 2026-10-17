@@ -28,7 +28,7 @@ final class HealthKitSource: HealthSource, @unchecked Sendable {
   static let sleepType = HKCategoryType(.sleepAnalysis)
   static let mindfulType = HKCategoryType(.mindfulSession)
 
-  /// What the current app reads (App.tsx grabContext).
+  /// What the React Native app read (App.tsx grabContext), kept so the export matches.
   static var readTypes: Set<HKObjectType> {
     var types = Set<HKObjectType>(QuantityKind.allCases.map { type($0) })
     types.insert(sleepType)

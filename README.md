@@ -1,65 +1,41 @@
 # Context Grabber
 
-<img src="assets/icon.png" alt="Context Grabber icon" width="128" align="right">
+<img src="native/App/Assets.xcassets/AppIcon.appiconset/icon.png" alt="Grabber Native icon" width="128" align="right">
 
-An iOS app that extracts health and location data from your iPhone and exports it as JSON — designed to give your AI life coach the context it needs.
+An iOS app that holds up a humane mirror of the week — health, places, a gym timer, box breathing, a call to an AI
+coach — and exports it as JSON, so the coach has the context it needs. Why it exists and what it is not:
+[docs/jtbd.md](docs/jtbd.md); what it does, journey by journey: [docs/stories/](docs/stories/README.md).
 
-<p align="center">
-  <img src="assets/screenshot.png" alt="Context Grabber screenshot" width="300">
-</p>
+The app is **Grabber Native**, written in Swift and SwiftUI under [`native/`](native/). The original React Native
+app was retired and its code removed on 2026-10-17
+([design spec](docs/superpowers/specs/2026-10-04-swift-native-app-design.md)).
 
-## What It Grabs
+## What it grabs
 
-- **Steps** (today's total)
-- **Heart rate** (most recent)
-- **Sleep** (last night, with bedtime/wake time)
-- **Active energy burned** (today's total)
-- **Walking distance** (today's total)
-- **Weight** (latest, with days weighed in last 7)
-- **Meditation** (today's total minutes)
-- **GPS location** (current)
-- **Location history** (background tracking trail, stored in SQLite)
+- **Health** from HealthKit: steps, heart rate, sleep (with bedtime, wake time and sources), active energy, walking
+  distance, weight, HRV, resting heart rate, meditation and exercise minutes — the day and the week
+- **Places**: a background location trail kept on the phone, clustered into stays and named places
 
-Hit "Grab Context" and share the JSON snapshot via the iOS share sheet — paste it into Claude, save to Files, AirDrop, whatever works.
+Grab the week and share the JSON with the iOS share sheet: paste it into Claude, save it to Files, AirDrop it.
 
-## Tech Stack
+## Layout
 
-- [Expo](https://expo.dev/) (SDK 55) + React Native + TypeScript
-- [@kingstinct/react-native-healthkit](https://github.com/kingstinct/react-native-healthkit) for HealthKit access
-- [expo-location](https://docs.expo.dev/versions/latest/sdk/location/) for foreground + background GPS
-- [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/) for location history storage
-- [expo-task-manager](https://docs.expo.dev/versions/latest/sdk/task-manager/) for background location tracking
-- [EAS Update](https://docs.expo.dev/eas-update/introduction/) for OTA updates
+- `native/ContextCore/` — the platform-free SwiftPM package (the logic, with host tests)
+- `native/App/` — the SwiftUI app; `native/Widgets/` — the widgets and Live Activities
+- `native/project.yml` — the XcodeGen spec; the `.xcodeproj` is generated, never committed
+- `docs/` — the stories, the design specs, [testing](docs/TESTING.md) and [debugging](docs/DEBUGGING.md)
 
 ## Setup
 
 ```bash
-# Install dependencies
-npm install
-
-# Generate native iOS project
-npx expo prebuild --platform ios
-
-# Install CocoaPods
-cd ios && pod install && cd ..
-
-# Run on your iPhone (must be connected via USB)
-npx expo run:ios --device
+just setup                # swiftlint, xcbeautify, imagemagick, xcodegen from Homebrew
+just test                 # the host tests (seconds)
+just native-test-sim      # build for the simulator and run the smoke checks
+just native-run-device    # build, install and launch on the iPhone (DEVICE=<udid>)
 ```
 
-### Prerequisites
-
-- **Node.js** (18+)
-- **Xcode** (with iOS SDK)
-- **Apple ID** signed into Xcode for code signing
-- **Developer Mode** enabled on your iPhone (Settings > Privacy & Security > Developer Mode)
-
-### Free Apple ID Limitations
-
-With a free Apple ID (no $99/year developer program):
-- Apps expire after **7 days** — redeploy from Xcode
-- Limited to **3 sideloaded apps**
-- No push notifications or CloudKit
+Needs Xcode, an Apple ID signed into Xcode, and Developer Mode on the iPhone. With a free Apple ID the app expires
+after seven days.
 
 ## Related
 

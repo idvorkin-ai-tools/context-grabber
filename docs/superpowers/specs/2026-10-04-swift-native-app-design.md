@@ -27,6 +27,7 @@ shake to report a problem, crashes that come back with the logs, and a Mac that 
 | The Cockpit tab | Critical. It is ported, with real microphones and outputs. |
 | Uploading a log as a private gist | Replaced 2026-10-11 (Igor): a troubled call files an automatic report on the phone, which the Mac's listener files as an issue once it can reach the phone. No token on the phone, nothing on GitHub until the Mac files it, nothing to clean up. |
 | Line-by-line port | No. Rewrite where a native design is better; the stories are what must stay true. |
+| The React Native code | Removed from the repository, 2026-10-17 (Igor: *"we can erase the React Native code from this repo, we don't really need it"*). The old app on the phone keeps running its last build and its data stays where it is until the cutover, but it can no longer be fixed or rebuilt. Where the native app was checked against the TypeScript, the expected results committed with the native tests are now the record. |
 
 Found while scoping: journal and role-moment sync through iCloud is in use, so it is ported. The old
 grid-based place clustering is not used by the app and is not.
@@ -36,7 +37,7 @@ grid-based place clustering is not used by the app and is not.
 - Everything in [the stories](../../stories/README.md) that is implemented today works in the native app, judged
   story by story.
 - A problem on the phone reaches a GitHub issue with its evidence in two commands, without Igor copying text.
-- The current app keeps working, unchanged, until the cutover.
+- The current app keeps working, unchanged, until the cutover (since 2026-10-17 it has no source in the repository: it is never changed again).
 - Nothing on the phone is lost at the cutover: location history, known places, the journal, role moments,
   settings, the widgets' state.
 

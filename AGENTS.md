@@ -1,29 +1,27 @@
 # Agent instructions: Context Grabber
 
-iOS app (Expo + React Native + TypeScript; Swift for the widgets and the local audio-route module) that holds up a
-humane mirror of Igor's week — health, places, roles, a journal — and feeds it to Larry, his AI coach, as a context
-export and over a voice call. Also a gym timer. `lib/` is the platform-free half (pure functions, tested on the
-host); `screens/` and `components/` the UI; `modules/audio-route/` and `ios/LiveActivity/` the native capability.
-Work lands on a branch as one PR per issue, through the no-mistakes pipeline (below); the agent merges it.
+iOS app that holds up a humane mirror of Igor's week — health, places, roles, a journal — and feeds it to Larry, his
+AI coach, as a context export and over a voice call. Also a gym timer and box breathing. The app is **Grabber
+Native**, Swift and SwiftUI under `native/` (Igor, 2026-10-04; bead `context-grabber-3ss`, spec
+`docs/superpowers/specs/2026-10-04-swift-native-app-design.md`): `native/ContextCore/` is the platform-free SwiftPM
+package (host tests), `native/App/` the SwiftUI app, `native/Widgets/` the widgets and Live Activities,
+`native/project.yml` the XcodeGen spec (the `.xcodeproj` is generated, never committed or hand-edited). The React
+Native app it replaced was removed 2026-10-17; "Ported from lib/….ts" comments name where logic came from, and git
+history has the rest. The stories are what must stay true, not the old TypeScript. Work lands on a branch as one PR
+per issue, through the no-mistakes pipeline (below); the agent merges it.
 
-**The app is being rewritten Swift-native** (Igor, 2026-10-04; bead `context-grabber-3ss`, spec
-`docs/superpowers/specs/2026-10-04-swift-native-app-design.md`). `native/` holds Grabber Native, a second app
-installed beside this one: `native/ContextCore/` is the platform-free SwiftPM package (host tests),
-`native/App/` the SwiftUI app, `native/project.yml` the XcodeGen spec (the `.xcodeproj` is generated, never
-committed or hand-edited). Journeys move over one at a time, then it takes this app's bundle id. New work on a
-journey that has moved goes to `native/`; the React Native tree gets fixes only when Igor asks. Rewrite where a
-native design is better — the stories are what must stay true, not the TypeScript. Native recipes: `just
-native-test` (which first runs `native-lint-format` and `native-lint`; `native-format` fixes the layout, a SwiftLint finding is rewritten or justified on a `swiftlint:disable:next` line), `native-test-sim`, `native-run-device`, `pull-logs`, `bugs-check`. Reports and crashes are filed by BugKit's always-on listener on the
-Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notification) and fix what lands. The OTA rules below
-apply to the React Native app only; the native app has no OTA.
+Recipes: `just native-test` (which first runs `native-lint-format` and `native-lint`; `native-format` fixes the
+layout, a SwiftLint finding is rewritten or justified on a `swiftlint:disable:next` line), `native-test-sim`,
+`native-run-device`, `pull-logs`, `bugs-check`. Reports and crashes are filed by BugKit's always-on listener on the
+Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notification) and fix what lands.
 
 ## Read these before working
 
 | File | What it settles |
 |---|---|
 | [VISION.md](VISION.md) | what the app is for and who it serves: the humane mirror, the front door, the phone's line to Larry |
-| [docs/TESTING.md](docs/TESTING.md) | the test ladder (host jest → type check → Maestro → phone), which change is verified where, the real-data fixtures, what only the phone can show |
-| [docs/DEBUGGING.md](docs/DEBUGGING.md) | the logs (the call log, the timer log, copyable errors, the gist upload), instrument before theorizing, how a bug goes from the phone to a closed issue |
+| [docs/TESTING.md](docs/TESTING.md) | the test ladder (host → simulator → phone), which change is verified where, the launch hooks, the real-data fixtures, what only the phone can show |
+| [docs/DEBUGGING.md](docs/DEBUGGING.md) | the session log and its events, copyable errors, instrument before theorizing, how a bug goes from the phone to a closed issue |
 | [docs/stories/README.md](docs/stories/README.md) | the spec: user stories per journey, each with its status and commits |
 | [docs/superpowers/specs/](docs/superpowers/specs/) | the design spec behind each feature — functionality, not implementation; updated before the code |
 | [docs/jtbd.md](docs/jtbd.md) | why: the two-way mirror, the two dragons, what the app is NOT (a fitness tracker, a habit tracker, a journal app) |
@@ -31,34 +29,32 @@ apply to the React Native app only; the native app has no OTA.
 ## Rules
 
 - Shared practices for all apps live in idvorkin/bug-kit (README: Shared practices for every app). A bug in BugKit's own code (the report dialog, dictation, the store, crash capture, CloudKit, the listener, What's new) or a practice that applies to every app is filed there and linked from this repo's issue, never fixed here.
-- **Test ladder**: host `just test` (jest, `tsc --noEmit`, `check-deal`, runtime-version check; one jest file in seconds) → Maestro on the simulator
-  (`.maestro/`, no HealthKit, cannot tap system dialogs) → the phone (`just ota` for JavaScript, `just deploy` for
-  anything native). Verify on the cheapest rung that can see the change and **say which rung you used**. Audio
-  session behaviour, HealthKit, GPS, widgets, Live Activities, Shortcuts and the voice bridge exist only on the
-  phone ([TESTING.md](docs/TESTING.md)).
+- **Test ladder**: host `just test` (swift-format and SwiftLint, `ContextCore`'s XCTest, the signing-guard, breath-clip
+  and tile-art checks; seconds) → the simulator (`just native-test-sim`, launch hooks judged from the session log, and
+  the UI tests in `native/UITests/`) → the phone (`just native-run-device`). Verify on the cheapest rung that can see
+  the change and **say which rung you used**. Audio session behaviour, HealthKit, GPS, widgets, Live Activities,
+  Shortcuts and the voice bridge exist only on the phone ([TESTING.md](docs/TESTING.md)).
 - **Spec first, story always.** The design spec (`docs/superpowers/specs/`) is updated before the code — the full
   rule is below. And every feature or behaviour change updates the user stories (`docs/stories/`) in the same PR: a
   new capability gets a story in its journey (Cohn + Gherkin, the `user-story` skill) with a `Status:` line naming
   its commit and where it was verified; a changed behaviour edits the story's acceptance criteria and adds its
   commit to the `Status:` line. Status lives only on the stories. **No story, not done.**
-- **Instrument before theorizing.** For any phone-only symptom add the log line that would settle it (the call log,
-  the timer log, or a `CopyableError` with the state in `extra`), ship it, reproduce, read the evidence, then fix.
-  Never ship a second guessed fix ([DEBUGGING.md](docs/DEBUGGING.md)).
-- **Bugs**: a report Igor makes — a copied error, a copied or uploaded log, or his voice in the session — becomes a
-  GitHub issue with the evidence attached. Before fixing, find or write the story in `docs/stories/` that covers it
-  (a bug gets an `Issues:` line, a request becomes a story, no story means the spec has a hole). One PR per issue,
-  referencing it; never bundle fixes. Close the issue once the build is on the phone with a comment saying what was
-  verified where and what Igor should feel; Igor reopens if it is not fixed. Never leave a fixed bug open.
+- **Instrument before theorizing.** For any phone-only symptom add the session-log event that would settle it (or a
+  copyable error carrying the state), ship it, reproduce, pull the logs, read the evidence, then fix. Never ship a
+  second guessed fix ([DEBUGGING.md](docs/DEBUGGING.md)).
+- **Bugs**: a report Igor makes — a shake report, a copied error, or his voice in the session — becomes a GitHub
+  issue with the evidence attached (shake reports and crashes by the listener, the rest by you). Before fixing, find
+  or write the story in `docs/stories/` that covers it (a bug gets an `Issues:` line, a request becomes a story, no
+  story means the spec has a hole). One PR per issue, referencing it; never bundle fixes. Close the issue once the
+  build is on the phone with a comment saying what was verified where and what Igor should feel; Igor reopens if it
+  is not fixed. Never leave a fixed bug open.
 - **A bug in BugKit code is fixed in [idvorkin/bug-kit](https://github.com/idvorkin/bug-kit), not here.** That covers
   the dialog, the shake, dictation, the store and its format, crash capture, pruning, What's new, the listener and the
   scripts. File the bug there, fix it test-first, open a PR, then bump BugKit here. Until that lands, work around it
   only through BugKit's hooks or options, with a `ponytail:` comment that names the bug-kit issue. Bugs in our own
   hooks are fixed here. See "Where a bug gets fixed" in the bug-kit README (bug-kit PR #5).
-- **OTA-first**: native code is a capability, what the app does with it is JavaScript. Anything under `ios/`,
-  `modules/`, `patches/`, `package.json` or `app.json` is a native build *and* a runtime-version bump; `just ota`
-  refuses when the native surface moved. Details under Key Patterns.
-- **Every user-visible error is a `CopyableError`** with a `context` and the state in `extra` — never a bare red
-  string. Details under Key Patterns.
+- **Every user-visible error is copyable** (BugKit's `BugProblemView`): the message, a `context` naming the screen and
+  operation, and the state that explains it — never a bare red string.
 - **Sanity-check geometry thresholds against the real fixtures** (`__tests__/fixtures/locations.json`,
   `context-grabber.db`) before shipping clustering, place-matching or distance rules; synthetic tests miss what real
   data exposes.
@@ -78,16 +74,16 @@ apply to the React Native app only; the native app has no OTA.
 - **Review settles in one fix round.** In round 1, fix every error and warning together. In later rounds, fix errors
   only and decide info findings in one pass. Cap review at two rounds; file the rest as issues.
 - **Architecture is discussed, not assumed**: propose with a trade-off table or a numeric plan, then one "do it".
-  Prefer `just` recipes over raw commands — they carry the version generation and the native-surface checks.
+  Prefer `just` recipes over raw commands — they carry the project generation, the signing lock and the build stamps.
 
 ## Spec-First Workflow
 
-**ALWAYS UPDATE THE SPECS BEFORE UPDATING THE CODE.** No exceptions. This applies to new features, bug fixes that change visible behavior, UX tweaks, and refactors that alter contracts. If you catch yourself opening a `.tsx` or `.ts` file before a `.md` spec file, stop and go to the spec first.
+**ALWAYS UPDATE THE SPECS BEFORE UPDATING THE CODE.** No exceptions. This applies to new features, bug fixes that change visible behavior, UX tweaks, and refactors that alter contracts. If you catch yourself opening a `.swift` file before a `.md` spec file, stop and go to the spec first.
 
 **Specs describe FUNCTIONALITY, not implementation.** A spec says what the user sees, what the feature does, and what the acceptance criteria are. It does NOT name files, prop shapes, type definitions, function signatures, cache keys, component hierarchies, or where code goes. Implementation details belong in a plan (`docs/superpowers/plans/`) or in the code itself, not the spec. If a reader could use the spec as a QA checklist without ever opening the codebase, it's at the right level. If it reads like a refactor diff, strip it.
 
 - **In the spec:** user-visible behavior, UX flows, edge cases, acceptance criteria, screenshots/mocks, goals/non-goals, rationale.
-- **NOT in the spec:** file paths, prop names, type definitions, component names, function signatures, state shapes, cache key names, "in `foo.tsx`, change X", or any sentence that only makes sense if you've read the code.
+- **NOT in the spec:** file paths, prop names, type definitions, component names, function signatures, state shapes, cache key names, "in `Foo.swift`, change X", or any sentence that only makes sense if you've read the code.
 
 Specs live in `docs/superpowers/specs/` as `YYYY-MM-DD-<feature>-design.md`; implementation plans (if needed) live alongside in `docs/superpowers/plans/`. The sequence for ANY change request is:
 
@@ -99,150 +95,82 @@ Specs live in `docs/superpowers/specs/` as `YYYY-MM-DD-<feature>-design.md`; imp
 
 ## Build & Run
 
-**Prefer `just` commands over running raw commands.** The justfile handles dependencies like version generation automatically.
+**Prefer `just` commands over running raw commands.**
 
 ```bash
-just setup        # npm install, prebuild, pod install
-just deploy       # build release and install on iPhone (supports OTA updates)
-just build        # build debug and install on iPhone (needs Metro, no OTA)
-just dev          # start Metro dev server (for debug builds)
-just ota "msg"    # deploy OTA update to production channel
-just test         # run tests
+just setup                # swiftlint, xcbeautify, imagemagick, xcodegen from Homebrew
+just test                 # = just native-test: lint, ContextCore's host tests, the script checks
+just native-test-sim      # simulator build + the launch-hook smoke (scripts/native/sim-smoke.sh)
+just native-sim-health    # once per simulator: grant Health access (a UI test taps the sheet)
+just native-run-device    # build under the signing lock, install and launch on the iPhone
+just pull-logs            # session logs, reports and crashes from the phone (and the iPad)
+just bugs-check           # unfiled reports on every plugged-in device
 ```
 
-- `just deploy` — standalone release build. App works without Mac, receives OTA updates.
-- `just build` — debug build. Requires `just dev` running for Metro. Faster iteration, no OTA.
-
-Requires Xcode, Apple ID for signing, Developer Mode on iPhone, SwiftLint and ImageMagick (`just setup` installs them and xcbeautify with Homebrew; `native/.swiftlint.yml` pins SwiftLint's version, and the tile-art check measures the art with `magick`). Free Apple ID = 7-day app expiry.
-
-### Maestro UI Testing
-```bash
-export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
-export PATH="$JAVA_HOME/bin:$PATH"
-maestro test .maestro/check-about.yaml
-```
-Use `testID` props (not `accessibilityLabel`) for reliable Maestro taps. Maestro cannot interact with native iOS system dialogs (HealthKit permissions).
-
-## Architecture
-
-Main UI in `App.tsx` (~1800 lines) with pure functions extracted into `lib/` modules. Press "Grab Context" to snapshot health + location + location history, then share via iOS share sheet.
-
-### Lib Modules
-- `lib/health.ts` — HealthKit data processing (sleep interval merge, weight, meditation, buildHealthData)
-- `lib/sleep.ts` — Sleep detail extraction (bedtime/wake time from sleep samples)
-- `lib/weekly.ts` — 7-day aggregation per metric (HeartRateDaily, DailyValue, METRIC_CONFIG, bucketByDay)
-- `lib/healthCache.ts` — SQLite cache for computed + raw health data (today always live, past days cached)
-- `lib/clustering_v2.ts` — **Active** location clustering: temporal stay detection, v1-compatible wrapper
-- `lib/clustering.ts` — Legacy v1 grid + union-find clustering (kept for tests, not used in app)
-- `lib/places.ts` — Known place matching (matchPointToPlace, labelPointsWithKnownPlaces)
-- `lib/geo.ts` — Haversine distance
-- `lib/stats.ts` — Box plot statistics (R-7 percentile method)
-- `lib/share.ts` — Export JSON formatting (SummaryExport, RawExport, WeeklyStatsExport)
-- `lib/summary.ts` — Summary text and number formatting (buildSummary, formatNumber, formatTime)
-- `lib/location.ts` — Location pruning logic (pruneThreshold)
-- `lib/cockpitClient.ts` — The `?client=context-grabber&v=<build>` tag the Cockpit tab loads the page with (#78)
-- `lib/audioBridge.ts` — Cockpit audio-bridge wire format (message parsing, injected JS). Protocol: `docs/cockpit-audio-bridge.md`
-- `lib/callProtocol.ts` — Voice-bridge wire format for the native Call tab (frames both ways, ending text, bridge URL). Source of truth: `handle_browser` docstring in the Cockpit repo's `voice_bridge.py`
-- `lib/pcm.ts` — Float32 ↔ PCM16 LE, linear resample to the bridge's 16 kHz
-- `lib/callVoices.ts` — The voice a call answers in: Tony (bridge default) or Igor (his clone, implies `eleven_v3_conversational`); what rides the start frame per backend
-- `lib/gistUpload.ts` — The call log as a private gist: trouble detection, the delete-me note, create/delete, the app's own list (spec `2026-09-05-diagnostics-gist-upload-design.md`)
-- `lib/gistToken.ts` — The gist token in the iOS Keychain (`expo-secure-store`; null on a binary without it)
-- `lib/callSession.ts` — The call's state machine (socket + mic + playback + captions), platform-free; fake socket/audio in tests
-- `lib/callAudio.ts` — Native audio half of a call on `react-native-audio-api` + `modules/audio-route`: `.playAndRecord`/`.voiceChat` session, mic capture, scheduled playback, interruption resume
-
-### Local Native Modules
-- `modules/audio-route/` — iOS audio route: list microphones/outputs, steer `AVAudioSession`, push route changes, read the session's state at mic-arm time (`getInputState`, optional on old binaries). Feeds the Cockpit's device pickers and the Call tab's diagnostics.
-
-### Components
-- `components/MetricDetailSheet.tsx` — Bottom sheet with chart + daily breakdown for each metric
-- `components/BarChart.tsx` — View-based bar chart (steps, energy, etc.)
-- `components/LineChart.tsx` — Line chart with box-and-whisker support (heart rate, HRV, weight)
-- `components/BoxPlot.tsx` — Inline horizontal box plot for metric cards
-
-## Tech Stack
-
-- Expo SDK 55, React Native 0.83, React 19, TypeScript 5.9
-- `@kingstinct/react-native-healthkit` — HealthKit queries
-- `expo-location` — foreground + background GPS
-- `expo-task-manager` — background task registration for location tracking
-- `expo-sqlite` — local storage for location history, settings, health cache
-- `expo-file-system` — database file access for export
-- `expo-sharing` — iOS share sheet for database export
-- `expo-updates` — OTA update delivery
-- `expo-secure-store` — Keychain, for the diagnostics-upload token
-- `react-native-webview` — hosts the Cockpit tab (tailnet-only web dashboard)
-- Jest + ts-jest — testing
-- Maestro — iOS simulator UI testing
+Requires Xcode, an Apple ID signed into Xcode, Developer Mode on the iPhone, and the `just setup` tools
+(`native/.swiftlint.yml` pins SwiftLint's version; the tile-art check measures the art with `magick`). The phone's hardware UDID is `DEVICE=<udid>` or the gitignored
+`scripts/native/phone-udid.local`: the repo is public, so device ids are never committed. UI tests run with
+`xcodebuild … -only-testing:GrabberNativeUITests/<Test> test` ([TESTING.md](docs/TESTING.md)).
 
 ## Key Patterns
 
-- **Every user-visible error must use `<CopyableError>`** (`components/CopyableError.tsx`). Never render a raw red `<Text>` for an error message. The component renders the message + a "Copy error" button that puts a multi-line diagnostics payload (error, context label, git sha + branch, any extra fields) on the clipboard. Pass `context="ScreenName.operation"` and any state-shaped `extra` so a copied error is debuggable without a session log. Adding raw-text errors will fail review.
-- All HealthKit queries use `Promise.allSettled()` — individual metric failures return `null`, don't crash the grab
-- `TaskManager.defineTask()` is at MODULE SCOPE (top of App.tsx, outside component) — expo-task-manager requirement
-- Background location tracking is opt-in (defaults to OFF)
-- Location history stored in SQLite with configurable retention (default 30 days)
-- Pruning happens on app foreground and when retention days are reduced
-- All timestamps: UTC unix milliseconds in storage, ISO 8601 UTC in export
-- Day bucketing uses **local time** (not UTC) — "your Tuesday" means local Tuesday
-- Sleep bucketing is **noon-to-noon** — new code should use `aggregateSleepDetailed` (`lib/sleep.ts`), which attributes pre-noon samples to the PREVIOUS night. The older `aggregateSleep` uses `bucketByDay` with midnight cutoffs and is kept only for the scalar `weeklyCache.sleep` path.
-- Sleep merges overlapping intervals before summing (Watch + iPhone both report same period)
-- Today's health data is always live; past days are cached in SQLite
-- Clustering is computed on-demand (when user opens Location sheet or shares), not on grab
-- Pure functions extracted to `lib/` for testability
-- **`expo-av` is removed in SDK 55.** Use `expo-audio` for file playback or `react-native-audio-api` (Web Audio API polyfill) for dynamic tones. Reinstalling `expo-av` fails with `EXEventEmitter.h not found`.
-- **OTA update `--message` is server-side only** — not in `Updates.manifest` at runtime. For in-app "what's running" display, bake `git log -1 --format=%s` into `lib/generated_version.ts` via `scripts/generate-version.js`.
-- **`DEVELOPMENT_TEAM` is committed in `ios/ContextGrabber.xcodeproj/project.pbxproj`** — no need to set it manually each build. Do NOT add `appleTeamId` to `app.json` (causes "No Account for Team" errors). If Xcode loses the Apple ID session after an update, re-add it in Xcode → Settings → Accounts.
-- **iOS CoreLocation suppresses GPS updates when the phone is stationary** (motion-coprocessor confirmed). Multi-hour overnight gaps are normal — fix at the clustering layer (`mergeConsecutiveSamePlace` in `lib/clustering_v2.ts`), not by increasing collection frequency. `expo-location` doesn't expose Significant Location Changes API.
-- **`runtimeVersion` in `app.json` must be a literal string** (`"1.0.0"`) matching `EXUpdatesRuntimeVersion` in `ios/ContextGrabber/Supporting/Expo.plist`. The `{policy: "appVersion"}` form fails because `ios/` is committed and EAS treats the project as bare workflow — `just ota` will reject it.
-- **Never run `expo prebuild` in `just deploy`.** It wipes `DEVELOPMENT_TEAM` from `project.pbxproj` and creates duplicate file refs in LiveActivity's appex (asset catalog conflict). Use `just resync-native` only when native regeneration is intentional, and expect to re-commit `ios/` afterwards.
-- **OTA-first: native code is a capability, what the app does with it is JavaScript.** Any change under `ios/`, `modules/`, `patches/`, `package.json` or `app.json` is a native build *and* a runtime-version bump (`scripts/bump-runtime-version.sh`, date-based, both files); `just ota` refuses when the native surface moved since the last `just deploy` from this Mac, and `just deploy` refuses when `app.json` and `Expo.plist` disagree. Never import at the top of a file a module some supported binary might lack — `require` it inside a function behind a `try` and degrade (`lib/gistToken.ts`, `lib/gym/useDeviceTurn.ts`). Review and the two proposals (widgets that render what JavaScript wrote; a generic App Group bridge and intent): `docs/superpowers/specs/2026-09-07-ota-first-architecture-design.md`.
-- **Adding a native module means `pod install` + a full rebuild, not OTA.** New pods (e.g. `react-native-webview`) can't ship over the air — the JS bundle references a view manager the installed binary doesn't have, and the app red-screens. `just deploy` always runs `pod install` (cheap when nothing changed) and warns if that modified `ios/Podfile.lock` — commit the lockfile; `expo prebuild` is still NOT needed for autolinked pods.
-- **WKWebView `getUserMedia` needs `mediaCapturePermissionGrantType`.** `react-native-webview`'s default is to deny silently, so a page's mic button appears to do nothing. Use `grantIfSameHostElsePrompt` (grants the loaded origin, defers to the iOS system alert for anything else) plus `allowsInlineMediaPlayback` and `mediaPlaybackRequiresUserAction={false}`. `NSMicrophoneUsageDescription` is already declared via the `expo-audio` plugin — the OS prompt is the only permission UI.
-- **WebKit enumerates one nameless microphone and zero outputs, and has no `setSinkId`.** That is every browser engine on iOS, `WKWebView` included, and it is why a hosted page's device pickers vanish inside the app while working fine on a laptop. There is nothing to fix in the page. The roster only exists in `AVAudioSession` — see `modules/audio-route/` and `docs/cockpit-audio-bridge.md` for the bridge that carries it into the web view. Corollary: the web view's own capture reconfigures the shared audio session when it starts, so a route set *before* a call begins has to be re-asserted on `routeChangeNotification` or it silently reverts.
-- **Local Expo modules live in `modules/<name>/` and are autolinked with no `expo prebuild`.** `nativeModulesDir` defaults to `./modules`, so a directory with an `expo-module.config.json` + `ios/<Pod>.podspec` is picked up by `use_expo_modules!`. Verify discovery on any machine — no Mac needed — with `node --no-warnings --eval "require('expo/bin/autolinking')" expo-modules-autolinking resolve --platform apple --json`. But a local module does **not** move `ios/Podfile.lock`, so the Podfile.lock-vs-Manifest.lock check cannot see it; `just deploy` additionally greps `ios/Pods/Manifest.lock` for each local podspec's pod name.
-- **`expo-audio` already exposes input selection** — `AudioRecorder.getAvailableInputs / getCurrentInput / setInput` wrap `AVAudioSession.availableInputs` and `setPreferredInput` on the shared session. They need a prepared recorder, expose no outputs, and emit no route-change events, which is why `modules/audio-route/` exists — but check them first before writing native code for anything input-only.
-- **Inventory `ios/` before scoping native work.** `ios/LiveActivity/` is a `WidgetBundle` appex — add home-screen widgets as new `Widget` structs inside `LiveActivityWidgetBundle`, NOT a new Xcode target. URL scheme `com.idvorkin.contextgrabber://` is already registered in `ios/ContextGrabber/Info.plist`; `widgetURL()` deep-link plumbing exists in Swift (via `deepLinkUrl`), but JS-side inbound routing (`Linking.addEventListener` / `getInitialURL`) is NOT wired — Live Activity taps currently wake the app without routing.
-- **Adding a Swift file to the main app target = edit `project.pbxproj`, and the `xcodeproj` gem is already installed (CocoaPods' Ruby: `/opt/homebrew/opt/ruby/bin/ruby -e 'require "xcodeproj"'`).** `group.new_file(path)` + `target.source_build_phase.add_file_reference(ref)` + `proj.save` is a 4-line diff; never `expo prebuild` for this. App Intents that must foreground the app (`openAppWhenRun = true`, then `UIApplication.shared.open(grabber://…)`) belong in the app target — `ios/ContextGrabber/CallLarryIntent.swift` is the pattern; intents that only touch the App Group (the widget's `+1`) can stay in the `LiveActivity` appex. Shortcuts lists both by name; an `AppShortcutsProvider` (app target only) adds the pre-built shortcut + Siri phrases.
-- **The Gym Timer's cues are sound files, never synthesis.** Spoken — *three, two, one, go! / rest / done* — in Igor's own voice (his ElevenLabs clone, `ELEVEN_API_KEY` from the environment or the secretbox; the Mac's `say` when absent) by `scripts/make-timer-words.sh`, padding trimmed and composed into `assets/audio/timer/*.wav` by `scripts/make-timer-cues.mjs`. The native app offers three count voices from a gear on the timer (stories 182, 187; setting `gym_count_voice`): Adam (the default), Igor (those same files) and an excited Australian woman — the other two are `assets/audio/timer-voices/<voice>-<cue>.wav`, rendered once each (it costs credits) by `scripts/make-timer-voice.sh <name> <voice_id> <plain|firm|excited>` (eleven_v3, composed outside the repo so Igor's set and the keepalive stay untouched; it flags a count word over 1 s, re-render it with `ONLY=<word> TAKES=4`). The React Native app plays Igor's set only, through expo-audio's player; the near-silent keepalive loop is one too. react-native-audio-api's Web-Audio engine goes silent as soon as the session mixes with other audio (2026-09-07: music ducked, every cue requested, none heard), so the timer uses that library only to steer the session (`AudioManager.setAudioSessionOptions` / `setAudioSessionActivity`). The Call tab still renders through the engine — its session is exclusive.
-- **The Gym Timer's audio session is `playback` mixed with others; a workout never pauses the music.** Around each cue a *duck window* (`lib/gym/duck.ts`, driven from `lib/gym/keepalive.ts`) adds `duckOthers` + `interruptSpokenAudioAndMixWithOthers` to the live session, then lets go with a deactivate-and-reactivate (a paused podcast resumes only on deactivation, and only with `notifyOthersOnDeactivation` — added to the audio library's `setActive:` by the patch) and restarts the keepalive loop. Per-tick ducking makes music pump; the window is the unit. Spec: `docs/superpowers/specs/2026-09-07-gym-timer-audio-ducking-design.md`.
-- **Echo cancellation on iOS is VoiceProcessingIO, not a session mode.** `AVAudioSession.Mode.voiceChat` alone leaves `AVAudioEngine` on RemoteIO and the speaker feeds straight back into the mic (#80). `patches/react-native-audio-api+0.11.7.patch` adds `AudioEngine.syncVoiceProcessingWithSessionMode` — `inputNode.setVoiceProcessingEnabled(desiredMode == voiceChat)` on a stopped engine, called from `getInputFormat` (VPIO reports a different input format, and the recorder sizes buffers from it before attaching) and from the interruption rebuild. Anything that re-`setCategory`s the session must preserve `.voiceChat` while a call is live (`audio-route`'s `activate()` does). Reinstalling the lib re-applies the patch via `postinstall`.
-- **Never put `invalidatableContent()` on a `Button(intent:)` label.** With it, the tap stops running the intent and falls through to `widgetURL` (opens the app) — bisected on the memdeck card, 2026-09-07: removing `isDiscoverable = false` alone changed nothing, removing the modifier fixed it. If a dim-while-changing look is wanted, mark a sibling view, not the button's own label. Keep widget intents discoverable anyway (the +1 precedent; hidden-intent behaviour is unproven). The appex's `Metadata.appintents/extract.actionsdata` lists every intent either way, so it cannot tell you why a tap opens the app. Also: iPhone lock-screen (accessory) widgets run no in-place actions at all — a `Button(intent:)` there rendered blank; they get a `widgetURL`.
-- **Ignore recurring `bd doctor` warnings for `Dolt Status / Dolt Locks: config: modified`.** Every `bd` read (including `bd doctor` itself) re-creates that state; `bd vc commit` clears it but the next read brings it back. Cosmetic, not actionable.
-- **Sanity-check geometry thresholds against `__tests__/fixtures/context-grabber.db` + `locations.json`** before shipping clustering / place-matching / distance rules. The fixture carries 36K real GPS points + 4 real known places — synthetic tests miss edge cases real data exposes. (Example: the place-merge gate moved from 50m → 500m because the tight gate caught 0/10 unmatched stays in the fixture.)
-
-- **Dependabot PRs here all edit `package-lock.json`, so they conflict with each other and go stale; clear the alerts in bulk instead.** On a branch: `npm update --package-lock-only <the vulnerable packages>` — not `npm audit fix`, which also bumps `expo` / `expo-modules-core` patch versions (pods → a native build, not OTA) — then `npm ci`, `npx tsc --noEmit`, `just test`, and `npx expo export --platform ios` so Metro still bundles. Dependabot closes its own PRs once main is clean. Alerts left in the `@expo/*` / `metro` / `xcode` chain are pinned by the SDK and wait for the SDK upgrade (#46). A scratch `git worktree` needs `git submodule update --init` first, or Metro fails on the empty `vendor/igor-timer`.
-
-## Data Collected
-
-- Steps, heart rate, sleep (hours + bedtime + wake time + per-source breakdown), active energy, walking distance
-- Weight (most recent, in kg), HRV (ms), resting heart rate
-- Meditation minutes (today's total)
-- Exercise minutes (today's total, from individual samples)
-- Single GPS coordinate (foreground)
-- Location history trail (background tracking, stored in SQLite)
-- Location clustering summary (temporal stay detection with known places)
-- NOT collected: workout sessions, workout routes
+- **Never run a signing build while the Mac's screen is locked.** `native-run-device` goes through BugKit's
+  `signing-guard.sh`, which waits while the screen is locked and fails Xcode's "No Accounts" with exit 78; a build
+  that loses the Apple ID needs it re-added in Xcode → Settings → Accounts. One signing build at a time, under
+  `~/tmp/agent/locks/xcode-signing.lock` (the recipe takes it; don't wrap it in another `lockf` on that lock).
+- All timestamps: UTC unix milliseconds in storage, ISO 8601 UTC in export.
+- Day bucketing uses **local time** (not UTC) — "your Tuesday" means local Tuesday.
+- Sleep bucketing is **noon-to-noon** — a pre-noon sample belongs to the PREVIOUS night. Sleep merges overlapping
+  intervals before summing (Watch and iPhone both report the same period).
+- Today's health is always live; past days are cached in SQLite. Each HealthKit query fails on its own: one metric's
+  failure is that metric's `null`, never the whole grab's.
+- Background location tracking is opt-in (defaults to OFF); retention defaults to 30 days and prunes at launch and
+  when lowered. Clustering is computed when Places opens or the export is made, not on every point.
+- **iOS CoreLocation suppresses GPS updates when the phone is stationary** (motion-coprocessor confirmed). Multi-hour
+  overnight gaps are normal — fix it at the clustering layer (the consecutive same-place merge), not by collecting
+  more often.
+- **The export JSON is a contract Larry depends on** (`docs/user-needs.md`, Export Contract). `MirrorFixtureTests`
+  pins it byte for byte against the files the React Native app produced; change those files only with a deliberate
+  behaviour change.
+- **The Gym Timer's cues are sound files, never synthesis.** Spoken — *three, two, one, go! / rest / done* — in
+  Igor's own voice (his ElevenLabs clone, `ELEVEN_API_KEY` from the environment or the secretbox; the Mac's `say`
+  when absent) by `scripts/make-timer-words.sh`, padding trimmed and composed into `assets/audio/timer/*.wav` by
+  `scripts/make-timer-cues.mjs` (`just timer-cues`). Three count voices from a gear on the timer (stories 182, 187;
+  setting `gym_count_voice`): Adam (the default), Igor (those same files) and an excited Australian woman — the other
+  two are `assets/audio/timer-voices/<voice>-<cue>.wav`, rendered once each (it costs credits) by
+  `scripts/make-timer-voice.sh <name> <voice_id> <plain|firm|excited>` (eleven_v3; it flags a count word over 1 s,
+  re-render it with `ONLY=<word> TAKES=4`). A near-silent keepalive loop holds the session with the phone locked.
+- **The Gym Timer's audio session is `playback` mixed with others; a workout never pauses the music.** Around each cue
+  a *duck window* adds `duckOthers` + `interruptSpokenAudioAndMixWithOthers` to the live session, then lets go with
+  a deactivate-and-reactivate with `notifyOthersOnDeactivation` (a paused podcast resumes only on deactivation) and
+  restarts the keepalive loop. Per-tick ducking makes music pump; the window is the unit. Spec:
+  `docs/superpowers/specs/2026-09-07-gym-timer-audio-ducking-design.md`.
+- **Echo cancellation on iOS is VoiceProcessingIO, not a session mode.** `AVAudioSession.Mode.voiceChat` alone leaves
+  `AVAudioEngine` on RemoteIO and the speaker feeds straight back into the mic (#80). The call switches it on with
+  `inputNode.setVoiceProcessingEnabled(true)` on a stopped engine before reading the input format (VPIO reports a
+  different one). Anything that re-`setCategory`s the session must preserve `.voiceChat` while a call is live.
+- **WebKit enumerates one nameless microphone and zero outputs, and has no `setSinkId`.** That is every browser
+  engine on iOS, `WKWebView` included, and it is why a hosted page's device pickers vanish inside the app while
+  working fine on a laptop. There is nothing to fix in the page. The roster only exists in `AVAudioSession`; the
+  Cockpit's audio bridge carries it into the web view (`docs/cockpit-audio-bridge.md`). Corollary: the web view's own
+  capture reconfigures the shared audio session when it starts, so a route set *before* a call begins has to be
+  re-asserted on `routeChangeNotification` or it silently reverts. `WKWebView` denies `getUserMedia` unless its UI
+  delegate answers `requestMediaCapturePermissionFor`.
+- **Never put `invalidatableContent()` on a `Button(intent:)` label.** With it, the tap stops running the intent and
+  falls through to `widgetURL` (opens the app) — bisected on the memdeck card, 2026-09-07. If a dim-while-changing
+  look is wanted, mark a sibling view, not the button's own label. Keep widget intents discoverable. iPhone
+  lock-screen (accessory) widgets run no in-place actions at all — a `Button(intent:)` there rendered blank; they get
+  a `widgetURL`.
+- **Ignore recurring `bd doctor` warnings for `Dolt Status / Dolt Locks: config: modified`.** Every `bd` read
+  (including `bd doctor` itself) re-creates that state; `bd vc commit` clears it but the next read brings it back.
+  Cosmetic, not actionable.
 
 ## SQLite Tables
 
-- `locations` — GPS breadcrumbs (lat, lng, accuracy, timestamp). Index on timestamp.
-- `settings` — key/value (tracking_enabled, retention_days, schema_version)
-- `known_places` — user-defined places (name, lat, lng, radius_meters)
-- `health_computed_cache` — aggregated daily health values (metric, date_key, data JSON)
-- `health_raw_cache` — raw HealthKit samples (metric, date_key, data JSON)
-- `health_cache_meta` — cache versioning (cache_version=2; bumping purges caches)
-
-## UI Screens
-
-- **Main:** metric grid (10 cards), location card, summary banner, share buttons
-- **Metric Detail Sheet:** chart + 7-day breakdown, sleep source tabs, debug view
-- **Location Detail Sheet:** coordinates, clustering summary, Export Database, Known Places CRUD
-- **Settings Modal:** location tracking toggle, retention days, debug sleep data
-- **About Modal:** build info, OTA updates, repository link
-- **Call tab:** a Larry call with no web view (`screens/CallScreen.tsx`) — speaks the voice bridge directly, so the call survives screen lock / backgrounding under the `audio` background mode. `grabber://call` lands here. One `CallSession` lives in `App.tsx` and outlives the tab. Spec: `docs/superpowers/specs/2026-08-28-native-call-screen-design.md`.
-- **Card tab:** the memdeck card, big (`screens/CardScreen.tsx`) — a fresh card every time the tab opens, tap for another, *Think of a card* deals one five seconds later. `grabber://card` (the lock-screen widgets' tap) lands here. Deals through `WidgetBridge`, syncs the widgets once on leaving.
-- **Widgets (`ios/LiveActivity/`):** Today (medium/large; the large one carries the memdeck card) and the lock-screen Memdeck card. The card is a function of the clock (one per five minutes) and one shared tap count in the App Group (a tap on the big widget's card deals a new one, `DealCardIntent.swift`; the lock-screen widgets carry no button — iPhone lock-screen widgets run no in-place actions and a button there rendered blank), so every surface deals the same card with nothing else shared (`PlayingCard.swift`, compiled into both the app and the appex; its promises are checked by `just check-deal`, plain `swiftc`). The lock-screen widgets link to `grabber://card`, the Card tab. Spec: `docs/superpowers/specs/2026-09-07-widget-random-card-design.md`.
-- **Cockpit tab:** WKWebView on the tailnet-only Cockpit dashboard (`screens/CockpitScreen.tsx`). Mounted lazily on first visit and kept mounted (hidden) afterwards so the web session survives tab switches. Carries the audio bridge — the page can list and choose real microphones and outputs (`docs/cockpit-audio-bridge.md`).
+`locations` (GPS breadcrumbs), `settings` (key/value), `known_places` and `known_place_icons`, `health_raw_cache`,
+`health_computed_cache` and `health_cache_meta` (bumping the cache version purges both caches), `daily_strip`,
+`activity_log`, `accessory_log`. The export is the database file itself (*Export database*), and *Import from
+Context Grabber* reads the old app's export.
 
 ## Non-Interactive Shell Commands
 

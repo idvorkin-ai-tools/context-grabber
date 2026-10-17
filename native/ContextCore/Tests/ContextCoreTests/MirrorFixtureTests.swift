@@ -1,5 +1,6 @@
 //  The step-4 acceptance bar: over the same fixture the native grab's exports equal, byte for byte, what the
-//  React Native app's own code produces (scripts/native/make-mirror-expected.mjs wrote the expected files).
+//  React Native app's own code produced. Its script wrote the expected files before that code was removed
+//  (2026-10-17); the files are now the record.
 
 import XCTest
 
@@ -47,6 +48,24 @@ final class MirrorFixtureTests: XCTestCase {
     let warm = await grab(fx, cache: cache)
     XCTAssertEqual(MirrorGrab.summaryJSON(warm, accessory: entries, clock: clock), summary)
     XCTAssertEqual(MirrorGrab.rawJSON(warm), raw)
+  }
+
+  /// sim-smoke.sh's mirror check: a simulator run's exports equal the fixture path over that run's own fixture.json,
+  /// so a HealthKit adapter that reads back wrong units, dates or values fails. Skipped unless the smoke names the
+  /// run's directory.
+  func testSimulatorExportsMatchTheFixturePathOverTheirOwnFixture() async throws {
+    guard let path = ProcessInfo.processInfo.environment["MIRROR_COMPARE_DIR"] else {
+      throw XCTSkip("MIRROR_COMPARE_DIR names a simulator run's exports; sim-smoke.sh sets it")
+    }
+    let dir = URL(fileURLWithPath: path)
+    func read(_ name: String) throws -> String {
+      try String(contentsOf: dir.appendingPathComponent(name), encoding: .utf8)
+    }
+    let fx = try XCTUnwrap(HealthFixture(json: read("fixture.json")))
+    let clock = LocalClock(timeZone: TimeZone(identifier: fx.timeZone)!)
+    let snap = await grab(fx, cache: try HealthCache(db: SQLiteDatabase()))
+    XCTAssertEqual(try read("summary.json"), MirrorGrab.summaryJSON(snap, accessory: try accessory(fx), clock: clock))
+    XCTAssertEqual(try read("raw.json"), MirrorGrab.rawJSON(snap))
   }
 
   /// Story 037: the native summary is the current app's plus one trailing `activities` section.

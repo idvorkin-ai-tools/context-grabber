@@ -1,4 +1,4 @@
-// The memdeck deal's promises (story 129), the same ones `just check-deal` holds the old app's copy to.
+// The memdeck deal's promises (story 129): no repeats, one of each per run, a tap always changes the card.
 import ContextCore
 import XCTest
 

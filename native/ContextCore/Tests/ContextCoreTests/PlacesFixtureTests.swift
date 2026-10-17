@@ -1,6 +1,7 @@
 //  The cross-check on real data: the 36 601-point fixture trail with its four real known places, clustered by the
-//  native port, must give exactly what the TypeScript gives (Fixtures/places-expected.json, written by
-//  scripts/native/make-places-expected.mjs from lib/clustering_v2.ts and lib/places_summary.ts) — the same stays
+//  native port, must give exactly what the TypeScript gave (Fixtures/places-expected.json, written from
+//  lib/clustering_v2.ts and lib/places_summary.ts before the React Native code was removed, 2026-10-17; the file
+//  is now the record) — the same stays
 //  with the same names, starts, ends and point counts, the same transit, the same fourteen day cards and strips.
 //  And the real database export imports in full, once.
 

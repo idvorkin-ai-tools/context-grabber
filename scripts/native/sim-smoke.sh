@@ -349,27 +349,30 @@ trouble_call
 require_event bug_report_auto_skipped 'select(.reason == "call_trouble")' "trouble: a second within ten minutes, after a relaunch, is skipped"
 kill "$DROP" 2>/dev/null || true
 
-# Stories 020, 029 (spec step 4): the exports equal, byte for byte, what the React Native app's own code makes of
-# the same week. `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the
-# access `just native-sim-health` grants once (skipped with a note when it has not). Needs typescript from
-# node_modules (`npm ci`, or NODE_PATH pointing at a checkout that has it).
-root="$(cd "$(dirname "$0")/../.." && pwd)"
-expected="$HOME/tmp/agent/skill/mirror-smoke"
+# Stories 020, 029 (spec step 4): the grab runs end to end on the simulator, every series arrives and no query fails.
+# `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the access
+# `just native-sim-health` grants once (skipped with a note when it has not). Each run's summary and raw must equal,
+# byte for byte, the fixture code path over that run's own fixture.json, the path MirrorFixtureTests pins on the host
+# against the React Native app's own exports (the TypeScript that made them was removed 2026-10-17). So HealthKit's
+# units, dates and values are checked: a wrong adapter can still write ten nonempty series.
+MIRROR_RUNS=$(mktemp -d -t mirror-runs)
 mirror_check() {  # $1 = fixture | healthkit
   local before=$fail
+  mkdir -p "$DOCS/exports"
+  : >"$DOCS/exports/fixture.json"; : >"$DOCS/exports/summary.json"; : >"$DOCS/exports/raw.json"
   SIMCTL_CHILD_GRABBER_MIRROR="$1" relaunch
   if ! wait_for mirror_fixture_done 120; then
     if [ "$1" = healthkit ]; then fail=$before; echo "skip  mirror ($1): no Health access on this simulator; run just native-sim-health"; return; fi
     bad "mirror ($1): no mirror_fixture_done"; return
   fi
   f=$(newest_log)
-  mkdir -p "$expected/$1"
-  TZ=$(jq -r .timeZone "$DOCS/exports/fixture.json") node --no-warnings "$root/scripts/native/make-mirror-expected.mjs" \
-    --fixture "$DOCS/exports/fixture.json" --out "$expected/$1" >/dev/null
-  if cmp -s "$DOCS/exports/summary.json" "$expected/$1/mirror-summary-expected.json" \
-    && cmp -s "$DOCS/exports/raw.json" "$expected/$1/mirror-raw-expected.json"; then
-    ok "mirror ($1): summary $(wc -c <"$DOCS/exports/summary.json" | tr -d ' ') B and raw byte-identical to the TypeScript"
-  else bad "mirror ($1): exports differ from $expected/$1 (diff them)"; fi
+  mkdir -p "$MIRROR_RUNS/$1"
+  cp -f "$DOCS/exports/fixture.json" "$DOCS/exports/summary.json" "$DOCS/exports/raw.json" "$MIRROR_RUNS/$1/"
+  if [ -s "$MIRROR_RUNS/$1/fixture.json" ] && [ -s "$MIRROR_RUNS/$1/summary.json" ] && [ -s "$MIRROR_RUNS/$1/raw.json" ] \
+    && MIRROR_COMPARE_DIR="$MIRROR_RUNS/$1" swift test --package-path "$root/native/ContextCore" \
+      --filter MirrorFixtureTests/testSimulatorExportsMatchTheFixturePathOverTheirOwnFixture >/dev/null 2>&1; then
+    ok "mirror ($1): summary $(wc -c <"$MIRROR_RUNS/$1/summary.json" | tr -d ' ') B and raw byte-identical to the fixture path over its own fixture"
+  else bad "mirror ($1): exports missing or differ from the fixture path over its own fixture ($MIRROR_RUNS/$1; rerun the test there with MIRROR_COMPARE_DIR for the diff)"; fi
   grabbed=$(jq -c 'select(.type=="mirror_grabbed") | {series, failed_queries}' "$f" | tail -1)
   errors=$(jq -c 'select(.type=="error" or .type=="health_query_failed")' "$f")
   if [ "$(jq -r .series <<<"$grabbed")" = "10" ] && [ -z "$errors" ]; then ok "mirror ($1): 10 series, nothing failed"
