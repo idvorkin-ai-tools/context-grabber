@@ -63,8 +63,10 @@ and points at Settings.
 - **Drawn art on the tiles** (Igor, 2026-10-13, #304: *"custom icons … bigger tiles"*; settled 2026-10-17: keep
   three to a row, custom art for every tile, judge the size after). Each home tile shows its own picture, larger
   than the old glyph square, above the same short name. Objects are painted as refined still-lifes, not cartoons
-  (Igor, 2026-10-17: *"less cartoony on everything"*), all on the same warm cream (*"give all of them backgrounds
-  the same color"*), with no faces on things. The launcher's own colour stays on Settings' list. Every
+  (Igor, 2026-10-17: *"less cartoony on everything"*), with no background of their own: each object sits straight
+  on its tile, so the art blends into the tile in light mode and in dark (Igor, 2026-10-17: *"more blended into the
+  background, some kind of transparent, but still works when dark"*, replacing *"give all of them backgrounds the
+  same color"*). No faces on things. The launcher's own colour stays on Settings' list. Every
   person is Igor, as the raccoon of his blog's eulogy post (rainbow glasses, green shirt, mismatched crocs, soft
   felt; *"people are always Igor from the blog"*). Call: Igor's raccoon on the phone. Today: a heart on a paper
   calendar. Timer: a steel stopwatch. Breathe: Igor's raccoon meditating in full lotus. Places: a folded map with a

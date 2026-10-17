@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # #304, #299: compiles the asset catalog with actool, as the build does, and reads the result with assetutil: every
-# home tile has its drawn art, and the strip's poodle and quill are template images (so they take the item's colour).
+# home tile has its drawn art with no background of its own (so it blends into the tile, light or dark), and the
+# strip's poodle and quill are template images (so they take the item's colour).
 set -uo pipefail
 out=$(mktemp -d "${TMPDIR:-/tmp}/tile-art.XXXXXX")
 trap 'rm -rf "$out"' EXIT
@@ -17,10 +18,12 @@ for t in tiles:
     if a and (a.get("PixelWidth") != a.get("PixelHeight") or a.get("PixelWidth", 0) < 168):
         w, h = a.get("PixelWidth"), a.get("PixelHeight")
         bad.append(f"tile-{t}: {w}x{h}, not square or under 168 px")
+    if a and a.get("Opaque") is not False:
+        bad.append(f"tile-{t}: opaque, so it carries a background square instead of sitting on the tile")
 for g in ("strip-poodle", "strip-quill"):
     if assets.get(g, {}).get("Template Mode") != "template":
         bad.append(f"{g}: not a template image")
 for b in bad: print("FAIL tile-art:", b)
-if not bad: print("ok   tile-art: %d tiles and 2 strip glyphs" % len(tiles))
+if not bad: print("ok   tile-art: %d transparent tiles and 2 strip glyphs" % len(tiles))
 sys.exit(1 if bad else 0)
 '

@@ -74,7 +74,8 @@ struct HomeRow: Identifiable {
   static func row(_ id: String) -> HomeRow? { byID[id] }
 }
 
-/// A home tile's drawn picture (#304): `tile-<id>` in the asset catalog, or the glyph square when a row has none.
+/// A home tile's drawn picture (#304): `tile-<id>` in the asset catalog, or the glyph square when a row has none. The
+/// art has no background of its own, so it sits straight on the tile in light and dark.
 struct TileArt: View {
   let row: HomeRow
   var size: CGFloat = 56
@@ -85,7 +86,6 @@ struct TileArt: View {
         .resizable()
         .interpolation(.high)
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: size * 0.24, style: .continuous))
         .accessibilityHidden(true)
     } else {
       LauncherIcon(row: row, size: size)
