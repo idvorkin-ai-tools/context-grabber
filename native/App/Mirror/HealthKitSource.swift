@@ -42,6 +42,11 @@ final class HealthKitSource: HealthSource, @unchecked Sendable {
     try await store.requestAuthorization(toShare: share, read: Self.readTypes)
   }
 
+  /// Whether `requestAuthorization(share:)` would show Health's sheet: `.unnecessary` once every type has been asked.
+  func requestStatus(share: Set<HKSampleType> = []) async throws -> HKAuthorizationRequestStatus {
+    try await store.statusForAuthorizationRequest(toShare: share, read: Self.readTypes)
+  }
+
   /// Story 242: a breathing session as a Mindful Session. Never asks: Health's sheet does not show over the
   /// breathing screen's cover (the request waited forever, 2026-10-08), so Today asks. Throws when writing is not
   /// allowed, or not asked yet.

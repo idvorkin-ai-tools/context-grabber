@@ -227,4 +227,6 @@ setup:
     # The native app's lint (native-lint, version pinned in native/.swiftlint.yml) and build-log digest (xcbeautify).
     command -v swiftlint >/dev/null || brew install swiftlint
     command -v xcbeautify >/dev/null || brew install xcbeautify
+    # test-tile-art.sh measures each tile's art with ImageMagick (#354).
+    command -v magick >/dev/null || brew install imagemagick
     cd ios && pod install

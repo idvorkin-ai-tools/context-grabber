@@ -37,9 +37,13 @@ sys.exit(1 if bad else 0)
 '
 status=$?
 # #354: each tile's object fills its picture (at least 88% of the longer side), so the art fills the tile.
+command -v magick >/dev/null || { echo "FAIL tile-art: magick (ImageMagick) not installed"; exit 1; }
 for f in native/App/Assets.xcassets/tile-*.imageset/tile-*.png; do
   case $f in *-dark.png) continue ;; esac
   read -r side box < <(magick "$f" -alpha extract -threshold 8% -format "%w %@" info:)
+  if [[ ! $side =~ ^[0-9]+$ || ! $box =~ ^[0-9]+x[0-9]+\+ ]]; then
+    echo "FAIL tile-art: ${f##*/}: magick could not measure it"; status=1; continue
+  fi
   w=${box%%x*}; rest=${box#*x}; h=${rest%%+*}; long=$(( w > h ? w : h ))
   if (( long * 100 < side * 88 )); then
     echo "FAIL tile-art: ${f##*/}: its object spans $long of $side px, so the art leaves the tile empty"; status=1
