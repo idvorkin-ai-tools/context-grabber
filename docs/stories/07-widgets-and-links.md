@@ -325,7 +325,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 250:
 
 - **Summary:** Today's hand: a tap after a skipped redraw still deals a card that is not on screen
-- **Status:** native app only: implemented on branch `native/todays-hand-230` (commit to follow); verified by `CardDealTests` (host: a tap avoids both the card showing and the last tap's card, and fails without the change); the simulator and the phone not yet
+- **Status:** native app only: implemented in [45c8e32](https://github.com/idvorkin/context-grabber/commit/45c8e32); verified by `CardDealTests` (host: a tap avoids both the card showing and the last tap's card; 1,639 asserts fail without the change) and `TodaysHandUITests` on the simulator (iPhone 17, two iterations, both passed: a tap changed the card with the app in the background); the skipped-redraw case itself cannot be forced on the simulator; the phone not yet
 - **Issues:** [#230](https://github.com/idvorkin/context-grabber/issues/230)
 - **Spec:** [Today's hand](../superpowers/specs/2026-10-08-native-large-widget-design.md)
 
