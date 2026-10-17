@@ -148,6 +148,14 @@ public enum Sleep {
     return Health.mergedMillis(spans) / (1000 * 60 * 60)
   }
 
+  /// Bead byo (the old app's PR #154): per-night hours as the export's days — noon to noon, sources merged, the
+  /// main session — so a night that crosses midnight is one value on the day Igor went to bed.
+  public static func hoursByNight(_ samples: [SleepSample]?, endDate: Double, clock: LocalClock) -> [DailyValue] {
+    detailedBundle(samples, endDate: endDate, clock: clock).merged.map {
+      DailyValue(date: $0.date, value: $0.totalHours)
+    }
+  }
+
   /// One series per source plus All; a source with no samples has no tab.
   public static func detailedBundle(_ samples: [SleepSample]?, endDate: Double, days: Int = 7, clock: LocalClock)
     -> SleepDetailedBundle

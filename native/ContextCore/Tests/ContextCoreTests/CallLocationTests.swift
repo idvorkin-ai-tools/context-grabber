@@ -29,4 +29,15 @@ final class CallLocationTests: XCTestCase {
     XCTAssertFalse(CallLocation.isSignificantMove(from: leftHome, to: leftHome))
     XCTAssertTrue(CallLocation.isSignificantMove(from: leftHome, to: far), "200 m or more")
   }
+
+  /// Bead byo (the old app's PR #154): the log line keeps an off-place fix to about a kilometre, because the call
+  /// log can leave the phone as a report. The precise fix goes only to the bridge.
+  func testTheLogLineRoundsAFixOffAKnownPlace() {
+    let at = Date(timeIntervalSince1970: 1_760_000_000)
+    let away = CallLocation.fix(lat: 47.623456, lon: -122.334567, accuracy: 65, at: at, knownPlaces: [home])
+    XCTAssertEqual(away.description, "47.62, -122.33 (\u{00B1}65 m)")
+    XCTAssertEqual(away.lat, 47.623456, "the bridge still gets six decimals")
+    let atHome = CallLocation.fix(lat: 47.6062, lon: -122.3321, accuracy: 12, at: at, knownPlaces: [home])
+    XCTAssertEqual(atHome.description, "Home (\u{00B1}12 m)")
+  }
 }
