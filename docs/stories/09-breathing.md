@@ -382,7 +382,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Breath presets, and a custom box with its own in and out
 - **Issues:** [#155](https://github.com/idvorkin/context-grabber/issues/155), [#204](https://github.com/idvorkin/context-grabber/issues/204), [#200](https://github.com/idvorkin/context-grabber/issues/200), [#289](https://github.com/idvorkin/context-grabber/issues/289)
-- **Status:** implemented in [cb75f1b](https://github.com/idvorkin/context-grabber/commit/cb75f1b); verified by `BreathTests` (host: an uneven 4/8 box's steps, cycles and timing; clamping; even presets) and `BreathePresetsUITests`, `BreatheStyleUITests` on the simulator (12 s gives 6 cycles; Custom's In and Out remembered across a relaunch; the setup scrolls so the cog stays reachable) plus a screenshot; on the phone not yet; the 4·4·6·2 pattern (#289): [7a95dc2](https://github.com/idvorkin/context-grabber/commit/7a95dc2), verified by `BreathPlanTests` (host: four sides, phases on their own seconds, every cue on time, remembered and named); the chip and the cues on the simulator and the phone not yet
+- **Status:** implemented in [cb75f1b](https://github.com/idvorkin/context-grabber/commit/cb75f1b); verified by `BreathTests` (host: an uneven 4/8 box's steps, cycles and timing; clamping; even presets) and `BreathePresetsUITests`, `BreatheStyleUITests` on the simulator (12 s gives 6 cycles; Custom's In and Out remembered across a relaunch; the setup scrolls so the cog stays reachable) plus a screenshot; on the phone not yet; the 4·4·6·2 pattern (#289): [7a95dc2](https://github.com/idvorkin/context-grabber/commit/7a95dc2), verified by `BreathPlanTests` (host: four sides, phases on their own seconds, every cue on time, remembered and named); the chip and the cues on the simulator and the phone not yet; the pattern's four arcs around the circle (#289): [90f7038](https://github.com/idvorkin/context-grabber/commit/90f7038), verified by `BreathTests.testAnUnevenPatternIsFourArcsSizedByItsSteps` (host); the screen in the next build turn
 - **Spec:** [box breathing, "Breath length"](../superpowers/specs/2026-10-04-box-breathing-design.md)
 
 #### Use Case:
@@ -404,7 +404,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The 4·4·6·2 pattern
 - **Given:** the breathing screen
 - **When:** I tap *4·4·6·2* and Begin
-- **Then:** I breathe in for 4 seconds, hold 4, breathe out for 6 and hold 2, each cue on its own second; the summary counts cycles of 16 seconds; and *4·4·6·2* is still chosen the next time I open the screen
+- **Then:** I breathe in for 4 seconds, hold 4, breathe out for 6 and hold 2, each cue on its own second; four arcs around the circle show the shape (a quarter, a quarter, three-eighths, an eighth), the step under way bright and filling; the summary counts cycles of 16 seconds; and *4·4·6·2* is still chosen the next time I open the screen
 
 ---
 

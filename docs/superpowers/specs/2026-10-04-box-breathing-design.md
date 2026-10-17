@@ -39,8 +39,11 @@ empties with you and, if you want, tells you each step by voice or by tone so yo
   them: breathe in 4 seconds, hold 4, breathe out 6, hold 2 — four sides of their own lengths, 16 seconds a cycle.
   The line under the title reads *In 4, hold 4, out 6, hold 2.*; the cues, the hold bar and the timing follow each
   side's own length, and the choice is remembered like a preset. The finished session is named *Breathing ·
-  4·4·6·2 · N cycles*. How the circle draws an uneven pattern (Igor: *"make it a trapezoid"*) is open, proposed on
-  #289 and not part of this change: the ring draws it as it draws every breath.
+  4·4·6·2 · N cycles*. Its shape is drawn around the circle (Igor: *"make it a trapezoid"*; he chose, 2026-10-17,
+  to keep the circle): a thin track of four arcs just outside the ring, starting at the top and going clockwise,
+  each as long as its step's share of the cycle (4·4·6·2: a quarter, a quarter, three-eighths, an eighth), with a
+  small gap between them. The step under way is bright and fills as it goes; the others stay faint. An even breath
+  (a preset, or Custom with In equal to Out) has no track, since its four arcs would be equal.
 - **4·4·6·2 ×2** (Igor, 2026-10-17: *"a second version 4,4,6,2 x2 where it's 2 s each, not 1 s"*): a second chip
   beside 4·4·6·2, the same shape at half the pace: in 8, hold 8, out 12, hold 4, 32 seconds a cycle. The line under
   the title reads *In 8, hold 8, out 12, hold 4.*, the session is named *Breathing · 4·4·6·2 ×2 · N cycles*, and it is

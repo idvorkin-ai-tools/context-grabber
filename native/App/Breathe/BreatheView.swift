@@ -383,7 +383,8 @@ private struct BreatheSession: View {
             // The circle is the pause button: tap to pause, tap again to resume.
             Button(action: model.togglePause) {
               BreathCircle(
-                moment: moment, word: word, paused: model.paused, reduceMotion: reduceMotion, style: model.style)
+                moment: moment, word: word, paused: model.paused, reduceMotion: reduceMotion, style: model.style,
+                arcs: model.sessionPlan?.arcs ?? [])
             }
             .buttonStyle(CircleTap())
             .accessibilityLabel(model.paused ? "Resume" : "Pause")
@@ -417,9 +418,14 @@ private struct BreathCircle: View {
   let paused: Bool
   let reduceMotion: Bool
   var style: BreathStyle = .default
+  /// #289: an uneven breath's four arcs; empty for an even box.
+  var arcs: [BreathArc] = []
 
   var body: some View {
     ZStack {
+      PatternTrack(arcs: arcs, step: moment.phaseIndex % 4, progress: moment.phaseProgress)
+        .padding(-14)
+        .opacity(paused ? 0.4 : 1)
       // A soft halo that gathers as the ring closes.
       Circle()
         .stroke(Color.white.opacity(paused ? 0 : 0.07 * moment.ring), lineWidth: 26)
@@ -467,6 +473,29 @@ private struct BreathCircle: View {
     .aspectRatio(1, contentMode: .fit)
     .contentShape(Circle())
     .padding(.horizontal, 40)
+  }
+}
+
+/// #289: an uneven breath's shape just outside the ring: four arcs from the top, clockwise, each its step's share of
+/// the cycle; the step under way is brighter and fills as it goes.
+private struct PatternTrack: View {
+  let arcs: [BreathArc]
+  let step: Int
+  let progress: Double
+
+  var body: some View {
+    ZStack {
+      ForEach(Array(arcs.enumerated()), id: \.offset) { i, arc in
+        Circle().trim(from: arc.start, to: arc.end)
+          .stroke(Color.white.opacity(i == step ? 0.3 : 0.12), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+        if i == step {
+          Circle().trim(from: arc.start, to: arc.start + (arc.end - arc.start) * min(1, max(0, progress)))
+            .stroke(Color.white.opacity(0.85), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+        }
+      }
+    }
+    .rotationEffect(.degrees(-90))  // trim starts at three o'clock; the track starts at the top
+    .accessibilityHidden(true)
   }
 }
 

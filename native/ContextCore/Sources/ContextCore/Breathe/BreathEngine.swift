@@ -67,6 +67,12 @@ public struct BreathPattern: Equatable, Hashable, Sendable {
   var sides: [Int] { [inSeconds, holdInSeconds, outSeconds, holdOutSeconds] }
 }
 
+/// One step's arc on an uneven breath's track (#289), in fractions of a turn from the top.
+public struct BreathArc: Equatable, Sendable {
+  public let start: Double
+  public let end: Double
+}
+
 public struct BreathPlan: Equatable, Sendable {
   public static let breathRange = 5...15
   public static let sessionRange = 2...15
@@ -136,6 +142,21 @@ public struct BreathPlan: Equatable, Sendable {
     // A named pattern keeps its pace (story 249), so 8·8·12·4 reads as 4·4·6·2 ×2.
     return BreathPattern.all.first { $0.sides == sides.sides } ?? sides
   }
+  /// #289: the gap between two arcs of the pattern's track, as a share of the circle.
+  public static let arcGap = 0.012
+  /// #289: an uneven breath's shape, four arcs around the circle from the top, clockwise, each its step's share of
+  /// the cycle less a gap (fractions of a turn). Empty for an even box, whose arcs would all be equal.
+  public var arcs: [BreathArc] {
+    guard !isEven else { return [] }
+    let cycle = Double(cycleSeconds)
+    var at = 0.0
+    return (0..<4).map { i in
+      let share = Double(side(i)) / cycle
+      defer { at += share }
+      return BreathArc(start: at + Self.arcGap / 2, end: at + share - Self.arcGap / 2)
+    }
+  }
+
   /// The side of an even box; for an uneven one, its in side.
   public var breathSeconds: Int { inSeconds }
   /// How long step `phaseIndex` (counted from the session's start) lasts.

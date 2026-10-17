@@ -325,6 +325,20 @@ final class BreathToneTests: XCTestCase {
     XCTAssertEqual(BreathPattern.fourFourSixTwo.sentence, "In 4, hold 4, out 6, hold 2.")
   }
 
+  /// #289: an uneven pattern's shape as four arcs around the circle, from the top, clockwise.
+  func testAnUnevenPatternIsFourArcsSizedByItsSteps() {
+    let arcs = BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 5).arcs
+    XCTAssertEqual(arcs.count, 4)
+    let gap = BreathPlan.arcGap
+    let spans = arcs.map { $0.end - $0.start + gap }
+    for (span, share) in zip(spans, [0.25, 0.25, 0.375, 0.125]) { XCTAssertEqual(span, share, accuracy: 1e-9) }
+    XCTAssertEqual(arcs[0].start, gap / 2, accuracy: 1e-9, "starts at the top, half a gap in")
+    for i in 1..<4 { XCTAssertEqual(arcs[i].start - arcs[i - 1].end, gap, accuracy: 1e-9) }
+    XCTAssertEqual(arcs[3].end, 1 - gap / 2, accuracy: 1e-9)
+    XCTAssertEqual(BreathPlan(pattern: .fourFourSixTwoX2, sessionMinutes: 5).arcs, arcs, "×2 has the same shape")
+    XCTAssertTrue(BreathPlan(breathSeconds: 8, sessionMinutes: 5).arcs.isEmpty, "an even box has no track")
+  }
+
   /// Story 249: the same shape at two seconds a count.
   func testTheDoubledPatternIsTheSameShapeAtHalfThePace() {
     let slow = BreathPattern.fourFourSixTwoX2
