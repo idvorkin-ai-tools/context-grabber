@@ -179,7 +179,8 @@ public final class CallSession {
   private var zeroRearmed = false
   /// #364: whether any mic buffer this call carried sound, so a zero-run heal says if the mic was ever live.
   private var micHeard = false
-  /// A zero-run rearm is waiting for its first sound, for `audio_back` whether or not the mic was live before.
+  /// A zero-run rearm's restart has finished and waits for its first sound, for `audio_back` whether or not the mic
+  /// was live before.
   private var awaitingSoundAfterRearm = false
   private var firstFrameTimer: CallTimer?
   private var audioReset = false
@@ -545,7 +546,6 @@ public final class CallSession {
     if !zeroRearmed {
       zeroRearmed = true
       zeroRun = 0
-      awaitingSoundAfterRearm = true
       log(
         "call_heal",
         [
@@ -557,6 +557,8 @@ public final class CallSession {
         guard let self, call == self.generation else { return }
         // #364: the queue again once the engine is back, so what the restart dropped is the difference.
         guard let error else {
+          // Codex on #365: armed once the rebuilt graph is up, so a buffer the old tap had queued cannot claim it.
+          self.awaitingSoundAfterRearm = true
           self.log(
             "call_heal", ["action": "rearm_mic", "ok": true].merging(self.playbackFields()) { mine, _ in mine })
           return
