@@ -456,6 +456,18 @@ final class CallSessionZerosTests: XCTestCase {
     XCTAssertEqual(backs().first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 2)
   }
 
+  /// Codex on #365: a rebuild that finishes after the hang-up logs nothing for the ended call.
+  func testARestartThatFinishesAfterTheHangUpIsIgnored() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.deferRestart = true
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    t.session.stop()
+    let before = t.events.count
+    t.audio.pendingRestart?(nil)
+    XCTAssertEqual(t.events.count, before, "nothing logged after call_ended")
+  }
+
   func testAMicThatWasLiveBeforeTheZerosSaysSo() {
     let t = CallHarness()
     t.goLive()

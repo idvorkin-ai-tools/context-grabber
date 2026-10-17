@@ -554,7 +554,8 @@ public final class CallSession {
         ].merging(playbackFields()) { mine, _ in mine })
       let call = generation
       deps.audio.restartMic { [weak self] error in
-        guard let self, call == self.generation else { return }
+        // Codex on #365: a hang-up keeps the generation, so a rebuild that finishes after it is not this call's.
+        guard let self, call == self.generation, self.snapshot.state == .live else { return }
         // #364: the queue again once the engine is back, so what the restart dropped is the difference.
         guard let error else {
           // Codex on #365: armed once the rebuilt graph is up, so a buffer the old tap had queued cannot claim it.
