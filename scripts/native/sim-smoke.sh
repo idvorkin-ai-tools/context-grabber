@@ -351,9 +351,11 @@ kill "$DROP" 2>/dev/null || true
 
 # Stories 020, 029 (spec step 4): the grab runs end to end on the simulator, every series arrives and no query fails.
 # `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the access
-# `just native-sim-health` grants once (skipped with a note when it has not). That the exports equal what the React
-# Native app made of the same week is pinned on the host by MirrorFixtureTests against the expected files committed
-# with them (the TypeScript that made those files was removed 2026-10-17).
+# `just native-sim-health` grants once (skipped with a note when it has not). The fixture run is the code path
+# MirrorFixtureTests pins on the host against the React Native app's own exports (the files committed with it; the
+# TypeScript that made them was removed 2026-10-17). The healthkit run must give the same bytes from the same week, so
+# HealthKit's units, dates and values are checked against it: a wrong adapter can still write ten nonempty series.
+MIRROR_RUNS=$(mktemp -d -t mirror-runs)
 mirror_check() {  # $1 = fixture | healthkit
   local before=$fail
   SIMCTL_CHILD_GRABBER_MIRROR="$1" relaunch
@@ -365,6 +367,17 @@ mirror_check() {  # $1 = fixture | healthkit
   [ -s "$DOCS/exports/summary.json" ] && [ -s "$DOCS/exports/raw.json" ] \
     && ok "mirror ($1): summary $(wc -c <"$DOCS/exports/summary.json" | tr -d ' ') B and raw written" \
     || bad "mirror ($1): no summary or raw export in $DOCS/exports"
+  mkdir -p "$MIRROR_RUNS/$1"
+  cp -f "$DOCS/exports/fixture.json" "$DOCS/exports/summary.json" "$DOCS/exports/raw.json" "$MIRROR_RUNS/$1/" 2>/dev/null
+  if [ "$1" = healthkit ]; then
+    if [ ! -s "$MIRROR_RUNS/fixture/summary.json" ]; then bad "mirror ($1): no fixture run to compare with"
+    elif ! cmp -s "$MIRROR_RUNS/fixture/fixture.json" "$MIRROR_RUNS/healthkit/fixture.json"; then
+      bad "mirror ($1): the two runs grabbed different weeks (midnight between them?); rerun ($MIRROR_RUNS)"
+    elif cmp -s "$MIRROR_RUNS/fixture/summary.json" "$MIRROR_RUNS/healthkit/summary.json" \
+      && cmp -s "$MIRROR_RUNS/fixture/raw.json" "$MIRROR_RUNS/healthkit/raw.json"; then
+      ok "mirror ($1): summary and raw byte-identical to the fixture run"
+    else bad "mirror ($1): exports differ from the fixture run (diff $MIRROR_RUNS/fixture $MIRROR_RUNS/healthkit)"; fi
+  fi
   grabbed=$(jq -c 'select(.type=="mirror_grabbed") | {series, failed_queries}' "$f" | tail -1)
   errors=$(jq -c 'select(.type=="error" or .type=="health_query_failed")' "$f")
   if [ "$(jq -r .series <<<"$grabbed")" = "10" ] && [ -z "$errors" ]; then ok "mirror ($1): 10 series, nothing failed"
