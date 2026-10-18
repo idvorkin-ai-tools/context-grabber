@@ -386,7 +386,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Hold the Box breathing tile to begin at a breath length
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
-- **Status:** native app only: implemented in [ea745cd](https://github.com/idvorkin/context-grabber/commit/ea745cd); verified by `HoldChoicesTests` (host: 8, 10, 12 and 15 s, each beginning) and `HoldPopoverUITests.testATapOutsideOpensNothing` (simulator: the popover lists 10 s, a tap outside closes it on the home screen); a length beginning a session on the phone not yet
+- **Status:** native app only: implemented in [ea745cd](https://github.com/idvorkin/context-grabber/commit/ea745cd); verified by `HoldChoicesTests` (host: 8, 10, 12 and 15 s, each beginning) and `HoldPopoverUITests.testATapOutsideOpensNothing` (simulator: the popover lists 10 s, a tap outside closes it on the home screen); remembered as breathing's choice afterwards since [7c4a16d](https://github.com/idvorkin/context-grabber/commit/7c4a16d) (simulator build); a length beginning a session on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
