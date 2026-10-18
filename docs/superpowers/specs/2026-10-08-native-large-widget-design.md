@@ -37,8 +37,8 @@ new one each local day, every role once in eleven days. Tapping it opens the app
 **Three buttons** under the role:
 
 - **Think of a card** opens the card screen with the count already running, as the home screen's row does.
-- **Workout Supermix** opens the app, which runs Igor's *Play Workout Supermix* shortcut, as the home screen's row
-  does.
+- **Workout Supermix** opens the app, which opens Igor's mix in YouTube Music, as the home screen's tile does
+  (#372).
 - **Call Larry** opens the call screen and calls, as a link to the call does.
 
 The widget is listed as *Today's hand*, large size only.

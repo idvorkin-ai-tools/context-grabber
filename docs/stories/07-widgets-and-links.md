@@ -285,7 +285,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 243:
 
 - **Summary:** Workout Supermix from the native home screen
-- **Status:** native app only: implemented in [fae3e8c](https://github.com/idvorkin/context-grabber/commit/fae3e8c); verified by `WorkoutSupermixUITests` on the simulator (tap the row, Shortcuts runs in front; the simulator has no such shortcut); YouTube Music playing the mix on the phone not yet
+- **Status:** native app only: implemented in [fae3e8c](https://github.com/idvorkin/context-grabber/commit/fae3e8c); verified by `WorkoutSupermixUITests` on the simulator (tap the row, Shortcuts runs in front; the simulator has no such shortcut); YouTube Music playing the mix on the phone not yet; superseded by story 139 (#372): the tile opens the mix's link directly, not the shortcut
 - **Issues:** [#220](https://github.com/idvorkin/context-grabber/issues/220)
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
@@ -299,6 +299,26 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** my *Play Workout Supermix* shortcut is in the Shortcuts app
 - **When:** I tap *Workout Supermix* on Grabber Native's home screen
 - **Then:** Shortcuts runs the shortcut and YouTube Music plays the mix, the session log has `open_workout_supermix` with ok true, and without Shortcuts on the phone the home screen says so
+
+---
+
+### User Story 139:
+
+- **Summary:** Workout Supermix opens straight in YouTube Music
+- **Issues:** [#372](https://github.com/idvorkin/context-grabber/issues/372)
+- **Status:** not started
+- **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
+
+#### Use Case:
+- **As a** lifter about to start a workout from Grabber Native
+- **I want to** tap the Workout Supermix tile and land in my mix in YouTube Music
+- **so that** the music starts without the Shortcuts app flashing in front first
+
+#### Acceptance Criteria:
+- **Scenario:** The tile
+- **Given:** YouTube Music is installed
+- **When:** I tap *Workout Supermix*
+- **Then:** YouTube Music opens on my Workout Supermix with no Shortcuts hop, the browser opens it instead if YouTube Music is missing, and the log says which opened
 
 ---
 
