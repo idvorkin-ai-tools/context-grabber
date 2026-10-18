@@ -346,7 +346,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Today's numbers on the usage tile, under the usage left
 - **Issues:** [#396](https://github.com/idvorkin/context-grabber/issues/396)
-- **Status:** not implemented; spec 2026-10-18
+- **Status:** native app only: implemented in [86c8156](https://github.com/idvorkin/context-grabber/commit/86c8156); verified by `TodayGlanceTests` (host: the card's order, the short forms, the dash, today only) and a simulator build of the app and widget; the drawn tile on the phone not yet
 - **Spec:** [native live tile, "Today's numbers"](../superpowers/specs/2026-10-06-native-live-tile-design.md)
 
 #### Use Case:
