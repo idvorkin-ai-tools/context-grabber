@@ -30,7 +30,7 @@ opens it. The popover replaces the grey list menu the music tile had; there is n
 
 **Holding.** Press and hold a tile with a popover and, after the usual iOS hold, the tile gives a light tick and a
 popover opens beside it, its arrow pointing at the tile. Inside, the choices sit in a grid of small tiles (three to a
-row), each with its drawn picture and a short name under it. The choice a plain tap makes is always first.
+row), each with its drawn picture and a short name under it. Where a plain tap makes one of the choices (the Workout Supermix, Think of a card), it comes first; the timer's and breathing's tap opens their remembered preset ready, so their choices simply run in order.
 
 **Choosing.** Tap a choice and the popover closes and that choice opens, exactly as if it had its own tile. A tap
 outside the popover, or a swipe, closes it with nothing opened. Holding a tile with no popover does nothing, as
@@ -67,7 +67,7 @@ choice, and the popover's opening is logged with the tile, so a hold that opened
 ## Acceptance criteria
 
 - Holding Workout Supermix, Gym Timer, Box breathing or Think of a card opens a popover of drawn choices pointing at
-  the tile, the tap's own choice first; holding any other tile does nothing.
+  the tile, the tap's own choice first where it is one; holding any other tile does nothing.
 - Choosing *2 MIN* starts the timer on 2 MIN after its get-ready countdown; choosing *10 s* begins breathing at 10 s
   a side; choosing *Drill the stack* opens the drill; choosing *Liked music* opens his likes in YouTube Music.
 - A tap outside closes the popover and opens nothing.
