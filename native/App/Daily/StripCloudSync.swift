@@ -56,7 +56,11 @@ final class StripCloudSync {
     let state = database.setting("strip_initial_sync")
     let empty = ((try? strip.ownRows()) ?? []).isEmpty
     ready = state == "done" || (state != "waiting" && (!empty || FileManager.default.ubiquityIdentityToken == nil))
-    if !ready { database.setSetting("strip_initial_sync", "waiting") }
+    if !ready {
+      database.setSetting("strip_initial_sync", "waiting")
+    } else if state != "done" && !empty {
+      database.setSetting("strip_initial_sync", "done")
+    }
     // The vendor id, not one kept in the database: a backup restored onto another phone gets a new one, so two
     // phones never write the same keys (Codex on #378). The database only reaches a new id by a restore or a
     // transfer, and the phone it came from may still be in use: what it carried was that phone's, so it becomes
@@ -69,6 +73,11 @@ final class StripCloudSync {
         let moved = try strip.handOver(to: old)
         handedOver.insert(old)
         database.setSetting("strip_handed_over", handedOver.sorted().joined(separator: ","))
+        // A wait and its held steps carried in the backup were the old phone's; a new id has nothing in iCloud to
+        // overwrite, so this device publishes at once.
+        ready = true
+        database.setSetting("strip_initial_sync", "done")
+        database.setSetting("strip_waiting_steps", "{}")
         log.event("strip_sync", ["action": "device_changed", "handed_over_rows": moved])
       } catch {
         log.event("error", ["where": "strip_sync_hand_over", "message": "\(error)"])
@@ -102,8 +111,8 @@ final class StripCloudSync {
       publish(month: nil)
     } else {
       // No timeout: offline, a minute proves nothing, and publishing then could overwrite the month in iCloud.
-      // ponytail: if iCloud never reports a first sync for an empty database, its taps stay on this device until a
-      // launch where it does (#380); the upgrade is a check of what the store holds once the network is back.
+      // ponytail: while no device has ever published (every device a new install), nothing ends the wait and taps
+      // stay on each device (#380); the upgrade is a marker key whose discarded write brings the initial-sync change.
       log.event("strip_sync", ["action": "waiting_for_first_sync"])
     }
     arrived(keys: Array(store.dictionaryRepresentation.keys), reason: nil)
@@ -229,6 +238,10 @@ final class StripCloudSync {
     case NSUbiquitousKeyValueStoreQuotaViolationChange:
       log.event("error", ["where": "strip_sync_quota", "message": "over the iCloud key-value store quota"])
     default: break
+    }
+    // Strip keys already in the store mean the download has come, even if it finished before this device listened.
+    if !ready, store.dictionaryRepresentation.keys.contains(where: { StripSync.parse(key: $0) != nil }) {
+      open(why: "store_holds")
     }
     var keys = keys
     var byDevice: [String: [String]] = [:]
