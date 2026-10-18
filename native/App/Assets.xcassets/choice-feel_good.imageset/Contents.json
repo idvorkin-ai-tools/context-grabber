@@ -1,0 +1,11 @@
+{
+  "images" : [
+    { "filename" : "choice-feel_good.png", "idiom" : "universal" },
+    {
+      "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
+      "filename" : "choice-feel_good-dark.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

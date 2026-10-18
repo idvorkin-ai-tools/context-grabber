@@ -1,0 +1,11 @@
+{
+  "images" : [
+    { "filename" : "choice-card_think.png", "idiom" : "universal" },
+    {
+      "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
+      "filename" : "choice-card_think-dark.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

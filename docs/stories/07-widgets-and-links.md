@@ -325,20 +325,20 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 221:
 
 - **Summary:** Press and hold the music tile to pick Workout, Liked music or Feel Good Supermix
-- **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383)
-- **Status:** native app only: icons on each mix [fa6be05](https://github.com/idvorkin/context-grabber/commit/fa6be05), verified by `WorkoutSupermixTests` (host), the hold menu's icons in `WorkoutSupermixUITests` (simulator, not yet run); implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
+- **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383), [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** native app only: the menu became the tile's popover of drawn icons in #391 (story 222; commit in that story's Status); icons on each mix [fa6be05](https://github.com/idvorkin/context-grabber/commit/fa6be05), verified by `WorkoutSupermixTests` (host), the hold menu's icons in `WorkoutSupermixUITests` (simulator, not yet run); implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
 - **As a** man about to train, or just wanting music, from Grabber Native
-- **I want to** press and hold the music tile and lift my finger on the mix I want
+- **I want to** press and hold the music tile and tap the mix I want
 - **so that** my likes or the Feel Good mix are as close as the workout one, without opening YouTube Music to look
 
 #### Acceptance Criteria:
 - **Scenario:** Picking a mix
 - **Given:** YouTube Music is installed
-- **When:** I press and hold the Workout Supermix tile, slide to *Liked music* or *Feel Good Supermix* and lift my finger
-- **Then:** a menu of Workout Supermix (headphones), Liked music (a heart) and Feel Good Supermix (a sun) shows, each with its icon, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
+- **When:** I press and hold the Workout Supermix tile, then tap *Liked music* or *Feel Good Supermix* in the popover
+- **Then:** a popover of Workout Supermix (the kettlebell in headphones), Liked music (a heart) and Feel Good Supermix (a sun) opens beside the tile, each drawn, the one I tap opens in YouTube Music (the browser without it), a tap outside the popover opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
 
 ---
 
@@ -359,6 +359,86 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app has looked at Health this morning: 5.7h sleep, 7,399 steps, 65.2 ms HRV, 38 min exercise
 - **When:** I look at the usage tile on my home screen, then again after midnight
 - **Then:** under the usage it reads *5.7h · 7,399 · 65 ms · 38m* with a small symbol before each, the same numbers as the Today card; after midnight that line is gone until the app looks again
+
+---
+
+### User Story 222:
+
+- **Summary:** Holding the music tile opens a popover of drawn mixes, not a list
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: the three mixes in order, each with its art) and `WorkoutSupermixUITests.testTheHoldPopoverShowsEachMix` (simulator: the popover lists all three, Liked opens in the browser); the drawn art and the light tick on the phone not yet
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold the Workout Supermix tile and see the mixes as drawn tiles
+- **so that** picking music looks like the home screen and reads at a glance
+
+#### Acceptance Criteria:
+- **Scenario:** The music popover
+- **Given:** YouTube Music is installed
+- **When:** I press and hold the Workout Supermix tile and tap the heart
+- **Then:** a popover pointing at the tile shows Workout Supermix, Liked music and Feel Good Supermix as drawn tiles with their names, Workout first; my likes open in YouTube Music; a tap outside instead closes it with nothing opened; and the log has the popover opening and `from: home_popover` with the mix
+
+---
+
+### User Story 223:
+
+- **Summary:** Hold the Gym Timer tile to start a preset
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: the four presets and Custom, each starting) and `HoldPopoverUITests.testTheTimerPopoverStartsAPreset` (simulator: 1 MIN opens the timer running); on the phone not yet
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold the Gym Timer tile and pick 30 SEC, 1 MIN, 2 MIN, 5-1 or Custom
+- **so that** a workout starts from the home screen with the phone going straight down
+
+#### Acceptance Criteria:
+- **Scenario:** Straight into 2 MIN
+- **Given:** the home screen
+- **When:** I press and hold the Gym Timer tile and tap *2 MIN*
+- **Then:** the timer opens on 2 MIN and its get-ready countdown starts, 2 MIN is its chosen preset afterwards, and a plain tap on the tile still opens it ready on the remembered preset
+
+---
+
+### User Story 224:
+
+- **Summary:** Hold the Box breathing tile to begin at a breath length
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: 8, 10, 12 and 15 s, each beginning) and `HoldPopoverUITests.testATapOutsideOpensNothing` (simulator: the popover lists 10 s, a tap outside closes it on the home screen); remembered as breathing's choice afterwards since [2069559](https://github.com/idvorkin/context-grabber/commit/2069559) (simulator build); a length beginning a session on the phone not yet
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold Box breathing and pick 8, 10, 12 or 15 seconds a side
+- **so that** a session starts at the length I want without touching the sliders
+
+#### Acceptance Criteria:
+- **Scenario:** Ten-second sides
+- **Given:** my remembered session is 5 minutes
+- **When:** I press and hold the Box breathing tile and tap *10 s*
+- **Then:** breathing opens and begins at 10 seconds a side for 5 minutes
+
+---
+
+### User Story 225:
+
+- **Summary:** Hold the card tile to think, see a card or drill
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: think, face up, drill in order) and `HoldPopoverUITests.testTheCardPopoverOpensTheDrill` (simulator: Drill the stack opens the drill); on the phone not yet
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold Think of a card and pick think of a card, a card face up, or drill the stack
+- **so that** the card practice I want is one gesture away
+
+#### Acceptance Criteria:
+- **Scenario:** Into the drill
+- **Given:** the home screen
+- **When:** I press and hold the Think of a card tile and tap *Drill the stack*
+- **Then:** the stack drill opens, and a plain tap on the tile still counts down to a card as before
 
 ---
 

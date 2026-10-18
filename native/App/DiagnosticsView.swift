@@ -222,23 +222,53 @@ private struct HomeTile: View {
   let row: HomeRow
   @ObservedObject var model: AppModel
 
+  @State private var showChoices = false
+  /// Set by the long press so the lift that ends it is not also a tap.
+  @State private var held = false
+  /// Opened once the popover has gone: a full-screen cover presented while it is still closing would not show.
+  @State private var chosen: HoldChoice?
+
   var body: some View {
-    // #383: press and hold the music tile, lift on a mix; a tap still opens the workout one. Only that tile gets a
-    // menu, so the others keep no press-and-hold preview.
-    if row.id == "workout_supermix" {
-      tile.contextMenu {
-        ForEach(WorkoutSupermix.Mix.allCases, id: \.self) { mix in
-          Button(mix.title, systemImage: mix.symbol) { model.openWorkoutSupermix(from: "home_menu", mix: mix) }
-            .accessibilityIdentifier("supermix-\(mix.rawValue)")
-        }
-      }
+    // #391: press and hold a tile with choices for a popover of drawn icons; every other tile keeps no hold at all.
+    let choices = HoldChoices.choices(forTile: row.id)
+    if choices.isEmpty {
+      tile
     } else {
       tile
+        .simultaneousGesture(
+          LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+            held = true
+            showChoices = true
+            model.holdOpened(tile: row.id)
+          }
+        )
+        .sensoryFeedback(.impact(weight: .light), trigger: showChoices) { _, open in open }
+        // The popover can cancel the touch, or never show, so the lift may never reach the button.
+        .onChange(of: showChoices) { _, open in if !open { held = false } }
+        .accessibilityActions {
+          ForEach(choices) { choice in Button(choice.title) { model.open(choice: choice) } }
+        }
+        .popover(isPresented: $showChoices) {
+          HoldPopover(choices: choices, color: row.color) { choice in
+            chosen = choice
+            showChoices = false
+          }
+          .presentationCompactAdaptation(.popover)
+          .onDisappear {
+            guard let choice = chosen else { return }
+            chosen = nil
+            model.open(choice: choice)
+          }
+        }
     }
   }
 
   private var tile: some View {
     Button {
+      if held {
+        held = false
+        return
+      }
       row.open(model)
     } label: {
       // #304: the tile's drawn art and no name (Igor: "words are dups now"). #354: the art is trimmed to its object
@@ -259,6 +289,52 @@ private struct HomeTile: View {
     .foregroundStyle(.primary)
     .accessibilityLabel(row.title)
     .accessibilityIdentifier("home-\(row.id)")
+  }
+}
+
+/// #391: a tile's choices, three to a row, each its picture with a short name under it.
+private struct HoldPopover: View {
+  let choices: [HoldChoice]
+  /// The tile's colour, behind a preset's number and a symbol until the art is drawn.
+  let color: Color
+  let pick: (HoldChoice) -> Void
+
+  var body: some View {
+    LazyVGrid(columns: Array(repeating: GridItem(.fixed(84), spacing: 12), count: min(3, choices.count)), spacing: 12) {
+      ForEach(choices) { choice in
+        Button {
+          pick(choice)
+        } label: {
+          VStack(spacing: 4) {
+            picture(choice).frame(width: 64, height: 64)
+            Text(choice.title).font(.caption).lineLimit(2).multilineTextAlignment(.center)
+          }
+          .frame(width: 84)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(choice.title)
+        .accessibilityIdentifier(choice.id)
+      }
+    }
+    .padding(16)
+  }
+
+  @ViewBuilder private func picture(_ choice: HoldChoice) -> some View {
+    if let art = choice.art, UIImage(named: art) != nil {
+      Image(art).resizable().interpolation(.high).scaledToFit()
+    } else {
+      RoundedRectangle(cornerRadius: 14, style: .continuous).fill(color.gradient)
+        .overlay {
+          if let symbol = choice.symbol {
+            Image(systemName: symbol).font(.system(size: 30, weight: .semibold))
+          } else {
+            // A preset: its number is the clearest picture of "2 MIN".
+            Text(choice.title).font(.system(size: 18, weight: .heavy).monospacedDigit())
+              .minimumScaleFactor(0.5).lineLimit(1).padding(.horizontal, 4)
+          }
+        }
+        .foregroundStyle(.white)
+    }
   }
 }
 

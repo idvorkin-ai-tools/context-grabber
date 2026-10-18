@@ -117,7 +117,7 @@ final class AppModel: ObservableObject {
     LinkLauncher.handler = { [weak self] route in self?.open(route: route, from: "shortcut") }
     mirror = MirrorModel(app: self)
     reporter = makeReporter()
-    Task { [delivery] in await delivery.start() }
+    startDelivery()
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in
       self?.eulogySong.yield(to: "call")
@@ -144,7 +144,7 @@ final class AppModel: ObservableObject {
     tracker.foreground()
     if showPlaces { places.reload(reason: "foreground") }
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
-    Task { [delivery] in await delivery.start() }  // story 152: what waited for a connection goes up now
+    startDelivery()  // story 152: what waited for a connection goes up now
     inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
   }
 
@@ -297,6 +297,18 @@ final class AppModel: ObservableObject {
   private lazy var delivery = CloudKitReportDelivery(
     containerIdentifier: "iCloud.com.idvorkin.BugKitReports", logger: bugLogger)
 
+  /// Reports waiting for iCloud go up (story 152).
+  private func startDelivery() {
+    // ponytail: BugKit's outbox asks for its CKContainer before checking for anything pending, and CKContainer traps
+    // in an unsigned build, which every simulator build here is (crash 2026-10-18 09:17, being fixed in bug-kit by
+    // w2X). Drop this guard once the BugKit tag with the fix is pinned.
+    #if targetEnvironment(simulator)
+      log.event("ui", ["action": "cloud_reports_skipped", "why": "simulator"])
+    #else
+      Task { [delivery] in await delivery.start() }
+    #endif
+  }
+
   /// The report dialog, BugKit's (bug-kit migration, step 1). "Log it and another" takes a fresh picture of the
   /// screen underneath (story 142); dictation is off while a call holds the microphone (#239); the simulator hooks
   /// keep their names (`GRABBER_BUG`, `GRABBER_SHAKE_AFTER`).
@@ -381,6 +393,30 @@ final class AppModel: ObservableObject {
     UIApplication.shared.open(url) { [log] ok in
       log.event("ui", ["action": "open_context_grabber", "what": what, "ok": ok])
       if !ok { Task { @MainActor in self.status = "Context Grabber is not installed, so the \(what) cannot open." } }
+    }
+  }
+
+  /// #391, stories 222-225: a home tile's press-and-hold popover opened; logged so a hold that chose nothing shows.
+  func holdOpened(tile: String) {
+    log.event("ui", ["action": "home_popover", "tile": tile])
+  }
+
+  /// A choice from a tile's popover, opened exactly as its own link or tile would.
+  func open(choice: HoldChoice) {
+    let from = "home_popover"
+    switch choice.action {
+    case .route(let route):
+      // The spec's Remembering: a preset chosen here is breathing's choice afterwards, as on its own screen; a link's
+      // length stays this session's only. (The timer's open already makes its preset the chosen one.)
+      if case .breathe(let link) = route, let seconds = link.breath {
+        BreatheModel.remember(preset: seconds, in: database)
+        log.event("ui", ["action": "breath_preset", "preset": String(seconds), "from": from])
+      }
+      open(route: route, from: from)
+    case .supermix(let mix): openWorkoutSupermix(from: from, mix: mix)
+    case .drill:
+      drillOnOpen = .cardToPosition
+      openCard(think: false, from: from)
     }
   }
 
