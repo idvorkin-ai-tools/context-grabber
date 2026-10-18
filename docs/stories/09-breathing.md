@@ -454,3 +454,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the breathing screen
 - **When:** I tap *4·4·6·2 ×2* and Begin
 - **Then:** I breathe in for 8 seconds, hold 8, breathe out for 12 and hold 4; the line under the title reads "In 8, hold 8, out 12, hold 4."; the summary counts cycles of 32 seconds; the finished session is named "Breathing · 4·4·6·2 ×2 · N cycles"; and *4·4·6·2 ×2* is still chosen the next time I open the screen
+
+---
+
+### User Story 280:
+
+- **Summary:** The 4·4·6·2 pattern at a third of the pace
+- **Issues:** [#394](https://github.com/idvorkin/context-grabber/issues/394)
+- **Status:** not implemented; spec 2026-10-18
+- **Spec:** [box breathing, "Breath length"](../superpowers/specs/2026-10-04-box-breathing-design.md)
+
+#### Use Case:
+- **As someone** who breathes 4·4·6·2 ×2 and wants it slower still
+- **I want to** pick the same shape at three seconds a count with one tap
+- **so that** a long, slow session needs no Custom fiddling
+
+#### Acceptance Criteria:
+- **Scenario:** 4·4·6·2 ×3
+- **Given:** the breathing screen
+- **When:** I tap *4·4·6·2 ×3* and Begin
+- **Then:** I breathe in for 12 seconds, hold 12, breathe out for 18 and hold 6; the line under the title reads "In 12, hold 12, out 18, hold 6."; the summary counts cycles of 48 seconds; the finished session is named "Breathing · 4·4·6·2 ×3 · N cycles"; and *4·4·6·2 ×3* is still chosen the next time I open the screen
