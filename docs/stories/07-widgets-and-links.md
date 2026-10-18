@@ -338,7 +338,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Picking a mix
 - **Given:** YouTube Music is installed
 - **When:** I press and hold the Workout Supermix tile, slide to *Liked music* or *Feel Good Supermix* and lift my finger
-- **Then:** a menu of Workout Supermix, Liked music and Feel Good Supermix shows, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
+- **Then:** a menu of Workout Supermix (headphones), Liked music (a heart) and Feel Good Supermix (a sun) shows, each with its icon, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
 
 ---
 
