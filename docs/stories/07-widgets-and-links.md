@@ -342,6 +342,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 226:
+
+- **Summary:** Today's numbers on the usage tile, under the usage left
+- **Issues:** [#396](https://github.com/idvorkin/context-grabber/issues/396)
+- **Status:** not implemented; spec 2026-10-18
+- **Spec:** [native live tile, "Today's numbers"](../superpowers/specs/2026-10-06-native-live-tile-design.md)
+
+#### Use Case:
+- **As a** man glancing at his phone's home screen
+- **I want to** see last night's sleep, my steps, HRV and exercise on the usage tile
+- **so that** the day's state is one glance away without opening the app
+
+#### Acceptance Criteria:
+- **Scenario:** The tile after a look at Health
+- **Given:** the app has looked at Health this morning: 5.7h sleep, 7,399 steps, 65.2 ms HRV, 38 min exercise
+- **When:** I look at the usage tile on my home screen, then again after midnight
+- **Then:** under the usage it reads *5.7h · 7,399 · 65 ms · 38m* with a small symbol before each, the same numbers as the Today card; after midnight that line is gone until the app looks again
+
+---
+
 ### User Story 244:
 
 - **Summary:** Today's hand: a card, the role of the day, and three quick starts on the big widget
