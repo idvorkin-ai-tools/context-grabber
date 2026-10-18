@@ -334,3 +334,83 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I share the summary from Today in Grabber Native
 - **Then:** `activities` lists two entries, newest first, each with kind (`gym_timer` / `breathing`), a name such as *30 SEC · 6 rounds* or *Box breathing · 8 s · 9 cycles*, minutes, an ISO-8601 UTC timestamp and the local `date`; the reset workout is not there; and the session log has an `activity_logged` line for each
 
+
+---
+
+### User Story 038:
+
+- **Summary:** Share anything to Grabber Native and it waits in my Inbox
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor; any text the share sheet offers (RTF and HTML turned plain) and a copyable reason when a share cannot be read, in [d5095e8](https://github.com/idvorkin/context-grabber/commit/d5095e8)
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Spec:** [Share into Grabber Native, and Larry's inbox](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client who comes across things worth talking about all day
+- **I want to** share a link, some text or a photo from any app to Grabber Native, with a note
+- **so that** it is kept for Larry the moment I see it, even with no signal
+
+#### Acceptance Criteria:
+- **Scenario:** Sharing from three apps in aeroplane mode
+- **Given:** the phone is in aeroplane mode
+- **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a note to one and tapping *Add to Inbox* each time
+- **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the note, the link's site and when, the Inbox tile counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
+
+---
+
+### User Story 039:
+
+- **Summary:** What is in my Inbox reaches Larry, once each
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); a share made while a send is out goes in one more pass when it ends, in [3bf50ec](https://github.com/idvorkin/context-grabber/commit/3bf50ec); a send over the tailnet from the phone still for Igor
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client with things waiting in the Inbox
+- **I want to** have them reach Larry's inbox on their own when the phone can reach the Cockpit
+- **so that** Larry sees what I shared, the note and when, without me sending anything
+
+#### Acceptance Criteria:
+- **Scenario:** Back on the tailnet
+- **Given:** three items wait in the Inbox, one of them a HEIC photo
+- **When:** I open Grabber Native with the Cockpit reachable
+- **Then:** each goes to Larry once, oldest first, and reads *sent to Larry* with the time, the photo arrives as a JPEG, and the log has an `inbox` sent line for each with the Cockpit's answer
+
+---
+
+### User Story 260:
+
+- **Summary:** An item Larry's inbox refuses says why and is never resent
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: a 4xx answer recorded as refused with the Cockpit's reason and not sent again, an unreadable image refused without asking); the copyable reason on the phone still for Igor
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client with something in the Inbox the Cockpit cannot take
+- **I want to** see the Cockpit's reason, copyable, instead of it trying forever
+- **so that** I can fix it or delete it, and nothing else waits behind it
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit refuses an item
+- **Given:** an item waits in the Inbox that the Cockpit will answer with a 4xx (too big, an unreadable image)
+- **When:** I open Grabber Native with the Cockpit reachable
+- **Then:** the item reads *Larry's inbox refused it* with the Cockpit's reason, copyable, it is not sent again on later opens, the items after it still go, and the log has an `inbox` refused line with the status and the reason
+
+---
+
+### User Story 261:
+
+- **Summary:** With the Cockpit out of reach, the Inbox waits for the next open
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first); off the tailnet on the phone still for Igor
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client away from the tailnet
+- **I want to** have what I shared wait, not fail
+- **so that** it reaches Larry by itself once the phone can reach the Cockpit again
+
+#### Acceptance Criteria:
+- **Scenario:** Off the tailnet
+- **Given:** three items wait in the Inbox
+- **When:** I open Grabber Native with the Cockpit unreachable or answering 5xx
+- **Then:** all three stay *waiting to send*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first

@@ -9,7 +9,7 @@ import WidgetKit
 
 enum UsageTileStore {
   /// Shared by the app and the widget extension (project.yml gives both the entitlement).
-  static let group = "group.com.idvorkin.grabbernative"
+  static let group = InboxStore.appGroup
   static let kind = "UsageTile"
   private static let key = "usage_snapshot"
 

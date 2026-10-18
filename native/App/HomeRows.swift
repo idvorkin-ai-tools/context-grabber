@@ -59,6 +59,8 @@ struct HomeRow: Identifiable {
     HomeRow(id: "report_problem", title: "Report a problem", icon: "ant.fill", color: .orange) {
       $0.startBugReport(from: "home")
     },
+    // #305: what was shared to the app, on its way to Larry; its tile counts what has not gone yet.
+    HomeRow(id: "inbox", title: "Inbox", icon: "tray.full", color: .blue) { $0.openInbox(from: "home") },
   ]
 
   /// #286: the home screen's last tile, always shown; not one of the launchers Settings arranges, since it is the
