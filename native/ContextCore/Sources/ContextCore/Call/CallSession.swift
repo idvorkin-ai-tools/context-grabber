@@ -588,7 +588,8 @@ public final class CallSession {
       probeSent = false
       let call = generation
       deps.audio.restartMic { [weak self] error in
-        guard let self, call == self.generation, let error else { return }
+        // As the zero-run rearm (Codex on #365): a failure after the hang-up is not this call's problem.
+        guard let self, call == self.generation, self.snapshot.state == .live, let error else { return }
         self.setProblem("microphone failed: \(describe(error))")
       }
       return

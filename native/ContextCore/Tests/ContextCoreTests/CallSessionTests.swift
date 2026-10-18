@@ -287,6 +287,20 @@ final class CallSessionMicTests: XCTestCase {
     XCTAssertEqual(t.last("call_mic")?["action"] as? String, "first_frame")
   }
 
+  /// The review on #365: the probe's rearm failing after the hang-up sets no problem on the ended call.
+  func testAProbeRearmThatFailsAfterTheHangUpIsIgnored() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.deferRestart = true
+    t.audio.mic()
+    t.clock.advance(CallSession.micAckMs)
+    XCTAssertEqual(t.audio.restarts, 1)
+    t.session.stop()
+    let ended = t.session.snapshot
+    t.audio.pendingRestart?(NSError(domain: "test", code: 1))
+    XCTAssertEqual(t.session.snapshot.problem, ended.problem, "no problem set on the ended call")
+  }
+
   func testAnUnansweredProbeRearmsOnceThenSaysTheMicIsNotReachingLarry() {
     let t = CallHarness()
     t.goLive()
