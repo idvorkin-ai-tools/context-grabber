@@ -299,6 +299,8 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
     ok "call ($label): start, ready, $mic_frames mic frames up, $rx frames / ${sched}s down, captions, hung up"
   else
     bad "call ($label): start $start ready '$ready' first mic '$first_mic' mic $mic_frames rx $rx scheduled $sched larry '$larry' igor '$igor' ended '$ended' last sent '$sent_tail'"
+    # #364: the heals behind a short call, with what the mic and the playback held at each.
+    jq -c 'select(.type=="call_heal")' "$f" | sed 's/^/      heal /'
   fi
   lines=$(tail -n +"$((before + 1))" "$REPORT")
   local client up stopped diag

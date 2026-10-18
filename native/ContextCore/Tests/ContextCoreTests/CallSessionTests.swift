@@ -96,6 +96,9 @@ final class FakeAudio: CallAudio {
   var stops = 0
   var openedAt: [Double] = []
   var statsValue: PlaybackStats?
+  /// Holds `restartMic`'s completion until a test calls it, as the real engine's audio queue does.
+  var deferRestart = false
+  var pendingRestart: ((Error?) -> Void)?
 
   func prepare(_ done: @escaping (Error?) -> Void) {
     calls.append("prepare")
@@ -109,7 +112,7 @@ final class FakeAudio: CallAudio {
   }
   func restartMic(_ done: @escaping (Error?) -> Void) {
     restarts += 1
-    done(nil)
+    if deferRestart { pendingRestart = done } else { done(nil) }
   }
   func openPlayback(outRate: Double) { openedAt.append(outRate) }
   func play(_ pcm: Data) { played.append(pcm) }
@@ -284,6 +287,20 @@ final class CallSessionMicTests: XCTestCase {
     XCTAssertEqual(t.last("call_mic")?["action"] as? String, "first_frame")
   }
 
+  /// The review on #365: the probe's rearm failing after the hang-up sets no problem on the ended call.
+  func testAProbeRearmThatFailsAfterTheHangUpIsIgnored() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.deferRestart = true
+    t.audio.mic()
+    t.clock.advance(CallSession.micAckMs)
+    XCTAssertEqual(t.audio.restarts, 1)
+    t.session.stop()
+    let ended = t.session.snapshot
+    t.audio.pendingRestart?(NSError(domain: "test", code: 1))
+    XCTAssertEqual(t.session.snapshot.problem, ended.problem, "no problem set on the ended call")
+  }
+
   func testAnUnansweredProbeRearmsOnceThenSaysTheMicIsNotReachingLarry() {
     let t = CallHarness()
     t.goLive()
@@ -411,6 +428,74 @@ final class CallSessionZerosTests: XCTestCase {
     XCTAssertEqual(t.session.snapshot.problem, CallSession.micSilent)
     t.audio.mic(480, value: 0.2)
     XCTAssertNil(t.session.snapshot.problem)
+  }
+
+  /// #364: the heal says whether the mic was ever live and what playback held, before the restart and after it.
+  func testTheRearmSaysWhatTheMicAndThePlaybackHeld() throws {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.statsValue = PlaybackStats(scheduledS: 0.47, playedS: 0.3, clockRunning: true, pendingS: 0.1)
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    let heals = t.events.filter { $0.0 == "call_heal" && $0.1["action"] as? String == "rearm_mic" }.map(\.1)
+    XCTAssertEqual(heals.count, 2, "the heal, then the queue once the engine is back")
+    let before = try XCTUnwrap(heals.first)
+    XCTAssertEqual(before["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm)
+    XCTAssertEqual(before["heard_before"] as? Bool, false)
+    XCTAssertEqual(before["scheduled_s"] as? Double, 0.47)
+    XCTAssertEqual(before["pending_s"] as? Double, 0.1)
+    XCTAssertNotNil(before["rx_frames"] as? Int)
+    let after = try XCTUnwrap(heals.last)
+    XCTAssertEqual(after["ok"] as? Bool, true)
+    XCTAssertEqual(after["played_s"] as? Double, 0.3)
+
+    t.audio.mic(480, value: 0.2)
+    let back = t.events.filter { $0.0 == "call_mic" && $0.1["action"] as? String == "audio_back" }.map(\.1)
+    XCTAssertEqual(back.first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 1, "the first sound, by buffer")
+  }
+
+  /// Codex on #365: a sound buffer the old tap queued before the restart finished is not the rearm's recovery.
+  func testOnlySoundAfterTheRestartFinishesCountsAsBack() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.deferRestart = true
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    t.audio.mic(480, value: 0.2)  // from the old tap, while the graph rebuilds
+    func backs() -> [[String: Any]] {
+      t.events.filter { $0.0 == "call_mic" && $0.1["action"] as? String == "audio_back" }.map(\.1)
+    }
+    XCTAssertEqual(backs().count, 0)
+    t.audio.pendingRestart?(nil)
+    t.audio.mic(480, value: 0.2)
+    XCTAssertEqual(backs().count, 1)
+    XCTAssertEqual(backs().first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 2)
+  }
+
+  /// Codex on #365: a rebuild that finishes after the hang-up logs nothing for the ended call.
+  func testARestartThatFinishesAfterTheHangUpIsIgnored() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.deferRestart = true
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    t.session.stop()
+    let before = t.events.count
+    t.audio.pendingRestart?(nil)
+    XCTAssertEqual(t.events.count, before, "nothing logged after call_ended")
+  }
+
+  func testAMicThatWasLiveBeforeTheZerosSaysSo() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic(480, value: 0.2)
+    zeros(t, CallSession.zeroBuffersBeforeRearm)
+    let heal = t.events.first { $0.0 == "call_heal" && $0.1["action"] as? String == "rearm_mic" }?.1
+    XCTAssertEqual(heal?["heard_before"] as? Bool, true)
+    XCTAssertEqual(heal?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 1)
+
+    // Codex on #365: sound → zeros → rearm → sound still says the mic came back.
+    t.audio.mic(480, value: 0.2)
+    let back = t.events.filter { $0.0 == "call_mic" && $0.1["action"] as? String == "audio_back" }.map(\.1)
+    XCTAssertEqual(back.count, 1)
+    XCTAssertEqual(back.first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 2)
   }
 
   func testAQuietRoomIsNotZeros() {
