@@ -377,7 +377,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 220:
+### User Story 260:
 
 - **Summary:** An item Larry's inbox refuses says why and is never resent
 - **Status:** native app only: implemented in [507d34e](https://github.com/idvorkin/context-grabber/commit/507d34e); verified by `InboxTests` (host: a 4xx answer recorded as refused with the Cockpit's reason and not sent again, an unreadable image refused without asking); the copyable reason on the phone still for Igor
@@ -397,7 +397,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 221:
+### User Story 261:
 
 - **Summary:** With the Cockpit out of reach, the Inbox waits for the next open
 - **Status:** native app only: implemented in [507d34e](https://github.com/idvorkin/context-grabber/commit/507d34e); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first); off the tailnet on the phone still for Igor

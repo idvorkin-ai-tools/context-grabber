@@ -1,7 +1,7 @@
 # Share inbox (#305): implementation plan
 
 Spec: [2026-10-17-native-share-inbox-design.md](../specs/2026-10-17-native-share-inbox-design.md). Stories 038
-(phase 1), and 039, 220 and 221 (phase 2). Cockpit contract: idvorkin-ai-tools/cockpit#63 (`POST /inbox`, shipped 2026-10-18).
+(phase 1), and 039, 260 and 261 (phase 2). Cockpit contract: idvorkin-ai-tools/cockpit#63 (`POST /inbox`, shipped 2026-10-18).
 
 ## Storage: a directory in the App Group, one file per item
 

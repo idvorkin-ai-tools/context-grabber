@@ -57,12 +57,15 @@ final class Shared: ObservableObject {
   /// The image's preview, decoded once.
   @Published private(set) var preview: CGImage?
   @Published private(set) var problem: String?
+  /// What the share offered and what failed, carried by a copied problem (Codex on #387).
+  private(set) var problemState = ""
   @Published private(set) var loaded = false
   private(set) var imageExtension = "jpg"
 
   func load(_ items: [NSExtensionItem]) async {
     defer { loaded = true }
     let providers = items.flatMap { $0.attachments ?? [] }
+    let offered = providers.flatMap(\.registeredTypeIdentifiers).joined(separator: ", ")
     if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.url.identifier) }),
       let found = try? await p.loadItem(forTypeIdentifier: UTType.url.identifier) as? URL, !found.isFileURL
     {
@@ -73,16 +76,20 @@ final class Shared: ObservableObject {
     if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.image.identifier) }) {
       let type =
         p.registeredTypeIdentifiers.compactMap(UTType.init).first { $0.conforms(to: .image) } ?? .jpeg
-      if let data = await Self.data(p, type: type) {
+      let (data, error) = await Self.data(p, type: type)
+      if let data {
         image = data
         preview = InboxSend.thumbnail(data)
         imageExtension = type.preferredFilenameExtension ?? "jpg"
-        return
+      } else {
+        fail("The picture could not be read.", state: "type: \(type.identifier); error: \(error ?? "none")", offered)
       }
+      return
     }
-    if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) }),
-      let found = try? await p.loadItem(forTypeIdentifier: UTType.plainText.identifier) as? String
-    {
+    // Any text, as the share sheet's rule offers it: plain, or marked up (RTF, HTML) and turned plain (Codex on #387).
+    if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.text.identifier) }) {
+      let (found, state) = await Self.text(p)
+      guard let found, !found.isEmpty else { return fail("The shared text could not be read.", state: state, offered) }
       // A link shared as text (some apps do) is still a link.
       if let link = URL(string: found.trimmingCharacters(in: .whitespacesAndNewlines)),
         ["http", "https"].contains(link.scheme ?? "")
@@ -93,7 +100,12 @@ final class Shared: ObservableObject {
       }
       return
     }
-    problem = "Grabber Native takes a link, some text or one image."
+    fail("Grabber Native takes a link, some text or one image.", state: "nothing it reads", offered)
+  }
+
+  private func fail(_ message: String, state: String, _ offered: String) {
+    problem = message
+    problemState = "\(state); offered: \(offered.isEmpty ? "nothing" : offered)"
   }
 
   func item(note: String) -> InboxItem? {
@@ -105,11 +117,33 @@ final class Shared: ObservableObject {
     return nil
   }
 
-  private static func data(_ provider: NSItemProvider, type: UTType) async -> Data? {
+  private static func data(_ provider: NSItemProvider, type: UTType) async -> (Data?, String?) {
     await withCheckedContinuation { done in
-      _ = provider.loadDataRepresentation(forTypeIdentifier: type.identifier) { data, _ in done.resume(returning: data)
+      _ = provider.loadDataRepresentation(forTypeIdentifier: type.identifier) { data, error in
+        done.resume(returning: (data, error.map { "\($0)" }))
       }
     }
+  }
+
+  /// Plain text as it is; RTF and HTML through NSAttributedString; any other text type as UTF-8. The state says
+  /// which type was read and what failed, for a copied problem.
+  private static func text(_ provider: NSItemProvider) async -> (String?, String) {
+    if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier),
+      let plain = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier) as? String
+    {
+      return (plain, "type: public.plain-text")
+    }
+    let type =
+      provider.registeredTypeIdentifiers.compactMap(UTType.init).first { $0.conforms(to: .text) } ?? .plainText
+    let (data, error) = await data(provider, type: type)
+    guard let data else { return (nil, "type: \(type.identifier); error: \(error ?? "none")") }
+    let kind: NSAttributedString.DocumentType? =
+      type.conforms(to: .rtf) ? .rtf : type.conforms(to: .html) ? .html : nil
+    if let kind {
+      let read = try? NSAttributedString(data: data, options: [.documentType: kind], documentAttributes: nil)
+      return (read?.string, "type: \(type.identifier)")
+    }
+    return (String(data: data, encoding: .utf8), "type: \(type.identifier)")
   }
 }
 
@@ -126,6 +160,15 @@ struct ShareCard: View {
         Section { preview }
         Section("Note") {
           TextField("Optional", text: $note, axis: .vertical).lineLimit(1...4)
+        }
+        if let problem = shared.problem {
+          Section {
+            Text(problem).textSelection(.enabled)
+            Text(shared.problemState).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+            Button("Copy") {
+              UIPasteboard.general.string = "ShareCard.load: \(problem)\n\(shared.problemState)"
+            }
+          }
         }
         if let failure {
           // ponytail: no BugKit in the extension, so the copyable error is a selectable line and a Copy button;
@@ -160,8 +203,8 @@ struct ShareCard: View {
       Image(decorative: picture, scale: 1).resizable().scaledToFit().frame(maxHeight: 220)
     } else if let text = shared.text {
       Text(text).lineLimit(4)
-    } else {
-      Text(shared.problem ?? "Nothing to share.").foregroundStyle(.secondary)
+    } else if shared.problem == nil {
+      Text("Nothing to share.").foregroundStyle(.secondary)
     }
   }
 }
