@@ -40,6 +40,14 @@ final class StripCloudSync {
         return nil
       }
     }
+    // A database restored onto a device it once synced with holds that device's own rows as peer rows: they are
+    // this device's, so they move back to its own table and count once (local review).
+    do {
+      let reclaimed = try strip.reclaim(from: device)
+      if reclaimed > 0 { log.event("strip_sync", ["action": "reclaimed", "rows": reclaimed]) }
+    } catch {
+      log.event("error", ["where": "strip_sync_reclaim", "message": "\(error)"])
+    }
     self.handedOver = handedOver
     database.setSetting("strip_device_id", device)
     NotificationCenter.default.addObserver(
@@ -124,11 +132,16 @@ final class StripCloudSync {
         onArrived()
       }
       for key in keys {
-        guard let (from, month) = StripSync.parse(key: key), from != device else { continue }
+        guard let (from, month) = StripSync.parse(key: key) else { continue }
         // A month older than iCloud carries, or a key that left (only its owner pruning removes one), is kept as this
         // device last had it.
         guard month >= oldestKept, let data = store.data(forKey: key) else { continue }
-        try strip.mergePeer(from, month: month, rows: StripSync.decode(data))
+        if from == device {
+          // This device's own months, downloaded after a reinstall: back into its table where newer (local review).
+          try strip.mergeOwn(StripSync.decode(data))
+        } else {
+          try strip.mergePeer(from, month: month, rows: StripSync.decode(data))
+        }
         byDevice[from, default: []].append(month)
       }
     } catch {

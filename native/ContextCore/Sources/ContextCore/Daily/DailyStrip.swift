@@ -107,6 +107,26 @@ public struct DailyStrip {
     }
   }
 
+  /// Peer rows filed under `device`, this device's own id, move into its own table where newer and leave the peers:
+  /// a database restored onto a device it once synced with carried them (local review). Returns how many moved.
+  @discardableResult
+  public func reclaim(from device: String) throws -> Int {
+    let rows = try db.run(
+      "SELECT date_key, item, value, updated_at FROM daily_strip_peers WHERE device = ?", [.text(device)]
+    ).compactMap(StripRow.init(row:))
+    guard !rows.isEmpty else { return 0 }
+    try db.execute("BEGIN")
+    do {
+      try mergeOwn(rows)
+      _ = try db.run("DELETE FROM daily_strip_peers WHERE device = ?", [.text(device)])
+      try db.execute("COMMIT")
+    } catch {
+      try? db.execute("ROLLBACK")
+      throw error
+    }
+    return rows.count
+  }
+
   /// This install's rows become `device`'s peer rows and this install starts empty: a restore brought another
   /// phone's history, which that phone's own keys carry (Codex on #378). Returns how many rows moved.
   @discardableResult

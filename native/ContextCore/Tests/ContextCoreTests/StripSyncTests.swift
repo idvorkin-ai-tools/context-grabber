@@ -151,6 +151,18 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(try s.value(.magic, day: day), 2)
   }
 
+  /// Local review: A's two balloons came back to A inside B's restored database, filed as A's peer rows. They are
+  /// A's own again, and A's day shows three (A's two and B's one), not five.
+  func testRowsFiledUnderThisDevicesOwnIdAreReclaimed() throws {
+    let s = try strip()
+    try s.mergePeer("A", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 2, updatedAt: 1)])
+    try s.mergePeer("B", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 1, updatedAt: 1)])
+    XCTAssertEqual(try s.reclaim(from: "A"), 1)
+    try s.mergeOwn([StripRow(day: day, item: .balloons, value: 2, updatedAt: 1)])  // A's iCloud month, as recovered
+    XCTAssertEqual(try s.value(.balloons, day: day), 3)
+    XCTAssertEqual(try s.ownValue(.balloons, day: day), 2)
+  }
+
   func testClearingPeersLeavesThisDevicesOwn() throws {
     let s = try strip()
     try s.set(.magic, day: day, value: 1)
