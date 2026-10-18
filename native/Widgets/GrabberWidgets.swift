@@ -37,9 +37,16 @@ struct UsageTileWidget: Widget {
       let snapshot = UsageTileStore.read()
       let today = UsageTileStore.readToday()
       let now = Date()
-      let entries = (0...16).map {
-        Entry(date: now.addingTimeInterval(Double($0) * 15 * 60), snapshot: snapshot, today: today)
+      var dates = (0...16).map { now.addingTimeInterval(Double($0) * 15 * 60) }
+      // #396: an entry at local midnight, so today's numbers go on the stroke rather than up to 15 minutes later.
+      if let midnight = Calendar.current.nextDate(
+        after: now, matching: DateComponents(hour: 0, minute: 0), matchingPolicy: .nextTime),
+        let last = dates.last, midnight < last
+      {
+        dates.append(midnight)
+        dates.sort()
       }
+      let entries = dates.map { Entry(date: $0, snapshot: snapshot, today: today) }
       completion(Timeline(entries: entries, policy: .atEnd))
     }
   }
