@@ -51,5 +51,5 @@ The widget is listed as *Today's hand*, large size only.
 - A tap never deals the card already on screen, even when iOS skipped redrawing the widget after an earlier tap
   (#230): the next tap deals a card that is not the one on screen, even when iOS has left an older card up.
 - With *Skip easy cards* on, no breather and no card within two of one shows on the widget.
-- Each button lands where it says: the card counting, Shortcuts playing the mix, the call screen calling.
+- Each button lands where it says: the card counting, YouTube Music playing the mix (#372), the call screen calling.
 - Over any eleven days in a row, each role is shown once.

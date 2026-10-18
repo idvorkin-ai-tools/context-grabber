@@ -338,7 +338,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The widget
 - **Given:** *Today's hand* is on the home screen
 - **When:** I tap the card, and later *Think of a card*, *Supermix* and *Call Larry*
-- **Then:** the card, from my stack and drawn as the trainer draws it, changes within a second without the app opening, it changes by itself every five minutes, with *Skip easy cards* on no breather or card within two of one shows, *Today, be* names a role from the eulogy that changes after midnight (each once in eleven days), *Think of a card* opens the card screen asking, *Supermix* runs the Play Workout Supermix shortcut, and *Call Larry* opens the call screen calling
+- **Then:** the card, from my stack and drawn as the trainer draws it, changes within a second without the app opening, it changes by itself every five minutes, with *Skip easy cards* on no breather or card within two of one shows, *Today, be* names a role from the eulogy that changes after midnight (each once in eleven days), *Think of a card* opens the card screen asking, *Supermix* opens my mix in YouTube Music (#372), and *Call Larry* opens the call screen calling
 
 ---
 
