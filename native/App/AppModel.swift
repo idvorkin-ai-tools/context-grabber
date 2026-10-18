@@ -25,8 +25,9 @@ final class AppModel: ObservableObject {
 
   /// The screen in front, as a report and the log name it. Each ported journey sets it when it appears.
   @Published var screen = "home"
-  @Published var status = ""
-  /// A home tile's failure that has to be copyable (Codex on #386): shown under the tiles in place of `status`.
+  @Published var status = "" { didSet { homeProblem = nil } }
+  /// A home tile's failure that has to be copyable (Codex on #386): shown under the tiles in place of `status`,
+  /// until a newer `status` replaces it.
   @Published var homeProblem: BugProblem?
   /// Under Reset audio: what the phone's audio was and is now (story 149).
   @Published private(set) var audioResetLine = ""
