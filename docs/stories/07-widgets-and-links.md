@@ -480,7 +480,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-### User Story 255:
+### User Story 138:
 
 - **Summary:** The eulogy song plays at its own speed, in the car too
 - **Issues:** [#370](https://github.com/idvorkin/context-grabber/issues/370)
