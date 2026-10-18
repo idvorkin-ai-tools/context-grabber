@@ -31,8 +31,8 @@ Two devices for ten years is 240 keys and well under 1 MB. The device id is a UU
   calls `synchronize()`. After each `set` it publishes that day's month. On
   `didChangeExternallyNotification` it decodes the changed keys of other devices, replaces their rows for those
   months in `daily_strip_peers`, and asks `DailyStripModel` to refresh.
-- Log: `strip_sync` with `action` `publish` (months, keys), `arrived` (device, months, reason), `account_change`
-  (the store's change reason); failures are `error` with `where` strip_sync_publish,
+- Log: `strip_sync` with `action` `publish` (months, all), `arrived` (device, months, reason), `account_change`;
+  failures are `error` with `where` strip_sync_publish,
   strip_sync_arrived or strip_sync_quota.
 - Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
   in `native/project.yml`. That's a native build and a provisioning update (automatic signing handles it).
