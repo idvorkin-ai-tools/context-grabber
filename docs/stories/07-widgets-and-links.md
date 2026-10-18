@@ -480,6 +480,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 255:
+
+- **Summary:** The eulogy song plays at its own speed, in the car too
+- **Issues:** [#370](https://github.com/idvorkin/context-grabber/issues/370)
+- **Status:** not started
+- **Spec:** [native Eulogy](../superpowers/specs/2026-10-07-native-eulogy-design.md)
+
+#### Use Case:
+- **As someone** who plays his eulogy song while driving, often right after a Larry call or the Cockpit
+- **I want to** hear it at its own speed, whatever audio route was there before
+- **so that** the song is the song, not a chipmunk that ends in 45 seconds
+
+#### Acceptance Criteria:
+- **Scenario:** Right after the hands-free line
+- **Given:** the phone is on the car's hands-free line and the Cockpit was just open
+- **When:** I tap *Eulogy song* and listen for a minute
+- **Then:** the song sounds as recorded and its clock reads about 1:00, not three times that
+
+---
+
 ### User Story 247:
 
 - **Summary:** A random page of my blog, one tap away

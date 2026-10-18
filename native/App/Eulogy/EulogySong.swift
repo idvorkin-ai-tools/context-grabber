@@ -25,6 +25,12 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
   private var player: AVAudioPlayer?
   private var ticker: Timer?
   private var remoteWired = false
+  /// The hardware sample rate the player was prepared against: a player prepared on the car's 16 kHz hands-free
+  /// line and played on a 48 kHz route ran three times too fast (#370).
+  private var preparedRate: Double = 0
+  /// Where the song and the wall clock were when it last started or moved, to catch its clock running away (#370).
+  private var anchor: (song: TimeInterval, wall: Date)?
+  private var driftLogged = false
 
   /// For the copyable problem's `copy_error` line.
   var bugLogger: BugLogger { log.bugLogger }
@@ -43,7 +49,7 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       return
     }
     waiting = nil
-    guard let player = loaded() else { return }
+    // The session first, so the player is prepared against the route the song plays on (#370).
     var sessionError = ""
     do {
       try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
@@ -52,6 +58,8 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       sessionError = "\(error)"
       log.event("eulogy_song", ["action": "session", "ok": false, "message": sessionError])
     }
+    reloadIfTheRateMoved()
+    guard let player = loaded() else { return }
     var ok = player.play()
     var how = "play"
     if !ok {
@@ -76,8 +84,9 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       }
     }
     let current = self.player ?? player
-    log.event(
-      "eulogy_song", ["action": "play", "from": source, "at": rounded(current.currentTime), "ok": ok, "how": how])
+    var fields = audioFields()
+    fields.merge(["action": "play", "from": source, "at": rounded(current.currentTime), "ok": ok, "how": how]) { $1 }
+    log.event("eulogy_song", fields)
     failure =
       ok
       ? nil
@@ -176,8 +185,12 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       player.delegate = self
       player.prepareToPlay()
       self.player = player
+      preparedRate = AVAudioSession.sharedInstance().sampleRate
       duration = player.duration
       failure = nil
+      var fields = audioFields()
+      fields.merge(["action": "load", "ok": true, "duration_s": rounded(player.duration)]) { $1 }
+      log.event("eulogy_song", fields)
       wireRemote()
       return player
     } catch {
@@ -185,6 +198,33 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       log.event("eulogy_song", ["action": "load", "ok": false, "message": "\(error)"])
       return nil
     }
+  }
+
+  /// A player prepared at another hardware sample rate is replaced by a fresh one at the same place (#370).
+  private func reloadIfTheRateMoved() {
+    guard let old = player else { return }
+    let now = AVAudioSession.sharedInstance().sampleRate
+    guard now != preparedRate else { return }
+    let at = old.currentTime
+    old.stop()
+    player = nil
+    log.event(
+      "eulogy_song",
+      ["action": "reload", "reason": "sample_rate", "was_hz": preparedRate, "now_hz": now, "at": rounded(at)])
+    loaded()?.currentTime = at
+  }
+
+  /// What the song goes out through and at what rate, for the load and play events (#370).
+  private func audioFields() -> [String: Any] {
+    let session = AVAudioSession.sharedInstance()
+    return [
+      "sample_rate_hz": session.sampleRate,
+      "prepared_hz": preparedRate,
+      "category": session.category.rawValue,
+      "mode": session.mode.rawValue,
+      "outputs": session.currentRoute.outputs.map { "\($0.portName) [\($0.portType.rawValue)]" }.joined(
+        separator: ", "),
+    ]
   }
 
   /// The failure on screen with the state around it: where the song was and what the audio session held.
@@ -230,6 +270,7 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
     guard let player else { return }
     isPlaying = player.isPlaying
     elapsed = player.currentTime
+    anchor = player.isPlaying ? (player.currentTime, Date()) : nil
     MPNowPlayingInfoCenter.default().nowPlayingInfo = [
       MPMediaItemPropertyTitle: Self.title,
       MPMediaItemPropertyArtist: "Igor",
@@ -254,6 +295,23 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
     guard let player else { return }
     elapsed = player.currentTime
     if player.isPlaying != isPlaying { sync() }
+    checkDrift(player)
+  }
+
+  /// Once per launch, the song's clock against the wall clock after five seconds of playing: 1.0 is on time (#370).
+  private func checkDrift(_ player: AVAudioPlayer) {
+    guard !driftLogged, player.isPlaying, let anchor else { return }
+    let wall = Date().timeIntervalSince(anchor.wall)
+    guard wall >= 5 else { return }
+    let ratio = (player.currentTime - anchor.song) / wall
+    guard ratio > 1.2 || ratio < 0.8 else { return }
+    driftLogged = true
+    var fields = audioFields()
+    fields.merge([
+      "action": "rate_drift", "ratio": (ratio * 100).rounded() / 100, "wall_s": rounded(wall),
+      "at": rounded(player.currentTime),
+    ]) { $1 }
+    log.event("eulogy_song", fields)
   }
 
   private nonisolated func rounded(_ t: TimeInterval) -> Double { (t * 10).rounded() / 10 }
