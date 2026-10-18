@@ -36,7 +36,7 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   calls `synchronize()`. After each `set` it publishes that day's month. On
   `didChangeExternallyNotification` it decodes the changed keys of other devices and merges their rows into
   `daily_strip_peers` (each day and item keeps its newest change; an arriving month never deletes), and asks `DailyStripModel` to refresh. On an account change (which may list no
-  keys) it clears the peers (but the handed-over ids'), publishes every month again and rebuilds from the whole store. Decode reads each day
+  keys) it clears the peers (but the handed-over ids'), publishes every month again (once the first sync is done) and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
 - A database that has never seen iCloud's first sync (a new install or a reinstall) publishes nothing until the
   store's initial-sync change arrives or a minute passes, then merges its own months back and publishes them all;
