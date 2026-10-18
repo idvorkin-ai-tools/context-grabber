@@ -9,6 +9,8 @@ import Foundation
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
   @Published private(set) var sending = false
+  /// A refresh came while a send was out: one more pass when it ends, for what was shared meanwhile (local review).
+  private var sendAgain = false
   /// Each image item's small preview, decoded once per item.
   private(set) var thumbnails: [String: CGImage] = [:]
   var waitingCount: Int { items.filter { $0.status == .waiting }.count }
@@ -73,7 +75,11 @@ final class InboxModel: ObservableObject {
   }
 
   private func send(reason: String) {
-    guard let store, !sending, waitingCount > 0 else { return }
+    guard let store, waitingCount > 0 else { return }
+    guard !sending else {
+      sendAgain = true
+      return
+    }
     sending = true
     let sender = InboxSender(store: store, cockpit: cockpit) { try await URLSession.shared.data(for: $0) }
     Task { [log] in
@@ -84,6 +90,10 @@ final class InboxModel: ObservableObject {
       }
       sending = false
       reload()
+      if sendAgain {
+        sendAgain = false
+        send(reason: "again")
+      }
     }
   }
 
