@@ -94,6 +94,19 @@ public struct DailyStrip {
     }
   }
 
+  /// Rows this device wrote to iCloud earlier, back into its own table where they are newer: a reinstall keeps the
+  /// vendor id but starts with an empty database, and its iCloud months would otherwise be overwritten (local review).
+  public func mergeOwn(_ rows: [StripRow]) throws {
+    for r in rows {
+      _ = try db.run(
+        """
+        INSERT INTO daily_strip (date_key, item, value, updated_at) VALUES (?, ?, ?, ?)
+        ON CONFLICT(date_key, item) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+        WHERE excluded.updated_at > daily_strip.updated_at
+        """, [.text(r.day), .text(r.item.rawValue), .int(Int64(r.value)), .int(r.updatedAt)])
+    }
+  }
+
   /// This install's rows become `device`'s peer rows and this install starts empty: a restore brought another
   /// phone's history, which that phone's own keys carry (Codex on #378). Returns how many rows moved.
   @discardableResult

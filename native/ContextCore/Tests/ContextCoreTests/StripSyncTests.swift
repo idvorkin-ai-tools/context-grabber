@@ -139,6 +139,18 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(try s.value(.balloons, day: day), 3)
   }
 
+  /// Local review: a reinstall starts empty under the same vendor id; its iCloud months come back, newer only.
+  func testThisDevicesOwnICloudRowsComeBackWhereNewer() throws {
+    let s = try strip()
+    try s.set(.journal, day: day, value: 0, at: Date(timeIntervalSince1970: 500))
+    try s.mergeOwn([
+      StripRow(day: day, item: .journal, value: 1, updatedAt: 100_000),
+      StripRow(day: day, item: .magic, value: 2, updatedAt: 100_000),
+    ])
+    XCTAssertEqual(try s.value(.journal, day: day), 0, "the newer local untick stays")
+    XCTAssertEqual(try s.value(.magic, day: day), 2)
+  }
+
   func testClearingPeersLeavesThisDevicesOwn() throws {
     let s = try strip()
     try s.set(.magic, day: day, value: 1)

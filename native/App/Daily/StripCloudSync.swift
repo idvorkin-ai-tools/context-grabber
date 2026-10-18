@@ -54,9 +54,30 @@ final class StripCloudSync {
   /// At launch: every month this device has goes up (the first sync sends its history), the other devices' keys
   /// are read, and the store is asked to sync now.
   func start() {
+    recoverOwn()
     publish(month: nil)
     arrived(keys: Array(store.dictionaryRepresentation.keys), reason: nil)
     store.synchronize()
+  }
+
+  /// This device's own months already in iCloud come back into its database first, so a reinstall (same vendor id,
+  /// empty database) picks up where it was instead of overwriting them.
+  /// ponytail: a restore's rows that the old phone never uploaded stay on this phone if that phone is retired (#379);
+  /// the upgrade is publishing handed-over rows under the old id once it has been silent for a while.
+  private func recoverOwn() {
+    do {
+      var count = 0
+      for key in store.dictionaryRepresentation.keys {
+        guard let parsed = StripSync.parse(key: key), parsed.device == device, let data = store.data(forKey: key)
+        else { continue }
+        let rows = StripSync.decode(data)
+        try strip.mergeOwn(rows)
+        count += rows.count
+      }
+      if count > 0 { log.event("strip_sync", ["action": "recovered_own", "rows": count]) }
+    } catch {
+      log.event("error", ["where": "strip_sync_recover", "message": "\(error)"])
+    }
   }
 
   /// After a tap: that day's month goes up.
