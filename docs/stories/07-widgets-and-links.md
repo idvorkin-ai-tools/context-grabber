@@ -306,7 +306,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Workout Supermix opens straight in YouTube Music
 - **Issues:** [#372](https://github.com/idvorkin/context-grabber/issues/372)
-- **Status:** implemented in [fe5b5d4](https://github.com/idvorkin/context-grabber/commit/fe5b5d4) (the tile opens Igor's link as a universal link, the browser without YouTube Music, and the log says which); verified by `just test` (host) and a parse; `WorkoutSupermixUITests` (Safari in front on the simulator) and the build in the next build turn; YouTube Music opening on the phone still for Igor; a failure to open is a copyable problem under the tiles since [e2005d9](https://github.com/idvorkin/context-grabber/commit/e2005d9) (#383)
+- **Status:** implemented in [fe5b5d4](https://github.com/idvorkin/context-grabber/commit/fe5b5d4) (the tile opens Igor's link as a universal link, the browser without YouTube Music, and the log says which); verified by `just test` (host) and a parse; `WorkoutSupermixUITests` (Safari in front on the simulator) and the build in the next build turn; YouTube Music opening on the phone still for Igor; a failure to open is a copyable problem under the tiles since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c) (#383)
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
@@ -326,7 +326,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Press and hold the music tile to pick Workout, Liked music or Feel Good Supermix
 - **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383)
-- **Status:** native app only: implemented in [2bd94dc](https://github.com/idvorkin/context-grabber/commit/2bd94dc), a failure to open copyable since [e2005d9](https://github.com/idvorkin/context-grabber/commit/e2005d9); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
+- **Status:** native app only: implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
