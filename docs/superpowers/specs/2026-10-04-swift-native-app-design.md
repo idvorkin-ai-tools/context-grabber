@@ -205,6 +205,16 @@ app in front first. The tile now opens Igor's Workout Supermix link directly: a 
 his mix from there, in the YouTube Music app, or in the browser if the app is not installed. The shortcut is no
 longer used. The log says which opened (the app or the browser).
 
+**Press and hold for another mix** ([#383](https://github.com/idvorkin/context-grabber/issues/383)), Igor,
+2026-10-18: *"I should also be able to press and hold on music and then when I lift my finger select one and I
+should have likes and Feel Good Supermix."* A tap still opens the Workout Supermix. A press and hold on the tile
+shows a short menu of three: **Workout Supermix**, **Liked music** (his YouTube Music likes) and **Feel Good
+Supermix** (his link,
+`https://music.youtube.com/playlist?list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0`). Sliding the finger to one and
+lifting opens it, as iOS menus do; lifting off the menu opens nothing. Each opens in YouTube Music, or the browser
+without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the menu) shows a
+copyable problem under the tiles, naming the mix and its link, until the next try or a newer message.
+
 ## The Gym Timer in the native app (step 2)
 
 The timer does what stories 100–116 say, with these differences while the two apps live side by side:

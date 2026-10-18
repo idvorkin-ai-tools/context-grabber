@@ -26,7 +26,10 @@ final class AppModel: ObservableObject {
 
   /// The screen in front, as a report and the log name it. Each ported journey sets it when it appears.
   @Published var screen = "home"
-  @Published var status = ""
+  @Published var status = "" { didSet { homeProblem = nil } }
+  /// A home tile's failure that has to be copyable (Codex on #386): shown under the tiles in place of `status`,
+  /// until a newer `status` replaces it.
+  @Published var homeProblem: BugProblem?
   /// Under Reset audio: what the phone's audio was and is now (story 149).
   @Published private(set) var audioResetLine = ""
   /// Non-nil while the Gym Timer covers the app; says how it was asked for.
@@ -392,17 +395,26 @@ final class AppModel: ObservableObject {
   }
 
   /// Igor's Workout Supermix (#220, #372): the mix's link, straight in YouTube Music.
-  func openWorkoutSupermix(from source: String) {
+  /// `mix`: the tile's tap opens the workout one; its press-and-hold menu any of them (#383).
+  func openWorkoutSupermix(from source: String, mix: WorkoutSupermix.Mix = .workout) {
     // #372: straight in YouTube Music, no Shortcuts hop; the browser when the app is missing.
-    let mix = WorkoutSupermix.link
-    UIApplication.shared.open(mix, options: [.universalLinksOnly: true]) { [log] inApp in
+    let link = mix.link
+    homeProblem = nil  // a new try clears the last one's failure
+    UIApplication.shared.open(link, options: [.universalLinksOnly: true]) { [log] inApp in
       guard !inApp else {
-        log.event("ui", ["action": "open_workout_supermix", "from": source, "ok": true, "how": "app"])
+        log.event(
+          "ui", ["action": "open_workout_supermix", "from": source, "mix": mix.rawValue, "ok": true, "how": "app"])
         return
       }
-      UIApplication.shared.open(mix) { ok in
-        log.event("ui", ["action": "open_workout_supermix", "from": source, "ok": ok, "how": "browser"])
-        if !ok { Task { @MainActor in self.status = "The Workout Supermix would not open." } }
+      UIApplication.shared.open(link) { ok in
+        log.event(
+          "ui", ["action": "open_workout_supermix", "from": source, "mix": mix.rawValue, "ok": ok, "how": "browser"])
+        guard !ok else { return }
+        Task { @MainActor in
+          self.homeProblem = .grabber(
+            "The \(mix.title) would not open.", context: "Home.open_workout_supermix",
+            extra: ["mix": .string(mix.rawValue), "link": .string(link.absoluteString), "from": .string(source)])
+        }
       }
     }
   }
@@ -653,6 +665,9 @@ final class AppModel: ObservableObject {
     if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
     if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }
     if env["GRABBER_HOME"] == "settings" { openHomeSettings() }
+    if let mix = env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)) {
+      openWorkoutSupermix(from: "hook", mix: mix)
+    }
     if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
       // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).
       openCall(from: "hook")

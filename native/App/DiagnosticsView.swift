@@ -61,7 +61,11 @@ struct DiagnosticsView: View {
           }
         } footer: {
           // What a tap could not do (an app not installed) or what a report did.
-          if !model.status.isEmpty { Text(model.status) }
+          if let problem = model.homeProblem {
+            BugProblemView(problem: problem, logger: model.bugLogger)
+          } else if !model.status.isEmpty {
+            Text(model.status)
+          }
         }
       }
       // No bar at all (story 147): the usage card starts under the status bar.
@@ -211,6 +215,21 @@ private struct HomeTile: View {
   @ObservedObject var model: AppModel
 
   var body: some View {
+    // #383: press and hold the music tile, lift on a mix; a tap still opens the workout one. Only that tile gets a
+    // menu, so the others keep no press-and-hold preview.
+    if row.id == "workout_supermix" {
+      tile.contextMenu {
+        ForEach(WorkoutSupermix.Mix.allCases, id: \.self) { mix in
+          Button(mix.title) { model.openWorkoutSupermix(from: "home_menu", mix: mix) }
+            .accessibilityIdentifier("supermix-\(mix.rawValue)")
+        }
+      }
+    } else {
+      tile
+    }
+  }
+
+  private var tile: some View {
     Button {
       row.open(model)
     } label: {
