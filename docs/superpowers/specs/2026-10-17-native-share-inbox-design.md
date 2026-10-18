@@ -46,7 +46,8 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 - **When**: each time the app opens or comes to the front. Sharing from another app never waits on the network.
 - **Once each**: an item resent after a lost answer is recognised by the Cockpit as one it already has, and reads
   *sent to Larry* like any other.
-- **Photos go as JPEG**, whatever the phone stored them as, made smaller if needed so each fits the Cockpit's 10 MB.
+- **HEIC photos go as JPEG**; PNG, JPEG, GIF and WebP go as they are. Any photo is made smaller (as a JPEG) if
+  needed so each fits the Cockpit's 10 MB.
 - **Refused**: when the Cockpit says an item itself is wrong (too big, an unreadable image), it is not retried. It
   reads *Larry's inbox refused it* with the Cockpit's reason, which can be copied. A swipe deletes it as usual.
 - **Unreachable or failing** (no tailnet, the Cockpit down): it stays *waiting to send*, and the log says why.

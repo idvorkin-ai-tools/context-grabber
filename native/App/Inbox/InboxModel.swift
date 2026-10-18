@@ -2,12 +2,15 @@
 //  Larry's inbox on the Cockpit each time the app opens or comes to the front (plan 2026-10-18-share-inbox-plan.md).
 
 import ContextCore
+import CoreGraphics
 import Foundation
 
 @MainActor
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
   @Published private(set) var sending = false
+  /// Each image item's small preview, decoded once per item.
+  private(set) var thumbnails: [String: CGImage] = [:]
   var waitingCount: Int { items.filter { $0.status == .waiting }.count }
 
   let store: InboxStore?
@@ -19,7 +22,7 @@ final class InboxModel: ObservableObject {
     self.log = log
     self.database = database
     self.cockpit = cockpit
-    store = InboxStore.shared(group: UsageTileStore.group)
+    store = InboxStore.shared()
   }
 
   /// Reads the Inbox, logs what the share extension added since the last look, then sends what waits.
@@ -32,6 +35,12 @@ final class InboxModel: ObservableObject {
   func reload() {
     guard let store else { return }
     let read = store.items()
+    var kept: [String: CGImage] = [:]
+    for item in read.items where item.kind == .image {
+      kept[item.id] =
+        thumbnails[item.id] ?? store.image(of: item).flatMap { InboxSend.thumbnail($0, maxPixels: 168) }
+    }
+    thumbnails = kept
     items = read.items
     for name in read.unreadable { log.event("error", ["where": "inbox_read", "file": name]) }
   }
@@ -55,7 +64,7 @@ final class InboxModel: ObservableObject {
       var fields: [String: Any] = ["action": "added", "item": item.id, "kind": item.kind.rawValue]
       fields["note"] = item.note != nil
       if let text = item.text { fields["text_chars"] = text.count }
-      if let image = store?.image(of: item) { fields["bytes"] = image.count }
+      if let bytes = store?.imageBytes(of: item) { fields["bytes"] = bytes }
       if let site = item.site { fields["site"] = site }
       log.event("inbox", fields)
     }

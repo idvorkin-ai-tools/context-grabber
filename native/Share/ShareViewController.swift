@@ -7,9 +7,6 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-/// The App Group the app reads the Inbox from (the app's and the widgets' entitlement too).
-private let group = "group.com.idvorkin.grabbernative"
-
 final class ShareViewController: UIViewController {
   private let shared = Shared()
 
@@ -29,7 +26,7 @@ final class ShareViewController: UIViewController {
 
   /// Nil when kept; otherwise why not, for the card to show.
   private func add(note: String) -> String? {
-    guard let store = InboxStore.shared(group: group) else {
+    guard let store = InboxStore.shared() else {
       return "This build has no App Group, so the Inbox is unreachable."
     }
     guard let item = shared.item(note: note) else { return shared.problem ?? "Nothing to add yet." }
@@ -57,6 +54,8 @@ final class Shared: ObservableObject {
   @Published private(set) var url: URL?
   @Published private(set) var text: String?
   @Published private(set) var image: Data?
+  /// The image's preview, decoded once.
+  @Published private(set) var preview: CGImage?
   @Published private(set) var problem: String?
   @Published private(set) var loaded = false
   private(set) var imageExtension = "jpg"
@@ -76,6 +75,7 @@ final class Shared: ObservableObject {
         p.registeredTypeIdentifiers.compactMap(UTType.init).first { $0.conforms(to: .image) } ?? .jpeg
       if let data = await Self.data(p, type: type) {
         image = data
+        preview = InboxSend.thumbnail(data)
         imageExtension = type.preferredFilenameExtension ?? "jpg"
         return
       }
@@ -156,7 +156,7 @@ struct ShareCard: View {
         Text(url.host ?? url.absoluteString).font(.subheadline)
         Text(url.absoluteString).font(.caption).foregroundStyle(.secondary).lineLimit(2)
       }
-    } else if let data = shared.image, let picture = InboxSend.thumbnail(data) {
+    } else if let picture = shared.preview {
       Image(decorative: picture, scale: 1).resizable().scaledToFit().frame(maxHeight: 220)
     } else if let text = shared.text {
       Text(text).lineLimit(4)

@@ -20,25 +20,24 @@ struct InboxView: View {
         Text("Nothing shared yet. In any app's share sheet, pick Grabber Native.").foregroundStyle(.secondary)
       }
       ForEach(inbox.items) { item in
-        InboxRow(item: item, image: inbox.store?.image(of: item), logger: logger)
+        InboxRow(item: item, thumbnail: inbox.thumbnails[item.id], logger: logger)
           .swipeActions { Button("Delete", role: .destructive) { inbox.delete(item) } }
       }
     }
     .navigationTitle("Inbox")
-    .refreshable { inbox.refresh(reason: "pull") }
     .accessibilityIdentifier("inbox-list")
   }
 }
 
 private struct InboxRow: View {
   let item: InboxItem
-  let image: Data?
+  let thumbnail: CGImage?
   let logger: BugLogger
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       HStack(alignment: .top) {
-        if let image, let picture = InboxSend.thumbnail(image, maxPixels: 168) {
+        if let picture = thumbnail {
           Image(decorative: picture, scale: 1).resizable().scaledToFill().frame(width: 56, height: 56).clipped()
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }

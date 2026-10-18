@@ -62,8 +62,11 @@ public struct InboxStore: Sendable {
     self.directory = directory
   }
 
+  /// The App Group the app, the widgets and the share extension share (project.yml gives each the entitlement).
+  public static let appGroup = "group.com.idvorkin.grabbernative"
+
   /// The App Group's Inbox, or nil without the group (a test host, a build without the entitlement).
-  public static func shared(group: String) -> InboxStore? {
+  public static func shared(group: String = appGroup) -> InboxStore? {
     FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
       .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
   }
@@ -110,6 +113,13 @@ public struct InboxStore: Sendable {
 
   public func image(of item: InboxItem) -> Data? {
     item.imageFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
+  }
+
+  /// The image's size on disk, without reading it.
+  public func imageBytes(of item: InboxItem) -> Int? {
+    item.imageFile.flatMap {
+      (try? FileManager.default.attributesOfItem(atPath: directory.appendingPathComponent($0).path))?[.size] as? Int
+    }
   }
 
   public func markSent(_ id: String, at: Int64) throws {
