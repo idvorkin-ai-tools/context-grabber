@@ -196,7 +196,8 @@ shows a short menu of three: **Workout Supermix**, **Liked music** (his YouTube 
 Supermix** (his link,
 `https://music.youtube.com/playlist?list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0`). Sliding the finger to one and
 lifting opens it, as iOS menus do; lifting off the menu opens nothing. Each opens in YouTube Music, or the browser
-without it, and the log names the mix and which opened.
+without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the menu) shows a
+copyable problem under the tiles, naming the mix and its link, until the next try or a newer message.
 
 ## The Gym Timer in the native app (step 2)
 
