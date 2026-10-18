@@ -21,6 +21,9 @@ final class StripCloudSync {
   /// empty months would overwrite the ones in iCloud); the store's initial-sync or server change opens it.
   private var ready: Bool
   private var pendingMonths: Set<String> = []
+  /// False after this launch's recovery of its own iCloud months failed: nothing is published until one succeeds,
+  /// or a tap would send the partial local month over iCloud's complete one (Codex on #378, #384).
+  private var recovered = true
   /// While waiting: five minutes online with no download means iCloud holds nothing for this device (Codex on #378).
   private var path: NWPathMonitor?
   private var quiet: Task<Void, Never>?
@@ -113,14 +116,7 @@ final class StripCloudSync {
   /// are read, and the store is asked to sync now.
   func start() {
     if ready {
-      // A failed recovery publishes nothing and leaves no half-merged month behind for a later tap to send: the
-      // local copy is this device's own record, as it was (Codex on #378, local review).
-      do {
-        try strip.inTransaction { try recoverOwn() }
-        publish(month: nil)
-      } catch {
-        log.event("error", ["where": "strip_sync_recover", "message": "\(error)"])
-      }
+      recoverThenPublish()
     } else {
       // Offline, waiting proves nothing, and publishing could overwrite the month in iCloud: only time online counts.
       log.event("strip_sync", ["action": "waiting_for_first_sync"])
@@ -242,13 +238,27 @@ final class StripCloudSync {
     waitingSteps[key]?.net += step
   }
 
-  /// After a tap: that day's month goes up, or waits for the first sync.
+  /// After a tap: that day's month goes up, or waits for the first sync, or for a recovery that failed to succeed.
   func changed(day: String) {
     guard ready else {
       pendingMonths.insert(StripSync.month(of: day))
       return
     }
+    guard recovered else { return recoverThenPublish() }  // all months go up once it succeeds, this one included
     publish(month: StripSync.month(of: day))
+  }
+
+  /// This device's own iCloud months merged back, all or nothing, then everything goes up. A failure leaves no
+  /// half-merged month and keeps publishing closed until a later try succeeds (Codex on #378).
+  private func recoverThenPublish() {
+    do {
+      try strip.inTransaction { try recoverOwn() }
+      recovered = true
+      publish(month: nil)
+    } catch {
+      recovered = false
+      log.event("error", ["where": "strip_sync_recover", "message": "\(error)", "publishing": "closed"])
+    }
   }
 
   /// The oldest month iCloud carries now; older ones live only in each device's database (Codex on #378).
@@ -298,8 +308,8 @@ final class StripCloudSync {
       if reason == NSUbiquitousKeyValueStoreAccountChange {
         try strip.clearPeers(keeping: handedOver)
         // The new account's own months for this device come back first, then this device's months go up over them.
-        try strip.inTransaction { try recoverOwn() }  // a failure rolls back and skips the publish below
-        if ready { publish(month: nil) }
+        // Waiting, the first sync recovers them itself; ready, a failure keeps publishing closed until one succeeds.
+        if ready { recoverThenPublish() }
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])
         onArrived()
