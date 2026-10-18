@@ -24,28 +24,78 @@ public struct DailyStrip {
         PRIMARY KEY (date_key, item)
       );
       """)
+    // #376: when each value changed, so a check's latest change wins across devices; 0 for the rows from before.
+    let columns = try db.run("PRAGMA table_info(daily_strip)").compactMap { $0["name"]?.textValue }
+    if !columns.contains("updated_at") {
+      try db.execute("ALTER TABLE daily_strip ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0;")
+    }
+    // #376: the other devices' values, as their iCloud keys last said.
+    try db.execute(
+      """
+      CREATE TABLE IF NOT EXISTS daily_strip_peers (
+        device     TEXT NOT NULL,
+        date_key   TEXT NOT NULL,
+        item       TEXT NOT NULL,
+        value      INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (device, date_key, item)
+      );
+      """)
   }
 
-  /// 0 for a day with nothing recorded.
+  /// The day's value across devices (#376): counts add up, a check is its latest change. 0 with nothing recorded.
   public func value(_ item: DailyItem, day: String) throws -> Int {
+    try merged(item, day: day)[day] ?? 0
+  }
+
+  /// This device's own value, which a counter's step starts from.
+  public func ownValue(_ item: DailyItem, day: String) throws -> Int {
     let rows = try db.run(
       "SELECT value FROM daily_strip WHERE date_key = ? AND item = ?", [.text(day), .text(item.rawValue)])
     return Int(rows.first?["value"]?.intValue ?? 0)
   }
 
-  public func set(_ item: DailyItem, day: String, value: Int) throws {
+  public func set(_ item: DailyItem, day: String, value: Int, at: Date = Date()) throws {
     _ = try db.run(
       """
-      INSERT INTO daily_strip (date_key, item, value) VALUES (?, ?, ?)
-      ON CONFLICT(date_key, item) DO UPDATE SET value = excluded.value
-      """, [.text(day), .text(item.rawValue), .int(Int64(max(0, value)))])
+      INSERT INTO daily_strip (date_key, item, value, updated_at) VALUES (?, ?, ?, ?)
+      ON CONFLICT(date_key, item) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+      """,
+      [.text(day), .text(item.rawValue), .int(Int64(max(0, value))), .int(Int64(at.timeIntervalSince1970 * 1000))])
   }
 
-  /// The days the item was set above 0, any age.
+  /// The days the item was above 0 across devices, any age.
   public func days(_ item: DailyItem) throws -> Set<String> {
+    Set(try merged(item, day: nil).filter { $0.value > 0 }.keys)
+  }
+
+  // MARK: Sync (#376)
+
+  /// This device's rows, every day or one month's (`yyyy-mm`).
+  public func ownRows(month: String? = nil) throws -> [StripRow] {
     let rows = try db.run(
-      "SELECT date_key FROM daily_strip WHERE item = ? AND value > 0", [.text(item.rawValue)])
-    return Set(rows.compactMap { $0["date_key"]?.textValue })
+      "SELECT date_key, item, value, updated_at FROM daily_strip" + (month == nil ? "" : " WHERE date_key LIKE ?"),
+      month.map { [.text($0 + "-%")] } ?? [])
+    return rows.compactMap(StripRow.init(row:))
+  }
+
+  /// Another device's rows for one month, as its key now says: what was there for that month is replaced.
+  public func replacePeer(_ device: String, month: String, rows: [StripRow]) throws {
+    _ = try db.run(
+      "DELETE FROM daily_strip_peers WHERE device = ? AND date_key LIKE ?", [.text(device), .text(month + "-%")])
+    for r in rows where r.day.hasPrefix(month + "-") {
+      _ = try db.run(
+        "INSERT OR REPLACE INTO daily_strip_peers (device, date_key, item, value, updated_at) VALUES (?, ?, ?, ?, ?)",
+        [.text(device), .text(r.day), .text(r.item.rawValue), .int(Int64(r.value)), .int(r.updatedAt)])
+    }
+  }
+
+  private func merged(_ item: DailyItem, day: String?) throws -> [String: Int] {
+    let filter = day == nil ? "item = ?" : "item = ? AND date_key = ?"
+    let args: [SQLiteValue] = [.text(item.rawValue)] + (day.map { [.text($0)] } ?? [])
+    let own = try db.run("SELECT date_key, item, value, updated_at FROM daily_strip WHERE " + filter, args)
+    let peers = try db.run("SELECT date_key, item, value, updated_at FROM daily_strip_peers WHERE " + filter, args)
+    return StripRow.merge((own + peers).compactMap(StripRow.init(row:)), item: item)
   }
 
   // MARK: Gym days
