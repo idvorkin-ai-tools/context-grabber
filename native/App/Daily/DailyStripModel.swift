@@ -121,6 +121,38 @@ final class DailyStripModel: ObservableObject {
     refresh()
   }
 
+  /// #342: a counter's last seven days, for the sheet its press and hold opens.
+  func week(_ item: DailyItem) -> CounterWeek? {
+    refresh()  // the day may have turned since the strip was drawn
+    guard let store else { return nil }
+    do {
+      return try CounterWeek(item, today: today, strip: store)
+    } catch {
+      log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
+      return nil
+    }
+  }
+
+  /// #342: Confirm in a counter's week saves every day changed there, each as a tap's step would be.
+  func save(_ week: CounterWeek) {
+    for change in week.changes {
+      do {
+        sync?.stepping(week.item, day: change.day, by: change.step)
+        try store?.set(week.item, day: change.day, value: change.own)
+      } catch {
+        log.event("error", ["where": "daily_strip", "item": week.item.rawValue, "message": "\(error)"])
+        continue
+      }
+      var fields: [String: Any] = [
+        "action": "daily_strip", "item": week.item.rawValue, "value": change.own, "day": change.day,
+      ]
+      if change.daysAgo > 0 { fields["backdated"] = change.daysAgo }
+      log.event("ui", fields)
+      sync?.changed(day: change.day)
+    }
+    refresh()
+  }
+
   /// One `daily_strip_auto` line per item per day, the first time it is seen green with no tap.
   private func announce(_ item: DailyItem, from: String) {
     guard announced.insert("\(item.rawValue)/\(today)").inserted else { return }

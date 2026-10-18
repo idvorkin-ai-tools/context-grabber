@@ -353,7 +353,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** Checks and counts
 - **Given:** the home screen, with the strip under the Today card
-- **When:** I tap Journal, tap Balloons twice and long-press it once, and tap Magic
+- **When:** I tap Journal, tap Balloons once, and tap Magic
 - **Then:** Journal (a drawn quill) shows a green check, Balloons (a drawn balloon poodle) shows 1, Magic shows 1, all on one tight line, and the log has `ui` daily_strip for each change
 
 - **Scenario:** Days since gym

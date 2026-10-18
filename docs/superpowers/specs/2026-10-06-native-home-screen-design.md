@@ -172,7 +172,7 @@ arriving (which device, which months), and why a sync could not run.
 today Like a count"*; 2026-10-18: press and hold, and make it the whole week, with check marks on the days before).
 Press and hold Balloons or Magic and a sheet opens on that counter's last seven days, all at once: today at the top,
 then yesterday, then the five before, each labelled in words and with its date (*today · Sun, Oct 18*, *yesterday ·
-Sat, Oct 17*, *Thu, Oct 15*). Each day shows its count with − and + beside it (never below 0) and a check mark when
+Sat, Oct 17*, *3 days ago · Thu, Oct 15*). Each day shows its count with − and + beside it (never below 0) and a check mark when
 the count is above 0, so the days with a balloon read at a glance and a forgotten one can be added to the day it was
 made. The changes stay in the sheet until *Confirm*, which saves every day changed and closes it; *Cancel*, or
 swiping the sheet away, changes nothing. Today's number on the strip and the days since follow at once. Days older
