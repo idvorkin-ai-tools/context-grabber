@@ -72,14 +72,14 @@ public enum StripSync {
     return months.compactMapValues { try? JSONSerialization.data(withJSONObject: $0, options: [.sortedKeys]) }
   }
 
-  /// A monthly value back into rows; unknown items and malformed entries are skipped.
+  /// A monthly value back into rows. Each day and item is read on its own, so an unknown item or one malformed
+  /// entry (a later build's, say) skips just that entry, not the month (Codex on #378).
   public static func decode(_ data: Data) -> [StripRow] {
-    guard let days = (try? JSONSerialization.jsonObject(with: data)) as? [String: [String: [NSNumber]]] else {
-      return []
-    }
-    return days.flatMap { day, items in
-      items.compactMap { name, pair -> StripRow? in
-        guard let item = DailyItem(rawValue: name), pair.count == 2 else { return nil }
+    guard let days = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return [] }
+    return days.flatMap { day, items -> [StripRow] in
+      guard let items = items as? [String: Any] else { return [] }
+      return items.compactMap { name, pair -> StripRow? in
+        guard let item = DailyItem(rawValue: name), let pair = pair as? [NSNumber], pair.count == 2 else { return nil }
         return StripRow(day: day, item: item, value: max(0, pair[0].intValue), updatedAt: pair[1].int64Value)
       }
     }

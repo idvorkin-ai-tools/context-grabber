@@ -90,6 +90,9 @@ public struct DailyStrip {
     }
   }
 
+  /// Every other device's rows gone: the iCloud account changed (Codex on #378).
+  public func clearPeers() throws { try db.execute("DELETE FROM daily_strip_peers;") }
+
   private func merged(_ item: DailyItem, day: String?) throws -> [String: Int] {
     let filter = day == nil ? "item = ?" : "item = ? AND date_key = ?"
     let args: [SQLiteValue] = [.text(item.rawValue)] + (day.map { [.text($0)] } ?? [])

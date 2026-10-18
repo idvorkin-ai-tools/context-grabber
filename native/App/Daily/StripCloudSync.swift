@@ -5,6 +5,7 @@
 
 import ContextCore
 import Foundation
+import UIKit
 
 @MainActor
 final class StripCloudSync {
@@ -19,12 +20,19 @@ final class StripCloudSync {
     guard let strip = database.dailyStrip else { return nil }
     self.strip = strip
     self.log = log
-    if let id = database.setting("strip_device_id") {
-      device = id
-    } else {
-      device = UUID().uuidString
-      database.setSetting("strip_device_id", device)
+    // The vendor id, not one kept in the database: a backup restored onto a new phone gets a new one, so two
+    // phones never write the same keys (Codex on #378). When it changes, the keys this install wrote under the old
+    // one are removed, or their counts would add up twice.
+    // ponytail: a restore onto a second phone while the first stays in use doubles that shared history's counts
+    // once; the upgrade is a per-install id in the Keychain (ThisDeviceOnly) with the old keys handed over.
+    device =
+      UIDevice.current.identifierForVendor?.uuidString ?? database.setting("strip_device_id") ?? UUID().uuidString
+    if let old = database.setting("strip_device_id"), old != device {
+      let stale = store.dictionaryRepresentation.keys.filter { StripSync.parse(key: $0)?.device == old }
+      for key in stale { store.removeObject(forKey: key) }
+      log.event("strip_sync", ["action": "device_changed", "removed_keys": stale.count])
     }
+    database.setSetting("strip_device_id", device)
     NotificationCenter.default.addObserver(
       forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: store, queue: .main
     ) { [weak self] note in
@@ -59,12 +67,19 @@ final class StripCloudSync {
     switch reason {
     case NSUbiquitousKeyValueStoreQuotaViolationChange:
       log.event("error", ["where": "strip_sync_quota", "message": "over the iCloud key-value store quota"])
-    case NSUbiquitousKeyValueStoreAccountChange:
-      log.event("strip_sync", ["action": "account_change"])
     default: break
     }
+    var keys = keys
     var byDevice: [String: [String]] = [:]
     do {
+      // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from
+      // everything the store now holds (Codex on #378).
+      if reason == NSUbiquitousKeyValueStoreAccountChange {
+        try strip.clearPeers()
+        keys = Array(store.dictionaryRepresentation.keys)
+        log.event("strip_sync", ["action": "account_change", "keys": keys.count])
+        onArrived()
+      }
       for key in keys {
         guard let (from, month) = StripSync.parse(key: key), from != device else { continue }
         let rows = (store.data(forKey: key)).map(StripSync.decode) ?? []

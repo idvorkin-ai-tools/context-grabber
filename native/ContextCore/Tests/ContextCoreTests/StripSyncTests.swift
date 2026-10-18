@@ -85,4 +85,18 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(StripSync.decode(Data("nope".utf8)), [])
     XCTAssertEqual(StripSync.decode(Data(#"{"2026-10-17":{"unicorns":[1,2],"gym":[1]}}"#.utf8)), [])
   }
+
+  /// Codex on #378: one bad or unknown entry must not cost the month its good ones.
+  func testOneBadEntrySkipsOnlyItself() {
+    let data = Data(#"{"2026-10-17":{"gym":[1,123],"futureItem":"bad","journal":"x"},"2026-10-16":7}"#.utf8)
+    XCTAssertEqual(StripSync.decode(data), [StripRow(day: "2026-10-17", item: .gym, value: 1, updatedAt: 123)])
+  }
+
+  func testClearingPeersLeavesThisDevicesOwn() throws {
+    let s = try strip()
+    try s.set(.magic, day: day, value: 1)
+    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 2, updatedAt: 1)])
+    try s.clearPeers()
+    XCTAssertEqual(try s.value(.magic, day: day), 1)
+  }
 }
