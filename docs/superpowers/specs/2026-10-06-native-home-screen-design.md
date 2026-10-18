@@ -155,7 +155,9 @@ usually within a minute, and offline changes catch up when the device is back on
 - After the app is reinstalled, its own days come back from iCloud instead of being overwritten, and a count
   tapped before iCloud has caught up, however long that takes offline and even across a restart of the app, adds
   to the count that comes back: three balloons in iCloud and one tap make four, and a long press at 0 takes
-  nothing off (#380).
+  nothing off (#380). When iCloud has nothing to send back (no device has synced the strip yet), five minutes in a
+  row online with the app open count as caught up and the device starts syncing; time offline or in the background
+  never counts.
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
   nothing says otherwise beyond the log.
 
