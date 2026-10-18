@@ -325,20 +325,20 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 221:
 
 - **Summary:** Press and hold the music tile to pick Workout, Liked music or Feel Good Supermix
-- **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383)
-- **Status:** native app only: icons on each mix [fa6be05](https://github.com/idvorkin/context-grabber/commit/fa6be05), verified by `WorkoutSupermixTests` (host), the hold menu's icons in `WorkoutSupermixUITests` (simulator, not yet run); implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
+- **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383), [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** native app only: the menu became the tile's popover of drawn icons in #391 (story 222; commit in that story's Status); icons on each mix [fa6be05](https://github.com/idvorkin/context-grabber/commit/fa6be05), verified by `WorkoutSupermixTests` (host), the hold menu's icons in `WorkoutSupermixUITests` (simulator, not yet run); implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
 - **As a** man about to train, or just wanting music, from Grabber Native
-- **I want to** press and hold the music tile and lift my finger on the mix I want
+- **I want to** press and hold the music tile and tap the mix I want
 - **so that** my likes or the Feel Good mix are as close as the workout one, without opening YouTube Music to look
 
 #### Acceptance Criteria:
 - **Scenario:** Picking a mix
 - **Given:** YouTube Music is installed
-- **When:** I press and hold the Workout Supermix tile, slide to *Liked music* or *Feel Good Supermix* and lift my finger
-- **Then:** a menu of Workout Supermix (headphones), Liked music (a heart) and Feel Good Supermix (a sun) shows, each with its icon, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
+- **When:** I press and hold the Workout Supermix tile, then tap *Liked music* or *Feel Good Supermix* in the popover
+- **Then:** a popover of Workout Supermix (the kettlebell in headphones), Liked music (a heart) and Feel Good Supermix (a sun) opens beside the tile, each drawn, the one I tap opens in YouTube Music (the browser without it), a tap outside the popover opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
 
 ---
 

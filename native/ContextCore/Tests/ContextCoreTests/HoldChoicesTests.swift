@@ -33,7 +33,8 @@ final class HoldChoicesTests: XCTestCase {
     let breathe = HoldChoices.choices(forTile: "breathe")
     XCTAssertEqual(breathe.map(\.title), ["8 s", "10 s", "12 s", "15 s"])
     XCTAssertEqual(breathe[1].action, .route(.breathe(BreatheLink(breath: 10, start: true))))
-    XCTAssertEqual(AppLink.parse("grabbernative://breathe?breath=10").route, .breathe(BreatheLink(breath: 10, start: true)))
+    XCTAssertEqual(
+      AppLink.parse("grabbernative://breathe?breath=10").route, .breathe(BreatheLink(breath: 10, start: true)))
   }
 
   func testTheCardPopoverThinksFirstThenFaceUpThenTheDrill() {
@@ -51,8 +52,8 @@ final class HoldChoicesTests: XCTestCase {
   }
 }
 
-private extension HoldChoice.Action {
-  var route: AppRoute? {
+extension HoldChoice.Action {
+  fileprivate var route: AppRoute? {
     if case .route(let r) = self { return r }
     return nil
   }
