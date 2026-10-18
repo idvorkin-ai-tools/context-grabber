@@ -648,6 +648,9 @@ final class AppModel: ObservableObject {
     if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
     if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }
     if env["GRABBER_HOME"] == "settings" { openHomeSettings() }
+    if let mix = env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)) {
+      openWorkoutSupermix(from: "hook", mix: mix)
+    }
     if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
       // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).
       openCall(from: "hook")
