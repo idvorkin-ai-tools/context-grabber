@@ -43,7 +43,7 @@ struct CardView: View {
           // (`ledger_stats` how: failed) for a shake report. Copyable once the library lets the host present it
           // (think-a-card-trainer#22).
           // A report from inside the drill names it, not the card under it (Codex on #381).
-          .onChange(of: drills) { _, open in app.screen = open ? "drill" : "card" }
+          .onChange(of: drills, initial: true) { _, open in app.screen = open ? "drill" : "card" }
           .fullScreenCover(isPresented: $drills) {
             if let deck {
               StackDrillScreen(
