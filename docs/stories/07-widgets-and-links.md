@@ -285,7 +285,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 243:
 
 - **Summary:** Workout Supermix from the native home screen
-- **Status:** native app only: implemented in [fae3e8c](https://github.com/idvorkin/context-grabber/commit/fae3e8c); verified by `WorkoutSupermixUITests` on the simulator (tap the row, Shortcuts runs in front; the simulator has no such shortcut); YouTube Music playing the mix on the phone not yet
+- **Status:** native app only: implemented in [fae3e8c](https://github.com/idvorkin/context-grabber/commit/fae3e8c); verified by `WorkoutSupermixUITests` on the simulator (tap the row, Shortcuts runs in front; the simulator has no such shortcut); YouTube Music playing the mix on the phone not yet; superseded by story 139 (#372): the tile opens the mix's link directly, not the shortcut
 - **Issues:** [#220](https://github.com/idvorkin/context-grabber/issues/220)
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
@@ -302,10 +302,30 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 139:
+
+- **Summary:** Workout Supermix opens straight in YouTube Music
+- **Issues:** [#372](https://github.com/idvorkin/context-grabber/issues/372)
+- **Status:** implemented in [fe5b5d4](https://github.com/idvorkin/context-grabber/commit/fe5b5d4) (the tile opens Igor's link as a universal link, the browser without YouTube Music, and the log says which); verified by `just test` (host) and a parse; `WorkoutSupermixUITests` (Safari in front on the simulator) and the build in the next build turn; YouTube Music opening on the phone still for Igor
+- **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
+
+#### Use Case:
+- **As a** lifter about to start a workout from Grabber Native
+- **I want to** tap the Workout Supermix tile and land in my mix in YouTube Music
+- **so that** the music starts without the Shortcuts app flashing in front first
+
+#### Acceptance Criteria:
+- **Scenario:** The tile
+- **Given:** YouTube Music is installed
+- **When:** I tap *Workout Supermix*
+- **Then:** YouTube Music opens on my Workout Supermix with no Shortcuts hop, the browser opens it instead if YouTube Music is missing, and the log says which opened
+
+---
+
 ### User Story 244:
 
 - **Summary:** Today's hand: a card, the role of the day, and three quick starts on the big widget
-- **Status:** native app only: implemented in [2a1e6e8](https://github.com/idvorkin/context-grabber/commit/2a1e6e8); verified by `CardDealTests`, `EulogyRolesTests` and `AppLinkTests` (host) and `TodaysHandUITests` on the simulator (added through SpringBoard's gallery: the card and *Today, be Father to Zach* drew, a tap turned 10♥ into Q♥ with the app in the background, *Think of a card* opened the card screen counting); the phone not yet. From the stack, in the trainer's face (#219): [cecb31f](https://github.com/idvorkin/context-grabber/commit/cecb31f); verified by `CardDealSubsetTests` (host: the deal's promises over a smaller deck) and `TodaysHandUITests` on the simulator against the pinned trainer commit (the trainer's 2♠ dealt in place); against the tag its tap check failed once (#230, open)
+- **Status:** native app only: implemented in [2a1e6e8](https://github.com/idvorkin/context-grabber/commit/2a1e6e8); verified by `CardDealTests`, `EulogyRolesTests` and `AppLinkTests` (host) and `TodaysHandUITests` on the simulator (added through SpringBoard's gallery: the card and *Today, be Father to Zach* drew, a tap turned 10♥ into Q♥ with the app in the background, *Think of a card* opened the card screen counting); the phone not yet. From the stack, in the trainer's face (#219): [cecb31f](https://github.com/idvorkin/context-grabber/commit/cecb31f); verified by `CardDealSubsetTests` (host: the deal's promises over a smaller deck) and `TodaysHandUITests` on the simulator against the pinned trainer commit (the trainer's 2♠ dealt in place); against the tag its tap check failed once (#230, open); the Supermix button opens the mix in YouTube Music since #372 ([dfc0d06](https://github.com/idvorkin/context-grabber/commit/dfc0d06)), not the shortcut
 - **Issues:** [#221](https://github.com/idvorkin/context-grabber/issues/221), [#230](https://github.com/idvorkin/context-grabber/issues/230)
 - **Spec:** [Today's hand](../superpowers/specs/2026-10-08-native-large-widget-design.md)
 
@@ -318,7 +338,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The widget
 - **Given:** *Today's hand* is on the home screen
 - **When:** I tap the card, and later *Think of a card*, *Supermix* and *Call Larry*
-- **Then:** the card, from my stack and drawn as the trainer draws it, changes within a second without the app opening, it changes by itself every five minutes, with *Skip easy cards* on no breather or card within two of one shows, *Today, be* names a role from the eulogy that changes after midnight (each once in eleven days), *Think of a card* opens the card screen asking, *Supermix* runs the Play Workout Supermix shortcut, and *Call Larry* opens the call screen calling
+- **Then:** the card, from my stack and drawn as the trainer draws it, changes within a second without the app opening, it changes by itself every five minutes, with *Skip easy cards* on no breather or card within two of one shows, *Today, be* names a role from the eulogy that changes after midnight (each once in eleven days), *Think of a card* opens the card screen asking, *Supermix* opens my mix in YouTube Music (#372), and *Call Larry* opens the call screen calling
 
 ---
 

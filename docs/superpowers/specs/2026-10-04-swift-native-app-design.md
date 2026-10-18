@@ -180,10 +180,14 @@ is not installed, the row says so instead of doing nothing.
 ## Workout Supermix, one tap away
 
 Igor, 2026-10-08 (#220): *"I want to open my YouTube Music Workout Super Mix as well."* The home screen lists
-**Workout Supermix**, after *Exercise Analyzer*. It runs Igor's own *Play Workout Supermix* shortcut from the
-Shortcuts app, so YouTube Music plays the mix; the shortcut is his, and changing what it plays is done in
-Shortcuts, not in Grabber Native. If Shortcuts is not on the phone the row says so. If the shortcut has been
-renamed or deleted, Shortcuts itself says it cannot find it.
+**Workout Supermix**, after *Exercise Analyzer*. It used to run Igor's own *Play Workout Supermix* shortcut from
+the Shortcuts app, so YouTube Music played the mix (now replaced by the direct link below).
+
+**Straight to the mix** ([#372](https://github.com/idvorkin/context-grabber/issues/372)), Igor, 2026-10-17:
+*"I meant for the YouTube workout super short link. Super mix link."* Going through Shortcuts flashed the Shortcuts
+app in front first. The tile now opens Igor's Workout Supermix link directly: a track in YouTube Music that runs
+his mix from there, in the YouTube Music app, or in the browser if the app is not installed. The shortcut is no
+longer used. The log says which opened (the app or the browser).
 
 ## The Gym Timer in the native app (step 2)
 

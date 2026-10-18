@@ -19,7 +19,7 @@ public enum AppRoute: Equatable, Sendable {
   case call(via: CallBackend?)
   /// The card screen (story 129): face up, or with "think of a card" already counting.
   case card(think: Bool)
-  /// Igor's Play Workout Supermix shortcut, run through Shortcuts (#220); the large widget's button (#221).
+  /// Igor's Workout Supermix, opened straight in YouTube Music (#220, #372); the large widget's button (#221).
   case supermix
 
   /// The screen's name, as the log writes it.
@@ -247,7 +247,7 @@ public enum AppLink {
         (.call(via: .eleven), "Call Larry on ElevenLabs (also gemini, openai, drill)"),
         (.card(think: false), "A playing card, face up; tap for another"),
         (.card(think: true), "Think of a card: face down, five seconds, then the reveal"),
-        (.supermix, "Workout Supermix: runs your Play Workout Supermix shortcut"),
+        (.supermix, "Workout Supermix: opens your mix in YouTube Music"),
       ]
     return rows.map { Entry(link: link(for: $0.0), summary: $0.1) }
   }()
