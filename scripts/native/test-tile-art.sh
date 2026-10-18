@@ -15,7 +15,7 @@ for a in json.load(sys.stdin):
         renditions.setdefault(a["Name"], []).append(a)
 assets = {n: r[0] for n, r in renditions.items()}
 # The home tiles, Settings included (HomeRow.all minus the daily strip, plus HomeRow.settings).
-tiles = "call today gym_timer breathe places think_a_card exercise_analyzer workout_supermix cockpit eulogy_song eulogy recent random report_problem settings".split()
+tiles = "call today gym_timer breathe places think_a_card exercise_analyzer workout_supermix cockpit eulogy_song eulogy recent random report_problem settings inbox".split()
 bad = [f"tile-{t}: missing" for t in tiles if f"tile-{t}" not in assets]
 for t in tiles:
     a = assets.get(f"tile-{t}")

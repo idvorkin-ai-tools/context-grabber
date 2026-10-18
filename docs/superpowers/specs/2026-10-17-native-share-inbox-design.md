@@ -31,7 +31,9 @@ and *Add to Inbox*. *Add to Inbox* closes the card at once; *Cancel* closes it w
 aeroplane mode and while Grabber Native is not running. Any text the sheet offers is taken, marked-up text (RTF,
 HTML) kept as plain text; a share the card cannot read says why, selectable and with *Copy*.
 
-**The Inbox.** A launcher on the home screen, *Inbox*, with the number of items not yet sent to Larry on its tile.
+**The Inbox.** A launcher on the home screen, *Inbox*, with the number of items not yet sent to Larry on its tile. Its
+picture is the felt raccoon of the other tiles sliding an envelope and a photo into a blue mailbox with its flag
+up (Igor, 2026-10-18, #395: *"Inbox icon looks terrible. Should be racoon putting something into a mailbox"*).
 It lists what was shared, newest first: what it is, the note, where it came from (a link's site; iOS does not tell
 the app which app shared it), and when. A swipe deletes one. In
 phase 1 every item reads *on the phone*; in phase 2, *sent to Larry* with the time, or *waiting to send*.
@@ -64,7 +66,7 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 
 - Sharing a Safari link, a Notes text and a Photos image each puts one item in the Inbox, with the note, within a
   second, in aeroplane mode too.
-- The Inbox tile counts the items not yet sent; deleting one updates it.
+- The Inbox tile shows the raccoon posting a letter and counts the items not yet sent; deleting one updates it.
 - Phase 2: with the Cockpit reachable, every waiting item reaches Larry once and then reads *sent to Larry*;
   with it unreachable, items wait and go on the next open.
 - Phase 2: an item the Cockpit refuses reads *Larry's inbox refused it* with the reason, copyable, and is not sent
