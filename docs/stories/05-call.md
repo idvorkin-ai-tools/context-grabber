@@ -146,7 +146,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 087:
 
 - **Summary:** The first call after launch works like every other call
-- **Status:** implemented in [62953e1](https://github.com/idvorkin/context-grabber/commit/62953e1), [ae01372](https://github.com/idvorkin/context-grabber/commit/ae01372), [7db050d](https://github.com/idvorkin/context-grabber/commit/7db050d); verified by `callSession.test.ts`, `callWatchdog.test.ts` and on the phone — the silent first call still recurs; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), voice processing on from prepare every call; verified by `just native-test` (no-first-frame and zeros tests); the phone still to be checked by Igor
+- **Status:** implemented in [62953e1](https://github.com/idvorkin/context-grabber/commit/62953e1), [ae01372](https://github.com/idvorkin/context-grabber/commit/ae01372), [7db050d](https://github.com/idvorkin/context-grabber/commit/7db050d); verified by `callSession.test.ts`, `callWatchdog.test.ts` and on the phone — the silent first call still recurs; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), voice processing on from prepare every call; verified by `just native-test` (no-first-frame and zeros tests); the phone still to be checked by Igor; the zero-run rearm's evidence and its edges (#364): [6cd1ff0](https://github.com/idvorkin/context-grabber/commit/6cd1ff0), [2bba05e](https://github.com/idvorkin/context-grabber/commit/2bba05e), [387088f](https://github.com/idvorkin/context-grabber/commit/387088f), [b02aeca](https://github.com/idvorkin/context-grabber/commit/b02aeca), [00153f0](https://github.com/idvorkin/context-grabber/commit/00153f0) (the heal says what the mic and the playback held, *audio back* is logged once the restart has finished, and a recovery finishing after the hang-up logs and reports nothing for the ended call), verified by `just native-test` (`CallSessionZerosTests`, `testAProbeRearmThatFailsAfterTheHangUpIsIgnored`); the simulator in the next build turn
 
 #### Use Case:
 - **As a** Larry's client placing the day's first call
@@ -158,9 +158,9 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app was force-quit and relaunched
 - **and Given:** the recorder starts but produces no buffer for a second and a half
 - **When:** I tap Call Larry and say a sentence as soon as Tony greets me
-- **Then:** the call's audio is torn down and brought back up on its own, and if it is still silent the call redials itself once on the same backend — *Calling Larry…* briefly, then *live* — without a tap, and my sentence is captioned
+- **Then:** the call's audio is torn down and brought back up on its own, and if it is still silent the call redials itself once on the same backend — *Calling Larry…* briefly, then *live* — without a tap, and my sentence is captioned; if I hang up while a recovery is still finishing, the ended call shows no new problem
 
-- **Issues:** [#88](https://github.com/idvorkin/context-grabber/issues/88) fixed; [#95](https://github.com/idvorkin/context-grabber/issues/95) open — the bridge still receives zero mic frames on some first calls
+- **Issues:** [#88](https://github.com/idvorkin/context-grabber/issues/88) fixed; [#95](https://github.com/idvorkin/context-grabber/issues/95) open — the bridge still receives zero mic frames on some first calls; [#364](https://github.com/idvorkin/context-grabber/issues/364) open — on the simulator the mic gives a silent first second, and the heal's restart drops queued playback; the heal now logs the evidence
 
 ---
 
