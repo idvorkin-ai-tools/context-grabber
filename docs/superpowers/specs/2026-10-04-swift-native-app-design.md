@@ -214,7 +214,7 @@ Supermix** (his link,
 popover of drawn choices instead of a list (the Workout Supermix's own kettlebell in headphones, a heart for Liked
 music, a sun for Feel Good; Apple's headphones, heart and sun stood in on the list before it), and a tap on one opens
 it (spec 2026-10-18-press-and-hold-popovers-design.md); a tap outside opens nothing. Each opens in YouTube Music, or the browser
-without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the menu) shows a
+without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the popover) shows a
 copyable problem under the tiles, naming the mix and its link, until the next try or a newer message.
 
 ## The Gym Timer in the native app (step 2)
