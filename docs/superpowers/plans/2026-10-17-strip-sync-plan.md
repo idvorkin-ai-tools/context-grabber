@@ -15,7 +15,9 @@ Two devices for ten years is 240 keys and well under 1 MB. The device id is `UID
 backup restored onto another phone gets a new one; the last id is kept in `settings` (`strip_device_id`). When it
 changes (only a restore or a transfer brings the database to a new id, and the phone it came from may still be in
 use), this install's rows are handed over as the old id's peer rows, replaced by that id's keys when they arrive,
-and this install starts its own rows empty, so the carried history counts once and nothing is deleted.
+and this install starts its own rows empty, so the carried history counts once and nothing is deleted. The
+hand-over is one transaction; if it fails the id is not saved and sync stays off until the next launch tries again.
+The ids handed to are kept in `settings` (`strip_handed_over`) so an account change keeps their rows.
 
 ## Merge (ContextCore, host-tested)
 
@@ -34,7 +36,7 @@ and this install starts its own rows empty, so the carried history counts once a
   calls `synchronize()`. After each `set` it publishes that day's month. On
   `didChangeExternallyNotification` it decodes the changed keys of other devices, replaces their rows for those
   months in `daily_strip_peers`, and asks `DailyStripModel` to refresh. On an account change (which may list no
-  keys) it clears the peers, publishes every month again and rebuilds from the whole store. Decode reads each day
+  keys) it clears the peers (but the handed-over ids'), publishes every month again and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
 - Log: `strip_sync` with `action` `publish` (months, all), `arrived` (device, months, reason), `account_change` (keys),
   `device_changed` (handed_over_rows);

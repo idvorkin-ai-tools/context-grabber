@@ -95,17 +95,30 @@ public struct DailyStrip {
   @discardableResult
   public func handOver(to device: String) throws -> Int {
     let rows = try ownRows()
-    for r in rows {
-      _ = try db.run(
-        "INSERT OR REPLACE INTO daily_strip_peers (device, date_key, item, value, updated_at) VALUES (?, ?, ?, ?, ?)",
-        [.text(device), .text(r.day), .text(r.item.rawValue), .int(Int64(r.value)), .int(r.updatedAt)])
+    try db.execute("BEGIN")
+    do {
+      for r in rows {
+        _ = try db.run(
+          "INSERT OR REPLACE INTO daily_strip_peers (device, date_key, item, value, updated_at) VALUES (?, ?, ?, ?, ?)",
+          [.text(device), .text(r.day), .text(r.item.rawValue), .int(Int64(r.value)), .int(r.updatedAt)])
+      }
+      try db.execute("DELETE FROM daily_strip;")
+      try db.execute("COMMIT")
+    } catch {
+      try? db.execute("ROLLBACK")
+      throw error
     }
-    try db.execute("DELETE FROM daily_strip;")
     return rows.count
   }
 
-  /// Every other device's rows gone: the iCloud account changed (Codex on #378).
-  public func clearPeers() throws { try db.execute("DELETE FROM daily_strip_peers;") }
+  /// Every other device's rows gone: the iCloud account changed (Codex on #378). The devices in `keeping` were
+  /// handed this install's own history, which no store may hold, so their rows stay.
+  public func clearPeers(keeping: Set<String> = []) throws {
+    guard !keeping.isEmpty else { return try db.execute("DELETE FROM daily_strip_peers;") }
+    _ = try db.run(
+      "DELETE FROM daily_strip_peers WHERE device NOT IN (" + keeping.map { _ in "?" }.joined(separator: ", ") + ")",
+      keeping.sorted().map { .text($0) })
+  }
 
   private func merged(_ item: DailyItem, day: String?) throws -> [String: Int] {
     let filter = day == nil ? "item = ?" : "item = ? AND date_key = ?"

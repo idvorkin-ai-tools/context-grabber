@@ -115,4 +115,14 @@ final class StripSyncTests: XCTestCase {
     try s.clearPeers()
     XCTAssertEqual(try s.value(.magic, day: day), 1)
   }
+
+  /// A restored phone signs out of iCloud later: the history it carried is not in any store, so it stays.
+  func testAnAccountChangeKeepsTheHistoryHandedOver() throws {
+    let s = try strip()
+    try s.set(.gym, day: "2026-09-30", value: 1, at: Date(timeIntervalSince1970: 1))
+    try s.handOver(to: "old-phone")
+    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .gym, value: 1, updatedAt: 1)])
+    try s.clearPeers(keeping: ["old-phone"])
+    XCTAssertEqual(try s.days(.gym), ["2026-09-30"])
+  }
 }

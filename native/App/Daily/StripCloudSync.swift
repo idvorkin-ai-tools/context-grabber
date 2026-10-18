@@ -12,6 +12,8 @@ final class StripCloudSync {
   private let store = NSUbiquitousKeyValueStore.default
   private let strip: DailyStrip
   private let device: String
+  /// The ids this install handed its history to: an account change keeps their rows.
+  private let handedOver: Set<String>
   private let log: SessionLog
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
@@ -26,14 +28,19 @@ final class StripCloudSync {
     // that phone's peer rows (replaced by its keys when they arrive) instead of this one's, and nothing counts twice.
     device =
       UIDevice.current.identifierForVendor?.uuidString ?? database.setting("strip_device_id") ?? UUID().uuidString
+    var handedOver = Set((database.setting("strip_handed_over") ?? "").split(separator: ",").map(String.init))
     if let old = database.setting("strip_device_id"), old != device {
       do {
         let moved = try strip.handOver(to: old)
+        handedOver.insert(old)
+        database.setSetting("strip_handed_over", handedOver.sorted().joined(separator: ","))
         log.event("strip_sync", ["action": "device_changed", "handed_over_rows": moved])
       } catch {
         log.event("error", ["where": "strip_sync_hand_over", "message": "\(error)"])
+        return nil
       }
     }
+    self.handedOver = handedOver
     database.setSetting("strip_device_id", device)
     NotificationCenter.default.addObserver(
       forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: store, queue: .main
@@ -77,7 +84,7 @@ final class StripCloudSync {
       // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from
       // everything the store now holds (Codex on #378).
       if reason == NSUbiquitousKeyValueStoreAccountChange {
-        try strip.clearPeers()
+        try strip.clearPeers(keeping: handedOver)
         publish(month: nil)
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])
