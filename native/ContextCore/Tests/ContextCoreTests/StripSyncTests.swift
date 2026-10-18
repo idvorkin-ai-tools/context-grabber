@@ -11,14 +11,14 @@ final class StripSyncTests: XCTestCase {
   func testCountsAddUpAcrossDevices() throws {
     let s = try strip()
     try s.set(.balloons, day: day, value: 2)
-    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 1, updatedAt: 5)])
+    try s.mergePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 1, updatedAt: 5)])
     XCTAssertEqual(try s.value(.balloons, day: day), 3)
     XCTAssertEqual(try s.ownValue(.balloons, day: day), 2, "a step starts from this device's own count")
   }
 
   func testACheckFromAnotherDeviceCountsHereAndInDaysSince() throws {
     let s = try strip()
-    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .journal, value: 1, updatedAt: 5)])
+    try s.mergePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .journal, value: 1, updatedAt: 5)])
     XCTAssertEqual(try s.value(.journal, day: day), 1)
     XCTAssertEqual(try s.days(.journal), [day])
   }
@@ -26,20 +26,30 @@ final class StripSyncTests: XCTestCase {
   func testTheLatestChangeToACheckWinsSoAnyDeviceCanUntickIt() throws {
     let s = try strip()
     try s.set(.journal, day: day, value: 1, at: Date(timeIntervalSince1970: 100))
-    try s.replacePeer(
+    try s.mergePeer(
       "ipad", month: "2026-10", rows: [StripRow(day: day, item: .journal, value: 0, updatedAt: 200_000)])
     XCTAssertEqual(try s.value(.journal, day: day), 0, "the iPad unticked it after the phone ticked it")
     try s.set(.journal, day: day, value: 1, at: Date(timeIntervalSince1970: 300))
     XCTAssertEqual(try s.value(.journal, day: day), 1, "and a later tick here wins again")
   }
 
-  func testAPeersMonthIsReplacedNotAddedTo() throws {
+  func testAPeersNewerValueReplacesItsOlderOneNotAddsToIt() throws {
     let s = try strip()
-    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 4, updatedAt: 1)])
-    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 1, updatedAt: 2)])
+    try s.mergePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 4, updatedAt: 1)])
+    try s.mergePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 1, updatedAt: 2)])
     XCTAssertEqual(try s.value(.magic, day: day), 1)
-    try s.replacePeer("ipad", month: "2026-10", rows: [])
-    XCTAssertEqual(try s.value(.magic, day: day), 0, "a day the iPad no longer has is gone")
+    try s.mergePeer("ipad", month: "2026-10", rows: [])
+    XCTAssertEqual(try s.value(.magic, day: day), 1, "an arriving month never deletes")
+  }
+
+  /// Local review: a restore held a count the old phone never uploaded; its older month arriving must not undo it.
+  func testAnOlderMonthArrivingKeepsTheNewerHandedOverCount() throws {
+    let s = try strip()
+    try s.set(.balloons, day: day, value: 3, at: Date(timeIntervalSince1970: 200))
+    try s.handOver(to: "old-phone")
+    try s.mergePeer(
+      "old-phone", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 1, updatedAt: 100_000)])
+    XCTAssertEqual(try s.value(.balloons, day: day), 3)
   }
 
   func testOwnRowsByMonthCarryWhenTheyChanged() throws {
@@ -123,7 +133,7 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(try s.value(.balloons, day: day), 2)
     XCTAssertEqual(try s.value(.journal, day: day), 1)
     // The old phone's own keys then arrive with the same month: replaced, not added.
-    try s.replacePeer(
+    try s.mergePeer(
       "old-phone", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 2, updatedAt: 1000)])
     try s.set(.balloons, day: day, value: 1)
     XCTAssertEqual(try s.value(.balloons, day: day), 3)
@@ -132,7 +142,7 @@ final class StripSyncTests: XCTestCase {
   func testClearingPeersLeavesThisDevicesOwn() throws {
     let s = try strip()
     try s.set(.magic, day: day, value: 1)
-    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 2, updatedAt: 1)])
+    try s.mergePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .magic, value: 2, updatedAt: 1)])
     try s.clearPeers()
     XCTAssertEqual(try s.value(.magic, day: day), 1)
   }
@@ -142,7 +152,7 @@ final class StripSyncTests: XCTestCase {
     let s = try strip()
     try s.set(.gym, day: "2026-09-30", value: 1, at: Date(timeIntervalSince1970: 1))
     try s.handOver(to: "old-phone")
-    try s.replacePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .gym, value: 1, updatedAt: 1)])
+    try s.mergePeer("ipad", month: "2026-10", rows: [StripRow(day: day, item: .gym, value: 1, updatedAt: 1)])
     try s.clearPeers(keeping: ["old-phone"])
     XCTAssertEqual(try s.days(.gym), ["2026-09-30"])
   }

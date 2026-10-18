@@ -25,7 +25,7 @@ final class StripCloudSync {
     // The vendor id, not one kept in the database: a backup restored onto another phone gets a new one, so two
     // phones never write the same keys (Codex on #378). The database only reaches a new id by a restore or a
     // transfer, and the phone it came from may still be in use: what it carried was that phone's, so it becomes
-    // that phone's peer rows (replaced by its keys when they arrive) instead of this one's, and nothing counts twice.
+    // that phone's peer rows (its keys update them, the newer change winning) instead of this one's, and nothing counts twice.
     device =
       UIDevice.current.identifierForVendor?.uuidString ?? database.setting("strip_device_id") ?? UUID().uuidString
     var handedOver = Set((database.setting("strip_handed_over") ?? "").split(separator: ",").map(String.init))
@@ -107,7 +107,7 @@ final class StripCloudSync {
         // A month older than iCloud carries, or a key that left (only its owner pruning removes one), is kept as this
         // device last had it.
         guard month >= oldestKept, let data = store.data(forKey: key) else { continue }
-        try strip.replacePeer(from, month: month, rows: StripSync.decode(data))
+        try strip.mergePeer(from, month: month, rows: StripSync.decode(data))
         byDevice[from, default: []].append(month)
       }
     } catch {

@@ -14,7 +14,7 @@ so **each device writes only its own keys**, one per month:
 iCloud carries the last 12 months (`StripSync.monthsKept`): each device removes its own older keys when it publishes, and ignores other devices' older months and any key that left (a key leaving is pruning, so the local copy stays, whatever each device's clock says). A year of every item every day is a few tens of KB per device, so even four devices stay far under 1 MB (Codex on #378). The device id is `UIDevice.identifierForVendor`, so a
 backup restored onto another phone gets a new one; the last id is kept in `settings` (`strip_device_id`). When it
 changes (only a restore or a transfer brings the database to a new id, and the phone it came from may still be in
-use), this install's rows are handed over as the old id's peer rows, replaced by that id's keys when they arrive,
+use), this install's rows are handed over as the old id's peer rows, which that id's keys update day by day (the newer change wins),
 and this install starts its own rows empty, so the carried history counts once and nothing is deleted. The
 hand-over is one transaction; if it fails the id is not saved and sync stays off until the next launch tries again.
 The ids handed to are kept in `settings` (`strip_handed_over`) so an account change keeps their rows.
@@ -34,8 +34,8 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
 
 - `StripCloudSync` owns the store. At launch it publishes every month this device has (a no-op once synced) and
   calls `synchronize()`. After each `set` it publishes that day's month. On
-  `didChangeExternallyNotification` it decodes the changed keys of other devices, replaces their rows for those
-  months in `daily_strip_peers`, and asks `DailyStripModel` to refresh. On an account change (which may list no
+  `didChangeExternallyNotification` it decodes the changed keys of other devices and merges their rows into
+  `daily_strip_peers` (each day and item keeps its newest change; an arriving month never deletes), and asks `DailyStripModel` to refresh. On an account change (which may list no
   keys) it clears the peers (but the handed-over ids'), publishes every month again and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),

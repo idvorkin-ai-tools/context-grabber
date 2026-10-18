@@ -79,13 +79,17 @@ public struct DailyStrip {
     return rows.compactMap(StripRow.init(row:))
   }
 
-  /// Another device's rows for one month, as its key now says: what was there for that month is replaced.
-  public func replacePeer(_ device: String, month: String, rows: [StripRow]) throws {
-    _ = try db.run(
-      "DELETE FROM daily_strip_peers WHERE device = ? AND date_key LIKE ?", [.text(device), .text(month + "-%")])
+  /// Another device's rows for one month, as its key now says. Each day and item keeps its newest change, and an
+  /// arriving month never deletes: a device never drops its own days (only pruning and a hand-over move them), and a
+  /// restore may hold changes the old phone never uploaded, which an older month must not undo (local review).
+  public func mergePeer(_ device: String, month: String, rows: [StripRow]) throws {
     for r in rows where r.day.hasPrefix(month + "-") {
       _ = try db.run(
-        "INSERT OR REPLACE INTO daily_strip_peers (device, date_key, item, value, updated_at) VALUES (?, ?, ?, ?, ?)",
+        """
+        INSERT INTO daily_strip_peers (device, date_key, item, value, updated_at) VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(device, date_key, item) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+        WHERE excluded.updated_at >= daily_strip_peers.updated_at
+        """,
         [.text(device), .text(r.day), .text(r.item.rawValue), .int(Int64(r.value)), .int(r.updatedAt)])
     }
   }
