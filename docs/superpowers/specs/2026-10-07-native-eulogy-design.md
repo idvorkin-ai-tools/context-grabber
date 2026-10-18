@@ -68,7 +68,8 @@ Each tap is in the session log: playing, pausing, scrubbing (from where to where
 song cannot play, why. Loading and playing also say what the audio was going out through and at what sample rate,
 and if the song's clock runs away from the wall clock while it plays, the log says by how much (#370). A song that cannot load or start says so in its sheet with *Copy error*, which copies the
 message, the build, where the song was, the audio session's state and the underlying error
-([#201](https://github.com/idvorkin/context-grabber/issues/201)). For *Open on Suno*: which song it opened and whether it came from the post just now, from
+([#201](https://github.com/idvorkin/context-grabber/issues/201)), and lets the audio go, so whatever it paused plays
+again (a live call keeps its audio). For *Open on Suno*: which song it opened and whether it came from the post just now, from
 last time, or fell back to the post.
 
 ## Acceptance criteria
