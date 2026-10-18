@@ -95,7 +95,7 @@ final class DailyStripModel: ObservableObject {
     do {
       let own = try store?.ownValue(item, day: today) ?? 0
       next = item.isCounter ? max(0, own + step) : (value(item) > 0 ? 0 : 1)
-      // The step as applied (a long press at 0 changes nothing), held while the first sync is awaited (#380).
+      // The step as applied (a − at 0 changes nothing), held while the first sync is awaited (#380).
       if item.isCounter { sync?.stepping(item, day: today, by: next - own) }
       try store?.set(item, day: today, value: next)
     } catch {
