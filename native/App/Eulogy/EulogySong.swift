@@ -59,7 +59,11 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
       log.event("eulogy_song", ["action": "session", "ok": false, "message": sessionError])
     }
     reloadIfTheRateMoved()
-    guard let player = loaded() else { return }
+    // No song to play: let the session go, so the music it paused comes back (Codex on #371).
+    guard let player = loaded() else {
+      release()
+      return
+    }
     var ok = player.play()
     var how = "play"
     if !ok {
