@@ -48,6 +48,10 @@ empties with you and, if you want, tells you each step by voice or by tone so yo
   beside 4·4·6·2, the same shape at half the pace: in 8, hold 8, out 12, hold 4, 32 seconds a cycle. The line under
   the title reads *In 8, hold 8, out 12, hold 4.*, the session is named *Breathing · 4·4·6·2 ×2 · N cycles*, and it is
   remembered like the other.
+- **4·4·6·2 ×3** (Igor, 2026-10-18, #394, dictated on this screen: *"Due to two sorry 4462 by 3"*): a third chip
+  after ×2, the same shape at three seconds a count: in 12, hold 12, out 18, hold 6, 48 seconds a cycle. Its line
+  reads *In 12, hold 12, out 18, hold 6.*, the session is named *Breathing · 4·4·6·2 ×3 · N cycles*, and it is
+  remembered like the others.
 - **Session length**: a slider from 2 to 15 minutes, in whole minutes, starting at 5.
 - A summary line under them that changes as either slider moves: **"9 cycles · ends at 4 min 48 s"**. A session
   is always a whole number of cycles — the number closest to the session length chosen, never fewer than one —
