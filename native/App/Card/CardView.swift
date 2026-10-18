@@ -20,6 +20,7 @@ struct CardView: View {
   @State private var session: PromptSession?
   @State private var deck: Deck?
   @State private var drills = false
+  @State private var drillMode = StackDrill.Mode.cardToPosition
   @State private var problem: BugProblem?
 
   var body: some View {
@@ -45,7 +46,7 @@ struct CardView: View {
             if let deck {
               StackDrillScreen(
                 session: DrillSession(
-                  deck: deck, log: app.log, ledger: GrabberLedger.shared(log: app.log),
+                  deck: deck, log: app.log, ledger: GrabberLedger.shared(log: app.log), mode: drillMode,
                   skippingEasy: session.skipsEasyCards))
             }
           }
@@ -73,6 +74,11 @@ struct CardView: View {
       let made = PromptSession(host: host)
       session = made
       if think { made.tap(via: "home") }
+      if let mode = app.drillOnOpen {
+        app.drillOnOpen = nil
+        drillMode = mode
+        drills = true
+      }
     case .failure(let error):
       app.log.event("card_problem", ["error": error.localizedDescription])
       problem = .grabber(

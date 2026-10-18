@@ -390,7 +390,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 220:
 
 - **Summary:** Drill the stack from the card screen, graded, and it reaches my practice ledger
-- **Status:** native app only: implemented in [07433d7](https://github.com/idvorkin/context-grabber/commit/07433d7), on think-a-card-trainer v0.3.0 (the drill, its grading, Mixed, the ledger and Stats are the library's, verified by its host tests); verified by host `just native-test`; the simulator build and `CardUITests` testDrillTheStackOpensTheTrainersDrill not yet; grading and the ledger on the phone not yet
+- **Status:** native app only: implemented in [07433d7](https://github.com/idvorkin/context-grabber/commit/07433d7), on think-a-card-trainer v0.3.0 (the drill, its grading, Mixed, the ledger and Stats are the library's, verified by its host tests); verified by host `just native-test`; the simulator build, `CardUITests` testDrillTheStackOpensTheTrainersDrill and the `GRABBER_DRILL=mixed` smoke check not yet; grading and the ledger on the phone not yet
 - **Issues:** [think-a-card-trainer#22](https://github.com/idvorkin/think-a-card-trainer/issues/22) (a failed Stats load is not yet a copyable error)
 - **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
 

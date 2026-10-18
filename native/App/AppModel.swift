@@ -5,6 +5,7 @@ import Combine
 import ContextCore
 import CoreLocation
 import SwiftUI
+import ThinkACardCore
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -34,6 +35,8 @@ final class AppModel: ObservableObject {
   @Published var breathe: BreatheLaunch?
   /// Non-nil while the card screen covers the app (story 129): true when it opened counting.
   @Published var card: Bool?
+  /// `GRABBER_DRILL`: the card screen opens the drill in this mode on its next appearance, then forgets it.
+  var drillOnOpen: StackDrill.Mode?
   @Published var showPlaces = false
   @Published var showPlacesMap = false
   /// True while the Cockpit covers the app. The page itself outlives this: see `cockpit`.
@@ -641,6 +644,11 @@ final class AppModel: ObservableObject {
       // Prepares the file as Export database does, without the share sheet a script cannot dismiss.
       places.prepareExport(from: "hook")
       places.exportFile = nil
+    }
+    if let mode = env["GRABBER_DRILL"].flatMap(StackDrill.Mode.init) {
+      // Story 220: the card screen with *Drill the stack* already tapped, in that direction.
+      drillOnOpen = mode
+      openCard(think: false, from: "hook")
     }
     if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
     if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }
