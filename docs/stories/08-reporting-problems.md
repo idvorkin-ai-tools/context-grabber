@@ -322,7 +322,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** The daily strip is the same on the phone and the iPad
 - **Issues:** [#376](https://github.com/idvorkin/context-grabber/issues/376)
-- **Status:** not started
+- **Status:** implemented in [784df03](https://github.com/idvorkin/context-grabber/commit/784df03) (each device's months in the iCloud key-value store, counts summed and the latest check winning); verified by `just test` (`StripSyncTests`: the merge, the month keys, the table migration); the app build in the next build turn; the phone and the iPad together still for Igor
 - **Spec:** [native home screen](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
 #### Use Case:
