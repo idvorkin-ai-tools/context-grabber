@@ -156,8 +156,8 @@ struct ShareCard: View {
         Text(url.host ?? url.absoluteString).font(.subheadline)
         Text(url.absoluteString).font(.caption).foregroundStyle(.secondary).lineLimit(2)
       }
-    } else if let data = shared.image, let picture = UIImage(data: data) {
-      Image(uiImage: picture).resizable().scaledToFit().frame(maxHeight: 220)
+    } else if let data = shared.image, let picture = InboxSend.thumbnail(data) {
+      Image(decorative: picture, scale: 1).resizable().scaledToFit().frame(maxHeight: 220)
     } else if let text = shared.text {
       Text(text).lineLimit(4)
     } else {

@@ -38,8 +38,8 @@ private struct InboxRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       HStack(alignment: .top) {
-        if let image, let picture = UIImage(data: image) {
-          Image(uiImage: picture).resizable().scaledToFill().frame(width: 56, height: 56).clipped()
+        if let image, let picture = InboxSend.thumbnail(image, maxPixels: 168) {
+          Image(decorative: picture, scale: 1).resizable().scaledToFill().frame(width: 56, height: 56).clipped()
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
         VStack(alignment: .leading, spacing: 2) {

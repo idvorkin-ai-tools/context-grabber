@@ -156,6 +156,34 @@ final class InboxTests: XCTestCase {
     XCTAssertEqual(store.items().items.first?.status, .refused)
   }
 
+  // Local review: an item deleted while an earlier one was being sent never goes.
+  func testAnItemDeletedWhileTheSendIsOutIsNotSent() async throws {
+    try store.add(InboxItem(id: "a", kind: .text, sharedAt: 1, text: "one"))
+    let later = try store.add(InboxItem(id: "b", kind: .text, sharedAt: 2, text: "private"))
+    let seen = Seen()
+    let store = self.store
+    let sender = InboxSender(store: store, cockpit: "https://cockpit.test") { request in
+      let id = (try? JSONSerialization.jsonObject(with: request.httpBody ?? Data()) as? [String: Any])?["id"] as? String
+      await seen.add(id ?? "?")
+      if id == "a" { try store.delete(later) }  // Igor swipes b away while a is out
+      return (
+        Data(#"{"ok": true}"#.utf8),
+        HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+      )
+    }
+    let report = await sender.sendWaiting { _, _ in }
+    let order = await seen.ids
+    XCTAssertEqual(order, ["a"])
+    XCTAssertEqual(report.sent, ["a"])
+  }
+
+  func testAThumbnailIsBoundedWhateverThePhotosSize() throws {
+    let big = try Self.image(.jpeg, side: 1500)
+    let thumb = try XCTUnwrap(InboxSend.thumbnail(big, maxPixels: 200))
+    XCTAssertLessThanOrEqual(max(thumb.width, thumb.height), 200)
+    XCTAssertNil(InboxSend.thumbnail(Data("no".utf8)))
+  }
+
   func testASimulatorFixtureIsNeverSent() async throws {
     try store.add(InboxItem(id: InboxItem.fixtureID(), kind: .text, sharedAt: 1, text: "test"))
     let sender = InboxSender(store: store, cockpit: "https://cockpit.test") { _ in

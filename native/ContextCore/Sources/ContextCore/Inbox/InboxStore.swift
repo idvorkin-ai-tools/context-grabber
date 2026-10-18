@@ -103,6 +103,11 @@ public struct InboxStore: Sendable {
 
   public var waitingCount: Int { items().items.filter { $0.status == .waiting }.count }
 
+  /// One item as it is on disk now, nil once deleted.
+  public func item(_ id: String) -> InboxItem? {
+    (try? Data(contentsOf: file(id))).flatMap { try? JSONDecoder().decode(InboxItem.self, from: $0) }
+  }
+
   public func image(of item: InboxItem) -> Data? {
     item.imageFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
   }

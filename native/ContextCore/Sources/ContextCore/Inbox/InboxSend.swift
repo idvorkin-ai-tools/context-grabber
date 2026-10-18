@@ -85,6 +85,17 @@ public enum InboxSend {
     return nil
   }
 
+  /// A small picture for a preview, decoded at most `maxPixels` on its long side: a full-size photo decoded whole
+  /// would take hundreds of MB, past the share extension's memory (local review).
+  public static func thumbnail(_ image: Data, maxPixels: Int = 600) -> CGImage? {
+    guard let source = CGImageSourceCreateWithData(image as CFData, nil) else { return nil }
+    let options: [CFString: Any] = [
+      kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: maxPixels,
+      kCGImageSourceCreateThumbnailWithTransform: true, kCGImageSourceShouldCacheImmediately: true,
+    ]
+    return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+  }
+
   static func mime(of image: Data) -> String {
     guard let source = CGImageSourceCreateWithData(image as CFData, nil),
       let type = CGImageSourceGetType(source).flatMap({ UTType($0 as String) })
@@ -131,7 +142,9 @@ public struct InboxSender: Sendable {
   {
     var report = Report()
     // A simulator fixture never reaches Larry, whichever launch finds it.
-    for item in store.waiting() where !item.isFixture {
+    for queued in store.waiting() where !queued.isFixture {
+      // Read again just before sending: one deleted while an earlier request was out never goes (local review).
+      guard let item = store.item(queued.id), item.status == .waiting else { continue }
       var fields: [String: Any] = ["item": item.id, "kind": item.kind.rawValue]
       var outcome: InboxSend.Outcome
       var image: Data?
