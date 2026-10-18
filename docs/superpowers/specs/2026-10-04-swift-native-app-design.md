@@ -171,6 +171,22 @@ the audio. If the build has no stack, the screen says so with a copyable error i
 
 The stack order is never in this repository: the build copies it in from the same private file the trainer uses.
 
+**Drill the stack** (Igor, 2026-10-18: the trainer's drill, graded, with its stats, in this app too; the trainer's
+stories 064–069). Under the card, beside *Skip easy cards*, *Drill the stack* stops an ask that is counting and
+covers the screen with the trainer's own drill, the same one as in the trainer app:
+
+- **Card → position, Position → card, or Mixed**: the question fills the top; a tap shows the answer under it (with
+  the breather it counts from), the next tap counts it **right** and deals the next, and **Wrong** under the answer
+  counts a miss instead. Every card once per pass, never the same twice running.
+- It follows *Skip easy cards* as it was when the drill opened: on, only the hard positions are drilled.
+- **Every graded answer goes to Igor's practice ledger**, the same one the trainer and Card Picker write to. Offline,
+  answers wait on the phone and go when the ledger can be reached; nothing is lost by closing the app.
+- **Stats**, at the top of the drill, shows what the ledger knows over 30 days from every source, the most missed
+  positions first, and holds the ledger's URL and write key. They are pasted once in Grabber Native; the build never
+  carries them, and the trainer app keeps its own copy.
+- The log says what was pressed and what each send did, never a card beside its position, and never the key.
+- **Done** returns to the card.
+
 ## Exercise Analyzer, one tap away
 
 Igor, 2026-10-05 (#142): *"You should also be able to launch Exercise Analyzer."* The home screen lists **Exercise

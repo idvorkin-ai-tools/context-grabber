@@ -2,6 +2,7 @@
 //  the app"): Think a Card Trainer's own phone screen, from its shared ThinkACardUI library. Grabber Native hands it
 //  the stack the build bundled, the session log, its settings in the App Group (so Today's hand skips the same easy
 //  cards), the trainer's voice clips, and silence during a call. Done, and the shake to report, are this app's.
+//  *Drill the stack* (story 220) covers it with the trainer's drill, graded into this app's own ledger.
 
 import BugKit
 import SwiftUI
@@ -17,6 +18,8 @@ struct CardView: View {
   let onDone: () -> Void
 
   @State private var session: PromptSession?
+  @State private var deck: Deck?
+  @State private var drills = false
   @State private var problem: BugProblem?
 
   var body: some View {
@@ -25,6 +28,24 @@ struct CardView: View {
       if let session {
         // Grabber Native routes its own links (grabbernative://card?think=1 reopens this screen counting).
         DealScreen(session: session, handlesURLs: false)
+          .safeAreaInset(edge: .bottom) {
+            Button("Drill the stack") {
+              session.stopCount(why: "drill")  // a count left running would deal and speak behind the drill
+              drills = true
+            }
+            .font(.footnote)
+            .foregroundStyle(.gray)
+            .padding(.bottom, 4)
+            .accessibilityIdentifier("card-drill")
+          }
+          .fullScreenCover(isPresented: $drills) {
+            if let deck {
+              StackDrillScreen(
+                session: DrillSession(
+                  deck: deck, log: app.log, ledger: GrabberLedger.shared(log: app.log),
+                  skippingEasy: session.skipsEasyCards))
+            }
+          }
       } else if let problem {
         BugProblemView(problem: problem, logger: app.bugLogger).padding().frame(maxHeight: .infinity)
       }
@@ -42,6 +63,7 @@ struct CardView: View {
     guard session == nil, problem == nil else { return }
     switch TrainerDeck.load() {
     case .success(let deck):
+      self.deck = deck
       let host = CardScreenHost(
         deck: deck, log: app.log, defaults: TrainerDeck.defaults,
         maySpeak: { [app] in MainActor.assumeIsolated { app.mayTheCardSpeak() } })
