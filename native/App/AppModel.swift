@@ -26,6 +26,8 @@ final class AppModel: ObservableObject {
   /// The screen in front, as a report and the log name it. Each ported journey sets it when it appears.
   @Published var screen = "home"
   @Published var status = ""
+  /// A home tile's failure that has to be copyable (Codex on #386): shown under the tiles in place of `status`.
+  @Published var homeProblem: BugProblem?
   /// Under Reset audio: what the phone's audio was and is now (story 149).
   @Published private(set) var audioResetLine = ""
   /// Non-nil while the Gym Timer covers the app; says how it was asked for.
@@ -393,6 +395,7 @@ final class AppModel: ObservableObject {
   func openWorkoutSupermix(from source: String, mix: WorkoutSupermix.Mix = .workout) {
     // #372: straight in YouTube Music, no Shortcuts hop; the browser when the app is missing.
     let link = mix.link
+    homeProblem = nil  // a new try clears the last one's failure
     UIApplication.shared.open(link, options: [.universalLinksOnly: true]) { [log] inApp in
       guard !inApp else {
         log.event(
@@ -402,7 +405,12 @@ final class AppModel: ObservableObject {
       UIApplication.shared.open(link) { ok in
         log.event(
           "ui", ["action": "open_workout_supermix", "from": source, "mix": mix.rawValue, "ok": ok, "how": "browser"])
-        if !ok { Task { @MainActor in self.status = "The \(mix.title) would not open." } }
+        guard !ok else { return }
+        Task { @MainActor in
+          self.homeProblem = .grabber(
+            "The \(mix.title) would not open.", context: "Home.open_workout_supermix",
+            extra: ["mix": .string(mix.rawValue), "link": .string(link.absoluteString), "from": .string(source)])
+        }
       }
     }
   }

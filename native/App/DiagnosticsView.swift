@@ -61,7 +61,11 @@ struct DiagnosticsView: View {
           }
         } footer: {
           // What a tap could not do (an app not installed) or what a report did.
-          if !model.status.isEmpty { Text(model.status) }
+          if let problem = model.homeProblem {
+            BugProblemView(problem: problem, logger: model.bugLogger)
+          } else if !model.status.isEmpty {
+            Text(model.status)
+          }
         }
       }
       // No bar at all (story 147): the usage card starts under the status bar.
