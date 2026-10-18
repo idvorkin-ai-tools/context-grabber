@@ -228,7 +228,7 @@ private struct HomeTile: View {
     if row.id == "workout_supermix" {
       tile.contextMenu {
         ForEach(WorkoutSupermix.Mix.allCases, id: \.self) { mix in
-          Button(mix.title) { model.openWorkoutSupermix(from: "home_menu", mix: mix) }
+          Button(mix.title, systemImage: mix.symbol) { model.openWorkoutSupermix(from: "home_menu", mix: mix) }
             .accessibilityIdentifier("supermix-\(mix.rawValue)")
         }
       }

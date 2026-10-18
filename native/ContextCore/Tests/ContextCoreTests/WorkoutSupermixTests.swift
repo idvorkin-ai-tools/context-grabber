@@ -28,6 +28,11 @@ final class WorkoutSupermixTests: XCTestCase {
       WorkoutSupermix.Mix.feelGood.link.query, "list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0", "no feature=share")
   }
 
+  // Story 221: each choice carries its icon, all different, so the menu reads at a glance.
+  func testEachMixHasItsOwnIcon() {
+    XCTAssertEqual(WorkoutSupermix.Mix.allCases.map(\.symbol), ["headphones", "heart.fill", "sun.max.fill"])
+  }
+
   func testTheLinksScreenDescribesTheDirectLinkNotTheShortcut() throws {
     let supermix = try XCTUnwrap(AppLink.catalog.first { AppLink.parse($0.link).route == .supermix })
     XCTAssertEqual(supermix.link, "grabbernative://supermix")
