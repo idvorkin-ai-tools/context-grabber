@@ -12,6 +12,9 @@ final class StripCloudSync {
   private let store = NSUbiquitousKeyValueStore.default
   private let strip: DailyStrip
   private let device: String
+  /// The ids this install wrote under before, whose keys are removed whenever they show up: on a restored phone
+  /// they arrive with iCloud's first sync, after launch.
+  private let retired: Set<String>
   private let log: SessionLog
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
@@ -27,11 +30,14 @@ final class StripCloudSync {
     // once; the upgrade is a per-install id in the Keychain (ThisDeviceOnly) with the old keys handed over.
     device =
       UIDevice.current.identifierForVendor?.uuidString ?? database.setting("strip_device_id") ?? UUID().uuidString
+    var retired = Set((database.setting("strip_retired_devices") ?? "").split(separator: " ").map(String.init))
     if let old = database.setting("strip_device_id"), old != device {
-      let stale = store.dictionaryRepresentation.keys.filter { StripSync.parse(key: $0)?.device == old }
-      for key in stale { store.removeObject(forKey: key) }
-      log.event("strip_sync", ["action": "device_changed", "removed_keys": stale.count])
+      retired.insert(old)
+      database.setSetting("strip_retired_devices", retired.sorted().joined(separator: " "))
+      log.event("strip_sync", ["action": "device_changed", "retired": retired.count])
     }
+    retired.remove(device)
+    self.retired = retired
     database.setSetting("strip_device_id", device)
     NotificationCenter.default.addObserver(
       forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: store, queue: .main
@@ -71,17 +77,24 @@ final class StripCloudSync {
     }
     var keys = keys
     var byDevice: [String: [String]] = [:]
+    var removed = 0
     do {
       // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from
       // everything the store now holds (Codex on #378).
       if reason == NSUbiquitousKeyValueStoreAccountChange {
         try strip.clearPeers()
+        publish(month: nil)
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])
         onArrived()
       }
       for key in keys {
         guard let (from, month) = StripSync.parse(key: key), from != device else { continue }
+        if retired.contains(from) {
+          store.removeObject(forKey: key)
+          removed += 1
+          continue
+        }
         let rows = (store.data(forKey: key)).map(StripSync.decode) ?? []
         try strip.replacePeer(from, month: month, rows: rows)
         byDevice[from, default: []].append(month)
@@ -89,6 +102,7 @@ final class StripCloudSync {
     } catch {
       log.event("error", ["where": "strip_sync_arrived", "message": "\(error)"])
     }
+    if removed > 0 { log.event("strip_sync", ["action": "removed_retired", "keys": removed]) }
     guard !byDevice.isEmpty else { return }
     for (from, months) in byDevice {
       log.event(
