@@ -138,6 +138,24 @@ follows at once (a gym day yesterday reads *1d*). Marking is all it does: an ear
 The counters keep their long press for one fewer. The log has `ui`, action daily_strip, with the item, the day
 and `backdated`.
 
+**The same strip on the phone and the iPad** (Igor, iPad, 2026-10-17, #376: *"Do stats sync over Cloud kit like the
+did I do magic if not implement"*). What Igor marks on one device shows on the others signed into his iCloud,
+usually within a minute, and offline changes catch up when the device is back online:
+
+- A check (Gym, Meditation, Journal) done on any device is done everywhere, today or an earlier day, and taking a
+  tapped check back on any device takes it back everywhere: the latest change wins.
+- Counts add up across devices: a balloon on the iPad and two on the phone make 3 on both. A long press takes one
+  off the device's own count, never below 0.
+- Days since follows the shared days, so a journal day written on the phone ends the iPad's *3d* too.
+- Gym and Meditation turning green by themselves (the Gym Timer, Box breathing, Health) work on each device as
+  before; a timer workout on the phone counts on the iPad too once its day has synced.
+- The first time a device syncs, its earlier days go up too, so the iPad learns the phone's history.
+- Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
+  nothing says otherwise beyond the log.
+
+The log says what the sync did: a device publishing its days (how many months), and another device's change
+arriving (which device, which months), and why a sync could not run.
+
 Non-goals: choosing other items or adding new ones from the app, streaks, reminders, history charts.
 
 Order, hiding and Reset in Settings work as before.
@@ -198,3 +216,5 @@ Order, hiding and Reset in Settings work as before.
   place of a 0 (*–* when there has never been one). After midnight everything starts fresh and yesterday's values are kept (#236, #238).
 - After a Box breathing session reaches Done, or a grab that finds mindful minutes today, Meditation is green
   with no tap, and the log has `daily_strip_auto` naming where it came from (#257).
+- A check or a count made on the phone shows on the iPad within about a minute, and the other way round; counts
+  add up across the devices, and days since follows the shared days (#376).

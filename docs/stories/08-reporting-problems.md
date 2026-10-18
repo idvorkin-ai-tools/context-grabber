@@ -318,6 +318,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 153:
+
+- **Summary:** The daily strip is the same on the phone and the iPad
+- **Issues:** [#376](https://github.com/idvorkin/context-grabber/issues/376)
+- **Status:** not started
+- **Spec:** [native home screen](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+
+#### Use Case:
+- **As someone** who marks his daily strip on whichever device is in his hand
+- **I want to** see the same checks, counts and days since on the phone and the iPad
+- **so that** the strip is one record of my day, not two half ones
+
+#### Acceptance Criteria:
+- **Scenario:** Marked on one, seen on the other
+- **Given:** the phone and the iPad are signed into my iCloud and online
+- **When:** I check Journal and add two balloons on the phone, and one balloon on the iPad
+- **Then:** within about a minute both show Journal checked and 3 balloons, and the log on each says the other device's change arrived
+
+---
+
 ### User Story 246:
 
 - **Summary:** A daily strip: gym, meditation, journal, balloons and magic, at a glance

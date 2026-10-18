@@ -1,0 +1,45 @@
+# Daily strip sync over iCloud: plan (#376)
+
+Spec: [native home screen](../specs/2026-10-06-native-home-screen-design.md), *The same strip on the phone and the
+iPad*. Story 153. This holds the implementation; the spec holds the behaviour.
+
+## Transport: the iCloud key-value store (option A on the decisions page)
+
+`NSUbiquitousKeyValueStore`, not a CloudKit database: the strip is about 5 values a day, the store syncs within a
+minute, works offline and needs no container. Limits are 1 MB and 1024 keys per app, and a key is last-writer-wins,
+so **each device writes only its own keys**, one per month:
+
+    strip.<device-id>.<yyyy-mm>  →  JSON {"<yyyy-mm-dd>": {"<item>": [value, updated_at_ms]}}
+
+Two devices for ten years is 240 keys and well under 1 MB. The device id is a UUID made once and kept in
+`settings` (`strip_device_id`).
+
+## Merge (ContextCore, host-tested)
+
+- Each row is `(device, day, item, value, updated_at)`. This device's rows are the `daily_strip` table, which gains
+  an `updated_at` column (0 for the rows from before). Other devices' rows go in a new `daily_strip_peers` table.
+- **Counters** (balloons, magic): the day's value is the sum over devices. A long press lowers this device's own
+  count, never below 0.
+- **Checks** (gym, meditation, journal): the row with the latest `updated_at` across devices wins. A tap on this
+  device writes a new row with now's time, so any device can check or uncheck.
+- `days(item)` and `value(item, day)` read the merged view, so days since, the backdate sheet and the export all
+  see the shared days. The derived gym and meditation days (the timer, breathing, Health) stay per device, as now.
+
+## App (`native/App/Daily/`)
+
+- `StripCloudSync` owns the store. At launch it publishes every month this device has (a no-op once synced) and
+  calls `synchronize()`. After each `set` it publishes that day's month. On
+  `didChangeExternallyNotification` it decodes the changed keys of other devices, replaces their rows for those
+  months in `daily_strip_peers`, and asks `DailyStripModel` to refresh.
+- Log: `strip_sync` with `action` `publish` (months, keys), `arrived` (device, months, reason), `quota` or
+  `account_change` (the store's change reasons), and `error`.
+- Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
+  in `native/project.yml`. That's a native build and a provisioning update (automatic signing handles it).
+
+## Verification
+
+- Host: encode/decode round trip, key naming, the merge rules (counts sum, latest check wins, an untick from
+  another device), and the table migration.
+- Simulator: a launch hook can't see a second device. The smoke checks that the strip still works with no iCloud
+  account (the store is a no-op there).
+- Phone + iPad: the story's scenario, read from both devices' logs.
