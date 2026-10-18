@@ -439,7 +439,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A counter's whole week, set from one press and hold
 - **Issues:** [#342](https://github.com/idvorkin/context-grabber/issues/342)
-- **Status:** implemented in [752a9d0](https://github.com/idvorkin/context-grabber/commit/752a9d0); verified by `CounterWeekTests` (host: today then the six days before with their counts and check marks, steps held until Confirm and only changed days saved, never below 0 nor below another device's count); `DailyStripUITests` on the simulator and the phone in the next build turn
+- **Status:** implemented in [752a9d0](https://github.com/idvorkin/context-grabber/commit/752a9d0) and [24cdd45](https://github.com/idvorkin/context-grabber/commit/24cdd45) (Confirm steps the count as it is then); verified by `CounterWeekTests` (host: today then the six days before with their counts and check marks, steps held until Confirm and only changed days saved, never below 0 nor below another device's count); `DailyStripUITests` on the simulator and the phone in the next build turn
 - **Spec:** [native home screen, "A counter's week"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
 #### Use Case:
