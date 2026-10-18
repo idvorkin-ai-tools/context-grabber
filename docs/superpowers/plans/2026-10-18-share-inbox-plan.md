@@ -44,8 +44,10 @@ with the reason), and deletes. A `.json` the app cannot decode is left alone and
 
 - `com.apple.share-services`. The activation rule allows one web URL, text, or one image.
 - A `UIViewController` hosting a SwiftUI card with a preview, a note field, *Add to Inbox* and *Cancel*. It reads
-  the `NSItemProvider` (URL first, then image, then text), writes the item with `InboxStore`, and completes the
-  request. No network.
+  the `NSItemProvider` (URL first, then image, then any `public.text`: plain as is, RTF and HTML through
+  `NSAttributedString`, others as UTF-8; text that is only an http(s) URL becomes a link), writes the item with
+  `InboxStore`, and completes the request. No network. A share it cannot read shows its reason as selectable text
+  with a Copy button (no BugKit in the extension).
 - Sources: `Share/` only; the App Group id comes from ContextCore (`InboxStore.appGroup`). The App Group
   entitlement matches the widgets'. Its bundle id
   is `com.idvorkin.grabbernative.share`.
@@ -58,7 +60,8 @@ with the reason), and deletes. A `.json` the app cannot decode is left alone and
   `BugProblemView`, so it can be copied.
 - `AppModel`, on launch and on becoming active:
   1. log `inbox` added for items not seen before (kept in settings as the last seen ids);
-  2. run `InboxSender` against `CockpitPage.url`.
+  2. run `InboxSender` against `CockpitPage.url`; a refresh while a send is out runs one more pass when it ends
+     (`why: again`).
 - The launch hook `GRABBER_INBOX=open` opens the Inbox, and `GRABBER_INBOX_FIXTURE=1` writes three items so the
   simulator smoke and a UI test can see them.
 

@@ -28,7 +28,8 @@ first piece of a conversation with Larry inside the app.
 **Sharing.** In any app's share sheet, *Grabber Native* is a target. Tapping it shows a small card: a preview of
 what is being shared (the link's title and address, the first lines of the text, or the image), an optional note,
 and *Add to Inbox*. *Add to Inbox* closes the card at once; *Cancel* closes it with nothing kept. Sharing works in
-aeroplane mode and while Grabber Native is not running.
+aeroplane mode and while Grabber Native is not running. Any text the sheet offers is taken, marked-up text (RTF,
+HTML) kept as plain text; a share the card cannot read says why, selectable and with *Copy*.
 
 **The Inbox.** A launcher on the home screen, *Inbox*, with the number of items not yet sent to Larry on its tile.
 It lists what was shared, newest first: what it is, the note, where it came from (a link's site; iOS does not tell
@@ -43,7 +44,8 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 
 - **Only over the tailnet**, to the same Cockpit the app's Cockpit screen opens; reaching it is the permission, so
   nothing secret is set up on the phone.
-- **When**: each time the app opens or comes to the front. Sharing from another app never waits on the network.
+- **When**: each time the app opens or comes to the front, and once more when a send ends if something was shared
+  while it was out. Sharing from another app never waits on the network.
 - **Once each**: an item resent after a lost answer is recognised by the Cockpit as one it already has, and reads
   *sent to Larry* like any other.
 - **HEIC photos go as JPEG**; PNG, JPEG, GIF and WebP go as they are. Any photo is made smaller (as a JPEG) if
@@ -56,7 +58,7 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 
 - Each share is logged (`inbox`, action added, with the kind and size, never the content) when the app next opens
   and finds it.
-- Each send in phase 2 is logged (`inbox`, action sent / failed, with the item and the Cockpit's answer).
+- Each send in phase 2 is logged (`inbox`, action sent / refused / failed, with the item and the Cockpit's answer).
 
 ## Acceptance criteria
 
