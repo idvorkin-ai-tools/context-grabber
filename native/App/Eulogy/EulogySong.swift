@@ -98,6 +98,7 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
         "The song would not start.", "EulogySong.play",
         ["from": source, "tries": how, "session_error": sessionError.isEmpty ? "none" : sessionError])
     sync()
+    if !ok { release() }
   }
 
   func pause(from source: String) {
