@@ -28,6 +28,31 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(try s.ownValue(.balloons, day: day), 1)
   }
 
+  /// Codex on #378: a first sync whose recovery fails after merging iCloud's month leaves the two held taps on
+  /// disk, with nothing half-merged; the retry lands them on the recovered three, five in all.
+  func testAFailedFirstSyncKeepsTheHeldTapsAndTheRetryLandsThem() throws {
+    let path = FileManager.default.temporaryDirectory.appendingPathComponent("strip-\(UUID().uuidString).db").path
+    defer { try? FileManager.default.removeItem(atPath: path) }
+    struct Refused: Error {}
+    let cloud = [StripRow(day: day, item: .balloons, value: 3, updatedAt: 1_000)]
+    func firstSync(_ s: DailyStrip, failing: Bool) throws {
+      try s.inTransaction {
+        try s.restoreOwn(.balloons, day: day, to: nil)
+        try s.mergeOwn(cloud)
+        if failing { throw Refused() }
+        try s.set(.balloons, day: day, value: try s.ownValue(.balloons, day: day) + 2)
+      }
+    }
+    try DailyStrip(db: SQLiteDatabase(path: path)).set(.balloons, day: day, value: 2)
+    XCTAssertThrowsError(try firstSync(DailyStrip(db: SQLiteDatabase(path: path)), failing: true))
+    var s = try DailyStrip(db: SQLiteDatabase(path: path))
+    XCTAssertEqual(try s.ownValue(.balloons, day: day), 2)
+    XCTAssertEqual(try s.ownRows().count, 1)
+    try firstSync(s, failing: false)
+    s = try DailyStrip(db: SQLiteDatabase(path: path))
+    XCTAssertEqual(try s.value(.balloons, day: day), 5)
+  }
+
   func testCountsAddUpAcrossDevices() throws {
     let s = try strip()
     try s.set(.balloons, day: day, value: 2)
