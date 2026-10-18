@@ -11,6 +11,7 @@ included:
   - ContextCore/Sources
   - Widgets
   - Shared
+  - Share
 force_unwrapping:
   severity: error
 force_try:
