@@ -243,6 +243,8 @@ private struct HomeTile: View {
           }
         )
         .sensoryFeedback(.impact(weight: .light), trigger: showChoices) { _, open in open }
+        // The popover can cancel the touch, or never show, so the lift may never reach the button.
+        .onChange(of: showChoices) { _, open in if !open { held = false } }
         .accessibilityActions {
           ForEach(choices) { choice in Button(choice.title) { model.open(choice: choice) } }
         }
@@ -253,7 +255,6 @@ private struct HomeTile: View {
           }
           .presentationCompactAdaptation(.popover)
           .onDisappear {
-            held = false  // the popover can cancel the touch, so the lift may never reach the button
             guard let choice = chosen else { return }
             chosen = nil
             model.open(choice: choice)

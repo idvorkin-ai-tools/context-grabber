@@ -208,7 +208,7 @@ longer used. The log says which opened (the app or the browser).
 **Press and hold for another mix** ([#383](https://github.com/idvorkin/context-grabber/issues/383)), Igor,
 2026-10-18: *"I should also be able to press and hold on music and then when I lift my finger select one and I
 should have likes and Feel Good Supermix."* A tap still opens the Workout Supermix. A press and hold on the tile
-shows a short menu of three: **Workout Supermix**, **Liked music** (his YouTube Music likes) and **Feel Good
+offers three choices: **Workout Supermix**, **Liked music** (his YouTube Music likes) and **Feel Good
 Supermix** (his link,
 `https://music.youtube.com/playlist?list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0`). Since #391 the hold opens a
 popover of drawn choices instead of a list (the Workout Supermix's own kettlebell in headphones, a heart for Liked
