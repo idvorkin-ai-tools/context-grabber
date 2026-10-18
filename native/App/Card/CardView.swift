@@ -47,7 +47,10 @@ struct CardView: View {
               StackDrillScreen(
                 session: DrillSession(
                   deck: deck, log: app.log, ledger: GrabberLedger.shared(log: app.log), mode: drillMode,
-                  skippingEasy: session.skipsEasyCards))
+                  skippingEasy: session.skipsEasyCards)
+              )
+              // A cover is its own presentation: the app's shake and report sheet do not reach into it (Codex on #381).
+              .bugReporting(app.reporter)
             }
           }
       } else if let problem {
