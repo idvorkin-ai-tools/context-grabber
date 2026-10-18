@@ -73,6 +73,8 @@ final class DailyStripUITests: XCTestCase {
     XCTAssertTrue(day.label.hasPrefix("yesterday"), day.label)
     app.buttons["strip-backdate-confirm"].tap()
     XCTAssertTrue(day.waitForNonExistence(timeout: 5), "one and done")
-    XCTAssertEqual(journal.value as? String, today, "yesterday marked, today as it was")
+    // Today as it was: still done if it was, else the days since now read yesterday.
+    XCTAssertEqual(
+      journal.value as? String, today == "done today" ? today : "1 day since", "yesterday marked, today as it was")
   }
 }

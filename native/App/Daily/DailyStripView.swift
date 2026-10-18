@@ -193,7 +193,7 @@ private struct WeekSheet: View {
         }
       }
     }
-    .presentationDetents([.medium, .large])
+    .presentationDetents([.large])  // all seven days at once (spec), never a half sheet that hides the last ones
   }
 }
 
