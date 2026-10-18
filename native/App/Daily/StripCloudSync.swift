@@ -189,6 +189,7 @@ final class StripCloudSync {
     }
     waitingSteps = [:]
     ready = true
+    recovered = true
     path?.cancel()
     path = nil
     quiet?.cancel()
@@ -328,7 +329,8 @@ final class StripCloudSync {
         byDevice[from, default: []].append(month)
       }
     } catch {
-      log.event("error", ["where": "strip_sync_arrived", "message": "\(error)"])
+      recovered = false
+      log.event("error", ["where": "strip_sync_arrived", "message": "\(error)", "publishing": "closed"])
     }
     guard !byDevice.isEmpty else { return }
     for (from, months) in byDevice {
