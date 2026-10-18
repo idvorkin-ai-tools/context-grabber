@@ -435,22 +435,22 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
----
-
 ### User Story 254:
 
-- **Summary:** A balloon or a trick added to the day it happened
+- **Summary:** A counter's whole week, set from one press and hold
 - **Issues:** [#342](https://github.com/idvorkin/context-grabber/issues/342)
-- **Status:** not implemented; the spec is proposed and waits on Igor (#342)
-- **Spec:** [native home screen, "A count for an earlier day"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+- **Status:** not implemented; spec settled by Igor 2026-10-18 (#342)
+- **Spec:** [native home screen, "A counter's week"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
 #### Use Case:
 - **As someone** who makes balloons and does magic for others and sometimes forgets to count one
-- **I want to** press and hold a counter and set yesterday's or today's count
+- **I want to** press and hold a counter and see and set each of the last seven days' counts at once
 - **so that** the days since and the week Larry reads are right, not only today
 
 #### Acceptance Criteria:
-- **Scenario:** A forgotten balloon from yesterday
-- **Given:** yesterday's Balloons count is 2 and today's is 0
-- **When:** I press and hold Balloons, slide to *yesterday*, tap + once and tap *Confirm*
-- **Then:** yesterday's count is 3, the strip still shows today's *1d* in place of 0, and the log has `ui` daily_strip with the item, yesterday's date, 3 and `backdated`
+- **Scenario:** Two forgotten balloons, on two days, in one go
+- **Given:** Balloons is 2 yesterday, 0 on the day before and 0 today
+- **When:** I press and hold Balloons, tap + on *yesterday* and + on the day before, then tap *Confirm*
+- **Then:** the sheet showed seven days with check marks on yesterday only, then on both changed days; yesterday is 3
+  and the day before is 1; the strip still shows *1d* in place of today's 0; and the log has two `ui` daily_strip
+  events, each with the item, its day, its new value and `backdated`
