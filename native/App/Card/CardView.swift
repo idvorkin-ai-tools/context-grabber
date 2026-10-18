@@ -42,6 +42,8 @@ struct CardView: View {
           // ponytail: the drill's Stats sheet shows a failed load as plain text, not BugProblemView; it is logged
           // (`ledger_stats` how: failed) for a shake report. Copyable once the library lets the host present it
           // (think-a-card-trainer#22).
+          // A report from inside the drill names it, not the card under it (Codex on #381).
+          .onChange(of: drills) { _, open in app.screen = open ? "drill" : "card" }
           .fullScreenCover(isPresented: $drills) {
             if let deck {
               StackDrillScreen(
