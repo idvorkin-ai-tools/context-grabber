@@ -49,7 +49,7 @@ sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim
 | `GRABBER_TIMER_SETTINGS=1` | open the Gym Timer, not started, with *Timer settings* up (logs `ui` action: timer_settings), for a screenshot of the sheet |
 | `GRABBER_WHATS_NEW=open` | open What's new (logs `ui` action: open_whats_new with from, days, changes), for a screenshot of the build's own history (story 148) |
 | `GRABBER_HOME=settings` | open the home screen's Settings sheet (logs `ui` action: home_settings), for a screenshot of the launchers and the diagnostics (story 147) |
-| `GRABBER_SUPERMIX=workout\|liked\|feel_good` | open that mix as the music tile's press-and-hold menu would (story 221; the simulator has no YouTube Music, so it opens in Safari); the log's `ui` open_workout_supermix carries the mix, from: hook and how |
+| `GRABBER_SUPERMIX=workout\|liked\|feel_good` | open that mix as a choice from the music tile's press-and-hold popover would (story 221; the simulator has no YouTube Music, so it opens in Safari); the log's `ui` open_workout_supermix carries the mix, from: hook and how |
 | `GRABBER_INBOX_FIXTURE=1` / `GRABBER_INBOX=open` | write three Inbox items as the share extension would (a link with a note and two texts; their ids start `fixture-`, so they are never sent to Larry, since the simulator reaches the tailnet too), and open the Inbox (#305). The share sheet itself is a phone check: simctl cannot drive it |
 | `GRABBER_LINK=<url>` | route that link as if iOS had opened it (`simctl openurl` stops at an "Open in Grabber Native?" confirmation a script cannot tap): `grabbernative://timer?preset=10,10,2`, `grabbernative://breathe?breath=5&minutes=2`; the log's `open_url` says how it was read. `LinksUITests` opens real links through iOS instead, cold and warm |
 | `GRABBER_DRILL=card_to_position\|position_to_card\|mixed` | open the card screen (`ui` open_card, from: hook) and the trainer's drill over it in that direction, as a tap on *Drill the stack* would (story 220); `just native-test-sim` runs `mixed` and reads the library's `drill` how: open |
@@ -105,8 +105,9 @@ What the native rungs can and cannot see of the live tile ([spec](superpowers/sp
 | Change | Where it must be verified | How |
 |---|---|---|
 | The reading written and read back, the countdown and *to spend* worked out at drawing time, the age and when it turns orange, nothing written being the placeholder | Host | `UsageSnapshotTests` |
+| Today's numbers under the usage: the Today card's order, the short forms, the dash, today's only (the local day) | Host | `TodayGlanceTests` |
 | The tile drawing the app's last reading (small and medium), being added to the home screen, its Gym Timer button starting the timer | Simulator | `xcodebuild … -only-testing:GrabberNativeUITests/UsageTileUITests test` (needs the Cockpit reachable from the Mac; it adds the tile through SpringBoard's gallery and keeps screenshots of the gallery and the home screen), then the log's `usage` load with tile: true |
-| The tile on the phone over hours: redrawing every quarter hour, the orange age, Breathe and Call Larry from it, the App Group on a device-signed build | Phone only | add the medium tile, leave the app closed for two hours, look; tap each button; `just pull-logs`, read `usage` tile and `open_url` |
+| The tile on the phone over hours: redrawing every quarter hour, the orange age, today's numbers drawn and gone at midnight, Breathe and Call Larry from it, the App Group on a device-signed build | Phone only | add the medium tile, leave the app closed for two hours, look; tap each button; `just pull-logs`, read `usage` tile and `open_url` |
 
 What the native rungs can and cannot see of Box breathing:
 

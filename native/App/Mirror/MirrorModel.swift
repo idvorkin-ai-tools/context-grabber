@@ -8,7 +8,9 @@ import SwiftUI
 
 @MainActor
 final class MirrorModel: ObservableObject {
-  @Published private(set) var snapshot: MirrorSnapshot?
+  @Published private(set) var snapshot: MirrorSnapshot? {
+    didSet { publishToday() }
+  }
   /// "Health access", "Today", "Week" while a grab runs; nil otherwise.
   @Published private(set) var phase: String?
   @Published private(set) var grabStartedAt: Date?
@@ -53,6 +55,16 @@ final class MirrorModel: ObservableObject {
   }
 
   var grabbing: Bool { phase != nil }
+
+  /// #396, story 226: the Today card's numbers onto the usage tile, keyed by the day of the grab (not of the look),
+  /// so the tile never shows an older grab's steps as today's.
+  private func publishToday() {
+    guard let snapshot,
+      let taken = ISO8601DateFormatter.withFraction.date(from: snapshot.timestamp)
+        ?? ISO8601DateFormatter().date(from: snapshot.timestamp)
+    else { return }
+    UsageTileStore.writeToday(TodayGlance(cards: cards, day: AccessoryLog.dateKey(taken)))
+  }
 
   var cards: [MetricCard] {
     MirrorText.cards(snapshot?.health, weekly: snapshot?.weekly ?? [:], now: now(), clock: clock)

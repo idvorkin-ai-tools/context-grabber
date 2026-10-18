@@ -208,13 +208,13 @@ longer used. The log says which opened (the app or the browser).
 **Press and hold for another mix** ([#383](https://github.com/idvorkin/context-grabber/issues/383)), Igor,
 2026-10-18: *"I should also be able to press and hold on music and then when I lift my finger select one and I
 should have likes and Feel Good Supermix."* A tap still opens the Workout Supermix. A press and hold on the tile
-shows a short menu of three: **Workout Supermix**, **Liked music** (his YouTube Music likes) and **Feel Good
+offers three choices: **Workout Supermix**, **Liked music** (his YouTube Music likes) and **Feel Good
 Supermix** (his link,
 `https://music.youtube.com/playlist?list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0`). Since #391 the hold opens a
 popover of drawn choices instead of a list (the Workout Supermix's own kettlebell in headphones, a heart for Liked
 music, a sun for Feel Good; Apple's headphones, heart and sun stood in on the list before it), and a tap on one opens
 it (spec 2026-10-18-press-and-hold-popovers-design.md); a tap outside opens nothing. Each opens in YouTube Music, or the browser
-without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the menu) shows a
+without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the popover) shows a
 copyable problem under the tiles, naming the mix and its link, until the next try or a newer message.
 
 ## The Gym Timer in the native app (step 2)

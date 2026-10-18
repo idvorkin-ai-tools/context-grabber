@@ -48,9 +48,12 @@ public struct BreathPattern: Equatable, Hashable, Sendable {
   /// Story 249: the same at two seconds a count: in 8, hold 8, out 12, hold 4 (Igor, 2026-10-17).
   public static let fourFourSixTwoX2 = BreathPattern(
     inSeconds: 8, holdInSeconds: 8, outSeconds: 12, holdOutSeconds: 4, pace: 2)
-  public static let all = [fourFourSixTwo, fourFourSixTwoX2]
+  /// Story 280 (#394): at three seconds a count: in 12, hold 12, out 18, hold 6 (Igor, 2026-10-18).
+  public static let fourFourSixTwoX3 = BreathPattern(
+    inSeconds: 12, holdInSeconds: 12, outSeconds: 18, holdOutSeconds: 6, pace: 3)
+  public static let all = [fourFourSixTwo, fourFourSixTwoX2, fourFourSixTwoX3]
 
-  /// The counts, before the pace: 4, 4, 6, 2 for both.
+  /// The counts, before the pace: 4, 4, 6, 2 for each.
   private var counts: [Int] { [inSeconds, holdInSeconds, outSeconds, holdOutSeconds].map { $0 / pace } }
   /// "4·4·6·2", "4·4·6·2 ×2", on its button.
   public var label: String {

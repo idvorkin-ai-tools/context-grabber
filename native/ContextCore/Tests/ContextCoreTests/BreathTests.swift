@@ -352,9 +352,25 @@ final class BreathToneTests: XCTestCase {
     XCTAssertEqual(slow.sentence, "In 8, hold 8, out 12, hold 4.")
     XCTAssertEqual(BreathPattern.named("4-4-6-2-x2"), slow)
     XCTAssertEqual(BreathPattern.named("4-4-6-2"), .fourFourSixTwo)
-    XCTAssertEqual(BreathPattern.all, [.fourFourSixTwo, slow])
+    XCTAssertEqual(BreathPattern.all, [.fourFourSixTwo, slow, .fourFourSixTwoX3])
     XCTAssertEqual(
       ActivityLog.breathName(plan), "Breathing \u{00B7} 4\u{00B7}4\u{00B7}6\u{00B7}2 \u{00D7}2 \u{00B7} 9 cycles")
+  }
+
+  /// Story 280 (#394): the same shape at three seconds a count.
+  func testTheTripledPatternIsTheSameShapeAtAThirdOfThePace() {
+    let slower = BreathPattern.fourFourSixTwoX3
+    let plan = BreathPlan(pattern: slower, sessionMinutes: 10)
+    XCTAssertEqual((0..<4).map(plan.side), [12, 12, 18, 6])
+    XCTAssertEqual(plan.cycleSeconds, 48)
+    XCTAssertEqual(plan.cycles, 13, "600 s over 48 s cycles is 12.5, rounded up")
+    XCTAssertEqual(plan.pattern, slower, "the plan knows it is the tripled pattern")
+    XCTAssertEqual(slower.label, "4\u{00B7}4\u{00B7}6\u{00B7}2 \u{00D7}3")
+    XCTAssertEqual(BreathPattern.named("4-4-6-2-x3"), slower)
+    XCTAssertEqual(slower.sentence, "In 12, hold 12, out 18, hold 6.")
+    XCTAssertEqual(plan.arcs, BreathPlan(pattern: .fourFourSixTwo, sessionMinutes: 10).arcs, "the same shape")
+    XCTAssertEqual(
+      ActivityLog.breathName(plan), "Breathing \u{00B7} 4\u{00B7}4\u{00B7}6\u{00B7}2 \u{00D7}3 \u{00B7} 13 cycles")
   }
 
   func testThePatternsPhasesFallOnTheirOwnSeconds() {
