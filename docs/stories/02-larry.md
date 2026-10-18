@@ -340,7 +340,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 038:
 
 - **Summary:** Share anything to Grabber Native and it waits in my Inbox
-- **Status:** native app only: implemented in [944f51e](https://github.com/idvorkin/context-grabber/commit/944f51e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [1ab4fa2](https://github.com/idvorkin/context-grabber/commit/1ab4fa2)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor; any text the share sheet offers (RTF and HTML turned plain) and a copyable reason when a share cannot be read, in [cadee2e](https://github.com/idvorkin/context-grabber/commit/cadee2e)
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor; any text the share sheet offers (RTF and HTML turned plain) and a copyable reason when a share cannot be read, in [d5095e8](https://github.com/idvorkin/context-grabber/commit/d5095e8)
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -360,7 +360,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 039:
 
 - **Summary:** What is in my Inbox reaches Larry, once each
-- **Status:** native app only: implemented in [944f51e](https://github.com/idvorkin/context-grabber/commit/944f51e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [1ab4fa2](https://github.com/idvorkin/context-grabber/commit/1ab4fa2)); a send over the tailnet from the phone still for Igor
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); a share made while a send is out goes in one more pass when it ends, in [3bf50ec](https://github.com/idvorkin/context-grabber/commit/3bf50ec); a send over the tailnet from the phone still for Igor
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -380,7 +380,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 260:
 
 - **Summary:** An item Larry's inbox refuses says why and is never resent
-- **Status:** native app only: implemented in [944f51e](https://github.com/idvorkin/context-grabber/commit/944f51e); verified by `InboxTests` (host: a 4xx answer recorded as refused with the Cockpit's reason and not sent again, an unreadable image refused without asking); the copyable reason on the phone still for Igor
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: a 4xx answer recorded as refused with the Cockpit's reason and not sent again, an unreadable image refused without asking); the copyable reason on the phone still for Igor
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -400,7 +400,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 261:
 
 - **Summary:** With the Cockpit out of reach, the Inbox waits for the next open
-- **Status:** native app only: implemented in [944f51e](https://github.com/idvorkin/context-grabber/commit/944f51e); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first); off the tailnet on the phone still for Igor
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first); off the tailnet on the phone still for Igor
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 

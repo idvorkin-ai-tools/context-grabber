@@ -14,7 +14,11 @@ final class ShareViewController: UIViewController {
     super.viewDidLoad()
     let card = UIHostingController(
       rootView: ShareCard(
-        shared: shared, add: { [weak self] note in self?.add(note: note) ?? "closed" },
+        shared: shared,
+        add: { [weak self] note in
+          guard let self else { return nil }
+          return self.add(note: note)
+        },
         cancel: { [weak self] in self?.close(cancelled: true) }))
     addChild(card)
     card.view.frame = view.bounds
@@ -91,7 +95,8 @@ final class Shared: ObservableObject {
       let (found, state) = await Self.text(p)
       guard let found, !found.isEmpty else { return fail("The shared text could not be read.", state: state, offered) }
       // A link shared as text (some apps do) is still a link.
-      if let link = URL(string: found.trimmingCharacters(in: .whitespacesAndNewlines)),
+      if let link = URL(
+        string: found.trimmingCharacters(in: .whitespacesAndNewlines), encodingInvalidCharacters: false),
         ["http", "https"].contains(link.scheme ?? "")
       {
         url = link
@@ -153,6 +158,7 @@ struct ShareCard: View {
   let cancel: () -> Void
   @State private var note = ""
   @State private var failure: String?
+  @State private var added = false
 
   var body: some View {
     NavigationStack {
@@ -184,7 +190,11 @@ struct ShareCard: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: cancel) }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Add to Inbox") { failure = add(note) }.disabled(!shared.loaded || shared.problem != nil)
+          Button("Add to Inbox") {
+            failure = add(note)
+            added = failure == nil
+          }
+          .disabled(!shared.loaded || shared.problem != nil || added)
         }
       }
     }
