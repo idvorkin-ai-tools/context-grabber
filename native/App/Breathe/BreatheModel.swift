@@ -91,6 +91,8 @@ final class BreatheModel: ObservableObject {
   /// A preset's seconds (nil for Custom) as the remembered choice; also a hold popover's choice (#391), saved before
   /// the screen opens and reads it.
   static func remember(preset seconds: Int?, in database: AppDatabase) {
+    // Custom's lengths are seeded from the old slider on first open; seed them first so the preset cannot become them.
+    for seed in BreathSetup.restore(database.setting).seeds { database.setSetting(seed.key, seed.value) }
     database.setSetting(BreathSetup.patternKey, "")
     if let seconds { database.setSetting(BreathSetup.breathKey, String(seconds)) }
     database.setSetting(BreathSetup.customKey, seconds == nil ? "1" : "0")
