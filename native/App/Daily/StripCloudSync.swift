@@ -114,7 +114,7 @@ final class StripCloudSync {
     if ready {
       publish(month: nil)
     } else {
-      // No timeout: offline, a minute proves nothing, and publishing then could overwrite the month in iCloud.
+      // Offline, waiting proves nothing, and publishing could overwrite the month in iCloud: only time online counts.
       log.event("strip_sync", ["action": "waiting_for_first_sync"])
       watchForAQuietCloud()
     }
@@ -123,24 +123,34 @@ final class StripCloudSync {
   }
 
   /// When no device has ever published, no download ever comes to end the wait (Codex on #378). Five minutes in a row
-  /// online with none means iCloud has nothing of this device's to overwrite; offline time never counts.
+  /// online and in the foreground with none means iCloud has nothing of this device's to overwrite; offline or
+  /// suspended time never counts.
   private func watchForAQuietCloud() {
     let monitor = NWPathMonitor()
-    monitor.pathUpdateHandler = { [weak self] update in
-      let online = update.status == .satisfied
-      Task { @MainActor in
-        guard let self, !self.ready else { return }
-        self.quiet?.cancel()
-        guard online else { return }
-        self.quiet = Task { @MainActor [weak self] in
-          try? await Task.sleep(for: .seconds(300))
-          guard !Task.isCancelled else { return }
-          self?.open(why: "online_quiet")
-        }
-      }
+    monitor.pathUpdateHandler = { [weak self] _ in
+      Task { @MainActor in self?.restartQuiet() }
     }
     monitor.start(queue: .main)
     path = monitor
+    for name in [UIApplication.didEnterBackgroundNotification, UIApplication.didBecomeActiveNotification] {
+      NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+        MainActor.assumeIsolated { self?.restartQuiet() }
+      }
+    }
+  }
+
+  private var quietCounts: Bool {
+    !ready && path?.currentPath.status == .satisfied && UIApplication.shared.applicationState != .background
+  }
+
+  private func restartQuiet() {
+    quiet?.cancel()
+    guard quietCounts else { return }
+    quiet = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(300))
+      guard !Task.isCancelled, let self, self.quietCounts else { return }
+      self.open(why: "online_quiet")
+    }
   }
 
   /// The first sync has happened: this device's own months are merged back, then everything goes up.
