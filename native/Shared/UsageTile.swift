@@ -25,6 +25,19 @@ enum UsageTileStore {
   static func read() -> UsageSnapshot? {
     UsageSnapshot.decode(UserDefaults(suiteName: group)?.data(forKey: key))
   }
+
+  /// #396: the Today card's four numbers, written each time the app looks at Health.
+  private static let todayKey = "today_glance"
+
+  static func writeToday(_ glance: TodayGlance) {
+    guard let defaults = UserDefaults(suiteName: group) else { return }
+    defaults.set(glance.encoded(), forKey: todayKey)
+    WidgetCenter.shared.reloadTimelines(ofKind: kind)
+  }
+
+  static func readToday() -> TodayGlance? {
+    TodayGlance.decode(UserDefaults(suiteName: group)?.data(forKey: todayKey))
+  }
 }
 
 /// The links the medium tile's buttons open: the same as the Links screen's (story 135).
@@ -42,6 +55,8 @@ enum UsageTileLinks {
 
 struct UsageTileView: View {
   let snapshot: UsageSnapshot?
+  /// #396: today's numbers under the usage; drawn only on the day they were taken.
+  var today: TodayGlance?
   let now: Date
   let family: WidgetFamily
 
@@ -78,6 +93,7 @@ struct UsageTileView: View {
         .font(.caption2)
         .lineLimit(1)
         .minimumScaleFactor(0.8)
+        todayLine
       }
     } else {
       VStack(alignment: .leading, spacing: 4) {
@@ -87,6 +103,34 @@ struct UsageTileView: View {
         Text("Open Grabber Native").font(.caption2).foregroundStyle(.secondary)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+}
+
+extension UsageTileView {
+  /// #396, story 226: "5.7h · 7,399 · 65 ms · 38m", each after its symbol; nothing once the day has turned.
+  @ViewBuilder fileprivate var todayLine: some View {
+    if let today, today.isToday(AccessoryLog.dateKey(now)) {
+      HStack(spacing: 6) {
+        ForEach(today.items, id: \.key) { item in
+          HStack(spacing: 2) {
+            Image(systemName: Self.symbol(item.key)).foregroundStyle(.secondary)
+            Text(item.value).monospacedDigit()
+          }
+        }
+      }
+      .font(.caption2)
+      .lineLimit(1)
+      .minimumScaleFactor(0.6)
+    }
+  }
+
+  static func symbol(_ key: String) -> String {
+    switch key {
+    case "sleep": return "bed.double.fill"
+    case "movement": return "figure.walk"
+    case "hrv": return "waveform.path.ecg"
+    default: return "flame.fill"
     }
   }
 }
