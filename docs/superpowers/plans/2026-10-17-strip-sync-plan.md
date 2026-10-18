@@ -11,7 +11,7 @@ so **each device writes only its own keys**, one per month:
 
     strip.<device-id>.<yyyy-mm>  →  JSON {"<yyyy-mm-dd>": {"<item>": [value, updated_at_ms]}}
 
-iCloud carries the last 12 months (`StripSync.monthsKept`): each device removes its own older keys when it publishes, and ignores other devices' older months and any key that left (a key leaving is pruning, so the local copy stays, whatever each device's clock says). A year of every item every day is a few tens of KB per device, so even four devices stay far under 1 MB (Codex on #378). The device id is `UIDevice.identifierForVendor`, so a
+iCloud carries the last 12 months (`StripSync.monthsKept`): each device removes every older key when it publishes (its own and abandoned ids'), and ignores other devices' older months and any key that left (a key leaving is pruning, so the local copy stays, whatever each device's clock says). A year of every item every day is a few tens of KB per device, so even four devices stay far under 1 MB (Codex on #378). The device id is `UIDevice.identifierForVendor`, so a
 backup restored onto another phone gets a new one; the last id is kept in `settings` (`strip_device_id`). When it
 changes (only a restore or a transfer brings the database to a new id, and the phone it came from may still be in
 use), this install's rows are handed over as the old id's peer rows, which that id's keys update day by day (the newer change wins),

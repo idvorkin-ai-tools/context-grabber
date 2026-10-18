@@ -101,10 +101,11 @@ final class StripCloudSync {
       let oldest = oldestKept
       let months = StripSync.encode(try strip.ownRows(month: month)).filter { $0.key >= oldest }
       for (m, data) in months { store.set(data, forKey: StripSync.key(device: device, month: m)) }
-      // This device's months that aged out leave the store, so it stays inside its quota.
+      // Every device's months that aged out leave the store, this one's and abandoned ids' alike (a replaced phone
+      // never prunes its own), so it stays inside its quota; each device keeps its own copy (Codex on #378).
       let aged = store.dictionaryRepresentation.keys.filter {
         guard let parsed = StripSync.parse(key: $0) else { return false }
-        return parsed.device == device && parsed.month < oldest
+        return parsed.month < oldest
       }
       for key in aged { store.removeObject(forKey: key) }
       log.event(
