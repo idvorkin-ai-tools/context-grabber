@@ -326,7 +326,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Press and hold the music tile to pick Workout, Liked music or Feel Good Supermix
 - **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383)
-- **Status:** native app only: implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
+- **Status:** native app only: icons on each mix [fa6be05](https://github.com/idvorkin/context-grabber/commit/fa6be05), verified by `WorkoutSupermixTests` (host), the hold menu's icons in `WorkoutSupermixUITests` (simulator, not yet run); implemented in [ee9d77c](https://github.com/idvorkin/context-grabber/commit/ee9d77c), a failure to open copyable since [d507d3c](https://github.com/idvorkin/context-grabber/commit/d507d3c); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
@@ -338,7 +338,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Picking a mix
 - **Given:** YouTube Music is installed
 - **When:** I press and hold the Workout Supermix tile, slide to *Liked music* or *Feel Good Supermix* and lift my finger
-- **Then:** a menu of Workout Supermix, Liked music and Feel Good Supermix shows, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
+- **Then:** a menu of Workout Supermix (headphones), Liked music (a heart) and Feel Good Supermix (a sun) shows, each with its icon, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, a mix that will not open shows a copyable problem under the tiles until the next try or a newer message, and the log names the mix and which opened
 
 ---
 

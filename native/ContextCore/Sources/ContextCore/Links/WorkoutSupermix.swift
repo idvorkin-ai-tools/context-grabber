@@ -22,6 +22,17 @@ public enum WorkoutSupermix {
       }
     }
 
+    /// The menu's icon (Igor, 2026-10-18): Apple's symbols until the drawn art of the press-and-hold popovers.
+    /// ponytail: SF Symbols has no kettlebell with headphones, so Workout wears headphones alone; the drawn
+    /// popover art (tile style, Igor's pick) replaces all three.
+    public var symbol: String {
+      switch self {
+      case .workout: return "headphones"
+      case .liked: return "heart.fill"
+      case .feelGood: return "sun.max.fill"
+      }
+    }
+
     public var link: URL {
       switch self {
       case .workout: return URL(string: "https://music.youtube.com/watch?v=SsLFxyVjVqQ")!

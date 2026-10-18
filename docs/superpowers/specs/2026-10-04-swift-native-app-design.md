@@ -210,7 +210,9 @@ longer used. The log says which opened (the app or the browser).
 should have likes and Feel Good Supermix."* A tap still opens the Workout Supermix. A press and hold on the tile
 shows a short menu of three: **Workout Supermix**, **Liked music** (his YouTube Music likes) and **Feel Good
 Supermix** (his link,
-`https://music.youtube.com/playlist?list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0`). Sliding the finger to one and
+`https://music.youtube.com/playlist?list=RDTMAK5uy_nuKPeaybq-IRcrMnaR-5TIfvKxB7fVJu0`). Each choice carries its icon (Igor, 2026-10-18): headphones for the Workout Supermix, a heart for Liked
+music, a sun for Feel Good Supermix; Apple's symbols until the drawn art of the press-and-hold popovers replaces
+them. Sliding the finger to one and
 lifting opens it, as iOS menus do; lifting off the menu opens nothing. Each opens in YouTube Music, or the browser
 without it, and the log names the mix and which opened. A mix that opens in neither (a tap or the menu) shows a
 copyable problem under the tiles, naming the mix and its link, until the next try or a newer message.
