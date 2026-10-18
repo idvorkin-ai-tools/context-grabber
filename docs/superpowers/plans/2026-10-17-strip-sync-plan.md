@@ -23,7 +23,7 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
 
 - Each row is `(device, day, item, value, updated_at)`. This device's rows are the `daily_strip` table, which gains
   an `updated_at` column (0 for the rows from before). Other devices' rows go in a new `daily_strip_peers` table.
-- **Counters** (balloons, magic): the day's value is the sum over devices. A long press lowers this device's own
+- **Counters** (balloons, magic): the day's value is the sum over devices. A − in the counter's week (#342) lowers this device's own
   count, never below 0.
 - **Checks** (gym, meditation, journal): the row with the latest `updated_at` across devices wins. A tap on this
   device writes a new row with now's time, so any device can check or uncheck.

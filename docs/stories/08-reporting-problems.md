@@ -342,7 +342,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A daily strip: gym, meditation, journal, balloons and magic, at a glance
 - **Issues:** [#236](https://github.com/idvorkin/context-grabber/issues/236), [#238](https://github.com/idvorkin/context-grabber/issues/238), [#257](https://github.com/idvorkin/context-grabber/issues/257) (meditation), [#287](https://github.com/idvorkin/context-grabber/issues/287) (icons)
-- **Status:** implemented in [364d3fa](https://github.com/idvorkin/context-grabber/commit/364d3fa); verified by `DailyStripTests` and `HomeLayoutTests` (host: values by day, never below 0, gym days from a tap, the timer or a strength workout, days since gym across the clock change) and `DailyStripUITests` on the simulator (above the tiles, one line, a tap adds a balloon, a long press takes one off, the journal check flips and back); a Gym Timer workout or a Health strength workout checking gym on the phone not yet. Meditation (#257): [91291e6](https://github.com/idvorkin/context-grabber/commit/91291e6); verified by `DailyStripTests` on the host (breathing today, the last grab's mindful minutes today, neither from yesterday, zero minutes) and `DailyStripUITests` on the simulator (on the strip's one line; screenshot read by eye); turning green after breathing or Health on the phone not yet. Journal as a pen signing and Balloons as a dog (#287; the nearest system symbols to a feather pen and a balloon dog): [e7948d8](https://github.com/idvorkin/context-grabber/commit/e7948d8), verified by a simulator screenshot read by eye; the phone not yet; an earlier day by press and hold (#290): [c3adaa1](https://github.com/idvorkin/context-grabber/commit/c3adaa1), verified by `DailyStripTests` (host: the day and its label across a month and the clock change, yesterday's gym making it 1d); `DailyStripUITests` on the simulator in the next build turn; the drawn quill and balloon poodle (#299): [aba45f4](https://github.com/idvorkin/context-grabber/commit/aba45f4), verified by `scripts/native/test-tile-art.sh` (host: both compiled as template images); the phone in this build turn; the outline poodle with one segment per body part: [3c5e8fe](https://github.com/idvorkin/context-grabber/commit/3c5e8fe) and [f5add4d](https://github.com/idvorkin/context-grabber/commit/f5add4d), verified by `scripts/native/test-tile-art.sh` (host); the phone in the next build turn; the poodle's head: [b33c1d6](https://github.com/idvorkin/context-grabber/commit/b33c1d6), `test-tile-art.sh` (host)
+- **Status:** implemented in [364d3fa](https://github.com/idvorkin/context-grabber/commit/364d3fa); verified by `DailyStripTests` and `HomeLayoutTests` (host: values by day, never below 0, gym days from a tap, the timer or a strength workout, days since gym across the clock change) and `DailyStripUITests` on the simulator (above the tiles, one line, a tap adds a balloon, the journal check flips and back); a Gym Timer workout or a Health strength workout checking gym on the phone not yet. Meditation (#257): [91291e6](https://github.com/idvorkin/context-grabber/commit/91291e6); verified by `DailyStripTests` on the host (breathing today, the last grab's mindful minutes today, neither from yesterday, zero minutes) and `DailyStripUITests` on the simulator (on the strip's one line; screenshot read by eye); turning green after breathing or Health on the phone not yet. Journal as a pen signing and Balloons as a dog (#287; the nearest system symbols to a feather pen and a balloon dog): [e7948d8](https://github.com/idvorkin/context-grabber/commit/e7948d8), verified by a simulator screenshot read by eye; the phone not yet; an earlier day by press and hold (#290): [c3adaa1](https://github.com/idvorkin/context-grabber/commit/c3adaa1), verified by `DailyStripTests` (host: the day and its label across a month and the clock change, yesterday's gym making it 1d); `DailyStripUITests` on the simulator in the next build turn; the drawn quill and balloon poodle (#299): [aba45f4](https://github.com/idvorkin/context-grabber/commit/aba45f4), verified by `scripts/native/test-tile-art.sh` (host: both compiled as template images); the phone in this build turn; the outline poodle with one segment per body part: [3c5e8fe](https://github.com/idvorkin/context-grabber/commit/3c5e8fe) and [f5add4d](https://github.com/idvorkin/context-grabber/commit/f5add4d), verified by `scripts/native/test-tile-art.sh` (host); the phone in the next build turn; the poodle's head: [b33c1d6](https://github.com/idvorkin/context-grabber/commit/b33c1d6), `test-tile-art.sh` (host); the counters' long press now opens their week instead of taking one off (story 254): [cfe75b8](https://github.com/idvorkin/context-grabber/commit/cfe75b8), `DailyStripUITests` on the simulator (2026-10-18)
 - **Spec:** [native home screen, "The daily strip"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
 #### Use Case:
@@ -353,7 +353,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** Checks and counts
 - **Given:** the home screen, with the strip under the Today card
-- **When:** I tap Journal, tap Balloons twice and long-press it once, and tap Magic
+- **When:** I tap Journal, tap Balloons once, and tap Magic
 - **Then:** Journal (a drawn quill) shows a green check, Balloons (a drawn balloon poodle) shows 1, Magic shows 1, all on one tight line, and the log has `ui` daily_strip for each change
 
 - **Scenario:** Days since gym
@@ -434,3 +434,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the card keeps this morning's numbers until the new ones land, then shows this afternoon's, I can tap and scroll the whole time, and on a fresh install no Health sheet appears
 
 ---
+
+### User Story 254:
+
+- **Summary:** A counter's whole week, set from one press and hold
+- **Issues:** [#342](https://github.com/idvorkin/context-grabber/issues/342)
+- **Status:** implemented in [cfe75b8](https://github.com/idvorkin/context-grabber/commit/cfe75b8) and [6bb2b55](https://github.com/idvorkin/context-grabber/commit/6bb2b55) (Confirm steps the count as it is then); verified by `CounterWeekTests` (host: today then the six days before with their counts and check marks, steps held until Confirm and only changed days saved, never below 0 nor below another device's count); the sheet opens full height so all seven days show: [3063386](https://github.com/idvorkin/context-grabber/commit/3063386); `DailyStripUITests` on the simulator (press and hold opens seven days, − today and + yesterday held until Confirm, then saved; 2026-10-18); the phone in the next build turn
+- **Spec:** [native home screen, "A counter's week"](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+
+#### Use Case:
+- **As someone** who makes balloons and does magic for others and sometimes forgets to count one
+- **I want to** press and hold a counter and see and set each of the last seven days' counts at once
+- **so that** the days since and the week Larry reads are right, not only today
+
+#### Acceptance Criteria:
+- **Scenario:** Two forgotten balloons, on two days, in one go
+- **Given:** Balloons is 2 yesterday, 0 on the day before and 0 today
+- **When:** I press and hold Balloons, tap + on *yesterday* and + on the day before, then tap *Confirm*
+- **Then:** the sheet showed seven days with check marks on yesterday only, then on both changed days; yesterday is 3
+  and the day before is 1; the strip still shows *1d* in place of today's 0; and the log has two `ui` daily_strip
+  events, each with the item, its day, its new value and `backdated`

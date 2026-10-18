@@ -95,7 +95,7 @@ final class DailyStripModel: ObservableObject {
     do {
       let own = try store?.ownValue(item, day: today) ?? 0
       next = item.isCounter ? max(0, own + step) : (value(item) > 0 ? 0 : 1)
-      // The step as applied (a long press at 0 changes nothing), held while the first sync is awaited (#380).
+      // The step as applied (a − at 0 changes nothing), held while the first sync is awaited (#380).
       if item.isCounter { sync?.stepping(item, day: today, by: next - own) }
       try store?.set(item, day: today, value: next)
     } catch {
@@ -118,6 +118,42 @@ final class DailyStripModel: ObservableObject {
     }
     log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": 1, "day": day, "backdated": daysAgo])
     sync?.changed(day: day)
+    refresh()
+  }
+
+  /// #342: a counter's last seven days, for the sheet its press and hold opens.
+  func week(_ item: DailyItem) -> CounterWeek? {
+    refresh()  // the day may have turned since the strip was drawn
+    guard let store else { return nil }
+    do {
+      return try CounterWeek(item, today: today, strip: store)
+    } catch {
+      log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
+      return nil
+    }
+  }
+
+  /// #342: Confirm in a counter's week saves every day changed there, each as a tap's step would be.
+  func save(_ week: CounterWeek) {
+    for change in week.changes {
+      // The step, onto the count as it is now: iCloud may have restored this device's days while the sheet was up.
+      let next: Int
+      do {
+        let own = try store?.ownValue(week.item, day: change.day) ?? 0
+        next = max(0, own + change.step)
+        sync?.stepping(week.item, day: change.day, by: next - own)
+        try store?.set(week.item, day: change.day, value: next)
+      } catch {
+        log.event("error", ["where": "daily_strip", "item": week.item.rawValue, "message": "\(error)"])
+        continue
+      }
+      var fields: [String: Any] = [
+        "action": "daily_strip", "item": week.item.rawValue, "value": next, "day": change.day,
+      ]
+      if change.daysAgo > 0 { fields["backdated"] = change.daysAgo }
+      log.event("ui", fields)
+      sync?.changed(day: change.day)
+    }
     refresh()
   }
 

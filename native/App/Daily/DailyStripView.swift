@@ -1,6 +1,6 @@
 //  The daily strip on the home screen (#236, #238, #257; home-screen spec, "The daily strip"): one tight line. Gym,
 //  Meditation and Journal are checks (a press and hold marks an earlier day, #290); Balloons and Magic count, a tap
-//  for one more and a long press for one fewer.
+//  for one more and a press and hold for the counter's week (#342).
 
 import ContextCore
 import SwiftUI
@@ -11,6 +11,8 @@ struct DailyStripView: View {
   @State private var backdating: Backdate?
   /// A long press opened the sheet: the button's tap on release is not a second change.
   @State private var longPressed = false
+  /// #342: the counter whose week is open.
+  @State private var editing: WeekEdit?
 
   var body: some View {
     HStack(spacing: 0) {
@@ -37,7 +39,9 @@ struct DailyStripView: View {
       item: $backdating, onDismiss: { longPressed = false },
       content: { b in
         BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, day: $0, daysAgo: $1) }
-      })
+      }
+    )
+    .sheet(item: $editing) { e in WeekSheet(label: e.label, week: e.week) { strip.save($0) } }
   }
 
   private var gymNote: String? {
@@ -108,17 +112,88 @@ struct DailyStripView: View {
     .frame(maxWidth: .infinity, minHeight: 28)
     .contentShape(Rectangle())
     .onTapGesture { withAnimation(.snappy) { strip.change(item, by: 1) } }
-    .onLongPressGesture { withAnimation(.snappy) { strip.change(item, by: -1) } }
+    .onLongPressGesture { openWeek(item, label: label) }
     .sensoryFeedback(.increase, trigger: count)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(label)
     .accessibilityValue(count > 0 ? "\(count)" : Self.spoken(note(item)))
     .accessibilityAddTraits(.isButton)
     .accessibilityAction { strip.change(item, by: 1) }
+    .accessibilityAction(named: "Edit the week") { openWeek(item, label: label) }
     .accessibilityAdjustableAction { direction in
       strip.change(item, by: direction == .increment ? 1 : -1)
     }
     .accessibilityIdentifier("strip-\(item.rawValue)")
+  }
+
+  private func openWeek(_ item: DailyItem, label: String) {
+    guard let week = strip.week(item) else { return }
+    editing = WeekEdit(label: label, week: week)
+  }
+}
+
+/// #342: the counter week being edited, while its sheet is up.
+private struct WeekEdit: Identifiable {
+  let label: String
+  let week: CounterWeek
+  var id: String { week.item.rawValue }
+}
+
+/// Press and hold a counter (#342, story 254): its last seven days, each with − and + and a check above 0. Nothing
+/// is saved until Confirm.
+private struct WeekSheet: View {
+  let label: String
+  @State var week: CounterWeek
+  let confirm: (CounterWeek) -> Void
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    NavigationStack {
+      List(Array(week.days.enumerated()), id: \.element.day) { index, day in
+        HStack(spacing: 12) {
+          Image(systemName: "checkmark").font(.caption.weight(.bold)).foregroundStyle(.green)
+            .opacity(day.checked ? 1 : 0)
+            .accessibilityHidden(true)
+          Text(day.label).monospacedDigit()
+          Spacer(minLength: 8)
+          Button {
+            week.step(index, by: -1)
+          } label: {
+            Image(systemName: "minus.circle")
+          }
+          .accessibilityLabel("One fewer")
+          .accessibilityIdentifier("strip-week-minus-\(day.daysAgo)")
+          Text("\(day.count)").font(.body.weight(.semibold).monospacedDigit()).frame(minWidth: 24)
+            .contentTransition(.numericText())
+            .accessibilityIdentifier("strip-week-count-\(day.daysAgo)")
+          Button {
+            week.step(index, by: 1)
+          } label: {
+            Image(systemName: "plus.circle.fill")
+          }
+          .accessibilityLabel("One more")
+          .accessibilityIdentifier("strip-week-plus-\(day.daysAgo)")
+        }
+        .font(.title3)
+        .buttonStyle(.borderless)  // two buttons in one row, each its own tap
+        .sensoryFeedback(.selection, trigger: day.count)
+      }
+      .navigationTitle(label)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") { dismiss() }.accessibilityIdentifier("strip-week-cancel")
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Confirm") {
+            confirm(week)
+            dismiss()
+          }
+          .accessibilityIdentifier("strip-week-confirm")
+        }
+      }
+    }
+    .presentationDetents([.large])  // all seven days at once (spec), never a half sheet that hides the last ones
   }
 }
 

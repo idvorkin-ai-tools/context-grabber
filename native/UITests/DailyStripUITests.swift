@@ -1,6 +1,6 @@
 //  #236, #238: the daily strip under the Today card. Gym and Journal are checks; Balloons and Magic count, a tap for
-//  one more and a long press for one fewer. The simulator's database keeps today's values between runs, so the test
-//  reads before it changes.
+//  one more and a press and hold for the counter's week (#342). The simulator's database keeps the values between
+//  runs, so the test reads before it changes.
 
 import XCTest
 
@@ -21,11 +21,26 @@ final class DailyStripUITests: XCTestCase {
     let start = Int(atZero ?? "") ?? 0
     balloons.tap()
     XCTAssertEqual(balloons.value as? String, "\(start + 1)", "a tap adds one")
+
+    // #342, story 254: press and hold opens the week; − today and + yesterday stay in the sheet until Confirm.
     balloons.press(forDuration: 1.0)
+    let todayCount = app.staticTexts["strip-week-count-0"]
+    XCTAssertTrue(todayCount.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["strip-week-count-6"].exists, "seven days")
+    XCTAssertEqual(todayCount.label, "\(start + 1)")
+    let yesterday = app.staticTexts["strip-week-count-1"]
+    let yesterdayBefore = Int(yesterday.label) ?? 0
+    app.buttons["strip-week-minus-0"].tap()
+    app.buttons["strip-week-plus-1"].tap()
+    XCTAssertEqual(todayCount.label, "\(start)")
+    XCTAssertEqual(yesterday.label, "\(yesterdayBefore + 1)")
+    XCTAssertEqual(balloons.value as? String, "\(start + 1)", "nothing saved before Confirm")
+    app.buttons["strip-week-confirm"].tap()
+    XCTAssertTrue(todayCount.waitForNonExistence(timeout: 5))
     if start > 0 {
-      XCTAssertEqual(balloons.value as? String, "\(start)", "a long press takes one off")
+      XCTAssertEqual(balloons.value as? String, "\(start)", "today's − saved")
     } else {
-      XCTAssertEqual(balloons.value as? String, atZero, "a long press takes it back to 0, read as days since")
+      XCTAssertEqual(balloons.value as? String, "1 day since", "back to 0, read as days since yesterday's +")
     }
 
     let journal = app.buttons["strip-journal"]
@@ -58,6 +73,8 @@ final class DailyStripUITests: XCTestCase {
     XCTAssertTrue(day.label.hasPrefix("yesterday"), day.label)
     app.buttons["strip-backdate-confirm"].tap()
     XCTAssertTrue(day.waitForNonExistence(timeout: 5), "one and done")
-    XCTAssertEqual(journal.value as? String, today, "yesterday marked, today as it was")
+    // Today as it was: still done if it was, else the days since now read yesterday.
+    XCTAssertEqual(
+      journal.value as? String, today == "done today" ? today : "1 day since", "yesterday marked, today as it was")
   }
 }

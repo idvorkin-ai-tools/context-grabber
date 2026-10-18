@@ -111,8 +111,8 @@ means to do every day, each a glance and a tap.
   takes it back.
 - **Balloons** — a count of balloons made for others today, shown as a balloon poodle drawn in outline, one balloon
   segment per body part, with a domed head, a pom-pom and a forward snout (Igor, #287, #299, 2026-10-17)
-  and the number. A tap adds one; a long press takes
-  one off (never below 0). A soft tick on each change.
+  and the number. A tap adds one; a press and hold opens its week
+  (below), where a − takes one off. A soft tick on each change.
 - **Magic** — the same counter, for magic done for others: 🪄 and the number.
 
 **Days since, on every item** (Igor, 2026-10-17: *"Everything on my daily habits lists, like balloons, should have
@@ -135,7 +135,7 @@ Meditation or Journal and a small sheet asks which day: a slider from today back
 *yesterday*, its label the day in words and its date (*yesterday · Sun, Oct 11*, *3 days ago · Fri, Oct 9*).
 *Confirm* marks that day done and closes the sheet; *Cancel* closes it with nothing changed. Gym's days since
 follows at once (a gym day yesterday reads *1d*). Marking is all it does: an earlier day is not taken back here.
-The counters keep their long press for one fewer. The log has `ui`, action daily_strip, with the item, the day
+Balloons and Magic open their week instead (below). The log has `ui`, action daily_strip, with the item, the day
 and `backdated`.
 
 **The same strip on the phone and the iPad** (Igor, iPad, 2026-10-17, #376: *"Do stats sync over Cloud kit like the
@@ -144,8 +144,8 @@ usually within a minute, and offline changes catch up when the device is back on
 
 - A check (Gym, Meditation, Journal) done on any device is done everywhere, today or an earlier day, and taking a
   tapped check back on any device takes it back everywhere: the latest change wins.
-- Counts add up across devices: a balloon on the iPad and two on the phone make 3 on both. A long press takes one
-  off the device's own count, never below 0.
+- Counts add up across devices: a balloon on the iPad and two on the phone make 3 on both. A − in a counter's week
+  takes one off the device's own count, so a day never goes below what the other devices counted.
 - Days since follows the shared days, so a journal day written on the phone ends the iPad's *3d* too.
 - Gym and Meditation turning green by themselves (the Gym Timer, Box breathing, Health) work on each device as
   before and stay on the device where they happened: a timer workout on the phone does not turn the iPad's Gym
@@ -154,7 +154,7 @@ usually within a minute, and offline changes catch up when the device is back on
   history. Older days stay on the device that has them (iCloud's store for this is small).
 - After the app is reinstalled, its own days come back from iCloud instead of being overwritten, and a count
   tapped before iCloud has caught up, however long that takes offline and even across a restart of the app, adds
-  to the count that comes back: three balloons in iCloud and one tap make four, and a long press at 0 takes
+  to the count that comes back: three balloons in iCloud and one tap make four, and a − at 0 takes
   nothing off (#380). When iCloud has nothing to send back (no device has synced the strip yet), five minutes in a
   row online with the app open count as caught up and the device starts syncing; time offline or in the background
   never counts.
@@ -167,6 +167,18 @@ usually within a minute, and offline changes catch up when the device is back on
 
 The log says what the sync did: a device publishing its days (how many months), and another device's change
 arriving (which device, which months), and why a sync could not run.
+
+**A counter's week** (Igor, 2026-10-17, #342: *"If I press and hold on my daily habit strip What's up Yesterday or
+today Like a count"*; 2026-10-18: press and hold, and make it the whole week, with check marks on the days before).
+Press and hold Balloons or Magic and a sheet opens on that counter's last seven days, all at once: today at the top,
+then yesterday, then the five before, each labelled in words and with its date (*today · Sun, Oct 18*, *yesterday ·
+Sat, Oct 17*, *3 days ago · Thu, Oct 15*). Each day shows its count with − and + beside it (never below 0) and a check mark when
+the count is above 0, so the days with a balloon read at a glance and a forgotten one can be added to the day it was
+made. The changes stay in the sheet until *Confirm*, which saves every day changed and closes it; *Cancel*, or
+swiping the sheet away, changes nothing. Today's number on the strip and the days since follow at once. Days older
+than the week are not shown here. This replaces the counters' long press for one fewer: one fewer is today's − in
+the sheet. The log has one `ui` event per day changed, action daily_strip, with the item, the day, the new value and
+`backdated` when the day is not today.
 
 Non-goals: choosing other items or adding new ones from the app, streaks, reminders, history charts.
 
@@ -222,7 +234,7 @@ Order, hiding and Reset in Settings work as before.
   *Settings* is always the last tile (#284–#286).
 
 - The daily strip shows Gym, Meditation, Journal, Balloons and Magic in one line under the Today card. A tap checks Gym or
-  Journal (a second tap unchecks). A tap adds a balloon or a trick, a long press takes one off, never below 0.
+  Journal (a second tap unchecks). A tap adds a balloon or a trick; a press and hold opens that counter's week.
   Gym shows days since the last gym day until today counts, and a finished Gym Timer workout counts today with
   no tap. Meditation and Journal show days since their last day the same way, and Balloons and Magic show it in
   place of a 0 (*–* when there has never been one). After midnight everything starts fresh and yesterday's values are kept (#236, #238).
