@@ -17,7 +17,7 @@ final class StripCloudSync {
   private let log: SessionLog
   private let database: AppDatabase
   /// #380: false until this database has seen iCloud's first sync. Until then nothing is published (a reinstall's
-  /// empty months would overwrite the ones in iCloud); the store's initial-sync change, or a minute, opens it.
+  /// empty months would overwrite the ones in iCloud); the store's initial-sync or server change opens it.
   private var ready: Bool
   private var pendingMonths: Set<String> = []
   /// Counter steps made before the first sync, by day and item: the row as it was before them and their sum.
@@ -30,7 +30,11 @@ final class StripCloudSync {
     self.strip = strip
     self.log = log
     self.database = database
-    ready = database.setting("strip_initial_sync") == "done"
+    // Only an empty database can overwrite iCloud with less than it holds (a reinstall); one with rows is this
+    // device's own record, and with no iCloud account nothing leaves the phone. Those publish at once (Codex on #378).
+    let empty = ((try? strip.ownRows()) ?? []).isEmpty
+    ready =
+      database.setting("strip_initial_sync") == "done" || !empty || FileManager.default.ubiquityIdentityToken == nil
     // The vendor id, not one kept in the database: a backup restored onto another phone gets a new one, so two
     // phones never write the same keys (Codex on #378). The database only reaches a new id by a restore or a
     // transfer, and the phone it came from may still be in use: what it carried was that phone's, so it becomes
@@ -75,18 +79,16 @@ final class StripCloudSync {
     if ready {
       publish(month: nil)
     } else {
+      // No timeout: offline, a minute proves nothing, and publishing then could overwrite the month in iCloud.
+      // ponytail: if iCloud never reports a first sync for an empty database, its taps stay on this device until a
+      // launch where it does (#380); the upgrade is a check of what the store holds once the network is back.
       log.event("strip_sync", ["action": "waiting_for_first_sync"])
-      // No iCloud account never sends the initial-sync change: a minute is enough to have heard it.
-      Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .seconds(60))
-        self?.open(why: "timeout")
-      }
     }
     arrived(keys: Array(store.dictionaryRepresentation.keys), reason: nil)
     store.synchronize()
   }
 
-  /// The first sync has happened (or a minute passed): this device's own months are merged back, then everything goes up.
+  /// The first sync has happened: this device's own months are merged back, then everything goes up.
   private func open(why: String) {
     guard !ready else { return }
     ready = true
@@ -195,6 +197,8 @@ final class StripCloudSync {
     switch reason {
     case NSUbiquitousKeyValueStoreInitialSyncChange:
       open(why: "initial_sync")  // the store now holds the download: own months merge back, then all goes up
+    case NSUbiquitousKeyValueStoreServerChange:
+      open(why: "server_change")  // the server answered, so the download has come
     case NSUbiquitousKeyValueStoreQuotaViolationChange:
       log.event("error", ["where": "strip_sync_quota", "message": "over the iCloud key-value store quota"])
     default: break

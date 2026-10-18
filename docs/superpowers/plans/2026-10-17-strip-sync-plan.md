@@ -39,7 +39,7 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   keys) it clears the peers (but the handed-over ids'), publishes every month again (once the first sync is done) and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
 - A database that has never seen iCloud's first sync (a new install or a reinstall) publishes nothing until the
-  store's initial-sync change arrives or a minute passes, then merges its own months back and publishes them all;
+  store's initial-sync or server change arrives (only an empty database with an iCloud account waits; one with rows, or with no account, publishes at once), then merges its own months back and publishes them all;
   taps in between are queued, and a counter stepped in between is taken back and stepped again on top of the
   recovered count (#380, local review).
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
