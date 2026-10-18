@@ -461,7 +461,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** The 4·4·6·2 pattern at a third of the pace
 - **Issues:** [#394](https://github.com/idvorkin/context-grabber/issues/394)
-- **Status:** not implemented; spec 2026-10-18
+- **Status:** implemented in [a5d8fed](https://github.com/idvorkin/context-grabber/commit/a5d8fed); verified by `BreathToneTests.testTheTripledPatternIsTheSameShapeAtAThirdOfThePace` (host); the chip on the phone in the next build turn
 - **Spec:** [box breathing, "Breath length"](../superpowers/specs/2026-10-04-box-breathing-design.md)
 
 #### Use Case:
