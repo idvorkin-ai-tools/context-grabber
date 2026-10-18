@@ -105,8 +105,9 @@ What the native rungs can and cannot see of the live tile ([spec](superpowers/sp
 | Change | Where it must be verified | How |
 |---|---|---|
 | The reading written and read back, the countdown and *to spend* worked out at drawing time, the age and when it turns orange, nothing written being the placeholder | Host | `UsageSnapshotTests` |
+| Today's numbers under the usage: the Today card's order, the short forms, the dash, today's only (the local day) | Host | `TodayGlanceTests` |
 | The tile drawing the app's last reading (small and medium), being added to the home screen, its Gym Timer button starting the timer | Simulator | `xcodebuild … -only-testing:GrabberNativeUITests/UsageTileUITests test` (needs the Cockpit reachable from the Mac; it adds the tile through SpringBoard's gallery and keeps screenshots of the gallery and the home screen), then the log's `usage` load with tile: true |
-| The tile on the phone over hours: redrawing every quarter hour, the orange age, Breathe and Call Larry from it, the App Group on a device-signed build | Phone only | add the medium tile, leave the app closed for two hours, look; tap each button; `just pull-logs`, read `usage` tile and `open_url` |
+| The tile on the phone over hours: redrawing every quarter hour, the orange age, today's numbers drawn and gone at midnight, Breathe and Call Larry from it, the App Group on a device-signed build | Phone only | add the medium tile, leave the app closed for two hours, look; tap each button; `just pull-logs`, read `usage` tile and `open_url` |
 
 What the native rungs can and cannot see of Box breathing:
 

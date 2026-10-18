@@ -67,7 +67,7 @@ The rules are the strip's:
 Whenever the app loads a reading (at launch, on coming to the front, every five minutes while open, after a tap to
 refresh), the tile is told to redraw with it. A failed load changes nothing on the tile: it keeps the last reading
 and its age keeps growing. Between loads the tile redraws by itself about every quarter hour, so the age and the
-*to spend* nudge move on their own.
+*to spend* nudge move on their own, and once more at midnight, so today's numbers go on the stroke.
 
 ## Acceptance criteria
 
