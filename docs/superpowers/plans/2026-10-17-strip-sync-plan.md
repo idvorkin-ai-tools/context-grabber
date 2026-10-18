@@ -22,8 +22,8 @@ Two devices for ten years is 240 keys and well under 1 MB. The device id is a UU
   count, never below 0.
 - **Checks** (gym, meditation, journal): the row with the latest `updated_at` across devices wins. A tap on this
   device writes a new row with now's time, so any device can check or uncheck.
-- `days(item)` and `value(item, day)` read the merged view, so days since, the backdate sheet and the export all
-  see the shared days. The derived gym and meditation days (the timer, breathing, Health) stay per device, as now.
+- `days(item)` and `value(item, day)` read the merged view, so days since and the backdate sheet see the
+  shared days. The derived gym and meditation days (the timer, breathing, Health) stay per device, as now.
 
 ## App (`native/App/Daily/`)
 
@@ -31,8 +31,9 @@ Two devices for ten years is 240 keys and well under 1 MB. The device id is a UU
   calls `synchronize()`. After each `set` it publishes that day's month. On
   `didChangeExternallyNotification` it decodes the changed keys of other devices, replaces their rows for those
   months in `daily_strip_peers`, and asks `DailyStripModel` to refresh.
-- Log: `strip_sync` with `action` `publish` (months, keys), `arrived` (device, months, reason), `quota` or
-  `account_change` (the store's change reasons), and `error`.
+- Log: `strip_sync` with `action` `publish` (months, keys), `arrived` (device, months, reason), `account_change`
+  (the store's change reason); failures are `error` with `where` strip_sync_publish,
+  strip_sync_arrived or strip_sync_quota.
 - Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
   in `native/project.yml`. That's a native build and a provisioning update (automatic signing handles it).
 

@@ -51,14 +51,14 @@ final class StripCloudSync {
       for (m, data) in months { store.set(data, forKey: StripSync.key(device: device, month: m)) }
       log.event("strip_sync", ["action": "publish", "months": months.keys.sorted(), "all": month == nil])
     } catch {
-      log.event("strip_sync", ["action": "error", "where": "publish", "message": "\(error)"])
+      log.event("error", ["where": "strip_sync_publish", "message": "\(error)"])
     }
   }
 
   private func arrived(keys: [String], reason: Int?) {
     switch reason {
     case NSUbiquitousKeyValueStoreQuotaViolationChange:
-      log.event("strip_sync", ["action": "quota"])
+      log.event("error", ["where": "strip_sync_quota", "message": "over the iCloud key-value store quota"])
     case NSUbiquitousKeyValueStoreAccountChange:
       log.event("strip_sync", ["action": "account_change"])
     default: break
@@ -72,7 +72,7 @@ final class StripCloudSync {
         byDevice[from, default: []].append(month)
       }
     } catch {
-      log.event("strip_sync", ["action": "error", "where": "arrived", "message": "\(error)"])
+      log.event("error", ["where": "strip_sync_arrived", "message": "\(error)"])
     }
     guard !byDevice.isEmpty else { return }
     for (from, months) in byDevice {

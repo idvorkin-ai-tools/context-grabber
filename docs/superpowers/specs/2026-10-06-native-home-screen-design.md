@@ -148,7 +148,8 @@ usually within a minute, and offline changes catch up when the device is back on
   off the device's own count, never below 0.
 - Days since follows the shared days, so a journal day written on the phone ends the iPad's *3d* too.
 - Gym and Meditation turning green by themselves (the Gym Timer, Box breathing, Health) work on each device as
-  before; a timer workout on the phone counts on the iPad too once its day has synced.
+  before and stay on the device where they happened: a timer workout on the phone does not turn the iPad's Gym
+  green.
 - The first time a device syncs, its earlier days go up too, so the iPad learns the phone's history.
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
   nothing says otherwise beyond the log.
