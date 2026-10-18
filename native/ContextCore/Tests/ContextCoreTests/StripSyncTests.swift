@@ -72,6 +72,27 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(back, rows)
   }
 
+  /// Codex on #378: iCloud carries a year, so ten years on two devices stays far under the 1 MB quota.
+  func testICloudCarriesTwelveMonths() {
+    XCTAssertEqual(StripSync.oldestKept(today: "2026-10-17"), "2025-11")
+    XCTAssertEqual(StripSync.oldestKept(today: "2026-12-01"), "2026-01")
+    XCTAssertEqual(StripSync.oldestKept(today: "2026-01-31"), "2025-02")
+  }
+
+  func testAFullYearOfEveryItemEveryDayFitsEasily() {
+    var rows: [StripRow] = []
+    for m in 1...12 {
+      for d in 1...31 {
+        for item in DailyItem.allCases {
+          rows.append(
+            StripRow(day: String(format: "2026-%02d-%02d", m, d), item: item, value: 12, updatedAt: 1_760_000_000_000))
+        }
+      }
+    }
+    let bytes = StripSync.encode(rows).values.reduce(0) { $0 + $1.count }
+    XCTAssertLessThan(bytes * 4, 1_000_000 / 2, "four devices' years use under half the quota")
+  }
+
   func testKeysNameTheirDeviceAndMonth() {
     let key = StripSync.key(device: "A1B2-C3", month: "2026-10")
     XCTAssertEqual(key, "strip.A1B2-C3.2026-10")

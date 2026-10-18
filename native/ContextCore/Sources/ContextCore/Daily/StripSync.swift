@@ -60,6 +60,18 @@ public enum StripSync {
     return (String(rest[..<dot]), month)
   }
 
+  /// How many months, this one included, iCloud carries (Codex on #378: the store's quota is 1 MB, and ten years
+  /// on two devices is about that). Older months stay in each device's own database; a new device starts with a year.
+  public static let monthsKept = 12
+
+  /// The oldest month iCloud carries on `today` (`yyyy-mm-dd`): eleven months before today's.
+  public static func oldestKept(today: String) -> String {
+    let parts = today.split(separator: "-").compactMap { Int($0) }
+    guard parts.count >= 2 else { return month(of: today) }
+    let index = parts[0] * 12 + (parts[1] - 1) - (monthsKept - 1)
+    return String(format: "%04d-%02d", index / 12, index % 12 + 1)
+  }
+
   /// `yyyy-mm` of a `yyyy-mm-dd` day.
   public static func month(of day: String) -> String { String(day.prefix(7)) }
 

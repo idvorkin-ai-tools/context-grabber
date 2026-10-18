@@ -150,7 +150,8 @@ usually within a minute, and offline changes catch up when the device is back on
 - Gym and Meditation turning green by themselves (the Gym Timer, Box breathing, Health) work on each device as
   before and stay on the device where they happened: a timer workout on the phone does not turn the iPad's Gym
   green.
-- The first time a device syncs, its earlier days go up too, so the iPad learns the phone's history.
+- The first time a device syncs, its last twelve months go up too, so the iPad learns the past year of the phone's
+  history. Older days stay on the device that has them (iCloud's store for this is small).
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
   nothing says otherwise beyond the log.
 

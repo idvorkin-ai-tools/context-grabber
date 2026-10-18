@@ -62,11 +62,23 @@ final class StripCloudSync {
   /// After a tap: that day's month goes up.
   func changed(day: String) { publish(month: StripSync.month(of: day)) }
 
+  /// The oldest month iCloud carries now; older ones live only in each device's database (Codex on #378).
+  private var oldestKept: String { StripSync.oldestKept(today: AccessoryLog.dateKey(Date())) }
+
   private func publish(month: String?) {
     do {
-      let months = StripSync.encode(try strip.ownRows(month: month))
+      let oldest = oldestKept
+      let months = StripSync.encode(try strip.ownRows(month: month)).filter { $0.key >= oldest }
       for (m, data) in months { store.set(data, forKey: StripSync.key(device: device, month: m)) }
-      log.event("strip_sync", ["action": "publish", "months": months.keys.sorted(), "all": month == nil])
+      // This device's months that aged out leave the store, so it stays inside its quota.
+      let aged = store.dictionaryRepresentation.keys.filter {
+        guard let parsed = StripSync.parse(key: $0) else { return false }
+        return parsed.device == device && parsed.month < oldest
+      }
+      for key in aged { store.removeObject(forKey: key) }
+      log.event(
+        "strip_sync",
+        ["action": "publish", "months": months.keys.sorted(), "all": month == nil, "aged_out": aged.count])
     } catch {
       log.event("error", ["where": "strip_sync_publish", "message": "\(error)"])
     }
@@ -92,6 +104,8 @@ final class StripCloudSync {
       }
       for key in keys {
         guard let (from, month) = StripSync.parse(key: key), from != device else { continue }
+        // A month older than iCloud carries is kept as this device last had it: its key leaving is pruning.
+        guard month >= oldestKept else { continue }
         let rows = (store.data(forKey: key)).map(StripSync.decode) ?? []
         try strip.replacePeer(from, month: month, rows: rows)
         byDevice[from, default: []].append(month)
