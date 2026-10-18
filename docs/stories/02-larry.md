@@ -341,7 +341,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** Share anything to Grabber Native and it waits in my Inbox
 - **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor; any text the share sheet offers (RTF and HTML turned plain) and a copyable reason when a share cannot be read, in [d5095e8](https://github.com/idvorkin/context-grabber/commit/d5095e8)
-- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305), [#395](https://github.com/idvorkin/context-grabber/issues/395) (the tile's picture)
 - **Spec:** [Share into Grabber Native, and Larry's inbox](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
 #### Use Case:
@@ -353,7 +353,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Sharing from three apps in aeroplane mode
 - **Given:** the phone is in aeroplane mode
 - **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a note to one and tapping *Add to Inbox* each time
-- **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the note, the link's site and when, the Inbox tile counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
+- **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the note, the link's site and when, the Inbox tile (the raccoon posting a letter) counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
 
 ---
 
