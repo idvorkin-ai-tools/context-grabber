@@ -107,6 +107,16 @@ public struct DailyStrip {
     }
   }
 
+  /// This device's row for one day and item put back as it was, gone when `row` is nil: #380 takes back the counter
+  /// steps made before iCloud's first sync, so they land again on the count that sync brings back.
+  public func restoreOwn(_ item: DailyItem, day: String, to row: StripRow?) throws {
+    _ = try db.run("DELETE FROM daily_strip WHERE date_key = ? AND item = ?", [.text(day), .text(item.rawValue)])
+    guard let row else { return }
+    _ = try db.run(
+      "INSERT INTO daily_strip (date_key, item, value, updated_at) VALUES (?, ?, ?, ?)",
+      [.text(day), .text(item.rawValue), .int(Int64(row.value)), .int(row.updatedAt)])
+  }
+
   /// Peer rows filed under `device`, this device's own id, move into its own table where newer and leave the peers:
   /// a database restored onto a device it once synced with carried them (local review). Returns how many moved.
   @discardableResult

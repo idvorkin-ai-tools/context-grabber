@@ -163,6 +163,29 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(try s.ownValue(.balloons, day: day), 2)
   }
 
+  /// #380: a reinstall's phone had three balloons today in iCloud; a tap before the first sync built on nothing.
+  /// Taken back and stepped again on what came back, the day shows four, not one.
+  func testACountSteppedBeforeTheFirstSyncLandsOnTheRecoveredOne() throws {
+    let s = try strip()
+    try s.set(.balloons, day: day, value: 1, at: Date(timeIntervalSince1970: 2_000))
+    try s.restoreOwn(.balloons, day: day, to: nil)
+    try s.mergeOwn([StripRow(day: day, item: .balloons, value: 3, updatedAt: 1_000_000)])
+    try s.set(.balloons, day: day, value: try s.ownValue(.balloons, day: day) + 1)
+    XCTAssertEqual(try s.value(.balloons, day: day), 4)
+  }
+
+  /// #380: a database from before sync already counted two; its first-sync wait restores those two as they were,
+  /// so the same two arriving from iCloud don't win, and the step makes three.
+  func testRestoringARowPutsBackItsValueAndTime() throws {
+    let s = try strip()
+    try s.set(.magic, day: day, value: 3, at: Date(timeIntervalSince1970: 2_000))
+    try s.restoreOwn(.magic, day: day, to: StripRow(day: day, item: .magic, value: 2, updatedAt: 1_000))
+    XCTAssertEqual(try s.ownRows(), [StripRow(day: day, item: .magic, value: 2, updatedAt: 1_000)])
+    try s.mergeOwn([StripRow(day: day, item: .magic, value: 2, updatedAt: 1_000)])
+    try s.set(.magic, day: day, value: try s.ownValue(.magic, day: day) + 1)
+    XCTAssertEqual(try s.value(.magic, day: day), 3)
+  }
+
   func testClearingPeersLeavesThisDevicesOwn() throws {
     let s = try strip()
     try s.set(.magic, day: day, value: 1)

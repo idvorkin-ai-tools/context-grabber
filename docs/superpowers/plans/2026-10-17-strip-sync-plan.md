@@ -40,11 +40,13 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   and item on its own, so one bad entry skips only itself.
 - A database that has never seen iCloud's first sync (a new install or a reinstall) publishes nothing until the
   store's initial-sync change arrives or a minute passes, then merges its own months back and publishes them all;
-  taps in between are queued (#380, local review).
+  taps in between are queued, and a counter stepped in between is taken back and stepped again on top of the
+  recovered count (#380, local review).
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
-  `device_changed` (handed_over_rows);
-  failures are `error` with `where` strip_sync_publish, strip_sync_hand_over,
-  strip_sync_arrived or strip_sync_quota.
+  `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, queued_months, replayed_steps),
+  `reclaimed` (rows), `recovered_own` (rows);
+  failures are `error` with `where` strip_sync_publish, strip_sync_hand_over, strip_sync_reclaim,
+  strip_sync_recover, strip_sync_replay, strip_sync_arrived or strip_sync_quota.
 - Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
   in `native/project.yml`. That's a native build and a provisioning update (automatic signing handles it).
 
@@ -52,7 +54,9 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
 
 - Host: encode/decode round trip, key naming, the merge rules (counts sum, latest check wins, an untick from
   another device), the table migration, the 12-month window across year boundaries, and a full year of every item
-  on four devices under half the 1 MB quota.
+  on four devices under half the 1 MB quota; an arriving month never deleting, an older month keeping a newer
+  handed-over count, own iCloud rows coming back only where newer, rows under this device's own id reclaimed, and a
+  count stepped before the first sync landing on the recovered one.
 - Simulator: a launch hook can't see a second device. The smoke checks that the strip still works with no iCloud
   account (the store is a no-op there).
 - Phone + iPad: the story's scenario, read from both devices' logs.

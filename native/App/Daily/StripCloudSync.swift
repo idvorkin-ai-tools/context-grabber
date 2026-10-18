@@ -20,6 +20,8 @@ final class StripCloudSync {
   /// empty months would overwrite the ones in iCloud); the store's initial-sync change, or a minute, opens it.
   private var ready: Bool
   private var pendingMonths: Set<String> = []
+  /// Counter steps made before the first sync, by day and item: the row as it was before them and their sum.
+  private var waitingSteps: [String: (item: DailyItem, day: String, original: StripRow?, net: Int)] = [:]
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
 
@@ -89,8 +91,32 @@ final class StripCloudSync {
     guard !ready else { return }
     ready = true
     database.setSetting("strip_initial_sync", "done")
+    // A count stepped while waiting was built on nothing: the steps come off, the recovered count comes back, and
+    // the steps land again on top of it.
+    let steps = Array(waitingSteps.values)
+    waitingSteps = [:]
+    var restored: [(item: DailyItem, day: String, original: StripRow?, net: Int)] = []
+    do {
+      for s in steps {
+        try strip.restoreOwn(s.item, day: s.day, to: s.original)
+        restored.append(s)
+      }
+    } catch {
+      log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
+    }
     recoverOwn()
-    log.event("strip_sync", ["action": "first_sync", "why": why, "queued_months": pendingMonths.count])
+    do {
+      for s in restored {
+        try strip.set(s.item, day: s.day, value: try strip.ownValue(s.item, day: s.day) + s.net)
+      }
+    } catch {
+      log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
+    }
+    log.event(
+      "strip_sync",
+      [
+        "action": "first_sync", "why": why, "queued_months": pendingMonths.count, "replayed_steps": restored.count,
+      ])
     pendingMonths = []
     publish(month: nil)
     onArrived()
@@ -114,6 +140,23 @@ final class StripCloudSync {
     } catch {
       log.event("error", ["where": "strip_sync_recover", "message": "\(error)"])
     }
+  }
+
+  /// Before a counter steps: while waiting for the first sync, the step is remembered so it lands on the count that
+  /// sync brings back (#380).
+  func stepping(_ item: DailyItem, day: String, by step: Int) {
+    guard !ready else { return }
+    let key = "\(day)/\(item.rawValue)"
+    if waitingSteps[key] == nil {
+      do {
+        let original = try strip.ownRows(month: StripSync.month(of: day)).first { $0.day == day && $0.item == item }
+        waitingSteps[key] = (item, day, original, 0)
+      } catch {
+        log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
+        return
+      }
+    }
+    waitingSteps[key]?.net += step
   }
 
   /// After a tap: that day's month goes up, or waits for the first sync.
@@ -163,7 +206,7 @@ final class StripCloudSync {
       // everything the store now holds (Codex on #378).
       if reason == NSUbiquitousKeyValueStoreAccountChange {
         try strip.clearPeers(keeping: handedOver)
-        publish(month: nil)
+        if ready { publish(month: nil) }
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])
         onArrived()

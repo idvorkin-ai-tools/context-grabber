@@ -152,6 +152,9 @@ usually within a minute, and offline changes catch up when the device is back on
   green.
 - The first time a device syncs, its last twelve months go up too, so the iPad learns the past year of the phone's
   history. Older days stay on the device that has them (iCloud's store for this is small).
+- After the app is reinstalled, its own days come back from iCloud instead of being overwritten, and a count
+  tapped in the first minute, before iCloud has caught up, adds to the count that comes back: three balloons in
+  iCloud and one tap make four (#380).
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
   nothing says otherwise beyond the log.
 
