@@ -5,6 +5,7 @@
 
 import ContextCore
 import Foundation
+import Network
 import UIKit
 
 @MainActor
@@ -20,6 +21,9 @@ final class StripCloudSync {
   /// empty months would overwrite the ones in iCloud); the store's initial-sync or server change opens it.
   private var ready: Bool
   private var pendingMonths: Set<String> = []
+  /// While waiting: five minutes online with no download means iCloud holds nothing for this device (Codex on #378).
+  private var path: NWPathMonitor?
+  private var quiet: Task<Void, Never>?
   /// Counter steps made before the first sync, by day and item: the row as it was before them and their sum. Kept in
   /// `settings`, so a restart while waiting still lands them on the recovered count (local review).
   private var waitingSteps: [String: WaitingStep] {
@@ -111,18 +115,41 @@ final class StripCloudSync {
       publish(month: nil)
     } else {
       // No timeout: offline, a minute proves nothing, and publishing then could overwrite the month in iCloud.
-      // ponytail: while no device has ever published (every device a new install), nothing ends the wait and taps
-      // stay on each device (#380); the upgrade is a marker key whose discarded write brings the initial-sync change.
       log.event("strip_sync", ["action": "waiting_for_first_sync"])
+      watchForAQuietCloud()
     }
     arrived(keys: Array(store.dictionaryRepresentation.keys), reason: nil)
     store.synchronize()
+  }
+
+  /// When no device has ever published, no download ever comes to end the wait (Codex on #378). Five minutes in a row
+  /// online with none means iCloud has nothing of this device's to overwrite; offline time never counts.
+  private func watchForAQuietCloud() {
+    let monitor = NWPathMonitor()
+    monitor.pathUpdateHandler = { [weak self] update in
+      let online = update.status == .satisfied
+      Task { @MainActor in
+        guard let self, !self.ready else { return }
+        self.quiet?.cancel()
+        guard online else { return }
+        self.quiet = Task { @MainActor [weak self] in
+          try? await Task.sleep(for: .seconds(300))
+          guard !Task.isCancelled else { return }
+          self?.open(why: "online_quiet")
+        }
+      }
+    }
+    monitor.start(queue: .main)
+    path = monitor
   }
 
   /// The first sync has happened: this device's own months are merged back, then everything goes up.
   private func open(why: String) {
     guard !ready else { return }
     ready = true
+    path?.cancel()
+    path = nil
+    quiet?.cancel()
     database.setSetting("strip_initial_sync", "done")
     // A count stepped while waiting was built on nothing: the steps come off, the recovered count comes back, and
     // the steps land again on top of it.
