@@ -340,7 +340,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 038:
 
 - **Summary:** Share anything to Grabber Native and it waits in my Inbox
-- **Status:** native app only: implemented in [507d34e](https://github.com/idvorkin/context-grabber/commit/507d34e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor
+- **Status:** native app only: implemented in [507d34e](https://github.com/idvorkin/context-grabber/commit/507d34e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [853c7e5](https://github.com/idvorkin/context-grabber/commit/853c7e5)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -360,7 +360,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 039:
 
 - **Summary:** What is in my Inbox reaches Larry, once each
-- **Status:** native app only: implemented in [507d34e](https://github.com/idvorkin/context-grabber/commit/507d34e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent); a send over the tailnet from the phone still for Igor
+- **Status:** native app only: implemented in [507d34e](https://github.com/idvorkin/context-grabber/commit/507d34e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [853c7e5](https://github.com/idvorkin/context-grabber/commit/853c7e5)); a send over the tailnet from the phone still for Igor
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
