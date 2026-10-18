@@ -68,6 +68,8 @@ targets:
           - CloudKit
         com.apple.developer.icloud-container-identifiers:
           - iCloud.com.idvorkin.BugKitReports
+        # The daily strip on every device signed into Igor's iCloud (#376, story 153).
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
     dependencies:
       - package: ContextCore
       - package: ThinkACard

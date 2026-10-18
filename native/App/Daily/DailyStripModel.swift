@@ -24,6 +24,8 @@ final class DailyStripModel: ObservableObject {
   private let store: DailyStrip?
   private let activity: ActivityLog?
   private let health: () -> MirrorSnapshot?
+  /// #376: the same strip on every device signed into Igor's iCloud.
+  private let sync: StripCloudSync?
 
   /// `health`: the last grab, for its strength workouts and today's mindful minutes.
   init(log: SessionLog, database: AppDatabase, health: @escaping () -> MirrorSnapshot?) {
@@ -31,7 +33,10 @@ final class DailyStripModel: ObservableObject {
     store = database.dailyStrip
     activity = database.activityLog
     self.health = health
+    sync = StripCloudSync(database: database, log: log)
+    sync?.onArrived = { [weak self] in self?.refresh() }
     refresh()
+    sync?.start()
   }
 
   func value(_ item: DailyItem) -> Int { values[item] ?? 0 }
@@ -85,15 +90,20 @@ final class DailyStripModel: ObservableObject {
       log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": 1, "from": "timer_or_health"])
       return
     }
-    let now = value(item)
-    let next = item.isCounter ? max(0, now + step) : (now > 0 ? 0 : 1)
+    // #376: a count steps this device's own share; a check flips what every device shows.
+    let next: Int
     do {
+      let own = try store?.ownValue(item, day: today) ?? 0
+      next = item.isCounter ? max(0, own + step) : (value(item) > 0 ? 0 : 1)
+      // The step as applied (a long press at 0 changes nothing), held while the first sync is awaited (#380).
+      if item.isCounter { sync?.stepping(item, day: today, by: next - own) }
       try store?.set(item, day: today, value: next)
     } catch {
       log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
       return
     }
     log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": next, "day": today])
+    sync?.changed(day: today)
     refresh()
   }
 
@@ -107,6 +117,7 @@ final class DailyStripModel: ObservableObject {
       return
     }
     log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": 1, "day": day, "backdated": daysAgo])
+    sync?.changed(day: day)
     refresh()
   }
 
