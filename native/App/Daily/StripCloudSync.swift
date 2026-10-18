@@ -72,6 +72,8 @@ final class StripCloudSync {
   /// empty database) picks up where it was instead of overwriting them.
   /// ponytail: a restore's rows that the old phone never uploaded stay on this phone if that phone is retired (#379);
   /// the upgrade is publishing handed-over rows under the old id once it has been silent for a while.
+  /// ponytail: after a reinstall, a publish before iCloud's first download can overwrite older own months (#380);
+  /// the upgrade is holding publishes until the store's initial-sync change arrives.
   private func recoverOwn() {
     do {
       var count = 0
