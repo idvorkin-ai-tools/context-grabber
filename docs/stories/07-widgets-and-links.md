@@ -322,6 +322,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 221:
+
+- **Summary:** Press and hold the music tile to pick Workout, Liked music or Feel Good Supermix
+- **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383)
+- **Status:** not implemented yet
+- **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
+
+#### Use Case:
+- **As a** man about to train, or just wanting music, from Grabber Native
+- **I want to** press and hold the music tile and lift my finger on the mix I want
+- **so that** my likes or the Feel Good mix are as close as the workout one, without opening YouTube Music to look
+
+#### Acceptance Criteria:
+- **Scenario:** Picking a mix
+- **Given:** YouTube Music is installed
+- **When:** I press and hold the Workout Supermix tile, slide to *Liked music* or *Feel Good Supermix* and lift my finger
+- **Then:** a menu of Workout Supermix, Liked music and Feel Good Supermix shows, the one I lifted on opens in YouTube Music (the browser without it), lifting off the menu opens nothing, a plain tap still opens the Workout Supermix, and the log names the mix and which opened
+
+---
+
 ### User Story 244:
 
 - **Summary:** Today's hand: a card, the role of the day, and three quick starts on the big widget
