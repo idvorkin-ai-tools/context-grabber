@@ -15,6 +15,11 @@ final class StripCloudSync {
   /// The ids this install handed its history to: an account change keeps their rows.
   private let handedOver: Set<String>
   private let log: SessionLog
+  private let database: AppDatabase
+  /// #380: false until this database has seen iCloud's first sync. Until then nothing is published (a reinstall's
+  /// empty months would overwrite the ones in iCloud); the store's initial-sync change, or a minute, opens it.
+  private var ready: Bool
+  private var pendingMonths: Set<String> = []
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
 
@@ -22,6 +27,8 @@ final class StripCloudSync {
     guard let strip = database.dailyStrip else { return nil }
     self.strip = strip
     self.log = log
+    self.database = database
+    ready = database.setting("strip_initial_sync") == "done"
     // The vendor id, not one kept in the database: a backup restored onto another phone gets a new one, so two
     // phones never write the same keys (Codex on #378). The database only reaches a new id by a restore or a
     // transfer, and the phone it came from may still be in use: what it carried was that phone's, so it becomes
@@ -63,17 +70,36 @@ final class StripCloudSync {
   /// are read, and the store is asked to sync now.
   func start() {
     recoverOwn()
-    publish(month: nil)
+    if ready {
+      publish(month: nil)
+    } else {
+      log.event("strip_sync", ["action": "waiting_for_first_sync"])
+      // No iCloud account never sends the initial-sync change: a minute is enough to have heard it.
+      Task { @MainActor [weak self] in
+        try? await Task.sleep(for: .seconds(60))
+        self?.open(why: "timeout")
+      }
+    }
     arrived(keys: Array(store.dictionaryRepresentation.keys), reason: nil)
     store.synchronize()
+  }
+
+  /// The first sync has happened (or a minute passed): this device's own months are merged back, then everything goes up.
+  private func open(why: String) {
+    guard !ready else { return }
+    ready = true
+    database.setSetting("strip_initial_sync", "done")
+    recoverOwn()
+    log.event("strip_sync", ["action": "first_sync", "why": why, "queued_months": pendingMonths.count])
+    pendingMonths = []
+    publish(month: nil)
+    onArrived()
   }
 
   /// This device's own months already in iCloud come back into its database first, so a reinstall (same vendor id,
   /// empty database) picks up where it was instead of overwriting them.
   /// ponytail: a restore's rows that the old phone never uploaded stay on this phone if that phone is retired (#379);
   /// the upgrade is publishing handed-over rows under the old id once it has been silent for a while.
-  /// ponytail: after a reinstall, a publish before iCloud's first download can overwrite older own months (#380);
-  /// the upgrade is holding publishes until the store's initial-sync change arrives.
   private func recoverOwn() {
     do {
       var count = 0
@@ -90,8 +116,14 @@ final class StripCloudSync {
     }
   }
 
-  /// After a tap: that day's month goes up.
-  func changed(day: String) { publish(month: StripSync.month(of: day)) }
+  /// After a tap: that day's month goes up, or waits for the first sync.
+  func changed(day: String) {
+    guard ready else {
+      pendingMonths.insert(StripSync.month(of: day))
+      return
+    }
+    publish(month: StripSync.month(of: day))
+  }
 
   /// The oldest month iCloud carries now; older ones live only in each device's database (Codex on #378).
   private var oldestKept: String { StripSync.oldestKept(today: AccessoryLog.dateKey(Date())) }
@@ -118,6 +150,8 @@ final class StripCloudSync {
 
   private func arrived(keys: [String], reason: Int?) {
     switch reason {
+    case NSUbiquitousKeyValueStoreInitialSyncChange:
+      open(why: "initial_sync")  // the store now holds the download: own months merge back, then all goes up
     case NSUbiquitousKeyValueStoreQuotaViolationChange:
       log.event("error", ["where": "strip_sync_quota", "message": "over the iCloud key-value store quota"])
     default: break
