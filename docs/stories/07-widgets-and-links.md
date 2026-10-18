@@ -342,6 +342,86 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 222:
+
+- **Summary:** Holding the music tile opens a popover of drawn mixes, not a list
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** not implemented; spec 2026-10-18
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold the Workout Supermix tile and see the mixes as drawn tiles
+- **so that** picking music looks like the home screen and reads at a glance
+
+#### Acceptance Criteria:
+- **Scenario:** The music popover
+- **Given:** YouTube Music is installed
+- **When:** I press and hold the Workout Supermix tile and tap the heart
+- **Then:** a popover pointing at the tile shows Workout Supermix, Liked music and Feel Good Supermix as drawn tiles with their names, Workout first; my likes open in YouTube Music; a tap outside instead closes it with nothing opened; and the log has the popover opening and `from: home_popover` with the mix
+
+---
+
+### User Story 223:
+
+- **Summary:** Hold the Gym Timer tile to start a preset
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** not implemented; spec 2026-10-18
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold the Gym Timer tile and pick 30 SEC, 1 MIN, 2 MIN, 5-1 or Custom
+- **so that** a workout starts from the home screen with the phone going straight down
+
+#### Acceptance Criteria:
+- **Scenario:** Straight into 2 MIN
+- **Given:** the home screen
+- **When:** I press and hold the Gym Timer tile and tap *2 MIN*
+- **Then:** the timer opens on 2 MIN and its get-ready countdown starts, 2 MIN is its chosen preset afterwards, and a plain tap on the tile still opens it ready on the remembered preset
+
+---
+
+### User Story 224:
+
+- **Summary:** Hold the Box breathing tile to begin at a breath length
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** not implemented; spec 2026-10-18
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold Box breathing and pick 8, 10, 12 or 15 seconds a side
+- **so that** a session starts at the length I want without touching the sliders
+
+#### Acceptance Criteria:
+- **Scenario:** Ten-second sides
+- **Given:** my remembered session is 5 minutes
+- **When:** I press and hold the Box breathing tile and tap *10 s*
+- **Then:** breathing opens and begins at 10 seconds a side for 5 minutes
+
+---
+
+### User Story 225:
+
+- **Summary:** Hold the card tile to think, see a card or drill
+- **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
+- **Status:** not implemented; spec 2026-10-18
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As a** man at the home screen with a tile in mind
+- **I want to** press and hold Think of a card and pick think of a card, a card face up, or drill the stack
+- **so that** the card practice I want is one gesture away
+
+#### Acceptance Criteria:
+- **Scenario:** Into the drill
+- **Given:** the home screen
+- **When:** I press and hold the Think of a card tile and tap *Drill the stack*
+- **Then:** the stack drill opens, and a plain tap on the tile still counts down to a card as before
+
+---
+
 ### User Story 244:
 
 - **Summary:** Today's hand: a card, the role of the day, and three quick starts on the big widget
