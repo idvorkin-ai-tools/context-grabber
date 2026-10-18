@@ -143,6 +143,14 @@ struct DiagnosticsView: View {
       .navigationDestination(isPresented: $model.showToday) {
         TodayView(app: model, mirror: model.mirror)
       }
+      .navigationDestination(
+        isPresented: Binding(
+          get: { model.showInbox },
+          set: {
+            model.showInbox = $0
+            if !$0 { model.screen = "home" }
+          })
+      ) { InboxView(inbox: model.inbox, logger: model.bugLogger) }
     }
     .fullScreenCover(
       isPresented: Binding(get: { model.gymTimer != nil }, set: { if !$0 { model.closeGymTimer() } })
@@ -242,12 +250,32 @@ private struct HomeTile: View {
         .padding(.horizontal, 4)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         // A call left running: a corner badge, not a third line, so this tile stays its neighbours' size.
-        .overlay(alignment: .topTrailing) { if row.id == "call" { CallTileStatus(call: model.call) } }
+        .overlay(alignment: .topTrailing) {
+          if row.id == "call" { CallTileStatus(call: model.call) }
+          if row.id == "inbox" { InboxTileCount(inbox: model.inbox) }
+        }
     }
     .buttonStyle(.plain)
     .foregroundStyle(.primary)
     .accessibilityLabel(row.title)
     .accessibilityIdentifier("home-\(row.id)")
+  }
+}
+
+/// #305: how many Inbox items have not reached Larry, in the tile's corner as the call's badge is.
+private struct InboxTileCount: View {
+  @ObservedObject var inbox: InboxModel
+
+  var body: some View {
+    if inbox.waitingCount > 0 {
+      Text("\(inbox.waitingCount)").font(.caption2.weight(.semibold).monospacedDigit())
+        .foregroundStyle(.white)
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(Color.blue, in: Capsule())
+        .padding(6)
+        .accessibilityLabel("\(inbox.waitingCount) not yet sent")
+        .accessibilityIdentifier("home-inbox-count")
+    }
   }
 }
 

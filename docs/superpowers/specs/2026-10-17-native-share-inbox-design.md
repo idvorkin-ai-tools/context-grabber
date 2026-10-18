@@ -31,16 +31,30 @@ and *Add to Inbox*. *Add to Inbox* closes the card at once; *Cancel* closes it w
 aeroplane mode and while Grabber Native is not running.
 
 **The Inbox.** A launcher on the home screen, *Inbox*, with the number of items not yet sent to Larry on its tile.
-It lists what was shared, newest first: what it is, the note, where it came from, and when. A swipe deletes one. In
+It lists what was shared, newest first: what it is, the note, where it came from (a link's site; iOS does not tell
+the app which app shared it), and when. A swipe deletes one. In
 phase 1 every item reads *on the phone*; in phase 2, *sent to Larry* with the time, or *waiting to send*.
 
 **Phase 2: to Larry.** When the phone can reach the Cockpit, each item waiting goes to Larry's inbox there, oldest
 first, once each. A failure leaves it waiting and is retried the next time the app is opened; it is never sent
 twice. Larry sees the item, the note and when it was shared.
 
+How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
+
+- **Only over the tailnet**, to the same Cockpit the app's Cockpit screen opens; reaching it is the permission, so
+  nothing secret is set up on the phone.
+- **When**: each time the app opens or comes to the front. Sharing from another app never waits on the network.
+- **Once each**: an item resent after a lost answer is recognised by the Cockpit as one it already has, and reads
+  *sent to Larry* like any other.
+- **Photos go as JPEG**, whatever the phone stored them as, made smaller if needed so each fits the Cockpit's 10 MB.
+- **Refused**: when the Cockpit says an item itself is wrong (too big, an unreadable image), it is not retried. It
+  reads *Larry's inbox refused it* with the Cockpit's reason, which can be copied. A swipe deletes it as usual.
+- **Unreachable or failing** (no tailnet, the Cockpit down): it stays *waiting to send*, and the log says why.
+
 ## Explaining itself
 
-- Each share is logged (`inbox`, action added, with the kind and size, never the content).
+- Each share is logged (`inbox`, action added, with the kind and size, never the content) when the app next opens
+  and finds it.
 - Each send in phase 2 is logged (`inbox`, action sent / failed, with the item and the Cockpit's answer).
 
 ## Acceptance criteria
@@ -50,3 +64,5 @@ twice. Larry sees the item, the note and when it was shared.
 - The Inbox tile counts the items not yet sent; deleting one updates it.
 - Phase 2: with the Cockpit reachable, every waiting item reaches Larry once and then reads *sent to Larry*;
   with it unreachable, items wait and go on the next open.
+- Phase 2: an item the Cockpit refuses reads *Larry's inbox refused it* with the reason, copyable, and is not sent
+  again; a HEIC photo arrives at Larry as a JPEG.

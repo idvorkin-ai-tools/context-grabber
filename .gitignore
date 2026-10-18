@@ -29,6 +29,7 @@
 /native/Build/
 /native/GrabberNative.entitlements
 /native/Widgets/GrabberWidgets.entitlements
+/native/Share/GrabberShare.entitlements
 /native/ContextCore/.build/
 
 # What the retired React Native app left behind in old checkouts

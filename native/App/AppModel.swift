@@ -16,6 +16,8 @@ final class AppModel: ObservableObject {
   /// The trail: recording runs whatever screen is in front, and iOS may launch the app just to deliver points.
   let tracker: LocationTracker
   let places: PlacesModel
+  /// What was shared to the app, on its way to Larry (#305, stories 038 and 039).
+  let inbox: InboxModel
   /// Shake (hard or gentle), ⌘I or the Settings button opens BugKit's report dialog (stories 142, 146). Set at the
   /// end of init: its hooks read this model.
   // swiftlint:disable:next implicitly_unwrapped_optional
@@ -67,6 +69,7 @@ final class AppModel: ObservableObject {
   let call: CallModel
   /// Today (the mirror) is on screen.
   @Published var showToday = false
+  @Published var showInbox = false
   /// The eulogy song's sheet is up.
   @Published var showEulogySong = false
   /// The metric whose week is open over Today.
@@ -96,6 +99,7 @@ final class AppModel: ObservableObject {
     liveActivity = LiveActivityController(log: log)
     tracker = LocationTracker(log: log, store: database.locations)
     places = PlacesModel(log: log, database: database)
+    inbox = InboxModel(log: log, database: database)
     call = CallModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
     // Before BugKit the ✕ was kept in the database: carry it over once, so a dismissed row stays dismissed.
     if let seen = database.setting("whats_new_seen"),
@@ -129,6 +133,7 @@ final class AppModel: ObservableObject {
       self?.reporter.autoReport(reason: reason, context: context, files: files)
     }
     runLaunchHooks()
+    inbox.refresh(reason: "launch")  // after the hooks, so a fixture is there to read
   }
 
   /// The app came to the front (not the launch itself): prune, settle a pending permission, ask for a fix.
@@ -140,6 +145,14 @@ final class AppModel: ObservableObject {
     if showPlaces { places.reload(reason: "foreground") }
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     Task { [delivery] in await delivery.start() }  // story 152: what waited for a connection goes up now
+    inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
+  }
+
+  func openInbox(from source: String) {
+    log.event("ui", ["action": "open_inbox", "from": source, "waiting": inbox.waitingCount])
+    screen = "inbox"
+    inbox.reload()
+    showInbox = true
   }
 
   func openPlaces(from source: String) {
@@ -668,6 +681,9 @@ final class AppModel: ObservableObject {
     if let mix = env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)) {
       openWorkoutSupermix(from: "hook", mix: mix)
     }
+    // #305: three Inbox items as the share extension writes them (never sent), and the Inbox opened.
+    if env["GRABBER_INBOX_FIXTURE"] == "1" { inbox.addFixture() }
+    if env["GRABBER_INBOX"] == "open" { openInbox(from: "hook") }
     if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
       // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).
       openCall(from: "hook")

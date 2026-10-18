@@ -4,7 +4,7 @@ iOS app that holds up a humane mirror of Igor's week — health, places, roles, 
 AI coach, as a context export and over a voice call. Also a gym timer and box breathing. The app is **Grabber
 Native**, Swift and SwiftUI under `native/` (Igor, 2026-10-04; bead `context-grabber-3ss`, spec
 `docs/superpowers/specs/2026-10-04-swift-native-app-design.md`): `native/ContextCore/` is the platform-free SwiftPM
-package (host tests), `native/App/` the SwiftUI app, `native/Widgets/` the widgets and Live Activities,
+package (host tests), `native/App/` the SwiftUI app, `native/Widgets/` the widgets and Live Activities, `native/Share/` the share extension (the Inbox, #305),
 `native/project.yml` the XcodeGen spec (the `.xcodeproj` is generated, never committed or hand-edited). The React
 Native app it replaced was removed 2026-10-17; "Ported from lib/….ts" comments name where logic came from, and git
 history has the rest. The stories are what must stay true, not the old TypeScript. Work lands on a branch as one PR

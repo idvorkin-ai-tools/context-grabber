@@ -334,3 +334,43 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I share the summary from Today in Grabber Native
 - **Then:** `activities` lists two entries, newest first, each with kind (`gym_timer` / `breathing`), a name such as *30 SEC · 6 rounds* or *Box breathing · 8 s · 9 cycles*, minutes, an ISO-8601 UTC timestamp and the local `date`; the reset workout is not there; and the session log has an `activity_logged` line for each
 
+
+---
+
+### User Story 038:
+
+- **Summary:** Share anything to Grabber Native and it waits in my Inbox
+- **Status:** not implemented yet
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Spec:** [Share into Grabber Native, and Larry's inbox](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client who comes across things worth talking about all day
+- **I want to** share a link, some text or a photo from any app to Grabber Native, with a note
+- **so that** it is kept for Larry the moment I see it, even with no signal
+
+#### Acceptance Criteria:
+- **Scenario:** Sharing from three apps in aeroplane mode
+- **Given:** the phone is in aeroplane mode
+- **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a note to one and tapping *Add to Inbox* each time
+- **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the note, the link's site and when, the Inbox tile counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
+
+---
+
+### User Story 039:
+
+- **Summary:** What is in my Inbox reaches Larry, once each
+- **Status:** not implemented yet
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client with things waiting in the Inbox
+- **I want to** have them reach Larry's inbox on their own when the phone can reach the Cockpit
+- **so that** Larry sees what I shared, the note and when, without me sending anything
+
+#### Acceptance Criteria:
+- **Scenario:** Back on the tailnet
+- **Given:** three items wait in the Inbox, one of them a HEIC photo
+- **When:** I open Grabber Native with the Cockpit reachable
+- **Then:** each goes to Larry once, oldest first, and reads *sent to Larry* with the time, the photo arrives as a JPEG, an item the Cockpit refuses reads *Larry's inbox refused it* with a copyable reason and is not sent again, with the Cockpit unreachable they stay *waiting to send* and go on the next open, and the log has an `inbox` sent or failed line for each with the Cockpit's answer
