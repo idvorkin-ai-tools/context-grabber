@@ -136,15 +136,19 @@ final class DailyStripModel: ObservableObject {
   /// #342: Confirm in a counter's week saves every day changed there, each as a tap's step would be.
   func save(_ week: CounterWeek) {
     for change in week.changes {
+      // The step, onto the count as it is now: iCloud may have restored this device's days while the sheet was up.
+      let next: Int
       do {
-        sync?.stepping(week.item, day: change.day, by: change.step)
-        try store?.set(week.item, day: change.day, value: change.own)
+        let own = try store?.ownValue(week.item, day: change.day) ?? 0
+        next = max(0, own + change.step)
+        sync?.stepping(week.item, day: change.day, by: next - own)
+        try store?.set(week.item, day: change.day, value: next)
       } catch {
         log.event("error", ["where": "daily_strip", "item": week.item.rawValue, "message": "\(error)"])
         continue
       }
       var fields: [String: Any] = [
-        "action": "daily_strip", "item": week.item.rawValue, "value": change.own, "day": change.day,
+        "action": "daily_strip", "item": week.item.rawValue, "value": next, "day": change.day,
       ]
       if change.daysAgo > 0 { fields["backdated"] = change.daysAgo }
       log.event("ui", fields)
