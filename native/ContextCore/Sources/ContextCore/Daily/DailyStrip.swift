@@ -158,6 +158,20 @@ public struct DailyStrip {
     return rows.count
   }
 
+  /// `body`'s writes all land or none do: a throw rolls them back and is rethrown (#380, the first sync's replay).
+  /// Not for `reclaim` or `handOver`, which open their own.
+  public func inTransaction<T>(_ body: () throws -> T) throws -> T {
+    try db.execute("BEGIN")
+    do {
+      let result = try body()
+      try db.execute("COMMIT")
+      return result
+    } catch {
+      try? db.execute("ROLLBACK")
+      throw error
+    }
+  }
+
   /// Every other device's rows gone: the iCloud account changed (Codex on #378). The devices in `keeping` were
   /// handed this install's own history, which no store may hold, so their rows stay.
   public func clearPeers(keeping: Set<String> = []) throws {

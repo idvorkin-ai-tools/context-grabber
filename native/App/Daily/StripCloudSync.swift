@@ -110,9 +110,14 @@ final class StripCloudSync {
   /// At launch: every month this device has goes up (the first sync sends its history), the other devices' keys
   /// are read, and the store is asked to sync now.
   func start() {
-    recoverOwn()
     if ready {
-      publish(month: nil)
+      // A failed recovery publishes nothing: the local copy may hold less than iCloud (Codex on #378).
+      do {
+        try recoverOwn()
+        publish(month: nil)
+      } catch {
+        log.event("error", ["where": "strip_sync_recover", "message": "\(error)"])
+      }
     } else {
       // Offline, waiting proves nothing, and publishing could overwrite the month in iCloud: only time online counts.
       log.event("strip_sync", ["action": "waiting_for_first_sync"])
@@ -156,40 +161,43 @@ final class StripCloudSync {
   /// The first sync has happened: this device's own months are merged back, then everything goes up.
   private func open(why: String) {
     guard !ready else { return }
+    // A count stepped while waiting was built on nothing: the steps come off, the recovered count comes back, and
+    // the steps land again on top of it. All of it or none: a failure rolls back, the steps stay held and the sync
+    // stays closed, since publishing then could replace iCloud's months with a partial copy (Codex on #378). The
+    // next arrival or launch tries again.
+    let steps = Array(waitingSteps.values)
+    let restored: Int
+    do {
+      restored = try strip.inTransaction {
+        var replayed: [(item: DailyItem, day: String, net: Int)] = []
+        for s in steps {
+          guard let item = DailyItem(rawValue: s.item) else { continue }
+          let original = s.original.flatMap {
+            $0.count == 2 ? StripRow(day: s.day, item: item, value: Int($0[0]), updatedAt: $0[1]) : nil
+          }
+          try strip.restoreOwn(item, day: s.day, to: original)
+          replayed.append((item, s.day, s.net))
+        }
+        try recoverOwn()
+        for s in replayed {
+          try strip.set(s.item, day: s.day, value: try strip.ownValue(s.item, day: s.day) + s.net)
+        }
+        return replayed.count
+      }
+    } catch {
+      log.event("error", ["where": "strip_sync_recover", "message": "\(error)", "why": why, "held_steps": steps.count])
+      return
+    }
+    waitingSteps = [:]
     ready = true
     path?.cancel()
     path = nil
     quiet?.cancel()
     database.setSetting("strip_initial_sync", "done")
-    // A count stepped while waiting was built on nothing: the steps come off, the recovered count comes back, and
-    // the steps land again on top of it.
-    let steps = Array(waitingSteps.values)
-    waitingSteps = [:]
-    var restored: [(item: DailyItem, day: String, net: Int)] = []
-    do {
-      for s in steps {
-        guard let item = DailyItem(rawValue: s.item) else { continue }
-        let original = s.original.flatMap {
-          $0.count == 2 ? StripRow(day: s.day, item: item, value: Int($0[0]), updatedAt: $0[1]) : nil
-        }
-        try strip.restoreOwn(item, day: s.day, to: original)
-        restored.append((item, s.day, s.net))
-      }
-    } catch {
-      log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
-    }
-    recoverOwn()
-    do {
-      for s in restored {
-        try strip.set(s.item, day: s.day, value: try strip.ownValue(s.item, day: s.day) + s.net)
-      }
-    } catch {
-      log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
-    }
     log.event(
       "strip_sync",
       [
-        "action": "first_sync", "why": why, "queued_months": pendingMonths.count, "replayed_steps": restored.count,
+        "action": "first_sync", "why": why, "queued_months": pendingMonths.count, "replayed_steps": restored,
       ])
     pendingMonths = []
     publish(month: nil)
@@ -200,20 +208,17 @@ final class StripCloudSync {
   /// empty database) picks up where it was instead of overwriting them.
   /// ponytail: a restore's rows that the old phone never uploaded stay on this phone if that phone is retired (#379);
   /// the upgrade is publishing handed-over rows under the old id once it has been silent for a while.
-  private func recoverOwn() {
-    do {
-      var count = 0
-      for key in store.dictionaryRepresentation.keys {
-        guard let parsed = StripSync.parse(key: key), parsed.device == device, let data = store.data(forKey: key)
-        else { continue }
-        let rows = StripSync.decode(data)
-        try strip.mergeOwn(rows)
-        count += rows.count
-      }
-      if count > 0 { log.event("strip_sync", ["action": "recovered_own", "rows": count]) }
-    } catch {
-      log.event("error", ["where": "strip_sync_recover", "message": "\(error)"])
+  /// Throws when the database refuses a row: the caller must not publish, or iCloud gets the partial copy.
+  private func recoverOwn() throws {
+    var count = 0
+    for key in store.dictionaryRepresentation.keys {
+      guard let parsed = StripSync.parse(key: key), parsed.device == device, let data = store.data(forKey: key)
+      else { continue }
+      let rows = StripSync.decode(data)
+      try strip.mergeOwn(rows)
+      count += rows.count
     }
+    if count > 0 { log.event("strip_sync", ["action": "recovered_own", "rows": count]) }
   }
 
   /// Before a counter steps: while waiting for the first sync, the step is remembered so it lands on the count that
@@ -250,6 +255,8 @@ final class StripCloudSync {
     do {
       let oldest = oldestKept
       let months = StripSync.encode(try strip.ownRows(month: month)).filter { $0.key >= oldest }
+      // ponytail: stored unencrypted in iCloud KVS by design (Igor, 2026-10-18); encrypt before storing anything
+      // sensitive here, or before App Store submission.
       for (m, data) in months { store.set(data, forKey: StripSync.key(device: device, month: m)) }
       // Every device's months that aged out leave the store, this one's and abandoned ids' alike (a replaced phone
       // never prunes its own), so it stays inside its quota; each device keeps its own copy (Codex on #378).
@@ -288,7 +295,7 @@ final class StripCloudSync {
       if reason == NSUbiquitousKeyValueStoreAccountChange {
         try strip.clearPeers(keeping: handedOver)
         // The new account's own months for this device come back first, then this device's months go up over them.
-        recoverOwn()
+        try recoverOwn()  // a failure skips the publish below and lands in the catch
         if ready { publish(month: nil) }
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])

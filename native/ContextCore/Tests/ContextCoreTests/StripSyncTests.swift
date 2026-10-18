@@ -8,6 +8,26 @@ final class StripSyncTests: XCTestCase {
   private func strip() throws -> DailyStrip { try DailyStrip(db: SQLiteDatabase(path: ":memory:")) }
   private let day = "2026-10-17"
 
+  // Codex on #378: the first sync's replay is all or nothing, so a failed recovery leaves the held state as it was.
+  func testATransactionThatThrowsLeavesEveryRowAsItWas() throws {
+    let s = try strip()
+    try s.set(.magic, day: day, value: 2)
+    struct Refused: Error {}
+    XCTAssertThrowsError(
+      try s.inTransaction {
+        try s.restoreOwn(.magic, day: day, to: nil)
+        try s.set(.balloons, day: day, value: 5)
+        throw Refused()
+      })
+    XCTAssertEqual(try s.ownValue(.magic, day: day), 2)
+    XCTAssertEqual(try s.ownValue(.balloons, day: day), 0)
+    XCTAssertEqual(
+      try s.inTransaction {
+        try s.set(.balloons, day: day, value: 1); return 7
+      }, 7)
+    XCTAssertEqual(try s.ownValue(.balloons, day: day), 1)
+  }
+
   func testCountsAddUpAcrossDevices() throws {
     let s = try strip()
     try s.set(.balloons, day: day, value: 2)

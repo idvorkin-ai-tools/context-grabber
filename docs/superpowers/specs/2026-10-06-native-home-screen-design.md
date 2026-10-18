@@ -158,6 +158,10 @@ usually within a minute, and offline changes catch up when the device is back on
   nothing off (#380). When iCloud has nothing to send back (no device has synced the strip yet), five minutes in a
   row online with the app open count as caught up and the device starts syncing; time offline or in the background
   never counts.
+- If the phone cannot take back what iCloud holds (its database refuses the write), it sends nothing and tries
+  again later, so iCloud's days are never replaced by a partial copy.
+- The strip's days sit in iCloud unencrypted beyond what iOS and iCloud already do on disk and in transit (Igor,
+  2026-10-18: small app state, a personal build). Anything more sensitive, or an App Store build, encrypts first.
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
   nothing says otherwise beyond the log.
 
