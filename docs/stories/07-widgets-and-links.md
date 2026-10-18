@@ -366,7 +366,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Holding the music tile opens a popover of drawn mixes, not a list
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
-- **Status:** native app only: implemented in [ea745cd](https://github.com/idvorkin/context-grabber/commit/ea745cd); verified by `HoldChoicesTests` (host: the three mixes in order, each with its art) and `WorkoutSupermixUITests.testTheHoldPopoverShowsEachMix` (simulator: the popover lists all three, Liked opens in the browser); the drawn art and the light tick on the phone not yet
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: the three mixes in order, each with its art) and `WorkoutSupermixUITests.testTheHoldPopoverShowsEachMix` (simulator: the popover lists all three, Liked opens in the browser); the drawn art and the light tick on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -386,7 +386,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Hold the Gym Timer tile to start a preset
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
-- **Status:** native app only: implemented in [ea745cd](https://github.com/idvorkin/context-grabber/commit/ea745cd); verified by `HoldChoicesTests` (host: the four presets and Custom, each starting) and `HoldPopoverUITests.testTheTimerPopoverStartsAPreset` (simulator: 1 MIN opens the timer running); on the phone not yet
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: the four presets and Custom, each starting) and `HoldPopoverUITests.testTheTimerPopoverStartsAPreset` (simulator: 1 MIN opens the timer running); on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -406,7 +406,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Hold the Box breathing tile to begin at a breath length
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
-- **Status:** native app only: implemented in [ea745cd](https://github.com/idvorkin/context-grabber/commit/ea745cd); verified by `HoldChoicesTests` (host: 8, 10, 12 and 15 s, each beginning) and `HoldPopoverUITests.testATapOutsideOpensNothing` (simulator: the popover lists 10 s, a tap outside closes it on the home screen); remembered as breathing's choice afterwards since [7c4a16d](https://github.com/idvorkin/context-grabber/commit/7c4a16d) (simulator build); a length beginning a session on the phone not yet
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: 8, 10, 12 and 15 s, each beginning) and `HoldPopoverUITests.testATapOutsideOpensNothing` (simulator: the popover lists 10 s, a tap outside closes it on the home screen); remembered as breathing's choice afterwards since [2069559](https://github.com/idvorkin/context-grabber/commit/2069559) (simulator build); a length beginning a session on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -426,7 +426,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Hold the card tile to think, see a card or drill
 - **Issues:** [#391](https://github.com/idvorkin/context-grabber/issues/391)
-- **Status:** native app only: implemented in [ea745cd](https://github.com/idvorkin/context-grabber/commit/ea745cd); verified by `HoldChoicesTests` (host: think, face up, drill in order) and `HoldPopoverUITests.testTheCardPopoverOpensTheDrill` (simulator: Drill the stack opens the drill); on the phone not yet
+- **Status:** native app only: implemented in [61fba62](https://github.com/idvorkin/context-grabber/commit/61fba62); verified by `HoldChoicesTests` (host: think, face up, drill in order) and `HoldPopoverUITests.testTheCardPopoverOpensTheDrill` (simulator: Drill the stack opens the drill); on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
