@@ -104,10 +104,10 @@ final class StripCloudSync {
       }
       for key in keys {
         guard let (from, month) = StripSync.parse(key: key), from != device else { continue }
-        // A month older than iCloud carries is kept as this device last had it: its key leaving is pruning.
-        guard month >= oldestKept else { continue }
-        let rows = (store.data(forKey: key)).map(StripSync.decode) ?? []
-        try strip.replacePeer(from, month: month, rows: rows)
+        // A month older than iCloud carries, or a key that left (only its owner pruning removes one), is kept as this
+        // device last had it.
+        guard month >= oldestKept, let data = store.data(forKey: key) else { continue }
+        try strip.replacePeer(from, month: month, rows: StripSync.decode(data))
         byDevice[from, default: []].append(month)
       }
     } catch {

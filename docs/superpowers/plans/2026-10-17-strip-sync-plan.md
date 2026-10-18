@@ -11,7 +11,7 @@ so **each device writes only its own keys**, one per month:
 
     strip.<device-id>.<yyyy-mm>  →  JSON {"<yyyy-mm-dd>": {"<item>": [value, updated_at_ms]}}
 
-iCloud carries the last 12 months (`StripSync.monthsKept`): each device removes its own older keys when it publishes, and ignores other devices' older months (a key leaving is pruning, so the local copy stays). A year of every item every day is a few tens of KB per device, so even four devices stay far under 1 MB (Codex on #378). The device id is `UIDevice.identifierForVendor`, so a
+iCloud carries the last 12 months (`StripSync.monthsKept`): each device removes its own older keys when it publishes, and ignores other devices' older months and any key that left (a key leaving is pruning, so the local copy stays, whatever each device's clock says). A year of every item every day is a few tens of KB per device, so even four devices stay far under 1 MB (Codex on #378). The device id is `UIDevice.identifierForVendor`, so a
 backup restored onto another phone gets a new one; the last id is kept in `settings` (`strip_device_id`). When it
 changes (only a restore or a transfer brings the database to a new id, and the phone it came from may still be in
 use), this install's rows are handed over as the old id's peer rows, replaced by that id's keys when they arrive,
@@ -38,7 +38,7 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   months in `daily_strip_peers`, and asks `DailyStripModel` to refresh. On an account change (which may list no
   keys) it clears the peers (but the handed-over ids'), publishes every month again and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
-- Log: `strip_sync` with `action` `publish` (months, all), `arrived` (device, months, reason), `account_change` (keys),
+- Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
   `device_changed` (handed_over_rows);
   failures are `error` with `where` strip_sync_publish, strip_sync_hand_over,
   strip_sync_arrived or strip_sync_quota.
@@ -48,7 +48,8 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
 ## Verification
 
 - Host: encode/decode round trip, key naming, the merge rules (counts sum, latest check wins, an untick from
-  another device), and the table migration.
+  another device), the table migration, the 12-month window across year boundaries, and a full year of every item
+  on four devices under half the 1 MB quota.
 - Simulator: a launch hook can't see a second device. The smoke checks that the strip still works with no iCloud
   account (the store is a no-op there).
 - Phone + iPad: the story's scenario, read from both devices' logs.
