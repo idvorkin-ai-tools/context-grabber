@@ -299,14 +299,7 @@ final class AppModel: ObservableObject {
 
   /// Reports waiting for iCloud go up (story 152).
   private func startDelivery() {
-    // ponytail: BugKit's outbox asks for its CKContainer before checking for anything pending, and CKContainer traps
-    // in an unsigned build, which every simulator build here is (crash 2026-10-18 09:17, being fixed in bug-kit by
-    // w2X). Drop this guard once the BugKit tag with the fix is pinned.
-    #if targetEnvironment(simulator)
-      log.event("ui", ["action": "cloud_reports_skipped", "why": "simulator"])
-    #else
-      Task { [delivery] in await delivery.start() }
-    #endif
+    Task { [delivery] in await delivery.start() }
   }
 
   /// The report dialog, BugKit's (bug-kit migration, step 1). "Log it and another" takes a fresh picture of the
