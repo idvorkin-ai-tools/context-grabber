@@ -50,6 +50,7 @@ sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim
 | `GRABBER_WHATS_NEW=open` | open What's new (logs `ui` action: open_whats_new with from, days, changes), for a screenshot of the build's own history (story 148) |
 | `GRABBER_HOME=settings` | open the home screen's Settings sheet (logs `ui` action: home_settings), for a screenshot of the launchers and the diagnostics (story 147) |
 | `GRABBER_LINK=<url>` | route that link as if iOS had opened it (`simctl openurl` stops at an "Open in Grabber Native?" confirmation a script cannot tap): `grabbernative://timer?preset=10,10,2`, `grabbernative://breathe?breath=5&minutes=2`; the log's `open_url` says how it was read. `LinksUITests` opens real links through iOS instead, cold and warm |
+| `GRABBER_DRILL=card_to_position\|position_to_card\|mixed` | open the card screen (`ui` open_card, from: hook) and the trainer's drill over it in that direction, as a tap on *Drill the stack* would (story 220); `just native-test-sim` runs `mixed` and reads the library's `drill` how: open |
 | `GRABBER_COCKPIT=open` | open the Cockpit screen, as its row on the home screen would |
 | `GRABBER_COCKPIT_URL=<url or page>` | load the Cockpit from elsewhere: a URL (`https://127.0.0.1:65530/` is the unreachable case `just native-test-sim` checks for the error panel), or the name of a page in the app bundle — `cockpit-bridge-test` speaks the audio bridge the way the Cockpit does and reports the round trip as `getRoute("roundtrip:<microphones>:tagged")` |
 

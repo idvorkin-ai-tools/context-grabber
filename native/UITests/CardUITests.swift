@@ -43,6 +43,26 @@ final class CardUITests: XCTestCase {
     XCTAssertTrue(row.waitForExistence(timeout: 5), "back home")
   }
 
+  // Story 220: Drill the stack covers the card with the trainer's drill, asking Card → position first; Done returns
+  // to the card. The taps that grade, and the ledger, are the phone's to check (the simulator has no ledger key).
+  func testDrillTheStackOpensTheTrainersDrill() throws {
+    let app = XCUIApplication()
+    app.launch()
+    let row = app.buttons["home-think_a_card"]
+    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    row.tap()
+    let drill = app.buttons["card-drill"]
+    XCTAssertTrue(drill.waitForExistence(timeout: 10), app.debugDescription)
+    drill.tap()
+
+    XCTAssertTrue(app.staticTexts["Tap to see its position"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["Mixed"].exists, "the direction picker offers Mixed")
+    XCTAssertTrue(app.buttons["Stats"].exists, "Stats is there: the app gives the drill a ledger")
+    shot("card-drill")
+    app.buttons["Done"].tap()
+    XCTAssertTrue(drill.waitForExistence(timeout: 5), "back on the card")
+  }
+
   private func shot(_ name: String) {
     guard let dir = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] else { return }
     try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))

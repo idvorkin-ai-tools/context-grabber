@@ -387,6 +387,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 220:
+
+- **Summary:** Drill the stack from the card screen, graded, and it reaches my practice ledger
+- **Status:** native app only: implemented in [07433d7](https://github.com/idvorkin/context-grabber/commit/07433d7) (the `GRABBER_DRILL` hook in [244fa20](https://github.com/idvorkin/context-grabber/commit/244fa20); a shake reports from inside the drill since [5f7df26](https://github.com/idvorkin/context-grabber/commit/5f7df26), naming the drill as its screen since [631daff](https://github.com/idvorkin/context-grabber/commit/631daff), when the hook opens it too since [240a405](https://github.com/idvorkin/context-grabber/commit/240a405)), on think-a-card-trainer v0.3.0 (the drill, its grading, Mixed, the ledger and Stats are the library's, verified by its host tests); verified by host `just native-test`; the simulator build, `CardUITests` testDrillTheStackOpensTheTrainersDrill and the `GRABBER_DRILL=mixed` smoke check not yet; grading and the ledger on the phone not yet
+- **Issues:** [think-a-card-trainer#22](https://github.com/idvorkin/think-a-card-trainer/issues/22) (a failed Stats load is not yet a copyable error)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+#### Use Case:
+- **As a** man practising his stack, with Grabber Native as his home screen
+- **I want to** open the trainer's drill from the card screen, grade each answer with a tap or *Wrong*, and see which positions I miss
+- **so that** the practice I do in this app counts in the same ledger as the trainer's and Card Picker's
+
+#### Acceptance Criteria:
+- **Scenario:** A graded drill that lands in the ledger
+- **Given:** the build has my stack, and the ledger's URL and write key are pasted in the drill's *Stats*
+- **When:** I tap *Drill the stack* under the card, pick *Mixed*, tap to see an answer, tap again for one I knew and press *Wrong* for one I missed, then open *Stats*
+- **Then:** the drill asks both ways round from my stack (only the hard positions with *Skip easy cards* on), each answer is sent to the ledger (kept and sent later when offline), *Stats* shows the last 30 days from every source with the most missed positions first, the log never pairs a card with its position or shows the key, and *Done* returns to the card
+
+---
+
 ### User Story 135:
 
 - **Summary:** A link and a Shortcuts action for every screen of Grabber Native

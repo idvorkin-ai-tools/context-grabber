@@ -383,5 +383,14 @@ mirror_check() {  # $1 = fixture | healthkit
 mirror_check fixture
 mirror_check healthkit
 
+# Story 220: Drill the stack opens the trainer's drill over the card screen, in the direction asked for.
+SIMCTL_CHILD_GRABBER_DRILL=mixed relaunch
+wait_for drill 20 || echo "      (timed out waiting for drill)"
+f=$(newest_log)
+drill=$(jq -sr '[.[] | select(.type=="drill")][0] | "\(.how) \(.mode) \(.positions)"' "$f")
+card=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_card")][0].from // ""' "$f")
+if [ "$card" = "hook" ] && [[ "$drill" =~ ^open\ mixed\ (52|27)$ ]]; then ok "drill: opened over the card, $drill"
+else bad "drill: open_card '$card', drill '$drill'"; fi
+
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
 smoke_done
