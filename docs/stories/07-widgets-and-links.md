@@ -484,7 +484,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** The eulogy song plays at its own speed, in the car too
 - **Issues:** [#370](https://github.com/idvorkin/context-grabber/issues/370)
-- **Status:** not started
+- **Status:** implemented in [d0a1353](https://github.com/idvorkin/context-grabber/commit/d0a1353) (the session set before the player is prepared, a player prepared at another sample rate replaced at the same place, and the rate, route and any clock drift in the log); verified by `just native-lint` and a parse only; it compiles in the next build turn, and the car on the phone is still for Igor to check
 - **Spec:** [native Eulogy](../superpowers/specs/2026-10-07-native-eulogy-design.md)
 
 #### Use Case:
