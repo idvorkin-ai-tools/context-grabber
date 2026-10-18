@@ -42,6 +42,14 @@ A tap opens the app on the home screen.
 remembered backend, or brings a live call forward). Each is the link of the same name, so it does exactly what that
 link does. A tap anywhere else opens the home screen.
 
+**Today's numbers** (Igor, 2026-10-18, #396: *"Add a small version of the stat sheet on my tile under my remaining
+usage"*): on both sizes, under the usage and its line, one more line with the four numbers the home screen's Today
+card shows: sleep, steps, HRV and exercise, each short and after a small symbol (*5.7h · 7,399 · 65 ms · 38m*). They
+are the app's last look at Health, so they move when the app grabs (on opening it, on coming to the front, a pull
+on Today). They are drawn only while they are today's: after midnight the line goes until the app has looked again,
+so yesterday's steps never read as today's. Before the app has ever looked, there is no line. A number Health has
+not got yet reads *—*, as on the card.
+
 The rules are the strip's:
 
 - **Low is loud.** A bar under 20% left is orange, under 10% red.
@@ -59,7 +67,7 @@ The rules are the strip's:
 Whenever the app loads a reading (at launch, on coming to the front, every five minutes while open, after a tap to
 refresh), the tile is told to redraw with it. A failed load changes nothing on the tile: it keeps the last reading
 and its age keeps growing. Between loads the tile redraws by itself about every quarter hour, so the age and the
-*to spend* nudge move on their own.
+*to spend* nudge move on their own, and once more at midnight, so today's numbers go on the stroke.
 
 ## Acceptance criteria
 
@@ -68,5 +76,7 @@ and its age keeps growing. Between loads the tile redraws by itself about every 
 - An hour after the last load, the age is orange; a week due to reset in 13 hours with 31% left reads *31% to
   spend* in green, even if the reading was taken two days earlier.
 - With the app never opened since install, the tile reads *Open Grabber Native* and shows no numbers.
+- After the app has looked at Health today, both sizes show today's sleep, steps, HRV and exercise under the usage,
+  the same numbers as the Today card; after midnight that line is gone until the app looks again.
 - On the medium tile, Gym Timer, Breathe and Call Larry each open the app with the workout running, the session
   begun, or the call connecting; elsewhere on the tile opens the home screen.

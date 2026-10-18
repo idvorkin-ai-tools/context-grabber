@@ -23,19 +23,30 @@ struct UsageTileWidget: Widget {
   struct Entry: TimelineEntry {
     let date: Date
     let snapshot: UsageSnapshot?
+    var today: TodayGlance?
   }
 
   struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> Entry { Entry(date: Date(), snapshot: nil) }
 
     func getSnapshot(in context: Context, completion: @escaping (Entry) -> Void) {
-      completion(Entry(date: Date(), snapshot: UsageTileStore.read()))
+      completion(Entry(date: Date(), snapshot: UsageTileStore.read(), today: UsageTileStore.readToday()))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
       let snapshot = UsageTileStore.read()
+      let today = UsageTileStore.readToday()
       let now = Date()
-      let entries = (0...16).map { Entry(date: now.addingTimeInterval(Double($0) * 15 * 60), snapshot: snapshot) }
+      var dates = (0...16).map { now.addingTimeInterval(Double($0) * 15 * 60) }
+      // #396: an entry at local midnight, so today's numbers go on the stroke rather than up to 15 minutes later.
+      if let midnight = Calendar.current.nextDate(
+        after: now, matching: DateComponents(hour: 0, minute: 0), matchingPolicy: .nextTime),
+        let last = dates.last, midnight < last
+      {
+        dates.append(midnight)
+        dates.sort()
+      }
+      let entries = dates.map { Entry(date: $0, snapshot: snapshot, today: today) }
       completion(Timeline(entries: entries, policy: .atEnd))
     }
   }
@@ -45,7 +56,7 @@ struct UsageTileWidget: Widget {
     let entry: Entry
 
     var body: some View {
-      UsageTileView(snapshot: entry.snapshot, now: entry.date, family: family)
+      UsageTileView(snapshot: entry.snapshot, today: entry.today, now: entry.date, family: family)
         .containerBackground(.background, for: .widget)
     }
   }
