@@ -43,6 +43,10 @@ ships inside the app, so it plays offline, the moment it is tapped, and keeps go
   song ends.
 - The song plays like music: it pauses whatever else was playing, keeps going when the phone locks or Igor goes
   to another app, and the lock screen shows it with play and pause. A phone call or Siri pauses it; Igor resumes it.
+- **It plays at its own speed on any output** ([#370](https://github.com/idvorkin/context-grabber/issues/370)). In
+  the car, with the phone on the car's hands-free line and the Cockpit just open, the song ran about three times too
+  fast: its clock read 0:41 after 14 seconds. Whatever audio route or call-style session was there before, the song
+  sounds as recorded, takes its 2:14, and its clock keeps time with the wall clock.
 - **A Larry call comes first** ([#197](https://github.com/idvorkin/context-grabber/issues/197)). Starting a call
   pauses the song where it is. While a call is live the song does not start, from the sheet, the small player or
   the lock screen; the sheet says it waits for the call to end, and once the call is over play works again.
@@ -61,9 +65,11 @@ ships inside the app, so it plays offline, the moment it is tapped, and keeps go
 ## Explaining itself
 
 Each tap is in the session log: playing, pausing, scrubbing (from where to where), restarting, stopping, finishing and interruptions with where the song was, and if the
-song cannot play, why. A song that cannot load or start says so in its sheet with *Copy error*, which copies the
+song cannot play, why. Loading and playing also say what the audio was going out through and at what sample rate,
+and if the song's clock runs away from the wall clock while it plays, the log says by how much (#370). A song that cannot load or start says so in its sheet with *Copy error*, which copies the
 message, the build, where the song was, the audio session's state and the underlying error
-([#201](https://github.com/idvorkin/context-grabber/issues/201)). For *Open on Suno*: which song it opened and whether it came from the post just now, from
+([#201](https://github.com/idvorkin/context-grabber/issues/201)), and lets the audio go, so whatever it paused plays
+again (a live call keeps its audio). For *Open on Suno*: which song it opened and whether it came from the post just now, from
 last time, or fell back to the post.
 
 ## Acceptance criteria
@@ -75,6 +81,8 @@ last time, or fell back to the post.
 - Pause, close, reopen: the sheet shows the same place and resumes from it.
 - With a call live, the song will not play and says why; starting a call pauses a playing song.
 - Dragging the scrubber moves the song there; restart plays it from the start.
+- Played right after the car's hands-free line or the Cockpit held the audio, the song plays at its own speed and
+  its clock keeps time with the wall clock.
 - With the sheet closed, the small player shows while the song plays or is paused partway; its play/pause works
   in place, a tap opens the sheet, its ✕ stops the song and hides it.
 - Open on Suno opens the song the post embeds today; offline, the last one found; never found, the post, and says so.

@@ -480,6 +480,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 138:
+
+- **Summary:** The eulogy song plays at its own speed, in the car too
+- **Issues:** [#370](https://github.com/idvorkin/context-grabber/issues/370)
+- **Status:** implemented in [d0a1353](https://github.com/idvorkin/context-grabber/commit/d0a1353) (the session set before the player is prepared, a player prepared at another sample rate replaced at the same place, and the rate, route and any clock drift in the log) and [4ff9f1b](https://github.com/idvorkin/context-grabber/commit/4ff9f1b) with the review fix after it (a song that will not load, or will not start, lets the session go so other audio comes back); verified by `just native-lint`, and the app compiled in the simulator build at 3106eb2 (2026-10-18 build turn); the car on the phone is still for Igor to check
+- **Spec:** [native Eulogy](../superpowers/specs/2026-10-07-native-eulogy-design.md)
+
+#### Use Case:
+- **As someone** who plays his eulogy song while driving, often right after a Larry call or the Cockpit
+- **I want to** hear it at its own speed, whatever audio route was there before
+- **so that** the song is the song, not a chipmunk that ends in 45 seconds
+
+#### Acceptance Criteria:
+- **Scenario:** Right after the hands-free line
+- **Given:** the phone is on the car's hands-free line and the Cockpit was just open
+- **When:** I tap *Eulogy song* and listen for a minute
+- **Then:** the song sounds as recorded and its clock reads about 1:00, not three times that
+
+---
+
 ### User Story 247:
 
 - **Summary:** A random page of my blog, one tap away
