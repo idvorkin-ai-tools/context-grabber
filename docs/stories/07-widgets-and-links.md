@@ -326,7 +326,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Press and hold the music tile to pick Workout, Liked music or Feel Good Supermix
 - **Issues:** [#383](https://github.com/idvorkin/context-grabber/issues/383)
-- **Status:** native app only: implemented in [8182a2f](https://github.com/idvorkin/context-grabber/commit/8182a2f); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
+- **Status:** native app only: implemented in [8182a2f](https://github.com/idvorkin/context-grabber/commit/8182a2f), a failure to open copyable since [a805380](https://github.com/idvorkin/context-grabber/commit/a805380); verified by `WorkoutSupermixTests` (host: the three mixes in order, each a YouTube Music universal link, Feel Good without feature=share); the simulator build in the next build turn; the press and hold, and Liked music opening his likes, on the phone still for Igor
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
