@@ -237,6 +237,8 @@ final class StripCloudSync {
       // everything the store now holds (Codex on #378).
       if reason == NSUbiquitousKeyValueStoreAccountChange {
         try strip.clearPeers(keeping: handedOver)
+        // The new account's own months for this device come back first, then this device's months go up over them.
+        recoverOwn()
         if ready { publish(month: nil) }
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])

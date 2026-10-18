@@ -91,10 +91,12 @@ final class DailyStripModel: ObservableObject {
       return
     }
     // #376: a count steps this device's own share; a check flips what every device shows.
-    if item.isCounter { sync?.stepping(item, day: today, by: step) }
     let next: Int
     do {
-      next = item.isCounter ? max(0, try (store?.ownValue(item, day: today) ?? 0) + step) : (value(item) > 0 ? 0 : 1)
+      let own = try store?.ownValue(item, day: today) ?? 0
+      next = item.isCounter ? max(0, own + step) : (value(item) > 0 ? 0 : 1)
+      // The step as applied (a long press at 0 changes nothing), held while the first sync is awaited (#380).
+      if item.isCounter { sync?.stepping(item, day: today, by: next - own) }
       try store?.set(item, day: today, value: next)
     } catch {
       log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
