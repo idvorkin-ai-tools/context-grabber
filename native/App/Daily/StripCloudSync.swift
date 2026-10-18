@@ -55,11 +55,13 @@ final class StripCloudSync {
     self.log = log
     self.database = database
     // Only an empty database can overwrite iCloud with less than it holds (a reinstall); one with rows is this
-    // device's own record, and with no iCloud account nothing leaves the phone. Those publish at once (Codex on #378).
-    // A database already waiting stays waiting, even once its own taps have given it rows (local review).
+    // device's own record and publishes at once (Codex on #378). An empty one always waits: the key-value store syncs
+    // even with iCloud Drive off, so no account check can say there is nothing to download (local review); with no
+    // account at all, five quiet minutes online open it. A database already waiting stays waiting, even once its own
+    // taps have given it rows (local review).
     let state = database.setting("strip_initial_sync")
     let empty = ((try? strip.ownRows()) ?? []).isEmpty
-    ready = state == "done" || (state != "waiting" && (!empty || FileManager.default.ubiquityIdentityToken == nil))
+    ready = state == "done" || (state != "waiting" && !empty)
     if !ready {
       database.setSetting("strip_initial_sync", "waiting")
     } else if state != "done" && !empty {
@@ -111,9 +113,10 @@ final class StripCloudSync {
   /// are read, and the store is asked to sync now.
   func start() {
     if ready {
-      // A failed recovery publishes nothing: the local copy may hold less than iCloud (Codex on #378).
+      // A failed recovery publishes nothing and leaves no half-merged month behind for a later tap to send: the
+      // local copy is this device's own record, as it was (Codex on #378, local review).
       do {
-        try recoverOwn()
+        try strip.inTransaction { try recoverOwn() }
         publish(month: nil)
       } catch {
         log.event("error", ["where": "strip_sync_recover", "message": "\(error)"])
@@ -295,7 +298,7 @@ final class StripCloudSync {
       if reason == NSUbiquitousKeyValueStoreAccountChange {
         try strip.clearPeers(keeping: handedOver)
         // The new account's own months for this device come back first, then this device's months go up over them.
-        try recoverOwn()  // a failure skips the publish below and lands in the catch
+        try strip.inTransaction { try recoverOwn() }  // a failure rolls back and skips the publish below
         if ready { publish(month: nil) }
         keys = Array(store.dictionaryRepresentation.keys)
         log.event("strip_sync", ["action": "account_change", "keys": keys.count])
