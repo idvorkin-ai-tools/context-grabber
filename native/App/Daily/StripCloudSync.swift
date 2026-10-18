@@ -20,8 +20,28 @@ final class StripCloudSync {
   /// empty months would overwrite the ones in iCloud); the store's initial-sync or server change opens it.
   private var ready: Bool
   private var pendingMonths: Set<String> = []
-  /// Counter steps made before the first sync, by day and item: the row as it was before them and their sum.
-  private var waitingSteps: [String: (item: DailyItem, day: String, original: StripRow?, net: Int)] = [:]
+  /// Counter steps made before the first sync, by day and item: the row as it was before them and their sum. Kept in
+  /// `settings`, so a restart while waiting still lands them on the recovered count (local review).
+  private var waitingSteps: [String: WaitingStep] {
+    get {
+      (database.setting("strip_waiting_steps").flatMap {
+        try? JSONDecoder().decode([String: WaitingStep].self, from: Data($0.utf8))
+      })
+        ?? [:]
+    }
+    set {
+      let json = (try? JSONEncoder().encode(newValue)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+      database.setSetting("strip_waiting_steps", json)
+    }
+  }
+
+  struct WaitingStep: Codable {
+    var item: String
+    var day: String
+    /// The row before the first step, as value and updated_at; nil when there was none.
+    var original: [Int64]?
+    var net: Int
+  }
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
 
@@ -32,9 +52,11 @@ final class StripCloudSync {
     self.database = database
     // Only an empty database can overwrite iCloud with less than it holds (a reinstall); one with rows is this
     // device's own record, and with no iCloud account nothing leaves the phone. Those publish at once (Codex on #378).
+    // A database already waiting stays waiting, even once its own taps have given it rows (local review).
+    let state = database.setting("strip_initial_sync")
     let empty = ((try? strip.ownRows()) ?? []).isEmpty
-    ready =
-      database.setting("strip_initial_sync") == "done" || !empty || FileManager.default.ubiquityIdentityToken == nil
+    ready = state == "done" || (state != "waiting" && (!empty || FileManager.default.ubiquityIdentityToken == nil))
+    if !ready { database.setSetting("strip_initial_sync", "waiting") }
     // The vendor id, not one kept in the database: a backup restored onto another phone gets a new one, so two
     // phones never write the same keys (Codex on #378). The database only reaches a new id by a restore or a
     // transfer, and the phone it came from may still be in use: what it carried was that phone's, so it becomes
@@ -97,11 +119,15 @@ final class StripCloudSync {
     // the steps land again on top of it.
     let steps = Array(waitingSteps.values)
     waitingSteps = [:]
-    var restored: [(item: DailyItem, day: String, original: StripRow?, net: Int)] = []
+    var restored: [(item: DailyItem, day: String, net: Int)] = []
     do {
       for s in steps {
-        try strip.restoreOwn(s.item, day: s.day, to: s.original)
-        restored.append(s)
+        guard let item = DailyItem(rawValue: s.item) else { continue }
+        let original = s.original.flatMap {
+          $0.count == 2 ? StripRow(day: s.day, item: item, value: Int($0[0]), updatedAt: $0[1]) : nil
+        }
+        try strip.restoreOwn(item, day: s.day, to: original)
+        restored.append((item, s.day, s.net))
       }
     } catch {
       log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
@@ -152,7 +178,8 @@ final class StripCloudSync {
     if waitingSteps[key] == nil {
       do {
         let original = try strip.ownRows(month: StripSync.month(of: day)).first { $0.day == day && $0.item == item }
-        waitingSteps[key] = (item, day, original, 0)
+        waitingSteps[key] = WaitingStep(
+          item: item.rawValue, day: day, original: original.map { [Int64($0.value), $0.updatedAt] }, net: 0)
       } catch {
         log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
         return
