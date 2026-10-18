@@ -12,9 +12,6 @@ final class StripCloudSync {
   private let store = NSUbiquitousKeyValueStore.default
   private let strip: DailyStrip
   private let device: String
-  /// The ids this install wrote under before, whose keys are removed whenever they show up: on a restored phone
-  /// they arrive with iCloud's first sync, after launch.
-  private let retired: Set<String>
   private let log: SessionLog
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
@@ -23,21 +20,20 @@ final class StripCloudSync {
     guard let strip = database.dailyStrip else { return nil }
     self.strip = strip
     self.log = log
-    // The vendor id, not one kept in the database: a backup restored onto a new phone gets a new one, so two
-    // phones never write the same keys (Codex on #378). When it changes, the keys this install wrote under the old
-    // one are removed, or their counts would add up twice.
-    // ponytail: a restore onto a second phone while the first stays in use doubles that shared history's counts
-    // once; the upgrade is a per-install id in the Keychain (ThisDeviceOnly) with the old keys handed over.
+    // The vendor id, not one kept in the database: a backup restored onto another phone gets a new one, so two
+    // phones never write the same keys (Codex on #378). The database only reaches a new id by a restore or a
+    // transfer, and the phone it came from may still be in use: what it carried was that phone's, so it becomes
+    // that phone's peer rows (replaced by its keys when they arrive) instead of this one's, and nothing counts twice.
     device =
       UIDevice.current.identifierForVendor?.uuidString ?? database.setting("strip_device_id") ?? UUID().uuidString
-    var retired = Set((database.setting("strip_retired_devices") ?? "").split(separator: " ").map(String.init))
     if let old = database.setting("strip_device_id"), old != device {
-      retired.insert(old)
-      database.setSetting("strip_retired_devices", retired.sorted().joined(separator: " "))
-      log.event("strip_sync", ["action": "device_changed", "retired": retired.count])
+      do {
+        let moved = try strip.handOver(to: old)
+        log.event("strip_sync", ["action": "device_changed", "handed_over_rows": moved])
+      } catch {
+        log.event("error", ["where": "strip_sync_hand_over", "message": "\(error)"])
+      }
     }
-    retired.remove(device)
-    self.retired = retired
     database.setSetting("strip_device_id", device)
     NotificationCenter.default.addObserver(
       forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: store, queue: .main
@@ -77,7 +73,6 @@ final class StripCloudSync {
     }
     var keys = keys
     var byDevice: [String: [String]] = [:]
-    var removed = 0
     do {
       // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from
       // everything the store now holds (Codex on #378).
@@ -90,11 +85,6 @@ final class StripCloudSync {
       }
       for key in keys {
         guard let (from, month) = StripSync.parse(key: key), from != device else { continue }
-        if retired.contains(from) {
-          store.removeObject(forKey: key)
-          removed += 1
-          continue
-        }
         let rows = (store.data(forKey: key)).map(StripSync.decode) ?? []
         try strip.replacePeer(from, month: month, rows: rows)
         byDevice[from, default: []].append(month)
@@ -102,7 +92,6 @@ final class StripCloudSync {
     } catch {
       log.event("error", ["where": "strip_sync_arrived", "message": "\(error)"])
     }
-    if removed > 0 { log.event("strip_sync", ["action": "removed_retired", "keys": removed]) }
     guard !byDevice.isEmpty else { return }
     for (from, months) in byDevice {
       log.event(

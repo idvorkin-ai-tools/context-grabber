@@ -90,6 +90,20 @@ public struct DailyStrip {
     }
   }
 
+  /// This install's rows become `device`'s peer rows and this install starts empty: a restore brought another
+  /// phone's history, which that phone's own keys carry (Codex on #378). Returns how many rows moved.
+  @discardableResult
+  public func handOver(to device: String) throws -> Int {
+    let rows = try ownRows()
+    for r in rows {
+      _ = try db.run(
+        "INSERT OR REPLACE INTO daily_strip_peers (device, date_key, item, value, updated_at) VALUES (?, ?, ?, ?, ?)",
+        [.text(device), .text(r.day), .text(r.item.rawValue), .int(Int64(r.value)), .int(r.updatedAt)])
+    }
+    try db.execute("DELETE FROM daily_strip;")
+    return rows.count
+  }
+
   /// Every other device's rows gone: the iCloud account changed (Codex on #378).
   public func clearPeers() throws { try db.execute("DELETE FROM daily_strip_peers;") }
 

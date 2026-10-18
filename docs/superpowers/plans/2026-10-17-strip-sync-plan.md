@@ -13,8 +13,9 @@ so **each device writes only its own keys**, one per month:
 
 Two devices for ten years is 240 keys and well under 1 MB. The device id is `UIDevice.identifierForVendor`, so a
 backup restored onto another phone gets a new one; the last id is kept in `settings` (`strip_device_id`). When it
-changes, the old id goes in `strip_retired_devices`, and any key under a retired id is removed from the store
-whenever it shows up (on a restored phone they arrive with iCloud's first sync, after launch), never read as a peer.
+changes (only a restore or a transfer brings the database to a new id, and the phone it came from may still be in
+use), this install's rows are handed over as the old id's peer rows, replaced by that id's keys when they arrive,
+and this install starts its own rows empty, so the carried history counts once and nothing is deleted.
 
 ## Merge (ContextCore, host-tested)
 
@@ -36,8 +37,8 @@ whenever it shows up (on a restored phone they arrive with iCloud's first sync, 
   keys) it clears the peers, publishes every month again and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
 - Log: `strip_sync` with `action` `publish` (months, all), `arrived` (device, months, reason), `account_change` (keys),
-  `device_changed` (retired), `removed_retired` (keys);
-  failures are `error` with `where` strip_sync_publish,
+  `device_changed` (handed_over_rows);
+  failures are `error` with `where` strip_sync_publish, strip_sync_hand_over,
   strip_sync_arrived or strip_sync_quota.
 - Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
   in `native/project.yml`. That's a native build and a provisioning update (automatic signing handles it).

@@ -92,6 +92,22 @@ final class StripSyncTests: XCTestCase {
     XCTAssertEqual(StripSync.decode(data), [StripRow(day: "2026-10-17", item: .gym, value: 1, updatedAt: 123)])
   }
 
+  /// A restore onto a new phone: the history it carried is the old phone's, shown once, and a tap here adds to it.
+  func testARestoredHistoryIsHandedToTheOldPhoneAndCountsOnce() throws {
+    let s = try strip()
+    try s.set(.balloons, day: day, value: 2, at: Date(timeIntervalSince1970: 1))
+    try s.set(.journal, day: day, value: 1, at: Date(timeIntervalSince1970: 1))
+    XCTAssertEqual(try s.handOver(to: "old-phone"), 2)
+    XCTAssertEqual(try s.ownRows(), [])
+    XCTAssertEqual(try s.value(.balloons, day: day), 2)
+    XCTAssertEqual(try s.value(.journal, day: day), 1)
+    // The old phone's own keys then arrive with the same month: replaced, not added.
+    try s.replacePeer(
+      "old-phone", month: "2026-10", rows: [StripRow(day: day, item: .balloons, value: 2, updatedAt: 1000)])
+    try s.set(.balloons, day: day, value: 1)
+    XCTAssertEqual(try s.value(.balloons, day: day), 3)
+  }
+
   func testClearingPeersLeavesThisDevicesOwn() throws {
     let s = try strip()
     try s.set(.magic, day: day, value: 1)
