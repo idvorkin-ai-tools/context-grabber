@@ -306,7 +306,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Workout Supermix opens straight in YouTube Music
 - **Issues:** [#372](https://github.com/idvorkin/context-grabber/issues/372)
-- **Status:** not started
+- **Status:** implemented in [fe5b5d4](https://github.com/idvorkin/context-grabber/commit/fe5b5d4) (the tile opens Igor's link as a universal link, the browser without YouTube Music, and the log says which); verified by `just test` (host) and a parse; `WorkoutSupermixUITests` (Safari in front on the simulator) and the build in the next build turn; YouTube Music opening on the phone still for Igor
 - **Spec:** [Swift-native app — Workout Supermix, one tap away](../superpowers/specs/2026-10-04-swift-native-app-design.md#workout-supermix-one-tap-away)
 
 #### Use Case:
