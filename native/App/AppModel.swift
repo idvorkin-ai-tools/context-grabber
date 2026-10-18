@@ -405,7 +405,14 @@ final class AppModel: ObservableObject {
   func open(choice: HoldChoice) {
     let from = "home_popover"
     switch choice.action {
-    case .route(let route): open(route: route, from: from)
+    case .route(let route):
+      // The spec's Remembering: a preset chosen here is breathing's choice afterwards, as on its own screen; a link's
+      // length stays this session's only. (The timer's open already makes its preset the chosen one.)
+      if case .breathe(let link) = route, let seconds = link.breath {
+        BreatheModel.remember(preset: seconds, in: database)
+        log.event("ui", ["action": "breath_preset", "preset": String(seconds), "from": from])
+      }
+      open(route: route, from: from)
     case .supermix(let mix): openWorkoutSupermix(from: from, mix: mix)
     case .drill:
       drillOnOpen = .cardToPosition
