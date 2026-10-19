@@ -14,6 +14,8 @@ final class AppDatabase {
   let dailyStrip: DailyStrip?
   /// The trail, the known places, the tracking switch and the retention (Places).
   let locations: LocationStore?
+  /// Where each archive stream's last taken page ended (story 262).
+  let archiveCursors: ArchiveCursorStore?
   /// The file itself, for the database export.
   let url: URL
   /// The health cache, on its own connection to the same file: a grab reads and writes it off the main actor.
@@ -26,6 +28,7 @@ final class AppDatabase {
     var accessoryLog: AccessoryLog?
     var activityLog: ActivityLog?
     var locations: LocationStore?
+    var archiveCursors: ArchiveCursorStore?
     var dailyStrip: DailyStrip?
     let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
       .appendingPathComponent("SQLite", isDirectory: true)
@@ -38,6 +41,7 @@ final class AppDatabase {
       accessoryLog = try AccessoryLog(db: db)
       activityLog = try ActivityLog(db: db)
       locations = try LocationStore(db: db)
+      archiveCursors = try ArchiveCursorStore(db: db)
       dailyStrip = try DailyStrip(db: db)
       healthCache = try HealthCache(db: SQLiteDatabase(path: dir.appendingPathComponent("context-grabber.db").path))
     } catch {
@@ -48,6 +52,7 @@ final class AppDatabase {
     self.accessoryLog = accessoryLog
     self.activityLog = activityLog
     self.locations = locations
+    self.archiveCursors = archiveCursors
     self.dailyStrip = dailyStrip
     self.healthCache = healthCache
   }

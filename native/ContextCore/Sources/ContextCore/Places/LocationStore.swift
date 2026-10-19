@@ -99,6 +99,20 @@ public struct LocationStore {
     Int(try db.run("SELECT COUNT(*) AS n FROM locations").first?["n"]?.intValue ?? 0)
   }
 
+  /// Story 262: the next `limit` points by row id after `id`, with their ids, for the archive's pages. Ids only
+  /// grow (pruning deletes, never renumbers), so a row id is the stream's cursor.
+  public func points(afterId id: Int64, limit: Int) throws -> [(id: Int64, point: LocationPoint)] {
+    try db.run(
+      "SELECT id, latitude, longitude, accuracy, timestamp FROM locations WHERE id > ? ORDER BY id ASC LIMIT ?",
+      [.int(id), .int(Int64(limit))]
+    ).compactMap { row in
+      guard let rowId = row["id"]?.intValue, let lat = row["latitude"]?.doubleValue,
+        let lng = row["longitude"]?.doubleValue, let t = row["timestamp"]?.doubleValue
+      else { return nil }
+      return (rowId, LocationPoint(latitude: lat, longitude: lng, accuracy: row["accuracy"]?.doubleValue, timestamp: t))
+    }
+  }
+
   /// Deletes points older than the retention as of `now`; returns how many went.
   @discardableResult
   public func prune(retentionDays: Int, now: Double) throws -> Int {

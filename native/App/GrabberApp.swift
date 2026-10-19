@@ -27,6 +27,7 @@ struct GrabberApp: App {
             } else {
               model.tracker.foreground(); model.usage.resume(reason: "launch")
               model.mirror.refresh(reason: "launch")  // #355: the Today card current, in the background
+              model.archive.launch()  // story 262: the next slots asked for, and a run if one is due
             }
             wasActive = true
           } else if phase == .background {
