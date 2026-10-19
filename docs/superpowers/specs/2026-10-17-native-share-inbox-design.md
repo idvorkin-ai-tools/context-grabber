@@ -36,25 +36,32 @@ picture is the felt raccoon of the other tiles sliding an envelope and a photo i
 up (Igor, 2026-10-18, #395: *"Inbox icon looks terrible. Should be racoon putting something into a mailbox"*).
 It lists what was shared, newest first: what it is, the note, where it came from (a link's site; iOS does not tell
 the app which app shared it), and when. A swipe deletes one. In
-phase 1 every item reads *on the phone*; in phase 2, *sent to Larry* with the time, or *waiting to send*.
+phase 1 every item reads *on the phone*; in phase 2, *sent to Larry* with the time, or **Not sent yet**.
+While the phone has no network, one quiet line says “No network — these go to Larry when you're back online”.
 
 **Phase 2: to Larry.** When the phone can reach the Cockpit, each item waiting goes to Larry's inbox there, oldest
-first, once each. A failure leaves it waiting and is retried the next time the app is opened; it is never sent
-twice. Larry sees the item, the note and when it was shared.
+first, once each. A failure leaves it waiting, never marked sent or removed, and is retried the next time the app
+is opened or the network returns while the app is running. Larry sees the item, the note and when it was shared.
 
 How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 
 - **Only over the tailnet**, to the same Cockpit the app's Cockpit screen opens; reaching it is the permission, so
   nothing secret is set up on the phone.
 - **When**: each time the app opens or comes to the front, and once more when a send ends if something was shared
-  while it was out. Sharing from another app never waits on the network.
+  while it was out. No send starts until network availability is known, and none starts while offline. When the
+  network returns while the app is running, the offline line disappears and waiting items send automatically.
+  After a failed send, a meaningful network change (including the VPN tunnel returning while Wi-Fi stays up,
+  or a change in metered or constrained access) retries waiting items too, also when the change came while that
+  send was still out. A burst of such changes settles for
+  half a second before one retry. Identical network updates do not start extra sends; a return or retry during
+  a send requests at most one more pass after that send ends. Sharing from another app never waits on the network.
 - **Once each**: an item resent after a lost answer is recognised by the Cockpit as one it already has, and reads
   *sent to Larry* like any other.
 - **HEIC photos go as JPEG**; PNG, JPEG, GIF and WebP go as they are. Any photo is made smaller (as a JPEG) if
   needed so each fits the Cockpit's 10 MB.
 - **Refused**: when the Cockpit says an item itself is wrong (too big, an unreadable image), it is not retried. It
   reads *Larry's inbox refused it* with the Cockpit's reason, which can be copied. A swipe deletes it as usual.
-- **Unreachable or failing** (no tailnet, the Cockpit down): it stays *waiting to send*, and the log says why.
+- **Unreachable or failing** (no tailnet, the Cockpit down): it stays **Not sent yet**, and the log says why.
 
 ## Adding from inside the app
 
@@ -90,6 +97,8 @@ Acceptance criteria:
 - Each share is logged (`inbox`, action added, with the kind and size, never the content) when the app next opens
   and finds it.
 - Each send in phase 2 is logged (`inbox`, action sent / refused / failed, with the item and the Cockpit's answer).
+- Skipping a send while offline and sending when the network returns are logged (`inbox`, action offline_skipped /
+  network_back, with the waiting count, never the content).
 
 ## Acceptance criteria
 
@@ -97,6 +106,12 @@ Acceptance criteria:
   second, in aeroplane mode too.
 - The Inbox tile shows the raccoon posting a letter and counts the items not yet sent; deleting one updates it.
 - Phase 2: with the Cockpit reachable, every waiting item reaches Larry once and then reads *sent to Larry*;
-  with it unreachable, items wait and go on the next open.
+  with it unreachable or failing, items remain **Not sent yet** and stay counted on the tile.
+- With no network, the Inbox shows the quiet offline line and attempts no send; a network that comes up on demand
+  (an on-demand VPN) counts as available, so the send is tried and no offline line shows. On network return while the app
+  is running, the line disappears and waiting items send without reopening the app; repeated available-network
+  updates with identical network details do not cause extra sends, and a send already in progress is never overlapped.
+- After a failed send, reconnecting the tailnet while Wi-Fi or cellular stays available retries waiting items,
+  even when the tailnet returned before that send failed; meaningful network changes in a burst cause one retry after settling, and an empty Inbox never retries.
 - Phase 2: an item the Cockpit refuses reads *Larry's inbox refused it* with the reason, copyable, and is not sent
   again; a HEIC photo arrives at Larry as a JPEG.

@@ -400,8 +400,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 261:
 
 - **Summary:** With the Cockpit out of reach, the Inbox waits for the next open
-- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first); off the tailnet on the phone still for Igor
-- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); #406's wording and the failed-send regression in [7efc955](https://github.com/idvorkin/context-grabber/commit/7efc955); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first; a transport failure retains the item and a later success sends it once); off the tailnet on the phone still for Igor
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305), [#406](https://github.com/idvorkin/context-grabber/issues/406)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
 #### Use Case:
@@ -413,7 +413,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Off the tailnet
 - **Given:** three items wait in the Inbox
 - **When:** I open Grabber Native with the Cockpit unreachable or answering 5xx
-- **Then:** all three stay *waiting to send*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first
+- **Then:** all three stay *Not sent yet*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first
 
 ---
 
@@ -554,3 +554,23 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the compose sheet shows a pasted image's preview
 - **When:** I tap Remove image
 - **Then:** the preview goes and the text I wrote stays
+
+---
+
+### User Story 269:
+
+- **Summary:** My Inbox waits offline and sends itself when the network returns
+- **Status:** native app only: implemented in [7efc955](https://github.com/idvorkin/context-grabber/commit/7efc955); the retry on a path change after a failed send (Codex on #409) in [22c36ef](https://github.com/idvorkin/context-grabber/commit/22c36ef), and for a change that came while the failing send was out in [77d67d6](https://github.com/idvorkin/context-grabber/commit/77d67d6); a network that comes up on demand (an on-demand VPN) counts as available in [4be2267](https://github.com/idvorkin/context-grabber/commit/4be2267); verified by `InboxSendPolicyTests` and `InboxTests` with the full `just test` (host); the offline line and the send on the network's return on the phone not yet
+- **Issues:** [#406](https://github.com/idvorkin/context-grabber/issues/406)
+- **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing things away from a network
+- **I want to** see that my items have not been sent and have them send when I am back online
+- **so that** I trust they are kept without remembering to reopen the app
+
+#### Acceptance Criteria:
+- **Scenario:** The network returns with the app running
+- **Given:** items wait in the Inbox after losing the network or failing to reach the Cockpit, each reads *Not sent yet* and the tile counts them; while the phone is offline the screen quietly says “No network — these go to Larry when you're back online” without attempting a send
+- **When:** the network returns while the app is running, including a tailnet reconnect after a failed send while Wi-Fi or cellular stayed available
+- **Then:** the offline line disappears if shown and waiting items send automatically without overlapping sends; a network that comes up on demand (an on-demand VPN) counts as available, so the send is tried and no offline line shows; after a failure (or during the send that then fails), a changed interface or metered/constrained access retries once after a burst settles for half a second, identical updates and an empty Inbox never retry; a failed send leaves its item waiting and counted, and the log records `inbox` offline_skipped, network_back and network_changed events as applicable
