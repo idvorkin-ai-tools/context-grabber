@@ -64,6 +64,8 @@ final class MirrorModel: ObservableObject {
         ?? ISO8601DateFormatter().date(from: snapshot.timestamp)
     else { return }
     UsageTileStore.writeToday(TodayGlance(cards: cards, day: AccessoryLog.dateKey(taken)))
+    // #404, story 226: a grab can turn meditation green even while the home strip is off screen.
+    app.dailyStrip?.refresh()
   }
 
   var cards: [MetricCard] {
