@@ -19,33 +19,9 @@ struct InboxComposeView: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section("Text or a note for the picture") {
-          TextField("Something for Larry", text: $draft.text, axis: .vertical)
-            .lineLimit(4...10)
-            .focused($editing)
-        }
-        Section {
-          if let preview {
-            Image(decorative: preview, scale: 1).resizable().scaledToFit().frame(maxHeight: 160)
-            Button("Remove image", role: .destructive) {
-              draft.image = nil
-              self.preview = nil
-            }
-          }
-          Button("Paste image", action: pasteImage).disabled(!hasImage)
-        }
-        if let failure {
-          Section {
-            BugProblemView(
-              problem: .grabber(
-                failure, context: "InboxComposeView.add_or_paste",
-                extra: [
-                  "text_bytes": .number(Double(draft.text.utf8.count)),
-                  "image_bytes": .number(Double(draft.image?.count ?? 0)), "store_available": .bool(inbox.store != nil),
-                ]
-              ), logger: logger)
-          }
-        }
+        textSection
+        imageSection
+        failureSection
         Section {
           Button("Add another") { add(another: true) }.disabled(!draft.canAdd)
         }
@@ -66,6 +42,49 @@ struct InboxComposeView: View {
         hasImage = UIPasteboard.general.hasImages
       }
     }
+  }
+
+  private var textSection: some View {
+    Section("Text or a note for the picture") {
+      TextField("Something for Larry", text: $draft.text, axis: .vertical)
+        .lineLimit(4...10)
+        .focused($editing)
+    }
+  }
+
+  private var imageSection: some View {
+    Section {
+      if let preview {
+        Image(decorative: preview, scale: 1).resizable().scaledToFit().frame(maxHeight: 160)
+        Button("Remove image", role: .destructive) {
+          draft.image = nil
+          self.preview = nil
+        }
+      }
+      Button("Paste image", action: pasteImage).disabled(!hasImage)
+    }
+  }
+
+  @ViewBuilder
+  private var failureSection: some View {
+    if let failure {
+      Section {
+        failureView(failure)
+      }
+    }
+  }
+
+  private func failureView(_ message: String) -> some View {
+    let textBytes = draft.text.utf8.count
+    let imageBytes = draft.image?.count ?? 0
+    let problem = BugProblem.grabber(
+      message, context: "InboxComposeView.add_or_paste",
+      extra: [
+        "text_bytes": .int(textBytes),
+        "image_bytes": .int(imageBytes),
+        "store_available": .bool(inbox.store != nil),
+      ])
+    return BugProblemView(problem: problem, logger: logger)
   }
 
   private func pasteImage() {
