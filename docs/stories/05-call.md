@@ -106,7 +106,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 085:
 
 - **Summary:** Pick the voice that answers — Tony or my own clone
-- **Status:** implemented in [3d0c38d](https://github.com/idvorkin/context-grabber/commit/3d0c38d); verified by `callVoices.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the pick remembered in the settings table under the old app's key; verified by `just native-test` (voice tests); the phone still to be checked by Igor. #417: uncommitted implementation in this worktree (commit left to Igor); verified on the host by 108 call-filtered tests, including recommendation cache and wire tests; full `just test` currently fails in unchanged Inbox image tests, and the app/bridge await the human build turn
+- **Status:** implemented in [3d0c38d](https://github.com/idvorkin/context-grabber/commit/3d0c38d); verified by `callVoices.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the pick remembered in the settings table under the old app's key; verified by `just native-test` (voice tests); the phone still to be checked by Igor. #417: each voice's model from the Cockpit's recommendation in [1c65923](https://github.com/idvorkin/context-grabber/commit/1c65923); verified by the call host tests (the recommendation cache and the start frame) and the full `just test`, and the app compiles on the simulator; a call on the phone not yet
 
 #### Use Case:
 - **As a** Larry's client who has heard his own cloned voice perform
