@@ -11,6 +11,10 @@ struct InboxView: View {
 
   var body: some View {
     List {
+      // #406, story 269: a quiet explanation, not an error; the items are safe on the phone.
+      if inbox.offline {
+        Text("No network — these go to Larry when you're back online").font(.footnote).foregroundStyle(.secondary)
+      }
       if inbox.store == nil {
         BugProblemView(
           problem: .grabber(
@@ -81,7 +85,7 @@ private struct InboxRow: View {
     let when = Date(timeIntervalSince1970: Double(item.sharedAt) / 1000).formatted(date: .abbreviated, time: .shortened)
     let place = item.site.map { "\($0) · " } ?? ""
     switch item.status {
-    case .waiting: return "\(place)\(when) · waiting to send"
+    case .waiting: return "\(place)\(when) · Not sent yet"
     case .refused: return "\(place)\(when)"
     case .sent:
       let sent = Date(timeIntervalSince1970: Double(item.sentAt ?? 0) / 1000).formatted(

@@ -156,6 +156,43 @@ final class InboxTests: XCTestCase {
     XCTAssertEqual(store.items().items.first?.status, .refused)
   }
 
+  // #406, story 269: a transport failure keeps the item on disk, still counted, for the network-back send.
+  func testAFailedSendStaysWaitingAndCanBeSentLater() async throws {
+    try store.add(InboxItem(id: "a", kind: .text, sharedAt: 1, text: "one"))
+    let failed = InboxSender(store: store, cockpit: "https://cockpit.test") { _ in
+      throw URLError(.notConnectedToInternet)
+    }
+    var actions: [String] = []
+    let report = await failed.sendWaiting { _, fields in
+      if let action = fields["action"] as? String { actions.append(action) }
+    }
+    XCTAssertNotNil(report.retry)
+    XCTAssertEqual(actions, ["failed"])
+    XCTAssertEqual(store.item("a")?.status, .waiting)
+    XCTAssertEqual(store.item("a")?.text, "one")
+    XCTAssertNil(store.item("a")?.sentAt)
+    XCTAssertEqual(store.waitingCount, 1)
+
+    let requests = Seen()
+    let online = InboxSender(store: store, cockpit: "https://cockpit.test") { request in
+      await requests.add("a")
+      return (
+        Data(#"{"ok": true}"#.utf8),
+        try XCTUnwrap(
+          HTTPURLResponse(url: try XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil))
+      )
+    }
+    let sent = await online.sendWaiting { _, _ in }
+    XCTAssertEqual(sent.sent, ["a"])
+    XCTAssertEqual(store.item("a")?.status, .sent)
+    XCTAssertNotNil(store.item("a")?.sentAt)
+    XCTAssertEqual(store.waitingCount, 0)
+    let again = await online.sendWaiting { _, _ in }
+    XCTAssertTrue(again.sent.isEmpty)
+    let sentRequests = await requests.ids
+    XCTAssertEqual(sentRequests, ["a"], "an item that reached Larry is not sent again")
+  }
+
   // Local review: an item deleted while an earlier one was being sent never goes.
   func testAnItemDeletedWhileTheSendIsOutIsNotSent() async throws {
     try store.add(InboxItem(id: "a", kind: .text, sharedAt: 1, text: "one"))

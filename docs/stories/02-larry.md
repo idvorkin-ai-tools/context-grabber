@@ -400,8 +400,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 261:
 
 - **Summary:** With the Cockpit out of reach, the Inbox waits for the next open
-- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first); off the tailnet on the phone still for Igor
-- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); #406's wording and retry regression are uncommitted (sandbox blocks the Git index); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first; a transport failure retains the item and a later success sends it once); off the tailnet on the phone still for Igor
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305), [#406](https://github.com/idvorkin/context-grabber/issues/406)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
 #### Use Case:
@@ -413,7 +413,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Off the tailnet
 - **Given:** three items wait in the Inbox
 - **When:** I open Grabber Native with the Cockpit unreachable or answering 5xx
-- **Then:** all three stay *waiting to send*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first
+- **Then:** all three stay *Not sent yet*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first
 
 ---
 
@@ -554,3 +554,23 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the compose sheet shows a pasted image's preview
 - **When:** I tap Remove image
 - **Then:** the preview goes and the text I wrote stays
+
+---
+
+### User Story 269:
+
+- **Summary:** My Inbox waits offline and sends itself when the network returns
+- **Status:** implemented in this worktree, uncommitted (sandbox blocks the Git index); verified by host `InboxSendPolicyTests` and the non-image `InboxTests` (16 tests, zero failures, using SwiftPM's `--disable-sandbox` with writable module caches); app compilation, offline wording and real network return on the phone still for Igor
+- **Issues:** [#406](https://github.com/idvorkin/context-grabber/issues/406)
+- **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing things away from a network
+- **I want to** see that my items have not been sent and have them send when I am back online
+- **so that** I trust they are kept without remembering to reopen the app
+
+#### Acceptance Criteria:
+- **Scenario:** The network returns with the app running
+- **Given:** items wait in the Inbox on an offline phone, each reads *Not sent yet*, the tile counts them, and the screen quietly says “No network — these go to Larry when you're back online” without attempting a send
+- **When:** the network returns while the app is running
+- **Then:** the line disappears and waiting items send automatically without overlapping sends or starting extra sends for repeated available-network updates; a failed send leaves its item waiting and counted, and the log records `inbox` offline_skipped and network_back events

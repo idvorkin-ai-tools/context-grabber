@@ -15,7 +15,7 @@ public enum InboxSend {
     case sent(duplicate: Bool)
     /// The item itself is wrong (4xx): never retried.
     case refused(status: Int, reason: String)
-    /// The Cockpit is down or unreachable (5xx, no answer): tried again on the next open.
+    /// The Cockpit is down or unreachable (5xx, no answer): tried again on the next open or network return.
     case retry(reason: String)
   }
 
