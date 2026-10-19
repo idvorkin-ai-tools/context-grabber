@@ -226,7 +226,7 @@ final class ArchiveTests: XCTestCase {
     try locations.insert([point])
 
     let cursors = try ArchiveCursorStore(db: db)
-    XCTAssertTrue(try cursors.all().isEmpty)
+    XCTAssertNil(try cursors.cursor(ArchiveStream.points))
     try cursors.set(ArchiveStream.points, cursor: "1", at: 10)
     let reopened = try ArchiveCursorStore(db: db)
     XCTAssertEqual(try reopened.cursor(ArchiveStream.points), "1")
@@ -241,10 +241,7 @@ final class ArchiveTests: XCTestCase {
     try cursors.set("b", cursor: "x", at: 11)
     try cursors.set("a", cursor: "2", at: 12)
     XCTAssertEqual(try cursors.cursor("a"), "2")
-    let all = try cursors.all()
-    XCTAssertEqual(all["a"]?.cursor, "2")
-    XCTAssertEqual(all["a"]?.updatedAt, 12)
-    XCTAssertEqual(all["b"]?.cursor, "x")
+    XCTAssertEqual(try cursors.cursor("b"), "x")
   }
 
   // MARK: When

@@ -97,9 +97,9 @@ final class ArchiveModel {
     task.expirationHandler = { [weak self] in Task { @MainActor in self?.cancel() } }
     let active = run(reason: reason, maxPages: maxPages)
     Task { [weak self] in
+      await self?.schedule(reason: reason)
       await active.value
       task.setTaskCompleted(success: self?.cancelled == false)
-      await self?.schedule(reason: reason)
     }
   }
 
@@ -152,7 +152,12 @@ final class ArchiveModel {
     let started = Date()
     var sources: [ArchiveSource] = []
     if let locations = database.locations { sources.append(LocationArchiveSource(store: locations)) }
-    sources += await healthSources()
+    var locked = !UIApplication.shared.isProtectedDataAvailable
+    if locked {
+      log.event("archive", ["action": "health_skipped", "why": reason, "reason": "phone locked"])
+    } else {
+      sources += await healthSources()
+    }
     var uploader = ArchiveUploader(cursors: cursors, cockpit: cockpit, deviceId: deviceId) {
       try await URLSession.shared.data(for: $0)
     }
@@ -177,8 +182,15 @@ final class ArchiveModel {
       if let why = report.stopped { stopped[source.stream] = why }
       // The Cockpit is away: every stream after this one would fail the same way.
       if report.stopped == "retry" { break }
+      if report.stopped == "read" && !UIApplication.shared.isProtectedDataAvailable {
+        locked = true
+        log.event("archive", ["action": "health_skipped", "why": reason, "reason": "phone locked"])
+        break
+      }
     }
-    if !cancelled { database.setSetting(Self.lastRunKey, String(Int64(started.timeIntervalSince1970 * 1000))) }
+    if !cancelled && !locked {
+      database.setSetting(Self.lastRunKey, String(Int64(started.timeIntervalSince1970 * 1000)))
+    }
     log.event(
       "archive_run",
       [

@@ -30,14 +30,4 @@ public struct ArchiveCursorStore {
       "INSERT OR REPLACE INTO archive_cursor (stream, cursor, updated_at) VALUES (?, ?, ?)",
       [.text(stream), .text(cursor), .int(ms)])
   }
-
-  /// Every stream's cursor and when it moved, for the log.
-  public func all() throws -> [String: (cursor: String, updatedAt: Int64)] {
-    var out: [String: (cursor: String, updatedAt: Int64)] = [:]
-    for row in try db.run("SELECT stream, cursor, updated_at FROM archive_cursor") {
-      guard let stream = row["stream"]?.textValue, let cursor = row["cursor"]?.textValue else { continue }
-      out[stream] = (cursor, row["updated_at"]?.intValue ?? 0)
-    }
-    return out
-  }
 }
