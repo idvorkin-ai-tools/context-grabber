@@ -136,6 +136,7 @@ final class CallHarness {
   var events: [(String, [String: Any])] = []
   var states: [CallSnapshot] = []
   var levels: [Double] = []
+  var settings = CallSettings()
   var session: CallSession!
 
   init(build: String = "", diagnostics: Bool = false) {
@@ -144,7 +145,7 @@ final class CallHarness {
   }
 
   private func make(build: String, diagnostics: Bool) -> CallSession {
-    let deps = CallSessionDeps(
+    var deps = CallSessionDeps(
       connect: { [unowned self] url in
         self.connects.append(url)
         if let e = self.connectError { throw e }
@@ -154,6 +155,7 @@ final class CallHarness {
       log: { [unowned self] type, fields in self.events.append((type, fields)) },
       diagnostics: diagnostics ? { [unowned self] in self.events.map { $0.0 }.joined(separator: "\n") } : nil,
       build: build)
+    deps.callSettings = { [unowned self] in self.settings }
     let s = CallSession(deps: deps, url: "wss://h/bridge")
     s.onChange = { [unowned self] in self.states.append($0) }
     s.onLevel = { [unowned self] in self.levels.append($0) }
@@ -514,12 +516,30 @@ final class CallSessionZerosTests: XCTestCase {
 }
 
 final class CallSessionVoiceTests: XCTestCase {
-  func testIgorRidesTheStartFrameAsTheCloneOnV3TonySendsTheDefaults() {
+  func testServerSettingsAndTheirSourceReachStartAndRestart() {
+    let t = CallHarness()
+    let body = Data(
+      #"{"ok":true,"schema":1,"voices":[{"pick":"igor","id":"recommended-clone","model":"eleven_v4_turbo"}]}"#.utf8)
+    t.settings.receive(status: 200, data: body, etag: "v1", cacheControl: nil, at: Date())
+    t.session.start(.eleven, voice: .igor)
+    t.socket.open()
+    XCTAssertEqual(t.socket.frames[0]["voice"] as? String, "recommended-clone")
+    XCTAssertEqual(t.socket.frames[0]["model"] as? String, "eleven_v4_turbo")
+    XCTAssertEqual(t.events.first { $0.0 == "call_start" }?.1["model_source"] as? String, "server")
+    t.settings = CallSettings(saved: t.settings.saved)
+    let second = t.nextSocket()
+    t.session.restart()
+    second.open()
+    XCTAssertEqual(second.frames[0]["model"] as? String, "eleven_v4_turbo")
+    XCTAssertEqual(t.events.last { $0.0 == "call_start" }?.1["model_source"] as? String, "cache")
+  }
+
+  func testIgorRidesTheStartFrameAsTheCloneWithBridgeModelTonySendsTheDefaults() {
     let t = CallHarness()
     t.session.start(.eleven, voice: .igor)
     t.socket.open()
     XCTAssertEqual(t.socket.frames[0]["voice"] as? String, "Nvd5I2HGnOWHNU0ijNEy")
-    XCTAssertEqual(t.socket.frames[0]["model"] as? String, "eleven_v3_conversational")
+    XCTAssertEqual(t.socket.frames[0]["model"] as? String, "")
     XCTAssertEqual(t.session.snapshot.voice, .igor)
     t.session.stop()
     let second = t.nextSocket()
@@ -663,7 +683,7 @@ final class CallSessionControlsTests: XCTestCase {
     XCTAssertEqual(t.session.snapshot.voice, .igor)
     second.open()
     XCTAssertEqual(second.frames[0]["backend"] as? String, "eleven")
-    XCTAssertEqual(second.frames[0]["model"] as? String, "eleven_v3_conversational")
+    XCTAssertEqual(second.frames[0]["model"] as? String, "")
   }
 
   func testRestartDoesNothingWhenIdle() {

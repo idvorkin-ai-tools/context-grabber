@@ -115,6 +115,9 @@ public protocol CallAudio: AnyObject {
 }
 
 public struct CallSessionDeps {
+  /// #417, story 085: resolved for every start, including restart and automatic redial.
+  public var callSettings: () -> CallSettings = { CallSettings() }
+
   public var connect: (String) throws -> BridgeSocket
   public var audio: CallAudio
   public var scheduler: CallScheduler
@@ -216,12 +219,12 @@ public final class CallSession {
       return
     }
     resetForCall(backend: backend, voice: voice)
-    let fields = voice.frameFields(for: backend)
+    let fields = deps.callSettings().fields(for: backend, voice: voice)
     log(
       "call_start",
       [
         "backend": backend.rawValue, "voice": voice.rawValue, "voice_id": fields.voice, "model": fields.model,
-        "build": deps.build, "bridge": url,
+        "build": deps.build, "bridge": url, "model_source": fields.source,
       ])
     emit()
     let call = generation
@@ -235,7 +238,7 @@ public final class CallSession {
       self.log("call_prepare", ["ok": true])
       // A stop() during prepare lands here.
       guard self.snapshot.state == .connecting else { return }
-      self.connect(backend: backend, frame: fields)
+      self.connect(backend: backend, frame: (fields.voice, fields.model))
     }
   }
 

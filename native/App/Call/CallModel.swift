@@ -35,6 +35,11 @@ final class CallModel: ObservableObject {
   let bridgeURL: String
   private let log: SessionLog
   private let database: AppDatabase
+  // #417, story 085: the call never waits for this refresh.
+  private var callSettings = CallSettings()
+  private var settingsTask: Task<Void, Never>?
+  private static let settingsKey = "call_voice_recommendations"
+
   // Made at the end of init: its callbacks capture self.
   // swiftlint:disable:next implicitly_unwrapped_optional
   private var session: CallSession!
@@ -63,6 +68,7 @@ final class CallModel: ObservableObject {
       ?? CallProtocol.bridgeURL(cockpit: Self.cockpitURL) ?? ""
     backend = database.setting(Self.backendKey).flatMap(CallBackend.init(rawValue:)) ?? .default
     voice = database.setting(Self.voiceKey).flatMap(CallVoice.init(rawValue:)) ?? .default
+    callSettings = CallSettings(saved: database.setting(Self.settingsKey))
     forgetGist()
 
     let audio: CallAudio
@@ -74,7 +80,7 @@ final class CallModel: ObservableObject {
         DispatchQueue.main.async { self?.event(type, fields) }
       }
     }
-    let deps = CallSessionDeps(
+    var deps = CallSessionDeps(
       connect: { url in
         guard let u = URL(string: url) else { throw CallAudioError("not a bridge address: \(url)") }
         return BridgeWebSocket(url: u)
@@ -83,9 +89,14 @@ final class CallModel: ObservableObject {
       log: { [weak self] type, fields in self?.event(type, fields) },
       diagnostics: { [weak self] in self?.diagnosticsText() ?? "" },
       build: "\(BuildInfo.sha) (\(BuildInfo.branch))")
+    deps.callSettings = { [weak self] in
+      self?.refreshCallSettings()
+      return self?.callSettings ?? CallSettings()
+    }
     session = CallSession(deps: deps, url: bridgeURL)
     session.onChange = { [weak self] snap in self?.onChange(snap) }
     session.onLevel = { [weak self] level in self?.level = level }
+    refreshCallSettings()
     route = CallAudioEngine.describeRoute()
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
@@ -95,6 +106,52 @@ final class CallModel: ObservableObject {
         self?.refreshDevices()
       }
     }
+  }
+
+  /// Conditional GET with a one-second request budget, coalesced across launch and call starts.
+  private func refreshCallSettings() {
+    guard settingsTask == nil else { return }
+    guard callSettings.needsRefresh(at: Date()) else {
+      settingsEvent(ok: true, status: 0, schema: callSettings.recommendations?.schema, source: "cache")
+      return
+    }
+    guard let url = URL(string: Self.cockpitURL)?.appendingPathComponent("voices/recommended") else { return }
+    var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 1)
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue(callSettings.etag, forHTTPHeaderField: "If-None-Match")
+    settingsTask = Task { [weak self] in
+      guard let self else { return }
+      defer { settingsTask = nil }
+      do {
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let http = response as? HTTPURLResponse
+        let status = http?.statusCode ?? 0
+        let schema = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["schema"] as? Int
+        let ok = callSettings.receive(
+          status: status, data: data, etag: http?.value(forHTTPHeaderField: "ETag"),
+          cacheControl: http?.value(forHTTPHeaderField: "Cache-Control"), at: Date())
+        if ok, let saved = callSettings.saved { database.setSetting(Self.settingsKey, saved) }
+        settingsEvent(
+          ok: ok, status: status, schema: schema ?? (status == 304 ? callSettings.recommendations?.schema : nil),
+          source: ok ? "network" : (callSettings.recommendations == nil ? "fallback" : "cache"),
+          responseETag: http?.value(forHTTPHeaderField: "ETag"))
+      } catch {
+        settingsEvent(
+          ok: false, status: 0, schema: callSettings.recommendations?.schema,
+          source: callSettings.recommendations == nil ? "fallback" : "cache", message: String(describing: error))
+      }
+    }
+  }
+
+  private func settingsEvent(
+    ok: Bool, status: Int, schema: Int?, source: String, responseETag: String? = nil, message: String = ""
+  ) {
+    event(
+      "call_settings",
+      [
+        "ok": ok, "status": status, "schema": schema as Any? ?? NSNull(),
+        "etag": responseETag ?? callSettings.etag ?? "", "source": source, "message": message,
+      ])
   }
 
   // MARK: - the call

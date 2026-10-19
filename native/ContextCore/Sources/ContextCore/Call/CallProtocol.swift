@@ -26,9 +26,7 @@ public enum CallBackend: String, CaseIterable, Sendable {
   public static let `default` = CallBackend.eleven
 }
 
-/// The voice a call answers in (#98): Tony, the bridge's stock voice on its default model, or Igor, his own
-/// clone, which is only worth hearing on `eleven_v3_conversational` — so picking Igor implies that model. A
-/// re-clone changes the id and this constant with it.
+/// The voice a call answers in (#98). #417: models come from the Cockpit, or the bridge when unavailable.
 public enum CallVoice: String, CaseIterable, Sendable {
   case tony, igor
 
@@ -43,7 +41,7 @@ public enum CallVoice: String, CaseIterable, Sendable {
   /// The `voice` / `model` fields of the start frame for this backend and pick; "" is the bridge's default.
   public func frameFields(for backend: CallBackend) -> (voice: String, model: String) {
     guard Self.hasPick(backend), self == .igor else { return ("", "") }
-    return ("Nvd5I2HGnOWHNU0ijNEy", "eleven_v3_conversational")
+    return ("Nvd5I2HGnOWHNU0ijNEy", "")
   }
 }
 

@@ -117,12 +117,9 @@ Inside the same fold as the microphone and output pickers, a third row,
 **Voice**, with two choices:
 
 - **Tony** — the stock voice (ElevenLabs's *Charlie*), the one every call
-  has used until now, on the bridge's default model.
-- **Igor** — his own cloned voice. The clone is only worth hearing on
-  ElevenLabs's *v3 conversational* model, where it performs `[laughs]`,
-  `[sighs]` and accent tags (Igor: *"Holy shit, that's good"*), so picking
-  Igor also puts the call on that model. Nothing else about the call
-  changes: same Tony persona, same Larry behind him.
+  has used until now, on the Cockpit’s recommended model.
+- **Igor** — his own cloned voice, on the model the Cockpit currently recommends.
+  The persona and Larry behind him stay the same.
 
 Tony is the pick on a fresh install. Tap the other: it is remembered like
 the backend is, across restarts, and the next call is placed in that voice.
@@ -139,9 +136,8 @@ vendor's default, whatever was picked for ElevenLabs; switch back and the
 pick is still there.
 
 Not in this change: the full account roster with favourites (the page has
-it; add it here if two is ever not enough), a model picker (Igor implies
-v3; Tony implies the default; nothing else is chosen), and voices for the
-other backends.
+it; add it here if two is ever not enough), a model picker (the Cockpit recommends
+the model for each voice), and voices for the other backends.
 
 **A USB microphone wins — for the microphone only.** *"If a mic is over
 USB, let's take that as a default."* When a USB audio device with a
@@ -658,13 +654,12 @@ back. The calling treatment in the middle of the screen stays; the big
 35. **A call as Igor.** Pick *Igor*, fold the pickers: the devices line ends
     *· Igor*. **Call Larry**: the status line reads *calling Larry… ·
     ElevenLabs · Igor*, then *live · 0:03 · ElevenLabs · Igor*, and the
-    voice that answers is Igor's own, with v3's expressiveness; the bridge's
-    session row names the clone and `eleven_v3_conversational`. Force-quit
+    voice that answers is Igor's own; the bridge's session row names the clone
+    and the model currently recommended by the Cockpit. Force-quit
     and relaunch: *Igor* is still picked. Tap **Restart**: the new call is
     as Igor too, and the row stayed locked throughout.
 36. **Back to Tony.** Pick *Tony*: the next call answers in Charlie's voice
-    on the default model, and the bridge's session row shows no voice or
-    model override — exactly a call placed before this change.
+    on the Cockpit's recommended model, with no voice override.
 
 37. **The greeting is heard.** Ten calls in a row, ElevenLabs, phone on
     speaker: Tony's first sentence is heard in full every time; Diagnostics
@@ -743,3 +738,30 @@ Gym Timer), and the deep-link routing. This is a screen and a socket.
 - *Vendor limits are unchanged.* Gemini's ~15 minutes, ElevenLabs's cut at
   ~10 minutes observed; a native client that survives the lock will hit
   them more often than a page that dies first.
+
+## Server voice recommendations (#417, story 085)
+
+The Cockpit supplies each voice's recommended model. Recommendations load at launch
+when absent or expired, and revalidate at call start when expired. A call starts
+immediately using what is already available; fetching never delays the call.
+Tony keeps the bridge's default voice selection; Igor uses his recommended voice id.
+Other backends keep their own defaults. Restart and automatic redial follow the same rule.
+
+The last good recommendation survives relaunch, including its freshness deadline and
+ETag. A fresh copy avoids another request; an expired copy is revalidated conditionally,
+and an unchanged response renews freshness. The server's max-age controls freshness
+(five minutes when absent). Unknown additive fields are ignored.
+
+An unreachable endpoint, non-success response, malformed response or unknown schema
+leaves the last good recommendation available, even offline. Without a valid copy,
+or when the selected voice has no usable row, the selected voice stays the same and
+the model is left to the bridge. The app never substitutes a hard-coded model.
+
+Acceptance: a fresh install can call Igor immediately with the bridge's choice; after
+a successful fetch, subsequent calls use the recommended model. Tony sends no voice
+override and uses his recommended model. Relaunch within the freshness period makes
+no request; expiry sends the stored validator and accepts an unchanged response.
+Offline calls use the last good copy, or the bridge default when none exists.
+Diagnostics record the settings outcome, HTTP status, schema, validator and whether
+the settings came from network, cache or fallback; each call records whether its
+model came from this launch's server response, the persisted cache or the bridge.

@@ -104,9 +104,9 @@ final class CallProtocolTests: XCTestCase {
   func testStartCarriesAVoiceAndAModelWhenTheCallHasAPick() {
     let frame = object(
       CallProtocol.startFrame(
-        backend: .eleven, build: "abc", voice: "Nvd5I2HGnOWHNU0ijNEy", model: "eleven_v3_conversational"))
+        backend: .eleven, build: "abc", voice: "Nvd5I2HGnOWHNU0ijNEy", model: "eleven_v4_turbo"))
     XCTAssertEqual(frame["voice"] as? String, "Nvd5I2HGnOWHNU0ijNEy")
-    XCTAssertEqual(frame["model"] as? String, "eleven_v3_conversational")
+    XCTAssertEqual(frame["model"] as? String, "eleven_v4_turbo")
   }
 
   func testLocationRidesTheStartFrameAndItsOwnFrameMidCall() {
@@ -219,11 +219,11 @@ final class CallVoiceTests: XCTestCase {
     XCTAssertFalse(CallVoice.hasPick(nil))
   }
 
-  func testTonyIsTheBridgesDefaultIgorIsTheCloneOnV3AndOtherBackendsSendNothing() {
+  func testTonyIsTheBridgesDefaultIgorKeepsTheCloneAndOtherBackendsSendNothing() {
     XCTAssertEqual(CallVoice.tony.frameFields(for: .eleven).voice, "")
     XCTAssertEqual(CallVoice.tony.frameFields(for: .eleven).model, "")
     XCTAssertEqual(CallVoice.igor.frameFields(for: .eleven).voice, "Nvd5I2HGnOWHNU0ijNEy")
-    XCTAssertEqual(CallVoice.igor.frameFields(for: .eleven).model, "eleven_v3_conversational")
+    XCTAssertEqual(CallVoice.igor.frameFields(for: .eleven).model, "")
     XCTAssertEqual(CallVoice.igor.frameFields(for: .drill).voice, "Nvd5I2HGnOWHNU0ijNEy")
     XCTAssertEqual(CallVoice.igor.frameFields(for: .gemini).voice, "")
     XCTAssertEqual(CallVoice.igor.frameFields(for: .openai).model, "")
