@@ -103,10 +103,7 @@ public enum InboxSend {
     return type.preferredMIMEType ?? "application/octet-stream"
   }
 
-  static func origin(of url: URL) -> String {
-    let port = url.port.map { ":\($0)" } ?? ""
-    return "\(url.scheme ?? "https")://\(url.host ?? "")\(port)"
-  }
+  static func origin(of url: URL) -> String { CockpitPage.origin(of: url) }
 
   static func iso(_ ms: Int64) -> String {
     let f = ISO8601DateFormatter()
