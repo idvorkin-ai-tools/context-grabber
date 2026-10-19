@@ -73,6 +73,18 @@ final class InboxDraftTests: XCTestCase {
     XCTAssertEqual(store.waitingCount, 2)
   }
 
+  func testPastedPhotoIsKeptAsCopiedWithItsOwnExtension() throws {
+    let directory = temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = InboxStore(directory: directory)
+    let jpeg = try InboxTests.image(.jpeg, side: 8)
+    var draft = InboxDraft()
+    draft.image = jpeg
+    let item = try draft.save(to: store, at: 1)
+    XCTAssertEqual(item.imageFile, "\(item.id).jpeg", "a JPEG is not relabelled as a PNG")
+    XCTAssertEqual(store.image(of: item), jpeg, "the bytes as copied, EXIF orientation included, not re-encoded")
+  }
+
   func testFailedSavePreservesTextAndImageForRetry() throws {
     let directory = temporaryDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }

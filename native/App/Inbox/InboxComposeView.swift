@@ -5,6 +5,7 @@ import BugKit
 import ContextCore
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct InboxComposeView: View {
   @ObservedObject var inbox: InboxModel
@@ -88,7 +89,7 @@ struct InboxComposeView: View {
   }
 
   private func pasteImage() {
-    guard let data = UIPasteboard.general.image?.pngData(), let picture = InboxSend.thumbnail(data) else {
+    guard let data = Self.clipboardImage(), let picture = InboxSend.thumbnail(data) else {
       failure = "The clipboard image could not be read. Copy the image again and try Paste image."
       hasImage = UIPasteboard.general.hasImages
       return
@@ -96,6 +97,24 @@ struct InboxComposeView: View {
     draft.image = data
     preview = picture
     failure = nil
+  }
+
+  /// The image's bytes as copied, so a photo keeps its format and its orientation; only an image with no bytes on
+  /// the clipboard is drawn upright into a JPEG.
+  private static func clipboardImage() -> Data? {
+    let board = UIPasteboard.general
+    let types = board.types.compactMap(UTType.init).filter { $0.conforms(to: .image) }
+    if let raw = types.lazy.compactMap({ board.data(forPasteboardType: $0.identifier) }).first(where: {
+      InboxSend.thumbnail($0, maxPixels: 1) != nil
+    }) {
+      return raw
+    }
+    guard let image = board.image else { return nil }
+    let format = UIGraphicsImageRendererFormat.preferred()
+    format.scale = image.scale
+    return UIGraphicsImageRenderer(size: image.size, format: format).jpegData(withCompressionQuality: 0.9) { _ in
+      image.draw(at: .zero)
+    }
   }
 
   private func add(another: Bool) {

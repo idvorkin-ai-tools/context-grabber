@@ -2,10 +2,12 @@
 //  clears it, so Add another starts fresh and a failed write keeps the thought.
 
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 public struct InboxDraft: Equatable, Sendable {
   public var text = ""
-  /// A pasted image, encoded as PNG by the app.
+  /// A pasted image, its bytes as copied; the file extension follows what they are.
   public var image: Data?
 
   public init() {}
@@ -20,14 +22,21 @@ public struct InboxDraft: Equatable, Sendable {
   }
 
   @discardableResult
-  public mutating func save(to store: InboxStore, at sharedAt: Int64) throws -> InboxItem {
+  public mutating func save(
+    to store: InboxStore, at sharedAt: Int64, id: String = UUID().uuidString.lowercased()
+  ) throws -> InboxItem {
     guard canAdd else { throw Problem.empty }
-    let hasImage = image?.isEmpty == false
+    let picture = image?.isEmpty == false ? image : nil
     let item = InboxItem(
-      kind: hasImage ? .image : .text, sharedAt: sharedAt,
-      text: hasImage ? nil : trimmedText, note: hasImage ? trimmedText : nil)
-    let saved = try store.add(item, image: hasImage ? image : nil, imageExtension: "png")
+      id: id, kind: picture != nil ? .image : .text, sharedAt: sharedAt,
+      text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil)
+    let saved = try store.add(item, image: picture, imageExtension: picture.map(Self.fileExtension(of:)) ?? "jpg")
     self = InboxDraft()
     return saved
+  }
+
+  static func fileExtension(of image: Data) -> String {
+    CGImageSourceCreateWithData(image as CFData, nil).flatMap(CGImageSourceGetType)
+      .flatMap { UTType($0 as String)?.preferredFilenameExtension } ?? "jpg"
   }
 }

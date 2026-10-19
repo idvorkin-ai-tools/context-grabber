@@ -64,7 +64,8 @@ The Inbox toolbar has a **+** that opens an *Add to Inbox* sheet. A multi-line t
 pasting text and the keyboard's standard dictation mic. **Cancel** discards the draft.
 
 **Paste image** is available when the clipboard holds an image. Tapping it shows a small preview; the image can
-be removed or replaced before adding. An image needs no text; text alongside it becomes its optional note.
+be removed or replaced before adding. The picture is kept as it was copied, in its own format and the right way
+up, as a share keeps it; a portrait photo stays portrait in the preview and for Larry. An image needs no text; text alongside it becomes its optional note.
 Without an image, text becomes a text item, even if it looks like a link. Whitespace alone is empty and cannot
 be added. One draft produces one item.
 
@@ -79,7 +80,8 @@ Acceptance criteria:
 
 - The + opens the sheet; typed or keyboard-dictated text can be added, and Add closes it.
 - Add another keeps the sheet open with an empty draft after each successful save; Cancel adds nothing further.
-- Paste image previews the clipboard image and adds it with any accompanying text as its note.
+- Paste image previews the clipboard image and adds it with any accompanying text as its note; a portrait photo
+  stays upright.
 - Empty drafts cannot be added; failed saves preserve the draft with a copyable explanation.
 - Each saved draft is one waiting item in the shared Inbox and triggers sending through the existing path.
 

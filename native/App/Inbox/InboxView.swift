@@ -8,7 +8,6 @@ import SwiftUI
 struct InboxView: View {
   @ObservedObject var inbox: InboxModel
   let logger: BugLogger
-  @State private var composing = false
 
   var body: some View {
     List {
@@ -31,14 +30,13 @@ struct InboxView: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
-          inbox.openCompose()
-          composing = true
+          inbox.openCompose(from: "inbox")
         } label: {
           Label("Add to Inbox", systemImage: "plus")
         }
       }
     }
-    .sheet(isPresented: $composing) { InboxComposeView(inbox: inbox, logger: logger) }
+    .sheet(isPresented: $inbox.composing) { InboxComposeView(inbox: inbox, logger: logger) }
   }
 }
 
