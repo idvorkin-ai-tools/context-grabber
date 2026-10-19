@@ -34,6 +34,24 @@ final class InboxModel: ObservableObject {
     send(reason: reason)
   }
 
+  // #405, stories 262–264: save locally before sending; never log the draft's content.
+  func openCompose() {
+    log.event("ui", ["action": "open_inbox_compose"])
+  }
+
+  func add(_ draft: inout InboxDraft, another: Bool) throws {
+    guard let store else {
+      throw NSError(
+        domain: "InboxModel.add", code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "This build has no App Group, so the Inbox is unreachable."])
+    }
+    let bytes = draft.byteCount
+    let item = try draft.save(to: store, at: Int64(Date().timeIntervalSince1970 * 1000))
+    log.event(
+      "ui", ["action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another])
+    refresh(reason: "compose")
+  }
+
   func reload() {
     guard let store else { return }
     let read = store.items()

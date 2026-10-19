@@ -8,6 +8,7 @@ import SwiftUI
 struct InboxView: View {
   @ObservedObject var inbox: InboxModel
   let logger: BugLogger
+  @State private var composing = false
 
   var body: some View {
     List {
@@ -17,7 +18,8 @@ struct InboxView: View {
             "This build has no App Group, so nothing shared can reach the Inbox.", context: "InboxView.load", extra: [:]
           ), logger: logger)
       } else if inbox.items.isEmpty {
-        Text("Nothing shared yet. In any app's share sheet, pick Grabber Native.").foregroundStyle(.secondary)
+        Text("Nothing here yet. Tap + to add something, or share to Grabber Native from another app.").foregroundStyle(
+          .secondary)
       }
       ForEach(inbox.items) { item in
         InboxRow(item: item, thumbnail: inbox.thumbnails[item.id], logger: logger)
@@ -26,6 +28,17 @@ struct InboxView: View {
     }
     .navigationTitle("Inbox")
     .accessibilityIdentifier("inbox-list")
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          inbox.openCompose()
+          composing = true
+        } label: {
+          Label("Add to Inbox", systemImage: "plus")
+        }
+      }
+    }
+    .sheet(isPresented: $composing) { InboxComposeView(inbox: inbox, logger: logger) }
   }
 }
 

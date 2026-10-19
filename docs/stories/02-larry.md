@@ -414,3 +414,63 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** three items wait in the Inbox
 - **When:** I open Grabber Native with the Cockpit unreachable or answering 5xx
 - **Then:** all three stay *waiting to send*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first
+
+---
+
+### User Story 262:
+
+- **Summary:** Add a thought to the Inbox with the keyboard or dictation
+- **Status:** implemented in the working tree for #405; commit pending (sandbox denies the Git index lock). Host: all 4 `InboxDraftTests` pass; full `just test` reports 493 tests, 1 skipped, 4 failures in existing image MIME/HEIC tests. App build, dictation and clipboard UI verification pending the human build turn.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** open the Inbox + and type or use the keyboard’s standard dictation mic
+- **so that** I can capture something for Larry without leaving the app
+
+#### Acceptance Criteria:
+- **Scenario:** Adding a thought
+- **Given:** the Inbox is open
+- **When:** I tap +, enter text by typing or keyboard dictation, and tap Add
+- **Then:** one text item is saved locally, the sheet closes, and the item appears waiting and triggers sending to Larry; whitespace alone cannot be added and Cancel saves nothing
+
+---
+
+### User Story 263:
+
+- **Summary:** Add another without reopening the sheet
+- **Status:** implemented in the working tree for #405; commit pending (sandbox denies the Git index lock). Host: all 4 `InboxDraftTests` pass; full `just test` reports 493 tests, 1 skipped, 4 failures in existing image MIME/HEIC tests. App build, dictation and clipboard UI verification pending the human build turn.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** save a thought and keep composing the next one
+- **so that** I can capture several thoughts in a row
+
+#### Acceptance Criteria:
+- **Scenario:** Adding consecutive thoughts
+- **Given:** the compose sheet contains a thought
+- **When:** I tap Add another
+- **Then:** one item is saved and sending is triggered, both text and image clear, and the sheet stays open ready for another; a failed save instead preserves the draft with a copyable error
+
+---
+
+### User Story 264:
+
+- **Summary:** Paste a picture into the Inbox
+- **Status:** implemented in the working tree for #405; commit pending (sandbox denies the Git index lock). Host: all 4 `InboxDraftTests` pass; full `just test` reports 493 tests, 1 skipped, 4 failures in existing image MIME/HEIC tests. App build, dictation and clipboard UI verification pending the human build turn.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** paste a clipboard image and see a small preview
+- **so that** I can send Larry a picture directly from the app
+
+#### Acceptance Criteria:
+- **Scenario:** Adding a clipboard image
+- **Given:** the clipboard holds an image and the compose sheet is open
+- **When:** I tap Paste image, optionally enter text, and tap Add
+- **Then:** the previewed image is saved as one image item with the text as its note, the sheet closes and sending is triggered; I can remove or replace the image before saving, and the log records only kind and byte size
