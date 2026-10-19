@@ -8,8 +8,8 @@ habits happen. Then maybe final daily batch. Since all guid marked no duplicates
 ## Summary
 
 The phone keeps its location trail thirty days and reads Health only when Today looks. Everything Grabber Native
-collects now goes, on its own, to a permanent archive on the Cockpit (its story 124): the trail's points and every
-Health sample type the mirror reads, a few hours' worth at a time, the whole history the first time. Nothing is
+collects now goes, on its own, to a permanent archive on the Cockpit (its story 124): the trail's points, every
+Health sample type the mirror reads and the daily strip's days, a few hours' worth at a time, the whole history the first time. Nothing is
 ever there twice.
 
 ## Goals
@@ -20,12 +20,16 @@ ever there twice.
 - A record is archived once: a lost answer, an overlapping page, a re-imported trail or a reinstall never doubles
   it.
 - Deletions reach the archive too (a sample Health removed is marked, not silently absent).
+- The daily strip's days are archived too (story 271; Igor, 2026-10-19: *"Did it include when I did balloons and
+  magic, not just health?"*): gym, meditation, journal, balloons and magic, each day's value as the strip shows it,
+  every device's taps included.
 
 ## Non-goals
 
 - A screen: the archive is silent. What it did is in the session log; a later story may add a line to Settings.
-- The daily strip, the activity log and the accessory log (the strip already syncs over iCloud; the others are a
-  follow-up stream each).
+- The activity log and the accessory log (a follow-up stream each). So the gym and meditation days the strip turns
+  green from a finished Gym Timer workout or a Box breathing session are not in the strip's streams; a day Health
+  counts is already in Health's own streams.
 - Health's free-form metadata, workout routes, or samples of types the mirror does not read.
 - Reading the archive back on the phone.
 
@@ -38,6 +42,23 @@ next run picks up exactly where the last successful page ended. Health is never 
 Today asks, and until it has, only the trail is archived. While the phone is locked Health cannot be read, so a run then
 sends only the trail, says so once, and the next time the app comes to the front Health's share goes. On the simulator nothing is sent unless a launch hook
 names where.
+
+## The daily strip
+
+Each strip item is its own stream. A day's value can change long after the day itself: a tap just before midnight,
+an earlier day marked by press and hold, a counter's week edited, or another device's taps arriving over iCloud
+days later. The archive keeps the first copy of anything it is sent, so a strip record is never "the day" but one
+observation of it: the day, the item, its value as the strip showed it then (counts added up across devices, a
+check's latest change), and when the phone saw it. **The newest observation of a day is that day's value.**
+
+- The first run sends every day the strip has ever counted; later runs send only the days whose value changed
+  since the archive last heard about them, whenever that day was.
+- A day taken back to nothing (a check un-ticked, a count stepped down to 0) is sent as 0, so the archive does not
+  keep the old value as the newest.
+- A value that goes 3 → 2 → 3 is three observations, and the last one wins.
+- A lost answer can leave two observations with the same value; that changes nothing about which value wins.
+- Each device sends its own view of the strip. Until a device has heard the others over iCloud, its view can be
+  short of their taps, and its newer observation wins until the synced one follows.
 
 ## Explaining itself
 
@@ -63,3 +84,9 @@ names where.
   that page again, which the Cockpit counts as new (not duplicate) the first time and duplicate thereafter.
 - A trail imported from a Context Grabber export sends its points, and the Cockpit counts the ones it already had
   as duplicates.
+- After the first run, the archive holds every day of balloons and magic (and every gym, meditation and journal
+  check) with the value the strip shows; a run with no strip change sends nothing for the strip.
+- Two balloons added to yesterday from the counter's week, or a day's taps arriving from the iPad, reach the
+  archive on the next run as a newer observation of that day, and the newest observation per day matches the
+  strip.
+- A check un-ticked after it was archived reaches the archive as 0.

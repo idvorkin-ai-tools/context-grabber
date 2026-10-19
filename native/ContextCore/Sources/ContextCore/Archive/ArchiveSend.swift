@@ -28,6 +28,8 @@ public enum ArchiveStream {
   public static let points = "location.points"
   /// One stream per Health sample type, named by Health's own identifier (`HKQuantityTypeIdentifierStepCount`).
   public static func health(_ identifier: String) -> String { "health." + identifier }
+  /// One stream per daily-strip item (`strip.balloons`), story 271.
+  public static func strip(_ item: DailyItem) -> String { "strip." + item.rawValue }
 }
 
 /// What a record is called in the archive: the Cockpit takes 1-128 characters of `[A-Za-z0-9_.:+-]`.
@@ -40,6 +42,9 @@ public enum ArchiveGUID {
   /// came back by import, or was uploaded before, is the same record. A Double prints exactly (shortest round
   /// trip), so two equal points always spell the same.
   public static func point(_ p: LocationPoint) -> String { "p:\(p.timestamp):\(p.latitude):\(p.longitude)" }
+  /// One observation of a strip day (story 271): the day and the Unix ms it was seen at, so a day whose value
+  /// changes after it was sent is a new record rather than a duplicate the archive would ignore.
+  public static func stripDay(_ day: String, seenAt ms: Int64) -> String { "\(day):\(ms)" }
 }
 
 public enum ArchiveSend {

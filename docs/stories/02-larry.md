@@ -595,3 +595,24 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** Today has asked for Health, the Cockpit is reachable, and the trail and Health hold records the archive has not seen
 - **When:** four hours pass since the last run (a background refresh, or the app comes to the front), or the end-of-day batch runs
 - **Then:** every new point and sample goes to the Cockpit in pages, once each (a lost answer sends the same page again and the Cockpit counts it as already there), the cursor of each stream moves only after the Cockpit took the page, an unreachable Cockpit stops the run at its first page and the next run sends it again, and the log has one `archive` line per page with counts and never a record; launch remains safe with an existing database, and a simulator sends only to an explicitly supplied test destination; a run while the phone is locked sends the trail, says once that Health was skipped, and is not counted, so the app's next time in front sends Health's share; a delayed daily batch keeps its pending slot across midnight, and a rolled-back import cannot enter the archive or advance its cursor
+
+---
+
+### User Story 271:
+
+- **Summary:** The daily strip's days are archived too, each day as the strip shows it
+- **Status:** implemented on branch `strip-archive` (PR pending), **not built**: written on a Linux box with no Swift toolchain; `StripArchiveSource` and its `ArchiveTests` need `just test` on the Mac, then the simulator (`just native-test-sim`) and the phone. Not yet verified anywhere.
+- **Why:** Igor, 2026-10-19, about story 270's archive: "Did it include when I did balloons and magic, not just health?"
+- **Issues:** [#415](https://github.com/idvorkin/context-grabber/issues/415)
+- **Spec:** [Everything off the phone: the stats archive](../superpowers/specs/2026-10-19-native-stats-archive-design.md), "The daily strip"
+
+#### Use Case:
+- **As** Larry's client who taps balloons, magic, gym, meditation and journal on the home screen's strip
+- **I want to** have those days in the Cockpit's archive beside Health and the trail, with the values the strip shows
+- **so that** Larry can read the whole history of what I did, not just what Health saw, and a changed day is never stuck at its first value
+
+#### Acceptance Criteria:
+- **Scenario:** The strip's history once, then each changed day
+- **Given:** the strip holds days on this phone and days restored over iCloud from the iPad, and the Cockpit is reachable
+- **When:** an archive run goes (the first one after this build, then every few hours and at the end of the day)
+- **Then:** the first run sends every day each item has counted, one stream per item, with the value the strip shows (counts added up across devices, a check's latest change); later runs send only the days whose value has changed since the archive last took them, whatever their age (a backdated check, an edited week, the iPad's taps arriving late), each as a newer observation of that day, so the newest observation per day matches the strip; a day taken back to nothing goes as 0, a run with no strip change sends nothing for the strip, and the strip goes while the phone is locked
