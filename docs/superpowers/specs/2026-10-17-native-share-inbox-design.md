@@ -107,7 +107,8 @@ Acceptance criteria:
 - The Inbox tile shows the raccoon posting a letter and counts the items not yet sent; deleting one updates it.
 - Phase 2: with the Cockpit reachable, every waiting item reaches Larry once and then reads *sent to Larry*;
   with it unreachable or failing, items remain **Not sent yet** and stay counted on the tile.
-- With no network, the Inbox shows the quiet offline line and attempts no send. On network return while the app
+- With no network, the Inbox shows the quiet offline line and attempts no send; a network that comes up on demand
+  (an on-demand VPN) counts as available, so the send is tried and no offline line shows. On network return while the app
   is running, the line disappears and waiting items send without reopening the app; repeated available-network
   updates with identical network details do not cause extra sends, and a send already in progress is never overlapped.
 - After a failed send, reconnecting the tailnet while Wi-Fi or cellular stays available retries waiting items,
