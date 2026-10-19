@@ -1,5 +1,5 @@
-//  #396, story 226 (live tile spec, "Today's numbers"): the Today card's four numbers, short, for the usage tile. The
-//  app writes one each time it looks at Health; the tile draws it only on the day it was taken.
+//  #404, story 226: the daily strip and Health numbers for the usage tile, each dated independently so a strip
+//  edit cannot make yesterday's Health current. The tile draws each only on the local day it was taken.
 
 import Foundation
 
@@ -7,7 +7,7 @@ public struct TodayGlance: Codable, Equatable, Sendable {
   public struct Item: Codable, Equatable, Sendable {
     /// The metric, so the tile can put its symbol before it.
     public let key: String
-    /// "5.7h", "7,399", "65 ms", "38m", or "—".
+    /// A check mark, counter, short Health number, or "—".
     public let value: String
   }
 
@@ -15,8 +15,8 @@ public struct TodayGlance: Codable, Equatable, Sendable {
   public let day: String
   public let items: [Item]
 
-  /// The four the Today card shows, in its order.
-  public static let keys: [MetricKey] = [.sleep, .movement, .hrv, .exerciseMinutes]
+  /// #404: sleep gives way to the daily strip; keep the other Today card numbers.
+  public static let keys: [MetricKey] = [.movement, .hrv, .exerciseMinutes]
 
   public init(day: String, items: [Item]) {
     self.day = day
@@ -31,14 +31,26 @@ public struct TodayGlance: Codable, Equatable, Sendable {
     }
   }
 
+  /// The app's displayed values, including meditation from breathing or Health and counts merged across peers.
+  public init(day: String, values: [DailyItem: Int], meditationDone: Bool) {
+    self.day = day
+    items = [DailyItem.meditation, .journal, .balloons, .magic].map { item in
+      let count = max(0, values[item] ?? 0)
+      let done = item == .meditation ? meditationDone : count > 0
+      return Item(key: item.rawValue, value: item.isCounter ? String(count) : (done ? "✓" : "○"))
+    }
+  }
+
+  /// #404: drop sleep even from a reading written by the previous app version.
+  public var healthItems: [Item] { items.filter { item in Self.keys.contains { $0.rawValue == item.key } } }
+
   /// Only today's numbers are drawn: after midnight the line goes until the app looks again.
   public func isToday(_ today: String) -> Bool { day == today }
 
-  /// The card's words, cut to fit a widget's line: "5.7h asleep" is 5.7h, "65.2 ms" 65 ms, "38 min" 38m.
+  /// The card's words, cut to fit a widget's line: "65.2 ms" is 65 ms, "38 min" 38m.
   static func short(_ value: String, key: MetricKey) -> String {
     guard value != MirrorText.none else { return value }
     switch key {
-    case .sleep: return value.replacingOccurrences(of: " asleep", with: "")
     case .hrv:
       let number = value.replacingOccurrences(of: " ms", with: "")
       return Double(number).map { "\(Int($0.rounded())) ms" } ?? value

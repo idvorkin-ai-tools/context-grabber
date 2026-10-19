@@ -78,6 +78,16 @@ final class DailyStripModel: ObservableObject {
         announce(.meditation, from: from)
       }
       daysSince = since
+      // #404, story 226: every edit and peer arrival comes through here, with the same automatic checks as the app.
+      let glance = TodayGlance(day: today, values: values, meditationDone: meditationToday)
+      if store != nil, UsageTileStore.writeToday(glance, strip: true) {
+        log.event(
+          "ui",
+          [
+            "action": "daily_strip_tile", "day": today, "meditation": meditationToday,
+            "journal": value(.journal) > 0, "balloons": value(.balloons), "magic": value(.magic),
+          ])
+      }
     } catch {
       log.event("error", ["where": "daily_strip", "message": "\(error)"])
     }

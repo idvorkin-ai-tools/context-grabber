@@ -26,13 +26,23 @@ enum UsageTileStore {
     UsageSnapshot.decode(UserDefaults(suiteName: group)?.data(forKey: key))
   }
 
-  /// #396: the Today card's four numbers, written each time the app looks at Health.
+  /// #404, story 226: Health and strip have independent local dates.
   private static let todayKey = "today_glance"
 
-  static func writeToday(_ glance: TodayGlance) {
-    guard let defaults = UserDefaults(suiteName: group) else { return }
-    defaults.set(glance.encoded(), forKey: todayKey)
+  @discardableResult
+  static func writeToday(_ glance: TodayGlance, strip: Bool = false) -> Bool {
+    guard let defaults = UserDefaults(suiteName: group) else { return false }
+    let key = strip ? stripKey : todayKey
+    guard TodayGlance.decode(defaults.data(forKey: key)) != glance else { return false }
+    defaults.set(glance.encoded(), forKey: key)
     WidgetCenter.shared.reloadTimelines(ofKind: kind)
+    return true
+  }
+
+  private static let stripKey = "today_strip_glance"
+
+  static func readStrip() -> TodayGlance? {
+    TodayGlance.decode(UserDefaults(suiteName: group)?.data(forKey: stripKey))
   }
 
   static func readToday() -> TodayGlance? {
@@ -57,6 +67,7 @@ struct UsageTileView: View {
   let snapshot: UsageSnapshot?
   /// #396: today's numbers under the usage; drawn only on the day they were taken.
   var today: TodayGlance?
+  var daily: TodayGlance?
   let now: Date
   let family: WidgetFamily
 
@@ -108,26 +119,36 @@ struct UsageTileView: View {
 }
 
 extension UsageTileView {
-  /// #396, story 226: "5.7h · 7,399 · 65 ms · 38m", each after its symbol; nothing once the day has turned.
+  /// #404, story 226: two short rows fit the small tile; each disappears at its own local midnight.
   @ViewBuilder fileprivate var todayLine: some View {
-    if let today, today.isToday(AccessoryLog.dateKey(now)) {
-      HStack(spacing: 6) {
-        ForEach(today.items, id: \.key) { item in
-          HStack(spacing: 2) {
-            Image(systemName: Self.symbol(item.key)).foregroundStyle(.secondary)
-            Text(item.value).monospacedDigit()
-          }
+    VStack(alignment: .leading, spacing: 2) {
+      if let daily, daily.isToday(AccessoryLog.dateKey(now)) { glanceRow(daily.items) }
+      if let today, today.isToday(AccessoryLog.dateKey(now)) { glanceRow(today.healthItems) }
+    }
+    .font(.caption2)
+    .lineLimit(1)
+    .minimumScaleFactor(0.6)
+  }
+
+  private func glanceRow(_ items: [TodayGlance.Item]) -> some View {
+    HStack(spacing: 6) {
+      ForEach(items, id: \.key) { item in
+        HStack(spacing: 2) {
+          Image(systemName: Self.symbol(item.key)).foregroundStyle(.secondary)
+          Text(item.value).monospacedDigit()
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(item.key): \(item.value)")
       }
-      .font(.caption2)
-      .lineLimit(1)
-      .minimumScaleFactor(0.6)
     }
   }
 
   static func symbol(_ key: String) -> String {
     switch key {
-    case "sleep": return "bed.double.fill"
+    case "meditation": return "figure.mind.and.body"
+    case "journal": return "book.closed.fill"
+    case "balloons": return "balloon.fill"
+    case "magic": return "wand.and.sparkles"
     case "movement": return "figure.walk"
     case "hrv": return "waveform.path.ecg"
     default: return "flame.fill"

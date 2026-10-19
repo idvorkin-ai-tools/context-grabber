@@ -344,21 +344,21 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 226:
 
-- **Summary:** Today's numbers on the usage tile, under the usage left
-- **Issues:** [#396](https://github.com/idvorkin/context-grabber/issues/396)
-- **Status:** native app only: implemented in [dac9d82](https://github.com/idvorkin/context-grabber/commit/dac9d82), the entry at local midnight in [341e29e](https://github.com/idvorkin/context-grabber/commit/341e29e); verified by `TodayGlanceTests` (host: the card's order, the short forms, the dash, today only) and a simulator build of the app and widget; the drawn tile on the phone not yet
+- **Summary:** Today's numbers on the usage tile, and daily strip under the usage left
+- **Issues:** [#396](https://github.com/idvorkin/context-grabber/issues/396), [#404](https://github.com/idvorkin/context-grabber/issues/404)
+- **Status:** native app only: implemented in [dac9d82](https://github.com/idvorkin/context-grabber/commit/dac9d82), the entry at local midnight in [341e29e](https://github.com/idvorkin/context-grabber/commit/341e29e); verified by `TodayGlanceTests` (host: the card's order, the short forms, the dash, today only) and a simulator build of the app and widget; the drawn tile on the phone not yet; #404 implemented in the worktree (commit blocked by sandbox denial creating Git index.lock), verified by all 8 `TodayGlanceTests` on the host (marks, merged counters and decreases, Health short forms, round trips, independent local-day expiry and legacy sleep removal). `just test` passed formatting and SwiftLint but ended with 492 tests, 1 skipped and 4 failures in unchanged Inbox image tests; signing-guard, breathing-clip and tile-art checks passed separately. App/widget compilation, small-tile fit, App Group delivery and phone redraws await the human build turn
 - **Spec:** [native live tile, "Today's numbers"](../superpowers/specs/2026-10-06-native-live-tile-design.md)
 
 #### Use Case:
 - **As a** man glancing at his phone's home screen
-- **I want to** see last night's sleep, my steps, HRV and exercise on the usage tile
+- **I want to** see my Meditation and Journal marks, Balloons and Magic counts, steps, HRV and exercise on the usage tile
 - **so that** the day's state is one glance away without opening the app
 
 #### Acceptance Criteria:
-- **Scenario:** The tile after a look at Health
-- **Given:** the app has looked at Health this morning: 5.7h sleep, 7,399 steps, 65.2 ms HRV, 38 min exercise
-- **When:** I look at the usage tile on my home screen, then again after midnight
-- **Then:** under the usage it reads *5.7h · 7,399 · 65 ms · 38m* with a small symbol before each, the same numbers as the Today card; after midnight that line is gone until the app looks again
+- **Scenario:** The tile follows today's strip
+- **Given:** the app has written today's strip and Health reading, and I change the strip with a tap, hold, week edit or peer sync
+- **When:** I look at the usage tile on my home screen, then again after local midnight
+- **Then:** both sizes show the app's Meditation and Journal done/not-done marks, Balloons and Magic counts, and steps, HRV and exercise with small symbols fitting the small tile, with no sleep; each part is absent before its first write and after midnight until written for the new day, and a strip change does not revive yesterday's Health numbers
 
 ---
 

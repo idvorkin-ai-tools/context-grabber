@@ -42,13 +42,16 @@ A tap opens the app on the home screen.
 remembered backend, or brings a live call forward). Each is the link of the same name, so it does exactly what that
 link does. A tap anywhere else opens the home screen.
 
-**Today's numbers** (Igor, 2026-10-18, #396: *"Add a small version of the stat sheet on my tile under my remaining
-usage"*): on both sizes, under the usage and its line, one more line with the four numbers the home screen's Today
-card shows: sleep, steps, HRV and exercise, each short and after a small symbol (*5.7h · 7,399 · 65 ms · 38m*). They
-are the app's last look at Health, so they move when the app grabs (on opening it, on coming to the front, a pull
-on Today). They are drawn only while they are today's: after midnight the line goes until the app has looked again,
-so yesterday's steps never read as today's. Before the app has ever looked, there is no line. A number Health has
-not got yet reads *—*, as on the card.
+**Today's numbers** (decision for Igor, 2026-10-19, #404; "bacon" in the shake report means
+**Balloons**): both sizes replace sleep with today's daily strip: Meditation and Journal as done/not-done marks,
+Balloons and Magic as counts, keeping steps, HRV and exercise. Each item is short with a small symbol, arranged
+in two compact rows to fit the small tile: the four strip items first, then the three Health numbers.
+Done reads ✓ and not done reads ○; counters include zero. The strip matches the app after a tap, a hold, an edit
+in the week or a peer sync, and whenever today's Health reading is refreshed. Health numbers are the app's last look at Health; an unavailable
+number reads *—*, as on the Today card. Each part is drawn only for today's local date: after midnight it disappears
+until the app writes today's state again. Before the app has ever written a part, that part is absent. Updating the
+strip does not make yesterday's Health numbers current. Widget refresh requests are rationed, with unchanged values
+not requesting another redraw.
 
 The rules are the strip's:
 
@@ -76,7 +79,11 @@ and its age keeps growing. Between loads the tile redraws by itself about every 
 - An hour after the last load, the age is orange; a week due to reset in 13 hours with 31% left reads *31% to
   spend* in green, even if the reading was taken two days earlier.
 - With the app never opened since install, the tile reads *Open Grabber Native* and shows no numbers.
-- After the app has looked at Health today, both sizes show today's sleep, steps, HRV and exercise under the usage,
-  the same numbers as the Today card; after midnight that line is gone until the app looks again.
+- Both sizes show today's Meditation and Journal as done/not-done marks and Balloons and Magic as counts under
+  the usage, alongside steps, HRV and exercise; sleep is absent and every item fits the small tile.
+- A tap, hold, week edit or peer sync updates the tile's strip to match the app; a Health refresh also writes the
+  current strip. Unchanged values do not request another redraw.
+- Each part is absent before its first write and after local midnight until written for the new day; a strip edit
+  alone never brings yesterday's Health numbers back. Unavailable Health numbers read *—*.
 - On the medium tile, Gym Timer, Breathe and Call Larry each open the app with the workout running, the session
   begun, or the call connecting; elsewhere on the tile opens the home screen.
