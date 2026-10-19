@@ -420,7 +420,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 262:
 
 - **Summary:** Add a thought to the Inbox with the keyboard or dictation
-- **Status:** implemented in the working tree for #405; commit pending (sandbox denies the Git index lock). Host: all 4 `InboxDraftTests` pass; full `just test` reports 493 tests, 1 skipped, 4 failures in existing image MIME/HEIC tests. App build, dictation and clipboard UI verification pending the human build turn.
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
@@ -440,7 +440,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 263:
 
 - **Summary:** Add another without reopening the sheet
-- **Status:** implemented in the working tree for #405; commit pending (sandbox denies the Git index lock). Host: all 4 `InboxDraftTests` pass; full `just test` reports 493 tests, 1 skipped, 4 failures in existing image MIME/HEIC tests. App build, dictation and clipboard UI verification pending the human build turn.
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
@@ -460,7 +460,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 264:
 
 - **Summary:** Paste a picture into the Inbox
-- **Status:** implemented in the working tree for #405; commit pending (sandbox denies the Git index lock). Host: all 4 `InboxDraftTests` pass; full `just test` reports 493 tests, 1 skipped, 4 failures in existing image MIME/HEIC tests. App build, dictation and clipboard UI verification pending the human build turn.
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
