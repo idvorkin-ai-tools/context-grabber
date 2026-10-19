@@ -65,7 +65,7 @@ final class CallSettingsTests: XCTestCase {
       var settings = CallSettings(saved: loaded().saved)
       let saved = settings.saved
       XCTAssertFalse(settings.receive(status: status, data: data, etag: "bad", cacheControl: "max-age=999", at: now))
-      XCTAssertEqual(settings.saved, saved)
+      XCTAssertEqual(json(settings.saved), json(saved))
       XCTAssertEqual(settings.fields(for: .eleven, voice: .igor).source, "cache")
       var empty = CallSettings()
       XCTAssertFalse(empty.receive(status: status, data: data, etag: "bad", cacheControl: nil, at: now))
@@ -102,6 +102,11 @@ final class CallSettingsTests: XCTestCase {
     XCTAssertTrue(settings.needsRefresh(at: now.addingTimeInterval(10)))
     XCTAssertTrue(settings.receive(status: 304, data: Data(), etag: nil, cacheControl: "max-age=0", at: now))
     XCTAssertTrue(settings.needsRefresh(at: now))
+  }
+
+  /// The persisted copy compared as JSON: JSONEncoder's key order differs between runs.
+  private func json(_ saved: String?) -> NSDictionary? {
+    saved.flatMap { try? JSONSerialization.jsonObject(with: Data($0.utf8)) as? NSDictionary }
   }
 
   private func assertFallback(_ settings: CallSettings, file: StaticString = #filePath, line: UInt = #line) {
