@@ -39,8 +39,8 @@ Nothing, by design. With the Cockpit reachable, the app sends what is new every 
 it comes to the front after that long, and once at the end of the day; a first run after install sends history in
 pages, carrying on across runs until it is caught up. Off the tailnet, nothing is sent and nothing is lost: the
 next run picks up exactly where the last successful page ended. Health is never asked for access by the archive;
-Today asks, and until it has, only the trail is archived. While the phone is locked Health cannot be read, so a run then
-sends only the trail, says so once, and the next time the app comes to the front Health's share goes. On the simulator nothing is sent unless a launch hook
+Today asks, and until it has, only the trail and the strip are archived. While the phone is locked Health cannot be
+read, so a run then sends only the trail and the strip, says so once, and the next time the app comes to the front Health's share goes. On the simulator nothing is sent unless a launch hook
 names where.
 
 ## The daily strip
@@ -74,7 +74,7 @@ check's latest change), and when the phone saw it. **The newest observation of a
   the trail and every Health sample of the mirror's types, in pages, and the Cockpit's counts show each record
   inserted exactly once; a second pass over the same history inserts nothing.
 - Four hours after a run, with the app in the background, a refresh run sends what came since; the log shows it.
-- A run while the phone is locked sends the trail, logs one line saying Health was skipped, and does not count as
+- A run while the phone is locked sends the trail and the strip, logs one line saying Health was skipped, and does not count as
   a run: the app's next time in front runs again and sends Health's share.
 - A daily batch delayed past midnight keeps its pending slot across refreshes and launches until it runs.
 - An import that rolls back cannot contribute archived points or advance the archive past those points.
