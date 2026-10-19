@@ -414,3 +414,143 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** three items wait in the Inbox
 - **When:** I open Grabber Native with the Cockpit unreachable or answering 5xx
 - **Then:** all three stay *waiting to send*, the log has one `inbox` failed line with the reason and the rest of that send waits, and on the next open with the Cockpit reachable they go, oldest first
+
+---
+
+### User Story 262:
+
+- **Summary:** Add a thought to the Inbox with the keyboard or dictation
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** open the Inbox + and type or use the keyboard’s standard dictation mic
+- **so that** I can capture something for Larry without leaving the app
+
+#### Acceptance Criteria:
+- **Scenario:** Adding a thought
+- **Given:** the Inbox is open
+- **When:** I tap +, enter text by typing or keyboard dictation, and tap Add
+- **Then:** one text item is saved locally, the sheet closes, and the item appears waiting and triggers sending to Larry
+
+---
+
+### User Story 263:
+
+- **Summary:** Add another without reopening the sheet
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** save a thought and keep composing the next one
+- **so that** I can capture several thoughts in a row
+
+#### Acceptance Criteria:
+- **Scenario:** Adding consecutive thoughts
+- **Given:** the compose sheet contains a thought
+- **When:** I tap Add another
+- **Then:** one item is saved and sending is triggered, both text and image clear, and the sheet stays open ready for another
+
+---
+
+### User Story 264:
+
+- **Summary:** Paste a picture into the Inbox
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** paste a clipboard image and see a small preview
+- **so that** I can send Larry a picture directly from the app
+
+#### Acceptance Criteria:
+- **Scenario:** Adding a clipboard image
+- **Given:** the clipboard holds an image and the compose sheet is open
+- **When:** I tap Paste image, optionally enter text, and tap Add
+- **Then:** the previewed image is saved as one image item, as copied and the right way up, with the text as its note, the sheet closes and sending is triggered
+
+---
+
+### User Story 265:
+
+- **Summary:** An empty draft cannot be added
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` (host); on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** be stopped from adding a blank item
+- **so that** nothing empty reaches Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Adding only whitespace
+- **Given:** the compose sheet is open
+- **When:** I enter only spaces or new lines
+- **Then:** Add and Add another stay disabled and nothing is saved
+
+---
+
+### User Story 266:
+
+- **Summary:** Cancel saves nothing
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** back out of the sheet
+- **so that** a half-formed thought does not reach Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Cancelling a draft
+- **Given:** the compose sheet holds text or a pasted image
+- **When:** I tap Cancel
+- **Then:** the sheet closes and no item is added to the Inbox
+
+---
+
+### User Story 267:
+
+- **Summary:** A failed save keeps the draft
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` (host); on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** keep what I wrote when the save fails
+- **so that** I can try again without retyping
+
+#### Acceptance Criteria:
+- **Scenario:** Saving fails
+- **Given:** the compose sheet holds text or a pasted image
+- **When:** I tap Add or Add another and the item cannot be written
+- **Then:** the sheet stays open with the draft intact and a copyable error explaining why
+
+---
+
+### User Story 268:
+
+- **Summary:** Remove a pasted picture before adding
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); on the phone not yet
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+
+#### Use Case:
+- **As** Larry's client capturing something worth discussing
+- **I want to** take back a picture I pasted by mistake
+- **so that** only what I meant reaches Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Removing the pasted image
+- **Given:** the compose sheet shows a pasted image's preview
+- **When:** I tap Remove image
+- **Then:** the preview goes and the text I wrote stays

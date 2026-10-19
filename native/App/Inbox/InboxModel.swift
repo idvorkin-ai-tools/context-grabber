@@ -9,6 +9,8 @@ import Foundation
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
   @Published private(set) var sending = false
+  /// The *Add to Inbox* sheet is up (#405).
+  @Published var composing = false
   /// A refresh came while a send was out: one more pass when it ends, for what was shared meanwhile (local review).
   private var sendAgain = false
   /// Each image item's small preview, decoded once per item.
@@ -32,6 +34,25 @@ final class InboxModel: ObservableObject {
     reload()
     announceNew()
     send(reason: reason)
+  }
+
+  // #405, stories 262–264: save locally before sending; never log the draft's content.
+  func openCompose(from source: String) {
+    log.event("ui", ["action": "open_inbox_compose", "from": source])
+    composing = true
+  }
+
+  func add(_ draft: inout InboxDraft, another: Bool, id: String = UUID().uuidString.lowercased()) throws {
+    guard let store else {
+      throw NSError(
+        domain: "InboxModel.add", code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "This build has no App Group, so the Inbox is unreachable."])
+    }
+    let bytes = draft.byteCount
+    let item = try draft.save(to: store, at: Int64(Date().timeIntervalSince1970 * 1000), id: id)
+    log.event(
+      "ui", ["action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another])
+    refresh(reason: "compose")
   }
 
   func reload() {
@@ -101,6 +122,20 @@ final class InboxModel: ObservableObject {
 
   /// `GRABBER_INBOX_FIXTURE=1`: three items as the share extension would write them, for the simulator. Their ids
   /// mark them as fixtures, which are never sent: the simulator reaches the tailnet too.
+  /// `GRABBER_INBOX_COMPOSE=open|<text>`: the *Add to Inbox* sheet up; with text, that text added through it as
+  /// Add another would, under a fixture id so it is never sent.
+  func composeHook(_ value: String) {
+    openCompose(from: "hook")
+    guard value != "open" else { return }
+    var draft = InboxDraft()
+    draft.text = value
+    do {
+      try add(&draft, another: true, id: InboxItem.fixtureID())
+    } catch {
+      log.event("error", ["where": "inbox_fixture", "message": "\(error)"])
+    }
+  }
+
   func addFixture() {
     guard let store else { return log.event("error", ["where": "inbox_fixture", "message": "no App Group"]) }
     let now = Int64(Date().timeIntervalSince1970 * 1000)

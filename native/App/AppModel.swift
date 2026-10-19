@@ -713,6 +713,11 @@ final class AppModel: ObservableObject {
     // #305: three Inbox items as the share extension writes them (never sent), and the Inbox opened.
     if env["GRABBER_INBOX_FIXTURE"] == "1" { inbox.addFixture() }
     if env["GRABBER_INBOX"] == "open" { openInbox(from: "hook") }
+    if let compose = env["GRABBER_INBOX_COMPOSE"], !compose.isEmpty {
+      // #405: the Inbox with its + already tapped, and with text that text added as Add another would.
+      openInbox(from: "hook")
+      inbox.composeHook(compose)
+    }
     if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
       // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).
       openCall(from: "hook")

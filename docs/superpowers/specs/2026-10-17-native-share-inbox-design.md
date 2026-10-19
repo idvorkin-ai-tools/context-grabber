@@ -56,6 +56,35 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
   reads *Larry's inbox refused it* with the Cockpit's reason, which can be copied. A swipe deletes it as usual.
 - **Unreachable or failing** (no tailnet, the Cockpit down): it stays *waiting to send*, and the log says why.
 
+## Adding from inside the app
+
+Issue [#405](https://github.com/idvorkin/context-grabber/issues/405).
+
+The Inbox toolbar has a **+** that opens an *Add to Inbox* sheet. A multi-line text field accepts typing,
+pasting text and the keyboard's standard dictation mic. **Cancel** discards the draft.
+
+**Paste image** is available when the clipboard holds an image. Tapping it shows a small preview; the image can
+be removed or replaced before adding. The picture is kept as it was copied, in its own format and the right way
+up, as a share keeps it; a portrait photo stays portrait in the preview and for Larry. An image needs no text; text alongside it becomes its optional note.
+Without an image, text becomes a text item, even if it looks like a link. Whitespace alone is empty and cannot
+be added. One draft produces one item.
+
+**Add** saves on the phone and closes the sheet. **Add another** saves, clears both text and image, and keeps the
+sheet ready for the next item. Neither action waits for the network. A save failure keeps the draft and presents
+a copyable error. Newly added items appear with the same waiting status as shares and immediately trigger the
+existing send to Larry; without a connection they stay waiting for the next open.
+
+Opening the sheet and every successful add produce a `ui` event. Adds record kind and byte size, never content.
+
+Acceptance criteria:
+
+- The + opens the sheet; typed or keyboard-dictated text can be added, and Add closes it.
+- Add another keeps the sheet open with an empty draft after each successful save; Cancel adds nothing further.
+- Paste image previews the clipboard image and adds it with any accompanying text as its note; a portrait photo
+  stays upright.
+- Empty drafts cannot be added; failed saves preserve the draft with a copyable explanation.
+- Each saved draft is one waiting item in the shared Inbox and triggers sending through the existing path.
+
 ## Explaining itself
 
 - Each share is logged (`inbox`, action added, with the kind and size, never the content) when the app next opens
