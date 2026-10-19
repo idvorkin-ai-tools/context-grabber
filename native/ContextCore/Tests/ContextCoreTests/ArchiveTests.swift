@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 262 (context-grabber-3il): every record off the phone, once each, the cursor moved only on a 2xx.
+/// Story 270 (context-grabber-3il): every record off the phone, once each, the cursor moved only on a 2xx.
 final class ArchiveTests: XCTestCase {
   /// The Cockpit's rule for a guid, copied from its archive.py (GUID_RE): the contract both sides keep.
   static let cockpitGUID = "^[A-Za-z0-9][A-Za-z0-9_.:+-]{0,127}$"
@@ -58,6 +58,8 @@ final class ArchiveTests: XCTestCase {
     let ok = Data(#"{"ok": true, "received": 3, "inserted": 2, "duplicate": 1}"#.utf8)
     let bad = Data(#"{"ok": false, "reason": "records[0].guid must be ...", "error": "x"}"#.utf8)
     XCTAssertEqual(ArchiveSend.outcome(status: 200, body: ok), .taken(inserted: 2, duplicate: 1))
+    XCTAssertEqual(
+      ArchiveSend.outcome(status: 201, body: ok), .taken(inserted: 2, duplicate: 1), "any 2xx with ok is taken")
     XCTAssertEqual(
       ArchiveSend.outcome(status: 400, body: bad), .refused(status: 400, reason: "records[0].guid must be ..."))
     XCTAssertEqual(ArchiveSend.outcome(status: 403, body: nil), .refused(status: 403, reason: "HTTP 403"))

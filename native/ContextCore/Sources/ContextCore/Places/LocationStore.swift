@@ -99,7 +99,7 @@ public struct LocationStore {
     Int(try db.run("SELECT COUNT(*) AS n FROM locations").first?["n"]?.intValue ?? 0)
   }
 
-  /// Story 262: the next `limit` points by row id after `id`, with their ids, for the archive's pages. Ids only
+  /// Story 270: the next `limit` points by row id after `id`, with their ids, for the archive's pages. Ids only
   /// grow (pruning deletes, never renumbers), so a row id is the stream's cursor.
   public func points(afterId id: Int64, limit: Int) throws -> [(id: Int64, point: LocationPoint)] {
     try db.run(

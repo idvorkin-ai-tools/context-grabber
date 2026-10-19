@@ -231,7 +231,7 @@ rows=$( [ -s "$path" ] && sqlite3 "$path" "select (select count(*) from location
 if [ "$rows" = "36601 4" ]; then ok "places: export holds 36601 points and 4 places"
 else bad "places: export '$path' rows '$rows'"; fi
 
-# Story 262: an archive run against an unreachable Cockpit sends the trail's first page (the fixture imported
+# Story 270: an archive run against an unreachable Cockpit sends the trail's first page (the fixture imported
 # above), fails it with the reason, and stops the run there. On the simulator a run sends only to
 # GRABBER_ARCHIVE_URL, so the fixture never lands in the real archive.
 SIMCTL_CHILD_GRABBER_ARCHIVE=run SIMCTL_CHILD_GRABBER_ARCHIVE_URL=https://127.0.0.1:65530/ relaunch

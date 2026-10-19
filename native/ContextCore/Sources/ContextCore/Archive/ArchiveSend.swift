@@ -1,4 +1,4 @@
-//  context-grabber-3il, story 262: everything the app collects goes to the Cockpit's archive, `POST /archive` (its
+//  context-grabber-3il, story 270: everything the app collects goes to the Cockpit's archive, `POST /archive` (its
 //  story 124), in batches that each carry a stream, this device, a batch id and records with a guid each. The
 //  Cockpit keeps one row per (stream, guid), so a batch sent twice, an overlapping page or a re-imported point
 //  changes nothing there, and the delta stamp on this side (ArchiveCursorStore) moves only after a 2xx.
@@ -73,7 +73,7 @@ public enum ArchiveSend {
   public static func outcome(status: Int?, body: Data?, error: String? = nil) -> Outcome {
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     guard let status else { return .retry(reason: error ?? "no answer") }
-    if status == 200, json?["ok"] as? Bool == true {
+    if (200..<300).contains(status), json?["ok"] as? Bool == true {
       return .taken(inserted: json?["inserted"] as? Int ?? 0, duplicate: json?["duplicate"] as? Int ?? 0)
     }
     let reason = (json?["reason"] as? String) ?? (json?["error"] as? String) ?? "HTTP \(status)"

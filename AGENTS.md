@@ -169,7 +169,7 @@ Requires Xcode, an Apple ID signed into Xcode, Developer Mode on the iPhone, and
 
 `locations` (GPS breadcrumbs), `settings` (key/value), `known_places` and `known_place_icons`, `health_raw_cache`,
 `health_computed_cache` and `health_cache_meta` (bumping the cache version purges both caches), `daily_strip`
-and `daily_strip_peers` (other devices' strip rows, synced over iCloud), `activity_log`, `accessory_log`, `archive_cursor` (where each stats-archive stream's last taken page ended, story 262). The export is the database file itself (*Export database*), and *Import from
+and `daily_strip_peers` (other devices' strip rows, synced over iCloud), `activity_log`, `accessory_log`, `archive_cursor` (where each stats-archive stream's last taken page ended, story 270). The export is the database file itself (*Export database*), and *Import from
 Context Grabber* reads the old app's export.
 
 ## Non-Interactive Shell Commands

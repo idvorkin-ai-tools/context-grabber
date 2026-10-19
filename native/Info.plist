@@ -25,7 +25,7 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
-	<!-- Story 262: the archive's four-hourly refresh and its end-of-day batch (ArchiveSchedule names the same two). -->
+	<!-- Story 270: the archive's four-hourly refresh and its end-of-day batch (ArchiveSchedule names the same two). -->
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.idvorkin.grabbernative.archive.refresh</string>

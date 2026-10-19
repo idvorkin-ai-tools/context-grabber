@@ -577,7 +577,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 262:
+### User Story 270:
 
 - **Summary:** Everything the app collects is archived off the phone on its own, once each
 - **Status:** implemented in [f4080b8](https://github.com/idvorkin/context-grabber/commit/f4080b8), [78961b4](https://github.com/idvorkin/context-grabber/commit/78961b4) and [85e5b66](https://github.com/idvorkin/context-grabber/commit/85e5b66) (the phone half; the Cockpit's `POST /archive` is its story 124), plus the review round (the next slots asked for before a background run, Health skipped while the phone is locked); verified on the host (`just test`: `ArchiveTests`, swift-format, SwiftLint) and the simulator (`just native-test-sim` 45/45, the archive hook included). Not yet verified: the phone, and the Cockpit's `/archive` endpoint (cockpit's archive-endpoint branch); until it is live a run stops on the error and retries later.

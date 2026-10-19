@@ -1,4 +1,4 @@
-//  Story 262: the delta stamp per stream, in the app's database. A Health stream's cursor is its query anchor
+//  Story 270: the delta stamp per stream, in the app's database. A Health stream's cursor is its query anchor
 //  (what Health has already answered, deletions included); the trail's is the last row id sent. Set only after
 //  the Cockpit answered 2xx for the page it covers (ArchiveUploader), so a lost answer sends the page again and
 //  the archive, keyed by guid, takes nothing twice.

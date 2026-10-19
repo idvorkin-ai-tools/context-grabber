@@ -1,4 +1,4 @@
-//  Story 262: one stream's pages to the Cockpit, oldest first, the cursor moved only after each 2xx. The first run
+//  Story 270: one stream's pages to the Cockpit, oldest first, the cursor moved only after each 2xx. The first run
 //  of a stream is its whole history; later runs are what came since. A run reads at most `maxPages`, so a
 //  background task's minute is never spent on one stream, and stops at the first answer that is not a 2xx: a
 //  refusal is a bug to read in the log, an unreachable Cockpit would fail the next page the same way.

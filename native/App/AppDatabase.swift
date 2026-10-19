@@ -14,7 +14,7 @@ final class AppDatabase {
   let dailyStrip: DailyStrip?
   /// The trail, the known places, the tracking switch and the retention (Places).
   let locations: LocationStore?
-  /// Where each archive stream's last taken page ended (story 262).
+  /// Where each archive stream's last taken page ended (story 270).
   let archiveCursors: ArchiveCursorStore?
   /// The file itself, for the database export.
   let url: URL

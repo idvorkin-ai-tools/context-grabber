@@ -1,4 +1,4 @@
-//  Story 262: one Health sample type as an archive stream, read with an anchored query. The anchor is the stream's
+//  Story 270: one Health sample type as an archive stream, read with an anchored query. The anchor is the stream's
 //  cursor: Health answers everything since it, deletions included, and a nil anchor is the whole history, paged.
 //  A record carries what the mirror reads of a sample (when, how much in the app's unit, which source), never
 //  Health's free-form metadata.
@@ -12,12 +12,12 @@ struct HealthArchiveSource: ArchiveSource {
   var stream: String { ArchiveStream.health(type.identifier) }
 
   /// A stored anchor this build cannot read.
-  /// ponytail: such a stream stops (an `archive_read` error each run) until its `archive_cursor` row goes; the
-  /// upgrade is a reset to nil, since the archive dedupes a re-read of the history.
   struct UnreadableAnchor: Error {}
 
   func page(after cursor: String?, limit: Int) async throws -> ArchivePage {
-    let anchor = try cursor.map { try Self.anchor(from: $0) }
+    // An anchor this build cannot read (an OS upgrade, a restored database) starts the stream over from nothing:
+    // the archive dedupes a re-read of the history, and a stream stuck on it would never archive again.
+    let anchor = cursor.flatMap { try? Self.anchor(from: $0) }
     let descriptor = HKAnchoredObjectQueryDescriptor(predicates: [.sample(type: type)], anchor: anchor, limit: limit)
     let result = try await descriptor.result(for: store)
     var records = result.addedSamples.map(Self.record)

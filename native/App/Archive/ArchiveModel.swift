@@ -1,4 +1,4 @@
-//  Story 262 (context-grabber-3il): everything the app collects goes to the Cockpit's archive on its own: the
+//  Story 270 (context-grabber-3il): everything the app collects goes to the Cockpit's archive on its own: the
 //  trail's points and every Health sample type the mirror reads, as deltas every four hours or so (a background
 //  refresh, and a foreground once that long has passed), an end-of-day batch (a background processing task), and
 //  the whole history the first time, paged. Each stream's cursor (ArchiveCursorStore) moves only after a 2xx, and
