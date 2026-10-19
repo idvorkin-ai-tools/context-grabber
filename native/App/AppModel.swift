@@ -18,6 +18,8 @@ final class AppModel: ObservableObject {
   let places: PlacesModel
   /// What was shared to the app, on its way to Larry (#305, stories 038 and 039).
   let inbox: InboxModel
+  /// Everything the app collects, to the Cockpit's archive every few hours (story 262).
+  let archive: ArchiveModel
   /// Shake (hard or gentle), ⌘I or the Settings button opens BugKit's report dialog (stories 142, 146). Set at the
   /// end of init: its hooks read this model.
   // swiftlint:disable:next implicitly_unwrapped_optional
@@ -100,6 +102,8 @@ final class AppModel: ObservableObject {
     tracker = LocationTracker(log: log, store: database.locations)
     places = PlacesModel(log: log, database: database)
     inbox = InboxModel(log: log, database: database)
+    archive = ArchiveModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
+    archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
     call = CallModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
     // Before BugKit the ✕ was kept in the database: carry it over once, so a dismissed row stays dismissed.
     if let seen = database.setting("whats_new_seen"),
@@ -146,6 +150,7 @@ final class AppModel: ObservableObject {
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     startDelivery()  // story 152: what waited for a connection goes up now
     inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
+    archive.runIfDue(reason: "foreground")  // story 262: the delta, once four hours have passed
   }
 
   func openInbox(from source: String) {
@@ -718,6 +723,8 @@ final class AppModel: ObservableObject {
       openInbox(from: "hook")
       inbox.composeHook(compose)
     }
+    // Story 262: an archive run now, to GRABBER_ARCHIVE_URL (the simulator sends nowhere else).
+    if env["GRABBER_ARCHIVE"] == "run" { archive.run(reason: "hook") }
     if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
       // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).
       openCall(from: "hook")

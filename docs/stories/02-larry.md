@@ -574,3 +574,24 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** items wait in the Inbox after losing the network or failing to reach the Cockpit, each reads *Not sent yet* and the tile counts them; while the phone is offline the screen quietly says “No network — these go to Larry when you're back online” without attempting a send
 - **When:** the network returns while the app is running, including a tailnet reconnect after a failed send while Wi-Fi or cellular stayed available
 - **Then:** the offline line disappears if shown and waiting items send automatically without overlapping sends; a network that comes up on demand (an on-demand VPN) counts as available, so the send is tried and no offline line shows; after a failure (or during the send that then fails), a changed interface or metered/constrained access retries once after a burst settles for half a second, identical updates and an empty Inbox never retry; a failed send leaves its item waiting and counted, and the log records `inbox` offline_skipped, network_back and network_changed events as applicable
+
+---
+
+### User Story 262:
+
+- **Summary:** Everything the app collects is archived off the phone on its own, once each
+- **Status:** implemented in the stats-archive branch (the phone half; the Cockpit's `POST /archive` is its story 124), the commit named by the next commit; host `ArchiveTests` written (the guid shapes against the Cockpit's rule, the request and every answer class, the cursor kept only where the last taken page ended, a refusal keeping it, a run's page cap, an empty page still moving it, the trail paged by row id with content guids, no record in the log, the four-hour rule and the 23:30 slot) — not yet run: this branch was written off the Mac, so `just test`, `just native-test-sim` and the phone's first backfill are still to run there
+- **Why:** Igor, Cockpit chat 2026-10-19: "let's archive all the stats we can do it every four hours. Be sure to Delta stamp them somehow so we don't get duplicates. Should work for history as a one off, and then as habits happen. Then maybe final daily batch. Since all guid marked no duplicates"
+- **Issues:** context-grabber-3il
+- **Spec:** [Everything off the phone: the stats archive](../superpowers/specs/2026-10-19-native-stats-archive-design.md)
+
+#### Use Case:
+- **As** Larry's client whose phone keeps its trail thirty days and its Health history only on the phone
+- **I want to** have everything the app collects copied to the Cockpit's archive on its own, a delta every few hours and the whole history the first time
+- **so that** Larry has the whole record, and losing or replacing the phone loses none of it
+
+#### Acceptance Criteria:
+- **Scenario:** A delta every few hours, history the first time
+- **Given:** Today has asked for Health, the Cockpit is reachable, and the trail and Health hold records the archive has not seen
+- **When:** four hours pass since the last run (a background refresh, or the app comes to the front), or the end-of-day batch runs
+- **Then:** every new point and sample goes to the Cockpit in pages, once each (a lost answer sends the same page again and the Cockpit counts it as already there), the cursor of each stream moves only after the Cockpit took the page, an unreachable Cockpit stops the run at its first page and the next run sends it again, and the log has one `archive` line per page with counts and never a record
