@@ -601,7 +601,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 271:
 
 - **Summary:** The daily strip's days are archived too, each day as the strip shows it
-- **Status:** implemented on branch `strip-archive` (PR pending), **not built**: written on a Linux box with no Swift toolchain; `StripArchiveSource` and its `ArchiveTests` need `just test` on the Mac, then the simulator (`just native-test-sim`) and the phone. Not yet verified anywhere.
+- **Status:** implemented in [d06ac21](https://github.com/idvorkin/context-grabber/commit/d06ac21), **not built**: written on a Linux box with no Swift toolchain; `StripArchiveSource` and its `ArchiveTests` need `just test` on the Mac, then the simulator (`just native-test-sim`) and the phone. Not yet verified anywhere.
 - **Why:** Igor, 2026-10-19, about story 270's archive: "Did it include when I did balloons and magic, not just health?"
 - **Issues:** [#415](https://github.com/idvorkin/context-grabber/issues/415)
 - **Spec:** [Everything off the phone: the stats archive](../superpowers/specs/2026-10-19-native-stats-archive-design.md), "The daily strip"
