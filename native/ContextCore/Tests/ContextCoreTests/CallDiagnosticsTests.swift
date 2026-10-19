@@ -92,6 +92,8 @@ final class CallEventLogTests: XCTestCase {
     XCTAssertFalse(CallEventLog.hadTrouble(clean))
     XCTAssertTrue(CallEventLog.hadTrouble(clean + events([("call_heal", ["action": "rearm_mic"])])))
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_problem", ["problem": "the microphone stopped delivering"])])))
+    // #417: a failed fetch of the voices' recommendation is a fallback, not call trouble.
+    XCTAssertFalse(CallEventLog.hadTrouble(clean + events([("call_settings", ["ok": false, "status": 0])])))
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_ended", ["reason": "connection lost", "badly": true])])))
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_audio", ["action": "engine_start", "ok": false])])))
     XCTAssertFalse(CallEventLog.hadTrouble(events([("timer_cue", ["ok": false])])))  // not the call's

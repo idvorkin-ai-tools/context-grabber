@@ -80,6 +80,9 @@ public final class CallEventLog {
   /// failed, or it ended badly. The trigger is what the log says, so anything it learns to say is covered.
   public static func hadTrouble<S: Sequence>(_ events: S) -> Bool where S.Element == CallEvent {
     events.contains { e in
+      // #417: the voices' recommendation failing to load is an expected fallback (cached, or the bridge's own
+      // choice), never trouble with the call itself.
+      if e.type == "call_settings" { return false }
       if e.type == "call_heal" { return true }
       if e.type == "call_problem", let p = e.fields["problem"] as? String, !p.isEmpty { return true }
       if e.type == "call_ended", e.fields["badly"] as? Bool == true { return true }
