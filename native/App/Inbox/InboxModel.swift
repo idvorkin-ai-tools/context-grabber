@@ -39,7 +39,8 @@ final class InboxModel: ObservableObject {
     self.cockpit = cockpit
     store = InboxStore.shared()
     pathMonitor.pathUpdateHandler = { [weak self] path in
-      let available = path.status == .satisfied
+      // .requiresConnection (an on-demand VPN such as Tailscale's) comes up when a connection is tried, so it counts.
+      let available = path.status != .unsatisfied
       let interfaces = Set(path.availableInterfaces.map { "\($0.type):\($0.name):\($0.index)" })
       let expensive = path.isExpensive
       let constrained = path.isConstrained
