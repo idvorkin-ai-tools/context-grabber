@@ -106,7 +106,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 085:
 
 - **Summary:** Pick the voice that answers — Tony or my own clone
-- **Status:** implemented in [3d0c38d](https://github.com/idvorkin/context-grabber/commit/3d0c38d); verified by `callVoices.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the pick remembered in the settings table under the old app's key; verified by `just native-test` (voice tests); the phone still to be checked by Igor
+- **Status:** implemented in [3d0c38d](https://github.com/idvorkin/context-grabber/commit/3d0c38d); verified by `callVoices.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the pick remembered in the settings table under the old app's key; verified by `just native-test` (voice tests); the phone still to be checked by Igor. #417: uncommitted implementation in this worktree (commit left to Igor); verified on the host by 108 call-filtered tests, including recommendation cache and wire tests; full `just test` currently fails in unchanged Inbox image tests, and the app/bridge await the human build turn
 
 #### Use Case:
 - **As a** Larry's client who has heard his own cloned voice perform
@@ -117,9 +117,9 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A call as Igor
 - **Given:** ElevenLabs is the backend and the devices fold shows a *Voice* row with Tony highlighted
 - **When:** I pick Igor, fold the pickers, and tap Call Larry
-- **Then:** the devices line ends *· Igor*, the call line reads *live · 0:03 · ElevenLabs · Igor*, the voice that answers is my own with v3's expressiveness, and the pick survives a force-quit
+- **Then:** the devices line ends *· Igor*, the call line reads *live · 0:03 · ElevenLabs · Igor*, the voice that answers is my own on the Cockpit’s recommended model (or the bridge’s choice until recommendations arrive), the last good recommendation works offline and survives relaunch, fresh recommendations avoid a refetch, expired recommendations revalidate without delaying the call, and the pick survives a force-quit
 
-- **Issues:** [#98](https://github.com/idvorkin/context-grabber/issues/98)
+- **Issues:** [#98](https://github.com/idvorkin/context-grabber/issues/98), [#417](https://github.com/idvorkin/context-grabber/issues/417)
 
 ---
 
