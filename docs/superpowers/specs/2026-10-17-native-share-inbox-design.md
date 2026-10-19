@@ -51,7 +51,8 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
   while it was out. No send starts until network availability is known, and none starts while offline. When the
   network returns while the app is running, the offline line disappears and waiting items send automatically.
   After a failed send, a meaningful network change (including the VPN tunnel returning while Wi-Fi stays up,
-  or a change in metered or constrained access) retries waiting items too. A burst of such changes settles for
+  or a change in metered or constrained access) retries waiting items too, also when the change came while that
+  send was still out. A burst of such changes settles for
   half a second before one retry. Identical network updates do not start extra sends; a return or retry during
   a send requests at most one more pass after that send ends. Sharing from another app never waits on the network.
 - **Once each**: an item resent after a lost answer is recognised by the Cockpit as one it already has, and reads
@@ -109,7 +110,7 @@ Acceptance criteria:
 - With no network, the Inbox shows the quiet offline line and attempts no send. On network return while the app
   is running, the line disappears and waiting items send without reopening the app; repeated available-network
   updates with identical network details do not cause extra sends, and a send already in progress is never overlapped.
-- After a failed send, reconnecting the tailnet while Wi-Fi or cellular stays available retries waiting items;
-  meaningful network changes in a burst cause one retry after settling, and an empty Inbox never retries.
+- After a failed send, reconnecting the tailnet while Wi-Fi or cellular stays available retries waiting items,
+  even when the tailnet returned before that send failed; meaningful network changes in a burst cause one retry after settling, and an empty Inbox never retries.
 - Phase 2: an item the Cockpit refuses reads *Larry's inbox refused it* with the reason, copyable, and is not sent
   again; a HEIC photo arrives at Larry as a JPEG.
