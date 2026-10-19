@@ -239,6 +239,150 @@ final class ArchiveTests: XCTestCase {
     XCTAssertNil(report.stopped)
   }
 
+  // MARK: The daily strip as streams (story 271)
+
+  /// A fixed clock at `ms` Unix milliseconds.
+  private func clock(_ ms: Int64) -> @Sendable () -> Date {
+    { Date(timeIntervalSince1970: Double(ms) / 1000) }
+  }
+
+  func testAStripObservationsGUIDAndStreamSatisfyTheCockpitsRules() {
+    let guid = ArchiveGUID.stripDay("2026-10-18", seenAt: 1_760_900_000_000)
+    XCTAssertEqual(guid, "2026-10-18:1760900000000")
+    XCTAssertNotNil(guid.range(of: Self.cockpitGUID, options: .regularExpression), guid)
+    XCTAssertEqual(ArchiveStream.strip(.balloons), "strip.balloons")
+    for item in DailyItem.allCases {
+      // The Cockpit's rule for a stream (archive.py STREAM_RE).
+      let stream = ArchiveStream.strip(item)
+      XCTAssertNotNil(stream.range(of: "^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}$", options: .regularExpression), stream)
+    }
+  }
+
+  @MainActor
+  func testTheStripsFirstRunIsEveryDayAsTheStripShowsIt() async throws {
+    let strip = try DailyStrip(db: SQLiteDatabase())
+    try strip.set(.balloons, day: "2026-10-16", value: 2)
+    try strip.set(.balloons, day: "2026-10-17", value: 0)  // stepped back down before any run: nothing to say
+    try strip.set(.balloons, day: "2026-10-18", value: 1)
+    // The iPad's taps, arrived over iCloud: a count adds up across devices, and a day only the iPad has counts.
+    try strip.mergePeer(
+      "ipad", month: "2026-10",
+      rows: [
+        StripRow(day: "2026-10-18", item: .balloons, value: 3, updatedAt: 5),
+        StripRow(day: "2026-10-15", item: .balloons, value: 4, updatedAt: 5),
+        StripRow(day: "2026-10-15", item: .magic, value: 9, updatedAt: 5),
+      ])
+    let source = StripArchiveSource(strip: strip, item: .balloons, now: clock(1_000))
+    XCTAssertEqual(source.stream, "strip.balloons")
+    let page = try await source.page(after: nil, limit: 100)
+    XCTAssertEqual(page.records.map { $0["day"] as? String }, ["2026-10-15", "2026-10-16", "2026-10-18"])
+    XCTAssertEqual(page.records.map { $0["value"] as? Int }, [4, 2, 4])
+    XCTAssertEqual(page.records.first?["guid"] as? String, "2026-10-15:1000")
+    XCTAssertEqual(page.records.first?["seen_at"] as? Int64, 1_000)
+    XCTAssertEqual(page.records.first?["item"] as? String, "balloons")
+    XCTAssertFalse(page.more)
+    XCTAssertFalse(page.restarted)
+
+    // Nothing changed since: nothing to send, and the cursor stays where it was.
+    let again = try await StripArchiveSource(strip: strip, item: .balloons, now: clock(2_000))
+      .page(after: page.cursor, limit: 100)
+    XCTAssertTrue(again.records.isEmpty)
+    XCTAssertEqual(again.cursor, page.cursor)
+  }
+
+  @MainActor
+  func testAChangedDayGoesAgainAsANewerObservationWhateverItsAge() async throws {
+    let strip = try DailyStrip(db: SQLiteDatabase())
+    try strip.set(.balloons, day: "2026-10-01", value: 3)
+    try strip.set(.balloons, day: "2026-10-18", value: 1)
+    let first = try await StripArchiveSource(strip: strip, item: .balloons, now: clock(1_000))
+      .page(after: nil, limit: 100)
+
+    // A counter's week edited weeks later, and the iPad's taps for a day already sent arriving late, stamped
+    // earlier than that send: the archive's first copy of each day is stale, so each goes again under a new guid.
+    try strip.set(.balloons, day: "2026-10-01", value: 2)
+    try strip.mergePeer(
+      "ipad", month: "2026-10", rows: [StripRow(day: "2026-10-18", item: .balloons, value: 2, updatedAt: 1)])
+    let second = try await StripArchiveSource(strip: strip, item: .balloons, now: clock(2_000))
+      .page(after: first.cursor, limit: 100)
+    XCTAssertEqual(second.records.map { $0["guid"] as? String }, ["2026-10-01:2000", "2026-10-18:2000"])
+    XCTAssertEqual(second.records.map { $0["value"] as? Int }, [2, 3])
+
+    // Back to 3, the first observation's value: still a new observation, so the newest says 3.
+    try strip.set(.balloons, day: "2026-10-01", value: 3)
+    let third = try await StripArchiveSource(strip: strip, item: .balloons, now: clock(3_000))
+      .page(after: second.cursor, limit: 100)
+    XCTAssertEqual(third.records.map { $0["guid"] as? String }, ["2026-10-01:3000"])
+    XCTAssertEqual(third.records.map { $0["value"] as? Int }, [3])
+  }
+
+  @MainActor
+  func testADayTakenBackToNothingIsSentAsZero() async throws {
+    let strip = try DailyStrip(db: SQLiteDatabase())
+    try strip.set(.journal, day: "2026-10-17", value: 1, at: Date(timeIntervalSince1970: 1))
+    try strip.set(.journal, day: "2026-10-18", value: 1, at: Date(timeIntervalSince1970: 1))
+    let first = try await StripArchiveSource(strip: strip, item: .journal, now: clock(1_000))
+      .page(after: nil, limit: 100)
+    XCTAssertEqual(first.records.count, 2)
+
+    // Un-ticked on this phone, and the other day's row taken back by the first sync's replay (#380).
+    try strip.set(.journal, day: "2026-10-17", value: 0, at: Date(timeIntervalSince1970: 2))
+    try strip.restoreOwn(.journal, day: "2026-10-18", to: nil)
+    let second = try await StripArchiveSource(strip: strip, item: .journal, now: clock(2_000))
+      .page(after: first.cursor, limit: 100)
+    XCTAssertEqual(second.records.map { $0["day"] as? String }, ["2026-10-17", "2026-10-18"])
+    XCTAssertEqual(second.records.map { $0["value"] as? Int }, [0, 0])
+    XCTAssertEqual(second.cursor, "{}", "0 is what the archive assumes for a day it never heard of")
+    let third = try await StripArchiveSource(strip: strip, item: .journal, now: clock(3_000))
+      .page(after: second.cursor, limit: 100)
+    XCTAssertTrue(third.records.isEmpty)
+  }
+
+  @MainActor
+  func testTheStripsHistoryPagesOnceAndAQuietRunSendsNothing() async throws {
+    let strip = try DailyStrip(db: SQLiteDatabase())
+    for day in 1...5 { try strip.set(.magic, day: String(format: "2026-10-%02d", day), value: day) }
+    let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
+    let source = StripArchiveSource(strip: strip, item: .magic)
+
+    // The Cockpit away on the first page: nothing is taken, so nothing is remembered as taken.
+    let failed = await makeUploader(cursors, answers: [503], seen: Seen()).upload(source) { _, _ in }
+    XCTAssertEqual(failed.stopped, "retry")
+    XCTAssertNil(try cursors.cursor("strip.magic"))
+
+    let seen = Seen()
+    var uploader = makeUploader(cursors, answers: [], seen: seen)
+    uploader.pageSize = 2
+    let report = await uploader.upload(source) { _, _ in }
+    let sent = await seen.batches
+    XCTAssertEqual(sent.map(\.count), [2, 2, 1])
+    XCTAssertNil(report.stopped)
+    let cursor = try XCTUnwrap(try cursors.cursor("strip.magic"))
+    XCTAssertEqual(
+      StripArchiveSource.decode(cursor),
+      ["2026-10-01": 1, "2026-10-02": 2, "2026-10-03": 3, "2026-10-04": 4, "2026-10-05": 5])
+
+    let quiet = Seen()
+    let none = await makeUploader(cursors, answers: [], seen: quiet).upload(source) { _, _ in }
+    let resent = await quiet.batches
+    XCTAssertEqual(none, ArchiveUploader.Report())
+    XCTAssertTrue(resent.isEmpty)
+  }
+
+  @MainActor
+  func testAnUnreadableStripCursorStartsTheStreamOver() async throws {
+    XCTAssertNil(StripArchiveSource.decode("not json"))
+    XCTAssertNil(StripArchiveSource.decode("[1]"))
+    XCTAssertNil(StripArchiveSource.decode(#"{"2026-10-18": "one"}"#))
+    let strip = try DailyStrip(db: SQLiteDatabase())
+    try strip.set(.gym, day: "2026-10-18", value: 1)
+    let page = try await StripArchiveSource(strip: strip, item: .gym, now: clock(1_000))
+      .page(after: "not json", limit: 100)
+    XCTAssertTrue(page.restarted)
+    XCTAssertEqual(page.records.map { $0["day"] as? String }, ["2026-10-18"])
+    XCTAssertEqual(page.cursor.flatMap(StripArchiveSource.decode), ["2026-10-18": 1])
+  }
+
   // MARK: The cursor store
 
   func testAddingTheArchiveToAnExistingDatabaseKeepsItsDataAndCursors() throws {

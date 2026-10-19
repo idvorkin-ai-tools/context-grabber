@@ -64,6 +64,12 @@ public struct DailyStrip {
       [.text(day), .text(item.rawValue), .int(Int64(max(0, value))), .int(Int64(at.timeIntervalSince1970 * 1000))])
   }
 
+  /// Every day the item has a row for on any device, its value merged as `value` merges it (0s included): story
+  /// 271's archive sends the strip as it shows.
+  public func values(_ item: DailyItem) throws -> [String: Int] {
+    try merged(item, day: nil)
+  }
+
   /// The days the item was above 0 across devices, any age.
   public func days(_ item: DailyItem) throws -> Set<String> {
     Set(try merged(item, day: nil).filter { $0.value > 0 }.keys)

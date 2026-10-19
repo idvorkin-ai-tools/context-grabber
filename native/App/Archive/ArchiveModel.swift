@@ -1,8 +1,8 @@
-//  Story 270 (context-grabber-3il): everything the app collects goes to the Cockpit's archive on its own: the
-//  trail's points and every Health sample type the mirror reads, as deltas every four hours or so (a background
-//  refresh, and a foreground once that long has passed), an end-of-day batch (a background processing task), and
-//  the whole history the first time, paged. Each stream's cursor (ArchiveCursorStore) moves only after a 2xx, and
-//  the archive keeps one row per guid, so nothing is ever there twice. Spec:
+//  Story 270 (context-grabber-3il): everything the app collects goes to the Cockpit's archive on its own: the trail's
+//  points, every Health sample type the mirror reads and the daily strip's days (story 271), as deltas every four hours
+//  or so (a background refresh, and a foreground once that long has passed), an end-of-day batch (a background
+//  processing task), and the whole history the first time, paged. Each stream's cursor (ArchiveCursorStore) moves only
+//  after a 2xx, and the archive keeps one row per guid, so nothing is ever there twice. Spec:
 //  docs/superpowers/specs/2026-10-19-native-stats-archive-design.md.
 
 import BackgroundTasks
@@ -152,6 +152,10 @@ final class ArchiveModel {
     let started = Date()
     var sources: [ArchiveSource] = []
     if let locations = database.locations { sources.append(LocationArchiveSource(store: locations)) }
+    // Story 271: the strip's days, every device's taps merged as the strip shows them; readable while locked.
+    if let strip = database.dailyStrip {
+      sources += DailyItem.allCases.map { StripArchiveSource(strip: strip, item: $0) as ArchiveSource }
+    }
     var locked = !UIApplication.shared.isProtectedDataAvailable
     if locked {
       log.event("archive", ["action": "health_skipped", "why": reason, "reason": "phone locked"])
