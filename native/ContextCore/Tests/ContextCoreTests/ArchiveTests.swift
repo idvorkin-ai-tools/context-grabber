@@ -210,6 +210,23 @@ final class ArchiveTests: XCTestCase {
 
   // MARK: The cursor store
 
+  func testAddingTheArchiveToAnExistingDatabaseKeepsItsDataAndCursors() throws {
+    let db = try SQLiteDatabase()
+    let settings = try SettingsStore(db: db)
+    try settings.set("location_tracking", "1")
+    let locations = try LocationStore(db: db)
+    let point = LocationPoint(latitude: 47, longitude: -122, timestamp: 1_000)
+    try locations.insert([point])
+
+    let cursors = try ArchiveCursorStore(db: db)
+    XCTAssertTrue(try cursors.all().isEmpty)
+    try cursors.set(ArchiveStream.points, cursor: "1", at: 10)
+    let reopened = try ArchiveCursorStore(db: db)
+    XCTAssertEqual(try reopened.cursor(ArchiveStream.points), "1")
+    XCTAssertEqual(try settings.get("location_tracking"), "1")
+    XCTAssertEqual(try locations.points(afterId: 0, limit: 10).map(\.point), [point])
+  }
+
   func testTheCursorStoreRoundTripsPerStream() throws {
     let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
     XCTAssertNil(try cursors.cursor("a"))

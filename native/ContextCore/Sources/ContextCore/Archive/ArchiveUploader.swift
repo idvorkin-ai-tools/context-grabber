@@ -57,7 +57,7 @@ public struct ArchiveUploader {
 
   /// `log` gets one `archive` line per page and per stop: counts and reasons, never a record.
   public func upload(
-    _ source: ArchiveSource, now: @Sendable () -> Date = Date.init, isCancelled: () -> Bool = { false },
+    _ source: ArchiveSource, now: @Sendable () -> Date = { Date() }, isCancelled: () -> Bool = { false },
     log: (String, [String: Any]) -> Void
   ) async -> Report {
     var report = Report()

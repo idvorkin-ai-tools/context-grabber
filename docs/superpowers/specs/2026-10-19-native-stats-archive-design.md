@@ -52,6 +52,8 @@ names where.
   the trail and every Health sample of the mirror's types, in pages, and the Cockpit's counts show each record
   inserted exactly once; a second pass over the same history inserts nothing.
 - Four hours after a run, with the app in the background, a refresh run sends what came since; the log shows it.
+- Launching the app remains safe before the first archive run, including when an existing database is upgraded.
+- A simulator sends archive data only to an explicitly supplied test destination; without one it sends nothing.
 - With the Cockpit unreachable, a run stops at its first page with the reason, and the next reachable run sends
   that page again, which the Cockpit counts as new (not duplicate) the first time and duplicate thereafter.
 - A trail imported from a Context Grabber export sends its points, and the Cockpit counts the ones it already had

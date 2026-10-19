@@ -11,7 +11,10 @@ struct GrabberApp: App {
   @State private var wasActive = false
 
   init() {
-    _model = StateObject(wrappedValue: AppModel())  // installs BugKit's crash capture before anything else it builds
+    // Story 262: StateObject defers its wrapped-value expression until the view is installed. Make the model
+    // now so its background-task handlers are registered before launch finishes (and crash capture starts here).
+    let model = AppModel()
+    _model = StateObject(wrappedValue: model)
   }
 
   var body: some Scene {
