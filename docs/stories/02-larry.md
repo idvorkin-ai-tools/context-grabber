@@ -400,7 +400,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 261:
 
 - **Summary:** With the Cockpit out of reach, the Inbox waits for the next open
-- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); #406's wording and retry regression are uncommitted (sandbox blocks the Git index); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first; a transport failure retains the item and a later success sends it once); off the tailnet on the phone still for Igor
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); #406's wording and the failed-send regression in [7efc955](https://github.com/idvorkin/context-grabber/commit/7efc955); verified by `InboxTests` (host: no answer or a 5xx leaves the item waiting and stops the send, oldest first; a transport failure retains the item and a later success sends it once); off the tailnet on the phone still for Igor
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305), [#406](https://github.com/idvorkin/context-grabber/issues/406)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -560,7 +560,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 269:
 
 - **Summary:** My Inbox waits offline and sends itself when the network returns
-- **Status:** implemented in this worktree, uncommitted (sandbox blocks the Git index); verified by host `InboxSendPolicyTests` and the non-image `InboxTests` (16 tests, zero failures, using SwiftPM's `--disable-sandbox` with writable module caches); app compilation, offline wording and real network return on the phone still for Igor
+- **Status:** native app only: implemented in [7efc955](https://github.com/idvorkin/context-grabber/commit/7efc955); verified by `InboxSendPolicyTests` and `InboxTests` with the full `just test` (host); the offline line and the send on the network's return on the phone not yet
 - **Issues:** [#406](https://github.com/idvorkin/context-grabber/issues/406)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
