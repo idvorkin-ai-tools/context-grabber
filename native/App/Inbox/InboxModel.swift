@@ -17,6 +17,11 @@ final class InboxModel: ObservableObject {
   var offline: Bool { sendPolicy.path == .offline }
   private let pathMonitor = NWPathMonitor()
   private var pathRetry: Task<Void, Never>?
+  private let started = ContinuousClock.now
+  private var now: Double {
+    let elapsed = (ContinuousClock.now - started).components
+    return Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+  }
   /// A refresh came while a send was out: one more pass when it ends, for what was shared meanwhile (local review).
   private var sendAgain = false
   /// Each image item's small preview, decoded once per item.
@@ -56,24 +61,25 @@ final class InboxModel: ObservableObject {
     let previousRetry = sendPolicy.retryAfter
     let becameOnline = sendPolicy.updatePath(
       available ? .online : .offline, interfaces: interfaces, expensive: expensive, constrained: constrained,
-      waitingCount: store?.waitingCount ?? 0, now: ProcessInfo.processInfo.systemUptime)
-    if previousRetry != sendPolicy.retryAfter {
-      pathRetry?.cancel()
-      if sendPolicy.retryAfter != nil {
-        pathRetry = Task { [weak self] in
-          do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
-          guard let self else { return }
-          let decision = sendPolicy.pathRetryDecision(
-            waitingCount: store?.waitingCount ?? 0, sending: sending, now: ProcessInfo.processInfo.systemUptime)
-          if decision == .send || decision == .sendAgain { refresh(reason: "network_changed") }
-        }
-      }
-    }
+      waitingCount: store?.waitingCount ?? 0, now: now)
+    schedulePathRetry(ifChangedFrom: previousRetry)
     if becameOnline {
       // Read shares made while away before deciding whether there is anything to send.
       refresh(reason: wasOffline ? "network_back" : "network_ready")
     } else if offline && !wasOffline {
       refresh(reason: "network_offline")
+    }
+  }
+
+  private func schedulePathRetry(ifChangedFrom previousRetry: Double?) {
+    guard previousRetry != sendPolicy.retryAfter else { return }
+    pathRetry?.cancel()
+    guard sendPolicy.retryAfter != nil else { return }
+    pathRetry = Task { [weak self] in
+      do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+      guard let self else { return }
+      let decision = sendPolicy.pathRetryDecision(waitingCount: store?.waitingCount ?? 0, sending: sending, now: now)
+      if decision == .send || decision == .sendAgain { refresh(reason: "network_changed") }
     }
   }
 
@@ -160,6 +166,7 @@ final class InboxModel: ObservableObject {
     case .send: break
     }
     sending = true
+    sendPolicy.startedSend()
     let sender = InboxSender(store: store, cockpit: cockpit) { try await URLSession.shared.data(for: $0) }
     Task { [log] in
       let report = await sender.sendWaiting { type, fields in
@@ -167,7 +174,9 @@ final class InboxModel: ObservableObject {
         fields["why"] = reason
         log.event(type, fields)
       }
-      sendPolicy.finishedSend(retry: report.retry != nil)
+      let previousRetry = sendPolicy.retryAfter
+      sendPolicy.finishedSend(retry: report.retry != nil, now: now)
+      schedulePathRetry(ifChangedFrom: previousRetry)
       sending = false
       reload()
       if sendAgain {

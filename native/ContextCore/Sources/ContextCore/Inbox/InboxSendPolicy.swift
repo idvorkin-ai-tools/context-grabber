@@ -15,6 +15,8 @@ public struct InboxSendPolicy: Sendable {
   private var expensive = false
   private var constrained = false
   private var failed = false
+  private var sendOut = false
+  private var changedDuringSend = false
 
   public init() {}
 
@@ -31,15 +33,30 @@ public struct InboxSendPolicy: Sendable {
     self.constrained = constrained
     if path != .online || becameOnline || waitingCount == 0 {
       retryAfter = nil
+      changedDuringSend = false
     } else if changed && failed {
       retryAfter = now + 0.5
+    } else if changed && sendOut {
+      changedDuringSend = true
     }
     return becameOnline
   }
 
-  public mutating func finishedSend(retry: Bool) {
+  public mutating func startedSend() {
+    sendOut = true
+    changedDuringSend = false
+  }
+
+  /// A meaningful change seen while the failed send was out arms the same retry a later change would.
+  public mutating func finishedSend(retry: Bool, now: Double = 0) {
     failed = retry
-    if !retry { retryAfter = nil }
+    if !retry {
+      retryAfter = nil
+    } else if changedDuringSend && path == .online {
+      retryAfter = now + 0.5
+    }
+    sendOut = false
+    changedDuringSend = false
   }
 
   /// Consume one retry only after meaningful updates have settled; identical updates do not extend the wait.

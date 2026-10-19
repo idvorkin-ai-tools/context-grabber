@@ -114,4 +114,32 @@ final class InboxSendPolicyTests: XCTestCase {
     policy.finishedSend(retry: false)
     XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 4), .wait)
   }
+
+  func testTunnelReturningDuringASendThatFailsRetriesOnce() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online, interfaces: ["en0"])
+    policy.startedSend()
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 1, now: 5)
+    XCTAssertNil(policy.retryAfter)
+    policy.finishedSend(retry: true, now: 20)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 20.4), .wait)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 20.5), .send)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 21), .wait)
+  }
+
+  func testAFailedSendWithoutAChangeWhileOutDoesNotRetry() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online, interfaces: ["en0"])
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 1, now: 1)
+    policy.startedSend()
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 1, now: 2)
+    policy.finishedSend(retry: true, now: 3)
+    XCTAssertNil(policy.retryAfter)
+    policy.startedSend()
+    _ = policy.updatePath(.online, interfaces: ["en0"], waitingCount: 1, now: 4)
+    _ = policy.updatePath(.offline, waitingCount: 1, now: 4.1)
+    _ = policy.updatePath(.online, interfaces: ["en0"], waitingCount: 1, now: 4.2)
+    policy.finishedSend(retry: true, now: 5)
+    XCTAssertNil(policy.retryAfter)
+  }
 }
