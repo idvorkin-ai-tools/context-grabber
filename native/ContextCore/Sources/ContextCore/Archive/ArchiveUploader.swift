@@ -23,6 +23,7 @@ public struct ArchivePage {
 public protocol ArchiveSource {
   var stream: String { get }
   /// The next page after `cursor` (nil: from the beginning), at most `limit` records.
+  @MainActor
   func page(after cursor: String?, limit: Int) async throws -> ArchivePage
 }
 
@@ -56,6 +57,8 @@ public struct ArchiveUploader {
   }
 
   /// `log` gets one `archive` line per page and per stop: counts and reasons, never a record.
+  /// Database reads and cursor writes share the location writers' actor; the transport remains nonisolated.
+  @MainActor
   public func upload(
     _ source: ArchiveSource, now: @Sendable () -> Date = { Date() }, isCancelled: () -> Bool = { false },
     log: (String, [String: Any]) -> Void
@@ -130,6 +133,7 @@ public struct ArchiveUploader {
     return report
   }
 
+  @MainActor
   private func keep(_ cursor: String, for stream: String, now: () -> Date, log: (String, [String: Any]) -> Void) {
     do {
       try cursors.set(stream, cursor: cursor, at: Int64(now().timeIntervalSince1970 * 1000))
@@ -148,6 +152,7 @@ public struct LocationArchiveSource: ArchiveSource {
 
   public init(store: LocationStore) { self.store = store }
 
+  @MainActor
   public func page(after cursor: String?, limit: Int) async throws -> ArchivePage {
     let after = cursor.flatMap { Int64($0) } ?? 0
     let rows = try store.points(afterId: after, limit: limit)

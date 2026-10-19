@@ -16,7 +16,7 @@ final class ArchiveModel {
   static let deviceKey = "archive_device_id"
   /// Pages per stream in a refresh or foreground run (seconds of background time), and in the end-of-day
   /// processing task (minutes): a backfill of years of heart rate takes a few of each.
-  static let refreshPages = 20
+  nonisolated static let refreshPages = 20
   static let dailyPages = 200
 
   private let log: SessionLog
@@ -62,7 +62,7 @@ final class ArchiveModel {
 
   /// At the launch's first activation: the next slots asked for, and a run if one is due.
   func launch() {
-    schedule(reason: "launch")
+    Task { await schedule(reason: "launch") }
     runIfDue(reason: "launch")
   }
 
@@ -99,24 +99,31 @@ final class ArchiveModel {
     Task { [weak self] in
       await active.value
       task.setTaskCompleted(success: self?.cancelled == false)
-      self?.schedule(reason: reason)
+      await self?.schedule(reason: reason)
     }
   }
 
-  /// Asks iOS for the next refresh (four hours on) and the end-of-day batch; a request replaces the one before
-  /// it, so nothing doubles. The simulator has no scheduler: it says so once and runs only from the hook.
-  func schedule(reason: String) {
+  /// Asks iOS for the next refresh and preserves a daily batch iOS has not run yet, even past midnight.
+  /// The simulator has no scheduler: it says so once and runs only from the hook.
+  func schedule(reason: String) async {
     #if targetEnvironment(simulator)
       log.event("archive", ["action": "schedule_skipped", "why": reason, "reason": "simulator"])
     #else
+      let pending = await BGTaskScheduler.shared.pendingTaskRequests()
+      let pendingDaily = pending.first { $0.identifier == ArchiveSchedule.dailyTask }
       let refresh = BGAppRefreshTaskRequest(identifier: ArchiveSchedule.refreshTask)
       refresh.earliestBeginDate = Date().addingTimeInterval(ArchiveSchedule.interval)
-      let daily = BGProcessingTaskRequest(identifier: ArchiveSchedule.dailyTask)
-      let dailyAt = ArchiveSchedule.nextDaily(after: Date(), calendar: .current)
-      daily.earliestBeginDate = dailyAt
-      daily.requiresNetworkConnectivity = true
+      var requests: [BGTaskRequest] = [refresh]
+      var dailyAt = pendingDaily?.earliestBeginDate
+      if reason == "daily" || pendingDaily == nil {
+        let daily = BGProcessingTaskRequest(identifier: ArchiveSchedule.dailyTask)
+        dailyAt = ArchiveSchedule.nextDaily(after: Date(), calendar: .current)
+        daily.earliestBeginDate = dailyAt
+        daily.requiresNetworkConnectivity = true
+        requests.append(daily)
+      }
       var submitted: [String] = []
-      for request in [refresh, daily] as [BGTaskRequest] {
+      for request in requests {
         do {
           try BGTaskScheduler.shared.submit(request)
           submitted.append(request.identifier)
@@ -128,7 +135,7 @@ final class ArchiveModel {
         "archive",
         [
           "action": "scheduled", "why": reason, "tasks": submitted,
-          "daily_at": ISO8601DateFormatter().string(from: dailyAt),
+          "daily_at": dailyAt.map { ISO8601DateFormatter().string(from: $0) } ?? "pending",
         ])
     #endif
   }

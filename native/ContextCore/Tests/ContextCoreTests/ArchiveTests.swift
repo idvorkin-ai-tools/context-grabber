@@ -92,6 +92,7 @@ final class ArchiveTests: XCTestCase {
     }
   }
 
+  @MainActor
   func testTheCursorStaysWhereTheLastTakenPageEnded() async throws {
     let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
     let source = Pages(pages: [["a", "b"], ["c", "d"], ["e"]])
@@ -118,6 +119,7 @@ final class ArchiveTests: XCTestCase {
     XCTAssertEqual(caughtUp.pages, 2)
   }
 
+  @MainActor
   func testARefusalKeepsTheCursorAndStopsTheStream() async throws {
     let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
     let seen = Seen()
@@ -132,6 +134,7 @@ final class ArchiveTests: XCTestCase {
     XCTAssertEqual(lines.last?["reason"] as? String, "nope")
   }
 
+  @MainActor
   func testARunReadsAtMostItsPagesAndSaysSo() async throws {
     let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
     var uploader = makeUploader(cursors, answers: [], seen: Seen())
@@ -142,6 +145,7 @@ final class ArchiveTests: XCTestCase {
     XCTAssertEqual(try cursors.cursor("test.stream"), "0")
   }
 
+  @MainActor
   func testAnEmptyPageStillMovesTheCursorWithoutASend() async throws {
     // Health answers a new anchor even when nothing was added: keep it, so the next run asks from there.
     struct Moved: ArchiveSource {
@@ -161,6 +165,7 @@ final class ArchiveTests: XCTestCase {
     XCTAssertEqual(try cursors.cursor("health.empty"), "anchor-2")
   }
 
+  @MainActor
   func testNoRecordContentReachesTheLog() async throws {
     let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
     var lines: [[String: Any]] = []
@@ -172,6 +177,7 @@ final class ArchiveTests: XCTestCase {
 
   // MARK: The trail as a stream
 
+  @MainActor
   func testTheTrailPagesByRowIdWithContentGUIDs() async throws {
     let store = try LocationStore(db: SQLiteDatabase())
     try store.insert(
@@ -194,6 +200,7 @@ final class ArchiveTests: XCTestCase {
     XCTAssertNil(none.cursor)
   }
 
+  @MainActor
   func testTheWholeTrailGoesOnceAndTheCursorEndsAtItsLastRow() async throws {
     let store = try LocationStore(db: SQLiteDatabase())
     try store.insert((1...5).map { LocationPoint(latitude: 47, longitude: -122, timestamp: Double($0)) })
