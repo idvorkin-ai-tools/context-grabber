@@ -24,7 +24,9 @@ struct HealthArchiveSource: ArchiveSource {
     records += result.deletedObjects.map { ["guid": ArchiveGUID.deleted($0.uuid), "deleted": true] }
     let count = result.addedSamples.count + result.deletedObjects.count
     let newAnchor: HKQueryAnchor? = result.newAnchor
-    return ArchivePage(records: records, cursor: try newAnchor.map(Self.string), more: count >= limit)
+    return ArchivePage(
+      records: records, cursor: try newAnchor.map(Self.string), more: count >= limit,
+      restarted: cursor != nil && anchor == nil)
   }
 
   static func string(_ anchor: HKQueryAnchor) throws -> String {

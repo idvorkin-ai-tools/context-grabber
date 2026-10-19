@@ -12,11 +12,14 @@ public struct ArchivePage {
   public var cursor: String?
   /// Whether the source has more after this page.
   public var more: Bool
+  /// Whether the source could not read the cursor it was given and started the stream over from the beginning.
+  public var restarted: Bool
 
-  public init(records: [[String: Any]], cursor: String?, more: Bool) {
+  public init(records: [[String: Any]], cursor: String?, more: Bool, restarted: Bool = false) {
     self.records = records
     self.cursor = cursor
     self.more = more
+    self.restarted = restarted
   }
 }
 
@@ -72,7 +75,7 @@ public struct ArchiveUploader {
       report.stopped = "read"
       return report
     }
-    let first = cursor == nil
+    var first = cursor == nil
     while report.pages < maxPages {
       // The task iOS is taking back (ArchiveModel.cancel), or the caller's own say.
       if Task.isCancelled || isCancelled() {
@@ -86,6 +89,10 @@ public struct ArchiveUploader {
         log("error", ["where": "archive_read", "stream": source.stream, "message": "\(error)"])
         report.stopped = "read"
         break
+      }
+      if page.restarted {
+        log("archive", ["action": "restarted", "stream": source.stream])
+        first = true
       }
       if page.records.isEmpty {
         // Nothing to send, but the source may still have moved (Health answers an anchor for an empty page).

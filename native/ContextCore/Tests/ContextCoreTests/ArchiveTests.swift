@@ -168,6 +168,28 @@ final class ArchiveTests: XCTestCase {
   }
 
   @MainActor
+  func testARestartedStreamSaysSoOnceAndSendsAsABackfill() async throws {
+    // A Health anchor the build cannot read: the source starts over, and the log says why the history comes again.
+    struct Restarted: ArchiveSource {
+      let stream = "health.restarted"
+      func page(after cursor: String?, limit: Int) async throws -> ArchivePage {
+        cursor == "unreadable"
+          ? ArchivePage(records: [["guid": "a"]], cursor: "anchor-1", more: true, restarted: true)
+          : ArchivePage(records: [["guid": "b"]], cursor: "anchor-2", more: false)
+      }
+    }
+    let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
+    try cursors.set("health.restarted", cursor: "unreadable", at: 1)
+    var lines: [[String: Any]] = []
+    let report = await makeUploader(cursors, answers: [], seen: Seen()).upload(Restarted()) { _, f in lines.append(f) }
+    XCTAssertNil(report.stopped)
+    XCTAssertEqual(lines.compactMap { $0["action"] as? String }, ["restarted", "page", "page"])
+    XCTAssertEqual(lines.first?["stream"] as? String, "health.restarted")
+    XCTAssertEqual(lines.dropFirst().compactMap { $0["backfill"] as? Bool }, [true, true])
+    XCTAssertEqual(try cursors.cursor("health.restarted"), "anchor-2")
+  }
+
+  @MainActor
   func testNoRecordContentReachesTheLog() async throws {
     let cursors = try ArchiveCursorStore(db: SQLiteDatabase())
     var lines: [[String: Any]] = []
