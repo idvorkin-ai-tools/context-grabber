@@ -571,6 +571,6 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The network returns with the app running
-- **Given:** items wait in the Inbox on an offline phone, each reads *Not sent yet*, the tile counts them, and the screen quietly says “No network — these go to Larry when you're back online” without attempting a send
-- **When:** the network returns while the app is running
-- **Then:** the line disappears and waiting items send automatically without overlapping sends or starting extra sends for repeated available-network updates; a failed send leaves its item waiting and counted, and the log records `inbox` offline_skipped and network_back events
+- **Given:** items wait in the Inbox after losing the network or failing to reach the Cockpit, each reads *Not sent yet* and the tile counts them; while the phone is offline the screen quietly says “No network — these go to Larry when you're back online” without attempting a send
+- **When:** the network returns while the app is running, including a tailnet reconnect after a failed send while Wi-Fi or cellular stayed available
+- **Then:** the offline line disappears if shown and waiting items send automatically without overlapping sends; after a failure, a changed interface or metered/constrained access retries once after a burst settles for half a second, identical updates and an empty Inbox never retry; a failed send leaves its item waiting and counted, and the log records `inbox` offline_skipped, network_back and network_changed events as applicable

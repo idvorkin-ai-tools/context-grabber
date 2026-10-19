@@ -51,4 +51,67 @@ final class InboxSendPolicyTests: XCTestCase {
       }
     }
   }
+
+  func testSatisfiedPathWithANewTunnelRetriesAfterFailure() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online, interfaces: ["en0"])
+    policy.finishedSend(retry: true)
+    XCTAssertFalse(policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 2, now: 10))
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 2, sending: false, now: 10.4), .wait)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 2, sending: false, now: 10.5), .send)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 2, sending: false, now: 11), .wait)
+  }
+
+  func testIdenticalUpdatesNeitherRetryNorExtendTheDebounce() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online, interfaces: ["en0"])
+    policy.finishedSend(retry: true)
+    _ = policy.updatePath(.online, interfaces: ["en0"], waitingCount: 1, now: 1)
+    XCTAssertNil(policy.retryAfter)
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 1, now: 2)
+    _ = policy.updatePath(.online, interfaces: ["utun4", "en0"], waitingCount: 1, now: 2.4)
+    XCTAssertEqual(policy.retryAfter, 2.5)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 2.5), .send)
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 1, now: 3)
+    XCTAssertNil(policy.retryAfter)
+  }
+
+  func testMeaningfulBurstSettlesIntoOneGuardedRetry() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online, interfaces: ["en0"])
+    policy.finishedSend(retry: true)
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 1, now: 2)
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun5"], expensive: true, waitingCount: 1, now: 2.2)
+    _ = policy.updatePath(
+      .online, interfaces: ["en0", "utun5"], expensive: true, constrained: true, waitingCount: 1, now: 2.4)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: true, now: 2.8), .wait)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: true, now: 3), .sendAgain)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 4), .wait)
+  }
+
+  func testPathChangesDoNotRetryWithoutWaitingItemsOrAFailure() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online)
+    _ = policy.updatePath(.online, interfaces: ["en0"], waitingCount: 1, now: 1)
+    XCTAssertNil(policy.retryAfter)
+    policy.finishedSend(retry: true)
+    _ = policy.updatePath(.online, interfaces: ["en0", "utun4"], waitingCount: 0, now: 2)
+    XCTAssertNil(policy.retryAfter)
+    _ = policy.updatePath(.online, interfaces: ["en0"], waitingCount: 1, now: 3)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 0, sending: false, now: 4), .wait)
+  }
+
+  func testOfflineOrSuccessfulSendCancelsAPendingPathRetry() {
+    var policy = InboxSendPolicy()
+    _ = policy.updatePath(.online)
+    policy.finishedSend(retry: true)
+    _ = policy.updatePath(.online, expensive: true, waitingCount: 1, now: 1)
+    _ = policy.updatePath(.offline, waitingCount: 1, now: 1.1)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 2), .wait)
+    _ = policy.updatePath(.online)
+    _ = policy.updatePath(.online, constrained: true, waitingCount: 1, now: 3)
+    XCTAssertNotNil(policy.retryAfter)
+    policy.finishedSend(retry: false)
+    XCTAssertEqual(policy.pathRetryDecision(waitingCount: 1, sending: false, now: 4), .wait)
+  }
 }

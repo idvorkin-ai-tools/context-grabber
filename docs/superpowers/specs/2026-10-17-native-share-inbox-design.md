@@ -50,8 +50,10 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 - **When**: each time the app opens or comes to the front, and once more when a send ends if something was shared
   while it was out. No send starts until network availability is known, and none starts while offline. When the
   network returns while the app is running, the offline line disappears and waiting items send automatically.
-  Repeated available-network updates do not start extra sends; a return during a send requests at most one more
-  pass after that send ends. Sharing from another app never waits on the network.
+  After a failed send, a meaningful network change (including the VPN tunnel returning while Wi-Fi stays up,
+  or a change in metered or constrained access) retries waiting items too. A burst of such changes settles for
+  half a second before one retry. Identical network updates do not start extra sends; a return or retry during
+  a send requests at most one more pass after that send ends. Sharing from another app never waits on the network.
 - **Once each**: an item resent after a lost answer is recognised by the Cockpit as one it already has, and reads
   *sent to Larry* like any other.
 - **HEIC photos go as JPEG**; PNG, JPEG, GIF and WebP go as they are. Any photo is made smaller (as a JPEG) if
@@ -106,6 +108,8 @@ Acceptance criteria:
   with it unreachable or failing, items remain **Not sent yet** and stay counted on the tile.
 - With no network, the Inbox shows the quiet offline line and attempts no send. On network return while the app
   is running, the line disappears and waiting items send without reopening the app; repeated available-network
-  updates do not cause extra sends, and a send already in progress is never overlapped.
+  updates with identical network details do not cause extra sends, and a send already in progress is never overlapped.
+- After a failed send, reconnecting the tailnet while Wi-Fi or cellular stays available retries waiting items;
+  meaningful network changes in a burst cause one retry after settling, and an empty Inbox never retries.
 - Phase 2: an item the Cockpit refuses reads *Larry's inbox refused it* with the reason, copyable, and is not sent
   again; a HEIC photo arrives at Larry as a JPEG.
