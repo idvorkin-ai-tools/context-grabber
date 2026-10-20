@@ -420,8 +420,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 262:
 
 - **Summary:** Add a thought to the Inbox with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
@@ -431,8 +431,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Adding a thought
-- **Given:** the Inbox is open
-- **When:** I tap +, enter text by typing or keyboard dictation, and tap Add
+- **Given:** the Inbox is open, empty or populated, with one large round + fixed at the lower right above the safe area, no toolbar +, and room to scroll the last row fully above the button
+- **When:** I tap the fixed +, enter text by typing or keyboard dictation, and tap Add
 - **Then:** one text item is saved locally, the sheet closes, and the item appears waiting and triggers sending to Larry
 
 ---
