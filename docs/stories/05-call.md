@@ -106,7 +106,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 085:
 
 - **Summary:** Pick the voice that answers — Tony or my own clone
-- **Status:** implemented in [3d0c38d](https://github.com/idvorkin/context-grabber/commit/3d0c38d); verified by `callVoices.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the pick remembered in the settings table under the old app's key; verified by `just native-test` (voice tests); the phone still to be checked by Igor. #417: each voice's model from the Cockpit's recommendation in [1c65923](https://github.com/idvorkin/context-grabber/commit/1c65923); verified by the call host tests (the recommendation cache and the start frame) and the full `just test`, and the app compiles on the simulator; a call on the phone not yet
+- **Status:** implemented in [3d0c38d](https://github.com/idvorkin/context-grabber/commit/3d0c38d); verified by `callVoices.test.ts` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), the pick remembered in the settings table under the old app's key; verified by `just native-test` (voice tests); the phone still to be checked by Igor. #417: each voice's model from the Cockpit's recommendation in [1c65923](https://github.com/idvorkin/context-grabber/commit/1c65923); verified by the call host tests (the recommendation cache and the start frame) and the full `just test`, and the app compiles on the simulator; a call on the phone not yet. #428: eight-second non-blocking recommendation request implemented in the working tree (commit blocked by the sandbox); verified by host `CallSettingsTests` and call-session tests, swift-format and SwiftLint; the full host suite has four assertion failures in unrelated Inbox image tests. Slow cellular response and app compilation await the human build turn
 
 #### Use Case:
 - **As a** Larry's client who has heard his own cloned voice perform
@@ -117,9 +117,9 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A call as Igor
 - **Given:** ElevenLabs is the backend and the devices fold shows a *Voice* row with Tony highlighted
 - **When:** I pick Igor, fold the pickers, and tap Call Larry
-- **Then:** the devices line ends *· Igor*, the call line reads *live · 0:03 · ElevenLabs · Igor*, the voice that answers is my own on the Cockpit’s recommended model (or the bridge’s choice until recommendations arrive), the last good recommendation works offline and survives relaunch, fresh recommendations avoid a refetch, expired recommendations revalidate without delaying the call, and the pick survives a force-quit
+- **Then:** the devices line ends *· Igor*, the call line reads *live · 0:03 · ElevenLabs · Igor*, the voice that answers is my own on the Cockpit’s recommended model (or the bridge’s choice until recommendations arrive), the last good recommendation works offline and survives relaunch, fresh recommendations avoid a refetch, expired recommendations revalidate without delaying the call, a slow cellular recommendation has eight seconds to arrive and is saved for subsequent calls even after this call starts, and the pick survives a force-quit
 
-- **Issues:** [#98](https://github.com/idvorkin/context-grabber/issues/98), [#417](https://github.com/idvorkin/context-grabber/issues/417)
+- **Issues:** [#98](https://github.com/idvorkin/context-grabber/issues/98), [#417](https://github.com/idvorkin/context-grabber/issues/417), [#428](https://github.com/idvorkin/context-grabber/issues/428)
 
 ---
 
