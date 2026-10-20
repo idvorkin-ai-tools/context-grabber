@@ -532,7 +532,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 204:
 
 - **Summary:** A slow Bluetooth microphone gets time to settle before the call heals
-- **Status:** implemented in the working tree; commit blocked by the sandbox denying Git's worktree `index.lock`; verified on the host by `swift test --package-path native/ContextCore` (547 tests, one skipped, zero failures), then `MicStartupDeadlineTests` and `CallSessionNoFirstFrameTests` (10 tests, zero failures) after the final cleanup; formatting, SwiftLint and the signing-guard, breath-clip and tile-art checks passed separately. `just test` is blocked compiling the SwiftPM manifest by the sandbox denying the Clang module cache. App compilation and Bluetooth audio on the phone await the human build turn.
+- **Status:** implemented in [1f295b4](https://github.com/idvorkin/context-grabber/commit/1f295b4); verified by `just test` (host, `MicStartupDeadlineTests` and the no-first-frame tests) and the simulator build; a call in the car not yet.
 - **Issues:** [#423](https://github.com/idvorkin/context-grabber/issues/423)
 - **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
 
