@@ -371,10 +371,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** midnight passes
 - **Then:** the strip starts fresh, and yesterday's values are kept
 
-- **Scenario:** I did it yesterday
-- **Given:** Gym reads *3d* because I forgot to tap it yesterday
-- **When:** I press and hold Gym, leave the slider on *yesterday* and tap Confirm
-- **Then:** the sheet closes, Gym reads *1d*, today is still unchecked, and the log has `daily_strip` with gym, yesterday's date and `backdated`
+### User Story 255:
+
+- **Summary:** Review and correct two weeks of strip check marks
+- **Issues:** [#290](https://github.com/idvorkin/context-grabber/issues/290), [#414](https://github.com/idvorkin/context-grabber/issues/414)
+- **Status:** implemented in the working tree for #414; commit pending because the sandbox denies the shared git worktree index lock. Verified on the host by `CheckFortnightTests`, `DailyStripTests` and `CounterWeekTests` (16 tests, zero failures: calendar and clock-change boundaries, staged toggles and summaries, save rollback, peer unmark sync and days since). Format, SwiftLint and the script checks pass. The full `just test` run reports 552 tests, one skipped and four failures in three unchanged Inbox image tests. App compilation, simulator UI tests and the phone await the build turn.
+- **Spec:** [native home screen, “An earlier day”](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+
+#### Use Case:
+- **As someone** who sometimes forgets or accidentally marks a day
+- **I want to** see and edit the last fourteen days together
+- **so that** the strip reflects what happened and tells me what my edits will save
+
+#### Acceptance Criteria:
+- **Scenario:** Review, stage and save corrections
+- **Given:** Gym, Meditation or Journal has both marked and unmarked days, including yesterday already done
+- **When:** I press and hold it, toggle days in the two-week grid and choose Done
+- **Then:** fourteen labelled accessible tiles show the existing marks oldest first, today outlined, edits ringed orange, the edited count and last-done text with changes to save, and a done/changed legend; Done saves only changed days (including taking tapped marks back with latest-change-wins sync), updates the strip and Gym's days since immediately, and logs each saved day with item, day, backdated and done; toggling twice leaves no change, Cancel or dismissal saves nothing, automatic checks stay as on today's strip, and Balloons and Magic still open their week
 
 ### User Story 251:
 
