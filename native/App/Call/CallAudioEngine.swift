@@ -215,9 +215,10 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     }
   }
 
-  // #423, story 204: engine access stays on the audio queue, including the input format read.
+  // #423, story 204: engine access stays on the audio queue, including the input format read. Before the first
+  // buffer, a longer window the watchdog already granted is kept.
   func micStartupDeadline() -> MicStartupDeadline {
-    queue.sync { currentMicDeadline() }
+    queue.sync { lastBufferAt == 0 ? micDeadline.extended(by: currentMicDeadline()) : currentMicDeadline() }
   }
 
   private func currentMicDeadline() -> MicStartupDeadline {
