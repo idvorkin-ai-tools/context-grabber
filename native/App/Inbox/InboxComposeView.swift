@@ -1,5 +1,6 @@
 //  #405, stories 262–264: capture text with the keyboard's own dictation, or paste an image, without leaving
 //  the Inbox. Add another saves locally and keeps this sheet ready for the next thought.
+//  #422, story 264: the note and its picture compose one item in one rounded box.
 
 import BugKit
 import ContextCore
@@ -20,8 +21,7 @@ struct InboxComposeView: View {
   var body: some View {
     NavigationStack {
       Form {
-        textSection
-        imageSection
+        itemSection
         failureSection
         Section {
           Button("Add another") { add(another: true) }.disabled(!draft.canAdd)
@@ -45,16 +45,11 @@ struct InboxComposeView: View {
     }
   }
 
-  private var textSection: some View {
+  private var itemSection: some View {
     Section("Text or a note for the picture") {
       TextField("Something for Larry", text: $draft.text, axis: .vertical)
         .lineLimit(4...10)
         .focused($editing)
-    }
-  }
-
-  private var imageSection: some View {
-    Section {
       if let preview {
         Image(decorative: preview, scale: 1).resizable().scaledToFit().frame(maxHeight: 160)
         Button("Remove image", role: .destructive) {
