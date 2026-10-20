@@ -237,7 +237,9 @@ So the call **watches both directions the whole time, and heals what it
 can**:
 
 - **A microphone that goes quiet** — armed, not interrupted, and no
-  buffer for a second and a half — is closed and reopened, up to three
+  buffer for a second and a half (before its first buffer, a Bluetooth or
+  zero-rate microphone gets the 10-second settling window described under
+  *A microphone that never delivers*) — is closed and reopened, up to three
   times. A line in Diagnostics says so each time (*mic stalled: no buffer
   for 1600 ms → re-arming (1/3)*). If it stays quiet after that, the
   screen says *the microphone stopped delivering* until buffers return.
@@ -280,17 +282,21 @@ can**:
 Larry's finding on [#88](https://github.com/idvorkin/context-grabber/issues/88),
 2026-08-29 09:26: on every silent first call the bridge received *no*
 microphone frames at all — not zeros, nothing. The recorder was started and
-never produced a buffer. So the app watches for exactly that: if a second
-and a half passes after the recorder starts with no buffer, the call's audio is
-torn down and brought back up (a short gap in Larry's voice, a line in
-Diagnostics); if there is still nothing after that, the call **redials
-itself** — once — on the same backend, because the retry has always
-worked. The watch is short — a second and a half, where a working mic's
-first buffer comes within a tenth — because on 2026-08-29 17:33 Igor hung
-up a silent call at 3.1 s, before a three-second watch could act (the
-bridge's record shows zero frames). From the chair: the first call after
-launch may take a few seconds longer to become a working call, and never
-needs a second tap — give it five seconds before reaching for Restart.
+never produced a buffer. So the app watches for exactly that: a built-in or wired microphone that
+produces no buffer within 1.5 seconds of opening gets one audio reset,
+then the existing one-time redial if it still delivers nothing.
+
+**Let a Bluetooth microphone settle first** ([#423](https://github.com/idvorkin/context-grabber/issues/423)).
+A car's Bluetooth microphone can take seconds to become ready. When the current
+route is Bluetooth, or the microphone reports a zero sample rate, allow 10 seconds
+from microphone open before the no-buffer reset. Do not redial during that settling
+window. A route that starts settling before the reset or redial gets the same grace;
+becoming ready sooner does not shorten an already granted window. Once the window
+expires, the existing reset and one-time redial still apply. A first buffer during
+the window cancels the no-buffer heal. Built-in and wired microphones with a valid
+sample rate retain the short watch; mid-call stalls and the other heals are unchanged.
+Diagnostics record the selected deadline and whether Bluetooth, a zero sample rate,
+or the ordinary startup watch chose it, so the next phone log can explain the wait.
 
 ### Starting a call
 
@@ -629,7 +635,9 @@ back. The calling treatment in the middle of the screen stays; the big
     five for five. If a `mic delivering zeros → re-arming` line appears,
     the call still works (the watchdog caught it) — report it.
 30. **No-frames self-heal.** Diagnostics on any call where the mic never
-    delivered shows `no mic buffer within 1.5s … → resetting audio`, then
+    delivered shows the chosen no-buffer deadline (1.5 seconds for a valid built-in
+    or wired mic, 10 seconds for Bluetooth or a zero sample rate) and its reason, then
+    an audio reset after that deadline and
     either `first mic frame` (healed) or `still no mic buffer → redialing`
     followed by a fresh `start` on the same backend; the screen shows
     *Calling Larry…* again briefly and then *live*, without a tap. The

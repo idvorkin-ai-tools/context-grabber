@@ -146,7 +146,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 087:
 
 - **Summary:** The first call after launch works like every other call
-- **Status:** implemented in [62953e1](https://github.com/idvorkin/context-grabber/commit/62953e1), [ae01372](https://github.com/idvorkin/context-grabber/commit/ae01372), [7db050d](https://github.com/idvorkin/context-grabber/commit/7db050d); verified by `callSession.test.ts`, `callWatchdog.test.ts` and on the phone — the silent first call still recurs; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), voice processing on from prepare every call; verified by `just native-test` (no-first-frame and zeros tests); the phone still to be checked by Igor; the zero-run rearm's evidence and its edges (#364): [6cd1ff0](https://github.com/idvorkin/context-grabber/commit/6cd1ff0), [2bba05e](https://github.com/idvorkin/context-grabber/commit/2bba05e), [387088f](https://github.com/idvorkin/context-grabber/commit/387088f), [b02aeca](https://github.com/idvorkin/context-grabber/commit/b02aeca), [00153f0](https://github.com/idvorkin/context-grabber/commit/00153f0) (the heal says what the mic and the playback held, *audio back* is logged once the restart has finished, and a recovery finishing after the hang-up logs and reports nothing for the ended call), verified by `just native-test` (`CallSessionZerosTests`, `testAProbeRearmThatFailsAfterTheHangUpIsIgnored`); the simulator in the next build turn
+- **Status:** implemented in [62953e1](https://github.com/idvorkin/context-grabber/commit/62953e1), [ae01372](https://github.com/idvorkin/context-grabber/commit/ae01372), [7db050d](https://github.com/idvorkin/context-grabber/commit/7db050d); verified by `callSession.test.ts`, `callWatchdog.test.ts` and on the phone — the silent first call still recurs; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599), voice processing on from prepare every call; verified by `just native-test` (no-first-frame and zeros tests); the phone still to be checked by Igor; the zero-run rearm's evidence and its edges (#364): [6cd1ff0](https://github.com/idvorkin/context-grabber/commit/6cd1ff0), [2bba05e](https://github.com/idvorkin/context-grabber/commit/2bba05e), [387088f](https://github.com/idvorkin/context-grabber/commit/387088f), [b02aeca](https://github.com/idvorkin/context-grabber/commit/b02aeca), [00153f0](https://github.com/idvorkin/context-grabber/commit/00153f0) (the heal says what the mic and the playback held, *audio back* is logged once the restart has finished, and a recovery finishing after the hang-up logs and reports nothing for the ended call), verified by `just native-test` (`CallSessionZerosTests`, `testAProbeRearmThatFailsAfterTheHangUpIsIgnored`); the simulator in the next build turn; the 1.5-second watch narrowed to a built-in recorder with a valid sample rate, Bluetooth and a zero rate waiting 10 s (#423, story 204): [c841779](https://github.com/idvorkin/context-grabber/commit/c841779), [538d3f1](https://github.com/idvorkin/context-grabber/commit/538d3f1), verified by `just test` (host, the no-first-frame tests) and the simulator build
 
 #### Use Case:
 - **As a** Larry's client placing the day's first call
@@ -156,7 +156,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** A microphone that never delivers
 - **Given:** the app was force-quit and relaunched
-- **and Given:** the recorder starts but produces no buffer for a second and a half
+- **and Given:** the built-in recorder has a valid sample rate but produces no buffer for a second and a half
 - **When:** I tap Call Larry and say a sentence as soon as Tony greets me
 - **Then:** the call's audio is torn down and brought back up on its own, and if it is still silent the call redials itself once on the same backend — *Calling Larry…* briefly, then *live* — without a tap, and my sentence is captioned; if I hang up while a recovery is still finishing, the ended call shows no new problem
 
@@ -526,3 +526,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the strip is showing
 - **When:** I tap it
 - **Then:** it says *refreshing…* until Larry has taken a new reading (about a minute) and then shows it; and with Tailscale off the home screen shows no strip and no error
+
+---
+
+### User Story 204:
+
+- **Summary:** A slow Bluetooth microphone gets time to settle before the call heals
+- **Status:** implemented in [c841779](https://github.com/idvorkin/context-grabber/commit/c841779), [538d3f1](https://github.com/idvorkin/context-grabber/commit/538d3f1); verified by `just test` (host, `MicStartupDeadlineTests` and the no-first-frame tests) and the simulator build; a call in the car not yet.
+- **Issues:** [#423](https://github.com/idvorkin/context-grabber/issues/423)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client calling from the car
+- **I want to** let its Bluetooth microphone finish connecting
+- **so that** the call's recovery does not keep restarting a microphone that is still waking up
+
+#### Acceptance Criteria:
+- **Scenario:** The car microphone starts slowly
+- **Given:** the current route is Bluetooth or the microphone reports a zero sample rate, and no microphone buffer has arrived
+- **When:** I call Larry and the microphone takes almost ten seconds after opening to deliver its first buffer
+- **Then:** neither a no-buffer audio reset nor a redial interrupts those ten seconds, the first buffer cancels that heal, and Diagnostics record the deadline and reason; if no buffer arrives by ten seconds, the existing reset and one-time redial apply, while a valid built-in or wired microphone keeps its 1.5-second watch
