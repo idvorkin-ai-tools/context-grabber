@@ -744,6 +744,8 @@ Gym Timer), and the deep-link routing. This is a screen and a socket.
 The Cockpit supplies each voice's recommended model. Recommendations load at launch
 when absent or expired, and revalidate at call start when expired. A call starts
 immediately using what is already available; fetching never delays the call.
+The recommendation request has an eight-second budget so a slow cellular response
+can still refresh the saved recommendations for the next call, even after this call starts.
 Tony keeps the bridge's default voice selection; Igor uses his recommended voice id.
 Other backends keep their own defaults. Restart and automatic redial follow the same rule.
 
@@ -762,6 +764,8 @@ a successful fetch, subsequent calls use the recommended model. Tony sends no vo
 override and uses his recommended model. Relaunch within the freshness period makes
 no request; expiry sends the stored validator and accepts an unchanged response.
 Offline calls use the last good copy, or the bridge default when none exists.
+A recommendation arriving more than one second after the request, within the
+eight-second budget, is saved for subsequent calls without delaying the current call.
 Diagnostics record the settings outcome, HTTP status, schema, validator and whether
 the settings came from network, cache or fallback; each call records whether its
 model came from this launch's server response, the persisted cache or the bridge.

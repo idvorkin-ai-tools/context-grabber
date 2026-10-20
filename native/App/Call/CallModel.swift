@@ -108,7 +108,7 @@ final class CallModel: ObservableObject {
     }
   }
 
-  /// Conditional GET with a one-second request budget, coalesced across launch and call starts.
+  /// Non-blocking conditional GET with an eight-second request budget, coalesced across launch and call starts.
   private func refreshCallSettings() {
     guard settingsTask == nil else { return }
     guard callSettings.needsRefresh(at: Date()) else {
@@ -116,7 +116,7 @@ final class CallModel: ObservableObject {
       return
     }
     guard let url = URL(string: Self.cockpitURL)?.appendingPathComponent("voices/recommended") else { return }
-    var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 1)
+    var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 8)
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     request.setValue(callSettings.etag, forHTTPHeaderField: "If-None-Match")
     settingsTask = Task { [weak self] in
