@@ -237,7 +237,9 @@ So the call **watches both directions the whole time, and heals what it
 can**:
 
 - **A microphone that goes quiet** — armed, not interrupted, and no
-  buffer for a second and a half — is closed and reopened, up to three
+  buffer for a second and a half (before its first buffer, a Bluetooth or
+  zero-rate microphone gets the 10-second settling window described under
+  *A microphone that never delivers*) — is closed and reopened, up to three
   times. A line in Diagnostics says so each time (*mic stalled: no buffer
   for 1600 ms → re-arming (1/3)*). If it stays quiet after that, the
   screen says *the microphone stopped delivering* until buffers return.
