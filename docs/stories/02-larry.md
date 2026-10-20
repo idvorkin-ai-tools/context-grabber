@@ -460,7 +460,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 264:
 
 - **Summary:** Paste a picture into the Inbox
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422 groups the note and picture in this working tree; its commit is blocked by sandbox denial of Git's index lock. Host formatting, SwiftLint and script checks pass; `just test` is blocked loading the SwiftPM manifest. The grouped layout, dictation and pasting still need the human's build and phone verification.
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805); verified by `just test` (host) and the simulator build; on the phone not yet.
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
