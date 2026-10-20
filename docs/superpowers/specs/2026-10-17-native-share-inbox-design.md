@@ -67,7 +67,10 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 
 Issue [#405](https://github.com/idvorkin/context-grabber/issues/405).
 
-The Inbox toolbar has a **+** that opens an *Add to Inbox* sheet. A multi-line text field accepts typing,
+The Inbox has one large, round **+** fixed at the lower right, above the bottom safe area (#424).
+It stays in place while scrolling, including when the Inbox is empty; there is no toolbar +. The list
+scrolls beneath it, with enough space at the bottom to bring the last row fully above the button.
+Tapping + opens the same *Add to Inbox* sheet. A multi-line text field accepts typing,
 pasting text and the keyboard's standard dictation mic. **Cancel** discards the draft.
 
 Issue [#422](https://github.com/idvorkin/context-grabber/issues/422): each draft reads as one rounded box.
@@ -90,6 +93,8 @@ Opening the sheet and every successful add produce a `ui` event. Adds record kin
 
 Acceptance criteria:
 
+- One round + stays fixed at the lower right above the safe area, with a generous tap target, in empty and
+  populated Inboxes; there is no top-right +, and the last row can scroll fully clear of the button.
 - The + opens the sheet; typed or keyboard-dictated text can be added, and Add closes it.
 - Add another keeps the sheet open with an empty draft after each successful save; Cancel adds nothing further.
 - Paste image previews the clipboard image and adds it with any accompanying text as its note; a portrait photo

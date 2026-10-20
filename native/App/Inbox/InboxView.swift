@@ -31,14 +31,24 @@ struct InboxView: View {
     }
     .navigationTitle("Inbox")
     .accessibilityIdentifier("inbox-list")
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          inbox.openCompose(from: "inbox")
-        } label: {
-          Label("Add to Inbox", systemImage: "plus")
-        }
+    // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
+    .contentMargins(.bottom, 88, for: .scrollContent)
+    .overlay(alignment: .bottomTrailing) {
+      Button {
+        inbox.openCompose(from: "inbox")
+      } label: {
+        Image(systemName: "plus")
+          .font(.title2.weight(.semibold))
+          .foregroundStyle(.white)
+          .frame(width: 56, height: 56)
+          .background(Color.accentColor, in: Circle())
+          .contentShape(Circle())
       }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Add to Inbox")
+      .accessibilityIdentifier("inbox-add")
+      .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+      .padding(16)
     }
     .sheet(isPresented: $inbox.composing) { InboxComposeView(inbox: inbox, logger: logger) }
   }
