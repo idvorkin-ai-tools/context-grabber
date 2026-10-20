@@ -117,6 +117,7 @@ final class DailyStripModel: ObservableObject {
       return
     }
     log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": next, "day": today])
+    problem = nil
     sync?.changed(day: today)
     refresh()
   }
@@ -137,6 +138,7 @@ final class DailyStripModel: ObservableObject {
       problem = nil
       return CheckFortnight(item, today: today, marked: try store.days(item), automatic: automatic)
     } catch {
+      log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
       problem = .grabber(
         "Could not load the last fourteen days: \(error.localizedDescription)", context: "daily strip: load grid",
         extra: ["item": .string(item.rawValue), "today": .string(today)])
@@ -150,6 +152,7 @@ final class DailyStripModel: ObservableObject {
       guard let store else { throw CocoaError(.fileWriteUnknown) }
       try store.save(fortnight)
     } catch {
+      log.event("error", ["where": "daily_strip", "item": fortnight.item.rawValue, "message": "\(error)"])
       problem = .grabber(
         "Could not save the days: \(error.localizedDescription)", context: "daily strip: save grid",
         extra: [

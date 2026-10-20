@@ -42,7 +42,11 @@ struct DailyStripView: View {
     }
     .onAppear { strip.refresh() }
     .sheet(
-      item: $backdating, onDismiss: { longPressed = false },
+      item: $backdating,
+      onDismiss: {
+        longPressed = false
+        strip.problem = nil
+      },
       content: { b in
         CheckFortnightSheet(label: b.label, fortnight: b.fortnight, strip: strip)
       }
