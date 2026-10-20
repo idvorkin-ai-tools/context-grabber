@@ -129,14 +129,23 @@ journal's; a check that came from the timer or Health stays. Every change is in 
 daily_strip, with the item and its new value), and so is each item turning green by itself (`daily_strip_auto`,
 with the item and where it came from). The strip can be hidden from Settings like a launcher.
 
-**An earlier day** (Igor, 2026-10-11, #290: *"Press and hold on a day strip element gives a slider on days since
-forward or backwards. Then confirm to say you did it yesterday. It's a one and done"*). Press and hold Gym,
-Meditation or Journal and a small sheet asks which day: a slider from today back two weeks, starting on
-*yesterday*, its label the day in words and its date (*yesterday · Sun, Oct 11*, *3 days ago · Fri, Oct 9*).
-*Confirm* marks that day done and closes the sheet; *Cancel* closes it with nothing changed. Gym's days since
-follows at once (a gym day yesterday reads *1d*). Marking is all it does: an earlier day is not taken back here.
-Balloons and Magic open their week instead (below). The log has `ui`, action daily_strip, with the item, the day
-and `backdated`.
+**An earlier day** (Igor, #290; two-week grid approved 2026-10-20, #414). Press and hold Gym,
+Meditation or Journal to open a two-week editor. Its header has Cancel, the item's name and an accent-filled
+Done button. Fourteen tiles fill seven columns and two rows, oldest at top left and today at bottom right.
+Each tile shows the weekday letter and date number; today and yesterday add “today” and “yest.” tags.
+Done days have an accent fill, other days a dark fill, today a subtle outline, and days changed since opening
+an orange ring. Tiles are at least 44 points tall (normally 64), with full-date accessibility labels saying
+whether the day is done, and a selected trait for done days.
+
+The headline says “N of the last 14 days”. Under it, “Last done today”, “Last done yesterday”,
+“Last done K days ago”, or “Last done not in two weeks” reflects the edited days. Unsaved edits append
+“ · K change(s) to save”, with singular wording for one. A legend shows done and changed swatches and
+“Tap a day to mark or unmark it”. Tapping toggles a day locally, including taking a tapped day back;
+a check supplied by the timer, breathing or Health stays, just as on today's strip. Done saves every changed
+day and closes; Cancel or dismissing saves nothing. Taking a tapped day back syncs with the same latest-change-wins
+rule as today's un-tap. The strip and Gym's days since update immediately after Done.
+Balloons and Magic still open their week (below). Each changed day saved produces one `ui` event, action
+daily_strip, with the item, the day, `backdated` and `done` true or false.
 
 **The same strip on the phone and the iPad** (Igor, iPad, 2026-10-17, #376: *"Do stats sync over Cloud kit like the
 did I do magic if not implement"*). What Igor marks on one device shows on the others signed into his iCloud,

@@ -1,13 +1,14 @@
 //  The daily strip on the home screen (#236, #238, #257; home-screen spec, "The daily strip"): one tight line. Gym,
-//  Meditation and Journal are checks (a press and hold marks an earlier day, #290); Balloons and Magic count, a tap
+//  Meditation and Journal are checks (a press and hold edits fourteen days, #414); Balloons and Magic count, a tap
 //  for one more and a press and hold for the counter's week (#342).
 
+import BugKit
 import ContextCore
 import SwiftUI
 
 struct DailyStripView: View {
   @ObservedObject var strip: DailyStripModel
-  /// #290: the check being marked for an earlier day, while its sheet is up.
+  /// #414: the check and its staged fourteen days, while the sheet is up.
   @State private var backdating: Backdate?
   /// A long press opened the sheet: the button's tap on release is not a second change.
   @State private var longPressed = false
@@ -15,19 +16,24 @@ struct DailyStripView: View {
   @State private var editing: WeekEdit?
 
   var body: some View {
-    HStack(spacing: 0) {
-      check(.gym, label: "Gym", done: strip.gymToday, note: gymNote) { KettlebellIcon(size: 17) }
-      check(.meditation, label: "Meditation", done: strip.meditationToday, note: note(.meditation)) {
-        Image(systemName: "figure.mind.and.body").font(.system(size: 15))
+    VStack(spacing: 8) {
+      HStack(spacing: 0) {
+        check(.gym, label: "Gym", done: strip.gymToday, note: gymNote) { KettlebellIcon(size: 17) }
+        check(.meditation, label: "Meditation", done: strip.meditationToday, note: note(.meditation)) {
+          Image(systemName: "figure.mind.and.body").font(.system(size: 15))
+        }
+        check(.journal, label: "Journal", done: strip.value(.journal) > 0, note: note(.journal)) {
+          // #287, #299: a drawn quill, tinted like the other icons.
+          StripGlyph(name: "strip-quill")
+        }
+        // #287, #299: a drawn balloon poodle.
+        counter(.balloons, label: "Balloons", color: .pink) { StripGlyph(name: "strip-poodle") }
+        counter(.magic, label: "Magic", color: .purple) {
+          Image(systemName: "wand.and.sparkles").font(.system(size: 15))
+        }
       }
-      check(.journal, label: "Journal", done: strip.value(.journal) > 0, note: note(.journal)) {
-        // #287, #299: a drawn quill, tinted like the other icons.
-        StripGlyph(name: "strip-quill")
-      }
-      // #287, #299: a drawn balloon poodle.
-      counter(.balloons, label: "Balloons", color: .pink) { StripGlyph(name: "strip-poodle") }
-      counter(.magic, label: "Magic", color: .purple) {
-        Image(systemName: "wand.and.sparkles").font(.system(size: 15))
+      if backdating == nil, let problem = strip.problem {
+        BugProblemView(problem: problem, logger: strip.bugLogger)
       }
     }
     .font(.subheadline.weight(.medium))
@@ -36,9 +42,13 @@ struct DailyStripView: View {
     }
     .onAppear { strip.refresh() }
     .sheet(
-      item: $backdating, onDismiss: { longPressed = false },
+      item: $backdating,
+      onDismiss: {
+        longPressed = false
+        strip.problem = nil
+      },
       content: { b in
-        BackdateSheet(label: b.label, today: strip.today) { strip.mark(b.item, day: $0, daysAgo: $1) }
+        CheckFortnightSheet(label: b.label, fortnight: b.fortnight, strip: strip)
       }
     )
     .sheet(item: $editing) { e in WeekSheet(label: e.label, week: e.week) { strip.save($0) } }
@@ -85,10 +95,10 @@ struct DailyStripView: View {
     .simultaneousGesture(
       LongPressGesture(minimumDuration: 0.5).onEnded { _ in
         longPressed = true
-        backdating = Backdate(item: item, label: label)
+        openFortnight(item, label: label)
       }
     )
-    .accessibilityAction(named: "Mark an earlier day") { backdating = Backdate(item: item, label: label) }
+    .accessibilityAction(named: "Mark an earlier day") { openFortnight(item, label: label) }
     .accessibilityLabel(label)
     .accessibilityValue(done ? "done today" : note.map(Self.spoken) ?? "not yet")
     .accessibilityIdentifier("strip-\(item.rawValue)")
@@ -124,6 +134,11 @@ struct DailyStripView: View {
       strip.change(item, by: direction == .increment ? 1 : -1)
     }
     .accessibilityIdentifier("strip-\(item.rawValue)")
+  }
+
+  private func openFortnight(_ item: DailyItem, label: String) {
+    guard let fortnight = strip.fortnight(item) else { return }
+    backdating = Backdate(label: label, fortnight: fortnight)
   }
 
   private func openWeek(_ item: DailyItem, label: String) {
@@ -226,41 +241,52 @@ struct KettlebellIcon: View {
   }
 }
 
-/// #290: which check the earlier-day sheet is for.
+/// #414: the check and its initial days, captured when the editor opens.
 private struct Backdate: Identifiable {
-  let item: DailyItem
   let label: String
-  var id: String { item.rawValue }
+  let fortnight: CheckFortnight
+  var id: String { fortnight.item.rawValue }
 }
 
-/// Press and hold a check (#290): slide back to the day it was done, Confirm, and the sheet closes. One and done.
-private struct BackdateSheet: View {
+/// #414, story 255: mark or take back days together; Cancel discards the local snapshot.
+private struct CheckFortnightSheet: View {
   let label: String
-  let today: String
-  let confirm: (String, Int) -> Void
+  @State var fortnight: CheckFortnight
+  @ObservedObject var strip: DailyStripModel
   @Environment(\.dismiss) private var dismiss
-  /// Today at the right end, two weeks back at the left; starts on yesterday.
-  @State private var position = -1.0
-
-  private var daysAgo: Int { Int(-position) }
 
   var body: some View {
     NavigationStack {
-      VStack(spacing: 18) {
-        Text(DailyStrip.backdateLabel(daysAgo, today: today))
-          .font(.title3.weight(.semibold).monospacedDigit())
-          .accessibilityIdentifier("strip-backdate-day")
-        Slider(value: $position, in: -Double(DailyStrip.backdateRange.upperBound)...0, step: 1) {
-          Text("Day")
-        } minimumValueLabel: {
-          Text("2 wk").font(.caption)
-        } maximumValueLabel: {
-          Text("today").font(.caption)
+      ScrollView {
+        VStack(alignment: .leading, spacing: 18) {
+          Text(fortnight.headline).font(.title2.weight(.semibold))
+          Text(fortnight.subline).font(.subheadline).foregroundStyle(.secondary)
+            .accessibilityIdentifier("strip-grid-summary")
+          LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 10) {
+            ForEach(Array(fortnight.days.enumerated()), id: \.element.day) { index, day in
+              tile(day, index: index)
+            }
+          }
+          HStack(spacing: 12) {
+            Label {
+              Text("done")
+            } icon: {
+              Circle().fill(Color.accentColor).frame(width: 10, height: 10)
+            }
+            Label {
+              Text("changed")
+            } icon: {
+              Circle().stroke(Color.orange, lineWidth: 2).frame(width: 10, height: 10)
+            }
+          }
+          .font(.caption).foregroundStyle(.secondary)
+          Text("Tap a day to mark or unmark it").font(.footnote).foregroundStyle(.secondary)
+          if let problem = strip.problem {
+            BugProblemView(problem: problem, logger: strip.bugLogger)
+          }
         }
-        .accessibilityValue(DailyStrip.backdateLabel(daysAgo, today: today))
-        .accessibilityIdentifier("strip-backdate-slider")
+        .padding()
       }
-      .padding()
       .navigationTitle(label)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -268,14 +294,45 @@ private struct BackdateSheet: View {
           Button("Cancel") { dismiss() }.accessibilityIdentifier("strip-backdate-cancel")
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Confirm") {
-            if let day = DailyStrip.day(daysAgo, before: today) { confirm(day, daysAgo) }
-            dismiss()
+          Button("Done") {
+            if strip.save(fortnight) { dismiss() }
           }
-          .accessibilityIdentifier("strip-backdate-confirm")
+          .buttonStyle(.borderedProminent)
+          .accessibilityIdentifier("strip-grid-done")
         }
       }
     }
-    .presentationDetents([.height(200)])
+    .preferredColorScheme(.dark)
+    .presentationDetents([.medium, .large])
+  }
+
+  private func tile(_ day: CheckFortnight.Day, index: Int) -> some View {
+    Button {
+      fortnight.toggle(index)
+    } label: {
+      VStack(spacing: 3) {
+        Text(day.weekday).font(.caption2)
+        Text(day.number).font(.body.weight(.semibold).monospacedDigit())
+        Text(day.tag).font(.system(size: 9)).lineLimit(1)
+      }
+      .frame(maxWidth: .infinity, minHeight: 64)
+      .foregroundStyle(day.done ? Color.white : Color.primary)
+      .background(
+        day.done ? Color.accentColor : Color(uiColor: .secondarySystemBackground), in: .rect(cornerRadius: 10)
+      )
+      .overlay {
+        RoundedRectangle(cornerRadius: 10)
+          .stroke(day.daysAgo == 0 ? Color.primary.opacity(0.35) : Color.clear, lineWidth: 1)
+      }
+      .overlay {
+        RoundedRectangle(cornerRadius: 12).stroke(day.changed ? Color.orange : Color.clear, lineWidth: 2)
+          .padding(-2)
+      }
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(day.accessibilityLabel)
+    .accessibilityHint(day.automatic ? "Recorded automatically" : "Tap to mark or unmark")
+    .accessibilityAddTraits(day.done ? .isSelected : [])
+    .accessibilityIdentifier("strip-day-\(day.daysAgo)")
   }
 }

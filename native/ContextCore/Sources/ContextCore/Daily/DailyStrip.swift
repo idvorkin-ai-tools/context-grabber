@@ -64,6 +64,21 @@ public struct DailyStrip {
       [.text(day), .text(item.rawValue), .int(Int64(max(0, value))), .int(Int64(at.timeIntervalSince1970 * 1000))])
   }
 
+  /// #414: save the editor together, so an error leaves every staged day available for retry.
+  public func save(_ fortnight: CheckFortnight, at: Date = Date()) throws {
+    try db.execute("SAVEPOINT strip_fortnight")
+    do {
+      for day in fortnight.changes {
+        try set(fortnight.item, day: day.day, value: day.done ? 1 : 0, at: at)
+      }
+      try db.execute("RELEASE SAVEPOINT strip_fortnight")
+    } catch {
+      try? db.execute("ROLLBACK TO SAVEPOINT strip_fortnight")
+      try? db.execute("RELEASE SAVEPOINT strip_fortnight")
+      throw error
+    }
+  }
+
   /// Every day the item has a row for on any device, its value merged as `value` merges it (0s included): story
   /// 271's archive sends the strip as it shows.
   public func values(_ item: DailyItem) throws -> [String: Int] {
@@ -238,9 +253,6 @@ public struct DailyStrip {
     return calendar.dateComponents([.day], from: from, to: to).day
   }
 
-  /// #290: how far back an earlier day can be marked.
-  public static let backdateRange = 0...14
-
   /// The day `daysAgo` days before `today`, as a date key; nil for a malformed `today`.
   public static func day(_ daysAgo: Int, before today: String, calendar: Calendar = .current) -> String? {
     guard let to = date(today, calendar), let d = calendar.date(byAdding: .day, value: -daysAgo, to: to) else {
@@ -251,7 +263,7 @@ public struct DailyStrip {
     return String(format: "%04d-%02d-%02d", y, m, dd)
   }
 
-  /// The slider's label: "today · Tue, Oct 13", "yesterday · Mon, Oct 12", "3 days ago · Sat, Oct 10".
+  /// A day's relative label: "today · Tue, Oct 13", "yesterday · Mon, Oct 12", "3 days ago · Sat, Oct 10".
   public static func backdateLabel(_ daysAgo: Int, today: String, calendar: Calendar = .current) -> String {
     let words = daysAgo == 0 ? "today" : daysAgo == 1 ? "yesterday" : "\(daysAgo) days ago"
     guard let key = day(daysAgo, before: today, calendar: calendar), let d = date(key, calendar) else { return words }

@@ -2,6 +2,7 @@
 //  Timer's finished workouts and the last grab's strength workouts. Refreshed whenever the day or a source may
 //  have changed: the home screen appearing, the app coming to the front, midnight, a grab, the timer closing.
 
+import BugKit
 import ContextCore
 import Foundation
 
@@ -19,6 +20,9 @@ final class DailyStripModel: ObservableObject {
   @Published private(set) var meditationFrom: String?
   /// "item/day" already announced as turning green by itself, so `daily_strip_auto` is one line per item per day.
   private var announced: Set<String> = []
+
+  @Published var problem: BugProblem?
+  var bugLogger: BugLogger { log.bugLogger }
 
   private let log: SessionLog
   private let store: DailyStrip?
@@ -113,22 +117,62 @@ final class DailyStripModel: ObservableObject {
       return
     }
     log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": next, "day": today])
+    problem = nil
     sync?.changed(day: today)
     refresh()
   }
 
-  /// #290: press and hold a check, slide to the day, Confirm: that day counts. It only marks; an earlier day is not
-  /// taken back here. The day is the one the sheet showed, even if midnight passed while it was open.
-  func mark(_ item: DailyItem, day: String, daysAgo: Int) {
+  /// #414, story 255: a frozen two-week snapshot, including the automatic checks the strip already knows.
+  func fortnight(_ item: DailyItem) -> CheckFortnight? {
+    refresh()
     do {
-      try store?.set(item, day: day, value: 1)
+      guard let store else { throw CocoaError(.fileReadUnknown) }
+      let entries = try activity?.entries(since: Date(timeIntervalSince1970: 0)) ?? []
+      var automatic: Set<String> = []
+      if item == .gym {
+        automatic = DailyStrip.gymDays(tapped: [], timer: entries, workoutsByDay: health()?.workoutsByDay ?? [:])
+      } else if item == .meditation {
+        automatic = DailyStrip.meditationDays(tapped: [], activity: entries)
+        if meditationFrom != nil { automatic.insert(today) }
+      }
+      problem = nil
+      return CheckFortnight(item, today: today, marked: try store.days(item), automatic: automatic)
     } catch {
       log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
-      return
+      problem = .grabber(
+        "Could not load the last fourteen days: \(error.localizedDescription)", context: "daily strip: load grid",
+        extra: ["item": .string(item.rawValue), "today": .string(today)])
+      return nil
     }
-    log.event("ui", ["action": "daily_strip", "item": item.rawValue, "value": 1, "day": day, "backdated": daysAgo])
-    sync?.changed(day: day)
+  }
+
+  /// #414: use today's same dated write and sync path, including a zero that takes a peer's check back.
+  func save(_ fortnight: CheckFortnight) -> Bool {
+    do {
+      guard let store else { throw CocoaError(.fileWriteUnknown) }
+      try store.save(fortnight)
+    } catch {
+      log.event("error", ["where": "daily_strip", "item": fortnight.item.rawValue, "message": "\(error)"])
+      problem = .grabber(
+        "Could not save the days: \(error.localizedDescription)", context: "daily strip: save grid",
+        extra: [
+          "item": .string(fortnight.item.rawValue),
+          "days": .string(fortnight.changes.map(\.day).joined(separator: ", ")),
+        ])
+      return false
+    }
+    for change in fortnight.changes {
+      log.event(
+        "ui",
+        [
+          "action": "daily_strip", "item": fortnight.item.rawValue, "day": change.day,
+          "value": change.done ? 1 : 0, "backdated": change.daysAgo, "done": change.done,
+        ])
+      sync?.changed(day: change.day)
+    }
+    problem = nil
     refresh()
+    return true
   }
 
   /// #342: a counter's last seven days, for the sheet its press and hold opens.
