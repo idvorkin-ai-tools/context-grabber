@@ -70,6 +70,11 @@ Issue [#405](https://github.com/idvorkin/context-grabber/issues/405).
 The Inbox toolbar has a **+** that opens an *Add to Inbox* sheet. A multi-line text field accepts typing,
 pasting text and the keyboard's standard dictation mic. **Cancel** discards the draft.
 
+Issue [#422](https://github.com/idvorkin/context-grabber/issues/422): each draft reads as one rounded box.
+The note text, **Paste image** control, and any pasted picture's preview and **Remove image** control sit
+together inside that box. **Add another** stays in a separate box below it. This grouping applies before and
+after pasting; clipboard availability, replacing or removing a picture, and saving behave as before.
+
 **Paste image** is available when the clipboard holds an image. Tapping it shows a small preview; the image can
 be removed or replaced before adding. The picture is kept as it was copied, in its own format and the right way
 up, as a share keeps it; a portrait photo stays portrait in the preview and for Larry. An image needs no text; text alongside it becomes its optional note.
@@ -89,6 +94,8 @@ Acceptance criteria:
 - Add another keeps the sheet open with an empty draft after each successful save; Cancel adds nothing further.
 - Paste image previews the clipboard image and adds it with any accompanying text as its note; a portrait photo
   stays upright.
+- The note and Paste image share one rounded box, including the preview and Remove image when a picture is
+  pasted; Add another remains separate below the item.
 - Empty drafts cannot be added; failed saves preserve the draft with a copyable explanation.
 - Each saved draft is one waiting item in the shared Inbox and triggers sending through the existing path.
 

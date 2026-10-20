@@ -460,8 +460,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 264:
 
 - **Summary:** Paste a picture into the Inbox
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805); verified by `just test` (host) and the simulator build; on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
@@ -471,9 +471,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Adding a clipboard image
-- **Given:** the clipboard holds an image and the compose sheet is open
+- **Given:** the clipboard holds an image and the compose sheet shows the note and Paste image in one rounded box, with Add another separate below
 - **When:** I tap Paste image, optionally enter text, and tap Add
-- **Then:** the previewed image is saved as one image item, as copied and the right way up, with the text as its note, the sheet closes and sending is triggered
+- **Then:** the picture's preview and Remove image appear in that same box with the note before saving, the previewed image is saved as one image item, as copied and the right way up, with the text as its note, the sheet closes and sending is triggered
 
 ---
 
