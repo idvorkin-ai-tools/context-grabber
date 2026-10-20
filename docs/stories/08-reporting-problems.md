@@ -375,7 +375,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Review and correct two weeks of strip check marks
 - **Issues:** [#290](https://github.com/idvorkin/context-grabber/issues/290), [#414](https://github.com/idvorkin/context-grabber/issues/414)
-- **Status:** implemented in the working tree for #414; commit pending because the sandbox denies the shared git worktree index lock. Verified on the host by `CheckFortnightTests`, `DailyStripTests` and `CounterWeekTests` (16 tests, zero failures: calendar and clock-change boundaries, staged toggles and summaries, save rollback, peer unmark sync and days since). Format, SwiftLint and the script checks pass. The full `just test` run reports 552 tests, one skipped and four failures in three unchanged Inbox image tests. App compilation, simulator UI tests and the phone await the build turn.
+- **Status:** implemented in [b39d4f0](https://github.com/idvorkin/context-grabber/commit/b39d4f0) (#414); verified by `CheckFortnightTests`, `DailyStripTests` and `CounterWeekTests` with the full `just test` (host: calendar and clock-change boundaries, staged toggles and summaries, save rollback, a peer's take-back syncing, days since), the simulator build, and `DailyStripUITests` on the simulator (press and hold edits two weeks; checks and counters); the phone not yet.
 - **Spec:** [native home screen, “An earlier day”](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
 #### Use Case:
