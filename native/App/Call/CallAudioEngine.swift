@@ -35,6 +35,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var lastBufferAt = 0.0
   private var micDeadline = MicStartupDeadline()
   private var micStalls = 0
+  private var micStallRearm = false
   private var watchdog: DispatchSourceTimer?
   private var observers: [NSObjectProtocol] = []
   /// Which heal a queued retry belongs to (#198).
@@ -63,6 +64,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var playhead = 0.0
   private var playerTimeS = 0.0
   private var playbackOpen = false
+  private var publishedMicDeadline = MicStartupDeadline()
 
   init(log: @escaping @Sendable (String, [String: Any]) -> Void) {
     self.log = log
@@ -122,6 +124,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     queue.async { [self] in
       micListener = onBuffer
       micStalls = 0
+      micStallRearm = false
       do {
         try armTap()
         main { done(nil) }
@@ -215,10 +218,10 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     }
   }
 
-  // #423, story 204: engine access stays on the audio queue, including the input format read. Before the first
-  // buffer, a longer window the watchdog already granted is kept.
+  // #423, story 204: the deadline the queue last published (armTap and the watchdog tick), read without waiting
+  // on the queue.
   func micStartupDeadline() -> MicStartupDeadline {
-    queue.sync { lastBufferAt == 0 ? micDeadline.extended(by: currentMicDeadline()) : currentMicDeadline() }
+    lock.withLock { publishedMicDeadline }
   }
 
   private func currentMicDeadline() -> MicStartupDeadline {
@@ -320,12 +323,14 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       throw CallAudioError("no microphone input (format \(format))")
     }
     micDeadline = currentMicDeadline()
+    lock.withLock { publishedMicDeadline = micDeadline }
     let rate = format.sampleRate
     log(
       "call_audio",
       [
         "action": "mic_arm", "rate": rate, "channels": Int(format.channelCount),
-        "deadline_s": micDeadline.ms / 1000, "why": micDeadline.why,
+        "deadline_s": (micStallRearm ? CallWatchdog.micStallMs : micDeadline.ms) / 1000,
+        "why": micStallRearm ? "mid_call_stall" : micDeadline.why,
         "other_audio": session.isOtherAudioPlaying,
         "input_available": session.isInputAvailable, "route": Self.describeRoute(),
       ])
@@ -355,6 +360,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private func onTapBuffer(_ samples: [Float], rate: Double) {
     guard let listener = micListener else { return }
     lastBufferAt = nowMs
+    micStallRearm = false
     if !firstBufferLogged {
       firstBufferLogged = true
       log(
@@ -371,6 +377,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     let wasListening = listening ?? (micListener != nil)
     let wasPlaying = playing ?? (playerFormat != nil)
     firstLoudRxAt = nil  // what was scheduled goes with the engine; the next window judges fresh audio (#199)
+    micStallRearm = false
     teardownEngineOnly()
     try configureSession()
     try buildEngine()
@@ -464,20 +471,26 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     if ticks % 100 == 0, playerFormat != nil { logOutputLevel() }
 
     // The mic: a tap that went quiet gets re-armed; three times and it is a fact.
-    if lastBufferAt == 0 { micDeadline = micDeadline.extended(by: currentMicDeadline()) }
+    // #423: a tap re-armed after a mid-call stall keeps the ordinary grace; only startup gets the longer window.
+    let starting = lastBufferAt == 0 && !micStallRearm
+    if starting {
+      micDeadline = micDeadline.extended(by: currentMicDeadline())
+      lock.withLock { publishedMicDeadline = micDeadline }
+    }
     let mic = CallWatchdog.mic(
       now: now, armed: tapInstalled && micListener != nil, paused: paused, armedAt: armedAt, lastBufferAt: lastBufferAt,
-      startupDeadlineMs: micDeadline.ms)
+      startupDeadlineMs: starting ? micDeadline.ms : CallWatchdog.micStallMs)
     if mic == .stalled {
       if micStalls < CallWatchdog.micStallsBeforeGivingUp {
         micStalls += 1
+        if lastBufferAt != 0 { micStallRearm = true }
         log(
           "call_heal",
           [
             "action": "rearm_tap", "why": "mic stalled", "no_buffer_ms": (now - max(lastBufferAt, armedAt)).rounded(),
             "attempt": micStalls, "of": CallWatchdog.micStallsBeforeGivingUp,
-            "deadline_s": (lastBufferAt == 0 ? micDeadline.ms : CallWatchdog.micStallMs) / 1000,
-            "deadline_why": lastBufferAt == 0 ? micDeadline.why : "mid_call_stall",
+            "deadline_s": (starting ? micDeadline.ms : CallWatchdog.micStallMs) / 1000,
+            "deadline_why": starting ? micDeadline.why : "mid_call_stall",
           ])
         do { try armTap() } catch {
           log("call_heal", ["action": "rearm_tap", "ok": false, "message": describe(error)])
