@@ -52,10 +52,14 @@ public enum CallWatchdog {
   }
 
   /// "stalled" when an armed, unpaused recorder has gone quiet for `micStallMs`. `lastBufferAt` 0 = none since
-  /// arming; a fresh tap gets the full grace from `armedAt`.
-  public static func mic(now: Double, armed: Bool, paused: Bool, armedAt: Double, lastBufferAt: Double) -> Verdict {
+  /// arming; a fresh tap gets `startupDeadlineMs` from `armedAt` (#423), then stalls keep the ordinary grace.
+  public static func mic(
+    now: Double, armed: Bool, paused: Bool, armedAt: Double, lastBufferAt: Double,
+    startupDeadlineMs: Double = micStallMs
+  ) -> Verdict {
     guard armed, !paused else { return .idle }
-    return now - max(lastBufferAt, armedAt) >= micStallMs ? .stalled : .ok
+    let deadline = lastBufferAt == 0 ? startupDeadlineMs : micStallMs
+    return now - max(lastBufferAt, armedAt) >= deadline ? .stalled : .ok
   }
 
   /// "stalled" when audio is due (the playhead is ahead of the clock), a frame was scheduled in the last two

@@ -156,7 +156,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** A microphone that never delivers
 - **Given:** the app was force-quit and relaunched
-- **and Given:** the recorder starts but produces no buffer for a second and a half
+- **and Given:** the built-in recorder has a valid sample rate but produces no buffer for a second and a half
 - **When:** I tap Call Larry and say a sentence as soon as Tony greets me
 - **Then:** the call's audio is torn down and brought back up on its own, and if it is still silent the call redials itself once on the same backend — *Calling Larry…* briefly, then *live* — without a tap, and my sentence is captioned; if I hang up while a recovery is still finishing, the ended call shows no new problem
 
@@ -526,3 +526,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the strip is showing
 - **When:** I tap it
 - **Then:** it says *refreshing…* until Larry has taken a new reading (about a minute) and then shows it; and with Tailscale off the home screen shows no strip and no error
+
+---
+
+### User Story 204:
+
+- **Summary:** A slow Bluetooth microphone gets time to settle before the call heals
+- **Status:** implemented in the working tree; commit blocked by the sandbox denying Git's worktree `index.lock`; verified on the host by `swift test --package-path native/ContextCore` (547 tests, one skipped, zero failures), then `MicStartupDeadlineTests` and `CallSessionNoFirstFrameTests` (10 tests, zero failures) after the final cleanup; formatting, SwiftLint and the signing-guard, breath-clip and tile-art checks passed separately. `just test` is blocked compiling the SwiftPM manifest by the sandbox denying the Clang module cache. App compilation and Bluetooth audio on the phone await the human build turn.
+- **Issues:** [#423](https://github.com/idvorkin/context-grabber/issues/423)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client calling from the car
+- **I want to** let its Bluetooth microphone finish connecting
+- **so that** the call's recovery does not keep restarting a microphone that is still waking up
+
+#### Acceptance Criteria:
+- **Scenario:** The car microphone starts slowly
+- **Given:** the current route is Bluetooth or the microphone reports a zero sample rate, and no microphone buffer has arrived
+- **When:** I call Larry and the microphone takes almost ten seconds after opening to deliver its first buffer
+- **Then:** neither a no-buffer audio reset nor a redial interrupts those ten seconds, the first buffer cancels that heal, and Diagnostics record the deadline and reason; if no buffer arrives by ten seconds, the existing reset and one-time redial apply, while a valid built-in or wired microphone keeps its 1.5-second watch

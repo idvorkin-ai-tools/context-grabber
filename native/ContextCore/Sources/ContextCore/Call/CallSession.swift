@@ -112,6 +112,12 @@ public protocol CallAudio: AnyObject {
   func stop()
   /// The output side, for the periodic log line; nil before playback opens.
   func stats() -> PlaybackStats?
+  /// Current route and input format, for the no-first-buffer watch (#423).
+  func micStartupDeadline() -> MicStartupDeadline
+}
+
+extension CallAudio {
+  public func micStartupDeadline() -> MicStartupDeadline { MicStartupDeadline() }
 }
 
 public struct CallSessionDeps {
@@ -148,9 +154,8 @@ public final class CallSession {
   public static let zeroBuffersBeforeRearm = 10
   public static let micSilent = "the microphone is delivering silence"
   public static let micNotReaching = "the microphone is not reaching Larry"
-  /// A recorder that starts and never delivers (#88): a second and a half without a buffer → reset the audio;
-  /// still nothing → redial once.
-  public static let firstFrameMs = 1500.0
+  /// Ordinary startup watch (#88); Bluetooth and a zero input rate get longer (#423).
+  public static let firstFrameMs = MicStartupDeadline().ms
   /// How long the bridge gets to acknowledge the first mic frame. Mirrors the page.
   public static let micAckMs = 5000.0
   /// Both directions' counters go in the log this often (#106).
@@ -186,6 +191,8 @@ public final class CallSession {
   /// was live before.
   private var awaitingSoundAfterRearm = false
   private var firstFrameTimer: CallTimer?
+  private var micOpenedAt = 0.0
+  private var firstFrameDeadline = MicStartupDeadline()
   private var audioReset = false
   /// One automatic redial per dead burst; cleared by a call whose mic delivers.
   private var redialed = false
@@ -464,15 +471,39 @@ public final class CallSession {
   private func armFirstFrameWatch() {
     guard snapshot.state == .live else { return }
     firstFrameTimer?.cancel()
-    firstFrameTimer = deps.scheduler.after(Self.firstFrameMs) { [weak self] in self?.onNoFirstFrame() }
+    micOpenedAt = deps.scheduler.now
+    firstFrameDeadline = deps.audio.micStartupDeadline()
+    scheduleFirstFrameWatch()
+  }
+
+  // #423, story 204: recheck before each reset/redial; the route may have begun settling meanwhile.
+  private func scheduleFirstFrameWatch() {
+    log(
+      "call_mic",
+      ["action": "first_frame_watch", "deadline_s": firstFrameDeadline.ms / 1000, "why": firstFrameDeadline.why])
+    let remaining = max(0, micOpenedAt + firstFrameDeadline.ms - deps.scheduler.now)
+    firstFrameTimer = deps.scheduler.after(remaining) { [weak self] in self?.onNoFirstFrame() }
   }
 
   private func onNoFirstFrame() {
     firstFrameTimer = nil
     guard snapshot.state == .live, micBuffers == 0 else { return }
+    let current = firstFrameDeadline.extended(by: deps.audio.micStartupDeadline())
+    if current.ms > firstFrameDeadline.ms {
+      firstFrameDeadline = current
+      if deps.scheduler.now < micOpenedAt + current.ms {
+        scheduleFirstFrameWatch()
+        return
+      }
+    }
     if !audioReset {
       audioReset = true
-      log("call_heal", ["action": "reset_audio", "why": "no mic buffer within 1.5 s of the mic opening"])
+      log(
+        "call_heal",
+        [
+          "action": "reset_audio", "why": "no mic buffer within \(firstFrameDeadline.ms / 1000) s of the mic opening",
+          "deadline_s": firstFrameDeadline.ms / 1000, "deadline_why": firstFrameDeadline.why,
+        ])
       let call = generation
       deps.audio.restartMic { [weak self] error in
         guard let self, call == self.generation else { return }
@@ -487,7 +518,12 @@ public final class CallSession {
     if !redialed, let backend = snapshot.backend {
       redialed = true
       let voice = snapshot.voice
-      log("call_heal", ["action": "redial", "why": "still no mic buffer after the reset"])
+      log(
+        "call_heal",
+        [
+          "action": "redial", "why": "still no mic buffer after the reset", "deadline_s": firstFrameDeadline.ms / 1000,
+          "deadline_why": firstFrameDeadline.why,
+        ])
       sendDiagnostics(why: "redial")
       stop()
       start(backend, voice: voice)

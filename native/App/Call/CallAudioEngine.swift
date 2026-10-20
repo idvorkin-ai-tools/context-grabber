@@ -33,6 +33,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var paused = false
   private var armedAt = 0.0
   private var lastBufferAt = 0.0
+  private var micDeadline = MicStartupDeadline()
   private var micStalls = 0
   private var watchdog: DispatchSourceTimer?
   private var observers: [NSObjectProtocol] = []
@@ -214,6 +215,19 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     }
   }
 
+  // #423, story 204: engine access stays on the audio queue, including the input format read.
+  func micStartupDeadline() -> MicStartupDeadline {
+    queue.sync { currentMicDeadline() }
+  }
+
+  private func currentMicDeadline() -> MicStartupDeadline {
+    let route = session.currentRoute
+    let bluetooth = (route.inputs + route.outputs).contains {
+      $0.portType == .bluetoothHFP || $0.portType.rawValue.lowercased().contains("bluetooth")
+    }
+    return MicStartupDeadline(bluetooth: bluetooth, sampleRate: engine?.inputNode.outputFormat(forBus: 0).sampleRate)
+  }
+
   /// The route as the devices line names it: `iPhone Microphone · Speaker`.
   static func describeRoute() -> String {
     let route = AVAudioSession.sharedInstance().currentRoute
@@ -304,11 +318,13 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       tapInstalled = false
       throw CallAudioError("no microphone input (format \(format))")
     }
+    micDeadline = currentMicDeadline()
     let rate = format.sampleRate
     log(
       "call_audio",
       [
         "action": "mic_arm", "rate": rate, "channels": Int(format.channelCount),
+        "deadline_s": micDeadline.ms / 1000, "why": micDeadline.why,
         "other_audio": session.isOtherAudioPlaying,
         "input_available": session.isInputAvailable, "route": Self.describeRoute(),
       ])
@@ -447,8 +463,10 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     if ticks % 100 == 0, playerFormat != nil { logOutputLevel() }
 
     // The mic: a tap that went quiet gets re-armed; three times and it is a fact.
+    if lastBufferAt == 0 { micDeadline = micDeadline.extended(by: currentMicDeadline()) }
     let mic = CallWatchdog.mic(
-      now: now, armed: tapInstalled && micListener != nil, paused: paused, armedAt: armedAt, lastBufferAt: lastBufferAt)
+      now: now, armed: tapInstalled && micListener != nil, paused: paused, armedAt: armedAt, lastBufferAt: lastBufferAt,
+      startupDeadlineMs: micDeadline.ms)
     if mic == .stalled {
       if micStalls < CallWatchdog.micStallsBeforeGivingUp {
         micStalls += 1
@@ -457,6 +475,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
           [
             "action": "rearm_tap", "why": "mic stalled", "no_buffer_ms": (now - max(lastBufferAt, armedAt)).rounded(),
             "attempt": micStalls, "of": CallWatchdog.micStallsBeforeGivingUp,
+            "deadline_s": (lastBufferAt == 0 ? micDeadline.ms : CallWatchdog.micStallMs) / 1000,
+            "deadline_why": lastBufferAt == 0 ? micDeadline.why : "mid_call_stall",
           ])
         do { try armTap() } catch {
           log("call_heal", ["action": "rearm_tap", "ok": false, "message": describe(error)])
