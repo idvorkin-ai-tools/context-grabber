@@ -420,7 +420,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 262:
 
 - **Summary:** Add a thought to the Inbox with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424 lower-right + implemented in the working tree (commit blocked by sandbox index.lock permissions); host formatting and lint passed, host tests with SwiftPM sandbox disabled executed 540 tests with 1 skipped and 4 failures across three image-conversion tests; signing-guard, breath-clip and tile-art checks passed; app compilation and the button’s position, scrolling and tap on the phone await the human build turn
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [1e92415](https://github.com/idvorkin/context-grabber/commit/1e92415); verified by `just test` (host) and the simulator build; on the phone not yet.
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
