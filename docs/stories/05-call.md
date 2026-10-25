@@ -652,7 +652,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 210:
 
 - **Summary:** A call that sounds wrong says why, and its log reaches Larry without the phone
-- **Status:** implemented in PENDING_SHA; verified by `just test` (host: `PCM16StreamTests`, `PlaybackWindowTests`, `CallLogArchiveTests`, the counters in `CallSessionCountersTests`, the trouble rule in `CallEventLogTests`); a Direct call on the phone, and its log in the Cockpit's archive, not yet.
+- **Status:** implemented in [f7cb647](https://github.com/idvorkin/context-grabber/commit/f7cb647); verified by `just test` (host: `PCM16StreamTests`, `PlaybackWindowTests`, `CallLogArchiveTests`, the counters in `CallSessionCountersTests`, the trouble rule in `CallEventLogTests`); a Direct call on the phone, and its log in the Cockpit's archive, not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
