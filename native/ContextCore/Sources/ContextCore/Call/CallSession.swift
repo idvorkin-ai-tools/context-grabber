@@ -474,7 +474,8 @@ public final class CallSession {
           "rx_kb": (Double(self.bytesReceived) / 1024).rounded(), "rx_frames": self.framesReceived,
           "mic_frames": self.framesSent, "played_s": stats?.playedS ?? 0, "scheduled_s": stats?.scheduledS ?? 0,
           "pending_s": stats?.pendingS ?? 0, "clock_running": stats?.clockRunning ?? false,
-          "playback": PlaybackStats.describe(stats),
+          "playback": PlaybackStats.describe(stats), "odd_frames": stats?.oddFrames ?? 0,
+          "underruns": stats?.underruns ?? 0,
         ])
       let absent = CallWatchdog.audioAbsent(
         now: self.deps.scheduler.now, lastTextAt: self.lastTextAt, lastAudioAt: self.lastAudioAt)
@@ -812,7 +813,8 @@ public final class CallSession {
         "reason": reason, "text": CallProtocol.endingText(reason), "badly": badly, "mic_frames": framesSent,
         "rx_frames": framesReceived, "rx_kb": (Double(bytesReceived) / 1024).rounded(),
         "played_s": stats?.playedS ?? 0, "scheduled_s": stats?.scheduledS ?? 0,
-        "playback": PlaybackStats.describe(stats),
+        "playback": PlaybackStats.describe(stats), "odd_frames": stats?.oddFrames ?? 0,
+        "underruns": stats?.underruns ?? 0,
       ])
     statsTimer?.cancel()
     statsTimer = nil

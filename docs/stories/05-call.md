@@ -646,3 +646,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a live call
 - **When:** the phone's network changes, or the connection to the bridge is lost
 - **Then:** Diagnostics hold the network at the call's start and at every change (connected or not, which interfaces the call is using and which are available, metered, Low Data Mode), and the lost line names the error's code, the error underneath it, and the seconds since the last frame in and out; the screen still says *connection lost*
+
+---
+
+### User Story 210:
+
+- **Summary:** A call that sounds wrong says why, and its log reaches Larry without the phone
+- **Status:** implemented in PENDING_SHA; verified by `just test` (host: `PCM16StreamTests`, `PlaybackWindowTests`, `CallLogArchiveTests`, the counters in `CallSessionCountersTests`, the trouble rule in `CallEventLogTests`); a Direct call on the phone, and its log in the Cockpit's archive, not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client who heard noise and static on a call whose server-side recording was clean
+- **I want to** the phone to read Larry's audio as the stream it is and to log how his frames arrived and played, and to send the call's log to the Cockpit's archive when the call ends
+- **so that** a frame cut mid-sample no longer plays as static, and Larry can read the playback evidence of the next bad call on his box
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's reply arrives in frames cut mid-sample
+- **Given:** a live call whose bridge sends Larry's audio in frames, some with an odd byte count
+- **When:** the reply plays and the call ends
+- **Then:** the reply is heard clean (an odd frame's last byte joins the next frame), Diagnostics show a playback line every five seconds he spoke with frame count and sizes, odd and dropped frames, underruns and dry time, longest gap and queue depth, the level line names the player, session and hardware rates and the buffer, the ending line carries the odd-frame and underrun totals, and the call's log is in the Cockpit's archive under the call's bridge session with a line in Diagnostics saying it was taken

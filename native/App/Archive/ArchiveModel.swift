@@ -32,17 +32,24 @@ final class ArchiveModel {
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
     self.log = log
     self.database = database
-    #if targetEnvironment(simulator)
-      cockpit = environment["GRABBER_ARCHIVE_URL"]
-    #else
-      cockpit = environment["GRABBER_ARCHIVE_URL"] ?? CockpitPage.url
-    #endif
+    cockpit = Self.destination(environment)
     // The vendor id, as the strip sync uses it: a backup restored onto another phone is another device.
     let id =
       UIDevice.current.identifierForVendor?.uuidString.lowercased() ?? database.setting(Self.deviceKey)
       ?? UUID().uuidString.lowercased()
     deviceId = id
     database.setSetting(Self.deviceKey, id)
+  }
+
+  /// Where the batches go: the Cockpit, or GRABBER_ARCHIVE_URL. On a simulator only the latter, nil otherwise: the
+  /// simulator reaches the tailnet too, and its fixture week, imported trail and fake-bridge calls must never land in
+  /// Igor's archive. The call's log (story 210) goes to the same place by the same rule.
+  nonisolated static func destination(_ environment: [String: String]) -> String? {
+    #if targetEnvironment(simulator)
+      return environment["GRABBER_ARCHIVE_URL"]
+    #else
+      return environment["GRABBER_ARCHIVE_URL"] ?? CockpitPage.url
+    #endif
   }
 
   /// Before the launch finishes (iOS refuses a handler registered later): the refresh and the end-of-day task.
