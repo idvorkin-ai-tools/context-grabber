@@ -43,7 +43,7 @@ final class ArchiveModel {
 
   /// Where the batches go: the Cockpit, or GRABBER_ARCHIVE_URL. On a simulator only the latter, nil otherwise: the
   /// simulator reaches the tailnet too, and its fixture week, imported trail and fake-bridge calls must never land in
-  /// Igor's archive. The call's log (story 210) goes to the same place by the same rule.
+  /// Igor's archive. The call's log (story 212) goes to the same place by the same rule.
   nonisolated static func destination(_ environment: [String: String]) -> String? {
     #if targetEnvironment(simulator)
       return environment["GRABBER_ARCHIVE_URL"]

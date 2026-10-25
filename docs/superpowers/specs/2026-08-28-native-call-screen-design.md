@@ -265,7 +265,7 @@ the app sends the dump to the bridge over the call's own socket before
 anything closes, so Larry can read it from the call's record without Igor
 pasting anything. (Bridge half: the Cockpit repo.)
 
-**The log reaches the Cockpit's archive on its own** (#442, story 210).
+**The log reaches the Cockpit's archive on its own** (#442, story 212).
 The bridge has never filed that dump, and an automatic report waits for a
 troubled call and the Mac's listener, so a call that merely *sounded* wrong
 left nothing Larry could read without the phone. Now, at every ending,

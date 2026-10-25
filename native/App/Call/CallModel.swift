@@ -34,7 +34,7 @@ final class CallModel: ObservableObject {
 
   let events = CallEventLog()
   let bridgeURL: String
-  /// Story 210: where every call's log goes at its end (the stats archive's destination, same simulator rule).
+  /// Story 212: where every call's log goes at its end (the stats archive's destination, same simulator rule).
   private let archiveURL: String?
   private let log: SessionLog
   private let database: AppDatabase
@@ -349,7 +349,7 @@ final class CallModel: ObservableObject {
       [file])
   }
 
-  /// Story 210 (#442): every call's log to the Cockpit's archive at its end, one record per line under the call's
+  /// Story 212 (#442): every call's log to the Cockpit's archive at its end, one record per line under the call's
   /// bridge session, so a call that merely sounded wrong can be read on Larry's box without the phone. The socket
   /// dump at the hang-up stays; the bridge has never filed it. One try: the call is over and the app may be about to
   /// suspend. ponytail: a failed send is logged and not retried; the next call's archive does not carry it.

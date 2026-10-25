@@ -1,7 +1,7 @@
-//  Larry's playback, watched (#442, story 210). Igor, 2026-10-25, on a Direct call: "I got a bunch of noise and
-//  static there." The bridge's recording of what it sent was clean, so the fault was between the socket and the
-//  speaker — and the log had nothing on that stretch. Two platform-free pieces: the bytes read as the stream they
-//  are, and a window of counters the engine logs every five seconds while his audio plays.
+//  Larry's playback, watched (#442, stories 210, 211, 213). Igor, 2026-10-25, on a Direct call: "I got a bunch of
+//  noise and static there." The bridge's recording of what it sent was clean, so the fault was between the socket
+//  and the speaker — and the log had nothing on that stretch. Two platform-free pieces: the bytes read as the stream
+//  they are, and a window of counters the engine logs every five seconds while his audio plays.
 
 import Foundation
 
