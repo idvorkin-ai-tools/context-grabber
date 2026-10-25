@@ -146,6 +146,19 @@ final class InboxModel: ObservableObject {
     reload()
   }
 
+  /// Chat messages the Cockpit's thread now lists: the phone's copy, image and all, is no longer needed.
+  func forget(_ delivered: [InboxItem]) {
+    for item in delivered {
+      do {
+        try store?.delete(item)
+      } catch {
+        log.event("error", ["where": "inbox_delete", "item": item.id, "message": "\(error)"])
+      }
+    }
+    log.event("inbox", ["action": "delivered_removed", "count": delivered.count])
+    reload()
+  }
+
   /// One `inbox` added line per item, the first time the app sees it: the kind and the size, never the content.
   private func announceNew() {
     let seen = Set((database.setting("inbox_seen") ?? "").split(separator: ",").map(String.init))

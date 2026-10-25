@@ -63,18 +63,24 @@ deletes it. Unreachable keeps it **Not sent yet**.
 
 **Hearing back.** iOS runs a background check now and then — it decides when, so a reply may wait minutes or hours.
 When the check finds a reply Igor has not seen, one notification per thread: *Larry* and the thread's title, with the
-reply's first line. Tapping it opens that thread. A reply already read on the laptop raises nothing. Notifications
+reply's first line. Tapping it opens that thread. A reply already read on the laptop raises nothing, nor does a
+thread marked Done. The very first check after install only takes note of what is already there, so weeks of
+unread laptop threads do not arrive as a burst; only replies after it notify. Notifications
 need Igor's permission, asked once, the first time he sends a message; declining leaves everything else working.
 
 **What was in the Inbox.** Items still waiting when this ships each become a new thread, as a share would. Items
 already sent to Larry's inbox stay readable under one *Earlier shares* row at the bottom of the list, read-only, and
 can be swiped away.
 
+**What the phone keeps.** A message stays on the phone until the Cockpit's thread shows it; once Igor sees it there,
+in an open thread, the phone's copy (and its picture) is dropped, so the phone does not fill up with old chat.
+
 ## Explaining itself
 
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
-  text), thread_created, offline_skipped and network_back as the Inbox logs them, refreshed (count of unread), and
-  background_check (when iOS ran it, what it found, notifications raised).
+  text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
+  refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
+- A thread that cannot be read logs one error when the problem starts or changes, not one per poll.
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
 ## Acceptance criteria
@@ -87,7 +93,8 @@ can be swiped away.
   mode too, each delivered once.
 - 👀 and 🏆 appear under Igor's messages as Larry marks them.
 - With the app closed, a reply from Larry eventually raises one notification for its thread; tapping it opens the
-  thread; a reply already read elsewhere raises none.
+  thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises
+  none.
 - A refused message says why, copyably, and is never resent.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 

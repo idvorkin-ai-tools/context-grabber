@@ -107,18 +107,21 @@ final class ChatModel: ObservableObject {
   /// True once the thread was read and, when asked, marked seen.
   @discardableResult
   private func load(_ key: String, markSeen: Bool) async -> Bool {
-    inbox.reload()
     guard !inbox.offline else { return false }
     do {
       let (data, response) = try await URLSession.shared.data(for: try ChatWire.threadRequest(key, cockpit: cockpit))
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let rows = ChatWire.messages(data) else {
-        threadProblem[key] = "Could not read this chat from the Cockpit: HTTP \(status)"
+        threadFailed(key, "HTTP \(status)")
         return false
       }
       let before = messages[key]?.last?.id
       messages[key] = rows
       threadProblem[key] = nil
+      // A sent message the Cockpit's thread now holds is done with the outbox.
+      let known = Set(rows.map(\.id))
+      let delivered = inbox.items.filter { $0.status == .sent && $0.chatThread == key && known.contains($0.id) }
+      if !delivered.isEmpty { inbox.forget(delivered) }
       // What is on screen is shown: it never notifies later.
       if let last = rows.last, !last.ts.isEmpty { notified[key] = last.ts }
       // A new reply on screen is read here and on the laptop.
@@ -127,9 +130,16 @@ final class ChatModel: ObservableObject {
       }
       return true
     } catch {
-      threadProblem[key] = "Could not read this chat from the Cockpit: \(error.localizedDescription)"
+      threadFailed(key, error.localizedDescription)
       return false
     }
+  }
+
+  /// Logged once per spell: a poll that fails the same way again stays quiet.
+  private func threadFailed(_ key: String, _ why: String) {
+    let problem = "Could not read this chat from the Cockpit: \(why)"
+    if threadProblem[key] != problem { log.event("error", ["where": "chat_thread", "thread": key, "message": why]) }
+    threadProblem[key] = problem
   }
 
   @discardableResult

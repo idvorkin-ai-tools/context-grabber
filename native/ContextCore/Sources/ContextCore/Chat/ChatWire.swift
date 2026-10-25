@@ -172,11 +172,15 @@ public enum ChatWire {
 }
 
 /// Which threads get a notification (plan: Hearing back). Larry has the last word, the Cockpit counts it unread, and
-/// it is newer than what this phone last notified — or showed on screen — for that thread.
+/// it is newer than what this phone last notified — or showed on screen — for that thread. A Done thread never
+/// notifies, and the first check, with nothing recorded yet, only records: the replies already waiting stay quiet.
 public enum ChatNotify {
   public static func due(_ summaries: [ChatSummary], notified: [String: String]) -> [ChatSummary] {
-    summaries.filter { summary in
-      guard summary.larryHasLastWord, summary.unread > 0, let last = summary.lastAt else { return false }
+    guard !notified.isEmpty else { return [] }
+    return summaries.filter { summary in
+      guard !summary.done, summary.larryHasLastWord, summary.unread > 0, let last = summary.lastAt else {
+        return false
+      }
       guard let before = notified[summary.key].flatMap(ChatWire.date) else { return true }
       return last > before
     }
