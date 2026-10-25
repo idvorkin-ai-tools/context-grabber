@@ -46,7 +46,9 @@ link does. A tap anywhere else opens the home screen.
 **Balloons**): both sizes replace sleep with today's daily strip: Meditation and Journal as done/not-done marks,
 Balloons and Magic as counts, keeping steps, HRV and exercise. Each item is short with a small symbol, arranged
 in two compact rows to fit the small tile: the four strip items first, then the three Health numbers.
-Done reads ✓ and not done reads ○; counters include zero. The strip matches the app after a tap, a hold, an edit
+Done reads ✓ and not done reads ○; counters include zero. Each strip symbol is coloured as on the home page (Igor, 2026-10-20, #427: *"if I'm red on the
+main page I should be red on the tile as well, like when the balloon is finished"*): Meditation and Journal turn green
+when done, Balloons pink and Magic purple once counted; not done and zero stay grey. The strip matches the app after a tap, a hold, an edit
 in the week or a peer sync, and whenever today's Health reading is refreshed. Health numbers are the app's last look at Health; an unavailable
 number reads *—*, as on the Today card. Each part is drawn only for today's local date: after midnight it disappears
 until the app writes today's state again. Before the app has ever written a part, that part is absent. Updating the

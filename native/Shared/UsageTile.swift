@@ -134,12 +134,21 @@ extension UsageTileView {
     HStack(spacing: 6) {
       ForEach(items, id: \.key) { item in
         HStack(spacing: 2) {
-          Image(systemName: Self.symbol(item.key)).foregroundStyle(.secondary)
+          Image(systemName: Self.symbol(item.key)).foregroundStyle(item.isLit ? Self.color(item.key) : .secondary)
           Text(item.value).monospacedDigit()
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(item.key): \(item.value)")
       }
+    }
+  }
+
+  /// #427: the home page's strip colours (DailyStripView): done is green, a counted balloon pink, magic purple.
+  static func color(_ key: String) -> Color {
+    switch key {
+    case "balloons": return .pink
+    case "magic": return .purple
+    default: return .green
     }
   }
 
