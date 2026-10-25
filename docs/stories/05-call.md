@@ -645,4 +645,4 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The connection drops mid-call
 - **Given:** a live call
 - **When:** the phone's network changes, or the connection to the bridge is lost
-- **Then:** Diagnostics hold the network at the call's start and at every change (connected or not, which interfaces, metered, Low Data Mode), and the lost line names the error's code, the error underneath it, and the seconds since the last frame in and out; the screen still says *connection lost*
+- **Then:** Diagnostics hold the network at the call's start and at every change (connected or not, which interfaces the call is using and which are available, metered, Low Data Mode), and the lost line names the error's code, the error underneath it, and the seconds since the last frame in and out; the screen still says *connection lost*

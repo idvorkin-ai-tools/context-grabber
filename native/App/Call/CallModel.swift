@@ -246,8 +246,9 @@ final class CallModel: ObservableObject {
     case .requiresConnection: status = "requiresConnection"
     @unknown default: status = "unknown"
     }
-    let interfaces = path.availableInterfaces.map { i -> String in
-      switch i.type {
+    // #440: the types the path uses (what the call's traffic is on), and separately all that are available.
+    let name: (NWInterface.InterfaceType) -> String = { type in
+      switch type {
       case .wifi: return "wifi"
       case .cellular: return "cellular"
       case .wiredEthernet: return "wired"
@@ -256,8 +257,12 @@ final class CallModel: ObservableObject {
       @unknown default: return "unknown"
       }
     }
+    let types: [NWInterface.InterfaceType] = [.wifi, .cellular, .wiredEthernet, .other, .loopback]
+    let interfaces = types.filter { path.usesInterfaceType($0) }.map(name)
+    let available = path.availableInterfaces.map { name($0.type) }
     return CallNetworkPath(
-      status: status, interfaces: interfaces, expensive: path.isExpensive, constrained: path.isConstrained)
+      status: status, interfaces: interfaces, available: available, expensive: path.isExpensive,
+      constrained: path.isConstrained)
   }
 
   // MARK: - where Igor is (story 092, #107)

@@ -19,6 +19,17 @@ final class CallNetworkTests: XCTestCase {
     XCTAssertEqual(path.fields["interfaces"] as? String, "none")
   }
 
+  func testTheTypesInUseAreKeptApartFromTheAvailableOnes() {
+    // Codex on #521: with Wi-Fi and cellular both up, the call's traffic is on one of them.
+    let path = CallNetworkPath(
+      status: "satisfied", interfaces: ["wifi"], available: ["wifi", "cellular", "other"], expensive: false,
+      constrained: false)
+    XCTAssertEqual(path.fields["interfaces"] as? String, "wifi")
+    XCTAssertEqual(path.fields["available"] as? String, "wifi+cellular+other")
+    XCTAssertNotEqual(
+      path, CallNetworkPath(status: "satisfied", interfaces: ["wifi"], expensive: false, constrained: false))
+  }
+
   func testAMoveFromWifiToCellularIsAChange() {
     let wifi = CallNetworkPath(status: "satisfied", interfaces: ["wifi"], expensive: false, constrained: false)
     let cell = CallNetworkPath(status: "satisfied", interfaces: ["cellular"], expensive: true, constrained: false)

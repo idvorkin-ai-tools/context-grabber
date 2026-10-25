@@ -7,16 +7,20 @@ import Foundation
 public struct CallNetworkPath: Equatable, Sendable {
   /// "satisfied", "unsatisfied" or "requiresConnection".
   public var status: String
-  /// "wifi", "cellular", "wired", "loopback", "other" (a tunnel such as the tailnet's shows as other).
+  /// The types the path uses: "wifi", "cellular", "wired", "loopback", "other" (a tunnel such as the tailnet's
+  /// shows as other).
   public var interfaces: [String]
+  /// Every interface the path could use, in its order of preference (Wi-Fi and cellular both up reads both here).
+  public var available: [String]
   /// Metered (cellular, a personal hotspot).
   public var expensive: Bool
   /// Low Data Mode.
   public var constrained: Bool
 
-  public init(status: String, interfaces: [String], expensive: Bool, constrained: Bool) {
+  public init(status: String, interfaces: [String], available: [String] = [], expensive: Bool, constrained: Bool) {
     self.status = status
     self.interfaces = interfaces
+    self.available = available
     self.expensive = expensive
     self.constrained = constrained
   }
@@ -24,6 +28,7 @@ public struct CallNetworkPath: Equatable, Sendable {
   public var fields: [String: Any] {
     [
       "status": status, "interfaces": interfaces.isEmpty ? "none" : interfaces.joined(separator: "+"),
+      "available": available.isEmpty ? "none" : available.joined(separator: "+"),
       "expensive": expensive, "constrained": constrained,
     ]
   }
