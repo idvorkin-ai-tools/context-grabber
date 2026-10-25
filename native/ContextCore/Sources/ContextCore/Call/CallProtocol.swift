@@ -11,7 +11,9 @@
 import Foundation
 
 public enum CallBackend: String, CaseIterable, Sendable {
-  case eleven, gemini, openai, drill
+  /// `direct` (#436, Cockpit story 128): the bridge's Direct Larry — speech to text, a fresh Larry, his words read
+  /// in his own voice; no voice model between. Its model and voice are the bridge's defaults.
+  case eleven, gemini, openai, drill, direct
 
   public var label: String {
     switch self {
@@ -19,8 +21,16 @@ public enum CallBackend: String, CaseIterable, Sendable {
     case .gemini: return "Gemini"
     case .openai: return "OpenAI"
     case .drill: return "Drill"
+    case .direct: return "Direct"
     }
   }
+
+  /// The backend row's name: five segments fit a phone only if ElevenLabs is shortened (#436). The status line keeps
+  /// `label`.
+  public var shortLabel: String { self == .eleven ? "Eleven" : label }
+
+  /// Who is speaking Larry's lines: Tony, the voice model's persona, except on Direct, where it is Larry himself.
+  public var speaker: String { self == .direct ? "Larry" : "Tony" }
 
   /// ElevenLabs — Tony's voice. Igor, 2026-08-29: "Let's default to the 11 labs Tony call."
   public static let `default` = CallBackend.eleven

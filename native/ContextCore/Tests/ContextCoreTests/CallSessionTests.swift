@@ -894,6 +894,17 @@ final class CallSessionEndingTests: XCTestCase {
     XCTAssertEqual(second.frames[0]["backend"] as? String, "drill")
   }
 
+  // #436: a Direct call says `direct` and leaves Larry's model and voice to the bridge, whatever voice was picked.
+  func testADirectCallNamesTheBackendAndSendsNoVoiceOrModel() {
+    let t = CallHarness()
+    t.session.start(.direct, voice: .igor)
+    t.socket.open()
+    XCTAssertEqual(t.session.snapshot.backend, .direct)
+    XCTAssertEqual(t.socket.frames[0]["backend"] as? String, "direct")
+    XCTAssertEqual(t.socket.frames[0]["voice"] as? String, "")
+    XCTAssertEqual(t.socket.frames[0]["model"] as? String, "")
+  }
+
   func testMicBuffersAfterTheEndGoNowhere() {
     let t = CallHarness()
     t.goLive()

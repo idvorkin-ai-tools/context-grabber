@@ -88,10 +88,18 @@ final class CallProtocolTests: XCTestCase {
     XCTAssertNil(CallProtocol.bridgeURL(cockpit: "not a url"))
   }
 
-  func testOffersTheFourBackendsElevenLabsFirstAndByDefault() {
-    XCTAssertEqual(CallBackend.allCases.map(\.rawValue), ["eleven", "gemini", "openai", "drill"])
+  func testOffersTheFiveBackendsElevenLabsFirstAndByDefault() {
+    XCTAssertEqual(CallBackend.allCases.map(\.rawValue), ["eleven", "gemini", "openai", "drill", "direct"])
+    XCTAssertEqual(CallBackend.allCases.map(\.label), ["ElevenLabs", "Gemini", "OpenAI", "Drill", "Direct"])
+    XCTAssertEqual(CallBackend.allCases.map(\.shortLabel), ["Eleven", "Gemini", "OpenAI", "Drill", "Direct"])
     XCTAssertEqual(CallBackend.default, .eleven)
     XCTAssertNil(CallBackend(rawValue: "siri"))
+  }
+
+  // #436: on Direct the thing speaking is Larry himself, on every other backend Tony.
+  func testLarrysLinesAreLarrysOnDirectAndTonysElsewhere() {
+    XCTAssertEqual(CallBackend.direct.speaker, "Larry")
+    for backend in CallBackend.allCases where backend != .direct { XCTAssertEqual(backend.speaker, "Tony") }
   }
 
   func testStartNamesTheBackendLeavesModelAndVoiceToTheVendorAndSaysWhoIsCalling() {
@@ -216,6 +224,7 @@ final class CallVoiceTests: XCTestCase {
     XCTAssertTrue(CallVoice.hasPick(.drill))
     XCTAssertFalse(CallVoice.hasPick(.gemini))
     XCTAssertFalse(CallVoice.hasPick(.openai))
+    XCTAssertFalse(CallVoice.hasPick(.direct))
     XCTAssertFalse(CallVoice.hasPick(nil))
   }
 
