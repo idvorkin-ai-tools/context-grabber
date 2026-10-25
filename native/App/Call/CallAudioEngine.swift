@@ -15,6 +15,7 @@
 
 import AVFoundation
 import ContextCore
+import UIKit
 
 final class CallAudioEngine: CallAudio, @unchecked Sendable {
   var onHealth: ((String?) -> Void)?
@@ -66,8 +67,28 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var playbackOpen = false
   private var publishedMicDeadline = MicStartupDeadline()
 
+  /// #441: whether the app was in front when a start failed, read on the audio queue without waiting on main.
+  private var appState = "unknown"
+  private var appObservers: [NSObjectProtocol] = []
+
   init(log: @escaping @Sendable (String, [String: Any]) -> Void) {
     self.log = log
+    let center = NotificationCenter.default
+    let states: [(Notification.Name, String)] = [
+      (UIApplication.didBecomeActiveNotification, "active"), (UIApplication.willResignActiveNotification, "inactive"),
+      (UIApplication.didEnterBackgroundNotification, "background"),
+    ]
+    for (name, state) in states {
+      appObservers.append(
+        center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+          self?.lock.withLock { self?.appState = state }
+        })
+    }
+    DispatchQueue.main.async { [weak self] in
+      let state = MainActor.assumeIsolated { UIApplication.shared.applicationState }
+      let name = state == .active ? "active" : state == .background ? "background" : "inactive"
+      self?.lock.withLock { self?.appState = name }
+    }
   }
 
   private var nowMs: Double { Date().timeIntervalSince1970 * 1000 }
@@ -308,9 +329,30 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       try engine.start()
       log("call_audio", ["action": "engine_start", "why": why, "ok": true])
     } catch {
-      log("call_audio", ["action": "engine_start", "why": why, "ok": false, "message": describe(error)])
+      var fields: [String: Any] = ["action": "engine_start", "why": why, "ok": false, "message": describe(error)]
+      fields.merge(ErrorDetail.fields(error)) { a, _ in a }
+      fields.merge(failureState(engine)) { a, _ in a }
+      log("call_audio", fields)
       throw error
     }
+  }
+
+  /// #441, story 208: what the phone's audio looked like when a start failed — the 'what' (unspecified) error on
+  /// 2026-10-20 came with nothing to say what refused.
+  private func failureState(_ engine: AVAudioEngine) -> [String: Any] {
+    func describe(_ f: AVAudioFormat) -> String { "\(Int(f.sampleRate)) Hz × \(f.channelCount)" }
+    return [
+      "category": session.category.rawValue, "mode": session.mode.rawValue, "rate": session.sampleRate,
+      "route": Self.describeRoute(), "other_audio": session.isOtherAudioPlaying,
+      "secondary_silenced": session.secondaryAudioShouldBeSilencedHint, "input_available": session.isInputAvailable,
+      "input_channels": session.inputNumberOfChannels, "output_channels": session.outputNumberOfChannels,
+      "app_state": lock.withLock { appState }, "since_build_ms": (nowMs - builtAt).rounded(),
+      "in_vp": engine.inputNode.isVoiceProcessingEnabled,
+      "mic_hw_format": describe(engine.inputNode.inputFormat(forBus: 0)),
+      "mic_format": describe(engine.inputNode.outputFormat(forBus: 0)),
+      "out_format": describe(engine.outputNode.inputFormat(forBus: 0)),
+      "out_hw_format": describe(engine.outputNode.outputFormat(forBus: 0)),
+    ]
   }
 
   private func armTap() throws {
