@@ -9,6 +9,18 @@ final class ChatComposeClearsUITests: XCTestCase {
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
     app.launchEnvironment["GRABBER_LINK"] = "grabbernative://chat?thread=igor2-88g.900"
     app.launch()
+    // Codex on #524: what this test sends waits in the simulator's outbox, and a later launch without the dead
+    // address would deliver it to the real Cockpit. Delete each one through its bubble, as Igor would.
+    addTeardownBlock {
+      for text in ["first", "second"] {
+        let bubble = app.staticTexts[text].firstMatch
+        guard bubble.waitForExistence(timeout: 3) else { continue }
+        bubble.press(forDuration: 1.2)
+        let delete = app.buttons["Delete"].firstMatch
+        if delete.waitForExistence(timeout: 3) { delete.tap() }
+        XCTAssertFalse(app.staticTexts[text].waitForExistence(timeout: 2), "\(text) left in the outbox")
+      }
+    }
     // The thread's identifier covers its children, so the bar is found by its placeholder.
     let byPlaceholder = NSPredicate(format: "placeholderValue == %@ OR value == %@", "Message Larry", "Message Larry")
     let compose = app.descendants(matching: .any).matching(byPlaceholder).firstMatch
