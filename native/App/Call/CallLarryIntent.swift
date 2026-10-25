@@ -7,11 +7,11 @@ import AppIntents
 import ContextCore
 
 enum CallBackendOption: String, AppEnum {
-  case eleven, gemini, openai, drill
+  case eleven, gemini, openai, drill, direct
 
   static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Backend")
   static let caseDisplayRepresentations: [CallBackendOption: DisplayRepresentation] = [
-    .eleven: "ElevenLabs", .gemini: "Gemini", .openai: "OpenAI", .drill: "Drill",
+    .eleven: "ElevenLabs", .gemini: "Gemini", .openai: "OpenAI", .drill: "Drill", .direct: "Direct Larry",
   ]
 }
 

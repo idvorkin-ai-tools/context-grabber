@@ -81,9 +81,23 @@ keeps talking.
 
 A new tab, **Call**, beside Cockpit. Idle, it shows: a large **Call Larry**
 button, a row of backends to choose from — *ElevenLabs*, *Gemini*, *OpenAI*,
-*Drill* — with the last choice remembered (ElevenLabs, Tony's voice, until
+*Drill*, *Direct* — with the last choice remembered (ElevenLabs, Tony's voice, until
 Igor picks otherwise — "Let's default to the 11 labs Tony call", 2026-08-29),
 and one **devices line**.
+
+### Direct Larry
+
+Igor, 2026-10-25 ([#436](https://github.com/idvorkin/context-grabber/issues/436)): *"we implemented new code in
+cockpit to talk to larry directly, support that."* **Direct** is the bridge's Direct Larry: his words go to a fresh
+Larry as text and Larry's answer comes back read aloud in Larry's own voice, with no voice model (no Tony) in between.
+He can talk over Larry to cut him off, as on the other backends. On a Direct call:
+
+- Larry's lines are captioned **Larry**, not *Tony* — the thing speaking is Larry.
+- There is no *Voice* row: Larry speaks as Larry. The Tony/Igor pick is kept for ElevenLabs and Drill.
+- Larry's model is the bridge's default; the app offers no model picker, like every other backend.
+- With five backends the row names ElevenLabs *Eleven* so every name fits a phone; the status line still says
+  *ElevenLabs*.
+- Everything else — the devices line, mute, captions, restart, the automatic redial, the ending — is the same.
 
 ### The devices line
 
@@ -448,7 +462,7 @@ before it does; the warning shows as a row.
 
 `grabber://call` and `grabber://call?via=…` now open the **Call** tab and
 start the call there — the web view is not loaded for it. `via` names the
-backend exactly as before (`gemini`, `eleven`, `openai`, `drill`); an
+backend exactly as before (`gemini`, `eleven`, `openai`, `drill`, and `direct` since #436); an
 unknown `via` is ignored and the remembered backend is used. If a call is
 already live, the link brings Igor to it and does not start a second one.
 The rest of the deep-link spec is unchanged.

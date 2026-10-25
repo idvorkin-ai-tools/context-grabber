@@ -23,7 +23,7 @@ typing a URL.
 - **Call Larry** appears in the Shortcuts app under Context Grabber's
   actions, next to *Increment Counter*.
 - It takes one optional parameter, the backend: Gemini, ElevenLabs, OpenAI,
-  or Drill. Left blank, the call starts on the remembered backend.
+  Drill, or Direct Larry (#436). Left blank, the call starts on the remembered backend.
 - Running it does exactly what `grabber://call` does: the app comes to the
   front on the Call tab and the call starts.
 - A ready-made "Call Larry" shortcut exists without building one — it shows
@@ -42,8 +42,8 @@ typing a URL.
 ## User-visible behavior
 
 - In the Shortcuts app, **Context Grabber → Call Larry** is an action with
-  a *Backend* field (optional; choices *Gemini*, *ElevenLabs*, *OpenAI*,
-  *Drill*).
+  a *Backend* field (optional; choices *Gemini*, *ElevenLabs*, *OpenAI*, *Drill*,
+  *Direct Larry*).
 - Running it — from the Shortcuts app, an Action Button assignment, a
   Home Screen shortcut, Siri — opens Context Grabber on the Call tab with
   the call *connecting…* on the chosen (or remembered) backend. Nothing
@@ -59,7 +59,7 @@ typing a URL.
 ## Acceptance criteria
 
 1. Shortcuts app → search "Call Larry" → the action is listed under Context
-   Grabber with a Backend field offering the four backends.
+   Grabber with a Backend field offering the five backends.
 2. A shortcut of just that action, backend *ElevenLabs*, run from the
    Shortcuts app with Context Grabber closed: the app opens on the Call tab
    and is *connecting… ElevenLabs* → *live* without a tap.

@@ -546,3 +546,63 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the current route is Bluetooth or the microphone reports a zero sample rate, and no microphone buffer has arrived
 - **When:** I call Larry and the microphone takes almost ten seconds after opening to deliver its first buffer
 - **Then:** neither a no-buffer audio reset nor a redial interrupts those ten seconds, the first buffer cancels that heal, and Diagnostics record the deadline and reason; if no buffer arrives by ten seconds, the existing reset and one-time redial apply, while a valid built-in or wired microphone keeps its 1.5-second watch
+
+---
+
+### User Story 205:
+
+- **Summary:** Call Direct Larry from the app — my words straight to Larry, his answer in his own voice
+- **Status:** implemented in [cfa3db4](https://github.com/idvorkin/context-grabber/commit/cfa3db4); verified by `just test` (host: `CallWireTests`, `CallSessionTests.testADirectCallNamesTheBackendAndSendsNoVoiceOrModel`, `AppLinkTests`, `CockpitBridgeTests`, `CallSettingsTests`) and on the simulator against the fake bridge (*live · Direct*, Larry's line captioned *Larry*, five backends fitting the row); a real Direct call on the phone not yet.
+- **Issues:** [#436](https://github.com/idvorkin/context-grabber/issues/436)
+- **Spec:** [Native call — Direct Larry](../superpowers/specs/2026-08-28-native-call-screen-design.md#direct-larry)
+
+#### Use Case:
+- **As a** Larry's client who wants to talk to Larry himself, not a voice model that phones him
+- **I want to** pick *Direct* on the Call screen
+- **so that** the call reaches the Cockpit's Direct Larry and the conversation is with him
+
+#### Acceptance Criteria:
+- **Scenario:** Placing a Direct call
+- **Given:** the Call screen is idle
+- **When:** I pick *Direct* and tap Call Larry
+- **Then:** the call goes live on the bridge's Direct Larry with its own model and voice, the status line reads *live · … · Direct*, Larry's lines are captioned *Larry*, there is no Voice row, and the next call starts on Direct too
+
+---
+
+### User Story 206:
+
+- **Summary:** Ask for Direct Larry from outside the Call screen
+- **Status:** implemented in [cfa3db4](https://github.com/idvorkin/context-grabber/commit/cfa3db4); verified by `just test` (host: `CallWireTests`, `CallSessionTests.testADirectCallNamesTheBackendAndSendsNoVoiceOrModel`, `AppLinkTests`, `CockpitBridgeTests`, `CallSettingsTests`) and on the simulator against the fake bridge (*live · Direct*, Larry's line captioned *Larry*, five backends fitting the row); a real Direct call on the phone not yet.
+- **Issues:** [#436](https://github.com/idvorkin/context-grabber/issues/436)
+- **Spec:** [Native call — Direct Larry](../superpowers/specs/2026-08-28-native-call-screen-design.md#direct-larry)
+
+#### Use Case:
+- **As a** Larry's client starting a call from a link, a shortcut or a Cockpit page
+- **I want to** name Direct Larry there
+- **so that** the call starts on Direct without my opening the backend row first
+
+#### Acceptance Criteria:
+- **Scenario:** Every way in
+- **Given:** an entry point set to Direct: the link `grabbernative://call?via=direct`, the Call Larry shortcut with backend *Direct Larry*, or ☎ on a Cockpit page set to Direct Larry inside the app
+- **When:** I use it
+- **Then:** the call starts on Direct
+
+---
+
+### User Story 207:
+
+- **Summary:** The other backends keep Tony and the Voice row when Direct joins them
+- **Status:** implemented in [cfa3db4](https://github.com/idvorkin/context-grabber/commit/cfa3db4); verified by `just test` (host: `CallWireTests`, `CallSessionTests.testADirectCallNamesTheBackendAndSendsNoVoiceOrModel`, `AppLinkTests`, `CockpitBridgeTests`, `CallSettingsTests`) and on the simulator against the fake bridge (*live · Direct*, Larry's line captioned *Larry*, five backends fitting the row); a real Direct call on the phone not yet.
+- **Issues:** [#436](https://github.com/idvorkin/context-grabber/issues/436)
+- **Spec:** [Native call — Direct Larry](../superpowers/specs/2026-08-28-native-call-screen-design.md#direct-larry)
+
+#### Use Case:
+- **As a** Larry's client who calls through a voice model
+- **I want to** keep the call I had before Direct arrived
+- **so that** Direct changes nothing about ElevenLabs, Gemini, OpenAI or Drill
+
+#### Acceptance Criteria:
+- **Scenario:** The other backends are unchanged
+- **Given:** I picked ElevenLabs (shown as *Eleven* in the row), Gemini, OpenAI or Drill
+- **When:** I call
+- **Then:** Larry's lines are captioned *Tony* as before and the Voice row is where it was

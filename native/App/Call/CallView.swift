@@ -241,11 +241,12 @@ struct CallView: View {
     }
   }
 
-  /// Never wider than five characters: Igor, Tony — the voice — and Larry for what Larry put in himself.
+  /// Never wider than five characters: Igor, Tony — the voice (Larry on Direct, #436) — and Larry for what Larry put
+  /// in himself.
   private func label(_ who: CaptionWho) -> String {
     switch who {
     case .igor: return "Igor"
-    case .larry: return "Tony"
+    case .larry: return (call.snapshot.backend ?? call.backend).speaker
     case .tool, .note: return "Larry"
     }
   }
@@ -267,7 +268,7 @@ struct CallView: View {
   private var picker: some View {
     VStack(alignment: .leading, spacing: 10) {
       Picker("Backend", selection: $call.backend) {
-        ForEach(CallBackend.allCases, id: \.self) { Text($0.label).tag($0) }
+        ForEach(CallBackend.allCases, id: \.self) { Text($0.shortLabel).tag($0) }
       }
       .pickerStyle(.segmented)
       if CallVoice.hasPick(call.backend) {

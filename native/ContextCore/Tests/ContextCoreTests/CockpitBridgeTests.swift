@@ -75,6 +75,7 @@ final class BridgeParseTests: XCTestCase {
     XCTAssertEqual(AudioBridge.parse(msg(["type": "call.focus"])), .call(.focus))
     XCTAssertEqual(AudioBridge.parse(msg(["type": "call.start", "via": "eleven"])), .call(.start(via: .eleven)))
     XCTAssertEqual(AudioBridge.parse(msg(["type": "call.start", "backend": "gemini"])), .call(.start(via: .gemini)))
+    XCTAssertEqual(AudioBridge.parse(msg(["type": "call.start", "via": "direct"])), .call(.start(via: .direct)))
     XCTAssertEqual(AudioBridge.parse(msg(["type": "call.start", "via": "siri"])), .call(.start(via: nil)))
     XCTAssertEqual(AudioBridge.parse(msg(["type": "call.start"])), .call(.start(via: nil)))
     XCTAssertEqual(AudioBridge.parse(msg(["type": "call.start"]))?.kind, "call.start")

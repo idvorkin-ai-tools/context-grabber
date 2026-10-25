@@ -26,7 +26,7 @@ final class CallSettingsTests: XCTestCase {
       XCTAssertEqual(fields.source, "server")
     }
     XCTAssertEqual(settings.fields(for: .drill, voice: .igor).model, "eleven_v4_turbo")
-    for backend in [CallBackend.gemini, .openai] {
+    for backend in [CallBackend.gemini, .openai, .direct] {
       let fields = settings.fields(for: backend, voice: .igor)
       XCTAssertEqual(fields.voice, "")
       XCTAssertEqual(fields.model, "")
