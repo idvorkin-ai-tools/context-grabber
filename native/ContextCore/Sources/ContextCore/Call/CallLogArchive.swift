@@ -45,25 +45,29 @@ public enum CallLogArchive {
     var head: [String: Any] = [
       "guid": guid(call, 0), "call": call, "seq": 0, "kind": "header", "events": events.count,
     ]
-    for (name, value) in header where !value.isEmpty { head[name.replacingOccurrences(of: " ", with: "_")] = value }
+    // Each field goes in with what room is left (Codex on #523): a long problem or ending never costs the batch.
+    for (name, value) in header where !value.isEmpty {
+      head = fitted(head, field: name.replacingOccurrences(of: " ", with: "_"), text: value)
+    }
     var out = [head]
     for (i, event) in events.enumerated() {
       let seq = i + 1
-      out.append(fitted(["guid": guid(call, seq), "call": call, "seq": seq, "t": event.t], line: event.line))
+      out.append(
+        fitted(["guid": guid(call, seq), "call": call, "seq": seq, "t": event.t], field: "line", text: event.line))
     }
     return out
   }
 
-  /// The record with as much of its line as keeps the record's JSON within `maxRecordBytes`.
-  static func fitted(_ record: [String: Any], line: String) -> [String: Any] {
+  /// The record with as much of `text` in `field` as keeps the record's JSON within `maxRecordBytes`.
+  static func fitted(_ record: [String: Any], field: String, text line: String) -> [String: Any] {
     func size(_ text: Substring) -> Int {
       var r = record
-      r["line"] = String(text)
+      r[field] = String(text)
       return (try? JSONSerialization.data(withJSONObject: r))?.count ?? Int.max
     }
     var out = record
     guard size(line[...]) > maxRecordBytes else {
-      out["line"] = line
+      out[field] = line
       return out
     }
     var low = 0
@@ -72,7 +76,7 @@ public enum CallLogArchive {
       let mid = (low + high + 1) / 2
       if size(line.prefix(mid)) <= maxRecordBytes { low = mid } else { high = mid - 1 }
     }
-    out["line"] = String(line.prefix(low))
+    if low > 0 { out[field] = String(line.prefix(low)) }  // no room at all: the field stays out
     return out
   }
 

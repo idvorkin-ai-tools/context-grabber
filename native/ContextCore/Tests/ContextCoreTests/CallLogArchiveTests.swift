@@ -65,6 +65,17 @@ final class CallLogArchiveTests: XCTestCase {
     XCTAssertEqual(CallLogArchive.key(aCall(session: "ok-session.1").currentCall), "ok-session.1")
   }
 
+  func testALongProblemInTheHeaderIsCutUntilTheHeaderFits() throws {
+    // Codex on #523: a 9000-character bridge error made a 9099-byte header and the archive refused the batch.
+    let records = CallLogArchive.records(
+      header: [("backend", "eleven"), ("problem", String(repeating: "é\"", count: 4500)), ("ended", "stopped")],
+      events: aCall(session: "ok-session.1").currentCall)
+    let head = records[0]
+    XCTAssertLessThanOrEqual(try JSONSerialization.data(withJSONObject: head).count, CallLogArchive.maxRecordBytes)
+    XCTAssertEqual(head["backend"] as? String, "eleven")
+    XCTAssertFalse((head["problem"] as? String ?? "").isEmpty, "the problem is cut, not dropped")
+  }
+
   func testALongLineIsCutUntilItsRecordFitsTheArchivesBytes() throws {
     // Codex on #443: escaped quotes and non-ASCII take more bytes than characters.
     for text in [String(repeating: "x", count: 9000), String(repeating: "é\"🙂", count: 3000)] {
