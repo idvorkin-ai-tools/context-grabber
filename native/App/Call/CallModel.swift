@@ -33,6 +33,8 @@ final class CallModel: ObservableObject {
 
   let events = CallEventLog()
   let bridgeURL: String
+  /// Story 208: where every call's log goes at its end (the stats archive's destination, same simulator rule).
+  private let archiveURL: String?
   private let log: SessionLog
   private let database: AppDatabase
   // #417, story 085: the call never waits for this refresh.
@@ -63,6 +65,7 @@ final class CallModel: ObservableObject {
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
     self.log = log
     self.database = database
+    archiveURL = ArchiveModel.destination(environment)
     bridgeURL =
       environment["GRABBER_CALL"].flatMap { $0.isEmpty ? nil : $0 }
       ?? CallProtocol.bridgeURL(cockpit: Self.cockpitURL) ?? ""
@@ -267,6 +270,7 @@ final class CallModel: ObservableObject {
   /// After a troubled call, on its own: the call's log as a BugKit automatic report (story 248). The trigger is what
   /// the log says; BugKit keeps it to one per ten minutes and the log within 5 MB.
   private func onEnded() {
+    archiveCallLog()
     guard CallEventLog.hadTrouble(events.currentCall), let autoReport else { return }
     let file = FileManager.default.temporaryDirectory.appendingPathComponent("call-log.txt")
     do {
@@ -282,6 +286,57 @@ final class CallModel: ObservableObject {
         "backend": .string(snapshot.backend?.rawValue ?? ""), "voice": .string(snapshot.voice.rawValue),
       ],
       [file])
+  }
+
+  /// Story 208 (#442): every call's log to the Cockpit's archive at its end, one record per line under the call's
+  /// bridge session, so a call that merely sounded wrong can be read on Larry's box without the phone. The socket
+  /// dump at the hang-up stays; the bridge has never filed it. One try: the call is over and the app may be about to
+  /// suspend. ponytail: a failed send is logged and not retried; the next call's archive does not carry it.
+  private func archiveCallLog() {
+    let records = CallLogArchive.records(header: header(), events: events.currentCall)
+    let call = records.first?["call"] as? String ?? ""
+    guard let archiveURL else {
+      event("call_archive", ["ok": false, "call": call, "records": records.count, "reason": "no archive URL"])
+      return
+    }
+    let deviceId = database.setting(ArchiveModel.deviceKey) ?? "unknown-device"
+    let batch = ArchiveBatch(stream: CallLogArchive.stream, deviceId: deviceId, records: records)
+    let request: URLRequest
+    do {
+      request = try ArchiveSend.request(batch, cockpit: archiveURL)
+    } catch {
+      event("call_archive", ["ok": false, "call": call, "records": records.count, "reason": describe(error)])
+      return
+    }
+    let count = records.count
+    Task { [weak self] in
+      let outcome: ArchiveSend.Outcome
+      do {
+        let (data, response) = try await URLSession.shared.data(for: request)
+        outcome = ArchiveSend.outcome(status: (response as? HTTPURLResponse)?.statusCode, body: data)
+      } catch {
+        outcome = .retry(reason: describe(error))
+      }
+      self?.archived(call: call, records: count, outcome: outcome)
+    }
+  }
+
+  private func archived(call: String, records: Int, outcome: ArchiveSend.Outcome) {
+    var fields: [String: Any] = ["call": call, "records": records]
+    switch outcome {
+    case .taken(let inserted, let duplicate):
+      fields["ok"] = true
+      fields["inserted"] = inserted
+      fields["duplicate"] = duplicate
+    case .refused(let status, let reason):
+      fields["ok"] = false
+      fields["status"] = status
+      fields["reason"] = reason
+    case .retry(let reason):
+      fields["ok"] = false
+      fields["reason"] = reason
+    }
+    event("call_archive", fields)
   }
 
   /// The gist is gone (2026-10-11): its token leaves the Keychain and its list of uploads leaves the settings, once.

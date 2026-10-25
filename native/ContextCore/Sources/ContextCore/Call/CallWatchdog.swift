@@ -92,12 +92,20 @@ public struct PlaybackStats: Equatable, Sendable {
   public var clockRunning: Bool
   /// Seconds of Larry held back, waiting for a clock.
   public var pendingS: Double
+  /// #442: frames so far with an odd byte count (the bridge cut a sample in two), and the times the player had run
+  /// dry mid-reply before the next frame came.
+  public var oddFrames: Int
+  public var underruns: Int
 
-  public init(scheduledS: Double, playedS: Double, clockRunning: Bool, pendingS: Double) {
+  public init(
+    scheduledS: Double, playedS: Double, clockRunning: Bool, pendingS: Double, oddFrames: Int = 0, underruns: Int = 0
+  ) {
     self.scheduledS = scheduledS
     self.playedS = playedS
     self.clockRunning = clockRunning
     self.pendingS = pendingS
+    self.oddFrames = oddFrames
+    self.underruns = underruns
   }
 
   /// The output in one clause. "clock not running" only when something is waiting on it.
