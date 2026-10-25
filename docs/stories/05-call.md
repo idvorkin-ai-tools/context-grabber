@@ -606,3 +606,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** I picked ElevenLabs (shown as *Eleven* in the row), Gemini, OpenAI or Drill
 - **When:** I call
 - **Then:** Larry's lines are captioned *Tony* as before and the Voice row is where it was
+
+---
+
+### User Story 208:
+
+- **Summary:** A microphone that fails to open still gets the call's reset and redial
+- **Status:** not implemented
+- **Issues:** [#441](https://github.com/idvorkin/context-grabber/issues/441) (the phone's audio refused to start, *avfaudio error 2003329396*, and the call sat silent until the bridge hung up)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client whose phone refuses to start its audio
+- **I want to** have the call try its reset and its one redial on its own
+- **so that** a call that failed to open the microphone recovers, or says so, instead of sitting silent until the bridge hangs up
+
+#### Acceptance Criteria:
+- **Scenario:** The microphone fails to open
+- **Given:** a live call whose microphone failed to open, so the screen says *microphone failed*
+- **When:** no microphone buffer arrives within the startup deadline
+- **Then:** the call resets its audio once; if the reset fails or still brings no buffer, it redials once; a buffer after the reset clears *microphone failed*; and Diagnostics record the session, route, foreground state, formats and the error's own code for every failed audio start

@@ -90,6 +90,7 @@ final class FakeAudio: CallAudio {
   var calls: [String] = []
   var prepareError: Error?
   var startMicError: Error?
+  var restartError: Error?
   var onBuffer: (([Float], Double) -> Void)?
   var firstOnBuffer: (([Float], Double) -> Void)?
   var restarts = 0
@@ -114,7 +115,7 @@ final class FakeAudio: CallAudio {
   }
   func restartMic(_ done: @escaping (Error?) -> Void) {
     restarts += 1
-    if deferRestart { pendingRestart = done } else { done(nil) }
+    if deferRestart { pendingRestart = done } else { done(restartError) }
   }
   func openPlayback(outRate: Double) { openedAt.append(outRate) }
   func play(_ pcm: Data) { played.append(pcm) }
@@ -352,6 +353,47 @@ final class CallSessionMicTests: XCTestCase {
     t.goLive()
     XCTAssertEqual(t.session.snapshot.state, .live)
     XCTAssertEqual(t.session.snapshot.problem, "microphone failed: no input")
+  }
+
+  // #441, story 208: the engine refused to start ('what'), the mic never opened, and the call sat silent for 30 s
+  // with no heal until the bridge hung up (client_gone). A mic that fails to open is one that never delivers.
+  func testAMicThatFailsToOpenGetsTheResetThenTheRedial() {
+    let t = CallHarness()
+    t.audio.startMicError = Boom("avfaudio error 2003329396")
+    t.goLive(.eleven, voice: .igor)
+    XCTAssertEqual(t.session.snapshot.problem, "microphone failed: avfaudio error 2003329396")
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertEqual(t.audio.restarts, 1)
+    t.nextSocket()
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertEqual(t.connects.count, 2)
+    XCTAssertEqual(t.session.snapshot.state, .connecting)
+    XCTAssertEqual(
+      t.events.filter { $0.0 == "call_heal" }.map { $0.1["action"] as? String ?? "" }, ["reset_audio", "redial"])
+  }
+
+  func testAResetThatFailsGoesOnToTheRedial() {
+    let t = CallHarness()
+    t.audio.startMicError = Boom("no input")
+    t.audio.restartError = Boom("still no input")
+    t.goLive()
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertEqual(t.audio.restarts, 1)
+    t.nextSocket()
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertEqual(t.connects.count, 2)
+  }
+
+  func testABufferAfterTheResetClearsMicrophoneFailed() {
+    let t = CallHarness()
+    t.audio.startMicError = Boom("no input")
+    t.goLive()
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertEqual(t.audio.restarts, 1)
+    t.audio.mic()
+    XCTAssertNil(t.session.snapshot.problem)
+    t.clock.advance(CallSession.firstFrameMs * 3)
+    XCTAssertEqual(t.connects.count, 1)
   }
 }
 

@@ -196,6 +196,8 @@ public final class CallSession {
   private var audioReset = false
   /// One automatic redial per dead burst; cleared by a call whose mic delivers.
   private var redialed = false
+  /// #441, story 208: the line a mic that failed to open put up, cleared by its first buffer.
+  private var micOpenProblem: String?
   private var micBuffers = 0
   private var nextRowId = 1
   private var igorFinal = ""
@@ -432,9 +434,13 @@ public final class CallSession {
     }) { [weak self] error in
       guard let self, call == self.generation else { return }
       if let error {
-        // The call goes on — Larry can still be heard — but say so.
+        // The call goes on — Larry may still be heard — but say so. #441, story 208: a mic that failed to open is
+        // one that never delivers, so the same reset-then-redial watch runs from here.
         self.log("call_mic", ["action": "open", "ok": false, "message": describe(error)])
-        self.setProblem("microphone failed: \(describe(error))")
+        let problem = "microphone failed: \(describe(error))"
+        self.micOpenProblem = problem
+        self.setProblem(problem)
+        self.armFirstFrameWatch()
         return
       }
       self.log("call_mic", ["action": "open", "ok": true])
@@ -508,8 +514,8 @@ public final class CallSession {
       deps.audio.restartMic { [weak self] error in
         guard let self, call == self.generation else { return }
         if let error {
+          // #441: a failed reset goes on to the redial; it used to end the ladder here.
           self.log("call_heal", ["action": "reset_audio", "ok": false, "message": describe(error)])
-          return
         }
         self.armFirstFrameWatch()
       }
@@ -540,6 +546,10 @@ public final class CallSession {
       firstFrameTimer?.cancel()
       firstFrameTimer = nil
       redialed = false  // this burst delivered; the next dead call may redial again
+      if let p = micOpenProblem {
+        micOpenProblem = nil
+        if snapshot.problem == p { setProblem(nil) }
+      }
     }
     // Heard even while muted: "is my mic working" and "am I muted" are different questions.
     onLevel?(PCM.micLevel(samples))
@@ -770,6 +780,7 @@ public final class CallSession {
     awaitingSoundAfterRearm = false
     micBuffers = 0
     audioReset = false
+    micOpenProblem = nil
     firstFrameTimer?.cancel()
     firstFrameTimer = nil
   }

@@ -300,6 +300,17 @@ never produced a buffer. So the app watches for exactly that: a built-in or wire
 produces no buffer within 1.5 seconds of opening gets one audio reset,
 then the existing one-time redial if it still delivers nothing.
 
+**A microphone that fails to open is one that never delivers** ([#441](https://github.com/idvorkin/context-grabber/issues/441)).
+On 2026-10-20 the phone's audio hardware refused to start (*unspecified error*) for both the speaker and the
+microphone; the screen said *microphone failed* and then nothing happened for thirty seconds until the bridge
+hung up on a phone that sent it nothing. Now the screen still says *microphone failed* at once, and the same
+watch runs from that moment: no buffer within the deadline gets the one audio reset, and still nothing gets the
+one-time redial. An audio reset that itself fails goes on to the redial rather than stopping there. A first
+buffer from the reset clears the *microphone failed* line. Diagnostics record, for every failed start of the
+audio engine, the session's category, mode, sample rate and route, whether other audio is playing, whether the
+app is in the foreground, the microphone's and speaker's formats, and the error's own code and underlying
+error, so the next failure says what refused.
+
 **Let a Bluetooth microphone settle first** ([#423](https://github.com/idvorkin/context-grabber/issues/423)).
 A car's Bluetooth microphone can take seconds to become ready. When the current
 route is Bluetooth, or the microphone reports a zero sample rate, allow 10 seconds
