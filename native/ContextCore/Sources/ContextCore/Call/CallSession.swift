@@ -180,6 +180,9 @@ public final class CallSession {
   private var bytesReceived = 0
   private var lastAudioAt = 0.0
   private var lastTextAt = 0.0
+  /// #440, #439, story 209: the last frame of any kind each way, so a lost socket says how quiet the line was.
+  private var lastRxAt = 0.0
+  private var lastTxAt = 0.0
   private var statsTimer: CallTimer?
   private var audioProblem: String?
   private var bridgeProblem: String?
@@ -319,11 +322,13 @@ public final class CallSession {
   // MARK: - socket
 
   private func onText(_ text: String) {
+    lastRxAt = deps.scheduler.now
     guard snapshot.isActive, let message = CallProtocol.parse(text) else { return }
     onMessage(message)
   }
 
   private func onBinary(_ data: Data) {
+    lastRxAt = deps.scheduler.now
     guard snapshot.state == .live else { return }
     deps.audio.play(data)
     framesReceived += 1
@@ -335,13 +340,21 @@ public final class CallSession {
 
   private func onSocketGone(_ why: String) {
     guard snapshot.isActive else { return }
-    log("call_socket", ["action": "lost", "message": why])
+    let now = deps.scheduler.now
+    func since(_ at: Double) -> Double { at > 0 ? (now - at).rounded() : -1 }
+    log(
+      "call_socket",
+      [
+        "action": "lost", "message": why, "since_rx_ms": since(lastRxAt), "since_tx_ms": since(lastTxAt),
+        "live_ms": since(snapshot.startedAt ?? 0),
+      ])
     finish(CallProtocol.connectionLost, badly: true)
   }
 
   private func send(_ text: String, frame: String, _ fields: [String: Any] = [:]) {
     guard let socket else { return }
     socket.send(text: text)
+    lastTxAt = deps.scheduler.now
     log("call_sent", fields.merging(["frame": frame]) { _, new in new })
   }
 
@@ -556,6 +569,7 @@ public final class CallSession {
     watchForZeros(samples)
     if snapshot.muted { return }
     socket?.send(data: PCM.encodeMicFrame(samples, sampleRate: sampleRate))
+    lastTxAt = deps.scheduler.now
     framesSent += 1
     if framesSent == 1 {
       log("call_mic", ["action": "first_frame", "samples": samples.count, "rate": sampleRate])
@@ -770,6 +784,8 @@ public final class CallSession {
     bytesReceived = 0
     lastAudioAt = 0
     lastTextAt = 0
+    lastRxAt = 0
+    lastTxAt = 0
     audioProblem = nil
     bridgeProblem = nil
     statsTimer?.cancel()
