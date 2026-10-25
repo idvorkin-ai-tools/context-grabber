@@ -10,7 +10,7 @@ import Network
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
   @Published private(set) var sending = false
-  /// The *Add to Inbox* sheet is up (#405).
+  /// The *New chat* sheet is up (#405).
   @Published var composing = false
   // #406, story 269: unknown at launch; the first path reading releases any waiting send.
   @Published private(set) var sendPolicy = InboxSendPolicy()
@@ -218,8 +218,8 @@ final class InboxModel: ObservableObject {
 
   /// `GRABBER_INBOX_FIXTURE=1`: three items as the share extension would write them, for the simulator. Their ids
   /// mark them as fixtures, which are never sent: the simulator reaches the tailnet too.
-  /// `GRABBER_INBOX_COMPOSE=open|<text>`: the *Add to Inbox* sheet up; with text, that text added through it as
-  /// Add another would, under a fixture id so it is never sent.
+  /// `GRABBER_INBOX_COMPOSE=open|<text>`: the *New chat* sheet up; with text, that text added through it as
+  /// Send and start another would, under a fixture id so it is never sent.
   func composeHook(_ value: String) {
     openCompose(from: "hook")
     guard value != "open" else { return }
