@@ -231,6 +231,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   /// Barge-in: everything of Larry's not yet heard goes. The player's clock restarts from zero.
   func flush() {
     queue.async { [self] in
+      // #442: what follows is a new stream, even when a failed rebuild left no player to stop.
+      rxStream.reset()
       guard let player else { return }
       let now = currentPlayerTime()
       player.stop()
@@ -241,8 +243,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       }
       clockPrev = 0
       clockAdvancedAt = nowMs
-      // #442: what follows is a new stream, and its first frame finds an empty queue by design.
-      rxStream.reset()
+      // Its first frame finds an empty queue by design.
       lastScheduledAt = 0
       if engine?.isRunning == true { player.play() }
     }
