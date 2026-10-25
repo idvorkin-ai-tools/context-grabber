@@ -5,7 +5,10 @@
 set -uo pipefail
 out=$(mktemp -d "${TMPDIR:-/tmp}/tile-art.XXXXXX")
 trap 'rm -rf "$out"' EXIT
-xcrun actool native/App/Assets.xcassets --compile "$out" --platform iphoneos --minimum-deployment-target 17.0 \
+# An absolute path (#446): actool hands it to a shared ibtoold daemon, which resolves a relative one against the
+# directory whichever build started it ran in.
+root=$(cd "$(dirname "$0")/../.." && pwd)
+xcrun actool "$root/native/App/Assets.xcassets" --compile "$out" --platform iphoneos --minimum-deployment-target 17.0 \
   --app-icon AppIcon --output-partial-info-plist "$out/p.plist" >/dev/null || { echo "FAIL tile-art: actool"; exit 1; }
 xcrun assetutil --info "$out/Assets.car" | python3 -c '
 import json, sys
