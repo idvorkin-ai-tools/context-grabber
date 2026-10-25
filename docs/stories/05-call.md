@@ -652,7 +652,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 210:
 
 - **Summary:** Larry's reply plays clean when the bridge cuts his frames mid-sample
-- **Status:** implemented in [a739123](https://github.com/idvorkin/context-grabber/commit/a739123); verified by `just test` (host: `PCM16StreamTests`); a Direct call on the phone not yet.
+- **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `PCM16StreamTests`); a Direct call on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442), [#447](https://github.com/idvorkin/context-grabber/issues/447)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
@@ -672,7 +672,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 211:
 
 - **Summary:** A call that sounds wrong says why in Diagnostics
-- **Status:** implemented in [a739123](https://github.com/idvorkin/context-grabber/commit/a739123); verified by `just test` (host: `PlaybackWindowTests`, the counters in `CallSessionCountersTests`); a Direct call on the phone not yet.
+- **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `PlaybackWindowTests`, the counters in `CallSessionCountersTests`); a Direct call on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
@@ -692,7 +692,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 212:
 
 - **Summary:** A call's log reaches Larry without the phone
-- **Status:** implemented in [a739123](https://github.com/idvorkin/context-grabber/commit/a739123); verified by `just test` (host: `CallLogArchiveTests`, the trouble rule in `CallEventLogTests`); its log in the Cockpit's archive after a call on the phone not yet.
+- **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `CallLogArchiveTests`, the trouble rule in `CallEventLogTests`); its log in the Cockpit's archive after a call on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
@@ -712,7 +712,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 213:
 
 - **Summary:** Larry's reply stays clean when the phone's own audio hiccups mid-reply
-- **Status:** implemented in [8282cff](https://github.com/idvorkin/context-grabber/commit/8282cff), [a2eec02](https://github.com/idvorkin/context-grabber/commit/a2eec02) (a barge-in starts the stream anew even with no player); verified by `just test` (host: `PCM16StreamTests.testASkippedFrameKeepsTheStreamAligned`, `testTheCarryWaitsForTheNextFrameAndNotPastAReset`); a Direct call on the phone not yet.
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c), [3d81338](https://github.com/idvorkin/context-grabber/commit/3d81338) (a barge-in starts the stream anew even with no player); verified by `just test` (host: `PCM16StreamTests.testASkippedFrameKeepsTheStreamAligned`, `testTheCarryWaitsForTheNextFrameAndNotPastAReset`); a Direct call on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
@@ -732,7 +732,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 214:
 
 - **Summary:** A call that never heard ready still keeps its own log in the archive
-- **Status:** implemented in [8282cff](https://github.com/idvorkin/context-grabber/commit/8282cff); verified by `just test` (host: `CallLogArchiveTests.testACallThatNeverHeardReadyTakesAFreshLocalKey`); on the phone not yet.
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c); verified by `just test` (host: `CallLogArchiveTests.testACallThatNeverHeardReadyTakesAFreshLocalKey`); on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
@@ -752,7 +752,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 215:
 
 - **Summary:** A line too long for an archive record does not cost the rest of the log
-- **Status:** implemented in [8282cff](https://github.com/idvorkin/context-grabber/commit/8282cff); verified by `just test` (host: `CallLogArchiveTests.testALongLineIsCutUntilItsRecordFitsTheArchivesBytes`); on the phone not yet.
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c); verified by `just test` (host: `CallLogArchiveTests.testALongLineIsCutUntilItsRecordFitsTheArchivesBytes`); on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 

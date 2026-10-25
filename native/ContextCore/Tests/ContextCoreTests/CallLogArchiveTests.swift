@@ -73,6 +73,7 @@ final class CallLogArchiveTests: XCTestCase {
     let head = records[0]
     XCTAssertLessThanOrEqual(try JSONSerialization.data(withJSONObject: head).count, CallLogArchive.maxRecordBytes)
     XCTAssertEqual(head["backend"] as? String, "eleven")
+    XCTAssertEqual(head["ended"] as? String, "stopped", "a short field after the long one still goes in")
     XCTAssertFalse((head["problem"] as? String ?? "").isEmpty, "the problem is cut, not dropped")
   }
 

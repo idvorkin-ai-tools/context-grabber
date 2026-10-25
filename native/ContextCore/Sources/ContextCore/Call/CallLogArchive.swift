@@ -45,8 +45,9 @@ public enum CallLogArchive {
     var head: [String: Any] = [
       "guid": guid(call, 0), "call": call, "seq": 0, "kind": "header", "events": events.count,
     ]
-    // Each field goes in with what room is left (Codex on #523): a long problem or ending never costs the batch.
-    for (name, value) in header where !value.isEmpty {
+    // Each field goes in with what room is left (Codex on #523), shortest first: a long problem or ending never
+    // costs the batch, nor the route and bridge beside it.
+    for (name, value) in header.sorted(by: { $0.1.utf8.count < $1.1.utf8.count }) where !value.isEmpty {
       head = fitted(head, field: name.replacingOccurrences(of: " ", with: "_"), text: value)
     }
     var out = [head]
