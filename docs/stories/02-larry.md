@@ -662,7 +662,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 274:
 
 - **Summary:** What I write in a thread waits on the phone and reaches Larry once
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: the message to its thread's path with its id and the app as source, an image uploaded first and named by its ref), `InboxTests` (oldest first), `sim-smoke.sh` (one `POST /chat/<key>`, the text never in the log); the phone's copy dropped once the thread shows it in the review round, not yet verified on any rung; a send over the tailnet from the phone once cockpit#64 is merged; the bar emptied after a send with the keyboard up for the next ([8754209](https://github.com/idvorkin/context-grabber/commit/8754209), #449) verified by `ChatComposeClearsUITests` (simulator: typed, sent, the field empty, focused and Send disabled, the next message typed straight on), which simulator typing does not reproduce the phone's leftover text with, so on the phone not yet; its `bar_after_send` line will say
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: the message to its thread's path with its id and the app as source, an image uploaded first and named by its ref), `InboxTests` (oldest first), `sim-smoke.sh` (one `POST /chat/<key>`, the text never in the log); the phone's copy dropped once the thread shows it in the review round, not yet verified on any rung; a send over the tailnet from the phone once cockpit#64 is merged; the bar emptied after a send with the keyboard up for the next ([46ca1f7](https://github.com/idvorkin/context-grabber/commit/46ca1f7), #449) verified by `ChatComposeClearsUITests` (simulator: typed, sent, the field empty, focused and Send disabled, the next message typed straight on), which simulator typing does not reproduce the phone's leftover text with, so on the phone not yet; its `bar_after_send` line will say
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#449](https://github.com/idvorkin/context-grabber/issues/449)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -675,12 +675,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Sending
 - **Given:** a thread is open
 - **When:** I type or dictate a message, optionally paste an image, and tap send
-- **Then:** it appears at once marked *Not sent yet*, goes to the Cockpit, and then reads *sent* with Larry woken once; once the thread shows it from the Cockpit, the phone keeps no copy of it or its picture
-
-- **Scenario:** The bar empties after a send (#449)
-- **Given:** I have typed or dictated a message in the bar
-- **When:** I tap send
-- **Then:** the field is empty at once and the keyboard stays up for my next message; the text is never left behind to be sent twice
+- **Then:** it appears at once marked *Not sent yet* and the field is empty with the keyboard still up for my next message, so the text is never left behind to be sent twice; it goes to the Cockpit, and then reads *sent* with Larry woken once; once the thread shows it from the Cockpit, the phone keeps no copy of it or its picture
 
 ---
 

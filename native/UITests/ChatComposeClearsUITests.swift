@@ -14,9 +14,10 @@ final class ChatComposeClearsUITests: XCTestCase {
     let compose = app.descendants(matching: .any).matching(byPlaceholder).firstMatch
     XCTAssertTrue(compose.waitForExistence(timeout: 20), app.debugDescription)
     compose.tap()
-    compose.typeText("first of two")
+    compose.typeText("first")
     app.buttons["Send"].tap()
-    // The first send asks for notifications (chat spec); a clean simulator shows the system alert, so answer it.
+    // The first send asks for notifications (chat spec); a clean simulator shows the system alert, so answer it
+    // and focus the field again. The send under test is the next one, which the alert never interrupts.
     let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
     if allow.waitForExistence(timeout: 3) {
       allow.tap()
@@ -29,10 +30,15 @@ final class ChatComposeClearsUITests: XCTestCase {
     }
     expectation(for: empty, evaluatedWith: field)
     waitForExpectations(timeout: 5)
+    XCTAssertTrue(app.keyboards.firstMatch.exists, "the keyboard is up before the send under test")
+    field.typeText("second")
+    app.buttons["Send"].tap()
+    expectation(for: empty, evaluatedWith: field)
+    waitForExpectations(timeout: 5)
     XCTAssertTrue(app.keyboards.firstMatch.exists, "the keyboard stays up for the next message")
     XCTAssertFalse(app.buttons["Send"].isEnabled, "nothing left to send twice")
     // Straight on, with no tap on the field: the next message goes in where the last one was.
-    field.typeText("second")
+    field.typeText("third")
     XCTAssertTrue(app.buttons["Send"].isEnabled)
   }
 }
