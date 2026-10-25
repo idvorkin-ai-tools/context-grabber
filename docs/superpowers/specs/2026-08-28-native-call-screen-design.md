@@ -458,6 +458,14 @@ screen's, and they do not care which client is connected.
 - **Losing the network** (walking out of Wi-Fi with no cell coverage, the
   tailnet dropping): the call ends with a *connection lost* reason. Phase 1
   does not reconnect; a fresh tap starts a fresh call.
+- **A lost connection says why** ([#440](https://github.com/idvorkin/context-grabber/issues/440),
+  [#439](https://github.com/idvorkin/context-grabber/issues/439)). Two calls from home in October ended
+  *connection lost* seconds in; the phone saw the network connection drop and the bridge saw the phone vanish,
+  and neither log could say whether Wi-Fi gave way to cellular, the tailnet re-homed, or the far end went. So
+  Diagnostics record the phone's network at the start of every call and every time it changes during one
+  (connected or not; Wi-Fi, cellular, wired, or a tunnel; whether it is metered or in Low Data Mode), and the
+  lost connection's own error code and the error underneath it, with how long it had been since anything came
+  in from the bridge and since anything went out. Nothing about the ending the screen shows changes.
 
 ### Endings
 

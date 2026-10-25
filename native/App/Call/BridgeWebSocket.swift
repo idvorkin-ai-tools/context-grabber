@@ -80,7 +80,8 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
         case .success:
           self.receive()
         case .failure(let error):
-          self.finish(describe(error))
+          // #440, #439: the code and the error underneath, not only "The network connection was lost."
+          self.finish(SocketErrorDetail.describe(error))
         }
       }
     }
@@ -112,6 +113,6 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
   }
 
   func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-    finish(error.map(describe) ?? "socket completed")
+    finish(error.map(SocketErrorDetail.describe) ?? "socket completed")
   }
 }

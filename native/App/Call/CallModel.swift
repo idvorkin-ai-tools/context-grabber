@@ -7,6 +7,7 @@ import AVFoundation
 import BugKit
 import ContextCore
 import CoreLocation
+import Network
 import Security
 import SwiftUI
 import UIKit
@@ -47,6 +48,9 @@ final class CallModel: ObservableObject {
   /// its own for the page; only one of them is ever asked to hold a choice at a time (a call and the page's capture
   /// do not share the microphone).
   private lazy var router = AudioRouteController(log: log)
+  /// #440, #439, story 209: the network under the call, logged at its start and at every change while it is up.
+  private var pathMonitor: NWPathMonitor?
+  private var lastPath: CallNetworkPath?
   /// BugKit's automatic report, set by AppModel once its reporter exists: (reason, context, files).
   var autoReport: ((String, [String: JSONValue], [URL]) -> Void)?
   /// One stable reason, so BugKit's ten-minute window holds across calls and relaunches.
@@ -198,10 +202,62 @@ final class CallModel: ObservableObject {
     snapshot = snap
     route = CallAudioEngine.describeRoute()
     if snap.isActive { refreshDevices() }
+    if snap.state == .connecting, was != .connecting { watchNetwork() }
     if snap.state == .ended, was != .ended {
+      stopWatchingNetwork()
       releaseDevices()
       onEnded()
     }
+  }
+
+  // MARK: - the network (story 209, #440, #439)
+
+  private func watchNetwork() {
+    stopWatchingNetwork()
+    let monitor = NWPathMonitor()
+    monitor.pathUpdateHandler = { [weak self] path in
+      let snapshot = Self.describe(path)
+      DispatchQueue.main.async {
+        MainActor.assumeIsolated { self?.onPath(snapshot) }
+      }
+    }
+    pathMonitor = monitor
+    monitor.start(queue: .global(qos: .utility))
+  }
+
+  private func stopWatchingNetwork() {
+    pathMonitor?.cancel()
+    pathMonitor = nil
+    lastPath = nil
+  }
+
+  private func onPath(_ path: CallNetworkPath) {
+    guard pathMonitor != nil, path != lastPath else { return }
+    let first = lastPath == nil
+    lastPath = path
+    event("call_network", path.fields.merging(["action": first ? "start" : "change"]) { _, new in new })
+  }
+
+  private nonisolated static func describe(_ path: NWPath) -> CallNetworkPath {
+    let status: String
+    switch path.status {
+    case .satisfied: status = "satisfied"
+    case .unsatisfied: status = "unsatisfied"
+    case .requiresConnection: status = "requiresConnection"
+    @unknown default: status = "unknown"
+    }
+    let interfaces = path.availableInterfaces.map { i -> String in
+      switch i.type {
+      case .wifi: return "wifi"
+      case .cellular: return "cellular"
+      case .wiredEthernet: return "wired"
+      case .loopback: return "loopback"
+      case .other: return "other"
+      @unknown default: return "unknown"
+      }
+    }
+    return CallNetworkPath(
+      status: status, interfaces: interfaces, expensive: path.isExpensive, constrained: path.isConstrained)
   }
 
   // MARK: - where Igor is (story 092, #107)

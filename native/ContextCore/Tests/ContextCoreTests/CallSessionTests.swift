@@ -259,6 +259,23 @@ final class CallSessionConnectingTests: XCTestCase {
     XCTAssertEqual(t.audio.stops, 1)
     XCTAssertEqual(t.last("call_socket")?["action"] as? String, "lost")
   }
+
+  // #440, #439, story 209: a lost socket says how long the line had been quiet each way.
+  func testALostSocketSaysHowLongSinceTheLastFrameInAndOut() {
+    let t = CallHarness()
+    t.goLive()
+    t.clock.advance(1000)
+    t.socket.speak()
+    t.clock.advance(500)
+    t.audio.mic()
+    t.clock.advance(2000)
+    t.socket.drop()
+    let lost = t.last("call_socket")
+    XCTAssertEqual(lost?["action"] as? String, "lost")
+    XCTAssertEqual(lost?["since_rx_ms"] as? Double, 2500)
+    XCTAssertEqual(lost?["since_tx_ms"] as? Double, 2000)
+    XCTAssertEqual(lost?["live_ms"] as? Double, 3500)
+  }
 }
 
 final class CallSessionMicTests: XCTestCase {

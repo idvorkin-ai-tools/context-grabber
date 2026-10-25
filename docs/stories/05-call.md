@@ -626,3 +626,26 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a live call whose microphone failed to open, so the screen says *microphone failed*
 - **When:** no microphone buffer arrives within the startup deadline
 - **Then:** the call resets its audio once; if the reset fails or still brings no buffer, it redials once; a buffer after the reset clears *microphone failed*; and Diagnostics record the session, route, foreground state, formats and the error's own code for every failed audio start
+
+---
+
+
+---
+
+### User Story 209:
+
+- **Summary:** A call that ends *connection lost* leaves the evidence of which network went
+- **Status:** not implemented
+- **Issues:** [#440](https://github.com/idvorkin/context-grabber/issues/440), [#439](https://github.com/idvorkin/context-grabber/issues/439) (two calls from home lost their connection seconds in; the log could not say why)
+- **Spec:** [Native call — interruptions](../superpowers/specs/2026-08-28-native-call-screen-design.md#interruptions)
+
+#### Use Case:
+- **As a** Larry's client whose call dropped
+- **I want to** have the call's log say what the network did
+- **so that** the drop can be fixed from evidence instead of a guess
+
+#### Acceptance Criteria:
+- **Scenario:** The connection drops mid-call
+- **Given:** a live call
+- **When:** the phone's network changes, or the connection to the bridge is lost
+- **Then:** Diagnostics hold the network at the call's start and at every change (connected or not, which interfaces, metered, Low Data Mode), and the lost line names the error's code, the error underneath it, and the seconds since the last frame in and out; the screen still says *connection lost*
