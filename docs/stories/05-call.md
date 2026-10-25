@@ -629,9 +629,6 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-
----
-
 ### User Story 209:
 
 - **Summary:** A call that ends *connection lost* leaves the evidence of which network went
