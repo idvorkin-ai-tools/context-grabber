@@ -55,7 +55,7 @@ the cutover registers `grabber` and every saved link keeps working.
 | `grabbernative://places` | Places |
 | `grabbernative://cockpit` | the Cockpit |
 | `grabbernative://call` | the call screen, calling Larry on the remembered backend; a live call is brought forward, not restarted |
-| `grabbernative://call?via=eleven` | …on that backend (`eleven`, `gemini`, `openai`, `drill`) |
+| `grabbernative://call?via=eleven` | …on that backend (`eleven`, `gemini`, `openai`, `drill`, `direct`) |
 | `grabbernative://card` | the card screen on a fresh card, face up |
 | `grabbernative://card?think=1` | the card screen with "think of a card" already counting, as the home screen's row does |
 | `grabbernative://supermix` | Igor's Workout Supermix, as the home screen's tile plays it: straight in YouTube Music, else the browser (#372) |

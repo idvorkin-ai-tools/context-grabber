@@ -219,7 +219,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** A shortcut of one action
-- **Given:** the Shortcuts app lists *Call Larry* (Backend: Gemini, ElevenLabs, OpenAI, Drill, or blank) and *Open Cockpit* under Context Grabber
+- **Given:** the Shortcuts app lists *Call Larry* (Backend: Gemini, ElevenLabs, OpenAI, Drill, Direct Larry, or blank) and *Open Cockpit* under Context Grabber
 - **When:** I run a shortcut of just *Call Larry* with ElevenLabs while the app is closed
 - **Then:** the app opens on the Call tab and goes *connecting… ElevenLabs* → *live* with no tap; run while a call is live it shows that call without restarting it; and *Open Cockpit* opens the Cockpit tab the same way
 
