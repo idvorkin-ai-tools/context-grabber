@@ -622,7 +622,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 272:
 
 - **Summary:** My conversations with Larry are a list of threads, the ones he answered marked
-- **Status:** native app only: implemented in [b14d0a8](https://github.com/idvorkin/context-grabber/commit/b14d0a8); verified by `ChatTests` (host: the list as the Cockpit serves it, newest first, a failed answer read as no list), `sim-smoke.sh` against `scripts/native/fake-cockpit.py` and simulator screenshots (the list, the unread dot, *Not sent yet*, the copyable error with the Cockpit down); against the real Cockpit once cockpit#64 is merged
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: the list as the Cockpit serves it, newest first, a failed answer read as no list), `sim-smoke.sh` against `scripts/native/fake-cockpit.py` and simulator screenshots (the list, the unread dot, *Not sent yet*, the copyable error with the Cockpit down); against the real Cockpit once cockpit#64 is merged
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -647,7 +647,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 273:
 
 - **Summary:** A thread reads like a chat and keeps up by itself
-- **Status:** native app only: implemented in [b14d0a8](https://github.com/idvorkin/context-grabber/commit/b14d0a8); verified by `ChatTests` (host: messages with 👀/🏆 receipts and images, the seen request, an attachment address only for a ref the Cockpit mints), `sim-smoke.sh` (a link opens the thread, it is read and marked seen) and simulator screenshots (bubbles, links, Larry's reply appearing without a refresh); on the phone not yet
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: messages with 👀/🏆 receipts and images, the seen request, an attachment address only for a ref the Cockpit mints), `sim-smoke.sh` (a link opens the thread, it is read and marked seen) and simulator screenshots (bubbles, links, Larry's reply appearing without a refresh); on the phone not yet
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -672,7 +672,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 274:
 
 - **Summary:** What I write in a thread waits on the phone and reaches Larry once
-- **Status:** native app only: implemented in [b14d0a8](https://github.com/idvorkin/context-grabber/commit/b14d0a8); verified by `ChatTests` (host: the message to its thread's path with its id and the app as source, an image uploaded first and named by its ref, a refused upload refusing the message, an unreachable Cockpit stopping the run), `InboxTests` (oldest first, a failure kept for later, a deleted one never sent), `sim-smoke.sh` (one `POST /chat/<key>`, the text never in the log); a send over the tailnet from the phone once cockpit#64 is merged
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: the message to its thread's path with its id and the app as source, an image uploaded first and named by its ref, a refused upload refusing the message, an unreachable Cockpit stopping the run), `InboxTests` (oldest first, a failure kept for later, a deleted one never sent), `sim-smoke.sh` (one `POST /chat/<key>`, the text never in the log); a send over the tailnet from the phone once cockpit#64 is merged
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -697,7 +697,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 275:
 
 - **Summary:** Each share, and each +, starts its own thread with Larry
-- **Status:** native app only: implemented in [b14d0a8](https://github.com/idvorkin/context-grabber/commit/b14d0a8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), `sim-smoke.sh` (one new thread per share, even across a lost answer) and a simulator screenshot (a new thread written while the Cockpit was down went up once when it came back); sharing from Safari on the phone not yet
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), `sim-smoke.sh` (one new thread per share, even across a lost answer) and a simulator screenshot (a new thread written while the Cockpit was down went up once when it came back); sharing from Safari on the phone not yet
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -722,7 +722,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 276:
 
 - **Summary:** A reply from Larry notifies me while the app is closed
-- **Status:** native app only: implemented in [b14d0a8](https://github.com/idvorkin/context-grabber/commit/b14d0a8); verified by `ChatTests` (host: only a new unread reply from Larry is due, once; one already read elsewhere is not); the background check, the notification and its tap only on the phone, not yet
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: only a new unread reply from Larry is due, once; one already read elsewhere is not); the background check, the notification and its tap only on the phone, not yet
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native — Hearing back](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -747,7 +747,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 277:
 
 - **Summary:** What I shared before Chat is still there, under Earlier shares
-- **Status:** native app only: implemented in [b14d0a8](https://github.com/idvorkin/context-grabber/commit/b14d0a8); verified by `ChatTests` (host: an item sent before Chat, and a file from before Chat with no thread fields, read as an earlier share); on the phone with its real Inbox not yet
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: an item sent before Chat, and a file from before Chat with no thread fields, read as an earlier share); on the phone with its real Inbox not yet
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native — What was in the Inbox](../superpowers/specs/2026-10-25-native-chat-design.md)
 
