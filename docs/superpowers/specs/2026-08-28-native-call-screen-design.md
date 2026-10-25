@@ -278,7 +278,8 @@ nothing). A call that never reached the bridge's ready has no session and
 takes a fresh id of its own, so two such calls never share a key and the
 archive never drops one as the other's copy. A line too long for one of
 the archive's records (a long caption or tool answer) is cut until its
-record fits, so one line never costs the whole call's log. A line in Diagnostics says whether the archive took it and how
+record fits, so one line never costs the whole call's log; so is a long
+ending or problem in the header, without crowding out its other fields. A line in Diagnostics says whether the archive took it and how
 many records; a failed send is said once and not retried, and never counts
 as trouble with the call. On a simulator the log goes only where the
 archive hook points, as the stats do, so a fake-bridge call never lands in

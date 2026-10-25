@@ -752,7 +752,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 215:
 
 - **Summary:** A line too long for an archive record does not cost the rest of the log
-- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c); verified by `just test` (host: `CallLogArchiveTests.testALongLineIsCutUntilItsRecordFitsTheArchivesBytes`); on the phone not yet.
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c), [054fbc8](https://github.com/idvorkin/context-grabber/commit/054fbc8) and [135439f](https://github.com/idvorkin/context-grabber/commit/135439f) (a long field in the header is cut too, Codex on #523); verified by `just test` (host: `CallLogArchiveTests.testALongLineIsCutUntilItsRecordFitsTheArchivesBytes`, `testALongProblemInTheHeaderIsCutUntilTheHeaderFits`); on the phone not yet.
 - **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
@@ -763,6 +763,6 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** A line longer than an archive record holds
-- **Given:** a call whose log has a line longer than an archive record holds
+- **Given:** a call whose log has a line, or whose ending or problem in the header, longer than an archive record holds
 - **When:** the call ends
-- **Then:** the long line is cut to fit, and the rest of the log is kept
+- **Then:** the long text is cut to fit, and the rest of the log and the header's other fields are kept
