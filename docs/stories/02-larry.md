@@ -352,7 +352,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** Sharing from three apps in aeroplane mode
 - **Given:** the phone is in aeroplane mode
-- **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a note to one and tapping *Add to Inbox* each time
+- **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a note to one and tapping *Add to Inbox* (*Start a chat* since #438, story 275) each time
 - **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the note, the link's site and when, the Inbox tile (the raccoon posting a letter) counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
 
 ---
@@ -360,7 +360,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 039:
 
 - **Summary:** What is in my Inbox reaches Larry, once each
-- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); a share made while a send is out goes in one more pass when it ends, in [3bf50ec](https://github.com/idvorkin/context-grabber/commit/3bf50ec); a send over the tailnet from the phone still for Igor
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); a share made while a send is out goes in one more pass when it ends, in [3bf50ec](https://github.com/idvorkin/context-grabber/commit/3bf50ec); a send over the tailnet from the phone still for Igor; since #438 an item goes to the Cockpit's chat, not its inbox (stories 274, 275)
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -616,3 +616,223 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the strip holds days on this phone and days restored over iCloud from the iPad, and the Cockpit is reachable
 - **When:** an archive run goes (the first one after this build, then every few hours and at the end of the day)
 - **Then:** the first run sends every day each item has counted, one stream per item, with the value the strip shows (counts added up across devices, a check's latest change); later runs send only the days whose value has changed since the archive last took them, whatever their age (a backdated check, an edited week, the iPad's taps arriving late), each as a newer observation of that day, so the newest observation per day matches the strip; a day taken back to nothing goes as 0, a run with no strip change sends nothing for the strip, and the strip goes while the phone is locked
+
+---
+
+### User Story 272:
+
+- **Summary:** My conversations with Larry are a list of threads, the ones he answered marked
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: the list as the Cockpit serves it, newest first, a failed answer read as no list), `sim-smoke.sh` against `scripts/native/fake-cockpit.py` and simulator screenshots (the list, the unread dot); against the real Cockpit once cockpit#64 is merged
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who talks to him about several things at once
+- **I want to** open *Chat* and see each conversation, the ones with a reply I have not read marked
+- **so that** I can pick up any of them without Telegram
+
+#### Acceptance Criteria:
+- **Scenario:** Opening Chat
+- **Given:** the Cockpit has chat threads, one with a reply from Larry I have not read
+- **When:** I tap the *Chat* tile
+- **Then:** every thread is listed newest activity first with its title, who said the last thing and what, and when; the unread one is marked; finished ones fold under *Done (n)* by the Cockpit's own rule; and the tile counts unread threads plus my messages not yet sent
+
+---
+
+### User Story 273:
+
+- **Summary:** A thread reads like a chat and keeps up by itself
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: messages with 👀/🏆 receipts and images, the seen request, an attachment address only for a ref the Cockpit mints), `sim-smoke.sh` (a link opens the thread, it is read and marked seen) and simulator screenshots (bubbles, links); on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client in the middle of a conversation
+- **I want to** see my messages and his as bubbles that update while I watch
+- **so that** it feels like talking, not refreshing a page
+
+#### Acceptance Criteria:
+- **Scenario:** Reading a thread
+- **Given:** a thread with my messages, Larry's replies and an image
+- **When:** I open it
+- **Then:** mine are on the right and his on the left, oldest at the top, opening at the newest; links are tappable and the image shows inline and full screen on a tap; under each of mine is *sent*, 👀 once Larry has seen it, or 🏆 with his note once it is done; and the thread reads as read here and on the laptop
+
+---
+
+### User Story 274:
+
+- **Summary:** What I write in a thread waits on the phone and reaches Larry once
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: the message to its thread's path with its id and the app as source, an image uploaded first and named by its ref), `InboxTests` (oldest first), `sim-smoke.sh` (one `POST /chat/<key>`, the text never in the log); the phone's copy dropped once the thread shows it in the review round, not yet verified on any rung; a send over the tailnet from the phone once cockpit#64 is merged
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client typing or dictating on a bad connection
+- **I want to** send a message, with a pasted picture if I like, and trust it arrives exactly once
+- **so that** nothing I say is lost or doubled
+
+#### Acceptance Criteria:
+- **Scenario:** Sending
+- **Given:** a thread is open
+- **When:** I type or dictate a message, optionally paste an image, and tap send
+- **Then:** it appears at once marked *Not sent yet*, goes to the Cockpit, and then reads *sent* with Larry woken once; once the thread shows it from the Cockpit, the phone keeps no copy of it or its picture
+
+---
+
+### User Story 275:
+
+- **Summary:** Each share starts its own thread with Larry
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), a share itself not yet made on any rung; sharing from Safari on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who shares things worth talking about all day
+- **I want to** have each share become its own conversation
+- **so that** Larry and I can talk about it on its own thread
+
+#### Acceptance Criteria:
+- **Scenario:** Sharing a link
+- **Given:** I share a Safari link to *Grabber Native* with the note "worth a read"
+- **When:** I tap *Start a chat*
+- **Then:** the card closes at once, Chat lists a thread titled "worth a read" under *Not sent yet* until it reaches the Cockpit, and then as a thread whose first message is the link and the note
+
+---
+
+### User Story 276:
+
+- **Summary:** A reply from Larry notifies me while the app is closed
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: only a new unread reply from Larry is due, once); the background check, the notification and its tap only on the phone, not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native — Hearing back](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who leaves the app after writing to him
+- **I want to** be told when he answers
+- **so that** I do not need Telegram to know there is a reply
+
+#### Acceptance Criteria:
+- **Scenario:** Larry answers while the app is away
+- **Given:** I allowed notifications when I first sent a message, and the app is in the background
+- **When:** Larry replies and iOS next runs the app's background check (it decides when; minutes to hours)
+- **Then:** one notification per thread, *Larry*, the thread's title and the reply's first line; tapping it opens that thread
+
+---
+
+### User Story 277:
+
+- **Summary:** What I shared before Chat is still there, under Earlier shares
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: an item sent before Chat, and a file from before Chat with no thread fields, read as an earlier share); on the phone with its real Inbox not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native — What was in the Inbox](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with things already in the Inbox when Chat arrives
+- **I want to** find them, and have the unsent ones go on as chats
+- **so that** nothing shared before the change is lost
+
+#### Acceptance Criteria:
+- **Scenario:** The first launch with Chat
+- **Given:** the Inbox held two items already sent to Larry's inbox and one not yet sent
+- **When:** I open Chat
+- **Then:** the unsent one goes out as a new thread, and the two sent ones are under *Earlier shares (2)* at the bottom, read-only, each removable with a swipe
+
+---
+
+### User Story 278:
+
+- **Summary:** With the Cockpit out of reach, Chat says why and keeps what I wrote
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by simulator screenshots (*Not sent yet*, the copyable error with the Cockpit down); on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client whose laptop is asleep or off the tailnet
+- **I want to** see that Chat could not reach the Cockpit, and why
+- **so that** I know my messages are safe and the problem is not on the phone
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit out of reach
+- **Given:** the phone is online but the Cockpit does not answer
+- **When:** I open Chat
+- **Then:** a copyable line says the chats could not be read and why, and what I wrote that has not gone yet is still listed under *Not sent yet*; with no network at all the quiet offline line shows instead
+
+---
+
+### User Story 279:
+
+- **Summary:** Larry's reply appears in the open thread while I watch
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by a simulator screenshot (Larry's reply appearing without a refresh); a thread that cannot be read logs once per spell in the review round, not yet verified on any rung; on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client waiting on his answer
+- **I want to** see it arrive in the thread I have open
+- **so that** it feels like talking, not refreshing a page
+
+#### Acceptance Criteria:
+- **Scenario:** Larry answers while I watch
+- **Given:** the thread is open
+- **When:** Larry replies
+- **Then:** his reply appears within a few seconds with no pull or tap, and the thread stays read; if the thread cannot be read, a copyable line says why
+
+---
+
+### User Story 300:
+
+- **Summary:** A message sent offline goes once when the network returns; a refused one says why
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a refused upload refusing the message, an unreachable Cockpit stopping the run) and `InboxTests` (a failure kept for later, a deleted one never sent); never sent twice across a lost answer rests on the Cockpit's dedupe by id (cockpit#64, not merged) and is not verified on any rung; on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client typing on a bad connection
+- **I want to** have what I wrote go by itself once the network is back, and hear why if Larry refuses it
+- **so that** nothing I say is lost, doubled or silently dropped
+
+#### Acceptance Criteria:
+- **Scenario:** Offline or refused
+- **Given:** no network, or the Cockpit refuses the message (too big, an unreadable image)
+- **When:** I send
+- **Then:** offline it stays *Not sent yet* and goes by itself when the network returns, never twice even if an answer was lost; refused it says *Larry refused it* with the reason, copyable, and is never sent again; a long press deletes it
+
+---
+
+### User Story 301:
+
+- **Summary:** The + starts a new thread with Larry
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with something new to talk about
+- **I want to** start a conversation from Chat itself
+- **so that** a new subject does not get buried in an old thread
+
+#### Acceptance Criteria:
+- **Scenario:** Starting one from the +
+- **Given:** Chat is open
+- **When:** I tap + and send a message
+- **Then:** a new thread is started, titled with the message's first line; *Send and start another* starts another
+
+---
+
+### User Story 302:
+
+- **Summary:** A reply I have already read, a Done thread, or what was waiting at install never notifies
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8), the Done thread and the first check in the review round; verified by `ChatTests` (host: one already read elsewhere is not due, a Done thread is not, the first check with nothing recorded raises none); the background check on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Spec:** [Chat with Larry in Grabber Native — Hearing back](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who reads Larry on the laptop too
+- **I want to** be notified only of replies I have not seen
+- **so that** a notification always means something new
+
+#### Acceptance Criteria:
+- **Scenario:** Already read
+- **Given:** I read the reply on the laptop, the app showed it, the thread is Done, or it was waiting before the app's first background check
+- **When:** the background check runs
+- **Then:** nothing is notified for it

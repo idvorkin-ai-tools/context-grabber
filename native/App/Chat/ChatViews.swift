@@ -1,0 +1,464 @@
+//  Chat with Larry (spec 2026-10-25-native-chat-design.md): the list of threads, one thread as bubbles, and the bar
+//  that writes to it. What is not on the Cockpit yet shows from this phone's outbox, marked Not sent yet.
+
+import BugKit
+import ContextCore
+import SwiftUI
+import UIKit
+
+struct ChatListView: View {
+  @ObservedObject var chat: ChatModel
+  @ObservedObject var inbox: InboxModel
+  let logger: BugLogger
+  @State private var doneOpen = false
+
+  init(chat: ChatModel, logger: @escaping BugLogger) {
+    self.chat = chat
+    self.inbox = chat.inbox
+    self.logger = logger
+  }
+
+  private var live: [ChatSummary] { chat.threads.filter { !$0.done } }
+  private var done: [ChatSummary] { chat.threads.filter(\.done) }
+
+  var body: some View {
+    List {
+      if inbox.offline {
+        Text("No network — what you write goes to Larry when you're back online").font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+      if inbox.store == nil {
+        BugProblemView(
+          problem: .grabber(
+            "This build has no App Group, so nothing shared can reach Chat.", context: "ChatListView.load", extra: [:]),
+          logger: logger)
+      }
+      if let problem = chat.listProblem, !inbox.offline {
+        BugProblemView(
+          problem: .grabber(problem, context: "ChatListView.refresh", extra: ["cockpit": .string(chat.cockpit)]),
+          logger: logger)
+      }
+      if !chat.pendingThreads.isEmpty {
+        Section("Not sent yet") {
+          ForEach(chat.pendingThreads) { item in
+            PendingThreadRow(item: item, thumbnail: inbox.thumbnails[item.id], logger: logger)
+              .swipeActions { Button("Delete", role: .destructive) { inbox.delete(item) } }
+          }
+        }
+      }
+      Section {
+        ForEach(live) { thread in threadLink(thread) }
+      }
+      if !done.isEmpty {
+        Section {
+          DisclosureGroup("Done (\(done.count))", isExpanded: $doneOpen) {
+            ForEach(done) { thread in threadLink(thread) }
+          }
+        }
+      }
+      if !chat.earlierShares.isEmpty {
+        Section {
+          NavigationLink("Earlier shares (\(chat.earlierShares.count))") {
+            EarlierSharesView(inbox: inbox, logger: logger)
+          }
+          .accessibilityIdentifier("chat-earlier-shares")
+        }
+      }
+      if chat.threads.isEmpty && chat.pendingThreads.isEmpty && chat.listProblem == nil {
+        Text("No chats yet. Tap + to start one, or share to Grabber Native from another app.")
+          .foregroundStyle(.secondary)
+      }
+    }
+    .navigationTitle("Chat")
+    // Inline: the large title drew over the first row once the list had a problem row above it (simulator).
+    .navigationBarTitleDisplayMode(.inline)
+    .accessibilityIdentifier("chat-list")
+    .refreshable { await chat.refreshList(reason: "pull") }
+    .task { await chat.refreshList(reason: "open") }
+    .onAppear { chat.listOnScreen = true }
+    .onDisappear { chat.listOnScreen = false }
+    // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
+    .contentMargins(.bottom, 88, for: .scrollContent)
+    .overlay(alignment: .bottomTrailing) {
+      Button {
+        inbox.openCompose(from: "chat")
+      } label: {
+        Image(systemName: "plus")
+          .font(.title2.weight(.semibold))
+          .foregroundStyle(.white)
+          .frame(width: 56, height: 56)
+          .background(Color.accentColor, in: Circle())
+          .contentShape(Circle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("New chat")
+      .accessibilityIdentifier("inbox-add")
+      .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+      .padding(16)
+    }
+    .sheet(isPresented: $inbox.composing) { InboxComposeView(inbox: inbox, logger: logger) }
+    .navigationDestination(
+      isPresented: Binding(get: { chat.linkThread != nil }, set: { if !$0 { chat.linkThread = nil } })
+    ) {
+      if let key = chat.linkThread {
+        ChatThreadView(chat: chat, key: key, title: chat.title(of: key), logger: logger)
+      }
+    }
+  }
+
+  private func threadLink(_ thread: ChatSummary) -> some View {
+    NavigationLink {
+      ChatThreadView(chat: chat, key: thread.key, title: thread.title, logger: logger)
+    } label: {
+      ThreadRow(thread: thread)
+    }
+    .accessibilityIdentifier("chat-thread-\(thread.key)")
+  }
+}
+
+private struct ThreadRow: View {
+  let thread: ChatSummary
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 10) {
+      Circle().fill(thread.unread > 0 ? Color.accentColor : .clear).frame(width: 9, height: 9).padding(.top, 6)
+      VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .firstTextBaseline) {
+          Text(thread.title).font(.body.weight(thread.unread > 0 ? .semibold : .regular)).lineLimit(2)
+          Spacer(minLength: 8)
+          if let at = thread.lastAt {
+            Text(at, format: .relative(presentation: .numeric, unitsStyle: .abbreviated)).font(.caption)
+              .foregroundStyle(.secondary)
+          }
+        }
+        Text("\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)").font(.subheadline)
+          .foregroundStyle(.secondary).lineLimit(2)
+      }
+    }
+    .accessibilityElement(children: .combine)
+  }
+}
+
+private struct PendingThreadRow: View {
+  let item: InboxItem
+  let thumbnail: CGImage?
+  let logger: BugLogger
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack(alignment: .top) {
+        if let thumbnail {
+          Image(decorative: thumbnail, scale: 1).resizable().scaledToFill().frame(width: 44, height: 44).clipped()
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          Text(ChatSend.title(for: item)).lineLimit(2)
+          if item.status == .waiting { Text("Not sent yet").font(.caption).foregroundStyle(.orange) }
+        }
+      }
+      if let reason = item.refused {
+        BugProblemView(
+          problem: .grabber(
+            "Larry refused it: \(reason)", context: "ChatListView.send",
+            extra: ["item": .string(item.id), "kind": .string(item.kind.rawValue)]), logger: logger)
+      }
+    }
+    .accessibilityIdentifier("chat-pending-\(item.status)")
+  }
+}
+
+// MARK: - One thread
+
+struct ChatThreadView: View {
+  @ObservedObject var chat: ChatModel
+  @ObservedObject var inbox: InboxModel
+  let key: String
+  let title: String
+  let logger: BugLogger
+
+  init(chat: ChatModel, key: String, title: String, logger: @escaping BugLogger) {
+    self.chat = chat
+    self.inbox = chat.inbox
+    self.key = key
+    self.title = title
+    self.logger = logger
+  }
+
+  private var messages: [ChatMessage] { chat.messages[key] ?? [] }
+  private var pending: [InboxItem] { chat.pending(in: key) }
+
+  var body: some View {
+    ScrollViewReader { reader in
+      ScrollView {
+        LazyVStack(alignment: .leading, spacing: 10) {
+          if let problem = chat.threadProblem[key], !inbox.offline {
+            BugProblemView(
+              problem: .grabber(problem, context: "ChatThreadView.load", extra: ["thread": .string(key)]),
+              logger: logger)
+          }
+          ForEach(messages) { message in
+            MessageBubble(message: message, cockpit: chat.cockpit, logger: logger)
+          }
+          // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
+          // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
+          ForEach(pending, id: \.pendingKey) { item in
+            PendingBubble(item: item, thumbnail: inbox.thumbnails[item.id], logger: logger)
+              .contextMenu {
+                Button("Delete", role: .destructive) { inbox.delete(item) }
+              }
+          }
+          Color.clear.frame(height: 1).id("bottom")
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
+      }
+      .defaultScrollAnchor(.bottom)
+      .onChange(of: messages.count + pending.count) { _, _ in
+        withAnimation { reader.scrollTo("bottom", anchor: .bottom) }
+      }
+    }
+    .safeAreaInset(edge: .bottom) { ComposeBar(chat: chat, thread: key, logger: logger) }
+    .navigationTitle(title)
+    .navigationBarTitleDisplayMode(.inline)
+    .accessibilityIdentifier("chat-thread")
+    .onAppear { chat.open(key) }
+    .onDisappear { chat.close(key) }
+  }
+}
+
+private struct MessageBubble: View {
+  let message: ChatMessage
+  let cockpit: String
+  let logger: BugLogger
+
+  var body: some View {
+    HStack {
+      if message.fromIgor { Spacer(minLength: 48) }
+      VStack(alignment: message.fromIgor ? .trailing : .leading, spacing: 4) {
+        ForEach(message.attachments, id: \.self) { ref in
+          if let url = ChatWire.attachmentURL(ref, cockpit: cockpit) {
+            ChatImage(url: url, message: message.id, logger: logger)
+          }
+        }
+        if !message.text.isEmpty {
+          Text(ChatText.linked(message.text))
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(
+              message.fromIgor ? Color.accentColor : Color(.secondarySystemBackground),
+              in: RoundedRectangle(cornerRadius: 16)
+            )
+            .foregroundStyle(message.fromIgor ? Color.white : Color.primary)
+            .tint(message.fromIgor ? .white : .accentColor)
+            .textSelection(.enabled)
+        }
+        if message.fromIgor { receipt }
+      }
+      if !message.fromIgor { Spacer(minLength: 48) }
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityIdentifier(message.fromIgor ? "chat-mine" : "chat-larry")
+  }
+
+  @ViewBuilder private var receipt: some View {
+    switch message.receipt {
+    case .sent: Text("sent").font(.caption2).foregroundStyle(.secondary)
+    case .seen: Text("👀").font(.caption)
+    case .done:
+      Text("🏆" + (message.doneNote.map { " \($0)" } ?? "")).font(.caption).foregroundStyle(.secondary)
+    }
+  }
+}
+
+private struct PendingBubble: View {
+  let item: InboxItem
+  let thumbnail: CGImage?
+  let logger: BugLogger
+
+  var body: some View {
+    HStack {
+      Spacer(minLength: 48)
+      VStack(alignment: .trailing, spacing: 4) {
+        if let thumbnail {
+          Image(decorative: thumbnail, scale: 1).resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 200)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        let text = ChatSend.text(for: item)
+        if !text.isEmpty {
+          Text(ChatText.linked(text))
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(Color.accentColor.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
+            .foregroundStyle(.white)
+        }
+        if let reason = item.refused {
+          BugProblemView(
+            problem: .grabber(
+              "Larry refused it: \(reason)", context: "ChatThreadView.send",
+              extra: ["item": .string(item.id), "thread": .string(item.thread ?? "")]), logger: logger)
+        } else {
+          Text("Not sent yet").font(.caption2).foregroundStyle(.orange)
+        }
+      }
+    }
+    .accessibilityIdentifier("chat-pending")
+  }
+}
+
+private struct ChatImage: View {
+  let url: URL
+  let message: String
+  let logger: BugLogger
+  @State private var full = false
+
+  var body: some View {
+    AsyncImage(url: url) { phase in
+      switch phase {
+      case .success(let image):
+        image.resizable().scaledToFit().frame(maxWidth: 220, maxHeight: 260)
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .onTapGesture { full = true }
+      case .failure(let error):
+        BugProblemView(
+          problem: .grabber(
+            "The picture could not be loaded: \(error.localizedDescription)", context: "ChatThreadView.image",
+            extra: ["url": .string(url.absoluteString), "message": .string(message)]), logger: logger)
+      default:
+        ProgressView().frame(width: 120, height: 90)
+      }
+    }
+    .fullScreenCover(isPresented: $full) {
+      ZStack(alignment: .topTrailing) {
+        Color.black.ignoresSafeArea()
+        AsyncImage(url: url) {
+          $0.resizable().scaledToFit()
+        } placeholder: {
+          ProgressView()
+        }
+        Button("Done") { full = false }.padding().foregroundStyle(.white)
+      }
+    }
+  }
+}
+
+/// Links in a message are tappable; nothing else is interpreted (a message is never Markdown).
+enum ChatText {
+  static func linked(_ text: String) -> AttributedString {
+    var out = AttributedString(text)
+    guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return out }
+    let ns = text as NSString
+    for match in detector.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
+      guard let url = match.url, let range = Range(match.range, in: text),
+        let lower = AttributedString.Index(range.lowerBound, within: out),
+        let upper = AttributedString.Index(range.upperBound, within: out)
+      else { continue }
+      out[lower..<upper].link = url
+    }
+    return out
+  }
+}
+
+// MARK: - Writing
+
+private struct ComposeBar: View {
+  @ObservedObject var chat: ChatModel
+  let thread: String
+  let logger: BugLogger
+  @State private var draft = InboxDraft()
+  @State private var preview: CGImage?
+  @State private var hasImage = UIPasteboard.general.hasImages
+  @State private var failure: String?
+
+  var body: some View {
+    VStack(spacing: 6) {
+      if let failure {
+        BugProblemView(
+          problem: .grabber(
+            failure, context: "ChatThreadView.send",
+            extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
+      }
+      if let preview {
+        HStack {
+          Image(decorative: preview, scale: 1).resizable().scaledToFit().frame(maxHeight: 90)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+          Button("Remove image", role: .destructive) {
+            draft.image = nil
+            self.preview = nil
+          }
+          .font(.caption)
+          Spacer()
+        }
+      }
+      HStack(alignment: .bottom, spacing: 8) {
+        Button(action: paste) {
+          Image(systemName: "photo.on.rectangle").font(.title3)
+        }
+        .disabled(!hasImage)
+        .accessibilityLabel("Paste image")
+        TextField("Message Larry", text: $draft.text, axis: .vertical)
+          .lineLimit(1...6)
+          .padding(.horizontal, 12).padding(.vertical, 8)
+          .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 18))
+          .accessibilityIdentifier("chat-compose")
+        Button(action: send) {
+          Image(systemName: "arrow.up.circle.fill").font(.title)
+        }
+        .disabled(!draft.canAdd)
+        .accessibilityLabel("Send")
+        .accessibilityIdentifier("chat-send")
+      }
+    }
+    .padding(.horizontal, 12).padding(.vertical, 8)
+    .background(.bar)
+    .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+      hasImage = UIPasteboard.general.hasImages
+    }
+    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+      hasImage = UIPasteboard.general.hasImages
+    }
+  }
+
+  private func paste() {
+    guard let data = InboxComposeView.clipboardImage(), let picture = InboxSend.thumbnail(data) else {
+      failure = "The clipboard image could not be read. Copy the image again and try Paste image."
+      return
+    }
+    draft.image = data
+    preview = picture
+    failure = nil
+  }
+
+  private func send() {
+    do {
+      try chat.send(&draft, thread: thread)
+      preview = nil
+      failure = nil
+    } catch {
+      failure = "The message could not be kept on the phone: \(error.localizedDescription)"
+    }
+  }
+}
+
+/// What went to Larry's inbox before chat, read-only (spec: What was in the Inbox).
+private struct EarlierSharesView: View {
+  @ObservedObject var inbox: InboxModel
+  let logger: BugLogger
+
+  var body: some View {
+    List {
+      ForEach(inbox.items.filter(\.isEarlierShare)) { item in
+        VStack(alignment: .leading, spacing: 2) {
+          Text(ChatSend.text(for: item).isEmpty ? "A picture" : ChatSend.text(for: item)).lineLimit(3)
+          Text(
+            Date(timeIntervalSince1970: Double(item.sharedAt) / 1000), format: .dateTime.month().day().hour().minute()
+          )
+          .font(.caption).foregroundStyle(.secondary)
+        }
+        .swipeActions { Button("Delete", role: .destructive) { inbox.delete(item) } }
+      }
+    }
+    .navigationTitle("Earlier shares")
+  }
+}
+
+extension InboxItem {
+  fileprivate var pendingKey: String { "pending-" + id }
+}

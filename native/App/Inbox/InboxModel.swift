@@ -10,7 +10,7 @@ import Network
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
   @Published private(set) var sending = false
-  /// The *Add to Inbox* sheet is up (#405).
+  /// The *New chat* sheet is up (#405).
   @Published var composing = false
   // #406, story 269: unknown at launch; the first path reading releases any waiting send.
   @Published private(set) var sendPolicy = InboxSendPolicy()
@@ -29,6 +29,10 @@ final class InboxModel: ObservableObject {
   var waitingCount: Int { items.filter { $0.status == .waiting }.count }
 
   let store: InboxStore?
+  /// After a send that delivered something: chat reads the threads again, so a new one appears under its key.
+  var didSend: (() -> Void)?
+  /// Something new is on its way to Larry (a compose or a share found): chat asks for notifications once.
+  var didAdd: (() -> Void)?
   private let log: SessionLog
   private let database: AppDatabase
   private let cockpit: String
@@ -97,16 +101,24 @@ final class InboxModel: ObservableObject {
     composing = true
   }
 
-  func add(_ draft: inout InboxDraft, another: Bool, id: String = UUID().uuidString.lowercased()) throws {
+  /// `thread`: the chat thread this message goes to; nil starts a new one (spec 2026-10-25).
+  func add(
+    _ draft: inout InboxDraft, another: Bool, id: String = UUID().uuidString.lowercased(), thread: String? = nil
+  ) throws {
     guard let store else {
       throw NSError(
         domain: "InboxModel.add", code: 1,
         userInfo: [NSLocalizedDescriptionKey: "This build has no App Group, so the Inbox is unreachable."])
     }
     let bytes = draft.byteCount
-    let item = try draft.save(to: store, at: Int64(Date().timeIntervalSince1970 * 1000), id: id)
+    let item = try draft.save(to: store, at: Int64(Date().timeIntervalSince1970 * 1000), id: id, thread: thread)
     log.event(
-      "ui", ["action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another])
+      "ui",
+      [
+        "action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another,
+        "new_thread": thread == nil,
+      ])
+    didAdd?()
     refresh(reason: "compose")
   }
 
@@ -134,6 +146,19 @@ final class InboxModel: ObservableObject {
     reload()
   }
 
+  /// Chat messages the Cockpit's thread now lists: the phone's copy, image and all, is no longer needed.
+  func forget(_ delivered: [InboxItem]) {
+    for item in delivered {
+      do {
+        try store?.delete(item)
+      } catch {
+        log.event("error", ["where": "inbox_delete", "item": item.id, "message": "\(error)"])
+      }
+    }
+    log.event("inbox", ["action": "delivered_removed", "count": delivered.count])
+    reload()
+  }
+
   /// One `inbox` added line per item, the first time the app sees it: the kind and the size, never the content.
   private func announceNew() {
     let seen = Set((database.setting("inbox_seen") ?? "").split(separator: ",").map(String.init))
@@ -146,6 +171,7 @@ final class InboxModel: ObservableObject {
       if let site = item.site { fields["site"] = site }
       log.event("inbox", fields)
     }
+    if fresh.contains(where: { !$0.isFixture }) { didAdd?() }
     // Only ids still in the Inbox, so the setting does not grow forever.
     database.setSetting("inbox_seen", items.map(\.id).joined(separator: ","))
   }
@@ -180,6 +206,7 @@ final class InboxModel: ObservableObject {
       schedulePathRetry(ifChangedFrom: previousRetry)
       sending = false
       reload()
+      if !report.sent.isEmpty { didSend?() }
       if sendAgain {
         sendAgain = false
         send(reason: "again")
@@ -191,8 +218,8 @@ final class InboxModel: ObservableObject {
 
   /// `GRABBER_INBOX_FIXTURE=1`: three items as the share extension would write them, for the simulator. Their ids
   /// mark them as fixtures, which are never sent: the simulator reaches the tailnet too.
-  /// `GRABBER_INBOX_COMPOSE=open|<text>`: the *Add to Inbox* sheet up; with text, that text added through it as
-  /// Add another would, under a fixture id so it is never sent.
+  /// `GRABBER_INBOX_COMPOSE=open|<text>`: the *New chat* sheet up; with text, that text added through it as
+  /// Send and start another would, under a fixture id so it is never sent.
   func composeHook(_ value: String) {
     openCompose(from: "hook")
     guard value != "open" else { return }

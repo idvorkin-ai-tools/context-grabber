@@ -88,6 +88,9 @@ final class AppLinkTests: XCTestCase {
     XCTAssertEqual(route("grabbernative://call?via=eleven"), .call(via: .eleven))
     XCTAssertEqual(route("grabbernative://call?via=Gemini"), .call(via: .gemini))
     XCTAssertEqual(route("grabbernative://call?via=direct"), .call(via: .direct))
+    XCTAssertEqual(route("grabbernative://chat"), .chat(thread: nil))
+    XCTAssertEqual(route("grabbernative://inbox"), .chat(thread: nil))
+    XCTAssertEqual(route("grabbernative://chat?thread=igor2-88g.500"), .chat(thread: "igor2-88g.500"))
     XCTAssertEqual(route("grabbernative://call?via=skype"), .call(via: nil))
     XCTAssertFalse(understood("grabbernative://call?via=skype"))
   }
@@ -111,6 +114,7 @@ final class AppLinkTests: XCTestCase {
     let routes: [AppRoute] = [
       .home, .today, .places, .cockpit, .card(think: false), .card(think: true), .supermix, .call(via: nil),
       .call(via: .drill), .call(via: .direct),
+      .chat(thread: nil), .chat(thread: "auto:note:2026-10-25"), .chat(thread: "igor2-88g.500"),
       .timer(TimerLink()), .timer(TimerLink(start: true)), .timer(TimerLink(preset: "1min", start: true)),
       .timer(TimerLink(preset: "2min")),
       .timer(TimerLink(custom: CustomPreset(work: 30, rest: 0, rounds: 4), start: true)),

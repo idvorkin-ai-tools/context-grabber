@@ -23,13 +23,13 @@ public struct InboxDraft: Equatable, Sendable {
 
   @discardableResult
   public mutating func save(
-    to store: InboxStore, at sharedAt: Int64, id: String = UUID().uuidString.lowercased()
+    to store: InboxStore, at sharedAt: Int64, id: String = UUID().uuidString.lowercased(), thread: String? = nil
   ) throws -> InboxItem {
     guard canAdd else { throw Problem.empty }
     let picture = image?.isEmpty == false ? image : nil
     let item = InboxItem(
       id: id, kind: picture != nil ? .image : .text, sharedAt: sharedAt,
-      text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil)
+      text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil, thread: thread)
     let saved = try store.add(item, image: picture, imageExtension: picture.map(Self.fileExtension(of:)) ?? "jpg")
     self = InboxDraft()
     return saved

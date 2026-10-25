@@ -150,7 +150,7 @@ struct DiagnosticsView: View {
             model.showInbox = $0
             if !$0 { model.screen = "home" }
           })
-      ) { InboxView(inbox: model.inbox, logger: model.bugLogger) }
+      ) { ChatListView(chat: model.chat, logger: model.bugLogger) }
     }
     .fullScreenCover(
       isPresented: Binding(get: { model.gymTimer != nil }, set: { if !$0 { model.closeGymTimer() } })
@@ -282,7 +282,7 @@ private struct HomeTile: View {
         // A call left running: a corner badge, not a third line, so this tile stays its neighbours' size.
         .overlay(alignment: .topTrailing) {
           if row.id == "call" { CallTileStatus(call: model.call) }
-          if row.id == "inbox" { InboxTileCount(inbox: model.inbox) }
+          if row.id == "inbox" { ChatTileCount(chat: model.chat, inbox: model.inbox) }
         }
     }
     .buttonStyle(.plain)
@@ -338,18 +338,21 @@ private struct HoldPopover: View {
   }
 }
 
-/// #305: how many Inbox items have not reached Larry, in the tile's corner as the call's badge is.
-private struct InboxTileCount: View {
+/// Chat (spec 2026-10-25): live threads with an unread reply from Larry plus messages not yet sent, in the tile's
+/// corner as the call's badge is.
+private struct ChatTileCount: View {
+  @ObservedObject var chat: ChatModel
   @ObservedObject var inbox: InboxModel
 
   var body: some View {
-    if inbox.waitingCount > 0 {
-      Text("\(inbox.waitingCount)").font(.caption2.weight(.semibold).monospacedDigit())
+    let count = chat.badgeCount
+    if count > 0 {
+      Text("\(count)").font(.caption2.weight(.semibold).monospacedDigit())
         .foregroundStyle(.white)
         .padding(.horizontal, 6).padding(.vertical, 2)
         .background(Color.blue, in: Capsule())
         .padding(6)
-        .accessibilityLabel("\(inbox.waitingCount) not yet sent")
+        .accessibilityLabel("\(count) unread or not yet sent")
         .accessibilityIdentifier("home-inbox-count")
     }
   }

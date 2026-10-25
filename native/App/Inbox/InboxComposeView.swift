@@ -1,5 +1,6 @@
 //  #405, stories 262–264: capture text with the keyboard's own dictation, or paste an image, without leaving
 //  the Inbox. Add another saves locally and keeps this sheet ready for the next thought.
+//  Chat (spec 2026-10-25): this is the + composer, each draft a new thread; Send and start another is Add another.
 //  #422, story 264: the note and its picture compose one item in one rounded box.
 
 import BugKit
@@ -24,15 +25,15 @@ struct InboxComposeView: View {
         itemSection
         failureSection
         Section {
-          Button("Add another") { add(another: true) }.disabled(!draft.canAdd)
+          Button("Send and start another") { add(another: true) }.disabled(!draft.canAdd)
         }
       }
-      .navigationTitle("Add to Inbox")
+      .navigationTitle("New chat")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Add") { add(another: false) }.disabled(!draft.canAdd)
+          Button("Send") { add(another: false) }.disabled(!draft.canAdd)
         }
       }
       .onAppear { editing = true }
@@ -46,7 +47,7 @@ struct InboxComposeView: View {
   }
 
   private var itemSection: some View {
-    Section("Text or a note for the picture") {
+    Section("The first message — its first line is the title") {
       TextField("Something for Larry", text: $draft.text, axis: .vertical)
         .lineLimit(4...10)
         .focused($editing)
@@ -96,7 +97,7 @@ struct InboxComposeView: View {
 
   /// The image's bytes as copied, so a photo keeps its format and its orientation; only an image with no bytes on
   /// the clipboard is drawn upright into a JPEG.
-  private static func clipboardImage() -> Data? {
+  static func clipboardImage() -> Data? {
     let board = UIPasteboard.general
     let types = board.types.compactMap(UTType.init).filter { $0.conforms(to: .image) }
     if let raw = types.lazy.compactMap({ board.data(forPasteboardType: $0.identifier) }).first(where: {

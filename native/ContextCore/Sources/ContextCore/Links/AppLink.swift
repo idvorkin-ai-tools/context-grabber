@@ -21,6 +21,8 @@ public enum AppRoute: Equatable, Sendable {
   case card(think: Bool)
   /// Igor's Workout Supermix, opened straight in YouTube Music (#220, #372); the large widget's button (#221).
   case supermix
+  /// Chat with Larry (spec 2026-10-25): the thread list, or one thread (a notification's tap).
+  case chat(thread: String?)
 
   /// The screen's name, as the log writes it.
   public var name: String {
@@ -34,6 +36,7 @@ public enum AppRoute: Equatable, Sendable {
     case .call: return "call"
     case .card: return "card"
     case .supermix: return "supermix"
+    case .chat: return "chat"
     }
   }
 
@@ -44,6 +47,7 @@ public enum AppRoute: Equatable, Sendable {
     case .breathe(let b): return b.start
     case .call: return true
     case .card(let think): return think
+    case .chat(let thread): return thread != nil
     default: return false
     }
   }
@@ -179,6 +183,9 @@ public enum AppLink {
       route = .card(think: true)
     case "supermix":
       route = .supermix
+    case "chat", "inbox":
+      let thread = take("thread").flatMap { $0.isEmpty ? nil : $0 }
+      route = .chat(thread: thread)
     default:
       return Parsed(route: .home, understood: false)
     }
@@ -207,6 +214,8 @@ public enum AppLink {
       if let via { items.append(("via", via.rawValue)) }
     case .card(let think):
       if think { items.append(("think", "1")) }
+    case .chat(let thread):
+      if let thread { items.append(("thread", ChatWire.encode(thread))) }
     default:
       break
     }

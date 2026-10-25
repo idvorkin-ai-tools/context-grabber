@@ -22,6 +22,13 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var sentAt: Int64?
   /// The Cockpit's reason when it said the item itself is wrong; such an item is never sent again.
   public var refused: String?
+  /// Chat (spec 2026-10-25): the Cockpit thread this message goes to; nil starts a new thread (every share, every +).
+  public var thread: String?
+  /// The thread it landed on, set with `sentAt`. A sent item without one went to Larry's inbox before chat: an
+  /// *Earlier share*.
+  public var chatThread: String?
+
+  public var isEarlierShare: Bool { sentAt != nil && chatThread == nil }
 
   public enum Status: Equatable, Sendable { case waiting, sent, refused }
 
@@ -36,7 +43,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
 
   public init(
     id: String = UUID().uuidString.lowercased(), kind: Kind, sharedAt: Int64, url: String? = nil,
-    text: String? = nil, note: String? = nil, imageFile: String? = nil
+    text: String? = nil, note: String? = nil, imageFile: String? = nil, thread: String? = nil
   ) {
     self.id = id
     self.kind = kind
@@ -45,10 +52,12 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
     self.text = text
     self.note = note?.isEmpty == true ? nil : note
     self.imageFile = imageFile
+    self.thread = thread
   }
 
   enum CodingKeys: String, CodingKey {
-    case id, kind, url, text, note, refused
+    case id, kind, url, text, note, refused, thread
+    case chatThread = "chat_thread"
     case sharedAt = "shared_at"
     case imageFile = "image_file"
     case sentAt = "sent_at"
@@ -122,8 +131,11 @@ public struct InboxStore: Sendable {
     }
   }
 
-  public func markSent(_ id: String, at: Int64) throws {
-    try update(id) { $0.sentAt = at }
+  public func markSent(_ id: String, at: Int64, thread: String? = nil) throws {
+    try update(id) {
+      $0.sentAt = at
+      $0.chatThread = thread
+    }
   }
 
   public func markRefused(_ id: String, reason: String) throws {

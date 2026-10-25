@@ -31,6 +31,8 @@ struct GrabberApp: App {
               model.tracker.foreground(); model.usage.resume(reason: "launch")
               model.mirror.refresh(reason: "launch")  // #355: the Today card current, in the background
               model.archive.launch()  // story 270: the next slots asked for, and a run if one is due
+              model.chat.scheduleBackgroundCheck()  // chat: Larry's replies noticed while the app is away
+              Task { await model.chat.refreshList(reason: "launch") }
             }
             wasActive = true
           } else if phase == .background {

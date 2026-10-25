@@ -5,6 +5,8 @@ share arbitrary content in … and we should be able to send it to Larry. We nee
 inbox, because eventually we'll add chatting capability to this app."* He chose the phased plan, 2026-10-17. Part of
 the [Swift-native app](2026-10-04-swift-native-app-design.md).
 
+> **Since 2026-10-25 the Inbox is Chat** ([Chat with Larry in Grabber Native](2026-10-25-native-chat-design.md), #438): each share starts a thread, sends go to the Cockpit's chat instead of Larry's inbox, and items sent before then sit under *Earlier shares*. Sharing, offline waiting and once-each sending below still hold.
+
 ## Summary
 
 Anything Igor can share on the phone — a link, some text, a photo, a screenshot — can be shared to Grabber Native.
