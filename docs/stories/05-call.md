@@ -666,3 +666,13 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a live call whose bridge sends Larry's audio in frames, some with an odd byte count
 - **When:** the reply plays and the call ends
 - **Then:** the reply is heard clean (an odd frame's last byte joins the next frame), Diagnostics show a playback line every five seconds he spoke with frame count and sizes, odd and dropped frames, underruns and dry time, longest gap and queue depth, the level line names the player, session and hardware rates and the buffer, the ending line carries the odd-frame and underrun totals, and the call's log is in the Cockpit's archive under the call's bridge session with a line in Diagnostics saying it was taken
+
+- **Scenario:** The phone's own audio hiccups mid-reply (Codex on #443)
+- **Given:** a reply whose frames are cut mid-sample
+- **When:** the phone rebuilds its audio, or a frame arrives with nowhere to play
+- **Then:** the samples after it are heard clean, never static: only Larry's next reply starts the stream anew
+
+- **Scenario:** A call's log the archive could refuse or merge (Codex on #443)
+- **Given:** a call that never reached the bridge's ready, or a line longer than an archive record holds
+- **When:** the call ends
+- **Then:** its log goes under a key no other call shares, and the long line is cut to fit, so the rest of the log is kept

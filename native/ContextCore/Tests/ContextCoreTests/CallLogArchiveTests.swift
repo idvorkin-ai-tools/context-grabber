@@ -43,27 +43,43 @@ final class CallLogArchiveTests: XCTestCase {
     }
   }
 
-  func testACallThatNeverHeardReadyIsNamedByItsStart() {
+  func testACallThatNeverHeardReadyTakesAFreshLocalKey() {
     let log = CallEventLog()
     log.add("call_start", t: 1000, fields: ["backend": "eleven"])
     log.add("call_ended", t: 4000, fields: ["reason": "connection lost", "badly": true])
-    XCTAssertEqual(CallLogArchive.key(log.currentCall), "local-1000")
-    XCTAssertEqual(guids(CallLogArchive.records(header: [], events: log.currentCall)).first, "local-1000:00000")
+    XCTAssertEqual(CallLogArchive.key(log.currentCall, fallback: "local-abc"), "local-abc")
+    XCTAssertEqual(
+      guids(CallLogArchive.records(header: [], events: log.currentCall, fallback: "local-abc")).first,
+      "local-abc:00000")
+    // Codex on #443: t counts from launch, so two such calls must not share a key, or the archive drops the second.
+    let first = CallLogArchive.key(log.currentCall)
+    let second = CallLogArchive.key(log.currentCall)
+    XCTAssertTrue(first.hasPrefix("local-"))
+    XCTAssertNotEqual(first, second)
   }
 
-  func testASessionTheArchiveWouldRefuseFallsBackToTheStart() {
-    XCTAssertEqual(CallLogArchive.key(aCall(session: "s 1/x").currentCall), "local-1000")
-    XCTAssertEqual(CallLogArchive.key(aCall(session: ":abc").currentCall), "local-1000")
-    XCTAssertEqual(CallLogArchive.key(aCall(session: "").currentCall), "local-1000")
-    XCTAssertEqual(CallLogArchive.key(aCall(session: 42).currentCall), "local-1000")
+  func testASessionTheArchiveWouldRefuseFallsBackToTheLocalKey() {
+    for session: Any in ["s 1/x", ":abc", "", 42] {
+      XCTAssertEqual(CallLogArchive.key(aCall(session: session).currentCall, fallback: "local-x"), "local-x")
+    }
     XCTAssertEqual(CallLogArchive.key(aCall(session: "ok-session.1").currentCall), "ok-session.1")
   }
 
-  func testALongLineIsCutToFitTheArchivesRecord() {
+  func testALongLineIsCutUntilItsRecordFitsTheArchivesBytes() throws {
+    // Codex on #443: escaped quotes and non-ASCII take more bytes than characters.
+    for text in [String(repeating: "x", count: 9000), String(repeating: "é\"🙂", count: 3000)] {
+      let log = CallEventLog()
+      log.add("call_start", t: 0, fields: [:])
+      log.add("call_caption", t: 10, fields: ["who": "larry", "text": text])
+      let records = CallLogArchive.records(header: [], events: log.currentCall)
+      let bytes = try JSONSerialization.data(withJSONObject: records[2]).count
+      XCTAssertLessThanOrEqual(bytes, CallLogArchive.maxRecordBytes)
+      XCTAssertGreaterThan(bytes, CallLogArchive.maxRecordBytes - 16, "cut no shorter than it must be")
+    }
     let log = CallEventLog()
     log.add("call_start", t: 0, fields: [:])
-    log.add("call_caption", t: 10, fields: ["who": "larry", "text": String(repeating: "x", count: 9000)])
-    let records = CallLogArchive.records(header: [], events: log.currentCall)
-    XCTAssertEqual((records[2]["line"] as? String)?.count, CallLogArchive.maxLineChars)
+    log.add("call_caption", t: 10, fields: ["who": "larry", "text": "short"])
+    XCTAssertTrue(
+      (CallLogArchive.records(header: [], events: log.currentCall)[2]["line"] as? String)!.contains("short"))
   }
 }

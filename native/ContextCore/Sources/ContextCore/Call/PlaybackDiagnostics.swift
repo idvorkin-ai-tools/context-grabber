@@ -36,7 +36,11 @@ public struct PCM16Stream: Sendable {
     return PCM.pcm16ToFloat(bytes)
   }
 
-  /// A flush or a rebuild: the next frame starts a new stream.
+  /// A frame that could not be played still moves the stream on: its bytes decide where the next sample starts
+  /// (Codex on #443).
+  public mutating func skip(_ frame: Data) { _ = decode(frame) }
+
+  /// A barge-in flush: Larry's next reply is a new stream. A local engine rebuild is not: the bridge's bytes go on.
   public mutating func reset() { carry = nil }
 }
 

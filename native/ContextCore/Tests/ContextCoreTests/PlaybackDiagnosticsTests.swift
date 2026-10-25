@@ -56,6 +56,20 @@ final class PCM16StreamTests: XCTestCase {
     XCTAssertEqual(stream.decode(Data([0xE8, 0x03])).map { ($0 * 32767).rounded() }, [1000])
     XCTAssertEqual(stream.oddFrames, 3)  // the three odd frames above; a reset forgets the carry, not the count
   }
+
+  /// Codex on #443: a frame that could not be played still decides where the next sample starts. The samples after
+  /// a skipped odd frame are the stream's own, never half-swapped pairs.
+  func testASkippedFrameKeepsTheStreamAligned() {
+    let samples: [Int16] = (0..<12).map { Int16(truncatingIfNeeded: $0 * 1234 - 20000) }
+    let whole = bytes(samples)
+    var stream = PCM16Stream()
+    let first = stream.decode(whole[0..<5])  // two samples, one byte carried
+    stream.skip(whole[5..<10])  // lost: the rest of sample 2, samples 3 and 4
+    let rest = stream.decode(whole[10..<24])
+    XCTAssertEqual(first, Array(PCM.pcm16ToFloat(whole)[0..<2]))
+    XCTAssertEqual(rest, Array(PCM.pcm16ToFloat(whole)[5..<12]))
+    XCTAssertFalse(stream.carrying)
+  }
 }
 
 final class PlaybackWindowTests: XCTestCase {

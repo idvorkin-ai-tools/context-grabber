@@ -191,8 +191,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   func play(_ pcm: Data) {
     queue.async { [self] in
       guard let player, let format = playerFormat, let engine, engine.isRunning else {
-        // Nowhere to put it: the frame is lost, and with it where the stream's samples fall after it (#442).
-        rxStream.reset()
+        // Nowhere to put it: the frame is lost, but its bytes still say where the next sample starts (#442).
+        rxStream.skip(pcm)
         window.dropped()
         return
       }
@@ -453,7 +453,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     let wasListening = listening ?? (micListener != nil)
     let wasPlaying = playing ?? (playerFormat != nil)
     firstLoudRxAt = nil  // what was scheduled goes with the engine; the next window judges fresh audio (#199)
-    rxStream.reset()  // and so does the stream's alignment (#442); nothing is scheduled on the new player yet
+    // The stream's alignment stays (#442): a rebuild is local, and the bridge's bytes carry on where they were.
     lastScheduledAt = 0
     micStallRearm = false
     teardownEngineOnly()

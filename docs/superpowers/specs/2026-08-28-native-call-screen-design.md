@@ -240,8 +240,10 @@ measured. Read frame by frame, every sample after such a cut was a
 half-swapped pair: broadband static until the next odd frame flipped it
 back, while the bridge's own recording, which simply joins the bytes, was
 clean. The app reads Larry's audio as the byte stream it is: a frame's
-odd last byte waits and joins the next frame's first. A barge-in flush or
-a rebuild starts a new stream, so no stale byte leads it.
+odd last byte waits and joins the next frame's first. A barge-in flush
+starts a new stream (Larry's next reply), so no stale byte leads it; the
+phone rebuilding its own audio, or a frame it could not play, does not:
+the bridge's bytes carry on, so the samples after either stay aligned.
 
 **The log survives a freeze.** Igor, 2026-08-30: *"I had a freeze when I
 switched microphones in the last call — hopefully the app was actually
@@ -272,7 +274,11 @@ problem, the route, the bridge) and every line since its start — goes to
 the Cockpit's stats archive as one batch, one record per line under the
 call's bridge session, in order, the same way the trail and Health go
 there (the archive keeps one copy per record, so a resend changes
-nothing). A line in Diagnostics says whether the archive took it and how
+nothing). A call that never reached the bridge's ready has no session and
+takes a fresh id of its own, so two such calls never share a key and the
+archive never drops one as the other's copy. A line too long for one of
+the archive's records (a long caption or tool answer) is cut until its
+record fits, so one line never costs the whole call's log. A line in Diagnostics says whether the archive took it and how
 many records; a failed send is said once and not retried, and never counts
 as trouble with the call. On a simulator the log goes only where the
 archive hook points, as the stats do, so a fake-bridge call never lands in
