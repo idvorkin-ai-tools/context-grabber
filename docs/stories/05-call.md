@@ -612,7 +612,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 208:
 
 - **Summary:** A microphone that fails to open still gets the call's reset and redial
-- **Status:** not implemented
+- **Status:** implemented in [40f5d77](https://github.com/idvorkin/context-grabber/commit/40f5d77); verified by `just test` (host: `CallSessionMicTests` — a failed open resets then redials, a failed reset still redials, a buffer clears the line — and `ErrorDetailTests`) and the simulator build; whether the reset or the redial recovers from the phone's *unspecified* audio error is not yet seen on the phone
 - **Issues:** [#441](https://github.com/idvorkin/context-grabber/issues/441) (the phone's audio refused to start, *avfaudio error 2003329396*, and the call sat silent until the bridge hung up)
 - **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
 
