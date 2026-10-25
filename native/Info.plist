@@ -30,6 +30,7 @@
 	<array>
 		<string>com.idvorkin.grabbernative.archive.refresh</string>
 		<string>com.idvorkin.grabbernative.archive.daily</string>
+		<string>com.idvorkin.grabbernative.chat</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Places shows where you are on the map and can name a place from where you stand.</string>

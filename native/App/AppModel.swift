@@ -6,6 +6,7 @@ import ContextCore
 import CoreLocation
 import SwiftUI
 import ThinkACardCore
+import UserNotifications
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -18,6 +19,9 @@ final class AppModel: ObservableObject {
   let places: PlacesModel
   /// What was shared to the app, on its way to Larry (#305, stories 038 and 039).
   let inbox: InboxModel
+  /// Chat with Larry on the Cockpit's threads (spec 2026-10-25); what Igor writes goes out through `inbox`.
+  let chat: ChatModel
+  private let chatNotifications = ChatNotificationDelegate()
   /// Everything the app collects, to the Cockpit's archive every few hours (story 270).
   let archive: ArchiveModel
   /// Shake (hard or gentle), ⌘I or the Settings button opens BugKit's report dialog (stories 142, 146). Set at the
@@ -101,7 +105,11 @@ final class AppModel: ObservableObject {
     liveActivity = LiveActivityController(log: log)
     tracker = LocationTracker(log: log, store: database.locations)
     places = PlacesModel(log: log, database: database)
-    inbox = InboxModel(log: log, database: database)
+    // GRABBER_CHAT_URL: the simulator's stand-in Cockpit (scripts/native/fake-cockpit.py), so nothing reaches Larry.
+    let chatCockpit = ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"].flatMap { $0.isEmpty ? nil : $0 }
+    inbox = InboxModel(log: log, database: database, cockpit: chatCockpit ?? CockpitPage.url)
+    chat = ChatModel(inbox: inbox, log: log, database: database, cockpit: chatCockpit ?? CockpitPage.url)
+    chat.registerBackgroundTask()  // before the launch finishes, or iOS refuses the handler
     archive = ArchiveModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
     archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
     call = CallModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
@@ -119,6 +127,11 @@ final class AppModel: ObservableObject {
     places.prune(reason: "launch")
     liveActivity.endLeftovers()
     LinkLauncher.handler = { [weak self] route in self?.open(route: route, from: "shortcut") }
+    // Chat: a reply's notification opens its thread (set before the launch finishes, for a tap that launches us).
+    chatNotifications.open = { [weak self] thread in self?.open(route: .chat(thread: thread), from: "notification") }
+    chatNotifications.onScreen = { [weak self] in self?.chat.openThread }
+    UNUserNotificationCenter.current().delegate = chatNotifications
+    inbox.didSend = { [weak self] in Task { await self?.chat.refreshList(reason: "sent") } }
     mirror = MirrorModel(app: self)
     reporter = makeReporter()
     startDelivery()
@@ -150,13 +163,17 @@ final class AppModel: ObservableObject {
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     startDelivery()  // story 152: what waited for a connection goes up now
     inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
+    Task { await chat.refreshList(reason: "foreground") }  // the tile's unread count, and nothing notified twice
+    chat.scheduleBackgroundCheck()
     archive.runIfDue(reason: "foreground")  // story 270: the delta, once four hours have passed
   }
 
-  func openInbox(from source: String) {
-    log.event("ui", ["action": "open_inbox", "from": source, "waiting": inbox.waitingCount])
-    screen = "inbox"
+  /// Chat's list, or with `thread` that thread on top of it (a notification's tap).
+  func openInbox(from source: String, thread: String? = nil) {
+    log.event("ui", ["action": "open_chat", "from": source, "waiting": inbox.waitingCount, "thread": thread ?? ""])
+    screen = "chat"
     inbox.reload()
+    chat.linkThread = thread
     showInbox = true
   }
 
@@ -207,6 +224,7 @@ final class AppModel: ObservableObject {
     if showCockpit { return "cockpit" }
     if callOpen { return "call" }
     if showToday { return "today" }
+    if showInbox { return "chat" }
     return "home"
   }
 
@@ -240,6 +258,10 @@ final class AppModel: ObservableObject {
       showToday = false
       covered = true
     }
+    if showInbox {
+      showInbox = false
+      covered = true
+    }
     return covered
   }
 
@@ -256,6 +278,7 @@ final class AppModel: ObservableObject {
     case .call(let via): callFromLink(via, from: source)
     case .card(let think): openCard(think: think, from: source)
     case .supermix: openWorkoutSupermix(from: source)
+    case .chat(let thread): openInbox(from: source, thread: thread)
     }
   }
 
@@ -718,6 +741,17 @@ final class AppModel: ObservableObject {
     // #305: three Inbox items as the share extension writes them (never sent), and the Inbox opened.
     if env["GRABBER_INBOX_FIXTURE"] == "1" { inbox.addFixture() }
     if env["GRABBER_INBOX"] == "open" { openInbox(from: "hook") }
+    if let send = env["GRABBER_CHAT_SEND"], !send.isEmpty {
+      // Chat: "<thread>|<text>" written in that thread as the compose bar would ("new|<text>" starts one).
+      let parts = send.split(separator: "|", maxSplits: 1).map(String.init)
+      var draft = InboxDraft()
+      draft.text = parts.count > 1 ? parts[1] : ""
+      do {
+        try chat.send(&draft, thread: parts[0] == "new" ? nil : parts[0])
+      } catch {
+        log.event("error", ["where": "chat_hook", "message": "\(error)"])
+      }
+    }
     if let compose = env["GRABBER_INBOX_COMPOSE"], !compose.isEmpty {
       // #405: the Inbox with its + already tapped, and with text that text added as Add another would.
       openInbox(from: "hook")

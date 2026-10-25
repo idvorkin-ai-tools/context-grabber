@@ -404,5 +404,39 @@ card=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_card")][0].from // "
 if [ "$card" = "hook" ] && [[ "$drill" =~ ^open\ mixed\ (52|27)$ ]]; then ok "drill: opened over the card, $drill"
 else bad "drill: open_card '$card', drill '$drill'"; fi
 
+# Chat (spec 2026-10-25): against a fake Cockpit (scripts/native/fake-cockpit.py), a message written for a new thread
+# goes up once as POST /chat with its id and the app as source, and one written in a thread as POST /chat/<key>;
+# opening that thread reads it and marks it seen. The log names the thread, never the text.
+CHAT_PORT=${CHAT_PORT:-8797}
+CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
+"$(dirname "$0")/fake-cockpit.py" "$CHAT_PORT" "$CHAT_REPORT" >/dev/null 2>&1 &
+COCKPIT=$!
+trap 'kill $BRIDGE $DROP $COCKPIT 2>/dev/null || true; unstash' EXIT
+sleep 1
+kill -0 "$COCKPIT" 2>/dev/null || bad "chat: the fake Cockpit did not start on port $CHAT_PORT"
+SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND="new|smoke: a new thread" relaunch
+wait_for chat 20 || echo "      (timed out waiting for chat)"
+sleep 2
+f=$(newest_log)
+sent=$(jq -sr '[.[] | select(.type=="chat" and .action=="sent" and .new_thread==true)][0].thread // ""' "$f")
+posts=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat" and .body.source=="app" and .body.title=="smoke: a new thread")] | length' "$CHAT_REPORT")
+leaked=$(grep -c "smoke: a new thread" "$f" || true)
+if [[ "$sent" == igor2-88g.* ]] && [ "$posts" = 1 ] && [ "$leaked" = 0 ]; then ok "chat: a new thread went up once ($sent)"
+else bad "chat: sent '$sent', POST /chat x$posts, text in the log x$leaked"; fi
+SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND="igor2-88g.900|smoke: and a reply" \
+  SIMCTL_CHILD_GRABBER_LINK="grabbernative://chat?thread=igor2-88g.900" relaunch
+wait_for chat 20 || echo "      (timed out waiting for chat)"
+sleep 3
+f=$(newest_log)
+replied=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")] | length' "$CHAT_REPORT")
+read_it=$(jq -sr '[.[] | select(.method=="GET" and .path=="/chat/igor2-88g.900")] | length' "$CHAT_REPORT")
+seen=$(jq -sr '[.[] | select(.path=="/chat-seen" and .body.thread=="igor2-88g.900")] | length' "$CHAT_REPORT")
+opened=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_chat_thread")][0].thread // ""' "$f")
+if [ "$replied" = 1 ] && [ "$read_it" -ge 1 ] && [ "$seen" -ge 1 ] && [ "$opened" = igor2-88g.900 ]; then
+  ok "chat: a reply went to its thread once, which opened, was read and marked seen"
+else bad "chat: POST /chat/<key> x$replied, GET x$read_it, seen x$seen, opened '$opened'"; fi
+failed=$(jq -c 'select(.type=="error")' "$f")
+if [ -z "$failed" ]; then ok "chat: no error events"; else bad "chat: $failed"; fi
+
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
 smoke_done

@@ -28,8 +28,10 @@ final class ChatTests: XCTestCase {
     let pacific = TimeZone(identifier: "America/Los_Angeles")!
     let noted = InboxItem(id: "a", kind: .link, sharedAt: 0, url: "https://idvork.in/x", note: "\n read this \nlater")
     XCTAssertEqual(ChatSend.title(for: noted), "read this")
-    XCTAssertEqual(ChatSend.title(for: InboxItem(id: "b", kind: .text, sharedAt: 0, text: "First line\nsecond")), "First line")
-    XCTAssertEqual(ChatSend.title(for: InboxItem(id: "c", kind: .link, sharedAt: 0, url: "https://idvork.in/x")), "idvork.in")
+    XCTAssertEqual(
+      ChatSend.title(for: InboxItem(id: "b", kind: .text, sharedAt: 0, text: "First line\nsecond")), "First line")
+    XCTAssertEqual(
+      ChatSend.title(for: InboxItem(id: "c", kind: .link, sharedAt: 0, url: "https://idvork.in/x")), "idvork.in")
     // 2026-10-25 09:00 Pacific.
     let photo = InboxItem(id: "d", kind: .image, sharedAt: 1_792_944_000_000)
     XCTAssertEqual(ChatSend.title(for: photo, timeZone: pacific), "Photo, Oct 25")
@@ -61,8 +63,10 @@ final class ChatTests: XCTestCase {
   }
 
   func testAMessageOnAThreadGoesToThatThreadsPathWithNoTitle() throws {
-    let item = InboxItem(id: "message-0001", kind: .text, sharedAt: 0, text: "and another thing", thread: "auto:note:2026-10-25")
-    let request = try ChatSend.messageRequest(item, attachment: "2026-10-25/0123456789abcdef.jpg", cockpit: cockpit + "/")
+    let item = InboxItem(
+      id: "message-0001", kind: .text, sharedAt: 0, text: "and another thing", thread: "auto:note:2026-10-25")
+    let request = try ChatSend.messageRequest(
+      item, attachment: "2026-10-25/0123456789abcdef.jpg", cockpit: cockpit + "/")
     XCTAssertEqual(request.url?.absoluteString, "\(cockpit)/chat/auto:note:2026-10-25")
     let body = try json(request.httpBody)
     XCTAssertNil(body["title"])
@@ -102,7 +106,8 @@ final class ChatTests: XCTestCase {
       ChatSend.outcome(status: 404, body: Data(#"{"ok": false, "error": "no such thread"}"#.utf8)),
       .refused(status: 404, reason: "no such thread"))
     XCTAssertEqual(ChatSend.outcome(status: 403, body: nil), .refused(status: 403, reason: "HTTP 403"))
-    XCTAssertEqual(ChatSend.outcome(status: 502, body: Data(#"{"ok": false, "error": "bd down"}"#.utf8)), .retry(reason: "bd down"))
+    XCTAssertEqual(
+      ChatSend.outcome(status: 502, body: Data(#"{"ok": false, "error": "bd down"}"#.utf8)), .retry(reason: "bd down"))
     XCTAssertEqual(ChatSend.outcome(status: 200, body: Data(#"{"ok": true}"#.utf8)), .retry(reason: "HTTP 200"))
   }
 
@@ -133,7 +138,8 @@ final class ChatTests: XCTestCase {
 
   func testAnImageIsUploadedThenNamedByItsRefInTheMessage() async throws {
     let png = try InboxTests.image(.png, side: 8)
-    try store.add(InboxItem(id: "photo-0001", kind: .image, sharedAt: 1, note: "look"), image: png, imageExtension: "png")
+    try store.add(
+      InboxItem(id: "photo-0001", kind: .image, sharedAt: 1, note: "look"), image: png, imageExtension: "png")
     let seen = Requests()
     let sender = InboxSender(store: store, cockpit: cockpit) { request in
       await seen.add(request)
@@ -246,15 +252,18 @@ final class ChatTests: XCTestCase {
   // MARK: Hearing back
 
   func testOnlyANewUnreadReplyFromLarryIsNotifiedAndOnlyOnce() {
-    let reply = ChatSummary(key: "a", title: "A", lastTs: "2026-10-25T09:00:00-07:00", lastWho: "larry", lastText: "hi", unread: 1)
-    let mine = ChatSummary(key: "b", title: "B", lastTs: "2026-10-25T09:00:00-07:00", lastWho: "igor", lastText: "?", unread: 0)
+    let reply = ChatSummary(
+      key: "a", title: "A", lastTs: "2026-10-25T09:00:00-07:00", lastWho: "larry", lastText: "hi", unread: 1)
+    let mine = ChatSummary(
+      key: "b", title: "B", lastTs: "2026-10-25T09:00:00-07:00", lastWho: "igor", lastText: "?", unread: 0)
     let readElsewhere = ChatSummary(
       key: "c", title: "C", lastTs: "2026-10-25T09:00:00-07:00", lastWho: "larry", lastText: "hi", unread: 0)
     XCTAssertEqual(ChatNotify.due([reply, mine, readElsewhere], notified: [:]).map(\.key), ["a"])
     let recorded = ChatNotify.record([reply, mine], into: [:])
     XCTAssertEqual(recorded["a"], "2026-10-25T09:00:00-07:00")
     XCTAssertTrue(ChatNotify.due([reply], notified: recorded).isEmpty, "once per reply")
-    let newer = ChatSummary(key: "a", title: "A", lastTs: "2026-10-25T10:00:00-07:00", lastWho: "larry", lastText: "and", unread: 2)
+    let newer = ChatSummary(
+      key: "a", title: "A", lastTs: "2026-10-25T10:00:00-07:00", lastWho: "larry", lastText: "and", unread: 2)
     XCTAssertEqual(ChatNotify.due([newer], notified: recorded).map(\.key), ["a"])
   }
 

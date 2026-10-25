@@ -29,6 +29,8 @@ final class InboxModel: ObservableObject {
   var waitingCount: Int { items.filter { $0.status == .waiting }.count }
 
   let store: InboxStore?
+  /// After a send that delivered something: chat reads the threads again, so a new one appears under its key.
+  var didSend: (() -> Void)?
   private let log: SessionLog
   private let database: AppDatabase
   private let cockpit: String
@@ -97,16 +99,23 @@ final class InboxModel: ObservableObject {
     composing = true
   }
 
-  func add(_ draft: inout InboxDraft, another: Bool, id: String = UUID().uuidString.lowercased()) throws {
+  /// `thread`: the chat thread this message goes to; nil starts a new one (spec 2026-10-25).
+  func add(
+    _ draft: inout InboxDraft, another: Bool, id: String = UUID().uuidString.lowercased(), thread: String? = nil
+  ) throws {
     guard let store else {
       throw NSError(
         domain: "InboxModel.add", code: 1,
         userInfo: [NSLocalizedDescriptionKey: "This build has no App Group, so the Inbox is unreachable."])
     }
     let bytes = draft.byteCount
-    let item = try draft.save(to: store, at: Int64(Date().timeIntervalSince1970 * 1000), id: id)
+    let item = try draft.save(to: store, at: Int64(Date().timeIntervalSince1970 * 1000), id: id, thread: thread)
     log.event(
-      "ui", ["action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another])
+      "ui",
+      [
+        "action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another,
+        "new_thread": thread == nil,
+      ])
     refresh(reason: "compose")
   }
 
@@ -180,6 +189,7 @@ final class InboxModel: ObservableObject {
       schedulePathRetry(ifChangedFrom: previousRetry)
       sending = false
       reload()
+      if !report.sent.isEmpty { didSend?() }
       if sendAgain {
         sendAgain = false
         send(reason: "again")

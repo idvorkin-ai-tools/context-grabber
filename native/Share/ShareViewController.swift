@@ -1,5 +1,5 @@
 //  #305, story 038: Grabber Native in any app's share sheet. A small card previews what is shared (a link, text or
-//  one image), takes an optional note, and *Add to Inbox* writes it to the Inbox in the App Group and closes at once.
+//  one image), takes an optional note, and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
 //  No network here: the app sends it to Larry later (story 039).
 
 import ContextCore
@@ -190,7 +190,7 @@ struct ShareCard: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: cancel) }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Add to Inbox") {
+          Button("Start a chat") {
             failure = add(note)
             added = failure == nil
           }

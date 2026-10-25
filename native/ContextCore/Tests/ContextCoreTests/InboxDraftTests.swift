@@ -59,7 +59,8 @@ final class InboxDraftTests: XCTestCase {
     XCTAssertEqual(item.imageFile, "\(item.id).png")
     XCTAssertEqual(store.image(of: item), png)
     XCTAssertEqual(store.items().items, [item])
-    let request = try ChatSend.messageRequest(item, attachment: "2026-10-25/0123456789abcdef.png", cockpit: "https://cockpit.test")
+    let request = try ChatSend.messageRequest(
+      item, attachment: "2026-10-25/0123456789abcdef.png", cockpit: "https://cockpit.test")
     let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
     XCTAssertEqual(body["text"] as? String, "discuss this 🦝")
     XCTAssertEqual(body["title"] as? String, "discuss this 🦝")
