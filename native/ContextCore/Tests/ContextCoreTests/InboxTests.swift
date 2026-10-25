@@ -53,49 +53,6 @@ final class InboxTests: XCTestCase {
 
   // MARK: The request and the answer (story 039, cockpit#63)
 
-  func testTheRequestCarriesTheContractAndTheCockpitsOrigin() throws {
-    let item = InboxItem(
-      id: "0f6c1a2e-1111-4a8e-9c1d-aa00bb11cc22", kind: .link, sharedAt: 1_792_000_000_000,
-      url: "https://example.com/article", note: "read on the plane")
-    let request = try InboxSend.request(item, image: nil, cockpit: "https://c-5004.squeaker-teeth.ts.net")
-    XCTAssertEqual(request.url?.absoluteString, "https://c-5004.squeaker-teeth.ts.net/inbox")
-    XCTAssertEqual(request.httpMethod, "POST")
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Origin"), "https://c-5004.squeaker-teeth.ts.net")
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
-    XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"), "no token is set up")
-    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual(body["id"] as? String, item.id)
-    XCTAssertEqual(body["kind"] as? String, "link")
-    XCTAssertEqual(body["url"] as? String, "https://example.com/article")
-    XCTAssertEqual(body["note"] as? String, "read on the plane")
-    let sharedAt = try XCTUnwrap(body["shared_at"] as? String)
-    let parser = ISO8601DateFormatter()
-    parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    XCTAssertEqual(parser.date(from: sharedAt), Date(timeIntervalSince1970: 1_792_000_000))
-    XCTAssertNil(body["image"])
-  }
-
-  func testAnImageGoesAsPlainBase64() throws {
-    let jpeg = try Self.image(.jpeg)
-    let body = InboxSend.body(InboxItem(id: "i", kind: .image, sharedAt: 0), image: jpeg)
-    let image = try XCTUnwrap(body["image"] as? [String: String])
-    XCTAssertEqual(image["data"], jpeg.base64EncodedString())
-    XCTAssertFalse(image["data"]?.hasPrefix("data:") ?? true)
-    XCTAssertEqual(image["mime"], "image/jpeg")
-  }
-
-  func testEveryAnswerClass() {
-    let ok = Data(#"{"ok": true, "id": "a", "received_at": "2026-10-18T04:16:54-07:00"}"#.utf8)
-    let dup = Data(#"{"ok": true, "id": "a", "received_at": "x", "duplicate": true, "version": "9"}"#.utf8)
-    let bad = Data(#"{"ok": false, "reason": "image over 10 MB", "error": "image over 10 MB"}"#.utf8)
-    XCTAssertEqual(InboxSend.outcome(status: 200, body: ok), .sent(duplicate: false))
-    XCTAssertEqual(InboxSend.outcome(status: 200, body: dup), .sent(duplicate: true))
-    XCTAssertEqual(InboxSend.outcome(status: 413, body: bad), .refused(status: 413, reason: "image over 10 MB"))
-    XCTAssertEqual(InboxSend.outcome(status: 403, body: nil), .refused(status: 403, reason: "HTTP 403"))
-    XCTAssertEqual(InboxSend.outcome(status: 503, body: Data("down".utf8)), .retry(reason: "HTTP 503"))
-    XCTAssertEqual(InboxSend.outcome(status: nil, body: nil, error: "offline"), .retry(reason: "offline"))
-  }
-
   // MARK: Images (story 039: a HEIC photo arrives as a JPEG)
 
   func testAHEICBecomesAJPEGAndAJPEGGoesAsItIs() throws {
@@ -128,7 +85,7 @@ final class InboxTests: XCTestCase {
         (JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])?["id"] as? String)
       await seen.add(id)
       let status = ["a": 200, "b": 415, "c": 503][id] ?? 200
-      let body = status == 200 ? #"{"ok": true}"# : #"{"ok": false, "reason": "nope"}"#
+      let body = status == 200 ? #"{"ok": true, "thread": "t"}"# : #"{"ok": false, "reason": "nope"}"#
       return (
         Data(body.utf8), HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
       )
@@ -177,7 +134,7 @@ final class InboxTests: XCTestCase {
     let online = InboxSender(store: store, cockpit: "https://cockpit.test") { request in
       await requests.add("a")
       return (
-        Data(#"{"ok": true}"#.utf8),
+        Data(#"{"ok": true, "thread": "t"}"#.utf8),
         try XCTUnwrap(
           HTTPURLResponse(url: try XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil))
       )
@@ -204,7 +161,7 @@ final class InboxTests: XCTestCase {
       await seen.add(id ?? "?")
       if id == "a" { try store.delete(later) }  // Igor swipes b away while a is out
       return (
-        Data(#"{"ok": true}"#.utf8),
+        Data(#"{"ok": true, "thread": "t"}"#.utf8),
         HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
       )
     }

@@ -1,6 +1,7 @@
-//  #305 phase 2, story 039: an Inbox item to Larry's inbox on the Cockpit, `POST /inbox` (cockpit#63). Reaching the
-//  tailnet host is the permission; the Cockpit wants its own https Origin from a native app, since no token is set
-//  up. Each item goes once: a resend is recognised by its id.
+//  #305 phase 2, story 039: an Inbox item to Larry on the Cockpit — since chat (spec 2026-10-25) as a chat message,
+//  `ChatSend`. Reaching the tailnet host is the permission; the Cockpit wants its own https Origin from a native app,
+//  since no token is set up. Each item goes once: a resend is recognised by its id. This file keeps the image rules
+//  and the sender.
 
 import Foundation
 import ImageIO
@@ -9,52 +10,6 @@ import UniformTypeIdentifiers
 public enum InboxSend {
   /// The Cockpit's cap on a decoded image.
   public static let maxImageBytes = 10 * 1024 * 1024
-
-  public enum Outcome: Equatable, Sendable {
-    /// Taken (or taken before: `duplicate`).
-    case sent(duplicate: Bool)
-    /// The item itself is wrong (4xx): never retried.
-    case refused(status: Int, reason: String)
-    /// The Cockpit is down or unreachable (5xx, no answer): tried again on the next open or network return.
-    case retry(reason: String)
-  }
-
-  /// The request for one item. `image` is the bytes to send, already a type the Cockpit takes (see `sendable`).
-  public static func request(_ item: InboxItem, image: Data?, cockpit: String) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("inbox"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = 30
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = try JSONSerialization.data(withJSONObject: body(item, image: image), options: [.sortedKeys])
-    return request
-  }
-
-  static func body(_ item: InboxItem, image: Data?) -> [String: Any] {
-    var body: [String: Any] = [
-      "id": item.id, "kind": item.kind.rawValue,
-      "shared_at": iso(item.sharedAt),
-    ]
-    if let url = item.url { body["url"] = url }
-    if let text = item.text { body["text"] = text }
-    if let note = item.note { body["note"] = note }
-    if item.kind == .image, let image {
-      body["image"] = ["data": image.base64EncodedString(), "mime": mime(of: image)]
-    }
-    return body
-  }
-
-  public static func outcome(status: Int?, body: Data?, error: String? = nil) -> Outcome {
-    let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-    guard let status else { return .retry(reason: error ?? "no answer") }
-    if status == 200, json?["ok"] as? Bool == true {
-      return .sent(duplicate: json?["duplicate"] as? Bool == true)
-    }
-    let reason = (json?["reason"] as? String) ?? (json?["error"] as? String) ?? "HTTP \(status)"
-    if (400..<500).contains(status) { return .refused(status: status, reason: reason) }
-    return .retry(reason: reason)
-  }
 
   /// PNG, JPEG, GIF and WebP go as they are; anything else (HEIC) becomes a JPEG, made smaller until it fits the
   /// Cockpit's 10 MB. Nil when the bytes are not an image ImageIO can read.
@@ -133,7 +88,8 @@ public struct InboxSender: Sendable {
     public var retry: String?
   }
 
-  /// `log` gets one line per item: the event's fields, never the content.
+  /// `log` gets one line per item: the event's fields, never the content. Chat (spec 2026-10-25): an item is a
+  /// chat message — its image uploaded first, then posted to its thread or as a new one.
   public func sendWaiting(now: @Sendable () -> Date = Date.init, log: (String, [String: Any]) -> Void) async
     -> Report
   {
@@ -142,40 +98,53 @@ public struct InboxSender: Sendable {
     for queued in store.waiting() where !queued.isFixture {
       // Read again just before sending: one deleted while an earlier request was out never goes (local review).
       guard let item = store.item(queued.id), item.status == .waiting else { continue }
-      var fields: [String: Any] = ["item": item.id, "kind": item.kind.rawValue]
-      var outcome: InboxSend.Outcome
-      var image: Data?
-      if item.kind == .image {
-        guard let raw = store.image(of: item), let ready = InboxSend.sendable(raw) else {
-          outcome = .refused(status: 0, reason: "The image could not be read or made small enough to send.")
-          record(item, outcome, now: now, fields: &fields, report: &report, log: log)
-          continue
-        }
-        image = ready
-        fields["bytes"] = ready.count
-      }
-      do {
-        let request = try InboxSend.request(item, image: image, cockpit: cockpit)
-        let (data, response) = try await transport(request)
-        outcome = InboxSend.outcome(status: (response as? HTTPURLResponse)?.statusCode, body: data)
-      } catch {
-        outcome = InboxSend.outcome(status: nil, body: nil, error: error.localizedDescription)
-      }
+      var fields: [String: Any] = ["item": item.id, "kind": item.kind.rawValue, "new_thread": item.thread == nil]
+      if let thread = item.thread { fields["thread"] = thread }
+      let outcome = await send(item, fields: &fields)
       record(item, outcome, now: now, fields: &fields, report: &report, log: log)
       if case .retry = outcome { break }
     }
     return report
   }
 
+  private func send(_ item: InboxItem, fields: inout [String: Any]) async -> ChatSend.Outcome {
+    var attachment: String?
+    if item.kind == .image {
+      guard let raw = store.image(of: item), let ready = InboxSend.sendable(raw) else {
+        return .refused(status: 0, reason: "The image could not be read or made small enough to send.")
+      }
+      fields["bytes"] = ready.count
+      let upload: ChatSend.Upload
+      do {
+        let (data, response) = try await transport(try ChatSend.uploadRequest(image: ready, cockpit: cockpit))
+        upload = ChatSend.upload(status: (response as? HTTPURLResponse)?.statusCode, body: data)
+      } catch {
+        upload = ChatSend.upload(status: nil, body: nil, error: error.localizedDescription)
+      }
+      switch upload {
+      case .ref(let ref): attachment = ref
+      case .refused(let status, let reason): return .refused(status: status, reason: reason)
+      case .retry(let reason): return .retry(reason: "image upload: \(reason)")
+      }
+    }
+    do {
+      let request = try ChatSend.messageRequest(item, attachment: attachment, cockpit: cockpit)
+      let (data, response) = try await transport(request)
+      return ChatSend.outcome(status: (response as? HTTPURLResponse)?.statusCode, body: data)
+    } catch {
+      return ChatSend.outcome(status: nil, body: nil, error: error.localizedDescription)
+    }
+  }
+
   private func record(
-    _ item: InboxItem, _ outcome: InboxSend.Outcome, now: () -> Date, fields: inout [String: Any],
+    _ item: InboxItem, _ outcome: ChatSend.Outcome, now: () -> Date, fields: inout [String: Any],
     report: inout Report, log: (String, [String: Any]) -> Void
   ) {
     do {
       switch outcome {
-      case .sent(let duplicate):
-        try store.markSent(item.id, at: Int64(now().timeIntervalSince1970 * 1000))
-        fields.merge(["action": "sent", "duplicate": duplicate]) { $1 }
+      case .sent(let thread, let duplicate):
+        try store.markSent(item.id, at: Int64(now().timeIntervalSince1970 * 1000), thread: thread)
+        fields.merge(["action": "sent", "duplicate": duplicate, "thread": thread]) { $1 }
         report.sent.append(item.id)
       case .refused(let status, let reason):
         try store.markRefused(item.id, reason: reason)
@@ -188,6 +157,6 @@ public struct InboxSender: Sendable {
     } catch {
       fields.merge(["action": "failed", "reason": "could not record the answer: \(error)"]) { $1 }
     }
-    log("inbox", fields)
+    log("chat", fields)
   }
 }

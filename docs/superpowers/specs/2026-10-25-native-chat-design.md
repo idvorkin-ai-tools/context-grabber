@@ -51,8 +51,8 @@ at once with **Not sent yet** until the Cockpit has it. A new thread from the **
 its title is that message's first line.
 
 **Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
-share becomes a new thread whose first message is the shared thing with the note. The title is the link's title (or
-its site), else the note's or text's first line, else *Photo, <date>*. It works in aeroplane mode and while the app is
+share becomes a new thread whose first message is the shared thing with the note. The title is the note's first
+line, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane mode and while the app is
 not running, as now.
 
 **Sending.** The same rules the Inbox has: tried when the app opens or comes to the front, when the network returns

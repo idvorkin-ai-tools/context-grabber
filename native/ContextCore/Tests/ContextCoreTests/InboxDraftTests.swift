@@ -43,7 +43,7 @@ final class InboxDraftTests: XCTestCase {
     XCTAssertEqual(draft, InboxDraft())
   }
 
-  func testImageWithOptionalNoteIsOneItemAndUsesTheExistingSendContract() throws {
+  func testImageWithOptionalNoteIsOneItemAndGoesAsAChatMessage() throws {
     let directory = temporaryDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }
     let store = InboxStore(directory: directory)
@@ -59,11 +59,11 @@ final class InboxDraftTests: XCTestCase {
     XCTAssertEqual(item.imageFile, "\(item.id).png")
     XCTAssertEqual(store.image(of: item), png)
     XCTAssertEqual(store.items().items, [item])
-    let request = try InboxSend.request(item, image: store.image(of: item), cockpit: "https://cockpit.test")
+    let request = try ChatSend.messageRequest(item, attachment: "2026-10-25/0123456789abcdef.png", cockpit: "https://cockpit.test")
     let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual(body["kind"] as? String, "image")
-    XCTAssertEqual(body["note"] as? String, "discuss this 🦝")
-    XCTAssertEqual((body["image"] as? [String: String])?["data"], png.base64EncodedString())
+    XCTAssertEqual(body["text"] as? String, "discuss this 🦝")
+    XCTAssertEqual(body["title"] as? String, "discuss this 🦝")
+    XCTAssertEqual(body["attachments"] as? [String], ["2026-10-25/0123456789abcdef.png"])
     XCTAssertEqual(draft, InboxDraft())
     draft.image = png
     draft.text = " \n "
