@@ -63,6 +63,14 @@ final class TodayGlanceTests: XCTestCase {
     XCTAssertEqual(empty.items.map(\.value), ["○", "○", "0", "0"])
   }
 
+  func testADoneOrCountedStripItemIsLitAndHealthNeverIs() {
+    let glance = TodayGlance(
+      day: "2026-10-19", values: [.journal: 0, .balloons: 1, .magic: 0], meditationDone: true)
+    XCTAssertEqual(glance.items.map(\.isLit), [true, false, true, false], "meditation and a balloon, as on home")
+    XCTAssertFalse(TodayGlance.Item(key: "hrv", value: "65 ms").isLit)
+    XCTAssertFalse(TodayGlance.Item(key: "movement", value: "5421").isLit, "a Health number is not a strip count")
+  }
+
   func testStripEditsAndPeerCountsUseTheDisplayedTotals() throws {
     let strip = try DailyStrip(db: SQLiteDatabase(path: ":memory:"))
     let day = "2026-10-19"

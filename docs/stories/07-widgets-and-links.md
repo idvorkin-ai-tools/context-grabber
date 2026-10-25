@@ -345,8 +345,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 226:
 
 - **Summary:** Today's numbers on the usage tile, and daily strip under the usage left
-- **Issues:** [#396](https://github.com/idvorkin/context-grabber/issues/396), [#404](https://github.com/idvorkin/context-grabber/issues/404)
-- **Status:** native app only: implemented in [dac9d82](https://github.com/idvorkin/context-grabber/commit/dac9d82), the entry at local midnight in [341e29e](https://github.com/idvorkin/context-grabber/commit/341e29e); verified by `TodayGlanceTests` (host: the card's order, the short forms, the dash, today only) and a simulator build of the app and widget; the drawn tile on the phone not yet; the daily strip in place of sleep (#404) in [f02df8c](https://github.com/idvorkin/context-grabber/commit/f02df8c), verified by `TodayGlanceTests` (host) and a simulator build of the app and widget; the drawn strip on the phone not yet
+- **Issues:** [#396](https://github.com/idvorkin/context-grabber/issues/396), [#404](https://github.com/idvorkin/context-grabber/issues/404), [#427](https://github.com/idvorkin/context-grabber/issues/427)
+- **Status:** native app only: implemented in [dac9d82](https://github.com/idvorkin/context-grabber/commit/dac9d82), the entry at local midnight in [341e29e](https://github.com/idvorkin/context-grabber/commit/341e29e); verified by `TodayGlanceTests` (host: the card's order, the short forms, the dash, today only) and a simulator build of the app and widget; the drawn tile on the phone not yet; the daily strip in place of sleep (#404) in [f02df8c](https://github.com/idvorkin/context-grabber/commit/f02df8c), verified by `TodayGlanceTests` (host) and a simulator build of the app and widget; the drawn strip on the phone not yet; the strip coloured as home (#427) in [14c7e45](https://github.com/idvorkin/context-grabber/commit/14c7e45), verified by `TodayGlanceTests` (host); the drawn tile on a simulator and the phone not yet
 - **Spec:** [native live tile, "Today's numbers"](../superpowers/specs/2026-10-06-native-live-tile-design.md)
 
 #### Use Case:
@@ -359,6 +359,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app has written today's strip and Health reading, and I change the strip with a tap, hold, week edit or peer sync
 - **When:** I look at the usage tile on my home screen, then again after local midnight
 - **Then:** both sizes show the app's Meditation and Journal done/not-done marks, Balloons and Magic counts, and steps, HRV and exercise with small symbols fitting the small tile, with no sleep; each part is absent before its first write and after midnight until written for the new day, and a strip change does not revive yesterday's Health numbers
+
+- **Scenario:** The tile's strip is coloured as the home page's (#427)
+- **Given:** today I have meditated and blown one balloon, but not journalled or done magic
+- **When:** I look at the usage tile
+- **Then:** the meditation symbol is green and the balloon pink, as on the home page, and the journal and magic symbols stay grey
 
 ---
 

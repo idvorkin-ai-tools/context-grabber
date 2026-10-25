@@ -9,6 +9,12 @@ public struct TodayGlance: Codable, Equatable, Sendable {
     public let key: String
     /// A check mark, counter, short Health number, or "—".
     public let value: String
+
+    /// #427: a strip item that is done or counted, so the tile colours it as the home page does.
+    public var isLit: Bool {
+      guard DailyItem(rawValue: key) != nil else { return false }
+      return value == "✓" || (Int(value) ?? 0) > 0
+    }
   }
 
   /// The local day it was taken, as the strip keys days.
