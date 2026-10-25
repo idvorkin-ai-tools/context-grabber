@@ -552,7 +552,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 281:
 
 - **Summary:** Call Direct Larry from the app — my words straight to Larry, his answer in his own voice
-- **Status:** implemented in COMMIT; verified by `just test` (host: `CallWireTests`, `CallSessionTests.testADirectCallNamesTheBackendAndSendsNoVoiceOrModel`, `AppLinkTests`, `CockpitBridgeTests`, `CallSettingsTests`) and on the simulator against the fake bridge (*live · Direct*, Larry's line captioned *Larry*, five backends fitting the row); a real Direct call on the phone not yet.
+- **Status:** implemented in [cfa3db4](https://github.com/idvorkin/context-grabber/commit/cfa3db4); verified by `just test` (host: `CallWireTests`, `CallSessionTests.testADirectCallNamesTheBackendAndSendsNoVoiceOrModel`, `AppLinkTests`, `CockpitBridgeTests`, `CallSettingsTests`) and on the simulator against the fake bridge (*live · Direct*, Larry's line captioned *Larry*, five backends fitting the row); a real Direct call on the phone not yet.
 - **Issues:** [#436](https://github.com/idvorkin/context-grabber/issues/436)
 - **Spec:** [Native call — Direct Larry](../superpowers/specs/2026-08-28-native-call-screen-design.md#direct-larry)
 
