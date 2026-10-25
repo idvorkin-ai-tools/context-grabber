@@ -216,6 +216,35 @@ server's log. The ending line carries the final pair. *Played* means
 rendered by the speaker; *received* means delivered by the socket; the log
 never confuses the two.
 
+**The log watches playback** ([#442](https://github.com/idvorkin/context-grabber/issues/442)).
+Igor, 2026-10-25, on a Direct call: *"I got a bunch of noise and static
+there."* The bridge's recording of what it sent was clean, so the fault
+was between the socket and the speaker — and the log had nothing on that
+stretch. So every five seconds while Larry's audio is playing, one more
+line says how his frames arrived and were queued: how many and how big
+(smallest and largest), how many ended mid-sample (an odd byte count),
+how many found no engine to take them, how often the player had already
+run dry when the next one came and for how long in all, the longest wait
+between two, and how much was queued ahead at the thinnest and the
+thickest. The five-second level line names the rate the player was built
+at, the rate the audio session runs at, the hardware's output rate and
+its buffer, so a conversion between them is visible; the opening of
+playback names the hardware rate and the buffer too. The running totals
+of odd frames and underruns ride the five-second count line and the
+ending line. Nothing is logged per sample or per frame.
+
+**A frame cut mid-sample is still sound** (#442). The bridge's Direct
+Larry forwards its voice vendor's chunks as they land, and a chunk can end
+halfway through a sample — twelve of thirty-eight frames in one sentence,
+measured. Read frame by frame, every sample after such a cut was a
+half-swapped pair: broadband static until the next odd frame flipped it
+back, while the bridge's own recording, which simply joins the bytes, was
+clean. The app reads Larry's audio as the byte stream it is: a frame's
+odd last byte waits and joins the next frame's first. A barge-in flush
+starts a new stream (Larry's next reply), so no stale byte leads it; the
+phone rebuilding its own audio, or a frame it could not play, does not:
+the bridge's bytes carry on, so the samples after either stay aligned.
+
 **The log survives a freeze.** Igor, 2026-08-30: *"I had a freeze when I
 switched microphones in the last call — hopefully the app was actually
 storing everything."* The log is mirrored to disk as it grows, not
@@ -235,6 +264,26 @@ automatic redial, and when the bridge fails to acknowledge the microphone,
 the app sends the dump to the bridge over the call's own socket before
 anything closes, so Larry can read it from the call's record without Igor
 pasting anything. (Bridge half: the Cockpit repo.)
+
+**The log reaches the Cockpit's archive on its own** (#442, story 212).
+The bridge has never filed that dump, and an automatic report waits for a
+troubled call and the Mac's listener, so a call that merely *sounded* wrong
+left nothing Larry could read without the phone. Now, at every ending,
+the call's own log — its header (build, backend, voice, how it ended, any
+problem, the route, the bridge) and every line since its start — goes to
+the Cockpit's stats archive as one batch, one record per line under the
+call's bridge session, in order, the same way the trail and Health go
+there (the archive keeps one copy per record, so a resend changes
+nothing). A call that never reached the bridge's ready has no session and
+takes a fresh id of its own, so two such calls never share a key and the
+archive never drops one as the other's copy. A line too long for one of
+the archive's records (a long caption or tool answer) is cut until its
+record fits, so one line never costs the whole call's log; so is a long
+ending or problem in the header, without crowding out its other fields. A line in Diagnostics says whether the archive took it and how
+many records; a failed send is said once and not retried, and never counts
+as trouble with the call. On a simulator the log goes only where the
+archive hook points, as the stats do, so a fake-bridge call never lands in
+Igor's archive.
 
 ### Audio that stops — either direction
 
@@ -738,6 +787,19 @@ back. The calling treatment in the middle of the screen stays; the big
     *listening…* and the sentence is now an *Igor* row in the transcript
     below — once, not twice. Mute: the box reads *muted*. Hang up: the box
     is gone.
+
+43. **Playback is watched and the log leaves the phone** (#442). On a
+    Direct call, listen through two of Larry's replies: no static. Open
+    Diagnostics: every five seconds while he spoke there is a playback
+    line with the frame count, smallest and largest frame, odd frames,
+    dropped frames, underruns and dry time, longest gap and queue depth;
+    the level line names the player, session and hardware rates and the
+    buffer; the ending line carries the odd-frame and underrun totals.
+    After the hang-up a line says the archive took the call's log and
+    how many records. On the Mac, the Cockpit's archive holds the same
+    lines under the call's bridge session, oldest first, with the header
+    record before them.
+
 ## Rationale and risks
 **Why native rather than fixing the web view.** WebKit on iOS suspends
 `getUserMedia` capture when the app leaves the foreground, and `WKWebView`

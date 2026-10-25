@@ -58,6 +58,10 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var mixPeak: Float = 0
   private var mixBuffers = 0
   private var mixTapInstalled = false
+  /// #442: Larry's bytes as one stream across frames (an odd frame's last byte waits for the next), and five seconds
+  /// of how his frames arrived and were queued, logged as `call_playback`.
+  private var rxStream = PCM16Stream()
+  private var window = PlaybackWindow()
 
   /// The output, read from main for the stats line: guarded by `lock`.
   private let lock = NSLock()
@@ -65,6 +69,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var playhead = 0.0
   private var playerTimeS = 0.0
   private var playbackOpen = false
+  private var oddFrames = 0
+  private var underruns = 0
   private var publishedMicDeadline = MicStartupDeadline()
 
   /// #441: whether the app was in front when a start failed, read on the audio queue without waiting on main.
@@ -120,6 +126,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   func openPlayback(outRate: Double) {
     queue.async { [self] in
       self.outRate = outRate
+      rxStream = PCM16Stream()
+      window = PlaybackWindow()
       do {
         try connectPlayer()
         try startEngine(why: "playback")
@@ -129,11 +137,20 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
           scheduledS = 0
           playhead = 0
           playerTimeS = 0
+          oddFrames = 0
+          underruns = 0
         }
         openedAt = nowMs
         clockLive = false
         clockReopened = false
-        log("call_audio", ["action": "playback_open", "out_rate": outRate, "ok": true])
+        lastScheduledAt = 0
+        log(
+          "call_audio",
+          [
+            "action": "playback_open", "out_rate": outRate, "ok": true,
+            "hw_rate": engine?.outputNode.outputFormat(forBus: 0).sampleRate ?? 0,
+            "io_buffer_ms": (session.ioBufferDuration * 1000).rounded(),
+          ])
         startWatchdog()
       } catch {
         log("call_audio", ["action": "playback_open", "out_rate": outRate, "ok": false, "message": describe(error)])
@@ -173,8 +190,22 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
 
   func play(_ pcm: Data) {
     queue.async { [self] in
-      guard let player, let format = playerFormat, let engine, engine.isRunning else { return }
-      let samples = PCM.pcm16ToFloat(pcm)
+      guard let player, let format = playerFormat, let engine, engine.isRunning else {
+        // Nowhere to put it: the frame is lost, but its bytes still say where the next sample starts (#442).
+        rxStream.skip(pcm)
+        window.dropped()
+        return
+      }
+      let samples = rxStream.decode(pcm)
+      let now = currentPlayerTime()
+      let head = lock.withLock { playhead }
+      let queued = head - now
+      let underrunsBefore = window.underruns
+      window.scheduled(bytes: pcm.count, at: nowMs, queuedS: queued, previousAt: lastScheduledAt)
+      lock.withLock {
+        oddFrames = rxStream.oddFrames
+        if window.underruns > underrunsBefore { underruns += 1 }
+      }
       for x in samples { rxPeak = max(rxPeak, abs(x)) }
       if rxPeak > 0.01, firstLoudRxAt == nil { firstLoudRxAt = nowMs }
       guard !samples.isEmpty,
@@ -188,7 +219,6 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       }
       player.scheduleBuffer(buffer, completionHandler: nil)
       let duration = Double(samples.count) / outRate
-      let now = currentPlayerTime()
       lock.withLock {
         scheduledS += duration
         playhead = max(playhead, now) + duration
@@ -201,6 +231,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   /// Barge-in: everything of Larry's not yet heard goes. The player's clock restarts from zero.
   func flush() {
     queue.async { [self] in
+      // #442: what follows is a new stream, even when a failed rebuild left no player to stop.
+      rxStream.reset()
       guard let player else { return }
       let now = currentPlayerTime()
       player.stop()
@@ -211,6 +243,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       }
       clockPrev = 0
       clockAdvancedAt = nowMs
+      // Its first frame finds an empty queue by design.
+      lastScheduledAt = 0
       if engine?.isRunning == true { player.play() }
     }
   }
@@ -235,7 +269,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       guard playbackOpen else { return nil }
       let queued = max(0, playhead - playerTimeS)
       return PlaybackStats(
-        scheduledS: scheduledS, playedS: max(0, scheduledS - queued), clockRunning: playerTimeS > 0, pendingS: 0)
+        scheduledS: scheduledS, playedS: max(0, scheduledS - queued), clockRunning: playerTimeS > 0, pendingS: 0,
+        oddFrames: oddFrames, underruns: underruns)
     }
   }
 
@@ -419,6 +454,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     let wasListening = listening ?? (micListener != nil)
     let wasPlaying = playing ?? (playerFormat != nil)
     firstLoudRxAt = nil  // what was scheduled goes with the engine; the next window judges fresh audio (#199)
+    // The stream's alignment stays (#442): a rebuild is local, and the bridge's bytes carry on where they were.
+    lastScheduledAt = 0
     micStallRearm = false
     teardownEngineOnly()
     try configureSession()
@@ -581,7 +618,16 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
         "out_channels": Int(outFormat.channelCount),
         "out_vp": out.isVoiceProcessingEnabled, "in_vp": engine.inputNode.isVoiceProcessingEnabled,
         "category": session.category.rawValue, "mode": session.mode.rawValue, "outputs": outputs,
+        "player_rate": playerFormat?.sampleRate ?? 0, "session_rate": session.sampleRate,
+        "io_buffer_ms": (session.ioBufferDuration * 1000).rounded(),
       ])
+    // #442: how Larry's frames arrived and were queued this window; nothing when none came.
+    if !window.isEmpty {
+      log(
+        "call_playback",
+        window.fields.merging(["carrying": rxStream.carrying, "odd_total": rxStream.oddFrames]) { _, new in new })
+      window = PlaybackWindow()
+    }
     let heals = silentMixer && nowMs - lastReopenAt >= CallWatchdog.reopenMinGapMs
     firstLoudRxAt = CallWatchdog.carriedLoudRx(firstLoudRxAt: firstLoudRxAt, mixPeak: mixPeak, healed: heals)
     rxPeak = 0

@@ -646,3 +646,123 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a live call
 - **When:** the phone's network changes, or the connection to the bridge is lost
 - **Then:** Diagnostics hold the network at the call's start and at every change (connected or not, which interfaces the call is using and which are available, metered, Low Data Mode), and the lost line names the error's code, the error underneath it, and the seconds since the last frame in and out; the screen still says *connection lost*
+
+---
+
+### User Story 210:
+
+- **Summary:** Larry's reply plays clean when the bridge cuts his frames mid-sample
+- **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `PCM16StreamTests`); a Direct call on the phone not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442), [#447](https://github.com/idvorkin/context-grabber/issues/447)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client who heard noise and static on a call whose server-side recording was clean
+- **I want to** the phone to read Larry's audio as the stream it is
+- **so that** a frame cut mid-sample no longer plays as static
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's reply arrives in frames cut mid-sample
+- **Given:** a live call whose bridge sends Larry's audio in frames, some with an odd byte count
+- **When:** the reply plays
+- **Then:** the reply is heard clean: an odd frame's last byte joins the next frame
+
+---
+
+### User Story 211:
+
+- **Summary:** A call that sounds wrong says why in Diagnostics
+- **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `PlaybackWindowTests`, the counters in `CallSessionCountersTests`); a Direct call on the phone not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client whose call sounded wrong
+- **I want to** the call's log to say how Larry's frames arrived and played
+- **so that** the next bad call carries its own evidence
+
+#### Acceptance Criteria:
+- **Scenario:** Larry speaks on a live call
+- **Given:** a live call
+- **When:** Larry's frames arrive
+- **Then:** Diagnostics show a playback line every five seconds he spoke with frame count and sizes, odd and dropped frames, underruns and dry time, longest gap and queue depth; the level line names the player, session and hardware rates and the buffer; and the ending line carries the odd-frame and underrun totals
+
+---
+
+### User Story 212:
+
+- **Summary:** A call's log reaches Larry without the phone
+- **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `CallLogArchiveTests`, the trouble rule in `CallEventLogTests`); its log in the Cockpit's archive after a call on the phone not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client whose call merely sounded wrong
+- **I want to** the call's log sent to the Cockpit's archive when the call ends
+- **so that** Larry can read the evidence on his box without the phone
+
+#### Acceptance Criteria:
+- **Scenario:** A call ends
+- **Given:** a call that reached the bridge's ready
+- **When:** the call ends
+- **Then:** the call's log is in the Cockpit's archive under the call's bridge session, with a line in Diagnostics saying it was taken
+
+---
+
+### User Story 213:
+
+- **Summary:** Larry's reply stays clean when the phone's own audio hiccups mid-reply
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c), [3d81338](https://github.com/idvorkin/context-grabber/commit/3d81338) (a barge-in starts the stream anew even with no player); verified by `just test` (host: `PCM16StreamTests.testASkippedFrameKeepsTheStreamAligned`, `testTheCarryWaitsForTheNextFrameAndNotPastAReset`); a Direct call on the phone not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client whose phone rebuilds its audio during a call
+- **I want to** the samples after the hiccup to stay aligned
+- **so that** a rebuild or a dropped frame never turns the rest of the reply into static
+
+#### Acceptance Criteria:
+- **Scenario:** The phone's own audio hiccups mid-reply
+- **Given:** a reply whose frames are cut mid-sample
+- **When:** the phone rebuilds its audio, or a frame arrives with nowhere to play
+- **Then:** the samples after it are heard clean, never static: only Larry's next reply starts the stream anew
+
+---
+
+### User Story 214:
+
+- **Summary:** A call that never heard ready still keeps its own log in the archive
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c); verified by `just test` (host: `CallLogArchiveTests.testACallThatNeverHeardReadyTakesAFreshLocalKey`); on the phone not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client whose call failed before the bridge was ready
+- **I want to** that call's log archived under a key of its own
+- **so that** the archive never drops it as another call's copy
+
+#### Acceptance Criteria:
+- **Scenario:** A call that never reached the bridge's ready
+- **Given:** a call that never reached the bridge's ready
+- **When:** the call ends
+- **Then:** its log goes under a key no other call shares
+
+---
+
+### User Story 215:
+
+- **Summary:** A line too long for an archive record does not cost the rest of the log
+- **Status:** implemented in [c9ff20c](https://github.com/idvorkin/context-grabber/commit/c9ff20c), [054fbc8](https://github.com/idvorkin/context-grabber/commit/054fbc8) and [135439f](https://github.com/idvorkin/context-grabber/commit/135439f) (a long field in the header is cut too, Codex on #523); verified by `just test` (host: `CallLogArchiveTests.testALongLineIsCutUntilItsRecordFitsTheArchivesBytes`, `testALongProblemInTheHeaderIsCutUntilTheHeaderFits`); on the phone not yet.
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442) (Codex on #443)
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
+
+#### Use Case:
+- **As a** Larry's client whose call carried a long caption or tool answer
+- **I want to** that line cut to fit an archive record
+- **so that** the archive keeps the rest of the call's log
+
+#### Acceptance Criteria:
+- **Scenario:** A line longer than an archive record holds
+- **Given:** a call whose log has a line, or whose ending or problem in the header, longer than an archive record holds
+- **When:** the call ends
+- **Then:** the long text is cut to fit, and the rest of the log and the header's other fields are kept

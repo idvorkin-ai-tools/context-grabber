@@ -629,7 +629,8 @@ final class CallSessionVoiceTests: XCTestCase {
 final class CallSessionCountersTests: XCTestCase {
   func testLogsReceivedBytesAgainstPlayedSecondsEveryFiveSecondsAndTheFinalPairOnEnding() {
     let t = CallHarness()
-    t.audio.statsValue = PlaybackStats(scheduledS: 1.5, playedS: 1.2, clockRunning: true, pendingS: 0)
+    t.audio.statsValue = PlaybackStats(
+      scheduledS: 1.5, playedS: 1.2, clockRunning: true, pendingS: 0, oddFrames: 3, underruns: 2)
     t.goLive(.eleven)
     t.audio.mic()
     t.socket.say(["type": "mic_ack", "token": 1])
@@ -641,6 +642,8 @@ final class CallSessionCountersTests: XCTestCase {
     XCTAssertEqual(stats["rx_frames"] as? Int, 2)
     XCTAssertEqual(stats["mic_frames"] as? Int, 1)
     XCTAssertEqual(stats["playback"] as? String, "played 1.2s of 1.5s")
+    XCTAssertEqual(stats["odd_frames"] as? Int, 3)  // #442: the audio layer's totals ride the line
+    XCTAssertEqual(stats["underruns"] as? Int, 2)
     t.clock.advance(5000)
     XCTAssertEqual(t.events.filter { $0.0 == "call_stats" }.count, 2)
     t.session.stop()
@@ -649,6 +652,8 @@ final class CallSessionCountersTests: XCTestCase {
     XCTAssertEqual(ended["rx_frames"] as? Int, 2)
     XCTAssertEqual(ended["played_s"] as? Double, 1.2)
     XCTAssertEqual(ended["badly"] as? Bool, false)
+    XCTAssertEqual(ended["odd_frames"] as? Int, 3)
+    XCTAssertEqual(ended["underruns"] as? Int, 2)
     t.clock.advance(20000)
     XCTAssertEqual(t.events.filter { $0.0 == "call_stats" }.count, 2)  // nothing after the end
   }

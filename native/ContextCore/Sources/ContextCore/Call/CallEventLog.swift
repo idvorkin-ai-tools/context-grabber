@@ -83,6 +83,8 @@ public final class CallEventLog {
       // #417: the voices' recommendation failing to load is an expected fallback (cached, or the bridge's own
       // choice), never trouble with the call itself.
       if e.type == "call_settings" { return false }
+      // #442: the call's log not reaching the archive is the network's or the Cockpit's, never the call's.
+      if e.type == "call_archive" { return false }
       if e.type == "call_heal" { return true }
       if e.type == "call_problem", let p = e.fields["problem"] as? String, !p.isEmpty { return true }
       if e.type == "call_ended", e.fields["badly"] as? Bool == true { return true }
