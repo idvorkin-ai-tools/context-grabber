@@ -47,7 +47,8 @@ it.
 
 **Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a *Paste image* control
 when the clipboard holds an image (preview, remove), and *Send*. Send needs text or an image. A sent message appears
-at once with **Not sent yet** until the Cockpit has it. A new thread from the **+** asks for its first message only;
+at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and image, with the keyboard
+still up for the next message — typed or dictated alike (#449). A new thread from the **+** asks for its first message only;
 its title is that message's first line.
 
 **Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
