@@ -18,6 +18,8 @@ final class ChatModel: ObservableObject {
   @Published private(set) var openThread: String?
   /// A thread a link asked for (a notification's tap): pushed over the list when it opens.
   @Published var linkThread: String?
+  /// The list is on screen: only then does a refresh count its replies as shown (local review).
+  var listOnScreen = false
 
   static let backgroundTask = "com.idvorkin.grabbernative.chat"
   static let notifiedKey = "chat_notified"
@@ -38,6 +40,7 @@ final class ChatModel: ObservableObject {
     self.log = log
     self.database = database
     self.cockpit = cockpit
+    inbox.didAdd = { [weak self] in self?.askForNotificationsOnce() }
   }
 
   func title(of key: String) -> String { threads.first { $0.key == key }?.title ?? "Chat" }
@@ -58,8 +61,8 @@ final class ChatModel: ObservableObject {
       }
       threads = rows
       listProblem = nil
-      // On screen is seen: a reply the tile already counted never notifies later.
-      recordShown(rows)
+      // On screen is seen: a reply shown in the list never notifies later. A refresh behind Home does not count.
+      if listOnScreen { recordShown(rows) }
       log.event(
         "chat",
         [
@@ -83,11 +86,11 @@ final class ChatModel: ObservableObject {
     log.event("ui", ["action": "open_chat_thread", "thread": key])
     poll?.cancel()
     poll = Task { [weak self] in
-      var first = true
+      var seenOnce = false
       while !Task.isCancelled {
         guard let self, self.openThread == key else { return }
-        await self.load(key, markSeen: first)
-        first = false
+        // Until the first load lands and is marked seen, every poll tries again (local review).
+        if await self.load(key, markSeen: !seenOnce) { seenOnce = true }
         try? await Task.sleep(for: .seconds(Self.pollSeconds))
       }
     }
@@ -101,39 +104,52 @@ final class ChatModel: ObservableObject {
     Task { await refreshList(reason: "thread_closed") }
   }
 
-  private func load(_ key: String, markSeen: Bool) async {
+  /// True once the thread was read and, when asked, marked seen.
+  @discardableResult
+  private func load(_ key: String, markSeen: Bool) async -> Bool {
     inbox.reload()
-    guard !inbox.offline else { return }
+    guard !inbox.offline else { return false }
     do {
       let (data, response) = try await URLSession.shared.data(for: try ChatWire.threadRequest(key, cockpit: cockpit))
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let rows = ChatWire.messages(data) else {
         threadProblem[key] = "Could not read this chat from the Cockpit: HTTP \(status)"
-        return
+        return false
       }
       let before = messages[key]?.last?.id
       messages[key] = rows
       threadProblem[key] = nil
+      // What is on screen is shown: it never notifies later.
+      if let last = rows.last, !last.ts.isEmpty { notified[key] = last.ts }
       // A new reply on screen is read here and on the laptop.
       if markSeen || (before != nil && rows.last?.id != before && rows.last?.fromIgor == false) {
-        await seen(key)
+        return await seen(key)
       }
+      return true
     } catch {
       threadProblem[key] = "Could not read this chat from the Cockpit: \(error.localizedDescription)"
+      return false
     }
   }
 
-  private func seen(_ key: String) async {
+  @discardableResult
+  private func seen(_ key: String) async -> Bool {
     do {
-      _ = try await URLSession.shared.data(for: try ChatWire.seenRequest(key, cockpit: cockpit))
+      let (_, response) = try await URLSession.shared.data(for: try ChatWire.seenRequest(key, cockpit: cockpit))
+      guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+        log.event("chat", ["action": "seen_failed", "thread": key, "reason": "not 200"])
+        return false
+      }
       if let i = threads.firstIndex(where: { $0.key == key }) {
         let t = threads[i]
         threads[i] = ChatSummary(
           key: t.key, title: t.title, count: t.count, lastTs: t.lastTs, lastWho: t.lastWho, lastText: t.lastText,
           unread: 0, done: t.done)
       }
+      return true
     } catch {
       log.event("chat", ["action": "seen_failed", "thread": key, "reason": error.localizedDescription])
+      return false
     }
   }
 
@@ -154,7 +170,6 @@ final class ChatModel: ObservableObject {
   /// One message, kept on the phone first and sent through the Inbox's sender.
   func send(_ draft: inout InboxDraft, thread: String?) throws {
     try inbox.add(&draft, another: false, thread: thread)
-    askForNotificationsOnce()
     if let thread { Task { await load(thread, markSeen: false) } }
   }
 

@@ -75,6 +75,8 @@ struct ChatListView: View {
     .accessibilityIdentifier("chat-list")
     .refreshable { await chat.refreshList(reason: "pull") }
     .task { await chat.refreshList(reason: "open") }
+    .onAppear { chat.listOnScreen = true }
+    .onDisappear { chat.listOnScreen = false }
     // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
     .contentMargins(.bottom, 88, for: .scrollContent)
     .overlay(alignment: .bottomTrailing) {
@@ -195,7 +197,7 @@ struct ChatThreadView: View {
               logger: logger)
           }
           ForEach(messages) { message in
-            MessageBubble(message: message, cockpit: chat.cockpit)
+            MessageBubble(message: message, cockpit: chat.cockpit, logger: logger)
           }
           // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
@@ -227,13 +229,16 @@ struct ChatThreadView: View {
 private struct MessageBubble: View {
   let message: ChatMessage
   let cockpit: String
+  let logger: BugLogger
 
   var body: some View {
     HStack {
       if message.fromIgor { Spacer(minLength: 48) }
       VStack(alignment: message.fromIgor ? .trailing : .leading, spacing: 4) {
         ForEach(message.attachments, id: \.self) { ref in
-          if let url = ChatWire.attachmentURL(ref, cockpit: cockpit) { ChatImage(url: url) }
+          if let url = ChatWire.attachmentURL(ref, cockpit: cockpit) {
+            ChatImage(url: url, message: message.id, logger: logger)
+          }
         }
         if !message.text.isEmpty {
           Text(ChatText.linked(message.text))
@@ -300,6 +305,8 @@ private struct PendingBubble: View {
 
 private struct ChatImage: View {
   let url: URL
+  let message: String
+  let logger: BugLogger
   @State private var full = false
 
   var body: some View {
@@ -309,8 +316,11 @@ private struct ChatImage: View {
         image.resizable().scaledToFit().frame(maxWidth: 220, maxHeight: 260)
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .onTapGesture { full = true }
-      case .failure:
-        Label("Image unavailable", systemImage: "photo").font(.caption).foregroundStyle(.secondary)
+      case .failure(let error):
+        BugProblemView(
+          problem: .grabber(
+            "The picture could not be loaded: \(error.localizedDescription)", context: "ChatThreadView.image",
+            extra: ["url": .string(url.absoluteString), "message": .string(message)]), logger: logger)
       default:
         ProgressView().frame(width: 120, height: 90)
       }

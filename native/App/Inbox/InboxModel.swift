@@ -31,6 +31,8 @@ final class InboxModel: ObservableObject {
   let store: InboxStore?
   /// After a send that delivered something: chat reads the threads again, so a new one appears under its key.
   var didSend: (() -> Void)?
+  /// Something new is on its way to Larry (a compose or a share found): chat asks for notifications once.
+  var didAdd: (() -> Void)?
   private let log: SessionLog
   private let database: AppDatabase
   private let cockpit: String
@@ -116,6 +118,7 @@ final class InboxModel: ObservableObject {
         "action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another,
         "new_thread": thread == nil,
       ])
+    didAdd?()
     refresh(reason: "compose")
   }
 
@@ -155,6 +158,7 @@ final class InboxModel: ObservableObject {
       if let site = item.site { fields["site"] = site }
       log.event("inbox", fields)
     }
+    if fresh.contains(where: { !$0.isFixture }) { didAdd?() }
     // Only ids still in the Inbox, so the setting does not grow forever.
     database.setSetting("inbox_seen", items.map(\.id).joined(separator: ","))
   }
