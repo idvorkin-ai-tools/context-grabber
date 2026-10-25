@@ -14,6 +14,12 @@ final class ChatComposeClearsUITests: XCTestCase {
     compose.tap()
     compose.typeText("first of two")
     app.buttons["chat-send"].tap()
+    // The first send asks for notifications (chat spec); a clean simulator shows the system alert, so answer it.
+    let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
+    if allow.waitForExistence(timeout: 3) {
+      allow.tap()
+      app.descendants(matching: .any)["chat-compose"].tap()
+    }
 
     let field = app.descendants(matching: .any)["chat-compose"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
