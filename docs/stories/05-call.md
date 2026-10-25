@@ -632,7 +632,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 209:
 
 - **Summary:** A call that ends *connection lost* leaves the evidence of which network went
-- **Status:** implemented in [03563d6](https://github.com/idvorkin/context-grabber/commit/03563d6) (instrumentation only: the cause of the drops is not yet known); verified by `just test` (host: `CallNetworkTests`, `CallSessionConnectingTests.testALostSocketSaysHowLongSinceTheLastFrameInAndOut`) and the simulator build; a dropped call's log on the phone not yet
+- **Status:** implemented in [03563d6](https://github.com/idvorkin/context-grabber/commit/03563d6), interfaces in use apart from those available in [d6ba8c4](https://github.com/idvorkin/context-grabber/commit/d6ba8c4) (instrumentation only: the cause of the drops is not yet known); verified by `just test` (host: `CallNetworkTests`, `CallSessionConnectingTests.testALostSocketSaysHowLongSinceTheLastFrameInAndOut`) and the simulator build; a dropped call's log on the phone not yet
 - **Issues:** [#440](https://github.com/idvorkin/context-grabber/issues/440), [#439](https://github.com/idvorkin/context-grabber/issues/439) (two calls from home lost their connection seconds in; the log could not say why)
 - **Spec:** [Native call — interruptions](../superpowers/specs/2026-08-28-native-call-screen-design.md#interruptions)
 

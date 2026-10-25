@@ -463,9 +463,9 @@ screen's, and they do not care which client is connected.
   *connection lost* seconds in; the phone saw the network connection drop and the bridge saw the phone vanish,
   and neither log could say whether Wi-Fi gave way to cellular, the tailnet re-homed, or the far end went. So
   Diagnostics record the phone's network at the start of every call and every time it changes during one
-  (connected or not; Wi-Fi, cellular, wired, or a tunnel; whether it is metered or in Low Data Mode), and the
-  lost connection's own error code and the error underneath it, with how long it had been since anything came
-  in from the bridge and since anything went out. Nothing about the ending the screen shows changes.
+  (connected or not; which of Wi-Fi, cellular, wired, or a tunnel the call is using, and which are available;
+  whether it is metered or in Low Data Mode), and the lost connection's own error code and the error underneath
+  it, with how long it had been since anything came in from the bridge and since anything went out. Nothing about the ending the screen shows changes.
 
 ### Endings
 
