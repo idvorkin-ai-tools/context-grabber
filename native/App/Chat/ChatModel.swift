@@ -183,6 +183,11 @@ final class ChatModel: ObservableObject {
     if let thread { Task { await load(thread, markSeen: false) } }
   }
 
+  /// What the bar held one run-loop after a send (#449): anything left is text the field wrote back.
+  func noteBarAfterSend(thread: String, leftChars: Int) {
+    log.event("chat", ["action": "bar_after_send", "thread": thread, "left_chars": leftChars])
+  }
+
   private func askForNotificationsOnce() {
     guard database.setting(Self.askedKey) == nil else { return }
     database.setSetting(Self.askedKey, "1")

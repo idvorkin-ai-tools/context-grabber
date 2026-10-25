@@ -366,6 +366,9 @@ private struct ComposeBar: View {
   @State private var preview: CGImage?
   @State private var hasImage = UIPasteboard.general.hasImages
   @State private var failure: String?
+  /// A new field after each send (#449): clearing the text alone could leave the old words in a field still editing.
+  @State private var field = 0
+  @FocusState private var focused: Bool
 
   var body: some View {
     VStack(spacing: 6) {
@@ -398,6 +401,8 @@ private struct ComposeBar: View {
           .padding(.horizontal, 12).padding(.vertical, 8)
           .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 18))
           .accessibilityIdentifier("chat-compose")
+          .focused($focused)
+          .id(field)
         Button(action: send) {
           Image(systemName: "arrow.up.circle.fill").font(.title)
         }
@@ -431,6 +436,12 @@ private struct ComposeBar: View {
       try chat.send(&draft, thread: thread)
       preview = nil
       failure = nil
+      let wasFocused = focused
+      field += 1
+      Task { @MainActor in
+        if wasFocused { focused = true }
+        chat.noteBarAfterSend(thread: thread, leftChars: draft.text.count)
+      }
     } catch {
       failure = "The message could not be kept on the phone: \(error.localizedDescription)"
     }
