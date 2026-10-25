@@ -219,7 +219,7 @@ final class CallModel: ObservableObject {
     stopWatchingNetwork()
     let monitor = NWPathMonitor()
     monitor.pathUpdateHandler = { [weak self] path in
-      let snapshot = Self.describe(path)
+      let snapshot = Self.networkPath(path)
       DispatchQueue.main.async {
         MainActor.assumeIsolated { self?.onPath(snapshot) }
       }
@@ -241,7 +241,7 @@ final class CallModel: ObservableObject {
     event("call_network", path.fields.merging(["action": first ? "start" : "change"]) { _, new in new })
   }
 
-  private nonisolated static func describe(_ path: NWPath) -> CallNetworkPath {
+  private nonisolated static func networkPath(_ path: NWPath) -> CallNetworkPath {
     let status: String
     switch path.status {
     case .satisfied: status = "satisfied"
