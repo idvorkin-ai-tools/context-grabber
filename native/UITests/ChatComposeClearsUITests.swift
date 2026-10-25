@@ -9,10 +9,10 @@ final class ChatComposeClearsUITests: XCTestCase {
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
     app.launchEnvironment["GRABBER_LINK"] = "grabbernative://chat?thread=igor2-88g.900"
     app.launch()
-    // The thread's identifier covers its children, so the bar is found by kind and label, as the other tests do.
-    XCTAssertTrue(app.otherElements["chat-thread"].firstMatch.waitForExistence(timeout: 15), app.debugDescription)
-    let compose = app.textViews.firstMatch.exists ? app.textViews.firstMatch : app.textFields.firstMatch
-    XCTAssertTrue(compose.waitForExistence(timeout: 5), app.debugDescription)
+    // The thread's identifier covers its children, so the bar is found by its placeholder.
+    let byPlaceholder = NSPredicate(format: "placeholderValue == %@ OR value == %@", "Message Larry", "Message Larry")
+    let compose = app.descendants(matching: .any).matching(byPlaceholder).firstMatch
+    XCTAssertTrue(compose.waitForExistence(timeout: 20), app.debugDescription)
     compose.tap()
     compose.typeText("first of two")
     app.buttons["Send"].tap()
