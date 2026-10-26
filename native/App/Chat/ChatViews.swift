@@ -181,10 +181,10 @@ struct ChatThreadView: View {
   private let fixedKey: String?
   private let fixedTitle: String
   let logger: BugLogger
-  /// A new chat (#536): its first message's id, chosen once for this screen.
-  @State private var newID: String?
-  /// The thread that first message landed in, kept once known (the phone's copy is dropped after).
-  @State private var landed: String?
+  /// A new chat (#536): the first message it follows (a fresh id per attempt) and the thread it landed in.
+  @State private var newThread = ChatNewThread()
+  /// A new chat's own name for the bar and the mic, the same across attempts and after it lands.
+  @State private var screenID = UUID().uuidString.lowercased()
 
   init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
     self.chat = chat
@@ -203,12 +203,11 @@ struct ChatThreadView: View {
     self.fixedKey = nil
     self.fixedTitle = "New chat"
     self.logger = logger
-    _newID = State(initialValue: UUID().uuidString.lowercased())
   }
 
-  private var key: String? { fixedKey ?? landed }
-  /// A new chat's first message while it is still only on the phone.
-  private var first: InboxItem? { newID.flatMap { id in inbox.items.first { $0.id == id } } }
+  private var key: String? { fixedKey ?? newThread.landed }
+  /// A new chat's latest first message while it is still only on the phone.
+  private var first: InboxItem? { newThread.sent.flatMap { id in inbox.items.first { $0.id == id } } }
   private var messages: [ChatMessage] { key.flatMap { chat.messages[$0] } ?? [] }
   private var pending: [InboxItem] {
     if let key { return chat.pending(in: key) }
@@ -217,16 +216,16 @@ struct ChatThreadView: View {
   /// A new chat takes its first message's first line as the title, as the Cockpit will.
   private var title: String {
     guard fixedKey == nil else { return fixedTitle }
-    if let landed, let known = chat.threads.first(where: { $0.key == landed }) { return known.title }
+    if let landed = newThread.landed, let known = chat.threads.first(where: { $0.key == landed }) {
+      return known.title
+    }
     return first.map { ChatSend.title(for: $0) } ?? fixedTitle
   }
-  private var target: ComposeBar.Target {
-    if let key { return .thread(key) }
-    if let newID, first == nil { return .new(id: newID) }
-    return .waiting
+  private var target: ChatNewThread.Target {
+    ChatNewThread.target(fixedKey: fixedKey, landed: newThread.landed, first: first)
   }
   /// The bar's and the mic's name for this screen, the same before and after a new chat lands.
-  private var barKey: String { fixedKey ?? "new-" + (newID ?? "") }
+  private var barKey: String { fixedKey ?? "new-" + screenID }
 
   var body: some View {
     ScrollViewReader { reader in
@@ -259,7 +258,9 @@ struct ChatThreadView: View {
       }
     }
     .safeAreaInset(edge: .bottom) {
-      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger)
+      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger) {
+        newThread.attempt(at: target)
+      }
     }
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
@@ -268,8 +269,8 @@ struct ChatThreadView: View {
     .onDisappear { if let key { chat.close(key) } }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
     .onChange(of: first?.chatThread) { _, thread in
-      guard landed == nil, let thread else { return }
-      landed = thread
+      guard newThread.landed == nil, let thread else { return }
+      newThread.land(in: thread)
       chat.open(thread)
     }
   }
@@ -408,19 +409,14 @@ enum ChatText {
 // MARK: - Writing
 
 private struct ComposeBar: View {
-  /// Where a Send goes: a thread, a new chat's first message, or nowhere yet (a new chat whose first message has not
-  /// reached Larry, so the next one waits for its thread).
-  enum Target: Equatable {
-    case thread(String)
-    case new(id: String)
-    case waiting
-  }
-
   @ObservedObject var chat: ChatModel
   @ObservedObject var voice: ChatVoiceModel
   let thread: String
-  let target: Target
+  /// Where a Send goes (#536): a thread, a new chat's first message, or nowhere yet.
+  let target: ChatNewThread.Target
   let logger: BugLogger
+  /// A new chat's next first message: a fresh id, now the one the screen follows.
+  var startAttempt: () -> String? = { nil }
   @State private var draft = InboxDraft()
   @State private var preview: CGImage?
   @State private var hasImage = UIPasteboard.general.hasImages
@@ -445,6 +441,11 @@ private struct ComposeBar: View {
         Text("The next message goes once your first one reaches Larry.").font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-waiting")
+      } else if case .refused = target {
+        Text("Larry refused your first message, so the next one starts the chat again.").font(.footnote)
+          .foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityIdentifier("chat-new-refused")
       } else if voice.thread == thread, let notice = voice.notice {
         Text(notice).font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -518,7 +519,9 @@ private struct ComposeBar: View {
     do {
       switch target {
       case .thread(let key): try chat.send(&draft, thread: key)
-      case .new(let id): try chat.send(&draft, thread: nil, id: id)
+      case .new, .refused:
+        guard let id = startAttempt() else { return }
+        try chat.send(&draft, thread: nil, id: id)
       case .waiting: return
       }
       preview = nil

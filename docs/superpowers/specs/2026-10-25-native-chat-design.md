@@ -58,7 +58,11 @@ leaves no thread behind. The first Send starts the thread: the message shows at 
 phone and sent by the same rules as any message (so it waits out no network), and the thread's title becomes that
 message's first line. Once the Cockpit has it, the same screen is that thread, live like any other, and the bar takes
 the next message. Until then the bar holds the next message back and says it goes once the first reaches Larry; a
-not-yet-sent new thread also shows in the list under *Not sent yet*, as now.
+not-yet-sent new thread also shows in the list under *Not sent yet*, as now. If Larry refuses that first message, it
+says why, copyably, as any refused message does, and the bar takes a new first message at once — a line under the bar
+says the first was refused — which starts the chat afresh; deleting the waiting first message does the same. Each
+attempt is its own message, so a new try is never mistaken for the refused or deleted one, and the screen follows
+the newest.
 
 **Speaking a message** (#448). Igor, 2026-10-26, first: *"transcription based, use a good model like we do in
 cockpit"*; then, on learning the problem reports' dictation is Apple's own recognizer: *"All right, use that."* So the
@@ -148,7 +152,8 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   failure is a copyable error and the words already in the field stay. At 5:00 a recording stops on its own, its
   words in the field, with *Stopped at 5 minutes.* under the bar.
 - The + opens an empty *New chat* thread with the ordinary bar (text, Paste image, mic); its first Send starts the
-  thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing.
+  thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing. A refused or
+  deleted first message lets the next Send start the chat afresh, as a new message that reaches Larry.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 
 ## Depends on the Cockpit
