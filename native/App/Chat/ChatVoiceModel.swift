@@ -50,7 +50,9 @@ final class ChatVoiceModel: ObservableObject {
       MainActor.assumeIsolated { self?.listeningChanged(listening) }
     }
     .store(in: &watches)
-    callLive.removeDuplicates().receive(on: DispatchQueue.main).sink { [weak self] live in
+    // No hop to the next run loop: the call model publishes on the main actor, and a late stop would restore the
+    // session over the call's.
+    callLive.removeDuplicates().sink { [weak self] live in
       MainActor.assumeIsolated { self?.callChanged(live) }
     }
     .store(in: &watches)
@@ -162,6 +164,14 @@ final class ChatVoiceModel: ObservableObject {
   }
 
   // MARK: - the call owns the mic
+
+  /// A call is about to start (CallModel.willStart, before it touches the session): stop dictating now, so the
+  /// dictation's session restore cannot land after the call has set `.playAndRecord` / `.voiceChat`.
+  func yieldToCall() {
+    guard dictation.busy else { return }
+    drop(why: "call_started")
+    notice = Self.callTookMic
+  }
 
   private func callChanged(_ live: Bool) {
     callLive = live

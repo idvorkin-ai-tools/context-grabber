@@ -141,6 +141,8 @@ final class AppModel: ObservableObject {
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in
       self?.eulogySong.yield(to: "call")
+      // Before the call configures the session: chat dictation's restore must land first, or the call's mic is dead.
+      self?.chatVoice.yieldToCall()
       self?.locateForCall()
     }
     // #107: a move during a call goes up too; CallModel sends only the significant ones.
