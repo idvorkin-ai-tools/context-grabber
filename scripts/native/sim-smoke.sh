@@ -303,7 +303,7 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
   sched=$(jq -sr '[.[] | select(.type=="call_ended")][0].scheduled_s // 0' "$f")
   larry=$(jq -sr '[.[] | select(.type=="call_caption" and .who=="larry")][0].text // empty' "$f")
   igor=$(jq -sr '[.[] | select(.type=="call_caption" and .who=="igor")][0].text // empty' "$f")
-  # Story 303: two sentences sent before Larry answers are two rows, each sent; the late final is not a third.
+  # Story 216: two sentences sent before Larry answers are two rows, each sent; the late final is not a third.
   igor_sent=$(jq -sr '[.[] | select(.type=="call_caption" and .who=="igor") | "\(.text)/\(.sent)"] | join(",")' "$f")
   restated=$(jq -sr '[.[] | select(.type=="call_caption_restated")] | length' "$f")
   ended=$(jq -sr '[.[] | select(.type=="call_ended")][0] | "\(.reason) \(.badly)"' "$f")

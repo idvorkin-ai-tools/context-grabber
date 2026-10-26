@@ -88,7 +88,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 084:
 
 - **Summary:** See what the recognizer is hearing me say, big, before it is sent
-- **Status:** implemented in [4715141](https://github.com/idvorkin/context-grabber/commit/4715141); verified by `CallScreen.test.tsx` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (caption tests) and `just native-test-sim` (the fake bridge's partial and final become one Igor row); the phone still to be checked by Igor; #467: the sentence leaves the box the moment it is sent, not when Tony answers, in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) ([story 303](#user-story-303))
+- **Status:** implemented in [4715141](https://github.com/idvorkin/context-grabber/commit/4715141); verified by `CallScreen.test.tsx` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (caption tests) and `just native-test-sim` (the fake bridge's partial and final become one Igor row); the phone still to be checked by Igor; #467: the sentence leaves the box the moment it is sent, not when Tony answers, in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) ([story 216](#user-story-216))
 
 #### Use Case:
 - **As a** Larry's client talking on a noisy street
@@ -99,11 +99,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A sentence is recognised
 - **Given:** a call is live and the box under the call line reads *listening…*
 - **When:** I say a sentence slowly
-- **Then:** the words appear in the box in large type as they are recognised, and when the sentence is sent to Larry the box returns to *listening…* and the sentence is one *Igor* row in the transcript below ([story 303](#user-story-303))
+- **Then:** the words appear in the box in large type as they are recognised, and when the sentence is sent to Larry the box returns to *listening…* and the sentence is one *Igor* row in the transcript below ([story 216](#user-story-216))
 
 ---
 
-### User Story 303:
+### User Story 216:
 
 - **Summary:** See the moment my sentence is sent to Larry, without waiting for his reply
 - **Status:** implemented in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) and [33a965b](https://github.com/idvorkin/context-grabber/commit/33a965b) (a real repeat is not taken for the recognizer's late final); verified by `just native-test` (host: `CallSessionTests` — a sent sentence leaves the live line marked sent, two sentences sent before Larry answers are two rows, the recognizer's late final is not shown twice, hanging up clears the mark) and `just native-test-sim` (the fake bridge sends two sentences before Larry answers: both are logged as sent Igor captions and the late final as restated); the phone, on a Direct call, still to be checked by Igor

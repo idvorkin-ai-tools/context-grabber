@@ -847,7 +847,7 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     XCTAssertEqual(t.texts, ["igor!:Hello Larry."])
   }
 
-  // #467, story 303: sent to Larry is out of the live line now, marked sent, not when Larry answers.
+  // #467, story 216: sent to Larry is out of the live line now, marked sent, not when Larry answers.
   func testASentSentenceLeavesTheLiveLineMarkedSentAndTheMarkGoesWhenLarryAnswers() {
     let t = CallHarness()
     t.goLive()

@@ -238,7 +238,7 @@ struct CallView: View {
           guard isTool else { return }
           if expanded.contains(row.id) { expanded.remove(row.id) } else { expanded.insert(row.id) }
         }
-      // #467, story 303: gone to Larry, no answer yet. Small and quiet; it goes when he answers.
+      // #467, story 216: gone to Larry, no answer yet. Small and quiet; it goes when he answers.
       if row.sent {
         Text("sent").font(.caption2).foregroundStyle(.tertiary).accessibilityIdentifier("call-caption-sent")
       }

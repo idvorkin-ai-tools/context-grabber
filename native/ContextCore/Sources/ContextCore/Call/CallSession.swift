@@ -26,7 +26,7 @@ public struct CaptionRow: Equatable, Identifiable, Sendable {
   public var text: String
   /// Igor's words as the recognizer still hears them — not yet settled.
   public var pending: Bool
-  /// #467, story 303: Igor's sentence has gone to Larry and Larry has not answered yet.
+  /// #467, story 216: Igor's sentence has gone to Larry and Larry has not answered yet.
   public var sent: Bool
 
   public init(id: Int, who: CaptionWho, text: String, pending: Bool, sent: Bool = false) {
