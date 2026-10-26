@@ -13,6 +13,9 @@ import UIKit
 @MainActor
 final class ArchiveModel {
   static let lastRunKey = "archive_last_run"
+  /// Story 304: how the last run ended (ArchiveOutcome JSON), and when a run last caught every stream up.
+  static let lastOutcomeKey = "archive_last_outcome"
+  static let lastCaughtUpKey = "archive_last_caught_up"
   static let deviceKey = "archive_device_id"
   /// Pages per stream in a refresh or foreground run (seconds of background time), and in the end-of-day
   /// processing task (minutes): a backfill of years of heart rate takes a few of each.
@@ -178,6 +181,7 @@ final class ArchiveModel {
     var inserted = 0
     var duplicate = 0
     var stopped: [String: String] = [:]
+    var refused: [String: Int] = [:]
     for source in sources {
       if cancelled {
         stopped[source.stream] = "cancelled"
@@ -191,6 +195,7 @@ final class ArchiveModel {
       inserted += report.inserted
       duplicate += report.duplicate
       if let why = report.stopped { stopped[source.stream] = why }
+      if let status = report.refusedStatus { refused[source.stream] = status }
       // The Cockpit is away: every stream after this one would fail the same way.
       if report.stopped == "retry" { break }
       if report.stopped == "read" && !UIApplication.shared.isProtectedDataAvailable {
@@ -199,15 +204,30 @@ final class ArchiveModel {
         break
       }
     }
+    let startedMs = Int64(started.timeIntervalSince1970 * 1000)
     if !cancelled && !locked {
-      database.setSetting(Self.lastRunKey, String(Int64(started.timeIntervalSince1970 * 1000)))
+      database.setSetting(Self.lastRunKey, String(startedMs))
     }
+    // Story 304: the Settings line. A locked phone skips Health, so that run is not "caught up".
+    var outcomeStopped = stopped
+    if locked { outcomeStopped[ArchiveStatus.healthSkipped] = "read" }
+    let outcome = ArchiveOutcome(at: startedMs, stopped: outcomeStopped, refused: refused)
+    database.setSetting(Self.lastOutcomeKey, outcome.json)
+    if outcome.caughtUp { database.setSetting(Self.lastCaughtUpKey, String(startedMs)) }
     log.event(
       "archive_run",
       [
         "why": reason, "streams": sources.count, "pages": pages, "records": records, "inserted": inserted,
         "duplicate": duplicate, "stopped": stopped, "ms": Int(Date().timeIntervalSince(started) * 1000),
       ])
+  }
+
+  /// Story 304: the archive's lines for Settings, from the last run's outcome.
+  func statusLines(now: Date = Date()) -> [ArchiveStatus.Line] {
+    ArchiveStatus.lines(
+      sends: cockpit != nil, outcome: ArchiveOutcome(json: database.setting(Self.lastOutcomeKey)),
+      lastCaughtUp: database.setting(Self.lastCaughtUpKey).flatMap { Int64($0) },
+      now: Int64(now.timeIntervalSince1970 * 1000))
   }
 
   /// One stream per type the mirror reads, only once Health has been asked about all of them (Today asks; an

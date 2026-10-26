@@ -131,6 +131,7 @@ final class ArchiveTests: XCTestCase {
     }
     XCTAssertNil(try cursors.cursor("test.stream"))
     XCTAssertEqual(report.stopped, "refused")
+    XCTAssertEqual(report.refusedStatus, 415, "for the Settings line")
     XCTAssertEqual(lines.last?["action"] as? String, "refused")
     XCTAssertEqual(lines.last?["status"] as? Int, 415)
     XCTAssertEqual(lines.last?["reason"] as? String, "nope")

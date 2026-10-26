@@ -437,6 +437,17 @@ private struct HomeSettingsView: View {
         } footer: {
           Text("A troubled call files its log as a report on its own; the Mac files the issue.")
         }
+        // Story 304: whether everything reached the Cockpit's archive, and which stream did not.
+        Section {
+          ForEach(Array(model.archive.statusLines().enumerated()), id: \.offset) { _, line in
+            Text(line.text).font(.footnote).foregroundStyle(line.trouble ? Color.red : Color.secondary)
+          }
+          .accessibilityIdentifier("home-settings-archive")
+        } header: {
+          Text("Archive")
+        } footer: {
+          Text("Every few hours the trail, Health and the strip go to the Cockpit on their own.")
+        }
         Section("Build") {
           LabeledContent("Commit", value: BuildInfo.sha)
           LabeledContent("Branch", value: BuildInfo.branch)
@@ -457,6 +468,11 @@ private struct HomeSettingsView: View {
         } footer: {
           Text("Or shake the phone on any screen.")
         }
+      }
+      .onAppear {
+        // Story 304: what the Archive section said, for a report or the simulator smoke.
+        let lines = model.archive.statusLines()
+        model.log.event("archive_status", ["lines": lines.map(\.text), "trouble": lines.contains(where: \.trouble)])
       }
       .navigationDestination(isPresented: $showLinks) { LinksView(log: model.log) }
       .navigationDestination(isPresented: $showWhatsNew) {
