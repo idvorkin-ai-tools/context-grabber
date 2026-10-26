@@ -333,15 +333,11 @@ private final class StepsHealth: HealthSource, @unchecked Sendable {
   init(steps: Double?) { self.steps = steps }
 
   var askedDays: [String] {
-    lock.lock()
-    defer { lock.unlock() }
-    return asked
+    lock.withLock { asked }
   }
 
   func sum(_ kind: QuantityKind, from: Double, to: Double) async throws -> Double? {
-    lock.lock()
-    asked.append(la.dateKey(from))
-    lock.unlock()
+    lock.withLock { asked.append(la.dateKey(from)) }
     guard let steps else { throw Unanswered() }
     return steps
   }
