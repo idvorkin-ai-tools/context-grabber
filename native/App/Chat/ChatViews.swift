@@ -490,7 +490,11 @@ private struct ComposeBar: View {
     .background(.bar)
     // The words stream into the draft as Igor speaks, after what was typed, for him to read before he sends (#448).
     .onChange(of: voice.words) { _, _ in takeWords() }
-    .onAppear { takeWords() }
+    .onAppear {
+      takeWords()
+      // A new chat opens with the keyboard up (spec "A new chat", story 262).
+      if target == .new { focused = true }
+    }
     .onDisappear { voice.cancel(thread: thread, why: "left_thread") }
     .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
       hasImage = UIPasteboard.general.hasImages
