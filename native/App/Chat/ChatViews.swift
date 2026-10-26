@@ -383,7 +383,7 @@ private struct ComposeBar: View {
             failure, context: "ChatThreadView.send",
             extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
       }
-      // #448: what the mic could not do, copyable, and its quieter lines (no key, nothing heard, a call has the mic),
+      // #448: what the mic could not do, copyable, and its quieter lines (a call has the mic, the five-minute stop),
       // each in the thread it came from only.
       if voice.thread == thread, let problem = voice.problem {
         BugProblemView(problem: problem, logger: logger)
@@ -410,7 +410,8 @@ private struct ComposeBar: View {
         }
         .disabled(!hasImage)
         .accessibilityLabel("Paste image")
-        MicButton(voice: voice, thread: thread)
+        MicButton(voice: voice, thread: thread, draft: draft.text)
+        MicPicker(voice: voice)
         TextField("Message Larry", text: $draft.text, axis: .vertical)
           .lineLimit(1...6)
           .padding(.horizontal, 12).padding(.vertical, 8)
@@ -428,7 +429,7 @@ private struct ComposeBar: View {
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
     .background(.bar)
-    // The words go into the draft, after what was typed, for Igor to read before he sends (#448).
+    // The words stream into the draft as Igor speaks, after what was typed, for him to read before he sends (#448).
     .onChange(of: voice.words) { _, _ in takeWords() }
     .onAppear { takeWords() }
     .onDisappear { voice.cancel(thread: thread, why: "left_thread") }
@@ -442,7 +443,7 @@ private struct ComposeBar: View {
 
   private func takeWords() {
     guard let words = voice.take(thread: thread) else { return }
-    draft.text = ChatVoice.draft(draft.text, adding: words)
+    draft.text = words
   }
 
   private func paste() {
@@ -472,20 +473,21 @@ private struct ComposeBar: View {
   }
 }
 
-/// Tap to record, tap to stop (#448): red with the seconds while recording, a spinner while Deepgram listens, dimmed
-/// with no key or during a call, when a tap says why instead.
+/// Tap to record, tap to stop (#448): red with the seconds while recording, a spinner while it starts and while the
+/// last words settle, dimmed during a call, when a tap says why instead.
 private struct MicButton: View {
   @ObservedObject var voice: ChatVoiceModel
   let thread: String
+  let draft: String
 
   var body: some View {
     Button {
-      voice.tap(thread: thread)
+      voice.tap(thread: thread, draft: draft)
     } label: {
       switch voice.phase {
       case .idle:
         Image(systemName: "mic").font(.title3)
-          .foregroundStyle(voice.callLive || !voice.hasKey ? Color.secondary : Color.accentColor)
+          .foregroundStyle(voice.callLive ? Color.secondary : Color.accentColor)
       case .recording(let since):
         HStack(spacing: 3) {
           Image(systemName: "stop.circle.fill").font(.title3)
@@ -494,11 +496,11 @@ private struct MicButton: View {
           }
         }
         .foregroundStyle(.red)
-      case .transcribing:
+      case .starting, .finishing:
         ProgressView()
       }
     }
-    .disabled(voice.phase == .transcribing)
+    .disabled(voice.phase == .starting || voice.phase == .finishing)
     .accessibilityLabel(label)
     .accessibilityIdentifier("chat-mic")
   }
@@ -507,8 +509,48 @@ private struct MicButton: View {
     switch voice.phase {
     case .idle: return "Speak a message"
     case .recording: return "Stop recording"
-    case .transcribing: return "Transcribing"
+    case .starting: return "Starting to listen"
+    case .finishing: return "Transcribing"
     }
+  }
+}
+
+/// Which microphone the next recording uses (#448, Igor 2026-10-26): Automatic or one of the phone's inputs, the
+/// problem report's saved pick. Locked while recording and during a call.
+// ponytail: no input-level meter yet — bug-kit is adding a public picker + live meter view; swap this menu for it
+// when that release is pinned.
+private struct MicPicker: View {
+  @ObservedObject var voice: ChatVoiceModel
+
+  var body: some View {
+    Menu {
+      Button {
+        voice.selectMicrophone(nil)
+      } label: {
+        if voice.selectedMicrophoneID == nil { Label("Automatic", systemImage: "checkmark") } else { Text("Automatic") }
+      }
+      ForEach(voice.microphones) { mic in
+        Button {
+          voice.selectMicrophone(mic.id)
+        } label: {
+          if voice.selectedMicrophoneID == mic.id {
+            Label(mic.name, systemImage: "checkmark")
+          } else {
+            Text(mic.name)
+          }
+        }
+      }
+      Divider()
+      Button("Find microphones", systemImage: "arrow.clockwise") { voice.findMicrophones() }
+        .accessibilityIdentifier("chat-mic-find")
+    } label: {
+      Image(systemName: "chevron.up.chevron.down").font(.caption)
+    }
+    .disabled(!voice.canPickMicrophone)
+    // After a relaunch the saved pick is an id until the inputs are listed: list them once so it reads by name.
+    .onAppear { voice.pickerAppeared() }
+    .accessibilityLabel("Microphone: \(voice.microphoneName)")
+    .accessibilityIdentifier("chat-mic-picker")
   }
 }
 

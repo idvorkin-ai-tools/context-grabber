@@ -52,28 +52,37 @@ at once with **Not sent yet** until the Cockpit has it, and the bar empties at o
 still up for the next message — typed or dictated alike (#449). A new thread from the **+** asks for its first message only;
 its title is that message's first line.
 
-**Speaking a message** (#448). Igor, 2026-10-26: *"transcription based, use a good model like we do in cockpit (need a
-stored key is fine)."* The bar has a mic button beside the field. Tap it to record; it turns red and shows the
-seconds counting; tap it again to stop. The recording goes to the same transcription service and model the Cockpit's
-mic uses (Deepgram, nova-3, primed with the Cockpit's list of names to spell right — Igor, Larry, Tori, Zach, Amelia,
-Kettlebility, beads, Cockpit), and while it is out the button shows it is working. The words land **in the field**, after anything
-already typed — never sent. Igor reads them, fixes what he likes, and taps Send. A clip of silence, or a recording
-with nothing heard, leaves the field as it was and says *Nothing heard*. The recording itself is not kept.
+**Speaking a message** (#448). Igor, 2026-10-26, first: *"transcription based, use a good model like we do in
+cockpit"*; then, on learning the problem reports' dictation is Apple's own recognizer: *"All right, use that."* So the
+chat mic is the same dictation the problem report's note uses — Apple's speech recognizer, on the phone when it can
+be, no key and no service of ours. The bar has a mic button beside the field. Tap it to start; it turns red and shows
+the seconds counting; tap it again to stop. The words appear **in the field as Igor speaks**, after what was in it
+when he tapped — never sent. When he stops, the last words settle (a spinner while they do), and he reads them, fixes
+what he likes, and taps Send. A recording where nothing was heard leaves the field as it was. Nothing is kept of the
+sound.
 
-- **The key.** The service needs Igor's Deepgram key, pasted once in *Settings → Voice in Chat* and kept in the
-  phone's Keychain, on this phone only. Settings says whether one is saved, never shows it, and can remove it. Until
-  one is saved, the mic button says where to add it instead of recording.
-- **The microphone.** The first tap asks for the microphone (the same permission calls use). Declined, the button
-  says how to allow it in the phone's Settings.
-- **A live call.** While a call with Larry is live, the mic is the call's: the button is dimmed and says so, and a
-  call that starts mid-recording stops the recording and leaves the field as it was. Recording never changes a live
-  call's sound.
-- **An interruption.** A phone call or Siri mid-recording stops the clock; what was recorded so far is transcribed
-  into the field as if Igor had tapped stop (still never sent), and a line under the bar says the recording was
-  stopped by an interruption.
-- **Music.** Recording pauses whatever was playing, as dictation does; it may resume when the recording stops.
-- **Failures** (no network, a refused key, the service down) are copyable errors above the bar, with what the service
-  said; the recording is dropped and the field is unchanged.
+- **Which microphone.** Igor, 2026-10-26: *"make sure to be able to have a mic selector and then see the audio input
+  levels."* Beside the mic, a small picker names the microphone the next recording will use — *Automatic* (whatever
+  the phone routes) or one of the phone's inputs (the built-in mic, a headset, AirPods) — and *Find microphones*
+  lists them. The pick is kept across launches and is the same one the problem report's dictation uses. It cannot be
+  changed while recording or during a live call. A live input-level meter beside it comes with the shared dictation
+  picker (bug-kit), not yet.
+- **Permissions.** The first tap asks for speech recognition and the microphone (the same ones the problem report's
+  dictation uses). Declined, a copyable line above the bar says which is off and that the phone's Settings turns it
+  back on.
+- **A live call.** While a call with Larry is live, the mic is the call's: the button is dimmed and a tap says so,
+  starting nothing. A call that starts mid-recording stops it at once; the words already in the field stay, and a
+  line says the call took the microphone.
+- **An interruption.** A phone call, Siri or the microphone changing mid-recording stops it; the words heard so far
+  stay in the field (still never sent), and a copyable line says the microphone was interrupted.
+- **Five minutes at most.** Igor, 2026-10-26: a recording is capped at 5 minutes. At 5:00 it stops on its own and
+  the words settle into the field exactly as if Igor had tapped stop — still never sent — and a quiet line under that
+  thread's bar says *Stopped at 5 minutes.*
+- **Music.** Recording mixes with whatever is playing, as the problem report's dictation does; it is not paused.
+- **Failures** (the recognizer stopping, a microphone that will not start) are copyable errors above the bar; the
+  words already in the field stay. A Gym Timer cue during a recording takes the audio session and stops it the same
+  way: the words so far stay in the field.
+- **Leaving the thread** mid-recording stops it.
 
 **Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
 share becomes a new thread whose first message is the shared thing with the note. The title is the note's first
@@ -105,9 +114,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
   text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
   refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
-- `chat_voice` events: record start / stop (seconds, bytes), interrupted, transcribed (status, characters, round trip), failed (the
-  stage, the status, the service's message), refused (no key, no microphone, a live call). Never the words, never the
-  key.
+- `chat_voice` events: record_start (thread), record_stop (thread, seconds), capped (at the five-minute limit),
+  dropped (left the thread, a call started), refused (a live call). The dictation's own `dictation_start`,
+  `dictation_stop` and `dictation_error` lines (the problem report's) carry the recognizer's side. Never the words.
 - A thread that cannot be read logs one error when the problem starts or changes, not one per poll.
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
@@ -124,9 +133,12 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises
   none.
 - A refused message says why, copyably, and is never resent.
-- With a key saved, tap the mic, speak, tap again: the words appear in the field after what was typed, nothing is
-  sent until Send; silence leaves the field unchanged. With no key the mic says where to add it; during a live call it
-  is dimmed and says why; a failed transcription is a copyable error and the field is unchanged.
+- The picker lists the phone's microphones and the next recording uses the one picked; *Automatic* follows the
+  phone's route.
+- Tap the mic, speak, tap again: the words appear in the field as they are spoken, after what was typed, and nothing
+  is sent until Send; nothing heard leaves the field unchanged. During a live call the mic is dimmed and says why; a
+  failure is a copyable error and the words already in the field stay. At 5:00 a recording stops on its own, its
+  words in the field, with *Stopped at 5 minutes.* under the bar.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 
 ## Depends on the Cockpit

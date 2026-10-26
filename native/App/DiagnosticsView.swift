@@ -377,47 +377,6 @@ private struct CallTileStatus: View {
   }
 }
 
-/// Settings → Voice in Chat (#448, story 303): the Deepgram key, pasted once, kept in the Keychain and never shown.
-private struct VoiceKeySection: View {
-  @ObservedObject var voice: ChatVoiceModel
-  let logger: BugLogger
-  @State private var key = ""
-  @State private var problem: String?
-
-  var body: some View {
-    Section {
-      if voice.hasKey {
-        LabeledContent("Deepgram key", value: "Saved")
-          .accessibilityIdentifier("voice-key-saved")
-        Button("Remove key", role: .destructive) { problem = voice.saveKey("") }
-          .accessibilityIdentifier("voice-key-remove")
-      } else {
-        SecureField("Deepgram API key", text: $key)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-          .accessibilityIdentifier("voice-key-field")
-        Button("Save key") {
-          problem = voice.saveKey(key)
-          if problem == nil { key = "" }
-        }
-        .disabled(key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        .accessibilityIdentifier("voice-key-save")
-      }
-      if let problem {
-        BugProblemView(
-          problem: .grabber(problem, context: "HomeSettingsView.voiceKey", extra: ["has_key": .bool(voice.hasKey)]),
-          logger: logger)
-      }
-    } header: {
-      Text("Voice in Chat")
-    } footer: {
-      Text(
-        "The mic in a chat thread sends what you say to Deepgram, as the Cockpit's mic does, and puts the words in the "
-          + "message for you to read before you send. The key stays in this phone's Keychain.")
-    }
-  }
-}
-
 /// Behind the home screen's Settings tile (story 147): the Launchers page, then what used to sit under the launchers.
 private struct HomeSettingsView: View {
   @ObservedObject var model: AppModel
@@ -437,7 +396,6 @@ private struct HomeSettingsView: View {
           }
           .accessibilityIdentifier("home-settings-launchers")
         }
-        VoiceKeySection(voice: model.chatVoice, logger: model.bugLogger)
         Section {
           // #303 (bug-kit#45): the same About page as Igor's other apps, from the built app's Info.plist.
           BugKitAboutLink()
