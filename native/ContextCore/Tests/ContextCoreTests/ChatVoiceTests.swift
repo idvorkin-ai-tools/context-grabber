@@ -11,6 +11,9 @@ final class ChatVoiceTests: XCTestCase {
     XCTAssertEqual(request.httpBody, audio)
     XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Token secret-key")
     XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "audio/mp4")
+    XCTAssertEqual(request.value(forHTTPHeaderField: "User-Agent"), "GrabberNative")
+    let built = ChatVoice.request(audio: audio, key: "k", userAgent: "GrabberNative/abc1234")
+    XCTAssertEqual(built.value(forHTTPHeaderField: "User-Agent"), "GrabberNative/abc1234")
     let url = request.url!.absoluteString
     XCTAssertTrue(
       url.hasPrefix("https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&punctuate=true&keyterm="), url)

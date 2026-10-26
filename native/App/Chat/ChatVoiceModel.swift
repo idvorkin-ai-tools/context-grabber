@@ -197,7 +197,8 @@ final class ChatVoiceModel: ObservableObject {
     let began = Date()
     defer { phase = .idle }
     do {
-      let (body, response) = try await URLSession.shared.data(for: ChatVoice.request(audio: audio, key: key))
+      let request = ChatVoice.request(audio: audio, key: key, userAgent: "GrabberNative/\(BuildInfo.sha)")
+      let (body, response) = try await URLSession.shared.data(for: request)
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       let text = try ChatVoice.transcript(status: status, body: body)
       log.event(

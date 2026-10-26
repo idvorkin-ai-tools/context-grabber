@@ -27,9 +27,14 @@ public enum ChatVoice {
   public static let contentType = "audio/mp4"
 
   /// One clip's POST. The key rides only in the header, so a logged URL never carries it.
-  public static func request(audio: Data, key: String, contentType: String = contentType) -> URLRequest {
+  /// `userAgent` is not cosmetic: the Cockpit found some default agents refused with a 403 that reads exactly like a
+  /// bad key (serve.py `_http_post`), so every clip names the app.
+  public static func request(
+    audio: Data, key: String, contentType: String = contentType, userAgent: String = "GrabberNative"
+  ) -> URLRequest {
     var request = URLRequest(url: url, timeoutInterval: 60)
     request.httpMethod = "POST"
+    request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
     request.setValue(
       "Token \(key.trimmingCharacters(in: .whitespacesAndNewlines))", forHTTPHeaderField: "Authorization")
     request.setValue(contentType, forHTTPHeaderField: "Content-Type")
