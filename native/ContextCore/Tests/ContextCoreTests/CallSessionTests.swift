@@ -182,7 +182,7 @@ final class CallHarness {
   func last(_ type: String) -> [String: Any]? { events.last { $0.0 == type }?.1 }
 
   var texts: [String] {
-    session.snapshot.captions.map { "\($0.who.rawValue)\($0.pending ? "?" : ""):\($0.text)" }
+    session.snapshot.captions.map { "\($0.who.rawValue)\($0.pending ? "?" : "")\($0.sent ? "!" : ""):\($0.text)" }
   }
 }
 
@@ -842,9 +842,62 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     t.goLive()
     t.socket.say(["type": "stt_final", "text": "helo lary"])
     t.socket.say(["type": "transcript", "who": "igor", "text": "Hello Larry."])
-    XCTAssertEqual(t.texts, ["igor?:Hello Larry."])
+    XCTAssertEqual(t.texts, ["igor!:Hello Larry."])
     t.socket.say(["type": "transcript", "who": "igor", "text": "typed", "source": "typed"])
-    XCTAssertEqual(t.texts, ["igor?:Hello Larry."])
+    XCTAssertEqual(t.texts, ["igor!:Hello Larry."])
+  }
+
+  // #467, story 303: sent to Larry is out of the live line now, marked sent, not when Larry answers.
+  func testASentSentenceLeavesTheLiveLineMarkedSentAndTheMarkGoesWhenLarryAnswers() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "what should"])
+    t.socket.say(["type": "stt_final", "text": "What should I eat?"])
+    XCTAssertEqual(t.texts, ["igor?:What should I eat?"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "What should I eat?"])
+    XCTAssertEqual(t.texts, ["igor!:What should I eat?"])
+    XCTAssertNil(t.session.snapshot.captions.first { $0.pending }, "the live line is empty again")
+    let logged = t.events.filter { $0.0 == "call_caption" }
+    XCTAssertEqual(logged.count, 1)
+    XCTAssertEqual(logged.first?.1["sent"] as? Bool, true)
+    t.socket.say(["type": "transcript", "who": "larry", "text": "Eggs."])
+    XCTAssertEqual(t.texts, ["igor:What should I eat?", "larry:Eggs."])
+    XCTAssertEqual(t.events.filter { $0.0 == "call_caption" && $0.1["who"] as? String == "igor" }.count, 1)
+  }
+
+  func testTwoSentencesSentBeforeLarryAnswersAreTwoRowsNotOne() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "Can you outsource yourself?"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Can you outsource yourself?"])
+    t.socket.say(["type": "stt_partial", "text": "hold"])
+    XCTAssertEqual(t.texts, ["igor!:Can you outsource yourself?", "igor?:hold"])
+    t.socket.say(["type": "stt_final", "text": "Hold on."])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Hold on."])
+    XCTAssertEqual(t.texts, ["igor!:Can you outsource yourself?", "igor!:Hold on."])
+    t.socket.say(["type": "turn_end"])
+    XCTAssertEqual(t.texts, ["igor:Can you outsource yourself?", "igor:Hold on."])
+  }
+
+  func testTheRecognizersLateFinalForASentSentenceIsNotShownTwice() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "hello"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Hello, Larry."])
+    t.socket.say(["type": "stt_final", "text": "hello Larry"])
+    XCTAssertEqual(t.texts, ["igor!:Hello, Larry."])
+    XCTAssertEqual(t.last("call_caption_restated")?["text"] as? String, "hello Larry")
+    // The same words said again as a NEW sentence still land: the bridge sends that one too.
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Hello Larry."])
+    XCTAssertEqual(t.texts, ["igor!:Hello, Larry.", "igor!:Hello Larry."])
+  }
+
+  func testHangingUpClearsTheSentMark() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Bye."])
+    t.session.stop()
+    XCTAssertEqual(t.texts, ["igor:Bye."])
   }
 
   func testATurnEndWithNothingSaidLeavesNoEmptyRow() {

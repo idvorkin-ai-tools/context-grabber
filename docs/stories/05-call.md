@@ -99,7 +99,27 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A sentence is recognised
 - **Given:** a call is live and the box under the call line reads *listening…*
 - **When:** I say a sentence slowly
-- **Then:** the words appear in the box in large type as they are recognised, and when Tony answers the box returns to *listening…* and the sentence is one *Igor* row in the transcript below
+- **Then:** the words appear in the box in large type as they are recognised, and when the sentence is sent to Larry the box returns to *listening…* and the sentence is one *Igor* row in the transcript below ([story 303](#user-story-303))
+
+---
+
+### User Story 303:
+
+- **Summary:** See the moment my sentence is sent to Larry, without waiting for his reply
+- **Status:** STATUS_303
+- **Issues:** [#467](https://github.com/idvorkin/context-grabber/issues/467)
+- **Spec:** [Native call — the live line](../superpowers/specs/2026-08-28-native-call-screen-design.md)
+
+#### Use Case:
+- **As a** Larry's client on a Direct call, where Larry can think for seconds before he speaks
+- **I want to** see each sentence leave the live line and sit in the transcript marked *sent* the moment it goes to Larry
+- **so that** I know what he has, and what I say next is plainly a new sentence rather than more of the last one
+
+#### Acceptance Criteria:
+- **Scenario:** Two sentences sent before Larry answers
+- **Given:** a live call, on Direct or ElevenLabs, with the live line reading *listening…*
+- **When:** I say a sentence, it is sent to Larry, and I say a second one before he answers
+- **Then:** the first sentence is an *Igor* row marked *sent* as soon as it is sent, the second builds in a fresh live line and becomes a second *Igor* row marked *sent* — two rows, neither shown twice — and when Larry answers both *sent* marks go
 
 ---
 

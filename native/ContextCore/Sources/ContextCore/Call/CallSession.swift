@@ -26,12 +26,15 @@ public struct CaptionRow: Equatable, Identifiable, Sendable {
   public var text: String
   /// Igor's words as the recognizer still hears them — not yet settled.
   public var pending: Bool
+  /// #467, story 303: Igor's sentence has gone to Larry and Larry has not answered yet.
+  public var sent: Bool
 
-  public init(id: Int, who: CaptionWho, text: String, pending: Bool) {
+  public init(id: Int, who: CaptionWho, text: String, pending: Bool, sent: Bool = false) {
     self.id = id
     self.who = who
     self.text = text
     self.pending = pending
+    self.sent = sent
   }
 }
 
@@ -205,6 +208,8 @@ public final class CallSession {
   private var nextRowId = 1
   private var igorFinal = ""
   private var igorRowId: Int?
+  /// #467: the words of Igor's sentences sent since Larry last answered, for spotting the recognizer restating one.
+  private var sentWords: [String] = []
   private var larryRowId: Int?
   private var toolRowId: Int?
   private var probeToken = 0
@@ -377,18 +382,30 @@ public final class CallSession {
       if token == probeToken { clearProbe() }
     case .transcript(let who, let text, let source):
       if who == "igor" {
-        // The vendor's transcript of the utterance replaces the recognizer's; the turn settles it.
-        if source != "typed", !text.isEmpty { setIgor(final: text, partial: "") }
+        // The bridge took his words and sent them to Larry (#467): the vendor's transcript replaces the
+        // recognizer's, and the sentence leaves the live line now, marked sent, rather than when Larry answers.
+        if source != "typed", !text.isEmpty {
+          setIgor(final: text, partial: "")
+          promoteIgor(sent: true)
+        }
       } else if who == "larry" {
         // Larry answering means the vendor decided Igor's turn was over.
         lastTextAt = deps.scheduler.now
         promoteIgor()
+        clearSent()
         appendLarry(text)
       }
     case .sttPartial(let text):
       setIgor(final: igorFinal, partial: text)
     case .sttFinal(let text):
-      setIgor(final: joinWords(igorFinal, text), partial: "")
+      let said = joinWords(igorFinal, text)
+      if restatesSent(said) {
+        // The recognizer's own final for a sentence the bridge already sent: never show it twice.
+        log("call_caption_restated", ["text": said])
+        dropIgor()
+      } else {
+        setIgor(final: said, partial: "")
+      }
     case .interrupted:
       log("call_bridge", ["kind": "interrupted"])
       deps.audio.flush()
@@ -396,6 +413,7 @@ public final class CallSession {
     case .turnEnd:
       closeLarryRow()
       promoteIgor()
+      clearSent()
     case .toolCall(let question):
       promoteIgor()
       closeLarryRow()
@@ -724,8 +742,9 @@ public final class CallSession {
     }
   }
 
-  /// Igor's pending row becomes a settled one; an empty pending row is dropped.
-  private func promoteIgor() {
+  /// Igor's pending row becomes a settled one, marked sent when the bridge sent it to Larry; an empty pending row
+  /// is dropped.
+  private func promoteIgor(sent: Bool = false) {
     let id = igorRowId
     igorRowId = nil
     igorFinal = ""
@@ -734,8 +753,36 @@ public final class CallSession {
       update { $0.captions.removeAll { $0.id == row.id } }
       return
     }
-    setRow(row.id) { $0.pending = false }
-    log("call_caption", ["who": "igor", "text": row.text])
+    setRow(row.id) {
+      $0.pending = false
+      $0.sent = sent
+    }
+    if sent { sentWords += captionWords(row.text) }
+    log("call_caption", ["who": "igor", "text": row.text, "sent": sent])
+  }
+
+  /// Igor's pending row goes without a trace: what it held was already sent.
+  private func dropIgor() {
+    let id = igorRowId
+    igorRowId = nil
+    igorFinal = ""
+    if let id { update { $0.captions.removeAll { $0.id == id } } }
+  }
+
+  /// Larry answered, or the turn or the call ended: nothing is waiting on him any more.
+  private func clearSent() {
+    sentWords = []
+    guard snapshot.captions.contains(where: { $0.sent }) else { return }
+    update { s in
+      for i in s.captions.indices where s.captions[i].sent { s.captions[i].sent = false }
+    }
+  }
+
+  /// The recognizer's words are the tail of what was already sent before Larry answered — its late final for the
+  /// same sentence, not a new one.
+  private func restatesSent(_ text: String) -> Bool {
+    let words = captionWords(text)
+    return !words.isEmpty && sentWords.count >= words.count && Array(sentWords.suffix(words.count)) == words
   }
 
   private func appendLarry(_ text: String) {
@@ -773,6 +820,7 @@ public final class CallSession {
     snapshot = next
     igorFinal = ""
     igorRowId = nil
+    sentWords = []
     larryRowId = nil
     toolRowId = nil
     probeSent = false
@@ -806,6 +854,7 @@ public final class CallSession {
     guard snapshot.isActive else { return }
     closeLarryRow()
     promoteIgor()
+    clearSent()
     let stats = deps.audio.stats()
     log(
       "call_ended",
@@ -847,6 +896,11 @@ public final class CallSession {
   private func emit() { onChange?(snapshot) }
 
   private func log(_ type: String, _ fields: [String: Any]) { deps.log(type, fields) }
+}
+
+/// Lowercased words without punctuation: "Hello, Larry." and "hello Larry" are the same sentence.
+func captionWords(_ text: String) -> [String] {
+  text.lowercased().split { !$0.isLetter && !$0.isNumber && $0 != "'" }.map(String.init)
 }
 
 func joinWords(_ a: String, _ b: String) -> String {
