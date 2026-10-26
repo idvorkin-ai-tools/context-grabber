@@ -73,6 +73,8 @@ final class AppModel: ObservableObject {
   /// The call screen covers the app. The call itself is `call`'s and outlives the screen.
   @Published var callOpen = false
   let call: CallModel
+  /// Speaking a message in Chat (#448): the mic button's recorder and Deepgram, standing down while a call is live.
+  let chatVoice: ChatVoiceModel
   /// Today (the mirror) is on screen.
   @Published var showToday = false
   @Published var showInbox = false
@@ -113,6 +115,7 @@ final class AppModel: ObservableObject {
     archive = ArchiveModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
     archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
     call = CallModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
+    chatVoice = ChatVoiceModel(log: log, callLive: call.$snapshot.map(\.isActive).eraseToAnyPublisher())
     // Before BugKit the ✕ was kept in the database: carry it over once, so a dismissed row stays dismissed.
     if let seen = database.setting("whats_new_seen"),
       UserDefaults.standard.string(forKey: WhatsNewSeen.defaultKey) == nil

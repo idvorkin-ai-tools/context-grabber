@@ -9,12 +9,14 @@ import UIKit
 struct ChatListView: View {
   @ObservedObject var chat: ChatModel
   @ObservedObject var inbox: InboxModel
+  let voice: ChatVoiceModel
   let logger: BugLogger
   @State private var doneOpen = false
 
-  init(chat: ChatModel, logger: @escaping BugLogger) {
+  init(chat: ChatModel, voice: ChatVoiceModel, logger: @escaping BugLogger) {
     self.chat = chat
     self.inbox = chat.inbox
+    self.voice = voice
     self.logger = logger
   }
 
@@ -101,14 +103,14 @@ struct ChatListView: View {
       isPresented: Binding(get: { chat.linkThread != nil }, set: { if !$0 { chat.linkThread = nil } })
     ) {
       if let key = chat.linkThread {
-        ChatThreadView(chat: chat, key: key, title: chat.title(of: key), logger: logger)
+        ChatThreadView(chat: chat, voice: voice, key: key, title: chat.title(of: key), logger: logger)
       }
     }
   }
 
   private func threadLink(_ thread: ChatSummary) -> some View {
     NavigationLink {
-      ChatThreadView(chat: chat, key: thread.key, title: thread.title, logger: logger)
+      ChatThreadView(chat: chat, voice: voice, key: thread.key, title: thread.title, logger: logger)
     } label: {
       ThreadRow(thread: thread)
     }
@@ -172,13 +174,15 @@ private struct PendingThreadRow: View {
 struct ChatThreadView: View {
   @ObservedObject var chat: ChatModel
   @ObservedObject var inbox: InboxModel
+  let voice: ChatVoiceModel
   let key: String
   let title: String
   let logger: BugLogger
 
-  init(chat: ChatModel, key: String, title: String, logger: @escaping BugLogger) {
+  init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
     self.chat = chat
     self.inbox = chat.inbox
+    self.voice = voice
     self.key = key
     self.title = title
     self.logger = logger
@@ -217,7 +221,7 @@ struct ChatThreadView: View {
         withAnimation { reader.scrollTo("bottom", anchor: .bottom) }
       }
     }
-    .safeAreaInset(edge: .bottom) { ComposeBar(chat: chat, thread: key, logger: logger) }
+    .safeAreaInset(edge: .bottom) { ComposeBar(chat: chat, voice: voice, thread: key, logger: logger) }
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("chat-thread")
@@ -360,6 +364,7 @@ enum ChatText {
 
 private struct ComposeBar: View {
   @ObservedObject var chat: ChatModel
+  @ObservedObject var voice: ChatVoiceModel
   let thread: String
   let logger: BugLogger
   @State private var draft = InboxDraft()
@@ -377,6 +382,15 @@ private struct ComposeBar: View {
           problem: .grabber(
             failure, context: "ChatThreadView.send",
             extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
+      }
+      // #448: what the mic could not do, copyable, and its quieter lines (no key, nothing heard, a call has the mic),
+      // each in the thread it came from only.
+      if voice.thread == thread, let problem = voice.problem {
+        BugProblemView(problem: problem, logger: logger)
+      } else if voice.thread == thread, let notice = voice.notice {
+        Text(notice).font(.footnote).foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityIdentifier("chat-voice-notice")
       }
       if let preview {
         HStack {
@@ -396,6 +410,7 @@ private struct ComposeBar: View {
         }
         .disabled(!hasImage)
         .accessibilityLabel("Paste image")
+        MicButton(voice: voice, thread: thread)
         TextField("Message Larry", text: $draft.text, axis: .vertical)
           .lineLimit(1...6)
           .padding(.horizontal, 12).padding(.vertical, 8)
@@ -413,12 +428,21 @@ private struct ComposeBar: View {
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
     .background(.bar)
+    // The words go into the draft, after what was typed, for Igor to read before he sends (#448).
+    .onChange(of: voice.words) { _, _ in takeWords() }
+    .onAppear { takeWords() }
+    .onDisappear { voice.cancel(thread: thread, why: "left_thread") }
     .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
       hasImage = UIPasteboard.general.hasImages
     }
     .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
       hasImage = UIPasteboard.general.hasImages
     }
+  }
+
+  private func takeWords() {
+    guard let words = voice.take(thread: thread) else { return }
+    draft.text = ChatVoice.draft(draft.text, adding: words)
   }
 
   private func paste() {
@@ -444,6 +468,46 @@ private struct ComposeBar: View {
       }
     } catch {
       failure = "The message could not be kept on the phone: \(error.localizedDescription)"
+    }
+  }
+}
+
+/// Tap to record, tap to stop (#448): red with the seconds while recording, a spinner while Deepgram listens, dimmed
+/// with no key or during a call, when a tap says why instead.
+private struct MicButton: View {
+  @ObservedObject var voice: ChatVoiceModel
+  let thread: String
+
+  var body: some View {
+    Button {
+      voice.tap(thread: thread)
+    } label: {
+      switch voice.phase {
+      case .idle:
+        Image(systemName: "mic").font(.title3)
+          .foregroundStyle(voice.callLive || !voice.hasKey ? Color.secondary : Color.accentColor)
+      case .recording(let since):
+        HStack(spacing: 3) {
+          Image(systemName: "stop.circle.fill").font(.title3)
+          TimelineView(.periodic(from: since, by: 1)) { context in
+            Text(ChatVoice.elapsed(context.date.timeIntervalSince(since))).font(.caption.monospacedDigit())
+          }
+        }
+        .foregroundStyle(.red)
+      case .transcribing:
+        ProgressView()
+      }
+    }
+    .disabled(voice.phase == .transcribing)
+    .accessibilityLabel(label)
+    .accessibilityIdentifier("chat-mic")
+  }
+
+  private var label: String {
+    switch voice.phase {
+    case .idle: return "Speak a message"
+    case .recording: return "Stop recording"
+    case .transcribing: return "Transcribing"
     }
   }
 }

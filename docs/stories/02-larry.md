@@ -836,3 +836,43 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I read the reply on the laptop, the app showed it, the thread is Done, or it was waiting before the app's first background check
 - **When:** the background check runs
 - **Then:** nothing is notified for it
+
+---
+
+### User Story 303:
+
+- **Summary:** I speak a message in a thread and read the words before I send them
+- **Status:** native app only: implemented in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662); verified by `ChatVoiceTests` (host: the Cockpit's nova-3 address and names with the key only in the header, a transcript read and trimmed, silence leaving the draft unchanged, the words after what was typed, Deepgram's refusal carried to the screen) and `ChatVoiceUITests` (simulator: the key saved and removed in Settings, shown only as *Saved*; with no key the mic says where to add one and records nothing); recording and Deepgram on the phone not yet
+- **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448)
+- **Spec:** [Chat with Larry in Grabber Native — Speaking a message](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with my hands busy or more to say than I want to type
+- **I want to** tap a mic in the thread, talk, and get my words in the message
+- **so that** I can say it as fast as I think and still fix it before Larry reads it
+
+#### Acceptance Criteria:
+- **Scenario:** Speaking a message
+- **Given:** my Deepgram key is saved in *Settings → Voice in Chat* and no call is live
+- **When:** I tap the mic in a thread, speak, and tap it again
+- **Then:** it shows red with the seconds while it records and a spinner while it listens, and my words land in the field after anything I typed, transcribed as the Cockpit's mic would; nothing is sent until I tap Send
+
+- **Scenario:** Nothing to transcribe, or no way to
+- **Given:** a recording of silence, no saved key, a microphone I declined, or a call with Larry live
+- **When:** I tap the mic
+- **Then:** the field stays as it was, and a line says why: *Nothing heard*, where to add the key, how to allow the microphone, or that the call has the mic; a call that starts mid-recording drops the recording and its sound is never changed
+
+- **Scenario:** Interrupted mid-recording
+- **Given:** I am recording a message
+- **When:** a phone call or Siri interrupts
+- **Then:** the clock stops, what I said so far goes into the field for me to read (never sent), and a line says the recording was stopped by an interruption
+
+- **Scenario:** Deepgram fails
+- **Given:** no network, a wrong key, or the service down
+- **When:** my recording goes out
+- **Then:** a copyable error says what Deepgram said, the field is unchanged, and the session log's `chat_voice` line has the stage and status, never my words or the key
+
+- **Scenario:** The key
+- **Given:** I open *Settings → Voice in Chat*
+- **When:** I paste my Deepgram key and save it, or remove it
+- **Then:** it is kept in this phone's Keychain, shown only as *Saved*, never logged; removed, the mic says where to add one again
