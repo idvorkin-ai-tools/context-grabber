@@ -190,11 +190,11 @@ public final class MirrorGrab: @unchecked Sendable {
   func perDay(_ metric: MetricKey, now: Double) async -> WeeklySeries {
     let todayKey = clock.dateKey(now)
     let keys = Weekly.dateKeys(endDate: now, clock: clock)
-    var cached: [String: JSValue] = [:]
+    var cached: [String: CachedDay] = [:]
     if let cache {
-      do { cached = try cache.computed(metric, keys) } catch { fail("cache_read", error) }
+      do { cached = try cache.computedEntries(metric, keys) } catch { fail("cache_read", error) }
     }
-    let (hits, fetch) = HealthCache.partition(todayKey: todayKey, dateKeys: keys, cached: cached)
+    let (hits, fetch) = HealthCache.partition(todayKey: todayKey, dateKeys: keys, cached: cached, clock: clock)
     var fresh: [String: (computed: JSValue, raw: JSValue)] = [:]
     await withTaskGroup(of: (String, (JSValue, JSValue)?).self) { group in
       for key in fetch {
@@ -215,7 +215,8 @@ public final class MirrorGrab: @unchecked Sendable {
         fail("cache_write", error)
       }
     }
-    let merged = keys.map { fresh[$0]?.computed ?? hits[$0] }
+    // A day asked again because it had not settled keeps its cached value when Health could not answer.
+    let merged = keys.map { fresh[$0]?.computed ?? hits[$0] ?? cached[$0]?.value }
     if metric.isRanged {
       return .ranged(
         zip(keys, merged).map { key, v in v.flatMap(HeartRateDaily.init(json:)) ?? HeartRateDaily(date: key) })
@@ -232,8 +233,11 @@ public final class MirrorGrab: @unchecked Sendable {
     switch metric {
     case .steps, .activeEnergy, .walkingDistance:
       let kind: QuantityKind = metric == .steps ? .steps : metric == .activeEnergy ? .activeEnergy : .distance
-      // A failed sum is a day with no value, as in the React Native app.
-      let sum = (try? await s.sum(kind, from: dayStart, to: dayEnd)) ?? nil
+      // A failed sum is no answer (nil), so it is never cached as a day with no value: the day is asked again on
+      // the next grab, and one cached before keeps its value (a locked phone's background grab fails every query).
+      // It stays out of the failures, as in the React Native app.
+      let sum: Double?
+      do { sum = try await s.sum(kind, from: dayStart, to: dayEnd) } catch { return nil }
       let value = sum.map(round2)
       return (
         DailyValue(date: dateKey, value: value).json,
