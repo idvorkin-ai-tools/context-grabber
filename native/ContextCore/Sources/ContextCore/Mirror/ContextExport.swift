@@ -126,14 +126,14 @@ public enum ContextExport {
     // Story 037: the native app's one addition to the current app's summary. Absent when not given, so the
     // byte-for-byte comparison with the TypeScript export (which has no activities) still holds.
     let tail: [(String, JSValue)] = activities.map { [("activities", .array($0.map(\.exportJSON)))] } ?? []
-    let head: [(String, JSValue)] = roles.map { [("roles", $0)] } ?? []
-    return .object(
-      head + [
-        ("today", todayHeadline(health, dateKey: todayDate, clock: clock)),
-        ("days", dailyExport(data, clock: clock)),
-        ("places", places.map { .object([("weekly", .string($0.weekly)), ("recent", .string($0.recent))]) } ?? .null),
-        ("accessory", accessory.map { .array($0.map(\.json)) } ?? .null),
-      ] + tail)
+    var fields: [(String, JSValue)] = roles.map { [("roles", $0)] } ?? []
+    fields += [
+      ("today", todayHeadline(health, dateKey: todayDate, clock: clock)),
+      ("days", dailyExport(data, clock: clock)),
+      ("places", places.map { .object([("weekly", .string($0.weekly)), ("recent", .string($0.recent))]) } ?? .null),
+      ("accessory", accessory.map { .array($0.map(\.json)) } ?? .null),
+    ]
+    return .object(fields + tail)
   }
 
   /// The accessory log, newest first; items saved together keep the order the React Native app's query returns

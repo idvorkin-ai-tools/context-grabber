@@ -112,7 +112,7 @@ public enum PlacesSummaryText {
     let m = c.minute ?? 0
     let period = h >= 12 ? "pm" : "am"
     let h12 = h % 12 == 0 ? 12 : h % 12
-    return m == 0 ? "\(h12)\(period)" : "\(h12):\(String(format: "%02d", m))\(period)"
+    return m == 0 ? "\(h12)\(period)" : "\(h12):\(String(format: "%02ld", m))\(period)"
   }
 
   /// "Fri Mar 29 10:58am–11:11am", or with the end's date when it is another day.
