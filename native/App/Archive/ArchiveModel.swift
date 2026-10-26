@@ -208,12 +208,13 @@ final class ArchiveModel {
     if !cancelled && !locked {
       database.setSetting(Self.lastRunKey, String(startedMs))
     }
-    // Story 304: the Settings line. A locked phone skips Health, so that run is not "caught up".
-    var outcomeStopped = stopped
-    if locked { outcomeStopped[ArchiveStatus.healthSkipped] = "read" }
-    let outcome = ArchiveOutcome(at: startedMs, stopped: outcomeStopped, refused: refused)
-    database.setSetting(Self.lastOutcomeKey, outcome.json)
-    if outcome.caughtUp { database.setSetting(Self.lastCaughtUpKey, String(startedMs)) }
+    // Story 304: the Settings line, from runs that could read everything. Most background runs find the phone
+    // locked and skip Health; recording those would read "Behind" until the next unlocked run, so they say nothing.
+    if !locked {
+      let outcome = ArchiveOutcome(at: startedMs, stopped: stopped, refused: refused)
+      database.setSetting(Self.lastOutcomeKey, outcome.json)
+      if outcome.caughtUp { database.setSetting(Self.lastCaughtUpKey, String(startedMs)) }
+    }
     log.event(
       "archive_run",
       [

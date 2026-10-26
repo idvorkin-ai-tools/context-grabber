@@ -54,9 +54,9 @@ reach or a refused page is seen before it becomes a gap in Larry's week. Its fir
 - *Behind · last run 1 h ago · last caught up …* when some stream did not catch up for another reason.
 
 The headline is red when nothing has caught up for more than a day. Under it, one line per stream that did not
-catch up, by name (*Trail*, *Heart Rate*, *Strip: balloons*, *Health* when the phone was locked) and why: waiting for
+catch up, by name (*Trail*, *Heart Rate*, *Strip: balloons*) and why: waiting for
 the Cockpit, refused (with the Cockpit's status, in red), still sending its history, could not be read on the phone,
-or cut short by iOS. Before the first run it says *Not run yet*; on a simulator with no archive address, *Not sent*.
+or cut short by iOS. A run that found the phone locked (Health cannot be read then) changes nothing here. Before the first run it says *Not run yet*; on a simulator with no archive address, *Not sent*.
 
 ## The daily strip
 

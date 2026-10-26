@@ -62,7 +62,6 @@ final class ArchiveStatusTests: XCTestCase {
     XCTAssertEqual(ArchiveStatus.name("location.points"), "Trail")
     XCTAssertEqual(ArchiveStatus.name("health.HKCategoryTypeIdentifierSleepAnalysis"), "Sleep Analysis")
     XCTAssertEqual(ArchiveStatus.name("health.HKWorkoutTypeIdentifier"), "Workouts")
-    XCTAssertEqual(ArchiveStatus.name("health"), "Health")
     XCTAssertEqual(
       ArchiveStatus.name("health.HKQuantityTypeIdentifierHeartRateVariabilitySDNN"), "Heart Rate Variability SDNN")
     XCTAssertEqual(ArchiveStatus.ago(now - 20_000, now: now), "just now")

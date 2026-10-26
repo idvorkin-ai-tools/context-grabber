@@ -38,9 +38,6 @@ public enum ArchiveStatus {
     public var trouble: Bool
   }
 
-  /// The outcome's key for Health's streams when the phone was locked and none of them ran.
-  public static let healthSkipped = "health"
-
   /// Not caught up for longer than this is trouble.
   public static let staleMs: Int64 = 24 * 60 * 60 * 1000
 
@@ -73,7 +70,6 @@ public enum ArchiveStatus {
   /// "Strip: balloons".
   public static func name(_ stream: String) -> String {
     if stream == ArchiveStream.points { return "Trail" }
-    if stream == healthSkipped { return "Health" }
     if stream.hasPrefix("strip.") { return "Strip: " + String(stream.dropFirst("strip.".count)) }
     if stream.hasPrefix("health.") {
       var id = String(stream.dropFirst("health.".count))
