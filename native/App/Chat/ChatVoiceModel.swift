@@ -20,26 +20,19 @@ final class ChatVoiceModel: ObservableObject {
     case finishing
   }
 
-  /// The whole draft for one thread's bar — what was typed, then the words so far — taken once (the id tells a
-  /// repeat apart).
-  struct Words: Equatable {
-    let id: Int
-    let thread: String
-    let text: String
-  }
-
   @Published private(set) var callLive = false
   /// A short line under the bar: a call has the mic, a call took it, the five-minute stop.
   @Published private(set) var notice: String?
-  @Published private(set) var words: Words?
+  /// The whole draft for one thread's bar — what was typed, then the words so far — taken once, by that thread only.
+  @Published private(set) var words = ChatVoiceWords()
   /// The thread the last tap was in: its words, `notice` and `problem` show in that thread's bar only.
   @Published private(set) var thread = ""
 
   private let log: SessionLog
   private lazy var dictation = NoteDictation(
     logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.callLive ?? false })
-  private var since: Date?
-  private var spoken = 0
+  /// Each recording's start, stop and five-minute timer (ContextCore, host-tested).
+  private var clock = ChatVoiceClock()
   private var capTimer: Task<Void, Never>?
   private var watches: Set<AnyCancellable> = []
 
@@ -71,7 +64,7 @@ final class ChatVoiceModel: ObservableObject {
   }
 
   var phase: Phase {
-    if dictation.listening { return .recording(since: since ?? Date()) }
+    if dictation.listening { return .recording(since: clock.since ?? Date()) }
     if dictation.starting { return .starting }
     if dictation.processing { return .finishing }
     return .idle
@@ -137,39 +130,31 @@ final class ChatVoiceModel: ObservableObject {
   }
 
   /// The words spoken for this thread, once: the bar takes them as they come, or on its return if it was away.
-  func take(thread: String) -> String? {
-    guard let words, words.thread == thread else { return nil }
-    self.words = nil
-    return words.text
-  }
+  func take(thread: String) -> String? { words.take(thread: thread) }
 
-  private func heard(_ text: String, thread: String) {
-    spoken += 1
-    words = Words(id: spoken, thread: thread, text: text)
-  }
+  private func heard(_ text: String, thread: String) { words.heard(text, thread: thread) }
 
   private func listeningChanged(_ listening: Bool) {
-    capTimer?.cancel()
-    capTimer = nil
-    if listening {
-      let started = Date()
-      since = started
+    switch clock.listening(listening, at: Date()) {
+    case .none: return
+    case .started(let recording, let capAt):
       log.event("chat_voice", ["action": "record_start", "thread": thread])
+      capTimer?.cancel()
       capTimer = Task { [weak self] in
-        try? await Task.sleep(for: .seconds(ChatVoice.limit))
+        try? await Task.sleep(for: .seconds(capAt.timeIntervalSinceNow))
         guard !Task.isCancelled else { return }
-        await self?.capped(since: started)
+        await self?.capped(recording: recording)
       }
-    } else if let started = since {
-      since = nil
-      let seconds = (Date().timeIntervalSince(started) * 10).rounded() / 10
+    case .stopped(let seconds):
+      capTimer?.cancel()
+      capTimer = nil
       log.event("chat_voice", ["action": "record_stop", "thread": thread, "seconds": seconds])
     }
   }
 
   /// The five-minute limit: stopped exactly as a tap on stop would, the words settling into the draft, never sent.
-  private func capped(since started: Date) async {
-    guard dictation.listening, since == started else { return }
+  private func capped(recording: Int) async {
+    guard dictation.listening, clock.shouldCap(recording: recording, at: Date()) else { return }
     log.event("chat_voice", ["action": "capped", "thread": thread, "seconds": ChatVoice.limit])
     notice = ChatVoice.cappedLine
     await dictation.finish(why: "capped")

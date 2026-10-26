@@ -17,3 +17,62 @@ final class ChatVoiceTests: XCTestCase {
     XCTAssertEqual(ChatVoice.cappedLine, "Stopped at 5 minutes.")
   }
 }
+
+final class ChatVoiceClockTests: XCTestCase {
+  let t0 = Date(timeIntervalSince1970: 1_000_000)
+
+  func testARecordingStartsAndStopsWithItsSeconds() {
+    var clock = ChatVoiceClock()
+    XCTAssertEqual(
+      clock.listening(true, at: t0), .started(recording: 1, capAt: t0.addingTimeInterval(ChatVoice.limit)))
+    XCTAssertEqual(clock.listening(true, at: t0.addingTimeInterval(1)), .none, "the same state again")
+    XCTAssertEqual(clock.listening(false, at: t0.addingTimeInterval(12.34)), .stopped(seconds: 12.3))
+    XCTAssertEqual(clock.listening(false, at: t0.addingTimeInterval(13)), .none)
+  }
+
+  func testTheTimerCapsARecordingThatRanTheLimit() {
+    var clock = ChatVoiceClock()
+    _ = clock.listening(true, at: t0)
+    XCTAssertTrue(clock.shouldCap(recording: 1, at: t0.addingTimeInterval(ChatVoice.limit)))
+  }
+
+  func testTheTimerDoesNotSurviveAStop() {
+    var clock = ChatVoiceClock()
+    _ = clock.listening(true, at: t0)
+    _ = clock.listening(false, at: t0.addingTimeInterval(30))
+    XCTAssertFalse(clock.shouldCap(recording: 1, at: t0.addingTimeInterval(ChatVoice.limit)))
+  }
+
+  func testALaterRecordingIsNotCappedByAnEarlierOnesTimer() {
+    var clock = ChatVoiceClock()
+    _ = clock.listening(true, at: t0)
+    _ = clock.listening(false, at: t0.addingTimeInterval(30))
+    let later = t0.addingTimeInterval(200)
+    XCTAssertEqual(
+      clock.listening(true, at: later), .started(recording: 2, capAt: later.addingTimeInterval(ChatVoice.limit)))
+    // The first recording's timer fires at t0 + 5:00, 100 s into the second.
+    XCTAssertFalse(clock.shouldCap(recording: 1, at: t0.addingTimeInterval(ChatVoice.limit)))
+    XCTAssertFalse(clock.shouldCap(recording: 2, at: t0.addingTimeInterval(ChatVoice.limit)), "only 100 s in")
+    XCTAssertTrue(clock.shouldCap(recording: 2, at: later.addingTimeInterval(ChatVoice.limit)))
+  }
+}
+
+final class ChatVoiceWordsTests: XCTestCase {
+  func testAThreadsWordsAreNeverTakenByAnother() {
+    var words = ChatVoiceWords()
+    words.heard("typed, then spoken", thread: "A")
+    XCTAssertNil(words.take(thread: "B"))
+    XCTAssertEqual(words.take(thread: "A"), "typed, then spoken")
+    XCTAssertNil(words.take(thread: "A"), "taken once")
+  }
+
+  func testTheLatestDraftWinsAndARepeatIsStillNew() {
+    var words = ChatVoiceWords()
+    words.heard("hello", thread: "A")
+    let first = words.latest
+    words.heard("hello", thread: "A")
+    XCTAssertNotEqual(words.latest, first, "the same text again is a new hand-off")
+    words.heard("hello there", thread: "A")
+    XCTAssertEqual(words.take(thread: "A"), "hello there")
+  }
+}
