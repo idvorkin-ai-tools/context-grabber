@@ -881,3 +881,25 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I record a message
 - **When:** I read the session log
 - **Then:** `chat_voice` lines say when it started and stopped (and why it stopped early), never my words
+
+---
+
+### User Story 304:
+
+- **Summary:** Settings tells me whether everything reached the archive, and which stream did not
+- **Status:** native app only: implemented in [5f8260c](https://github.com/idvorkin/context-grabber/commit/5f8260c); verified by `just native-test` (host: `ArchiveStatusTests`, `ArchiveTests` refusal status, still to run on the Mac); the simulator and the phone not yet
+- **Issues:** [#547](https://github.com/idvorkin/context-grabber/issues/547)
+- **Spec:** [Everything off the phone — In Settings](../superpowers/specs/2026-10-19-native-stats-archive-design.md#in-settings)
+
+#### Use Case:
+- **As** Larry's client whose week the Cockpit reads from the archive
+- **I want to** see in Settings whether the archive is caught up, and why a stream is not
+- **so that** a Cockpit out of reach or a refused page is fixed before it becomes a gap in what Larry sees
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit has been out of reach
+- **Given:** the archive last caught up two days ago and the last run could not reach the Cockpit
+- **When:** I open Settings
+- **Then:** the Archive section says *Cockpit out of reach · tried … · last caught up 2 days ago* in red, with a line for each stream that did not catch up and why; a refused stream shows the Cockpit's status in red, and a run that caught everything up says *Caught up* with when
+
+---
