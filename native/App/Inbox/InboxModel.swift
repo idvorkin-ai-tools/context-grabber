@@ -10,8 +10,6 @@ import Network
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
   @Published private(set) var sending = false
-  /// The *New chat* sheet is up (#405).
-  @Published var composing = false
   // #406, story 269: unknown at launch; the first path reading releases any waiting send.
   @Published private(set) var sendPolicy = InboxSendPolicy()
   var offline: Bool { sendPolicy.path == .offline }
@@ -95,16 +93,9 @@ final class InboxModel: ObservableObject {
     send(reason: reason)
   }
 
-  // #405, stories 262–264: save locally before sending; never log the draft's content.
-  func openCompose(from source: String) {
-    log.event("ui", ["action": "open_inbox_compose", "from": source])
-    composing = true
-  }
-
-  /// `thread`: the chat thread this message goes to; nil starts a new one (spec 2026-10-25).
-  func add(
-    _ draft: inout InboxDraft, another: Bool, id: String = UUID().uuidString.lowercased(), thread: String? = nil
-  ) throws {
+  /// Stories 262–264: saved locally before sending; never logs the draft's content. `thread`: the chat thread this
+  /// message goes to; nil starts a new one (spec 2026-10-25).
+  func add(_ draft: inout InboxDraft, id: String = UUID().uuidString.lowercased(), thread: String? = nil) throws {
     guard let store else {
       throw NSError(
         domain: "InboxModel.add", code: 1,
@@ -115,8 +106,7 @@ final class InboxModel: ObservableObject {
     log.event(
       "ui",
       [
-        "action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "another": another,
-        "new_thread": thread == nil,
+        "action": "inbox_compose_add", "kind": item.kind.rawValue, "bytes": bytes, "new_thread": thread == nil,
       ])
     didAdd?()
     refresh(reason: "compose")
@@ -218,20 +208,6 @@ final class InboxModel: ObservableObject {
 
   /// `GRABBER_INBOX_FIXTURE=1`: three items as the share extension would write them, for the simulator. Their ids
   /// mark them as fixtures, which are never sent: the simulator reaches the tailnet too.
-  /// `GRABBER_INBOX_COMPOSE=open|<text>`: the *New chat* sheet up; with text, that text added through it as
-  /// Send and start another would, under a fixture id so it is never sent.
-  func composeHook(_ value: String) {
-    openCompose(from: "hook")
-    guard value != "open" else { return }
-    var draft = InboxDraft()
-    draft.text = value
-    do {
-      try add(&draft, another: true, id: InboxItem.fixtureID())
-    } catch {
-      log.event("error", ["where": "inbox_fixture", "message": "\(error)"])
-    }
-  }
-
   func addFixture() {
     guard let store else { return log.event("error", ["where": "inbox_fixture", "message": "no App Group"]) }
     let now = Int64(Date().timeIntervalSince1970 * 1000)

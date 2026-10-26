@@ -419,50 +419,53 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 262:
 
-- **Summary:** Add a thought to the Inbox with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet.
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424)
-- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+- **Summary:** Start a new chat with the keyboard or dictation
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
-- **I want to** open the Inbox + and type or use the keyboard’s standard dictation mic
-- **so that** I can capture something for Larry without leaving the app
+- **I want to** tap Chat's + and type, or use the keyboard's dictation or the chat mic, in a new thread
+- **so that** I can start a conversation with Larry without leaving the app or learning a second screen
 
 #### Acceptance Criteria:
-- **Scenario:** Adding a thought
-- **Given:** the Inbox is open, empty or populated, with one large round + fixed at the lower right above the safe area, no toolbar +, and room to scroll the last row fully above the button
-- **When:** I tap the fixed +, enter text by typing or keyboard dictation, and tap Add
-- **Then:** one text item is saved locally, the sheet closes, and the item appears waiting and triggers sending to Larry
+- **Scenario:** Starting a new chat
+- **Given:** Chat is open, empty or populated, with one large round + fixed at the lower right above the safe area, no toolbar +, and room to scroll the last row fully above the button
+- **When:** I tap the fixed +, enter text by typing or dictation, and tap Send
+- **Then:** an empty thread titled *New chat* opened with the ordinary bar and the keyboard up; my message shows at once as *Not sent yet*, is kept on the phone and sent to Larry, the thread takes that message's first line as its title, and once the Cockpit has it this screen is the live thread
 
+- **Scenario:** Leaving without sending
+- **Given:** I tapped + and wrote nothing, or wrote and did not send
+- **When:** I go back to the list
+- **Then:** no thread was started
 ---
 
 ### User Story 263:
 
-- **Summary:** Add another without reopening the sheet
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
-- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+- **Summary:** Keep writing in the chat I just started
+- **Status:** native app only: Add another implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); #536: replaced by the new thread's own bar in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d) (simulator: the bar is there; the hold-back until the first message lands on the phone not yet)
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
-- **I want to** save a thought and keep composing the next one
+- **I want to** stay in the new chat after its first message and add the next thought
 - **so that** I can capture several thoughts in a row
 
 #### Acceptance Criteria:
-- **Scenario:** Adding consecutive thoughts
-- **Given:** the compose sheet contains a thought
-- **When:** I tap Add another
-- **Then:** one item is saved and sending is triggered, both text and image clear, and the sheet stays open ready for another
-
+- **Scenario:** The next message in a new chat
+- **Given:** I sent the first message of a new chat
+- **When:** I write the next one
+- **Then:** the bar has emptied and stays up; once the first message has reached Larry the next one sends into the same thread; until then the bar says the next goes once the first reaches Larry, and nothing I wrote is lost
 ---
 
 ### User Story 264:
 
-- **Summary:** Paste a picture into the Inbox
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805); verified by `just test` (host) and the simulator build; on the phone not yet.
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422)
-- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+- **Summary:** Paste a picture into a new chat
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805). #536: the new thread's bar pastes it, as every thread's does, in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: Paste image is on the new thread's bar); pasting on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
@@ -470,11 +473,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **so that** I can send Larry a picture directly from the app
 
 #### Acceptance Criteria:
-- **Scenario:** Adding a clipboard image
-- **Given:** the clipboard holds an image and the compose sheet shows the note and Paste image in one rounded box, with Add another separate below
-- **When:** I tap Paste image, optionally enter text, and tap Add
-- **Then:** the picture's preview and Remove image appear in that same box with the note before saving, the previewed image is saved as one image item, as copied and the right way up, with the text as its note, the sheet closes and sending is triggered
-
+- **Scenario:** Starting a chat with a clipboard image
+- **Given:** the clipboard holds an image and a new chat is open
+- **When:** I tap Paste image, optionally enter text, and tap Send
+- **Then:** the picture's preview and Remove image appear above the bar before sending, and the picture is sent as copied and the right way up, with the text as its note, as the new thread's first message
 ---
 
 ### User Story 265:
@@ -491,29 +493,29 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Adding only whitespace
-- **Given:** the compose sheet is open
+- **Given:** a new chat is open (#536: the + opens a thread, not a sheet)
 - **When:** I enter only spaces or new lines
-- **Then:** Add and Add another stay disabled and nothing is saved
+- **Then:** Send stays disabled and nothing is saved
 
 ---
 
 ### User Story 266:
 
-- **Summary:** Cancel saves nothing
+- **Summary:** Leaving a new chat unsent saves nothing
 - **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); on the phone not yet
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
-- **I want to** back out of the sheet
+- **I want to** back out of a new chat
 - **so that** a half-formed thought does not reach Larry
 
 #### Acceptance Criteria:
 - **Scenario:** Cancelling a draft
-- **Given:** the compose sheet holds text or a pasted image
-- **When:** I tap Cancel
-- **Then:** the sheet closes and no item is added to the Inbox
+- **Given:** a new chat (#536) holds text or a pasted image, not sent
+- **When:** I go back to the list
+- **Then:** no thread is started and nothing is sent
 
 ---
 
@@ -531,9 +533,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Saving fails
-- **Given:** the compose sheet holds text or a pasted image
-- **When:** I tap Add or Add another and the item cannot be written
-- **Then:** the sheet stays open with the draft intact and a copyable error explaining why
+- **Given:** a new chat's bar (#536) holds text or a pasted image
+- **When:** I tap Send and the message cannot be written
+- **Then:** the bar keeps the draft intact and a copyable error explains why
 
 ---
 
@@ -551,7 +553,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Removing the pasted image
-- **Given:** the compose sheet shows a pasted image's preview
+- **Given:** a new chat's bar (#536) shows a pasted image's preview
 - **When:** I tap Remove image
 - **Then:** the preview goes and the text I wrote stays
 
@@ -802,9 +804,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 301:
 
 - **Summary:** The + starts a new thread with Larry
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
-- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d), each first-message attempt its own message in [8202fec](https://github.com/idvorkin/context-grabber/commit/8202fec); verified by `ChatNewThreadTests` (host) and `ChatNewThreadUITests` (simulator, against the fake Cockpit); on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client with something new to talk about
@@ -814,8 +816,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** Starting one from the +
 - **Given:** Chat is open
-- **When:** I tap + and send a message
-- **Then:** a new thread is started, titled with the message's first line; *Send and start another* starts another
+- **When:** I tap + and send a message from the new thread's bar
+- **Then:** a new thread is started, titled with the message's first line, and the same screen becomes that thread once the Cockpit has it; the next message goes into it, and another new thread is another tap of +
 
 ---
 

@@ -49,8 +49,20 @@ it.
 **Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a *Paste image* control
 when the clipboard holds an image (preview, remove), and *Send*. Send needs text or an image. A sent message appears
 at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and image, with the keyboard
-still up for the next message — typed or dictated alike (#449). A new thread from the **+** asks for its first message only;
-its title is that message's first line.
+still up for the next message — typed or dictated alike (#449).
+
+**A new chat** (#536). Igor, 2026-10-26: *"for the Plus, why don't we just make that a new chat versus having its own
+input dialog? That's probably a better UI."* The **+** opens an empty thread titled *New chat*, with the same bar every
+thread has — text, *Paste image*, the mic — and the keyboard up. There is no separate sheet. Back with nothing sent
+leaves no thread behind. The first Send starts the thread: the message shows at once as **Not sent yet**, kept on the
+phone and sent by the same rules as any message (so it waits out no network), and the thread's title becomes that
+message's first line. Once the Cockpit has it, the same screen is that thread, live like any other, and the bar takes
+the next message. Until then the bar holds the next message back and says it goes once the first reaches Larry; a
+not-yet-sent new thread also shows in the list under *Not sent yet*, as now. If Larry refuses that first message, it
+says why, copyably, as any refused message does, and the bar takes a new first message at once — a line under the bar
+says the first was refused — which starts the chat afresh; deleting the waiting first message does the same. Each
+attempt is its own message, so a new try is never mistaken for the refused or deleted one, and the screen follows
+the newest.
 
 **Speaking a message** (#448). Igor, 2026-10-26, first: *"transcription based, use a good model like we do in
 cockpit"*; then, on learning the problem reports' dictation is Apple's own recognizer: *"All right, use that."* So the
@@ -139,6 +151,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   is sent until Send; nothing heard leaves the field unchanged. During a live call the mic is dimmed and says why; a
   failure is a copyable error and the words already in the field stay. At 5:00 a recording stops on its own, its
   words in the field, with *Stopped at 5 minutes.* under the bar.
+- The + opens an empty *New chat* thread with the ordinary bar (text, Paste image, mic); its first Send starts the
+  thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing. A refused or
+  deleted first message lets the next Send start the chat afresh, as a new message that reaches Larry.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 
 ## Depends on the Cockpit

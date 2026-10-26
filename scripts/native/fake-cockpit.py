@@ -6,9 +6,11 @@
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
 GET /attachments/<ref>. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
+FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 """
 
 import json
+import os
 import secrets
 import sys
 import threading
@@ -18,6 +20,7 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT, REPORT = int(sys.argv[1]), sys.argv[2]
+NEW_DELAY = float(os.environ.get("FAKE_COCKPIT_NEW_DELAY") or 0)
 LOCK = threading.Lock()
 THREADS = {
     "igor2-88g.900": {"title": "Should the phone chat poll?", "messages": [], "seen": ""},
@@ -106,6 +109,8 @@ class Handler(BaseHTTPRequestHandler):
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})
         data = json.loads(raw or b"{}")
+        if path == "/chat" and NEW_DELAY:
+            time.sleep(NEW_DELAY)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
                       "origin": self.headers.get("Origin")})
         with LOCK:
