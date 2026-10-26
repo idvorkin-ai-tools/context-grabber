@@ -33,6 +33,8 @@ final class ChatVoiceModel: ObservableObject {
     logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.callLive ?? false })
   /// Each recording's start, stop and five-minute timer (ContextCore, host-tested).
   private var clock = ChatVoiceClock()
+  /// The saved microphone is named once per launch, the first time a picker shows (story 303).
+  private var namedSavedMicrophone = false
   private var capTimer: Task<Void, Never>?
   private var watches: Set<AnyCancellable> = []
 
@@ -93,6 +95,13 @@ final class ChatVoiceModel: ObservableObject {
       await dictation.refreshMicrophones()
       log.event("chat_voice", ["action": "microphones", "count": dictation.microphones.count])
     }
+  }
+
+  /// A picker came on screen: after a relaunch the saved pick is only an id, so list the inputs once to name it.
+  func pickerAppeared() {
+    guard !namedSavedMicrophone, selectedMicrophoneID != nil, canPickMicrophone else { return }
+    namedSavedMicrophone = true
+    findMicrophones()
   }
 
   func selectMicrophone(_ id: String?) {

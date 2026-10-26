@@ -547,6 +547,8 @@ private struct MicPicker: View {
       Image(systemName: "chevron.up.chevron.down").font(.caption)
     }
     .disabled(!voice.canPickMicrophone)
+    // After a relaunch the saved pick is an id until the inputs are listed: list them once so it reads by name.
+    .onAppear { voice.pickerAppeared() }
     .accessibilityLabel("Microphone: \(voice.microphoneName)")
     .accessibilityIdentifier("chat-mic-picker")
   }
