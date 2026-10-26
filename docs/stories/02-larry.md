@@ -887,7 +887,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 304:
 
 - **Summary:** Settings tells me whether everything reached the archive, and which stream did not
-- **Status:** native app only: implemented in [5f8260c](https://github.com/idvorkin/context-grabber/commit/5f8260c); verified by `just native-test` (host: `ArchiveStatusTests`, `ArchiveTests` refusal status, still to run on the Mac); the simulator and the phone not yet
+- **Status:** native app only: implemented in [5f8260c](https://github.com/idvorkin/context-grabber/commit/5f8260c), [c9b87d3](https://github.com/idvorkin/context-grabber/commit/c9b87d3) (a locked run leaves the line alone); verified by `just native-test` (host: `ArchiveStatusTests`, `ArchiveTests` refusal status, still to run on the Mac); the simulator and the phone not yet
 - **Issues:** [#547](https://github.com/idvorkin/context-grabber/issues/547)
 - **Spec:** [Everything off the phone — In Settings](../superpowers/specs/2026-10-19-native-stats-archive-design.md#in-settings)
 
