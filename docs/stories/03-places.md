@@ -9,7 +9,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 040:
 
 - **Summary:** Opt in to background tracking once, then forget it
-- **Status:** implemented in [8361ad4](https://github.com/idvorkin/context-grabber/commit/8361ad4), [97b33b0](https://github.com/idvorkin/context-grabber/commit/97b33b0); verified by `location.test.ts`, `db.test.ts` and on the phone (months of trail); native app: [5daab8f](https://github.com/idvorkin/context-grabber/commit/5daab8f), verified on the simulator (`just native-test-sim`: tracking on with Always, points stored as the simulator moves, recording resumed at launch) and `LocationStoreTests` (settings keys); background points with the app closed and the Always prompt flow are the phone still to be checked by Igor (bead context-grabber-3ss.12)
+- **Status:** implemented in [8361ad4](https://github.com/idvorkin/context-grabber/commit/8361ad4), [97b33b0](https://github.com/idvorkin/context-grabber/commit/97b33b0); verified by `location.test.ts`, `db.test.ts` and on the phone (months of trail); native app: [5daab8f](https://github.com/idvorkin/context-grabber/commit/5daab8f), verified on the simulator (`just native-test-sim`: tracking on with Always, points stored as the simulator moves, recording resumed at launch) and `LocationStoreTests` (settings keys); background points with the app closed and the Always prompt flow are the phone still to be checked by Igor (bead context-grabber-3ss.12); [897d6ed](https://github.com/idvorkin/context-grabber/commit/897d6ed): a batch that lands while a grab writes the health cache waits for the lock instead of being rolled back and lost; verified by `SQLiteConnectionTests` (`just native-test`, still to run on the Mac)
+- **Issues:** [#540](https://github.com/idvorkin/context-grabber/issues/540)
 
 #### Use Case:
 - **As** someone who wants the location story captured implicitly
