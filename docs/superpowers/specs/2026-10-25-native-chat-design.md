@@ -80,7 +80,8 @@ sound.
   thread's bar says *Stopped at 5 minutes.*
 - **Music.** Recording mixes with whatever is playing, as the problem report's dictation does; it is not paused.
 - **Failures** (the recognizer stopping, a microphone that will not start) are copyable errors above the bar; the
-  words already in the field stay.
+  words already in the field stay. A Gym Timer cue during a recording takes the audio session and stops it the same
+  way: the words so far stay in the field.
 - **Leaving the thread** mid-recording stops it.
 
 **Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
