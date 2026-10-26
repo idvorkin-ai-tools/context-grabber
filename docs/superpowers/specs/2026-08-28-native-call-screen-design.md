@@ -11,6 +11,7 @@
 **Amended:** 2026-09-02 — the live line: what Igor is saying, big, on top, before it settles
 **Amended:** 2026-09-02, [#107](https://github.com/idvorkin/context-grabber/issues/107) — the call tells the bridge where Igor is
 **Amended:** 2026-09-02, [#95](https://github.com/idvorkin/context-grabber/issues/95) / [#105](https://github.com/idvorkin/context-grabber/issues/105) / [#106](https://github.com/idvorkin/context-grabber/issues/106) — audio that stops mid-call heals itself; the greeting waits for the speaker; the log counts both directions and survives a freeze
+**Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 
 ## Summary
 
@@ -429,7 +430,7 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   *"In the call log, it should say Igor and Tony, not Igor and Larry"*);
   Larry is the reasoning half behind him. A line Larry put into the call
   himself (injected context) carries the label *Larry*. Larry's spoken text appears as he says it;
-  Igor's appears when the recognizer settles on it — until then it lives
+  Igor's appears the moment it is sent to Larry — until then it lives
   in the **live line** (below). No turn numbers, no
   links, no per-turn readouts. Larry's *consults* (asking the other Larry
   something mid-call) show as a short clamped row that expands on tap and
@@ -441,9 +442,26 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   box about twice a caption row tall, with big type: what the recognizer
   hears Igor saying *right now*, word by word, before the turn is sent. It
   is where the eye goes while talking — a wrong word shows up here, large,
-  while there is still time to say it again. When the turn settles (Tony
-  answers, or the turn ends) the box empties and the sentence drops into
-  the transcript as an ordinary *Igor* row. With nothing pending the box
+  while there is still time to say it again. The moment the sentence is
+  sent to Larry — the bridge says it took his words, on every backend,
+  Direct and ElevenLabs alike — the box empties and the sentence drops
+  into the transcript as an *Igor* row carrying a small, quiet *sent*
+  mark; what he says next starts a fresh live line. Igor, 2026-10-26
+  ([#467](https://github.com/idvorkin/context-grabber/issues/467)):
+  *"once we've sent the partial text show up as partial text don't
+  wait, this is needed on direct larry calls"* — on Direct, Larry can
+  think for seconds before he speaks, and a box that held every sentence
+  until then left no way to tell what had gone. Two sentences sent before
+  Larry answers are two rows, each marked *sent*. When Larry answers (or
+  the turn ends) every *sent* mark goes and the rows are ordinary *Igor*
+  rows. A sentence the bridge never reports as sent still drops in when
+  Tony answers or the turn ends, as before. The recognizer's own late
+  account of a sentence already sent never shows a second time: once a
+  sentence is sent, whatever the recognizer settles before it hears new
+  speech is that same sentence — spelled its own way, or only a piece of
+  it — and is not shown. New speech always shows its first words live,
+  and from then on is shown as ever, so a sentence he really says twice
+  appears twice. With nothing pending the box
   reads *listening…*, faint. Muted, it reads *muted* — plainly, a state,
   not a placeholder — whatever the recognizer had heard before the mic was
   cut, since those words are no longer being sent. When the line runs
@@ -783,10 +801,11 @@ back. The calling treatment in the middle of the screen stays; the big
 42. **The live line.** On a live call, under the call line, a box about
     twice a caption row tall reads *listening…*. Say a sentence slowly:
     the words appear in it, large, as they are recognised; a misheard word
-    is readable from arm's length. When Tony answers, the box returns to
-    *listening…* and the sentence is now an *Igor* row in the transcript
-    below — once, not twice. Mute: the box reads *muted*. Hang up: the box
-    is gone.
+    is readable from arm's length. When the sentence is sent to Larry —
+    before he says a word — the box returns to *listening…* and the
+    sentence is now an *Igor* row in the transcript below, once, not
+    twice, with a small *sent* mark beside it. Mute: the box reads
+    *muted*. Hang up: the box is gone.
 
 43. **Playback is watched and the log leaves the phone** (#442). On a
     Direct call, listen through two of Larry's replies: no static. Open
@@ -799,6 +818,14 @@ back. The calling treatment in the middle of the screen stays; the big
     how many records. On the Mac, the Cockpit's archive holds the same
     lines under the call's bridge session, oldest first, with the header
     record before them.
+
+44. **Sent, before Larry answers** (#467). On a Direct call, ask a
+    question that makes Larry think: the moment the live line empties,
+    the question is an *Igor* row marked *sent*, while Larry is still
+    silent. Before he answers, say a second sentence: it builds in a
+    fresh live line, then becomes a second *Igor* row marked *sent* —
+    two rows, not one run-on row. When Larry speaks, both marks go. The
+    same on ElevenLabs.
 
 ## Rationale and risks
 **Why native rather than fixing the web view.** WebKit on iOS suspends
