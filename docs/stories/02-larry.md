@@ -842,7 +842,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 303:
 
 - **Summary:** I speak a message in a thread and read the words before I send them
-- **Status:** native app only: implemented in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662); verified by `ChatVoiceTests` (host: the Cockpit's nova-3 address and names with the key only in the header, a transcript read and trimmed, silence leaving the draft unchanged, the words after what was typed, Deepgram's refusal carried to the screen) and `ChatVoiceUITests` (simulator: the key saved and removed in Settings, shown only as *Saved*; with no key the mic says where to add one and records nothing); recording and Deepgram on the phone not yet
+- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in COMMIT_TBD; verified by `ChatVoiceTests` (host: the five-minute limit and its line, the recording clock) and `ChatVoiceUITests` (simulator: no Deepgram key in Settings any more; the thread's mic and its microphone picker are there and ready); speaking on the phone not yet
 - **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -853,26 +853,31 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Speaking a message
-- **Given:** my Deepgram key is saved in *Settings → Voice in Chat* and no call is live
+- **Given:** no call is live
 - **When:** I tap the mic in a thread, speak, and tap it again
-- **Then:** it shows red with the seconds while it records and a spinner while it listens, and my words land in the field after anything I typed, transcribed as the Cockpit's mic would; nothing is sent until I tap Send
+- **Then:** it shows red with the seconds while it records, my words appear in the field as I speak, after anything I typed, transcribed by the same Apple dictation the problem report uses; nothing is sent until I tap Send
+
+- **Scenario:** Choosing the microphone
+- **Given:** a thread is open and nothing is recording
+- **When:** I open the picker beside the mic and choose *Find microphones*, then a microphone
+- **Then:** the picker names it and my next recording uses it; *Automatic* follows the phone's route; the pick stays after a relaunch; during a recording or a live call the picker cannot be changed
 
 - **Scenario:** Nothing to transcribe, or no way to
-- **Given:** a recording of silence, no saved key, a microphone I declined, or a call with Larry live
+- **Given:** a recording where nothing was heard, speech recognition or the microphone declined, or a call with Larry live
 - **When:** I tap the mic
-- **Then:** the field stays as it was, and a line says why: *Nothing heard*, where to add the key, how to allow the microphone, or that the call has the mic; a call that starts mid-recording drops the recording and its sound is never changed
+- **Then:** the field stays as it was, and a line says why: which permission is off, or that the call has the mic; a call that starts mid-recording stops it, keeps the words already in the field, and its sound is never changed
 
 - **Scenario:** Interrupted mid-recording
 - **Given:** I am recording a message
-- **When:** a phone call or Siri interrupts
-- **Then:** the clock stops, what I said so far goes into the field for me to read (never sent), and a line says the recording was stopped by an interruption
+- **When:** a phone call, Siri or a microphone change interrupts
+- **Then:** the clock stops, what I said so far stays in the field for me to read (never sent), and a copyable line says the microphone was interrupted
 
-- **Scenario:** Deepgram fails
-- **Given:** no network, a wrong key, or the service down
-- **When:** my recording goes out
-- **Then:** a copyable error says what Deepgram said, the field is unchanged, and the session log's `chat_voice` line has the stage and status, never my words or the key
+- **Scenario:** Five minutes at most
+- **Given:** I am recording a message
+- **When:** the clock reaches 5:00
+- **Then:** the recording stops on its own and my words settle into the field exactly as if I had tapped stop (never sent), a quiet line under the bar says *Stopped at 5 minutes.*, and the session log has a `chat_voice` line with action `capped`
 
-- **Scenario:** The key
-- **Given:** I open *Settings → Voice in Chat*
-- **When:** I paste my Deepgram key and save it, or remove it
-- **Then:** it is kept in this phone's Keychain, shown only as *Saved*, never logged; removed, the mic says where to add one again
+- **Scenario:** The log
+- **Given:** I record a message
+- **When:** I read the session log
+- **Then:** `chat_voice` lines say when it started and stopped (and why it stopped early), never my words
