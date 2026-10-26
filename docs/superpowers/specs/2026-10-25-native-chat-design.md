@@ -68,6 +68,9 @@ with nothing heard, leaves the field as it was and says *Nothing heard*. The rec
 - **A live call.** While a call with Larry is live, the mic is the call's: the button is dimmed and says so, and a
   call that starts mid-recording stops the recording and leaves the field as it was. Recording never changes a live
   call's sound.
+- **An interruption.** A phone call or Siri mid-recording stops the clock; what was recorded so far is transcribed
+  into the field as if Igor had tapped stop (still never sent), and a line under the bar says the recording was
+  stopped by an interruption.
 - **Music.** Recording pauses whatever was playing, as dictation does; it may resume when the recording stops.
 - **Failures** (no network, a refused key, the service down) are copyable errors above the bar, with what the service
   said; the recording is dropped and the field is unchanged.
@@ -102,7 +105,7 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
   text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
   refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
-- `chat_voice` events: record start / stop (seconds, bytes), transcribed (status, characters, round trip), failed (the
+- `chat_voice` events: record start / stop (seconds, bytes), interrupted, transcribed (status, characters, round trip), failed (the
   stage, the status, the service's message), refused (no key, no microphone, a live call). Never the words, never the
   key.
 - A thread that cannot be read logs one error when the problem starts or changes, not one per poll.

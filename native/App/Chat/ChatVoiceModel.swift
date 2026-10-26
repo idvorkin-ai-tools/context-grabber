@@ -83,7 +83,27 @@ final class ChatVoiceModel: ObservableObject {
     callWatch = callLive.removeDuplicates().receive(on: DispatchQueue.main).sink { [weak self] live in
       MainActor.assumeIsolated { self?.callChanged(live) }
     }
+    NotificationCenter.default.addObserver(
+      forName: AVAudioSession.interruptionNotification, object: nil, queue: .main
+    ) { [weak self] note in
+      let began =
+        (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt)
+        .flatMap(AVAudioSession.InterruptionType.init(rawValue:)) == .began
+      MainActor.assumeIsolated { if began { self?.interrupted() } }
+    }
   }
+
+  /// A phone call or Siri took the session mid-recording: the clock stops and what was said so far is transcribed
+  /// into the message as if Igor had tapped stop — still never sent.
+  private func interrupted() {
+    guard case .recording = phase else { return }
+    log.event("chat_voice", ["action": "interrupted", "thread": thread])
+    stop()
+    notice = Self.interruptedLine
+  }
+
+  static let interruptedLine =
+    "Recording stopped by an interruption. What was recorded goes into the message for you to read."
 
   // MARK: - the key (Settings → Voice in Chat)
 

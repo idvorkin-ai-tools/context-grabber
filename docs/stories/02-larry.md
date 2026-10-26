@@ -862,6 +862,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I tap the mic
 - **Then:** the field stays as it was, and a line says why: *Nothing heard*, where to add the key, how to allow the microphone, or that the call has the mic; a call that starts mid-recording drops the recording and its sound is never changed
 
+- **Scenario:** Interrupted mid-recording
+- **Given:** I am recording a message
+- **When:** a phone call or Siri interrupts
+- **Then:** the clock stops, what I said so far goes into the field for me to read (never sent), and a line says the recording was stopped by an interruption
+
 - **Scenario:** Deepgram fails
 - **Given:** no network, a wrong key, or the service down
 - **When:** my recording goes out
