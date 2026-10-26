@@ -45,7 +45,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 022:
 
 - **Summary:** Where the week went, as text a coach can read
-- **Status:** implemented in [06a20b0](https://github.com/idvorkin/context-grabber/commit/06a20b0), [ff18ef3](https://github.com/idvorkin/context-grabber/commit/ff18ef3), [22bbf59](https://github.com/idvorkin/context-grabber/commit/22bbf59); verified by `clustering_v2.test.ts` (real fixture) and on the phone. Supersedes CC-5; native app: not yet — `places` is null until the native Places writes its weekly and recent summaries (context-grabber-3ss.13).
+- **Status:** implemented in [06a20b0](https://github.com/idvorkin/context-grabber/commit/06a20b0), [ff18ef3](https://github.com/idvorkin/context-grabber/commit/ff18ef3), [22bbf59](https://github.com/idvorkin/context-grabber/commit/22bbf59); verified by `clustering_v2.test.ts` (real fixture) and on the phone. Supersedes CC-5; native app: [622b3e5](https://github.com/idvorkin/context-grabber/commit/622b3e5), this week and last from the trail at share time, a week labelled by how far back it is; verified by `just native-test` (`PlacesSummaryTextTests`, still to run on the Mac); the phone still to be checked by Igor.
+- **Issues:** [#543](https://github.com/idvorkin/context-grabber/issues/543)
 
 #### Use Case:
 - **As** someone whose "home by 6pm" goal Larry checks
@@ -56,14 +57,14 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A normal week
 - **Given:** Home, Office and Gym are known places
 - **When:** I share the summary
-- **Then:** `places.weekly` reads like "This week: Home 92h, Office 28h, Gym 4h" with places in descending hours, `places.recent` has at most the last three days in 12-hour local time, and with no location history the section is absent rather than the share failing
+- **Then:** `places.weekly` reads like "This week: Home 92h, Office 28h, Gym 4h" with places in descending hours, `places.recent` has at most the last three days in 12-hour local time with transits of an hour or more, and with no location history `places` is null rather than the share failing
 
 ---
 
 ### User Story 023:
 
 - **Summary:** Roles lead the export — who I have been being, before the numbers
-- **Status:** implemented in [54861c5](https://github.com/idvorkin/context-grabber/commit/54861c5); verified by `roles.test.ts`, `share.test.ts` and on the phone; native app: not yet — `roles` is null until roles move (context-grabber-3ss.18).
+- **Status:** implemented in [54861c5](https://github.com/idvorkin/context-grabber/commit/54861c5); verified by `roles.test.ts`, `share.test.ts` and on the phone; native app: not yet — the `roles` key is left out until roles move rather than sent as null ([622b3e5](https://github.com/idvorkin/context-grabber/commit/622b3e5), [#543](https://github.com/idvorkin/context-grabber/issues/543)) (context-grabber-3ss.18).
 
 #### Use Case:
 - **As** the eulogy version of me
