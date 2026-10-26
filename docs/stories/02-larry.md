@@ -842,7 +842,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 303:
 
 - **Summary:** I speak a message in a thread and read the words before I send them
-- **Status:** native app only: implemented in COMMIT; verified by `ChatVoiceTests` (host: the Cockpit's nova-3 address and names with the key only in the header, a transcript read and trimmed, silence leaving the draft unchanged, the words after what was typed, Deepgram's refusal carried to the screen); recording and Deepgram on the phone not yet
+- **Status:** native app only: implemented in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662); verified by `ChatVoiceTests` (host: the Cockpit's nova-3 address and names with the key only in the header, a transcript read and trimmed, silence leaving the draft unchanged, the words after what was typed, Deepgram's refusal carried to the screen) and `ChatVoiceUITests` (simulator: the key saved and removed in Settings, shown only as *Saved*; with no key the mic says where to add one and records nothing); recording and Deepgram on the phone not yet
 - **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
