@@ -67,8 +67,8 @@ final class ChatVoiceModel: ObservableObject {
   private let log: SessionLog
   private let keychain = DeepgramKey()
   private var recorder: AVAudioRecorder?
-  /// The thread the recording is for: its words go to that bar only.
-  private var thread = ""
+  /// The thread the last tap was in: its words, `notice` and `problem` show in that thread's bar only.
+  @Published private(set) var thread = ""
   private var spoken = 0
   /// Between the tap and the recorder running (the permission prompt): a second tap starts nothing.
   private var starting = false
@@ -246,6 +246,7 @@ final class ChatVoiceModel: ObservableObject {
 
   private func callChanged(_ live: Bool) {
     callLive = live
+    if !live, notice == Self.callHasMic { notice = nil }
     if live, case .recording = phase {
       drop(why: "call_started")
       notice = "A call started, so the recording was dropped. The message is as it was."
@@ -286,10 +287,5 @@ final class ChatVoiceModel: ObservableObject {
         "thread": .string(thread), "stage": .string(stage), "status": .int(status),
         "seconds": .double((seconds * 10).rounded() / 10), "bytes": .int(bytes), "has_key": .bool(hasKey),
       ])
-  }
-
-  func dismissProblem() {
-    problem = nil
-    notice = nil
   }
 }

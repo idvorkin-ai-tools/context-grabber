@@ -383,10 +383,11 @@ private struct ComposeBar: View {
             failure, context: "ChatThreadView.send",
             extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
       }
-      // #448: what the mic could not do, copyable, and its quieter lines (no key, nothing heard, a call has the mic).
-      if let problem = voice.problem {
+      // #448: what the mic could not do, copyable, and its quieter lines (no key, nothing heard, a call has the mic),
+      // each in the thread it came from only.
+      if voice.thread == thread, let problem = voice.problem {
         BugProblemView(problem: problem, logger: logger)
-      } else if let notice = voice.notice {
+      } else if voice.thread == thread, let notice = voice.notice {
         Text(notice).font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-voice-notice")
