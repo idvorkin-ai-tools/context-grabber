@@ -148,16 +148,18 @@ public enum CallProtocol {
     return String(decoding: data, as: UTF8.self)
   }
 
-  /// Empty model / voice = the vendor's default. `client` / `build` / `location` are extra keys; a bridge that
-  /// does not know them ignores them.
+  /// Empty model / voice = the vendor's default. `client` / `build` / `location` / `today` are extra keys; a bridge
+  /// that does not know them ignores them.
   public static func startFrame(
-    backend: CallBackend, build: String = "", voice: String = "", model: String = "", location: CallLocation? = nil
+    backend: CallBackend, build: String = "", voice: String = "", model: String = "", location: CallLocation? = nil,
+    today: CallToday? = nil
   ) -> String {
     var frame: [String: Any] = [
       "type": "start", "backend": backend.rawValue, "model": model, "voice": voice, "client": clientName,
       "build": build,
     ]
     if let location { frame["location"] = location.fields }
+    if let today { frame["today"] = today.fields }
     return json(frame)
   }
 

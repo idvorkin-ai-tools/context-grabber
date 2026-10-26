@@ -145,6 +145,17 @@ final class AppModel: ObservableObject {
       self?.chatVoice.yieldToCall()
       self?.locateForCall()
     }
+    // Story 217: a Direct call starts knowing the day so far: the last grab and the strip as the home screen shows it.
+    call.today = { [weak self] in
+      guard let self else { return nil }
+      self.dailyStrip.refresh()
+      var strip: [DailyItem: Int] = [:]
+      for item in DailyItem.allCases { strip[item] = self.dailyStrip.value(item) }
+      if self.dailyStrip.gymToday { strip[.gym] = max(strip[.gym] ?? 0, 1) }
+      if self.dailyStrip.meditationToday { strip[.meditation] = max(strip[.meditation] ?? 0, 1) }
+      return CallToday.build(
+        snapshot: self.mirror.snapshot, strip: strip, now: jsMillis(Date()), clock: LocalClock())
+    }
     // #107: a move during a call goes up too; CallModel sends only the significant ones.
     callLocationWatch = tracker.$you.compactMap { $0 }.sink { [weak self] fix in
       guard let self, self.call.snapshot.isActive else { return }
