@@ -164,6 +164,10 @@ final class MirrorModel: ObservableObject {
     grabStartedAt = nil
     let failures = grab.takeFailures()
     for f in failures { log.event("health_query_failed", ["query": f.query, "message": f.message]) }
+    // The phone's own cache, not Health: logged, never counted in the problem line below.
+    for f in grab.takeCacheFailures() {
+      log.event("error", ["where": "health_cache", "query": f.query, "message": f.message])
+    }
     if failures.isEmpty {
       problem = nil
     } else {

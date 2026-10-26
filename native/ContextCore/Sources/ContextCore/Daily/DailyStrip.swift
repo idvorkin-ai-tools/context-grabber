@@ -146,7 +146,7 @@ public struct DailyStrip {
       "SELECT date_key, item, value, updated_at FROM daily_strip_peers WHERE device = ?", [.text(device)]
     ).compactMap(StripRow.init(row:))
     guard !rows.isEmpty else { return 0 }
-    try db.execute("BEGIN")
+    try db.execute("BEGIN IMMEDIATE")
     do {
       try mergeOwn(rows)
       _ = try db.run("DELETE FROM daily_strip_peers WHERE device = ?", [.text(device)])
@@ -163,7 +163,7 @@ public struct DailyStrip {
   @discardableResult
   public func handOver(to device: String) throws -> Int {
     let rows = try ownRows()
-    try db.execute("BEGIN")
+    try db.execute("BEGIN IMMEDIATE")
     do {
       for r in rows {
         _ = try db.run(
@@ -182,7 +182,7 @@ public struct DailyStrip {
   /// `body`'s writes all land or none do: a throw rolls them back and is rethrown (#380, the first sync's replay).
   /// Not for `reclaim` or `handOver`, which open their own.
   public func inTransaction<T>(_ body: () throws -> T) throws -> T {
-    try db.execute("BEGIN")
+    try db.execute("BEGIN IMMEDIATE")
     do {
       let result = try body()
       try db.execute("COMMIT")
