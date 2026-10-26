@@ -433,11 +433,16 @@ private struct ComposeBar: View {
             failure, context: "ChatThreadView.send",
             extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
       }
-      // #448: what the mic could not do, copyable, and its quieter lines (a call has the mic, the five-minute stop),
-      // each in the thread it came from only.
+      // #448: what the mic could not do, copyable, or its quieter line (a call has the mic, the five-minute stop),
+      // each in the thread it came from only; then, in a new chat, where its next message stands (#536). Both show.
       if voice.thread == thread, let problem = voice.problem {
         BugProblemView(problem: problem, logger: logger)
-      } else if target == .waiting {
+      } else if voice.thread == thread, let notice = voice.notice {
+        Text(notice).font(.footnote).foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityIdentifier("chat-voice-notice")
+      }
+      if target == .waiting {
         Text("The next message goes once your first one reaches Larry.").font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-waiting")
@@ -446,10 +451,6 @@ private struct ComposeBar: View {
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-refused")
-      } else if voice.thread == thread, let notice = voice.notice {
-        Text(notice).font(.footnote).foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .accessibilityIdentifier("chat-voice-notice")
       }
       if let preview {
         HStack {
