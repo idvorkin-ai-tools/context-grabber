@@ -49,8 +49,16 @@ it.
 **Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a *Paste image* control
 when the clipboard holds an image (preview, remove), and *Send*. Send needs text or an image. A sent message appears
 at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and image, with the keyboard
-still up for the next message — typed or dictated alike (#449). A new thread from the **+** asks for its first message only;
-its title is that message's first line.
+still up for the next message — typed or dictated alike (#449).
+
+**A new chat** (#536). Igor, 2026-10-26: *"for the Plus, why don't we just make that a new chat versus having its own
+input dialog? That's probably a better UI."* The **+** opens an empty thread titled *New chat*, with the same bar every
+thread has — text, *Paste image*, the mic — and the keyboard up. There is no separate sheet. Back with nothing sent
+leaves no thread behind. The first Send starts the thread: the message shows at once as **Not sent yet**, kept on the
+phone and sent by the same rules as any message (so it waits out no network), and the thread's title becomes that
+message's first line. Once the Cockpit has it, the same screen is that thread, live like any other, and the bar takes
+the next message. Until then the bar holds the next message back and says it goes once the first reaches Larry; a
+not-yet-sent new thread also shows in the list under *Not sent yet*, as now.
 
 **Speaking a message** (#448). Igor, 2026-10-26: *"transcription based, use a good model like we do in cockpit (need a
 stored key is fine)."* The bar has a mic button beside the field. Tap it to record; it turns red and shows the
@@ -127,6 +135,8 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - With a key saved, tap the mic, speak, tap again: the words appear in the field after what was typed, nothing is
   sent until Send; silence leaves the field unchanged. With no key the mic says where to add it; during a live call it
   is dimmed and says why; a failed transcription is a copyable error and the field is unchanged.
+- The + opens an empty *New chat* thread with the ordinary bar (text, Paste image, mic); its first Send starts the
+  thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 
 ## Depends on the Cockpit

@@ -755,10 +755,10 @@ final class AppModel: ObservableObject {
         log.event("error", ["where": "chat_hook", "message": "\(error)"])
       }
     }
-    if let compose = env["GRABBER_INBOX_COMPOSE"], !compose.isEmpty {
-      // #405: the Inbox with its + already tapped, and with text that text added as Add another would.
+    if env["GRABBER_CHAT_NEW"] == "open" {
+      // #536: Chat with its + already tapped, a new thread on screen.
       openInbox(from: "hook")
-      inbox.composeHook(compose)
+      chat.openNewChat(from: "hook")
     }
     // Story 270: an archive run now, to GRABBER_ARCHIVE_URL (the simulator sends nowhere else).
     if env["GRABBER_ARCHIVE"] == "run" { archive.run(reason: "hook") }

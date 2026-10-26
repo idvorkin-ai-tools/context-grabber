@@ -18,6 +18,8 @@ final class ChatModel: ObservableObject {
   @Published private(set) var openThread: String?
   /// A thread a link asked for (a notification's tap): pushed over the list when it opens.
   @Published var linkThread: String?
+  /// The + (#536): a new, empty thread is on screen, its first Send starts it.
+  @Published var newChatOpen = false
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
 
@@ -177,9 +179,16 @@ final class ChatModel: ObservableObject {
 
   // MARK: Writing
 
-  /// One message, kept on the phone first and sent through the Inbox's sender.
-  func send(_ draft: inout InboxDraft, thread: String?) throws {
-    try inbox.add(&draft, another: false, thread: thread)
+  /// The + (#536): an empty thread with the ordinary bar, not a sheet.
+  func openNewChat(from source: String) {
+    log.event("ui", ["action": "open_new_chat", "from": source])
+    newChatOpen = true
+  }
+
+  /// One message, kept on the phone first and sent through the Inbox's sender. `thread` nil starts a new one, under
+  /// `id` so a new chat's screen can follow its first message to the thread it lands in.
+  func send(_ draft: inout InboxDraft, thread: String?, id: String = UUID().uuidString.lowercased()) throws {
+    try inbox.add(&draft, id: id, thread: thread)
     if let thread { Task { await load(thread, markSeen: false) } }
   }
 

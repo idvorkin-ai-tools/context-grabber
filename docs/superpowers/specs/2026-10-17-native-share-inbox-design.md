@@ -67,44 +67,31 @@ How it goes (the Cockpit's side shipped 2026-10-18, cockpit#63):
 
 ## Adding from inside the app
 
-Issue [#405](https://github.com/idvorkin/context-grabber/issues/405).
+Issues [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424),
+[#422](https://github.com/idvorkin/context-grabber/issues/422); replaced by Chat's **+** in
+[#536](https://github.com/idvorkin/context-grabber/issues/536).
 
-The Inbox has one large, round **+** fixed at the lower right, above the bottom safe area (#424).
-It stays in place while scrolling, including when the Inbox is empty; there is no toolbar +. The list
-scrolls beneath it, with enough space at the bottom to bring the last row fully above the button.
-Tapping + opens the same *Add to Inbox* sheet. A multi-line text field accepts typing,
-pasting text and the keyboard's standard dictation mic. **Cancel** discards the draft.
+The Inbox became Chat (spec 2026-10-25-native-chat-design.md). Its one large, round **+**, fixed at the lower right
+above the bottom safe area (#424), now opens a new chat thread with the ordinary thread bar — see *A new chat* in the
+chat spec — not a sheet of its own. What the sheet promised still holds there: typing, pasting text and the
+keyboard's dictation mic (and the chat mic, #448); **Paste image** when the clipboard holds one, with a preview that
+can be removed before sending, the picture kept as copied, in its own format and the right way up; an image needs no
+text, and text alongside it is its note; whitespace alone cannot be sent; one Send makes one message. Sending never
+waits for the network: a failed save keeps the draft with a copyable error, and a message without a connection stays
+*Not sent yet* until the next chance. *Add another* is gone: the thread stays open after its first Send, and its bar
+takes the next message once the first has reached Larry.
 
-Issue [#422](https://github.com/idvorkin/context-grabber/issues/422): each draft reads as one rounded box.
-The note text, **Paste image** control, and any pasted picture's preview and **Remove image** control sit
-together inside that box. **Add another** stays in a separate box below it. This grouping applies before and
-after pasting; clipboard availability, replacing or removing a picture, and saving behave as before.
-
-**Paste image** is available when the clipboard holds an image. Tapping it shows a small preview; the image can
-be removed or replaced before adding. The picture is kept as it was copied, in its own format and the right way
-up, as a share keeps it; a portrait photo stays portrait in the preview and for Larry. An image needs no text; text alongside it becomes its optional note.
-Without an image, text becomes a text item, even if it looks like a link. Whitespace alone is empty and cannot
-be added. One draft produces one item.
-
-**Add** saves on the phone and closes the sheet. **Add another** saves, clears both text and image, and keeps the
-sheet ready for the next item. Neither action waits for the network. A save failure keeps the draft and presents
-a copyable error. Newly added items appear with the same waiting status as shares and immediately trigger the
-existing send to Larry; without a connection they stay waiting for the next open.
-
-Opening the sheet and every successful add produce a `ui` event. Adds record kind and byte size, never content.
+Every Send produces a `ui` event with the kind and byte size, never the content.
 
 Acceptance criteria:
 
-- One round + stays fixed at the lower right above the safe area, with a generous tap target, in empty and
-  populated Inboxes; there is no top-right +, and the last row can scroll fully clear of the button.
-- The + opens the sheet; typed or keyboard-dictated text can be added, and Add closes it.
-- Add another keeps the sheet open with an empty draft after each successful save; Cancel adds nothing further.
-- Paste image previews the clipboard image and adds it with any accompanying text as its note; a portrait photo
+- One round + stays fixed at the lower right above the safe area, with a generous tap target, in an empty and a
+  populated list; there is no top-right +, and the last row can scroll fully clear of the button.
+- The + opens an empty new thread with the ordinary bar; typed or dictated text can be sent from it.
+- Paste image previews the clipboard image and sends it with any accompanying text as its note; a portrait photo
   stays upright.
-- The note and Paste image share one rounded box, including the preview and Remove image when a picture is
-  pasted; Add another remains separate below the item.
-- Empty drafts cannot be added; failed saves preserve the draft with a copyable explanation.
-- Each saved draft is one waiting item in the shared Inbox and triggers sending through the existing path.
+- Empty drafts cannot be sent; failed saves preserve the draft with a copyable explanation.
+- Each Send is one waiting message kept on the phone, sent through the existing path.
 
 ## Explaining itself
 

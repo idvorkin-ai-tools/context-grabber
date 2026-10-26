@@ -5,6 +5,7 @@ import BugKit
 import ContextCore
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct ChatListView: View {
   @ObservedObject var chat: ChatModel
@@ -83,7 +84,7 @@ struct ChatListView: View {
     .contentMargins(.bottom, 88, for: .scrollContent)
     .overlay(alignment: .bottomTrailing) {
       Button {
-        inbox.openCompose(from: "chat")
+        chat.openNewChat(from: "chat")
       } label: {
         Image(systemName: "plus")
           .font(.title2.weight(.semibold))
@@ -98,7 +99,9 @@ struct ChatListView: View {
       .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
       .padding(16)
     }
-    .sheet(isPresented: $inbox.composing) { InboxComposeView(inbox: inbox, logger: logger) }
+    .navigationDestination(isPresented: $chat.newChatOpen) {
+      ChatThreadView(newChat: chat, voice: voice, logger: logger)
+    }
     .navigationDestination(
       isPresented: Binding(get: { chat.linkThread != nil }, set: { if !$0 { chat.linkThread = nil } })
     ) {
@@ -175,27 +178,61 @@ struct ChatThreadView: View {
   @ObservedObject var chat: ChatModel
   @ObservedObject var inbox: InboxModel
   let voice: ChatVoiceModel
-  let key: String
-  let title: String
+  private let fixedKey: String?
+  private let fixedTitle: String
   let logger: BugLogger
+  /// A new chat (#536): its first message's id, chosen once for this screen.
+  @State private var newID: String?
+  /// The thread that first message landed in, kept once known (the phone's copy is dropped after).
+  @State private var landed: String?
 
   init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
     self.chat = chat
     self.inbox = chat.inbox
     self.voice = voice
-    self.key = key
-    self.title = title
+    self.fixedKey = key
+    self.fixedTitle = title
     self.logger = logger
   }
 
-  private var messages: [ChatMessage] { chat.messages[key] ?? [] }
-  private var pending: [InboxItem] { chat.pending(in: key) }
+  /// The + (#536): an empty thread with the ordinary bar; its first Send starts the thread.
+  init(newChat chat: ChatModel, voice: ChatVoiceModel, logger: @escaping BugLogger) {
+    self.chat = chat
+    self.inbox = chat.inbox
+    self.voice = voice
+    self.fixedKey = nil
+    self.fixedTitle = "New chat"
+    self.logger = logger
+    _newID = State(initialValue: UUID().uuidString.lowercased())
+  }
+
+  private var key: String? { fixedKey ?? landed }
+  /// A new chat's first message while it is still only on the phone.
+  private var first: InboxItem? { newID.flatMap { id in inbox.items.first { $0.id == id } } }
+  private var messages: [ChatMessage] { key.flatMap { chat.messages[$0] } ?? [] }
+  private var pending: [InboxItem] {
+    if let key { return chat.pending(in: key) }
+    return first.map { [$0] } ?? []
+  }
+  /// A new chat takes its first message's first line as the title, as the Cockpit will.
+  private var title: String {
+    guard fixedKey == nil else { return fixedTitle }
+    if let landed, let known = chat.threads.first(where: { $0.key == landed }) { return known.title }
+    return first.map { ChatSend.title(for: $0) } ?? fixedTitle
+  }
+  private var target: ComposeBar.Target {
+    if let key { return .thread(key) }
+    if let newID, first == nil { return .new(id: newID) }
+    return .waiting
+  }
+  /// The bar's and the mic's name for this screen, the same before and after a new chat lands.
+  private var barKey: String { fixedKey ?? "new-" + (newID ?? "") }
 
   var body: some View {
     ScrollViewReader { reader in
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 10) {
-          if let problem = chat.threadProblem[key], !inbox.offline {
+          if let key, let problem = chat.threadProblem[key], !inbox.offline {
             BugProblemView(
               problem: .grabber(problem, context: "ChatThreadView.load", extra: ["thread": .string(key)]),
               logger: logger)
@@ -221,12 +258,20 @@ struct ChatThreadView: View {
         withAnimation { reader.scrollTo("bottom", anchor: .bottom) }
       }
     }
-    .safeAreaInset(edge: .bottom) { ComposeBar(chat: chat, voice: voice, thread: key, logger: logger) }
+    .safeAreaInset(edge: .bottom) {
+      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger)
+    }
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
-    .accessibilityIdentifier("chat-thread")
-    .onAppear { chat.open(key) }
-    .onDisappear { chat.close(key) }
+    .accessibilityIdentifier(fixedKey == nil ? "chat-new-thread" : "chat-thread")
+    .onAppear { if let key { chat.open(key) } }
+    .onDisappear { if let key { chat.close(key) } }
+    // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
+    .onChange(of: first?.chatThread) { _, thread in
+      guard landed == nil, let thread else { return }
+      landed = thread
+      chat.open(thread)
+    }
   }
 }
 
@@ -363,9 +408,18 @@ enum ChatText {
 // MARK: - Writing
 
 private struct ComposeBar: View {
+  /// Where a Send goes: a thread, a new chat's first message, or nowhere yet (a new chat whose first message has not
+  /// reached Larry, so the next one waits for its thread).
+  enum Target: Equatable {
+    case thread(String)
+    case new(id: String)
+    case waiting
+  }
+
   @ObservedObject var chat: ChatModel
   @ObservedObject var voice: ChatVoiceModel
   let thread: String
+  let target: Target
   let logger: BugLogger
   @State private var draft = InboxDraft()
   @State private var preview: CGImage?
@@ -387,6 +441,10 @@ private struct ComposeBar: View {
       // each in the thread it came from only.
       if voice.thread == thread, let problem = voice.problem {
         BugProblemView(problem: problem, logger: logger)
+      } else if target == .waiting {
+        Text("The next message goes once your first one reaches Larry.").font(.footnote).foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityIdentifier("chat-new-waiting")
       } else if voice.thread == thread, let notice = voice.notice {
         Text(notice).font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -421,7 +479,7 @@ private struct ComposeBar: View {
         Button(action: send) {
           Image(systemName: "arrow.up.circle.fill").font(.title)
         }
-        .disabled(!draft.canAdd)
+        .disabled(!draft.canAdd || target == .waiting)
         .accessibilityLabel("Send")
         .accessibilityIdentifier("chat-send")
       }
@@ -446,7 +504,7 @@ private struct ComposeBar: View {
   }
 
   private func paste() {
-    guard let data = InboxComposeView.clipboardImage(), let picture = InboxSend.thumbnail(data) else {
+    guard let data = Self.clipboardImage(), let picture = InboxSend.thumbnail(data) else {
       failure = "The clipboard image could not be read. Copy the image again and try Paste image."
       return
     }
@@ -457,7 +515,11 @@ private struct ComposeBar: View {
 
   private func send() {
     do {
-      try chat.send(&draft, thread: thread)
+      switch target {
+      case .thread(let key): try chat.send(&draft, thread: key)
+      case .new(let id): try chat.send(&draft, thread: nil, id: id)
+      case .waiting: return
+      }
       preview = nil
       failure = nil
       let wasFocused = focused
@@ -468,6 +530,24 @@ private struct ComposeBar: View {
       }
     } catch {
       failure = "The message could not be kept on the phone: \(error.localizedDescription)"
+    }
+  }
+
+  /// The image's bytes as copied, so a photo keeps its format and its orientation; only an image with no bytes on
+  /// the clipboard is drawn upright into a JPEG.
+  static func clipboardImage() -> Data? {
+    let board = UIPasteboard.general
+    let types = board.types.compactMap(UTType.init).filter { $0.conforms(to: .image) }
+    if let raw = types.lazy.compactMap({ board.data(forPasteboardType: $0.identifier) }).first(where: {
+      InboxSend.thumbnail($0, maxPixels: 1) != nil
+    }) {
+      return raw
+    }
+    guard let image = board.image else { return nil }
+    let format = UIGraphicsImageRendererFormat.preferred()
+    format.scale = image.scale
+    return UIGraphicsImageRenderer(size: image.size, format: format).jpegData(withCompressionQuality: 0.9) { _ in
+      image.draw(at: .zero)
     }
   }
 }
