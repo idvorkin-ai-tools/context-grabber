@@ -73,7 +73,7 @@ final class AppModel: ObservableObject {
   /// The call screen covers the app. The call itself is `call`'s and outlives the screen.
   @Published var callOpen = false
   let call: CallModel
-  /// Speaking a message in Chat (#448): the mic button's recorder and Deepgram, standing down while a call is live.
+  /// Speaking a message in Chat (#448): BugKit's Apple dictation behind the thread's mic, standing down for a call.
   let chatVoice: ChatVoiceModel
   /// Today (the mirror) is on screen.
   @Published var showToday = false

@@ -7,6 +7,7 @@ import BugKit
 import Combine
 import ContextCore
 import Foundation
+import Security
 
 @MainActor
 final class ChatVoiceModel: ObservableObject {
@@ -44,6 +45,7 @@ final class ChatVoiceModel: ObservableObject {
 
   init(log: SessionLog, callLive: AnyPublisher<Bool, Never>) {
     self.log = log
+    Self.purgeDeepgramKey(log: log)
     // The dictation's own state is this model's: the button and the bar redraw with it.
     dictation.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in: &watches)
     dictation.$listening.removeDuplicates().dropFirst().sink { [weak self] listening in
@@ -56,6 +58,16 @@ final class ChatVoiceModel: ObservableObject {
       MainActor.assumeIsolated { self?.callChanged(live) }
     }
     .store(in: &watches)
+  }
+
+  /// The Deepgram key the first version of this mic kept (#533) has no use now: gone from the Keychain at launch,
+  /// logged only when there was one. Never logs the key.
+  private static func purgeDeepgramKey(log: SessionLog) {
+    let query: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrService as String: "com.idvorkin.grabbernative.deepgram",
+    ]
+    if SecItemDelete(query as CFDictionary) == errSecSuccess { log.event("chat_voice", ["action": "key_purged"]) }
   }
 
   var phase: Phase {
