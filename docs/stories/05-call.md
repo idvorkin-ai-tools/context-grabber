@@ -786,3 +786,24 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call whose log has a line, or whose ending or problem in the header, longer than an archive record holds
 - **When:** the call ends
 - **Then:** the long text is cut to fit, and the rest of the log and the header's other fields are kept
+
+---
+
+### User Story 217:
+
+- **Summary:** A Direct call starts knowing what my day has held so far
+- **Status:** implemented in [4f9ec6c](https://github.com/idvorkin/context-grabber/commit/4f9ec6c); verified by `just native-test` (host: `CallTodayTests`, still to run on the Mac); on the phone not yet. The voice bridge reading `today` into Larry's prompt is its own follow-up.
+- **Spec:** [Native call — What the day has held](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-day-has-held)
+
+#### Use Case:
+- **As** Igor calling Direct Larry, who starts fresh
+- **I want to** the call to bring what the phone already knows about today: steps, last night's sleep, exercise, mindful minutes, workouts and the daily strip
+- **so that** Larry knows it is a gym day or a short night without my telling him
+
+#### Acceptance Criteria:
+- **Scenario:** Calling Direct after a grab this morning
+- **Given:** Today grabbed twelve minutes ago and the strip shows gym and three balloons
+- **When:** I start a call on Direct
+- **Then:** the bridge's start carries today's numbers, that the grab is twelve minutes old and the strip as the home screen shows it, a grab from an earlier day sends the strip only, the voice-model backends carry no day, and Diagnostics says *today: grab 12 min old* without the numbers
+
+---
