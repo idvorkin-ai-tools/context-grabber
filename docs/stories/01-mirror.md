@@ -247,8 +247,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 013:
 
 - **Summary:** Tiles never go blank, and they refresh themselves
-- **Status:** implemented in [f318e94](https://github.com/idvorkin/context-grabber/commit/f318e94), [ae0c1d0](https://github.com/idvorkin/context-grabber/commit/ae0c1d0), [81434c4](https://github.com/idvorkin/context-grabber/commit/81434c4), [ec1acfc](https://github.com/idvorkin/context-grabber/commit/ec1acfc); verified by `snapshot.test.ts` and on the phone (issues closed after use); native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213): the last grab shows at once, grabs on open, foreground, every 30 min and on pull, past days from the same cache tables; verified by `just native-test` (`HealthCacheTests`, the warm-cache half of `MirrorFixtureTests`) and `just native-test-sim` (fixture and the simulator's Health store); the phone still to be checked by Igor.
-- **Issues:** [#33](https://github.com/idvorkin/context-grabber/issues/33), [#31](https://github.com/idvorkin/context-grabber/issues/31), [#32](https://github.com/idvorkin/context-grabber/issues/32)
+- **Status:** implemented in [f318e94](https://github.com/idvorkin/context-grabber/commit/f318e94), [ae0c1d0](https://github.com/idvorkin/context-grabber/commit/ae0c1d0), [81434c4](https://github.com/idvorkin/context-grabber/commit/81434c4), [ec1acfc](https://github.com/idvorkin/context-grabber/commit/ec1acfc); verified by `snapshot.test.ts` and on the phone (issues closed after use); native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213): the last grab shows at once, grabs on open, foreground, every 30 min and on pull, past days from the same cache tables; verified by `just native-test` (`HealthCacheTests`, the warm-cache half of `MirrorFixtureTests`) and `just native-test-sim` (fixture and the simulator's Health store); the phone still to be checked by Igor. [b793993](https://github.com/idvorkin/context-grabber/commit/b793993): a past day cached within 36 hours of its end is asked again until it settles, and a day Health cannot answer keeps its cached value; verified by `MirrorWeeklyTests` (`just native-test`, still to run on the Mac).
+- **Issues:** [#33](https://github.com/idvorkin/context-grabber/issues/33), [#31](https://github.com/idvorkin/context-grabber/issues/31), [#32](https://github.com/idvorkin/context-grabber/issues/32), [#541](https://github.com/idvorkin/context-grabber/issues/541)
 
 #### Use Case:
 - **As** someone glancing at the phone between meetings
@@ -259,7 +259,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Cold start after a night
 - **Given:** the app was killed overnight
 - **When:** I open it in the morning
-- **Then:** yesterday's snapshot renders at once, a re-grab starts on foreground with an elapsed-seconds pill and phase label in the header, past days come from the local cache while today is live, and pulling down on Today grabs again
+- **Then:** yesterday's snapshot renders at once, a re-grab starts on foreground with an elapsed-seconds pill and phase label in the header, past days come from the local cache once settled (a day cached within 36 hours of its end is asked again) while today is live, and pulling down on Today grabs again
 
 ---
 
