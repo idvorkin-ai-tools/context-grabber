@@ -804,9 +804,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 301:
 
 - **Summary:** The + starts a new thread with Larry
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
-- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d), each first-message attempt its own message in [8202fec](https://github.com/idvorkin/context-grabber/commit/8202fec); verified by `ChatNewThreadTests` (host) and `ChatNewThreadUITests` (simulator, against the fake Cockpit); on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client with something new to talk about
@@ -816,8 +816,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** Starting one from the +
 - **Given:** Chat is open
-- **When:** I tap + and send a message
-- **Then:** a new thread is started, titled with the message's first line; *Send and start another* starts another
+- **When:** I tap + and send a message from the new thread's bar
+- **Then:** a new thread is started, titled with the message's first line, and the same screen becomes that thread once the Cockpit has it; the next message goes into it, and another new thread is another tap of +
 
 ---
 
