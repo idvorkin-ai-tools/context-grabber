@@ -879,20 +879,61 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     XCTAssertEqual(t.texts, ["igor:Can you outsource yourself?", "igor:Hold on."])
   }
 
-  func testTheRecognizersLateFinalForASentSentenceIsNotShownTwice() {
+  // The recognizer's finals after a send, before any partial, are its late account of the sentence already sent —
+  // whatever their words.
+  func testALateFinalSpelledDifferentlyFromTheSentSentenceIsNotShownTwice() {
     let t = CallHarness()
     t.goLive()
-    t.socket.say(["type": "stt_partial", "text": "hello"])
-    t.socket.say(["type": "transcript", "who": "igor", "text": "Hello, Larry."])
-    t.socket.say(["type": "stt_final", "text": "hello Larry"])
-    XCTAssertEqual(t.texts, ["igor!:Hello, Larry."])
-    XCTAssertEqual(t.last("call_caption_restated")?["text"] as? String, "hello Larry")
-    // The same words said again as a NEW sentence start with a partial, and are shown.
-    t.socket.say(["type": "stt_partial", "text": "hello"])
-    t.socket.say(["type": "stt_final", "text": "hello Larry"])
-    XCTAssertEqual(t.texts, ["igor!:Hello, Larry.", "igor?:hello Larry"])
+    t.socket.say(["type": "stt_partial", "text": "helo"])
     t.socket.say(["type": "transcript", "who": "igor", "text": "Hello Larry."])
-    XCTAssertEqual(t.texts, ["igor!:Hello, Larry.", "igor!:Hello Larry."])
+    t.socket.say(["type": "stt_final", "text": "helo lary"])
+    XCTAssertEqual(t.texts, ["igor!:Hello Larry."])
+    XCTAssertEqual(t.last("call_caption_restated")?["text"] as? String, "helo lary")
+  }
+
+  func testALateFinalThatIsOnlyTheStartOfTheSentSentenceIsNotShown() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "transcript", "who": "igor", "text": "What should I eat tonight?"])
+    t.socket.say(["type": "stt_final", "text": "what should I"])
+    XCTAssertEqual(t.texts, ["igor!:What should I eat tonight?"])
+  }
+
+  func testEveryFinalBeforeTheNextPartialIsDroppedThenNewSpeechShows() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "transcript", "who": "igor", "text": "What should I eat tonight?"])
+    t.socket.say(["type": "stt_final", "text": "what should I"])
+    t.socket.say(["type": "stt_final", "text": "eat tonight"])
+    XCTAssertEqual(t.texts, ["igor!:What should I eat tonight?"])
+    XCTAssertEqual(t.events.filter { $0.0 == "call_caption_restated" }.count, 2)
+    t.socket.say(["type": "stt_partial", "text": "and"])
+    t.socket.say(["type": "stt_final", "text": "and tomorrow"])
+    XCTAssertEqual(t.texts, ["igor!:What should I eat tonight?", "igor?:and tomorrow"])
+  }
+
+  func testARealRepeatStartsWithAPartialAndIsShown() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Hello Larry."])
+    t.socket.say(["type": "stt_partial", "text": "hello"])
+    t.socket.say(["type": "stt_final", "text": "hello Larry"])
+    XCTAssertEqual(t.texts, ["igor!:Hello Larry.", "igor?:hello Larry"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Hello Larry."])
+    XCTAssertEqual(t.texts, ["igor!:Hello Larry.", "igor!:Hello Larry."])
+    XCTAssertNil(t.last("call_caption_restated"))
+  }
+
+  func testTheSentMarkSurvivesAnInterruptionAndAConsult() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "transcript", "who": "igor", "text": "Look this up."])
+    t.socket.say(["type": "interrupted"])
+    XCTAssertEqual(t.texts, ["igor!:Look this up."])
+    t.socket.say(["type": "tool_call", "question": "what is up"])
+    XCTAssertEqual(t.texts.first, "igor!:Look this up.")
+    t.socket.say(["type": "transcript", "who": "larry", "text": "Found it."])
+    XCTAssertEqual(t.texts.first, "igor:Look this up.")
   }
 
   func testHangingUpClearsTheSentMark() {

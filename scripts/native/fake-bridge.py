@@ -52,6 +52,7 @@ async def handle(ws, report_path: str, drop: bool) -> None:
                     # #467, story 216: each sentence is sent before Larry answers; the late final restates the first.
                     await ws.send(json.dumps({"type": "transcript", "who": "igor", "text": "hello Larry"}))
                     await ws.send(json.dumps({"type": "stt_final", "text": "hello Larry"}))
+                    await ws.send(json.dumps({"type": "stt_partial", "text": "are you"}))
                     await ws.send(json.dumps({"type": "stt_final", "text": "are you there"}))
                     await ws.send(json.dumps({"type": "transcript", "who": "igor", "text": "are you there"}))
                     await ws.send(json.dumps({"type": "transcript", "who": "larry", "text": "Hi Igor, this is the fake bridge."}))

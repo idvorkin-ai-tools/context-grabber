@@ -9,9 +9,9 @@
 **Amended:** 2026-08-29, [#90](https://github.com/idvorkin/context-grabber/issues/90) — a calling treatment while the bridge answers; mute folds into the voice indicator; a round red hang-up
 **Amended:** 2026-08-29, [#98](https://github.com/idvorkin/context-grabber/issues/98) — a voice picker beside the microphone picker
 **Amended:** 2026-09-02 — the live line: what Igor is saying, big, on top, before it settles
-**Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 **Amended:** 2026-09-02, [#107](https://github.com/idvorkin/context-grabber/issues/107) — the call tells the bridge where Igor is
 **Amended:** 2026-09-02, [#95](https://github.com/idvorkin/context-grabber/issues/95) / [#105](https://github.com/idvorkin/context-grabber/issues/105) / [#106](https://github.com/idvorkin/context-grabber/issues/106) — audio that stops mid-call heals itself; the greeting waits for the speaker; the log counts both directions and survives a freeze
+**Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 
 ## Summary
 
@@ -456,7 +456,12 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   the turn ends) every *sent* mark goes and the rows are ordinary *Igor*
   rows. A sentence the bridge never reports as sent still drops in when
   Tony answers or the turn ends, as before. The recognizer's own late
-  restatement of a sentence already sent never shows a second time. With nothing pending the box
+  account of a sentence already sent never shows a second time: once a
+  sentence is sent, whatever the recognizer settles before it hears new
+  speech is that same sentence — spelled its own way, or only a piece of
+  it — and is not shown. New speech always shows its first words live,
+  and from then on is shown as ever, so a sentence he really says twice
+  appears twice. With nothing pending the box
   reads *listening…*, faint. Muted, it reads *muted* — plainly, a state,
   not a placeholder — whatever the recognizer had heard before the mic was
   cut, since those words are no longer being sent. When the line runs
@@ -802,14 +807,6 @@ back. The calling treatment in the middle of the screen stays; the big
     twice, with a small *sent* mark beside it. Mute: the box reads
     *muted*. Hang up: the box is gone.
 
-44. **Sent, before Larry answers** (#467). On a Direct call, ask a
-    question that makes Larry think: the moment the live line empties,
-    the question is an *Igor* row marked *sent*, while Larry is still
-    silent. Before he answers, say a second sentence: it builds in a
-    fresh live line, then becomes a second *Igor* row marked *sent* —
-    two rows, not one run-on row. When Larry speaks, both marks go. The
-    same on ElevenLabs.
-
 43. **Playback is watched and the log leaves the phone** (#442). On a
     Direct call, listen through two of Larry's replies: no static. Open
     Diagnostics: every five seconds while he spoke there is a playback
@@ -821,6 +818,14 @@ back. The calling treatment in the middle of the screen stays; the big
     how many records. On the Mac, the Cockpit's archive holds the same
     lines under the call's bridge session, oldest first, with the header
     record before them.
+
+44. **Sent, before Larry answers** (#467). On a Direct call, ask a
+    question that makes Larry think: the moment the live line empties,
+    the question is an *Igor* row marked *sent*, while Larry is still
+    silent. Before he answers, say a second sentence: it builds in a
+    fresh live line, then becomes a second *Igor* row marked *sent* —
+    two rows, not one run-on row. When Larry speaks, both marks go. The
+    same on ElevenLabs.
 
 ## Rationale and risks
 **Why native rather than fixing the web view.** WebKit on iOS suspends
