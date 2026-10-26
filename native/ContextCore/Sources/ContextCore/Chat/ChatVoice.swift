@@ -37,11 +37,14 @@ public enum ChatVoice {
     return request
   }
 
-  public struct Failure: Error, Equatable, CustomStringConvertible {
+  /// A LocalizedError, so `localizedDescription` (what the screen and the log show) is the message itself, not
+  /// Foundation's generic line (CallAudioError's pattern).
+  public struct Failure: Error, LocalizedError, Equatable, CustomStringConvertible {
     /// The HTTP status, 0 when the body was not Deepgram's.
     public let status: Int
     public let message: String
     public var description: String { message }
+    public var errorDescription: String? { message }
 
     public init(status: Int, message: String) {
       self.status = status

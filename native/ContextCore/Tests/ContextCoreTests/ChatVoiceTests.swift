@@ -62,6 +62,11 @@ final class ChatVoiceTests: XCTestCase {
     XCTAssertThrowsError(try ChatVoice.transcript(status: 200, body: Data("not json".utf8)))
   }
 
+  func testAFailureReadsAsItsMessageWhereverItIsShown() {
+    let error: Error = ChatVoice.Failure(status: 0, message: "the recorder would not start")
+    XCTAssertEqual(error.localizedDescription, "the recorder would not start")
+  }
+
   func testTheClock() {
     XCTAssertEqual(ChatVoice.elapsed(0), "0:00")
     XCTAssertEqual(ChatVoice.elapsed(7.9), "0:07")
