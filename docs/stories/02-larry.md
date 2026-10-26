@@ -420,7 +420,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 262:
 
 - **Summary:** Start a new chat with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in COMMIT_TBD; verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet.
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet.
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
@@ -444,7 +444,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 263:
 
 - **Summary:** Keep writing in the chat I just started
-- **Status:** native app only: Add another implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); #536: replaced by the new thread's own bar in COMMIT_TBD (simulator: the bar is there; the hold-back until the first message lands on the phone not yet)
+- **Status:** native app only: Add another implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); #536: replaced by the new thread's own bar in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d) (simulator: the bar is there; the hold-back until the first message lands on the phone not yet)
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#536](https://github.com/idvorkin/context-grabber/issues/536)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -463,7 +463,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 264:
 
 - **Summary:** Paste a picture into a new chat
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805). #536: the new thread's bar pastes it, as every thread's does, in COMMIT_TBD; verified by `ChatNewThreadUITests` (simulator: Paste image is on the new thread's bar); pasting on the phone not yet.
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805). #536: the new thread's bar pastes it, as every thread's does, in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: Paste image is on the new thread's bar); pasting on the phone not yet.
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422), [#536](https://github.com/idvorkin/context-grabber/issues/536)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
