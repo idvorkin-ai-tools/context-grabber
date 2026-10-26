@@ -163,13 +163,16 @@ final class ContextExportTests: XCTestCase {
     )
   }
 
-  func testSummaryHasNoCoordinatesAndLeadsWithRoles() {
+  func testSummaryHasNoCoordinatesAndNoRolesUntilTheyMove() {
     var h = HealthData()
     h.weight = 82.1
     h.bedtime = "2026-03-15T06:00:00.000Z"
     h.wakeTime = "2026-03-15T13:15:00.000Z"
     let json = ContextExport.summary(week(), health: h, places: nil, accessory: nil, clock: la).stringify()
-    XCTAssertTrue(json.hasPrefix(#"{"roles":null,"today":{"date":"2026-03-15","dayOfWeek":"Sunday""#))
+    XCTAssertTrue(json.hasPrefix(#"{"today":{"date":"2026-03-15","dayOfWeek":"Sunday""#), "no roles key, not null")
+    XCTAssertTrue(
+      ContextExport.summary(week(), health: h, places: nil, roles: .array([]), accessory: nil, clock: la).stringify()
+        .hasPrefix(#"{"roles":[],"today":"#), "roles lead the export once given")
     XCTAssertTrue(json.contains(#""weightLbs":181"#))
     XCTAssertTrue(json.contains(#""bedtime":"6am","wakeTime":"1:15pm""#))
     XCTAssertTrue(json.hasSuffix(#""places":null,"accessory":null}"#))
