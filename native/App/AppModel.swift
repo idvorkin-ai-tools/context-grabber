@@ -73,7 +73,7 @@ final class AppModel: ObservableObject {
   /// The call screen covers the app. The call itself is `call`'s and outlives the screen.
   @Published var callOpen = false
   let call: CallModel
-  /// Speaking a message in Chat (#448): the mic button's recorder and Deepgram, standing down while a call is live.
+  /// Speaking a message in Chat (#448): BugKit's Apple dictation behind the thread's mic, standing down for a call.
   let chatVoice: ChatVoiceModel
   /// Today (the mirror) is on screen.
   @Published var showToday = false
@@ -141,6 +141,8 @@ final class AppModel: ObservableObject {
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in
       self?.eulogySong.yield(to: "call")
+      // Before the call configures the session: chat dictation's restore must land first, or the call's mic is dead.
+      self?.chatVoice.yieldToCall()
       self?.locateForCall()
     }
     // #107: a move during a call goes up too; CallModel sends only the significant ones.

@@ -21,6 +21,7 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertTrue(field.waitForExistence(timeout: 5), "the ordinary bar's field: \(app.debugDescription)")
     XCTAssertTrue(app.buttons["Paste image"].exists, "Paste image is on the bar")
     XCTAssertTrue(app.buttons["Speak a message"].exists, "the chat mic is on the bar")
+    XCTAssertTrue(app.buttons["Microphone: Automatic"].exists, "the microphone picker is on the bar")
     XCTAssertFalse(app.buttons["Send"].isEnabled, "nothing to send yet")
     XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
     XCTAssertFalse(app.buttons["Cancel"].exists, "no sheet")
