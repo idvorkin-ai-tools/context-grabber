@@ -27,7 +27,8 @@ updates by itself; while it is not, the phone checks now and then and notifies I
   wanted. Telegram stays available for anything that must arrive at once.
 - Larry starting a conversation that only Telegram carries. Threads Larry starts on the Cockpit do appear here.
 - Searching, renaming, closing or deleting threads from the phone. Closing is done on the Cockpit, as now.
-- Voice inside a thread (the Call screen is the voice conversation).
+- A voice conversation inside a thread (the Call screen is that). Speaking a message is in (#448): it becomes text
+  Igor reads before he sends.
 
 ## What Igor sees
 
@@ -50,6 +51,26 @@ when the clipboard holds an image (preview, remove), and *Send*. Send needs text
 at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and image, with the keyboard
 still up for the next message — typed or dictated alike (#449). A new thread from the **+** asks for its first message only;
 its title is that message's first line.
+
+**Speaking a message** (#448). Igor, 2026-10-26: *"transcription based, use a good model like we do in cockpit (need a
+stored key is fine)."* The bar has a mic button beside the field. Tap it to record; it turns red and shows the
+seconds counting; tap it again to stop. The recording goes to the same transcription service and model the Cockpit's
+mic uses (Deepgram, nova-3, primed with the Cockpit's list of names to spell right — Igor, Larry, Tori, Zach, Amelia,
+Kettlebility, beads, Cockpit), and while it is out the button shows it is working. The words land **in the field**, after anything
+already typed — never sent. Igor reads them, fixes what he likes, and taps Send. A clip of silence, or a recording
+with nothing heard, leaves the field as it was and says *Nothing heard*. The recording itself is not kept.
+
+- **The key.** The service needs Igor's Deepgram key, pasted once in *Settings → Voice in Chat* and kept in the
+  phone's Keychain, on this phone only. Settings says whether one is saved, never shows it, and can remove it. Until
+  one is saved, the mic button says where to add it instead of recording.
+- **The microphone.** The first tap asks for the microphone (the same permission calls use). Declined, the button
+  says how to allow it in the phone's Settings.
+- **A live call.** While a call with Larry is live, the mic is the call's: the button is dimmed and says so, and a
+  call that starts mid-recording stops the recording and leaves the field as it was. Recording never changes a live
+  call's sound.
+- **Music.** Recording pauses whatever was playing, as dictation does; it may resume when the recording stops.
+- **Failures** (no network, a refused key, the service down) are copyable errors above the bar, with what the service
+  said; the recording is dropped and the field is unchanged.
 
 **Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
 share becomes a new thread whose first message is the shared thing with the note. The title is the note's first
@@ -81,6 +102,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
   text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
   refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
+- `chat_voice` events: record start / stop (seconds, bytes), transcribed (status, characters, round trip), failed (the
+  stage, the status, the service's message), refused (no key, no microphone, a live call). Never the words, never the
+  key.
 - A thread that cannot be read logs one error when the problem starts or changes, not one per poll.
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
@@ -97,6 +121,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises
   none.
 - A refused message says why, copyably, and is never resent.
+- With a key saved, tap the mic, speak, tap again: the words appear in the field after what was typed, nothing is
+  sent until Send; silence leaves the field unchanged. With no key the mic says where to add it; during a live call it
+  is dimmed and says why; a failed transcription is a copyable error and the field is unchanged.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 
 ## Depends on the Cockpit
