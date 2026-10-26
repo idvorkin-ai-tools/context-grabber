@@ -208,8 +208,9 @@ public final class CallSession {
   private var nextRowId = 1
   private var igorFinal = ""
   private var igorRowId: Int?
-  /// #467: the words of Igor's sentences sent since Larry last answered, for spotting the recognizer restating one.
-  private var sentWords: [String] = []
+  /// #467: the words of the sentence just sent, while the recognizer has said nothing since — its next final may be
+  /// its own late restatement of that sentence. Any partial means new speech, and ends the window.
+  private var justSentWords: [String] = []
   private var larryRowId: Int?
   private var toolRowId: Int?
   private var probeToken = 0
@@ -396,10 +397,13 @@ public final class CallSession {
         appendLarry(text)
       }
     case .sttPartial(let text):
+      justSentWords = []
       setIgor(final: igorFinal, partial: text)
     case .sttFinal(let text):
       let said = joinWords(igorFinal, text)
-      if restatesSent(said) {
+      let restated = restatesSent(said)
+      justSentWords = []
+      if restated {
         // The recognizer's own final for a sentence the bridge already sent: never show it twice.
         log("call_caption_restated", ["text": said])
         dropIgor()
@@ -757,7 +761,7 @@ public final class CallSession {
       $0.pending = false
       $0.sent = sent
     }
-    if sent { sentWords += captionWords(row.text) }
+    if sent { justSentWords = captionWords(row.text) }
     log("call_caption", ["who": "igor", "text": row.text, "sent": sent])
   }
 
@@ -771,18 +775,19 @@ public final class CallSession {
 
   /// Larry answered, or the turn or the call ended: nothing is waiting on him any more.
   private func clearSent() {
-    sentWords = []
+    justSentWords = []
     guard snapshot.captions.contains(where: { $0.sent }) else { return }
     update { s in
       for i in s.captions.indices where s.captions[i].sent { s.captions[i].sent = false }
     }
   }
 
-  /// The recognizer's words are the tail of what was already sent before Larry answered — its late final for the
-  /// same sentence, not a new one.
+  /// The recognizer's first final after a sentence was sent, with no partial between, is the tail of that
+  /// sentence — its late final for the same words, not a new one. A repeat he actually says starts with a partial.
   private func restatesSent(_ text: String) -> Bool {
     let words = captionWords(text)
-    return !words.isEmpty && sentWords.count >= words.count && Array(sentWords.suffix(words.count)) == words
+    return igorRowId == nil && !words.isEmpty && justSentWords.count >= words.count
+      && Array(justSentWords.suffix(words.count)) == words
   }
 
   private func appendLarry(_ text: String) {
@@ -820,7 +825,7 @@ public final class CallSession {
     snapshot = next
     igorFinal = ""
     igorRowId = nil
-    sentWords = []
+    justSentWords = []
     larryRowId = nil
     toolRowId = nil
     probeSent = false

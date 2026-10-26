@@ -887,7 +887,10 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     t.socket.say(["type": "stt_final", "text": "hello Larry"])
     XCTAssertEqual(t.texts, ["igor!:Hello, Larry."])
     XCTAssertEqual(t.last("call_caption_restated")?["text"] as? String, "hello Larry")
-    // The same words said again as a NEW sentence still land: the bridge sends that one too.
+    // The same words said again as a NEW sentence start with a partial, and are shown.
+    t.socket.say(["type": "stt_partial", "text": "hello"])
+    t.socket.say(["type": "stt_final", "text": "hello Larry"])
+    XCTAssertEqual(t.texts, ["igor!:Hello, Larry.", "igor?:hello Larry"])
     t.socket.say(["type": "transcript", "who": "igor", "text": "Hello Larry."])
     XCTAssertEqual(t.texts, ["igor!:Hello, Larry.", "igor!:Hello Larry."])
   }
