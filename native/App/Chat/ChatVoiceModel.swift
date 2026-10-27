@@ -132,10 +132,22 @@ final class ChatVoiceModel: ObservableObject {
     dictation.toggle(note: draft) { [weak self] text in self?.heard(text, thread: thread) }
   }
 
+  /// A recording is under way: listing the microphones alone is not one, so a Send then stops nothing.
+  private var recording: Bool { dictation.starting || dictation.listening || dictation.processing }
+
   /// Leaving the thread mid-recording stops it, so no words land in a bar that is gone.
   func cancel(thread: String, why: String) {
-    guard self.thread == thread, dictation.busy else { return }
+    guard self.thread == thread, recording else { return }
     drop(why: why)
+  }
+
+  /// A Send from this thread's bar (#546): the message took the words heard so far, so the recording stops here and
+  /// nothing more comes back into the emptied bar (stop discards the recognizer's late results).
+  func sent(thread: String) {
+    guard self.thread == thread else { return }
+    _ = words.take(thread: thread)
+    guard recording else { return }
+    drop(why: "sent")
   }
 
   /// The words spoken for this thread, once: the bar takes them as they come, or on its return if it was away.

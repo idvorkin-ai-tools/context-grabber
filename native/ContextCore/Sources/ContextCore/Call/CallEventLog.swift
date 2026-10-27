@@ -85,6 +85,9 @@ public final class CallEventLog {
       if e.type == "call_settings" { return false }
       // #442: the call's log not reaching the archive is the network's or the Cockpit's, never the call's.
       if e.type == "call_archive" { return false }
+      // #545: a tool the bridge ran for Larry failing ("didn't get a usable answer back") is Larry's side, not the
+      // call's: its audio and connection were fine.
+      if e.type == "call_bridge", e.fields["kind"] as? String == "tool_result" { return false }
       if e.type == "call_heal" { return true }
       if e.type == "call_problem", let p = e.fields["problem"] as? String, !p.isEmpty { return true }
       if e.type == "call_ended", e.fields["badly"] as? Bool == true { return true }

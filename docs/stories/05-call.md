@@ -340,6 +340,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A call that went wrong files a report on its own, and the Mac files the issue
 - **Status:** implemented in [0a56f3a](https://github.com/idvorkin/context-grabber/commit/0a56f3a) (the report, the gist gone) and [9fd7f3b](https://github.com/idvorkin/context-grabber/commit/9fd7f3b) (the smoke check: a dropped call reports once, a second is skipped); verified on the simulator by `just native-test-sim` (2026-10-11: a clean call files none, a dropped call files one with call-log.txt, a second after a relaunch is skipped; smoke-check fix [7c4ed4b](https://github.com/idvorkin/context-grabber/commit/7c4ed4b)); the listener filing one and a real troubled call on the phone not yet
+- **Issues:** [#545](https://github.com/idvorkin/context-grabber/issues/545): a failed Larry tool answer is not the call's trouble, in the #545 fix; verified by `CallDiagnosticsTests` (host)
 - **Spec:** [Swift-native app](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
@@ -362,6 +363,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a report was saved for a troubled call less than ten minutes ago, even across a relaunch
 - **When:** another call ends in trouble
 - **Then:** no second report is saved, and the log says it was skipped; a clean call saves nothing
+
+- **Scenario:** Larry's side fails, the call does not (#545)
+- **Given:** a call whose audio, connection and ending were all fine
+- **When:** the bridge says a question it put to Larry got no usable answer (a failed tool answer)
+- **Then:** no report is saved, since that is Larry's side and not the call's, and the call's log still has the line
 
 - **Scenario:** A very long call
 - **Given:** the call's log is longer than the report's 5 MB
