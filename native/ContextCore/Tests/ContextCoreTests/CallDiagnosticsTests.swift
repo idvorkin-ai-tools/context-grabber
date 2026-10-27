@@ -102,7 +102,7 @@ final class CallEventLogTests: XCTestCase {
         clean + events([("call_bridge", ["kind": "tool_result", "ok": false, "answer": "no usable answer"])])))
     XCTAssertTrue(
       CallEventLog.hadTrouble(events([("call_bridge", ["kind": "socket", "ok": false])])),
-      "another bridge step failing is still the call's")
+      "the exemption is keyed on kind: a synthetic guard, no such bridge line exists")
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_ended", ["reason": "connection lost", "badly": true])])))
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_audio", ["action": "engine_start", "ok": false])])))
     XCTAssertFalse(CallEventLog.hadTrouble(events([("timer_cue", ["ok": false])])))  // not the call's
