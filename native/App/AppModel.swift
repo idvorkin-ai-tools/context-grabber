@@ -145,6 +145,17 @@ final class AppModel: ObservableObject {
       self?.chatVoice.yieldToCall()
       self?.locateForCall()
     }
+    // Story 217: a Direct call starts knowing the day so far: the last grab and the strip as the home screen shows it.
+    call.today = { [weak self] in
+      guard let self else { return nil }
+      self.dailyStrip.refresh()
+      var strip: [DailyItem: Int] = [:]
+      for item in DailyItem.allCases { strip[item] = self.dailyStrip.value(item) }
+      if self.dailyStrip.gymToday { strip[.gym] = max(strip[.gym] ?? 0, 1) }
+      if self.dailyStrip.meditationToday { strip[.meditation] = max(strip[.meditation] ?? 0, 1) }
+      return CallToday.build(
+        snapshot: self.mirror.snapshot, strip: strip, now: jsMillis(Date()), clock: LocalClock())
+    }
     // #107: a move during a call goes up too; CallModel sends only the significant ones.
     callLocationWatch = tracker.$you.compactMap { $0 }.sink { [weak self] fix in
       guard let self, self.call.snapshot.isActive else { return }
@@ -757,10 +768,10 @@ final class AppModel: ObservableObject {
         log.event("error", ["where": "chat_hook", "message": "\(error)"])
       }
     }
-    if let compose = env["GRABBER_INBOX_COMPOSE"], !compose.isEmpty {
-      // #405: the Inbox with its + already tapped, and with text that text added as Add another would.
+    if env["GRABBER_CHAT_NEW"] == "open" {
+      // #536: Chat with its + already tapped, a new thread on screen.
       openInbox(from: "hook")
-      inbox.composeHook(compose)
+      chat.openNewChat(from: "hook")
     }
     // Story 270: an archive run now, to GRABBER_ARCHIVE_URL (the simulator sends nowhere else).
     if env["GRABBER_ARCHIVE"] == "run" { archive.run(reason: "hook") }

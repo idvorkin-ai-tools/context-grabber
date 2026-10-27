@@ -259,6 +259,10 @@ the dump — it never has — the log can go up as a private gist instead:
 on demand from the fold, or on its own after a troubled call. That is
 its own spec: [Diagnostics gist upload](2026-09-05-diagnostics-gist-upload-design.md). The Swift-native app
 uploads no gist: a troubled call files an automatic report that the Mac's listener picks up (story 248).
+What counts as trouble is the call's own: its audio healing itself, a problem on screen, one of its steps failing,
+or a bad ending. A failure that belongs to someone else does not count: the voices' recommendation not loading
+(#417), the log not reaching the archive (#442), or Larry not answering a question the bridge put to him on the
+call's behalf (#545, a tool answer marked failed). The call's log still carries those lines.
 
 **The dump reaches the bridge on its own.** At every hang-up, at every
 automatic redial, and when the bridge fails to acknowledge the microphone,
@@ -584,6 +588,21 @@ handful of messages, not a stream. Diagnostics logs each one (*location:
 Home (±12 m)*). No fix is ever a reason for a call not to start: without
 location permission, or with no fix in time, the call simply carries no
 location. What Larry does with it is the bridge's.
+
+### What the day has held
+
+From the 2026-10-26 review (proposal P-1, picked by Igor): Direct Larry
+starts fresh, and the only context the phone gave him was where Igor is.
+A **Direct** call now also carries **today so far**, from what the phone
+already has: the last grab's steps, last night's sleep, exercise and
+mindful minutes and today's workouts, how old that grab is, and the daily
+strip as the home screen shows it (gym, meditation, journal, balloons,
+magic). A grab from an earlier day sends no health numbers, only the
+strip, so Larry never hears yesterday as today. Nothing is fetched for it:
+the call never waits on Health. The voice-model backends (ElevenLabs,
+Gemini, OpenAI, Drill) carry no day, as before. Diagnostics says the day
+went (*today: grab 12 min old*), never the numbers. What Larry does with
+it is the bridge's; a bridge that does not read it ignores it.
 
 ### One call at a time
 

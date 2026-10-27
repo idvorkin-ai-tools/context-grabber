@@ -6,13 +6,20 @@
 //  docs/superpowers/specs/2026-10-19-native-stats-archive-design.md.
 
 import BackgroundTasks
+import Combine
 import ContextCore
 import HealthKit
 import UIKit
 
 @MainActor
-final class ArchiveModel {
+final class ArchiveModel: ObservableObject {
   static let lastRunKey = "archive_last_run"
+  /// Story 304: how the last run ended (ArchiveOutcome JSON), when a run last caught every stream up, when one last
+  /// made progress (ArchiveOutcome.madeProgress), and when the first run started.
+  static let lastOutcomeKey = "archive_last_outcome"
+  static let lastCaughtUpKey = "archive_last_caught_up"
+  static let lastProgressKey = "archive_last_progress"
+  static let firstRunKey = "archive_first_run"
   static let deviceKey = "archive_device_id"
   /// Pages per stream in a refresh or foreground run (seconds of background time), and in the end-of-day
   /// processing task (minutes): a backfill of years of heart rate takes a few of each.
@@ -28,6 +35,8 @@ final class ArchiveModel {
   private let health = HKHealthStore()
   private var running: Task<Void, Never>?
   private var cancelled = false
+  /// Story 304: when the last run ended, so an open Settings re-reads its Archive lines.
+  @Published private(set) var lastRunEnded: Date?
 
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
     self.log = log
@@ -178,6 +187,7 @@ final class ArchiveModel {
     var inserted = 0
     var duplicate = 0
     var stopped: [String: String] = [:]
+    var refused: [String: Int] = [:]
     for source in sources {
       if cancelled {
         stopped[source.stream] = "cancelled"
@@ -191,6 +201,7 @@ final class ArchiveModel {
       inserted += report.inserted
       duplicate += report.duplicate
       if let why = report.stopped { stopped[source.stream] = why }
+      if let status = report.refusedStatus { refused[source.stream] = status }
       // The Cockpit is away: every stream after this one would fail the same way.
       if report.stopped == "retry" { break }
       if report.stopped == "read" && !UIApplication.shared.isProtectedDataAvailable {
@@ -199,15 +210,38 @@ final class ArchiveModel {
         break
       }
     }
+    let startedMs = Int64(started.timeIntervalSince1970 * 1000)
     if !cancelled && !locked {
-      database.setSetting(Self.lastRunKey, String(Int64(started.timeIntervalSince1970 * 1000)))
+      database.setSetting(Self.lastRunKey, String(startedMs))
     }
+    // Story 304: the Settings line, from runs that could read everything. Most background runs find the phone
+    // locked and skip Health; recording those would read "Behind" until the next unlocked run, so they say nothing.
+    // By design a locked run discards its whole outcome, the trail's and the strip's streams with it, even a
+    // refusal or a Cockpit out of reach: the next unlocked run, at the latest the next foreground, says it.
+    if !locked {
+      let outcome = ArchiveOutcome(at: startedMs, stopped: stopped, refused: refused)
+      database.setSetting(Self.lastOutcomeKey, outcome.json)
+      if database.setting(Self.firstRunKey) == nil { database.setSetting(Self.firstRunKey, String(startedMs)) }
+      if outcome.caughtUp { database.setSetting(Self.lastCaughtUpKey, String(startedMs)) }
+      if outcome.madeProgress { database.setSetting(Self.lastProgressKey, String(startedMs)) }
+    }
+    lastRunEnded = Date()
     log.event(
       "archive_run",
       [
         "why": reason, "streams": sources.count, "pages": pages, "records": records, "inserted": inserted,
         "duplicate": duplicate, "stopped": stopped, "ms": Int(Date().timeIntervalSince(started) * 1000),
       ])
+  }
+
+  /// Story 304: the archive's lines for Settings, from the last run's outcome.
+  func statusLines(now: Date = Date()) -> [ArchiveStatus.Line] {
+    ArchiveStatus.lines(
+      sends: cockpit != nil, outcome: ArchiveOutcome(json: database.setting(Self.lastOutcomeKey)),
+      lastCaughtUp: database.setting(Self.lastCaughtUpKey).flatMap { Int64($0) },
+      lastProgress: database.setting(Self.lastProgressKey).flatMap { Int64($0) },
+      firstRun: database.setting(Self.firstRunKey).flatMap { Int64($0) },
+      now: Int64(now.timeIntervalSince1970 * 1000))
   }
 
   /// One stream per type the mirror reads, only once Health has been asked about all of them (Today asks; an

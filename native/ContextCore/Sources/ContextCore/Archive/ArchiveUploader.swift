@@ -56,6 +56,8 @@ public struct ArchiveUploader {
     /// Why the run ended before the stream was caught up: `retry`, `refused`, `read`, `pages`, `cancelled`; nil
     /// when it is caught up.
     public var stopped: String?
+    /// The HTTP status when the stream was `refused` (story 304's Settings line).
+    public var refusedStatus: Int?
     public init() {}
   }
 
@@ -128,6 +130,7 @@ public struct ArchiveUploader {
         fields.merge(["ok": false, "action": "refused", "status": status, "reason": reason]) { $1 }
         log("archive", fields)
         report.stopped = "refused"
+        report.refusedStatus = status
         return report
       case .retry(let reason):
         fields.merge(["ok": false, "action": "failed", "reason": reason]) { $1 }

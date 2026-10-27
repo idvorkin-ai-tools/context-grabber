@@ -96,6 +96,13 @@ final class CallEventLogTests: XCTestCase {
     XCTAssertFalse(CallEventLog.hadTrouble(clean + events([("call_settings", ["ok": false, "status": 0])])))
     // #442: the log not reaching the archive is not the call's trouble either.
     XCTAssertFalse(CallEventLog.hadTrouble(clean + events([("call_archive", ["ok": false, "reason": "offline"])])))
+    // #545: Larry's tool answer failing is his side, not the call's.
+    XCTAssertFalse(
+      CallEventLog.hadTrouble(
+        clean + events([("call_bridge", ["kind": "tool_result", "ok": false, "answer": "no usable answer"])])))
+    XCTAssertTrue(
+      CallEventLog.hadTrouble(events([("call_bridge", ["kind": "socket", "ok": false])])),
+      "the exemption is keyed on kind: a synthetic guard, no such bridge line exists")
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_ended", ["reason": "connection lost", "badly": true])])))
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_audio", ["action": "engine_start", "ok": false])])))
     XCTAssertFalse(CallEventLog.hadTrouble(events([("timer_cue", ["ok": false])])))  // not the call's

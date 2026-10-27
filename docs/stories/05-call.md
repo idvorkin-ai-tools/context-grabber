@@ -340,6 +340,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A call that went wrong files a report on its own, and the Mac files the issue
 - **Status:** implemented in [0a56f3a](https://github.com/idvorkin/context-grabber/commit/0a56f3a) (the report, the gist gone) and [9fd7f3b](https://github.com/idvorkin/context-grabber/commit/9fd7f3b) (the smoke check: a dropped call reports once, a second is skipped); verified on the simulator by `just native-test-sim` (2026-10-11: a clean call files none, a dropped call files one with call-log.txt, a second after a relaunch is skipped; smoke-check fix [7c4ed4b](https://github.com/idvorkin/context-grabber/commit/7c4ed4b)); the listener filing one and a real troubled call on the phone not yet
+- **Issues:** [#545](https://github.com/idvorkin/context-grabber/issues/545): a failed Larry tool answer is not the call's trouble, in the #545 fix; verified by `CallDiagnosticsTests` (host)
 - **Spec:** [Swift-native app](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
@@ -362,6 +363,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a report was saved for a troubled call less than ten minutes ago, even across a relaunch
 - **When:** another call ends in trouble
 - **Then:** no second report is saved, and the log says it was skipped; a clean call saves nothing
+
+- **Scenario:** Larry's side fails, the call does not (#545)
+- **Given:** a call whose audio, connection and ending were all fine
+- **When:** the bridge says a question it put to Larry got no usable answer (a failed tool answer)
+- **Then:** no report is saved, since that is Larry's side and not the call's, and the call's log still has the line
 
 - **Scenario:** A very long call
 - **Given:** the call's log is longer than the report's 5 MB
@@ -786,3 +792,25 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call whose log has a line, or whose ending or problem in the header, longer than an archive record holds
 - **When:** the call ends
 - **Then:** the long text is cut to fit, and the rest of the log and the header's other fields are kept
+
+---
+
+### User Story 217:
+
+- **Summary:** A Direct call starts knowing what my day has held so far
+- **Status:** implemented in [4f9ec6c](https://github.com/idvorkin/context-grabber/commit/4f9ec6c); host-verified by `just native-test` (`CallTodayTests`); on the phone not yet. The Cockpit's voice bridge already reads `today` into Direct Larry's prompt (`direct_today_block` in `voice_bridge.py`, on the Cockpit's main).
+- **Issues:** [#548](https://github.com/idvorkin/context-grabber/issues/548)
+- **Spec:** [Native call — What the day has held](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-day-has-held)
+
+#### Use Case:
+- **As** Igor calling Direct Larry, who starts fresh
+- **I want to** the call to bring what the phone already knows about today: steps, last night's sleep, exercise, mindful minutes, workouts and the daily strip
+- **so that** Larry knows it is a gym day or a short night without my telling him
+
+#### Acceptance Criteria:
+- **Scenario:** Calling Direct after a grab this morning
+- **Given:** Today grabbed twelve minutes ago and the strip shows gym and three balloons
+- **When:** I start a call on Direct
+- **Then:** the bridge's start carries today's numbers, that the grab is twelve minutes old and the strip as the home screen shows it, a grab from an earlier day sends the strip only, the voice-model backends carry no day, and Diagnostics says *today: grab 12 min old* without the numbers
+
+---

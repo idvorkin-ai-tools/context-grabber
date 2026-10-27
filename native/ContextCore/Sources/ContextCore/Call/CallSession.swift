@@ -221,6 +221,8 @@ public final class CallSession {
   private var socketOpen = false
   /// The last fix the app gave; rides the start frame, and a `location` frame when it changes (#107).
   private var location: CallLocation?
+  /// Story 217: today so far, set just before a call starts.
+  private var today: CallToday?
 
   public init(deps: CallSessionDeps, url: String) {
     self.deps = deps
@@ -275,10 +277,16 @@ public final class CallSession {
       guard let self else { return }
       self.socketOpen = true
       self.log("call_socket", ["action": "open", "ok": true])
+      // Story 217: today so far rides a Direct call's start, never a voice model's.
+      let today = backend == .direct ? self.today : nil
+      var logged: [String: Any] = [:]
+      if let location = self.location { logged["location"] = location.description }
+      if let today { logged["today"] = today.description }
       self.send(
         CallProtocol.startFrame(
-          backend: backend, build: self.deps.build, voice: fields.voice, model: fields.model, location: self.location),
-        frame: "start", self.location.map { ["location": $0.description] } ?? [:])
+          backend: backend, build: self.deps.build, voice: fields.voice, model: fields.model, location: self.location,
+          today: today),
+        frame: "start", logged)
     }
     socket.onText = { [weak self] text in self?.onText(text) }
     socket.onBinary = { [weak self] data in self?.onBinary(data) }
@@ -318,6 +326,9 @@ public final class CallSession {
 
   /// Forgets the last fix, so a new call carries only a fix given for it.
   public func clearLocation() { location = nil }
+
+  /// Story 217: what the day has held, for the next start frame (a Direct call's only); nil sends none.
+  public func setToday(_ today: CallToday?) { self.today = today }
 
   public func setMuted(_ muted: Bool) {
     guard snapshot.muted != muted else { return }
