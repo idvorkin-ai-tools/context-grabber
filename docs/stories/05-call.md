@@ -798,7 +798,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 217:
 
 - **Summary:** A Direct call starts knowing what my day has held so far
-- **Status:** implemented in [4f9ec6c](https://github.com/idvorkin/context-grabber/commit/4f9ec6c); verified by `just native-test` (host: `CallTodayTests`, still to run on the Mac); on the phone not yet. The voice bridge reading `today` into Larry's prompt is its own follow-up.
+- **Status:** implemented in [4f9ec6c](https://github.com/idvorkin/context-grabber/commit/4f9ec6c); host-verified by `just native-test` (`CallTodayTests`); on the phone not yet. The Cockpit's voice bridge already reads `today` into Direct Larry's prompt (`direct_today_block` in `voice_bridge.py`, on the Cockpit's main).
 - **Issues:** [#548](https://github.com/idvorkin/context-grabber/issues/548)
 - **Spec:** [Native call — What the day has held](../superpowers/specs/2026-08-28-native-call-screen-design.md#what-the-day-has-held)
 
