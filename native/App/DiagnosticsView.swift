@@ -2,6 +2,7 @@
 //  launchers show, the build, this launch's log and the way to report a problem.
 
 import BugKit
+import Combine
 import ContextCore
 import SwiftUI
 
@@ -383,6 +384,9 @@ private struct HomeSettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var showLinks = false
   @State private var showWhatsNew = false
+  /// Story 304: the Archive section, re-read on open and whenever an archive run ends while it is up.
+  @State private var archiveLines: [ArchiveStatus.Line] = []
+  @State private var loggedArchiveStatus = false
 
   var body: some View {
     NavigationStack {
@@ -439,7 +443,7 @@ private struct HomeSettingsView: View {
         }
         // Story 304: whether everything reached the Cockpit's archive, and which stream did not.
         Section {
-          ForEach(Array(model.archive.statusLines().enumerated()), id: \.offset) { _, line in
+          ForEach(Array(archiveLines.enumerated()), id: \.offset) { _, line in
             Text(line.text).font(.footnote).foregroundStyle(line.trouble ? Color.red : Color.secondary)
           }
           .accessibilityIdentifier("home-settings-archive")
@@ -469,11 +473,16 @@ private struct HomeSettingsView: View {
           Text("Or shake the phone on any screen.")
         }
       }
-      .onAppear {
-        // Story 304: what the Archive section said, for a report or the simulator smoke.
-        let lines = model.archive.statusLines()
-        model.log.event("archive_status", ["lines": lines.map(\.text), "trouble": lines.contains(where: \.trouble)])
+      .task {
+        archiveLines = model.archive.statusLines()
+        // Story 304: what the Archive section said, for a report or the simulator smoke: once per open, not again
+        // when a pushed page pops back.
+        guard !loggedArchiveStatus else { return }
+        loggedArchiveStatus = true
+        model.log.event(
+          "archive_status", ["lines": archiveLines.map(\.text), "trouble": archiveLines.contains(where: \.trouble)])
       }
+      .onReceive(model.archive.$lastRunEnded.dropFirst()) { _ in archiveLines = model.archive.statusLines() }
       .navigationDestination(isPresented: $showLinks) { LinksView(log: model.log) }
       .navigationDestination(isPresented: $showWhatsNew) {
         WhatsNewView(feed: model.whatsNew, logger: model.bugLogger, from: "home_settings")

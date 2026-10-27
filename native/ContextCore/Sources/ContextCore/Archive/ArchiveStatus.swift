@@ -21,6 +21,10 @@ public struct ArchiveOutcome: Equatable, Sendable, Codable {
 
   public var caughtUp: Bool { stopped.isEmpty }
 
+  /// Every stream caught up, sent another stretch of its history (`pages`, a restarted stream's re-read too) or
+  /// was cut short by iOS: the archive moved, nothing is wrong. A first backfill is runs of these.
+  public var madeProgress: Bool { stopped.values.allSatisfy { $0 == "pages" || $0 == "cancelled" } }
+
   public var json: String {
     (try? JSONEncoder().encode(self)).map { String(decoding: $0, as: UTF8.self) } ?? "{}"
   }
@@ -38,15 +42,21 @@ public enum ArchiveStatus {
     public var trouble: Bool
   }
 
-  /// Not caught up for longer than this is trouble.
+  /// No progress for longer than this is trouble.
   public static let staleMs: Int64 = 24 * 60 * 60 * 1000
 
   /// The headline first, then one line per stream that did not catch up. `lastCaughtUp`: when a run last ended
-  /// with every stream caught up.
-  public static func lines(sends: Bool, outcome: ArchiveOutcome?, lastCaughtUp: Int64?, now: Int64) -> [Line] {
+  /// with every stream caught up. `lastProgress`: when a run last made progress (`ArchiveOutcome.madeProgress`).
+  /// `firstRun`: when the first run started, the clock for a phone that has never got anywhere. The headline is red
+  /// only when more than a day has passed since the newest of these that applies.
+  public static func lines(
+    sends: Bool, outcome: ArchiveOutcome?, lastCaughtUp: Int64?, lastProgress: Int64? = nil, firstRun: Int64? = nil,
+    now: Int64
+  ) -> [Line] {
     guard sends else { return [Line(text: "Not sent: this build has no archive address", trouble: false)] }
     guard let outcome else { return [Line(text: "Not run yet", trouble: false)] }
-    let stale = lastCaughtUp.map { now - $0 > staleMs } ?? true
+    let moved = [lastCaughtUp, lastProgress, outcome.madeProgress ? outcome.at : nil].compactMap { $0 }.max()
+    let stale = now - (moved ?? firstRun ?? outcome.at) > staleMs
     var out: [Line] = []
     if outcome.caughtUp {
       out.append(Line(text: "Caught up \u{00B7} \(ago(outcome.at, now: now))", trouble: now - outcome.at > staleMs))

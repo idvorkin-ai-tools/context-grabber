@@ -40,7 +40,8 @@ final class ArchiveStatusTests: XCTestCase {
       at: now - hour,
       stopped: ["strip.balloons": "refused", "health.HKQuantityTypeIdentifierHeartRate": "pages"],
       refused: ["strip.balloons": 404])
-    let lines = ArchiveStatus.lines(sends: true, outcome: outcome, lastCaughtUp: nil, now: now)
+    let lines = ArchiveStatus.lines(
+      sends: true, outcome: outcome, lastCaughtUp: nil, firstRun: now - 30 * hour, now: now)
     XCTAssertEqual(
       texts(lines),
       [
@@ -49,6 +50,38 @@ final class ArchiveStatusTests: XCTestCase {
         "Strip: balloons: refused (404); the rest waits on the phone",
       ])
     XCTAssertEqual(lines.map(\.trouble), [true, false, true])
+  }
+
+  /// A first backfill (runs that stop at their page limit, a restarted stream's re-read, a run iOS cut short) is
+  /// progress: never red, however long it takes, and never red at first launch.
+  func testABackfillIsNeverRed() {
+    let backfill = ArchiveOutcome(
+      at: now - hour,
+      stopped: ["health.HKQuantityTypeIdentifierHeartRate": "pages", ArchiveStream.points: "cancelled"])
+    XCTAssertTrue(backfill.madeProgress)
+    let first = ArchiveStatus.lines(
+      sends: true, outcome: backfill, lastCaughtUp: nil, lastProgress: nil, firstRun: now - 3 * 24 * hour, now: now)
+    XCTAssertEqual(first.map(\.trouble), [false, false, false], "this run moved the archive")
+    XCTAssertEqual(
+      ArchiveStatus.lines(sends: true, outcome: backfill, lastCaughtUp: nil, now: now).map(\.trouble),
+      [false, false, false], "a fresh install's first run")
+  }
+
+  /// No progress: red a day after the last run that made any, or a day after the first run when none ever has.
+  func testNoProgressForADayIsRed() {
+    let away = ArchiveOutcome(at: now - 10 * 60_000, stopped: [ArchiveStream.points: "retry"])
+    XCTAssertFalse(away.madeProgress)
+    func red(progress: Int64?, firstRun: Int64?) -> Bool {
+      ArchiveStatus.lines(
+        sends: true, outcome: away, lastCaughtUp: nil, lastProgress: progress, firstRun: firstRun, now: now)[0].trouble
+    }
+    XCTAssertFalse(red(progress: now - 20 * hour, firstRun: now - 90 * hour), "a backfill run 20 h ago")
+    XCTAssertTrue(red(progress: now - 30 * hour, firstRun: now - 90 * hour))
+    XCTAssertFalse(red(progress: nil, firstRun: now - 2 * hour), "the first day of a Cockpit never reached")
+    XCTAssertTrue(red(progress: nil, firstRun: now - 30 * hour))
+    XCTAssertFalse(red(progress: nil, firstRun: nil), "the first run")
+    XCTAssertFalse(ArchiveOutcome(at: 0, stopped: ["a": "refused", "b": "pages"]).madeProgress)
+    XCTAssertFalse(ArchiveOutcome(at: 0, stopped: ["a": "read"]).madeProgress)
   }
 
   func testNotRunYetAndNoArchive() {
