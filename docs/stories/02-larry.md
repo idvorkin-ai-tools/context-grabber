@@ -902,4 +902,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I open Settings
 - **Then:** the Archive section says *Cockpit out of reach · tried … · last caught up 2 days ago* in red, with a line for each stream that did not catch up and why; a refused stream shows the Cockpit's status in red, and a run that caught everything up says *Caught up* with when
 
+- **Scenario:** The first backfill is still going
+- **Given:** a fresh install whose archive runs are still sending years of history, a few pages a run, or were cut short by iOS
+- **When:** I open Settings, or a run ends while it is open
+- **Then:** the Archive section says *Behind* and *still sending its history* for those streams, in the ordinary colour, never red, and it changes when the run ends
+
 ---

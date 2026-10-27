@@ -53,7 +53,12 @@ reach or a refused page is seen before it becomes a gap in Larry's week. Its fir
 - *Cockpit out of reach · tried 10 min ago · last caught up 2 days ago* when the Cockpit did not answer.
 - *Behind · last run 1 h ago · last caught up …* when some stream did not catch up for another reason.
 
-The headline is red when nothing has caught up for more than a day. Under it, one line per stream that did not
+The headline is red only for real trouble: when more than a day has passed since the last run that caught up or
+made progress, that is, a run in which every stream caught up, was still sending its history or was cut short by
+iOS (a stream read again from its start is still sending its history). So a fresh install, and a first backfill
+that takes days of runs, are never red; a Cockpit out of reach turns red a day after the last run that got
+anywhere, or a day after the first run when none ever has. The section follows a run that ends while it is open.
+Under it, one line per stream that did not
 catch up, by name (*Trail*, *Heart Rate*, *Strip: balloons*) and why: waiting for
 the Cockpit, refused (with the Cockpit's status, in red), still sending its history, could not be read on the phone,
 or cut short by iOS. A run that found the phone locked (Health cannot be read then) changes nothing here. Before the first run it says *Not run yet*; on a simulator with no archive address, *Not sent*.
