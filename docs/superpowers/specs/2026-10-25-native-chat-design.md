@@ -97,6 +97,9 @@ sound.
   words already in the field stay. A Gym Timer cue during a recording takes the audio session and stops it the same
   way: the words so far stay in the field.
 - **Leaving the thread** mid-recording stops it.
+- **Sending mid-recording** (#546, Igor 2026-10-26: *"Even after the send we still have the element in the sandbox"*):
+  Send sends what is in the field — the words heard so far — and stops the recording there. Nothing comes back into
+  the emptied bar afterwards; the bar is ready for the next message, and the mic for the next recording.
 
 **Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
 share becomes a new thread whose first message is the shared thing with the note. The title is the note's first
