@@ -34,7 +34,14 @@ public final class SQLiteDatabase {
   private var handle: OpaquePointer?
   private static let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
+  /// How long a statement waits for another connection's lock before it gives up with `SQLITE_BUSY`.
+  public static let busyTimeoutMs: Int32 = 2000
+
   /// `path` nil opens a private in-memory database.
+  ///
+  /// A file is opened in WAL mode with a busy timeout: the app holds two connections to its one file (the health
+  /// cache is written from a grab's task group while the main actor writes the trail, the strip and settings), and
+  /// in rollback-journal mode with no busy handler the loser of a lock race failed at once with `SQLITE_BUSY`.
   public init(path: String? = nil) throws {
     let code = sqlite3_open(path ?? ":memory:", &handle)
     guard code == SQLITE_OK else {
@@ -42,6 +49,11 @@ public final class SQLiteDatabase {
       sqlite3_close(handle)
       throw SQLiteError(code: code, message: message, sql: path ?? ":memory:")
     }
+    guard path != nil else { return }
+    sqlite3_busy_timeout(handle, Self.busyTimeoutMs)
+    // Persistent once set. A failure here (another connection mid-write past the timeout) leaves the file in its
+    // old mode with the busy timeout still on, which is better than no database; the next open tries again.
+    _ = sqlite3_exec(handle, "PRAGMA journal_mode=WAL;", nil, nil, nil)
   }
 
   deinit { sqlite3_close(handle) }

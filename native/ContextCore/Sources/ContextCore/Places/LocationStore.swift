@@ -68,7 +68,8 @@ public struct LocationStore {
   /// Adds points in one transaction.
   public func insert(_ points: [LocationPoint]) throws {
     guard !points.isEmpty else { return }
-    try db.execute("BEGIN")
+    // IMMEDIATE takes the write lock up front, under the busy timeout, instead of upgrading a read mid-transaction.
+    try db.execute("BEGIN IMMEDIATE")
     do {
       for p in points {
         try db.run(
@@ -237,7 +238,7 @@ public struct LocationStore {
     }
     guard tables.contains("locations") else { throw ImportError.notContextGrabber }
 
-    try db.execute("BEGIN")
+    try db.execute("BEGIN IMMEDIATE")
     do {
       let offered = Int(try db.run("SELECT COUNT(*) AS n FROM src.locations").first?["n"]?.intValue ?? 0)
       let before = try count()

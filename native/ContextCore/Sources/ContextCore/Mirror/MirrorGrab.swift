@@ -42,6 +42,7 @@ public final class MirrorGrab: @unchecked Sendable {
   let clock: LocalClock
   private let lock = NSLock()
   private var _failures: [MirrorFailure] = []
+  private var _cacheFailures: [MirrorFailure] = []
 
   public init(source: HealthSource, cache: HealthCache?, clock: LocalClock) {
     self.source = source
@@ -58,9 +59,25 @@ public final class MirrorGrab: @unchecked Sendable {
     return f
   }
 
+  /// The phone's own cache failing since the last call, oldest first. Kept apart from `takeFailures()`: Health did
+  /// answer those questions, so a cache that could not be read or written is never reported as Health's failure.
+  public func takeCacheFailures() -> [MirrorFailure] {
+    lock.lock()
+    defer { lock.unlock() }
+    let f = _cacheFailures
+    _cacheFailures = []
+    return f
+  }
+
   private func fail(_ query: String, _ error: Error) {
     lock.lock()
     _failures.append(MirrorFailure(query: query, message: "\(error)"))
+    lock.unlock()
+  }
+
+  private func cacheFail(_ query: String, _ error: Error) {
+    lock.lock()
+    _cacheFailures.append(MirrorFailure(query: query, message: "\(error)"))
     lock.unlock()
   }
 
@@ -177,7 +194,7 @@ public final class MirrorGrab: @unchecked Sendable {
           if !dayRaw.isEmpty { try cache.putRaw(metric, day.date, .array(dayRaw)) }
         }
       } catch {
-        fail("cache_write", error)
+        cacheFail("cache_write", error)
       }
     }
     if metric == .weight {
@@ -192,7 +209,7 @@ public final class MirrorGrab: @unchecked Sendable {
     let keys = Weekly.dateKeys(endDate: now, clock: clock)
     var cached: [String: JSValue] = [:]
     if let cache {
-      do { cached = try cache.computed(metric, keys) } catch { fail("cache_read", error) }
+      do { cached = try cache.computed(metric, keys) } catch { cacheFail("cache_read", error) }
     }
     let (hits, fetch) = HealthCache.partition(todayKey: todayKey, dateKeys: keys, cached: cached)
     var fresh: [String: (computed: JSValue, raw: JSValue)] = [:]
@@ -212,7 +229,7 @@ public final class MirrorGrab: @unchecked Sendable {
           try cache.putRaw(metric, key, r.raw)
         }
       } catch {
-        fail("cache_write", error)
+        cacheFail("cache_write", error)
       }
     }
     let merged = keys.map { fresh[$0]?.computed ?? hits[$0] }
