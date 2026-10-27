@@ -464,6 +464,7 @@ private struct ComposeBar: View {
           Spacer()
         }
       }
+      MicPicker(voice: voice)
       HStack(alignment: .bottom, spacing: 8) {
         Button(action: paste) {
           Image(systemName: "photo.on.rectangle").font(.title3)
@@ -471,7 +472,6 @@ private struct ComposeBar: View {
         .disabled(!hasImage)
         .accessibilityLabel("Paste image")
         MicButton(voice: voice, thread: thread, draft: draft.text)
-        MicPicker(voice: voice)
         TextField("Message Larry", text: $draft.text, axis: .vertical)
           .lineLimit(1...6)
           .padding(.horizontal, 12).padding(.vertical, 8)
@@ -604,7 +604,8 @@ private struct MicButton: View {
 }
 
 /// Which microphone the next recording uses (#448, Igor 2026-10-26): Automatic or one of the phone's inputs, the
-/// problem report's saved pick. Locked while recording and during a call.
+/// problem report's saved pick. Locked while recording and during a call. A full-width row a finger tall (#544), laid
+/// out as BugKit's report microphone row.
 // ponytail: no input-level meter yet — bug-kit is adding a public picker + live meter view; swap this menu for it
 // when that release is pinned.
 private struct MicPicker: View {
@@ -632,7 +633,15 @@ private struct MicPicker: View {
       Button("Find microphones", systemImage: "arrow.clockwise") { voice.findMicrophones() }
         .accessibilityIdentifier("chat-mic-find")
     } label: {
-      Image(systemName: "chevron.up.chevron.down").font(.caption)
+      HStack(spacing: 6) {
+        Text("Microphone").lineLimit(1).layoutPriority(1)
+        Spacer(minLength: 8)
+        Text(voice.microphoneName).foregroundStyle(.secondary).lineLimit(1)
+        Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundStyle(.secondary)
+      }
+      .font(.subheadline)
+      .frame(maxWidth: .infinity, minHeight: 44)
+      .contentShape(Rectangle())
     }
     .disabled(!voice.canPickMicrophone)
     // After a relaunch the saved pick is an id until the inputs are listed: list them once so it reads by name.
