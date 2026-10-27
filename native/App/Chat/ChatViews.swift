@@ -634,8 +634,7 @@ private struct MicPicker: View {
         .accessibilityIdentifier("chat-mic-find")
     } label: {
       HStack(spacing: 6) {
-        Image(systemName: "mic")
-        Text("Microphone")
+        Text("Microphone").lineLimit(1).layoutPriority(1)
         Spacer(minLength: 8)
         Text(voice.microphoneName).foregroundStyle(.secondary).lineLimit(1)
         Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundStyle(.secondary)
