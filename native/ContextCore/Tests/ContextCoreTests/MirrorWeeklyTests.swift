@@ -304,7 +304,7 @@ final class HealthCacheTests: XCTestCase {
     XCTAssertTrue(health.askedDays.contains("2026-03-14"))
     let rewritten = try XCTUnwrap(cache.computedEntries(.steps, ["2026-03-14"])["2026-03-14"])
     XCTAssertEqual(DailyValue(json: rewritten.value)?.value, 9000)
-    XCTAssertGreaterThan(rewritten.cachedAt, now - 60_000)
+    XCTAssertEqual(rewritten.cachedAt, now, "stamped with the grab's own time")
   }
 
   /// A refetch Health cannot answer (a locked phone's background grab) keeps the cached value and the row.
@@ -313,13 +313,15 @@ final class HealthCacheTests: XCTestCase {
     let cache = try HealthCache(db: SQLiteDatabase())
     try cache.putComputed(.steps, "2026-03-14", DailyValue(date: "2026-03-14", value: 100).json, at: now - 60_000)
     let health = StepsHealth(steps: nil)
-    let series = await MirrorGrab(source: health, cache: cache, clock: la).perDay(.steps, now: now)
+    let grab = MirrorGrab(source: health, cache: cache, clock: la)
+    let series = await grab.perDay(.steps, now: now)
     let byDay = Dictionary(uniqueKeysWithValues: (series.daily ?? []).compactMap { d in d.value.map { (d.date, $0) } })
 
     XCTAssertEqual(byDay["2026-03-14"], 100)
     XCTAssertNil(byDay["2026-03-13"], "an uncached day Health could not answer reads empty")
     XCTAssertEqual(try cache.computedEntries(.steps, ["2026-03-14"])["2026-03-14"]?.cachedAt, now - 60_000)
     XCTAssertNil(try cache.computedEntries(.steps, ["2026-03-13"])["2026-03-13"], "not cached as an empty day")
+    XCTAssertEqual(Set(grab.takeFailures().map(\.query)), ["steps_day"], "a failed day's sum is a failed query")
   }
 }
 
