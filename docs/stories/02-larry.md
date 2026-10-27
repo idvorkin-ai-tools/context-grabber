@@ -889,3 +889,30 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I record a message
 - **When:** I read the session log
 - **Then:** `chat_voice` lines say when it started and stopped (and why it stopped early), never my words
+
+---
+
+### User Story 304:
+
+- **Summary:** Settings tells me whether everything reached the archive, and which stream did not
+- **Status:** native app only: implemented in [5f8260c](https://github.com/idvorkin/context-grabber/commit/5f8260c), [c9b87d3](https://github.com/idvorkin/context-grabber/commit/c9b87d3) (a locked run leaves the line alone), [208c2a2](https://github.com/idvorkin/context-grabber/commit/208c2a2) (red only after a day without progress, so a backfill is never red; the section follows a run that ends while it is open); host-verified by `just native-test` (`ArchiveStatusTests`, `ArchiveTests` refusal status); the simulator and the phone not yet
+- **Issues:** [#547](https://github.com/idvorkin/context-grabber/issues/547)
+- **Spec:** [Everything off the phone — In Settings](../superpowers/specs/2026-10-19-native-stats-archive-design.md#in-settings)
+
+#### Use Case:
+- **As** Larry's client whose week the Cockpit reads from the archive
+- **I want to** see in Settings whether the archive is caught up, and why a stream is not
+- **so that** a Cockpit out of reach or a refused page is fixed before it becomes a gap in what Larry sees
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit has been out of reach
+- **Given:** the archive last caught up two days ago and the last run could not reach the Cockpit
+- **When:** I open Settings
+- **Then:** the Archive section says *Cockpit out of reach · tried … · last caught up 2 days ago* in red, with a line for each stream that did not catch up and why; a refused stream shows the Cockpit's status in red, and a run that caught everything up says *Caught up* with when
+
+- **Scenario:** The first backfill is still going
+- **Given:** a fresh install whose archive runs are still sending years of history, a few pages a run, or were cut short by iOS
+- **When:** I open Settings, or a run ends while it is open
+- **Then:** the Archive section says *Behind* and *still sending its history* for those streams, in the ordinary colour, never red, and it changes when the run ends
+
+---
