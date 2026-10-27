@@ -50,7 +50,7 @@ public struct AccessoryLogExportEntry: Equatable, Sendable {
   }
 }
 
-/// The places section: text only, no coordinates. Filled once the native Places has its summaries.
+/// The places section: text only, no coordinates (story 022, `PlacesSummaryText`).
 public struct PlacesSummary: Equatable, Sendable {
   public var weekly: String
   public var recent: String
@@ -116,8 +116,8 @@ public enum ContextExport {
     ])
   }
 
-  /// `roles` stays null until roles move to the native app (step 6); `places` until the native Places writes its
-  /// summaries.
+  /// `roles` is left out until roles move to the native app (step 6), rather than shipped as null; `places` is null
+  /// when the trail has no stays (story 022).
   public static func summary(
     _ data: WeeklyDataMap, health: HealthData, places: PlacesSummary?, roles: JSValue? = nil,
     accessory: [AccessoryLogExportEntry]?, activities: [ActivityEntry]? = nil, clock: LocalClock
@@ -126,14 +126,14 @@ public enum ContextExport {
     // Story 037: the native app's one addition to the current app's summary. Absent when not given, so the
     // byte-for-byte comparison with the TypeScript export (which has no activities) still holds.
     let tail: [(String, JSValue)] = activities.map { [("activities", .array($0.map(\.exportJSON)))] } ?? []
-    return .object(
-      [
-        ("roles", roles ?? .null),
-        ("today", todayHeadline(health, dateKey: todayDate, clock: clock)),
-        ("days", dailyExport(data, clock: clock)),
-        ("places", places.map { .object([("weekly", .string($0.weekly)), ("recent", .string($0.recent))]) } ?? .null),
-        ("accessory", accessory.map { .array($0.map(\.json)) } ?? .null),
-      ] + tail)
+    var fields: [(String, JSValue)] = roles.map { [("roles", $0)] } ?? []
+    fields += [
+      ("today", todayHeadline(health, dateKey: todayDate, clock: clock)),
+      ("days", dailyExport(data, clock: clock)),
+      ("places", places.map { .object([("weekly", .string($0.weekly)), ("recent", .string($0.recent))]) } ?? .null),
+      ("accessory", accessory.map { .array($0.map(\.json)) } ?? .null),
+    ]
+    return .object(fields + tail)
   }
 
   /// The accessory log, newest first; items saved together keep the order the React Native app's query returns

@@ -307,12 +307,13 @@ public final class MirrorGrab: @unchecked Sendable {
 
   // MARK: - exports
 
-  /// The summary Larry gets, single-line JSON.
+  /// The summary Larry gets, single-line JSON. `places`: the trail's text (story 022), nil when there is none.
   public static func summaryJSON(
-    _ snap: MirrorSnapshot, accessory: [AccessoryLogEntry]?, activities: [ActivityEntry]? = nil, clock: LocalClock
+    _ snap: MirrorSnapshot, accessory: [AccessoryLogEntry]?, activities: [ActivityEntry]? = nil,
+    places: PlacesSummary? = nil, clock: LocalClock
   ) -> String {
     ContextExport.summary(
-      snap.weeklyData, health: snap.health, places: nil, accessory: accessory.map(ContextExport.accessoryExport),
+      snap.weeklyData, health: snap.health, places: places, accessory: accessory.map(ContextExport.accessoryExport),
       activities: activities, clock: clock
     ).stringify()
   }

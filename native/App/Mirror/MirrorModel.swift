@@ -214,14 +214,43 @@ final class MirrorModel: ObservableObject {
     }
   }
 
+  /// Story 022: where this week and last went, from the trail. Nil under the fixture hook (its export stays the
+  /// current app's byte for byte) and when the trail has no stays.
+  func placesSummary() -> PlacesSummary? {
+    if fixedNow != nil { return nil }
+    guard let store = app.database.locations else { return nil }
+    let started = Date()
+    let now = Geo.ms(started)
+    do {
+      // ponytail: clusters two weeks of trail on the main actor at share time (about 35K points, ~40 ms on the
+      // Mac); move it off the main actor if the share ever feels slow.
+      let points = try store.points(since: PlacesSummaryText.readFrom(now: now))
+      let clusters = StayClustering.cluster(points, knownPlaces: try store.knownPlaces())
+      let summary = PlacesSummaryText.summary(clusters, now: now)
+      app.log.event(
+        "export_places",
+        [
+          "points": points.count, "stays": clusters.stays.count, "empty": summary == nil,
+          "ms": Int(Date().timeIntervalSince(started) * 1000),
+        ])
+      return summary
+    } catch {
+      app.log.event("error", ["where": "export_places", "message": "\(error)"])
+      return nil
+    }
+  }
+
   /// The summary (single line) or the raw share (indented), written to Documents/exports/ as well so a report or
   /// the simulator check can read exactly what went out.
   func export(_ kind: ExportKind) -> String? {
     guard let snap = snapshot else { return nil }
-    let text: String =
-      kind == .summary
-      ? MirrorGrab.summaryJSON(snap, accessory: accessoryEntries(), activities: activityEntries(), clock: clock)
-      : MirrorGrab.rawJSON(snap)
+    let text: String
+    if kind == .summary {
+      text = MirrorGrab.summaryJSON(
+        snap, accessory: accessoryEntries(), activities: activityEntries(), places: placesSummary(), clock: clock)
+    } else {
+      text = MirrorGrab.rawJSON(snap)
+    }
     let file = Self.exportsDir.appendingPathComponent("\(kind.rawValue).json")
     do {
       try FileManager.default.createDirectory(at: Self.exportsDir, withIntermediateDirectories: true)
