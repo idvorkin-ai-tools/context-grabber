@@ -45,7 +45,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 022:
 
 - **Summary:** Where the week went, as text a coach can read
-- **Status:** implemented in [06a20b0](https://github.com/idvorkin/context-grabber/commit/06a20b0), [ff18ef3](https://github.com/idvorkin/context-grabber/commit/ff18ef3), [22bbf59](https://github.com/idvorkin/context-grabber/commit/22bbf59); verified by `clustering_v2.test.ts` (real fixture) and on the phone. Supersedes CC-5; native app: [622b3e5](https://github.com/idvorkin/context-grabber/commit/622b3e5), this week and last from the trail at share time, a week labelled by how far back it is; verified by `just native-test` (`PlacesSummaryTextTests`, still to run on the Mac); the phone still to be checked by Igor.
+- **Status:** implemented in [06a20b0](https://github.com/idvorkin/context-grabber/commit/06a20b0), [ff18ef3](https://github.com/idvorkin/context-grabber/commit/ff18ef3), [22bbf59](https://github.com/idvorkin/context-grabber/commit/22bbf59); verified by `clustering_v2.test.ts` (real fixture) and on the phone. Supersedes CC-5; native app: [622b3e5](https://github.com/idvorkin/context-grabber/commit/622b3e5), [6c23307](https://github.com/idvorkin/context-grabber/commit/6c23307), this week and last from the trail at share time, a week labelled by how far back it is; [ae8db8d](https://github.com/idvorkin/context-grabber/commit/ae8db8d): a stay counts whole in the week it began in, the weeks matching the whole real trail on each of its last 14 days; host-verified by `just native-test` (`PlacesSummaryTextTests`, `PlacesFixtureTests`); the phone still to be checked by Igor.
 - **Issues:** [#543](https://github.com/idvorkin/context-grabber/issues/543)
 
 #### Use Case:
