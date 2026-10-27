@@ -364,9 +364,18 @@ with these differences while the two apps live side by side:
   carries an empty list. A workout reset or abandoned part way, and a breathing session left before *Done*, are not
   activities. This is the one deliberate difference from the current app's export, so the byte-for-byte check runs
   on everything else.
-- **What the native export does not carry yet**: `roles` is null until roles move (step 6) — the current app sends
-  them; `places` is null until the native Places has its weekly and recent summaries (after step 5); in the raw
-  share `location` and `locationClusters` are null until step 5. Every key is still present with the same shape.
+- **What the native export does not carry yet**: `roles` is left out until roles move (step 6), rather than shipped
+  as null forever (the 2026-10-26 review, picked by Igor); once roles are native the key comes back first. In the
+  raw share `location` and `locationClusters` are null until step 5; every other key is present with the same shape.
+- **Places in the summary** (story 022): `places` carries the trail as the current app wrote it, text only and no
+  coordinates: `weekly`, hours per place for this week and last ("This week: Home 92h, Office 28h"), places by
+  hours, and `recent`, the stays that ended in the last three days, a line per day with each stay's local times and
+  any transit of an hour or more. A week is labelled by how far back it is, so a week with no stays never shifts the
+  labels (the current app labelled by rank). A stay counts whole in the week it began in, as in the current app: a
+  Saturday night that runs into Sunday belongs to the week before, not to the Sunday. "Now" is the moment of the
+  share; the current app measured the weeks and the last three days from the trail's newest point instead, so with
+  a trail that has been silent for a while the native summary's "This week" and "recent" are the calendar's, not the
+  last point's. With no stays, `places` is null.
 - **Carried over unchanged, on purpose**, because the export must match the current app's byte for byte; each is
   filed to decide with Igor rather than fixed silently: `bedtime` and `wakeTime` in the
   headline are clock times in UTC; `walkingDistanceKm` is in the phone's preferred distance unit (miles on a phone

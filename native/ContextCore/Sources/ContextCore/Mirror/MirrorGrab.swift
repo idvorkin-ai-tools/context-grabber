@@ -42,6 +42,7 @@ public final class MirrorGrab: @unchecked Sendable {
   let clock: LocalClock
   private let lock = NSLock()
   private var _failures: [MirrorFailure] = []
+  private var _cacheFailures: [MirrorFailure] = []
 
   public init(source: HealthSource, cache: HealthCache?, clock: LocalClock) {
     self.source = source
@@ -58,9 +59,25 @@ public final class MirrorGrab: @unchecked Sendable {
     return f
   }
 
+  /// The phone's own cache failing since the last call, oldest first. Kept apart from `takeFailures()`: Health did
+  /// answer those questions, so a cache that could not be read or written is never reported as Health's failure.
+  public func takeCacheFailures() -> [MirrorFailure] {
+    lock.lock()
+    defer { lock.unlock() }
+    let f = _cacheFailures
+    _cacheFailures = []
+    return f
+  }
+
   private func fail(_ query: String, _ error: Error) {
     lock.lock()
     _failures.append(MirrorFailure(query: query, message: "\(error)"))
+    lock.unlock()
+  }
+
+  private func cacheFail(_ query: String, _ error: Error) {
+    lock.lock()
+    _cacheFailures.append(MirrorFailure(query: query, message: "\(error)"))
     lock.unlock()
   }
 
@@ -177,7 +194,7 @@ public final class MirrorGrab: @unchecked Sendable {
           if !dayRaw.isEmpty { try cache.putRaw(metric, day.date, .array(dayRaw), at: now) }
         }
       } catch {
-        fail("cache_write", error)
+        cacheFail("cache_write", error)
       }
     }
     if metric == .weight {
@@ -192,7 +209,7 @@ public final class MirrorGrab: @unchecked Sendable {
     let keys = Weekly.dateKeys(endDate: now, clock: clock)
     var cached: [String: CachedDay] = [:]
     if let cache {
-      do { cached = try cache.computedEntries(metric, keys) } catch { fail("cache_read", error) }
+      do { cached = try cache.computedEntries(metric, keys) } catch { cacheFail("cache_read", error) }
     }
     let (hits, fetch) = HealthCache.partition(todayKey: todayKey, dateKeys: keys, cached: cached, clock: clock)
     var fresh: [String: (computed: JSValue, raw: JSValue)] = [:]
@@ -212,7 +229,7 @@ public final class MirrorGrab: @unchecked Sendable {
           try cache.putRaw(metric, key, r.raw, at: now)
         }
       } catch {
-        fail("cache_write", error)
+        cacheFail("cache_write", error)
       }
     }
     // A day asked again because it had not settled keeps its cached value when Health could not answer.
@@ -313,12 +330,13 @@ public final class MirrorGrab: @unchecked Sendable {
 
   // MARK: - exports
 
-  /// The summary Larry gets, single-line JSON.
+  /// The summary Larry gets, single-line JSON. `places`: the trail's text (story 022), nil when there is none.
   public static func summaryJSON(
-    _ snap: MirrorSnapshot, accessory: [AccessoryLogEntry]?, activities: [ActivityEntry]? = nil, clock: LocalClock
+    _ snap: MirrorSnapshot, accessory: [AccessoryLogEntry]?, activities: [ActivityEntry]? = nil,
+    places: PlacesSummary? = nil, clock: LocalClock
   ) -> String {
     ContextExport.summary(
-      snap.weeklyData, health: snap.health, places: nil, accessory: accessory.map(ContextExport.accessoryExport),
+      snap.weeklyData, health: snap.health, places: places, accessory: accessory.map(ContextExport.accessoryExport),
       activities: activities, clock: clock
     ).stringify()
   }

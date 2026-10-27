@@ -45,7 +45,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 022:
 
 - **Summary:** Where the week went, as text a coach can read
-- **Status:** implemented in [06a20b0](https://github.com/idvorkin/context-grabber/commit/06a20b0), [ff18ef3](https://github.com/idvorkin/context-grabber/commit/ff18ef3), [22bbf59](https://github.com/idvorkin/context-grabber/commit/22bbf59); verified by `clustering_v2.test.ts` (real fixture) and on the phone. Supersedes CC-5; native app: not yet — `places` is null until the native Places writes its weekly and recent summaries (context-grabber-3ss.13).
+- **Status:** implemented in [06a20b0](https://github.com/idvorkin/context-grabber/commit/06a20b0), [ff18ef3](https://github.com/idvorkin/context-grabber/commit/ff18ef3), [22bbf59](https://github.com/idvorkin/context-grabber/commit/22bbf59); verified by `clustering_v2.test.ts` (real fixture) and on the phone. Supersedes CC-5; native app: [622b3e5](https://github.com/idvorkin/context-grabber/commit/622b3e5), [6c23307](https://github.com/idvorkin/context-grabber/commit/6c23307), this week and last from the trail at share time, a week labelled by how far back it is; [ae8db8d](https://github.com/idvorkin/context-grabber/commit/ae8db8d): a stay counts whole in the week it began in, the weeks matching the whole real trail on each of its last 14 days; host-verified by `just native-test` (`PlacesSummaryTextTests`, `PlacesFixtureTests`); the phone still to be checked by Igor.
+- **Issues:** [#543](https://github.com/idvorkin/context-grabber/issues/543)
 
 #### Use Case:
 - **As** someone whose "home by 6pm" goal Larry checks
@@ -56,14 +57,14 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A normal week
 - **Given:** Home, Office and Gym are known places
 - **When:** I share the summary
-- **Then:** `places.weekly` reads like "This week: Home 92h, Office 28h, Gym 4h" with places in descending hours, `places.recent` has at most the last three days in 12-hour local time, and with no location history the section is absent rather than the share failing
+- **Then:** `places.weekly` reads like "This week: Home 92h, Office 28h, Gym 4h" with places in descending hours, `places.recent` has at most the last three days in 12-hour local time with transits of an hour or more, and with no location history `places` is null rather than the share failing
 
 ---
 
 ### User Story 023:
 
 - **Summary:** Roles lead the export — who I have been being, before the numbers
-- **Status:** implemented in [54861c5](https://github.com/idvorkin/context-grabber/commit/54861c5); verified by `roles.test.ts`, `share.test.ts` and on the phone; native app: not yet — `roles` is null until roles move (context-grabber-3ss.18).
+- **Status:** implemented in [54861c5](https://github.com/idvorkin/context-grabber/commit/54861c5); verified by `roles.test.ts`, `share.test.ts` and on the phone; native app: not yet — the `roles` key is left out until roles move rather than sent as null ([622b3e5](https://github.com/idvorkin/context-grabber/commit/622b3e5), [#543](https://github.com/idvorkin/context-grabber/issues/543)) (context-grabber-3ss.18).
 
 #### Use Case:
 - **As** the eulogy version of me
@@ -419,50 +420,53 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 262:
 
-- **Summary:** Add a thought to the Inbox with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet.
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424)
-- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+- **Summary:** Start a new chat with the keyboard or dictation
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
-- **I want to** open the Inbox + and type or use the keyboard’s standard dictation mic
-- **so that** I can capture something for Larry without leaving the app
+- **I want to** tap Chat's + and type, or use the keyboard's dictation or the chat mic, in a new thread
+- **so that** I can start a conversation with Larry without leaving the app or learning a second screen
 
 #### Acceptance Criteria:
-- **Scenario:** Adding a thought
-- **Given:** the Inbox is open, empty or populated, with one large round + fixed at the lower right above the safe area, no toolbar +, and room to scroll the last row fully above the button
-- **When:** I tap the fixed +, enter text by typing or keyboard dictation, and tap Add
-- **Then:** one text item is saved locally, the sheet closes, and the item appears waiting and triggers sending to Larry
+- **Scenario:** Starting a new chat
+- **Given:** Chat is open, empty or populated, with one large round + fixed at the lower right above the safe area, no toolbar +, and room to scroll the last row fully above the button
+- **When:** I tap the fixed +, enter text by typing or dictation, and tap Send
+- **Then:** an empty thread titled *New chat* opened with the ordinary bar and the keyboard up; my message shows at once as *Not sent yet*, is kept on the phone and sent to Larry, the thread takes that message's first line as its title, and once the Cockpit has it this screen is the live thread
 
+- **Scenario:** Leaving without sending
+- **Given:** I tapped + and wrote nothing, or wrote and did not send
+- **When:** I go back to the list
+- **Then:** no thread was started
 ---
 
 ### User Story 263:
 
-- **Summary:** Add another without reopening the sheet
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
-- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+- **Summary:** Keep writing in the chat I just started
+- **Status:** native app only: Add another implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); #536: replaced by the new thread's own bar in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d) (simulator: the bar is there; the hold-back until the first message lands on the phone not yet)
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
-- **I want to** save a thought and keep composing the next one
+- **I want to** stay in the new chat after its first message and add the next thought
 - **so that** I can capture several thoughts in a row
 
 #### Acceptance Criteria:
-- **Scenario:** Adding consecutive thoughts
-- **Given:** the compose sheet contains a thought
-- **When:** I tap Add another
-- **Then:** one item is saved and sending is triggered, both text and image clear, and the sheet stays open ready for another
-
+- **Scenario:** The next message in a new chat
+- **Given:** I sent the first message of a new chat
+- **When:** I write the next one
+- **Then:** the bar has emptied and stays up; once the first message has reached Larry the next one sends into the same thread; until then the bar says the next goes once the first reaches Larry, and nothing I wrote is lost
 ---
 
 ### User Story 264:
 
-- **Summary:** Paste a picture into the Inbox
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805); verified by `just test` (host) and the simulator build; on the phone not yet.
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422)
-- **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
+- **Summary:** Paste a picture into a new chat
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025), the picture kept as copied (its format and orientation) in the #405 review fix; verified by `InboxDraftTests` and the full `just test` (host). #422: the note and its pasted picture share one box in [bfcd805](https://github.com/idvorkin/context-grabber/commit/bfcd805). #536: the new thread's bar pastes it, as every thread's does, in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: Paste image is on the new thread's bar); pasting on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#422](https://github.com/idvorkin/context-grabber/issues/422), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
@@ -470,11 +474,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **so that** I can send Larry a picture directly from the app
 
 #### Acceptance Criteria:
-- **Scenario:** Adding a clipboard image
-- **Given:** the clipboard holds an image and the compose sheet shows the note and Paste image in one rounded box, with Add another separate below
-- **When:** I tap Paste image, optionally enter text, and tap Add
-- **Then:** the picture's preview and Remove image appear in that same box with the note before saving, the previewed image is saved as one image item, as copied and the right way up, with the text as its note, the sheet closes and sending is triggered
-
+- **Scenario:** Starting a chat with a clipboard image
+- **Given:** the clipboard holds an image and a new chat is open
+- **When:** I tap Paste image, optionally enter text, and tap Send
+- **Then:** the picture's preview and Remove image appear above the bar before sending, and the picture is sent as copied and the right way up, with the text as its note, as the new thread's first message
 ---
 
 ### User Story 265:
@@ -491,29 +494,29 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Adding only whitespace
-- **Given:** the compose sheet is open
+- **Given:** a new chat is open (#536: the + opens a thread, not a sheet)
 - **When:** I enter only spaces or new lines
-- **Then:** Add and Add another stay disabled and nothing is saved
+- **Then:** Send stays disabled and nothing is saved
 
 ---
 
 ### User Story 266:
 
-- **Summary:** Cancel saves nothing
+- **Summary:** Leaving a new chat unsent saves nothing
 - **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); on the phone not yet
 - **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405)
 - **Spec:** [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
 - **As** Larry's client capturing something worth discussing
-- **I want to** back out of the sheet
+- **I want to** back out of a new chat
 - **so that** a half-formed thought does not reach Larry
 
 #### Acceptance Criteria:
 - **Scenario:** Cancelling a draft
-- **Given:** the compose sheet holds text or a pasted image
-- **When:** I tap Cancel
-- **Then:** the sheet closes and no item is added to the Inbox
+- **Given:** a new chat (#536) holds text or a pasted image, not sent
+- **When:** I go back to the list
+- **Then:** no thread is started and nothing is sent
 
 ---
 
@@ -531,9 +534,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Saving fails
-- **Given:** the compose sheet holds text or a pasted image
-- **When:** I tap Add or Add another and the item cannot be written
-- **Then:** the sheet stays open with the draft intact and a copyable error explaining why
+- **Given:** a new chat's bar (#536) holds text or a pasted image
+- **When:** I tap Send and the message cannot be written
+- **Then:** the bar keeps the draft intact and a copyable error explains why
 
 ---
 
@@ -551,7 +554,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Removing the pasted image
-- **Given:** the compose sheet shows a pasted image's preview
+- **Given:** a new chat's bar (#536) shows a pasted image's preview
 - **When:** I tap Remove image
 - **Then:** the preview goes and the text I wrote stays
 
@@ -802,9 +805,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 301:
 
 - **Summary:** The + starts a new thread with Larry
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
-- **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `sim-smoke.sh` (a message written for a new thread, through the `GRABBER_CHAT_SEND` hook, goes up as one `POST /chat` with the app as source and its first line as the title, the text never in the log) and a simulator screenshot (a new thread written while the Cockpit was down went up when it came back); on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d), each first-message attempt its own message in [8202fec](https://github.com/idvorkin/context-grabber/commit/8202fec); verified by `ChatNewThreadTests` (host) and `ChatNewThreadUITests` (simulator, against the fake Cockpit); on the phone not yet
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client with something new to talk about
@@ -814,8 +817,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** Starting one from the +
 - **Given:** Chat is open
-- **When:** I tap + and send a message
-- **Then:** a new thread is started, titled with the message's first line; *Send and start another* starts another
+- **When:** I tap + and send a message from the new thread's bar
+- **Then:** a new thread is started, titled with the message's first line, and the same screen becomes that thread once the Cockpit has it; the next message goes into it, and another new thread is another tap of +
 
 ---
 
@@ -842,8 +845,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 303:
 
 - **Summary:** I speak a message in a thread and read the words before I send them
-- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in [f040853](https://github.com/idvorkin/context-grabber/commit/f040853), with the microphone picker; verified by `ChatVoiceTests`, `ChatVoiceClockTests` and `ChatVoiceWordsTests` (host: the five-minute limit and its line, the recording clock, a timer that dies with its recording, a thread's words taken by that thread only) and `ChatVoiceUITests` (simulator: no Deepgram key in Settings any more; the thread's mic and its microphone picker are there and ready); speaking on the phone not yet
-- **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448)
+- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in [f040853](https://github.com/idvorkin/context-grabber/commit/f040853), with the microphone picker; verified by `ChatVoiceTests`, `ChatVoiceClockTests` and `ChatVoiceWordsTests` (host: the five-minute limit and its line, the recording clock, a timer that dies with its recording, a thread's words taken by that thread only) and `ChatVoiceUITests` (simulator: no Deepgram key in Settings any more; the thread's mic and its microphone picker are there and ready); speaking on the phone not yet; #544: the microphone picker is a full-width row a finger tall, as the problem report's is, in [442e0a5](https://github.com/idvorkin/context-grabber/commit/442e0a5); host `just native-test`; the simulator's ChatVoiceUITests and the phone not yet; #546: a Send mid-recording stops it, so no words come back into the emptied bar, in [84e4f70](https://github.com/idvorkin/context-grabber/commit/84e4f70); no automated test (the decision lives in the app target); on the phone not yet
+- **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448), [#544](https://github.com/idvorkin/context-grabber/issues/544), [#546](https://github.com/idvorkin/context-grabber/issues/546)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -859,8 +862,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Scenario:** Choosing the microphone
 - **Given:** a thread is open and nothing is recording
-- **When:** I open the picker beside the mic and choose *Find microphones*, then a microphone
-- **Then:** the picker names it and my next recording uses it; *Automatic* follows the phone's route; the pick stays after a relaunch; during a recording or a live call the picker cannot be changed
+- **When:** I tap the *Microphone* row above the field (the whole row, a full finger tall, #544) and choose *Find microphones*, then a microphone
+- **Then:** the row names it and my next recording uses it; *Automatic* follows the phone's route; the pick stays after a relaunch; during a recording or a live call the picker cannot be changed
 
 - **Scenario:** Nothing to transcribe, or no way to
 - **Given:** a recording where nothing was heard, speech recognition or the microphone declined, or a call with Larry live
@@ -872,6 +875,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** a phone call, Siri or a microphone change interrupts
 - **Then:** the clock stops, what I said so far stays in the field for me to read (never sent), and a copyable line says the microphone was interrupted
 
+- **Scenario:** Sending while it records (#546)
+- **Given:** I am recording a message and its words are in the field
+- **When:** I tap Send
+- **Then:** what the field held is sent, the recording stops, the bar empties and stays empty — no words come back into it — and the session log has a `chat_voice` line with action `dropped`, why `sent`
+
 - **Scenario:** Five minutes at most
 - **Given:** I am recording a message
 - **When:** the clock reaches 5:00
@@ -881,3 +889,30 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I record a message
 - **When:** I read the session log
 - **Then:** `chat_voice` lines say when it started and stopped (and why it stopped early), never my words
+
+---
+
+### User Story 304:
+
+- **Summary:** Settings tells me whether everything reached the archive, and which stream did not
+- **Status:** native app only: implemented in [5f8260c](https://github.com/idvorkin/context-grabber/commit/5f8260c), [c9b87d3](https://github.com/idvorkin/context-grabber/commit/c9b87d3) (a locked run leaves the line alone), [208c2a2](https://github.com/idvorkin/context-grabber/commit/208c2a2) (red only after a day without progress, so a backfill is never red; the section follows a run that ends while it is open); host-verified by `just native-test` (`ArchiveStatusTests`, `ArchiveTests` refusal status); the simulator and the phone not yet
+- **Issues:** [#547](https://github.com/idvorkin/context-grabber/issues/547)
+- **Spec:** [Everything off the phone — In Settings](../superpowers/specs/2026-10-19-native-stats-archive-design.md#in-settings)
+
+#### Use Case:
+- **As** Larry's client whose week the Cockpit reads from the archive
+- **I want to** see in Settings whether the archive is caught up, and why a stream is not
+- **so that** a Cockpit out of reach or a refused page is fixed before it becomes a gap in what Larry sees
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit has been out of reach
+- **Given:** the archive last caught up two days ago and the last run could not reach the Cockpit
+- **When:** I open Settings
+- **Then:** the Archive section says *Cockpit out of reach · tried … · last caught up 2 days ago* in red, with a line for each stream that did not catch up and why; a refused stream shows the Cockpit's status in red, and a run that caught everything up says *Caught up* with when
+
+- **Scenario:** The first backfill is still going
+- **Given:** a fresh install whose archive runs are still sending years of history, a few pages a run, or were cut short by iOS
+- **When:** I open Settings, or a run ends while it is open
+- **Then:** the Archive section says *Behind* and *still sending its history* for those streams, in the ordinary colour, never red, and it changes when the run ends
+
+---

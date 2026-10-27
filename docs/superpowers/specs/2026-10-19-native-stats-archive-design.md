@@ -26,7 +26,8 @@ ever there twice.
 
 ## Non-goals
 
-- A screen: the archive is silent. What it did is in the session log; a later story may add a line to Settings.
+- A screen of its own: the archive runs silently. What it did is in the session log, and one section in Settings
+  says whether it is caught up (below).
 - The activity log and the accessory log (a follow-up stream each). So the gym and meditation days the strip turns
   green from a finished Gym Timer workout or a Box breathing session are not in the strip's streams; a day Health
   counts is already in Health's own streams.
@@ -42,6 +43,25 @@ next run picks up exactly where the last successful page ended. Health is never 
 Today asks, and until it has, only the trail and the strip are archived. While the phone is locked Health cannot be
 read, so a run then sends only the trail and the strip, says so once, and the next time the app comes to the front Health's share goes. On the simulator nothing is sent unless a launch hook
 names where.
+
+## In Settings
+
+From the 2026-10-26 review (proposal P-3, picked by Igor). Settings has an **Archive** section, so a Cockpit out of
+reach or a refused page is seen before it becomes a gap in Larry's week. Its first line is how the last run ended:
+
+- *Caught up · 2 h ago* when every stream caught up; in red once that is more than a day old.
+- *Cockpit out of reach · tried 10 min ago · last caught up 2 days ago* when the Cockpit did not answer.
+- *Behind · last run 1 h ago · last caught up …* when some stream did not catch up for another reason.
+
+The headline is red only for real trouble: when more than a day has passed since the last run that caught up or
+made progress, that is, a run in which every stream caught up, was still sending its history or was cut short by
+iOS (a stream read again from its start is still sending its history). So a fresh install, and a first backfill
+that takes days of runs, are never red; a Cockpit out of reach turns red a day after the last run that got
+anywhere, or a day after the first run when none ever has. The section follows a run that ends while it is open.
+Under it, one line per stream that did not
+catch up, by name (*Trail*, *Heart Rate*, *Strip: balloons*) and why: waiting for
+the Cockpit, refused (with the Cockpit's status, in red), still sending its history, could not be read on the phone,
+or cut short by iOS. A run that found the phone locked (Health cannot be read then) changes nothing here. Before the first run it says *Not run yet*; on a simulator with no archive address, *Not sent*.
 
 ## The daily strip
 
