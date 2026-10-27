@@ -50,7 +50,7 @@ final class SQLiteConnectionTests: XCTestCase {
       "INSERT INTO locations (latitude, longitude, accuracy, timestamp) VALUES (47.6, -122.3, 5, 1780000000000)")
     let committed = expectation(description: "the first connection commits")
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.3) {
-      XCTAssertNoThrow(try main.execute("COMMIT"))
+      do { try main.execute("COMMIT") } catch { XCTFail("\(error)") }
       committed.fulfill()
     }
     // A reader is never blocked by the open write.
@@ -72,7 +72,7 @@ final class SQLiteConnectionTests: XCTestCase {
     try cacheDb.run("DELETE FROM health_computed_cache WHERE metric = 'steps'")
     let committed = expectation(description: "the cache commits")
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.3) {
-      XCTAssertNoThrow(try cacheDb.execute("COMMIT"))
+      do { try cacheDb.execute("COMMIT") } catch { XCTFail("\(error)") }
       committed.fulfill()
     }
     XCTAssertNoThrow(
