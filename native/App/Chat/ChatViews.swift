@@ -529,6 +529,8 @@ private struct ComposeBar: View {
         try chat.send(&draft, thread: nil, id: id)
       case .waiting: return
       }
+      // The message took the words heard so far: a recording still going stops, so none come back (#546).
+      voice.sent(thread: thread)
       preview = nil
       failure = nil
       let wasFocused = focused

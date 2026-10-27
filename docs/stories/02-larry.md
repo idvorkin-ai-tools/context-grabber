@@ -844,8 +844,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 303:
 
 - **Summary:** I speak a message in a thread and read the words before I send them
-- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in [f040853](https://github.com/idvorkin/context-grabber/commit/f040853), with the microphone picker; verified by `ChatVoiceTests`, `ChatVoiceClockTests` and `ChatVoiceWordsTests` (host: the five-minute limit and its line, the recording clock, a timer that dies with its recording, a thread's words taken by that thread only) and `ChatVoiceUITests` (simulator: no Deepgram key in Settings any more; the thread's mic and its microphone picker are there and ready); speaking on the phone not yet
-- **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448)
+- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in [f040853](https://github.com/idvorkin/context-grabber/commit/f040853), with the microphone picker; verified by `ChatVoiceTests`, `ChatVoiceClockTests` and `ChatVoiceWordsTests` (host: the five-minute limit and its line, the recording clock, a timer that dies with its recording, a thread's words taken by that thread only) and `ChatVoiceUITests` (simulator: no Deepgram key in Settings any more; the thread's mic and its microphone picker are there and ready); speaking on the phone not yet; #546: a Send mid-recording stops it, so no words come back into the emptied bar, in the #546 fix (PR 'Fixes #546'); host `just native-test`; on the phone not yet
+- **Issues:** [#448](https://github.com/idvorkin/context-grabber/issues/448), [#546](https://github.com/idvorkin/context-grabber/issues/546)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -873,6 +873,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I am recording a message
 - **When:** a phone call, Siri or a microphone change interrupts
 - **Then:** the clock stops, what I said so far stays in the field for me to read (never sent), and a copyable line says the microphone was interrupted
+
+- **Scenario:** Sending while it records (#546)
+- **Given:** I am recording a message and its words are in the field
+- **When:** I tap Send
+- **Then:** what the field held is sent, the recording stops, the bar empties and stays empty — no words come back into it — and the session log has a `chat_voice` line with action `dropped`, why `sent`
 
 - **Scenario:** Five minutes at most
 - **Given:** I am recording a message

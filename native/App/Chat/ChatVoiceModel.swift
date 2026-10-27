@@ -138,6 +138,15 @@ final class ChatVoiceModel: ObservableObject {
     drop(why: why)
   }
 
+  /// A Send from this thread's bar (#546): the message took the words heard so far, so the recording stops here and
+  /// nothing more comes back into the emptied bar (stop discards the recognizer's late results).
+  func sent(thread: String) {
+    guard self.thread == thread else { return }
+    _ = words.take(thread: thread)
+    guard dictation.busy else { return }
+    drop(why: "sent")
+  }
+
   /// The words spoken for this thread, once: the bar takes them as they come, or on its return if it was away.
   func take(thread: String) -> String? { words.take(thread: thread) }
 
