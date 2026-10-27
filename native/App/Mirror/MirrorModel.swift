@@ -222,9 +222,9 @@ final class MirrorModel: ObservableObject {
     let started = Date()
     let now = Geo.ms(started)
     do {
-      // ponytail: clusters two weeks of trail on the main actor at share time (a few thousand points, as the old
-      // app did); move it off the main actor if the share ever feels slow.
-      let points = try store.points(since: PlacesSummaryText.since(now: now))
+      // ponytail: clusters two weeks of trail on the main actor at share time (about 35K points, ~40 ms on the
+      // Mac); move it off the main actor if the share ever feels slow.
+      let points = try store.points(since: PlacesSummaryText.readFrom(now: now))
       let clusters = StayClustering.cluster(points, knownPlaces: try store.knownPlaces())
       let summary = PlacesSummaryText.summary(clusters, now: now)
       app.log.event(

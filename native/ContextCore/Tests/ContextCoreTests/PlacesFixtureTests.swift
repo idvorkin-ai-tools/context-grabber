@@ -111,6 +111,24 @@ final class PlacesFixtureTests: XCTestCase {
     XCTAssertEqual(PlacesDaily.text(days, calendar: calendar), expected.text)
   }
 
+  /// Story 022 on real data: the export's weeks from the trail it reads are what the whole trail gives for this
+  /// week and last, on every day of the fixture's last two weeks.
+  func testTheExportsWeeksMatchTheWholeTrail() throws {
+    let (expected, points, calendar) = try load()
+    for daysBack in 0..<14 {
+      let now = expected.now - Double(daysBack) * 24 * 60 * 60 * 1000
+      let past = points.filter { $0.timestamp <= now }
+      let whole = StayClustering.cluster(past, knownPlaces: expected.knownPlaces).stays
+      let wholeLines = PlacesSummaryText.weekly(whole, now: now, calendar: calendar)
+        .split(separator: "\n").filter { $0.hasPrefix("This week:") || $0.hasPrefix("Last week:") }
+        .joined(separator: "\n")
+      let start = PlacesSummaryText.readFrom(now: now, calendar: calendar)
+      let read = StayClustering.cluster(past.filter { $0.timestamp >= start }, knownPlaces: expected.knownPlaces)
+      let windowed = PlacesSummaryText.summary(read, now: now, calendar: calendar)?.weekly ?? ""
+      XCTAssertEqual(windowed, wholeLines, "\(daysBack) days back")
+    }
+  }
+
   /// Story 055: the real export imports in full, and a second import adds nothing.
   func testImportTheRealExportTwice() throws {
     let target = FileManager.default.temporaryDirectory.appendingPathComponent("places-import-\(UUID().uuidString).db")

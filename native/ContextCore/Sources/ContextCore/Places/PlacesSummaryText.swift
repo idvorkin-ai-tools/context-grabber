@@ -1,7 +1,8 @@
 //  Story 022: the Larry export's `places`, as text a coach can read: a per-week rollup of hours per place and the
 //  last three days as named stays with local times. No coordinates. Port of the React Native app's
-//  buildSummaryWeekly / buildSummaryRecent (lib/clustering_v2.ts), with one fix: a week is labelled by how many
-//  weeks before the current one it is, not by its rank, so a week with no stays never moves a label.
+//  buildSummaryWeekly / buildSummaryRecent (lib/clustering_v2.ts, removed in 4f13fdd), with one fix: a week is
+//  labelled by how many weeks before the current one it is, not by its rank, so a week with no stays never moves a
+//  label.
 
 import Foundation
 
@@ -11,7 +12,7 @@ public enum PlacesSummaryText {
   /// A shorter transit is not worth a line.
   public static let minTransitMs = 60 * 60 * 1000.0
 
-  /// Where the export's trail starts: local midnight of the Sunday a week before this week's, so the weekly line
+  /// Where the export's weeks start: local midnight of the Sunday a week before this week's, so the weekly line
   /// has this week and last whole.
   public static func since(now: Double, calendar: Calendar = .current) -> Double {
     guard let thisWeek = weekStart(now, calendar), let last = calendar.date(byAdding: .day, value: -7, to: thisWeek)
@@ -19,9 +20,19 @@ public enum PlacesSummaryText {
     return Geo.ms(last)
   }
 
-  /// The export's section, or nil when there is nothing to say (no stays), as the React Native app left it.
+  /// Where the export reads the trail from: a day before `since`, so a stay that began before the window (a
+  /// Saturday night into Sunday) keeps its real start and counts whole in the week it began in, as it did in the
+  /// React Native app, which clustered the whole trail. `summary` leaves such a stay out of the weeks.
+  public static func readFrom(now: Double, calendar: Calendar = .current) -> Double {
+    let start = since(now: now, calendar: calendar)
+    return calendar.date(byAdding: .day, value: -1, to: Geo.date(start)).map(Geo.ms) ?? start - 24 * 60 * 60 * 1000
+  }
+
+  /// The export's section, or nil when there is nothing to say (no stays), as the React Native app left it. The
+  /// weeks count only the stays that began since `since`: one that began earlier belongs to a week not shown.
   public static func summary(_ clusters: StayClusters, now: Double, calendar: Calendar = .current) -> PlacesSummary? {
-    let weekly = weekly(clusters.stays, now: now, calendar: calendar)
+    let start = since(now: now, calendar: calendar)
+    let weekly = weekly(clusters.stays.filter { $0.startTime >= start }, now: now, calendar: calendar)
     let recent = recent(clusters.stays, transit: clusters.transit, now: now, calendar: calendar)
     if weekly.isEmpty && recent.isEmpty { return nil }
     return PlacesSummary(weekly: weekly, recent: recent)
