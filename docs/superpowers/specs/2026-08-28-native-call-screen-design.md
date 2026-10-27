@@ -589,6 +589,21 @@ Home (±12 m)*). No fix is ever a reason for a call not to start: without
 location permission, or with no fix in time, the call simply carries no
 location. What Larry does with it is the bridge's.
 
+### What the day has held
+
+From the 2026-10-26 review (proposal P-1, picked by Igor): Direct Larry
+starts fresh, and the only context the phone gave him was where Igor is.
+A **Direct** call now also carries **today so far**, from what the phone
+already has: the last grab's steps, last night's sleep, exercise and
+mindful minutes and today's workouts, how old that grab is, and the daily
+strip as the home screen shows it (gym, meditation, journal, balloons,
+magic). A grab from an earlier day sends no health numbers, only the
+strip, so Larry never hears yesterday as today. Nothing is fetched for it:
+the call never waits on Health. The voice-model backends (ElevenLabs,
+Gemini, OpenAI, Drill) carry no day, as before. Diagnostics says the day
+went (*today: grab 12 min old*), never the numbers. What Larry does with
+it is the bridge's; a bridge that does not read it ignores it.
+
 ### One call at a time
 
 If a call is live on the Cockpit *page* (its own Call tab, in the web

@@ -165,10 +165,13 @@ final class CallModel: ObservableObject {
 
   /// Runs just before a call takes the audio session: the eulogy song pauses (#197).
   var willStart: (() -> Void)?
+  /// Story 217: today so far, from the last grab and the strip, for a Direct call's start frame.
+  var today: (() -> CallToday?)?
 
   func start(from source: String) {
     sentLocation = nil
     session.clearLocation()
+    session.setToday(backend == .direct ? today?() : nil)
     willStart?()
     log.event("ui", ["action": "call", "from": source, "backend": backend.rawValue, "voice": voice.rawValue])
     session.start(backend, voice: voice)
