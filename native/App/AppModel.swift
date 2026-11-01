@@ -52,6 +52,7 @@ final class AppModel: ObservableObject {
   @Published var showPlacesMap = false
   /// True while the Cockpit covers the app. The page itself outlives this: see `cockpit`.
   @Published var showCockpit = false
+  @Published var showWhiteboard = false
 
   /// Made on the first open and kept for the launch, so closing the Cockpit hides the page rather than closing it.
   /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks.
@@ -240,6 +241,7 @@ final class AppModel: ObservableObject {
     if card != nil { return "card" }
     if showPlaces { return "places" }
     if showCockpit { return "cockpit" }
+    if showWhiteboard { return "whiteboard" }
     if callOpen { return "call" }
     if showToday { return "today" }
     if showInbox { return "chat" }
@@ -270,6 +272,7 @@ final class AppModel: ObservableObject {
     if card != nil { closeCard(); covered = true }
     if showPlaces { closePlaces(); covered = true }
     if showCockpit { closeCockpit(); covered = true }
+    if showWhiteboard { closeWhiteboard(); covered = true }
     if callOpen { closeCall(); covered = true }
     if showToday {
       openMetricKey = nil
@@ -628,6 +631,19 @@ final class AppModel: ObservableObject {
   }
 
   private var cockpitOpened = false
+
+  func openWhiteboard(from source: String) {
+    log.event("ui", ["action": "open_whiteboard", "from": source])
+    screen = "whiteboard"
+    showWhiteboard = true
+  }
+
+  func closeWhiteboard() {
+    guard showWhiteboard else { return }
+    log.event("ui", ["action": "close_whiteboard"])
+    screen = "home"
+    showWhiteboard = false
+  }
 
   func openCall(from source: String) {
     log.event("ui", ["action": "open_call", "from": source, "state": call.snapshot.state.rawValue])
