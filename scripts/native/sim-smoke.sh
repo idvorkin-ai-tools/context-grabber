@@ -354,7 +354,10 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
   if [ "$client" = "context-grabber" ] && [ "$up" -gt 20 ] && [ "$stopped" = "true" ] && [ "$diag" -gt 0 ]; then
     ok "call ($label): the bridge saw the client tag, $up mic frames, the dump ($diag bytes) and stop"
   else bad "call ($label): bridge report client '$client' frames $up stopped $stopped dump $diag"; fi
-  failed=$(jq -c 'select(.type=="error" or ((.type|startswith("call_")) and .ok == false))' "$f")
+  # #584: the simulator has no archive URL on purpose (the fixture call never reaches the real archive), and
+  # the call's own trouble rule already lets that ending pass.
+  failed=$(jq -c 'select(.type=="error" or ((.type|startswith("call_")) and .ok == false
+    and (.type != "call_archive" or .reason != "no archive URL")))' "$f")
   if [ -z "$failed" ]; then ok "call ($label): nothing failed"; else bad "call ($label): $failed"; fi
 }
 call_check synthetic synthetic
