@@ -799,7 +799,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A call that sounds wrong says why in Diagnostics
 - **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `PlaybackWindowTests`, the counters in `CallSessionCountersTests`); a Direct call on the phone not yet.
-- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442); [#584](https://github.com/idvorkin/context-grabber/issues/584) the simulator smoke counted the simulator's expected no-archive-URL ending as a failed call
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
 #### Use Case:
@@ -819,7 +819,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A call's log reaches Larry without the phone
 - **Status:** implemented in [8385814](https://github.com/idvorkin/context-grabber/commit/8385814); verified by `just test` (host: `CallLogArchiveTests`, the trouble rule in `CallEventLogTests`); its log in the Cockpit's archive after a call on the phone not yet.
-- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442)
+- **Issues:** [#442](https://github.com/idvorkin/context-grabber/issues/442); [#584](https://github.com/idvorkin/context-grabber/issues/584) the simulator smoke counted the simulator's expected no-archive-URL ending as a failed call
 - **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics)
 
 #### Use Case:
