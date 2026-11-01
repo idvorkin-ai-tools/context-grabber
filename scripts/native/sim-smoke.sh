@@ -62,11 +62,6 @@ else bad "report: note '$got_note' log '$got_log' screen '$screen' screenshot '$
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$errors" ]; then ok "report: no error events"; else bad "report: error events: $errors"; fi
 
-if want cockpit; then
-# Stories 096, 097, 200: the Cockpit screen on the bundled bridge test page, which speaks only the protocol
-# (docs/cockpit-audio-bridge.md): it asks for the roster on audio.ready, sets an output and an input, asks for a
-# missing microphone, says its call went live and ended, and reports the round trip as getRoute("roundtrip:<inputs>:
-# tagged|untagged") — so the log alone shows the page received a device list and its address carried the tag.
 wait_jq() {  # like wait_for, on any jq filter
   local waited=0
   while [ "$waited" -lt "$2" ]; do
@@ -77,6 +72,12 @@ wait_jq() {  # like wait_for, on any jq filter
   fail=1
   return 1
 }
+
+if want cockpit; then
+# Stories 096, 097, 200: the Cockpit screen on the bundled bridge test page, which speaks only the protocol
+# (docs/cockpit-audio-bridge.md): it asks for the roster on audio.ready, sets an output and an input, asks for a
+# missing microphone, says its call went live and ended, and reports the round trip as getRoute("roundtrip:<inputs>:
+# tagged|untagged") — so the log alone shows the page received a device list and its address carried the tag.
 SIMCTL_CHILD_GRABBER_COCKPIT=open SIMCTL_CHILD_GRABBER_COCKPIT_URL=cockpit-bridge-test relaunch
 wait_jq 'select(.type=="cockpit_bridge" and .dir=="in" and ((.request_id // "") | startswith("roundtrip:")))' 30 \
   || echo "      (timed out waiting for the page's roundtrip)"
@@ -115,6 +116,19 @@ if [[ "$failed_load" == "false "* ]] && [[ "$failed_load" != "false null" ]]; th
 else bad "cockpit: unreachable load '$failed_load'"; fi
 
 fi  # cockpit
+
+if want whiteboard; then
+# Stories 340, 342: the whiteboard opened as its tile would, the saved board read, no error.
+SIMCTL_CHILD_GRABBER_WHITEBOARD=open relaunch
+wait_jq 'select(.type=="whiteboard" and .action=="open")' 20 || echo "      (timed out waiting for whiteboard open)"
+f=$(newest_log)
+opened=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_whiteboard")][0].from // ""' "$f")
+strokes=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="open")][0].strokes // ""' "$f")
+errors=$(jq -c 'select(.type=="error")' "$f")
+if [ "$opened" = "hook" ] && [[ "$strokes" =~ ^[0-9]+$ ]] && [ -z "$errors" ]; then
+  ok "whiteboard: opened from the hook, $strokes saved stroke(s), no error events"
+else bad "whiteboard: open_whiteboard from '$opened', strokes '$strokes', errors: $errors"; fi
+fi  # whiteboard
 
 if want timer; then
 # Stories 100, 104, 105: a 10 s work / 10 s rest / 2 round workout started as a widget tile would. Every cue

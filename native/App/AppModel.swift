@@ -767,6 +767,7 @@ final class AppModel: ObservableObject {
       openCard(think: false, from: "hook")
     }
     if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
+    if env["GRABBER_WHITEBOARD"] == "open" { openWhiteboard(from: "hook") }
     if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }
     if env["GRABBER_HOME"] == "settings" { openHomeSettings() }
     if let mix = env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)) {

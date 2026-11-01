@@ -19,30 +19,39 @@ final class WhiteboardModel: ObservableObject {
   private let inbox: InboxModel
   private var saveTask: Task<Void, Never>?
   private var dirty = false
+  private var saveFailing = false
 
   init(log: SessionLog, inbox: InboxModel) {
     self.log = log
     self.inbox = inbox
-    file = try? FileManager.default
+    var file = try? FileManager.default
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true).appendingPathComponent("board.drawing")
     var loaded = PKDrawing()
     var failure: String?
-    if let file, FileManager.default.fileExists(atPath: file.path) {
+    if let target = file, FileManager.default.fileExists(atPath: target.path) {
       do {
-        loaded = try PKDrawing(data: Data(contentsOf: file))
+        loaded = try PKDrawing(data: Data(contentsOf: target))
       } catch {
         // Kept aside, never overwritten by the empty board that replaces it.
-        let aside = file.appendingPathExtension("unreadable")
-        try? FileManager.default.removeItem(at: aside)
-        try? FileManager.default.moveItem(at: file, to: aside)
-        log.event("whiteboard", ["action": "load_failed", "error": "\(error)"])
-        failure =
-          "The saved board could not be read, so it was set aside and this one is new: \(error.localizedDescription)"
+        let aside = target.appendingPathExtension("unreadable")
+        do {
+          if FileManager.default.fileExists(atPath: aside.path) { try FileManager.default.removeItem(at: aside) }
+          try FileManager.default.moveItem(at: target, to: aside)
+          failure =
+            "The saved board could not be read, so it was set aside and this one is new: \(error.localizedDescription)"
+        } catch let moveError {
+          file = nil
+          failure =
+            "The saved board could not be read (\(error.localizedDescription)) or set aside "
+            + "(\(moveError.localizedDescription)), so it is left as it was and what is drawn now is lost on close."
+        }
+        log.event("error", ["where": "whiteboard_load", "message": "\(error)", "set_aside": file != nil])
       }
     } else if file == nil {
       failure = "This build has nowhere to keep the board, so what is drawn is lost on close."
     }
+    self.file = file
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
     problem = failure.map { .grabber($0, context: "WhiteboardView.load", extra: [:]) }
@@ -78,8 +87,12 @@ final class WhiteboardModel: ObservableObject {
       try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
       try drawing.dataRepresentation().write(to: file, options: .atomic)
       dirty = false
+      saveFailing = false
     } catch {
-      log.event("whiteboard", ["action": "save_failed", "error": "\(error)"])
+      if !saveFailing {
+        log.event("error", ["where": "whiteboard_save", "message": "\(error)", "strokes": drawing.strokes.count])
+      }
+      saveFailing = true
       problem = .grabber(
         "The board could not be saved: \(error.localizedDescription)", context: "WhiteboardView.save",
         extra: ["strokes": .int(drawing.strokes.count)])
@@ -113,7 +126,7 @@ final class WhiteboardModel: ObservableObject {
           "pixels": "\(Int(ink.size.width * ink.scale))x\(Int(ink.size.height * ink.scale))",
         ])
     } catch {
-      log.event("whiteboard", ["action": "send_failed", "error": "\(error)"])
+      log.event("error", ["where": "whiteboard_send", "message": "\(error)", "bytes": jpeg.count])
       problem = .grabber(
         "The board could not go to Larry: \(error.localizedDescription)", context: "WhiteboardView.send",
         extra: ["bytes": .int(jpeg.count)])

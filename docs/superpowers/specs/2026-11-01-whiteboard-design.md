@@ -39,7 +39,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   several screens in every direction. Pinching out shows the whole drawing; pinching in goes up to 3× for detail.
 - **The board is kept.** Leaving, quitting or restarting the app never loses a stroke, and neither does a link that
   opens another screen. The board saves a moment after each stroke, and again on close or when the app goes to the
-  background. If a saved board can't be read, it's kept aside and the screen says so.
+  background. If a saved board can't be read, it's kept aside and the screen says so; if it can't even be moved
+  aside, it's left untouched, nothing drawn that time is saved over it, and the screen says that too.
 - **Send to Larry** (top bar): sends a picture of everything drawn, on white, as a new chat thread titled
   *Whiteboard, <date>*.
   - The bar says *Sent to Larry: his reply shows in Chat*.
