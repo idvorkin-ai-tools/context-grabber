@@ -138,16 +138,34 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 
 ### User Story 347:
 
-- **Summary:** See the iPad's board on the phone
+- **Summary:** See the iPad's boards on the phone
 - **Status:** not implemented
 
 #### Use Case:
 - **As someone** away from the iPad
-- **I want to** look at the board on the phone
+- **I want to** look at the boards on the phone
 - **so that** the sketch is with me wherever I am
 
 #### Acceptance Criteria:
-- **Scenario:** View only
-- **Given:** I drew on the iPad's board
-- **When:** I open the boards on the phone
-- **Then:** I see the latest picture of the board, which I can pinch but not draw on
+- **Scenario:** View only, through iCloud
+- **Given:** I drew a board on the iPad and closed it, and both devices are signed into my iCloud
+- **When:** I open the Whiteboard on the phone and tap that board's card
+- **Then:** I see the drawing, which I can pan and pinch but not draw on, with a note that it is drawn on the iPad
+
+---
+
+### User Story 348:
+
+- **Summary:** Many boards, as a list
+- **Status:** not implemented
+
+#### Use Case:
+- **As someone** who sketches a different idea each time
+- **I want to** keep each board, see them as a list and start a new one
+- **so that** a new idea never draws over an old one
+
+#### Acceptance Criteria:
+- **Scenario:** The boards
+- **Given:** I drew one board this morning, and one before the list existed
+- **When:** I open the Whiteboard and tap + New board, draw, and go back
+- **Then:** the list shows three cards, newest first, each with its picture, name and when it changed; an empty new board left without a stroke leaves no card
