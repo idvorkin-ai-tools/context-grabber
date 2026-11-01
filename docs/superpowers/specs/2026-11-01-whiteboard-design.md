@@ -43,7 +43,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   aside, it's left untouched, nothing drawn that time is saved over it, and the screen says that too.
 - **Send to Larry** (top bar): sends a picture of everything drawn, on white, as a new chat thread titled
   *Whiteboard, <date>*.
-  - The bar says *Sent to Larry: his reply shows in Chat*.
+  - The bar says *Sent to Larry: his reply shows in Chat*. One send makes one thread: the button stays disabled
+    until the next stroke, so a second tap never sends the same board twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
 - **Done** (top bar) closes the board.

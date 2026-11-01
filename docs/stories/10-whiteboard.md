@@ -75,6 +75,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 - **When:** I tap Send to Larry
 - **Then:** the bar says the board is on its way, and Chat gets a new thread titled "Whiteboard, <date>" holding a picture of the whole drawing, dark ink on white
 
+- **Scenario:** One send, one thread
+- **Given:** I have just sent the board to Larry
+- **When:** I tap Send to Larry again before drawing anything more
+- **Then:** nothing is sent, because the button is disabled until my next stroke, and Chat holds one thread for that board
+
 ---
 
 ### User Story 344:

@@ -101,7 +101,7 @@ final class WhiteboardModel: ObservableObject {
 
   /// Story 343: the whole drawing, dark ink on white whatever the iPad's mode, as a new thread with Larry.
   func send() {
-    guard let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
+    guard sent == nil, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
     var ink = UIImage()
     UITraitCollection(userInterfaceStyle: .light).performAsCurrent { ink = drawing.image(from: rect, scale: scale) }
     let format = UIGraphicsImageRendererFormat()
@@ -117,7 +117,7 @@ final class WhiteboardModel: ObservableObject {
     draft.text = WhiteboardFrame.title(at: Date())
     do {
       try inbox.add(&draft)
-      problem = nil
+      if problem?.context == "WhiteboardView.send" { problem = nil }
       sent = "Sent to Larry: his reply shows in Chat"
       log.event(
         "whiteboard",
@@ -164,7 +164,7 @@ struct WhiteboardView: View {
         } label: {
           Label("Send to Larry", systemImage: "paperplane")
         }
-        .disabled(model.isEmpty)
+        .disabled(model.isEmpty || model.sent != nil)
         .accessibilityIdentifier("whiteboard-send")
       }
       .padding(.horizontal)
