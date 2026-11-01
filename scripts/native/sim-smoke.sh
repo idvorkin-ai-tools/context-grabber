@@ -18,7 +18,7 @@ relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_
 bad() { not_ok "$@"; }
 
 # Igor, 2026-11-01: only the features a change touched (SMOKE_ONLY, which the recipe takes from smoke-features.sh;
-# empty or "all" runs everything). The launch and report checks just below always run.
+# unset, empty or "all" runs everything, "none" only the checks that always run). The launch and report checks just below always run.
 want() { [[ -z "${SMOKE_ONLY:-}" || "$SMOKE_ONLY" == all || ",$SMOKE_ONLY," == *",$1,"* ]]; }
 echo "smoke: ${SMOKE_ONLY:-all}"
 

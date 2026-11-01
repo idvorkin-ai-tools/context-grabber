@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Igor, 2026-11-01: "if only touched 1 feature don't re-run ALL test". Prints the simulator smoke's sections a change
-# touches, comma-separated, for SMOKE_ONLY: "all" when it touches shared code or the smoke itself, "" when it
-# touches no feature the smoke drives (the launch and report checks still run). The change is everything on this
+# touches, comma-separated, for SMOKE_ONLY: "all" when it touches shared code or the smoke itself (or the base is
+# unknown), "none" when it touches no feature the smoke drives (the launch and report checks still run). The change is everything on this
 # branch since origin/main, committed or not.
 # Usage: smoke-features.sh [base]   (default origin/main)
 set -uo pipefail
 base=${1:-origin/main}
-files=$( { git diff --name-only "$(git merge-base "$base" HEAD)"; git ls-files --others --exclude-standard; } | sort -u)
+fork=$(git merge-base "$base" HEAD) || { echo all; exit 0; }
+files=$( { git diff --name-only "$fork"; git ls-files --others --exclude-standard; } | sort -u)
 features=()
-add() { [[ " ${features[*]} " == *" $1 "* ]] || features+=("$1"); }
+add() { [[ " ${features[*]-} " == *" $1 "* ]] || features+=("$1"); }
 for f in $files; do
   case $f in
     *.md | docs/* | .beads/* | .lavish/*) ;;  # words, not code
@@ -29,4 +30,4 @@ for f in $files; do
     *) echo all; exit 0 ;;  # shared code, the project, the smoke itself: everything
   esac
 done
-(IFS=,; echo "${features[*]}")
+(IFS=,; echo "${features[*]:-none}")
