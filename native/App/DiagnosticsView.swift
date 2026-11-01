@@ -111,7 +111,7 @@ struct DiagnosticsView: View {
         Color.clear.fullScreenCover(
           isPresented: Binding(get: { model.showWhiteboard }, set: { if !$0 { model.closeWhiteboard() } })
         ) {
-          WhiteboardView(app: model, onDone: model.closeWhiteboard)
+          WhiteboardListView(app: model, onDone: model.closeWhiteboard)
             .bugReporting(model.reporter)
         }
       }

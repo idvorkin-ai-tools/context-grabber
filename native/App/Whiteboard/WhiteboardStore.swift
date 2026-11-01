@@ -1,0 +1,321 @@
+//  The boards on this device and in iCloud (spec 2026-11-01-whiteboard-design.md, stories 347, 348). Each board is a
+//  PencilKit drawing and a small picture on disk, listed in one index file; this device's own boards go up to the
+//  private CloudKit database, every device's boards come down, and only the device that made a board draws on it.
+
+import BugKit
+import CloudKit
+import ContextCore
+import PencilKit
+import UIKit
+
+@MainActor
+final class WhiteboardStore: ObservableObject {
+  @Published private(set) var index = BoardIndex()
+  /// Why the list is not syncing right now, shown under it; nil while it is.
+  @Published private(set) var syncNote: String?
+  @Published private(set) var problem: BugProblem?
+  /// Bumped when a picture on disk changes, so the cards draw it again.
+  @Published private(set) var pictures = 0
+  let device: String
+  let deviceName = UIDevice.current.model
+  private let dir: URL?
+  private let log: SessionLog
+  private let cloud = BoardCloud()
+  private var syncing = false
+
+  init(log: SessionLog, device: String) {
+    self.log = log
+    self.device = device
+    dir = try? FileManager.default
+      .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+      .appendingPathComponent("whiteboard", isDirectory: true)
+    load()
+  }
+
+  func drawingURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).drawing") }
+  func pictureURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).png") }
+  func editable(_ board: BoardEntry) -> Bool { BoardIndex.editable(board, on: device) }
+
+  // MARK: - The list on disk
+
+  private var indexURL: URL? { dir?.appendingPathComponent("index.json") }
+
+  private func load() {
+    guard let dir, let indexURL else {
+      problem = .grabber(
+        "This build has nowhere to keep boards, so what is drawn is lost on close.", context: "WhiteboardStore.load")
+      return
+    }
+    do {
+      try FileManager.default.createDirectory(
+        at: dir.appendingPathComponent("boards"), withIntermediateDirectories: true)
+      if FileManager.default.fileExists(atPath: indexURL.path) {
+        index = try JSONDecoder().decode(BoardIndex.self, from: Data(contentsOf: indexURL))
+      }
+    } catch {
+      log.event("error", ["where": "whiteboard_index", "message": "\(error)"])
+      problem = .grabber(
+        "The list of boards could not be read: \(error.localizedDescription)", context: "WhiteboardStore.load")
+    }
+    let migrated = migrateSingleBoard()
+    log.event(
+      "whiteboard",
+      [
+        "action": "list", "boards": index.boards.count, "own": index.boards.filter(editable).count,
+        "migrated": migrated,
+      ])
+  }
+
+  private func saveIndex() {
+    guard let indexURL else { return }
+    do {
+      try JSONEncoder().encode(index).write(to: indexURL, options: .atomic)
+    } catch {
+      log.event("error", ["where": "whiteboard_index", "message": "\(error)", "boards": index.boards.count])
+      problem = .grabber(
+        "The list of boards could not be saved: \(error.localizedDescription)", context: "WhiteboardStore.save")
+    }
+  }
+
+  /// The one board drawn before the list existed becomes the list's first board (story 348).
+  private func migrateSingleBoard() -> Bool {
+    guard let dir, let old = Optional(dir.appendingPathComponent("board.drawing")),
+      FileManager.default.fileExists(atPath: old.path)
+    else { return false }
+    let id = UUID().uuidString.lowercased()
+    guard let target = drawingURL(id) else { return false }
+    do {
+      let data = try Data(contentsOf: old)
+      let drawing = try PKDrawing(data: data)
+      let made = (try? FileManager.default.attributesOfItem(atPath: old.path)[.modificationDate] as? Date) ?? Date()
+      try FileManager.default.moveItem(at: old, to: target)
+      index.add(id: id, at: made, device: device, deviceName: deviceName)
+      index.drew(id, strokes: drawing.strokes.count, at: Int64(made.timeIntervalSince1970 * 1000) + 1)
+      writePicture(of: drawing, id: id)
+      saveIndex()
+      return true
+    } catch {
+      log.event("error", ["where": "whiteboard_migrate", "message": "\(error)"])
+      return false
+    }
+  }
+
+  // MARK: - Boards
+
+  /// A fresh board on this device: in the list at once, gone again if it closes without a stroke.
+  func create() -> String {
+    let id = UUID().uuidString.lowercased()
+    index.add(id: id, at: Date(), device: device, deviceName: deviceName)
+    saveIndex()
+    log.event("whiteboard", ["action": "new", "board": id])
+    return id
+  }
+
+  func drawing(_ id: String) throws -> PKDrawing {
+    guard let url = drawingURL(id), FileManager.default.fileExists(atPath: url.path) else { return PKDrawing() }
+    return try PKDrawing(data: Data(contentsOf: url))
+  }
+
+  /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it.
+  func save(_ drawing: PKDrawing, board id: String) throws {
+    guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
+    try drawing.dataRepresentation().write(to: url, options: .atomic)
+    writePicture(of: drawing, id: id)
+    index.drew(id, strokes: drawing.strokes.count, at: Int64(Date().timeIntervalSince1970 * 1000))
+    saveIndex()
+  }
+
+  /// Closing a board: a new one left without a stroke is gone; anything else goes up to iCloud.
+  func closed(_ id: String, empty: Bool) {
+    if empty, let board = index.board(id), board.updated == board.created, editable(board) {
+      delete(id, reason: "empty")
+      return
+    }
+    Task { await sync(reason: "board_closed") }
+  }
+
+  func rename(_ id: String, to title: String) {
+    index.rename(id, to: title, at: Int64(Date().timeIntervalSince1970 * 1000))
+    saveIndex()
+    log.event("whiteboard", ["action": "rename", "board": id])
+    Task { await sync(reason: "rename") }
+  }
+
+  func delete(_ id: String, reason: String = "asked") {
+    index.remove(id)
+    saveIndex()
+    for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
+    pictures += 1
+    log.event("whiteboard", ["action": "delete", "board": id, "why": reason])
+    if !index.deleted.isEmpty { Task { await sync(reason: "delete") } }
+  }
+
+  /// The card's picture: the whole drawing, dark ink on white, at most 480 px across.
+  private func writePicture(of drawing: PKDrawing, id: String) {
+    guard let url = pictureURL(id) else { return }
+    defer { pictures += 1 }
+    guard let (rect, _) = WhiteboardFrame.export(drawing.bounds) else {
+      try? FileManager.default.removeItem(at: url)
+      return
+    }
+    let scale = min(2, 480 / max(rect.width, rect.height))
+    var ink = UIImage()
+    UITraitCollection(userInterfaceStyle: .light).performAsCurrent { ink = drawing.image(from: rect, scale: scale) }
+    try? ink.pngData()?.write(to: url, options: .atomic)
+  }
+
+  // MARK: - iCloud
+
+  /// This device's changes up, everyone's boards down. One at a time; a call while one runs is dropped (the running
+  /// one ends with the newest list).
+  func sync(reason: String) async {
+    guard !syncing else { return }
+    syncing = true
+    defer { syncing = false }
+    do {
+      try await cloud.ready()
+      for id in index.deleted {
+        try await cloud.delete(id)
+        index.deletedInCloud(id)
+      }
+      for board in index.pendingUploads(device: device) {
+        guard let drawing = drawingURL(board.id), FileManager.default.fileExists(atPath: drawing.path) else { continue }
+        let picture = pictureURL(board.id).flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
+        try await cloud.upload(board, drawing: drawing, picture: picture)
+        index.uploaded(board.id, at: board.updated)
+      }
+      let merged = index.merge(cloud: try await cloud.boards(), device: device)
+      for id in merged.dropped {
+        for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
+      }
+      for id in merged.fetch {
+        guard let drawing = drawingURL(id), let picture = pictureURL(id) else { continue }
+        try await cloud.download(id, drawing: drawing, picture: picture)
+      }
+      saveIndex()
+      if !merged.fetch.isEmpty || !merged.dropped.isEmpty { pictures += 1 }
+      syncNote = nil
+      log.event(
+        "whiteboard_sync",
+        [
+          "ok": true, "why": reason, "boards": index.boards.count, "fetched": merged.fetch.count,
+          "dropped": merged.dropped.count,
+        ])
+    } catch let unavailable as BoardCloud.Unavailable {
+      saveIndex()
+      syncNote = unavailable.note
+      log.event("whiteboard_sync", ["ok": false, "why": reason, "skipped": unavailable.reason])
+    } catch {
+      // What was done before the failure is kept; the rest waits for the next sync.
+      saveIndex()
+      syncNote = "Boards are not syncing right now: \(error.localizedDescription)"
+      log.event("whiteboard_sync", ["ok": false, "why": reason, "message": "\(error)"])
+    }
+  }
+}
+
+/// The boards in the private CloudKit database, in a zone of their own (no query indexes needed to list them), in
+/// BugKit's container: the app is already signed for it, so boards need no new entitlement.
+struct BoardCloud {
+  static let containerID = "iCloud.com.idvorkin.BugKitReports"
+  static let recordType = "WhiteboardBoard"
+  private let zone = CKRecordZone(zoneName: "Whiteboards")
+
+  struct Unavailable: Error {
+    let reason: String
+    let note: String
+  }
+
+  /// `CKContainer(identifier:)` traps in a build without the container's entitlement (BugKit #87), so it is only
+  /// made after the signature says the build has it.
+  private static let entitled: Bool = {
+    guard let url = Bundle.main.executableURL, let data = try? Data(contentsOf: url, options: .alwaysMapped) else {
+      return false
+    }
+    let key = Data("<key>com.apple.developer.icloud-container-identifiers</key>".utf8)
+    guard let found = data.range(of: key) else { return false }
+    let window = data[found.upperBound..<min(data.endIndex, found.upperBound + 4096)]
+    return window.range(of: Data("<string>\(containerID)</string>".utf8)) != nil
+  }()
+
+  private var database: CKDatabase { CKContainer(identifier: Self.containerID).privateCloudDatabase }
+
+  func ready() async throws {
+    guard Self.entitled else {
+      throw Unavailable(reason: "not_entitled", note: "This build cannot reach iCloud, so boards stay on this device.")
+    }
+    let status = try await CKContainer(identifier: Self.containerID).accountStatus()
+    guard status == .available else {
+      throw Unavailable(
+        reason: "account_\(status.rawValue)",
+        note: "Not signed into iCloud, so boards stay on this device until it is.")
+    }
+    _ = try await database.modifyRecordZones(saving: [zone], deleting: [])
+  }
+
+  func upload(_ board: BoardEntry, drawing: URL, picture: URL?) async throws {
+    let record = CKRecord(recordType: Self.recordType, recordID: id(board.id))
+    record["title"] = board.title
+    record["created"] = board.created
+    record["updated"] = board.updated
+    record["strokes"] = board.strokes
+    record["device"] = board.device
+    record["deviceName"] = board.deviceName
+    record["drawing"] = CKAsset(fileURL: drawing)
+    record["picture"] = picture.map(CKAsset.init(fileURL:))
+    // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds.
+    let saved = try await database.modifyRecords(saving: [record], deleting: [], savePolicy: .allKeys)
+    if let result = saved.saveResults[record.recordID] { _ = try result.get() }
+  }
+
+  func delete(_ id: String) async throws {
+    do {
+      let result = try await database.modifyRecords(saving: [], deleting: [self.id(id)])
+      if let outcome = result.deleteResults[self.id(id)] { try outcome.get() }
+    } catch let error as CKError where error.code == .unknownItem {
+      return  // already gone
+    }
+  }
+
+  /// Every board's details, without the drawings.
+  func boards() async throws -> [BoardEntry] {
+    var token: CKServerChangeToken?
+    var found: [BoardEntry] = []
+    var more = true
+    while more {
+      let changes = try await database.recordZoneChanges(
+        inZoneWith: zone.zoneID, since: token,
+        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName"])
+      for (_, result) in changes.modificationResultsByID {
+        guard let record = try? result.get().record, let entry = Self.entry(record) else { continue }
+        found.append(entry)
+      }
+      token = changes.changeToken
+      more = changes.moreComing
+    }
+    return found
+  }
+
+  /// A board's drawing and picture, copied to where this device keeps them.
+  func download(_ id: String, drawing: URL, picture: URL) async throws {
+    let results = try await database.records(for: [self.id(id)], desiredKeys: ["drawing", "picture"])
+    guard let record = try results[self.id(id)]?.get() else { return }
+    for (key, target) in [("drawing", drawing), ("picture", picture)] {
+      guard let source = (record[key] as? CKAsset)?.fileURL else { continue }
+      if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }
+      try FileManager.default.copyItem(at: source, to: target)
+    }
+  }
+
+  private func id(_ board: String) -> CKRecord.ID { CKRecord.ID(recordName: board, zoneID: zone.zoneID) }
+
+  private static func entry(_ record: CKRecord) -> BoardEntry? {
+    guard let title = record["title"] as? String, let created = record["created"] as? Int64,
+      let updated = record["updated"] as? Int64, let device = record["device"] as? String
+    else { return nil }
+    return BoardEntry(
+      id: record.recordID.recordName, title: title, created: created, updated: updated,
+      strokes: (record["strokes"] as? Int) ?? 0, device: device,
+      deviceName: (record["deviceName"] as? String) ?? "another device")
+  }
+}

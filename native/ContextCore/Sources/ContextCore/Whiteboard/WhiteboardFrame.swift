@@ -33,13 +33,4 @@ public enum WhiteboardFrame {
     let scale = min(maxScale, maxPixels / max(rect.width, rect.height))
     return (rect, scale)
   }
-
-  /// The chat thread's title, and the message's text: *Whiteboard, Nov 1*.
-  public static func title(at date: Date, timeZone: TimeZone = .current) -> String {
-    let f = DateFormatter()
-    f.locale = Locale(identifier: "en_US_POSIX")
-    f.timeZone = timeZone
-    f.dateFormat = "MMM d"
-    return "Whiteboard, " + f.string(from: date)
-  }
 }
