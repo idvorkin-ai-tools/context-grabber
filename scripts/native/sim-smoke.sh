@@ -22,17 +22,14 @@ bad() { not_ok "$@"; }
 want() { [[ -z "${SMOKE_ONLY:-}" || "$SMOKE_ONLY" == all || ",$SMOKE_ONLY," == *",$1,"* ]]; }
 echo "smoke: ${SMOKE_ONLY:-all}"
 
-# Igor, 2026-11-01: the simulator plays through the Mac's speakers (the timer's counts, the breathing voice, the
-# call), so the Mac is muted for the run and put back as it was. ponytail: Mac-wide, since the simulator has no
-# volume of its own; two overlapping runs can unmute early.
-was_muted=$(osascript -e 'output muted of (get volume settings)' 2>/dev/null || echo true)
-osascript -e 'set volume with output muted' 2>/dev/null || true
+# Igor, 2026-11-01: the app under test is muted, not the Mac (GRABBER_SILENT on every launch: its players at zero,
+# every cue still played and logged), so the timer's counts, the breathing voice and the call stay out of the room.
+export SIMCTL_CHILD_GRABBER_SILENT=1
 BRIDGE=; DROP=; COCKPIT=
 cleanup() {
   # shellcheck disable=SC2086  # each is empty when its section did not run
   kill $BRIDGE $DROP $COCKPIT 2>/dev/null || true
   unstash  # smoke-lib's: puts stashed data back
-  [ "$was_muted" = true ] || osascript -e 'set volume without output muted' 2>/dev/null || true
 }
 trap cleanup EXIT
 

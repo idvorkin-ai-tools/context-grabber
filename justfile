@@ -72,7 +72,7 @@ native-sim-health: native-project
       -only-testing:GrabberNativeUITests/HealthAccessUITests test
 
 # Native rung 2: the simulator build driven by launch hooks, judged from its session log
-# Only the features this branch touched (scripts/native/smoke-features.sh), the Mac muted; SMOKE_ONLY=all for every one.
+# Only the features this branch touched (scripts/native/smoke-features.sh), the app silent; SMOKE_ONLY=all for every one.
 native-test-sim: native-build-sim
     SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
 
