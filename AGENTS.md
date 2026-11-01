@@ -71,6 +71,16 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   while a run is in flight unless review or test asked for that fix. Never restart the no-mistakes daemon or reboot
   while runs are active. Live simulator and device checks happen once, in your build turn, and go in the PR body;
   the pipeline's test step is host-only.
+- **Merge a ready PR before anything that touches its files** (Igor, 2026-11-01, after #583 stalled). When a PR
+  reaches `checks-passed`, run its simulator check right away and merge it. Never merge another PR into main ahead
+  of it if that PR edits the same files (the smoke script, `AppModel`, `docs/TESTING.md`). A base change that
+  conflicts makes no-mistakes rebase the waiting PR and re-run it from Review: a second review, a second test pass
+  and new approval gates, about 15 minutes, for nothing. Two PRs that both edit one file go in one after the other.
+  The second one starts only once the first has merged, or the second waits.
+- **No CI here, so don't wait on the review bots.** The repo declares `no_ci: true`, but GitHub can still attach
+  Copilot's PR reviewer and CodeRabbit to a push as checks. Once they are attached, no-mistakes' CI step waits for
+  them. Once the run's review, test, document, lint, push and PR steps have all completed, and the only thing left
+  is the CI step "waiting for results" on those bots, merge the PR. Don't wait for them.
 - **Review settles in one fix round.** In round 1, fix every error and warning together. In later rounds, fix errors
   only and decide info findings in one pass. Cap review at two rounds; file the rest as issues.
 - **Architecture is discussed, not assumed**: propose with a trade-off table or a numeric plan, then one "do it".
