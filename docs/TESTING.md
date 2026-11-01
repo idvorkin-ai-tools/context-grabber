@@ -28,6 +28,15 @@ The simulator cannot be shaken or tapped from a script, so the app reads **launc
 (pass them through `simctl` as `SIMCTL_CHILD_<name>`); checks wait for an event in a *new* launch's log instead of
 sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim-smoke.sh`](../scripts/native/sim-smoke.sh)).
 
+**Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
+this branch changed since `origin/main`: cockpit, timer, breathe, places, call, mirror, drill or chat.
+[`smoke-features.sh`](../scripts/native/smoke-features.sh) maps the changed paths to sections. A change to shared
+code, the project or the smoke itself runs everything, and docs or host tests alone run none. The launch and report
+checks always run. To run every section, set `SMOKE_ONLY=all just native-test-sim`; to pick sections, set
+`SMOKE_ONLY=timer,breathe`. The Mac's sound is muted for the run, and put back as it was afterwards, because the
+simulator plays the timer's counts, the breathing voice and the call through the Mac's speakers. The host rung
+(`just test`) plays nothing and stays whole: all of it takes about 5 seconds.
+
 | Hook | Effect |
 |---|---|
 | `GRABBER_BUG=text` | two seconds after launch, file a problem report with that note, as a shake and *Log it* would |
