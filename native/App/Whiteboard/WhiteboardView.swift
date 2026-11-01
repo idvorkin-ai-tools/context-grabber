@@ -27,19 +27,25 @@ final class WhiteboardModel: ObservableObject {
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true).appendingPathComponent("board.drawing")
     var loaded = PKDrawing()
-    if let file, let data = try? Data(contentsOf: file) {
+    var failure: String?
+    if let file, FileManager.default.fileExists(atPath: file.path) {
       do {
-        loaded = try PKDrawing(data: data)
+        loaded = try PKDrawing(data: Data(contentsOf: file))
       } catch {
         // Kept aside, never overwritten by the empty board that replaces it.
         let aside = file.appendingPathExtension("unreadable")
         try? FileManager.default.removeItem(at: aside)
         try? FileManager.default.moveItem(at: file, to: aside)
-        log.event("whiteboard", ["action": "load_failed", "bytes": data.count, "error": "\(error)"])
+        log.event("whiteboard", ["action": "load_failed", "error": "\(error)"])
+        failure =
+          "The saved board could not be read, so it was set aside and this one is new: \(error.localizedDescription)"
       }
+    } else if file == nil {
+      failure = "This build has nowhere to keep the board, so what is drawn is lost on close."
     }
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
+    problem = failure.map { .grabber($0, context: "WhiteboardView.load", extra: [:]) }
     log.event("whiteboard", ["action": "open", "strokes": loaded.strokes.count])
   }
 
@@ -56,13 +62,16 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Leaving the board: what is drawn is written now, not a second later.
+  /// Leaving the board, by Done or by a link that takes it down: what is drawn is written now, not a second later.
+  /// Safe to call twice.
   func close() {
     saveTask?.cancel()
+    guard dirty else { return }
     save()
     log.event("whiteboard", ["action": "close", "strokes": drawing.strokes.count])
   }
 
+  // ponytail: serialised on the main thread; a board big enough to stutter here moves it to a background task.
   private func save() {
     guard dirty, let file else { return }
     do {
@@ -114,6 +123,7 @@ final class WhiteboardModel: ObservableObject {
 
 struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
+  @Environment(\.scenePhase) private var scenePhase
   private let logger: BugLogger
   private let onDone: () -> Void
 
@@ -152,11 +162,12 @@ struct WhiteboardView: View {
       BoardCanvas(model: model).ignoresSafeArea(edges: .bottom)
     }
     .accessibilityIdentifier("whiteboard")
+    .onDisappear { model.close() }
+    .onChange(of: scenePhase) { _, phase in if phase == .background { model.close() } }
   }
 }
 
-/// PencilKit's canvas: the Pencil draws on the iPad and a finger moves the board; on the iPhone a finger draws and
-/// two move it.
+/// PencilKit's canvas on a board far bigger than the screen.
 private struct BoardCanvas: UIViewRepresentable {
   let model: WhiteboardModel
 
@@ -166,7 +177,9 @@ private struct BoardCanvas: UIViewRepresentable {
     let canvas = BoardCanvasView()
     canvas.drawing = model.drawing
     canvas.delegate = context.coordinator
-    canvas.drawingPolicy = UIDevice.current.userInterfaceIdiom == .pad ? .pencilOnly : .anyInput
+    // The system's own choice: with a Pencil paired, only it draws (palm rejection, a finger moves the board);
+    // without one (an iPhone, the simulator), a finger draws.
+    canvas.drawingPolicy = .default
     canvas.backgroundColor = .systemBackground
     canvas.isOpaque = true
     canvas.contentSize = CGSize(width: WhiteboardFrame.side, height: WhiteboardFrame.side)
@@ -199,7 +212,7 @@ final class BoardCanvasView: PKCanvasView {
   /// The first layout knows the screen's size: the view opens centred on the drawing.
   override func layoutSubviews() {
     super.layoutSubviews()
-    guard !opened, bounds.width > 0 else { return }
+    guard !opened, bounds.width > 0, bounds.height > 0 else { return }
     opened = true
     let drawn = drawing.strokes.isEmpty ? nil : drawing.bounds
     contentOffset = WhiteboardFrame.openingOffset(drawing: drawn, viewport: bounds.size)

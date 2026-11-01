@@ -31,12 +31,15 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   This is the system's own picker, so the Pencil's double tap or squeeze switches to the eraser, as it does in
   Notes.
 - **Who draws:**
-  - On the iPad, only the Pencil draws, and a finger moves the board. A palm resting on the glass never leaves a mark.
-  - On the iPhone, which has no Pencil, a finger draws and two fingers move the board.
+  - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
+    leaves a mark.
+  - Without a Pencil (the iPhone, or an iPad with none paired), a finger draws and two fingers move the board.
+  - This follows the system's "Only Draw with Apple Pencil" setting.
 - **The board is big.** It opens centered on what's already drawn, or on its middle when it's empty. It stretches
   several screens in every direction. Pinching out shows the whole drawing; pinching in goes up to 3× for detail.
-- **The board is kept.** Leaving, quitting or restarting the app never loses a stroke. The board saves a moment after
-  each stroke, and again on close.
+- **The board is kept.** Leaving, quitting or restarting the app never loses a stroke, and neither does a link that
+  opens another screen. The board saves a moment after each stroke, and again on close or when the app goes to the
+  background. If a saved board can't be read, it's kept aside and the screen says so.
 - **Send to Larry** (top bar): sends a picture of everything drawn, on white, as a new chat thread titled
   *Whiteboard, <date>*.
   - The bar says *Sent to Larry: his reply shows in Chat*.

@@ -35,8 +35,8 @@ final class WhiteboardFrameTests: XCTestCase {
     XCTAssertNil(WhiteboardFrame.export(.zero))
   }
 
-  func testTheThreadIsTitledWithTheDay() {
-    let utc = try! XCTUnwrap(TimeZone(identifier: "UTC"))
+  func testTheThreadIsTitledWithTheDay() throws {
+    let utc = try XCTUnwrap(TimeZone(identifier: "UTC"))
     XCTAssertEqual(
       WhiteboardFrame.title(at: Date(timeIntervalSince1970: 1_793_534_400), timeZone: utc), "Whiteboard, Nov 1")
   }
