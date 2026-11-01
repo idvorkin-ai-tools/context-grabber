@@ -109,6 +109,14 @@ struct DiagnosticsView: View {
       }
       .background {
         Color.clear.fullScreenCover(
+          isPresented: Binding(get: { model.showWhiteboard }, set: { if !$0 { model.closeWhiteboard() } })
+        ) {
+          WhiteboardView(app: model, onDone: model.closeWhiteboard)
+            .bugReporting(model.reporter)
+        }
+      }
+      .background {
+        Color.clear.fullScreenCover(
           isPresented: Binding(get: { model.showPlaces }, set: { if !$0 { model.closePlaces() } })
         ) {
           PlacesView(app: model, places: model.places, tracker: model.tracker, onExit: model.closePlaces)

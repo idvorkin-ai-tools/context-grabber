@@ -24,8 +24,7 @@ for f in $files; do
       native/ContextCore/Sources/ContextCore/Inbox/* | scripts/native/fake-cockpit.py) add chat ;;
     native/App/Card/* | native/ContextCore/Sources/ContextCore/Card/*) add drill ;;
     native/App/Mirror/* | native/ContextCore/Sources/ContextCore/Mirror/*) add mirror ;;
-    # A journey the smoke does not drive: its own launch is covered by the checks that always run.
-    native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/*) ;;
+    native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/*) add whiteboard ;;
     native/App/Assets.xcassets/* | scripts/native/test-*) ;;
     *) echo all; exit 0 ;;  # shared code, the project, the smoke itself: everything
   esac

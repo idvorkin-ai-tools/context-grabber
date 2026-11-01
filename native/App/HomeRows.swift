@@ -63,6 +63,10 @@ struct HomeRow: Identifiable {
     HomeRow(id: "inbox", title: "Chat", icon: "bubble.left.and.bubble.right", color: .blue) {
       $0.openInbox(from: "home")
     },
+    // Stories 340–343 (spec 2026-11-01): the Pencil's board, sent to Larry from there.
+    HomeRow(id: "whiteboard", title: "Whiteboard", icon: "scribble.variable", color: .mint) {
+      $0.openWhiteboard(from: "home")
+    },
   ]
 
   /// #286: the home screen's last tile, always shown; not one of the launchers Settings arranges, since it is the

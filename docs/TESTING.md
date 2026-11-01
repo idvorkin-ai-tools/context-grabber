@@ -29,8 +29,8 @@ The simulator cannot be shaken or tapped from a script, so the app reads **launc
 sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim-smoke.sh`](../scripts/native/sim-smoke.sh)).
 
 **Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
-this branch changed since `origin/main`: cockpit, timer, breathe, places, call, mirror, drill or chat.
-[`smoke-features.sh`](../scripts/native/smoke-features.sh) maps the changed paths to sections. A change to shared
+this branch changed since `origin/main`: cockpit, whiteboard, timer, breathe, places, call, mirror, drill or
+chat. [`smoke-features.sh`](../scripts/native/smoke-features.sh) maps the changed paths to sections. A change to shared
 code, the project or the smoke itself runs everything, and docs or host tests alone run none. The launch and report
 checks always run. To run every section, set `SMOKE_ONLY=all just native-test-sim`; to pick sections, set
 `SMOKE_ONLY=timer,breathe`. The app under test plays silently, while the Mac's own sound is left alone. The simulator would otherwise play the
@@ -59,6 +59,7 @@ and it sets the app's players to zero volume, so every cue still plays and still
 | `GRABBER_TIMER_DIAL=drums\|knobs\|arc\|sliders` | which control sets Custom's Work, Rest and Rounds upright (story 184): the drums are what ships; the knobs, the arc and the old sliders are only for trying and screenshots. Alone it opens the timer on CUSTOM, not started (`ui` open_timer with dial); with `GRABBER_TIMER` it draws that control for the run. Not remembered |
 | `GRABBER_TIMER_SETTINGS=1` | open the Gym Timer, not started, with *Timer settings* up (logs `ui` action: timer_settings), for a screenshot of the sheet |
 | `GRABBER_WHATS_NEW=open` | open What's new (logs `ui` action: open_whats_new with from, days, changes), for a screenshot of the build's own history (story 148) |
+| `GRABBER_WHITEBOARD=open` | open the whiteboard, as its tile on the home screen would (`ui` open_whiteboard, from: hook, then `whiteboard` open with strokes: what the saved board holds); `just native-test-sim` reads both (stories 340, 342) |
 | `GRABBER_HOME=settings` | open the home screen's Settings sheet (logs `ui` action: home_settings), for a screenshot of the launchers and the diagnostics (story 147) |
 | `GRABBER_SUPERMIX=workout\|liked\|feel_good` | open that mix as a choice from the music tile's press-and-hold popover would (story 221; the simulator has no YouTube Music, so it opens in Safari); the log's `ui` open_workout_supermix carries the mix, from: hook and how |
 | `GRABBER_INBOX_FIXTURE=1` / `GRABBER_INBOX=open` | write three Inbox items as the share extension would (a link with a note and two texts; their ids start `fixture-`, so they are never sent to Larry, since the simulator reaches the tailnet too), and open Chat (#305; `ui` open_chat, from: hook). The share sheet itself is a phone check: simctl cannot drive it |
