@@ -8,7 +8,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 340:
 
 - **Summary:** Draw and erase on the iPad with the Pencil
-- **Status:** implemented in [c733d8c](https://github.com/idvorkin/context-grabber/commit/c733d8c), the system's Pencil-only setting in [34873da](https://github.com/idvorkin/context-grabber/commit/34873da); built for the simulator, where with no Pencil paired a finger draws (the system's own Pencil-only setting); the Pencil, palm and eraser not yet tried on the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), the system's Pencil-only setting in [ab9c1e8](https://github.com/idvorkin/context-grabber/commit/ab9c1e8); built for the simulator, where with no Pencil paired a finger draws (the system's own Pencil-only setting); the Pencil, palm and eraser not yet tried on the iPad
 
 #### Use Case:
 - **As someone** who thinks better with a pen in hand
@@ -26,7 +26,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 341:
 
 - **Summary:** A board that keeps going past the screen
-- **Status:** implemented in [c733d8c](https://github.com/idvorkin/context-grabber/commit/c733d8c); verified by host tests (`WhiteboardFrameTests`: where the view opens, kept on the board) and the simulator build; panning not yet tried on the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); verified by host tests (`WhiteboardFrameTests`: where the view opens, kept on the board) and the simulator build; panning not yet tried on the iPad
 
 #### Use Case:
 - **As someone** whose diagrams grow sideways
@@ -44,7 +44,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 342:
 
 - **Summary:** The board is still there next time
-- **Status:** implemented in [c733d8c](https://github.com/idvorkin/context-grabber/commit/c733d8c); saving on close, on a link and in the background in [34873da](https://github.com/idvorkin/context-grabber/commit/34873da); verified by host tests (`WhiteboardFrameTests`: centred on the drawing) and the simulator build; a relaunch not yet tried on the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); saving on close, on a link and in the background in [ab9c1e8](https://github.com/idvorkin/context-grabber/commit/ab9c1e8); verified by host tests (`WhiteboardFrameTests`: centred on the drawing) and the simulator build; a relaunch not yet tried on the iPad
 
 #### Use Case:
 - **As someone** who comes back to a sketch later
@@ -62,7 +62,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 343:
 
 - **Summary:** Show Larry the board
-- **Status:** implemented in [c733d8c](https://github.com/idvorkin/context-grabber/commit/c733d8c); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size, the thread's title) and the simulator build; a thread in Chat not yet seen from the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size, the thread's title) and the simulator build; a thread in Chat not yet seen from the iPad
 
 #### Use Case:
 - **As someone** who sketches to think and then wants to talk it over
