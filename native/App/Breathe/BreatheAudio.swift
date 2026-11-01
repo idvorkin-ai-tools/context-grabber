@@ -98,6 +98,7 @@ final class BreatheAudio: @unchecked Sendable {
       let utterance = AVSpeechUtterance(string: phrase.text)
       utterance.voice = AVSpeechSynthesisVoice(language: "en-AU")
       utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.85
+      utterance.volume = TestAudio.volume()
       speech.usesApplicationAudioSession = true
       speech.speak(utterance)
       log.event("breath_cue", ["kind": "voice", "name": phrase.rawValue, "ok": true, "fallback": true])
@@ -166,6 +167,7 @@ final class BreatheAudio: @unchecked Sendable {
         }
         loop = try AVAudioPlayer(contentsOf: url)
         loop?.numberOfLoops = -1
+        loop?.volume = TestAudio.volume()
       } catch {
         log.event("breath_keepalive", ["action": "start", "ok": false, "message": "keepalive.wav: \(error)"])
         return
@@ -201,6 +203,7 @@ final class BreatheAudio: @unchecked Sendable {
         throw CocoaError(.fileNoSuchFile)
       }
       let player = try AVAudioPlayer(contentsOf: url)
+      player.volume = TestAudio.volume()
       player.prepareToPlay()
       phrases[phrase] = player
       return player
@@ -217,6 +220,7 @@ final class BreatheAudio: @unchecked Sendable {
     if let player = tones[tone] { return player }
     do {
       let player = try AVAudioPlayer(data: tone.wav())
+      player.volume = TestAudio.volume()
       player.prepareToPlay()
       tones[tone] = player
       return player

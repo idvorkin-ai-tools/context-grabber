@@ -28,6 +28,16 @@ The simulator cannot be shaken or tapped from a script, so the app reads **launc
 (pass them through `simctl` as `SIMCTL_CHILD_<name>`); checks wait for an event in a *new* launch's log instead of
 sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim-smoke.sh`](../scripts/native/sim-smoke.sh)).
 
+**Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
+this branch changed since `origin/main`: cockpit, timer, breathe, places, call, mirror, drill or chat.
+[`smoke-features.sh`](../scripts/native/smoke-features.sh) maps the changed paths to sections. A change to shared
+code, the project or the smoke itself runs everything, and docs or host tests alone run none. The launch and report
+checks always run. To run every section, set `SMOKE_ONLY=all just native-test-sim`; to pick sections, set
+`SMOKE_ONLY=timer,breathe`. The app under test plays silently, while the Mac's own sound is left alone. The simulator would otherwise play the
+timer's counts, the breathing voice and the call through the Mac's speakers. `GRABBER_SILENT=1` goes to every launch,
+and it sets the app's players to zero volume, so every cue still plays and still shows in the log. The host rung
+(`just test`) plays nothing and stays whole: all of it takes about 5 seconds.
+
 | Hook | Effect |
 |---|---|
 | `GRABBER_BUG=text` | two seconds after launch, file a problem report with that note, as a shake and *Log it* would |
@@ -45,6 +55,7 @@ sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim
 | `GRABBER_METRIC=<key>` | with `GRABBER_MIRROR`: open that metric's sheet after the grab (`sleep`, `movement`, `heartRate`, …), for a screenshot |
 | `GRABBER_TURN=left\|right` | with `GRABBER_TIMER`: draw the timer as if the phone were on that side (the simulator has no accelerometer), for a screenshot of the turned face |
 | `GRABBER_COUNT_VOICE=adam\|igor\|aussie` | with `GRABBER_TIMER` or `GRABBER_TIMER_SETTINGS`: count in that voice for this launch, not remembered and with no sample (story 187); `just native-test-sim` runs `aussie` and reads the first `timer_cue`'s `voice` |
+| `GRABBER_SILENT=1` | the app's own sound at zero volume: the timer's and breathing's players, the breathing voice, the song and the call's speaker side. Nothing else changes: every cue still plays and logs as played, and the call's silent-mixer check still hears the call. `sim-smoke.sh` sets it on every launch, so a smoke run is quiet without muting the Mac |
 | `GRABBER_TIMER_DIAL=drums\|knobs\|arc\|sliders` | which control sets Custom's Work, Rest and Rounds upright (story 184): the drums are what ships; the knobs, the arc and the old sliders are only for trying and screenshots. Alone it opens the timer on CUSTOM, not started (`ui` open_timer with dial); with `GRABBER_TIMER` it draws that control for the run. Not remembered |
 | `GRABBER_TIMER_SETTINGS=1` | open the Gym Timer, not started, with *Timer settings* up (logs `ui` action: timer_settings), for a screenshot of the sheet |
 | `GRABBER_WHATS_NEW=open` | open What's new (logs `ui` action: open_whats_new with from, days, changes), for a screenshot of the build's own history (story 148) |

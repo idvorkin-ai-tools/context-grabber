@@ -187,6 +187,7 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
     }
     do {
       let player = try AVAudioPlayer(contentsOf: url)
+      player.volume = TestAudio.volume()
       player.delegate = self
       player.prepareToPlay()
       self.player = player

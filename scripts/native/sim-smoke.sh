@@ -17,6 +17,22 @@ DOCS=$SMOKE_DOCS
 relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
 bad() { not_ok "$@"; }
 
+# Igor, 2026-11-01: only the features a change touched (SMOKE_ONLY, which the recipe takes from smoke-features.sh;
+# unset, empty or "all" runs everything, "none" only the checks that always run). The launch and report checks just below always run.
+want() { [[ -z "${SMOKE_ONLY:-}" || "$SMOKE_ONLY" == all || ",$SMOKE_ONLY," == *",$1,"* ]]; }
+echo "smoke: ${SMOKE_ONLY:-all}"
+
+# Igor, 2026-11-01: the app under test is muted, not the Mac (GRABBER_SILENT on every launch: its players at zero,
+# every cue still played and logged), so the timer's counts, the breathing voice and the call stay out of the room.
+export SIMCTL_CHILD_GRABBER_SILENT=1
+BRIDGE=; DROP=; COCKPIT=
+cleanup() {
+  # shellcheck disable=SC2086  # each is empty when its section did not run
+  kill $BRIDGE $DROP $COCKPIT 2>/dev/null || true
+  unstash  # smoke-lib's: puts stashed data back
+}
+trap cleanup EXIT
+
 # Stories 140, 141: a launch writes a log whose first line names the build, and prunes (even when zero).
 relaunch
 wait_for logs_pruned 20 || echo "      (timed out waiting for logs_pruned)"
@@ -46,6 +62,7 @@ else bad "report: note '$got_note' log '$got_log' screen '$screen' screenshot '$
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$errors" ]; then ok "report: no error events"; else bad "report: error events: $errors"; fi
 
+if want cockpit; then
 # Stories 096, 097, 200: the Cockpit screen on the bundled bridge test page, which speaks only the protocol
 # (docs/cockpit-audio-bridge.md): it asks for the roster on audio.ready, sets an output and an input, asks for a
 # missing microphone, says its call went live and ended, and reports the round trip as getRoute("roundtrip:<inputs>:
@@ -97,6 +114,9 @@ failed_load=$(jq -sr '[.[] | select(.type=="cockpit_load")][0] | "\(.ok) \(.erro
 if [[ "$failed_load" == "false "* ]] && [[ "$failed_load" != "false null" ]]; then ok "cockpit: unreachable → '${failed_load#false }'"
 else bad "cockpit: unreachable load '$failed_load'"; fi
 
+fi  # cockpit
+
+if want timer; then
 # Stories 100, 104, 105: a 10 s work / 10 s rest / 2 round workout started as a widget tile would. Every cue
 # falls on its second (within 0.4 s), the duck window opens once per boundary, and the session is let go at the end.
 # Story 182: with no voice chosen Adam counts; a choice left by hand on this simulator is forgotten first.
@@ -144,6 +164,9 @@ errors=$(jq -c 'select(.type=="error")' "$f")
 if [ "$first" = "three aussie true" ] && [ -z "$errors" ]; then ok "voice: the hook's aussie says three"
 else bad "voice: first cue '$first', errors '$errors'"; fi
 
+fi  # timer
+
+if want breathe; then
 # Stories 160, 163, 165: two cycles of 2 s breaths with the voice. Every step is noticed on its second, each
 # phrase is a bundled file that played (none fell back to the phone's voice), and the screen lock is given back.
 SIMCTL_CHILD_GRABBER_BREATHE="2,2,voice" relaunch
@@ -197,6 +220,9 @@ after=$(jq -sr '[.[] | select(.type=="breath_phase" or .type=="breath_finished")
 if [ "$paused" = "hook:inhale" ] && [ "$after" = "inhale" ]; then ok "breathe: paused mid-inhale, nothing moved on"
 else bad "breathe: pauses '$paused', steps '$after'"; fi
 
+fi  # breathe
+
+if want places; then
 # Places (stories 040-047, 052, 055). A clean trail, then Context Grabber's real export (the 36 601-point fixture)
 # imported by the hook, shifted by whole days so its newest point falls in the last 24 hours.
 FIXTURE="$(dirname "$0")/../../__tests__/fixtures/context-grabber.db"
@@ -272,6 +298,9 @@ failed=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$failed" ]; then ok "places: no error events"; else bad "places: $failed"; fi
 xcrun simctl location "$SIM" clear >/dev/null 2>&1 || true
 
+fi  # places
+
+if want call; then
 # Stories 080–084, 093: a call to a fake bridge on this Mac (scripts/native/fake-bridge.py), started by the launch
 # hook and hung up by it after 8 s. Judged from the session log and the bridge's own report: the start frame went up
 # with the client tag, mic frames flowed up, PCM came down and was scheduled, captions arrived, and the hang-up
@@ -282,8 +311,6 @@ PORT=${CALL_PORT:-8799}
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
 "$(dirname "$0")/fake-bridge.py" "$PORT" "$REPORT" >/dev/null 2>&1 &
 BRIDGE=$!
-DROP=
-trap 'kill $BRIDGE $DROP 2>/dev/null || true; unstash' EXIT  # smoke-lib's trap puts stashed data back
 sleep 2
 # Another bridge already on the port would answer instead and leave this report empty.
 kill -0 "$BRIDGE" 2>/dev/null || bad "call: the fake bridge did not start on port $PORT (is one already running?)"
@@ -367,6 +394,9 @@ trouble_call
 require_event bug_report_auto_skipped 'select(.reason == "call_trouble")' "trouble: a second within ten minutes, after a relaunch, is skipped"
 kill "$DROP" 2>/dev/null || true
 
+fi  # call
+
+if want mirror; then
 # Stories 020, 029 (spec step 4): the grab runs end to end on the simulator, every series arrives and no query fails.
 # `fixture` answers from the file; `healthkit` from the simulator's Health store, which needs the access
 # `just native-sim-health` grants once (skipped with a note when it has not). Each run's summary and raw must equal,
@@ -399,6 +429,9 @@ mirror_check() {  # $1 = fixture | healthkit
 mirror_check fixture
 mirror_check healthkit
 
+fi  # mirror
+
+if want drill; then
 # Story 220: Drill the stack opens the trainer's drill over the card screen, in the direction asked for.
 SIMCTL_CHILD_GRABBER_DRILL=mixed relaunch
 wait_for drill 20 || echo "      (timed out waiting for drill)"
@@ -408,6 +441,9 @@ card=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_card")][0].from // "
 if [ "$card" = "hook" ] && [[ "$drill" =~ ^open\ mixed\ (52|27)$ ]]; then ok "drill: opened over the card, $drill"
 else bad "drill: open_card '$card', drill '$drill'"; fi
 
+fi  # drill
+
+if want chat; then
 # Chat (spec 2026-10-25): against a fake Cockpit (scripts/native/fake-cockpit.py), a message written for a new thread
 # goes up once as POST /chat with its id and the app as source, and one written in a thread as POST /chat/<key>;
 # opening that thread reads it and marks it seen. The log names the thread, never the text.
@@ -415,7 +451,6 @@ CHAT_PORT=${CHAT_PORT:-8797}
 CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
 "$(dirname "$0")/fake-cockpit.py" "$CHAT_PORT" "$CHAT_REPORT" >/dev/null 2>&1 &
 COCKPIT=$!
-trap 'kill $BRIDGE $DROP $COCKPIT 2>/dev/null || true; unstash' EXIT
 sleep 1
 kill -0 "$COCKPIT" 2>/dev/null || bad "chat: the fake Cockpit did not start on port $CHAT_PORT"
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND="new|smoke: a new thread" relaunch
@@ -441,6 +476,8 @@ if [ "$replied" = 1 ] && [ "$read_it" -ge 1 ] && [ "$seen" -ge 1 ] && [ "$opened
 else bad "chat: POST /chat/<key> x$replied, GET x$read_it, seen x$seen, opened '$opened'"; fi
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$failed" ]; then ok "chat: no error events"; else bad "chat: $failed"; fi
+
+fi  # chat
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
 smoke_done

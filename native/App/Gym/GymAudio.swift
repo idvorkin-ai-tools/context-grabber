@@ -171,6 +171,7 @@ final class GymAudio: DuckSession, @unchecked Sendable {
     }
     do {
       let player = try AVAudioPlayer(contentsOf: url)
+      player.volume = TestAudio.volume()
       player.prepareToPlay()
       return player
     } catch {

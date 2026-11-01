@@ -371,6 +371,15 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     engine.connect(player, to: engine.mainMixerNode, format: format)
     playerFormat = format
     let mixer = engine.mainMixerNode
+    // GRABBER_SILENT: a zero-volume mixer between the main mixer and the speaker, so the tap below (the silent-mixer
+    // heal's ear) still hears the call while the Mac hears nothing.
+    if TestAudio.silent, !engine.attachedNodes.contains(where: { $0 is SilentMixer }) {
+      let quiet = SilentMixer()
+      engine.attach(quiet)
+      engine.connect(mixer, to: quiet, format: nil)
+      engine.connect(quiet, to: engine.outputNode, format: nil)
+      quiet.outputVolume = 0
+    }
     if mixTapInstalled { mixer.removeTap(onBus: 0) }
     mixer.installTap(onBus: 0, bufferSize: 4096, format: nil) { [weak self] buffer, _ in
       guard let self, let data = buffer.floatChannelData else { return }
@@ -832,3 +841,6 @@ struct CallAudioError: Error, LocalizedError {
   init(_ message: String) { self.message = message }
   var errorDescription: String? { message }
 }
+
+/// The simulator smoke's mute (GRABBER_SILENT): only ever attached under it.
+private final class SilentMixer: AVAudioMixerNode {}
