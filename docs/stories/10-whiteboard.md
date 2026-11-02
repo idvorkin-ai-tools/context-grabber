@@ -1,7 +1,8 @@
 # The whiteboard
 
-Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude drawing with Igor. Spec:
-[2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md).
+Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larry drawing back. Specs:
+[2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md),
+[2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md).
 
 ---
 

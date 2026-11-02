@@ -2,7 +2,7 @@
 
 Igor, 2026-11-01: "what about the ghosting idea, does that work? How does Larry write back? I don't grok that yet",
 then "make an issue for cockpit, build your side". Builds on [the whiteboard](2026-11-01-whiteboard-design.md)
-(stories 344 and 349). The Cockpit half is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
+(stories 344 and 349–355). The Cockpit half is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
 
 ## The idea in one line
 
@@ -12,7 +12,7 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 
 ## What Igor sees
 
-### Ghosts from Claude (story 344)
+### Ghosts from Claude (stories 344, 350–352, 354)
 
 - He draws, then lifts the Pencil. After about **1.5 s** with nothing new, faint shapes appear in Claude's colour
   (orange): the box his arrow points at, a label, the third circle.
@@ -24,7 +24,7 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 - **A tap off the ghosts dismisses them all.**
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so keeping a ghost leaves no dot. With no ghost left it draws again.
-- A ghost turn gives up after **3 s**: a late answer would land on a drawing that has moved on. Nothing is shown when
+- A ghost turn gives up after **3 s**: a late answer would land on a drawing that has moved on. No ghost is shown when
   it gives up.
 - **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause.
 - Ghosts need the Cockpit. When it can't be reached the board draws as before; the bar says *Ghosts: the Cockpit
@@ -33,7 +33,7 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 - A point in an answer that lies past anywhere the board could reach is ignored, and a shape left with too few points
   isn't shown: a model's bad number never breaks the board.
 
-### Larry's turn (story 349)
+### Larry's turn (stories 349, 353, 355)
 
 - **Larry's turn** in the board's bar sends the board to Larry and waits for him (up to a minute), saying *Larry is
   looking…*.
