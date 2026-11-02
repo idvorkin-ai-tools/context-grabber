@@ -213,6 +213,13 @@ final class WhiteboardTurnUITests: XCTestCase {
     return UInt32(pixel[0]) << 16 | UInt32(pixel[1]) << 8 | UInt32(pixel[2])
   }
 
+  private func keepShot(_ name: String) {
+    let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    shot.name = name
+    shot.lifetime = .keepAlways
+    add(shot)
+  }
+
   private func assertPaper(_ expected: UInt32, _ what: String) throws {
     sleep(1)
     let seen = try paperOnScreen()
@@ -238,16 +245,17 @@ final class WhiteboardTurnUITests: XCTestCase {
     paper.tap()
     let cream = app.buttons["Cream"]
     XCTAssertTrue(cream.waitForExistence(timeout: 5), app.debugDescription)
-    add(XCTAttachment(screenshot: XCUIScreen.main.screenshot()))
+    keepShot("The menu")
     cream.tap()
     wait(paper, label: "Board colour: Cream", timeout: 3)
     try assertPaper(0xFBF3DC, "Cream, light")
     XCUIDevice.shared.appearance = .dark
     try assertPaper(0x2B2416, "Cream, dark")
-    XCUIDevice.shared.appearance = .light
-
     stroke(app)
     wait(app, strokes: 1)
+    keepShot("Ink on Cream, dark, the tool picker back")
+    XCUIDevice.shared.appearance = .light
+
     reopenBoard(app)
     wait(paper, label: "Board colour: Cream", timeout: 3)
     try assertPaper(0xFBF3DC, "Cream, reopened")
