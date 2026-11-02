@@ -950,7 +950,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 306:
 
 - **Summary:** A picture opened full size in a thread always has a way back
-- **Status:** native app only: not yet built
+- **Status:** native app only: implemented in [8625876](https://github.com/idvorkin/context-grabber/commit/8625876); verified by the simulator build; tapping Done and swiping down over a white picture on the iPad not yet
 - **Issues:** [#592](https://github.com/idvorkin/context-grabber/issues/592)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
