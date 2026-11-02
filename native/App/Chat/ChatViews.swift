@@ -36,6 +36,20 @@ struct ChatListView: View {
             "This build has no App Group, so nothing shared can reach Chat.", context: "ChatListView.load", extra: [:]),
           logger: logger)
       }
+      if let problem = chat.archiveProblem {
+        BugProblemView(
+          problem: .grabber(problem, context: "ChatListView.archive", extra: ["cockpit": .string(chat.cockpit)]),
+          logger: logger)
+      }
+      if let undo = chat.undoArchive {
+        HStack {
+          Text("Archived \"\(undo.title)\"").lineLimit(1)
+          Spacer()
+          Button("Undo") { Task { await chat.setArchived(undo.key, false, from: "undo") } }
+            .accessibilityIdentifier("chat-archive-undo")
+        }
+        .font(.footnote)
+      }
       if let problem = chat.listProblem, !inbox.offline {
         BugProblemView(
           problem: .grabber(problem, context: "ChatListView.refresh", extra: ["cockpit": .string(chat.cockpit)]),
@@ -121,6 +135,14 @@ struct ChatListView: View {
       ThreadRow(thread: thread)
     }
     .accessibilityIdentifier("chat-thread-\(thread.key)")
+    // #589: a swipe left archives a live thread, or brings back an archived one.
+    .swipeActions {
+      if thread.archived {
+        Button("Unarchive") { Task { await chat.setArchived(thread.key, false, from: "swipe") } }.tint(.blue)
+      } else if !thread.done {
+        Button("Archive") { Task { await chat.setArchived(thread.key, true, from: "swipe") } }.tint(.indigo)
+      }
+    }
   }
 }
 
@@ -191,6 +213,7 @@ struct ChatThreadView: View {
   @State private var newThread = ChatNewThread()
   /// A new chat's own name for the bar and the mic, the same across attempts and after it lands.
   @State private var screenID = UUID().uuidString.lowercased()
+  @Environment(\.dismiss) private var dismiss
 
   init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
     self.chat = chat
@@ -266,6 +289,17 @@ struct ChatThreadView: View {
         withAnimation { reader.scrollTo("bottom", anchor: .bottom) }
       }
     }
+    // Not in the scroll view: it opens at the newest message, so a long thread would hide this.
+    .safeAreaInset(edge: .top) {
+      if let problem = chat.archiveProblem {
+        BugProblemView(
+          problem: .grabber(problem, context: "ChatThreadView.archive", extra: ["cockpit": .string(chat.cockpit)]),
+          logger: logger
+        )
+        .padding(.horizontal, 12)
+        .background(.bar)
+      }
+    }
     .safeAreaInset(edge: .bottom) {
       ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger) {
         newThread.attempt(at: target)
@@ -273,6 +307,27 @@ struct ChatThreadView: View {
     }
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      if let key, let thread = chat.threads.first(where: { $0.key == key }) {
+        ToolbarItem(placement: .topBarTrailing) {
+          Menu {
+            if thread.archived {
+              Button("Unarchive chat", systemImage: "tray.and.arrow.up") {
+                Task { await chat.setArchived(key, false, from: "menu") }
+              }
+            } else {
+              Button("Archive chat", systemImage: "archivebox") {
+                Task { await chat.setArchived(key, true, from: "menu") }
+                dismiss()
+              }
+            }
+          } label: {
+            Label("More", systemImage: "ellipsis.circle")
+          }
+          .accessibilityIdentifier("chat-thread-more")
+        }
+      }
+    }
     .accessibilityIdentifier(fixedKey == nil ? "chat-new-thread" : "chat-thread")
     .onAppear { if let key { chat.open(key) } }
     .onDisappear { if let key { chat.close(key) } }

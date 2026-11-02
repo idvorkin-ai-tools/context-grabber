@@ -14,6 +14,8 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
   public let lastText: String
   public let unread: Int
   public let done: Bool
+  /// Archived on the phone or the Cockpit (#589); an archived thread is also `done`.
+  public let archived: Bool
 
   public var id: String { key }
   public var larryHasLastWord: Bool { lastWho == "larry" }
@@ -21,7 +23,7 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
 
   public init(
     key: String, title: String, count: Int = 1, lastTs: String, lastWho: String, lastText: String, unread: Int = 0,
-    done: Bool = false
+    done: Bool = false, archived: Bool = false
   ) {
     self.key = key
     self.title = title
@@ -31,10 +33,18 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     self.lastText = lastText
     self.unread = unread
     self.done = done
+    self.archived = archived
+  }
+
+  /// The same row archived or brought back, as it shows until the Cockpit's next list.
+  public func archiving(_ archive: Bool) -> ChatSummary {
+    ChatSummary(
+      key: key, title: title, count: count, lastTs: lastTs, lastWho: lastWho, lastText: lastText, unread: unread,
+      done: archive, archived: archive)
   }
 
   enum CodingKeys: String, CodingKey {
-    case key, title, count, unread, done
+    case key, title, count, unread, done, archived
     case lastTs = "last_ts"
     case lastWho = "last_who"
     case lastText = "last_text"
@@ -49,6 +59,7 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     lastWho = (try? c.decode(String.self, forKey: .lastWho)) ?? ""
     lastText = (try? c.decode(String.self, forKey: .lastText)) ?? ""
     unread = (try? c.decode(Int.self, forKey: .unread)) ?? 0
+    archived = (try? c.decode(Bool.self, forKey: .archived)) ?? false
     done = (try? c.decode(Bool.self, forKey: .done)) ?? false
   }
 }
@@ -139,6 +150,29 @@ public enum ChatWire {
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
     request.httpBody = try JSONSerialization.data(withJSONObject: ["thread": key])
     return request
+  }
+
+  /// `POST /chat/<key>/archive` or `/unarchive` (#589, cockpit f94feae); the body is ignored, but the Cockpit's
+  /// write boundary answers 415 to a POST that isn't `application/json`, an empty one included.
+  public static func archiveRequest(_ key: String, archive: Bool, cockpit: String) throws -> URLRequest {
+    guard let base = URL(string: cockpit),
+      let url = URL(
+        string: cockpit.trimmingSuffix("/") + "/chat/" + encode(key) + (archive ? "/archive" : "/unarchive"))
+    else { throw URLError(.badURL) }
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.timeoutInterval = 15
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    return request
+  }
+
+  /// Nil when the Cockpit took it; otherwise why not.
+  public static func archiveFailure(status: Int?, body: Data?, error: String? = nil) -> String? {
+    guard let status else { return error ?? "no answer" }
+    let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+    if status == 200, json?["ok"] as? Bool == true { return nil }
+    return (json?["error"] as? String).map { "\($0) (HTTP \(status))" } ?? "HTTP \(status)"
   }
 
   /// Where an attachment's image is served; nil for a ref that is not one the Cockpit mints.

@@ -4,6 +4,8 @@
   scripts/native/fake-cockpit.py PORT REPORT
 
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
+POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
+the Cockpit's write boundary),
 GET /attachments/<ref>, POST /whiteboard/turn (cockpit#85: a ghost circle right of the picture for Claude; an arrow, a
 label and a thread named after the board for Larry). A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
@@ -63,7 +65,7 @@ def summary(key, t):
     unread = len([ts for ts in larry if ts > t["seen"]])
     return {"key": key, "title": t["title"], "count": len(t["messages"]), "last_ts": last["ts"],
             "last_who": last["who"], "last_text": last["text"] or "[image]", "larry_ts": larry,
-            "unread": unread, "done": False}
+            "unread": unread, "done": t.get("archived", False), "archived": t.get("archived", False)}
 
 
 def reply_later(key, text):
@@ -126,6 +128,15 @@ class Handler(BaseHTTPRequestHandler):
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
                       "origin": self.headers.get("Origin")})
         with LOCK:
+            way = path.rsplit("/", 1)[-1]
+            if path.startswith("/chat/") and way in ("archive", "unarchive"):
+                if self.headers.get("Content-Type", "").split(";")[0].strip().lower() != "application/json":
+                    return self._json(415, {"ok": False, "error": "application/json required"})
+                t = THREADS.get(path[len("/chat/"):-len(way) - 1])
+                if not t or (way == "archive" and not t["messages"]):
+                    return self._json(404, {"ok": False, "error": "no such thread"})
+                t["archived"] = way == "archive"
+                return self._json(200, {"ok": True, "archived": t["archived"]})
             if path == "/chat-seen":
                 t = THREADS.get(data.get("thread"))
                 if t and t["messages"]:
@@ -149,6 +160,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True, "thread": key, "message": mine[0], "duplicate": True})
             m = row(key, "igor", data.get("text") or "", data.get("id"), data.get("attachments"))
             t["messages"].append(m)
+            t["archived"] = False
         reply_later(key, data.get("text"))
         self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})
 

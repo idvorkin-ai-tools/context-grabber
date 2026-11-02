@@ -321,4 +321,48 @@ final class ChatTests: XCTestCase {
     var paths: [String] { all.map { $0.url?.path ?? "" } }
     func add(_ request: URLRequest) { all.append(request) }
   }
+
+  // MARK: Archiving (#589)
+
+  func testAnArchivedRowReadsArchivedAndAnOldCockpitsRowIsNot() throws {
+    let rows = try XCTUnwrap(
+      ChatWire.summaries(
+        Data(
+          """
+          {"ok": true, "threads": [
+            {"key": "a", "title": "A", "archived": true, "done": true},
+            {"key": "b", "title": "B"}
+          ]}
+          """.utf8)))
+    XCTAssertEqual(rows.map(\.archived), [true, false])
+    XCTAssertEqual(rows.map(\.done), [true, false])
+  }
+
+  func testArchivingARowFoldsItUnderDoneAndUnarchivingBringsItBack() {
+    let row = ChatSummary(key: "k", title: "T", lastTs: "", lastWho: "larry", lastText: "hi", unread: 2)
+    XCTAssertEqual(row.archiving(true).done, true)
+    XCTAssertEqual(row.archiving(true).archived, true)
+    XCTAssertEqual(row.archiving(true).archiving(false), row)
+  }
+
+  func testTheArchiveRequestNamesTheThreadAndTheWay() throws {
+    let archive = try ChatWire.archiveRequest("auto:note:1", archive: true, cockpit: "https://c.example/")
+    XCTAssertEqual(archive.url?.absoluteString, "https://c.example/chat/auto:note:1/archive")
+    XCTAssertEqual(archive.httpMethod, "POST")
+    XCTAssertEqual(archive.value(forHTTPHeaderField: "Origin"), "https://c.example")
+    let back = try ChatWire.archiveRequest("a/b", archive: false, cockpit: "https://c.example")
+    XCTAssertEqual(back.url?.absoluteString, "https://c.example/chat/a%2Fb/unarchive")
+    // The Cockpit's write boundary answers 415 to any other media type, an empty body included.
+    XCTAssertEqual(archive.value(forHTTPHeaderField: "Content-Type"), "application/json")
+    XCTAssertEqual(back.value(forHTTPHeaderField: "Content-Type"), "application/json")
+  }
+
+  func testTheCockpitsArchiveAnswers() {
+    XCTAssertNil(ChatWire.archiveFailure(status: 200, body: Data(#"{"ok": true, "archived": true}"#.utf8)))
+    XCTAssertEqual(
+      ChatWire.archiveFailure(status: 404, body: Data(#"{"ok": false, "error": "no such thread"}"#.utf8)),
+      "no such thread (HTTP 404)")
+    XCTAssertEqual(ChatWire.archiveFailure(status: 502, body: nil), "HTTP 502")
+    XCTAssertEqual(ChatWire.archiveFailure(status: nil, body: nil, error: "offline"), "offline")
+  }
 }
