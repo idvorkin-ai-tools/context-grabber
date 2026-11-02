@@ -966,3 +966,34 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** the picture fills the screen with *Done* on a dark badge I can see over it, and either one brings me back to the thread
 
 ---
+
+### User Story 307:
+
+- **Summary:** Archive a chat from the list or from inside it
+- **Status:** native app only: not yet built
+- **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
+- **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with a long list of chats
+- **I want to** archive a finished one with a swipe, or from the thread's ⋯ menu
+- **so that** the list holds only what is still open, the same on the phone and the Cockpit
+
+#### Acceptance Criteria:
+- **Scenario:** Swipe to archive, and undo
+- **Given:** an open thread in the list
+- **When:** I swipe it left and tap *Archive*
+- **Then:** it folds under *Done*, the list says *Archived* with *Undo* for five seconds, and *Undo* puts it back
+
+- **Scenario:** From inside the thread
+- **Given:** I am reading a thread
+- **When:** I open ⋯ and tap *Archive chat*
+- **Then:** I am back on the list with the thread under *Done*; in an archived thread the menu says *Unarchive chat*
+
+- **Scenario:** The Cockpit refuses
+- **Given:** the Cockpit can't be reached
+- **When:** I archive a thread
+- **Then:** it goes back where it was and a copyable problem says why
+
+---
+

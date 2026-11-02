@@ -20,6 +20,11 @@ final class ChatModel: ObservableObject {
   @Published var linkThread: String?
   /// The + (#536): a new, empty thread is on screen, its first Send starts it.
   @Published var newChatOpen = false
+  /// The last archive from the list, offered back for five seconds (#589).
+  @Published private(set) var undoArchive: ChatSummary?
+  /// Why the last archive or unarchive didn't take.
+  @Published private(set) var archiveProblem: String?
+  private var undoTask: Task<Void, Never>?
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
 
@@ -83,6 +88,45 @@ final class ChatModel: ObservableObject {
   private func listFailed(_ why: String, reason: String, problem: String? = nil) {
     listProblem = problem ?? "\(Self.listFailure): \(why)"
     log.event("chat", ["action": "refresh_failed", "why": reason, "reason": why])
+  }
+
+  // MARK: Archiving (#589)
+
+  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back.
+  func setArchived(_ key: String, _ archive: Bool, from: String) async {
+    guard let index = threads.firstIndex(where: { $0.key == key }) else { return }
+    let before = threads[index]
+    threads[index] = before.archiving(archive)
+    archiveProblem = nil
+    if archive, from == "swipe" {
+      undoArchive = before
+      undoTask?.cancel()
+      undoTask = Task { [weak self] in
+        try? await Task.sleep(for: .seconds(5))
+        guard !Task.isCancelled, self?.undoArchive?.key == key else { return }
+        self?.undoArchive = nil
+      }
+    } else if !archive, undoArchive?.key == key {
+      undoArchive = nil
+    }
+    var failure: String?
+    do {
+      let (body, response) = try await URLSession.shared.data(
+        for: try ChatWire.archiveRequest(key, archive: archive, cockpit: cockpit))
+      failure = ChatWire.archiveFailure(status: (response as? HTTPURLResponse)?.statusCode, body: body)
+    } catch {
+      failure = ChatWire.archiveFailure(status: nil, body: nil, error: error.localizedDescription)
+    }
+    log.event(
+      "chat",
+      [
+        "action": archive ? "archive" : "unarchive", "thread": key, "from": from, "ok": failure == nil,
+        "reason": failure ?? "",
+      ])
+    guard let failure else { return }
+    if let now = threads.firstIndex(where: { $0.key == key }) { threads[now] = before }
+    if undoArchive?.key == key { undoArchive = nil }
+    archiveProblem = "Could not \(archive ? "archive" : "unarchive") \"\(before.title)\": \(failure)"
   }
 
   // MARK: One thread

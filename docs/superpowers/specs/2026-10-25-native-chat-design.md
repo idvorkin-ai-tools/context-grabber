@@ -26,7 +26,7 @@ updates by itself; while it is not, the phone checks now and then and notifies I
 - Instant alerts like Telegram's. That needs real push and a paid developer account; a later spec (option C) if
   wanted. Telegram stays available for anything that must arrive at once.
 - Larry starting a conversation that only Telegram carries. Threads Larry starts on the Cockpit do appear here.
-- Searching, renaming, closing or deleting threads from the phone. Closing is done on the Cockpit, as now.
+- Searching, renaming or deleting threads from the phone. Archiving is the phone's way to close one (#589).
 - A voice conversation inside a thread (the Call screen is that). Speaking a message is in (#448): it becomes text
   Igor reads before he sends.
 
@@ -39,6 +39,14 @@ the conversations with a reply Igor has not read, plus any of his messages not y
 when, and an unread mark when Larry has replied since Igor last looked. Finished threads fold under *Done*, by the
 same rule the Cockpit uses, so the phone and the laptop agree. The round **+** stays at the lower right; it starts a
 new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
+
+**Archiving** (Igor, 2026-11-01: "Let me archive threads both via swipe and via buttons in chat overflow"; #589, the
+Cockpit's archive shipped first). Swiping a thread left in the list offers *Archive*; it folds under *Done* at once,
+and the list shows *Archived "title"* with *Undo* for five seconds. An archived thread under *Done* swipes to
+*Unarchive*. Inside a thread, the **⋯** menu at the top has *Archive chat*, or *Unarchive chat* when it is archived;
+archiving from there goes back to the list. A new message from either side brings an archived thread back by itself,
+as on the Cockpit. When the Cockpit refuses or can't be reached, the thread goes back where it was and a copyable
+problem says why.
 
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or
