@@ -1322,37 +1322,117 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 407:
 
 - **Summary:** Faint grid lines on the board
-- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`) and the simulator (`WhiteboardTurnUITests`: lines appear in the screenshot's pixels and by eye in dark mode, the choice stays with its board, a new board has none); how faint they look beside real ink, and drawing and pinching at 120 Hz on a big board, are for the iPad
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`: spacing and line count at every zoom), the simulator (`WhiteboardTurnUITests`: the lines appear in the screenshot's pixels; by eye in dark mode, faint and even) and the smoke (`grid_on` from the hook); following a pinch, how faint they look beside real ink and how drawing feels at 120 Hz on a big board are not verified, for the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 
 #### Use Case:
 - **As someone** sketching on the iPad
 - **I want to** turn on faint grid lines that move with the board
-- **so that** I can keep things lined up and to scale without the grid becoming part of the drawing
+- **so that** I can keep things lined up and to scale
 
 #### Acceptance Criteria:
-- **Scenario:** The grid, on and off
-- **Given:** a board with strokes on it, its grid off
+- **Scenario:** Grid on
+- **Given:** a board I draw on, its grid off
 - **When:** I choose Grid lines in the Board menu
-- **Then:** faint lines show, too faint to break up the ink they cross, and pan and pinch with the board, thinning out as I pinch out; choosing it again removes them and the ink is untouched; the board opens with the same choice next time, and a new board starts with none
+- **Then:** faint lines show, too faint to break up the ink they cross, panning and pinching with the board and thinning out as I pinch out
 
 ---
 
 ### User Story 408:
 
-- **Summary:** The grid is only for me
-- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); the pictures are made from the ink alone, so there's no line to leave out; a turn's picture with the grid on is for the iPad's eye (the simulator test doesn't read the picture)
+- **Summary:** Turning the grid off
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by the simulator (`WhiteboardTurnUITests`: the screenshot's pixels return to what they were)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 
 #### Use Case:
-- **As someone** drawing with Claude and Larry
-- **I want to** have the grid left out of what they see and what's saved
-- **so that** their marks answer my drawing and not the squares, and the grid can't be erased or kept by accident
+- **As someone** sketching on the iPad
+- **I want to** turn the grid back off
+- **so that** the board is only my ink again
 
 #### Acceptance Criteria:
-- **Scenario:** What the grid isn't
+- **Scenario:** Grid off
 - **Given:** a board with its grid on
-- **When:** I erase or lasso across a line, send it to Larry, or a turn asks Claude
-- **Then:** the line stays, nothing was selected or erased, and the picture and the board's card show ink only
+- **When:** I choose Grid lines in the Board menu again
+- **Then:** the lines are gone and the ink is as it was
+
+---
+
+### User Story 409:
+
+- **Summary:** The grid stays with its board
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by the simulator (`WhiteboardTurnUITests`: a reopened board draws its lines, or none, from the screenshot's pixels)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+
+#### Use Case:
+- **As someone** sketching on the iPad
+- **I want to** have a board remember whether its grid is on
+- **so that** I don't set it again each time
+
+#### Acceptance Criteria:
+- **Scenario:** Reopened
+- **Given:** I left a board with its grid on or off
+- **When:** I open it again on this device
+- **Then:** it opens the way I left it
+
+---
+
+### User Story 410:
+
+- **Summary:** A new board has no grid
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by the simulator (`WhiteboardTurnUITests`: the Board menu's label on a new board, with another board's grid on)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+
+#### Use Case:
+- **As someone** sketching on the iPad
+- **I want to** start each new board without a grid
+- **so that** a grid is something I ask for on the board I want it on
+
+#### Acceptance Criteria:
+- **Scenario:** New board
+- **Given:** another board has its grid on
+- **When:** I make a new board
+- **Then:** its grid is off
+
+---
+
+### User Story 411:
+
+- **Summary:** The grid isn't ink
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); by design the lines aren't strokes; not verified by a test, and erasing or lassoing across a line is for the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+
+#### Use Case:
+- **As someone** sketching on the iPad
+- **I want to** have the eraser and lasso ignore the grid
+- **so that** I can't erase or move it by accident
+
+#### Acceptance Criteria:
+- **Scenario:** Eraser and lasso
+- **Given:** a board with its grid on
+- **When:** I erase or lasso across a line
+- **Then:** the line stays and nothing is selected for it
+
+---
+
+### User Story 412:
+
+- **Summary:** Claude and Larry don't see the grid
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); by design their pictures and the board's card are drawn from the ink alone; not verified by a test, so a picture sent with the grid on is for the iPad's eye
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+
+#### Use Case:
+- **As someone** sketching on the iPad
+- **I want to** leave the grid out of what they see and of the board's card
+- **so that** their marks answer my drawing and aren't fitted to the squares
+
+#### Acceptance Criteria:
+- **Scenario:** Pictures
+- **Given:** a board with its grid on
+- **When:** I send it to Larry, or a turn asks Claude or Larry
+- **Then:** the picture and the board's card show ink only

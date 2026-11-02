@@ -131,6 +131,15 @@ if [ "$opened" = "hook" ] && [[ "$boards" =~ ^[0-9]+$ ]] && [[ "$synced" == "tru
   && [ -z "$errors" ]; then
   ok "whiteboard: the boards opened from the hook, $boards board(s), iCloud: $synced, no error events"
 else bad "whiteboard: open_whiteboard from '$opened', boards '$boards', sync '$synced', errors: $errors"; fi
+# Story 407: a board's grid turned on from the hook, logged with its board. How it looks is WhiteboardTurnUITests'.
+SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-grid SIMCTL_CHILD_GRABBER_WHITEBOARD_GRID=on \
+  SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-grid" relaunch
+wait_jq 'select(.type=="whiteboard" and .action=="grid_on")' 30 || echo "      (timed out waiting for grid_on)"
+f=$(newest_log)
+grid=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="grid_on")][0].board // ""' "$f")
+errors=$(jq -c 'select(.type=="error")' "$f")
+if [ "$grid" = "smoke-grid" ] && [ -z "$errors" ]; then ok "whiteboard: the grid on from the hook, no error events"
+else bad "whiteboard: grid_on for board '$grid', errors: $errors"; fi
 fi  # whiteboard
 
 if want timer; then

@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402, 403 and 407 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -279,42 +279,61 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(note.waitForExistence(timeout: 8), app.debugDescription)
   }
 
-  /// Story 407: off until asked, visible when on (read from the pixels: the board isn't in the accessibility tree), gone
-  /// when off, and remembered by this board and no other. Ghosts off, so nothing else moves on the board.
+  /// Stories 407–410: off until asked, visible when on and gone when off (read from the pixels: the board isn't in the
+  /// accessibility tree), and remembered by this board and no other. Ghosts off, so nothing else moves on the board. A
+  /// reopened board frames its drawing differently, so its pixels are compared with themselves.
   func testTheGridShowsWhenAskedAndStaysWithItsBoard() throws {
     let (app, ghosts) = try openBoard()
     ghosts.tap()
     wait(ghosts, label: "Ghosts off", timeout: 3)
     stroke(app)
     wait(app, strokes: 1)
-    let view = app.buttons["whiteboard-board"]
-    XCTAssertEqual(view.label, "Board, Plain")
-    sleep(1)
-    let off = app.screenshot().image
+    let board = app.buttons["whiteboard-board"]
+    XCTAssertEqual(board.label, "Board, Plain")
+    let off = settledScreen(app)
 
-    tapGrid(app, view, expect: "Board, Plain, grid on")
-    sleep(1)
-    let on = app.screenshot()
-    let picture = XCTAttachment(screenshot: on)
+    tapGrid(app, board, expect: "Board, Plain, grid on")
+    let on = settledScreen(app)
+    let picture = XCTAttachment(image: on)
     picture.name = "grid-on"
     picture.lifetime = .keepAlways
     add(picture)
-    XCTAssertGreaterThan(boardPixelsDiffering(off, on.image), 1000, "no grid lines appeared")
+    XCTAssertGreaterThan(boardPixelsDiffering(off, on), Self.gridPixels, "no grid lines appeared")
 
+    tapGrid(app, board, expect: "Board, Plain")
+    XCTAssertLessThan(boardPixelsDiffering(off, settledScreen(app)), Self.noPixels, "the lines stayed")
+
+    // Left on: it opens on, and it draws them.
+    tapGrid(app, board, expect: "Board, Plain, grid on")
     reopenBoard(app)
-    XCTAssertEqual(view.label, "Board, Plain, grid on")
-    tapGrid(app, view, expect: "Board, Plain")
+    XCTAssertEqual(board.label, "Board, Plain, grid on")
+    let reopenedOn = settledScreen(app)
+    tapGrid(app, board, expect: "Board, Plain")
+    let reopenedOff = settledScreen(app)
+    XCTAssertGreaterThan(
+      boardPixelsDiffering(reopenedOn, reopenedOff), Self.gridPixels, "the reopened board drew no lines")
+
+    // Left off: it opens off, and draws none.
     reopenBoard(app)
-    XCTAssertEqual(view.label, "Board, Plain")
-    tapGrid(app, view, expect: "Board, Plain, grid on")
+    XCTAssertEqual(board.label, "Board, Plain")
+    XCTAssertLessThan(boardPixelsDiffering(reopenedOff, settledScreen(app)), Self.noPixels, "off, and lines showed")
 
     // A new board has its own switch.
+    tapGrid(app, board, expect: "Board, Plain, grid on")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.waitForExistence(timeout: 5), app.debugDescription)
     new.tap()
-    XCTAssertTrue(view.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertEqual(view.label, "Board, Plain")
+    XCTAssertTrue(board.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertEqual(board.label, "Board, Plain")
+  }
+
+  private static let gridPixels = 1000
+  private static let noPixels = 50
+
+  private func settledScreen(_ app: XCUIApplication) -> UIImage {
+    sleep(1)
+    return app.screenshot().image
   }
 
   /// The grid's switch, in the Board menu.

@@ -35,7 +35,7 @@ final class WhiteboardFrameTests: XCTestCase {
     XCTAssertNil(WhiteboardFrame.export(.zero))
   }
 
-  // Story 398.
+  // Story 407.
   func testGridLinesStayApartAndFewAtAnyZoom() {
     let viewport = CGSize(width: 1366, height: 1024)
     for zoom in stride(from: CGFloat(0.1), through: 3, by: 0.05) {

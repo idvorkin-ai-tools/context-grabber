@@ -124,6 +124,7 @@ final class WhiteboardModel: ObservableObject {
     log.event(
       "whiteboard",
       ["action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": store.editable(board)])
+    if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GRID"] == "on" { setGrid(true) }
   }
 
   func changed(_ new: PKDrawing) {
