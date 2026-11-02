@@ -1051,7 +1051,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 311:
 
 - **Summary:** Archive several chats at once
-- **Status:** native app only: built on this branch; verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet
 - **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1076,7 +1076,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 312:
 
 - **Summary:** Larry proposes that a chat looks done
-- **Status:** native app only: built on this branch; verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it)
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it)
 - **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
