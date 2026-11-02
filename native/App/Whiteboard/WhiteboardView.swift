@@ -798,7 +798,6 @@ struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
-  @Environment(\.colorScheme) private var colorScheme
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   private let logger: BugLogger
   private let callLive: AnyPublisher<Bool, Never>
@@ -831,17 +830,13 @@ struct WhiteboardView: View {
     .toolbar {
       if model.editable {
         // The board's own settings, in one menu. Six items in an iPhone's top bar push Larry's turn and Send under *More*,
-        // so at that width this one goes to the bottom (story 378).
+        // so at that width this one goes to the bottom (story 396).
         ToolbarItem(placement: horizontalSizeClass == .compact ? .bottomBar : .topBarTrailing) {
           Menu {
             Section("Colour") {
               Picker("Colour", selection: Binding(get: { model.paper }, set: { model.setPaper($0) })) {
                 ForEach(BoardPaper.allCases, id: \.self) { paper in
-                  Label {
-                    Text(paper.name)
-                  } icon: {
-                    swatch(paper)
-                  }.tag(paper)
+                  Text(paper.name).tag(paper)
                 }
               }
             }
@@ -927,19 +922,6 @@ struct WhiteboardView: View {
     }
     .onReceive(callLive) { live in if live { model.stopMic(why: "call") } }
     .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
-  }
-
-  /// A dot of the colour as this mode shows it; a menu only keeps an image's own colours with `.alwaysOriginal`.
-  private func swatch(_ paper: BoardPaper) -> Image {
-    let traits = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
-    let dot = CGRect(x: 1, y: 1, width: 18, height: 18)
-    return Image(
-      uiImage: UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20)).image { ctx in
-        paper.color.resolvedColor(with: traits).setFill()
-        UIColor.separator.resolvedColor(with: traits).setStroke()
-        ctx.cgContext.fillEllipse(in: dot)
-        ctx.cgContext.strokeEllipse(in: dot)
-      }.withRenderingMode(.alwaysOriginal))
   }
 
   private var note: String? {

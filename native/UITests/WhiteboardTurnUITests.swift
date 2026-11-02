@@ -230,7 +230,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     }
   }
 
-  /// Story 378: the colour is on the canvas, follows the mode, and is still there when the board opens again.
+  /// Stories 378, 396, 397: the colour is on the canvas, follows the mode, and stays when the board opens again.
   func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
     let before = XCUIDevice.shared.appearance
     addTeardownBlock { XCUIDevice.shared.appearance = before }

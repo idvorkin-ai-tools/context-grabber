@@ -2,9 +2,9 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 378: every colour against the ink and the ghosts, in both modes, by WCAG contrast. A ghost is its author's
-/// system colour at half strength over the paper, and orange at half strength is already faint on white (1.5:1), so
-/// ghosts are held to Plain and not to a fixed number. Hue, which helps them, isn't counted.
+/// Stories 397, 398: every colour against the ink and the ghosts, in both modes, by WCAG contrast. A ghost is its
+/// author's system colour at half strength over the paper, and orange at half strength is already faint on white
+/// (1.5:1), so ghosts are held to Plain and not to a fixed number. Hue, which helps them, isn't counted.
 final class BoardPaperTests: XCTestCase {
   private typealias RGB = (r: Double, g: Double, b: Double)
 
