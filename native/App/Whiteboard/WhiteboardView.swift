@@ -575,14 +575,16 @@ struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
   @Environment(\.scenePhase) private var scenePhase
   private let logger: BugLogger
-  @ObservedObject private var callState: CallModel
+  private let callLive: AnyPublisher<Bool, Never>
+  private let reportOpen: AnyPublisher<Bool, Never>
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
     _model = StateObject(
       wrappedValue: WhiteboardModel(
         board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
         callLive: { [weak app] in app?.call.snapshot.isActive ?? false }))
-    callState = app.call
+    callLive = app.call.$snapshot.map(\.isActive).removeDuplicates().eraseToAnyPublisher()
+    reportOpen = app.reporter.$flow.map(\.isPresented).removeDuplicates().eraseToAnyPublisher()
     logger = app.bugLogger
   }
 
@@ -658,7 +660,8 @@ struct WhiteboardView: View {
         model.stopMic(why: "background")
       }
     }
-    .onChange(of: callState.snapshot.isActive) { _, live in if live { model.stopMic(why: "call") } }
+    .onReceive(callLive) { live in if live { model.stopMic(why: "call") } }
+    .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
   }
 
   private var note: String? {

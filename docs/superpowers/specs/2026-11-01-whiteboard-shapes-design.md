@@ -80,7 +80,8 @@ suggest changes the board until Igor keeps it.
 - The bar shows the last words heard. The answerer is Claude's fast model; Larry is too slow for back-and-forth, so
   he stays on his own button.
 - When the mic can't start, the bar shows a copyable problem, including during a call with Larry, which has the
-  microphone. The board's mic stops when a call starts. A stopped mic takes a moment to finish its last words, and
+  microphone. The board's mic stops when a call starts, and when a shake report opens, so words meant for the report
+  don't go to the Cockpit; he taps it again to go on. A stopped mic takes a moment to finish its last words, and
   its button waits for that.
 - Words are heard by Apple's dictation, on the device when it can, and the words go to the Cockpit with the picture.
 

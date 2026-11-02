@@ -583,6 +583,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 369:
+
+- **Summary:** A report takes the mic
+- **Status:** implemented on this branch in the review round after [5957231](https://github.com/idvorkin/context-grabber/commit/5957231); not yet seen: the iPad, with real dictation and a shake (the simulator has no dictation to hear)
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who shakes to report a problem while talking to the board
+- **I want to** have the board's mic stop when the report opens
+- **so that** words meant for the report never go to the Cockpit as a request for ghosts
+
+#### Acceptance Criteria:
+- **Scenario:** A shake report opens
+- **Given:** the board's mic is open
+- **When:** I shake and the report opens
+- **Then:** the board's mic stops, what I dictate into the report doesn't reach the Cockpit, and the mic stays closed until I tap it again
+
+---
+
 ### User Story 370:
 
 - **Summary:** Claude's marks arrive one at a time
