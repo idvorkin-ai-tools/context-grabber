@@ -40,9 +40,6 @@ public enum WhiteboardTurn {
     case away(reason: String)
   }
 
-  /// The most shapes a turn draws, whatever comes back.
-  public static let maxShapes = 40
-
   public static func request(
     who: Who, board: String, title: String, picture: Data, thread: String?, cockpit: String
   ) throws -> URLRequest {
@@ -64,9 +61,9 @@ public enum WhiteboardTurn {
     guard let status else { return .away(reason: error ?? "no answer") }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, let json, json["ok"] as? Bool == true {
-      let shapes = (json["shapes"] as? [[String: Any]] ?? []).compactMap(shape).prefix(maxShapes)
+      let shapes = (json["shapes"] as? [[String: Any]] ?? []).compactMap(shape)
       let thread = (json["thread"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-      return .shapes(Array(shapes), say: json["say"] as? String ?? "", thread: thread)
+      return .shapes(shapes, say: json["say"] as? String ?? "", thread: thread)
     }
     let reason = (json?["error"] as? String) ?? "HTTP \(status)"
     if (400..<500).contains(status) { return .refused(status: status, reason: reason) }
@@ -139,7 +136,6 @@ public enum WhiteboardTurn {
   /// Whether `point` is within `tolerance` of any of `lines`: a tap on a ghost.
   public static func hit(_ lines: [[CGPoint]], at point: CGPoint, tolerance: CGFloat) -> Bool {
     for line in lines {
-      if line.count == 1, hypot(line[0].x - point.x, line[0].y - point.y) <= tolerance { return true }
       for (a, b) in zip(line, line.dropFirst()) {
         let dx = b.x - a.x
         let dy = b.y - a.y
@@ -149,6 +145,24 @@ public enum WhiteboardTurn {
       }
     }
     return false
+  }
+
+  /// `line` with a point about every `spacing` board points, the most a board-sized edge needs. PencilKit treats a
+  /// stroke's points as spline control points, so a corner between far-apart points would be cut short; at 4 points it
+  /// misses by under a point.
+  public static func inkPoints(_ line: [CGPoint], spacing: CGFloat = 4) -> [CGPoint] {
+    var out = Array(line.prefix(1))
+    for (a, b) in zip(line, line.dropFirst()) {
+      let steps = Int(min(hypot(b.x - a.x, b.y - a.y) / spacing, WhiteboardFrame.side).rounded(.up))
+      if steps > 1 {
+        for i in 1..<steps {
+          let t = CGFloat(i) / CGFloat(steps)
+          out.append(CGPoint(x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y)))
+        }
+      }
+      out.append(b)
+    }
+    return out
   }
 
   /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
@@ -164,8 +178,11 @@ public enum WhiteboardTurn {
       var positions = [CGPoint](repeating: .zero, count: count)
       CTRunGetGlyphs(run, CFRange(location: 0, length: count), &glyphs)
       CTRunGetPositions(run, CFRange(location: 0, length: count), &positions)
+      // CoreText's fallback for a character Helvetica lacks: the run's glyph ids index the run's own font.
+      // swiftlint:disable:next force_cast
+      let runFont = (CTRunGetAttributes(run) as NSDictionary)[kCTFontAttributeName] as! CTFont
       for (glyph, at) in zip(glyphs, positions) {
-        guard let path = CTFontCreatePathForGlyph(font, glyph, nil) else { continue }
+        guard let path = CTFontCreatePathForGlyph(runFont, glyph, nil) else { continue }
         // Glyphs are drawn y-up from the baseline; the board is y-down from the label's top.
         let place = { (q: CGPoint) in CGPoint(x: topLeft.x + at.x + q.x, y: topLeft.y + ascent - q.y) }
         out += flatten(path).map { $0.map(place) }

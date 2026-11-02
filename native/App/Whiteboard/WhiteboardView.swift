@@ -25,7 +25,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  private(set) var drawing: PKDrawing
+  @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
   private let log: SessionLog
   private let inbox: InboxModel
@@ -35,11 +35,10 @@ final class WhiteboardModel: ObservableObject {
   /// Bumped by every stroke and touch-down: an answer to an older one is dropped.
   private var generation = 0
   private var pauseTask: Task<Void, Never>?
-  /// Set while a kept ghost lands on the canvas, so it isn't taken for Igor's own stroke.
-  private var keeping = false
   private var saveTask: Task<Void, Never>?
   private var dirty = false
   private var saveFailing = false
+  private var turnFailing = false
 
   static let ghostsKey = "whiteboard_ghosts"
   /// How long the Pencil rests before Claude is asked.
@@ -70,16 +69,16 @@ final class WhiteboardModel: ObservableObject {
   }
 
   func changed(_ new: PKDrawing) {
-    guard editable else { return }
+    guard editable, new != drawing else { return }
     let added = new.strokes.count > drawing.strokes.count
     drawing = new
-    if keeping {
-      keeping = false
-    } else {
-      clearGhosts()
-      if added, ghostsOn { schedulePause() }
-    }
-    isEmpty = new.strokes.isEmpty
+    clearGhosts()
+    if added, ghostsOn { schedulePause() }
+    drawingMoved()
+  }
+
+  private func drawingMoved() {
+    isEmpty = drawing.strokes.isEmpty
     sent = nil
     dirty = true
     saveTask?.cancel()
@@ -94,10 +93,15 @@ final class WhiteboardModel: ObservableObject {
   func beganDrawing() { clearGhosts() }
 
   private func clearGhosts() {
+    dropClaudesTurn()
+    if !ghosts.isEmpty { ghosts = [] }
+  }
+
+  /// A pause still waiting is forgotten, and an answer on its way is stale when it lands.
+  private func dropClaudesTurn() {
     generation += 1
     pauseTask?.cancel()
     pauseTask = nil
-    if !ghosts.isEmpty { ghosts = [] }
   }
 
   private func schedulePause() {
@@ -122,6 +126,7 @@ final class WhiteboardModel: ObservableObject {
 
   func larryTurn() {
     guard !larryLooking else { return }
+    dropClaudesTurn()
     Task { await turn(.larry) }
   }
 
@@ -135,7 +140,7 @@ final class WhiteboardModel: ObservableObject {
     let png = picture(rect: rect, scale: scale).pngData() ?? Data()
     // ponytail: the board's thread in UserDefaults on this device; it moves to the board's index if boards ever
     // change hands.
-    let thread = UserDefaults.standard.string(forKey: threadKey)
+    let thread = who == .larry ? UserDefaults.standard.string(forKey: threadKey) : nil
     if who == .larry {
       larryLooking = true
       turnNote = "Larry is looking…"
@@ -161,35 +166,42 @@ final class WhiteboardModel: ObservableObject {
     case .shapes(let shapes, let say, let newThread):
       event["ok"] = true
       event["shapes"] = shapes.count
-      if let newThread { UserDefaults.standard.set(newThread, forKey: threadKey) }
+      turnFailing = false
       if who == .claude, turnNote == Self.ghostsAway { turnNote = nil }
       if who == .larry {
+        dropClaudesTurn()
+        if let newThread { UserDefaults.standard.set(newThread, forKey: threadKey) }
         turnNote = say.isEmpty ? (shapes.isEmpty ? "Larry has nothing to add" : nil) : "Larry: \(say)"
         if problem?.context == "WhiteboardView.larry" { problem = nil }
       }
       if !stale {
-        ghosts = shapes.enumerated().map { i, shape in
-          Ghost(
-            id: "\(who.rawValue)-\(generation)-\(i)", who: who,
-            lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
+        ghosts = shapes.map { shape in
+          Ghost(id: UUID().uuidString, who: who, lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
+        }
+        if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_KEEP"] == "first", let first = ghosts.first {
+          keep(first)
         }
       }
     case .refused(let status, let reason):
       event["ok"] = false
       event["status"] = status
       event["reason"] = reason
-      failed(who, "The Cockpit refused the turn (\(status)): \(reason)", status: status)
+      failed(who, "The Cockpit refused the turn (\(status)): \(reason)", status: status, stale: stale)
     case .away(let reason):
       event["ok"] = false
       event["reason"] = reason
-      failed(who, "Larry couldn't be reached: \(reason)", status: nil)
+      failed(who, "Larry couldn't be reached: \(reason)", status: nil, stale: stale)
     }
     log.event("whiteboard_turn", event)
   }
 
-  private func failed(_ who: WhiteboardTurn.Who, _ message: String, status: Int?) {
+  private func failed(_ who: WhiteboardTurn.Who, _ message: String, status: Int?, stale: Bool) {
+    if !turnFailing {
+      log.event("error", ["where": "whiteboard_turn", "who": who.rawValue, "message": message, "board": board.id])
+    }
+    turnFailing = true
     guard who == .larry else {
-      turnNote = Self.ghostsAway
+      if !stale, turnNote == nil { turnNote = Self.ghostsAway }
       return
     }
     turnNote = nil
@@ -198,17 +210,25 @@ final class WhiteboardModel: ObservableObject {
     problem = .grabber(message, context: "WhiteboardView.larry", extra: extra)
   }
 
-  /// A tap at `point` (board points) keeps the ghost under it as ink in its colour.
+  /// A tap at `point` (board points) keeps the ghost under it; a tap anywhere else dismisses the ghosts.
   func tap(at point: CGPoint, zoom: CGFloat) {
-    guard let ghost = ghosts.first(where: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) else {
-      return
+    guard !ghosts.isEmpty else { return }
+    if let ghost = ghosts.first(where: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) {
+      keep(ghost)
+    } else {
+      log.event("whiteboard", ["action": "ghosts_dismissed", "board": board.id, "count": ghosts.count])
+      clearGhosts()
     }
+  }
+
+  /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
+  private func keep(_ ghost: Ghost) {
     let ink = PKInk(.pen, color: ghost.who.color)
-    let strokes = ghost.lines.filter { $0.count > 1 }.map { line in
+    let strokes = ghost.lines.map { line in
       PKStroke(
         ink: ink,
         path: PKStrokePath(
-          controlPoints: line.enumerated().map { i, p in
+          controlPoints: WhiteboardTurn.inkPoints(line).enumerated().map { i, p in
             PKStrokePoint(
               location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: 3.7, height: 3.7), opacity: 1, force: 1,
               azimuth: 0, altitude: .pi / 2)
@@ -216,9 +236,10 @@ final class WhiteboardModel: ObservableObject {
     }
     var kept = drawing
     kept.strokes += strokes
+    drawing = kept
     ghosts.removeAll { $0.id == ghost.id }
     log.event("whiteboard", ["action": "keep", "board": board.id, "who": ghost.who.rawValue, "strokes": strokes.count])
-    keeping = true
+    drawingMoved()
     draw?(kept)
   }
 
@@ -348,11 +369,13 @@ struct WhiteboardView: View {
             Label(
               model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "sparkles.slash")
           }
-          // How many show, for VoiceOver and the UI test (the board's own text is not in the accessibility tree).
+          // How many show and how much is drawn, for VoiceOver and the UI test (the board's own content is not in
+          // the accessibility tree).
           .accessibilityLabel(
             (model.ghostsOn ? "Ghosts on" : "Ghosts off")
               + (model.ghosts.isEmpty ? "" : ", \(model.ghosts.count) showing")
           )
+          .accessibilityValue("\(model.drawing.strokes.count) strokes")
           .accessibilityIdentifier("whiteboard-ghosts")
         }
         ToolbarItem(placement: .topBarTrailing) {
@@ -411,7 +434,7 @@ private struct BoardCanvas: UIViewRepresentable {
     canvas.maximumZoomScale = 3
     if model.editable {
       canvas.toolPicker = context.coordinator.picker
-      // Story 344: a finger tap keeps a ghost (the Pencil draws, and its touch-down clears them).
+      // Stories 344, 354: a finger tap keeps a ghost (the Pencil draws, and its touch-down clears them).
       let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:)))
       tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
       tap.cancelsTouchesInView = false
@@ -498,10 +521,12 @@ final class BoardCanvasView: PKCanvasView {
   fileprivate func show(_ ghosts: [Ghost]) {
     guard ghosts.map(\.id) != shown else { return }
     shown = ghosts.map(\.id)
+    // Where a finger draws, it taps and pans while ghosts show (story 354).
+    drawingPolicy = ghosts.isEmpty ? .default : .pencilOnly
     ghostLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
     for ghost in ghosts {
       let path = CGMutablePath()
-      for line in ghost.lines where line.count > 1 { path.addLines(between: line) }
+      for line in ghost.lines { path.addLines(between: line) }
       let shape = CAShapeLayer()
       shape.path = path
       shape.fillColor = nil

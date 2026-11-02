@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import PencilKit
 import XCTest
 
 @testable import ContextCore
@@ -66,13 +67,6 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(WhiteboardTurn.answer(status: nil, body: nil, error: "timed out"), .away(reason: "timed out"))
   }
 
-  func testATurnDrawsAtMostFortyShapes() {
-    let one = #"{"kind": "line", "points": [[0, 0], [1, 1]]}"#
-    let body = Data(#"{"ok": true, "shapes": [\#(Array(repeating: one, count: 50).joined(separator: ","))]}"#.utf8)
-    guard case .shapes(let shapes, _, _) = WhiteboardTurn.answer(status: 200, body: body) else { return XCTFail() }
-    XCTAssertEqual(shapes.count, 40)
-  }
-
   /// The picture covers `frame` at `scale` pixels a point: pixel (100, 50) at scale 2 is 50 and 25 points in.
   func testPixelsLandOnTheBoardWhereThePictureShowedThem() {
     let frame = CGRect(x: 1000, y: 2000, width: 400, height: 300)
@@ -118,6 +112,52 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertTrue(WhiteboardTurn.hit(lines, at: CGPoint(x: 50, y: 8), tolerance: 10))
     XCTAssertFalse(WhiteboardTurn.hit(lines, at: CGPoint(x: 50, y: 12), tolerance: 10))
     XCTAssertFalse(WhiteboardTurn.hit(lines, at: CGPoint(x: 115, y: 0), tolerance: 10))
-    XCTAssertTrue(WhiteboardTurn.hit([[CGPoint(x: 5, y: 5)]], at: CGPoint(x: 8, y: 5), tolerance: 10))
+  }
+
+  /// A character Helvetica lacks draws in CoreText's fallback font: an arrow is wider than tall, while the same glyph
+  /// id in Helvetica is an unrelated letter taller than wide.
+  func testALabelCharacterFromAFallbackFontKeepsItsShape() {
+    let points = WhiteboardTurn.lines(
+      .init(kind: .text, points: [.zero], text: "→", size: 40), frame: .zero, scale: 1
+    ).flatMap { $0 }
+    let width = (points.map(\.x).max() ?? 0) - (points.map(\.x).min() ?? 0)
+    let height = (points.map(\.y).max() ?? 0) - (points.map(\.y).min() ?? 0)
+    XCTAssertGreaterThan(height, 0)
+    XCTAssertGreaterThan(width, height * 1.3)
+  }
+
+  /// PencilKit's own spline, through the points a kept ghost gets: it must pass every corner the ghost showed.
+  func testKeptInkPassesEveryCornerOfTheShape() {
+    let shapes: [WhiteboardTurn.Shape] = [
+      .init(kind: .rect, points: [.zero, CGPoint(x: 100, y: 100)]),
+      .init(kind: .arrow, points: [.zero, CGPoint(x: 90, y: 0)]),
+      .init(kind: .text, points: [.zero], text: "HE", size: 40),
+      .init(kind: .path, points: [.zero, CGPoint(x: 60, y: 0), CGPoint(x: 60, y: 60)]),
+    ]
+    for shape in shapes {
+      for line in WhiteboardTurn.lines(shape, frame: .zero, scale: 1) {
+        let path = PKStrokePath(
+          controlPoints: WhiteboardTurn.inkPoints(line).enumerated().map { i, p in
+            PKStrokePoint(
+              location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: 3.7, height: 3.7), opacity: 1, force: 1,
+              azimuth: 0, altitude: .pi / 2)
+          }, creationDate: Date())
+        let drawn = path.interpolatedPoints(by: .distance(0.25)).map(\.location)
+        for corner in line {
+          let miss = drawn.map { hypot($0.x - corner.x, $0.y - corner.y) }.min() ?? .infinity
+          XCTAssertLessThan(miss, 1.5, "\(shape.kind) at \(corner)")
+        }
+      }
+    }
+  }
+
+  func testInkPointsKeepEveryCornerAndStayBoundedOnAnAbsurdEdge() {
+    let line = [CGPoint.zero, CGPoint(x: 12, y: 0), CGPoint(x: 12, y: 1)]
+    XCTAssertEqual(
+      WhiteboardTurn.inkPoints(line),
+      [.zero, CGPoint(x: 4, y: 0), CGPoint(x: 8, y: 0), CGPoint(x: 12, y: 0), CGPoint(x: 12, y: 1)])
+    let absurd = WhiteboardTurn.inkPoints([.zero, CGPoint(x: 1e300, y: 0)])
+    XCTAssertLessThanOrEqual(absurd.count, Int(WhiteboardFrame.side) + 1)
+    XCTAssertEqual(absurd.last, CGPoint(x: 1e300, y: 0))
   }
 }
