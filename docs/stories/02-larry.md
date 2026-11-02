@@ -1171,7 +1171,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 317:
 
 - **Summary:** A board picture in a thread jumps to that board as it is now
-- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator against the fake Cockpit (the jump); a board that comes down from iCloud on the jump, and sending `board` from the app (another branch), not yet
+- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator against the fake Cockpit (the jump); a board that comes down from iCloud on the jump, and sending `board` from the app (another branch), not yet
 - **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1191,7 +1191,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 318:
 
 - **Summary:** A picture that didn't come from a board has no jump
-- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator against the fake Cockpit
+- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator against the fake Cockpit
 - **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1211,7 +1211,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 319:
 
 - **Summary:** A jump to a board that can't be opened says why and keeps the picture
-- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet
+- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet
 - **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 

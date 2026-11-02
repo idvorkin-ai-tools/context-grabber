@@ -713,7 +713,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 228:
 
 - **Summary:** A link opens a board, or the boards
-- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator (a board no device has, against the fake Cockpit, stays on the boards with the problem) and by host tests (the link's parsing); a board that comes down from iCloud through the link, not yet
+- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator (a board no device has, against the fake Cockpit, stays on the boards with the problem) and by host tests (the link's parsing); a board that comes down from iCloud through the link, not yet
 - **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
 - **Spec:** [Native links](../superpowers/specs/2026-10-06-native-links-design.md)
 
