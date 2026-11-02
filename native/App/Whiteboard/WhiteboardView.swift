@@ -31,6 +31,8 @@ final class WhiteboardModel: ObservableObject {
   }
   /// Story 344's switch, remembered across boards.
   @Published private(set) var ghostsOn: Bool
+  /// Story 407's switch, remembered per board on this device. Lines over the board, never in the drawing or a picture.
+  @Published private(set) var gridOn: Bool
   /// The board's colour (story 378).
   @Published private(set) var paper: BoardPaper
   /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
@@ -106,6 +108,7 @@ final class WhiteboardModel: ObservableObject {
     self.inbox = inbox
     self.cockpit = cockpit
     ghostsOn = UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true
+    gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
     editable = store.editable(board)
     var loaded = PKDrawing()
     do {
@@ -121,6 +124,7 @@ final class WhiteboardModel: ObservableObject {
     log.event(
       "whiteboard",
       ["action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": store.editable(board)])
+    if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GRID"] == "on" { setGrid(true) }
   }
 
   func changed(_ new: PKDrawing) {
@@ -191,6 +195,12 @@ final class WhiteboardModel: ObservableObject {
       ghosts.removeAll { $0.who == .claude }
       if turnNote == Self.ghostsAway { turnNote = nil }
     }
+  }
+
+  func setGrid(_ on: Bool) {
+    gridOn = on
+    UserDefaults.standard.set(on, forKey: "whiteboard_grid_\(board.id)")
+    log.event("whiteboard", ["action": on ? "grid_on" : "grid_off", "board": board.id])
   }
 
   func setPaper(_ new: BoardPaper) {
@@ -845,11 +855,14 @@ struct WhiteboardView: View {
                 }
               }
             }
+            Section("Grid") {
+              Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+            }
           } label: {
             Label("Board", systemImage: "paintpalette")
           }
-          // Its colour, for VoiceOver and the UI test, in the label for the reason below.
-          .accessibilityLabel("Board, \(model.paper.name)")
+          // Its colour and grid, for VoiceOver and the UI test, in the label for the reason below.
+          .accessibilityLabel("Board, \(model.paper.name)\(model.gridOn ? ", grid on" : "")")
           .accessibilityIdentifier("whiteboard-board")
         }
         ToolbarItem(placement: .topBarTrailing) {
@@ -996,6 +1009,7 @@ private struct BoardCanvas: UIViewRepresentable {
   func updateUIView(_ canvas: BoardCanvasView, context: Context) {
     canvas.backgroundColor = model.paper.color
     canvas.show(model.ghosts)
+    canvas.showGrid(model.gridOn)
   }
 
   final class Coordinator: NSObject, PKCanvasViewDelegate {
@@ -1041,10 +1055,15 @@ final class BoardCanvasView: PKCanvasView {
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
   private let ghostLayer = CALayer()
   private var shown: [String: CAShapeLayer] = [:]
+  /// Story 407: one thin solid line, repeated each way by the GPU. Nothing is rasterised, and nothing changes between
+  /// crossings of a line, so the grid costs next to nothing while drawing and panning. Made the first time it's asked for.
+  private var grid: (holder: CALayer, across: CAReplicatorLayer, down: CAReplicatorLayer)?
+  private var gridLaid: WhiteboardFrame.Grid?
 
   /// The first layout knows the screen's size: the view opens centred on the drawing.
   override func layoutSubviews() {
     super.layoutSubviews()
+    layGrid()
     if ghostLayer.superlayer == nil {
       ghostLayer.anchorPoint = .zero
       ghostLayer.frame = .zero
@@ -1062,6 +1081,56 @@ final class BoardCanvasView: PKCanvasView {
     CATransaction.setDisableActions(true)
     ghostLayer.setAffineTransform(CGAffineTransform(scaleX: zoomScale, y: zoomScale))
     ghostLayer.zPosition = 10
+    CATransaction.commit()
+    layGrid()
+  }
+
+  fileprivate func showGrid(_ on: Bool) {
+    guard on != !(grid?.holder.isHidden ?? true) else { return }
+    if grid == nil { grid = Self.makeGrid(in: layer) }
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    grid?.holder.isHidden = !on
+    CATransaction.commit()
+    layGrid()
+  }
+
+  /// A grey that reads on a light or a dark background, whichever is behind it.
+  private static func makeGrid(in parent: CALayer) -> (CALayer, CAReplicatorLayer, CAReplicatorLayer) {
+    let holder = CALayer()
+    let across = CAReplicatorLayer()
+    let down = CAReplicatorLayer()
+    for replicator in [across, down] {
+      let line = CALayer()
+      line.backgroundColor = UIColor(white: 0.5, alpha: 0.3).cgColor
+      replicator.addSublayer(line)
+      holder.addSublayer(replicator)
+    }
+    // Above the ink and under the ghosts: a layer behind the ink doesn't show through PencilKit's canvas (0 pixels on
+    // the simulator, opaque or not), and a see-through canvas would blend the whole screen on every frame. A hair this
+    // faint barely tints a stroke it crosses.
+    holder.zPosition = 5
+    parent.addSublayer(holder)
+    return (holder, across, down)
+  }
+
+  private func layGrid() {
+    guard let grid, !grid.holder.isHidden, bounds.width > 0 else { return }
+    let wanted = WhiteboardFrame.grid(offset: contentOffset, viewport: bounds.size, zoom: zoomScale)
+    guard wanted != gridLaid else { return }
+    gridLaid = wanted
+    let hair = 1 / traitCollection.displayScale
+    let width = CGFloat(wanted.across) * wanted.gap
+    let height = CGFloat(wanted.down) * wanted.gap
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    grid.holder.frame = CGRect(origin: wanted.origin, size: .zero)
+    grid.across.instanceCount = wanted.across
+    grid.across.instanceTransform = CATransform3DMakeTranslation(wanted.gap, 0, 0)
+    grid.across.sublayers?.first?.frame = CGRect(x: 0, y: 0, width: hair, height: height)
+    grid.down.instanceCount = wanted.down
+    grid.down.instanceTransform = CATransform3DMakeTranslation(0, wanted.gap, 0)
+    grid.down.sublayers?.first?.frame = CGRect(x: 0, y: 0, width: width, height: hair)
     CATransaction.commit()
   }
 

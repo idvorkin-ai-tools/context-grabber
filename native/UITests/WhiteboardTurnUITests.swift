@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402 and 403 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -277,5 +277,95 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts on", timeout: 3)
     stroke(app, atHeight: 0.6)
     XCTAssertTrue(note.waitForExistence(timeout: 8), app.debugDescription)
+  }
+
+  /// Stories 407–410: off until asked, visible when on and gone when off (read from the pixels: the board isn't in the
+  /// accessibility tree), and remembered by this board and no other. Ghosts off, so nothing else moves on the board. A
+  /// reopened board frames its drawing differently, so its pixels are compared with themselves.
+  func testTheGridShowsWhenAskedAndStaysWithItsBoard() throws {
+    let (app, ghosts) = try openBoard()
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off", timeout: 3)
+    stroke(app)
+    wait(app, strokes: 1)
+    let board = app.buttons["whiteboard-board"]
+    XCTAssertEqual(board.label, "Board, Plain")
+    let off = settledScreen(app)
+
+    tapGrid(app, board, expect: "Board, Plain, grid on")
+    let on = settledScreen(app)
+    let picture = XCTAttachment(image: on)
+    picture.name = "grid-on"
+    picture.lifetime = .keepAlways
+    add(picture)
+    XCTAssertGreaterThan(boardPixelsDiffering(off, on), Self.gridPixels, "no grid lines appeared")
+
+    tapGrid(app, board, expect: "Board, Plain")
+    XCTAssertLessThan(boardPixelsDiffering(off, settledScreen(app)), Self.noPixels, "the lines stayed")
+
+    // Left on: it opens on, and it draws them.
+    tapGrid(app, board, expect: "Board, Plain, grid on")
+    reopenBoard(app)
+    XCTAssertEqual(board.label, "Board, Plain, grid on")
+    let reopenedOn = settledScreen(app)
+    tapGrid(app, board, expect: "Board, Plain")
+    let reopenedOff = settledScreen(app)
+    XCTAssertGreaterThan(
+      boardPixelsDiffering(reopenedOn, reopenedOff), Self.gridPixels, "the reopened board drew no lines")
+
+    // Left off: it opens off, and draws none.
+    reopenBoard(app)
+    XCTAssertEqual(board.label, "Board, Plain")
+    XCTAssertLessThan(boardPixelsDiffering(reopenedOff, settledScreen(app)), Self.noPixels, "off, and lines showed")
+
+    // A new board has its own switch.
+    tapGrid(app, board, expect: "Board, Plain, grid on")
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    let new = app.buttons["whiteboard-new"]
+    XCTAssertTrue(new.waitForExistence(timeout: 5), app.debugDescription)
+    new.tap()
+    XCTAssertTrue(board.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertEqual(board.label, "Board, Plain")
+  }
+
+  private static let gridPixels = 1000
+  private static let noPixels = 50
+
+  private func settledScreen(_ app: XCUIApplication) -> UIImage {
+    sleep(1)
+    return app.screenshot().image
+  }
+
+  /// The grid's switch, in the Board menu.
+  private func tapGrid(_ app: XCUIApplication, _ view: XCUIElement, expect: String) {
+    view.tap()
+    let item = app.descendants(matching: .any)["Grid lines"].firstMatch
+    XCTAssertTrue(item.waitForExistence(timeout: 3), app.debugDescription)
+    item.tap()
+    wait(view, label: expect, timeout: 3)
+  }
+
+  /// How many pixels differ in the middle of the screen, clear of the bars and the tool picker.
+  private func boardPixelsDiffering(_ a: UIImage, _ b: UIImage) -> Int {
+    func pixels(_ image: UIImage) -> [UInt8] {
+      let cg = image.cgImage!
+      let width = cg.width
+      let height = cg.height / 2
+      var bytes = [UInt8](repeating: 0, count: width * height * 4)
+      bytes.withUnsafeMutableBytes { buffer in
+        let context = CGContext(
+          data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        context.draw(cg, in: CGRect(x: 0, y: -cg.height / 4, width: width, height: cg.height))
+      }
+      return bytes
+    }
+    let (x, y) = (pixels(a), pixels(b))
+    var differing = 0
+    for i in stride(from: 0, to: min(x.count, y.count), by: 4) {
+      let channels = (0..<3).map { abs(Int(x[i + $0]) - Int(y[i + $0])) }
+      if channels.contains(where: { $0 > 2 }) { differing += 1 }
+    }
+    return differing
   }
 }
