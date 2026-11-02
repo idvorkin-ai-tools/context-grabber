@@ -2,7 +2,8 @@
 
 Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larry drawing back. Specs:
 [2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md),
-[2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md).
+[2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
+[2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md).
 
 ---
 
@@ -740,3 +741,42 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread is open
 - **When:** the Cockpit stops answering
 - **Then:** the bar says quietly that his marks aren't coming, no error box appears, the log has one error, and the bar clears by itself when the Cockpit answers
+
+---
+
+### User Story 365:
+
+- **Summary:** Paste text onto the board as ink
+- **Status:** implemented, #597; commit and where verified are filled in below once merged with main
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** thinking on the board with words already on my clipboard
+- **I want to** paste them with the bar's Paste button or ⌘V
+- **so that** they sit on the board as ink and travel with its picture to Larry and Claude
+
+#### Acceptance Criteria:
+- **Scenario:** A paste becomes ink
+- **Given:** a board I can draw on is open and the clipboard holds two lines of text
+- **When:** I tap Paste or press ⌘V
+- **Then:** both lines appear as thin outlined ink in the middle of what's on screen with no *Allow Paste?* prompt, the board saves it, and about a second later Claude's ghosts come
+
+- **Scenario:** Taking it back
+- **Given:** I have just pasted
+- **When:** I undo
+- **Then:** the whole paste goes at once
+
+- **Scenario:** Too long
+- **Given:** the clipboard holds more than 500 characters or wraps past 40 lines
+- **When:** I paste
+- **Then:** the first part lands and the bar says how much of how much
+
+- **Scenario:** Nothing to draw
+- **Given:** the clipboard holds only emoji
+- **When:** I paste
+- **Then:** the board doesn't change and the bar says nothing in it can be drawn
+
+- **Scenario:** No text, or not my board
+- **Given:** the clipboard holds no text, or the board is look-only
+- **When:** I look at the bar or press ⌘V
+- **Then:** Paste is dimmed (or absent on a look-only board) and ⌘V does nothing

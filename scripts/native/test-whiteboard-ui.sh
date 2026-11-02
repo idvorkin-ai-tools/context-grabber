@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The whiteboard turn UI test on the simulator (stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 380, 382, 383, 386, 388), with a fake Cockpit:
+# The whiteboard turn UI test on the simulator (stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 380, 382, 383, 386, 388, 365), with a fake Cockpit:
 # scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-whiteboard-ui.sh <simulator udid>   — run it in the build lane:
@@ -19,7 +19,7 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests test
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests test
 status=$?
 echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep -c "\"picture_id\"" "$report") board pictures to Larry"
 exit $status
