@@ -789,7 +789,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** On the phone
 - **Given:** I chose Sage for a board on the iPad and closed it
-- **When:** I open the Whiteboard on the phone and tap that board's card
+- **When:** I open the Whiteboard on the phone and tap that board's row
 - **Then:** the row in the list and the look-only board are sage, in the phone's own mode, and the phone offers no way to change it
 
 ---

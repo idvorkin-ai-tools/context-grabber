@@ -9,7 +9,7 @@ public enum BoardPaper: String, CaseIterable, Sendable {
 
   public var name: String { rawValue.capitalized }
 
-  /// 0xRRGGBB. The light shade is also behind a board's picture on its card, as that ink is always dark.
+  /// 0xRRGGBB. The light shade is also behind a board's picture in its row, as that ink is always dark.
   public var light: UInt32 {
     switch self {
     case .plain: 0xFFFFFF
