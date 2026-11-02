@@ -395,8 +395,16 @@ private struct ChatImage: View {
         } placeholder: {
           ProgressView()
         }
-        Button("Done") { full = false }.padding().foregroundStyle(.white)
+        // #592: on a white picture (a whiteboard Larry marked up) a bare white Done vanished and left no way back.
+        Button {
+          full = false
+        } label: {
+          Text("Done").font(.headline).padding(.horizontal, 16).padding(.vertical, 8)
+            .background(.black.opacity(0.65), in: Capsule())
+        }
+        .foregroundStyle(.white).padding().accessibilityIdentifier("chat-image-done")
       }
+      .gesture(DragGesture(minimumDistance: 30).onEnded { if $0.translation.height > 80 { full = false } })
     }
   }
 }

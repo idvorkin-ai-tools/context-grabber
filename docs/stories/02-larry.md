@@ -946,3 +946,23 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** the thin bar under the microphone row fills with my voice, green, orange near the top where it would clip, the same meter the problem report shows; it is empty when I am not recording
 
 ---
+
+### User Story 306:
+
+- **Summary:** A picture opened full size in a thread always has a way back
+- **Status:** native app only: not yet built
+- **Issues:** [#592](https://github.com/idvorkin/context-grabber/issues/592)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client reading a picture he sent back, such as my whiteboard with his marks on it
+- **I want to** see it full size and get back to the thread
+- **so that** a white picture never leaves me stuck on a screen with no visible way out
+
+#### Acceptance Criteria:
+- **Scenario:** Back from a white picture
+- **Given:** a thread holds a picture that is mostly white, like a whiteboard
+- **When:** I tap it, then tap *Done* or swipe down
+- **Then:** the picture fills the screen with *Done* on a dark badge I can see over it, and either one brings me back to the thread
+
+---
