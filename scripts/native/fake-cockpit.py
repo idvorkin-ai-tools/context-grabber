@@ -4,7 +4,8 @@
   scripts/native/fake-cockpit.py PORT REPORT
 
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
-POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back),
+POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
+the Cockpit's write boundary),
 GET /attachments/<ref>, POST /whiteboard/turn (cockpit#85: a ghost circle right of the picture for Claude; an arrow, a
 label and a thread named after the board for Larry). A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
@@ -129,6 +130,8 @@ class Handler(BaseHTTPRequestHandler):
         with LOCK:
             way = path.rsplit("/", 1)[-1]
             if path.startswith("/chat/") and way in ("archive", "unarchive"):
+                if self.headers.get("Content-Type", "").split(";")[0].strip().lower() != "application/json":
+                    return self._json(415, {"ok": False, "error": "application/json required"})
                 t = THREADS.get(path[len("/chat/"):-len(way) - 1])
                 if not t or (way == "archive" and not t["messages"]):
                     return self._json(404, {"ok": False, "error": "no such thread"})

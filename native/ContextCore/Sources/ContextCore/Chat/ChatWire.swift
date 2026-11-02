@@ -152,7 +152,8 @@ public enum ChatWire {
     return request
   }
 
-  /// `POST /chat/<key>/archive` or `/unarchive` (#589, cockpit f94feae); the body is ignored.
+  /// `POST /chat/<key>/archive` or `/unarchive` (#589, cockpit f94feae); the body is ignored, but the Cockpit's
+  /// write boundary answers 415 to a POST that isn't `application/json`, an empty one included.
   public static func archiveRequest(_ key: String, archive: Bool, cockpit: String) throws -> URLRequest {
     guard let base = URL(string: cockpit),
       let url = URL(
@@ -161,6 +162,7 @@ public enum ChatWire {
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.timeoutInterval = 15
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
     return request
   }

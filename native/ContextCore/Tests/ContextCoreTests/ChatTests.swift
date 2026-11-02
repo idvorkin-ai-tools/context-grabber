@@ -352,6 +352,9 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(archive.value(forHTTPHeaderField: "Origin"), "https://c.example")
     let back = try ChatWire.archiveRequest("a/b", archive: false, cockpit: "https://c.example")
     XCTAssertEqual(back.url?.absoluteString, "https://c.example/chat/a%2Fb/unarchive")
+    // The Cockpit's write boundary answers 415 to any other media type, an empty body included.
+    XCTAssertEqual(archive.value(forHTTPHeaderField: "Content-Type"), "application/json")
+    XCTAssertEqual(back.value(forHTTPHeaderField: "Content-Type"), "application/json")
   }
 
   func testTheCockpitsArchiveAnswers() {
