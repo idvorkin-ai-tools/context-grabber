@@ -688,6 +688,11 @@ final class WhiteboardModel: ObservableObject {
     if editable, dirty { save() }
   }
 
+  /// On screen: a delete from another device waits for `close`, which comes after the last save.
+  func opened() {
+    if editable { store.opened(board.id) }
+  }
+
   /// Leaving the board, by Back or by a link that takes it down: what is drawn is written now, not a second later,
   /// and goes up to iCloud. Safe to call twice.
   func close() {
@@ -861,7 +866,10 @@ struct WhiteboardView: View {
       try? await Task.sleep(for: .seconds(1))
       model.paste(text)
     }
-    .onAppear { model.startWatchingLarry() }
+    .onAppear {
+      model.opened()
+      model.startWatchingLarry()
+    }
     .onDisappear {
       model.stopMic(why: "closed")
       model.close()

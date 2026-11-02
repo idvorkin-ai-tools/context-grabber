@@ -1,6 +1,6 @@
-//  The boards (spec 2026-11-01-whiteboard-design.md, story 348): what the Whiteboard tile opens. A card per board,
-//  newest change first, + New board, a long press to rename or delete this device's own; every device's boards come
-//  down from iCloud when the list opens, comes forward, or is pulled.
+//  The boards (spec 2026-11-01-whiteboard-design.md, stories 348, 396–401): what the Whiteboard tile opens. A row per
+//  board, newest change first, + New board, a swipe or long press to delete any board, a long press to rename this
+//  device's own; every device's boards come down from iCloud when the list opens, comes forward, or is pulled.
 
 import BugKit
 import ContextCore
@@ -26,22 +26,18 @@ struct WhiteboardListView: View {
 
   var body: some View {
     NavigationStack(path: $path) {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 12) {
-          if let problem = store.problem { BugProblemView(problem: problem, logger: app.bugLogger) }
-          if let linkProblem { BugProblemView(problem: linkProblem, logger: app.bugLogger) }
-          if let note = store.syncNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
-          if store.index.boards.isEmpty {
-            ContentUnavailableView(
-              "No boards yet", systemImage: "scribble.variable", description: Text("Tap + to start one."))
-          } else {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160, maximum: 320), spacing: 16)], spacing: 16) {
-              ForEach(store.index.sorted) { board in card(board) }
-            }
-          }
+      List {
+        if let problem = store.problem { BugProblemView(problem: problem, logger: app.bugLogger) }
+        if let linkProblem { BugProblemView(problem: linkProblem, logger: app.bugLogger) }
+        if let note = store.syncNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
+        if store.index.boards.isEmpty {
+          ContentUnavailableView(
+            "No boards yet", systemImage: "scribble.variable", description: Text("Tap + to start one."))
+        } else {
+          ForEach(store.index.sorted) { board in row(board) }
         }
-        .padding()
       }
+      .listStyle(.plain)
       .refreshable { await store.sync(reason: "pull") }
       .navigationTitle("Boards")
       .toolbar {
@@ -92,17 +88,25 @@ struct WhiteboardListView: View {
     }
   }
 
-  private func card(_ board: BoardEntry) -> some View {
+  private func row(_ board: BoardEntry) -> some View {
     Button {
       path.append(board.id)
     } label: {
-      VStack(alignment: .leading, spacing: 6) {
-        BoardPicture(url: store.pictureURL(board.id), version: store.pictures)
-        Text(board.title).font(.headline).lineLimit(1)
-        Text(subtitle(board)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+      HStack(spacing: 12) {
+        BoardPicture(url: store.pictureURL(board.id), version: store.pictures).frame(width: 120)
+        VStack(alignment: .leading, spacing: 6) {
+          Text(board.title).font(.headline).lineLimit(1)
+          Text(subtitle(board)).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+        }
+        Spacer(minLength: 0)
       }
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    // Tinted, not `role: .destructive`: that role takes the row away before the question is answered.
+    .swipeActions {
+      Button("Delete") { deleting = board }.tint(.red)
+    }
     .contextMenu {
       if store.editable(board) {
         Button {
@@ -111,11 +115,11 @@ struct WhiteboardListView: View {
         } label: {
           Label("Rename", systemImage: "pencil")
         }
-        Button(role: .destructive) {
-          deleting = board
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
+      }
+      Button(role: .destructive) {
+        deleting = board
+      } label: {
+        Label("Delete", systemImage: "trash")
       }
     }
     .accessibilityIdentifier("whiteboard-card")
