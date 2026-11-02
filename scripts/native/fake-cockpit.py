@@ -6,7 +6,7 @@
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
-GET /attachments/<ref>, POST /whiteboard/turn (cockpit#85: a ghost circle right of the picture for Claude; an arrow, a
+GET /attachments/<ref>, POST /whiteboard/suggest (a ghost circle at the picture's right edge), POST /whiteboard/turn (cockpit#85: an arrow, a
 label and a thread named after the board for Larry). A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
@@ -123,6 +123,8 @@ class Handler(BaseHTTPRequestHandler):
         data = json.loads(raw or b"{}")
         if path == "/whiteboard/turn":
             return self._turn(data)
+        if path == "/whiteboard/suggest":
+            return self._suggest(data)
         if path == "/chat" and NEW_DELAY:
             time.sleep(NEW_DELAY)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
@@ -164,6 +166,13 @@ class Handler(BaseHTTPRequestHandler):
         reply_later(key, data.get("text"))
         self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})
 
+    def _suggest(self, data):
+        w, h = data.get("width"), data.get("height")
+        self._report({"turn": "claude", "width": w, "height": h, "origin": self.headers.get("Origin")})
+        if not data.get("image") or not w or not h:
+            return self._json(400, {"ok": False, "error": "no picture"})
+        return self._json(200, {"ok": True, "strokes": [{"kind": "circle", "cx": w - 20, "cy": h / 2, "r": 40}]})
+
     def _turn(self, data):
         picture = base64.b64decode(data.get("picture") or "")
         # A PNG's size is in its IHDR: width and height, big-endian, at bytes 16 to 24.
@@ -172,9 +181,6 @@ class Handler(BaseHTTPRequestHandler):
                       "width": w, "height": h, "origin": self.headers.get("Origin")})
         if not w:
             return self._json(400, {"ok": False, "error": "no picture"})
-        if data.get("who") == "claude":
-            return self._json(200, {"ok": True, "say": "", "shapes": [
-                {"kind": "ellipse", "points": [[w - 60, h / 2 - 40], [w + 20, h / 2 + 40]]}]})
         with LOCK:
             key = data.get("thread") or "igor2-88g.%d" % (951 + len(CREATED))
             if key not in THREADS:

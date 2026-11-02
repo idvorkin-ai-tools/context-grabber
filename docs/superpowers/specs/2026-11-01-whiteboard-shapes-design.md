@@ -24,8 +24,9 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 - **A tap off the ghosts dismisses them all.**
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so keeping a ghost leaves no dot. With no ghost left it draws again.
-- A ghost turn gives up after **3 s**: a late answer would land on a drawing that has moved on. No ghost is shown when
-  it gives up.
+- A ghost turn gives up after **10 s** (the Cockpit's model takes about 3 s, and a late answer is dropped anyway if
+  the Pencil has touched down since). No ghost is shown when it gives up. A turn the Cockpit says came too soon (it
+  takes one every 2 s) is quietly skipped: the bar says nothing and the ghosts on the board stay.
 - **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause: Claude's
   ghosts go and a turn of his on its way is dropped. Larry's marks stay, because a tap asked for them.
 - Ghosts need the Cockpit. When it can't be reached the board draws as before; the bar says *Ghosts: the Cockpit
@@ -54,8 +55,10 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 
 ## Where it runs
 
-On the Cockpit (Igor's pick: no model key on the device, and Larry is there): one endpoint takes the board's
-picture and answers with shapes and one line. A fast model answers ghosts; Larry answers his own turns.
+On the Cockpit (Igor's pick: no model key on the device, and Larry is there). Claude's ghosts come from its ghost
+endpoint, which takes the board's picture and answers with strokes: lines, arrows, polylines, circles, arcs and
+labels. Larry's turn has no endpoint yet ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)), so
+it shows the Cockpit's refusal as a copyable error until it does.
 
 ## Acceptance
 

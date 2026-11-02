@@ -151,7 +151,8 @@ final class WhiteboardModel: ObservableObject {
     let asked = generation
     // ponytail: rendered and encoded on the main thread; if a big board hitches the next stroke (the turn event's
     // `bytes`), this moves to a background task.
-    let png = picture(rect: rect, scale: scale).pngData() ?? Data()
+    let image = picture(rect: rect, scale: scale)
+    let png = image.pngData() ?? Data()
     // ponytail: the board's thread in UserDefaults on this device; it moves to the board's index if boards ever
     // change hands.
     let thread = who == .larry ? UserDefaults.standard.string(forKey: threadKey) : nil
@@ -163,9 +164,14 @@ final class WhiteboardModel: ObservableObject {
     let started = Date()
     let answer: WhiteboardTurn.Answer
     do {
-      let request = try WhiteboardTurn.request(
-        who: who, board: board.id, title: store.index.board(board.id)?.title ?? board.title, picture: png,
-        thread: thread, cockpit: cockpit)
+      let title = store.index.board(board.id)?.title ?? board.title
+      let request =
+        who == .claude
+        ? try WhiteboardTurn.suggestRequest(
+          title: title, picture: png, width: image.cgImage?.width ?? 0, height: image.cgImage?.height ?? 0,
+          cockpit: cockpit)
+        : try WhiteboardTurn.request(
+          who: who, board: board.id, title: title, picture: png, thread: thread, cockpit: cockpit)
       let (body, response) = try await URLSession.shared.data(for: request)
       answer = WhiteboardTurn.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body)
     } catch {
@@ -196,6 +202,9 @@ final class WhiteboardModel: ObservableObject {
           keep(first)
         }
       }
+    case .tooSoon:
+      event["ok"] = false
+      event["reason"] = "too_soon"
     case .refused(let status, let reason):
       event["ok"] = false
       event["status"] = status
