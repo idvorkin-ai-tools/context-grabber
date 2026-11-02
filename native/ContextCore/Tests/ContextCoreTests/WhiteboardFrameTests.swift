@@ -35,7 +35,27 @@ final class WhiteboardFrameTests: XCTestCase {
     XCTAssertNil(WhiteboardFrame.export(.zero))
   }
 
-  // Story 407.
+  // Stories 414, 415.
+  func testTheGridDoublesItsStepOnlyWhenLinesWouldCrowd() {
+    let worked: [(zoom: CGFloat, gap: CGFloat)] = [
+      (3, 120), (1, 40), (0.75, 30), (0.7, 28),
+      (0.55, 44), (0.5, 40),
+      (0.25, 40),
+      (0.1, 32),
+    ]
+    for (zoom, gap) in worked {
+      let grid = WhiteboardFrame.grid(offset: .zero, viewport: iPad, zoom: zoom)
+      XCTAssertEqual(grid.gap, gap, accuracy: 0.0001, "zoom \(zoom)")
+    }
+  }
+
+  // Story 415: at half size the lines left are every 80 board points, 2_000 and 1_440 here.
+  func testAThinnedGridKeepsOnlyLinesOfTheCoarserStep() {
+    let grid = WhiteboardFrame.grid(offset: CGPoint(x: 1_030, y: 755), viewport: iPad, zoom: 0.5)
+    XCTAssertEqual(grid.origin, CGPoint(x: 1_000, y: 720))
+  }
+
+  // Story 415.
   func testGridLinesStayApartAndFewAtAnyZoom() {
     let viewport = CGSize(width: 1366, height: 1024)
     for zoom in stride(from: CGFloat(0.1), through: 3, by: 0.05) {
@@ -48,6 +68,7 @@ final class WhiteboardFrameTests: XCTestCase {
     }
   }
 
+  // Story 413.
   func testTheGridCoversTheViewportAndHoldsStillBetweenLines() {
     let viewport = CGSize(width: 800, height: 600)
     let grid = WhiteboardFrame.grid(offset: CGPoint(x: 10_010, y: 7_205), viewport: viewport, zoom: 1)
