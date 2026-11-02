@@ -398,3 +398,71 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a ghost turn is on its way
 - **When:** I draw another stroke and lift the Pencil
 - **Then:** a second turn is asked a second after the first lands or after the lift, whichever is later
+
+---
+
+### User Story 370:
+
+- **Summary:** Claude's marks arrive one at a time
+- **Status:** PENDING
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with Claude beside me
+- **I want to** see his marks appear one at a time as he makes them
+- **so that** it feels like someone sketching, not a picture arriving
+
+#### Acceptance Criteria:
+- **Scenario:** Marks as he makes them
+- **Given:** Ghosts are on, I paused, and the Cockpit streams its answer
+- **When:** the marks come
+- **Then:** each one draws itself in as it arrives and the count in the bar climbs
+
+- **Scenario:** The old set goes when the new one starts
+- **Given:** Claude's earlier ghosts are showing and a new turn is on its way
+- **When:** the first new mark lands
+- **Then:** the earlier ones go then, not when the turn was asked, and Larry's stay
+
+- **Scenario:** A Cockpit that answers all at once
+- **Given:** the Cockpit does not stream
+- **When:** its answer comes
+- **Then:** the marks appear together and everything else works as before
+
+- **Scenario:** Cut off part way
+- **Given:** at least one mark has arrived
+- **When:** the answer breaks off or the turn's 10 s run out
+- **Then:** the marks already there stay and the bar says nothing about the Cockpit
+
+- **Scenario:** Cut off before anything
+- **Given:** no mark has arrived
+- **When:** the answer breaks off or the turn's 10 s run out
+- **Then:** no ghost appears and the bar says *Ghosts: the Cockpit isn't answering*
+
+- **Scenario:** Sent away part way
+- **Given:** marks are arriving
+- **When:** I tap off them or turn Ghosts off
+- **Then:** they go and no more of that turn's marks appear
+
+---
+
+### User Story 371:
+
+- **Summary:** Ghosts look like ink
+- **Status:** PENDING
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** deciding whether to keep a mark
+- **I want to** see a ghost drawn as the ink it would become, only fainter
+- **so that** I can judge how it looks on the board before I tap it
+
+#### Acceptance Criteria:
+- **Scenario:** Solid, not dashed
+- **Given:** a ghost is showing, Claude's in orange or Larry's in blue
+- **When:** I look at it
+- **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows the outlines of its letters
+
+- **Scenario:** Still only a ghost
+- **Given:** a ghost is showing
+- **When:** I don't tap it
+- **Then:** it is no part of the drawing until I do, and keeping it gives the same line at full strength
