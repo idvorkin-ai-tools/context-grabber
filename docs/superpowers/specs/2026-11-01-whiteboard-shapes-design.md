@@ -2,7 +2,7 @@
 
 Igor, 2026-11-01: "what about the ghosting idea, does that work? How does Larry write back? I don't grok that yet",
 then "make an issue for cockpit, build your side". Builds on [the whiteboard](2026-11-01-whiteboard-design.md)
-(stories 344, 349–359 and 370–377). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
+(stories 344, 345, 349–377 and 380–389). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
 
 ## The idea in one line
 
@@ -49,17 +49,40 @@ suggest changes the board until Igor keeps it.
   isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
   isn't shown or counted either.
 
-### Larry's turn (stories 349, 353, 355–357)
+### Larry's turn (stories 349, 353, 355–357, 380–389)
 
-- **Larry's turn** in the board's bar sends the board to Larry and waits for him (up to a minute), saying *Larry is
-  looking…*.
-- His answer comes back as ghosts in Larry's colour (blue), kept by a tap like Claude's, plus one line from him in the
-  bar.
-- His words also land in a chat thread named after the board, so the talk goes on in Chat. The same board's next turn
-  of Larry's goes to the same thread; Claude's ghost turns have no thread.
-- Asking him leaves Claude's ghosts and turns alone: each author's new marks replace only their own, so Claude's ghosts
-  never replace his marks.
-- When he can't be reached, or answers with an error, the bar shows a copyable problem with what was asked.
+Larry draws through his chat thread, in his own time: the real Larry answers in minutes, so nothing waits for him
+(Igor, 2026-11-02).
+
+- **Larry's turn** in the board's bar sends a picture of the board to the board's chat thread, saying *your turn on the
+  board*, and the bar says *Larry has the board* as soon as the picture is taken. No spinner: Igor keeps drawing, and can
+  hand him a newer picture once that one has gone. If it can't be delivered, the line goes and the problem below shows.
+- **Each board has one thread**, named after the board. The board's first *Larry's turn* or *Send to Larry* starts it,
+  and later ones of either kind go to it, on this device, even when the first *Send* lands with the board closed. The
+  two don't race to start it: *Larry's turn* is off while the board's first *Send* waits in the outbox, and *Send* is
+  off while a turn is on its way. If the Cockpit says it no longer has the thread, the next picture starts a new one.
+  Claude's ghost turns have no thread.
+- **Larry's marks arrive on their own.** While a board that has a thread is open, the app looks at the thread about
+  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (blue), kept by a tap like Claude's.
+  It makes no difference whether he is answering a turn, answering *Send to Larry*, or drawing unprompted.
+- **Marks land where the picture was.** Every picture goes with its place on the board, and his row brings it back, so
+  his marks sit on what he saw even after Igor has drawn elsewhere, panned or zoomed. A row of marks that doesn't say
+  where its picture was is not shown (the session log says so).
+- **His words show in the bar**: the text of each new row of his, as his line, in place of *Larry has the board*.
+  A row of marks with no words clears it. The talk carries on in Chat.
+- **What shows when a board opens:** only his newest row of marks, and its line, unless Igor already kept or dismissed
+  something from that row on this device. Older rows never come back: they are in Chat. After that, every new row shows.
+- **Each new row of marks replaces his unkept ones** and leaves Claude's alone; Claude's ghosts never replace his. His
+  marks stay until kept or dismissed: no timer, and the Ghosts switch doesn't touch them.
+- **A dismissed set doesn't come back**, on the next look or the next time the board opens. Keeping one mark settles
+  that row the same way the next time the board opens: the ones he left show until the board closes.
+- The looking stops when the board closes or the app goes to the background, and starts again when it comes back.
+  While it can't reach the Cockpit the bar says so quietly after 10 to 15 s (*Larry's marks: the Cockpit isn't
+  answering*), the log says so once, and the bar clears itself when the Cockpit answers. Never an error box, never a
+  repeating one.
+- When the picture can't be handed to him, or the Cockpit refuses it, the bar shows a copyable problem with what was
+  asked. A look-only board takes no turn and doesn't look: its *Send to Larry* still sends, and his reply shows only in
+  Chat.
 
 ### Not yet
 
@@ -89,8 +112,9 @@ suggest changes the board until Igor keeps it.
 
 On the Cockpit (Igor's pick: no model key on the device, and Larry is there). Claude's ghosts come from its ghost
 endpoint, which takes the board's picture and answers with strokes: lines, arrows, polylines, circles, arcs and
-labels. Larry's turn has no endpoint yet ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)), so
-it shows the Cockpit's refusal as a copyable error until it does.
+labels. Larry's marks come over chat ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)): a picture
+sent to him carries which board it is, a new id, and its place on the board, and the Cockpit keeps those on the row and
+hands them back; his rows carry shapes in the picture's pixels, in the ghost endpoint's format or the older one.
 
 ## Acceptance
 
@@ -105,6 +129,11 @@ it shows the Cockpit's refusal as a copyable error until it does.
 - On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
   them; then the finger draws again.
 - Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's blue ghosts stay showing.
-- Tap Larry's turn: blue ghosts and a line from Larry; Chat has a thread named after the board with his words.
-- Cockpit unreachable: drawing works as before and the bar says ghosts aren't answering; Larry's turn shows a
-  copyable problem.
+- Tap Larry's turn: the bar says *Larry has the board* straight away and the Pencil keeps drawing. Chat has a thread
+  named after the board holding the picture. Minutes later, with no tap, blue ghosts and his line appear on what he saw,
+  even if the view has moved since.
+- He draws unprompted on the thread: the same, with no tap by Igor. His next marks replace the unkept ones.
+- Dismiss his marks: they don't return, not on the next look and not after closing and reopening the board. Leave them
+  and reopen: only his newest set shows.
+- Cockpit unreachable: drawing works as before and the bar says ghosts aren't answering, and that his marks aren't;
+  Larry's turn shows a copyable problem; when the Cockpit is back the bar clears by itself.

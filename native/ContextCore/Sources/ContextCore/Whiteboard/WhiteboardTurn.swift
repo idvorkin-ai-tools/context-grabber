@@ -1,6 +1,6 @@
-//  A turn on the whiteboard (spec 2026-11-01-whiteboard-shapes-design.md, stories 344 and 349): Claude's ghosts come
-//  from `POST /whiteboard/suggest` (the contract is the Cockpit's whiteboard.py), Larry's turn from
-//  `POST /whiteboard/turn` (cockpit#85, not built yet). Both answer in the picture's pixels.
+//  A turn on the whiteboard (spec 2026-11-01-whiteboard-shapes-design.md, story 344): Claude's ghosts come from
+//  `POST /whiteboard/suggest` (the contract is the Cockpit's whiteboard.py), in the picture's pixels; Larry's marks come
+//  over chat (`WhiteboardMarks`).
 //  Here: the request, the answer, and each shape as the ink lines that draw it on the board.
 
 import CoreGraphics
@@ -8,12 +8,9 @@ import CoreText
 import Foundation
 
 public enum WhiteboardTurn {
-  /// Who takes the turn: Claude's ghosts after a pause or spoken words, or Larry's turn when Igor asks for it.
+  /// Whose marks: Claude's ghosts after a pause or spoken words, or Larry's from his chat thread.
   public enum Who: String, Sendable {
     case claude, larry
-
-    /// How long the app waits: the Cockpit's ghost model takes about 3 s, and Larry much longer.
-    public var timeout: TimeInterval { self == .claude ? 10 : 60 }
   }
 
   public struct Shape: Equatable, Sendable {
@@ -34,7 +31,7 @@ public enum WhiteboardTurn {
   }
 
   public enum Answer: Equatable, Sendable {
-    case shapes([Shape], say: String, thread: String?)
+    case shapes([Shape])
     /// A 429 on a ghost turn: asked within the Cockpit's 2 s, so this turn is skipped and nothing changes.
     case tooSoon
     /// A 4xx: the Cockpit's reason, shown to Igor.
@@ -43,22 +40,8 @@ public enum WhiteboardTurn {
     case away(reason: String)
   }
 
-  public static func request(
-    who: Who, board: String, title: String, picture: Data, thread: String?, cockpit: String
-  ) throws -> URLRequest {
-    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
-    var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("turn"))
-    request.httpMethod = "POST"
-    request.timeoutInterval = who.timeout
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
-    var body: [String: Any] = [
-      "board": board, "title": title, "who": who.rawValue, "picture": picture.base64EncodedString(),
-    ]
-    if let thread { body["thread"] = thread }
-    request.httpBody = try JSONSerialization.data(withJSONObject: body)
-    return request
-  }
+  /// How long the app waits for Claude's ghosts: the Cockpit's ghost model takes about 3 s.
+  public static let suggestTimeout: TimeInterval = 10
 
   /// Claude's ghosts: the picture and its size in pixels, which every stroke comes back in.
   public static func suggestRequest(
@@ -67,7 +50,7 @@ public enum WhiteboardTurn {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("suggest"))
     request.httpMethod = "POST"
-    request.timeoutInterval = Who.claude.timeout
+    request.timeoutInterval = suggestTimeout
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     // One stroke a line as the model makes it; a Cockpit that doesn't stream answers with one JSON (`WhiteboardStream`).
     request.setValue("application/x-ndjson", forHTTPHeaderField: "Accept")
@@ -80,19 +63,23 @@ public enum WhiteboardTurn {
     return request
   }
 
-  public static func answer(status: Int?, body: Data?, error: String? = nil, who: Who = .claude) -> Answer {
+  public static func answer(status: Int?, body: Data?, error: String? = nil) -> Answer {
     guard let status else { return .away(reason: error ?? "no answer") }
-    if status == 429, who == .claude { return .tooSoon }
+    if status == 429 { return .tooSoon }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, let json, json["ok"] as? Bool == true {
-      let strokes = (json["strokes"] as? [[String: Any]] ?? []).compactMap(shapeJSON(stroke:))
-      let shapes = ((json["shapes"] as? [[String: Any]] ?? []) + strokes).compactMap(shape)
-      let thread = (json["thread"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-      return .shapes(shapes, say: json["say"] as? String ?? "", thread: thread)
+      return .shapes(((json["shapes"] as? [Any] ?? []) + (json["strokes"] as? [Any] ?? [])).compactMap(anyShape))
     }
     let reason = (json?["error"] as? String) ?? "HTTP \(status)"
     if (400..<500).contains(status) { return .refused(status: status, reason: reason) }
     return .away(reason: reason)
+  }
+
+  /// A shape in either format the Cockpit sends: `kind` + `points`, or a stroke from the ghost endpoint. Both have a
+  /// `line` and an `arrow`, told apart by their points.
+  static func anyShape(_ json: Any) -> Shape? {
+    guard let json = json as? [String: Any] else { return nil }
+    return shape(json) ?? shapeJSON(stroke: json).flatMap(shape)
   }
 
   /// A stroke from the ghost endpoint as a shape's JSON, so `shape` checks it the same way; nil for a kind it doesn't
@@ -151,7 +138,7 @@ public enum WhiteboardTurn {
 
   /// A number within reach of a picture: no point on the board is further out in pixels than its side at the finest
   /// scale. Past that, a model's coordinate could map to infinity on the board and trap when its ghost is kept.
-  private static func number(_ any: Any) -> CGFloat? {
+  static func number(_ any: Any) -> CGFloat? {
     guard let n = any as? NSNumber, abs(n.doubleValue) <= WhiteboardFrame.side * WhiteboardFrame.maxScale else {
       return nil
     }

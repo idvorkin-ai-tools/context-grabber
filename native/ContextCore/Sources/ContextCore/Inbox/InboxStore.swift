@@ -27,6 +27,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   /// The thread it landed on, set with `sentAt`. A sent item without one went to Larry's inbox before chat: an
   /// *Earlier share*.
   public var chatThread: String?
+  /// A whiteboard's picture: which board, which picture and where on the board it is (story 381).
+  public var whiteboard: WhiteboardPicture?
 
   public var isEarlierShare: Bool { sentAt != nil && chatThread == nil }
 
@@ -43,7 +45,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
 
   public init(
     id: String = UUID().uuidString.lowercased(), kind: Kind, sharedAt: Int64, url: String? = nil,
-    text: String? = nil, note: String? = nil, imageFile: String? = nil, thread: String? = nil
+    text: String? = nil, note: String? = nil, imageFile: String? = nil, thread: String? = nil,
+    whiteboard: WhiteboardPicture? = nil
   ) {
     self.id = id
     self.kind = kind
@@ -53,10 +56,11 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
     self.note = note?.isEmpty == true ? nil : note
     self.imageFile = imageFile
     self.thread = thread
+    self.whiteboard = whiteboard
   }
 
   enum CodingKeys: String, CodingKey {
-    case id, kind, url, text, note, refused, thread
+    case id, kind, url, text, note, refused, thread, whiteboard
     case chatThread = "chat_thread"
     case sharedAt = "shared_at"
     case imageFile = "image_file"
