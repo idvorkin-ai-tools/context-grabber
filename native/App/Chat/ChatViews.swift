@@ -23,6 +23,10 @@ struct ChatListView: View {
 
   private var live: [ChatSummary] { chat.threads.filter { !$0.done } }
   private var done: [ChatSummary] { chat.threads.filter(\.done) }
+  private var looksDone: [ChatSummary] { live.filter(\.looksDone) }
+  /// *Select* is on: live rows tick instead of opening (#599).
+  @State private var selecting = false
+  @State private var picked: Set<String> = []
 
   var body: some View {
     List {
@@ -41,12 +45,28 @@ struct ChatListView: View {
           problem: .grabber(problem, context: "ChatListView.archive", extra: ["cockpit": .string(chat.cockpit)]),
           logger: logger)
       }
-      if let undo = chat.undoArchive {
+      if !chat.undoArchive.isEmpty {
+        let undo = chat.undoArchive
         HStack {
-          Text("Archived \"\(undo.title)\"").lineLimit(1)
+          Text(undo.count == 1 ? "Archived \"\(undo[0].title)\"" : "Archived \(undo.count) chats").lineLimit(1)
           Spacer()
-          Button("Undo") { Task { await chat.setArchived(undo.key, false, from: "undo") } }
-            .accessibilityIdentifier("chat-archive-undo")
+          Button("Undo") {
+            for thread in undo { Task { await chat.setArchived(thread.key, false, from: "undo") } }
+          }
+          .accessibilityIdentifier("chat-archive-undo")
+        }
+        .font(.footnote)
+      }
+      if !selecting, !looksDone.isEmpty {
+        HStack {
+          Text(looksDone.count == 1 ? "1 chat looks done" : "\(looksDone.count) chats look done")
+          Spacer()
+          Button("Review") {
+            picked = Set(looksDone.map(\.key))
+            selecting = true
+            chat.logAction("select", ["from": "looks_done", "count": picked.count])
+          }
+          .accessibilityIdentifier("chat-review-done")
         }
         .font(.footnote)
       }
@@ -67,9 +87,9 @@ struct ChatListView: View {
         }
       }
       Section {
-        ForEach(live) { thread in threadLink(thread) }
+        ForEach(live) { thread in selecting ? AnyView(tickRow(thread)) : AnyView(threadLink(thread)) }
       }
-      if !done.isEmpty {
+      if !done.isEmpty, !selecting {
         Section {
           DisclosureGroup("Done (\(done.count))", isExpanded: $doneOpen) {
             ForEach(done) { thread in threadLink(thread) }
@@ -99,7 +119,33 @@ struct ChatListView: View {
     .onDisappear { chat.listOnScreen = false }
     // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
     .contentMargins(.bottom, 88, for: .scrollContent)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button(selecting ? "Cancel" : "Select") {
+          picked = []
+          selecting.toggle()
+          if selecting { chat.logAction("select", ["from": "toolbar"]) }
+        }
+        .disabled(!selecting && live.isEmpty)
+        .accessibilityIdentifier("chat-select")
+      }
+    }
+    .safeAreaInset(edge: .bottom) {
+      if selecting {
+        Button("Archive (\(picked.count))") {
+          let keys = picked
+          picked = []
+          selecting = false
+          Task { await chat.archiveSelected(keys) }
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(picked.isEmpty)
+        .padding(.bottom, 8)
+        .accessibilityIdentifier("chat-archive-selected")
+      }
+    }
     .overlay(alignment: .bottomTrailing) {
+      if !selecting {
       Button {
         chat.openNewChat(from: "chat")
       } label: {
@@ -115,6 +161,7 @@ struct ChatListView: View {
       .accessibilityIdentifier("inbox-add")
       .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
       .padding(16)
+      }
     }
     .navigationDestination(isPresented: $chat.newChatOpen) {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
@@ -126,6 +173,23 @@ struct ChatListView: View {
         ChatThreadView(chat: chat, voice: voice, key: key, title: chat.title(of: key), logger: logger)
       }
     }
+  }
+
+  private func tickRow(_ thread: ChatSummary) -> some View {
+    let ticked = picked.contains(thread.key)
+    return Button {
+      if ticked { picked.remove(thread.key) } else { picked.insert(thread.key) }
+    } label: {
+      HStack(alignment: .top, spacing: 10) {
+        Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
+          .foregroundStyle(ticked ? Color.accentColor : .secondary)
+        ThreadRow(thread: thread)
+      }
+    }
+    .buttonStyle(.plain)
+    .accessibilityIdentifier("chat-tick-\(thread.key)")
+    .accessibilityValue(ticked ? "ticked" : "not ticked")
+    .accessibilityLabel(ticked ? "Ticked: \(thread.title)" : thread.title)
   }
 
   private func threadLink(_ thread: ChatSummary) -> some View {
@@ -163,6 +227,9 @@ private struct ThreadRow: View {
         }
         Text("\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)").font(.subheadline)
           .foregroundStyle(.secondary).lineLimit(2)
+        if thread.looksDone, !thread.done {
+          Label("Looks done", systemImage: "checkmark.seal").font(.caption).foregroundStyle(.secondary)
+        }
       }
     }
     .accessibilityElement(children: .combine)

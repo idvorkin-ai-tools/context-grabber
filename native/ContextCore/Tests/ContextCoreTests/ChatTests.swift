@@ -345,6 +345,14 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(row.archiving(true).archiving(false), row)
   }
 
+  func testALooksDoneRowReadsAndAnOldCockpitsRowDoesNot() throws {
+    let rows = try JSONDecoder().decode(
+      [ChatSummary].self,
+      from: Data(#"[{"key": "a", "title": "A", "looks_done": true}, {"key": "b", "title": "B"}]"#.utf8))
+    XCTAssertEqual(rows.map(\.looksDone), [true, false])
+    XCTAssertTrue(rows[0].archiving(true).looksDone, "archiving keeps the mark, for an Undo")
+  }
+
   func testTheArchiveRequestNamesTheThreadAndTheWay() throws {
     let archive = try ChatWire.archiveRequest("auto:note:1", archive: true, cockpit: "https://c.example/")
     XCTAssertEqual(archive.url?.absoluteString, "https://c.example/chat/auto:note:1/archive")

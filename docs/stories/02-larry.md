@@ -1045,5 +1045,56 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I archive or unarchive a thread, from the list or from inside it
 - **Then:** it goes back where it was and a copyable problem says why, on the screen I am on, until my next archive or a pull to refresh
 
+
+---
+
+### User Story 311:
+
+- **Summary:** Archive several chats at once
+- **Status:** native app only: built on this branch; verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man with a list full of finished chats
+- **I want to** tick several and archive them with one tap
+- **so that** I can clear the list without swiping each one
+
+#### Acceptance Criteria:
+- **Scenario:** Several together
+- **Given:** the chat list shows live threads
+- **When:** I tap *Select*, tick two, and tap *Archive (2)*
+- **Then:** both fold under *Done*, the list says *Archived 2 chats* with *Undo* for five seconds, and *Undo* brings both back
+
+- **Scenario:** Changing my mind
+- **Given:** I have ticked threads
+- **When:** I tap *Cancel*
+- **Then:** nothing is archived, and the rows open their threads again
+
+---
+
+### User Story 312:
+
+- **Summary:** Larry proposes that a chat looks done
+- **Status:** native app only: built on this branch; verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it)
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who forgets to close chats
+- **I want to** see which ones Larry thinks are finished and approve them together
+- **so that** the list stays clear, and nothing is closed behind my back
+
+#### Acceptance Criteria:
+- **Scenario:** Reviewing the proposals
+- **Given:** Larry has marked a thread as looking done
+- **When:** I open the chat list
+- **Then:** the row says *Looks done*, the thread stays where it is, and a line at the top says *1 chat looks done* with *Review*
+
+- **Scenario:** Approving
+- **Given:** I tapped *Review*
+- **When:** I untick any I want to keep and tap *Archive (N)*
+- **Then:** the ticked ones fold under *Done* with *Undo*, and the rest stay live
+
 ---
 

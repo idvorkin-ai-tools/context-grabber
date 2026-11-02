@@ -16,6 +16,8 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
   public let done: Bool
   /// Archived on the phone or the Cockpit (#589); an archived thread is also `done`.
   public let archived: Bool
+  /// Larry judges it finished; a proposal only, shown to Igor, and a new message clears it (#599).
+  public let looksDone: Bool
 
   public var id: String { key }
   public var larryHasLastWord: Bool { lastWho == "larry" }
@@ -23,7 +25,7 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
 
   public init(
     key: String, title: String, count: Int = 1, lastTs: String, lastWho: String, lastText: String, unread: Int = 0,
-    done: Bool = false, archived: Bool = false
+    done: Bool = false, archived: Bool = false, looksDone: Bool = false
   ) {
     self.key = key
     self.title = title
@@ -34,17 +36,19 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     self.unread = unread
     self.done = done
     self.archived = archived
+    self.looksDone = looksDone
   }
 
   /// The same row archived or brought back, as it shows until the Cockpit's next list.
   public func archiving(_ archive: Bool) -> ChatSummary {
     ChatSummary(
       key: key, title: title, count: count, lastTs: lastTs, lastWho: lastWho, lastText: lastText, unread: unread,
-      done: archive, archived: archive)
+      done: archive, archived: archive, looksDone: looksDone)
   }
 
   enum CodingKeys: String, CodingKey {
     case key, title, count, unread, done, archived
+    case looksDone = "looks_done"
     case lastTs = "last_ts"
     case lastWho = "last_who"
     case lastText = "last_text"
@@ -60,6 +64,7 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     lastText = (try? c.decode(String.self, forKey: .lastText)) ?? ""
     unread = (try? c.decode(Int.self, forKey: .unread)) ?? 0
     archived = (try? c.decode(Bool.self, forKey: .archived)) ?? false
+    looksDone = (try? c.decode(Bool.self, forKey: .looksDone)) ?? false
     done = (try? c.decode(Bool.self, forKey: .done)) ?? false
   }
 }
