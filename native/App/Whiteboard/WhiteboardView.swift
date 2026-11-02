@@ -16,7 +16,18 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var sent: String?
   @Published private(set) var problem: BugProblem?
   /// Shapes Claude or Larry offered, faint on the board until a tap keeps one (stories 344, 349).
-  @Published private(set) var ghosts: [Ghost] = []
+  @Published private(set) var ghosts: [Ghost] = [] {
+    didSet {
+      if ghosts.count != oldValue.count {
+        log.event(
+          "whiteboard",
+          [
+            "action": "ghosts", "board": board.id, "count": ghosts.count,
+            "larry": ghosts.filter { $0.who == .larry }.count,
+          ])
+      }
+    }
+  }
   /// Story 344's switch, remembered across boards.
   @Published private(set) var ghostsOn: Bool
   /// The last turn in a line: Larry's words, *Larry is looking…*, or ghosts not answering.
