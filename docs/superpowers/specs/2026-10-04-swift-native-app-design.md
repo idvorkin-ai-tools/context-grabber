@@ -188,6 +188,8 @@ covers the screen with the trainer's own drill, the same one as in the trainer a
   grid, one cell per position in stack order with its card face, with a *Taps / Voice* picker for which answers it
   counts (trainer 705345d, v0.3.3; no most-missed list any more), and holds the ledger's URL and write key. They are pasted once in Grabber Native; the build never
   carries them, and the trainer app keeps its own copy.
+  A Stats load that fails shows as a copyable error in the sheet, with the days asked for and the answers waiting
+  (#563).
 - The log says what was pressed and what each send did, never a card beside its position, and never the key.
 - **Done** returns to the card.
 
