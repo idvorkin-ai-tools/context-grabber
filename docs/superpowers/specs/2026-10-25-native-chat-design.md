@@ -55,8 +55,9 @@ live threads into checkboxes, and *Archive (N)* at the bottom archives them toge
 all of them (*Archived 3 chats*). *Cancel* leaves the list as it was. Larry marks a thread he judges finished, and a new
 message clears the mark. A marked thread says *Looks done* on its row and is never moved or archived by itself: a line
 at the top of the list says *2 chats look done* with *Review*, which opens *Select* with those already ticked, so one
-tap archives them, and unticking keeps any of them. When some can't be archived those threads go back and a copyable
-problem says why, as for a single thread.
+tap archives them, and unticking keeps any of them. A thread that finishes or is archived elsewhere while ticked leaves
+the count and is not archived. When some can't be archived those threads go back and one copyable problem names each of
+them and why; a single thread reads as it always did. A failed *Undo* of several says the same.
 
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or

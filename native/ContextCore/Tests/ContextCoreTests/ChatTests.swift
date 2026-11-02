@@ -373,4 +373,23 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(ChatWire.archiveFailure(status: 502, body: nil), "HTTP 502")
     XCTAssertEqual(ChatWire.archiveFailure(status: nil, body: nil, error: "offline"), "offline")
   }
+
+  func testABatchsProblemNamesEveryThreadAndItsReason() {
+    XCTAssertEqual(
+      ChatWire.archiveProblem([("A", "HTTP 502")], archive: true), #"Could not archive "A": HTTP 502"#,
+      "one thread reads as it always did")
+    XCTAssertEqual(
+      ChatWire.archiveProblem([("A", "HTTP 502"), ("B", "no such thread (HTTP 404)")], archive: false),
+      #"Could not unarchive 2 chats: "A": HTTP 502; "B": no such thread (HTTP 404)"#)
+  }
+
+  func testATickedThreadThatLeftTheLiveListIsNotArchived() {
+    func row(_ key: String, done: Bool = false, archived: Bool = false) -> ChatSummary {
+      ChatSummary(key: key, title: key, lastTs: "", lastWho: "larry", lastText: "", done: done, archived: archived)
+    }
+    let threads = [row("a"), row("done", done: true), row("archived", done: true, archived: true), row("b"), row("c")]
+    XCTAssertEqual(
+      ChatWire.liveKeys(["b", "a", "done", "archived", "gone"], in: threads), ["a", "b"],
+      "only live rows, in list order; unticked c stays out")
+  }
 }

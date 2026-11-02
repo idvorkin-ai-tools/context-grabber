@@ -180,6 +180,19 @@ public enum ChatWire {
     return (json?["error"] as? String).map { "\($0) (HTTP \(status))" } ?? "HTTP \(status)"
   }
 
+  /// What the list says for the threads an archive or unarchive could not change: each one, and why.
+  public static func archiveProblem(_ failed: [(title: String, reason: String)], archive: Bool) -> String {
+    let verb = archive ? "archive" : "unarchive"
+    let each = failed.map { "\"\($0.title)\": \($0.reason)" }
+    return failed.count == 1
+      ? "Could not \(verb) \(each[0])" : "Could not \(verb) \(failed.count) chats: \(each.joined(separator: "; "))"
+  }
+
+  /// The ticked threads Select can still archive, in list order: a Done or archived thread has left its rows.
+  public static func liveKeys(_ picked: Set<String>, in threads: [ChatSummary]) -> [String] {
+    threads.filter { !$0.done && picked.contains($0.key) }.map(\.key)
+  }
+
   /// Where an attachment's image is served; nil for a ref that is not one the Cockpit mints.
   public static func attachmentURL(_ ref: String, cockpit: String) -> URL? {
     guard ref.range(of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp)$"#, options: .regularExpression) != nil

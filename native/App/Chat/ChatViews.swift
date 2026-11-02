@@ -27,6 +27,10 @@ struct ChatListView: View {
   /// *Select* is on: live rows tick instead of opening (#599).
   @State private var selecting = false
   @State private var picked: Set<String> = []
+  /// What is ticked and still live: a refresh can finish or archive a ticked thread and take its row away.
+  private var pickedLive: [String] { ChatWire.liveKeys(picked, in: chat.threads) }
+  /// GRABBER_CHAT_SELECT=archive: once the list is read, *Review* and *Archive (N)* tap themselves, for the simulator.
+  @State private var selectHook = ProcessInfo.processInfo.environment["GRABBER_CHAT_SELECT"] == "archive"
 
   var body: some View {
     List {
@@ -51,7 +55,7 @@ struct ChatListView: View {
           Text(undo.count == 1 ? "Archived \"\(undo[0].title)\"" : "Archived \(undo.count) chats").lineLimit(1)
           Spacer()
           Button("Undo") {
-            for thread in undo { Task { await chat.setArchived(thread.key, false, from: "undo") } }
+            Task { await chat.setArchived(undo.map(\.key), false, from: "undo") }
           }
           .accessibilityIdentifier("chat-archive-undo")
         }
@@ -61,12 +65,8 @@ struct ChatListView: View {
         HStack {
           Text(looksDone.count == 1 ? "1 chat looks done" : "\(looksDone.count) chats look done")
           Spacer()
-          Button("Review") {
-            picked = Set(looksDone.map(\.key))
-            selecting = true
-            chat.logAction("select", ["from": "looks_done", "count": picked.count])
-          }
-          .accessibilityIdentifier("chat-review-done")
+          Button("Review") { review(from: "looks_done") }
+            .accessibilityIdentifier("chat-review-done")
         }
         .font(.footnote)
       }
@@ -87,7 +87,9 @@ struct ChatListView: View {
         }
       }
       Section {
-        ForEach(live) { thread in selecting ? AnyView(tickRow(thread)) : AnyView(threadLink(thread)) }
+        ForEach(live) { thread in
+          if selecting { tickRow(thread) } else { threadLink(thread) }
+        }
       }
       if !done.isEmpty, !selecting {
         Section {
@@ -114,7 +116,14 @@ struct ChatListView: View {
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("chat-list")
     .refreshable { await chat.refreshList(reason: "pull") }
-    .task { await chat.refreshList(reason: "open") }
+    .task {
+      await chat.refreshList(reason: "open")
+      if selectHook {
+        selectHook = false
+        review(from: "hook")
+        archivePicked()
+      }
+    }
     .onAppear { chat.listOnScreen = true }
     .onDisappear { chat.listOnScreen = false }
     // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
@@ -132,20 +141,14 @@ struct ChatListView: View {
     }
     .safeAreaInset(edge: .bottom) {
       if selecting {
-        Button("Archive (\(picked.count))") {
-          let keys = picked
-          picked = []
-          selecting = false
-          Task { await chat.archiveSelected(keys) }
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(picked.isEmpty)
-        .padding(.bottom, 8)
-        .accessibilityIdentifier("chat-archive-selected")
+        Button("Archive (\(pickedLive.count))") { archivePicked() }
+          .buttonStyle(.borderedProminent)
+          .disabled(pickedLive.isEmpty)
+          .padding(.bottom, 8)
+          .accessibilityIdentifier("chat-archive-selected")
       }
     }
     .overlay(alignment: .bottomTrailing) {
-      if !selecting {
       Button {
         chat.openNewChat(from: "chat")
       } label: {
@@ -161,7 +164,6 @@ struct ChatListView: View {
       .accessibilityIdentifier("inbox-add")
       .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
       .padding(16)
-      }
     }
     .navigationDestination(isPresented: $chat.newChatOpen) {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
@@ -173,6 +175,19 @@ struct ChatListView: View {
         ChatThreadView(chat: chat, voice: voice, key: key, title: chat.title(of: key), logger: logger)
       }
     }
+  }
+
+  private func review(from: String) {
+    picked = Set(looksDone.map(\.key))
+    selecting = true
+    chat.logAction("select", ["from": from, "count": picked.count])
+  }
+
+  private func archivePicked() {
+    let keys = pickedLive
+    picked = []
+    selecting = false
+    Task { await chat.archiveSelected(keys) }
   }
 
   private func tickRow(_ thread: ChatSummary) -> some View {

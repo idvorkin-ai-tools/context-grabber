@@ -31,7 +31,7 @@ final class ChatModel: ObservableObject {
   /// The archive change on its way for a thread, shown over any list that comes back meanwhile.
   private var archiving: [String: Bool] = [:]
   /// Each thread's latest archive change: the next one waits for its answer.
-  private var archiveChanges: [String: Task<Void, Never>] = [:]
+  private var archiveChanges: [String: Task<(title: String, reason: String)?, Never>] = [:]
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
 
@@ -113,14 +113,27 @@ final class ChatModel: ObservableObject {
   /// One change at a time per thread, so each answer settles the row before the next change looks at it: an Undo
   /// while the archive is unanswered waits for that answer.
   func setArchived(_ key: String, _ archive: Bool, from: String) async {
-    if !archive { undoArchive.removeAll { $0.key == key } }
-    let earlier = archiveChanges[key]
-    let change = Task {
-      await earlier?.value
-      await applyArchived(key, archive, from: from)
+    await setArchived([key], archive, from: from)
+  }
+
+  /// Several threads together (#599): one problem names every thread that didn't take.
+  func setArchived(_ keys: [String], _ archive: Bool, from: String) async {
+    let changes = keys.map { key in
+      if !archive { undoArchive.removeAll { $0.key == key } }
+      let earlier = archiveChanges[key]
+      let change = Task {
+        _ = await earlier?.value
+        return await applyArchived(key, archive, from: from)
+      }
+      archiveChanges[key] = change
+      return change
     }
-    archiveChanges[key] = change
-    await change.value
+    var failed: [(title: String, reason: String)] = []
+    for change in changes {
+      guard let failure = await change.value else { continue }
+      failed.append(failure)
+      archiveProblem = ChatWire.archiveProblem(failed, archive: archive)
+    }
   }
 
   func logAction(_ action: String, _ fields: [String: Any] = [:]) {
@@ -128,16 +141,16 @@ final class ChatModel: ObservableObject {
   }
 
   /// The ticked threads, together (#599). The undo offer covers only this batch.
-  func archiveSelected(_ keys: Set<String>) async {
+  func archiveSelected(_ keys: [String]) async {
     undoArchive = []
-    await withTaskGroup(of: Void.self) { group in
-      for key in keys { group.addTask { await self.setArchived(key, true, from: "select") } }
-    }
+    await setArchived(keys, true, from: "select")
   }
 
-  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back.
-  private func applyArchived(_ key: String, _ archive: Bool, from: String) async {
-    guard let index = threads.firstIndex(where: { $0.key == key }), threads[index].archived != archive else { return }
+  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back and is returned.
+  private func applyArchived(_ key: String, _ archive: Bool, from: String) async -> (title: String, reason: String)? {
+    guard let index = threads.firstIndex(where: { $0.key == key }), threads[index].archived != archive else {
+      return nil
+    }
     let before = threads[index]
     threads[index] = before.archiving(archive)
     archiveEpoch += 1
@@ -171,11 +184,11 @@ final class ChatModel: ObservableObject {
     guard let failure else {
       // The Cockpit may still call it done (an old thread): its list settles where the row belongs.
       if !archive { await refreshList(reason: "unarchive") }
-      return
+      return nil
     }
     if let now = threads.firstIndex(where: { $0.key == key }) { threads[now] = before }
     undoArchive.removeAll { $0.key == key }
-    archiveProblem = "Could not \(archive ? "archive" : "unarchive") \"\(before.title)\": \(failure)"
+    return (before.title, failure)
   }
 
   // MARK: One thread

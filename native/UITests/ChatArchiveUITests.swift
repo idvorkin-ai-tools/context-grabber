@@ -1,6 +1,7 @@
-//  Stories 307-309 (#589) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): a swipe
-//  archives a thread with Undo, the thread's ⋯ menu archives it and goes back to the list, and both ways of Unarchive
-//  bring it back to the live list. Each test leaves the thread live: the fake Cockpit outlives a test.
+//  Stories 307-309 (#589) and 311-314 (#599) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
+//  starts it): a swipe archives a thread with Undo, the thread's ⋯ menu archives it and goes back to the list, both ways
+//  of Unarchive bring it back to the live list, Select archives several with one Undo and Cancel archives none, and
+//  Review ticks what looks done. Each test leaves the thread live: the fake Cockpit outlives a test.
 
 import XCTest
 

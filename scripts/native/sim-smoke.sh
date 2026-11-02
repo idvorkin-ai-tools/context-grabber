@@ -505,6 +505,18 @@ pictured=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_chat_image")] | 
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ "$pictured" -ge 1 ] && [ -z "$failed" ]; then ok "chat: a picture opened full size from the hook, no error events"
 else bad "chat: open_chat_image x$pictured, errors: $failed"; fi
+# Stories 312, 314: the hook reviews what looks done and archives it; ChatArchiveUITests taps Select and Undo.
+SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_INBOX=open \
+  SIMCTL_CHILD_GRABBER_CHAT_SELECT=archive relaunch
+wait_jq 'select(.type=="chat" and .action=="archive" and .from=="select")' 20 || echo "      (timed out waiting for the archive)"
+f=$(newest_log)
+reviewed=$(jq -sr '[.[] | select(.type=="chat" and .action=="select" and .from=="hook")][0].count // 0' "$f")
+archived=$(jq -sr '[.[] | select(.type=="chat" and .action=="archive" and .from=="select" and .ok==true)][0].thread // ""' "$f")
+posted=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.593/archive")] | length' "$CHAT_REPORT")
+failed=$(jq -c 'select(.type=="error")' "$f")
+if [ "$reviewed" = 1 ] && [ "$archived" = igor2-88g.593 ] && [ "$posted" = 1 ] && [ -z "$failed" ]; then
+  ok "chat: Review ticked the one that looks done and Archive (1) archived it, no error events"
+else bad "chat: reviewed $reviewed, archived '$archived', POST archive x$posted, errors: $failed"; fi
 
 fi  # chat
 
