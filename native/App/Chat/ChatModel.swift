@@ -25,6 +25,11 @@ final class ChatModel: ObservableObject {
   /// Why the last archive or unarchive didn't take.
   @Published private(set) var archiveProblem: String?
   private var undoTask: Task<Void, Never>?
+  /// Bumped by each archive change and its answer: a list read that started before one is stale (it would put the
+  /// thread back where it was), so it is read again.
+  private var archiveEpoch = 0
+  /// Archive changes still on their way, shown over any list that comes back meanwhile.
+  private var archiving: [String: Bool] = [:]
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
 
@@ -61,11 +66,14 @@ final class ChatModel: ObservableObject {
     inbox.reload()
     guard !inbox.offline else { return }
     do {
+      let epoch = archiveEpoch
       let (data, response) = try await URLSession.shared.data(for: try ChatWire.listRequest(cockpit: cockpit))
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-      guard status == 200, let rows = ChatWire.summaries(data) else {
+      guard status == 200, var rows = ChatWire.summaries(data) else {
         return listFailed("the Cockpit answered HTTP \(status)", reason: reason)
       }
+      if epoch != archiveEpoch { return await refreshList(reason: reason) }
+      rows = rows.map { row in archiving[row.key].map(row.archiving) ?? row }
       threads = rows
       listProblem = nil
       // On screen is seen: a reply shown in the list never notifies later. A refresh behind Home does not count.
@@ -97,6 +105,12 @@ final class ChatModel: ObservableObject {
     guard let index = threads.firstIndex(where: { $0.key == key }) else { return }
     let before = threads[index]
     threads[index] = before.archiving(archive)
+    archiveEpoch += 1
+    archiving[key] = archive
+    defer {
+      archiving[key] = nil
+      archiveEpoch += 1
+    }
     archiveProblem = nil
     if archive, from == "swipe" {
       undoArchive = before
