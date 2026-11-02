@@ -118,16 +118,19 @@ else bad "cockpit: unreachable load '$failed_load'"; fi
 fi  # cockpit
 
 if want whiteboard; then
-# Stories 340, 342: the whiteboard opened as its tile would, the saved board read, no error.
+# Stories 340, 348, 347: the whiteboard tile opens the boards, the list read (and any single board from before the
+# list moved into it), iCloud tried: on a simulator with no iCloud account the sync is skipped, never an error.
 SIMCTL_CHILD_GRABBER_WHITEBOARD=open relaunch
-wait_jq 'select(.type=="whiteboard" and .action=="open")' 20 || echo "      (timed out waiting for whiteboard open)"
+wait_jq 'select(.type=="whiteboard_sync")' 30 || echo "      (timed out waiting for whiteboard_sync)"
 f=$(newest_log)
 opened=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_whiteboard")][0].from // ""' "$f")
-strokes=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="open")][0].strokes // ""' "$f")
+boards=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="list")][0].boards // ""' "$f")
+synced=$(jq -sr '[.[] | select(.type=="whiteboard_sync")][0] | "\(.ok) \(.skipped // .message // "")"' "$f")
 errors=$(jq -c 'select(.type=="error")' "$f")
-if [ "$opened" = "hook" ] && [[ "$strokes" =~ ^[0-9]+$ ]] && [ -z "$errors" ]; then
-  ok "whiteboard: opened from the hook, $strokes saved stroke(s), no error events"
-else bad "whiteboard: open_whiteboard from '$opened', strokes '$strokes', errors: $errors"; fi
+if [ "$opened" = "hook" ] && [[ "$boards" =~ ^[0-9]+$ ]] && [[ "$synced" == "true "* || "$synced" == "false account_"* ]] \
+  && [ -z "$errors" ]; then
+  ok "whiteboard: the boards opened from the hook, $boards board(s), iCloud: $synced, no error events"
+else bad "whiteboard: open_whiteboard from '$opened', boards '$boards', sync '$synced', errors: $errors"; fi
 fi  # whiteboard
 
 if want timer; then

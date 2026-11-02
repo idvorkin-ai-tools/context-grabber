@@ -1,6 +1,7 @@
-//  The whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343): PencilKit's canvas and the system tool
+//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347): PencilKit's canvas and the system tool
 //  picker on a board far bigger than the screen, saved a moment after each stroke, and sent to Larry as a new chat
-//  thread holding its picture (the Inbox's image path, so it waits in the outbox when the network is away).
+//  thread holding its picture (the Inbox's image path, so it waits in the outbox when the network is away). A board
+//  another device draws opens to look at only.
 
 import BugKit
 import ContextCore
@@ -13,52 +14,41 @@ final class WhiteboardModel: ObservableObject {
   /// What the last Send did, shown in the bar until the next stroke.
   @Published private(set) var sent: String?
   @Published private(set) var problem: BugProblem?
+  let board: BoardEntry
+  /// Drawn here, or only looked at (a board from another device, story 347).
+  let editable: Bool
   private(set) var drawing: PKDrawing
-  private let file: URL?
+  private let store: WhiteboardStore
   private let log: SessionLog
   private let inbox: InboxModel
   private var saveTask: Task<Void, Never>?
   private var dirty = false
   private var saveFailing = false
 
-  init(log: SessionLog, inbox: InboxModel) {
+  init(board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel) {
+    self.board = board
+    self.store = store
     self.log = log
     self.inbox = inbox
-    var file = try? FileManager.default
-      .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-      .appendingPathComponent("whiteboard", isDirectory: true).appendingPathComponent("board.drawing")
+    editable = store.editable(board)
     var loaded = PKDrawing()
-    var failure: String?
-    if let target = file, FileManager.default.fileExists(atPath: target.path) {
-      do {
-        loaded = try PKDrawing(data: Data(contentsOf: target))
-      } catch {
-        // Kept aside, never overwritten by the empty board that replaces it.
-        let aside = target.appendingPathExtension("unreadable")
-        do {
-          if FileManager.default.fileExists(atPath: aside.path) { try FileManager.default.removeItem(at: aside) }
-          try FileManager.default.moveItem(at: target, to: aside)
-          failure =
-            "The saved board could not be read, so it was set aside and this one is new: \(error.localizedDescription)"
-        } catch let moveError {
-          file = nil
-          failure =
-            "The saved board could not be read (\(error.localizedDescription)) or set aside "
-            + "(\(moveError.localizedDescription)), so it is left as it was and what is drawn now is lost on close."
-        }
-        log.event("error", ["where": "whiteboard_load", "message": "\(error)", "set_aside": file != nil])
-      }
-    } else if file == nil {
-      failure = "This build has nowhere to keep the board, so what is drawn is lost on close."
+    do {
+      loaded = try store.drawing(board.id)
+    } catch {
+      log.event("error", ["where": "whiteboard_load", "message": "\(error)", "board": board.id])
+      problem = .grabber(
+        "This board could not be read: \(error.localizedDescription)", context: "WhiteboardView.load",
+        extra: ["board": .string(board.id)])
     }
-    self.file = file
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
-    problem = failure.map { .grabber($0, context: "WhiteboardView.load", extra: [:]) }
-    log.event("whiteboard", ["action": "open", "strokes": loaded.strokes.count])
+    log.event(
+      "whiteboard",
+      ["action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": store.editable(board)])
   }
 
   func changed(_ new: PKDrawing) {
+    guard editable else { return }
     drawing = new
     isEmpty = new.strokes.isEmpty
     sent = nil
@@ -71,21 +61,30 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Leaving the board, by Done or by a link that takes it down: what is drawn is written now, not a second later.
-  /// Safe to call twice.
+  /// The app going to the background: what is drawn is written now. The board stays open, so an empty new one is
+  /// kept.
+  func flush() {
+    saveTask?.cancel()
+    if editable, dirty { save() }
+  }
+
+  /// Leaving the board, by Back or by a link that takes it down: what is drawn is written now, not a second later,
+  /// and goes up to iCloud. Safe to call twice.
   func close() {
     saveTask?.cancel()
-    guard dirty else { return }
-    save()
-    log.event("whiteboard", ["action": "close", "strokes": drawing.strokes.count])
+    guard editable else { return }
+    if dirty {
+      save()
+      log.event("whiteboard", ["action": "close", "board": board.id, "strokes": drawing.strokes.count])
+    }
+    store.closed(board.id, empty: drawing.strokes.isEmpty)
   }
 
   // ponytail: serialised on the main thread; a board big enough to stutter here moves it to a background task.
   private func save() {
-    guard dirty, let file else { return }
+    guard dirty else { return }
     do {
-      try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-      try drawing.dataRepresentation().write(to: file, options: .atomic)
+      try store.save(drawing, board: board.id)
       dirty = false
       saveFailing = false
     } catch {
@@ -99,7 +98,8 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Story 343: the whole drawing, dark ink on white whatever the iPad's mode, as a new thread with Larry.
+  /// Story 343: the whole drawing, dark ink on white whatever the iPad's mode, as a new thread with Larry, titled
+  /// with the board's name.
   func send() {
     guard sent == nil, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
     var ink = UIImage()
@@ -114,7 +114,7 @@ final class WhiteboardModel: ObservableObject {
     }
     var draft = InboxDraft()
     draft.image = jpeg
-    draft.text = WhiteboardFrame.title(at: Date())
+    draft.text = store.index.board(board.id)?.title ?? board.title
     do {
       try inbox.add(&draft)
       if problem?.context == "WhiteboardView.send" { problem = nil }
@@ -122,7 +122,7 @@ final class WhiteboardModel: ObservableObject {
       log.event(
         "whiteboard",
         [
-          "action": "send", "strokes": drawing.strokes.count, "bytes": jpeg.count,
+          "action": "send", "board": board.id, "strokes": drawing.strokes.count, "bytes": jpeg.count,
           "pixels": "\(Int(ink.size.width * ink.scale))x\(Int(ink.size.height * ink.scale))",
         ])
     } catch {
@@ -134,31 +134,32 @@ final class WhiteboardModel: ObservableObject {
   }
 }
 
+/// One board, pushed from the list: drawn on here, or looked at when another device draws it.
 struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
   @Environment(\.scenePhase) private var scenePhase
   private let logger: BugLogger
-  private let onDone: () -> Void
 
-  init(app: AppModel, onDone: @escaping () -> Void) {
-    _model = StateObject(wrappedValue: WhiteboardModel(log: app.log, inbox: app.inbox))
+  init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
+    _model = StateObject(wrappedValue: WhiteboardModel(board: board, store: store, log: app.log, inbox: app.inbox))
     logger = app.bugLogger
-    self.onDone = onDone
   }
 
   var body: some View {
     VStack(spacing: 0) {
-      HStack(spacing: 12) {
-        Button("Done") {
-          model.close()
-          onDone()
-        }
-        .accessibilityIdentifier("whiteboard-done")
-        Spacer(minLength: 0)
-        if let sent = model.sent {
-          Text(sent).font(.footnote).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.8)
-        }
-        Spacer(minLength: 0)
+      if let note {
+        Text(note).font(.footnote).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.8)
+          .padding(.vertical, 4)
+      }
+      if let problem = model.problem {
+        BugProblemView(problem: problem, logger: logger).padding(.horizontal)
+      }
+      BoardCanvas(model: model).ignoresSafeArea(edges: .bottom)
+    }
+    .navigationTitle(model.board.title)
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
         Button {
           model.send()
         } label: {
@@ -167,16 +168,14 @@ struct WhiteboardView: View {
         .disabled(model.isEmpty || model.sent != nil)
         .accessibilityIdentifier("whiteboard-send")
       }
-      .padding(.horizontal)
-      .padding(.vertical, 10)
-      if let problem = model.problem {
-        BugProblemView(problem: problem, logger: logger).padding(.horizontal)
-      }
-      BoardCanvas(model: model).ignoresSafeArea(edges: .bottom)
     }
     .accessibilityIdentifier("whiteboard")
     .onDisappear { model.close() }
-    .onChange(of: scenePhase) { _, phase in if phase == .background { model.close() } }
+    .onChange(of: scenePhase) { _, phase in if phase == .background { model.flush() } }
+  }
+
+  private var note: String? {
+    model.sent ?? (model.editable ? nil : "Drawn on \(model.board.deviceName): look only")
   }
 }
 
@@ -198,7 +197,12 @@ private struct BoardCanvas: UIViewRepresentable {
     canvas.contentSize = CGSize(width: WhiteboardFrame.side, height: WhiteboardFrame.side)
     canvas.minimumZoomScale = 0.1
     canvas.maximumZoomScale = 3
-    canvas.toolPicker = context.coordinator.picker
+    if model.editable {
+      canvas.toolPicker = context.coordinator.picker
+    } else {
+      // Story 347: pan and pinch only.
+      canvas.drawingGestureRecognizer.isEnabled = false
+    }
     return canvas
   }
 

@@ -17,16 +17,38 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Then we draw together** (later steps). When Igor lifts the pen, faint suggestions appear on the board. A tap keeps
   one, and drawing on dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Igor's voice steers the
   suggestions. Larry can draw too, during a call.
-- **The phone can view.** Boards drawn on the iPad can be seen on the phone (a later step).
+- **The phone can view.** Boards drawn on the iPad can be seen on the phone.
 
 ## Non-goals
 
 - No shapes palette, layers, text boxes or templates. The Pencil and the tool picker are the whole interface.
-- Not a notes app. One board for now, kept until Igor clears it.
+- Not a notes app: boards have a name and a picture, with no folders, tags or search.
+- No two devices drawing on one board. A board is drawn on the device that made it, and every other device shows it
+  read-only, so there's never a conflict to merge.
 
 ## What Igor sees (v0: this build)
 
-- A **Whiteboard** tile on home. It opens the board full screen.
+### The boards (Igor, 2026-11-01: "I should see each whiteboard as a list"; "on iPhone should see what was drawn, probably read only")
+
+- A **Whiteboard** tile on home. It opens **the boards**: a grid of cards, newest change first. Each card shows the
+  board's picture, its name, and when it last changed. A board from another device also says where it was drawn
+  ("Drawn on iPad").
+- **+ New board** opens a fresh, empty board named for the day (*Board, Nov 1*; a second that day is *Board, Nov 1
+  (2)*). A new board that's left without a stroke is gone when it closes, so empty boards never pile up.
+- A **long press** on a card offers *Rename* and *Delete*. Delete asks first, and it removes the board from every
+  device. Only boards drawn on this device can be renamed or deleted.
+- **Every device signed into Igor's iCloud sees every board.** A board saved on the iPad appears in the iPhone's
+  list the next time the list opens or the app comes forward. It's usually there within a minute, and a pull on the
+  list fetches it straight away.
+- **Read-only elsewhere:** a board opens for drawing only on the device that made it. On any other device it opens
+  to look at: pan and pinch, no tool picker, and a note in the bar saying where it's drawn.
+- **Without iCloud** (signed out, or no network), the list shows what this device already has and says that boards
+  aren't syncing. Drawing still works, and the board goes up the next time it can.
+- **The board drawn before the list existed** becomes the first board in the list, and nothing on it is lost.
+- **A reinstall** gives the device a new identity, so its old boards come back read-only there. Taking a board
+  over on a new device is a later step.
+
+### One board
 - The **tool picker** sits along the edge: pen, marker, pencil, eraser, lasso, ruler, undo and redo, and colors.
   This is the system's own picker, so the Pencil's double tap or squeeze switches to the eraser, as it does in
   Notes.
@@ -41,13 +63,13 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   opens another screen. The board saves a moment after each stroke, and again on close or when the app goes to the
   background. If a saved board can't be read, it's kept aside and the screen says so; if it can't even be moved
   aside, it's left untouched, nothing drawn that time is saved over it, and the screen says that too.
-- **Send to Larry** (top bar): sends a picture of everything drawn, on white, as a new chat thread titled
-  *Whiteboard, <date>*.
+- **Send to Larry** (top bar): sends a picture of everything drawn, on white, as a new chat thread titled with
+  the board's name.
   - The bar says *Sent to Larry: his reply shows in Chat*. One send makes one thread: the button stays disabled
     until the next stroke, so a second tap never sends the same board twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
-- **Done** (top bar) closes the board.
+- **Back** (top bar) closes the board and returns to the boards, where **Done** leaves the Whiteboard.
 
 ## Later steps (not in this build)
 
@@ -61,7 +83,6 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
    the ghosts. "Your turn" said out loud gets a full drawing turn.
 3. **Larry.** A call with the board as Larry's context while Igor keeps drawing, and Larry gets the same drawing turn
    Claude does. His replies would need to carry strokes, not only pictures, which is Cockpit work.
-4. **The phone.** The boards, viewed through the Cockpit: a list, then a picture you can pinch.
 
 Claude's side runs through the Cockpit on the Mac (Igor's pick), so no model key goes on the device. The cost is
 that ghosts need the tailnet.
@@ -73,3 +94,9 @@ that ghosts need the tailnet.
 - Pan or pinch several screens past the first view, and the board is still there to draw on.
 - Send to Larry with a drawing: a new thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
+- The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no
+  card behind.
+- Draw on the iPad and close the board: within a minute, the iPhone's list shows it with the same picture. Opening
+  it there shows the drawing with no tool picker, and a finger only pans.
+- Rename and delete a board on the iPad: the iPhone follows on its next refresh.
+- The single board from before the list is the first card after the update.

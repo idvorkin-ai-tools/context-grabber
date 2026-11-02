@@ -17,7 +17,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 
 #### Acceptance Criteria:
 - **Scenario:** Pencil, palm and finger
-- **Given:** the Whiteboard is open on the iPad, with my palm resting on the glass
+- **Given:** a board of mine is open on the iPad, with my palm resting on the glass
 - **When:** I draw with the Pencil, then double-tap it and rub out a stroke, then drag a finger
 - **Then:** the Pencil leaves ink, my palm leaves nothing, the eraser removes the stroke, and the finger moves the board without drawing
 
@@ -54,7 +54,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 #### Acceptance Criteria:
 - **Scenario:** Relaunch
 - **Given:** I drew on the board and then quit the app
-- **When:** I open the Whiteboard again
+- **When:** I open the Whiteboard again and tap that board's card
 - **Then:** every stroke is there, and the view opens centred on the drawing
 
 ---
@@ -62,7 +62,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 343:
 
 - **Summary:** Show Larry the board
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size, the thread's title) and the simulator build; a thread in Chat not yet seen from the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876), the thread titled with the board's name in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
 
 #### Use Case:
 - **As someone** who sketches to think and then wants to talk it over
@@ -73,7 +73,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 - **Scenario:** Send to Larry
 - **Given:** I have drawn on the board and the iPad is in dark mode
 - **When:** I tap Send to Larry
-- **Then:** the bar says the board is on its way, and Chat gets a new thread titled "Whiteboard, <date>" holding a picture of the whole drawing, dark ink on white
+- **Then:** the bar says the board is on its way, and Chat gets a new thread titled with the board's name ("Board, Nov 1", or what I renamed it to) holding a picture of the whole drawing, dark ink on white
 
 - **Scenario:** One send, one thread
 - **Given:** I have just sent the board to Larry
@@ -138,16 +138,39 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 
 ### User Story 347:
 
-- **Summary:** See the iPad's board on the phone
-- **Status:** not implemented
+- **Summary:** See the iPad's boards on the phone
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and the review fixes in [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: read-only off the drawing device, the merge, a failed fetch retried) and the simulator (the boards open, iCloud skipped with no account); an iPad board on the phone not yet seen
 
 #### Use Case:
 - **As someone** away from the iPad
-- **I want to** look at the board on the phone
+- **I want to** look at the boards on the phone
 - **so that** the sketch is with me wherever I am
 
 #### Acceptance Criteria:
-- **Scenario:** View only
-- **Given:** I drew on the iPad's board
-- **When:** I open the boards on the phone
-- **Then:** I see the latest picture of the board, which I can pinch but not draw on
+- **Scenario:** View only, through iCloud
+- **Given:** I drew a board on the iPad and closed it, and both devices are signed into my iCloud
+- **When:** I open the Whiteboard on the phone and tap that board's card
+- **Then:** I see the drawing, which I can pan and pinch but not draw on, with a note that it is drawn on the iPad
+
+---
+
+### User Story 348:
+
+- **Summary:** Many boards, as a list
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5), a delete during the first upload in [8625cd8](https://github.com/idvorkin/context-grabber/commit/8625cd8); verified by host tests (`BoardIndexTests`: names, newest first, deletes) and the simulator (`just native-test-sim`: the boards open from the hook); the cards on the iPad not yet seen
+
+#### Use Case:
+- **As someone** who sketches a different idea each time
+- **I want to** keep each board, see them as a list and start a new one
+- **so that** a new idea never draws over an old one
+
+#### Acceptance Criteria:
+- **Scenario:** The boards
+- **Given:** I drew one board this morning, and one before the list existed
+- **When:** I open the Whiteboard and tap + New board, draw, and go back
+- **Then:** the list shows three cards, newest first, each with its picture, name and when it changed; an empty new board left without a stroke leaves no card
+
+- **Scenario:** Rename and delete
+- **Given:** a card for a board this device drew
+- **When:** I long-press it and rename it, then long-press it again, tap Delete and confirm
+- **Then:** the card takes the new name, then goes, and the board leaves every device and doesn't come back; a card drawn on another device offers neither
