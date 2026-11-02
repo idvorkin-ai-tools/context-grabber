@@ -62,7 +62,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 343:
 
 - **Summary:** Show Larry the board
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size, the thread's title) and the simulator build; a thread in Chat not yet seen from the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
 
 #### Use Case:
 - **As someone** who sketches to think and then wants to talk it over
@@ -139,7 +139,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 347:
 
 - **Summary:** See the iPad's boards on the phone
-- **Status:** not implemented
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and the review fixes in [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: read-only off the drawing device, the merge, a failed fetch retried) and the simulator (the boards open, iCloud skipped with no account); an iPad board on the phone not yet seen
 
 #### Use Case:
 - **As someone** away from the iPad
@@ -157,7 +157,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 348:
 
 - **Summary:** Many boards, as a list
-- **Status:** not implemented
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: names, newest first, deletes) and the simulator (`just native-test-sim`: the boards open from the hook); the cards on the iPad not yet seen
 
 #### Use Case:
 - **As someone** who sketches a different idea each time

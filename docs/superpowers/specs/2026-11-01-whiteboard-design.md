@@ -45,6 +45,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Without iCloud** (signed out, or no network), the list shows what this device already has and says that boards
   aren't syncing. Drawing still works, and the board goes up the next time it can.
 - **The board drawn before the list existed** becomes the first board in the list, and nothing on it is lost.
+- **A reinstall** gives the device a new identity, so its old boards come back read-only there. Taking a board
+  over on a new device is a later step.
 
 ### One board
 - The **tool picker** sits along the edge: pen, marker, pencil, eraser, lasso, ruler, undo and redo, and colors.
