@@ -970,7 +970,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 307:
 
 - **Summary:** Archive a chat from the list or from inside it
-- **Status:** native app only: not yet built
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), a list read racing an archive in [88a194c](https://github.com/idvorkin/context-grabber/commit/88a194c), reading a thread no longer un-archiving it in [efd55da](https://github.com/idvorkin/context-grabber/commit/efd55da); verified by host tests (`ChatTests`: the archived field, the request, the answers) and the simulator (`ChatArchiveUITests` against the fake Cockpit: a swipe with Undo, the ⋯ menu and Unarchive); against the real Cockpit on the iPad not yet
 - **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
 - **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
 
