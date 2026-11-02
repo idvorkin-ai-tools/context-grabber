@@ -17,7 +17,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 
 #### Acceptance Criteria:
 - **Scenario:** Pencil, palm and finger
-- **Given:** the Whiteboard is open on the iPad, with my palm resting on the glass
+- **Given:** a board of mine is open on the iPad, with my palm resting on the glass
 - **When:** I draw with the Pencil, then double-tap it and rub out a stroke, then drag a finger
 - **Then:** the Pencil leaves ink, my palm leaves nothing, the eraser removes the stroke, and the finger moves the board without drawing
 
@@ -54,7 +54,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 #### Acceptance Criteria:
 - **Scenario:** Relaunch
 - **Given:** I drew on the board and then quit the app
-- **When:** I open the Whiteboard again
+- **When:** I open the Whiteboard again and tap that board's card
 - **Then:** every stroke is there, and the view opens centred on the drawing
 
 ---
@@ -62,7 +62,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 343:
 
 - **Summary:** Show Larry the board
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876), the thread titled with the board's name in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
 
 #### Use Case:
 - **As someone** who sketches to think and then wants to talk it over
@@ -73,7 +73,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 - **Scenario:** Send to Larry
 - **Given:** I have drawn on the board and the iPad is in dark mode
 - **When:** I tap Send to Larry
-- **Then:** the bar says the board is on its way, and Chat gets a new thread titled "Whiteboard, <date>" holding a picture of the whole drawing, dark ink on white
+- **Then:** the bar says the board is on its way, and Chat gets a new thread titled with the board's name ("Board, Nov 1", or what I renamed it to) holding a picture of the whole drawing, dark ink on white
 
 - **Scenario:** One send, one thread
 - **Given:** I have just sent the board to Larry

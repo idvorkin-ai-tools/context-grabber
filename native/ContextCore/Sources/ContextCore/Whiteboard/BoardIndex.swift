@@ -97,10 +97,12 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     if current { boards[i].fetched = boards[i].updated }
   }
 
-  /// Gone from this list; a board iCloud ever took is deleted there on the next sync.
+  /// Gone from this list; a board iCloud took, or may be taking (it was ever changed), is deleted there on the next
+  /// sync.
   public mutating func remove(_ id: String) {
     guard let i = boards.firstIndex(where: { $0.id == id }) else { return }
-    if boards[i].uploaded != nil, !deleted.contains(id) { deleted.append(id) }
+    let mayBeInICloud = boards[i].uploaded != nil || boards[i].updated != boards[i].created
+    if mayBeInICloud, !deleted.contains(id) { deleted.append(id) }
     boards.remove(at: i)
   }
 

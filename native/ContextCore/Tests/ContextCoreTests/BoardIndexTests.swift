@@ -95,6 +95,19 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.deleted, [])
   }
 
+  func testABoardDeletedWhileItsFirstUploadRunsStaysDeleted() {
+    var ipad = BoardIndex()
+    ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
+    ipad.drew("a", strokes: 3, at: 3_000_000_000_000)
+    ipad.remove("a")
+    XCTAssertEqual(ipad.deleted, ["a"], "the upload in flight may land, so iCloud is told to delete it")
+    ipad.uploaded("a", at: 3_000_000_000_000)
+    let landed = BoardEntry(
+      id: "a", title: "A", created: 1, updated: 3_000_000_000_000, strokes: 3, device: "ipad", deviceName: "iPad")
+    _ = ipad.merge(cloud: [landed], device: "ipad")
+    XCTAssertNil(ipad.board("a"))
+  }
+
   func testRenameIsTrimmedAndCountsAsAChange() {
     var index = BoardIndex()
     index.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
