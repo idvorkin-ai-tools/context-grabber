@@ -60,8 +60,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - This follows the system's "Only Draw with Apple Pencil" setting.
 - **The board is big.** It opens centered on what's already drawn, or on its middle when it's empty. It stretches
   several screens in every direction. Pinching out shows the whole drawing; pinching in goes up to 3× for detail.
-- **Grid lines** (Igor, 2026-11-02: "Let's give me the ability to enable grid lines"; #608). A **Grid** button in the
-  top bar turns faint lines on and off, on every device, including a board another device draws.
+- **Grid lines** (Igor, 2026-11-02: "Let's give me the ability to enable grid lines"; #608). A **view menu** on the
+  left of the top bar has *Grid lines*, which turns faint lines on and off, on every device, including a board another
+  device draws. It sits apart from the buttons on the right so all of them still fit on an iPhone.
   - Off until asked, and remembered per board on this device: a board opened with its grid on opens that way again, and
     a new board starts without one.
   - The lines belong to the board: they pan and pinch with the drawing. They're so faint that ink crossing one reads

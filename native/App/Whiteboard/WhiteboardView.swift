@@ -851,13 +851,17 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          model.setGrid(!model.gridOn)
+      // On the left, in one menu: a sixth button on the right pushes Send and others off an iPhone's bar. How the board
+      // looks goes here.
+      ToolbarItem(placement: .topBarLeading) {
+        Menu {
+          Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
         } label: {
-          Label(model.gridOn ? "Grid on" : "Grid off", systemImage: model.gridOn ? "squareshape.split.3x3" : "square")
+          Label("Board view", systemImage: "squareshape.split.3x3")
         }
-        .accessibilityIdentifier("whiteboard-grid")
+        // The state, for VoiceOver and the UI test, in the label for the reason above.
+        .accessibilityLabel("Board view, grid \(model.gridOn ? "on" : "off")")
+        .accessibilityIdentifier("whiteboard-view")
       }
       ToolbarItem(placement: .topBarTrailing) {
         Button {

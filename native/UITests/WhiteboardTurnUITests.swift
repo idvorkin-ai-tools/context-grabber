@@ -221,13 +221,12 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts off", timeout: 3)
     stroke(app)
     wait(app, strokes: 1)
-    let grid = app.buttons["whiteboard-grid"]
-    XCTAssertEqual(grid.label, "Grid off")
+    let view = app.buttons["whiteboard-view"]
+    XCTAssertEqual(view.label, "Board view, grid off")
     sleep(1)
     let off = app.screenshot().image
 
-    grid.tap()
-    wait(grid, label: "Grid on", timeout: 3)
+    tapGrid(app, view, expect: "on")
     sleep(1)
     let on = app.screenshot()
     try? on.pngRepresentation.write(to: URL(fileURLWithPath: "/Users/idvorkin/tmp/agent/notes/wb/grid-on.png"))  // TEMP
@@ -238,21 +237,28 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertGreaterThan(boardPixelsDiffering(off, on.image), 1000, "no grid lines appeared")
 
     reopenBoard(app)
-    XCTAssertEqual(grid.label, "Grid on")
-    grid.tap()
-    wait(grid, label: "Grid off", timeout: 3)
+    XCTAssertEqual(view.label, "Board view, grid on")
+    tapGrid(app, view, expect: "off")
     reopenBoard(app)
-    XCTAssertEqual(grid.label, "Grid off")
-    grid.tap()
-    wait(grid, label: "Grid on", timeout: 3)
+    XCTAssertEqual(view.label, "Board view, grid off")
+    tapGrid(app, view, expect: "on")
 
     // A new board has its own switch.
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.waitForExistence(timeout: 5), app.debugDescription)
     new.tap()
-    XCTAssertTrue(grid.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertEqual(grid.label, "Grid off")
+    XCTAssertTrue(view.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertEqual(view.label, "Board view, grid off")
+  }
+
+  /// The grid's switch, in the board's view menu.
+  private func tapGrid(_ app: XCUIApplication, _ view: XCUIElement, expect: String) {
+    view.tap()
+    let item = app.descendants(matching: .any)["Grid lines"].firstMatch
+    XCTAssertTrue(item.waitForExistence(timeout: 3), app.debugDescription)
+    item.tap()
+    wait(view, label: "Board view, grid \(expect)", timeout: 3)
   }
 
   /// How many pixels differ in the middle of the screen, clear of the bars and the tool picker.

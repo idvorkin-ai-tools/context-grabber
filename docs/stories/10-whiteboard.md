@@ -1081,8 +1081,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** The grid, on and off
 - **Given:** a board with strokes on it, its grid off
-- **When:** I tap Grid
-- **Then:** faint lines show, too faint to break up the ink they cross, and pan and pinch with the board, thinning out as I pinch out; tapping again removes them and the ink is untouched; the board opens with the same choice next time, and a new board starts with none
+- **When:** I choose Grid lines in the board's view menu
+- **Then:** faint lines show, too faint to break up the ink they cross, and pan and pinch with the board, thinning out as I pinch out; choosing it again removes them and the ink is untouched; the board opens with the same choice next time, and a new board starts with none
 
 ---
 
