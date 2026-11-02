@@ -33,4 +33,28 @@ public enum WhiteboardFrame {
     let scale = min(maxScale, maxPixels / max(rect.width, rect.height))
     return (rect, scale)
   }
+
+  /// Grid lines in board points, at the finest; doubled as the board shrinks so they stay at least `gridMinGap` apart on
+  /// screen, which bounds the lines however far it is pinched out, and the lines that stay were lines already.
+  public static let gridStep: CGFloat = 40
+  public static let gridMinGap: CGFloat = 24
+
+  /// The lines that cover a viewport, in the canvas's own (zoomed) points.
+  public struct Grid: Equatable, Sendable {
+    public var origin: CGPoint
+    /// Between neighbouring lines.
+    public var gap: CGFloat
+    public var across: Int
+    public var down: Int
+  }
+
+  /// `offset` and `viewport` in zoomed points. Equal until the view crosses a line, so nothing moves between crossings.
+  public static func grid(offset: CGPoint, viewport: CGSize, zoom: CGFloat) -> Grid {
+    var step = gridStep
+    while step * zoom < gridMinGap { step *= 2 }
+    let gap = step * zoom
+    return Grid(
+      origin: CGPoint(x: (offset.x / gap).rounded(.down) * gap, y: (offset.y / gap).rounded(.down) * gap), gap: gap,
+      across: Int((viewport.width / gap).rounded(.up)) + 2, down: Int((viewport.height / gap).rounded(.up)) + 2)
+  }
 }

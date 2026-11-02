@@ -21,7 +21,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 ## Non-goals
 
-- No shapes palette, layers, text boxes or templates. The Pencil and the tool picker are the whole interface.
+- No shapes palette, layers, text boxes or templates (the grid is a faint guide, not a template). The Pencil and the tool picker are the whole interface.
 - Not a notes app: boards have a name and a picture, with no folders, tags or search.
 - No two devices drawing on one board. A board is drawn on the device that made it, and every other device shows it
   read-only, so there's never a conflict to merge.
@@ -59,6 +59,20 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - This follows the system's "Only Draw with Apple Pencil" setting.
 - **The board is big.** It opens centered on what's already drawn, or on its middle when it's empty. It stretches
   several screens in every direction. Pinching out shows the whole drawing; pinching in goes up to 3× for detail.
+- **Grid lines** (Igor, 2026-11-02: "Let's give me the ability to enable grid lines"; #608). A **Grid** button in the
+  top bar turns faint lines on and off, on every device, including a board another device draws.
+  - Off until asked, and remembered per board on this device: a board opened with its grid on opens that way again, and
+    a new board starts without one.
+  - The lines belong to the board: they pan and pinch with the drawing. They're so faint that ink crossing one reads
+    as unbroken, though they lie over the ink, not under it. Pinching out thins them
+    to every second line, then every fourth and so on, so they never crowd together; the lines that stay are lines
+    that were already there. They stay one hair wide at any zoom, in a grey that shows on a light or a dark background
+    without competing with ink.
+  - The grid isn't ink. It can't be erased, lassoed or undone, it isn't in the saved drawing or the board's card, and
+    another device's board doesn't change for it.
+  - **Claude and Larry don't see it.** Their pictures, and Send to Larry's, are the ink alone, so what comes back is
+    drawn to the marks and not fitted to the squares.
+  - Drawing and panning feel the same with the grid on as with it off, even on a big board.
 - **The board is kept.** Leaving, quitting or restarting the app never loses a stroke, and neither does a link that
   opens another screen. The board saves a moment after each stroke, and again on close or when the app goes to the
   background. If a saved board can't be read, it's kept aside and the screen says so; if it can't even be moved
@@ -98,3 +112,7 @@ that ghosts need the tailnet.
   it there shows the drawing with no tool picker, and a finger only pans.
 - Rename and delete a board on the iPad: the iPhone follows on its next refresh.
 - The single board from before the list is the first card after the update.
+- With a drawing on the board, Grid on shows faint lines that pan and pinch with it; Grid off removes
+  them and leaves the ink as it was. Closing and reopening that board keeps the choice; a new board has no grid.
+- Pinched all the way out and all the way in, the lines stay faint and evenly spaced, never a grey wash.
+- Send to Larry and a ghost turn with the grid on: the picture has no lines.

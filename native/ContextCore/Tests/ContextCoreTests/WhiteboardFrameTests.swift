@@ -34,4 +34,34 @@ final class WhiteboardFrameTests: XCTestCase {
     XCTAssertNil(WhiteboardFrame.export(.null))
     XCTAssertNil(WhiteboardFrame.export(.zero))
   }
+
+  // Story 398.
+  func testGridLinesStayApartAndFewAtAnyZoom() {
+    let viewport = CGSize(width: 1366, height: 1024)
+    for zoom in stride(from: CGFloat(0.1), through: 3, by: 0.05) {
+      let grid = WhiteboardFrame.grid(offset: .zero, viewport: viewport, zoom: zoom)
+      XCTAssertGreaterThanOrEqual(grid.gap, WhiteboardFrame.gridMinGap)
+      XCTAssertLessThanOrEqual(grid.across + grid.down, 106, "zoom \(zoom)")
+      // Every line is a line of the finest grid, so pinching only ever removes lines.
+      let step = grid.gap / zoom / WhiteboardFrame.gridStep
+      XCTAssertEqual(step, step.rounded(), accuracy: 0.0001)
+    }
+  }
+
+  func testTheGridCoversTheViewportAndHoldsStillBetweenLines() {
+    let viewport = CGSize(width: 800, height: 600)
+    let grid = WhiteboardFrame.grid(offset: CGPoint(x: 10_010, y: 7_205), viewport: viewport, zoom: 1)
+    XCTAssertEqual(grid.origin, CGPoint(x: 10_000, y: 7_200))
+    XCTAssertLessThanOrEqual(grid.origin.x, 10_010)
+    XCTAssertGreaterThanOrEqual(grid.origin.x + CGFloat(grid.across - 1) * grid.gap, 10_010 + viewport.width)
+    XCTAssertGreaterThanOrEqual(grid.origin.y + CGFloat(grid.down - 1) * grid.gap, 7_205 + viewport.height)
+    XCTAssertEqual(grid, WhiteboardFrame.grid(offset: CGPoint(x: 10_030, y: 7_230), viewport: viewport, zoom: 1))
+    XCTAssertNotEqual(grid, WhiteboardFrame.grid(offset: CGPoint(x: 10_040, y: 7_230), viewport: viewport, zoom: 1))
+  }
+
+  func testTheGridCoversABounceOffTheBoard() {
+    let grid = WhiteboardFrame.grid(offset: CGPoint(x: -30, y: -30), viewport: CGSize(width: 400, height: 400), zoom: 1)
+    XCTAssertLessThanOrEqual(grid.origin.x, -30)
+    XCTAssertLessThanOrEqual(grid.origin.y, -30)
+  }
 }

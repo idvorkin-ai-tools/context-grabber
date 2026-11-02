@@ -942,3 +942,43 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread is open
 - **When:** the Cockpit stops answering
 - **Then:** the bar says quietly that his marks aren't coming, no error box appears, the log has one error, and the bar clears by itself when the Cockpit answers
+
+---
+
+### User Story 398:
+
+- **Summary:** Faint grid lines on the board
+- **Status:** implemented in STAMP; verified by host tests (`WhiteboardFrameTests`) and the simulator (`WhiteboardTurnUITests`: lines appear in the screenshot's pixels, the choice stays with its board, a new board has none); how faint they look beside real ink, and drawing and pinching at 120 Hz on a big board, are for the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+
+#### Use Case:
+- **As someone** sketching on the iPad
+- **I want to** turn on faint grid lines that move with the board
+- **so that** I can keep things lined up and to scale without the grid becoming part of the drawing
+
+#### Acceptance Criteria:
+- **Scenario:** The grid, on and off
+- **Given:** a board with strokes on it, its grid off
+- **When:** I tap Grid
+- **Then:** faint lines show, too faint to break up the ink they cross, and pan and pinch with the board, thinning out as I pinch out; tapping again removes them and the ink is untouched; the board opens with the same choice next time, and a new board starts with none
+
+---
+
+### User Story 399:
+
+- **Summary:** The grid is only for me
+- **Status:** implemented in STAMP; the pictures are made from the ink alone, so there's no line to leave out; a turn's picture with the grid on is for the iPad's eye (the simulator test doesn't read the picture)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+
+#### Use Case:
+- **As someone** drawing with Claude and Larry
+- **I want to** have the grid left out of what they see and what's saved
+- **so that** their marks answer my drawing and not the squares, and the grid can't be erased or kept by accident
+
+#### Acceptance Criteria:
+- **Scenario:** What the grid isn't
+- **Given:** a board with its grid on
+- **When:** I erase or lasso across a line, send it to Larry, or a turn asks Claude
+- **Then:** the line stays, nothing was selected or erased, and the picture and the board's card show ink only
