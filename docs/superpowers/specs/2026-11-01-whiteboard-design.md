@@ -15,7 +15,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Larry sees it.** One button sends the board to Larry as a new chat thread with the picture attached. His reply
   arrives in Chat, like any other thread.
 - **Then we draw together.** When Igor lifts the pen, faint suggestions appear on the board. A tap keeps one, and
-  drawing on dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Later steps: Igor's voice steers the
+  a tap off them dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Later steps: Igor's voice steers the
   suggestions, and Larry draws during a call.
 - **The phone can view.** Boards drawn on the iPad can be seen on the phone.
 

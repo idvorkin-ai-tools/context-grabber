@@ -213,30 +213,20 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 350:
 
-- **Summary:** Ghosts stay while I draw, and each new set replaces the last
-- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying (Igor, 2026-11-02); the fade and each author's replacing verified on the simulator by `WhiteboardTurnUITests`; the Pencil touching down, and the draw-in animation, not verifiable there because the simulator has no Pencil and the canvas isn't in the accessibility tree; to try on the iPad
+- **Summary:** Ghosts stay while I draw
+- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) (Igor, 2026-11-02); not verifiable on the simulator, which has no Pencil and no canvas in the accessibility tree; to try on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** drawing while Claude suggests
-- **I want to** keep drawing while the ghosts stay, with new ones replacing old ones and stale ones fading
-- **so that** it feels like drawing together, not taking turns, and a suggestion doesn't sit on a drawing that has moved past it
+- **I want to** keep drawing while the ghosts stay
+- **so that** it feels like drawing together, not taking turns
 
 #### Acceptance Criteria:
 - **Scenario:** The Pencil touches down
 - **Given:** ghosts are showing, or a ghost turn is still on its way
 - **When:** I touch the Pencil down and draw on
 - **Then:** the ghosts stay, and the answer on its way still shows, drawn in one shape after another
-
-- **Scenario:** A new set
-- **Given:** Claude's orange ghosts and Larry's blue ones are showing
-- **When:** I pause and Claude answers again
-- **Then:** Claude's old ghosts fade out as his new ones draw in, and Larry's stay
-
-- **Scenario:** Left alone
-- **Given:** Claude's orange ghosts and Larry's blue ones are showing
-- **When:** 30 s pass with nothing new from Claude
-- **Then:** Claude's fade away, and Larry's stay until I keep or dismiss them
 
 ---
 
@@ -353,3 +343,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** his shapes stay and I can still keep them
 
 ---
+
+---
+
+### User Story 357:
+
+- **Summary:** Each new set of ghosts replaces only its author's last one
+- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9); Larry's marks leaving Claude's in place verified on the simulator by `WhiteboardTurnUITests`; Claude's new answer replacing his own, and the draw-in, to try on the iPad (a finger can't draw while ghosts show on the simulator)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing while Claude and Larry suggest
+- **I want to** see each one's newest marks replace only their own
+- **so that** one voice never wipes out the other's
+
+#### Acceptance Criteria:
+- **Scenario:** A new set
+- **Given:** Claude's orange ghosts and Larry's blue ones are showing
+- **When:** I pause and Claude answers again
+- **Then:** Claude's old ghosts fade out as his new ones draw in one after another, and Larry's stay
+
+---
+
+### User Story 358:
+
+- **Summary:** Claude's ghosts fade when they're left alone
+- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9); verified on the simulator by `WhiteboardTurnUITests` (`testClaudesGhostsFadeAndLarrysStay`, with the time shortened)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing on past a suggestion
+- **I want to** have Claude's ghosts go by themselves after a while
+- **so that** a suggestion doesn't sit on a drawing that has moved past it
+
+#### Acceptance Criteria:
+- **Scenario:** Left alone
+- **Given:** Claude's orange ghosts and Larry's blue ones are showing
+- **When:** 30 s pass with nothing new from Claude
+- **Then:** Claude's fade away, and Larry's stay until I keep or dismiss them

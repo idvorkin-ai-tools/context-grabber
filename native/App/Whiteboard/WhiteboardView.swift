@@ -50,6 +50,9 @@ final class WhiteboardModel: ObservableObject {
   /// One of Claude's turns at a time; strokes made during it ask again after the next pause.
   private var claudeAsking = false
   private var askAgain = false
+  /// The Pencil or a finger is down: a pause waits for it to lift.
+  private var toolDown = false
+  private var askOnLift = false
   private var saveTask: Task<Void, Never>?
   private var dirty = false
   private var saveFailing = false
@@ -106,10 +109,18 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// The Pencil touching down: the ghosts stay, and the pause starts over when the stroke ends.
+  /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
   func beganDrawing() {
+    toolDown = true
+    if pauseTask != nil { askOnLift = true }
     pauseTask?.cancel()
     pauseTask = nil
+  }
+
+  func endedDrawing() {
+    toolDown = false
+    if askOnLift, ghostsOn { schedulePause() }
+    askOnLift = false
   }
 
   private func clearGhosts() {
@@ -120,6 +131,8 @@ final class WhiteboardModel: ObservableObject {
   /// A pause still waiting is forgotten, and an answer on its way is stale when it lands.
   private func dropClaudesTurn() {
     generation += 1
+    askAgain = false
+    askOnLift = false
     pauseTask?.cancel()
     pauseTask = nil
   }
@@ -152,7 +165,6 @@ final class WhiteboardModel: ObservableObject {
 
   func larryTurn() {
     guard !larryLooking else { return }
-    dropClaudesTurn()
     Task { await turn(.larry) }
   }
 
@@ -169,7 +181,7 @@ final class WhiteboardModel: ObservableObject {
         claudeAsking = false
         if askAgain {
           askAgain = false
-          if ghostsOn, generation == asked { schedulePause() }
+          if toolDown { askOnLift = true } else if ghostsOn { schedulePause() }
         }
       }
     }
@@ -213,7 +225,6 @@ final class WhiteboardModel: ObservableObject {
       turnFailing = false
       if who == .claude, turnNote == Self.ghostsAway { turnNote = nil }
       if who == .larry {
-        dropClaudesTurn()
         if let newThread { UserDefaults.standard.set(newThread, forKey: threadKey) }
         turnNote = say.isEmpty ? (shapes.isEmpty ? "Larry has nothing to add" : nil) : "Larry: \(say)"
         if problem?.context == "WhiteboardView.larry" { problem = nil }
@@ -494,7 +505,7 @@ private struct BoardCanvas: UIViewRepresentable {
     canvas.maximumZoomScale = 3
     if model.editable {
       canvas.toolPicker = context.coordinator.picker
-      // Stories 344, 354: a finger tap keeps a ghost (the Pencil draws, and its touch-down clears them).
+      // Stories 344, 354: a finger tap keeps a ghost (the Pencil draws, and they stay while it does).
       let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:)))
       tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
       tap.cancelsTouchesInView = false
@@ -526,6 +537,10 @@ private struct BoardCanvas: UIViewRepresentable {
     func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
       let drawing = canvasView.drawing
       MainActor.assumeIsolated { model.changed(drawing) }
+    }
+
+    func canvasViewDidEndUsingTool(_ canvasView: PKCanvasView) {
+      MainActor.assumeIsolated { model.endedDrawing() }
     }
 
     func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {

@@ -48,7 +48,7 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
   bar.
 - His words also land in a chat thread named after the board, so the talk goes on in Chat. The same board's next turn
   of Larry's goes to the same thread; Claude's ghost turns have no thread.
-- Asking him drops a ghost turn pending or on its way, and when his answer lands so is any later one: Claude's ghosts
+- Asking him leaves Claude's ghosts and turns alone: each author's new marks replace only their own, so Claude's ghosts
   never replace his marks.
 - When he can't be reached, or answers with an error, the bar shows a copyable problem with what was asked.
 
