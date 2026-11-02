@@ -63,8 +63,23 @@ suggest changes the board until Igor keeps it.
 
 ### Not yet
 
-- Speaking while drawing (story 345) and Larry drawing during a call (story 346).
+- Larry drawing during a call (story 346).
 - Vectors instead of the picture: a turn sends a picture of what is drawn.
+
+## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, #604, #605)
+
+- A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
+- About a second after he stops talking, what he said goes with a picture of the board, without waiting for a stroke:
+  "draw a box around this" brings faint orange ghosts about 4 s later, kept or dismissed like any others. They are
+  still suggestions: nothing becomes ink without a tap.
+- It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
+- If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through go
+  with the next one.
+- The bar shows the last words heard. The answerer is Claude's fast model; Larry is too slow for back-and-forth, so
+  he stays on his own button.
+- When the mic can't start, the bar shows a copyable problem. A call with Larry has the microphone: the board's mic
+  doesn't start during one, and stops when one starts.
+- Words are heard by Apple's dictation on the device, and the words go to the Cockpit with the picture.
 
 ## Where it runs
 

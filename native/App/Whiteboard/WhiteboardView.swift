@@ -5,6 +5,7 @@
 //  drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 349).
 
 import BugKit
+import Combine
 import ContextCore
 import PencilKit
 import SwiftUI
@@ -33,6 +34,10 @@ final class WhiteboardModel: ObservableObject {
   /// The last turn in a line: Larry's words, *Larry is looking…*, or ghosts not answering.
   @Published private(set) var turnNote: String?
   @Published private(set) var larryLooking = false
+  /// The board's mic (story 345): open, on its way up, and the last words it heard.
+  @Published private(set) var micOn = false
+  @Published private(set) var micStarting = false
+  @Published private(set) var heardNote: String?
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
@@ -41,9 +46,18 @@ final class WhiteboardModel: ObservableObject {
   private let log: SessionLog
   private let inbox: InboxModel
   private let cockpit: String
+  /// What's on screen in board points, for a turn on an empty board; the canvas sets it.
+  var visibleRect: (() -> CGRect)?
   /// Puts a kept ghost on the canvas (undoably); the canvas sets it.
   var draw: ((PKDrawing) -> Void)?
   private var pacer = WhiteboardPacer()
+  private let callLive: @MainActor () -> Bool
+  private lazy var dictation = makeDictation()
+  private var dictationWatches: Set<AnyCancellable> = []
+  private var speech = WhiteboardSpeech()
+  /// Spoken and not yet in a turn that got through.
+  private var unsaid: String?
+  private var silenceTask: Task<Void, Never>?
   private var pauseTask: Task<Void, Never>?
   private var fadeTask: Task<Void, Never>?
   private var saveTask: Task<Void, Never>?
@@ -58,7 +72,11 @@ final class WhiteboardModel: ObservableObject {
   static let ghostSeconds =
     ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap(Double.init) ?? 30
 
-  init(board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel, cockpit: String) {
+  init(
+    board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel, cockpit: String,
+    callLive: @escaping @MainActor () -> Bool
+  ) {
+    self.callLive = callLive
     self.board = board
     self.store = store
     self.log = log
@@ -157,9 +175,80 @@ final class WhiteboardModel: ObservableObject {
   static let ghostsAway = "Ghosts: the Cockpit isn't answering"
   private var threadKey: String { "whiteboard_thread_\(board.id)" }
 
+  private func makeDictation() -> NoteDictation {
+    let dictation = NoteDictation(logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.callLive() ?? false })
+    dictation.$listening.removeDuplicates().sink { [weak self] on in
+      MainActor.assumeIsolated { self?.micOn = on }
+    }
+    .store(in: &dictationWatches)
+    dictation.$starting.removeDuplicates().sink { [weak self] on in
+      MainActor.assumeIsolated { self?.micStarting = on }
+    }
+    .store(in: &dictationWatches)
+    dictation.$problem.sink { [weak self, weak dictation] message in
+      MainActor.assumeIsolated {
+        guard let self, let message else { return }
+        self.problem = .grabber(message, context: "WhiteboardView.mic", extra: dictation?.problemState ?? [:])
+      }
+    }
+    .store(in: &dictationWatches)
+    return dictation
+  }
+
+  /// Opens the board's mic, or closes it and sends what's still unsent.
+  func tapMic() {
+    if let words = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAY"] {
+      speech.heard(words)
+      spoke()
+      return
+    }
+    if micOn {
+      stopMic(why: "tap")
+      return
+    }
+    guard !micStarting else { return }
+    if problem?.context == "WhiteboardView.mic" { problem = nil }
+    speech = WhiteboardSpeech()
+    log.event("whiteboard", ["action": "mic_on", "board": board.id])
+    dictation.toggle(note: "") { [weak self] text in self?.heard(text) }
+  }
+
+  /// A call taking the microphone, the board closing or the app leaving: the mic stops, and its last words still go.
+  func stopMic(why: String) {
+    guard micOn || micStarting else { return }
+    silenceTask?.cancel()
+    log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why])
+    Task {
+      await dictation.finish(why: why)
+      spoke()
+    }
+  }
+
+  private func heard(_ text: String) {
+    speech.heard(text)
+    heardNote = String(text.suffix(80))
+    silenceTask?.cancel()
+    silenceTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(1))
+      guard !Task.isCancelled else { return }
+      self?.spoke()
+    }
+  }
+
+  /// He stopped talking: the new words go now, or with the next turn if one is on its way.
+  private func spoke() {
+    guard let words = speech.takeNew() else { return }
+    unsaid = unsaid.map { "\($0) \(words)" } ?? words
+    if pacer.pauseEnded() { Task { await turn(.claude) } }
+  }
+
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
   func turn(_ who: WhiteboardTurn.Who) async {
-    guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
+    // An empty board has no drawing to frame: a spoken turn sees the part on screen.
+    let framed = drawing.strokes.isEmpty ? visibleRect?() ?? .null : drawing.bounds
+    guard editable, let (rect, scale) = WhiteboardFrame.export(framed) else { return }
+    let said = who == .claude ? unsaid : nil
+    if who == .claude { unsaid = nil }
     let asked = pacer.generation
     if who == .claude { pacer.turnStarted() }
     defer { if who == .claude, pacer.turnLanded() { startPause() } }
@@ -183,7 +272,7 @@ final class WhiteboardModel: ObservableObject {
       let request =
         who == .claude
         ? try WhiteboardTurn.suggestRequest(
-          title: title, picture: png, width: image.cgImage?.width ?? 0, height: image.cgImage?.height ?? 0,
+          title: WhiteboardSpeech.context(title: title, said: said), picture: png, width: image.cgImage?.width ?? 0, height: image.cgImage?.height ?? 0,
           cockpit: cockpit)
         : try WhiteboardTurn.request(
           who: who, board: board.id, title: title, picture: png, thread: thread, cockpit: cockpit)
@@ -223,12 +312,14 @@ final class WhiteboardModel: ObservableObject {
     case .tooSoon:
       event["ok"] = false
       event["reason"] = "too_soon"
+      unsaid = [said, unsaid].compactMap { $0 }.joined(separator: " ").nilIfEmpty
     case .refused(let status, let reason):
       event["ok"] = false
       event["status"] = status
       event["reason"] = reason
       failed(who, "The Cockpit refused the turn (\(status)): \(reason)", status: status, stale: stale)
     case .away(let reason):
+      unsaid = [said, unsaid].compactMap { $0 }.joined(separator: " ").nilIfEmpty
       event["ok"] = false
       event["reason"] = reason
       failed(who, "Larry couldn't be reached: \(reason)", status: nil, stale: stale)
@@ -452,11 +543,14 @@ struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
   @Environment(\.scenePhase) private var scenePhase
   private let logger: BugLogger
+  @ObservedObject private var callState: CallModel
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
     _model = StateObject(
       wrappedValue: WhiteboardModel(
-        board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit))
+        board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
+        callLive: { [weak app] in app?.call.snapshot.isActive ?? false }))
+    callState = app.call
     logger = app.bugLogger
   }
 
@@ -475,6 +569,16 @@ struct WhiteboardView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            model.tapMic()
+          } label: {
+            Label(model.micOn ? "Stop listening" : "Talk to Claude", systemImage: model.micOn ? "mic.fill" : "mic")
+          }
+          .disabled(model.micStarting)
+          .tint(model.micOn ? .red : nil)
+          .accessibilityIdentifier("whiteboard-mic")
+        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             model.setGhosts(!model.ghostsOn)
@@ -512,14 +616,24 @@ struct WhiteboardView: View {
       }
     }
     .accessibilityIdentifier("whiteboard")
-    .onDisappear { model.close() }
-    .onChange(of: scenePhase) { _, phase in if phase == .background { model.flush() } }
+    .onDisappear {
+      model.stopMic(why: "closed")
+      model.close()
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .background {
+        model.flush()
+        model.stopMic(why: "background")
+      }
+    }
+    .onChange(of: callState.snapshot.isActive) { _, live in if live { model.stopMic(why: "call") } }
   }
 
   private var note: String? {
     let count = model.ghosts.count
     let parts = [
       model.turnNote,
+      model.micOn ? model.heardNote.map { "Heard: \($0)" } ?? "Listening…" : nil,
       count == 0 ? nil : "\(count) suggestion\(count == 1 ? "" : "s"): tap one to keep it",
       model.sent ?? (model.editable ? nil : "Drawn on \(model.board.deviceName): look only"),
     ].compactMap { $0 }
@@ -552,6 +666,13 @@ private struct BoardCanvas: UIViewRepresentable {
       tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
       tap.cancelsTouchesInView = false
       canvas.addGestureRecognizer(tap)
+      model.visibleRect = { [weak canvas] in
+        guard let canvas else { return .null }
+        let zoom = canvas.zoomScale
+        return CGRect(
+          x: canvas.contentOffset.x / zoom, y: canvas.contentOffset.y / zoom, width: canvas.bounds.width / zoom,
+          height: canvas.bounds.height / zoom)
+      }
       model.draw = { [weak canvas] drawing in
         guard let canvas else { return }
         let before = canvas.drawing
@@ -683,4 +804,8 @@ final class BoardCanvasView: PKCanvasView {
     toolPicker.setVisible(true, forFirstResponder: self)
     becomeFirstResponder()
   }
+}
+
+extension String {
+  fileprivate var nilIfEmpty: String? { isEmpty ? nil : self }
 }
