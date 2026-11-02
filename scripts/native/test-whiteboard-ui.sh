@@ -10,9 +10,13 @@ udid=$1
 port=${CHAT_PORT:-8799}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
+cockpit=
+trap 'kill $cockpit 2>/dev/null || true; xcrun simctl shutdown "$udid" 2>/dev/null || true' EXIT
+# Keyboard events reach the app only in the first test run after a boot, so the ⌘V test needs a fresh simulator.
+xcrun simctl shutdown "$udid" 2>/dev/null
+xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot" >&2; exit 1; }
 scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
 cockpit=$!
-trap 'kill $cockpit 2>/dev/null || true' EXIT
 sleep 1
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
 TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebuild-log.sh whiteboard-ui "TEST SUCCEEDED" \
