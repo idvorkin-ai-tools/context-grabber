@@ -247,9 +247,12 @@ private struct ThreadRow: View {
               .foregroundStyle(.secondary)
           }
         }
-        Text(thread.count == 0 ? "Drop anything here" : "\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)")
-          .font(.subheadline)
-          .foregroundStyle(.secondary).lineLimit(2)
+        Text(
+          thread.count == 0
+            ? "Drop anything here" : "\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)"
+        )
+        .font(.subheadline)
+        .foregroundStyle(.secondary).lineLimit(2)
         if thread.looksDone, !thread.done {
           Label("Looks done", systemImage: "checkmark.seal").font(.caption).foregroundStyle(.secondary)
         }
