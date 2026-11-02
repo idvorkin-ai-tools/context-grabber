@@ -1,5 +1,5 @@
-//  Stories 344, 349, 351 and 354 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
-//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his line and his marks, a kept ghost is ink, the
+//  Stories 344, 349, 351, 354, 357 and 358 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his marks beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
 import XCTest
@@ -8,7 +8,7 @@ final class WhiteboardTurnUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   /// A new board open, Ghosts on, the app talking to the fake Cockpit.
-  private func openBoard(keepHook: Bool = false) throws -> (XCUIApplication, XCUIElement) {
+  private func openBoard(keepHook: Bool = false, ghostSeconds: Int? = nil) throws -> (XCUIApplication, XCUIElement) {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
@@ -16,6 +16,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if keepHook { app.launchEnvironment["GRABBER_WHITEBOARD_KEEP"] = "first" }
+    if let ghostSeconds { app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "\(ghostSeconds)" }
     app.launch()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
@@ -51,7 +52,17 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
 
     app.buttons["whiteboard-larry"].tap()
-    wait(ghosts, label: "Ghosts on, 2 showing", timeout: 15)
+    // Larry's two marks beside Claude's one: each author replaces only their own.
+    wait(ghosts, label: "Ghosts on, 3 showing", timeout: 15)
+  }
+
+  func testClaudesGhostsFadeAndLarrysStay() throws {
+    let (app, ghosts) = try openBoard(ghostSeconds: 6)
+    stroke(app)
+    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+    app.buttons["whiteboard-larry"].tap()
+    wait(ghosts, label: "Ghosts on, 3 showing", timeout: 5)
+    wait(ghosts, label: "Ghosts on, 2 showing", timeout: 12)
   }
 
   func testTheKeepHookTurnsTheFirstGhostIntoInk() throws {

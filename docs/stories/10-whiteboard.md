@@ -213,27 +213,27 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 350:
 
-- **Summary:** Drawing on dismisses the ghosts
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), with a late answer dropped when it lands; not verified by a test, because the simulator has no Pencil; to try on the iPad
+- **Summary:** Ghosts stay while I draw
+- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) (Igor, 2026-11-02); not verifiable on the simulator, which has no Pencil and no canvas in the accessibility tree; to try on the iPad, including a finger tap on a ghost while the Pencil is down
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** drawing while Claude suggests
-- **I want to** have the ghosts go as soon as I draw on
-- **so that** a suggestion never sits on a drawing that has moved past it
+- **I want to** keep drawing while the ghosts stay
+- **so that** it feels like drawing together, not taking turns
 
 #### Acceptance Criteria:
 - **Scenario:** The Pencil touches down
 - **Given:** ghosts are showing, or a ghost turn is still on its way
-- **When:** I touch the Pencil down
-- **Then:** the ghosts go, and the late answer adds nothing
+- **When:** I touch the Pencil down and draw on
+- **Then:** the ghosts stay, and the answer on its way still shows, drawn in one shape after another
 
 ---
 
 ### User Story 351:
 
 - **Summary:** Turn the ghosts off
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on); that test failed on its note query, and the query as rewritten has not yet passed on the simulator
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on); that test first failed on its note query; rewritten, it passed on the simulator with the other `WhiteboardTurnUITests` in the build turn of [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -343,3 +343,58 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** his shapes stay and I can still keep them
 
 ---
+
+### User Story 357:
+
+- **Summary:** Each new set of ghosts replaces only its author's last one
+- **Status:** implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3) (Larry's turn no longer drops Claude's); Larry's marks leaving Claude's in place verified on the simulator by `WhiteboardTurnUITests`; Claude's new answer replacing his own, and the draw-in, to try on the iPad (a finger can't draw while ghosts show on the simulator)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing while Claude and Larry suggest
+- **I want to** see each one's newest marks replace only their own
+- **so that** one voice never wipes out the other's
+
+#### Acceptance Criteria:
+- **Scenario:** A new set
+- **Given:** Claude's orange ghosts and Larry's blue ones are showing
+- **When:** I pause and Claude answers again
+- **Then:** Claude's old ghosts fade out as his new ones draw in one after another, and Larry's stay
+
+---
+
+### User Story 358:
+
+- **Summary:** Claude's ghosts fade when they're left alone
+- **Status:** implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11); verified on the simulator by `WhiteboardTurnUITests` (`testClaudesGhostsFadeAndLarrysStay`, with the time shortened)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing on past a suggestion
+- **I want to** have Claude's ghosts go by themselves after a while
+- **so that** a suggestion doesn't sit on a drawing that has moved past it
+
+#### Acceptance Criteria:
+- **Scenario:** Left alone
+- **Given:** Claude's orange ghosts and Larry's blue ones are showing
+- **When:** 30 s pass with nothing new from Claude
+- **Then:** Claude's fade away, and Larry's stay until I keep or dismiss them
+
+---
+
+### User Story 359:
+
+- **Summary:** Strokes made during a ghost turn get their own turn
+- **Status:** implemented in [26d9d11](https://github.com/idvorkin/context-grabber/commit/26d9d11) and [17343c3](https://github.com/idvorkin/context-grabber/commit/17343c3); its rules verified by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing on while Claude thinks
+- **I want to** have my newest strokes asked about once the turn on its way lands
+- **so that** ghosts keep up with the drawing without turns piling up or arriving mid-stroke
+
+#### Acceptance Criteria:
+- **Scenario:** Drawing during a turn
+- **Given:** a ghost turn is on its way
+- **When:** I draw another stroke and lift the Pencil
+- **Then:** a second turn is asked a second after the first lands or after the lift, whichever is later

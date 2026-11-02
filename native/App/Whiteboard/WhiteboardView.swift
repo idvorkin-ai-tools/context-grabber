@@ -43,9 +43,9 @@ final class WhiteboardModel: ObservableObject {
   private let cockpit: String
   /// Puts a kept ghost on the canvas (undoably); the canvas sets it.
   var draw: ((PKDrawing) -> Void)?
-  /// Bumped by every stroke and touch-down: an answer to an older one is dropped.
-  private var generation = 0
+  private var pacer = WhiteboardPacer()
   private var pauseTask: Task<Void, Never>?
+  private var fadeTask: Task<Void, Never>?
   private var saveTask: Task<Void, Never>?
   private var dirty = false
   private var saveFailing = false
@@ -53,7 +53,10 @@ final class WhiteboardModel: ObservableObject {
 
   static let ghostsKey = "whiteboard_ghosts"
   /// How long the Pencil rests before Claude is asked.
-  static let pause: Duration = .milliseconds(1500)
+  static let pause: Duration = .seconds(1)
+  /// How long Claude's ghosts stay when nothing replaces them.
+  static let ghostSeconds =
+    ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap(Double.init) ?? 30
 
   init(board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel, cockpit: String) {
     self.board = board
@@ -83,8 +86,10 @@ final class WhiteboardModel: ObservableObject {
     guard editable, new != drawing else { return }
     let added = new.strokes.count > drawing.strokes.count
     drawing = new
-    clearGhosts()
-    if added, ghostsOn { schedulePause() }
+    if added, ghostsOn {
+      pacer.strokeAdded()
+      startPause()
+    }
     drawingMoved()
   }
 
@@ -100,8 +105,16 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// The Pencil touching down: the ghosts go, and an answer still on its way is dropped.
-  func beganDrawing() { clearGhosts() }
+  /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
+  func beganDrawing() {
+    pacer.toolWentDown()
+    pauseTask?.cancel()
+    pauseTask = nil
+  }
+
+  func endedDrawing() {
+    if pacer.toolLifted() { startPause() }
+  }
 
   private func clearGhosts() {
     dropClaudesTurn()
@@ -110,18 +123,18 @@ final class WhiteboardModel: ObservableObject {
 
   /// A pause still waiting is forgotten, and an answer on its way is stale when it lands.
   private func dropClaudesTurn() {
-    generation += 1
+    pacer.dropped()
     pauseTask?.cancel()
     pauseTask = nil
   }
 
-  private func schedulePause() {
-    let asked = generation
+  private func startPause() {
+    pauseTask?.cancel()
     pauseTask = Task { [weak self] in
       try? await Task.sleep(for: Self.pause)
-      guard !Task.isCancelled, let self, self.generation == asked else { return }
+      guard !Task.isCancelled, let self else { return }
       self.pauseTask = nil
-      await self.turn(.claude)
+      if self.pacer.pauseEnded() { await self.turn(.claude) }
     }
   }
 
@@ -138,7 +151,6 @@ final class WhiteboardModel: ObservableObject {
 
   func larryTurn() {
     guard !larryLooking else { return }
-    dropClaudesTurn()
     Task { await turn(.larry) }
   }
 
@@ -148,7 +160,9 @@ final class WhiteboardModel: ObservableObject {
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
   func turn(_ who: WhiteboardTurn.Who) async {
     guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
-    let asked = generation
+    let asked = pacer.generation
+    if who == .claude { pacer.turnStarted() }
+    defer { if who == .claude, pacer.turnLanded() { startPause() } }
     // ponytail: rendered and encoded on the main thread; if a big board hitches the next stroke (the turn event's
     // `bytes`), this moves to a background task.
     let image = picture(rect: rect, scale: scale)
@@ -177,7 +191,7 @@ final class WhiteboardModel: ObservableObject {
     } catch {
       answer = WhiteboardTurn.answer(status: nil, body: nil, error: error.localizedDescription)
     }
-    let stale = who == .claude && generation != asked
+    let stale = who == .claude && pacer.generation != asked
     var event: [String: Any] = [
       "who": who.rawValue, "board": board.id, "ms": Int(Date().timeIntervalSince(started) * 1000), "stale": stale,
       "bytes": png.count,
@@ -189,15 +203,18 @@ final class WhiteboardModel: ObservableObject {
       turnFailing = false
       if who == .claude, turnNote == Self.ghostsAway { turnNote = nil }
       if who == .larry {
-        dropClaudesTurn()
         if let newThread { UserDefaults.standard.set(newThread, forKey: threadKey) }
         turnNote = say.isEmpty ? (shapes.isEmpty ? "Larry has nothing to add" : nil) : "Larry: \(say)"
         if problem?.context == "WhiteboardView.larry" { problem = nil }
       }
       if !stale {
-        ghosts = shapes.map { shape in
-          Ghost(id: UUID().uuidString, who: who, lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
-        }
+        // Each author's new marks replace only their own.
+        ghosts =
+          ghosts.filter { $0.who != who }
+          + shapes.map { shape in
+            Ghost(id: UUID().uuidString, who: who, lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
+          }
+        if who == .claude { fadeClaudesGhosts() }
         if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_KEEP"] == "first", let first = ghosts.first {
           keep(first)
         }
@@ -216,6 +233,15 @@ final class WhiteboardModel: ObservableObject {
       failed(who, "Larry couldn't be reached: \(reason)", status: nil, stale: stale)
     }
     log.event("whiteboard_turn", event)
+  }
+
+  private func fadeClaudesGhosts() {
+    fadeTask?.cancel()
+    fadeTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(Self.ghostSeconds))
+      guard !Task.isCancelled, let self else { return }
+      self.ghosts.removeAll { $0.who == .claude }
+    }
   }
 
   private func failed(_ who: WhiteboardTurn.Who, _ message: String, status: Int?, stale: Bool) {
@@ -457,7 +483,7 @@ private struct BoardCanvas: UIViewRepresentable {
     canvas.maximumZoomScale = 3
     if model.editable {
       canvas.toolPicker = context.coordinator.picker
-      // Stories 344, 354: a finger tap keeps a ghost (the Pencil draws, and its touch-down clears them).
+      // Stories 344, 354: a finger tap keeps a ghost (the Pencil draws, and they stay while it does).
       let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:)))
       tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
       tap.cancelsTouchesInView = false
@@ -491,6 +517,10 @@ private struct BoardCanvas: UIViewRepresentable {
       MainActor.assumeIsolated { model.changed(drawing) }
     }
 
+    func canvasViewDidEndUsingTool(_ canvasView: PKCanvasView) {
+      MainActor.assumeIsolated { model.endedDrawing() }
+    }
+
     func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {
       MainActor.assumeIsolated { model.beganDrawing() }
     }
@@ -515,7 +545,7 @@ final class BoardCanvasView: PKCanvasView {
   private var opened = false
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
   private let ghostLayer = CALayer()
-  private var shown: [String] = []
+  private var shown: [String: CAShapeLayer] = [:]
 
   /// The first layout knows the screen's size: the view opens centred on the drawing.
   override func layoutSubviews() {
@@ -542,12 +572,24 @@ final class BoardCanvasView: PKCanvasView {
 
   /// One shape layer a ghost, faint and dashed in its colour.
   fileprivate func show(_ ghosts: [Ghost]) {
-    guard ghosts.map(\.id) != shown else { return }
-    shown = ghosts.map(\.id)
+    guard Set(ghosts.map(\.id)) != Set(shown.keys) else { return }
     // Where a finger draws, it taps and pans while ghosts show (story 354).
     drawingPolicy = ghosts.isEmpty ? .default : .pencilOnly
-    ghostLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
-    for ghost in ghosts {
+    let live = Set(ghosts.map(\.id))
+    for (id, gone) in shown where !live.contains(id) {
+      shown[id] = nil
+      CATransaction.begin()
+      CATransaction.setCompletionBlock { gone.removeFromSuperlayer() }
+      let fade = CABasicAnimation(keyPath: "opacity")
+      fade.fromValue = gone.presentation()?.opacity ?? 1
+      fade.toValue = 0
+      fade.duration = 0.3
+      gone.opacity = 0
+      gone.add(fade, forKey: "fade")
+      CATransaction.commit()
+    }
+    let arriving = ghosts.filter { shown[$0.id] == nil }
+    for (i, ghost) in arriving.enumerated() {
       let path = CGMutablePath()
       for line in ghost.lines { path.addLines(between: line) }
       let shape = CAShapeLayer()
@@ -558,7 +600,16 @@ final class BoardCanvasView: PKCanvasView {
       shape.lineCap = .round
       shape.lineJoin = .round
       shape.lineDashPattern = [8, 6]
+      // Drawn in one after another, like someone sketching beside him.
+      let drawIn = CABasicAnimation(keyPath: "strokeEnd")
+      drawIn.fromValue = 0
+      drawIn.toValue = 1
+      drawIn.duration = 0.25
+      drawIn.beginTime = CACurrentMediaTime() + 0.25 * Double(i)
+      drawIn.fillMode = .backwards
+      shape.add(drawIn, forKey: "drawIn")
       ghostLayer.addSublayer(shape)
+      shown[ghost.id] = shape
     }
   }
 
