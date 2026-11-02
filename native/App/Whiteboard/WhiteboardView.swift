@@ -1,10 +1,11 @@
 //  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347): PencilKit's canvas and the system tool
 //  picker on a board far bigger than the screen, saved a moment after each stroke, and sent to Larry on the board's chat
 //  thread holding its picture (the Inbox's image path, so it waits in the outbox when the network is away). A board
-//  another device draws opens to look at only. Claude's ghosts after a pause and Larry's turn come back as shapes,
-//  drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 349).
+//  another device draws opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
+//  as shapes, drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 345, 349).
 
 import BugKit
+import Combine
 import ContextCore
 import PencilKit
 import SwiftUI
@@ -36,6 +37,11 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var larrySending = false
   /// Looking at Larry's thread has failed for a while (story 383).
   @Published private(set) var larryAway = false
+  /// The board's mic (story 345): open, on its way up, finishing its last words, and the last words it heard.
+  @Published private(set) var micOn = false
+  @Published private(set) var micStarting = false
+  @Published private(set) var micFinishing = false
+  @Published private(set) var heardNote: String?
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
@@ -45,9 +51,18 @@ final class WhiteboardModel: ObservableObject {
   private let inbox: InboxModel
   private let cockpit: String
   private let threads = WhiteboardThreads()
+  /// What's on screen in board points, for a turn on an empty board; the canvas sets it.
+  var visibleRect: (() -> CGRect)?
   /// Puts a kept ghost on the canvas (undoably); the canvas sets it.
   var draw: ((PKDrawing) -> Void)?
   private var pacer = WhiteboardPacer()
+  private let callLive: @MainActor () -> Bool
+  private lazy var dictation = makeDictation()
+  private var dictationWatches: Set<AnyCancellable> = []
+  private var speech = WhiteboardSpeech()
+  /// Spoken and not yet in a turn that got through.
+  private var unsaid: String?
+  private var silenceTask: Task<Void, Never>?
   private var pauseTask: Task<Void, Never>?
   private var fadeTask: Task<Void, Never>?
   private var saveTask: Task<Void, Never>?
@@ -72,7 +87,11 @@ final class WhiteboardModel: ObservableObject {
   static let lookTimeout: TimeInterval = 3
   static let awayAfter = 3
 
-  init(board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel, cockpit: String) {
+  init(
+    board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel, cockpit: String,
+    callLive: @escaping @MainActor () -> Bool
+  ) {
+    self.callLive = callLive
     self.board = board
     self.store = store
     self.log = log
@@ -159,6 +178,7 @@ final class WhiteboardModel: ObservableObject {
     log.event("whiteboard", ["action": on ? "ghosts_on" : "ghosts_off", "board": board.id])
     if !on {
       dropClaudesTurn()
+      unsaid = nil
       ghosts.removeAll { $0.who == .claude }
       if turnNote == Self.ghostsAway { turnNote = nil }
     }
@@ -323,9 +343,107 @@ final class WhiteboardModel: ObservableObject {
   static let ghostsAway = "Ghosts: the Cockpit isn't answering"
   private var settledKey: String { "whiteboard_marks_settled_\(board.id)" }
 
+  private func makeDictation() -> NoteDictation {
+    let dictation = NoteDictation(
+      logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.callLive() ?? false })
+    dictation.$listening.removeDuplicates().sink { [weak self] on in
+      MainActor.assumeIsolated { self?.micOn = on }
+    }
+    .store(in: &dictationWatches)
+    dictation.$starting.removeDuplicates().sink { [weak self] on in
+      MainActor.assumeIsolated { self?.micStarting = on }
+    }
+    .store(in: &dictationWatches)
+    dictation.$processing.removeDuplicates().sink { [weak self] on in
+      MainActor.assumeIsolated { self?.micFinishing = on }
+    }
+    .store(in: &dictationWatches)
+    dictation.$problem.combineLatest(dictation.$problemState).sink { [weak self] message, state in
+      MainActor.assumeIsolated {
+        guard let self, let message else { return }
+        self.micProblem(message, state)
+      }
+    }
+    .store(in: &dictationWatches)
+    return dictation
+  }
+
+  private func micProblem(_ message: String, _ state: [String: JSONValue]) {
+    let extra = state.merging(["board": .string(board.id), "call_live": .bool(callLive())]) { _, new in new }
+    problem = .grabber(message, context: "WhiteboardView.mic", extra: extra)
+  }
+
+  /// Opens the board's mic, or closes it and sends what's still unsent.
+  func tapMic() {
+    if let words = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAY"] {
+      speech.heard(words)
+      spoke()
+      return
+    }
+    if micOn {
+      stopMic(why: "tap")
+      return
+    }
+    guard !dictation.busy else { return }
+    guard !callLive() else {
+      log.event("whiteboard", ["action": "mic_refused", "board": board.id, "why": "call_live"])
+      micProblem("A call with Larry is using the microphone. End it to talk to the board.", [:])
+      return
+    }
+    if problem?.context == "WhiteboardView.mic" { problem = nil }
+    speech = WhiteboardSpeech()
+    heardNote = nil
+    log.event("whiteboard", ["action": "mic_on", "board": board.id])
+    dictation.toggle(note: "") { [weak self] text in self?.heard(text) }
+  }
+
+  /// A call taking the microphone, the board closing or the app leaving: the mic stops, and its last words still go.
+  func stopMic(why: String) {
+    guard micOn || micStarting else { return }
+    silenceTask?.cancel()
+    log.event("whiteboard", ["action": "mic_off", "board": board.id, "why": why])
+    Task {
+      await dictation.finish(why: why)
+      spoke()
+    }
+  }
+
+  private func heard(_ text: String) {
+    speech.heard(text)
+    heardNote = String(text.suffix(80))
+    silenceTask?.cancel()
+    silenceTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(1))
+      guard !Task.isCancelled else { return }
+      self?.spoke()
+    }
+  }
+
+  /// He stopped talking: the new words go now, or with the next turn if one is on its way. With Ghosts off nothing is
+  /// asked, and they aren't kept for later.
+  private func spoke() {
+    guard let words = speech.takeNew() else { return }
+    guard ghostsOn else {
+      log.event("whiteboard", ["action": "spoke", "board": board.id, "chars": words.count, "went": "ghosts_off"])
+      return
+    }
+    unsaid = unsaid.map { "\($0) \(words)" } ?? words
+    let now = pacer.pauseEnded()
+    log.event("whiteboard", ["action": "spoke", "board": board.id, "chars": words.count, "went": now ? "now" : "held"])
+    guard now else { return }
+    // This turn's picture has the strokes a waiting pause would ask about.
+    pauseTask?.cancel()
+    pauseTask = nil
+    Task { await turn(.claude) }
+  }
+
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
   func turn(_ who: WhiteboardTurn.Who) async {
-    guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
+    let said = who == .claude ? unsaid : nil
+    // An empty board has no drawing to frame: a spoken turn sees the part on screen, and any other isn't asked.
+    let framed = said != nil && drawing.strokes.isEmpty ? visibleRect?() ?? .null : drawing.bounds
+    guard editable, let (rect, scale) = WhiteboardFrame.export(framed) else { return }
+    if who == .claude { unsaid = nil }
     let asked = pacer.generation
     if who == .claude { pacer.turnStarted() }
     defer { if who == .claude, pacer.turnLanded() { startPause() } }
@@ -339,7 +457,8 @@ final class WhiteboardModel: ObservableObject {
     do {
       let title = store.index.board(board.id)?.title ?? board.title
       let request = try WhiteboardTurn.suggestRequest(
-        title: title, picture: png, width: image.cgImage?.width ?? 0, height: image.cgImage?.height ?? 0,
+        title: WhiteboardSpeech.context(title: title, said: said), picture: png, width: image.cgImage?.width ?? 0,
+        height: image.cgImage?.height ?? 0,
         cockpit: cockpit)
       read = await readClaude(request, started: started) { [weak self] shape, first in
         guard let self, self.pacer.generation == asked else { return }
@@ -353,10 +472,13 @@ final class WhiteboardModel: ObservableObject {
     let ms = Int(Date().timeIntervalSince(started) * 1000)
     var event: [String: Any] = [
       "who": who.rawValue, "board": board.id, "ms": ms, "stale": stale, "bytes": png.count, "streamed": read.streamed,
+      "said_chars": said?.count ?? 0,
     ]
+    var undelivered = said
     if let broken = read.broken { event["broken"] = broken }
     switch answer {
     case .shapes(let shapes):
+      undelivered = nil
       event["ok"] = true
       event["shapes"] = shapes.count
       if !shapes.isEmpty { event["first_shape_ms"] = read.firstShapeMs ?? ms }
@@ -377,6 +499,7 @@ final class WhiteboardModel: ObservableObject {
       event["reason"] = reason
       failed(who, "Larry couldn't be reached: \(reason)", status: nil, stale: stale)
     }
+    if ghostsOn, let undelivered { unsaid = unsaid.map { "\(undelivered) \($0)" } ?? undelivered }
     log.event("whiteboard_turn", event)
   }
 
@@ -606,12 +729,17 @@ struct WhiteboardView: View {
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
   private let logger: BugLogger
+  private let callLive: AnyPublisher<Bool, Never>
+  private let reportOpen: AnyPublisher<Bool, Never>
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
     _model = StateObject(
       wrappedValue: WhiteboardModel(
-        board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit))
+        board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
+        callLive: { [weak app] in app?.call.snapshot.isActive ?? false }))
     inbox = app.inbox
+    callLive = app.call.$snapshot.map(\.isActive).removeDuplicates().eraseToAnyPublisher()
+    reportOpen = app.reporter.$flow.map(\.isPresented).removeDuplicates().eraseToAnyPublisher()
     logger = app.bugLogger
   }
 
@@ -630,6 +758,16 @@ struct WhiteboardView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            model.tapMic()
+          } label: {
+            Label(model.micOn ? "Stop listening" : "Talk to Claude", systemImage: model.micOn ? "mic.fill" : "mic")
+          }
+          .disabled(model.micStarting || model.micFinishing)
+          .tint(model.micOn ? .red : nil)
+          .accessibilityIdentifier("whiteboard-mic")
+        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             model.setGhosts(!model.ghostsOn)
@@ -668,11 +806,19 @@ struct WhiteboardView: View {
     }
     .accessibilityIdentifier("whiteboard")
     .onAppear { model.startWatchingLarry() }
-    .onDisappear { model.close() }
+    .onDisappear {
+      model.stopMic(why: "closed")
+      model.close()
+    }
     .onChange(of: scenePhase) { _, phase in
-      if phase == .background { model.flush() }
+      if phase == .background {
+        model.flush()
+        model.stopMic(why: "background")
+      }
       if phase == .active { model.startWatchingLarry() }
     }
+    .onReceive(callLive) { live in if live { model.stopMic(why: "call") } }
+    .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
   }
 
   private var note: String? {
@@ -680,6 +826,7 @@ struct WhiteboardView: View {
     let parts = [
       model.turnNote,
       model.larryAway ? "Larry's marks: the Cockpit isn't answering" : nil,
+      model.micOn ? model.heardNote.map { "Heard: \($0)" } ?? "Listening…" : nil,
       count == 0 ? nil : "\(count) suggestion\(count == 1 ? "" : "s"): tap one to keep it",
       model.sent ?? (model.editable ? nil : "Drawn on \(model.board.deviceName): look only"),
     ].compactMap { $0 }
@@ -712,6 +859,13 @@ private struct BoardCanvas: UIViewRepresentable {
       tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
       tap.cancelsTouchesInView = false
       canvas.addGestureRecognizer(tap)
+      model.visibleRect = { [weak canvas] in
+        guard let canvas else { return .null }
+        let zoom = canvas.zoomScale
+        return CGRect(
+          x: canvas.contentOffset.x / zoom, y: canvas.contentOffset.y / zoom, width: canvas.bounds.width / zoom,
+          height: canvas.bounds.height / zoom)
+      }
       model.draw = { [weak canvas] drawing in
         guard let canvas else { return }
         let before = canvas.drawing

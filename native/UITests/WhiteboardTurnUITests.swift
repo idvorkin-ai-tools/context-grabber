@@ -10,7 +10,7 @@ final class WhiteboardTurnUITests: XCTestCase {
   /// A new board open, Ghosts on, the app talking to the fake Cockpit.
   /// `cockpit` picks how the fake Cockpit answers: "/plain" doesn't stream, "/many" streams six marks.
   private func openBoard(
-    keepHook: Bool = false, ghostSeconds: Int? = nil, cockpit way: String = ""
+    keepHook: Bool = false, ghostSeconds: Int? = nil, say: String? = nil, cockpit way: String = ""
   ) throws -> (XCUIApplication, XCUIElement) {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
@@ -19,6 +19,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit + way
     if keepHook { app.launchEnvironment["GRABBER_WHITEBOARD_KEEP"] = "first" }
+    if let say { app.launchEnvironment["GRABBER_WHITEBOARD_SAY"] = say }
     if let ghostSeconds { app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "\(ghostSeconds)" }
     app.launch()
     let new = app.buttons["whiteboard-new"]
@@ -47,6 +48,22 @@ final class WhiteboardTurnUITests: XCTestCase {
     let send = app.buttons["whiteboard-send"]
     expectation(for: NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), evaluatedWith: send)
     waitForExpectations(timeout: 8)
+  }
+
+  func testSpeakingOnAnEmptyBoardBringsAGhostWithoutAStroke() throws {
+    let (app, ghosts) = try openBoard(say: "draw a circle")
+    app.buttons["whiteboard-mic"].tap()
+    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+    wait(app, strokes: 0)
+  }
+
+  func testSpeakingWithGhostsOffAsksNothing() throws {
+    let (app, ghosts) = try openBoard(say: "draw a square")
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off", timeout: 3)
+    app.buttons["whiteboard-mic"].tap()
+    sleep(4)
+    XCTAssertEqual(ghosts.label, "Ghosts off")
   }
 
   func testAPauseBringsAGhostAndLarryTakesATurn() throws {

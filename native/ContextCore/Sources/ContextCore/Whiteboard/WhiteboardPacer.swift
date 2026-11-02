@@ -1,6 +1,7 @@
-//  When Claude is asked about the board (spec 2026-11-01-whiteboard-shapes-design.md, story 359): a pause after a
-//  stroke, one turn at a time, and strokes made during a turn asking again after the next pause, which waits for the
-//  tool to lift. The caller owns the timer and the request; a `true` from a method means start the pause.
+//  When Claude is asked about the board (spec 2026-11-01-whiteboard-shapes-design.md, stories 345, 359): a pause after a
+//  stroke or spoken words, one turn at a time, and strokes or words during a turn asking again after the next pause,
+//  which waits for the tool to lift. The caller owns the timer and the request; a `true` from a method means start the
+//  pause.
 
 public struct WhiteboardPacer: Sendable {
   /// Bumped when Igor sends Claude's turn away (a dismissal, Ghosts off): an answer asked under an older one is stale.

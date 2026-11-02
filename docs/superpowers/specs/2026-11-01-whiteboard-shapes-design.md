@@ -2,7 +2,7 @@
 
 Igor, 2026-11-01: "what about the ghosting idea, does that work? How does Larry write back? I don't grok that yet",
 then "make an issue for cockpit, build your side". Builds on [the whiteboard](2026-11-01-whiteboard-design.md)
-(stories 344, 349–359, 370–377 and 380–389). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
+(stories 344, 345, 349–377 and 380–389). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
 
 ## The idea in one line
 
@@ -86,8 +86,27 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
 
 ### Not yet
 
-- Speaking while drawing (story 345) and Larry drawing during a call (story 346).
+- Larry drawing during a call (story 346).
 - Vectors instead of the picture: a turn sends a picture of what is drawn.
+
+## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, 360–368, #604, #605)
+
+- A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
+- About a second after he stops talking, what he said goes with a picture of the board, without waiting for a stroke:
+  "draw a box around this" brings faint orange ghosts about 4 s later, kept or dismissed like any others. They are
+  still suggestions: nothing becomes ink without a tap.
+- It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
+- If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through
+  (skipped, refused or the Cockpit away) go with the next one.
+- With Ghosts off nothing is asked: the mic still hears him, the words go nowhere and aren't kept for later.
+- Words that only revise what was already sent don't start a turn.
+- The bar shows the last words heard. The answerer is Claude's fast model; Larry is too slow for back-and-forth, so
+  he stays on his own button.
+- When the mic can't start, the bar shows a copyable problem, including during a call with Larry, which has the
+  microphone. The board's mic stops when a call starts, and when a shake report opens, so words meant for the report
+  don't go to the Cockpit; he taps it again to go on. A stopped mic takes a moment to finish its last words, and
+  its button waits for that.
+- Words are heard by Apple's dictation, on the device when it can, and the words go to the Cockpit with the picture.
 
 ## Where it runs
 
