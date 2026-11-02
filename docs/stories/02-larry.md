@@ -1171,7 +1171,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 317:
 
 - **Summary:** A board picture in a thread jumps to that board as it is now
-- **Status:** native app only: not yet built
+- **Status:** native app only: implemented in [2bf431b](https://github.com/idvorkin/context-grabber/commit/2bf431b); verified on the simulator against the fake Cockpit (the jump, no button without a board, the problem on a missing board, the link); a board that comes down from iCloud on the jump, and sending `board` from the app (another branch), not yet
 - **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
