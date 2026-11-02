@@ -1045,5 +1045,106 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I archive or unarchive a thread, from the list or from inside it
 - **Then:** it goes back where it was and a copyable problem says why, on the screen I am on, until my next archive or a pull to refresh
 
+
+---
+
+### User Story 311:
+
+- **Summary:** Archive several chats at once
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man with a list full of finished chats
+- **I want to** tick several and archive them with one tap
+- **so that** I can clear the list without swiping each one
+
+#### Acceptance Criteria:
+- **Scenario:** Several together
+- **Given:** the chat list shows live threads
+- **When:** I tap *Select*, tick two, and tap *Archive (2)*
+- **Then:** both fold under *Done*, the list says *Archived 2 chats* with *Undo* for five seconds, and *Undo* brings both back
+
+---
+
+### User Story 312:
+
+- **Summary:** Larry proposes that a chat looks done
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it)
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who forgets to close chats
+- **I want to** see which ones Larry thinks are finished and approve them together
+- **so that** the list stays clear, and nothing is closed behind my back
+
+#### Acceptance Criteria:
+- **Scenario:** Reviewing the proposals
+- **Given:** Larry has marked a thread as looking done
+- **When:** I open the chat list
+- **Then:** the row says *Looks done*, the thread stays where it is, and a line at the top says *1 chat looks done* with *Review*
+
+---
+
+### User Story 313:
+
+- **Summary:** Cancel leaves Select with nothing archived
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who ticked more than he meant to
+- **I want to** back out of Select
+- **so that** nothing is archived until I say so
+
+#### Acceptance Criteria:
+- **Scenario:** Changing my mind
+- **Given:** I have ticked threads
+- **When:** I tap *Cancel*
+- **Then:** nothing is archived, and the rows open their threads again
+
+---
+
+### User Story 314:
+
+- **Summary:** Approve what Larry proposed, keeping any I choose
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; Larry's mark on the real Cockpit not yet (he agreed `looks_done` and is building it)
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who forgets to close chats
+- **I want to** untick any proposal I disagree with and archive the rest
+- **so that** Larry's judgement stays a proposal I approve
+
+#### Acceptance Criteria:
+- **Scenario:** Approving
+- **Given:** I tapped *Review*
+- **When:** I untick any I want to keep and tap *Archive (N)*
+- **Then:** the ticked ones fold under *Done* with *Undo*, and the rest stay live
+
+---
+
+### User Story 315:
+
+- **Summary:** A batch that partly fails says which and why
+- **Status:** native app only: implemented for #599; the problem's text verified on the host by `ChatTests`; a refusal in a batch not yet driven on the simulator or the phone
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man archiving several chats at once
+- **I want to** see every chat that didn't archive and why
+- **so that** no refusal is hidden behind a later one
+
+#### Acceptance Criteria:
+- **Scenario:** Some refused
+- **Given:** I tapped *Archive (N)* or *Undo* for several chats
+- **When:** the Cockpit refuses or doesn't answer for two of them
+- **Then:** those two go back where they were and one copyable problem names both with their reasons
+
 ---
 

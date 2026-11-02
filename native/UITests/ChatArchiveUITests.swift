@@ -1,6 +1,7 @@
-//  Stories 307-309 (#589) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): a swipe
-//  archives a thread with Undo, the thread's ⋯ menu archives it and goes back to the list, and both ways of Unarchive
-//  bring it back to the live list. Each test leaves the thread live: the fake Cockpit outlives a test.
+//  Stories 307-309 (#589) and 311-314 (#599) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
+//  starts it): a swipe archives a thread with Undo, the thread's ⋯ menu archives it and goes back to the list, both ways
+//  of Unarchive bring it back to the live list, Select archives several with one Undo and Cancel archives none, and
+//  Review ticks what looks done. Each test leaves the thread live: the fake Cockpit outlives a test.
 
 import XCTest
 
@@ -74,6 +75,48 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertTrue(app.buttons["Unarchive chat"].waitForExistence(timeout: 5), app.debugDescription)
     app.buttons["Unarchive chat"].tap()
     app.navigationBars.buttons.element(boundBy: 0).tap()
+    assertBackInTheLiveList(app)
+  }
+
+  func testReviewTicksWhatLooksDoneAndOneTapArchivesIt() throws {
+    let app = try openList()
+    let done = "igor2-88g.593"
+    XCTAssertTrue(app.staticTexts["Looks done"].waitForExistence(timeout: 5), app.debugDescription)
+    app.buttons["chat-review-done"].tap()
+    let archive = app.buttons["chat-archive-selected"]
+    XCTAssertTrue(archive.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertEqual(archive.label, "Archive (1)")
+    archive.tap()
+    let undo = app.buttons["chat-archive-undo"]
+    XCTAssertTrue(undo.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Archived \"Finished plan\""].exists, app.debugDescription)
+    undo.tap()
+    XCTAssertTrue(app.buttons["chat-review-done"].waitForExistence(timeout: 10), "the proposal is back")
+    XCTAssertTrue(app.buttons["chat-thread-\(done)"].isHittable, "back in the live list")
+  }
+
+  func testSelectArchivesSeveralTogetherAndCancelArchivesNone() throws {
+    let app = try openList()
+    let select = app.buttons["chat-select"]
+    select.tap()
+    let (one, two) = (app.buttons["chat-tick-\(key)"], app.buttons["chat-tick-igor2-88g.593"])
+    XCTAssertTrue(one.waitForExistence(timeout: 5), app.debugDescription)
+    one.tap()
+    two.tap()
+    let archive = app.buttons["chat-archive-selected"]
+    XCTAssertEqual(archive.label, "Archive (2)")
+    select.tap()
+    XCTAssertTrue(app.buttons["chat-thread-\(key)"].waitForExistence(timeout: 5), "Cancel leaves the list")
+    XCTAssertFalse(doneFold(app).exists, "nothing archived")
+
+    select.tap()
+    XCTAssertEqual(archive.label, "Archive (0)")
+    XCTAssertFalse(archive.isEnabled)
+    one.tap()
+    two.tap()
+    archive.tap()
+    XCTAssertTrue(app.staticTexts["Archived 2 chats"].waitForExistence(timeout: 5), app.debugDescription)
+    app.buttons["chat-archive-undo"].tap()
     assertBackInTheLiveList(app)
   }
 }

@@ -345,6 +345,14 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(row.archiving(true).archiving(false), row)
   }
 
+  func testALooksDoneRowReadsAndAnOldCockpitsRowDoesNot() throws {
+    let rows = try JSONDecoder().decode(
+      [ChatSummary].self,
+      from: Data(#"[{"key": "a", "title": "A", "looks_done": true}, {"key": "b", "title": "B"}]"#.utf8))
+    XCTAssertEqual(rows.map(\.looksDone), [true, false])
+    XCTAssertTrue(rows[0].archiving(true).looksDone, "archiving keeps the mark, for an Undo")
+  }
+
   func testTheArchiveRequestNamesTheThreadAndTheWay() throws {
     let archive = try ChatWire.archiveRequest("auto:note:1", archive: true, cockpit: "https://c.example/")
     XCTAssertEqual(archive.url?.absoluteString, "https://c.example/chat/auto:note:1/archive")
@@ -364,5 +372,24 @@ final class ChatTests: XCTestCase {
       "no such thread (HTTP 404)")
     XCTAssertEqual(ChatWire.archiveFailure(status: 502, body: nil), "HTTP 502")
     XCTAssertEqual(ChatWire.archiveFailure(status: nil, body: nil, error: "offline"), "offline")
+  }
+
+  func testABatchsProblemNamesEveryThreadAndItsReason() {
+    XCTAssertEqual(
+      ChatWire.archiveProblem([("A", "HTTP 502")], archive: true), #"Could not archive "A": HTTP 502"#,
+      "one thread reads as it always did")
+    XCTAssertEqual(
+      ChatWire.archiveProblem([("A", "HTTP 502"), ("B", "no such thread (HTTP 404)")], archive: false),
+      #"Could not unarchive 2 chats: "A": HTTP 502; "B": no such thread (HTTP 404)"#)
+  }
+
+  func testATickedThreadThatLeftTheLiveListIsNotArchived() {
+    func row(_ key: String, done: Bool = false, archived: Bool = false) -> ChatSummary {
+      ChatSummary(key: key, title: key, lastTs: "", lastWho: "larry", lastText: "", done: done, archived: archived)
+    }
+    let threads = [row("a"), row("done", done: true), row("archived", done: true, archived: true), row("b"), row("c")]
+    XCTAssertEqual(
+      ChatWire.liveKeys(["b", "a", "done", "archived", "gone"], in: threads), ["a", "b"],
+      "only live rows, in list order; unticked c stays out")
   }
 }

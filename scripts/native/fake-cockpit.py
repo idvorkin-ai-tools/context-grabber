@@ -10,7 +10,7 @@ GET /attachments/<ref>, POST /whiteboard/suggest (a ghost circle at the picture'
 label and a thread named after the board for Larry). A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
-Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
+Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 """
 
@@ -54,6 +54,9 @@ THREADS["igor2-88g.900"]["messages"] += [
     row("igor2-88g.900", "igor", "Does the phone poll while a thread is open?"),
     row("igor2-88g.900", "larry", "Every four seconds, and the list on each return."),
 ]
+THREADS["igor2-88g.593"] = {"title": "Finished plan", "seen": "", "looks_done": True, "messages": [
+    row("igor2-88g.593", "larry", "That's settled then."),
+]}
 THREADS["igor2-88g.592"] = {"title": "Your whiteboard", "seen": "", "messages": [
     row("igor2-88g.592", "larry", "", attachments=[WHITE_PICTURE]),
 ]}
@@ -65,7 +68,8 @@ def summary(key, t):
     unread = len([ts for ts in larry if ts > t["seen"]])
     return {"key": key, "title": t["title"], "count": len(t["messages"]), "last_ts": last["ts"],
             "last_who": last["who"], "last_text": last["text"] or "[image]", "larry_ts": larry,
-            "unread": unread, "done": t.get("archived", False), "archived": t.get("archived", False)}
+            "unread": unread, "done": t.get("archived", False), "archived": t.get("archived", False),
+            "looks_done": t.get("looks_done", False)}
 
 
 def reply_later(key, text):

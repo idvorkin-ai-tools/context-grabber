@@ -21,7 +21,7 @@ final class ChatModel: ObservableObject {
   /// The + (#536): a new, empty thread is on screen, its first Send starts it.
   @Published var newChatOpen = false
   /// The last archive from the list, offered back for five seconds (#589).
-  @Published private(set) var undoArchive: ChatSummary?
+  @Published private(set) var undoArchive: [ChatSummary] = []
   /// Why the last archive or unarchive didn't take.
   @Published private(set) var archiveProblem: String?
   private var undoTask: Task<Void, Never>?
@@ -31,7 +31,7 @@ final class ChatModel: ObservableObject {
   /// The archive change on its way for a thread, shown over any list that comes back meanwhile.
   private var archiving: [String: Bool] = [:]
   /// Each thread's latest archive change: the next one waits for its answer.
-  private var archiveChanges: [String: Task<Void, Never>] = [:]
+  private var archiveChanges: [String: Task<(title: String, reason: String)?, Never>] = [:]
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
 
@@ -113,31 +113,56 @@ final class ChatModel: ObservableObject {
   /// One change at a time per thread, so each answer settles the row before the next change looks at it: an Undo
   /// while the archive is unanswered waits for that answer.
   func setArchived(_ key: String, _ archive: Bool, from: String) async {
-    if !archive, undoArchive?.key == key { undoArchive = nil }
-    let earlier = archiveChanges[key]
-    let change = Task {
-      await earlier?.value
-      await applyArchived(key, archive, from: from)
-    }
-    archiveChanges[key] = change
-    await change.value
+    await setArchived([key], archive, from: from)
   }
 
-  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back.
-  private func applyArchived(_ key: String, _ archive: Bool, from: String) async {
-    guard let index = threads.firstIndex(where: { $0.key == key }), threads[index].archived != archive else { return }
+  /// Several threads together (#599): one problem names every thread that didn't take.
+  func setArchived(_ keys: [String], _ archive: Bool, from: String) async {
+    let changes = keys.map { key in
+      if !archive { undoArchive.removeAll { $0.key == key } }
+      let earlier = archiveChanges[key]
+      let change = Task {
+        _ = await earlier?.value
+        return await applyArchived(key, archive, from: from)
+      }
+      archiveChanges[key] = change
+      return change
+    }
+    var failed: [(title: String, reason: String)] = []
+    for change in changes {
+      guard let failure = await change.value else { continue }
+      failed.append(failure)
+      archiveProblem = ChatWire.archiveProblem(failed, archive: archive)
+    }
+  }
+
+  func logAction(_ action: String, _ fields: [String: Any] = [:]) {
+    log.event("chat", fields.merging(["action": action]) { _, new in new })
+  }
+
+  /// The ticked threads, together (#599). The undo offer covers only this batch.
+  func archiveSelected(_ keys: [String]) async {
+    undoArchive = []
+    await setArchived(keys, true, from: "select")
+  }
+
+  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back and is returned.
+  private func applyArchived(_ key: String, _ archive: Bool, from: String) async -> (title: String, reason: String)? {
+    guard let index = threads.firstIndex(where: { $0.key == key }), threads[index].archived != archive else {
+      return nil
+    }
     let before = threads[index]
     threads[index] = before.archiving(archive)
     archiveEpoch += 1
     archiving[key] = archive
     archiveProblem = nil
-    if archive, from == "swipe" {
-      undoArchive = before
+    if archive, from == "swipe" || from == "select" {
+      undoArchive = from == "swipe" ? [before] : undoArchive + [before]
       undoTask?.cancel()
       undoTask = Task { [weak self] in
         try? await Task.sleep(for: .seconds(5))
-        guard !Task.isCancelled, self?.undoArchive?.key == key else { return }
-        self?.undoArchive = nil
+        guard !Task.isCancelled else { return }
+        self?.undoArchive = []
       }
     }
     var failure: String?
@@ -159,11 +184,11 @@ final class ChatModel: ObservableObject {
     guard let failure else {
       // The Cockpit may still call it done (an old thread): its list settles where the row belongs.
       if !archive { await refreshList(reason: "unarchive") }
-      return
+      return nil
     }
     if let now = threads.firstIndex(where: { $0.key == key }) { threads[now] = before }
-    if undoArchive?.key == key { undoArchive = nil }
-    archiveProblem = "Could not \(archive ? "archive" : "unarchive") \"\(before.title)\": \(failure)"
+    undoArchive.removeAll { $0.key == key }
+    return (before.title, failure)
   }
 
   // MARK: One thread
@@ -248,7 +273,7 @@ final class ChatModel: ObservableObject {
         let t = threads[i]
         threads[i] = ChatSummary(
           key: t.key, title: t.title, count: t.count, lastTs: t.lastTs, lastWho: t.lastWho, lastText: t.lastText,
-          unread: 0, done: t.done, archived: t.archived)
+          unread: 0, done: t.done, archived: t.archived, looksDone: t.looksDone)
       }
       return true
     } catch {
