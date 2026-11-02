@@ -14,18 +14,21 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 
 ### Ghosts from Claude (stories 344, 350–352, 354)
 
-- He draws, then lifts the Pencil. After about **1.5 s** with nothing new Claude is asked, and about 3 s later faint
-  shapes appear in Claude's colour (orange): the box his arrow points at, a label, the third circle.
+- He draws, then lifts the Pencil. After about **1 s** with nothing new Claude is asked, and about 3 s later faint
+  shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
+  third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next pause.
 - While ghosts show, the bar says how many and *tap one to keep it*.
 - **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour, and his eraser and undo treat it like his own
   strokes.
-- **Drawing on dismisses the ghosts.** The Pencil touching down clears every ghost not kept, and a request still on
-  its way is dropped when it lands.
+- **Ghosts stay while he draws** (Igor, 2026-11-02: drawing together, not taking turns). The Pencil touching down
+  leaves them, and an answer that lands while he draws still shows. Each new answer from Claude replaces his unkept
+  ghosts and leaves Larry's. Claude's fade by themselves **30 s** after they appear; Larry's stay until kept or
+  dismissed.
 - **A tap off the ghosts dismisses them all.**
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so keeping a ghost leaves no dot. With no ghost left it draws again.
-- A ghost turn gives up after **10 s** (the Cockpit's model takes about 3 s, and a late answer is dropped anyway if
-  the Pencil has touched down since). No ghost is shown when it gives up, and the bar says *Ghosts: the Cockpit
+- A ghost turn gives up after **10 s** (the Cockpit's model takes about 3 s, and an answer to an older drawing still lands
+  where that drawing was). No ghost is shown when it gives up, and the bar says *Ghosts: the Cockpit
   isn't answering*. A turn the Cockpit says came too soon (it
   takes one every 2 s) is quietly skipped: the bar says nothing and the ghosts on the board stay.
 - **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause: Claude's
@@ -65,7 +68,8 @@ it shows the Cockpit's refusal as a copyable error until it does.
 
 - Draw two circles on the iPad and lift the Pencil: within about 5 s faint orange shapes appear. Tap one: it becomes
   orange ink that the eraser removes and undo takes back.
-- Draw again before the ghosts come, or while they show: they go, and a late answer adds nothing.
+- Draw again before the ghosts come, or while they show: they stay, and the next pause brings a new set that replaces
+  Claude's. Leave them alone: they fade after 30 s. Larry's blue marks stay through all of it.
 - On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
   them; then the finger draws again.
 - Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's blue ghosts stay showing.
