@@ -200,7 +200,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 349:
 
 - **Summary:** Larry takes a turn on the board
-- **Status:** first implemented as a call that waited for him in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to the chat path, no waiting, in COMMIT (Igor, 2026-11-02); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks with no further tap) against the fake Cockpit; the real Larry's answer on the iPad not yet tried
+- **Status:** first implemented as a call that waited for him in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to the chat path, no waiting, in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08) (Igor, 2026-11-02); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks with no further tap) against the fake Cockpit; the real Larry's answer on the iPad not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -276,7 +276,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 353:
 
 - **Summary:** Larry can't be reached
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), on the chat path in COMMIT; not verified by a test
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), on the chat path in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08); not verified by a test
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -561,7 +561,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 380:
 
 - **Summary:** Larry's turn doesn't hold up the drawing
-- **Status:** implemented in COMMIT; the turn's message and the bar verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`) against the fake Cockpit; drawing with the Pencil while he has the board to try on the iPad
+- **Status:** implemented in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08); the turn's message and the bar verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`) against the fake Cockpit; drawing with the Pencil while he has the board to try on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -580,7 +580,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 381:
 
 - **Summary:** A picture for Larry says where it sits on the board
-- **Status:** implemented in COMMIT; the three fields verified by host tests (`WhiteboardMarksTests`), including through the outbox; *Larry's turn* carrying them on the simulator (the fake Cockpit reads the frame to place his marks); *Send to Larry* carrying them and its first send becoming the board's thread not exercised by a test, to try on the iPad
+- **Status:** implemented in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08); the three fields verified by host tests (`WhiteboardMarksTests`), including through the outbox; *Larry's turn* carrying them on the simulator (the fake Cockpit reads the frame to place his marks); *Send to Larry* carrying them and its first send becoming the board's thread not exercised by a test, to try on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -599,7 +599,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 382:
 
 - **Summary:** Larry's marks arrive on their own, where the picture was
-- **Status:** implemented in COMMIT; which row shows and where it lands verified by host tests (`WhiteboardMarksTests`); arriving with no tap, unprompted marks replacing his unkept ones, and either format, by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note, as the canvas isn't in the accessibility tree; marks landing on what he saw, seen by eye, on the iPad
+- **Status:** implemented in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08); which row shows and where it lands verified by host tests (`WhiteboardMarksTests`); arriving with no tap, unprompted marks replacing his unkept ones, and either format, by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note, as the canvas isn't in the accessibility tree; marks landing on what he saw, seen by eye, on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -628,7 +628,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 383:
 
 - **Summary:** A board opens with only his newest marks, and a dismissed set stays gone
-- **Status:** implemented in COMMIT; verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set, dismissed, not back on the next look or the next open); keeping one from a row then reopening is host-tested only
+- **Status:** implemented in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set, dismissed, not back on the next look or the next open); keeping one from a row then reopening is host-tested only
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -652,7 +652,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 384:
 
 - **Summary:** Looking for his marks stays out of the way
-- **Status:** implemented in COMMIT; stopping on close and in the background, and failing quietly, not verified by a test; to try on the iPad, away from the tailnet for the second
+- **Status:** implemented in [a673d08](https://github.com/idvorkin/context-grabber/commit/a673d08); stopping on close and in the background, and failing quietly, not verified by a test; to try on the iPad, away from the tailnet for the second
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
