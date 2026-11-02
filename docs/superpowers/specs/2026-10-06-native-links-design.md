@@ -54,6 +54,8 @@ the cutover registers `grabber` and every saved link keeps working.
 | `grabbernative://breathe?autostart=1` | a session from the remembered sliders, begun |
 | `grabbernative://places` | Places |
 | `grabbernative://cockpit` | the Cockpit |
+| `grabbernative://whiteboard` | the boards |
+| `grabbernative://whiteboard?board=<id>` | that board, as it is now (a chat picture's *Jump to board*, #603); an unknown board stays on the boards and says so |
 | `grabbernative://call` | the call screen, calling Larry on the remembered backend; a live call is brought forward, not restarted |
 | `grabbernative://call?via=eleven` | …on that backend (`eleven`, `gemini`, `openai`, `drill`, `direct`) |
 | `grabbernative://card` | the card screen on a fresh card, face up |

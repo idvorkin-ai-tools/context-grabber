@@ -84,13 +84,15 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
   public let receipt: Receipt
   /// Larry's note when he marked it done.
   public let doneNote: String?
+  /// The whiteboard its picture was sent from (cockpit#85, #603); nil on a row without one.
+  public let board: String?
 
   public var fromIgor: Bool { who == "igor" }
   public var at: Date? { ChatWire.date(ts) }
 
   public init(
     id: String, ts: String, who: String, text: String, attachments: [String] = [], receipt: Receipt = .sent,
-    doneNote: String? = nil
+    doneNote: String? = nil, board: String? = nil
   ) {
     self.id = id
     self.ts = ts
@@ -99,9 +101,10 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     self.attachments = attachments
     self.receipt = receipt
     self.doneNote = doneNote
+    self.board = board
   }
 
-  enum CodingKeys: String, CodingKey { case id, ts, who, text, attachments, receipt }
+  enum CodingKeys: String, CodingKey { case id, ts, who, text, attachments, receipt, board }
   struct ReceiptBody: Decodable {
     let state: String?
     let note: String?
@@ -117,6 +120,7 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     let body = try? c.decode(ReceiptBody.self, forKey: .receipt)
     receipt = body?.state.flatMap(Receipt.init(rawValue:)) ?? .sent
     doneNote = body?.note
+    board = (try? c.decode(String.self, forKey: .board)).flatMap { $0.isEmpty ? nil : $0 }
   }
 }
 

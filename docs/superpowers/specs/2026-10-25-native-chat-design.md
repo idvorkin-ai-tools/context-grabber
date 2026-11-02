@@ -66,7 +66,11 @@ them and why; a single thread reads as it always did. A failed *Undo* of several
 
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or
-dark, and a swipe down closes it too. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
+dark, and a swipe down closes it too. A picture sent from a whiteboard also shows **Jump to board** in the full-size
+view (#603, Igor, 2026-11-02: *"we opened a Zoom in and we get a button that says jump to the thing"*): it opens that
+board as it is now, not the old picture, leaving the thread behind as any link does, with no full-size view left over
+it. A board that was deleted, or that isn't on this device even after asking iCloud, says so in a copyable problem and
+the picture stays open. A picture from anywhere else has no button. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
 sent, 👀 when Larry has seen it, 🏆 when the thing is done (with Larry's note). Opening a thread marks it read here
 and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
 it.

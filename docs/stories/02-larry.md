@@ -1168,3 +1168,37 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 317:
+
+- **Summary:** A board picture in a thread jumps to that board as it is now
+- **Status:** native app only: not yet built
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client looking at an old picture of a whiteboard in a thread
+- **I want to** zoom in on it and tap *Jump to board*
+- **so that** I am on the board as it is now, not looking at a stale screenshot
+
+#### Acceptance Criteria:
+- **Scenario:** A picture from a board
+- **Given:** a thread holds a picture sent from a whiteboard that is on this device
+- **When:** I tap the picture, then *Jump to board*
+- **Then:** the full-size view goes down and the board opens with what is on it now; *Done* on the boards takes me home, and no full-size view is left in the way
+
+- **Scenario:** A picture with no board
+- **Given:** a thread holds a picture that didn't come from a board
+- **When:** I tap it
+- **Then:** it opens full size as ever, with *Done* and no *Jump to board*
+
+- **Scenario:** A board that isn't here
+- **Given:** the picture's board was deleted, or isn't on this device even after asking iCloud
+- **When:** I tap *Jump to board*
+- **Then:** a copyable problem says so over the picture, which stays open until I close it
+
+- **Scenario:** A link to a board
+- **Given:** I have a `grabbernative://whiteboard?board=<id>` link
+- **When:** I open it
+- **Then:** that board opens; a board that isn't here leaves me on the boards with the same copyable problem
+
+---

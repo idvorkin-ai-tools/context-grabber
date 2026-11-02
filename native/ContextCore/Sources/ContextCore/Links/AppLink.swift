@@ -23,6 +23,8 @@ public enum AppRoute: Equatable, Sendable {
   case supermix
   /// Chat with Larry (spec 2026-10-25): the thread list, or one thread (a notification's tap).
   case chat(thread: String?)
+  /// The boards, or one board as it is now (a chat picture's *Jump to board*, #603).
+  case whiteboard(board: String?)
 
   /// The screen's name, as the log writes it.
   public var name: String {
@@ -37,6 +39,7 @@ public enum AppRoute: Equatable, Sendable {
     case .card: return "card"
     case .supermix: return "supermix"
     case .chat: return "chat"
+    case .whiteboard: return "whiteboard"
     }
   }
 
@@ -48,6 +51,7 @@ public enum AppRoute: Equatable, Sendable {
     case .call: return true
     case .card(let think): return think
     case .chat(let thread): return thread != nil
+    case .whiteboard(let board): return board != nil
     default: return false
     }
   }
@@ -186,6 +190,8 @@ public enum AppLink {
     case "chat", "inbox":
       let thread = take("thread").flatMap { $0.isEmpty ? nil : $0 }
       route = .chat(thread: thread)
+    case "whiteboard":
+      route = .whiteboard(board: take("board").flatMap { $0.isEmpty ? nil : $0 })
     default:
       return Parsed(route: .home, understood: false)
     }
@@ -216,6 +222,8 @@ public enum AppLink {
       if think { items.append(("think", "1")) }
     case .chat(let thread):
       if let thread { items.append(("thread", ChatWire.encode(thread))) }
+    case .whiteboard(let board):
+      if let board { items.append(("board", ChatWire.encode(board))) }
     default:
       break
     }
@@ -252,6 +260,7 @@ public enum AppLink {
         (.breathe(BreatheLink(breath: 8, minutes: 5, start: true)), "Box breathing: 8-second breaths for 5 minutes"),
         (.places, "Places"),
         (.cockpit, "The Cockpit"),
+        (.whiteboard(board: nil), "The boards"),
         (.call(via: nil), "Call Larry on the remembered backend"),
         (.call(via: .eleven), "Call Larry on ElevenLabs (also gemini, openai, drill)"),
         (.card(think: false), "A playing card, face up; tap for another"),

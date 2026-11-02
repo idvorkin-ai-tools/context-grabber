@@ -118,6 +118,25 @@ final class WhiteboardStore: ObservableObject {
     return id
   }
 
+  /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board of this device with a known id, for the simulator (#603).
+  func addFixture(_ id: String) {
+    guard index.board(id) == nil else { return }
+    index.add(id: id, at: Date(), device: device, deviceName: deviceName)
+    saveIndex()
+  }
+
+  /// Why a board can't be opened; nil when it is here, on disk or once iCloud has been asked (#603). The id is only
+  /// looked up, never made into a path: it came from a link or the Cockpit.
+  func find(_ id: String, context: String) async -> BugProblem? {
+    if index.board(id) != nil { return nil }
+    await sync(reason: "find_board")
+    if index.board(id) != nil { return nil }
+    log.event("whiteboard", ["action": "board_missing", "board": id, "sync": syncNote ?? "ok"])
+    return .grabber(
+      "This board isn't on this device: it was deleted, or iCloud hasn't brought it here.", context: context,
+      extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
+  }
+
   /// A board's drawing; one that cannot be read is moved aside before the error goes up. If that move fails, the file
   /// stays in place and the next save writes over it, which the spec's "The board is kept" does not allow yet.
   func drawing(_ id: String) throws -> PKDrawing {
