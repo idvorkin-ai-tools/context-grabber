@@ -2,7 +2,7 @@
 
 Igor, 2026-11-01: "what about the ghosting idea, does that work? How does Larry write back? I don't grok that yet",
 then "make an issue for cockpit, build your side". Builds on [the whiteboard](2026-11-01-whiteboard-design.md)
-(stories 344 and 349–355). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
+(stories 344 and 349–359). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
 
 ## The idea in one line
 
@@ -12,11 +12,12 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 
 ## What Igor sees
 
-### Ghosts from Claude (stories 344, 350–352, 354)
+### Ghosts from Claude (stories 344, 350–352, 354, 357–359)
 
 - He draws, then lifts the Pencil. After about **1 s** with nothing new Claude is asked, and about 3 s later faint
   shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
-  third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next pause.
+  third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next
+  pause, which waits for the tool to lift.
 - While ghosts show, the bar says how many and *tap one to keep it*.
 - **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour, and his eraser and undo treat it like his own
   strokes.
@@ -40,7 +41,7 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
   isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
   isn't shown or counted either.
 
-### Larry's turn (stories 349, 353, 355)
+### Larry's turn (stories 349, 353, 355–357)
 
 - **Larry's turn** in the board's bar sends the board to Larry and waits for him (up to a minute), saying *Larry is
   looking…*.

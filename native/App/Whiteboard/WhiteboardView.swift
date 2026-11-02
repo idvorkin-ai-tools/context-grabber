@@ -43,16 +43,9 @@ final class WhiteboardModel: ObservableObject {
   private let cockpit: String
   /// Puts a kept ghost on the canvas (undoably); the canvas sets it.
   var draw: ((PKDrawing) -> Void)?
-  /// Bumped when Igor sends Claude's turn away (a dismissal, Ghosts off, Larry's turn): its answer is dropped.
-  private var generation = 0
+  private var pacer = WhiteboardPacer()
   private var pauseTask: Task<Void, Never>?
   private var fadeTask: Task<Void, Never>?
-  /// One of Claude's turns at a time; strokes made during it ask again after the next pause.
-  private var claudeAsking = false
-  private var askAgain = false
-  /// The Pencil or a finger is down: a pause waits for it to lift.
-  private var toolDown = false
-  private var askOnLift = false
   private var saveTask: Task<Void, Never>?
   private var dirty = false
   private var saveFailing = false
@@ -93,7 +86,10 @@ final class WhiteboardModel: ObservableObject {
     guard editable, new != drawing else { return }
     let added = new.strokes.count > drawing.strokes.count
     drawing = new
-    if added, ghostsOn { schedulePause() }
+    if added, ghostsOn {
+      pacer.strokeAdded()
+      startPause()
+    }
     drawingMoved()
   }
 
@@ -111,16 +107,13 @@ final class WhiteboardModel: ObservableObject {
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
   func beganDrawing() {
-    toolDown = true
-    if pauseTask != nil { askOnLift = true }
+    pacer.toolWentDown()
     pauseTask?.cancel()
     pauseTask = nil
   }
 
   func endedDrawing() {
-    toolDown = false
-    if askOnLift, ghostsOn { schedulePause() }
-    askOnLift = false
+    if pacer.toolLifted() { startPause() }
   }
 
   private func clearGhosts() {
@@ -130,25 +123,18 @@ final class WhiteboardModel: ObservableObject {
 
   /// A pause still waiting is forgotten, and an answer on its way is stale when it lands.
   private func dropClaudesTurn() {
-    generation += 1
-    askAgain = false
-    askOnLift = false
+    pacer.dropped()
     pauseTask?.cancel()
     pauseTask = nil
   }
 
-  private func schedulePause() {
+  private func startPause() {
     pauseTask?.cancel()
-    let asked = generation
     pauseTask = Task { [weak self] in
       try? await Task.sleep(for: Self.pause)
-      guard !Task.isCancelled, let self, self.generation == asked else { return }
+      guard !Task.isCancelled, let self else { return }
       self.pauseTask = nil
-      guard !self.claudeAsking else {
-        self.askAgain = true
-        return
-      }
-      await self.turn(.claude)
+      if self.pacer.pauseEnded() { await self.turn(.claude) }
     }
   }
 
@@ -174,17 +160,9 @@ final class WhiteboardModel: ObservableObject {
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
   func turn(_ who: WhiteboardTurn.Who) async {
     guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
-    let asked = generation
-    if who == .claude { claudeAsking = true }
-    defer {
-      if who == .claude {
-        claudeAsking = false
-        if askAgain {
-          askAgain = false
-          if toolDown { askOnLift = true } else if ghostsOn { schedulePause() }
-        }
-      }
-    }
+    let asked = pacer.generation
+    if who == .claude { pacer.turnStarted() }
+    defer { if who == .claude, pacer.turnLanded() { startPause() } }
     // ponytail: rendered and encoded on the main thread; if a big board hitches the next stroke (the turn event's
     // `bytes`), this moves to a background task.
     let image = picture(rect: rect, scale: scale)
@@ -213,7 +191,7 @@ final class WhiteboardModel: ObservableObject {
     } catch {
       answer = WhiteboardTurn.answer(status: nil, body: nil, error: error.localizedDescription)
     }
-    let stale = who == .claude && generation != asked
+    let stale = who == .claude && pacer.generation != asked
     var event: [String: Any] = [
       "who": who.rawValue, "board": board.id, "ms": Int(Date().timeIntervalSince(started) * 1000), "stale": stale,
       "bytes": png.count,

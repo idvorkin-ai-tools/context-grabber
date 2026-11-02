@@ -214,7 +214,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 350:
 
 - **Summary:** Ghosts stay while I draw
-- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) (Igor, 2026-11-02); not verifiable on the simulator, which has no Pencil and no canvas in the accessibility tree; to try on the iPad
+- **Status:** first implemented as drawing dismissing the ghosts in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to staying in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) (Igor, 2026-11-02); not verifiable on the simulator, which has no Pencil and no canvas in the accessibility tree; to try on the iPad, including a finger tap on a ghost while the Pencil is down
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -344,12 +344,10 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
----
-
 ### User Story 357:
 
 - **Summary:** Each new set of ghosts replaces only its author's last one
-- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9); Larry's marks leaving Claude's in place verified on the simulator by `WhiteboardTurnUITests`; Claude's new answer replacing his own, and the draw-in, to try on the iPad (a finger can't draw while ghosts show on the simulator)
+- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) and [be41b43](https://github.com/idvorkin/context-grabber/commit/be41b43) (Larry's turn no longer drops Claude's); Larry's marks leaving Claude's in place verified on the simulator by `WhiteboardTurnUITests`; Claude's new answer replacing his own, and the draw-in, to try on the iPad (a finger can't draw while ghosts show on the simulator)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -381,3 +379,22 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** Claude's orange ghosts and Larry's blue ones are showing
 - **When:** 30 s pass with nothing new from Claude
 - **Then:** Claude's fade away, and Larry's stay until I keep or dismiss them
+
+---
+
+### User Story 359:
+
+- **Summary:** Strokes made during a ghost turn get their own turn
+- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) and [be41b43](https://github.com/idvorkin/context-grabber/commit/be41b43); its rules verified on this branch by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing on while Claude thinks
+- **I want to** have my newest strokes asked about once the turn on its way lands
+- **so that** ghosts keep up with the drawing without turns piling up or arriving mid-stroke
+
+#### Acceptance Criteria:
+- **Scenario:** Drawing during a turn
+- **Given:** a ghost turn is on its way
+- **When:** I draw another stroke and lift the Pencil
+- **Then:** a second turn is asked a second after the first lands or after the lift, whichever is later

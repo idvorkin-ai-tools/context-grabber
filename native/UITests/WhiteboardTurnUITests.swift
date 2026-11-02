@@ -1,5 +1,5 @@
-//  Stories 344, 349, 351 and 354 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
-//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his line and his marks, a kept ghost is ink, the
+//  Stories 344, 349, 351, 354, 357 and 358 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his marks beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
 import XCTest
