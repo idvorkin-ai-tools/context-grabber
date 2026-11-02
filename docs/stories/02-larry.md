@@ -710,8 +710,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 276:
 
 - **Summary:** A reply from Larry notifies me while the app is closed
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: only a new unread reply from Larry is due, once); the background check, the notification and its tap only on the phone, not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: only a new unread reply from Larry is due, once); the background check, the notification and its tap only on the phone, not yet; a tapped notification no longer crashes the app ([aede196](https://github.com/idvorkin/context-grabber/commit/aede196), #610, the delegate's completion on the main thread): simulator build only, a notification tap to try on the phone
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#609](https://github.com/idvorkin/context-grabber/issues/609), [#610](https://github.com/idvorkin/context-grabber/issues/610)
 - **Spec:** [Chat with Larry in Grabber Native — Hearing back](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:

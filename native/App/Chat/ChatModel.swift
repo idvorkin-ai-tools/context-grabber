@@ -419,18 +419,26 @@ final class ChatNotificationDelegate: NSObject, UNUserNotificationCenterDelegate
   var open: (@MainActor (String) -> Void)?
   var onScreen: (@MainActor () -> String?)?
 
+  // The completion-handler forms, not the async ones: returning from an async one calls UIKit's completion off the main
+  // thread, which raises "Call must be made on main thread" and kills the app on a tapped notification (#610).
   func userNotificationCenter(
-    _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse
-  ) async {
-    guard let thread = response.notification.request.content.userInfo["thread"] as? String else { return }
-    await MainActor.run { open?(thread) }
+    _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+    withCompletionHandler completion: @escaping () -> Void
+  ) {
+    let thread = response.notification.request.content.userInfo["thread"] as? String
+    Task { @MainActor in
+      if let thread { open?(thread) }
+      completion()
+    }
   }
 
   func userNotificationCenter(
-    _ center: UNUserNotificationCenter, willPresent notification: UNNotification
-  ) async -> UNNotificationPresentationOptions {
+    _ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+    withCompletionHandler completion: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
     let thread = notification.request.content.userInfo["thread"] as? String
-    let showing = await MainActor.run { onScreen?() }
-    return thread != nil && thread == showing ? [] : [.banner, .list, .sound]
+    Task { @MainActor in
+      completion(thread != nil && thread == onScreen?() ? [] : [.banner, .list, .sound])
+    }
   }
 }
