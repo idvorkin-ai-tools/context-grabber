@@ -39,9 +39,6 @@ struct CardView: View {
             .padding(.bottom, 4)
             .accessibilityIdentifier("card-drill")
           }
-          // ponytail: the drill's Stats sheet shows a failed load as plain text, not BugProblemView; it is logged
-          // (`ledger_stats` how: failed) for a shake report. The library lets the host present it since v0.3.1
-          // (`StackDrillScreen(session:showLedgerFailure:)`); passing that closure is #563.
           // A report from inside the drill names it, not the card under it (Codex on #381).
           .onChange(of: drills, initial: true) { _, open in app.screen = open ? "drill" : "card" }
           .fullScreenCover(isPresented: $drills) {
@@ -49,7 +46,16 @@ struct CardView: View {
               StackDrillScreen(
                 session: DrillSession(
                   deck: deck, log: app.log, ledger: GrabberLedger.shared(log: app.log), mode: drillMode,
-                  skippingEasy: session.skipsEasyCards)
+                  skippingEasy: session.skipsEasyCards),
+                // A failed Stats load is a copyable error, its state in extra (#563).
+                showLedgerFailure: { failure in
+                  var extra = failure.state.mapValues(JSONValue.int)
+                  extra["where"] = .string(failure.context)
+                  return AnyView(
+                    BugProblemView(
+                      problem: .grabber(failure.message, context: "CardView.drillStats", extra: extra),
+                      logger: app.bugLogger))
+                }
               )
               // A cover is its own presentation: the app's shake and report sheet do not reach into it (Codex on #381).
               .bugReporting(app.reporter)
