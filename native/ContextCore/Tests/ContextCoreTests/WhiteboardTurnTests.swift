@@ -110,14 +110,31 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(arc.first!.y, -10, accuracy: 0.001)
     XCTAssertEqual(arc[arc.count / 2].x, 10, accuracy: 0.001)
     XCTAssertEqual(arc.last!.y, 10, accuracy: 0.001)
-    // The baseline at y 40, 20 tall: the label's top is at 20.
-    XCTAssertEqual(shapes[5].points, [CGPoint(x: 10, y: 20)])
     XCTAssertEqual(shapes[5].text, "hi")
   }
 
-  func testAskingTooSoonIsNotAFailure() {
+  /// The Cockpit draws a label as SVG `<text x y>`, so y is the baseline, and an H stands on its baseline. It holds
+  /// when the picture is scaled down to the board, and when a tiny label is clamped up to the smallest readable size.
+  func testALabelStandsOnTheCockpitsBaseline() throws {
+    let cases: [(size: Int, scale: CGFloat)] = [(20, 1), (40, 2), (10, 2)]
+    for (size, scale) in cases {
+      let label = #"{"kind": "label", "text": "H", "x": 10, "y": 40, "size": \#(size)}"#
+      let body = Data(#"{"ok": true, "strokes": [\#(label)]}"#.utf8)
+      guard case .shapes(let shapes, _, _) = WhiteboardTurn.answer(status: 200, body: body) else {
+        return XCTFail("no shapes")
+      }
+      let frame = CGRect(x: 1000, y: 2000, width: 400, height: 300)
+      let lines = WhiteboardTurn.lines(try XCTUnwrap(shapes.first), frame: frame, scale: scale)
+      let lowest = try XCTUnwrap(lines.joined().map(\.y).max())
+      XCTAssertEqual(lowest, 2000 + 40 / scale, accuracy: 0.01, "size \(size) at scale \(scale)")
+    }
+  }
+
+  func testAskingTooSoonSkipsAGhostTurnButRefusesLarrys() {
+    let body = Data(#"{"ok": false, "error": "too soon"}"#.utf8)
+    XCTAssertEqual(WhiteboardTurn.answer(status: 429, body: body, who: .claude), .tooSoon)
     XCTAssertEqual(
-      WhiteboardTurn.answer(status: 429, body: Data(#"{"ok": false, "error": "too soon"}"#.utf8)), .tooSoon)
+      WhiteboardTurn.answer(status: 429, body: body, who: .larry), .refused(status: 429, reason: "too soon"))
   }
 
   func testRefusalsAndAbsences() {

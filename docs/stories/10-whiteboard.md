@@ -86,7 +86,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 344:
 
 - **Summary:** Claude suggests the next strokes as I draw
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7) against the fake Cockpit (the real endpoint is cockpit#85); verified by host tests (`WhiteboardTurnTests`: the request, the answer, shapes onto the board, a tap's hit, kept ink through PencilKit's own spline) and the simulator (`WhiteboardTurnUITests`: a pause brings a ghost; the keep verified on the simulator by `WhiteboardTurnUITests`); a real Claude answer and undo not yet tried on the iPad
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), the Cockpit's `POST /whiteboard/suggest` in [7974077](https://github.com/idvorkin/context-grabber/commit/7974077); verified by host tests (`WhiteboardTurnTests`: the request, the answer, each kind of stroke, a label on its baseline, a 429 skipped, shapes onto the board, a tap's hit, kept ink through PencilKit's own spline) and the simulator against the fake Cockpit (`WhiteboardTurnUITests`: a pause brings a ghost; the keep verified on the simulator by `WhiteboardTurnUITests`); a real Claude answer and undo not yet tried on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -96,9 +96,24 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** A ghost, kept
-- **Given:** I drew two circles and lifted the Pencil with Ghosts on, and a faint orange shape appeared about two seconds later
+- **Given:** I drew two circles and lifted the Pencil with Ghosts on, and a faint orange shape appeared within about five seconds
 - **When:** I tap it
 - **Then:** it becomes a real stroke in Claude's orange that my eraser and undo treat like mine
+
+- **Scenario:** Every kind of stroke
+- **Given:** Ghosts are on and I paused
+- **When:** the Cockpit answers with a line, an arrow, a polyline, a circle, an arc, a label and a kind the app doesn't know
+- **Then:** the six I know appear as faint orange ghosts, the label's letters standing on the spot the Cockpit gave as its baseline, and the unknown one isn't shown
+
+- **Scenario:** The model takes too long
+- **Given:** Ghosts are on and I paused
+- **When:** the Cockpit has not answered after 10 s
+- **Then:** no ghost appears and the bar says *Ghosts: the Cockpit isn't answering* until a turn gets through
+
+- **Scenario:** Asked too soon
+- **Given:** ghosts are showing
+- **When:** a new turn comes within the Cockpit's 2 s and it answers 429
+- **Then:** the turn is skipped with no error, the bar doesn't change and the ghosts stay
 
 ---
 

@@ -173,7 +173,7 @@ final class WhiteboardModel: ObservableObject {
         : try WhiteboardTurn.request(
           who: who, board: board.id, title: title, picture: png, thread: thread, cockpit: cockpit)
       let (body, response) = try await URLSession.shared.data(for: request)
-      answer = WhiteboardTurn.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body)
+      answer = WhiteboardTurn.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body, who: who)
     } catch {
       answer = WhiteboardTurn.answer(status: nil, body: nil, error: error.localizedDescription)
     }

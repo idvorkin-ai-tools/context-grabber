@@ -35,7 +35,7 @@ public enum WhiteboardTurn {
 
   public enum Answer: Equatable, Sendable {
     case shapes([Shape], say: String, thread: String?)
-    /// A 429: asked within the Cockpit's 2 s, so this turn is skipped and nothing changes.
+    /// A 429 on a ghost turn: asked within the Cockpit's 2 s, so this turn is skipped and nothing changes.
     case tooSoon
     /// A 4xx: the Cockpit's reason, shown to Igor.
     case refused(status: Int, reason: String)
@@ -78,9 +78,9 @@ public enum WhiteboardTurn {
     return request
   }
 
-  public static func answer(status: Int?, body: Data?, error: String? = nil) -> Answer {
+  public static func answer(status: Int?, body: Data?, error: String? = nil, who: Who = .claude) -> Answer {
     guard let status else { return .away(reason: error ?? "no answer") }
-    if status == 429 { return .tooSoon }
+    if status == 429, who == .claude { return .tooSoon }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, let json, json["ok"] as? Bool == true {
       let strokes = (json["strokes"] as? [[String: Any]] ?? []).compactMap(shapeJSON(stroke:))
@@ -125,7 +125,7 @@ public enum WhiteboardTurn {
       // The Cockpit's x, y is the text's baseline; a shape's text hangs from its top-left.
       guard let x = n("x"), let y = n("y") else { return nil }
       let size = n("size") ?? 18
-      return ["kind": "text", "points": [[x, y - size]], "text": s["text"] ?? "", "size": size]
+      return ["kind": "text", "points": [[x, y - labelAscent * size]], "text": s["text"] ?? "", "size": size]
     default:
       return nil
     }
@@ -193,8 +193,10 @@ public enum WhiteboardTurn {
       }
       return [[a, b], [wing(.pi / 6), b, wing(-.pi / 6)]]
     case .text:
-      let height = max(8, (shape.size ?? 28) / scale)
-      return glyphLines(shape.text ?? "", topLeft: p[0], height: height)
+      let size = (shape.size ?? 28) / scale
+      let height = max(8, size)
+      let top = CGPoint(x: p[0].x, y: p[0].y + labelAscent * (size - height))
+      return glyphLines(shape.text ?? "", topLeft: top, height: height)
     }
   }
 
@@ -230,12 +232,15 @@ public enum WhiteboardTurn {
     return out
   }
 
+  /// How far a label's baseline sits below its top, as a share of its size.
+  private static let labelAscent = CTFontGetAscent(CTFontCreateWithName("Helvetica" as CFString, 100, nil)) / 100
+
   /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
   static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat) -> [[CGPoint]] {
     let font = CTFontCreateWithName("Helvetica" as CFString, height, nil)
     let line = CTLineCreateWithAttributedString(
       NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
-    let ascent = CTFontGetAscent(font)
+    let ascent = labelAscent * height
     var out: [[CGPoint]] = []
     for run in (CTLineGetGlyphRuns(line) as? [CTRun]) ?? [] {
       let count = CTRunGetGlyphCount(run)

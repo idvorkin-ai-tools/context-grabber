@@ -2,7 +2,7 @@
 
 Igor, 2026-11-01: "what about the ghosting idea, does that work? How does Larry write back? I don't grok that yet",
 then "make an issue for cockpit, build your side". Builds on [the whiteboard](2026-11-01-whiteboard-design.md)
-(stories 344 and 349–355). The Cockpit half is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
+(stories 344 and 349–355). Larry's half on the Cockpit is [cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85).
 
 ## The idea in one line
 
@@ -14,8 +14,8 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 
 ### Ghosts from Claude (stories 344, 350–352, 354)
 
-- He draws, then lifts the Pencil. After about **1.5 s** with nothing new, faint shapes appear in Claude's colour
-  (orange): the box his arrow points at, a label, the third circle.
+- He draws, then lifts the Pencil. After about **1.5 s** with nothing new Claude is asked, and about 3 s later faint
+  shapes appear in Claude's colour (orange): the box his arrow points at, a label, the third circle.
 - While ghosts show, the bar says how many and *tap one to keep it*.
 - **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour, and his eraser and undo treat it like his own
   strokes.
@@ -25,7 +25,8 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so keeping a ghost leaves no dot. With no ghost left it draws again.
 - A ghost turn gives up after **10 s** (the Cockpit's model takes about 3 s, and a late answer is dropped anyway if
-  the Pencil has touched down since). No ghost is shown when it gives up. A turn the Cockpit says came too soon (it
+  the Pencil has touched down since). No ghost is shown when it gives up, and the bar says *Ghosts: the Cockpit
+  isn't answering*. A turn the Cockpit says came too soon (it
   takes one every 2 s) is quietly skipped: the bar says nothing and the ghosts on the board stay.
 - **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause: Claude's
   ghosts go and a turn of his on its way is dropped. Larry's marks stay, because a tap asked for them.
@@ -62,7 +63,7 @@ it shows the Cockpit's refusal as a copyable error until it does.
 
 ## Acceptance
 
-- Draw two circles on the iPad and lift the Pencil: within about 2 s faint orange shapes appear. Tap one: it becomes
+- Draw two circles on the iPad and lift the Pencil: within about 5 s faint orange shapes appear. Tap one: it becomes
   orange ink that the eraser removes and undo takes back.
 - Draw again before the ghosts come, or while they show: they go, and a late answer adds nothing.
 - On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
