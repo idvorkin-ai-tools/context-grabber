@@ -90,6 +90,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   in view and don't move under *More*.
   - **Each board keeps its own colour.** It's remembered with the board and goes through iCloud with the drawing, like
     its name. A new board starts on Plain. Choosing a colour moves the board to the top of the list, as a rename does.
+    A colour that hasn't reached iCloud beats a delete from elsewhere, as new ink does.
   - **Each colour has a pale shade and a deep one**, so black ink, which turns white in dark mode, stays easy to read
     when the iPad changes mode. Plain is white in light mode and black in dark mode, as every board was before.
   - **Ghosts stay visible on all of them.** No colour is orange or blue, and a faint orange or blue ghost on any colour

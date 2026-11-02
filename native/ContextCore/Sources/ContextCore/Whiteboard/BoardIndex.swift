@@ -179,9 +179,9 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   /// device is where they are drawn, except one iCloud has that this list lost (a reinstall, an unreadable list),
   /// which comes back. A board deleted here and still in iCloud is not brought back. `unread`: records iCloud holds
   /// that could not be read, never dropped for it. `tombstones`: boards some device deleted, with the `updated` it
-  /// saw, which go from here too, unless this device drew one and has ink iCloud lacks or has it open (`open`). A board
-  /// changed after that version outlives the tombstone, and this device sends it again, since the delete took its
-  /// record. Returns the ids whose drawing must be fetched (until a fetch lands, every merge asks again), the ids
+  /// saw, which go from here too, unless this device drew one and has a change iCloud lacks or has it open (`open`).
+  /// A board changed after that version outlives the tombstone, and this device sends it again, since the delete took
+  /// its record. Returns the ids whose drawing must be fetched (until a fetch lands, every merge asks again), the ids
   /// dropped, and whether any board now needs sending again.
   public mutating func merge(
     cloud: [BoardEntry], device: String, unread: Set<String> = [], tombstones: [String: Int64] = [:],
