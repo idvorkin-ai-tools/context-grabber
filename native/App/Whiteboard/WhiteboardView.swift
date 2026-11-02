@@ -36,7 +36,7 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var larrySending = false
   /// Looking at Larry's thread has failed for a while (story 383).
   @Published private(set) var larryAway = false
-  /// What the last paste left off or couldn't draw, shown until the board next changes (story 365).
+  /// What the last paste left off or couldn't draw, shown until the board next changes (stories 392, 393).
   @Published private(set) var pasteNote: String?
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
@@ -517,10 +517,10 @@ final class WhiteboardModel: ObservableObject {
     draw?(kept)
   }
 
-  /// Story 365: the text as ink in the middle of the view, one undo, and a change like a drawn stroke. Black ink shows
-  /// light in dark mode, as the Pencil's does, and dark in the picture. The pen's width is in proportion to the letters:
-  /// a ghost's 3.7 fills a 24-point letter in, and PencilKit draws nothing under about 2 (seen on the simulator, on the
-  /// canvas and in the picture alike), which is why zooming in never shrinks them on the board.
+  /// Stories 390, 391: the text as ink in the middle of the view, one undo, and a change like a drawn stroke. Black ink
+  /// shows light in dark mode, as the Pencil's does, and dark in the picture. The pen's width is in proportion to the
+  /// letters: a ghost's 3.7 fills a 24-point letter in, and PencilKit draws nothing under about 2 (seen on the
+  /// simulator, on the canvas and in the picture alike), which is why zooming in never shrinks them on the board.
   func paste(_ text: String) {
     guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
     let height = Self.pasteLetters / min(zoom, 1)
@@ -834,7 +834,7 @@ private struct BoardCanvas: UIViewRepresentable {
 
 final class BoardCanvasView: PKCanvasView {
   fileprivate var toolPicker: PKToolPicker?
-  /// ⌘V on a board that can be drawn on (story 365).
+  /// ⌘V on a board that can be drawn on (stories 390, 394).
   fileprivate var pasted: ((String) -> Void)?
   private var opened = false
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
@@ -908,12 +908,16 @@ final class BoardCanvasView: PKCanvasView {
 
   // hasStrings asks without reading, so it shows no paste prompt.
   override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-    if action == #selector(paste(_:)) { return pasted != nil && UIPasteboard.general.hasStrings }
+    if action == #selector(paste(_:)) {
+      guard pasted != nil else { return false }
+      return UIPasteboard.general.hasStrings || super.canPerformAction(action, withSender: sender)
+    }
     return super.canPerformAction(action, withSender: sender)
   }
 
   override func paste(_ sender: Any?) {
-    if let text = UIPasteboard.general.string { pasted?(text) }
+    guard let pasted else { return }
+    if let text = UIPasteboard.general.string { pasted(text) } else { super.paste(sender) }
   }
 
   override func didMoveToWindow() {

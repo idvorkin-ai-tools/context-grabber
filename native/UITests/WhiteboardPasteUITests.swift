@@ -1,6 +1,6 @@
-//  Story 365 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it), read from the
-//  Send button's label (the strokes drawn). HI is two strokes, one a letter. XCUITest's taps never reach the system's
-//  paste button, so the button is the iPad's check and these go through ⌘V or GRABBER_WHITEBOARD_PASTE.
+//  Stories 390–393 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it), read
+//  from the Send button's label (the strokes drawn). HI is two strokes, one a letter. XCUITest's taps never reach the
+//  system's paste button, so the button is the iPad's check and these go through ⌘V or GRABBER_WHITEBOARD_PASTE.
 
 import XCTest
 

@@ -1,7 +1,7 @@
 # Whiteboard: paste text onto the board
 
 Igor, on the board, 2026-11-02: "I should be able to paste text" ([#597](https://github.com/idvorkin/context-grabber/issues/597)).
-Story 365. Builds on [the whiteboard](2026-11-01-whiteboard-design.md) and
+Stories 390–395. Builds on [the whiteboard](2026-11-01-whiteboard-design.md) and
 [ghosts and shapes](2026-11-01-whiteboard-shapes-design.md).
 
 ## The idea in one line
@@ -14,6 +14,9 @@ the board's picture to Larry and Claude.
 - **Paste** in the board's bar. It is the system's own paste button, so iOS never asks *Allow Paste?* when he taps it,
   and iOS dims it when the clipboard holds no text. A board that is look-only has no Paste.
 - **⌘V** does the same with a hardware keyboard attached, on a board he can draw on, whenever the clipboard holds text.
+- **Strokes he copied keep working.** With a hardware keyboard, when the clipboard holds strokes copied with the lasso
+  and no text, ⌘V pastes those strokes the way the system always does, on a board he can draw on. The bar's Paste is
+  for text alone.
 - The text lands **in the middle of what's on screen**, at a size that reads about the same however far he has zoomed out; zoomed in past 100% the letters are simply bigger on screen, because ink finer than that doesn't draw. Each line of
   the clipboard stays its own line, left-aligned. A line too wide for the screen wraps at the screen's width. A block
   taller than the screen starts at the top of the screen and runs on below it, and he pans to see the rest.
@@ -45,8 +48,8 @@ the board's picture to Larry and Claude.
 
 ## Acceptance
 
-- Clipboard empty of text: Paste is dimmed, ⌘V does nothing, and no permission prompt ever appears from opening a
-  board.
+- Clipboard empty: Paste is dimmed, ⌘V does nothing, and no permission prompt ever appears from opening a board.
+- Copy strokes with the lasso, with no text on the clipboard: Paste is dimmed, and ⌘V pastes the strokes as ink.
 - Copy two lines of text and tap Paste: both lines appear as ink in the middle of the screen, no *Allow Paste?*
   prompt. Send's stroke count goes up, and about a second later Claude's ghosts come.
 - Zoom out, pan and paste again: the new text sits in the middle of the new view at the same on-screen size. Zoom in
