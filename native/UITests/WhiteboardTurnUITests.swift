@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 396 and 397 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402 and 403 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -230,7 +230,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     }
   }
 
-  /// Stories 378, 396, 397: the colour is on the canvas, follows the mode, and stays when the board opens again.
+  /// Stories 378, 402, 403: the colour is on the canvas, follows the mode, and stays when the board opens again.
   func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
     let before = XCUIDevice.shared.appearance
     addTeardownBlock { XCUIDevice.shared.appearance = before }

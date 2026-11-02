@@ -31,13 +31,25 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 ### The boards (Igor, 2026-11-01: "I should see each whiteboard as a list"; "on iPhone should see what was drawn, probably read only")
 
-- A **Whiteboard** tile on home. It opens **the boards**: a grid of cards, newest change first. Each card shows the
-  board's picture, its name, and when it last changed. A board from another device also says where it was drawn
-  ("Drawn on iPad").
+- A **Whiteboard** tile on home. It opens **the boards**: a list of rows, newest change first, on the iPad and the iPhone
+  alike. Each row shows the board's picture, its name, and when it last changed. A board from another device also says
+  where it was drawn ("Drawn on iPad").
 - **+ New board** opens a fresh, empty board named for the day (*Board, Nov 1*; a second that day is *Board, Nov 1
   (2)*). A new board that's left without a stroke is gone when it closes, so empty boards never pile up.
-- A **long press** on a card offers *Rename* and *Delete*. Delete asks first, and it removes the board from every
-  device. Only boards drawn on this device can be renamed or deleted.
+- A **swipe left** on a row offers *Delete*, as Chat's rows offer their actions; a **long press** offers it too, and
+  *Rename* on a board drawn on this device. (Igor, 2026-11-02, #613: "I need to be able to delete boards", from the
+  iPhone, where a long press on an iPad board only opened it.)
+- **Any device can delete any board.** Delete asks first, there's no undo, and the board leaves every device: this one
+  at once, the others the next time they sync, even one that was off when the delete happened. Only the device that
+  drew a board can rename it.
+- **New ink beats a delete from elsewhere.** If the iPad has drawn on a board that hasn't reached iCloud when it learns
+  the iPhone deleted that board, or has that board open, nothing is thrown away: what's unsent goes up and the board
+  comes back on every device. A board the iPad has open and leaves without drawing on then goes. A delete covers only
+  what the deleting device had seen: ink that reached iCloud after that, even days before a delete made offline gets
+  there, keeps the board, and it comes back on every device.
+- A chat picture's *Jump to board*, or a link, on a deleted board shows a copyable problem saying so.
+- A device that hasn't been told of a delete, or that lost its way to iCloud or changed iCloud account, keeps its own
+  boards: only a delete asked for on a device removes a board from the device that drew it.
 - **Every device signed into Igor's iCloud sees every board.** A board saved on the iPad appears in the iPhone's
   list the next time the list opens or the app comes forward. It's usually there within a minute, and a pull on the
   list fetches it straight away.
@@ -86,7 +98,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     colour was chosen.
   - **Other devices show the same colour**, in the look-only view, shaded for that device's own mode. They can't change
     it. A board already open there shows a new colour the next time it opens, as it does a new drawing.
-  - **The card** in the list has the colour's pale shade behind the picture, as the picture's ink is always dark.
+  - **The row** in the list has the colour's pale shade behind the board's picture, as the picture's ink is always dark.
   - **Claude and Larry always get dark ink on white**, whatever the colour and the mode: the colour is for Igor's eyes,
     and every picture they read stays the same. So a mark of theirs lands the same on any colour.
 
@@ -111,12 +123,19 @@ that ghosts need the tailnet.
 - Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
 - The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no
-  card behind.
+  row behind.
 - Draw on the iPad and close the board: within a minute, the iPhone's list shows it with the same picture. Opening
   it there shows the drawing with no tool picker, and a finger only pans.
 - Rename and delete a board on the iPad: the iPhone follows on its next refresh.
 - Choose Cream on a board, draw, close and reopen it: it's still Cream, deep in dark mode and pale in light mode, and the
-  ink is readable in both. The iPhone shows it Cream too, and its card is cream on both devices.
-- Choose a colour on a new board and close it without a stroke: no card is left behind.
+  ink is readable in both. The iPhone shows it Cream too, and its row in the list is cream on both devices.
+- Choose a colour on a new board and close it without a stroke: no row is left behind.
 - Send a Cream board to Larry: the picture in Chat is dark ink on white.
-- The single board from before the list is the first card after the update.
+- Swipe left on a row on the iPhone, on a board drawn on the iPad: Delete asks first, then the row goes. The board
+  doesn't come back on the iPhone, and the iPad's list loses it on its next refresh, with the iPad off at the time of
+  the delete too.
+- Delete on the iPhone a board the iPad has unsent ink on: the board comes back on both, with that ink.
+- Delete a board on the iPhone with no network, draw on it on the iPad and let that reach iCloud, then bring the iPhone
+  back: the board comes back on both, with that ink.
+- *Jump to board* on a chat picture of a deleted board shows the copyable problem, and the picture stays.
+- The single board from before the list is the first row after the update.

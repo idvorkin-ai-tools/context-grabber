@@ -1,6 +1,7 @@
 //  The boards on this device and in iCloud (spec 2026-11-01-whiteboard-design.md, stories 347, 348). Each board is a
 //  PencilKit drawing and a small picture on disk, listed in one index file; this device's own boards go up to the
-//  private CloudKit database, every device's boards come down, and only the device that made a board draws on it.
+//  private CloudKit database, every device's boards come down, only the device that made a board draws on it, and any
+//  device can delete it (stories 396–398, 401).
 
 import BugKit
 import CloudKit
@@ -14,10 +15,12 @@ final class WhiteboardStore: ObservableObject {
   /// Why the list is not syncing right now, shown under it; nil while it is.
   @Published private(set) var syncNote: String?
   @Published private(set) var problem: BugProblem?
-  /// Bumped when a picture on disk changes, so the cards draw it again.
+  /// Bumped when a picture on disk changes, so the rows draw it again.
   @Published private(set) var pictures = 0
   let device: String
   let deviceName = UIDevice.current.model
+  /// This device's boards open on screen: a delete from another device waits until their last save.
+  private var open: Set<String> = []
   private let dir: URL?
   private let log: SessionLog
   private let cloud = BoardCloud()
@@ -118,10 +121,11 @@ final class WhiteboardStore: ObservableObject {
     return id
   }
 
-  /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board of this device with a known id, for the simulator (#603).
-  func addFixture(_ id: String) {
+  /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board with a known id, for the simulator (#603): this device's, or with
+  /// `GRABBER_BOARD_FIXTURE_FROM=<device name>` another device's (#613).
+  func addFixture(_ id: String, from other: String? = nil) {
     guard index.board(id) == nil else { return }
-    index.add(id: id, at: Date(), device: device, deviceName: deviceName)
+    index.add(id: id, at: Date(), device: other ?? device, deviceName: other ?? deviceName)
     saveIndex()
   }
 
@@ -164,8 +168,11 @@ final class WhiteboardStore: ObservableObject {
     saveIndex()
   }
 
-  /// Closing a board: a new one left without a stroke is gone; anything else goes up to iCloud.
+  func opened(_ id: String) { open.insert(id) }
+
+  /// Closing a board, after its last save: a new one left without a stroke is gone; anything else goes up to iCloud.
   func closed(_ id: String, empty: Bool) {
+    open.remove(id)
     if empty, let board = index.board(id), board.updated == board.created, editable(board) {
       delete(id, reason: "empty")
       return
@@ -187,15 +194,16 @@ final class WhiteboardStore: ObservableObject {
   }
 
   func delete(_ id: String, reason: String = "asked") {
-    index.remove(id)
+    let own = index.board(id).map(editable) ?? true
+    index.remove(id, device: device)
     saveIndex()
     for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
     pictures += 1
-    log.event("whiteboard", ["action": "delete", "board": id, "why": reason])
+    log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own])
     if !index.deleted.isEmpty { Task { await sync(reason: "delete") } }
   }
 
-  /// The card's picture: the whole drawing, dark ink on white, at most 480 px across.
+  /// The row's picture: the whole drawing, dark ink on white, at most 480 px across.
   private func writePicture(of drawing: PKDrawing, id: String) {
     guard let url = pictureURL(id) else { return }
     defer { pictures += 1 }
@@ -236,7 +244,7 @@ final class WhiteboardStore: ObservableObject {
     do {
       try await cloud.ready()
       for id in index.deleted {
-        try await cloud.delete(id)
+        try await cloud.delete(id, seen: index.deletedVersions[id])
         index.deletedInCloud(id)
       }
       for board in index.pendingUploads(device: device) {
@@ -246,7 +254,9 @@ final class WhiteboardStore: ObservableObject {
         index.uploaded(board.id, at: board.updated)
       }
       let listed = try await cloud.boards()
-      let merged = index.merge(cloud: listed.boards, device: device, unread: listed.unread)
+      let merged = index.merge(
+        cloud: listed.boards, device: device, unread: listed.unread, tombstones: listed.tombstones, open: open)
+      if merged.resend { again = true }
       for id in merged.dropped {
         for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
       }
@@ -270,7 +280,7 @@ final class WhiteboardStore: ObservableObject {
         "whiteboard_sync",
         [
           "ok": true, "why": reason, "boards": index.boards.count, "fetched": merged.fetch.count,
-          "dropped": merged.dropped.count,
+          "dropped": merged.dropped.count, "tombstones": listed.tombstones.count, "resend": merged.resend,
         ])
     } catch let unavailable as BoardCloud.Unavailable {
       saveIndex()
@@ -356,35 +366,57 @@ struct BoardCloud {
     record["paper"] = board.paperID
     record["drawing"] = CKAsset(fileURL: drawing)
     record["picture"] = picture.map(CKAsset.init(fileURL:))
-    // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds.
-    let saved = try await database.modifyRecords(saving: [record], deleting: [], savePolicy: .allKeys)
-    if let result = saved.saveResults[record.recordID] { _ = try result.get() }
+    // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds. Ink beats a delete
+    // from elsewhere (stories 398, 401): any tombstone goes with it.
+    try await write(record, deleting: id(BoardIndex.tombstone(of: board.id)))
   }
 
-  func delete(_ id: String) async throws {
+  /// The board's record goes and its tombstone stays, which tells the device that drew it (story 397), along with the
+  /// `updated` this device saw, so ink sent after that outlives it (story 401). Written under the board's own record
+  /// type, so it needs no schema of its own and an old build reads it as a record it can't read.
+  func delete(_ id: String, seen: Int64?) async throws {
+    let tombstone = CKRecord(recordType: Self.recordType, recordID: self.id(BoardIndex.tombstone(of: id)))
+    tombstone["updated"] = seen
+    try await write(tombstone, deleting: self.id(id))
+  }
+
+  /// One record saved and another gone, each on its own: there's seldom a record to delete, and one already gone is
+  /// what was asked for, however CloudKit reports it. Anything else throws, a failed save above all, so the caller
+  /// tries again next sync.
+  private func write(_ record: CKRecord, deleting other: CKRecord.ID) async throws {
     do {
-      let result = try await database.modifyRecords(saving: [], deleting: [self.id(id)])
-      if let outcome = result.deleteResults[self.id(id)] { try outcome.get() }
+      let result = try await database.modifyRecords(
+        saving: [record], deleting: [other], savePolicy: .allKeys, atomically: false)
+      _ = try result.saveResults[record.recordID]?.get()
+      if case .failure(let error)? = result.deleteResults[other], (error as? CKError)?.code != .unknownItem {
+        throw error
+      }
     } catch let error as CKError
-      where error.code == .unknownItem
-      || (error.code == .partialFailure
-        && (error.partialErrorsByItemID?.values.allSatisfy { ($0 as? CKError)?.code == .unknownItem } ?? false))
+      where error.code == .partialFailure && error.partialErrorsByItemID?.count == 1
+      && (error.partialErrorsByItemID?[other] as? CKError)?.code == .unknownItem
     {
-      return  // already gone
+      return
     }
   }
 
-  /// Every board's details, without the drawings, and the ids of records that could not be read.
-  func boards() async throws -> (boards: [BoardEntry], unread: Set<String>) {
+  /// Every board's details, without the drawings, the ids of records that could not be read, and the boards deleted,
+  /// each with the `updated` its delete covers: any, for a tombstone that names none. A tombstone that can't be read
+  /// is passed over until it can, as it may not cover the ink here.
+  func boards() async throws -> (boards: [BoardEntry], unread: Set<String>, tombstones: [String: Int64]) {
     var token: CKServerChangeToken?
     var found: [BoardEntry] = []
     var unread: Set<String> = []
+    var tombstones: [String: Int64] = [:]
     var more = true
     while more {
       let changes = try await database.recordZoneChanges(
         inZoneWith: zone.zoneID, since: token,
         desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName", "paper"])
       for (id, result) in changes.modificationResultsByID {
+        if let board = BoardIndex.tombstoned(by: id.recordName) {
+          if let record = try? result.get().record { tombstones[board] = (record["updated"] as? Int64) ?? .max }
+          continue
+        }
         guard let record = try? result.get().record, let entry = Self.entry(record) else {
           unread.insert(id.recordName)
           continue
@@ -394,7 +426,7 @@ struct BoardCloud {
       token = changes.changeToken
       more = changes.moreComing
     }
-    return (found, unread)
+    return (found, unread, tombstones)
   }
 
   /// A board's drawing and picture, copied to where this device keeps them.

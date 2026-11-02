@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The whiteboard turn and paste UI tests on the simulator (stories 344, 345, 349, 351, 354, 357, 358, 360, 367, 370, 371, 373, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 397), with a fake Cockpit:
+# The whiteboard turn, paste and boards-list UI tests on the simulator (stories 344, 345, 349, 351, 354, 357, 358, 360, 367, 370, 371, 373, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 399, 402, 403), with a fake Cockpit:
 # scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-whiteboard-ui.sh <simulator udid>   — run it in the build lane:
@@ -19,7 +19,7 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests test
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests test
 status=$?
 grep -q 'Igor just said: draw a circle' "$report" || { echo "the spoken words never reached the fake Cockpit"; status=1; }
 if grep -q 'draw a square' "$report"; then echo "words spoken with Ghosts off reached the fake Cockpit"; status=1; fi

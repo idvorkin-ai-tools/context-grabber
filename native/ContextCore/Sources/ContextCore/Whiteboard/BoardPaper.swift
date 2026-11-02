@@ -1,4 +1,4 @@
-//  The board's colours (spec 2026-11-01-whiteboard-design.md, stories 378, 397): each a pale shade for light mode and
+//  The board's colours (spec 2026-11-01-whiteboard-design.md, stories 378, 403): each a pale shade for light mode and
 //  a deep one for dark, as ink is black in light mode and white in dark. `BoardPaperTests` holds them to the ink and
 //  the ghosts.
 
