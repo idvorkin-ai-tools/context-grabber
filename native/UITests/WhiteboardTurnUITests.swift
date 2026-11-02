@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357 and 358 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370 and 371 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his marks beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -8,13 +8,16 @@ final class WhiteboardTurnUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   /// A new board open, Ghosts on, the app talking to the fake Cockpit.
-  private func openBoard(keepHook: Bool = false, ghostSeconds: Int? = nil) throws -> (XCUIApplication, XCUIElement) {
+  /// `cockpit` picks how the fake Cockpit answers: "/plain" doesn't stream, "/many" streams six marks.
+  private func openBoard(
+    keepHook: Bool = false, ghostSeconds: Int? = nil, cockpit way: String = ""
+  ) throws -> (XCUIApplication, XCUIElement) {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
-    app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
+    app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit + way
     if keepHook { app.launchEnvironment["GRABBER_WHITEBOARD_KEEP"] = "first" }
     if let ghostSeconds { app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "\(ghostSeconds)" }
     app.launch()
@@ -63,6 +66,34 @@ final class WhiteboardTurnUITests: XCTestCase {
     app.buttons["whiteboard-larry"].tap()
     wait(ghosts, label: "Ghosts on, 3 showing", timeout: 5)
     wait(ghosts, label: "Ghosts on, 2 showing", timeout: 12)
+  }
+
+  /// Story 370: the count climbs. XCUI's own predicate waits look once a second, too coarse for marks 400 ms apart, so
+  /// this reads the label in a loop and keeps each count it sees.
+  func testMarksArriveOneAtATime() throws {
+    let (app, ghosts) = try openBoard(cockpit: "/many")
+    stroke(app)
+    var counts: [Int] = []
+    let until = Date().addingTimeInterval(15)
+    while counts.last != 6, Date() < until {
+      let count = ghosts.label.split(separator: " ").compactMap { Int($0) }.first
+      if let count, count != counts.last { counts.append(count) }
+    }
+    XCTAssertEqual(counts.last, 6, "\(counts)")
+    XCTAssertEqual(counts, counts.sorted(), "only ever climbs: \(counts)")
+    XCTAssertGreaterThan(counts.count, 1, "seen on the way: \(counts)")
+    // What the ghosts look like is for a person to judge: kept with the test's result.
+    let picture = XCTAttachment(screenshot: app.screenshot())
+    picture.name = "ghosts-like-ink"
+    picture.lifetime = .keepAlways
+    add(picture)
+  }
+
+  /// Story 370: a Cockpit that answers with one JSON, as the real one does until its streaming is live.
+  func testACockpitThatDoesNotStreamStillBringsAGhost() throws {
+    let (app, ghosts) = try openBoard(cockpit: "/plain")
+    stroke(app)
+    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
   }
 
   func testTheKeepHookTurnsTheFirstGhostIntoInk() throws {

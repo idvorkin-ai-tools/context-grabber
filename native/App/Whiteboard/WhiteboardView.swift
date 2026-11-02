@@ -177,6 +177,7 @@ final class WhiteboardModel: ObservableObject {
     defer { if who == .larry { larryLooking = false } }
     let started = Date()
     let answer: WhiteboardTurn.Answer
+    var read = ClaudesAnswer()
     do {
       let title = store.index.board(board.id)?.title ?? board.title
       let request =
@@ -186,20 +187,30 @@ final class WhiteboardModel: ObservableObject {
           cockpit: cockpit)
         : try WhiteboardTurn.request(
           who: who, board: board.id, title: title, picture: png, thread: thread, cockpit: cockpit)
-      let (body, response) = try await URLSession.shared.data(for: request)
-      answer = WhiteboardTurn.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body, who: who)
+      if who == .claude {
+        read = await readClaude(request, started: started) { [weak self] shape, first in
+          guard let self, self.pacer.generation == asked else { return }
+          self.land([shape], who: .claude, rect: rect, scale: scale, first: first)
+        }
+        answer = read.answer
+      } else {
+        let (body, response) = try await URLSession.shared.data(for: request)
+        answer = WhiteboardTurn.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body, who: who)
+      }
     } catch {
       answer = WhiteboardTurn.answer(status: nil, body: nil, error: error.localizedDescription)
     }
     let stale = who == .claude && pacer.generation != asked
+    let ms = Int(Date().timeIntervalSince(started) * 1000)
     var event: [String: Any] = [
-      "who": who.rawValue, "board": board.id, "ms": Int(Date().timeIntervalSince(started) * 1000), "stale": stale,
-      "bytes": png.count,
+      "who": who.rawValue, "board": board.id, "ms": ms, "stale": stale, "bytes": png.count, "streamed": read.streamed,
     ]
+    if let broken = read.broken { event["broken"] = broken }
     switch answer {
     case .shapes(let shapes, let say, let newThread):
       event["ok"] = true
       event["shapes"] = shapes.count
+      if !shapes.isEmpty { event["first_shape_ms"] = read.firstShapeMs ?? ms }
       turnFailing = false
       if who == .claude, turnNote == Self.ghostsAway { turnNote = nil }
       if who == .larry {
@@ -207,18 +218,8 @@ final class WhiteboardModel: ObservableObject {
         turnNote = say.isEmpty ? (shapes.isEmpty ? "Larry has nothing to add" : nil) : "Larry: \(say)"
         if problem?.context == "WhiteboardView.larry" { problem = nil }
       }
-      if !stale {
-        // Each author's new marks replace only their own.
-        ghosts =
-          ghosts.filter { $0.who != who }
-          + shapes.map { shape in
-            Ghost(id: UUID().uuidString, who: who, lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
-          }
-        if who == .claude { fadeClaudesGhosts() }
-        if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_KEEP"] == "first", let first = ghosts.first {
-          keep(first)
-        }
-      }
+      // Streamed marks are on the board already; a stream with none clears Claude's, as an empty answer does.
+      if !stale, !read.streamed || shapes.isEmpty { land(shapes, who: who, rect: rect, scale: scale, first: true) }
     case .tooSoon:
       event["ok"] = false
       event["reason"] = "too_soon"
@@ -233,6 +234,69 @@ final class WhiteboardModel: ObservableObject {
       failed(who, "Larry couldn't be reached: \(reason)", status: nil, stale: stale)
     }
     log.event("whiteboard_turn", event)
+  }
+
+  /// How Claude's answer was read, for `whiteboard_turn`.
+  private struct ClaudesAnswer {
+    var answer = WhiteboardTurn.Answer.away(reason: "no answer")
+    var streamed = false
+    var firstShapeMs: Int?
+    /// What cut the reading short; marks that had already arrived stay.
+    var broken: String?
+  }
+
+  /// Reads Claude's answer as it comes, telling `landed` each mark and whether it is the answer's first. The 10 s are
+  /// for the whole answer: URLRequest's own timeout starts over with every byte.
+  private func readClaude(
+    _ request: URLRequest, started: Date, landed: @escaping (WhiteboardTurn.Shape, Bool) -> Void
+  ) async -> ClaudesAnswer {
+    let reading = Task { () -> ClaudesAnswer in
+      var reader = WhiteboardStream(status: nil, contentType: nil)
+      var firstShapeMs: Int?
+      let land = { (shape: WhiteboardTurn.Shape, reader: WhiteboardStream) in
+        let first = reader.shapes.count == 1
+        if first { firstShapeMs = Int(Date().timeIntervalSince(started) * 1000) }
+        landed(shape, first)
+      }
+      var failure: String?
+      do {
+        let (bytes, response) = try await URLSession.shared.bytes(for: request)
+        reader = WhiteboardStream(status: (response as? HTTPURLResponse)?.statusCode, contentType: response.mimeType)
+        for try await byte in bytes {
+          if let shape = reader.take(byte) { land(shape, reader) }
+          if reader.done { break }
+        }
+        if let shape = reader.finish() { land(shape, reader) }
+      } catch {
+        failure =
+          Task.isCancelled ? "no answer in \(Int(WhiteboardTurn.Who.claude.timeout)) s" : error.localizedDescription
+      }
+      let cut = failure ?? (reader.streaming && !reader.done ? "no last line" : nil)
+      return ClaudesAnswer(
+        answer: reader.answer(error: failure), streamed: reader.streaming, firstShapeMs: firstShapeMs, broken: cut)
+    }
+    let deadline = Task {
+      try? await Task.sleep(for: .seconds(WhiteboardTurn.Who.claude.timeout))
+      if !Task.isCancelled { reading.cancel() }
+    }
+    defer { deadline.cancel() }
+    return await reading.value
+  }
+
+  /// Marks landing on the board: an answer's first replaces its author's earlier ones, and only those.
+  private func land(
+    _ shapes: [WhiteboardTurn.Shape], who: WhiteboardTurn.Who, rect: CGRect, scale: CGFloat, first: Bool
+  ) {
+    if who == .claude, turnNote == Self.ghostsAway, !shapes.isEmpty { turnNote = nil }
+    ghosts =
+      (first ? ghosts.filter { $0.who != who } : ghosts)
+      + shapes.map { shape in
+        Ghost(id: UUID().uuidString, who: who, lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
+      }
+    if who == .claude { fadeClaudesGhosts() }
+    if first, ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_KEEP"] == "first", let ghost = ghosts.first {
+      keep(ghost)
+    }
   }
 
   private func fadeClaudesGhosts() {
@@ -570,7 +634,7 @@ final class BoardCanvasView: PKCanvasView {
     CATransaction.commit()
   }
 
-  /// One shape layer a ghost, faint and dashed in its colour.
+  /// One shape layer a ghost: the ink it would become, faint, in its colour.
   fileprivate func show(_ ghosts: [Ghost]) {
     guard Set(ghosts.map(\.id)) != Set(shown.keys) else { return }
     // Where a finger draws, it taps and pans while ghosts show (story 354).
@@ -599,7 +663,6 @@ final class BoardCanvasView: PKCanvasView {
       shape.lineWidth = 3.7
       shape.lineCap = .round
       shape.lineJoin = .round
-      shape.lineDashPattern = [8, 6]
       // Drawn in one after another, like someone sketching beside him.
       let drawIn = CABasicAnimation(keyPath: "strokeEnd")
       drawIn.fromValue = 0
