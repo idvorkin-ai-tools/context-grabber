@@ -30,6 +30,8 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
 - Ghosts need the Cockpit. When it can't be reached the board draws as before; the bar says *Ghosts: the Cockpit
   isn't answering* until a turn gets through.
 - Only on the device that draws the board. A board that is look-only gets no ghosts.
+- A point in an answer that lies past anywhere the board could reach is ignored, and a shape left with too few points
+  isn't shown: a model's bad number never breaks the board.
 
 ### Larry's turn (story 349)
 

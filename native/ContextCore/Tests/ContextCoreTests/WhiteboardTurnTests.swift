@@ -160,4 +160,29 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertLessThanOrEqual(absurd.count, Int(WhiteboardFrame.side) + 1)
     XCTAssertEqual(absurd.last, CGPoint(x: 1e300, y: 0))
   }
+
+  /// A model's point past anywhere on the board at the finest picture is dropped when read: mapped at a scale under 1
+  /// it would be infinite, and keeping that ghost would trap. The sensible part of the shape still draws.
+  func testAnAbsurdCoordinateNeverReachesTheInk() throws {
+    let body = Data(
+      """
+      {"ok": true, "shapes": [
+        {"kind": "path", "points": [[0, 0], [50, 0], [1e308, 1], [1e308, 2]]},
+        {"kind": "line", "points": [[0, 0], [-1e308, 0]]},
+        {"kind": "line", "points": [[0, 0], [40000, -40000]]}
+      ]}
+      """.utf8)
+    guard case .shapes(let shapes, _, _) = WhiteboardTurn.answer(status: 200, body: body) else {
+      return XCTFail("the answer should still be shapes")
+    }
+    XCTAssertEqual(
+      shapes,
+      [
+        .init(kind: .path, points: [.zero, CGPoint(x: 50, y: 0)]),
+        // The board's far corner at the finest scale: 20,000 points at 2 pixels each.
+        .init(kind: .line, points: [.zero, CGPoint(x: 40000, y: -40000)]),
+      ])
+    let ink = WhiteboardTurn.lines(shapes[0], frame: .zero, scale: 0.5).flatMap { WhiteboardTurn.inkPoints($0) }
+    XCTAssertEqual(ink.last, CGPoint(x: 100, y: 0))
+  }
 }

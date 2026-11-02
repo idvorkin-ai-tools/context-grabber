@@ -86,8 +86,12 @@ public enum WhiteboardTurn {
     return Shape(kind: kind, points: points, text: text, size: json["size"].flatMap(number))
   }
 
+  /// A number within reach of a picture: no point on the board is further out in pixels than its side at the finest
+  /// scale. Past that, a model's coordinate could map to infinity on the board and trap when its ghost is kept.
   private static func number(_ any: Any) -> CGFloat? {
-    guard let n = any as? NSNumber, n.doubleValue.isFinite else { return nil }
+    guard let n = any as? NSNumber, abs(n.doubleValue) <= WhiteboardFrame.side * WhiteboardFrame.maxScale else {
+      return nil
+    }
     return CGFloat(n.doubleValue)
   }
 
