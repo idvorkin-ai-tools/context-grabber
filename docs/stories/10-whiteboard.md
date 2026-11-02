@@ -63,23 +63,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 343:
 
 - **Summary:** Show Larry the board
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876), the thread titled with the board's name in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876), the thread titled with the board's name in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023), the board's one thread instead of a new one each time in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
 
 #### Use Case:
 - **As someone** who sketches to think and then wants to talk it over
 - **I want to** send the board to Larry in one tap
-- **so that** he sees what I drew and answers in a chat thread
+- **so that** he sees what I drew and answers in the board's chat thread
 
 #### Acceptance Criteria:
 - **Scenario:** Send to Larry
 - **Given:** I have drawn on the board and the iPad is in dark mode
 - **When:** I tap Send to Larry
-- **Then:** the bar says the board is on its way, and Chat gets a new thread titled with the board's name ("Board, Nov 1", or what I renamed it to) holding a picture of the whole drawing, dark ink on white
+- **Then:** the bar says the board is on its way, and Chat gets the board's thread, titled with the board's name ("Board, Nov 1", or what I renamed it to), holding a picture of the whole drawing, dark ink on white
 
-- **Scenario:** One send, one thread
+- **Scenario:** One send, one message
 - **Given:** I have just sent the board to Larry
 - **When:** I tap Send to Larry again before drawing anything more
-- **Then:** nothing is sent, because the button is disabled until my next stroke, and Chat holds one thread for that board
+- **Then:** nothing is sent, because the button is disabled until my next stroke
 
 ---
 
@@ -138,7 +138,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 346:
 
 - **Summary:** Larry on a call sees and draws on the board
-- **Status:** not implemented (needs strokes in Larry's replies, Cockpit side)
+- **Status:** not implemented (needs a call from the board; his marks on the board already come over chat, story 382)
 
 #### Use Case:
 - **As someone** talking an idea through with Larry
@@ -195,7 +195,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 349:
 
 - **Summary:** Larry takes a turn on the board
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7) against the fake Cockpit (the real endpoint is cockpit#85); verified by host tests (`WhiteboardTurnTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks); Larry's real answer and his Chat thread wait for cockpit#85
+- **Status:** first implemented as a call that waited for him in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); changed to the chat path, no waiting, in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) (Igor, 2026-11-02); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks with no further tap) against the fake Cockpit; the real Larry's answer on the iPad not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -206,8 +206,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Larry answers on the board
 - **Given:** the board has a drawing
-- **When:** I tap *Larry's turn* and wait
-- **Then:** faint blue shapes and a line from Larry appear, nothing on the board changes until I keep one, Chat has a thread named after the board with his words, and the board's next turn goes to it
+- **When:** I tap *Larry's turn* and carry on
+- **Then:** the bar says *Larry has the board*, with no spinner, and the Pencil keeps drawing. When he answers, faint blue shapes and a line from him appear with no tap, nothing on the board changes until I keep one, Chat has a thread named after the board with the picture and his words, and the board's next turn goes to it
 
 ---
 
@@ -271,13 +271,13 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 353:
 
 - **Summary:** Larry can't be reached
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); not verified by a test
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7), on the chat path in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); not verified by a test
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** who asked Larry for a turn
-- **I want to** see why he didn't answer
-- **so that** I can tell it apart from him having nothing to add
+- **I want to** see why he didn't get it
+- **so that** I don't wait for an answer to a picture he never had
 
 #### Acceptance Criteria:
 - **Scenario:** Larry away
@@ -550,3 +550,193 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a ghost is showing
 - **When:** I don't tap it
 - **Then:** it is no part of the drawing until I do, and keeping it gives the same line at full strength
+
+---
+
+### User Story 380:
+
+- **Summary:** Larry's turn doesn't hold up the drawing
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); the turn's message and the bar verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`) against the fake Cockpit; drawing with the Pencil while he has the board to try on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with a Larry who takes minutes to answer
+- **I want to** hand him the board and keep going
+- **so that** his turn is a conversation in the background, not a wait
+
+#### Acceptance Criteria:
+- **Scenario:** Hand him the board
+- **Given:** I have drawn on the board
+- **When:** I tap *Larry's turn*
+- **Then:** the bar says *Larry has the board* as soon as the picture is taken, with no spinner, and I can keep drawing and, once that picture has gone, tap it again for a newer one
+
+---
+
+### User Story 381:
+
+- **Summary:** A picture for Larry says where it sits on the board
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); the three fields verified by host tests (`WhiteboardMarksTests`), including through the outbox; *Larry's turn* carrying them on the simulator (the fake Cockpit reads the frame to place his marks); *Send to Larry* carrying them to try on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** whose board is far bigger than any one picture of it
+- **I want to** have every picture carry its board, its id and its place
+- **so that** Larry's marks go on what he saw, whichever way he got it
+
+#### Acceptance Criteria:
+- **Scenario:** Either button
+- **Given:** I have drawn away from the middle of the board
+- **When:** I tap *Larry's turn* or *Send to Larry*
+- **Then:** the picture reaches the board's thread with the board's id, a new picture id, and where the picture sits on the board; his marks answering either kind come back to the board
+
+---
+
+### User Story 382:
+
+- **Summary:** Larry's marks arrive on their own, where the picture was
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); where it lands verified by host tests (`WhiteboardMarksTests`); arriving with no tap and either format by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note, as the canvas isn't in the accessibility tree; marks landing on what he saw, seen by eye, on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** with the board open while Larry thinks
+- **I want to** see his marks and his words appear when he has them, even if I didn't ask
+- **so that** we are drawing together, in his own time
+
+#### Acceptance Criteria:
+- **Scenario:** He answers while I've moved on
+- **Given:** I handed Larry the board, then drew elsewhere and panned away
+- **When:** he posts a row of marks on the thread
+- **Then:** within a few seconds, with no tap, they show as blue ghosts on what the picture showed, not where I am now, and his text shows in the bar as his line
+
+---
+
+### User Story 383:
+
+- **Summary:** A board opens with only his newest marks, and a dismissed set stays gone
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: reopened with his newest set)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** coming back to a board Larry has drawn on for days
+- **I want to** see only where he has got to, and never what I already turned down
+- **so that** the board isn't buried in old marks
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a board
+- **Given:** the board's thread has several rows of his marks
+- **When:** I open the board
+- **Then:** only his newest row shows, with its line; older ones stay in Chat
+
+---
+
+### User Story 384:
+
+- **Summary:** The looking stops when I leave
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); stopping on close and in the background not verified by a test; to try on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who leaves a board with a thread
+- **I want to** have the looking stop when I'm not there
+- **so that** it costs nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Closed or backgrounded
+- **Given:** a board with a thread is open
+- **When:** I close it or the app goes to the background
+- **Then:** the looking stops, and starts again when the app comes back to an open board
+
+---
+
+### User Story 385:
+
+- **Summary:** One board, one thread
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who sends a board to Larry more than once
+- **I want to** have every picture of it go to one thread
+- **so that** the conversation about a board is in one place and his marks in answer come back to it
+
+#### Acceptance Criteria:
+- **Scenario:** A later send
+- **Given:** I sent this board to Larry, went back and read the thread in Chat
+- **When:** I open the board, draw more and tap Send to Larry
+- **Then:** the new picture goes to that thread, not a new one
+
+---
+
+### User Story 386:
+
+- **Summary:** Larry draws unprompted
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** with Larry's marks on the board
+- **I want to** see his next marks take their place
+- **so that** the board shows where he has got to, not every draft
+
+#### Acceptance Criteria:
+- **Scenario:** He draws unprompted
+- **Given:** his marks are showing and I asked for nothing
+- **When:** he posts another row of marks
+- **Then:** the new ones replace his unkept ones; Claude's stay
+
+---
+
+### User Story 387:
+
+- **Summary:** Marks with nowhere to go
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b), the board opening on such a row in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** looking at Larry's marks
+- **I want to** have marks that don't say where they go left off the board
+- **so that** nothing lands in the wrong place, and the log says why it's missing
+
+#### Acceptance Criteria:
+- **Scenario:** Marks with no place
+- **Given:** a row of his, his newest with marks, has marks but no frame
+- **When:** the app sees it, on a look at the thread or as the board opens
+- **Then:** nothing is drawn and nothing is replaced, no older row stands in for it, and the log names the row
+
+---
+
+### User Story 388:
+
+- **Summary:** A set I've dealt with stays gone
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: dismissed, not back on the next look or the next open); keeping one from a row then reopening is host-tested only
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who has answered Larry's marks
+- **I want to** never see what I already kept or turned down
+- **so that** the board isn't nagging me about a settled question
+
+#### Acceptance Criteria:
+- **Scenario:** Already settled
+- **Given:** I kept or dismissed marks from his newest row
+- **When:** a look at the thread comes round, or I open the board again
+- **Then:** those marks don't come back, until he posts a new row
+
+---
+
+### User Story 389:
+
+- **Summary:** Looking for his marks fails quietly
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b), a thread the Cockpit no longer has and the shorter wait in the review fixes on this branch; not verified by a test; to try on the iPad, away from the tailnet
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing on a board that may be off the tailnet
+- **I want to** have the looking stay quiet when it fails
+- **so that** it never nags
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit is away
+- **Given:** a board with a thread is open
+- **When:** the Cockpit stops answering
+- **Then:** the bar says quietly that his marks aren't coming, no error box appears, the log has one error, and the bar clears by itself when the Cockpit answers

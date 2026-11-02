@@ -7,9 +7,10 @@ GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /c
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
 GET /attachments/<ref>, POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
-accepts it, as one JSON when not), POST /whiteboard/turn (cockpit#85: an arrow, a label and a thread named after the board for Larry).
-A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
-answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
+accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
+answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
+label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
+unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
@@ -19,7 +20,6 @@ import base64
 import json
 import os
 import secrets
-import struct
 import sys
 import threading
 import time
@@ -34,6 +34,7 @@ THREADS = {
     "igor2-88g.900": {"title": "Should the phone chat poll?", "messages": [], "seen": ""},
 }
 CREATED = {}
+BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's picture
 WHITE_PICTURE = "2026-11-01/0000000000000592.png"
 IMAGES = {WHITE_PICTURE: base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAAAAAC86un7AAAADElEQVR4nGP4z/AfAAQAAf8iCjrwAAAAAElFTkSuQmCC")}
@@ -79,6 +80,25 @@ def reply_later(key, text):
         time.sleep(1)
         with LOCK:
             THREADS[key]["messages"].append(row(key, "larry", "Larry heard: " + (text or "a picture")))
+    threading.Thread(target=go, daemon=True).start()
+
+
+def marks(key, text, shapes):
+    source = BOARD_MESSAGES[key]
+    r = row(key, "larry", text)
+    r.update(shapes=shapes, picture_id=source["picture_id"], frame=source["frame"], board=source["board"])
+    THREADS[key]["messages"].append(r)
+
+
+def answer_board_later(key):
+    def go():
+        time.sleep(1)
+        with LOCK:
+            frame = BOARD_MESSAGES[key]["frame"]
+            w, h = frame["w"] * frame["scale"], frame["h"] * frame["scale"]
+            marks(key, "this is where it goes", [
+                {"kind": "arrow", "points": [[0, h + 40], [w / 2, h + 40]]},
+                {"kind": "text", "points": [[w / 2 + 20, h + 20]], "text": "here", "size": 36}])
     threading.Thread(target=go, daemon=True).start()
 
 
@@ -140,10 +160,10 @@ class Handler(BaseHTTPRequestHandler):
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})
         data = json.loads(raw or b"{}")
-        if path == "/whiteboard/turn":
-            return self._turn(data)
         if path in ("/whiteboard/suggest", "/plain/whiteboard/suggest", "/many/whiteboard/suggest"):
             return self._suggest(data, path.split("/")[1])
+        if path == "/fake/larry-draws":
+            return self._draws(data)
         if path == "/chat" and NEW_DELAY:
             time.sleep(NEW_DELAY)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
@@ -181,10 +201,21 @@ class Handler(BaseHTTPRequestHandler):
             mine = [m for m in t["messages"] if m["id"] == data.get("id")]
             if mine:
                 return self._json(200, {"ok": True, "thread": key, "message": mine[0], "duplicate": True})
+            frame = data.get("frame")
+            if frame is not None and not all(isinstance(frame.get(k), (int, float)) for k in ("x", "y", "w", "h")):
+                return self._json(400, {"ok": False, "error": "frame needs x, y, w, h"})
             m = row(key, "igor", data.get("text") or "", data.get("id"), data.get("attachments"))
+            for name in ("board", "picture_id", "frame"):
+                if name in data:
+                    m[name] = data[name]
             t["messages"].append(m)
             t["archived"] = False
-        reply_later(key, data.get("text"))
+            if data.get("board"):
+                BOARD_MESSAGES[key] = m
+        if data.get("board"):
+            answer_board_later(key)
+        else:
+            reply_later(key, data.get("text"))
         self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})
 
     def _suggest(self, data, cockpit):
@@ -205,23 +236,14 @@ class Handler(BaseHTTPRequestHandler):
                       {"kind": "arc", "cx": w / 2, "cy": h + 260, "r": 50, "start": 0, "end": 270},
                       {"kind": "label", "x": 0, "y": h + 380, "text": "here", "size": 48}], 0.4)
 
-    def _turn(self, data):
-        picture = base64.b64decode(data.get("picture") or "")
-        # A PNG's size is in its IHDR: width and height, big-endian, at bytes 16 to 24.
-        w, h = struct.unpack(">II", picture[16:24]) if picture[:8] == b"\x89PNG\r\n\x1a\n" else (0, 0)
-        self._report({"turn": data.get("who"), "board": data.get("board"), "thread": data.get("thread"),
-                      "width": w, "height": h, "origin": self.headers.get("Origin")})
-        if not w:
-            return self._json(400, {"ok": False, "error": "no picture"})
+    def _draws(self, data):
+        self._report({"unprompted": data.get("count")})
         with LOCK:
-            key = data.get("thread") or "igor2-88g.%d" % (951 + len(CREATED))
-            if key not in THREADS:
-                CREATED[key] = key
-                THREADS[key] = {"title": data.get("title") or "Board", "messages": [], "seen": ""}
-            THREADS[key]["messages"].append(row(key, "larry", "Larry looked at the board", None, None))
-        return self._json(200, {"ok": True, "say": "this is where it goes", "thread": key, "shapes": [
-            {"kind": "arrow", "points": [[0, h + 40], [w / 2, h + 40]]},
-            {"kind": "text", "points": [[w / 2 + 20, h + 20]], "text": "here", "size": 36}]})
+            if not BOARD_MESSAGES:
+                return self._json(404, {"ok": False, "error": "no board thread"})
+            key = list(BOARD_MESSAGES)[-1]
+            marks(key, "", [{"kind": "circle", "cx": 40 * i, "cy": 40, "r": 20} for i in range(1, data["count"] + 1)])
+        return self._json(200, {"ok": True})
 
 
 ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
