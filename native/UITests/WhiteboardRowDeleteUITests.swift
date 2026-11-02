@@ -1,5 +1,5 @@
-//  Story 396 (#613) on the simulator: a swipe deletes a board another device drew, after asking; it stays gone, and a
-//  link to it says so. The delete crossing iCloud needs two real devices: the simulator has no account.
+//  Stories 396, 399 (#613) on the simulator: a swipe deletes a board another device drew, after asking; it stays gone,
+//  and a link to it says so. The delete crossing iCloud needs two real devices: the simulator has no account.
 
 import XCTest
 

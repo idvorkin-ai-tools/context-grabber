@@ -44,7 +44,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   drew a board can rename it.
 - **New ink beats a delete from elsewhere.** If the iPad has drawn on a board that hasn't reached iCloud when it learns
   the iPhone deleted that board, or has that board open, nothing is thrown away: what's unsent goes up and the board
-  comes back on every device. A board the iPad has open and leaves without drawing on then goes.
+  comes back on every device. A board the iPad has open and leaves without drawing on then goes. A delete covers only
+  what the deleting device had seen: ink that reached iCloud after that, even days before a delete made offline gets
+  there, keeps the board, and it comes back on every device.
 - A chat picture's *Jump to board*, or a link, on a deleted board shows a copyable problem saying so.
 - A device that hasn't been told of a delete, or that lost its way to iCloud or changed iCloud account, keeps its own
   boards: only a delete asked for on a device removes a board from the device that drew it.
@@ -104,7 +106,7 @@ that ghosts need the tailnet.
 - Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
 - The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no
-  card behind.
+  row behind.
 - Draw on the iPad and close the board: within a minute, the iPhone's list shows it with the same picture. Opening
   it there shows the drawing with no tool picker, and a finger only pans.
 - Rename and delete a board on the iPad: the iPhone follows on its next refresh.
@@ -112,5 +114,7 @@ that ghosts need the tailnet.
   doesn't come back on the iPhone, and the iPad's list loses it on its next refresh, with the iPad off at the time of
   the delete too.
 - Delete on the iPhone a board the iPad has unsent ink on: the board comes back on both, with that ink.
+- Delete a board on the iPhone with no network, draw on it on the iPad and let that reach iCloud, then bring the iPhone
+  back: the board comes back on both, with that ink.
 - *Jump to board* on a chat picture of a deleted board shows the copyable problem, and the picture stays.
-- The single board from before the list is the first card after the update.
+- The single board from before the list is the first row after the update.

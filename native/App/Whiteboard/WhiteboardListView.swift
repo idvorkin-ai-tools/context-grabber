@@ -1,4 +1,4 @@
-//  The boards (spec 2026-11-01-whiteboard-design.md, stories 348, 396): what the Whiteboard tile opens. A row per
+//  The boards (spec 2026-11-01-whiteboard-design.md, stories 348, 396–401): what the Whiteboard tile opens. A row per
 //  board, newest change first, + New board, a swipe or long press to delete any board, a long press to rename this
 //  device's own; every device's boards come down from iCloud when the list opens, comes forward, or is pulled.
 
@@ -58,7 +58,6 @@ struct WhiteboardListView: View {
       }
     }
     .accessibilityIdentifier("whiteboard-list")
-    .onChange(of: path) { _, open in store.open = Set(open) }
     .task {
       if let linked = app.whiteboardLink {
         app.whiteboardLink = nil
