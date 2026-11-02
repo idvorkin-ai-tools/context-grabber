@@ -1070,7 +1070,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Delete a board from any device, with a swipe
 - **Issues:** #613
-- **Status:** implemented on this branch; the list, the swipe, the confirmation and *Jump to board* on a deleted board verified on the simulator by `WhiteboardRowDeleteUITests`; the merge by host tests (`BoardIndexTests`); the delete crossing iCloud between the iPhone and the iPad not yet tried, as the simulator has no iCloud account
+- **Status:** implemented in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73); the list, the swipe, the confirmation and *Jump to board* on a deleted board verified on the iPhone simulator by `WhiteboardRowDeleteUITests`; the merge by host tests (`BoardIndexTests`); the delete crossing iCloud between the iPhone and the iPad, and the rows on the iPad, not yet tried, as the simulator has no iCloud account
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
