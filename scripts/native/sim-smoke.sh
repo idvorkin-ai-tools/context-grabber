@@ -496,6 +496,15 @@ if [ "$replied" = 1 ] && [ "$read_it" -ge 1 ] && [ "$seen" -ge 1 ] && [ "$opened
 else bad "chat: POST /chat/<key> x$replied, GET x$read_it, seen x$seen, opened '$opened'"; fi
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$failed" ]; then ok "chat: no error events"; else bad "chat: $failed"; fi
+# Story 306: a thread's picture opened full size from the hook; ChatImageUITests taps its way back.
+SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_IMAGE=open \
+  SIMCTL_CHILD_GRABBER_LINK="grabbernative://chat?thread=igor2-88g.592" relaunch
+wait_jq 'select(.type=="ui" and .action=="open_chat_image")' 20 || echo "      (timed out waiting for open_chat_image)"
+f=$(newest_log)
+pictured=$(jq -sr '[.[] | select(.type=="ui" and .action=="open_chat_image")] | length' "$f")
+failed=$(jq -c 'select(.type=="error")' "$f")
+if [ "$pictured" -ge 1 ] && [ -z "$failed" ]; then ok "chat: a picture opened full size from the hook, no error events"
+else bad "chat: open_chat_image x$pictured, errors: $failed"; fi
 
 fi  # chat
 

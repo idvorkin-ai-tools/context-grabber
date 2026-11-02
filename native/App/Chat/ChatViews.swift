@@ -369,7 +369,13 @@ private struct ChatImage: View {
   let url: URL
   let message: String
   let logger: BugLogger
-  @State private var full = false
+  /// GRABBER_CHAT_IMAGE=open: the thread's picture opens full size by itself, for the simulator.
+  @State private var full = ProcessInfo.processInfo.environment["GRABBER_CHAT_IMAGE"] == "open"
+
+  private func close(how: String) {
+    full = false
+    logger("ui", ["action": "close_chat_image", "message": .string(message), "how": .string(how)])
+  }
 
   var body: some View {
     AsyncImage(url: url) { phase in
@@ -397,14 +403,15 @@ private struct ChatImage: View {
         }
         // #592: on a white picture (a whiteboard Larry marked up) a bare white Done vanished and left no way back.
         Button {
-          full = false
+          close(how: "done")
         } label: {
           Text("Done").font(.headline).padding(.horizontal, 16).padding(.vertical, 8)
             .background(.black.opacity(0.65), in: Capsule())
         }
         .foregroundStyle(.white).padding().accessibilityIdentifier("chat-image-done")
       }
-      .gesture(DragGesture(minimumDistance: 30).onEnded { if $0.translation.height > 80 { full = false } })
+      .gesture(DragGesture(minimumDistance: 30).onEnded { if $0.translation.height > 80 { close(how: "swipe") } })
+      .onAppear { logger("ui", ["action": "open_chat_image", "message": .string(message)]) }
     }
   }
 }
