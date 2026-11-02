@@ -21,7 +21,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 ## Non-goals
 
-- No shapes palette, layers, text boxes or templates. The Pencil and the tool picker are the whole interface.
+- No shapes palette, layers, text boxes or templates. The Pencil and the tool picker are the whole drawing interface;
+  [pasted text](2026-11-02-whiteboard-paste-design.md) lands as ink, not a text box.
 - Not a notes app: boards have a name and a picture, with no folders, tags or search.
 - No two devices drawing on one board. A board is drawn on the device that made it, and every other device shows it
   read-only, so there's never a conflict to merge.
