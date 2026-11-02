@@ -67,8 +67,9 @@ struct WhiteboardListView: View {
         app.whiteboardLink = nil
         linkProblem = await store.find(linked, context: "WhiteboardListView.link")
         if linkProblem == nil, path.isEmpty { path = [linked] }
+      } else {
+        await store.sync(reason: "open")
       }
-      await store.sync(reason: "open")
     }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { Task { await store.sync(reason: "foreground") } }

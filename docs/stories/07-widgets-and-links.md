@@ -707,3 +707,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a phone that already has its own order of launchers
 - **When:** this build arrives
 - **Then:** *Random* shows at the end until I move or hide it from Settings
+
+---
+
+### User Story 228:
+
+- **Summary:** A link opens a board, or the boards
+- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator (a board no device has, against the fake Cockpit, stays on the boards with the problem) and by host tests (the link's parsing); a board that comes down from iCloud through the link, not yet
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
+- **Spec:** [Native links](../superpowers/specs/2026-10-06-native-links-design.md)
+
+#### Use Case:
+- **As** someone holding a link to one of my whiteboards
+- **I want to** open it and be on that board as it is now
+- **so that** I never read an old drawing as the current one
+
+#### Acceptance Criteria:
+- **Scenario:** A link to a board
+- **Given:** I have a `grabbernative://whiteboard?board=<id>` link
+- **When:** I open it
+- **Then:** iCloud is asked first and that board opens as it is now; a board that can't be opened leaves me on the boards with a copyable problem saying why

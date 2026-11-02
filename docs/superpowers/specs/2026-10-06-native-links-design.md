@@ -55,7 +55,7 @@ the cutover registers `grabber` and every saved link keeps working.
 | `grabbernative://places` | Places |
 | `grabbernative://cockpit` | the Cockpit |
 | `grabbernative://whiteboard` | the boards |
-| `grabbernative://whiteboard?board=<id>` | that board, as it is now (a chat picture's *Jump to board*, #603); an unknown board stays on the boards and says so |
+| `grabbernative://whiteboard?board=<id>` | that board, as it is now, after asking iCloud (a chat picture's *Jump to board*, #603); a board that is unknown, or whose latest drawing didn't come down, stays on the boards and says so |
 | `grabbernative://call` | the call screen, calling Larry on the remembered backend; a live call is brought forward, not restarted |
 | `grabbernative://call?via=eleven` | …on that backend (`eleven`, `gemini`, `openai`, `drill`, `direct`) |
 | `grabbernative://card` | the card screen on a fresh card, face up |

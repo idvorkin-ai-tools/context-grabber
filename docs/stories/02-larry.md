@@ -1171,7 +1171,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 317:
 
 - **Summary:** A board picture in a thread jumps to that board as it is now
-- **Status:** native app only: implemented in [2bf431b](https://github.com/idvorkin/context-grabber/commit/2bf431b); verified on the simulator against the fake Cockpit (the jump, no button without a board, the problem on a missing board, the link); a board that comes down from iCloud on the jump, and sending `board` from the app (another branch), not yet
+- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator against the fake Cockpit (the jump); a board that comes down from iCloud on the jump, and sending `board` from the app (another branch), not yet
 - **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1182,23 +1182,48 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** A picture from a board
-- **Given:** a thread holds a picture sent from a whiteboard that is on this device
+- **Given:** a thread holds a picture sent from a whiteboard that iCloud or this device holds
 - **When:** I tap the picture, then *Jump to board*
-- **Then:** the full-size view goes down and the board opens with what is on it now; *Done* on the boards takes me home, and no full-size view is left in the way
+- **Then:** iCloud is asked first, the full-size view goes down and the board opens with what is on it now; *Done* on the boards takes me home, and no full-size view is left in the way
 
+---
+
+### User Story 318:
+
+- **Summary:** A picture that didn't come from a board has no jump
+- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator against the fake Cockpit
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client zooming in on any other picture in a thread
+- **I want to** see only *Done*
+- **so that** no button offers a board that doesn't exist
+
+#### Acceptance Criteria:
 - **Scenario:** A picture with no board
 - **Given:** a thread holds a picture that didn't come from a board
 - **When:** I tap it
 - **Then:** it opens full size as ever, with *Done* and no *Jump to board*
 
-- **Scenario:** A board that isn't here
-- **Given:** the picture's board was deleted, or isn't on this device even after asking iCloud
+---
+
+### User Story 319:
+
+- **Summary:** A jump to a board that can't be opened says why and keeps the picture
+- **Status:** native app only: implemented in [da819bf](https://github.com/idvorkin/context-grabber/commit/da819bf); verified on the simulator against the fake Cockpit (a board no device has); a board deleted on another device, or a drawing that fails to come down, not yet
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client jumping to a board from an old picture
+- **I want to** be told when the board can't be opened as it is now
+- **so that** I keep the picture and never land on a blank or old board by mistake
+
+#### Acceptance Criteria:
+- **Scenario:** A board that can't be opened
+- **Given:** the picture's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
 - **When:** I tap *Jump to board*
 - **Then:** a copyable problem says so over the picture, which stays open until I close it
-
-- **Scenario:** A link to a board
-- **Given:** I have a `grabbernative://whiteboard?board=<id>` link
-- **When:** I open it
-- **Then:** that board opens; a board that isn't here leaves me on the boards with the same copyable problem
 
 ---

@@ -21,7 +21,7 @@ final class WhiteboardStore: ObservableObject {
   private let dir: URL?
   private let log: SessionLog
   private let cloud = BoardCloud()
-  private var syncing = false
+  private var running: Task<Void, Never>?
   /// A sync asked for while one ran: it runs again when that one ends, so what changed meanwhile goes up too.
   private var again = false
 
@@ -125,16 +125,20 @@ final class WhiteboardStore: ObservableObject {
     saveIndex()
   }
 
-  /// Why a board can't be opened; nil when it is here, on disk or once iCloud has been asked (#603). The id is only
-  /// looked up, never made into a path: it came from a link or the Cockpit.
+  /// Why a board can't be opened as it is now, once iCloud has been asked; nil when it can (#603). Out of iCloud's
+  /// reach, the last drawing this device knew of is as new as can be told. The id is only looked up, never made into a
+  /// path: it came from a link or the Cockpit.
   func find(_ id: String, context: String) async -> BugProblem? {
-    if index.board(id) != nil { return nil }
     await sync(reason: "find_board")
-    if index.board(id) != nil { return nil }
-    log.event("whiteboard", ["action": "board_missing", "board": id, "sync": syncNote ?? "ok"])
+    let board = index.board(id)
+    if board?.current == true { return nil }
+    log.event(
+      "whiteboard", ["action": "board_missing", "board": id, "listed": board != nil, "sync": syncNote ?? "ok"])
     return .grabber(
-      "This board isn't on this device: it was deleted, or iCloud hasn't brought it here.", context: context,
-      extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
+      board == nil
+        ? "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
+        : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now.",
+      context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
   }
 
   /// A board's drawing; one that cannot be read is moved aside before the error goes up. If that move fails, the file
@@ -201,20 +205,25 @@ final class WhiteboardStore: ObservableObject {
 
   // MARK: - iCloud
 
-  /// This device's changes up, everyone's boards down. One at a time; a call while one runs makes it run once more.
+  /// This device's changes up, everyone's boards down. One at a time; a call while one runs makes it run once more
+  /// and waits for that.
   func sync(reason: String) async {
-    guard !syncing else {
+    if let running {
       again = true
+      await running.value
       return
     }
-    syncing = true
-    defer { syncing = false }
-    var why = reason
-    repeat {
-      again = false
-      await syncOnce(reason: why)
-      why = "again"
-    } while again
+    let run = Task {
+      var why = reason
+      repeat {
+        again = false
+        await syncOnce(reason: why)
+        why = "again"
+      } while again
+      running = nil
+    }
+    running = run
+    await run.value
   }
 
   private func syncOnce(reason: String) async {

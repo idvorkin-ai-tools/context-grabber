@@ -1,6 +1,7 @@
 //  Story 306 (#592) on the simulator: a white picture opened full size, against the fake Cockpit
 //  (scripts/native/test-chat-ui.sh starts it), shows Done on a dark badge and closes with Done or a swipe down.
-//  Story 317 (#603): a picture from a board also jumps to that board; a missing board says so and the picture stays.
+//  Stories 317–319, 228 (#603): a picture from a board also jumps to that board; a missing board says so and the
+//  picture stays; a link to a missing board stays on the boards and says so.
 
 import XCTest
 
