@@ -233,7 +233,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 351:
 
 - **Summary:** Turn the ghosts off
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on); that test failed on its note query, and the query as rewritten has not yet passed on the simulator
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); seen on the simulator in the recording of `WhiteboardTurnUITests.testGhostsOffAsksNothing` (no note with Ghosts off, the note back on); that test first failed on its note query; rewritten, it passed on the simulator with the other `WhiteboardTurnUITests` in the build turn of [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) and [be41b43](https://github.com/idvorkin/context-grabber/commit/be41b43)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -385,7 +385,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 359:
 
 - **Summary:** Strokes made during a ghost turn get their own turn
-- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) and [be41b43](https://github.com/idvorkin/context-grabber/commit/be41b43); its rules verified on this branch by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
+- **Status:** implemented in [ef71ce9](https://github.com/idvorkin/context-grabber/commit/ef71ce9) and [be41b43](https://github.com/idvorkin/context-grabber/commit/be41b43); its rules verified by host tests (`WhiteboardPacerTests`); not on the simulator, whose fake Cockpit answers with no delay, and the Pencil lift still to try on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
