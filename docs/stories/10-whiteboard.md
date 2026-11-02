@@ -1322,7 +1322,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 407:
 
 - **Summary:** Faint grid lines on the board
-- **Status:** implemented in STAMP; verified by host tests (`WhiteboardFrameTests`) and the simulator (`WhiteboardTurnUITests`: lines appear in the screenshot's pixels, the choice stays with its board, a new board has none); how faint they look beside real ink, and drawing and pinching at 120 Hz on a big board, are for the iPad
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by host tests (`WhiteboardFrameTests`) and the simulator (`WhiteboardTurnUITests`: lines appear in the screenshot's pixels and by eye in dark mode, the choice stays with its board, a new board has none); how faint they look beside real ink, and drawing and pinching at 120 Hz on a big board, are for the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 
@@ -1342,7 +1342,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 408:
 
 - **Summary:** The grid is only for me
-- **Status:** implemented in STAMP; the pictures are made from the ink alone, so there's no line to leave out; a turn's picture with the grid on is for the iPad's eye (the simulator test doesn't read the picture)
+- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); the pictures are made from the ink alone, so there's no line to leave out; a turn's picture with the grid on is for the iPad's eye (the simulator test doesn't read the picture)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
 

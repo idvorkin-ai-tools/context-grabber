@@ -295,7 +295,6 @@ final class WhiteboardTurnUITests: XCTestCase {
     tapGrid(app, view, expect: "Board, Plain, grid on")
     sleep(1)
     let on = app.screenshot()
-    try? on.pngRepresentation.write(to: URL(fileURLWithPath: "/Users/idvorkin/tmp/agent/notes/wb/grid-on.png"))  // TEMP
     let picture = XCTAttachment(screenshot: on)
     picture.name = "grid-on"
     picture.lifetime = .keepAlways
