@@ -69,6 +69,8 @@ public enum WhiteboardTurn {
     request.httpMethod = "POST"
     request.timeoutInterval = Who.claude.timeout
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    // One stroke a line as the model makes it; a Cockpit that doesn't stream answers with one JSON (`WhiteboardStream`).
+    request.setValue("application/x-ndjson", forHTTPHeaderField: "Accept")
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
     let body: [String: Any] = [
       "image": picture.base64EncodedString(), "width": width, "height": height, "text": title,

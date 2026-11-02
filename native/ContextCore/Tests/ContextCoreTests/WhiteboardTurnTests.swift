@@ -75,6 +75,7 @@ final class WhiteboardTurnTests: XCTestCase {
       title: "Plan", picture: Data([1, 2, 3]), width: 800, height: 600, cockpit: "https://cockpit.example")
     XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example/whiteboard/suggest")
     XCTAssertEqual(request.timeoutInterval, 10)
+    XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/x-ndjson")
     let body = try XCTUnwrap(
       JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])
     XCTAssertEqual(body["image"] as? String, Data([1, 2, 3]).base64EncodedString())

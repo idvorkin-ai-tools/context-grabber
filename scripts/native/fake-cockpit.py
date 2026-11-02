@@ -6,8 +6,9 @@
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
-GET /attachments/<ref>, POST /whiteboard/suggest (a ghost circle at the picture's right edge), POST /whiteboard/turn (cockpit#85: an arrow, a
-label and a thread named after the board for Larry). A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
+GET /attachments/<ref>, POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
+accepts it, as one JSON when not), POST /whiteboard/turn (cockpit#85: an arrow, a label and a thread named after the board for Larry).
+A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
@@ -93,6 +94,19 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _stream(self, strokes, gap):
+        """NDJSON as the Cockpit streams it (cockpit#85), each line flushed: HTTP/1.0, so the body ends when this closes."""
+        self.send_response(200)
+        self.send_header("Content-Type", "application/x-ndjson")
+        self.end_headers()
+        for i, stroke in enumerate(strokes):
+            if i:
+                time.sleep(gap)
+            self.wfile.write(json.dumps(stroke).encode() + b"\n")
+            self.wfile.flush()
+        self.wfile.write(json.dumps({"done": True, "ms": 1}).encode() + b"\n")
+        self.wfile.flush()
+
     def _report(self, extra):
         with open(REPORT, "a") as f:
             f.write(json.dumps({"method": self.command, "path": self.path, **extra}) + "\n")
@@ -128,8 +142,8 @@ class Handler(BaseHTTPRequestHandler):
         data = json.loads(raw or b"{}")
         if path == "/whiteboard/turn":
             return self._turn(data)
-        if path == "/whiteboard/suggest":
-            return self._suggest(data)
+        if path in ("/whiteboard/suggest", "/plain/whiteboard/suggest", "/many/whiteboard/suggest"):
+            return self._suggest(data, path.split("/")[1])
         if path == "/chat" and NEW_DELAY:
             time.sleep(NEW_DELAY)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
@@ -173,12 +187,23 @@ class Handler(BaseHTTPRequestHandler):
         reply_later(key, data.get("text"))
         self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})
 
-    def _suggest(self, data):
+    def _suggest(self, data, cockpit):
         w, h = data.get("width"), data.get("height")
+        accepts = "application/x-ndjson" in self.headers.get("Accept", "")
         self._report({"turn": "claude", "width": w, "height": h, "origin": self.headers.get("Origin")})
         if not data.get("image") or not w or not h:
             return self._json(400, {"ok": False, "error": "no picture"})
-        return self._json(200, {"ok": True, "strokes": [{"kind": "circle", "cx": w - 20, "cy": h / 2, "r": 40}]})
+        circle = {"kind": "circle", "cx": w - 20, "cy": h / 2, "r": 40}
+        if cockpit == "plain" or not accepts:
+            return self._json(200, {"ok": True, "strokes": [circle]})
+        if cockpit != "many":
+            return self._stream([circle], 0)
+        self._stream([circle,
+                      {"kind": "line", "x1": 0, "y1": h + 40, "x2": w, "y2": h + 40},
+                      {"kind": "arrow", "x1": 0, "y1": h + 90, "x2": w, "y2": h + 90},
+                      {"kind": "polyline", "points": [[0, h + 140], [w / 3, h + 180], [w, h + 140]]},
+                      {"kind": "arc", "cx": w / 2, "cy": h + 260, "r": 50, "start": 0, "end": 270},
+                      {"kind": "label", "x": 0, "y": h + 380, "text": "here", "size": 48}], 0.4)
 
     def _turn(self, data):
         picture = base64.b64decode(data.get("picture") or "")
