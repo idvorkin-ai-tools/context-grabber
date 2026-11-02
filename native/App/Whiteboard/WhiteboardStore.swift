@@ -118,7 +118,8 @@ final class WhiteboardStore: ObservableObject {
     return id
   }
 
-  /// A board's drawing; one that cannot be read is set aside (never saved over) before the error goes up.
+  /// A board's drawing; one that cannot be read is moved aside before the error goes up. If that move fails, the file
+  /// stays in place and the next save writes over it, which the spec's "The board is kept" does not allow yet.
   func drawing(_ id: String) throws -> PKDrawing {
     guard let url = drawingURL(id), FileManager.default.fileExists(atPath: url.path) else { return PKDrawing() }
     do {
