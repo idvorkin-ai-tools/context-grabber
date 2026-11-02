@@ -78,7 +78,8 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }
 
-  /// The board's note says what a turn brought, a ghost or the Cockpit away. The second stroke shows the test can see it.
+  /// A ghost shows in the board's note, found by what it says: an identifier on the note never matched, with the note on
+  /// screen. The second stroke shows the same query can see it.
   func testGhostsOffAsksNothing() throws {
     let (app, ghosts) = try openBoard()
     ghosts.tap()
@@ -86,11 +87,11 @@ final class WhiteboardTurnUITests: XCTestCase {
     stroke(app)
     wait(app, strokes: 1)
     sleep(4)
-    let note = app.staticTexts["whiteboard-note"]
+    let note = app.staticTexts["1 suggestion: tap one to keep it"]
     XCTAssertFalse(note.exists, note.debugDescription)
     ghosts.tap()
     wait(ghosts, label: "Ghosts on", timeout: 3)
     stroke(app, atHeight: 0.6)
-    wait(note, label: "1 suggestion: tap one to keep it", timeout: 8)
+    XCTAssertTrue(note.waitForExistence(timeout: 8), app.debugDescription)
   }
 }

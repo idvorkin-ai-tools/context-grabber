@@ -365,7 +365,7 @@ struct WhiteboardView: View {
     VStack(spacing: 0) {
       if let note {
         Text(note).font(.footnote).foregroundStyle(.secondary).lineLimit(2).minimumScaleFactor(0.8)
-          .padding(.vertical, 4).padding(.horizontal).accessibilityIdentifier("whiteboard-note")
+          .padding(.vertical, 4).padding(.horizontal)
       }
       if let problem = model.problem {
         BugProblemView(problem: problem, logger: logger).padding(.horizontal)
