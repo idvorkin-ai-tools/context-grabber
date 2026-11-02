@@ -22,10 +22,9 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(body["picture"] as? String, Data([1, 2, 3]).base64EncodedString())
   }
 
-  func testAGhostTurnGivesUpQuicklyAndSendsNoThreadWhenThereIsNone() throws {
+  func testATurnSendsNoThreadWhenThereIsNone() throws {
     let request = try WhiteboardTurn.request(
       who: .claude, board: "b1", title: "Plan", picture: Data(), thread: nil, cockpit: "https://c.example")
-    XCTAssertEqual(request.timeoutInterval, 3)
     let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
     XCTAssertNil(body["thread"])
   }
@@ -69,6 +68,73 @@ final class WhiteboardTurnTests: XCTestCase {
   func testNothingToAddIsAnAnswer() {
     XCTAssertEqual(
       WhiteboardTurn.answer(status: 200, body: Data(#"{"ok": true}"#.utf8)), .shapes([], say: "", thread: nil))
+  }
+
+  func testTheGhostRequestCarriesThePictureAndItsSize() throws {
+    let request = try WhiteboardTurn.suggestRequest(
+      title: "Plan", picture: Data([1, 2, 3]), width: 800, height: 600, cockpit: "https://cockpit.example")
+    XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example/whiteboard/suggest")
+    XCTAssertEqual(request.timeoutInterval, 10)
+    let body = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: Any])
+    XCTAssertEqual(body["image"] as? String, Data([1, 2, 3]).base64EncodedString())
+    XCTAssertEqual(body["width"] as? Int, 800)
+    XCTAssertEqual(body["height"] as? Int, 600)
+    XCTAssertEqual(body["text"] as? String, "Plan")
+  }
+
+  func testEveryKindOfStrokeBecomesAShape() throws {
+    let body = Data(
+      #"""
+      {"ok": true, "model": "m", "strokes": [
+        {"kind": "line", "x1": 1, "y1": 2, "x2": 3, "y2": 4},
+        {"kind": "arrow", "x1": 5, "y1": 6, "x2": 7, "y2": 8, "why": "here"},
+        {"kind": "polyline", "points": [[0, 0], [1, 1], [2, 0]]},
+        {"kind": "circle", "cx": 50, "cy": 60, "r": 10},
+        {"kind": "arc", "cx": 0, "cy": 0, "r": 10, "start": 270, "end": 90},
+        {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20},
+        {"kind": "blob"},
+        {"kind": "line", "x1": 1}
+      ]}
+      """#.utf8)
+    guard case .shapes(let shapes, let say, let thread) = WhiteboardTurn.answer(status: 200, body: body) else {
+      return XCTFail("no shapes")
+    }
+    XCTAssertEqual(say, "")
+    XCTAssertNil(thread)
+    XCTAssertEqual(shapes.map(\.kind), [.line, .arrow, .path, .ellipse, .path, .text])
+    XCTAssertEqual(shapes[0].points, [CGPoint(x: 1, y: 2), CGPoint(x: 3, y: 4)])
+    XCTAssertEqual(shapes[3].points, [CGPoint(x: 40, y: 50), CGPoint(x: 60, y: 70)])
+    // 270 to 90 clockwise passes through 0: straight up, right, straight down, on a picture whose y runs down.
+    let arc = shapes[4].points
+    XCTAssertEqual(arc.first!.y, -10, accuracy: 0.001)
+    XCTAssertEqual(arc[arc.count / 2].x, 10, accuracy: 0.001)
+    XCTAssertEqual(arc.last!.y, 10, accuracy: 0.001)
+    XCTAssertEqual(shapes[5].text, "hi")
+  }
+
+  /// The Cockpit draws a label as SVG `<text x y>`, so y is the baseline, and an H stands on its baseline. It holds
+  /// when the picture is scaled down to the board, and when a tiny label is clamped up to the smallest readable size.
+  func testALabelStandsOnTheCockpitsBaseline() throws {
+    let cases: [(size: Int, scale: CGFloat)] = [(20, 1), (40, 2), (10, 2)]
+    for (size, scale) in cases {
+      let label = #"{"kind": "label", "text": "H", "x": 10, "y": 40, "size": \#(size)}"#
+      let body = Data(#"{"ok": true, "strokes": [\#(label)]}"#.utf8)
+      guard case .shapes(let shapes, _, _) = WhiteboardTurn.answer(status: 200, body: body) else {
+        return XCTFail("no shapes")
+      }
+      let frame = CGRect(x: 1000, y: 2000, width: 400, height: 300)
+      let lines = WhiteboardTurn.lines(try XCTUnwrap(shapes.first), frame: frame, scale: scale)
+      let lowest = try XCTUnwrap(lines.joined().map(\.y).max())
+      XCTAssertEqual(lowest, 2000 + 40 / scale, accuracy: 0.01, "size \(size) at scale \(scale)")
+    }
+  }
+
+  func testAskingTooSoonSkipsAGhostTurnButRefusesLarrys() {
+    let body = Data(#"{"ok": false, "error": "too soon"}"#.utf8)
+    XCTAssertEqual(WhiteboardTurn.answer(status: 429, body: body, who: .claude), .tooSoon)
+    XCTAssertEqual(
+      WhiteboardTurn.answer(status: 429, body: body, who: .larry), .refused(status: 429, reason: "too soon"))
   }
 
   func testRefusalsAndAbsences() {

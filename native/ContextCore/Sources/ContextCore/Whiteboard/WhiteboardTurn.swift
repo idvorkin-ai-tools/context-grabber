@@ -1,5 +1,6 @@
-//  A turn on the whiteboard (spec 2026-11-01-whiteboard-shapes-design.md, stories 344 and 349; the Cockpit half is
-//  cockpit#85): the board's picture goes to `POST /whiteboard/turn`, and shapes come back in the picture's pixels.
+//  A turn on the whiteboard (spec 2026-11-01-whiteboard-shapes-design.md, stories 344 and 349): Claude's ghosts come
+//  from `POST /whiteboard/suggest` (the contract is the Cockpit's whiteboard.py), Larry's turn from
+//  `POST /whiteboard/turn` (cockpit#85, not built yet). Both answer in the picture's pixels.
 //  Here: the request, the answer, and each shape as the ink lines that draw it on the board.
 
 import CoreGraphics
@@ -11,8 +12,8 @@ public enum WhiteboardTurn {
   public enum Who: String, Sendable {
     case claude, larry
 
-    /// How long the app waits: a ghost that comes late lands on a drawing that has moved on.
-    public var timeout: TimeInterval { self == .claude ? 3 : 60 }
+    /// How long the app waits: the Cockpit's ghost model takes about 3 s, and Larry much longer.
+    public var timeout: TimeInterval { self == .claude ? 10 : 60 }
   }
 
   public struct Shape: Equatable, Sendable {
@@ -34,6 +35,8 @@ public enum WhiteboardTurn {
 
   public enum Answer: Equatable, Sendable {
     case shapes([Shape], say: String, thread: String?)
+    /// A 429 on a ghost turn: asked within the Cockpit's 2 s, so this turn is skipped and nothing changes.
+    case tooSoon
     /// A 4xx: the Cockpit's reason, shown to Igor.
     case refused(status: Int, reason: String)
     /// No answer, a 5xx, or one that can't be read: no turn this time.
@@ -57,17 +60,75 @@ public enum WhiteboardTurn {
     return request
   }
 
-  public static func answer(status: Int?, body: Data?, error: String? = nil) -> Answer {
+  /// Claude's ghosts: the picture and its size in pixels, which every stroke comes back in.
+  public static func suggestRequest(
+    title: String, picture: Data, width: Int, height: Int, cockpit: String
+  ) throws -> URLRequest {
+    guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
+    var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("suggest"))
+    request.httpMethod = "POST"
+    request.timeoutInterval = Who.claude.timeout
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
+    let body: [String: Any] = [
+      "image": picture.base64EncodedString(), "width": width, "height": height, "text": title,
+      "client": "grabber-native",
+    ]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+    return request
+  }
+
+  public static func answer(status: Int?, body: Data?, error: String? = nil, who: Who = .claude) -> Answer {
     guard let status else { return .away(reason: error ?? "no answer") }
+    if status == 429, who == .claude { return .tooSoon }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, let json, json["ok"] as? Bool == true {
-      let shapes = (json["shapes"] as? [[String: Any]] ?? []).compactMap(shape)
+      let strokes = (json["strokes"] as? [[String: Any]] ?? []).compactMap(shapeJSON(stroke:))
+      let shapes = ((json["shapes"] as? [[String: Any]] ?? []) + strokes).compactMap(shape)
       let thread = (json["thread"] as? String).flatMap { $0.isEmpty ? nil : $0 }
       return .shapes(shapes, say: json["say"] as? String ?? "", thread: thread)
     }
     let reason = (json?["error"] as? String) ?? "HTTP \(status)"
     if (400..<500).contains(status) { return .refused(status: status, reason: reason) }
     return .away(reason: reason)
+  }
+
+  /// A stroke from the ghost endpoint as a shape's JSON, so `shape` checks it the same way; nil for a kind it doesn't
+  /// know or a number that's missing.
+  static func shapeJSON(stroke s: [String: Any]) -> [String: Any]? {
+    let n = { (key: String) in s[key] as? Double }
+    switch s["kind"] as? String {
+    case let kind? where kind == "line" || kind == "arrow":
+      guard let x1 = n("x1"), let y1 = n("y1"), let x2 = n("x2"), let y2 = n("y2") else { return nil }
+      return ["kind": kind, "points": [[x1, y1], [x2, y2]]]
+    case "polyline":
+      return ["kind": "path", "points": s["points"] ?? []]
+    case "circle":
+      guard let cx = n("cx"), let cy = n("cy"), let r = n("r") else { return nil }
+      return ["kind": "ellipse", "points": [[cx - r, cy - r], [cx + r, cy + r]]]
+    case "arc":
+      guard let cx = n("cx"), let cy = n("cy"), let r = n("r"), let start = n("start"), let end = n("end") else {
+        return nil
+      }
+      // Degrees clockwise from +x on a picture whose y runs down, always the clockwise way from start to end.
+      let sweep = (end - start).truncatingRemainder(dividingBy: 360)
+      let degrees = sweep < 0 ? sweep + 360 : sweep
+      let steps = max(2, Int(degrees / 7.5))
+      return [
+        "kind": "path",
+        "points": (0...steps).map { i -> [Double] in
+          let a = (start + degrees * Double(i) / Double(steps)) * .pi / 180
+          return [cx + r * cos(a), cy + r * sin(a)]
+        },
+      ]
+    case "label":
+      // The Cockpit's x, y is the text's baseline; a shape's text hangs from its top-left.
+      guard let x = n("x"), let y = n("y") else { return nil }
+      let size = n("size") ?? 18
+      return ["kind": "text", "points": [[x, y - labelAscent * size]], "text": s["text"] ?? "", "size": size]
+    default:
+      return nil
+    }
   }
 
   /// One shape from the answer; nil for a kind it doesn't know, too few points to draw, or a label with no outlines.
@@ -132,8 +193,10 @@ public enum WhiteboardTurn {
       }
       return [[a, b], [wing(.pi / 6), b, wing(-.pi / 6)]]
     case .text:
-      let height = max(8, (shape.size ?? 28) / scale)
-      return glyphLines(shape.text ?? "", topLeft: p[0], height: height)
+      let size = (shape.size ?? 28) / scale
+      let height = max(8, size)
+      let top = CGPoint(x: p[0].x, y: p[0].y + labelAscent * (size - height))
+      return glyphLines(shape.text ?? "", topLeft: top, height: height)
     }
   }
 
@@ -169,12 +232,15 @@ public enum WhiteboardTurn {
     return out
   }
 
+  /// How far a label's baseline sits below its top, as a share of its size.
+  private static let labelAscent = CTFontGetAscent(CTFontCreateWithName("Helvetica" as CFString, 100, nil)) / 100
+
   /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
   static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat) -> [[CGPoint]] {
     let font = CTFontCreateWithName("Helvetica" as CFString, height, nil)
     let line = CTLineCreateWithAttributedString(
       NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
-    let ascent = CTFontGetAscent(font)
+    let ascent = labelAscent * height
     var out: [[CGPoint]] = []
     for run in (CTLineGetGlyphRuns(line) as? [CTRun]) ?? [] {
       let count = CTRunGetGlyphCount(run)
