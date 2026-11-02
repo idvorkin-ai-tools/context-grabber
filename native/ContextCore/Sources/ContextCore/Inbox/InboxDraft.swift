@@ -9,6 +9,8 @@ public struct InboxDraft: Equatable, Sendable {
   public var text = ""
   /// A pasted image, its bytes as copied; the file extension follows what they are.
   public var image: Data?
+  /// Set when the image is a whiteboard's picture.
+  public var whiteboard: WhiteboardPicture?
 
   public init() {}
 
@@ -29,7 +31,8 @@ public struct InboxDraft: Equatable, Sendable {
     let picture = image?.isEmpty == false ? image : nil
     let item = InboxItem(
       id: id, kind: picture != nil ? .image : .text, sharedAt: sharedAt,
-      text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil, thread: thread)
+      text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil, thread: thread,
+      whiteboard: whiteboard)
     let saved = try store.add(item, image: picture, imageExtension: picture.map(Self.fileExtension(of:)) ?? "jpg")
     self = InboxDraft()
     return saved

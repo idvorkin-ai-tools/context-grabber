@@ -57,7 +57,7 @@ public struct WhiteboardStream: Sendable {
     guard streaming else {
       return WhiteboardTurn.answer(status: error == nil ? status : nil, body: buffer, error: error)
     }
-    if !shapes.isEmpty || (done && reason == nil) { return .shapes(shapes, say: "", thread: nil) }
+    if !shapes.isEmpty || (done && reason == nil) { return .shapes(shapes) }
     return .away(reason: error ?? reason ?? "the answer ended early")
   }
 

@@ -6,33 +6,10 @@ import XCTest
 @testable import ContextCore
 
 final class WhiteboardTurnTests: XCTestCase {
-  func testTheRequestCarriesThePictureAndWhoseTurn() throws {
-    let request = try WhiteboardTurn.request(
-      who: .larry, board: "b1", title: "Plan", picture: Data([1, 2, 3]), thread: "t9",
-      cockpit: "https://cockpit.example/")
-    XCTAssertEqual(request.url?.absoluteString, "https://cockpit.example/whiteboard/turn")
-    XCTAssertEqual(request.httpMethod, "POST")
-    XCTAssertEqual(request.timeoutInterval, 60)
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Origin"), "https://cockpit.example")
-    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertEqual(body["who"] as? String, "larry")
-    XCTAssertEqual(body["board"] as? String, "b1")
-    XCTAssertEqual(body["title"] as? String, "Plan")
-    XCTAssertEqual(body["thread"] as? String, "t9")
-    XCTAssertEqual(body["picture"] as? String, Data([1, 2, 3]).base64EncodedString())
-  }
-
-  func testATurnSendsNoThreadWhenThereIsNone() throws {
-    let request = try WhiteboardTurn.request(
-      who: .claude, board: "b1", title: "Plan", picture: Data(), thread: nil, cockpit: "https://c.example")
-    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
-    XCTAssertNil(body["thread"])
-  }
-
   func testShapesComeBackAndBadOnesAreSkipped() {
     let body = Data(
       """
-      {"ok": true, "say": "the third circle", "thread": "t1", "shapes": [
+      {"ok": true, "shapes": [
         {"kind": "ellipse", "points": [[0, 0], [10, 20]]},
         {"kind": "text", "points": [[5, 5]], "text": "dip", "size": 20},
         {"kind": "star", "points": [[0, 0], [1, 1]]},
@@ -48,7 +25,7 @@ final class WhiteboardTurnTests: XCTestCase {
           .init(kind: .ellipse, points: [.zero, CGPoint(x: 10, y: 20)]),
           .init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "dip", size: 20),
           .init(kind: .arrow, points: [.zero, CGPoint(x: 3, y: 4)]),
-        ], say: "the third circle", thread: "t1"))
+        ]))
   }
 
   /// An emoji is a bitmap with no outline: a ghost of it would count in the bar with nothing to see or tap.
@@ -62,12 +39,12 @@ final class WhiteboardTurnTests: XCTestCase {
       """.utf8)
     XCTAssertEqual(
       WhiteboardTurn.answer(status: 200, body: body),
-      .shapes([.init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "ok 👍")], say: "", thread: nil))
+      .shapes([.init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "ok 👍")]))
   }
 
   func testNothingToAddIsAnAnswer() {
     XCTAssertEqual(
-      WhiteboardTurn.answer(status: 200, body: Data(#"{"ok": true}"#.utf8)), .shapes([], say: "", thread: nil))
+      WhiteboardTurn.answer(status: 200, body: Data(#"{"ok": true}"#.utf8)), .shapes([]))
   }
 
   func testTheGhostRequestCarriesThePictureAndItsSize() throws {
@@ -98,11 +75,9 @@ final class WhiteboardTurnTests: XCTestCase {
         {"kind": "line", "x1": 1}
       ]}
       """#.utf8)
-    guard case .shapes(let shapes, let say, let thread) = WhiteboardTurn.answer(status: 200, body: body) else {
+    guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
       return XCTFail("no shapes")
     }
-    XCTAssertEqual(say, "")
-    XCTAssertNil(thread)
     XCTAssertEqual(shapes.map(\.kind), [.line, .arrow, .path, .ellipse, .path, .text])
     XCTAssertEqual(shapes[0].points, [CGPoint(x: 1, y: 2), CGPoint(x: 3, y: 4)])
     XCTAssertEqual(shapes[3].points, [CGPoint(x: 40, y: 50), CGPoint(x: 60, y: 70)])
@@ -121,7 +96,7 @@ final class WhiteboardTurnTests: XCTestCase {
     for (size, scale) in cases {
       let label = #"{"kind": "label", "text": "H", "x": 10, "y": 40, "size": \#(size)}"#
       let body = Data(#"{"ok": true, "strokes": [\#(label)]}"#.utf8)
-      guard case .shapes(let shapes, _, _) = WhiteboardTurn.answer(status: 200, body: body) else {
+      guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
         return XCTFail("no shapes")
       }
       let frame = CGRect(x: 1000, y: 2000, width: 400, height: 300)
@@ -131,11 +106,8 @@ final class WhiteboardTurnTests: XCTestCase {
     }
   }
 
-  func testAskingTooSoonSkipsAGhostTurnButRefusesLarrys() {
-    let body = Data(#"{"ok": false, "error": "too soon"}"#.utf8)
-    XCTAssertEqual(WhiteboardTurn.answer(status: 429, body: body, who: .claude), .tooSoon)
-    XCTAssertEqual(
-      WhiteboardTurn.answer(status: 429, body: body, who: .larry), .refused(status: 429, reason: "too soon"))
+  func testAskingTooSoonSkipsAGhostTurn() {
+    XCTAssertEqual(WhiteboardTurn.answer(status: 429, body: Data(#"{"ok": false}"#.utf8)), .tooSoon)
   }
 
   func testRefusalsAndAbsences() {
@@ -253,7 +225,7 @@ final class WhiteboardTurnTests: XCTestCase {
         {"kind": "line", "points": [[0, 0], [40000, -40000]]}
       ]}
       """.utf8)
-    guard case .shapes(let shapes, _, _) = WhiteboardTurn.answer(status: 200, body: body) else {
+    guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
       return XCTFail("the answer should still be shapes")
     }
     XCTAssertEqual(

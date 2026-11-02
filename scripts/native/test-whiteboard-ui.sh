@@ -21,5 +21,5 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
   -only-testing:GrabberNativeUITests/WhiteboardTurnUITests test
 status=$?
-echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep -c "\"turn\": \"larry\"" "$report") Larry turns"
+echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep -c "\"picture_id\"" "$report") board pictures to Larry"
 exit $status

@@ -26,7 +26,7 @@ its `Issues:` line.
 | [From the home screen](07-widgets-and-links.md) | Widgets, the memdeck card, deep links and Shortcuts. | 120–139, 220–239 |
 | [Reporting problems](08-reporting-problems.md) | The native app beside this one: the session log, the shake, crashes, reports that become issues. | 140–159 |
 | [Breathing](09-breathing.md) | The native app's box-breathing screen: the circle, the sliders, pause, tones and the voice. | 160–179, 240–259, 280–299 |
-| [The whiteboard](10-whiteboard.md) | Drawing with the Pencil on a board bigger than the screen, Larry seeing it, and Claude drawing along. | 340–359, 370–377 |
+| [The whiteboard](10-whiteboard.md) | Drawing with the Pencil on a board bigger than the screen, Larry seeing it, and Claude drawing along. | 340–359, 370–377, 380–384 |
 
 New stories take the next free ID in their journey's range; a journey that outgrows its range takes the next
 unused block of twenty.

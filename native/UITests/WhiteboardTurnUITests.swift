@@ -1,5 +1,5 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371 and 373 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
-//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his marks beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373 and 380–384 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
 import XCTest
@@ -55,17 +55,76 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
 
     app.buttons["whiteboard-larry"].tap()
-    // Larry's two marks beside Claude's one: each author replaces only their own.
+    // Larry's two marks beside Claude's one, with no further tap: each author replaces only their own.
     wait(ghosts, label: "Ghosts on, 3 showing", timeout: 15)
+    XCTAssertTrue(
+      app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Larry: this is where it goes")).firstMatch
+        .waitForExistence(timeout: 3), app.debugDescription)
+  }
+
+  /// The fake Cockpit draws on the board's thread, as Larry does when he has something to add.
+  private func larryDraws(_ count: Int, on cockpit: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-draws")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"count": \#(count)}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  /// Back to the list and into the same board.
+  private func reopenBoard(_ app: XCUIApplication) {
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    let card = app.buttons["whiteboard-card"].firstMatch
+    XCTAssertTrue(card.waitForExistence(timeout: 5), app.debugDescription)
+    card.tap()
+    XCTAssertTrue(app.buttons["whiteboard-ghosts"].waitForExistence(timeout: 5), app.debugDescription)
+  }
+
+  /// Stories 382 and 383, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept ones with no
+  /// tap, the newest set comes back when the board opens again, and once dismissed it doesn't, on either count.
+  func testLarrysMarksArriveOnTheirOwnAndADismissedSetStaysGone() throws {
+    let cockpit = try XCTUnwrap(ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"])
+    let (app, ghosts) = try openBoard()
+    ghosts.tap()
+    stroke(app)
+    wait(app, strokes: 1)
+    app.buttons["whiteboard-larry"].tap()
+    let marks = { (count: Int) -> NSPredicate in
+      NSPredicate(format: "label CONTAINS %@", "\(count) suggestion\(count == 1 ? "" : "s"): tap one to keep it")
+    }
+    XCTAssertTrue(
+      app.staticTexts.matching(marks(2)).firstMatch.waitForExistence(timeout: 15), app.debugDescription)
+
+    try larryDraws(3, on: cockpit)
+    XCTAssertTrue(
+      app.staticTexts.matching(marks(3)).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+
+    reopenBoard(app)
+    XCTAssertTrue(
+      app.staticTexts.matching(marks(3)).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
+    let none = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "tap one to keep it")).firstMatch
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: none)
+    waitForExpectations(timeout: 3)
+    sleep(4)  // A look at the thread has come and gone.
+    XCTAssertFalse(none.exists, app.debugDescription)
+    reopenBoard(app)
+    sleep(4)
+    XCTAssertFalse(none.exists, app.debugDescription)
   }
 
   func testClaudesGhostsFadeAndLarrysStay() throws {
-    let (app, ghosts) = try openBoard(ghostSeconds: 6)
+    let (app, ghosts) = try openBoard(ghostSeconds: 15)
     stroke(app)
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
     app.buttons["whiteboard-larry"].tap()
-    wait(ghosts, label: "Ghosts on, 3 showing", timeout: 5)
-    wait(ghosts, label: "Ghosts on, 2 showing", timeout: 12)
+    wait(ghosts, label: "Ghosts on, 3 showing", timeout: 10)
+    wait(ghosts, label: "Ghosts on, 2 showing", timeout: 20)
   }
 
   /// Story 370: the count climbs. XCUI's own predicate waits look once a second, too coarse for marks 400 ms apart, so

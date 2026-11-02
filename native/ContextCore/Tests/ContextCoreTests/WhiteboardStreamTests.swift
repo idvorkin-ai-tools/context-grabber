@@ -26,7 +26,7 @@ final class WhiteboardStreamTests: XCTestCase {
     XCTAssertEqual(feed(&reader, "\n").map(\.kind), [.ellipse])
     XCTAssertEqual(feed(&reader, line + "\n" + last + "\n").map(\.kind), [.line])
     XCTAssertTrue(reader.done)
-    XCTAssertEqual(reader.answer(), .shapes(reader.shapes, say: "", thread: nil))
+    XCTAssertEqual(reader.answer(), .shapes(reader.shapes))
     XCTAssertEqual(reader.shapes.count, 2)
   }
 
@@ -74,7 +74,7 @@ final class WhiteboardStreamTests: XCTestCase {
   func testABrokenStreamKeepsItsMarksAndIsNoFailure() {
     var reader = stream()
     _ = feed(&reader, circle + "\n" + #"{"kind": "li"#)
-    XCTAssertEqual(reader.answer(error: "connection lost"), .shapes(reader.shapes, say: "", thread: nil))
+    XCTAssertEqual(reader.answer(error: "connection lost"), .shapes(reader.shapes))
     XCTAssertEqual(reader.shapes.count, 1)
   }
 
@@ -87,7 +87,7 @@ final class WhiteboardStreamTests: XCTestCase {
   func testAFinishedStreamWithNoMarksIsNothingToAdd() {
     var reader = stream()
     _ = feed(&reader, last + "\n")
-    XCTAssertEqual(reader.answer(), .shapes([], say: "", thread: nil))
+    XCTAssertEqual(reader.answer(), .shapes([]))
   }
 
   func testAnErrorLineWithNoMarksIsItsReason() {
@@ -101,7 +101,7 @@ final class WhiteboardStreamTests: XCTestCase {
     var reader = stream()
     XCTAssertEqual(feed(&reader, circle + "\n" + failed + "\n" + line + "\n").map(\.kind), [.ellipse])
     XCTAssertTrue(reader.done)
-    XCTAssertEqual(reader.answer(), .shapes(reader.shapes, say: "", thread: nil))
+    XCTAssertEqual(reader.answer(), .shapes(reader.shapes))
     XCTAssertEqual(reader.broken(), "the model took too long")
   }
 
@@ -131,7 +131,7 @@ final class WhiteboardStreamTests: XCTestCase {
       """
     XCTAssertEqual(feed(&reader, body).count, 0)
     XCTAssertNil(reader.finish())
-    guard case .shapes(let shapes, _, _) = reader.answer() else { return XCTFail("\(reader.answer())") }
+    guard case .shapes(let shapes) = reader.answer() else { return XCTFail("\(reader.answer())") }
     XCTAssertEqual(shapes.map(\.kind), [.ellipse, .line])
   }
 

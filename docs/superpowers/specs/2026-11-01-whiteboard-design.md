@@ -12,8 +12,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   same ink.
 - **Room to keep going.** The board doesn't end at the screen's edge. Two fingers pan and pinch, and there's plenty
   of board in every direction.
-- **Larry sees it.** One button sends the board to Larry as a new chat thread with the picture attached. His reply
-  arrives in Chat, like any other thread.
+- **Larry sees it.** One button sends the board to Larry on the board's chat thread with the picture attached. His
+  reply arrives in Chat, like any other thread, and his marks on the board.
 - **Then we draw together.** When Igor lifts the pen, faint suggestions appear on the board. A tap keeps one, and
   a tap off them dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Later steps: Igor's voice steers the
   suggestions, and Larry draws during a call.
@@ -63,9 +63,10 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   opens another screen. The board saves a moment after each stroke, and again on close or when the app goes to the
   background. If a saved board can't be read, it's kept aside and the screen says so; if it can't even be moved
   aside, it's left untouched, nothing drawn that time is saved over it, and the screen says that too.
-- **Send to Larry** (top bar): sends a picture of everything drawn, on white, as a new chat thread titled with
-  the board's name.
-  - The bar says *Sent to Larry: his reply shows in Chat*. One send makes one thread: the button stays disabled
+- **Send to Larry** (top bar): sends a picture of everything drawn, on white, on the board's chat thread, titled with
+  the board's name: the first send or Larry's turn on a board starts the thread, and later ones go to it, so marks he
+  draws in answer come back to the board.
+  - The bar says *Sent to Larry: his reply shows in Chat*. One send makes one message: the button stays disabled
     until the next stroke, so a second tap never sends the same board twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
@@ -90,7 +91,7 @@ that ghosts need the tailnet.
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
 - Close the board, kill the app, reopen it: the drawing is there, framed in view.
 - Pan or pinch several screens past the first view, and the board is still there to draw on.
-- Send to Larry with a drawing: a new thread appears in Chat with the picture, its ink dark on white even when the
+- Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
 - The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no
   card behind.
