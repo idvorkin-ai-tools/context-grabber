@@ -748,7 +748,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Paste text onto the board as ink
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [c01b0b8](https://github.com/idvorkin/context-grabber/commit/c01b0b8); the layout verified by host tests (`WhiteboardPasteTests`); on the simulator (`WhiteboardPasteUITests`), ⌘V from a real clipboard with no prompt, and through a launch hook each line and Claude's pause; the ink's look checked by eye at its pen width in dark mode. Still to try on the iPad: the Paste button itself (XCUITest's taps never fire the system control) and that it shows no prompt, zoomed-out and zoomed-in pastes, sync to the other device
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); the layout verified by host tests (`WhiteboardPasteTests`); on the simulator (`WhiteboardPasteUITests`), ⌘V from a real clipboard with no prompt, and through a launch hook each line and Claude's pause; the ink's look checked by eye at its pen width in dark mode. Still to try on the iPad: the Paste button itself (XCUITest's taps never fire the system control) and that it shows no prompt, zoomed-out and zoomed-in pastes, sync to the other device
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -768,7 +768,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** One undo takes a whole paste back
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [c01b0b8](https://github.com/idvorkin/context-grabber/commit/c01b0b8); verified on the simulator (`WhiteboardPasteUITests`: one ⌘Z after a ⌘V)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); verified on the simulator (`WhiteboardPasteUITests`: one ⌘Z after a ⌘V)
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -788,7 +788,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A paste that is too long is cut, and the bar says so
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [c01b0b8](https://github.com/idvorkin/context-grabber/commit/c01b0b8); both caps verified by host tests (`WhiteboardPasteTests`); the 500-character cut and its note on the simulator (`WhiteboardPasteUITests`, through a launch hook)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); both caps verified by host tests (`WhiteboardPasteTests`); the 500-character cut and its note on the simulator (`WhiteboardPasteUITests`, through a launch hook)
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -808,7 +808,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Text that cannot be drawn leaves the board alone
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [c01b0b8](https://github.com/idvorkin/context-grabber/commit/c01b0b8); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook)
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -828,7 +828,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Nothing to paste, or a board that is not mine
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [c01b0b8](https://github.com/idvorkin/context-grabber/commit/c01b0b8); not verified by a test; to try on the iPad: the dimmed Paste, no Paste on a look-only board, ⌘V doing nothing on either
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); not verified by a test; to try on the iPad: the dimmed Paste, no Paste on a look-only board, ⌘V doing nothing on either
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
