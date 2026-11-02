@@ -1146,5 +1146,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** the Cockpit refuses or doesn't answer for two of them
 - **Then:** those two go back where they were and one copyable problem names both with their reasons
 
+
+---
+
+### User Story 316:
+
+- **Summary:** One always-on chat with Larry pinned at the top
+- **Status:** native app only: built on this branch, on the Cockpit's pinned thread (cockpit `ace4083`); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; on the devices not yet
+- **Issues:** [#598](https://github.com/idvorkin/context-grabber/issues/598)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man with something to tell Larry and no thread to put it in
+- **I want to** find one chat always at the top of the list
+- **so that** I can drop anything into it without starting a new thread
+
+#### Acceptance Criteria:
+- **Scenario:** The pinned thread
+- **Given:** the Cockpit has a pinned thread, even one with no messages
+- **When:** I open the chat list
+- **Then:** it is first, with a pin and *Drop anything here* until it has a message; it opens and takes messages like any thread, has no swipe to archive and no tick in *Select*, and its ⋯ menu has no *Archive chat*
+
 ---
 

@@ -353,6 +353,14 @@ final class ChatTests: XCTestCase {
     XCTAssertTrue(rows[0].archiving(true).looksDone, "archiving keeps the mark, for an Undo")
   }
 
+  func testAPinnedRowReadsAndKeepsItsPin() throws {
+    let rows = try JSONDecoder().decode(
+      [ChatSummary].self,
+      from: Data(#"[{"key": "a", "title": "Larry", "count": 0, "pinned": true}, {"key": "b", "title": "B"}]"#.utf8))
+    XCTAssertEqual(rows.map(\.pinned), [true, false])
+    XCTAssertTrue(rows[0].archiving(false).pinned)
+  }
+
   func testTheArchiveRequestNamesTheThreadAndTheWay() throws {
     let archive = try ChatWire.archiveRequest("auto:note:1", archive: true, cockpit: "https://c.example/")
     XCTAssertEqual(archive.url?.absoluteString, "https://c.example/chat/auto:note:1/archive")

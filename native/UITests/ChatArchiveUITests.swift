@@ -119,4 +119,24 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["chat-archive-undo"].tap()
     assertBackInTheLiveList(app)
   }
+
+  func testThePinnedThreadIsOnTopAndCannotBeArchived() throws {
+    let app = try openList()
+    let pinned = app.buttons["chat-thread-igor2-88g.1268"]
+    XCTAssertTrue(pinned.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertLessThan(pinned.frame.minY, app.buttons["chat-thread-\(key)"].frame.minY, "first in the list")
+    pinned.swipeLeft()
+    XCTAssertFalse(app.buttons["Archive"].waitForExistence(timeout: 2), "no swipe to archive")
+    // With nothing to reveal, the simulated swipe lands as a tap and opens the thread.
+    if app.buttons["BackButton"].exists { app.buttons["BackButton"].tap() }
+    XCTAssertTrue(app.buttons["chat-select"].waitForExistence(timeout: 3), app.debugDescription)
+    app.buttons["chat-select"].tap()
+    XCTAssertTrue(app.buttons["chat-tick-\(key)"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertFalse(app.buttons["chat-tick-igor2-88g.1268"].exists, "not tickable")
+    app.buttons["chat-select"].tap()
+
+    pinned.tap()
+    XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), "it opens and takes a message")
+    XCTAssertFalse(app.buttons["chat-thread-more"].exists, "no menu to archive it from")
+  }
 }

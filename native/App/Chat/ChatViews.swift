@@ -21,7 +21,10 @@ struct ChatListView: View {
     self.logger = logger
   }
 
-  private var live: [ChatSummary] { chat.threads.filter { !$0.done } }
+  private var live: [ChatSummary] {
+    let rows = chat.threads.filter { !$0.done }
+    return rows.filter(\.pinned) + rows.filter { !$0.pinned }
+  }
   private var done: [ChatSummary] { chat.threads.filter(\.done) }
   private var looksDone: [ChatSummary] { live.filter(\.looksDone) }
   /// *Select* is on: live rows tick instead of opening (#599).
@@ -88,7 +91,11 @@ struct ChatListView: View {
       }
       Section {
         ForEach(live) { thread in
-          if selecting { tickRow(thread) } else { threadLink(thread) }
+          if !selecting {
+            threadLink(thread)
+          } else if !thread.pinned {
+            tickRow(thread)
+          }
         }
       }
       if !done.isEmpty, !selecting {
@@ -218,7 +225,7 @@ struct ChatListView: View {
     .swipeActions {
       if thread.archived {
         Button("Unarchive") { Task { await chat.setArchived(thread.key, false, from: "swipe") } }.tint(.blue)
-      } else if !thread.done {
+      } else if !thread.done, !thread.pinned {
         Button("Archive") { Task { await chat.setArchived(thread.key, true, from: "swipe") } }.tint(.indigo)
       }
     }
@@ -233,6 +240,9 @@ private struct ThreadRow: View {
       Circle().fill(thread.unread > 0 ? Color.accentColor : .clear).frame(width: 9, height: 9).padding(.top, 6)
       VStack(alignment: .leading, spacing: 2) {
         HStack(alignment: .firstTextBaseline) {
+          if thread.pinned {
+            Image(systemName: "pin.fill").font(.caption).foregroundStyle(.secondary).accessibilityLabel("Pinned")
+          }
           Text(thread.title).font(.body.weight(thread.unread > 0 ? .semibold : .regular)).lineLimit(2)
           Spacer(minLength: 8)
           if let at = thread.lastAt {
@@ -240,7 +250,8 @@ private struct ThreadRow: View {
               .foregroundStyle(.secondary)
           }
         }
-        Text("\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)").font(.subheadline)
+        Text(thread.count == 0 ? "Drop anything here" : "\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)")
+          .font(.subheadline)
           .foregroundStyle(.secondary).lineLimit(2)
         if thread.looksDone, !thread.done {
           Label("Looks done", systemImage: "checkmark.seal").font(.caption).foregroundStyle(.secondary)
@@ -390,7 +401,7 @@ struct ChatThreadView: View {
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
-      if let key, let thread = chat.threads.first(where: { $0.key == key }) {
+      if let key, let thread = chat.threads.first(where: { $0.key == key }), !thread.pinned {
         ToolbarItem(placement: .topBarTrailing) {
           Menu {
             if thread.archived {
