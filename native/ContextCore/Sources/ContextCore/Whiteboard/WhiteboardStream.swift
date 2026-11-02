@@ -1,6 +1,7 @@
-//  Claude's answer as it arrives (spec 2026-11-01-whiteboard-shapes-design.md, story 370): the Cockpit's
-//  `POST /whiteboard/suggest` streams one stroke per line and a last `{"done": true, "ms": …}` when asked for NDJSON
-//  (cockpit#85), and a Cockpit that doesn't still answers with one JSON. The caller reads the body a byte at a time.
+//  Claude's answer as it arrives (spec 2026-11-01-whiteboard-shapes-design.md, stories 370, 373–375): the Cockpit's
+//  `POST /whiteboard/suggest` streams one stroke per line and a last `{"done": true, "ms": …}`, or
+//  `{"error": …, "ms": …}` in its place when the model fails, when asked for NDJSON (cockpit#85), and a Cockpit that
+//  doesn't still answers with one JSON. The caller reads the body a byte at a time.
 
 import Foundation
 
@@ -13,7 +14,7 @@ public struct WhiteboardStream: Sendable {
   public private(set) var done = false
   private let status: Int?
   private var buffer = Data()
-  /// What a line said went wrong, for when no mark arrives.
+  /// What the last line said went wrong.
   private var reason: String?
 
   /// `status` is nil when no response came, which reads as a failure in `answer`.
@@ -40,9 +41,10 @@ public struct WhiteboardStream: Sendable {
   private mutating func endLine() -> WhiteboardTurn.Shape? {
     defer { buffer.removeAll(keepingCapacity: true) }
     guard !done, let json = try? JSONSerialization.jsonObject(with: buffer) as? [String: Any] else { return nil }
-    if let error = json["error"] as? String { reason = error }
-    if json["done"] as? Bool == true {
+    let error = json["error"] as? String
+    if error != nil || json["done"] as? Bool == true {
       done = true
+      reason = error
       return nil
     }
     guard let shape = WhiteboardTurn.shapeJSON(stroke: json).flatMap(WhiteboardTurn.shape) else { return nil }
@@ -57,5 +59,10 @@ public struct WhiteboardStream: Sendable {
     }
     if !shapes.isEmpty || (done && reason == nil) { return .shapes(shapes, say: "", thread: nil) }
     return .away(reason: error ?? reason ?? "the answer ended early")
+  }
+
+  /// What cut the reading short, given what stopped it, if anything: nil for an answer read to its end.
+  public func broken(error: String? = nil) -> String? {
+    error ?? reason ?? (streaming && !done ? "no last line" : nil)
   }
 }

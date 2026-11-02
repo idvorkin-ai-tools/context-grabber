@@ -271,9 +271,9 @@ final class WhiteboardModel: ObservableObject {
         failure =
           Task.isCancelled ? "no answer in \(Int(WhiteboardTurn.Who.claude.timeout)) s" : error.localizedDescription
       }
-      let cut = failure ?? (reader.streaming && !reader.done ? "no last line" : nil)
       return ClaudesAnswer(
-        answer: reader.answer(error: failure), streamed: reader.streaming, firstShapeMs: firstShapeMs, broken: cut)
+        answer: reader.answer(error: failure), streamed: reader.streaming, firstShapeMs: firstShapeMs,
+        broken: reader.broken(error: failure))
     }
     let deadline = Task {
       try? await Task.sleep(for: .seconds(WhiteboardTurn.Who.claude.timeout))

@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370 and 371 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371 and 373 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his marks beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -89,7 +89,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     add(picture)
   }
 
-  /// Story 370: a Cockpit that answers with one JSON, as the real one does until its streaming is live.
+  /// Story 373: a Cockpit that answers with one JSON.
   func testACockpitThatDoesNotStreamStillBringsAGhost() throws {
     let (app, ghosts) = try openBoard(cockpit: "/plain")
     stroke(app)

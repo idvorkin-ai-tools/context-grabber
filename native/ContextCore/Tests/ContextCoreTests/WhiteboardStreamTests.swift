@@ -7,6 +7,8 @@ final class WhiteboardStreamTests: XCTestCase {
   private let circle = #"{"kind": "circle", "cx": 50, "cy": 50, "r": 10}"#
   private let line = #"{"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9}"#
   private let last = #"{"done": true, "ms": 2100}"#
+  /// cockpit#85's own line: sent instead of `done` when the model fails after the stream has started.
+  private let failed = #"{"error": "the model took too long", "ms": 2400}"#
 
   private func stream() -> WhiteboardStream {
     WhiteboardStream(status: 200, contentType: "application/x-ndjson")
@@ -90,8 +92,32 @@ final class WhiteboardStreamTests: XCTestCase {
 
   func testAnErrorLineWithNoMarksIsItsReason() {
     var reader = stream()
-    _ = feed(&reader, #"{"done": true, "error": "model refused"}"# + "\n")
-    XCTAssertEqual(reader.answer(), .away(reason: "model refused"))
+    _ = feed(&reader, failed + "\n")
+    XCTAssertEqual(reader.answer(), .away(reason: "the model took too long"))
+    XCTAssertEqual(reader.broken(), "the model took too long")
+  }
+
+  func testAnErrorLineAfterAMarkEndsTheStreamAndNamesTheCut() {
+    var reader = stream()
+    XCTAssertEqual(feed(&reader, circle + "\n" + failed + "\n" + line + "\n").map(\.kind), [.ellipse])
+    XCTAssertTrue(reader.done)
+    XCTAssertEqual(reader.answer(), .shapes(reader.shapes, say: "", thread: nil))
+    XCTAssertEqual(reader.broken(), "the model took too long")
+  }
+
+  func testWhatBrokeTheReading() {
+    var finished = stream()
+    _ = feed(&finished, circle + "\n" + last + "\n")
+    XCTAssertNil(finished.broken(), "read to its last line")
+
+    var cut = stream()
+    _ = feed(&cut, circle + "\n")
+    XCTAssertEqual(cut.broken(), "no last line")
+    XCTAssertEqual(cut.broken(error: "connection lost"), "connection lost")
+
+    var plain = WhiteboardStream(status: 200, contentType: "application/json")
+    _ = feed(&plain, #"{"ok": true, "strokes": []}"#)
+    XCTAssertNil(plain.broken(), "one JSON has no last line to miss")
   }
 
   /// A Cockpit that doesn't stream: its one JSON, with its newlines, reads as it always did.

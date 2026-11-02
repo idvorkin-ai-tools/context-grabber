@@ -404,7 +404,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 370:
 
 - **Summary:** Claude's marks arrive one at a time
-- **Status:** implemented in [754298b](https://github.com/idvorkin/context-grabber/commit/754298b); verified by host tests (`WhiteboardStreamTests`: partial lines, unknown lines skipped, the last line, a broken stream before and after a mark, a plain answer) and the simulator against the fake Cockpit (`WhiteboardTurnUITests`: six marks climb the count, a Cockpit that doesn't stream still brings its ghost). The real Cockpit doesn't stream yet (cockpit main 3322c57 and a live request, 2026-11-02: one JSON), so real streaming, the first-mark time and a real broken stream are still to see on the iPad; the old set staying until the first new mark and sending a turn away part way are not covered by a test
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); verified by host tests (`WhiteboardStreamTests`: partial lines, unknown lines skipped, the last line) and the simulator against the fake Cockpit (`WhiteboardTurnUITests`: six marks climb the count). The real Cockpit streams (cockpit f208f6c; a live request, 2026-11-02: 200 `application/x-ndjson`, a label, an arrow and the last line); the app reading it and the first-mark time are still to see on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -418,37 +418,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** the marks come
 - **Then:** each one draws itself in as it arrives and the count in the bar climbs
 
-- **Scenario:** The old set goes when the new one starts
-- **Given:** Claude's earlier ghosts are showing and a new turn is on its way
-- **When:** the first new mark lands
-- **Then:** the earlier ones go then, not when the turn was asked, and Larry's stay
-
-- **Scenario:** A Cockpit that answers all at once
-- **Given:** the Cockpit does not stream
-- **When:** its answer comes
-- **Then:** the marks appear together and everything else works as before
-
-- **Scenario:** Cut off part way
-- **Given:** at least one mark has arrived
-- **When:** the answer breaks off or the turn's 10 s run out
-- **Then:** the marks already there stay and the bar says nothing about the Cockpit
-
-- **Scenario:** Cut off before anything
-- **Given:** no mark has arrived
-- **When:** the answer breaks off or the turn's 10 s run out
-- **Then:** no ghost appears and the bar says *Ghosts: the Cockpit isn't answering*
-
-- **Scenario:** Sent away part way
-- **Given:** marks are arriving
-- **When:** I tap off them or turn Ghosts off
-- **Then:** they go and no more of that turn's marks appear
-
 ---
 
 ### User Story 371:
 
 - **Summary:** Ghosts look like ink
-- **Status:** implemented in [754298b](https://github.com/idvorkin/context-grabber/commit/754298b); verified on the simulator by a screenshot from `WhiteboardTurnUITests`, solid orange lines on an iPhone simulator; how they sit beside real Pencil ink is to judge on the iPad
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); verified on the simulator by a screenshot from `WhiteboardTurnUITests`, solid orange lines on an iPhone simulator; how they sit beside real Pencil ink is to judge on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -462,6 +437,115 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I look at it
 - **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows the outlines of its letters
 
+---
+
+### User Story 372:
+
+- **Summary:** Claude's old marks go when his new ones start
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); not covered by a test; to see on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with Claude beside me
+- **I want to** keep his earlier marks until the first new one lands
+- **so that** the board is never blank between his answers
+
+#### Acceptance Criteria:
+- **Scenario:** The old set goes when the new one starts
+- **Given:** Claude's earlier ghosts are showing and a new turn is on its way
+- **When:** the first new mark lands
+- **Then:** the earlier ones go then, not when the turn was asked, and Larry's stay
+
+---
+
+### User Story 373:
+
+- **Summary:** A Cockpit that answers all at once still brings its marks
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); verified by a host test (`WhiteboardStreamTests`: a plain answer) and the simulator against the fake Cockpit (`WhiteboardTurnUITests`: a Cockpit that doesn't stream still brings its ghost)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with Claude beside me
+- **I want to** get his marks from a Cockpit that doesn't stream
+- **so that** the board doesn't depend on which Cockpit answers
+
+#### Acceptance Criteria:
+- **Scenario:** A Cockpit that answers all at once
+- **Given:** the Cockpit does not stream
+- **When:** its answer comes
+- **Then:** the marks appear together and everything else works as before
+
+---
+
+### User Story 374:
+
+- **Summary:** An answer cut off after a mark is no failure
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); verified by host tests (`WhiteboardStreamTests`: a broken stream after a mark, the Cockpit's error line after a mark); a real broken stream and the 10 s are still to see on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with Claude beside me
+- **I want to** keep the marks that made it when an answer stops early
+- **so that** a cut-off answer still gives me what he had started
+
+#### Acceptance Criteria:
+- **Scenario:** Cut off part way
+- **Given:** at least one mark has arrived
+- **When:** the answer breaks off or the turn's 10 s run out
+- **Then:** the marks already there stay and the bar says nothing about the Cockpit
+
+---
+
+### User Story 375:
+
+- **Summary:** An answer cut off before any mark says so
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); verified by host tests (`WhiteboardStreamTests`: a broken stream before a mark, the Cockpit's error line with no marks); a real broken stream and the 10 s are still to see on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with Claude beside me
+- **I want to** be told when no mark came
+- **so that** I know the Cockpit isn't answering rather than wondering about Claude
+
+#### Acceptance Criteria:
+- **Scenario:** Cut off before anything
+- **Given:** no mark has arrived
+- **When:** the answer breaks off or the turn's 10 s run out
+- **Then:** no ghost appears and the bar says *Ghosts: the Cockpit isn't answering*
+
+---
+
+### User Story 376:
+
+- **Summary:** A turn sent away shows no more marks
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); not covered by a test; to see on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** drawing with Claude beside me
+- **I want to** have a dismissal stop the marks still on their way
+- **so that** what I sent away doesn't come back
+
+#### Acceptance Criteria:
+- **Scenario:** Sent away part way
+- **Given:** marks are arriving
+- **When:** I tap off them or turn Ghosts off
+- **Then:** they go and no more of that turn's marks appear
+
+---
+
+### User Story 377:
+
+- **Summary:** A ghost is no part of the drawing until it's kept
+- **Status:** implemented in [c8dcd20](https://github.com/idvorkin/context-grabber/commit/c8dcd20); the kept line at full strength is not covered by a test; to judge on the iPad
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** deciding whether to keep a mark
+- **I want to** have a ghost stay out of the drawing until I tap it
+- **so that** nothing changes my board unless I choose it
+
+#### Acceptance Criteria:
 - **Scenario:** Still only a ghost
 - **Given:** a ghost is showing
 - **When:** I don't tap it

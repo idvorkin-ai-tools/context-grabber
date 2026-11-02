@@ -190,8 +190,7 @@ class Handler(BaseHTTPRequestHandler):
     def _suggest(self, data, cockpit):
         w, h = data.get("width"), data.get("height")
         accepts = "application/x-ndjson" in self.headers.get("Accept", "")
-        self._report({"turn": "claude", "width": w, "height": h, "origin": self.headers.get("Origin"),
-                      "accepts_ndjson": accepts})
+        self._report({"turn": "claude", "width": w, "height": h, "origin": self.headers.get("Origin")})
         if not data.get("image") or not w or not h:
             return self._json(400, {"ok": False, "error": "no picture"})
         circle = {"kind": "circle", "cx": w - 20, "cy": h / 2, "r": 40}

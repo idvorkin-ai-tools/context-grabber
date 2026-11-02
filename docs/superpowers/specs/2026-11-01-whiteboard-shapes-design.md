@@ -14,15 +14,15 @@ suggest changes the board until Igor keeps it.
 
 ## What Igor sees
 
-### Ghosts from Claude (stories 344, 350–352, 354, 357–359, 370, 371)
+### Ghosts from Claude (stories 344, 350–352, 354, 357–359, 370–377)
 
 - He draws, then lifts the Pencil. After about **1 s** with nothing new Claude is asked, and within a few seconds faint
   shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
   third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next
   pause, which waits for the tool to lift.
 - **Claude's marks arrive one at a time** (cockpit#85), each as the model makes it, not all together at the end. Where
-  the Cockpit answers all at once, as it does until its streaming is live, they all arrive then and draw in one after
-  another as before; the app asks in a way that gets either.
+  a Cockpit answers all at once, they all arrive then and draw in one after another as before; the app asks in a way
+  that gets either.
 - While ghosts show, the bar says how many and *tap one to keep it*.
 - **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour, and his eraser and undo treat it like his own
   strokes.
