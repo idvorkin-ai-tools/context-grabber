@@ -190,9 +190,9 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the list shows three cards, newest first, each with its picture, name and when it changed; an empty new board left without a stroke leaves no card
 
 - **Scenario:** Rename and delete
-- **Given:** a card for a board this device drew
+- **Given:** a row for a board this device drew
 - **When:** I long-press it and rename it, then long-press it again, tap Delete and confirm
-- **Then:** the card takes the new name, then goes, and the board leaves every device and doesn't come back; a card drawn on another device offers neither
+- **Then:** the row takes the new name, then goes, and the board leaves every device and doesn't come back; a row drawn on another device offers Delete (story 396) but not Rename
 
 ### User Story 349:
 
@@ -942,3 +942,43 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread is open
 - **When:** the Cockpit stops answering
 - **Then:** the bar says quietly that his marks aren't coming, no error box appears, the log has one error, and the bar clears by itself when the Cockpit answers
+
+---
+
+### User Story 396:
+
+- **Summary:** Delete a board from any device, with a swipe
+- **Issues:** #613
+- **Status:** implemented on this branch; the list, the swipe, the confirmation and *Jump to board* on a deleted board verified on the simulator by `WhiteboardListUITests`; the merge by host tests (`BoardIndexTests`); the delete crossing iCloud between the iPhone and the iPad not yet tried, as the simulator has no iCloud account
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** delete a board with a swipe
+- **so that** the list holds only what I still want, and I don't have to go find the iPad to clean it
+
+#### Acceptance Criteria:
+- **Scenario:** Swipe on the phone, on a board drawn on the iPad
+- **Given:** the phone lists a board drawn on the iPad
+- **When:** I swipe its row left, tap Delete and confirm
+- **Then:** the row goes and doesn't come back when the list syncs
+
+- **Scenario:** The iPad follows
+- **Given:** I deleted an iPad board on the phone, with the iPad off
+- **When:** the iPad's list next syncs
+- **Then:** the board is gone from the iPad too
+
+- **Scenario:** New ink wins
+- **Given:** the iPad has the board open, or has drawn on it and not reached iCloud yet, when I delete it on the phone
+- **When:** the iPad syncs
+- **Then:** nothing it drew is lost: the board goes up again and returns to both devices
+
+- **Scenario:** A picture of a deleted board
+- **Given:** a chat picture or a link names a deleted board
+- **When:** I jump to it
+- **Then:** I get a copyable problem saying it was deleted or hasn't arrived
+
+- **Scenario:** No delete means no loss
+- **Given:** this device signs into a different iCloud account, or iCloud's list comes back without its boards
+- **When:** the list syncs
+- **Then:** the boards this device drew stay, because only an asked-for delete removes them

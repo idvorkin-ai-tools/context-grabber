@@ -81,11 +81,11 @@ final class BoardIndexTests: XCTestCase {
   func testADeleteWaitsForICloudAndIsNotUndoneByIt() {
     var ipad = BoardIndex()
     ipad.add(id: "never-up", at: nov1, device: "ipad", deviceName: "iPad")
-    ipad.remove("never-up")
+    ipad.remove("never-up", device: "ipad")
     XCTAssertEqual(ipad.deleted, [], "a board iCloud never had needs no delete there")
     ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
     ipad.uploaded("a", at: 1)
-    ipad.remove("a")
+    ipad.remove("a", device: "ipad")
     XCTAssertEqual(ipad.deleted, ["a"])
     let cloudCopy = BoardEntry(
       id: "a", title: "A", created: 1, updated: 1, strokes: 1, device: "ipad", deviceName: "iPad")
@@ -95,11 +95,77 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.deleted, [])
   }
 
+  // Story 396, #613: any device deletes any board.
+  private func ipadBoard(updated: Int64 = 10) -> BoardEntry {
+    BoardEntry(id: "a", title: "A", created: 1, updated: updated, strokes: 1, device: "ipad", deviceName: "iPad")
+  }
+
+  /// The iPad's list holding board "a", which iCloud took at `updated` 10.
+  private func ipadList() -> BoardIndex {
+    BoardIndex(boards: [
+      BoardEntry(
+        id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad", uploaded: 10,
+        fetched: 10)
+    ])
+  }
+
+  func testThePhoneDeletesTheIPadsBoardInICloudEvenOneNeverChanged() {
+    var phone = BoardIndex()
+    _ = phone.merge(cloud: [ipadBoard(updated: 1)], device: "phone")
+    phone.remove("a", device: "phone")
+    XCTAssertEqual(phone.deleted, ["a"])
+    XCTAssertEqual(phone.merge(cloud: [ipadBoard(updated: 1)], device: "phone").fetch, [])
+    XCTAssertNil(phone.board("a"), "not brought back while iCloud still holds it")
+  }
+
+  func testATombstoneTakesTheBoardFromTheDeviceThatDrewIt() {
+    var ipad = ipadList()
+    XCTAssertEqual(ipad.merge(cloud: [], device: "ipad", tombstones: ["a"]).dropped, ["a"])
+    XCTAssertNil(ipad.board("a"))
+  }
+
+  func testAnEmptyICloudListNeverTakesAnOwnBoard() {
+    // An iCloud account switch, or another CloudKit environment: nothing asked for a delete.
+    var ipad = ipadList()
+    XCTAssertEqual(ipad.merge(cloud: [], device: "ipad").dropped, [])
+    XCTAssertNotNil(ipad.board("a"))
+  }
+
+  func testATombstoneDoesNotTakeInkICloudLacksOrAnOpenBoard() {
+    var drawn = ipadList()
+    drawn.drew("a", strokes: 9, at: 20)
+    XCTAssertEqual(drawn.merge(cloud: [], device: "ipad", tombstones: ["a"]).dropped, [], "unsent ink stays")
+    var open = ipadList()
+    XCTAssertEqual(open.merge(cloud: [], device: "ipad", tombstones: ["a"], open: ["a"]).dropped, [])
+    XCTAssertEqual(open.merge(cloud: [], device: "ipad", tombstones: ["a"]).dropped, ["a"], "gone once it closes")
+  }
+
+  func testATombstoneOutranksARecordThatLandedLate() {
+    var phone = BoardIndex()
+    XCTAssertEqual(phone.merge(cloud: [ipadBoard()], device: "phone", tombstones: ["a"]).fetch, [])
+    XCTAssertNil(phone.board("a"), "not added")
+    _ = phone.merge(cloud: [ipadBoard()], device: "phone")
+    XCTAssertEqual(phone.merge(cloud: [ipadBoard()], device: "phone", tombstones: ["a"]).dropped, ["a"])
+  }
+
+  func testTheBoardComesBackOnceItsDeviceSentNewInk() {
+    // The iPad's upload clears the tombstone, so the phone that deleted it sees a board and no tombstone.
+    var phone = BoardIndex()
+    _ = phone.merge(cloud: [ipadBoard()], device: "phone", tombstones: ["a"])
+    XCTAssertEqual(phone.merge(cloud: [ipadBoard(updated: 20)], device: "phone").fetch, ["a"])
+    XCTAssertEqual(phone.board("a")?.updated, 20)
+  }
+
+  func testATombstoneNamesItsBoardAndABoardsOwnRecordNamesNone() {
+    XCTAssertEqual(BoardIndex.tombstoned(by: BoardIndex.tombstone(of: "abc")), "abc")
+    XCTAssertNil(BoardIndex.tombstoned(by: "1b7e2c4a-0000-4000-8000-000000000000"))
+  }
+
   func testABoardDeletedWhileItsFirstUploadRunsStaysDeleted() {
     var ipad = BoardIndex()
     ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
     ipad.drew("a", strokes: 3, at: 3_000_000_000_000)
-    ipad.remove("a")
+    ipad.remove("a", device: "ipad")
     XCTAssertEqual(ipad.deleted, ["a"], "the upload in flight may land, so iCloud is told to delete it")
     ipad.uploaded("a", at: 3_000_000_000_000)
     let landed = BoardEntry(

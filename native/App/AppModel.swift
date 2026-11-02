@@ -786,7 +786,7 @@ final class AppModel: ObservableObject {
     }
     if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
     if let board = env["GRABBER_BOARD_FIXTURE"], !board.isEmpty {
-      WhiteboardStore(log: log, device: whiteboardDevice).addFixture(board)
+      WhiteboardStore(log: log, device: whiteboardDevice).addFixture(board, from: env["GRABBER_BOARD_FIXTURE_FROM"])
     }
     if env["GRABBER_WHITEBOARD"] == "open" { openWhiteboard(from: "hook") }
     if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }

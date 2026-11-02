@@ -42,7 +42,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
 
 public struct BoardIndex: Codable, Equatable, Sendable {
   public private(set) var boards: [BoardEntry] = []
-  /// This device's boards deleted here that iCloud still holds: deleted there on the next sync.
+  /// Boards deleted here that iCloud still holds: deleted there on the next sync.
   public private(set) var deleted: [String] = []
 
   public init(boards: [BoardEntry] = [], deleted: [String] = []) {
@@ -100,11 +100,12 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     if current { boards[i].fetched = boards[i].updated }
   }
 
-  /// Gone from this list; a board iCloud took, or may be taking (it was ever changed), is deleted there on the next
-  /// sync.
-  public mutating func remove(_ id: String) {
+  /// Gone from this list; a board iCloud took, or may be taking (it was ever changed, or another device drew it), is
+  /// deleted there on the next sync.
+  public mutating func remove(_ id: String, device: String) {
     guard let i = boards.firstIndex(where: { $0.id == id }) else { return }
-    let mayBeInICloud = boards[i].uploaded != nil || boards[i].updated != boards[i].created
+    let mayBeInICloud =
+      boards[i].device != device || boards[i].uploaded != nil || boards[i].updated != boards[i].created
     if mayBeInICloud, !deleted.contains(id) { deleted.append(id) }
     boards.remove(at: i)
   }
@@ -128,17 +129,31 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     boards.filter { $0.device == device && $0.uploaded != $0.updated }
   }
 
+  /// The iCloud record that says a board was deleted (#613). The device that drew a board keeps it through an empty
+  /// iCloud list, so a delete asked for on another device reaches it only by being said out loud. Old builds can't
+  /// read one and pass over it. ponytail: never cleared, as the drawing device may be off for good; a few bytes each,
+  /// and a board's id is never used again.
+  public static func tombstone(of id: String) -> String { tombstonePrefix + id }
+
+  /// The board a record of iCloud's says was deleted; nil for a board's own record.
+  public static func tombstoned(by record: String) -> String? {
+    record.hasPrefix(tombstonePrefix) ? String(record.dropFirst(tombstonePrefix.count)) : nil
+  }
+
+  private static let tombstonePrefix = "deleted-"
+
   /// iCloud's whole list merged in. Another device's board is taken when it is new here or newer, and dropped when
   /// iCloud no longer has it (its device deleted it). This device's own boards are left as they are, since this
   /// device is where they are drawn, except one iCloud has that this list lost (a reinstall, an unreadable list),
   /// which comes back. A board deleted here and still in iCloud is not brought back. `unread`: records iCloud holds
-  /// that could not be read, never dropped for it. Returns the ids whose drawing must be fetched (until a fetch
+  /// that could not be read, never dropped for it. `tombstones`: boards some device deleted, which go from here too,
+  /// unless this device drew one and has ink iCloud lacks or has it open (`open`). Returns the ids whose drawing must be fetched (until a fetch
   /// lands, every merge asks again) and the ids dropped.
-  public mutating func merge(cloud: [BoardEntry], device: String, unread: Set<String> = [])
-    -> (fetch: [String], dropped: [String])
-  {
+  public mutating func merge(
+    cloud: [BoardEntry], device: String, unread: Set<String> = [], tombstones: Set<String> = [], open: Set<String> = []
+  ) -> (fetch: [String], dropped: [String]) {
     let cloudIDs = Set(cloud.map(\.id)).union(unread)
-    for remote in cloud where !deleted.contains(remote.id) {
+    for remote in cloud where !deleted.contains(remote.id) && !tombstones.contains(remote.id) {
       if let i = boards.firstIndex(where: { $0.id == remote.id }) {
         if remote.device != device, remote.updated > boards[i].updated {
           var taken = remote
@@ -151,7 +166,10 @@ public struct BoardIndex: Codable, Equatable, Sendable {
         boards.append(taken)
       }
     }
-    let dropped = boards.filter { $0.device != device && !cloudIDs.contains($0.id) }.map(\.id)
+    let dropped = boards.filter { board in
+      if board.device != device { return !cloudIDs.contains(board.id) || tombstones.contains(board.id) }
+      return tombstones.contains(board.id) && board.uploaded == board.updated && !open.contains(board.id)
+    }.map(\.id)
     boards.removeAll { dropped.contains($0.id) }
     let fetch = boards.filter { cloudIDs.contains($0.id) && !unread.contains($0.id) && $0.fetched != $0.updated }
       .map(\.id)
