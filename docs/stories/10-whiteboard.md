@@ -121,7 +121,9 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 345:
 
 - **Summary:** Talk while I draw
-- **Status:** not implemented
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); the words to the turn verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and the new words by `WhiteboardSpeechTests`; real dictation over the Pencil and a real model answer to try on the iPad
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** whose hands are busy with the Pencil
@@ -132,7 +134,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Spoken direction
 - **Given:** the mic is open on the board, and I drew a curve
 - **When:** I say "this is my energy over the week, mark the dip"
-- **Then:** a ghost label "dip" with an arrow appears at the curve's low point
+- **Then:** within about 5 s of my stopping, faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point, without my lifting or drawing anything more
 
 ---
 
@@ -399,6 +401,206 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a ghost turn is on its way
 - **When:** I draw another stroke and lift the Pencil
 - **Then:** a second turn is asked a second after the first lands or after the lift, whichever is later
+
+---
+
+### User Story 360:
+
+- **Summary:** Ask for something on an empty board
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone; real dictation to try on the iPad
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** starting from nothing
+- **I want to** tell Claude what to draw before I have drawn anything
+- **so that** the board answers a blank page too
+
+#### Acceptance Criteria:
+- **Scenario:** Spoken on an empty board
+- **Given:** the mic is open and the board is empty
+- **When:** I say "draw a circle"
+- **Then:** faint orange ghosts appear in the part of the board on screen, and nothing becomes ink
+
+---
+
+### User Story 361:
+
+- **Summary:** Words during a turn wait for the next one
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** talking faster than Claude answers
+- **I want to** have what I say while Claude is answering go next
+- **so that** no word falls between two turns
+
+#### Acceptance Criteria:
+- **Scenario:** Speaking during a turn
+- **Given:** a ghost turn is on its way
+- **When:** I say something and stop
+- **Then:** those words go with a new turn a second after the first lands
+
+---
+
+### User Story 362:
+
+- **Summary:** Words whose turn did not get through go with the next
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** with a Cockpit that is sometimes away
+- **I want to** have my words survive a turn that fails
+- **so that** I don't have to say them again
+
+#### Acceptance Criteria:
+- **Scenario:** A turn that did not get through
+- **Given:** I said "draw a box" and its turn was skipped, refused or never answered
+- **When:** the next turn is asked
+- **Then:** it carries "draw a box" ahead of anything I said since
+
+---
+
+### User Story 363:
+
+- **Summary:** A call has the microphone
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation and a call
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** on a call with Larry
+- **I want to** be told why the board's mic won't open
+- **so that** a dead button doesn't leave me guessing
+
+#### Acceptance Criteria:
+- **Scenario:** Tapping the mic during a call
+- **Given:** a call with Larry is live
+- **When:** I tap the board's mic
+- **Then:** the mic stays closed and the bar shows a copyable problem saying the call is using the microphone
+
+---
+
+### User Story 364:
+
+- **Summary:** A call takes the mic
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation and a call
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who gets on a call while drawing
+- **I want to** have the board's mic let go
+- **so that** Larry can hear me
+
+#### Acceptance Criteria:
+- **Scenario:** A call starting
+- **Given:** the board's mic is open
+- **When:** a call with Larry starts
+- **Then:** the board's mic stops, and words not yet sent still go
+
+---
+
+### User Story 365:
+
+- **Summary:** Leaving stops the mic
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** done with the board
+- **I want to** have the mic close when I go
+- **so that** the app never listens to a board I left
+
+#### Acceptance Criteria:
+- **Scenario:** Leaving the board
+- **Given:** the board's mic is open
+- **When:** I close the board or the app goes to the background
+- **Then:** the mic stops, and words not yet sent still go
+
+---
+
+### User Story 366:
+
+- **Summary:** See what the mic heard
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** talking with my eyes on the drawing
+- **I want to** glance at the words heard
+- **so that** I know the mic got me right
+
+#### Acceptance Criteria:
+- **Scenario:** Words in the bar
+- **Given:** the board's mic is open
+- **When:** I speak
+- **Then:** the bar shows *Listening…* until the first words, then the last words heard; a new session starts at *Listening…* again
+
+---
+
+### User Story 367:
+
+- **Summary:** Ghosts off holds for speech too
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone; real dictation to try on the iPad
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who switched the ghosts off
+- **I want to** have talking ask nothing either
+- **so that** the switch means what it says (story 351)
+
+#### Acceptance Criteria:
+- **Scenario:** Speaking with Ghosts off
+- **Given:** Ghosts are off and the board's mic is open
+- **When:** I say "draw a square"
+- **Then:** nothing is asked, no ghost appears, and the words are not sent when Ghosts come back
+
+---
+
+### User Story 368:
+
+- **Summary:** A mic that cannot start says why
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation, with the permission off
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** whose microphone permission is off
+- **I want to** see why the mic did not open
+- **so that** I can fix it, or send the reason on
+
+#### Acceptance Criteria:
+- **Scenario:** The mic refused
+- **Given:** the app has no permission to use the microphone or speech recognition
+- **When:** I tap the board's mic
+- **Then:** the bar shows a copyable problem naming the permission and the state behind it
+
+---
+
+### User Story 369:
+
+- **Summary:** A report takes the mic
+- **Status:** implemented on this branch in the review round after [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); not yet seen: the iPad, with real dictation and a shake (the simulator has no dictation to hear)
+- **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who shakes to report a problem while talking to the board
+- **I want to** have the board's mic stop when the report opens
+- **so that** words meant for the report never go to the Cockpit as a request for ghosts
+
+#### Acceptance Criteria:
+- **Scenario:** A shake report opens
+- **Given:** the board's mic is open
+- **When:** I shake and the report opens
+- **Then:** the board's mic stops, what I dictate into the report doesn't reach the Cockpit, and the mic stays closed until I tap it again
 
 ---
 

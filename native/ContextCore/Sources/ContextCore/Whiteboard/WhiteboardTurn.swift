@@ -8,7 +8,7 @@ import CoreText
 import Foundation
 
 public enum WhiteboardTurn {
-  /// Whose marks: Claude's ghosts after a pause, or Larry's from his chat thread.
+  /// Whose marks: Claude's ghosts after a pause or spoken words, or Larry's from his chat thread.
   public enum Who: String, Sendable {
     case claude, larry
   }
