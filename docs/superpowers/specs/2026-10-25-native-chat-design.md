@@ -41,7 +41,8 @@ same rule the Cockpit uses, so the phone and the laptop agree. The round **+** s
 new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
 
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
-show inline, tap to see full size. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
+show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or
+dark, and a swipe down closes it too. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
 sent, 👀 when Larry has seen it, 🏆 when the thing is done (with Larry's note). Opening a thread marks it read here
 and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
 it.

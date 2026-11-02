@@ -7,8 +7,11 @@ GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /c
 GET /attachments/<ref>. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
+Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
+full-size view, under its Done (story 306).
 """
 
+import base64
 import json
 import os
 import secrets
@@ -26,7 +29,9 @@ THREADS = {
     "igor2-88g.900": {"title": "Should the phone chat poll?", "messages": [], "seen": ""},
 }
 CREATED = {}
-IMAGES = {}
+WHITE_PICTURE = "2026-11-01/0000000000000592.png"
+IMAGES = {WHITE_PICTURE: base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAAAAAC86un7AAAADElEQVR4nGP4z/AfAAQAAf8iCjrwAAAAAElFTkSuQmCC")}
 
 
 def now():
@@ -45,6 +50,9 @@ THREADS["igor2-88g.900"]["messages"] += [
     row("igor2-88g.900", "igor", "Does the phone poll while a thread is open?"),
     row("igor2-88g.900", "larry", "Every four seconds, and the list on each return."),
 ]
+THREADS["igor2-88g.592"] = {"title": "Your whiteboard", "seen": "", "messages": [
+    row("igor2-88g.592", "larry", "", attachments=[WHITE_PICTURE]),
+]}
 
 
 def summary(key, t):
