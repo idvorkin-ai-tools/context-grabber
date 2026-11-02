@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The whiteboard turn UI test on the simulator (stories 344, 349, 351, 354, 356), with a fake Cockpit:
+# The whiteboard turn UI test on the simulator (stories 344, 349, 351, 354), with a fake Cockpit:
 # scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-whiteboard-ui.sh <simulator udid>   — run it in the build lane:
