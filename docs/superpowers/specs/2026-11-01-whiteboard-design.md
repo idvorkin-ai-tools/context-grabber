@@ -17,7 +17,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Then we draw together** (later steps). When Igor lifts the pen, faint suggestions appear on the board. A tap keeps
   one, and drawing on dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Igor's voice steers the
   suggestions. Larry can draw too, during a call.
-- **The phone can view.** Boards drawn on the iPad can be seen on the phone (a later step).
+- **The phone can view.** Boards drawn on the iPad can be seen on the phone.
 
 ## Non-goals
 
@@ -69,7 +69,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     until the next stroke, so a second tap never sends the same board twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
-- **Done** (top bar) closes the board.
+- **Back** (top bar) closes the board and returns to the boards, where **Done** leaves the Whiteboard.
 
 ## Later steps (not in this build)
 

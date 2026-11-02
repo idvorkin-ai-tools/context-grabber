@@ -157,7 +157,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 348:
 
 - **Summary:** Many boards, as a list
-- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: names, newest first, deletes) and the simulator (`just native-test-sim`: the boards open from the hook); the cards on the iPad not yet seen
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5), a delete during the first upload in [8625cd8](https://github.com/idvorkin/context-grabber/commit/8625cd8); verified by host tests (`BoardIndexTests`: names, newest first, deletes) and the simulator (`just native-test-sim`: the boards open from the hook); the cards on the iPad not yet seen
 
 #### Use Case:
 - **As someone** who sketches a different idea each time
@@ -169,3 +169,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 - **Given:** I drew one board this morning, and one before the list existed
 - **When:** I open the Whiteboard and tap + New board, draw, and go back
 - **Then:** the list shows three cards, newest first, each with its picture, name and when it changed; an empty new board left without a stroke leaves no card
+
+- **Scenario:** Rename and delete
+- **Given:** a card for a board this device drew
+- **When:** I long-press it and rename it, then long-press it again, tap Delete and confirm
+- **Then:** the card takes the new name, then goes, and the board leaves every device and doesn't come back; a card drawn on another device offers neither
