@@ -150,7 +150,8 @@ final class AppLinkTests: XCTestCase {
     let links = AppLink.catalog.map(\.link)
     XCTAssertEqual(Set(links).count, links.count, "no link twice")
     let screens = Set(AppLink.catalog.map { AppLink.parse($0.link).route.name })
-    XCTAssertEqual(screens, ["home", "today", "timer", "breathe", "places", "cockpit", "whiteboard", "call", "card", "supermix"])
+    XCTAssertEqual(
+      screens, ["home", "today", "timer", "breathe", "places", "cockpit", "whiteboard", "call", "card", "supermix"])
     for entry in AppLink.catalog {
       XCTAssertTrue(AppLink.parse(entry.link).understood, entry.link)
       XCTAssertFalse(entry.summary.isEmpty)

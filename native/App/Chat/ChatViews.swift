@@ -554,6 +554,12 @@ private struct ChatImage: View {
     }
   }
 
+  private func coverDismissed() {
+    jumpProblem = nil
+    if leaving, let board { chat.openBoard(board) }
+    leaving = false
+  }
+
   var body: some View {
     AsyncImage(url: url) { phase in
       switch phase {
@@ -570,14 +576,7 @@ private struct ChatImage: View {
         ProgressView().frame(width: 120, height: 90)
       }
     }
-    .fullScreenCover(
-      isPresented: $full,
-      onDismiss: {
-        jumpProblem = nil
-        if leaving, let board { chat.openBoard(board) }
-        leaving = false
-      }
-    ) {
+    .fullScreenCover(isPresented: $full, onDismiss: coverDismissed) {
       ZStack(alignment: .topTrailing) {
         Color.black.ignoresSafeArea()
         AsyncImage(url: url) {
