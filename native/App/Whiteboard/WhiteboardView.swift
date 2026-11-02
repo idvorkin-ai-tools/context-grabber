@@ -37,6 +37,8 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var larrySending = false
   /// Looking at Larry's thread has failed for a while (story 383).
   @Published private(set) var larryAway = false
+  /// What the last paste left off or couldn't draw, shown until the board next changes (stories 392, 393).
+  @Published private(set) var pasteNote: String?
   /// The board's mic (story 345): open, on its way up, finishing its last words, and the last words it heard.
   @Published private(set) var micOn = false
   @Published private(set) var micStarting = false
@@ -51,9 +53,10 @@ final class WhiteboardModel: ObservableObject {
   private let inbox: InboxModel
   private let cockpit: String
   private let threads = WhiteboardThreads()
-  /// What's on screen in board points, for a turn on an empty board; the canvas sets it.
+  /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
   var visibleRect: (() -> CGRect)?
-  /// Puts a kept ghost on the canvas (undoably); the canvas sets it.
+  var zoom: (() -> CGFloat)?
+  /// Puts a kept ghost or a paste on the canvas (undoably); the canvas sets it.
   var draw: ((PKDrawing) -> Void)?
   private var pacer = WhiteboardPacer()
   private let callLive: @MainActor () -> Bool
@@ -78,6 +81,8 @@ final class WhiteboardModel: ObservableObject {
   static let ghostsKey = "whiteboard_ghosts"
   /// How long the Pencil rests before Claude is asked.
   static let pause: Duration = .seconds(1)
+  /// A pasted letter's height on screen, in points, at 100% and zoomed out.
+  static let pasteLetters: CGFloat = 24
   /// How long Claude's ghosts stay when nothing replaces them.
   static let ghostSeconds =
     ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap(Double.init) ?? 30
@@ -129,6 +134,7 @@ final class WhiteboardModel: ObservableObject {
   private func drawingMoved() {
     isEmpty = drawing.strokes.isEmpty
     sent = nil
+    pasteNote = nil
     dirty = true
     saveTask?.cancel()
     saveTask = Task { [weak self] in
@@ -603,25 +609,61 @@ final class WhiteboardModel: ObservableObject {
 
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
   private func keep(_ ghost: Ghost) {
-    let ink = PKInk(.pen, color: ghost.who.color)
-    let strokes = ghost.lines.map { line in
-      PKStroke(
-        ink: ink,
-        path: PKStrokePath(
-          controlPoints: WhiteboardTurn.inkPoints(line).enumerated().map { i, p in
-            PKStrokePoint(
-              location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: 3.7, height: 3.7), opacity: 1, force: 1,
-              azimuth: 0, altitude: .pi / 2)
-          }, creationDate: Date()))
-    }
-    var kept = drawing
-    kept.strokes += strokes
-    drawing = kept
+    let strokes = Self.strokes(ghost.lines, color: ghost.who.color, width: 3.7, spacing: 4)
     ghosts.removeAll { $0.id == ghost.id }
     if ghost.who == .larry { settleLarrysRow() }
     log.event("whiteboard", ["action": "keep", "board": board.id, "who": ghost.who.rawValue, "strokes": strokes.count])
+    add(strokes)
+  }
+
+  private static func strokes(_ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat) -> [PKStroke] {
+    let ink = PKInk(.pen, color: color)
+    return lines.map { line in
+      PKStroke(
+        ink: ink,
+        path: PKStrokePath(
+          controlPoints: WhiteboardTurn.inkPoints(line, spacing: spacing).enumerated().map { i, p in
+            PKStrokePoint(
+              location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: width, height: width), opacity: 1,
+              force: 1, azimuth: 0, altitude: .pi / 2)
+          }, creationDate: Date()))
+    }
+  }
+
+  private func add(_ strokes: [PKStroke]) {
+    var kept = drawing
+    kept.strokes += strokes
+    drawing = kept
     drawingMoved()
     draw?(kept)
+  }
+
+  /// Stories 390, 391: the text as ink in the middle of the view, one undo, and a change like a drawn stroke. Black ink
+  /// shows light in dark mode, as the Pencil's does, and dark in the picture. The pen's width is in proportion to the
+  /// letters: a ghost's 3.7 fills a 24-point letter in, and PencilKit draws nothing under about 2 (seen on the
+  /// simulator, on the canvas and in the picture alike), which is why zooming in never shrinks them on the board.
+  func paste(_ text: String) {
+    guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
+    let height = Self.pasteLetters / min(zoom, 1)
+    let layout = WhiteboardPaste.layout(text, visible: visible, height: height)
+    let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8)
+    log.event(
+      "whiteboard",
+      [
+        "action": "paste", "board": board.id, "characters": layout.kept, "of": layout.total, "strokes": strokes.count,
+      ])
+    guard !strokes.isEmpty else {
+      pasteNote = "Nothing in that text can be drawn"
+      return
+    }
+    add(strokes)
+    if ghostsOn {
+      pacer.strokeAdded()
+      startPause()
+    }
+    if layout.cut {
+      pasteNote = "Pasted the first \(layout.kept) of \(layout.total.formatted()) characters"
+    }
   }
 
   /// Dark ink on white whatever the iPad's mode: what Larry and Claude see.
@@ -759,6 +801,14 @@ struct WhiteboardView: View {
     .toolbar {
       if model.editable {
         ToolbarItem(placement: .topBarTrailing) {
+          // The system's button: no *Allow Paste?* prompt, and iOS dims it when the clipboard holds no text.
+          PasteButton(payloadType: String.self) { texts in
+            Task { @MainActor in model.paste(texts.joined(separator: "\n")) }
+          }
+          .labelStyle(.iconOnly)
+          .accessibilityIdentifier("whiteboard-paste")
+        }
+        ToolbarItem(placement: .topBarTrailing) {
           Button {
             model.tapMic()
           } label: {
@@ -805,6 +855,12 @@ struct WhiteboardView: View {
       }
     }
     .accessibilityIdentifier("whiteboard")
+    .task {
+      // XCUITest's taps never reach the system's paste button: the UI test pastes through this.
+      guard let text = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_PASTE"] else { return }
+      try? await Task.sleep(for: .seconds(1))
+      model.paste(text)
+    }
     .onAppear { model.startWatchingLarry() }
     .onDisappear {
       model.stopMic(why: "closed")
@@ -825,6 +881,7 @@ struct WhiteboardView: View {
     let count = model.ghosts.count
     let parts = [
       model.turnNote,
+      model.pasteNote,
       model.larryAway ? "Larry's marks: the Cockpit isn't answering" : nil,
       model.micOn ? model.heardNote.map { "Heard: \($0)" } ?? "Listening…" : nil,
       count == 0 ? nil : "\(count) suggestion\(count == 1 ? "" : "s"): tap one to keep it",
@@ -859,6 +916,7 @@ private struct BoardCanvas: UIViewRepresentable {
       tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
       tap.cancelsTouchesInView = false
       canvas.addGestureRecognizer(tap)
+      canvas.pasted = { [weak model] text in model?.paste(text) }
       model.visibleRect = { [weak canvas] in
         guard let canvas else { return .null }
         let zoom = canvas.zoomScale
@@ -866,6 +924,7 @@ private struct BoardCanvas: UIViewRepresentable {
           x: canvas.contentOffset.x / zoom, y: canvas.contentOffset.y / zoom, width: canvas.bounds.width / zoom,
           height: canvas.bounds.height / zoom)
       }
+      model.zoom = { [weak canvas] in canvas?.zoomScale ?? 1 }
       model.draw = { [weak canvas] drawing in
         guard let canvas else { return }
         let before = canvas.drawing
@@ -920,6 +979,8 @@ private struct BoardCanvas: UIViewRepresentable {
 
 final class BoardCanvasView: PKCanvasView {
   fileprivate var toolPicker: PKToolPicker?
+  /// ⌘V on a board that can be drawn on (stories 390, 394).
+  fileprivate var pasted: ((String) -> Void)?
   private var opened = false
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
   private let ghostLayer = CALayer()
@@ -988,6 +1049,20 @@ final class BoardCanvasView: PKCanvasView {
       ghostLayer.addSublayer(shape)
       shown[ghost.id] = shape
     }
+  }
+
+  // hasStrings asks without reading, so it shows no paste prompt.
+  override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+    if action == #selector(paste(_:)) {
+      guard pasted != nil else { return false }
+      return UIPasteboard.general.hasStrings || super.canPerformAction(action, withSender: sender)
+    }
+    return super.canPerformAction(action, withSender: sender)
+  }
+
+  override func paste(_ sender: Any?) {
+    guard let pasted else { return }
+    if let text = UIPasteboard.general.string { pasted(text) } else { super.paste(sender) }
   }
 
   override func didMoveToWindow() {
