@@ -3,7 +3,7 @@
 
 import XCTest
 
-final class WhiteboardListUITests: XCTestCase {
+final class WhiteboardRowDeleteUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   /// The boards, with a board the iPad drew on a fresh id, so runs on one simulator don't meet each other's boards.
