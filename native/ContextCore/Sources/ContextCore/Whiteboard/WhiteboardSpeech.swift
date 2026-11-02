@@ -2,22 +2,23 @@
 //  recognizer hands over all its words so far each time; a turn wants only the new ones.
 
 public struct WhiteboardSpeech: Sendable {
-  private var text = ""
+  private var words: [Substring] = []
   private var sent = 0
 
   public init() {}
 
   public mutating func heard(_ text: String) {
-    self.text = text
-    // ponytail: a revision of words already sent isn't sent again; the recognizer rarely reworks more than the last few.
-    sent = min(sent, text.count)
+    words = text.split(whereSeparator: \.isWhitespace)
+    // ponytail: counted in words, so a revision of words already sent isn't sent again; one that changes how many there
+    // are shifts the cut by that many. A longest-common-prefix would resend everything after the first changed word.
+    sent = min(sent, words.count)
   }
 
   /// The words since the last call, once; nil when there are none.
   public mutating func takeNew() -> String? {
-    let new = text.dropFirst(sent).trimmingCharacters(in: .whitespacesAndNewlines)
-    sent = text.count
-    return new.isEmpty ? nil : new
+    guard sent < words.count else { return nil }
+    defer { sent = words.count }
+    return words[sent...].joined(separator: " ")
   }
 
   /// The whole of what the turn tells the Cockpit about the board.

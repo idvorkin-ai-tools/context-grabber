@@ -73,12 +73,15 @@ suggest changes the board until Igor keeps it.
   "draw a box around this" brings faint orange ghosts about 4 s later, kept or dismissed like any others. They are
   still suggestions: nothing becomes ink without a tap.
 - It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
-- If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through go
-  with the next one.
+- If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through
+  (skipped, refused or the Cockpit away) go with the next one.
+- With Ghosts off nothing is asked: the mic still hears him, the words go nowhere and aren't kept for later.
+- Words that only revise what was already sent don't start a turn.
 - The bar shows the last words heard. The answerer is Claude's fast model; Larry is too slow for back-and-forth, so
   he stays on his own button.
-- When the mic can't start, the bar shows a copyable problem. A call with Larry has the microphone: the board's mic
-  doesn't start during one, and stops when one starts.
+- When the mic can't start, the bar shows a copyable problem, including during a call with Larry, which has the
+  microphone. The board's mic stops when a call starts. A stopped mic takes a moment to finish its last words, and
+  its button waits for that.
 - Words are heard by Apple's dictation on the device, and the words go to the Cockpit with the picture.
 
 ## Where it runs

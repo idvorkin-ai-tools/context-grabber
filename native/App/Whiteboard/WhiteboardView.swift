@@ -34,9 +34,10 @@ final class WhiteboardModel: ObservableObject {
   /// The last turn in a line: Larry's words, *Larry is looking…*, or ghosts not answering.
   @Published private(set) var turnNote: String?
   @Published private(set) var larryLooking = false
-  /// The board's mic (story 345): open, on its way up, and the last words it heard.
+  /// The board's mic (story 345): open, on its way up, finishing its last words, and the last words it heard.
   @Published private(set) var micOn = false
   @Published private(set) var micStarting = false
+  @Published private(set) var micFinishing = false
   @Published private(set) var heardNote: String?
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
@@ -162,6 +163,7 @@ final class WhiteboardModel: ObservableObject {
     log.event("whiteboard", ["action": on ? "ghosts_on" : "ghosts_off", "board": board.id])
     if !on {
       dropClaudesTurn()
+      unsaid = nil
       ghosts.removeAll { $0.who == .claude }
       if turnNote == Self.ghostsAway { turnNote = nil }
     }
@@ -185,14 +187,23 @@ final class WhiteboardModel: ObservableObject {
       MainActor.assumeIsolated { self?.micStarting = on }
     }
     .store(in: &dictationWatches)
-    dictation.$problem.sink { [weak self, weak dictation] message in
+    dictation.$processing.removeDuplicates().sink { [weak self] on in
+      MainActor.assumeIsolated { self?.micFinishing = on }
+    }
+    .store(in: &dictationWatches)
+    dictation.$problem.combineLatest(dictation.$problemState).sink { [weak self] message, state in
       MainActor.assumeIsolated {
         guard let self, let message else { return }
-        self.problem = .grabber(message, context: "WhiteboardView.mic", extra: dictation?.problemState ?? [:])
+        self.micProblem(message, state)
       }
     }
     .store(in: &dictationWatches)
     return dictation
+  }
+
+  private func micProblem(_ message: String, _ state: [String: JSONValue]) {
+    let extra = state.merging(["board": .string(board.id), "call_live": .bool(callLive())]) { _, new in new }
+    problem = .grabber(message, context: "WhiteboardView.mic", extra: extra)
   }
 
   /// Opens the board's mic, or closes it and sends what's still unsent.
@@ -206,9 +217,15 @@ final class WhiteboardModel: ObservableObject {
       stopMic(why: "tap")
       return
     }
-    guard !micStarting else { return }
+    guard !dictation.busy else { return }
+    guard !callLive() else {
+      log.event("whiteboard", ["action": "mic_refused", "board": board.id, "why": "call_live"])
+      micProblem("A call with Larry is using the microphone. End it to talk to the board.", [:])
+      return
+    }
     if problem?.context == "WhiteboardView.mic" { problem = nil }
     speech = WhiteboardSpeech()
+    heardNote = nil
     log.event("whiteboard", ["action": "mic_on", "board": board.id])
     dictation.toggle(note: "") { [weak self] text in self?.heard(text) }
   }
@@ -235,19 +252,30 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// He stopped talking: the new words go now, or with the next turn if one is on its way.
+  /// He stopped talking: the new words go now, or with the next turn if one is on its way. With Ghosts off nothing is
+  /// asked, and they aren't kept for later.
   private func spoke() {
     guard let words = speech.takeNew() else { return }
+    guard ghostsOn else {
+      log.event("whiteboard", ["action": "spoke", "board": board.id, "chars": words.count, "went": "ghosts_off"])
+      return
+    }
     unsaid = unsaid.map { "\($0) \(words)" } ?? words
-    if pacer.pauseEnded() { Task { await turn(.claude) } }
+    let now = pacer.pauseEnded()
+    log.event("whiteboard", ["action": "spoke", "board": board.id, "chars": words.count, "went": now ? "now" : "held"])
+    guard now else { return }
+    // This turn's picture has the strokes a waiting pause would ask about.
+    pauseTask?.cancel()
+    pauseTask = nil
+    Task { await turn(.claude) }
   }
 
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
   func turn(_ who: WhiteboardTurn.Who) async {
-    // An empty board has no drawing to frame: a spoken turn sees the part on screen.
-    let framed = drawing.strokes.isEmpty ? visibleRect?() ?? .null : drawing.bounds
-    guard editable, let (rect, scale) = WhiteboardFrame.export(framed) else { return }
     let said = who == .claude ? unsaid : nil
+    // An empty board has no drawing to frame: a spoken turn sees the part on screen, and any other isn't asked.
+    let framed = said != nil && drawing.strokes.isEmpty ? visibleRect?() ?? .null : drawing.bounds
+    guard editable, let (rect, scale) = WhiteboardFrame.export(framed) else { return }
     if who == .claude { unsaid = nil }
     let asked = pacer.generation
     if who == .claude { pacer.turnStarted() }
@@ -293,10 +321,13 @@ final class WhiteboardModel: ObservableObject {
     let ms = Int(Date().timeIntervalSince(started) * 1000)
     var event: [String: Any] = [
       "who": who.rawValue, "board": board.id, "ms": ms, "stale": stale, "bytes": png.count, "streamed": read.streamed,
+      "said_chars": said?.count ?? 0,
     ]
+    var undelivered = said
     if let broken = read.broken { event["broken"] = broken }
     switch answer {
     case .shapes(let shapes, let say, let newThread):
+      undelivered = nil
       event["ok"] = true
       event["shapes"] = shapes.count
       if !shapes.isEmpty { event["first_shape_ms"] = read.firstShapeMs ?? ms }
@@ -312,18 +343,17 @@ final class WhiteboardModel: ObservableObject {
     case .tooSoon:
       event["ok"] = false
       event["reason"] = "too_soon"
-      unsaid = [said, unsaid].compactMap { $0 }.joined(separator: " ").nilIfEmpty
     case .refused(let status, let reason):
       event["ok"] = false
       event["status"] = status
       event["reason"] = reason
       failed(who, "The Cockpit refused the turn (\(status)): \(reason)", status: status, stale: stale)
     case .away(let reason):
-      unsaid = [said, unsaid].compactMap { $0 }.joined(separator: " ").nilIfEmpty
       event["ok"] = false
       event["reason"] = reason
       failed(who, "Larry couldn't be reached: \(reason)", status: nil, stale: stale)
     }
+    if ghostsOn, let undelivered { unsaid = unsaid.map { "\(undelivered) \($0)" } ?? undelivered }
     log.event("whiteboard_turn", event)
   }
 
@@ -575,7 +605,7 @@ struct WhiteboardView: View {
           } label: {
             Label(model.micOn ? "Stop listening" : "Talk to Claude", systemImage: model.micOn ? "mic.fill" : "mic")
           }
-          .disabled(model.micStarting)
+          .disabled(model.micStarting || model.micFinishing)
           .tint(model.micOn ? .red : nil)
           .accessibilityIdentifier("whiteboard-mic")
         }
@@ -804,8 +834,4 @@ final class BoardCanvasView: PKCanvasView {
     toolPicker.setVisible(true, forFirstResponder: self)
     becomeFirstResponder()
   }
-}
-
-extension String {
-  fileprivate var nilIfEmpty: String? { isEmpty ? nil : self }
 }

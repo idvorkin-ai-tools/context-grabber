@@ -57,6 +57,15 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(app, strokes: 0)
   }
 
+  func testSpeakingWithGhostsOffAsksNothing() throws {
+    let (app, ghosts) = try openBoard(say: "draw a square")
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off", timeout: 3)
+    app.buttons["whiteboard-mic"].tap()
+    sleep(4)
+    XCTAssertEqual(ghosts.label, "Ghosts off")
+  }
+
   func testAPauseBringsAGhostAndLarryTakesATurn() throws {
     let (app, ghosts) = try openBoard()
     stroke(app)
