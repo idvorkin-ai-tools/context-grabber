@@ -82,7 +82,7 @@ suggest changes the board until Igor keeps it.
 - When the mic can't start, the bar shows a copyable problem, including during a call with Larry, which has the
   microphone. The board's mic stops when a call starts. A stopped mic takes a moment to finish its last words, and
   its button waits for that.
-- Words are heard by Apple's dictation on the device, and the words go to the Cockpit with the picture.
+- Words are heard by Apple's dictation, on the device when it can, and the words go to the Cockpit with the picture.
 
 ## Where it runs
 
