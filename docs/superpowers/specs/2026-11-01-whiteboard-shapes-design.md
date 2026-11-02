@@ -49,15 +49,19 @@ suggest changes the board until Igor keeps it.
   isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
   isn't shown or counted either.
 
-### Larry's turn (stories 349, 353, 355–357, 380–384)
+### Larry's turn (stories 349, 353, 355–357, 380–389)
 
 Larry draws through his chat thread, in his own time: the real Larry answers in minutes, so nothing waits for him
 (Igor, 2026-11-02).
 
 - **Larry's turn** in the board's bar sends a picture of the board to the board's chat thread, saying *your turn on the
-  board*, and the bar says *Larry has the board*. No spinner: Igor keeps drawing, and can hand him a newer picture at any time.
+  board*, and the bar says *Larry has the board* as soon as the picture is taken. No spinner: Igor keeps drawing, and can
+  hand him a newer picture once that one has gone. If it can't be delivered, the line goes and the problem below shows.
 - **Each board has one thread**, named after the board. The board's first *Larry's turn* or *Send to Larry* starts it,
-  and later ones of either kind go to it, on this device. Claude's ghost turns have no thread.
+  and later ones of either kind go to it, on this device, even when the first *Send* lands with the board closed. The
+  two don't race to start it: *Larry's turn* is off while the board's first *Send* waits in the outbox, and *Send* is
+  off while a turn is on its way. If the Cockpit says it no longer has the thread, the next picture starts a new one.
+  Claude's ghost turns have no thread.
 - **Larry's marks arrive on their own.** While a board that has a thread is open, the app looks at the thread about
   every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (blue), kept by a tap like Claude's.
   It makes no difference whether he is answering a turn, answering *Send to Larry*, or drawing unprompted.
@@ -73,11 +77,12 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
 - **A dismissed set doesn't come back**, on the next look or the next time the board opens. Keeping one mark settles
   that row the same way the next time the board opens: the ones he left show until the board closes.
 - The looking stops when the board closes or the app goes to the background, and starts again when it comes back.
-  While it can't reach the Cockpit the bar says so quietly after about 10 s (*Larry's marks: the Cockpit isn't
+  While it can't reach the Cockpit the bar says so quietly after 10 to 15 s (*Larry's marks: the Cockpit isn't
   answering*), the log says so once, and the bar clears itself when the Cockpit answers. Never an error box, never a
   repeating one.
 - When the picture can't be handed to him, or the Cockpit refuses it, the bar shows a copyable problem with what was
-  asked. A look-only board neither sends nor looks.
+  asked. A look-only board takes no turn and doesn't look: its *Send to Larry* still sends, and his reply shows only in
+  Chat.
 
 ### Not yet
 

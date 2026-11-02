@@ -44,6 +44,7 @@ final class WhiteboardModel: ObservableObject {
   private let log: SessionLog
   private let inbox: InboxModel
   private let cockpit: String
+  private let threads = WhiteboardThreads()
   /// Puts a kept ghost on the canvas (undoably); the canvas sets it.
   var draw: ((PKDrawing) -> Void)?
   private var pacer = WhiteboardPacer()
@@ -57,8 +58,6 @@ final class WhiteboardModel: ObservableObject {
   /// The row his showing marks came from.
   private var shownRow: String?
   private var watchTask: Task<Void, Never>?
-  /// Between the board appearing and it closing or the app leaving.
-  private var watching = false
   private var lookFailures = 0
 
   static let ghostsKey = "whiteboard_ghosts"
@@ -67,8 +66,10 @@ final class WhiteboardModel: ObservableObject {
   /// How long Claude's ghosts stay when nothing replaces them.
   static let ghostSeconds =
     ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap(Double.init) ?? 30
-  /// How often an open board looks at its thread, and how many failed looks before the bar says so.
+  /// How often an open board looks at its thread, how long one look waits, and how many failed looks before the bar
+  /// says so.
   static let lookEvery: Duration = .seconds(3)
+  static let lookTimeout: TimeInterval = 3
   static let awayAfter = 3
 
   init(board: BoardEntry, store: WhiteboardStore, log: SessionLog, inbox: InboxModel, cockpit: String) {
@@ -173,10 +174,10 @@ final class WhiteboardModel: ObservableObject {
     guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
     larrySending = true
     defer { larrySending = false }
-    turnNote = "Sending the board to Larry"
+    turnNote = "Larry has the board"
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
     let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
-    let thread = UserDefaults.standard.string(forKey: threadKey)
+    let thread = threads.thread(board: board.id)
     let picture = WhiteboardPicture(
       board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
     let started = Date()
@@ -192,17 +193,15 @@ final class WhiteboardModel: ObservableObject {
     case .sent(let key, _):
       event["ok"] = true
       event["thread"] = key
-      UserDefaults.standard.set(key, forKey: threadKey)
+      threads.set(key, board: board.id)
       turnFailing = false
-      turnNote = "Larry has the board"
       if problem?.context == "WhiteboardView.larry" { problem = nil }
-      watchLarry()
     case .refused(let status, let reason):
       event["ok"] = false
       event["status"] = status
       event["reason"] = reason
       // A thread the Cockpit no longer has: the next turn starts a new one.
-      if status == 404 { UserDefaults.standard.removeObject(forKey: threadKey) }
+      if status == 404, let thread { threads.forget(thread, board: board.id) }
       failed(.larry, "The Cockpit refused the turn (\(status)): \(reason)", status: status, stale: false)
     case .retry(let reason):
       event["ok"] = false
@@ -232,15 +231,10 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// The board appearing or the app coming back: looks at the thread until `stopWatchingLarry`, if there is one to
-  /// look at. Story 382.
+  /// The board appearing or the app coming back: looks at its thread, once it has one, until `stopWatchingLarry`.
+  /// Story 382.
   func startWatchingLarry() {
-    watching = true
-    watchLarry()
-  }
-
-  private func watchLarry() {
-    guard editable, watching, watchTask == nil, hasThreadToWatch else { return }
+    guard editable, watchTask == nil else { return }
     watchTask = Task { [weak self] in
       while !Task.isCancelled {
         await self?.lookAtThread()
@@ -250,36 +244,25 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func stopWatchingLarry() {
-    watching = false
     watchTask?.cancel()
     watchTask = nil
   }
 
-  private var hasThreadToWatch: Bool {
-    UserDefaults.standard.string(forKey: threadKey) != nil || UserDefaults.standard.string(forKey: sendKey) != nil
-  }
-
-  /// A Send to Larry that started the thread: once it lands, that thread is the board's.
-  private func adoptSentThread() {
-    guard let id = UserDefaults.standard.string(forKey: sendKey) else { return }
-    let item = inbox.items.first { $0.id == id }
-    if let thread = item?.chatThread, UserDefaults.standard.string(forKey: threadKey) == nil {
-      UserDefaults.standard.set(thread, forKey: threadKey)
-    }
-    if item == nil || item?.status != .waiting { UserDefaults.standard.removeObject(forKey: sendKey) }
-  }
-
   private func lookAtThread() async {
-    adoptSentThread()
-    guard let thread = UserDefaults.standard.string(forKey: threadKey) else { return }
+    guard let thread = threads.thread(board: board.id) else { return }
     let reason: String
     do {
-      let (body, response) = try await URLSession.shared.data(
-        for: try ChatWire.threadRequest(thread, cockpit: cockpit))
+      var request = try ChatWire.threadRequest(thread, cockpit: cockpit)
+      request.timeoutInterval = Self.lookTimeout
+      let (body, response) = try await URLSession.shared.data(for: request)
       if Task.isCancelled { return }
       let status = (response as? HTTPURLResponse)?.statusCode
       if status == 200, let rows = WhiteboardMarks.rows(body) {
         lookWorked(rows)
+        return
+      }
+      if status == 404 {
+        threadGone(thread)
         return
       }
       reason = "HTTP \(status ?? 0)"
@@ -293,6 +276,14 @@ final class WhiteboardModel: ObservableObject {
     }
     lookFailures += 1
     if lookFailures >= Self.awayAfter { larryAway = true }
+  }
+
+  /// The Cockpit answered and no longer has the thread: the next picture starts a new one.
+  private func threadGone(_ thread: String) {
+    threads.forget(thread, board: board.id)
+    lookFailures = 0
+    larryAway = false
+    log.event("whiteboard_marks", ["action": "thread_gone", "board": board.id, "thread": thread])
   }
 
   private func lookWorked(_ rows: [WhiteboardMarks.Row]) {
@@ -330,11 +321,6 @@ final class WhiteboardModel: ObservableObject {
   }
 
   static let ghostsAway = "Ghosts: the Cockpit isn't answering"
-  // ponytail: the board's thread in UserDefaults on this device; it moves to the board's index if boards ever change
-  // hands.
-  private var threadKey: String { "whiteboard_thread_\(board.id)" }
-  /// A Send to Larry starting the thread, by its Inbox id, until it lands.
-  private var sendKey: String { "whiteboard_send_\(board.id)" }
   private var settledKey: String { "whiteboard_marks_settled_\(board.id)" }
 
   /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
@@ -568,24 +554,23 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
+  /// The board's first Send is still in the outbox: a turn now would start a second thread.
+  func firstSendWaiting(in items: [InboxItem]) -> Bool {
+    threads.firstSendWaiting(board: board.id, in: items)
+  }
+
   /// Story 343: the whole drawing, dark ink on white whatever the iPad's mode, on the board's thread with Larry, titled
   /// with the board's name; the first one starts it (story 381).
   func send() {
-    guard sent == nil, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
+    guard sent == nil, !larrySending, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
     let ink = picture(rect: rect, scale: scale)
     let jpeg = ink.jpegData(compressionQuality: 0.85) ?? Data()
     var draft = InboxDraft()
     draft.image = jpeg
     draft.text = store.index.board(board.id)?.title ?? board.title
     draft.whiteboard = WhiteboardPicture(board: board.id, title: draft.text, rect: rect, scale: scale)
-    let thread = UserDefaults.standard.string(forKey: threadKey)
-    let id = UUID().uuidString.lowercased()
     do {
-      try inbox.add(&draft, id: id, thread: thread)
-      if thread == nil {
-        UserDefaults.standard.set(id, forKey: sendKey)
-        watchLarry()
-      }
+      try inbox.add(&draft, thread: threads.thread(board: board.id))
       if problem?.context == "WhiteboardView.send" { problem = nil }
       sent = "Sent to Larry: his reply shows in Chat"
       log.event(
@@ -618,6 +603,7 @@ extension WhiteboardTurn.Who {
 /// One board, pushed from the list: drawn on here, or looked at when another device draws it.
 struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
+  @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
   private let logger: BugLogger
 
@@ -625,6 +611,7 @@ struct WhiteboardView: View {
     _model = StateObject(
       wrappedValue: WhiteboardModel(
         board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit))
+    inbox = app.inbox
     logger = app.bugLogger
   }
 
@@ -663,7 +650,7 @@ struct WhiteboardView: View {
           } label: {
             Label("Larry's turn", systemImage: "hand.draw")
           }
-          .disabled(model.isEmpty || model.larrySending)
+          .disabled(model.isEmpty || model.larrySending || model.firstSendWaiting(in: inbox.items))
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
@@ -675,7 +662,7 @@ struct WhiteboardView: View {
         }
         // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
         .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
-        .disabled(model.isEmpty || model.sent != nil)
+        .disabled(model.isEmpty || model.sent != nil || model.larrySending)
         .accessibilityIdentifier("whiteboard-send")
       }
     }

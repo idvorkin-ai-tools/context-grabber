@@ -46,6 +46,32 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   }
 }
 
+/// Each board's one chat thread on this device, by board id. ponytail: UserDefaults on this device; it moves to the
+/// board's index if boards ever change hands.
+public struct WhiteboardThreads: @unchecked Sendable {
+  private let defaults: UserDefaults
+
+  public init(defaults: UserDefaults = .standard) {
+    self.defaults = defaults
+  }
+
+  private func key(_ board: String) -> String { "whiteboard_thread_\(board)" }
+
+  public func thread(board: String) -> String? { defaults.string(forKey: key(board)) }
+
+  public func set(_ thread: String, board: String) { defaults.set(thread, forKey: key(board)) }
+
+  /// The Cockpit no longer has `thread`. A newer thread the board has moved to stays.
+  public func forget(_ thread: String, board: String) {
+    if self.thread(board: board) == thread { defaults.removeObject(forKey: key(board)) }
+  }
+
+  /// The board has no thread yet and a picture waiting in the outbox will start it.
+  public func firstSendWaiting(board: String, in items: [InboxItem]) -> Bool {
+    thread(board: board) == nil && items.contains { $0.whiteboard?.board == board && $0.status == .waiting }
+  }
+}
+
 public struct WhiteboardMarks: Sendable {
   /// One of Larry's rows on the thread.
   public struct Row: Equatable, Sendable {
@@ -88,7 +114,7 @@ public struct WhiteboardMarks: Sendable {
   public init() {}
 
   /// `rows`: Larry's, oldest first. `settled`: the row Igor already kept or dismissed from. The first look shows only
-  /// the newest row of marks, unless that one is settled; after that, each new one.
+  /// the newest row of marks, unless that one is settled or has nowhere to go; after that, each new one.
   public mutating func take(_ rows: [Row], settled: String?) -> Update {
     var update = Update()
     if let seen {
@@ -96,9 +122,13 @@ public struct WhiteboardMarks: Sendable {
       update.marks = new.last(where: \.drawable)
       update.say = new.last { !$0.text.isEmpty }?.text
       update.unplaced = new.filter { !$0.drawable && !$0.shapes.isEmpty }.map(\.id)
-    } else if let newest = rows.last(where: \.drawable), newest.id != settled {
-      update.marks = newest
-      update.say = newest.text.isEmpty ? nil : newest.text
+    } else if let newest = rows.last(where: { !$0.shapes.isEmpty }), newest.id != settled {
+      if newest.drawable {
+        update.marks = newest
+        update.say = newest.text.isEmpty ? nil : newest.text
+      } else {
+        update.unplaced = [newest.id]
+      }
     }
     seen = Set(rows.map(\.id))
     return update

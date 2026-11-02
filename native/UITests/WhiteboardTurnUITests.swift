@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373 and 380–384 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373 and 380–389 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -84,7 +84,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(app.buttons["whiteboard-ghosts"].waitForExistence(timeout: 5), app.debugDescription)
   }
 
-  /// Stories 382 and 383, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept ones with no
+  /// Stories 382, 383, 386 and 388, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept ones with no
   /// tap, the newest set comes back when the board opens again, and once dismissed it doesn't, on either count.
   func testLarrysMarksArriveOnTheirOwnAndADismissedSetStaysGone() throws {
     let cockpit = try XCTUnwrap(ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"])

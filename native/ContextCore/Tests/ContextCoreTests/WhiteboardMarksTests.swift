@@ -137,4 +137,105 @@ final class WhiteboardMarksTests: XCTestCase {
     XCTAssertEqual(update.unplaced, ["b"])
     XCTAssertEqual(update.say, "see")
   }
+
+  /// Story 387: the newest row has nowhere to go, so an older row doesn't stand in for it, and the log can name it.
+  func testOpeningOnANewestRowWithNoPlaceShowsNothingAndNamesIt() {
+    var marks = WhiteboardMarks()
+    let lost = WhiteboardMarks.Row(
+      id: "b", text: "see", shapes: [.init(kind: .line, points: [.zero, CGPoint(x: 1, y: 1)])])
+    let update = marks.take([row("a", text: "old"), lost, row("c", text: "words", marks: false)], settled: nil)
+    XCTAssertNil(update.marks)
+    XCTAssertNil(update.say)
+    XCTAssertEqual(update.unplaced, ["b"])
+    XCTAssertEqual(marks.take([row("a"), lost], settled: nil), .init())
+  }
+
+  // MARK: The board's one thread (story 385)
+
+  private func makeThreads() throws -> WhiteboardThreads {
+    let suite = "whiteboard-threads-\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+    addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+    return WhiteboardThreads(defaults: defaults)
+  }
+
+  private func outbox() throws -> InboxStore {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+    return InboxStore(directory: directory)
+  }
+
+  private func picture(_ id: String, at: Int64, board: String = "b1", thread: String? = nil) -> InboxItem {
+    InboxItem(
+      id: id, kind: .text, sharedAt: at, text: "board", thread: thread,
+      whiteboard: WhiteboardPicture(board: board, title: "Plan", rect: frame, scale: 2))
+  }
+
+  private actor Paths {
+    var all: [String] = []
+    func add(_ path: String) { all.append(path) }
+  }
+
+  /// Two Sends queued with no thread go to one thread, and the board keeps it with nobody watching: the sent items can
+  /// be forgotten by Chat, and another board's thread is left alone.
+  func testPicturesQueuedWithNoThreadShareTheOneTheFirstStarts() async throws {
+    let store = try outbox()
+    let threads = try makeThreads()
+    threads.set("other", board: "b2")
+    try store.add(picture("m1", at: 1))
+    try store.add(picture("m2", at: 2))
+    XCTAssertTrue(threads.firstSendWaiting(board: "b1", in: store.items().items))
+    let paths = Paths()
+    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: threads) { request in
+      await paths.add(request.url?.path ?? "")
+      return (
+        Data(#"{"ok": true, "thread": "t9"}"#.utf8),
+        HTTPURLResponse(url: try XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil)!
+      )
+    }
+    let report = await sender.sendWaiting { _, _ in }
+    XCTAssertEqual(report.sent, ["m1", "m2"])
+    let sentTo = await paths.all
+    XCTAssertEqual(sentTo, ["/chat", "/chat/t9"])
+    XCTAssertEqual(threads.thread(board: "b1"), "t9")
+    XCTAssertEqual(threads.thread(board: "b2"), "other")
+    XCTAssertEqual(store.item("m2")?.chatThread, "t9")
+    XCTAssertFalse(threads.firstSendWaiting(board: "b1", in: store.items().items))
+  }
+
+  /// The Cockpit no longer has the thread: that picture is refused and the board's next one starts a new thread.
+  func testAPictureToAThreadTheCockpitLostFreesTheBoard() async throws {
+    let store = try outbox()
+    let threads = try makeThreads()
+    threads.set("gone", board: "b1")
+    try store.add(picture("m1", at: 1))
+    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: threads) { request in
+      (
+        Data(#"{"ok": false, "error": "no such thread"}"#.utf8),
+        HTTPURLResponse(url: try XCTUnwrap(request.url), statusCode: 404, httpVersion: nil, headerFields: nil)!
+      )
+    }
+    let report = await sender.sendWaiting { _, _ in }
+    XCTAssertEqual(report.refused, ["m1"])
+    XCTAssertNil(threads.thread(board: "b1"))
+  }
+
+  /// A failed send keeps its place in the outbox, so a turn stays held back; a share isn't a board's picture.
+  func testOnlyABoardsOwnWaitingPictureHoldsBackItsTurn() throws {
+    let threads = try makeThreads()
+    XCTAssertFalse(threads.firstSendWaiting(board: "b1", in: []))
+    XCTAssertFalse(
+      threads.firstSendWaiting(board: "b1", in: [InboxItem(id: "s", kind: .text, sharedAt: 1, text: "share")]))
+    XCTAssertFalse(threads.firstSendWaiting(board: "b1", in: [picture("m", at: 1, board: "b2")]))
+    XCTAssertTrue(threads.firstSendWaiting(board: "b1", in: [picture("m", at: 1)]))
+    threads.set("t", board: "b1")
+    XCTAssertFalse(threads.firstSendWaiting(board: "b1", in: [picture("m", at: 1)]))
+  }
+
+  func testForgettingAnOldThreadLeavesANewerOne() throws {
+    let threads = try makeThreads()
+    threads.set("new", board: "b1")
+    threads.forget("old", board: "b1")
+    XCTAssertEqual(threads.thread(board: "b1"), "new")
+  }
 }

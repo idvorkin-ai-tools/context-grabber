@@ -75,10 +75,15 @@ public struct InboxSender: Sendable {
   let store: InboxStore
   let cockpit: String
   let transport: Transport
+  let threads: WhiteboardThreads
 
-  public init(store: InboxStore, cockpit: String, transport: @escaping Transport) {
+  public init(
+    store: InboxStore, cockpit: String, threads: WhiteboardThreads = WhiteboardThreads(),
+    transport: @escaping Transport
+  ) {
     self.store = store
     self.cockpit = cockpit
+    self.threads = threads
     self.transport = transport
   }
 
@@ -99,7 +104,9 @@ public struct InboxSender: Sendable {
     // A simulator fixture never reaches Larry, whichever launch finds it.
     for queued in store.waiting() where !queued.isFixture {
       // Read again just before sending: one deleted while an earlier request was out never goes (local review).
-      guard let item = store.item(queued.id), item.status == .waiting else { continue }
+      guard var item = store.item(queued.id), item.status == .waiting else { continue }
+      // A board's picture goes to the thread the one before it may have just started.
+      if item.thread == nil, let board = item.whiteboard?.board { item.thread = threads.thread(board: board) }
       var fields: [String: Any] = ["item": item.id, "kind": item.kind.rawValue, "new_thread": item.thread == nil]
       if let thread = item.thread { fields["thread"] = thread }
       let outcome = await send(item, fields: &fields)
@@ -150,10 +157,14 @@ public struct InboxSender: Sendable {
         try store.markSent(item.id, at: Int64(now().timeIntervalSince1970 * 1000), thread: thread)
         fields.merge(["action": "sent", "duplicate": duplicate, "thread": thread]) { $1 }
         report.sent.append(item.id)
+        if let board = item.whiteboard?.board { threads.set(thread, board: board) }
       case .refused(let status, let reason):
         try store.markRefused(item.id, reason: reason)
         fields.merge(["action": "refused", "status": status, "reason": reason]) { $1 }
         report.refused.append(item.id)
+        if status == 404, let board = item.whiteboard?.board, let thread = item.thread {
+          threads.forget(thread, board: board)
+        }
       case .retry(let reason):
         fields.merge(["action": "failed", "reason": reason]) { $1 }
         report.retry = reason
