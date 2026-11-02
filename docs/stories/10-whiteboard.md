@@ -56,7 +56,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Relaunch
 - **Given:** I drew on the board and then quit the app
-- **When:** I open the Whiteboard again and tap that board's card
+- **When:** I open the Whiteboard again and tap that board's row
 - **Then:** every stroke is there, and the view opens centred on the drawing
 
 ---
@@ -169,7 +169,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** View only, through iCloud
 - **Given:** I drew a board on the iPad and closed it, and both devices are signed into my iCloud
-- **When:** I open the Whiteboard on the phone and tap that board's card
+- **When:** I open the Whiteboard on the phone and tap that board's row
 - **Then:** I see the drawing, which I can pan and pinch but not draw on, with a note that it is drawn on the iPad
 
 ---
@@ -177,7 +177,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 348:
 
 - **Summary:** Many boards, as a list
-- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5), a delete during the first upload in [8625cd8](https://github.com/idvorkin/context-grabber/commit/8625cd8); verified by host tests (`BoardIndexTests`: names, newest first, deletes) and the simulator (`just native-test-sim`: the boards open from the hook); the cards on the iPad not yet seen
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5), a delete during the first upload in [8625cd8](https://github.com/idvorkin/context-grabber/commit/8625cd8); verified by host tests (`BoardIndexTests`: names, newest first, deletes) and the simulator (`just native-test-sim`: the boards open from the hook); the rows, and Delete offered on another device's board, in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73), verified on the iPhone simulator by `WhiteboardRowDeleteUITests`; the rows on the iPad not yet seen
 
 #### Use Case:
 - **As someone** who sketches a different idea each time
@@ -188,12 +188,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The boards
 - **Given:** I drew one board this morning, and one before the list existed
 - **When:** I open the Whiteboard and tap + New board, draw, and go back
-- **Then:** the list shows three cards, newest first, each with its picture, name and when it changed; an empty new board left without a stroke leaves no card
+- **Then:** the list shows three rows, newest first, each with its picture, name and when it changed; an empty new board left without a stroke leaves no row
 
 - **Scenario:** Rename and delete
-- **Given:** a card for a board this device drew
+- **Given:** a row for a board this device drew
 - **When:** I long-press it and rename it, then long-press it again, tap Delete and confirm
-- **Then:** the card takes the new name, then goes, and the board leaves every device and doesn't come back; a card drawn on another device offers neither
+- **Then:** the row takes the new name, then goes, and the board leaves every device and doesn't come back; a row drawn on another device offers Delete (story 396) but not Rename
 
 ### User Story 349:
 
@@ -756,6 +756,44 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 378:
+
+- **Summary:** Choose the board's colour
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the menu, the colour on the canvas and the colour still there on reopening verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels and the button tree); the other boards keeping their colours not covered by a test; the Pencil's tool picker after the menu to judge on the iPad
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who looks at a board for a long time
+- **I want to** choose its background from a few colours, and have it remember
+- **so that** the board is pleasant to draw on, and I can tell one idea from another
+
+#### Acceptance Criteria:
+- **Scenario:** A colour for this board
+- **Given:** a board of mine is open
+- **When:** I open the Board menu in the bar, choose Cream, draw, go back and open the board again
+- **Then:** the board is cream both times, and the other boards haven't changed
+
+---
+
+### User Story 379:
+
+- **Summary:** The colour goes with the board
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the merge carrying the colour verified by host tests (`BoardIndexTests`); the colour on the list's row, which replaced the card in [a8b2730](https://github.com/idvorkin/context-grabber/commit/a8b2730), not covered by a test and not yet seen; iCloud and the look-only view on the phone not yet seen, as the simulator has no iCloud account and no board from another device
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who looks at the iPad's boards on the phone
+- **I want to** see them in the colour I chose
+- **so that** a board looks like the same board everywhere
+
+#### Acceptance Criteria:
+- **Scenario:** On the phone
+- **Given:** I chose Sage for a board on the iPad and closed it
+- **When:** I open the Whiteboard on the phone and tap that board's row
+- **Then:** the row in the list and the look-only board are sage, in the phone's own mode, and the phone offers no way to change it
+
+---
+
 ### User Story 380:
 
 - **Summary:** Larry's turn doesn't hold up the drawing
@@ -1066,7 +1104,222 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 396:
+
+- **Summary:** Delete a board from any device, with a swipe
+- **Issues:** #613
+- **Status:** implemented in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73); the list, the swipe, the confirmation and that the row stays gone verified on the iPhone simulator by `WhiteboardRowDeleteUITests`; the merge by host tests (`BoardIndexTests`); on real iCloud, and the rows on the iPad, not yet tried, as the simulator has no iCloud account
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** delete a board with a swipe
+- **so that** the list holds only what I still want, and I don't have to go find the iPad to clean it
+
+#### Acceptance Criteria:
+- **Scenario:** Swipe on the phone, on a board drawn on the iPad
+- **Given:** the phone lists a board drawn on the iPad
+- **When:** I swipe its row left, tap Delete and confirm
+- **Then:** the row goes and doesn't come back when the list syncs
+
+---
+
+### User Story 397:
+
+- **Summary:** The device that drew a deleted board follows
+- **Issues:** #613
+- **Status:** implemented in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73); the merge verified by host tests (`BoardIndexTests`); the delete crossing iCloud between the iPhone and the iPad not yet tried, as the simulator has no iCloud account
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** have a delete on the phone reach the iPad, even one that was off
+- **so that** a deleted board doesn't linger on the device that drew it
+
+#### Acceptance Criteria:
+- **Scenario:** The iPad follows
+- **Given:** I deleted an iPad board on the phone, with the iPad off
+- **When:** the iPad's list next syncs
+- **Then:** the board is gone from the iPad too
+
+---
+
 ### User Story 398:
+
+- **Summary:** New ink wins over a delete
+- **Issues:** #613
+- **Status:** implemented in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73), the open board's guard held until its last save on this branch; the merge verified by host tests (`BoardIndexTests`); on real iCloud between the iPhone and the iPad not yet tried, as the simulator has no iCloud account
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** keep what I drew when a delete crosses it
+- **so that** a delete from another device never costs me ink it hadn't seen
+
+#### Acceptance Criteria:
+- **Scenario:** New ink wins
+- **Given:** the iPad has the board open, or has drawn on it and not reached iCloud yet, when I delete it on the phone
+- **When:** the iPad syncs
+- **Then:** nothing it drew is lost: the board goes up again and returns to both devices
+
+---
+
+### User Story 399:
+
+- **Summary:** A picture of a deleted board says so
+- **Issues:** #613
+- **Status:** implemented in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73); verified on the iPhone simulator by `WhiteboardRowDeleteUITests`
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** be told when a picture or link names a board that has gone
+- **so that** a jump that can't land explains itself and I can copy why
+
+#### Acceptance Criteria:
+- **Scenario:** A picture of a deleted board
+- **Given:** a chat picture or a link names a deleted board
+- **When:** I jump to it
+- **Then:** I get a copyable problem saying it was deleted or hasn't arrived
+
+---
+
+### User Story 400:
+
+- **Summary:** No delete means no loss
+- **Issues:** #613
+- **Status:** implemented in [4ddfb73](https://github.com/idvorkin/context-grabber/commit/4ddfb73); the merge verified by host tests (`BoardIndexTests`); a real account switch not yet tried
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** keep this device's boards whatever iCloud's list says
+- **so that** only a delete I asked for ever takes a board away
+
+#### Acceptance Criteria:
+- **Scenario:** No delete means no loss
+- **Given:** this device signs into a different iCloud account, or iCloud's list comes back without its boards
+- **When:** the list syncs
+- **Then:** the boards this device drew stay, because only an asked-for delete removes them
+
+---
+
+### User Story 401:
+
+- **Summary:** A late delete keeps ink it never saw
+- **Issues:** #613
+- **Status:** implemented on this branch; the merge verified by host tests (`BoardIndexTests`); on real iCloud between the iPhone and the iPad not yet tried, as the simulator has no iCloud account
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards that have served their purpose, on whichever device is in hand
+- **I want to** have a delete cover only what I could see when I made it
+- **so that** a delete made offline can't erase what I drew in the days before it arrived
+
+#### Acceptance Criteria:
+- **Scenario:** A delete arrives after newer ink
+- **Given:** I deleted an iPad board on the phone with no network, and the iPad then drew on it and that reached iCloud
+- **When:** the phone gets back online and both devices sync
+- **Then:** the board and its new ink return to both devices
+
+---
+
+### User Story 402:
+
+- **Summary:** The Board menu on an iPhone's width
+- **Status:** implemented in [6d9f24f](https://github.com/idvorkin/context-grabber/commit/6d9f24f); the top bar with nothing under *More* verified on the simulator by `WhiteboardTurnUITests` (from the button tree); the menu's place at the bottom has not been looked at by eye
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** drawing on a narrow screen
+- **I want to** have the Board menu at the bottom of the screen
+- **so that** Larry's turn and Send stay where I can reach them
+
+#### Acceptance Criteria:
+- **Scenario:** On an iPhone's width
+- **Given:** a board of mine is open on a narrow screen
+- **When:** I look for the Board menu
+- **Then:** it is at the bottom of the screen, and Larry's turn and Send are still in the top bar, not under *More*
+
+---
+
+### User Story 403:
+
+- **Summary:** The colour follows light and dark mode
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`)
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** whose iPad changes mode through the day
+- **I want to** have a board's colour change with the mode
+- **so that** the ink stays easy to read
+
+#### Acceptance Criteria:
+- **Scenario:** Light and dark mode
+- **Given:** a board is Cream
+- **When:** the iPad changes between light and dark mode
+- **Then:** the board goes between a pale shade and a deep one, and the ink stays easy to read on both
+
+---
+
+### User Story 404:
+
+- **Summary:** Ghosts show on every colour
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); ghost contrast on every colour verified by host tests (`BoardPaperTests`); ghosts on each colour by eye to judge on the iPad
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who decides which marks to keep
+- **I want to** see a ghost as well on a colour as on Plain
+- **so that** choosing a colour doesn't hide what Claude and Larry suggest
+
+#### Acceptance Criteria:
+- **Scenario:** Ghosts on a colour
+- **Given:** a board is any of the colours
+- **When:** Claude's orange ghosts and Larry's blue ones show
+- **Then:** I can see them about as well as on Plain
+
+---
+
+### User Story 405:
+
+- **Summary:** A colour alone keeps no empty board
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the empty-board rule verified by host tests (`BoardIndexTests`)
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who tries a colour on a new board and changes their mind
+- **I want to** have the board go if I never drew on it
+- **so that** the list holds only boards with something on them
+
+#### Acceptance Criteria:
+- **Scenario:** An empty board
+- **Given:** I opened a new board and chose a colour
+- **When:** I close it without a stroke
+- **Then:** it leaves no row
+
+---
+
+### User Story 406:
+
+- **Summary:** Claude and Larry see dark ink on white
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the pictures to Claude and Larry are left as they were, so stay dark on white; not covered by a test
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who colours a board for my own eyes
+- **I want to** have Claude and Larry get the same picture on any colour
+- **so that** a colour never changes how they read the board
+
+#### Acceptance Criteria:
+- **Scenario:** What Claude and Larry see
+- **Given:** a board is Sage and the iPad is in dark mode
+- **When:** Claude takes a turn or I send the board to Larry
+- **Then:** the picture they get is dark ink on white
+
+---
+
+### User Story 407:
 
 - **Summary:** Faint grid lines on the board
 - **Status:** implemented in STAMP; verified by host tests (`WhiteboardFrameTests`) and the simulator (`WhiteboardTurnUITests`: lines appear in the screenshot's pixels, the choice stays with its board, a new board has none); how faint they look beside real ink, and drawing and pinching at 120 Hz on a big board, are for the iPad
@@ -1081,12 +1334,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** The grid, on and off
 - **Given:** a board with strokes on it, its grid off
-- **When:** I choose Grid lines in the board's view menu
+- **When:** I choose Grid lines in the Board menu
 - **Then:** faint lines show, too faint to break up the ink they cross, and pan and pinch with the board, thinning out as I pinch out; choosing it again removes them and the ink is untouched; the board opens with the same choice next time, and a new board starts with none
 
 ---
 
-### User Story 399:
+### User Story 408:
 
 - **Summary:** The grid is only for me
 - **Status:** implemented in STAMP; the pictures are made from the ink alone, so there's no line to leave out; a turn's picture with the grid on is for the iPad's eye (the simulator test doesn't read the picture)

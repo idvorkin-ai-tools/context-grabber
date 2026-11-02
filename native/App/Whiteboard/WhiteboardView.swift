@@ -31,8 +31,10 @@ final class WhiteboardModel: ObservableObject {
   }
   /// Story 344's switch, remembered across boards.
   @Published private(set) var ghostsOn: Bool
-  /// Story 398's switch, remembered per board on this device. Lines over the board, never in the drawing or a picture.
+  /// Story 407's switch, remembered per board on this device. Lines over the board, never in the drawing or a picture.
   @Published private(set) var gridOn: Bool
+  /// The board's colour (story 378).
+  @Published private(set) var paper: BoardPaper
   /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
   @Published private(set) var turnNote: String?
   /// The picture is on its way to Larry's thread.
@@ -100,6 +102,7 @@ final class WhiteboardModel: ObservableObject {
   ) {
     self.callLive = callLive
     self.board = board
+    paper = board.paper
     self.store = store
     self.log = log
     self.inbox = inbox
@@ -197,6 +200,13 @@ final class WhiteboardModel: ObservableObject {
     gridOn = on
     UserDefaults.standard.set(on, forKey: "whiteboard_grid_\(board.id)")
     log.event("whiteboard", ["action": on ? "grid_on" : "grid_off", "board": board.id])
+  }
+
+  func setPaper(_ new: BoardPaper) {
+    guard editable, new != paper else { return }
+    paper = new
+    store.setPaper(new, board: board.id)
+    log.event("whiteboard", ["action": "paper", "board": board.id, "paper": new.rawValue])
   }
 
   /// Story 380: the picture goes to the board's thread and Igor keeps drawing; Larry's marks come when they come.
@@ -675,7 +685,7 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Dark ink on white whatever the iPad's mode: what Larry and Claude see.
+  /// Dark ink on white whatever the iPad's mode and the board's colour: what Larry and Claude see.
   private func picture(rect: CGRect, scale: CGFloat) -> UIImage {
     var ink = UIImage()
     UITraitCollection(userInterfaceStyle: .light).performAsCurrent { ink = drawing.image(from: rect, scale: scale) }
@@ -695,6 +705,11 @@ final class WhiteboardModel: ObservableObject {
     stopWatchingLarry()
     saveTask?.cancel()
     if editable, dirty { save() }
+  }
+
+  /// On screen: a delete from another device waits for `close`, which comes after the last save.
+  func opened() {
+    if editable { store.opened(board.id) }
   }
 
   /// Leaving the board, by Back or by a link that takes it down: what is drawn is written now, not a second later,
@@ -774,11 +789,30 @@ extension WhiteboardTurn.Who {
   var color: UIColor { self == .claude ? .systemOrange : .systemBlue }
 }
 
+extension UIColor {
+  convenience init(rgb: UInt32) {
+    self.init(
+      red: CGFloat(rgb >> 16 & 0xFF) / 255, green: CGFloat(rgb >> 8 & 0xFF) / 255, blue: CGFloat(rgb & 0xFF) / 255,
+      alpha: 1)
+  }
+}
+
+extension BoardPaper {
+  /// Follows the view's mode, as the ink does. Plain is the system's own, as every board was before colours.
+  var color: UIColor {
+    guard self != .plain else { return .systemBackground }
+    let light = UIColor(rgb: light)
+    let dark = UIColor(rgb: dark)
+    return UIColor { $0.userInterfaceStyle == .dark ? dark : light }
+  }
+}
+
 /// One board, pushed from the list: drawn on here, or looked at when another device draws it.
 struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   private let logger: BugLogger
   private let callLive: AnyPublisher<Bool, Never>
   private let reportOpen: AnyPublisher<Bool, Never>
@@ -809,6 +843,27 @@ struct WhiteboardView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {
+        // The board's own settings, in one menu. Six items in an iPhone's top bar push Larry's turn and Send under *More*,
+        // so at that width this one goes to the bottom (story 402).
+        ToolbarItem(placement: horizontalSizeClass == .compact ? .bottomBar : .topBarTrailing) {
+          Menu {
+            Section("Colour") {
+              Picker("Colour", selection: Binding(get: { model.paper }, set: { model.setPaper($0) })) {
+                ForEach(BoardPaper.allCases, id: \.self) { paper in
+                  Text(paper.name).tag(paper)
+                }
+              }
+            }
+            Section("Grid") {
+              Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+            }
+          } label: {
+            Label("Board", systemImage: "paintpalette")
+          }
+          // Its colour and grid, for VoiceOver and the UI test, in the label for the reason below.
+          .accessibilityLabel("Board, \(model.paper.name)\(model.gridOn ? ", grid on" : "")")
+          .accessibilityIdentifier("whiteboard-board")
+        }
         ToolbarItem(placement: .topBarTrailing) {
           // The system's button: no *Allow Paste?* prompt, and iOS dims it when the clipboard holds no text.
           PasteButton(payloadType: String.self) { texts in
@@ -851,18 +906,6 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
-      // On the left, in one menu: a sixth button on the right pushes Send and others off an iPhone's bar. How the board
-      // looks goes here.
-      ToolbarItem(placement: .topBarLeading) {
-        Menu {
-          Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
-        } label: {
-          Label("Board view", systemImage: "squareshape.split.3x3")
-        }
-        // The state, for VoiceOver and the UI test, in the label for the reason above.
-        .accessibilityLabel("Board view, grid \(model.gridOn ? "on" : "off")")
-        .accessibilityIdentifier("whiteboard-view")
-      }
       ToolbarItem(placement: .topBarTrailing) {
         Button {
           model.send()
@@ -882,7 +925,10 @@ struct WhiteboardView: View {
       try? await Task.sleep(for: .seconds(1))
       model.paste(text)
     }
-    .onAppear { model.startWatchingLarry() }
+    .onAppear {
+      model.opened()
+      model.startWatchingLarry()
+    }
     .onDisappear {
       model.stopMic(why: "closed")
       model.close()
@@ -925,7 +971,7 @@ private struct BoardCanvas: UIViewRepresentable {
     // The system's own choice: with a Pencil paired, only it draws (palm rejection, a finger moves the board);
     // without one (an iPhone, the simulator), a finger draws.
     canvas.drawingPolicy = .default
-    canvas.backgroundColor = .systemBackground
+    canvas.backgroundColor = model.paper.color
     canvas.isOpaque = true
     canvas.contentSize = CGSize(width: WhiteboardFrame.side, height: WhiteboardFrame.side)
     canvas.minimumZoomScale = 0.1
@@ -960,6 +1006,7 @@ private struct BoardCanvas: UIViewRepresentable {
   }
 
   func updateUIView(_ canvas: BoardCanvasView, context: Context) {
+    canvas.backgroundColor = model.paper.color
     canvas.show(model.ghosts)
     canvas.showGrid(model.gridOn)
   }
@@ -1007,7 +1054,7 @@ final class BoardCanvasView: PKCanvasView {
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
   private let ghostLayer = CALayer()
   private var shown: [String: CAShapeLayer] = [:]
-  /// Story 398: one thin solid line, repeated each way by the GPU. Nothing is rasterised, and nothing changes between
+  /// Story 407: one thin solid line, repeated each way by the GPU. Nothing is rasterised, and nothing changes between
   /// crossings of a line, so the grid costs next to nothing while drawing and panning. Made the first time it's asked for.
   private var grid: (holder: CALayer, across: CAReplicatorLayer, down: CAReplicatorLayer)?
   private var gridLaid: WhiteboardFrame.Grid?

@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 380–389 and 398 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402, 403 and 407 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -196,6 +196,72 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }
 
+  /// The colour of the screen where nothing is drawn, as 0xRRGGBB: the canvas isn't in the accessibility tree.
+  private func paperOnScreen() throws -> UInt32 {
+    let shot = try XCTUnwrap(XCUIScreen.main.screenshot().image.cgImage)
+    var pixel = [UInt8](repeating: 0, count: 4)
+    let space = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+    let context = try XCTUnwrap(
+      CGContext(
+        data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: space,
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+    context.draw(
+      shot,
+      in: CGRect(
+        x: -CGFloat(shot.width) * 0.85, y: -CGFloat(shot.height) * 0.65, width: CGFloat(shot.width),
+        height: CGFloat(shot.height)))
+    return UInt32(pixel[0]) << 16 | UInt32(pixel[1]) << 8 | UInt32(pixel[2])
+  }
+
+  private func keepShot(_ name: String) {
+    let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    shot.name = name
+    shot.lifetime = .keepAlways
+    add(shot)
+  }
+
+  private func assertPaper(_ expected: UInt32, _ what: String) throws {
+    sleep(1)
+    let seen = try paperOnScreen()
+    for shift: UInt32 in [16, 8, 0] {
+      let channel = { (rgb: UInt32) in Int(rgb >> shift & 0xFF) }
+      XCTAssertLessThanOrEqual(
+        abs(channel(seen) - channel(expected)), 4, "\(what): saw \(String(seen, radix: 16))")
+    }
+  }
+
+  /// Stories 378, 402, 403: the colour is on the canvas, follows the mode, and stays when the board opens again.
+  func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
+    let before = XCUIDevice.shared.appearance
+    addTeardownBlock { XCUIDevice.shared.appearance = before }
+    XCUIDevice.shared.appearance = .light
+    let (app, ghosts) = try openBoard()
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off", timeout: 3)
+    let paper = app.buttons["whiteboard-board"]
+    XCTAssertFalse(app.buttons["OverflowBarButtonItem"].exists, "the top bar has room for all its buttons")
+    XCTAssertEqual(paper.label, "Board, Plain")
+    try assertPaper(0xFFFFFF, "Plain, light")
+
+    paper.tap()
+    let cream = app.buttons["Cream"]
+    XCTAssertTrue(cream.waitForExistence(timeout: 5), app.debugDescription)
+    keepShot("The menu")
+    cream.tap()
+    wait(paper, label: "Board, Cream", timeout: 3)
+    try assertPaper(0xFBF3DC, "Cream, light")
+    XCUIDevice.shared.appearance = .dark
+    try assertPaper(0x2B2416, "Cream, dark")
+    stroke(app)
+    wait(app, strokes: 1)
+    keepShot("Ink on Cream, dark, the tool picker back")
+    XCUIDevice.shared.appearance = .light
+
+    reopenBoard(app)
+    wait(paper, label: "Board, Cream", timeout: 3)
+    try assertPaper(0xFBF3DC, "Cream, reopened")
+  }
+
   /// A ghost shows in the board's note, found by what it says: an identifier on the note never matched, with the note on
   /// screen. The second stroke shows the same query can see it.
   func testGhostsOffAsksNothing() throws {
@@ -213,7 +279,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(note.waitForExistence(timeout: 8), app.debugDescription)
   }
 
-  /// Story 398: off until asked, visible when on (read from the pixels: the board isn't in the accessibility tree), gone
+  /// Story 407: off until asked, visible when on (read from the pixels: the board isn't in the accessibility tree), gone
   /// when off, and remembered by this board and no other. Ghosts off, so nothing else moves on the board.
   func testTheGridShowsWhenAskedAndStaysWithItsBoard() throws {
     let (app, ghosts) = try openBoard()
@@ -221,12 +287,12 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts off", timeout: 3)
     stroke(app)
     wait(app, strokes: 1)
-    let view = app.buttons["whiteboard-view"]
-    XCTAssertEqual(view.label, "Board view, grid off")
+    let view = app.buttons["whiteboard-board"]
+    XCTAssertEqual(view.label, "Board, Plain")
     sleep(1)
     let off = app.screenshot().image
 
-    tapGrid(app, view, expect: "on")
+    tapGrid(app, view, expect: "Board, Plain, grid on")
     sleep(1)
     let on = app.screenshot()
     try? on.pngRepresentation.write(to: URL(fileURLWithPath: "/Users/idvorkin/tmp/agent/notes/wb/grid-on.png"))  // TEMP
@@ -237,11 +303,11 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertGreaterThan(boardPixelsDiffering(off, on.image), 1000, "no grid lines appeared")
 
     reopenBoard(app)
-    XCTAssertEqual(view.label, "Board view, grid on")
-    tapGrid(app, view, expect: "off")
+    XCTAssertEqual(view.label, "Board, Plain, grid on")
+    tapGrid(app, view, expect: "Board, Plain")
     reopenBoard(app)
-    XCTAssertEqual(view.label, "Board view, grid off")
-    tapGrid(app, view, expect: "on")
+    XCTAssertEqual(view.label, "Board, Plain")
+    tapGrid(app, view, expect: "Board, Plain, grid on")
 
     // A new board has its own switch.
     app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -249,16 +315,16 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(new.waitForExistence(timeout: 5), app.debugDescription)
     new.tap()
     XCTAssertTrue(view.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertEqual(view.label, "Board view, grid off")
+    XCTAssertEqual(view.label, "Board, Plain")
   }
 
-  /// The grid's switch, in the board's view menu.
+  /// The grid's switch, in the Board menu.
   private func tapGrid(_ app: XCUIApplication, _ view: XCUIElement, expect: String) {
     view.tap()
     let item = app.descendants(matching: .any)["Grid lines"].firstMatch
     XCTAssertTrue(item.waitForExistence(timeout: 3), app.debugDescription)
     item.tap()
-    wait(view, label: "Board view, grid \(expect)", timeout: 3)
+    wait(view, label: expect, timeout: 3)
   }
 
   /// How many pixels differ in the middle of the screen, clear of the bars and the tool picker.
