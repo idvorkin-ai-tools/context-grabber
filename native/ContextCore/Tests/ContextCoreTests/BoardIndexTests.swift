@@ -16,6 +16,52 @@ final class BoardIndexTests: XCTestCase {
       index.add(id: "c", at: nov1, device: "ipad", deviceName: "iPad", timeZone: utc).title, "Board, Nov 1 (3)")
   }
 
+  func testAColourOnANewBoardLeavesItNewAndGoesUpWithItsFirstStroke() {
+    var index = BoardIndex()
+    index.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
+    index.setPaper("a", to: .cream, at: 2_000_000_000_000)
+    let board = index.board("a")
+    XCTAssertEqual(board?.paper, .cream)
+    XCTAssertEqual(board?.updated, board?.created, "closing it without a stroke still takes it away")
+    index.drew("a", strokes: 1, at: 2_000_000_000_001)
+    XCTAssertEqual(index.pendingUploads(device: "ipad").first?.paperID, "cream")
+  }
+
+  func testAColourOnADrawnBoardIsAChangeForICloud() {
+    var index = BoardIndex()
+    index.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
+    index.drew("a", strokes: 1, at: 2_000_000_000_000)
+    index.uploaded("a", at: 2_000_000_000_000)
+    index.setPaper("a", to: .plain, at: 2_000_000_000_500)
+    XCTAssertEqual(index.pendingUploads(device: "ipad"), [], "the colour it already has changes nothing")
+    index.setPaper("a", to: .sage, at: 2_000_000_001_000)
+    XCTAssertEqual(index.pendingUploads(device: "ipad").map(\.id), ["a"])
+    XCTAssertEqual(index.board("a")?.current, true, "the drawing here is still the board's")
+  }
+
+  func testAnotherDevicesColourComesDownWithItsBoard() {
+    var index = BoardIndex()
+    let remote = BoardEntry(
+      id: "a", title: "T", created: 1, updated: 2, strokes: 1, device: "ipad", deviceName: "iPad", paperID: "sage")
+    index.merge(cloud: [remote], device: "phone")
+    XCTAssertEqual(index.board("a")?.paper, .sage)
+    var recoloured = remote
+    recoloured.paperID = "lilac"
+    recoloured.updated = 3
+    index.merge(cloud: [recoloured], device: "phone")
+    XCTAssertEqual(index.board("a")?.paper, .lilac)
+  }
+
+  func testAListWithNoColoursOrAColourFromANewerBuildStillReads() throws {
+    let old =
+      #"{"boards":[{"id":"a","title":"T","created":1,"updated":1,"strokes":0,"device":"d","deviceName":"n"}],"deleted":[]}"#
+    XCTAssertEqual(try JSONDecoder().decode(BoardIndex.self, from: Data(old.utf8)).board("a")?.paper, .plain)
+    let new = old.replacingOccurrences(of: #""strokes":0"#, with: #""strokes":0,"paperID":"neon""#)
+    let board = try JSONDecoder().decode(BoardIndex.self, from: Data(new.utf8)).board("a")
+    XCTAssertEqual(board?.paper, .plain)
+    XCTAssertEqual(board?.paperID, "neon")
+  }
+
   func testTheListIsNewestChangeFirst() {
     var index = BoardIndex()
     index.add(id: "old", at: nov1, device: "ipad", deviceName: "iPad")

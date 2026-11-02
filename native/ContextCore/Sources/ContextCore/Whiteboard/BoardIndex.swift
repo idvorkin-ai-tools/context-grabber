@@ -9,7 +9,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   public var title: String
   /// Unix ms.
   public var created: Int64
-  /// Unix ms of the last stroke or rename: the list's order, and how iCloud's copy is told to be newer.
+  /// Unix ms of the last stroke, rename or colour: the list's order, and how iCloud's copy is told to be newer.
   public var updated: Int64
   public var strokes: Int
   /// The install that draws it (the archive's device id) and what that device is ("iPad").
@@ -20,13 +20,17 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   /// The `updated` whose drawing this device holds: always current for a board drawn here, the last that arrived
   /// for another device's; nil until one did.
   public var fetched: Int64?
+  /// The board's colour by name; nil, or a name from a newer build, shows as Plain and is kept as it is.
+  public var paperID: String?
+
+  public var paper: BoardPaper { paperID.flatMap(BoardPaper.init(rawValue:)) ?? .plain }
 
   /// This device holds the drawing of the version it knows of.
   public var current: Bool { fetched == updated }
 
   public init(
     id: String, title: String, created: Int64, updated: Int64, strokes: Int, device: String, deviceName: String,
-    uploaded: Int64? = nil, fetched: Int64? = nil
+    uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil
   ) {
     self.id = id
     self.title = title
@@ -37,6 +41,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
     self.deviceName = deviceName
     self.uploaded = uploaded
     self.fetched = fetched
+    self.paperID = paperID
   }
 }
 
@@ -110,6 +115,17 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     if current { boards[i].fetched = boards[i].updated }
   }
 
+  /// A colour for the board. One not yet changed stays new, so closing it without a stroke still takes it away (its
+  /// first stroke takes the colour up); any other is a change iCloud has to take.
+  public mutating func setPaper(_ id: String, to paper: BoardPaper, at ms: Int64) {
+    guard let i = boards.firstIndex(where: { $0.id == id }), boards[i].paper != paper else { return }
+    boards[i].paperID = paper.rawValue
+    guard boards[i].updated != boards[i].created else { return }
+    let current = boards[i].fetched == boards[i].updated
+    boards[i].updated = max(ms, boards[i].updated)
+    if current { boards[i].fetched = boards[i].updated }
+  }
+
   /// Gone from this list; a board iCloud took, or may be taking (it was ever changed, or another device drew it), is
   /// deleted there on the next sync.
   public mutating func remove(_ id: String, device: String) {
@@ -163,9 +179,9 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   /// device is where they are drawn, except one iCloud has that this list lost (a reinstall, an unreadable list),
   /// which comes back. A board deleted here and still in iCloud is not brought back. `unread`: records iCloud holds
   /// that could not be read, never dropped for it. `tombstones`: boards some device deleted, with the `updated` it
-  /// saw, which go from here too, unless this device drew one and has ink iCloud lacks or has it open (`open`). A board
-  /// changed after that version outlives the tombstone, and this device sends it again, since the delete took its
-  /// record. Returns the ids whose drawing must be fetched (until a fetch lands, every merge asks again), the ids
+  /// saw, which go from here too, unless this device drew one and has a change iCloud lacks or has it open (`open`).
+  /// A board changed after that version outlives the tombstone, and this device sends it again, since the delete took
+  /// its record. Returns the ids whose drawing must be fetched (until a fetch lands, every merge asks again), the ids
   /// dropped, and whether any board now needs sending again.
   public mutating func merge(
     cloud: [BoardEntry], device: String, unread: Set<String> = [], tombstones: [String: Int64] = [:],

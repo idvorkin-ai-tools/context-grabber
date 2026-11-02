@@ -84,6 +84,24 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
 - **Back** (top bar) closes the board and returns to the boards, where **Done** leaves the Whiteboard.
+- **The board's colour** (Igor, 2026-11-02, #607: "Give me the ability to change background colors"): a
+  **Board** menu in the top bar, on the device that draws the board, offers five colours: *Plain*, *Cream*, *Sage*, *Lilac* and
+  *Grey*. On a width as narrow as an iPhone's, the menu sits at the bottom of the screen, so the top bar's buttons stay
+  in view and don't move under *More*.
+  - **Each board keeps its own colour.** It's remembered with the board and goes through iCloud with the drawing, like
+    its name. A new board starts on Plain. Choosing a colour moves the board to the top of the list, as a rename does.
+    A colour that hasn't reached iCloud beats a delete from elsewhere, as new ink does.
+  - **Each colour has a pale shade and a deep one**, so black ink, which turns white in dark mode, stays easy to read
+    when the iPad changes mode. Plain is white in light mode and black in dark mode, as every board was before.
+  - **Ghosts stay visible on all of them.** No colour is orange or blue, and a faint orange or blue ghost on any colour
+    is at least nine-tenths as visible as it is on Plain.
+  - **A colour alone doesn't keep an empty board.** A new board left without a stroke still goes when it closes, whatever
+    colour was chosen.
+  - **Other devices show the same colour**, in the look-only view, shaded for that device's own mode. They can't change
+    it. A board already open there shows a new colour the next time it opens, as it does a new drawing.
+  - **The row** in the list has the colour's pale shade behind the board's picture, as the picture's ink is always dark.
+  - **Claude and Larry always get dark ink on white**, whatever the colour and the mode: the colour is for Igor's eyes,
+    and every picture they read stays the same. So a mark of theirs lands the same on any colour.
 
 ## Later steps (not in this build)
 
@@ -110,6 +128,10 @@ that ghosts need the tailnet.
 - Draw on the iPad and close the board: within a minute, the iPhone's list shows it with the same picture. Opening
   it there shows the drawing with no tool picker, and a finger only pans.
 - Rename and delete a board on the iPad: the iPhone follows on its next refresh.
+- Choose Cream on a board, draw, close and reopen it: it's still Cream, deep in dark mode and pale in light mode, and the
+  ink is readable in both. The iPhone shows it Cream too, and its row in the list is cream on both devices.
+- Choose a colour on a new board and close it without a stroke: no row is left behind.
+- Send a Cream board to Larry: the picture in Chat is dark ink on white.
 - Swipe left on a row on the iPhone, on a board drawn on the iPad: Delete asks first, then the row goes. The board
   doesn't come back on the iPhone, and the iPad's list loses it on its next refresh, with the iPad off at the time of
   the delete too.

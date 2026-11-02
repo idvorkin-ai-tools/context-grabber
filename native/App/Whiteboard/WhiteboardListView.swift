@@ -93,7 +93,7 @@ struct WhiteboardListView: View {
       path.append(board.id)
     } label: {
       HStack(spacing: 12) {
-        BoardPicture(url: store.pictureURL(board.id), version: store.pictures).frame(width: 120)
+        BoardPicture(url: store.pictureURL(board.id), version: store.pictures, paper: board.paper).frame(width: 120)
         VStack(alignment: .leading, spacing: 6) {
           Text(board.title).font(.headline).lineLimit(1)
           Text(subtitle(board)).font(.caption).foregroundStyle(.secondary).lineLimit(2)
@@ -132,15 +132,16 @@ struct WhiteboardListView: View {
   }
 }
 
-/// A board's picture on white, as the ink is dark on white whatever the mode; blank for an empty board.
+/// A board's picture on its colour's pale shade, as the ink is dark whatever the mode; blank for an empty board.
 private struct BoardPicture: View {
   let url: URL?
   /// Changes when a picture on disk does, so this one is read again.
   let version: Int
+  let paper: BoardPaper
 
   var body: some View {
     RoundedRectangle(cornerRadius: 12)
-      .fill(Color.white)
+      .fill(Color(uiColor: UIColor(rgb: paper.light)))
       .overlay {
         if let url, let image = UIImage(contentsOfFile: url.path) {
           Image(uiImage: image).resizable().scaledToFit().padding(8)

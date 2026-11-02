@@ -1,4 +1,4 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373 and 380–389 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402 and 403 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
@@ -194,6 +194,72 @@ final class WhiteboardTurnUITests: XCTestCase {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
     wait(app, strokes: 3)
     XCTAssertEqual(ghosts.label, "Ghosts on")
+  }
+
+  /// The colour of the screen where nothing is drawn, as 0xRRGGBB: the canvas isn't in the accessibility tree.
+  private func paperOnScreen() throws -> UInt32 {
+    let shot = try XCTUnwrap(XCUIScreen.main.screenshot().image.cgImage)
+    var pixel = [UInt8](repeating: 0, count: 4)
+    let space = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+    let context = try XCTUnwrap(
+      CGContext(
+        data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: space,
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+    context.draw(
+      shot,
+      in: CGRect(
+        x: -CGFloat(shot.width) * 0.85, y: -CGFloat(shot.height) * 0.65, width: CGFloat(shot.width),
+        height: CGFloat(shot.height)))
+    return UInt32(pixel[0]) << 16 | UInt32(pixel[1]) << 8 | UInt32(pixel[2])
+  }
+
+  private func keepShot(_ name: String) {
+    let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    shot.name = name
+    shot.lifetime = .keepAlways
+    add(shot)
+  }
+
+  private func assertPaper(_ expected: UInt32, _ what: String) throws {
+    sleep(1)
+    let seen = try paperOnScreen()
+    for shift: UInt32 in [16, 8, 0] {
+      let channel = { (rgb: UInt32) in Int(rgb >> shift & 0xFF) }
+      XCTAssertLessThanOrEqual(
+        abs(channel(seen) - channel(expected)), 4, "\(what): saw \(String(seen, radix: 16))")
+    }
+  }
+
+  /// Stories 378, 402, 403: the colour is on the canvas, follows the mode, and stays when the board opens again.
+  func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
+    let before = XCUIDevice.shared.appearance
+    addTeardownBlock { XCUIDevice.shared.appearance = before }
+    XCUIDevice.shared.appearance = .light
+    let (app, ghosts) = try openBoard()
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off", timeout: 3)
+    let paper = app.buttons["whiteboard-board"]
+    XCTAssertFalse(app.buttons["OverflowBarButtonItem"].exists, "the top bar has room for all its buttons")
+    XCTAssertEqual(paper.label, "Board, Plain")
+    try assertPaper(0xFFFFFF, "Plain, light")
+
+    paper.tap()
+    let cream = app.buttons["Cream"]
+    XCTAssertTrue(cream.waitForExistence(timeout: 5), app.debugDescription)
+    keepShot("The menu")
+    cream.tap()
+    wait(paper, label: "Board, Cream", timeout: 3)
+    try assertPaper(0xFBF3DC, "Cream, light")
+    XCUIDevice.shared.appearance = .dark
+    try assertPaper(0x2B2416, "Cream, dark")
+    stroke(app)
+    wait(app, strokes: 1)
+    keepShot("Ink on Cream, dark, the tool picker back")
+    XCUIDevice.shared.appearance = .light
+
+    reopenBoard(app)
+    wait(paper, label: "Board, Cream", timeout: 3)
+    try assertPaper(0xFBF3DC, "Cream, reopened")
   }
 
   /// A ghost shows in the board's note, found by what it says: an identifier on the note never matched, with the note on

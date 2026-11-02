@@ -756,6 +756,44 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 378:
+
+- **Summary:** Choose the board's colour
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the menu, the colour on the canvas and the colour still there on reopening verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels and the button tree); the other boards keeping their colours not covered by a test; the Pencil's tool picker after the menu to judge on the iPad
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who looks at a board for a long time
+- **I want to** choose its background from a few colours, and have it remember
+- **so that** the board is pleasant to draw on, and I can tell one idea from another
+
+#### Acceptance Criteria:
+- **Scenario:** A colour for this board
+- **Given:** a board of mine is open
+- **When:** I open the Board menu in the bar, choose Cream, draw, go back and open the board again
+- **Then:** the board is cream both times, and the other boards haven't changed
+
+---
+
+### User Story 379:
+
+- **Summary:** The colour goes with the board
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the merge carrying the colour verified by host tests (`BoardIndexTests`); the colour on the list's row, which replaced the card in [a8b2730](https://github.com/idvorkin/context-grabber/commit/a8b2730), not covered by a test and not yet seen; iCloud and the look-only view on the phone not yet seen, as the simulator has no iCloud account and no board from another device
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who looks at the iPad's boards on the phone
+- **I want to** see them in the colour I chose
+- **so that** a board looks like the same board everywhere
+
+#### Acceptance Criteria:
+- **Scenario:** On the phone
+- **Given:** I chose Sage for a board on the iPad and closed it
+- **When:** I open the Whiteboard on the phone and tap that board's row
+- **Then:** the row in the list and the look-only board are sage, in the phone's own mode, and the phone offers no way to change it
+
+---
+
 ### User Story 380:
 
 - **Summary:** Larry's turn doesn't hold up the drawing
@@ -1183,3 +1221,98 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** I deleted an iPad board on the phone with no network, and the iPad then drew on it and that reached iCloud
 - **When:** the phone gets back online and both devices sync
 - **Then:** the board and its new ink return to both devices
+
+---
+
+### User Story 402:
+
+- **Summary:** The Board menu on an iPhone's width
+- **Status:** implemented in [6d9f24f](https://github.com/idvorkin/context-grabber/commit/6d9f24f); the top bar with nothing under *More* verified on the simulator by `WhiteboardTurnUITests` (from the button tree); the menu's place at the bottom has not been looked at by eye
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** drawing on a narrow screen
+- **I want to** have the Board menu at the bottom of the screen
+- **so that** Larry's turn and Send stay where I can reach them
+
+#### Acceptance Criteria:
+- **Scenario:** On an iPhone's width
+- **Given:** a board of mine is open on a narrow screen
+- **When:** I look for the Board menu
+- **Then:** it is at the bottom of the screen, and Larry's turn and Send are still in the top bar, not under *More*
+
+---
+
+### User Story 403:
+
+- **Summary:** The colour follows light and dark mode
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`)
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** whose iPad changes mode through the day
+- **I want to** have a board's colour change with the mode
+- **so that** the ink stays easy to read
+
+#### Acceptance Criteria:
+- **Scenario:** Light and dark mode
+- **Given:** a board is Cream
+- **When:** the iPad changes between light and dark mode
+- **Then:** the board goes between a pale shade and a deep one, and the ink stays easy to read on both
+
+---
+
+### User Story 404:
+
+- **Summary:** Ghosts show on every colour
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); ghost contrast on every colour verified by host tests (`BoardPaperTests`); ghosts on each colour by eye to judge on the iPad
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who decides which marks to keep
+- **I want to** see a ghost as well on a colour as on Plain
+- **so that** choosing a colour doesn't hide what Claude and Larry suggest
+
+#### Acceptance Criteria:
+- **Scenario:** Ghosts on a colour
+- **Given:** a board is any of the colours
+- **When:** Claude's orange ghosts and Larry's blue ones show
+- **Then:** I can see them about as well as on Plain
+
+---
+
+### User Story 405:
+
+- **Summary:** A colour alone keeps no empty board
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the empty-board rule verified by host tests (`BoardIndexTests`)
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who tries a colour on a new board and changes their mind
+- **I want to** have the board go if I never drew on it
+- **so that** the list holds only boards with something on them
+
+#### Acceptance Criteria:
+- **Scenario:** An empty board
+- **Given:** I opened a new board and chose a colour
+- **When:** I close it without a stroke
+- **Then:** it leaves no row
+
+---
+
+### User Story 406:
+
+- **Summary:** Claude and Larry see dark ink on white
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the pictures to Claude and Larry are left as they were, so stay dark on white; not covered by a test
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who colours a board for my own eyes
+- **I want to** have Claude and Larry get the same picture on any colour
+- **so that** a colour never changes how they read the board
+
+#### Acceptance Criteria:
+- **Scenario:** What Claude and Larry see
+- **Given:** a board is Sage and the iPad is in dark mode
+- **When:** Claude takes a turn or I send the board to Larry
+- **Then:** the picture they get is dark ink on white
