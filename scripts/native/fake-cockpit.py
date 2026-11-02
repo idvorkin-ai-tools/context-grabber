@@ -14,6 +14,7 @@ unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
+Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
 """
 
 import base64
@@ -44,11 +45,13 @@ def now():
     return datetime.now().astimezone().isoformat(timespec="seconds")
 
 
-def row(key, who, text, mid=None, attachments=None):
+def row(key, who, text, mid=None, attachments=None, board=None):
     r = {"id": mid or secrets.token_hex(6), "ts": now(), "thread": key, "who": who, "text": text,
          "source": "app" if who == "igor" else "cli"}
     if attachments:
         r["attachments"] = attachments
+    if board:
+        r["board"] = board
     return r
 
 
@@ -62,6 +65,12 @@ THREADS["igor2-88g.593"] = {"title": "Finished plan", "seen": "", "looks_done": 
 THREADS["igor2-88g.1268"] = {"title": "Larry", "seen": "", "pinned": True, "messages": []}
 THREADS["igor2-88g.592"] = {"title": "Your whiteboard", "seen": "", "messages": [
     row("igor2-88g.592", "larry", "", attachments=[WHITE_PICTURE]),
+]}
+THREADS["igor2-88g.603"] = {"title": "A board picture", "seen": "", "messages": [
+    row("igor2-88g.603", "igor", "", attachments=[WHITE_PICTURE], board="board-603"),
+]}
+THREADS["igor2-88g.604"] = {"title": "A board since deleted", "seen": "", "messages": [
+    row("igor2-88g.604", "igor", "", attachments=[WHITE_PICTURE], board="board-gone-603"),
 ]}
 
 

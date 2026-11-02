@@ -3,6 +3,7 @@
 //  Igor writes goes through the Inbox's store and sender (`InboxModel`), so it works offline and lands once.
 
 import BackgroundTasks
+import BugKit
 import ContextCore
 import Foundation
 import UserNotifications
@@ -34,6 +35,10 @@ final class ChatModel: ObservableObject {
   private var archiveChanges: [String: Task<(title: String, reason: String)?, Never>] = [:]
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
+  /// #603, set by the app: why a board can't be opened (nil when it can), given the board and where it was asked from.
+  var findBoard: @MainActor (String, String) async -> BugProblem? = { _, _ in nil }
+  /// #603, set by the app: leaves the thread for that board.
+  var openBoard: @MainActor (String) -> Void = { _ in }
 
   static let backgroundTask = "com.idvorkin.grabbernative.chat"
   static let notifiedKey = "chat_notified"

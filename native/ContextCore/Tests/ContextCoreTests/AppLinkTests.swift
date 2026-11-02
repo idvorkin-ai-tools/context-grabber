@@ -134,11 +134,24 @@ final class AppLinkTests: XCTestCase {
     XCTAssertEqual(AppLink.link(for: .timer(TimerLink(start: true))), "grabbernative://timer?autostart=1")
   }
 
+  /// #603: a chat picture's Jump to board. A board link runs something (the boards in front still move to it).
+  func testAWhiteboardLinkNamesItsBoard() {
+    XCTAssertEqual(route("grabbernative://whiteboard"), .whiteboard(board: nil))
+    XCTAssertEqual(route("grabbernative://whiteboard?board="), .whiteboard(board: nil))
+    XCTAssertEqual(route("grabbernative://whiteboard?board=AB-12"), .whiteboard(board: "AB-12"))
+    XCTAssertFalse(AppRoute.whiteboard(board: nil).starts)
+    XCTAssertTrue(AppRoute.whiteboard(board: "a").starts)
+    let odd = "a board/with?odd&ids"
+    XCTAssertEqual(route(AppLink.link(for: .whiteboard(board: odd))), .whiteboard(board: odd))
+    XCTAssertEqual(AppLink.link(for: .whiteboard(board: nil)), "grabbernative://whiteboard")
+  }
+
   func testTheLinksScreenListsEveryScreenOnceEachUnderstood() {
     let links = AppLink.catalog.map(\.link)
     XCTAssertEqual(Set(links).count, links.count, "no link twice")
     let screens = Set(AppLink.catalog.map { AppLink.parse($0.link).route.name })
-    XCTAssertEqual(screens, ["home", "today", "timer", "breathe", "places", "cockpit", "call", "card", "supermix"])
+    XCTAssertEqual(
+      screens, ["home", "today", "timer", "breathe", "places", "cockpit", "whiteboard", "call", "card", "supermix"])
     for entry in AppLink.catalog {
       XCTAssertTrue(AppLink.parse(entry.link).understood, entry.link)
       XCTAssertFalse(entry.summary.isEmpty)
