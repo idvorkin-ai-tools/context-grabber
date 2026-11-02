@@ -147,7 +147,12 @@ final class ChatModel: ObservableObject {
 
   func open(_ key: String) {
     openThread = key
-    log.event("ui", ["action": "open_chat_thread", "thread": key])
+    log.event(
+      "ui",
+      [
+        "action": "open_chat_thread", "thread": key,
+        "archived": threads.first { $0.key == key }.map { $0.archived ? "yes" : "no" } ?? "not_listed",
+      ])
     poll?.cancel()
     poll = Task { [weak self] in
       var seenOnce = false
@@ -220,7 +225,7 @@ final class ChatModel: ObservableObject {
         let t = threads[i]
         threads[i] = ChatSummary(
           key: t.key, title: t.title, count: t.count, lastTs: t.lastTs, lastWho: t.lastWho, lastText: t.lastText,
-          unread: 0, done: t.done)
+          unread: 0, done: t.done, archived: t.archived)
       }
       return true
     } catch {
