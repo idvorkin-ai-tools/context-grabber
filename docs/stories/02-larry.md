@@ -1152,7 +1152,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 316:
 
 - **Summary:** One always-on chat with Larry pinned at the top
-- **Status:** native app only: implemented in [37e7d4f](https://github.com/idvorkin/context-grabber/commit/37e7d4f), on the Cockpit's pinned thread (cockpit `ace4083`); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; on the devices not yet
+- **Status:** native app only: implemented in [542ad39](https://github.com/idvorkin/context-grabber/commit/542ad39), on the Cockpit's pinned thread (cockpit `ace4083`); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; on the devices not yet
 - **Issues:** [#598](https://github.com/idvorkin/context-grabber/issues/598)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1165,7 +1165,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** The pinned thread
 - **Given:** the Cockpit has a pinned thread, even one with no messages
 - **When:** I open the chat list
-- **Then:** it is first, with a pin and *Drop anything here* until it has a message; it opens and takes messages like any thread, has no swipe to archive and no tick in *Select*, and its ⋯ menu has no *Archive chat*
+- **Then:** it is first, with a pin and *Drop anything here* until it has a message; it opens and takes messages like any thread, has no swipe to archive and no tick in *Select*, never says *Looks done*, and its ⋯ menu has no *Archive chat*; with only this thread live, *Select* is off
 
 ---
 

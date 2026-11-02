@@ -21,10 +21,7 @@ struct ChatListView: View {
     self.logger = logger
   }
 
-  private var live: [ChatSummary] {
-    let rows = chat.threads.filter { !$0.done }
-    return rows.filter(\.pinned) + rows.filter { !$0.pinned }
-  }
+  private var live: [ChatSummary] { chat.threads.filter { !$0.done } }
   private var done: [ChatSummary] { chat.threads.filter(\.done) }
   private var looksDone: [ChatSummary] { live.filter(\.looksDone) }
   /// *Select* is on: live rows tick instead of opening (#599).
@@ -142,7 +139,7 @@ struct ChatListView: View {
           selecting.toggle()
           if selecting { chat.logAction("select", ["from": "toolbar"]) }
         }
-        .disabled(!selecting && live.isEmpty)
+        .disabled(!selecting && live.allSatisfy(\.pinned))
         .accessibilityIdentifier("chat-select")
       }
     }

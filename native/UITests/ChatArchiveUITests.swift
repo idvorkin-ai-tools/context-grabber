@@ -125,6 +125,8 @@ final class ChatArchiveUITests: XCTestCase {
     let pinned = app.buttons["chat-thread-igor2-88g.1268"]
     XCTAssertTrue(pinned.waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertLessThan(pinned.frame.minY, app.buttons["chat-thread-\(key)"].frame.minY, "first in the list")
+    XCTAssertTrue(pinned.label.contains("Pinned"), pinned.label)
+    XCTAssertTrue(pinned.label.contains("Drop anything here"), pinned.label)
     pinned.swipeLeft()
     XCTAssertFalse(app.buttons["Archive"].waitForExistence(timeout: 2), "no swipe to archive")
     // With nothing to reveal, the simulated swipe lands as a tap and opens the thread.
@@ -136,7 +138,7 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["chat-select"].tap()
 
     pinned.tap()
-    XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), "it opens and takes a message")
+    XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), "it opens on the bar that writes to it")
     XCTAssertFalse(app.buttons["chat-thread-more"].exists, "no menu to archive it from")
   }
 }

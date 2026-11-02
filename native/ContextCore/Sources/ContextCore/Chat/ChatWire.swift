@@ -67,8 +67,8 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     lastText = (try? c.decode(String.self, forKey: .lastText)) ?? ""
     unread = (try? c.decode(Int.self, forKey: .unread)) ?? 0
     archived = (try? c.decode(Bool.self, forKey: .archived)) ?? false
-    looksDone = (try? c.decode(Bool.self, forKey: .looksDone)) ?? false
     pinned = (try? c.decode(Bool.self, forKey: .pinned)) ?? false
+    looksDone = !pinned && ((try? c.decode(Bool.self, forKey: .looksDone)) ?? false)
     done = (try? c.decode(Bool.self, forKey: .done)) ?? false
   }
 }
@@ -131,10 +131,12 @@ public enum ChatWire {
     let messages: [ChatMessage]
   }
 
-  /// Every thread, newest activity first, or nil for an answer that is not a chat list.
+  /// Every thread, the pinned one first and then newest activity first, or nil for an answer that is not a chat list.
   public static func summaries(_ data: Data) -> [ChatSummary]? {
     guard let list = try? JSONDecoder().decode(List.self, from: data), list.ok else { return nil }
-    return list.threads.sorted { ($0.lastAt ?? .distantPast) > ($1.lastAt ?? .distantPast) }
+    return list.threads.sorted {
+      $0.pinned != $1.pinned ? $0.pinned : ($0.lastAt ?? .distantPast) > ($1.lastAt ?? .distantPast)
+    }
   }
 
   public static func messages(_ data: Data) -> [ChatMessage]? {

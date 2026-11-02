@@ -52,7 +52,8 @@ Cockpit still calls finished by its own rule stays under *Done* after *Unarchive
 
 **The pinned thread** (Igor, 2026-11-02: "pinned thread on top"; #598). One always-on thread with Larry sits at the top of
 the list with a pin, for dropping anything into, even before it has a message. It can't be archived, swiped away or
-ticked in *Select*, and it never folds under *Done*.
+ticked in *Select*, it never folds under *Done* and it never says *Looks done*. With only the pinned thread live there
+is nothing to tick, so *Select* is off.
 
 **Archiving several, and threads that look done** (Igor, 2026-11-02; #599). *Select* at the top of the list turns the
 live threads into checkboxes, and *Archive (N)* at the bottom archives them together, with *Undo* for five seconds for
