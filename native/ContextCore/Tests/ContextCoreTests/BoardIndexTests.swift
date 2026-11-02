@@ -48,6 +48,7 @@ final class BoardIndexTests: XCTestCase {
     let ipadBoard = BoardEntry(
       id: "a", title: "Board, Nov 1", created: 1, updated: 10, strokes: 4, device: "ipad", deviceName: "iPad")
     XCTAssertEqual(phone.merge(cloud: [ipadBoard], device: "phone").fetch, ["a"])
+    phone.fetched("a", at: 10)
     XCTAssertEqual(phone.merge(cloud: [ipadBoard], device: "phone").fetch, [], "nothing new, nothing fetched")
     var drawnOn = ipadBoard
     drawnOn.updated = 20
@@ -109,5 +110,45 @@ final class BoardIndexTests: XCTestCase {
     index.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
     let back = try JSONDecoder().decode(BoardIndex.self, from: JSONEncoder().encode(index))
     XCTAssertEqual(back, index)
+  }
+
+  func testAFailedFetchIsAskedForAgainUntilItLands() {
+    var phone = BoardIndex()
+    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    XCTAssertEqual(phone.merge(cloud: [board], device: "phone").fetch, ["a"])
+    XCTAssertEqual(phone.merge(cloud: [board], device: "phone").fetch, ["a"], "the download failed: asked again")
+    phone.fetched("a", at: 10)
+    XCTAssertEqual(phone.merge(cloud: [board], device: "phone").fetch, [])
+  }
+
+  func testOwnBoardsTheListLostComeBackFromICloud() {
+    var ipad = BoardIndex()
+    let lost = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 3, device: "ipad", deviceName: "iPad")
+    XCTAssertEqual(ipad.merge(cloud: [lost], device: "ipad").fetch, ["a"])
+    XCTAssertEqual(ipad.board("a")?.uploaded, 10, "iCloud already has it, so nothing goes back up")
+    XCTAssertEqual(ipad.pendingUploads(device: "ipad"), [])
+    ipad.fetched("a", at: 10)
+    XCTAssertEqual(ipad.merge(cloud: [lost], device: "ipad").fetch, [])
+    XCTAssertTrue(BoardIndex.editable(ipad.board("a") ?? lost, on: "ipad"), "drawn here again")
+  }
+
+  func testABoardICloudHoldsButCannotReadIsNotDropped() {
+    var phone = BoardIndex()
+    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    _ = phone.merge(cloud: [board], device: "phone")
+    let result = phone.merge(cloud: [], device: "phone", unread: ["a"])
+    XCTAssertEqual(result.dropped, [])
+    XCTAssertEqual(result.fetch, [])
+    XCTAssertNotNil(phone.board("a"))
+  }
+
+  func testOwnBoardsDrawnHereNeverNeedAFetch() {
+    var ipad = BoardIndex()
+    ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
+    ipad.drew("a", strokes: 2, at: 2_000_000_000_000)
+    ipad.rename("a", to: "B", at: 2_000_000_001_000)
+    ipad.uploaded("a", at: 2_000_000_001_000)
+    let cloudCopy = ipad.board("a")!
+    XCTAssertEqual(ipad.merge(cloud: [cloudCopy], device: "ipad").fetch, [])
   }
 }

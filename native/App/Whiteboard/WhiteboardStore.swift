@@ -22,6 +22,8 @@ final class WhiteboardStore: ObservableObject {
   private let log: SessionLog
   private let cloud = BoardCloud()
   private var syncing = false
+  /// A sync asked for while one ran: it runs again when that one ends, so what changed meanwhile goes up too.
+  private var again = false
 
   init(log: SessionLog, device: String) {
     self.log = log
@@ -53,9 +55,14 @@ final class WhiteboardStore: ObservableObject {
         index = try JSONDecoder().decode(BoardIndex.self, from: Data(contentsOf: indexURL))
       }
     } catch {
+      // Kept aside, never saved over: iCloud gives this device's boards back on the next sync.
+      let aside = indexURL.appendingPathExtension("unreadable")
+      try? FileManager.default.removeItem(at: aside)
+      try? FileManager.default.moveItem(at: indexURL, to: aside)
       log.event("error", ["where": "whiteboard_index", "message": "\(error)"])
       problem = .grabber(
-        "The list of boards could not be read: \(error.localizedDescription)", context: "WhiteboardStore.load")
+        "The list of boards could not be read, so it was set aside; iCloud brings the boards back: "
+          + error.localizedDescription, context: "WhiteboardStore.load")
     }
     let migrated = migrateSingleBoard()
     log.event(
@@ -111,9 +118,17 @@ final class WhiteboardStore: ObservableObject {
     return id
   }
 
+  /// A board's drawing; one that cannot be read is set aside (never saved over) before the error goes up.
   func drawing(_ id: String) throws -> PKDrawing {
     guard let url = drawingURL(id), FileManager.default.fileExists(atPath: url.path) else { return PKDrawing() }
-    return try PKDrawing(data: Data(contentsOf: url))
+    do {
+      return try PKDrawing(data: Data(contentsOf: url))
+    } catch {
+      let aside = url.appendingPathExtension("unreadable")
+      try? FileManager.default.removeItem(at: aside)
+      try? FileManager.default.moveItem(at: url, to: aside)
+      throw error
+    }
   }
 
   /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it.
@@ -166,12 +181,23 @@ final class WhiteboardStore: ObservableObject {
 
   // MARK: - iCloud
 
-  /// This device's changes up, everyone's boards down. One at a time; a call while one runs is dropped (the running
-  /// one ends with the newest list).
+  /// This device's changes up, everyone's boards down. One at a time; a call while one runs makes it run once more.
   func sync(reason: String) async {
-    guard !syncing else { return }
+    guard !syncing else {
+      again = true
+      return
+    }
     syncing = true
     defer { syncing = false }
+    var why = reason
+    repeat {
+      again = false
+      await syncOnce(reason: why)
+      why = "again"
+    } while again
+  }
+
+  private func syncOnce(reason: String) async {
     do {
       try await cloud.ready()
       for id in index.deleted {
@@ -184,15 +210,25 @@ final class WhiteboardStore: ObservableObject {
         try await cloud.upload(board, drawing: drawing, picture: picture)
         index.uploaded(board.id, at: board.updated)
       }
-      let merged = index.merge(cloud: try await cloud.boards(), device: device)
+      let listed = try await cloud.boards()
+      let merged = index.merge(cloud: listed.boards, device: device, unread: listed.unread)
       for id in merged.dropped {
         for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
       }
+      // Each board on its own: one that fails is asked for again next sync, the rest still arrive.
+      var failed: (any Error)?
       for id in merged.fetch {
-        guard let drawing = drawingURL(id), let picture = pictureURL(id) else { continue }
-        try await cloud.download(id, drawing: drawing, picture: picture)
+        guard let drawing = drawingURL(id), let picture = pictureURL(id), let board = index.board(id) else { continue }
+        do {
+          try await cloud.download(id, drawing: drawing, picture: picture)
+          index.fetched(id, at: board.updated)
+        } catch {
+          failed = failed ?? error
+          log.event("whiteboard_sync", ["ok": false, "why": reason, "board": id, "message": "\(error)"])
+        }
       }
       saveIndex()
+      if let failed { throw failed }
       if !merged.fetch.isEmpty || !merged.dropped.isEmpty { pictures += 1 }
       syncNote = nil
       log.event(
@@ -227,16 +263,37 @@ struct BoardCloud {
   }
 
   /// `CKContainer(identifier:)` traps in a build without the container's entitlement (BugKit #87), so it is only
-  /// made after the signature says the build has it.
+  /// made after the signature says the build has it. Every match of a key is tried: the key's text also sits in this
+  /// file's own strings, which a release build puts in the executable ahead of the signature. ponytail: BugKit's
+  /// `containers(inExecutable:)`, copied; ask bug-kit to make it public and use that.
   private static let entitled: Bool = {
     guard let url = Bundle.main.executableURL, let data = try? Data(contentsOf: url, options: .alwaysMapped) else {
       return false
     }
-    let key = Data("<key>com.apple.developer.icloud-container-identifiers</key>".utf8)
-    guard let found = data.range(of: key) else { return false }
-    let window = data[found.upperBound..<min(data.endIndex, found.upperBound + 4096)]
-    return window.range(of: Data("<string>\(containerID)</string>".utf8)) != nil
+    return strings(of: "com.apple.developer.icloud-services", in: data).contains("CloudKit")
+      && strings(of: "com.apple.developer.icloud-container-identifiers", in: data).contains(containerID)
   }()
+
+  /// The `<string>`s of a plist array entitlement; only a key followed by an `<array>` counts.
+  private static func strings(of entitlement: String, in data: Data) -> Set<String> {
+    let key = Data("<key>\(entitlement)</key>".utf8)
+    var found: Set<String> = []
+    var from = data.startIndex
+    while let match = data.range(of: key, in: from..<data.endIndex) {
+      from = match.upperBound
+      let window = data[match.upperBound..<min(data.endIndex, match.upperBound + 4096)]
+      let text = String(decoding: window, as: UTF8.self).drop { $0.isWhitespace }
+      guard text.hasPrefix("<array>"), let end = text.range(of: "</array>") else { continue }
+      var rest = text[text.index(text.startIndex, offsetBy: 7)..<end.lowerBound]
+      while let open = rest.range(of: "<string>"),
+        let close = rest.range(of: "</string>", range: open.upperBound..<rest.endIndex)
+      {
+        found.insert(String(rest[open.upperBound..<close.lowerBound]))
+        rest = rest[close.upperBound...]
+      }
+    }
+    return found
+  }
 
   private var database: CKDatabase { CKContainer(identifier: Self.containerID).privateCloudDatabase }
 
@@ -272,34 +329,42 @@ struct BoardCloud {
     do {
       let result = try await database.modifyRecords(saving: [], deleting: [self.id(id)])
       if let outcome = result.deleteResults[self.id(id)] { try outcome.get() }
-    } catch let error as CKError where error.code == .unknownItem {
+    } catch let error as CKError
+      where error.code == .unknownItem
+      || (error.code == .partialFailure
+        && (error.partialErrorsByItemID?.values.allSatisfy { ($0 as? CKError)?.code == .unknownItem } ?? false))
+    {
       return  // already gone
     }
   }
 
-  /// Every board's details, without the drawings.
-  func boards() async throws -> [BoardEntry] {
+  /// Every board's details, without the drawings, and the ids of records that could not be read.
+  func boards() async throws -> (boards: [BoardEntry], unread: Set<String>) {
     var token: CKServerChangeToken?
     var found: [BoardEntry] = []
+    var unread: Set<String> = []
     var more = true
     while more {
       let changes = try await database.recordZoneChanges(
         inZoneWith: zone.zoneID, since: token,
         desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName"])
-      for (_, result) in changes.modificationResultsByID {
-        guard let record = try? result.get().record, let entry = Self.entry(record) else { continue }
+      for (id, result) in changes.modificationResultsByID {
+        guard let record = try? result.get().record, let entry = Self.entry(record) else {
+          unread.insert(id.recordName)
+          continue
+        }
         found.append(entry)
       }
       token = changes.changeToken
       more = changes.moreComing
     }
-    return found
+    return (found, unread)
   }
 
   /// A board's drawing and picture, copied to where this device keeps them.
   func download(_ id: String, drawing: URL, picture: URL) async throws {
     let results = try await database.records(for: [self.id(id)], desiredKeys: ["drawing", "picture"])
-    guard let record = try results[self.id(id)]?.get() else { return }
+    guard let record = try results[self.id(id)]?.get() else { throw CKError(.unknownItem) }
     for (key, target) in [("drawing", drawing), ("picture", picture)] {
       guard let source = (record[key] as? CKAsset)?.fileURL else { continue }
       if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }

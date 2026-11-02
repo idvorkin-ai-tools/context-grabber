@@ -61,6 +61,13 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
+  /// The app going to the background: what is drawn is written now. The board stays open, so an empty new one is
+  /// kept.
+  func flush() {
+    saveTask?.cancel()
+    if editable, dirty { save() }
+  }
+
   /// Leaving the board, by Back or by a link that takes it down: what is drawn is written now, not a second later,
   /// and goes up to iCloud. Safe to call twice.
   func close() {
@@ -164,7 +171,7 @@ struct WhiteboardView: View {
     }
     .accessibilityIdentifier("whiteboard")
     .onDisappear { model.close() }
-    .onChange(of: scenePhase) { _, phase in if phase == .background { model.close() } }
+    .onChange(of: scenePhase) { _, phase in if phase == .background { model.flush() } }
   }
 
   private var note: String? {
