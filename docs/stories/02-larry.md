@@ -970,7 +970,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 307:
 
 - **Summary:** Archive a chat with a swipe, and undo it
-- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), a list read racing an archive in [88a194c](https://github.com/idvorkin/context-grabber/commit/88a194c), reading a thread no longer un-archiving it in [efd55da](https://github.com/idvorkin/context-grabber/commit/efd55da); verified by host tests (`ChatTests`: the archived field, the request, the answers) and the simulator (`ChatArchiveUITests` against the fake Cockpit); against the real Cockpit on the iPad not yet
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), a list read racing an archive in [88a194c](https://github.com/idvorkin/context-grabber/commit/88a194c), reading a thread no longer un-archiving it in [efd55da](https://github.com/idvorkin/context-grabber/commit/efd55da); verified by host tests (`ChatTests`: the archived field, the request, the answers) and the simulator (`ChatArchiveUITests` against the fake Cockpit); the simulator not re-run since the request gained its `Content-Type` in [9ff3ded](https://github.com/idvorkin/context-grabber/commit/9ff3ded); against the real Cockpit on the iPad not yet
 - **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
 - **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -990,7 +990,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 308:
 
 - **Summary:** Archive a chat from inside it
-- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30); verified by the simulator (`ChatArchiveUITests` against the fake Cockpit); against the real Cockpit on the iPad not yet
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30); verified by the simulator (`ChatArchiveUITests` against the fake Cockpit); not re-run since the request gained its `Content-Type` in [9ff3ded](https://github.com/idvorkin/context-grabber/commit/9ff3ded); against the real Cockpit on the iPad not yet
 - **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
 - **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1010,7 +1010,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 309:
 
 - **Summary:** Bring an archived chat back
-- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), and a thread the Cockpit still calls done going back under *Done* in the PR's review fix; verified by the simulator (`ChatArchiveUITests` against the fake Cockpit: the swipe and the menu); against the real Cockpit on the iPad not yet
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), and a thread the Cockpit still calls done going back under *Done* in the PR's review fix; verified by the simulator (`ChatArchiveUITests` against the fake Cockpit: the swipe and the menu); not re-run since the request gained its `Content-Type` in [9ff3ded](https://github.com/idvorkin/context-grabber/commit/9ff3ded); against the real Cockpit on the iPad not yet
 - **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
 - **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
 
