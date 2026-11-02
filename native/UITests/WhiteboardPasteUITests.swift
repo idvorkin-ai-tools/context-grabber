@@ -51,7 +51,8 @@ final class WhiteboardPasteUITests: XCTestCase {
   }
 
   func testEachLineIsInkAndClaudesPauseStarts() throws {
-    let app = try openBoard(pasting: "Plan for Tuesday\nCall the bank, then a long line that wraps across the phone\n\nHI")
+    let app = try openBoard(
+      pasting: "Plan for Tuesday\nCall the bank, then a long line that wraps across the phone\n\nHI")
     XCTAssertTrue(app.buttons["whiteboard-paste"].exists)
     let ghosts = app.buttons["whiteboard-ghosts"]
     expectation(for: NSPredicate(format: "label == %@", "Ghosts on, 1 showing"), evaluatedWith: ghosts)

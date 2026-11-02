@@ -747,7 +747,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 365:
 
 - **Summary:** Paste text onto the board as ink
-- **Status:** implemented, #597; commit and where verified are filled in below once merged with main
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented in [c01b0b8](https://github.com/idvorkin/context-grabber/commit/c01b0b8); the layout and caps verified by host tests (`WhiteboardPasteTests`); on the simulator (`WhiteboardPasteUITests`), ⌘V from a real clipboard with no prompt and ⌘Z taking it all back, and through a launch hook each line, Claude's pause, the 500-character cut and the emoji note; the ink's look checked by eye at its pen width in dark mode. Still to try on the iPad: the Paste button itself (XCUITest's taps never fire the system control), that it dims with no text and shows no prompt, zoomed-out and zoomed-in pastes, sync to the other device
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
