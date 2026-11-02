@@ -324,13 +324,13 @@ final class ChatTests: XCTestCase {
 
   // MARK: Archiving (#589)
 
-  func testAnArchivedRowIsDoneAndAnOldCockpitsRowIsNot() throws {
+  func testAnArchivedRowReadsArchivedAndAnOldCockpitsRowIsNot() throws {
     let rows = try XCTUnwrap(
       ChatWire.summaries(
         Data(
           """
           {"ok": true, "threads": [
-            {"key": "a", "title": "A", "archived": true, "done": false},
+            {"key": "a", "title": "A", "archived": true, "done": true},
             {"key": "b", "title": "B"}
           ]}
           """.utf8)))

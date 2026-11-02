@@ -46,7 +46,9 @@ and the list shows *Archived "title"* with *Undo* for five seconds. An archived 
 *Unarchive*. Inside a thread, the **⋯** menu at the top has *Archive chat*, or *Unarchive chat* when it is archived;
 archiving from there goes back to the list. A new message from either side brings an archived thread back by itself,
 as on the Cockpit. When the Cockpit refuses or can't be reached, the thread goes back where it was and a copyable
-problem says why.
+problem says why, in the list and on the open thread, until the next archive or a pull to refresh. Changes to one thread
+happen in order: an *Undo* tapped before the Cockpit has answered the archive waits for that answer. A thread the
+Cockpit still calls finished by its own rule stays under *Done* after *Unarchive*.
 
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or

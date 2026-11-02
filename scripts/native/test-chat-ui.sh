@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The chat UI tests on the simulator (stories 262, 263, 301, 303, 306, 307; #536, #589, #592), with a fake Cockpit for the ones that send:
+# The chat UI tests on the simulator (stories 262, 263, 301, 303, 306–309; #536, #589, #592), with a fake Cockpit for the ones that send:
 # scripts/native/fake-cockpit.py on a local port, its POST /chat held a few seconds so a new chat's waiting state shows.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-chat-ui.sh <simulator udid>   — run it in the build lane:

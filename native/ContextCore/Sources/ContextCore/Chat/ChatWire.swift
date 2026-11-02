@@ -60,7 +60,7 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     lastText = (try? c.decode(String.self, forKey: .lastText)) ?? ""
     unread = (try? c.decode(Int.self, forKey: .unread)) ?? 0
     archived = (try? c.decode(Bool.self, forKey: .archived)) ?? false
-    done = ((try? c.decode(Bool.self, forKey: .done)) ?? false) || archived
+    done = (try? c.decode(Bool.self, forKey: .done)) ?? false
   }
 }
 

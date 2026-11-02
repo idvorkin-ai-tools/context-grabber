@@ -289,6 +289,17 @@ struct ChatThreadView: View {
         withAnimation { reader.scrollTo("bottom", anchor: .bottom) }
       }
     }
+    // Not in the scroll view: it opens at the newest message, so a long thread would hide this.
+    .safeAreaInset(edge: .top) {
+      if let problem = chat.archiveProblem {
+        BugProblemView(
+          problem: .grabber(problem, context: "ChatThreadView.archive", extra: ["cockpit": .string(chat.cockpit)]),
+          logger: logger
+        )
+        .padding(.horizontal, 12)
+        .background(.bar)
+      }
+    }
     .safeAreaInset(edge: .bottom) {
       ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger) {
         newThread.attempt(at: target)

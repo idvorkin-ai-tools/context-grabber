@@ -28,8 +28,10 @@ final class ChatModel: ObservableObject {
   /// Bumped by each archive change and its answer: a list read that started before one is stale (it would put the
   /// thread back where it was), so it is read again.
   private var archiveEpoch = 0
-  /// Archive changes still on their way, shown over any list that comes back meanwhile.
+  /// The archive change on its way for a thread, shown over any list that comes back meanwhile.
   private var archiving: [String: Bool] = [:]
+  /// Each thread's latest archive change: the next one waits for its answer.
+  private var archiveChanges: [String: Task<Void, Never>] = [:]
   /// The list is on screen: only then does a refresh count its replies as shown (local review).
   var listOnScreen = false
 
@@ -66,16 +68,13 @@ final class ChatModel: ObservableObject {
     inbox.reload()
     guard !inbox.offline else { return }
     do {
-      let epoch = archiveEpoch
-      let (data, response) = try await URLSession.shared.data(for: try ChatWire.listRequest(cockpit: cockpit))
-      let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-      guard status == 200, var rows = ChatWire.summaries(data) else {
+      let (read, status) = try await readList()
+      guard let rows = read else {
         return listFailed("the Cockpit answered HTTP \(status)", reason: reason)
       }
-      if epoch != archiveEpoch { return await refreshList(reason: reason) }
-      rows = rows.map { row in archiving[row.key].map(row.archiving) ?? row }
       threads = rows
       listProblem = nil
+      if reason == "pull" { archiveProblem = nil }
       // On screen is seen: a reply shown in the list never notifies later. A refresh behind Home does not count.
       if listOnScreen { recordShown(rows) }
       log.event(
@@ -91,6 +90,17 @@ final class ChatModel: ObservableObject {
     }
   }
 
+  /// The Cockpit's list with this phone's archive changes over it, nil when it could not be read. The caller publishes
+  /// it with no await in between.
+  private func readList() async throws -> (rows: [ChatSummary]?, status: Int) {
+    let epoch = archiveEpoch
+    let (data, response) = try await URLSession.shared.data(for: try ChatWire.listRequest(cockpit: cockpit))
+    let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+    guard status == 200, let rows = ChatWire.summaries(data) else { return (nil, status) }
+    if epoch != archiveEpoch { return try await readList() }
+    return (rows.map { row in archiving[row.key].map(row.archiving) ?? row }, status)
+  }
+
   private static let listFailure = "Could not read the chats from the Cockpit"
 
   private func listFailed(_ why: String, reason: String, problem: String? = nil) {
@@ -100,17 +110,26 @@ final class ChatModel: ObservableObject {
 
   // MARK: Archiving (#589)
 
-  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back.
+  /// One change at a time per thread, so each answer settles the row before the next change looks at it: an Undo
+  /// while the archive is unanswered waits for that answer.
   func setArchived(_ key: String, _ archive: Bool, from: String) async {
-    guard let index = threads.firstIndex(where: { $0.key == key }) else { return }
+    if !archive, undoArchive?.key == key { undoArchive = nil }
+    let earlier = archiveChanges[key]
+    let change = Task {
+      await earlier?.value
+      await applyArchived(key, archive, from: from)
+    }
+    archiveChanges[key] = change
+    await change.value
+  }
+
+  /// Archives or brings back `key` at once on screen, then on the Cockpit; a refusal puts the row back.
+  private func applyArchived(_ key: String, _ archive: Bool, from: String) async {
+    guard let index = threads.firstIndex(where: { $0.key == key }), threads[index].archived != archive else { return }
     let before = threads[index]
     threads[index] = before.archiving(archive)
     archiveEpoch += 1
     archiving[key] = archive
-    defer {
-      archiving[key] = nil
-      archiveEpoch += 1
-    }
     archiveProblem = nil
     if archive, from == "swipe" {
       undoArchive = before
@@ -120,8 +139,6 @@ final class ChatModel: ObservableObject {
         guard !Task.isCancelled, self?.undoArchive?.key == key else { return }
         self?.undoArchive = nil
       }
-    } else if !archive, undoArchive?.key == key {
-      undoArchive = nil
     }
     var failure: String?
     do {
@@ -131,13 +148,19 @@ final class ChatModel: ObservableObject {
     } catch {
       failure = ChatWire.archiveFailure(status: nil, body: nil, error: error.localizedDescription)
     }
+    archiving[key] = nil
+    archiveEpoch += 1
     log.event(
       "chat",
       [
         "action": archive ? "archive" : "unarchive", "thread": key, "from": from, "ok": failure == nil,
         "reason": failure ?? "",
       ])
-    guard let failure else { return }
+    guard let failure else {
+      // The Cockpit may still call it done (an old thread): its list settles where the row belongs.
+      if !archive { await refreshList(reason: "unarchive") }
+      return
+    }
     if let now = threads.firstIndex(where: { $0.key == key }) { threads[now] = before }
     if undoArchive?.key == key { undoArchive = nil }
     archiveProblem = "Could not \(archive ? "archive" : "unarchive") \"\(before.title)\": \(failure)"
@@ -331,15 +354,14 @@ final class ChatModel: ObservableObject {
   @discardableResult
   func backgroundCheck() async -> Bool {
     do {
-      let (data, response) = try await URLSession.shared.data(for: try ChatWire.listRequest(cockpit: cockpit))
-      guard (response as? HTTPURLResponse)?.statusCode == 200, let rows = ChatWire.summaries(data) else {
+      guard let rows = try await readList().rows else {
         log.event("chat", ["action": "background_check", "ok": false])
         return false
       }
+      threads = rows
       let due = ChatNotify.due(rows, notified: notified)
       for summary in due { await notify(summary) }
       notified = ChatNotify.record(rows, into: notified)
-      threads = rows
       log.event("chat", ["action": "background_check", "ok": true, "threads": rows.count, "notified": due.count])
       return true
     } catch {

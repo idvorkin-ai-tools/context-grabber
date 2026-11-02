@@ -969,31 +969,81 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 307:
 
-- **Summary:** Archive a chat from the list or from inside it
-- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), a list read racing an archive in [88a194c](https://github.com/idvorkin/context-grabber/commit/88a194c), reading a thread no longer un-archiving it in [efd55da](https://github.com/idvorkin/context-grabber/commit/efd55da); verified by host tests (`ChatTests`: the archived field, the request, the answers) and the simulator (`ChatArchiveUITests` against the fake Cockpit: a swipe with Undo, the ⋯ menu and Unarchive); against the real Cockpit on the iPad not yet
+- **Summary:** Archive a chat with a swipe, and undo it
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), a list read racing an archive in [88a194c](https://github.com/idvorkin/context-grabber/commit/88a194c), reading a thread no longer un-archiving it in [efd55da](https://github.com/idvorkin/context-grabber/commit/efd55da); verified by host tests (`ChatTests`: the archived field, the request, the answers) and the simulator (`ChatArchiveUITests` against the fake Cockpit); against the real Cockpit on the iPad not yet
 - **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
 - **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client with a long list of chats
-- **I want to** archive a finished one with a swipe, or from the thread's ⋯ menu
+- **I want to** archive a finished one with a swipe, and take it back if I slipped
 - **so that** the list holds only what is still open, the same on the phone and the Cockpit
 
 #### Acceptance Criteria:
 - **Scenario:** Swipe to archive, and undo
 - **Given:** an open thread in the list
-- **When:** I swipe it left and tap *Archive*
-- **Then:** it folds under *Done*, the list says *Archived* with *Undo* for five seconds, and *Undo* puts it back
+- **When:** I swipe it left, tap *Archive*, then tap *Undo* within five seconds
+- **Then:** it folds under *Done* with *Archived "title"* and *Undo* showing, and *Undo* puts it back in the live list
 
+---
+
+### User Story 308:
+
+- **Summary:** Archive a chat from inside it
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30); verified by the simulator (`ChatArchiveUITests` against the fake Cockpit); against the real Cockpit on the iPad not yet
+- **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
+- **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with a long list of chats
+- **I want to** archive a thread from its ⋯ menu when I've finished reading it
+- **so that** I am done with it without going back to find its row
+
+#### Acceptance Criteria:
 - **Scenario:** From inside the thread
 - **Given:** I am reading a thread
 - **When:** I open ⋯ and tap *Archive chat*
-- **Then:** I am back on the list with the thread under *Done*; in an archived thread the menu says *Unarchive chat*
+- **Then:** I am back on the list with the thread under *Done*
 
+---
+
+### User Story 309:
+
+- **Summary:** Bring an archived chat back
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), and a thread the Cockpit still calls done going back under *Done* in the PR's review fix; verified by the simulator (`ChatArchiveUITests` against the fake Cockpit: the swipe and the menu); against the real Cockpit on the iPad not yet
+- **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
+- **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with a long list of chats
+- **I want to** unarchive a thread I archived
+- **so that** a chat I still need returns to the live list
+
+#### Acceptance Criteria:
+- **Scenario:** Unarchive from the list or the thread
+- **Given:** an archived thread under *Done*
+- **When:** I swipe it left and tap *Unarchive*, or tap *Unarchive chat* in its ⋯ menu
+- **Then:** it is back in the live list, unless the Cockpit still calls it done by its own rule, when it stays under *Done* and offers *Archive chat*
+
+---
+
+### User Story 310:
+
+- **Summary:** A refused archive says why
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30), and one change at a time per thread in the PR's review fix; the answers verified by host tests (`ChatTests`); the refusal on screen not yet verified: the fake Cockpit never refuses a thread it has
+- **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
+- **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with a long list of chats
+- **I want to** know when an archive or unarchive did not take
+- **so that** the list never lies about where a thread is
+
+#### Acceptance Criteria:
 - **Scenario:** The Cockpit refuses
-- **Given:** the Cockpit can't be reached
-- **When:** I archive a thread
-- **Then:** it goes back where it was and a copyable problem says why
+- **Given:** the Cockpit refuses or cannot be reached
+- **When:** I archive or unarchive a thread, from the list or from inside it
+- **Then:** it goes back where it was and a copyable problem says why, on the screen I am on, until my next archive or a pull to refresh
 
 ---
 
