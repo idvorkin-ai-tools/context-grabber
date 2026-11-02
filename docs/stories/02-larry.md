@@ -1152,7 +1152,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 316:
 
 - **Summary:** One always-on chat with Larry pinned at the top
-- **Status:** native app only: built on this branch, on the Cockpit's pinned thread (cockpit `ace4083`); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; on the devices not yet
+- **Status:** native app only: implemented in [37e7d4f](https://github.com/idvorkin/context-grabber/commit/37e7d4f), on the Cockpit's pinned thread (cockpit `ace4083`); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; on the devices not yet
 - **Issues:** [#598](https://github.com/idvorkin/context-grabber/issues/598)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
