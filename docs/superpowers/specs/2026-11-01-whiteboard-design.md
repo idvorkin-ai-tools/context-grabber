@@ -73,6 +73,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 ## Later steps (not in this build)
 
+Ghosts and Larry's turn are specified in [Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md).
+
 1. **Ghost suggestions.** After about 1.5 s with the pen lifted, the board asks the Cockpit for suggestions. A fast
    model looks at the board picture and the strokes, and suggestions must arrive within about 2 s. They're drawn
    faint and dashed in Claude's color. A tap keeps one, and keeping makes it a real stroke that the eraser and undo

@@ -85,7 +85,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 344:
 
 - **Summary:** Claude suggests the next strokes as I draw
-- **Status:** not implemented (Igor picked ghost suggestions, model B, on the 2026-11-01 Lavish page; prototyped there only)
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7) against the fake Cockpit (the real endpoint is cockpit#85); verified by host tests (`WhiteboardTurnTests`: the request, the answer, shapes onto the board, a tap's hit) and the simulator (`WhiteboardTurnUITests`: a pause brings a ghost); keeping a ghost with a finger, the Pencil clearing them and a real Claude answer not yet tried on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -189,7 +189,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 ### User Story 349:
 
 - **Summary:** Larry takes a turn on the board
-- **Status:** not implemented
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7) against the fake Cockpit (the real endpoint is cockpit#85); verified by host tests (`WhiteboardTurnTests`) and the simulator (`WhiteboardTurnUITests`: Larry's turn brings his marks); Larry's real answer and his Chat thread wait for cockpit#85
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
