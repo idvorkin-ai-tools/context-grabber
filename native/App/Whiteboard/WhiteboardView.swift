@@ -380,8 +380,7 @@ struct WhiteboardView: View {
           Button {
             model.setGhosts(!model.ghostsOn)
           } label: {
-            Label(
-              model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "sparkles.slash")
+            Label(model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "eye.slash")
           }
           // How many show, for VoiceOver and the UI test (the board's own content is not in the accessibility tree,
           // and a toolbar button's accessibility value never reaches it).
