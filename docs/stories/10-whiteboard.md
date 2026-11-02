@@ -2,7 +2,8 @@
 
 Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larry drawing back. Specs:
 [2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md),
-[2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md).
+[2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
+[2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md).
 
 ---
 
@@ -769,7 +770,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** A colour for this board
 - **Given:** a board of mine is open
-- **When:** I tap the palette button in the bar, choose Cream, draw, go back and open the board again
+- **When:** I open the Board menu in the bar, choose Cream, draw, go back and open the board again
 - **Then:** the board is cream both times, and the other boards haven't changed
 
 - **Scenario:** Light and dark mode
@@ -1000,3 +1001,123 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread is open
 - **When:** the Cockpit stops answering
 - **Then:** the bar says quietly that his marks aren't coming, no error box appears, the log has one error, and the bar clears by itself when the Cockpit answers
+
+---
+
+### User Story 390:
+
+- **Summary:** Paste text onto the board as ink
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); the layout verified by host tests (`WhiteboardPasteTests`); on the simulator (`WhiteboardPasteUITests`), ⌘V from a real clipboard with no prompt, and through a launch hook each line and Claude's pause; the ink's look checked by eye at its pen width in dark mode. Still to try on the iPad: the Paste button itself (XCUITest's taps never fire the system control) and that it shows no prompt, zoomed-out and zoomed-in pastes, sync to the other device
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** thinking on the board with words already on my clipboard
+- **I want to** paste them with the bar's Paste button or ⌘V
+- **so that** they sit on the board as ink and travel with its picture to Larry and Claude
+
+#### Acceptance Criteria:
+- **Scenario:** A paste becomes ink
+- **Given:** a board I can draw on is open and the clipboard holds two lines of text
+- **When:** I tap Paste or press ⌘V
+- **Then:** both lines appear as thin outlined ink in the middle of what's on screen with no *Allow Paste?* prompt, the board saves it, and about a second later Claude's ghosts come
+
+---
+
+### User Story 391:
+
+- **Summary:** One undo takes a whole paste back
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); verified on the simulator (`WhiteboardPasteUITests`: one ⌘Z after a ⌘V)
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** who pasted the wrong thing
+- **I want to** undo it in one go
+- **so that** I never pick a paste off the board letter by letter
+
+#### Acceptance Criteria:
+- **Scenario:** Taking it back
+- **Given:** I have just pasted
+- **When:** I undo
+- **Then:** the whole paste goes at once
+
+---
+
+### User Story 392:
+
+- **Summary:** A paste that is too long is cut, and the bar says so
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); both caps verified by host tests (`WhiteboardPasteTests`); the 500-character cut and its note on the simulator (`WhiteboardPasteUITests`, through a launch hook)
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** pasting more than the board should carry
+- **I want to** have the first part land and be told how much
+- **so that** I know what was left off
+
+#### Acceptance Criteria:
+- **Scenario:** Too long
+- **Given:** the clipboard holds more than 500 characters or wraps past 40 lines
+- **When:** I paste
+- **Then:** the first part lands and the bar says how much of how much
+
+---
+
+### User Story 393:
+
+- **Summary:** Text that cannot be drawn leaves the board alone
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook)
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** pasting only emoji
+- **I want to** be told nothing could be drawn
+- **so that** an unchanged board doesn't look like a broken paste
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing to draw
+- **Given:** the clipboard holds only emoji
+- **When:** I paste
+- **Then:** the board doesn't change and the bar says nothing in it can be drawn
+
+---
+
+### User Story 394:
+
+- **Summary:** Nothing to paste, or a board that is not mine
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); not verified by a test; to try on the iPad: the dimmed Paste, no Paste on a look-only board, ⌘V doing nothing on either
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** looking at a board with nothing to paste, or one another device draws
+- **I want to** have Paste and ⌘V stay out of the way
+- **so that** nothing lands where it can't or shouldn't
+
+#### Acceptance Criteria:
+- **Scenario:** No paste to make
+- **Given:** the clipboard holds neither text nor copied strokes, or the board is look-only
+- **When:** I look at the bar or press ⌘V
+- **Then:** Paste is dimmed (or absent on a look-only board) and ⌘V does nothing
+
+---
+
+### User Story 395:
+
+- **Summary:** Strokes I copied still paste
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
+- **Status:** implemented on this branch; not verified by a test (on the simulator, PencilKit's canvas was seen to have its own paste); to try on the iPad with a hardware keyboard
+- **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** moving ink around with the lasso
+- **I want to** paste the strokes I copied with ⌘V
+- **so that** pasting text doesn't cost me the system's paste of ink
+
+#### Acceptance Criteria:
+- **Scenario:** Copied strokes
+- **Given:** a board I can draw on is open and the clipboard holds strokes copied with the lasso and no text
+- **When:** I press ⌘V
+- **Then:** the strokes land the way the system always pastes them, and the bar's Paste stays dimmed

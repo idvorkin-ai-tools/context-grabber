@@ -21,7 +21,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 ## Non-goals
 
-- No shapes palette, layers, text boxes or templates. The Pencil and the tool picker are the whole interface.
+- No shapes palette, layers, text boxes or templates. The Pencil and the tool picker are the whole drawing interface;
+  [pasted text](2026-11-02-whiteboard-paste-design.md) lands as ink, not a text box.
 - Not a notes app: boards have a name and a picture, with no folders, tags or search.
 - No two devices drawing on one board. A board is drawn on the device that made it, and every other device shows it
   read-only, so there's never a conflict to merge.
@@ -71,8 +72,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
 - **Back** (top bar) closes the board and returns to the boards, where **Done** leaves the Whiteboard.
-- **The board's colour** (Igor, 2026-11-02, #607: "Give me the ability to change background colors"): a palette
-  button in the top bar, on the device that draws the board, offers five colours: *Plain*, *Cream*, *Sage*, *Lilac* and
+- **The board's colour** (Igor, 2026-11-02, #607: "Give me the ability to change background colors"): a
+  **Board** menu in the top bar, on the device that draws the board, offers five colours: *Plain*, *Cream*, *Sage*, *Lilac* and
   *Grey*.
   - **Each board keeps its own colour.** It's remembered with the board and goes through iCloud with the drawing, like
     its name. A new board starts on Plain. Choosing a colour moves the board to the top of the list, as a rename does.

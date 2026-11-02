@@ -238,8 +238,8 @@ final class WhiteboardTurnUITests: XCTestCase {
     let (app, ghosts) = try openBoard()
     ghosts.tap()
     wait(ghosts, label: "Ghosts off", timeout: 3)
-    let paper = app.buttons["whiteboard-paper"]
-    XCTAssertEqual(paper.label, "Board colour: Plain")
+    let paper = app.buttons["whiteboard-board"]
+    XCTAssertEqual(paper.label, "Board, Plain")
     try assertPaper(0xFFFFFF, "Plain, light")
 
     paper.tap()
@@ -247,7 +247,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(cream.waitForExistence(timeout: 5), app.debugDescription)
     keepShot("The menu")
     cream.tap()
-    wait(paper, label: "Board colour: Cream", timeout: 3)
+    wait(paper, label: "Board, Cream", timeout: 3)
     try assertPaper(0xFBF3DC, "Cream, light")
     XCUIDevice.shared.appearance = .dark
     try assertPaper(0x2B2416, "Cream, dark")
@@ -257,7 +257,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCUIDevice.shared.appearance = .light
 
     reopenBoard(app)
-    wait(paper, label: "Board colour: Cream", timeout: 3)
+    wait(paper, label: "Board, Cream", timeout: 3)
     try assertPaper(0xFBF3DC, "Cream, reopened")
   }
 
