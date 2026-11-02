@@ -14,9 +14,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   of board in every direction.
 - **Larry sees it.** One button sends the board to Larry as a new chat thread with the picture attached. His reply
   arrives in Chat, like any other thread.
-- **Then we draw together** (later steps). When Igor lifts the pen, faint suggestions appear on the board. A tap keeps
-  one, and drawing on dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Igor's voice steers the
-  suggestions. Larry can draw too, during a call.
+- **Then we draw together.** When Igor lifts the pen, faint suggestions appear on the board. A tap keeps one, and
+  drawing on dismisses the rest (Igor's pick: ghost suggestions, "b + c"). Later steps: Igor's voice steers the
+  suggestions, and Larry draws during a call.
 - **The phone can view.** Boards drawn on the iPad can be seen on the phone.
 
 ## Non-goals
@@ -73,16 +73,14 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 ## Later steps (not in this build)
 
-1. **Ghost suggestions.** After about 1.5 s with the pen lifted, the board asks the Cockpit for suggestions. A fast
-   model looks at the board picture and the strokes, and suggestions must arrive within about 2 s. They're drawn
-   faint and dashed in Claude's color. A tap keeps one, and keeping makes it a real stroke that the eraser and undo
-   treat like Igor's own. Drawing on dismisses them. Pen-down cancels a request still in flight. The Lavish
-   prototype showed that a mark that could mean two things is best answered with both readings as ghosts, and that
-   Claude can't read cursive, so words come from Igor's voice.
-2. **Voice.** An open mic with the level meter (the Inbox's mic UI). What Igor says goes with the strokes and steers
+Ghosts and Larry's turn are built, and specified in
+[Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md). The Lavish prototype showed that a mark that
+could mean two things is best answered with both readings as ghosts, and that Claude can't read cursive, so words come
+from Igor's voice.
+
+1. **Voice.** An open mic with the level meter (the Inbox's mic UI). What Igor says goes with the strokes and steers
    the ghosts. "Your turn" said out loud gets a full drawing turn.
-3. **Larry.** A call with the board as Larry's context while Igor keeps drawing, and Larry gets the same drawing turn
-   Claude does. His replies would need to carry strokes, not only pictures, which is Cockpit work.
+2. **Larry.** A call with the board as Larry's context while Igor keeps drawing.
 
 Claude's side runs through the Cockpit on the Mac (Igor's pick), so no model key goes on the device. The cost is
 that ghosts need the tailnet.

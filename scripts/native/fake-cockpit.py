@@ -4,7 +4,8 @@
   scripts/native/fake-cockpit.py PORT REPORT
 
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
-GET /attachments/<ref>. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
+GET /attachments/<ref>, POST /whiteboard/turn (cockpit#85: a ghost circle right of the picture for Claude; an arrow, a
+label and a thread named after the board for Larry). A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"). Every request is a JSON line in REPORT.
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
@@ -15,6 +16,7 @@ import base64
 import json
 import os
 import secrets
+import struct
 import sys
 import threading
 import time
@@ -117,6 +119,8 @@ class Handler(BaseHTTPRequestHandler):
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})
         data = json.loads(raw or b"{}")
+        if path == "/whiteboard/turn":
+            return self._turn(data)
         if path == "/chat" and NEW_DELAY:
             time.sleep(NEW_DELAY)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
@@ -147,6 +151,27 @@ class Handler(BaseHTTPRequestHandler):
             t["messages"].append(m)
         reply_later(key, data.get("text"))
         self._json(200, {"ok": True, "thread": key, "message": m, "title": t["title"]})
+
+    def _turn(self, data):
+        picture = base64.b64decode(data.get("picture") or "")
+        # A PNG's size is in its IHDR: width and height, big-endian, at bytes 16 to 24.
+        w, h = struct.unpack(">II", picture[16:24]) if picture[:8] == b"\x89PNG\r\n\x1a\n" else (0, 0)
+        self._report({"turn": data.get("who"), "board": data.get("board"), "thread": data.get("thread"),
+                      "width": w, "height": h, "origin": self.headers.get("Origin")})
+        if not w:
+            return self._json(400, {"ok": False, "error": "no picture"})
+        if data.get("who") == "claude":
+            return self._json(200, {"ok": True, "say": "", "shapes": [
+                {"kind": "ellipse", "points": [[w - 60, h / 2 - 40], [w + 20, h / 2 + 40]]}]})
+        with LOCK:
+            key = data.get("thread") or "igor2-88g.%d" % (951 + len(CREATED))
+            if key not in THREADS:
+                CREATED[key] = key
+                THREADS[key] = {"title": data.get("title") or "Board", "messages": [], "seen": ""}
+            THREADS[key]["messages"].append(row(key, "larry", "Larry looked at the board", None, None))
+        return self._json(200, {"ok": True, "say": "this is where it goes", "thread": key, "shapes": [
+            {"kind": "arrow", "points": [[0, h + 40], [w / 2, h + 40]]},
+            {"kind": "text", "points": [[w / 2 + 20, h + 20]], "text": "here", "size": 36}]})
 
 
 ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
