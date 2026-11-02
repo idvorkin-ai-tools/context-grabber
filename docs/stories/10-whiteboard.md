@@ -759,7 +759,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 378:
 
 - **Summary:** Choose the board's colour
-- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes, the menu, and the colour still there on reopening verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels, with a screenshot of white ink on the deep Cream); ink and ghost contrast on every colour, and the empty-board rule, by host tests (`BoardPaperTests`, `BoardIndexTests`); the pictures to Claude and Larry are left as they were, so stay dark on white; ghosts on each colour by eye, and the Pencil's tool picker after the menu, to judge on the iPad
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe), the Board menu at the bottom on an iPhone's width in [6d9f24f](https://github.com/idvorkin/context-grabber/commit/6d9f24f); the colour on the canvas in both modes, the menu, the top bar with nothing under *More*, and the colour still there on reopening verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels and the button tree; a screenshot of white ink on the deep Cream comes from the run before the menu moved, and the menu's place at the bottom has not been looked at by eye); ink and ghost contrast on every colour, and the empty-board rule, by host tests (`BoardPaperTests`, `BoardIndexTests`); the pictures to Claude and Larry are left as they were, so stay dark on white; ghosts on each colour by eye, and the Pencil's tool picker after the menu, to judge on the iPad
 - **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
 
 #### Use Case:
