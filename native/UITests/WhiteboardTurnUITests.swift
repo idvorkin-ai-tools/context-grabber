@@ -1,5 +1,5 @@
-//  Stories 344, 349, 351 and 354 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
-//  it): a stroke and a pause bring Claude's ghost, Larry's turn brings his line and his marks, a kept ghost is ink, the
+//  Stories 344, 349, 351, 354 and 356 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn brings his line and his marks, a kept ghost is ink, the
 //  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
 
 import XCTest
@@ -88,5 +88,21 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertEqual(ghosts.label, "Ghosts off")
     ghosts.tap()
     wait(ghosts, label: "Ghosts on", timeout: 3)
+  }
+
+  /// The fake Cockpit answers Claude with one shape and Larry with two.
+  func testGhostsOffLeavesLarrysMarks() throws {
+    let (app, ghosts) = try openBoard()
+    stroke(app)
+    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off", timeout: 3)
+
+    app.buttons["whiteboard-larry"].tap()
+    wait(ghosts, label: "Ghosts off, 2 showing", timeout: 15)
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts on, 2 showing", timeout: 3)
+    ghosts.tap()
+    wait(ghosts, label: "Ghosts off, 2 showing", timeout: 3)
   }
 }

@@ -26,7 +26,8 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
   drawing while ghosts show: it taps and pans, so keeping a ghost leaves no dot. With no ghost left it draws again.
 - A ghost turn gives up after **3 s**: a late answer would land on a drawing that has moved on. No ghost is shown when
   it gives up.
-- **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause.
+- **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause: Claude's
+  ghosts go and a turn of his on its way is dropped. Larry's marks stay, because a tap asked for them.
 - Ghosts need the Cockpit. When it can't be reached the board draws as before; the bar says *Ghosts: the Cockpit
   isn't answering* until a turn gets through.
 - Only on the device that draws the board. A board that is look-only gets no ghosts.
@@ -62,7 +63,7 @@ picture and answers with shapes and one line. A fast model answers ghosts; Larry
 - Draw again before the ghosts come, or while they show: they go, and a late answer adds nothing.
 - On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
   them; then the finger draws again.
-- Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn).
+- Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's blue ghosts stay showing.
 - Tap Larry's turn: blue ghosts and a line from Larry; Chat has a thread named after the board with his words.
 - Cockpit unreachable: drawing works as before and the bar says ghosts aren't answering; Larry's turn shows a
   copyable problem.

@@ -119,7 +119,8 @@ final class WhiteboardModel: ObservableObject {
     UserDefaults.standard.set(on, forKey: Self.ghostsKey)
     log.event("whiteboard", ["action": on ? "ghosts_on" : "ghosts_off", "board": board.id])
     if !on {
-      clearGhosts()
+      dropClaudesTurn()
+      ghosts.removeAll { $0.who == .claude }
       if turnNote == Self.ghostsAway { turnNote = nil }
     }
   }
@@ -137,6 +138,8 @@ final class WhiteboardModel: ObservableObject {
   func turn(_ who: WhiteboardTurn.Who) async {
     guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
     let asked = generation
+    // ponytail: rendered and encoded on the main thread; if a big board hitches the next stroke (the turn event's
+    // `bytes`), this moves to a background task.
     let png = picture(rect: rect, scale: scale).pngData() ?? Data()
     // ponytail: the board's thread in UserDefaults on this device; it moves to the board's index if boards ever
     // change hands.

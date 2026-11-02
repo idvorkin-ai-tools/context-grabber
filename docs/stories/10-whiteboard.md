@@ -86,7 +86,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 344:
 
 - **Summary:** Claude suggests the next strokes as I draw
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7) against the fake Cockpit (the real endpoint is cockpit#85); verified by host tests (`WhiteboardTurnTests`: the request, the answer, shapes onto the board, a tap's hit, kept ink through PencilKit's own spline) and the simulator (`WhiteboardTurnUITests`: a pause brings a ghost; the keep tests not yet passed on the simulator); a real Claude answer and undo not yet tried on the iPad
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7) against the fake Cockpit (the real endpoint is cockpit#85); verified by host tests (`WhiteboardTurnTests`: the request, the answer, shapes onto the board, a tap's hit, kept ink through PencilKit's own spline) and the simulator (`WhiteboardTurnUITests`: a pause brings a ghost; the keep verified on the simulator by `WhiteboardTurnUITests`); a real Claude answer and undo not yet tried on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -218,7 +218,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 351:
 
 - **Summary:** Turn the ghosts off
-- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); `WhiteboardTurnUITests.testGhostsOffAsksNothing` written for the simulator, not yet passed on the simulator
+- **Status:** app side implemented in [66343f7](https://github.com/idvorkin/context-grabber/commit/66343f7); `WhiteboardTurnUITests.testGhostsOffAsksNothing` verified on the simulator by `WhiteboardTurnUITests`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -275,7 +275,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 354:
 
 - **Summary:** Ghosts on a device where a finger draws
-- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt` written for the simulator, not yet passed on the simulator; an iPhone and an iPad with no Pencil not yet tried
+- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt` verified on the simulator by `WhiteboardTurnUITests`; an iPhone and an iPad with no Pencil not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -307,5 +307,24 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** Larry's faint blue shapes are showing
 - **When:** I tap one
 - **Then:** it becomes blue ink that my eraser and undo treat like mine
+
+---
+
+### User Story 356:
+
+- **Summary:** Larry's marks stay when the ghosts go off
+- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testGhostsOffLeavesLarrysMarks` written for the simulator
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who asked Larry for a turn and wants Claude to stop suggesting
+- **I want to** switch the ghosts off without losing what Larry drew
+- **so that** the switch only quiets Claude, and Larry's answer waits for me to keep it
+
+#### Acceptance Criteria:
+- **Scenario:** Ghosts off with Larry's marks showing
+- **Given:** Larry's faint blue shapes are showing
+- **When:** I turn Ghosts off in the board's bar
+- **Then:** his shapes stay and I can still keep them
 
 ---
