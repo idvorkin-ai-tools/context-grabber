@@ -86,6 +86,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 
 - **Summary:** Claude suggests the next strokes as I draw
 - **Status:** not implemented (Igor picked ghost suggestions, model B, on the 2026-11-01 Lavish page; prototyped there only)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** drawing alone
@@ -94,9 +95,19 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 
 #### Acceptance Criteria:
 - **Scenario:** A ghost, kept
-- **Given:** I drew two circles and lifted the Pencil
-- **When:** I wait about two seconds, then tap the faint third circle that appears
-- **Then:** the ghost becomes a real stroke in Claude's colour that my eraser and undo treat like mine, and the other ghosts fade once I draw on
+- **Given:** I drew two circles and lifted the Pencil, with Ghosts on
+- **When:** I wait about two seconds, then tap a faint orange shape that appears
+- **Then:** it becomes a real stroke in Claude's orange that my eraser and undo treat like mine
+
+- **Scenario:** Drawing on
+- **Given:** ghosts are showing, or a turn is still on its way
+- **When:** I touch the Pencil down
+- **Then:** the ghosts go, and the late answer adds nothing
+
+- **Scenario:** Ghosts off, or the Cockpit away
+- **Given:** I turned Ghosts off in the board's bar, or the Cockpit can't be reached
+- **When:** I lift the Pencil
+- **Then:** nothing is asked (off), or the bar says ghosts aren't answering (away); drawing works as before
 
 ---
 
@@ -174,3 +185,27 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and, later, Claude 
 - **Given:** a card for a board this device drew
 - **When:** I long-press it and rename it, then long-press it again, tap Delete and confirm
 - **Then:** the card takes the new name, then goes, and the board leaves every device and doesn't come back; a card drawn on another device offers neither
+
+### User Story 349:
+
+- **Summary:** Larry takes a turn on the board
+- **Status:** not implemented
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** working an idea out on the board
+- **I want to** hand Larry the Pencil for a turn
+- **so that** he answers in marks on my drawing, not only in words somewhere else
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's marks, kept
+- **Given:** the board has a drawing
+- **When:** I tap *Larry's turn* and wait
+- **Then:** faint blue shapes and a line from Larry appear; a tap keeps a shape as blue ink; Chat has a thread named after the board with his words, and the board's next turn goes to it
+
+- **Scenario:** Larry away
+- **Given:** the Cockpit can't be reached
+- **When:** I tap *Larry's turn*
+- **Then:** the bar shows a copyable problem saying so, and the board is unchanged
+
+---
