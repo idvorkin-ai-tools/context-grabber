@@ -72,6 +72,52 @@ final class WhiteboardPasteTests: XCTestCase {
     XCTAssertEqual(box.minY, view.minY + 24, accuracy: 0.5)
   }
 
+  /// The spec's numbers, written out: 500 characters land whole, the 501st is the first one left off.
+  func testTheCharacterCapIsExactlyFiveHundred() {
+    let atCap = WhiteboardPaste.layout(String(repeating: "x", count: 500), visible: view, height: 24)
+    XCTAssertEqual(atCap.kept, 500)
+    XCTAssertEqual(atCap.total, 500)
+    XCTAssertFalse(atCap.cut)
+    let over = WhiteboardPaste.layout(String(repeating: "x", count: 501), visible: view, height: 24)
+    XCTAssertEqual(over.kept, 500)
+    XCTAssertEqual(over.total, 501)
+    XCTAssertTrue(over.cut)
+  }
+
+  /// The spec's numbers, written out: 40 lines land whole, the 41st is the first one left off.
+  func testTheLineCapIsExactlyForty() {
+    let lines = { (count: Int) in (0..<count).map { _ in "a" }.joined(separator: "\n") }
+    let one = WhiteboardPaste.layout("a", visible: view, height: 24).lines.count
+    let atCap = WhiteboardPaste.layout(lines(40), visible: view, height: 24)
+    XCTAssertFalse(atCap.cut)
+    XCTAssertEqual(atCap.lines.count, 40 * one)
+    let over = WhiteboardPaste.layout(lines(41), visible: view, height: 24)
+    XCTAssertTrue(over.cut)
+    XCTAssertEqual(over.lines.count, 40 * one)
+  }
+
+  /// Whatever the clipboard and the view, ink is finite and on the board (spec: a paste stays on the board).
+  func testOddClipboardsAndViewsStayOnTheBoard() {
+    let clipboards = [
+      "one\r\ntwo\r\n", "a\tb", "a\u{0}b\u{7}c", "שלום עולם", "مرحبا hello", String(repeating: "x", count: 500),
+    ]
+    let views = [
+      view, CGRect(x: 19_900, y: 19_900, width: 100, height: 100), CGRect(x: -50, y: -50, width: 200, height: 200),
+      CGRect(x: 500, y: 500, width: 0, height: 0),
+    ]
+    for text in clipboards {
+      for visible in views {
+        let lines = WhiteboardPaste.layout(text, visible: visible, height: 24).lines
+        XCTAssertFalse(lines.isEmpty, "\(text.prefix(20)) in \(visible)")
+        for point in lines.joined() {
+          XCTAssertTrue(point.x.isFinite && point.y.isFinite, "\(text.prefix(20)) in \(visible)")
+          XCTAssertTrue((0...WhiteboardFrame.side).contains(point.x), "\(text.prefix(20)) in \(visible): \(point)")
+          XCTAssertTrue((0...WhiteboardFrame.side).contains(point.y), "\(text.prefix(20)) in \(visible): \(point)")
+        }
+      }
+    }
+  }
+
   func testNothingWithAnOutlineMeansNoInk() {
     XCTAssertTrue(WhiteboardPaste.layout("   \n ", visible: view, height: 24).lines.isEmpty)
     XCTAssertTrue(WhiteboardPaste.layout("🎉🎉", visible: view, height: 24).lines.isEmpty)
