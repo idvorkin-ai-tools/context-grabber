@@ -369,13 +369,12 @@ struct WhiteboardView: View {
             Label(
               model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "sparkles.slash")
           }
-          // How many show and how much is drawn, for VoiceOver and the UI test (the board's own content is not in
-          // the accessibility tree).
+          // How many show, for VoiceOver and the UI test (the board's own content is not in the accessibility tree,
+          // and a toolbar button's accessibility value never reaches it).
           .accessibilityLabel(
             (model.ghostsOn ? "Ghosts on" : "Ghosts off")
               + (model.ghosts.isEmpty ? "" : ", \(model.ghosts.count) showing")
           )
-          .accessibilityValue("\(model.drawing.strokes.count) strokes")
           .accessibilityIdentifier("whiteboard-ghosts")
         }
         ToolbarItem(placement: .topBarTrailing) {
@@ -394,6 +393,8 @@ struct WhiteboardView: View {
         } label: {
           Label("Send to Larry", systemImage: "paperplane")
         }
+        // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
+        .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
         .disabled(model.isEmpty || model.sent != nil)
         .accessibilityIdentifier("whiteboard-send")
       }

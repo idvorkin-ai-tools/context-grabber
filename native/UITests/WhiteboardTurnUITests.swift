@@ -38,8 +38,10 @@ final class WhiteboardTurnUITests: XCTestCase {
     waitForExpectations(timeout: timeout)
   }
 
-  private func wait(_ button: XCUIElement, strokes: Int) {
-    expectation(for: NSPredicate(format: "value == %@", "\(strokes) strokes"), evaluatedWith: button)
+  /// How many strokes the board holds, from the Send button's label.
+  private func wait(_ app: XCUIApplication, strokes: Int) {
+    let send = app.buttons["whiteboard-send"]
+    expectation(for: NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), evaluatedWith: send)
     waitForExpectations(timeout: 8)
   }
 
@@ -55,7 +57,7 @@ final class WhiteboardTurnUITests: XCTestCase {
   func testTheKeepHookTurnsTheFirstGhostIntoInk() throws {
     let (app, ghosts) = try openBoard(keepHook: true)
     stroke(app)
-    wait(ghosts, strokes: 2)
+    wait(app, strokes: 2)
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }
 
@@ -66,13 +68,13 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
     wait(ghosts, label: "Ghosts on", timeout: 3)
-    XCTAssertEqual(ghosts.value as? String, "1 strokes")
+    XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 1 strokes")
 
     stroke(app, atHeight: 0.5)
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
-    XCTAssertEqual(ghosts.value as? String, "2 strokes")
+    XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 2 strokes")
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
-    wait(ghosts, strokes: 3)
+    wait(app, strokes: 3)
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }
 
@@ -81,7 +83,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     ghosts.tap()
     wait(ghosts, label: "Ghosts off", timeout: 3)
     stroke(app)
-    wait(ghosts, strokes: 1)
+    wait(app, strokes: 1)
     sleep(4)
     XCTAssertEqual(ghosts.label, "Ghosts off")
     ghosts.tap()
