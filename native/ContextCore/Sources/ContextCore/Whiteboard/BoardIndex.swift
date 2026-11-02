@@ -159,7 +159,7 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   private static let tombstonePrefix = "deleted-"
 
   /// iCloud's whole list merged in. Another device's board is taken when it is new here or newer, and dropped when
-  /// iCloud no longer has it (its device deleted it). This device's own boards are left as they are, since this
+  /// iCloud no longer has it (a device deleted it). This device's own boards are left as they are, since this
   /// device is where they are drawn, except one iCloud has that this list lost (a reinstall, an unreadable list),
   /// which comes back. A board deleted here and still in iCloud is not brought back. `unread`: records iCloud holds
   /// that could not be read, never dropped for it. `tombstones`: boards some device deleted, with the `updated` it
