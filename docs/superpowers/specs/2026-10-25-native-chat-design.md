@@ -35,9 +35,9 @@ updates by itself; while it is not, the phone checks now and then and notifies I
 **The tile.** The home-screen *Inbox* tile becomes *Chat*, with the same raccoon-and-mailbox picture. Its number is
 the conversations with a reply Igor has not read, plus any of his messages not yet sent.
 
-**The list.** Newest activity first. Each row: the thread's title, the last message's first line and who wrote it,
-when, and an unread mark when Larry has replied since Igor last looked. Finished threads fold under *Done*, by the
-same rule the Cockpit uses, so the phone and the laptop agree. The round **+** stays at the lower right; it starts a
+**The list.** The pinned thread, then newest activity first. Each row: the thread's title, the last message's first
+line and who wrote it, when, and an unread mark when Larry has replied since Igor last looked. Finished threads fold
+under *Done*, by the same rule the Cockpit uses, so the phone and the laptop agree. The round **+** stays at the lower right; it starts a
 new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
 
 **Archiving** (Igor, 2026-11-01: "Let me archive threads both via swipe and via buttons in chat overflow"; #589, the
@@ -49,6 +49,11 @@ as on the Cockpit. When the Cockpit refuses or can't be reached, the thread goes
 problem says why, in the list and on the open thread, until the next archive or a pull to refresh. Changes to one thread
 happen in order: an *Undo* tapped before the Cockpit has answered the archive waits for that answer. A thread the
 Cockpit still calls finished by its own rule stays under *Done* after *Unarchive*.
+
+**The pinned thread** (Igor, 2026-11-02: "pinned thread on top"; #598). One always-on thread with Larry sits at the top of
+the list with a pin, for dropping anything into, even before it has a message. It can't be archived, swiped away or
+ticked in *Select*, its screen has no **⋯** menu, it never folds under *Done* and it never says *Looks done*. With only
+the pinned thread live there is nothing to tick, so *Select* is off.
 
 **Archiving several, and threads that look done** (Igor, 2026-11-02; #599). *Select* at the top of the list turns the
 live threads into checkboxes, and *Archive (N)* at the bottom archives them together, with *Undo* for five seconds for

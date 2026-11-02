@@ -273,7 +273,7 @@ final class ChatModel: ObservableObject {
         let t = threads[i]
         threads[i] = ChatSummary(
           key: t.key, title: t.title, count: t.count, lastTs: t.lastTs, lastWho: t.lastWho, lastText: t.lastText,
-          unread: 0, done: t.done, archived: t.archived, looksDone: t.looksDone)
+          unread: 0, done: t.done, archived: t.archived, looksDone: t.looksDone, pinned: t.pinned)
       }
       return true
     } catch {

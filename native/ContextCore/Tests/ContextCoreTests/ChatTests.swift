@@ -353,6 +353,35 @@ final class ChatTests: XCTestCase {
     XCTAssertTrue(rows[0].archiving(true).looksDone, "archiving keeps the mark, for an Undo")
   }
 
+  func testAPinnedRowReadsAndKeepsItsPin() throws {
+    let rows = try JSONDecoder().decode(
+      [ChatSummary].self,
+      from: Data(#"[{"key": "a", "title": "Larry", "count": 0, "pinned": true}, {"key": "b", "title": "B"}]"#.utf8))
+    XCTAssertEqual(rows.map(\.pinned), [true, false])
+    XCTAssertTrue(rows[0].archiving(false).pinned)
+  }
+
+  func testAnEmptyPinnedRowComesFirstAheadOfNewerActivity() throws {
+    let rows = try XCTUnwrap(
+      ChatWire.summaries(
+        Data(
+          """
+          {"ok": true, "threads": [
+            {"key": "old", "title": "Old", "count": 1, "last_ts": "2026-10-20T09:00:00-07:00"},
+            {"key": "new", "title": "New", "count": 1, "last_ts": "2026-11-01T09:00:00-07:00"},
+            {"key": "pin", "title": "Larry", "count": 0, "last_ts": "", "pinned": true}
+          ]}
+          """.utf8)))
+    XCTAssertEqual(rows.map(\.key), ["pin", "new", "old"])
+  }
+
+  func testAPinnedRowNeverLooksDone() throws {
+    let rows = try JSONDecoder().decode(
+      [ChatSummary].self,
+      from: Data(#"[{"key": "a", "title": "Larry", "pinned": true, "looks_done": true}]"#.utf8))
+    XCTAssertEqual(rows.map(\.looksDone), [false], "Review would tick it for an archive the Cockpit refuses")
+  }
+
   func testTheArchiveRequestNamesTheThreadAndTheWay() throws {
     let archive = try ChatWire.archiveRequest("auto:note:1", archive: true, cockpit: "https://c.example/")
     XCTAssertEqual(archive.url?.absoluteString, "https://c.example/chat/auto:note:1/archive")

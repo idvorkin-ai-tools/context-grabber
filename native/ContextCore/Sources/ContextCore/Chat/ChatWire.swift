@@ -18,6 +18,8 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
   public let archived: Bool
   /// Larry judges it finished; a proposal only, shown to Igor, and a new message clears it (#599).
   public let looksDone: Bool
+  /// The one always-on thread with Larry (#598): first in the list, and never archived.
+  public let pinned: Bool
 
   public var id: String { key }
   public var larryHasLastWord: Bool { lastWho == "larry" }
@@ -25,7 +27,7 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
 
   public init(
     key: String, title: String, count: Int = 1, lastTs: String, lastWho: String, lastText: String, unread: Int = 0,
-    done: Bool = false, archived: Bool = false, looksDone: Bool = false
+    done: Bool = false, archived: Bool = false, looksDone: Bool = false, pinned: Bool = false
   ) {
     self.key = key
     self.title = title
@@ -37,17 +39,18 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     self.done = done
     self.archived = archived
     self.looksDone = looksDone
+    self.pinned = pinned
   }
 
   /// The same row archived or brought back, as it shows until the Cockpit's next list.
   public func archiving(_ archive: Bool) -> ChatSummary {
     ChatSummary(
       key: key, title: title, count: count, lastTs: lastTs, lastWho: lastWho, lastText: lastText, unread: unread,
-      done: archive, archived: archive, looksDone: looksDone)
+      done: archive, archived: archive, looksDone: looksDone, pinned: pinned)
   }
 
   enum CodingKeys: String, CodingKey {
-    case key, title, count, unread, done, archived
+    case key, title, count, unread, done, archived, pinned
     case looksDone = "looks_done"
     case lastTs = "last_ts"
     case lastWho = "last_who"
@@ -64,7 +67,8 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     lastText = (try? c.decode(String.self, forKey: .lastText)) ?? ""
     unread = (try? c.decode(Int.self, forKey: .unread)) ?? 0
     archived = (try? c.decode(Bool.self, forKey: .archived)) ?? false
-    looksDone = (try? c.decode(Bool.self, forKey: .looksDone)) ?? false
+    pinned = (try? c.decode(Bool.self, forKey: .pinned)) ?? false
+    looksDone = !pinned && ((try? c.decode(Bool.self, forKey: .looksDone)) ?? false)
     done = (try? c.decode(Bool.self, forKey: .done)) ?? false
   }
 }
@@ -127,10 +131,12 @@ public enum ChatWire {
     let messages: [ChatMessage]
   }
 
-  /// Every thread, newest activity first, or nil for an answer that is not a chat list.
+  /// Every thread, the pinned one first and then newest activity first, or nil for an answer that is not a chat list.
   public static func summaries(_ data: Data) -> [ChatSummary]? {
     guard let list = try? JSONDecoder().decode(List.self, from: data), list.ok else { return nil }
-    return list.threads.sorted { ($0.lastAt ?? .distantPast) > ($1.lastAt ?? .distantPast) }
+    return list.threads.sorted {
+      $0.pinned != $1.pinned ? $0.pinned : ($0.lastAt ?? .distantPast) > ($1.lastAt ?? .distantPast)
+    }
   }
 
   public static func messages(_ data: Data) -> [ChatMessage]? {

@@ -643,7 +643,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Opening Chat
 - **Given:** the Cockpit has chat threads, one with a reply from Larry I have not read
 - **When:** I tap the *Chat* tile
-- **Then:** every thread is listed newest activity first with its title, who said the last thing and what, and when; the unread one is marked; finished ones fold under *Done (n)* by the Cockpit's own rule; and the tile counts unread threads plus my messages not yet sent
+- **Then:** every thread is listed newest activity first, after the pinned one (story 316), with its title, who said the last thing and what, and when; the unread one is marked; finished ones fold under *Done (n)* by the Cockpit's own rule; and the tile counts unread threads plus my messages not yet sent
 
 ---
 
@@ -1145,6 +1145,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I tapped *Archive (N)* or *Undo* for several chats
 - **When:** the Cockpit refuses or doesn't answer for two of them
 - **Then:** those two go back where they were and one copyable problem names both with their reasons
+
+---
+
+### User Story 316:
+
+- **Summary:** One always-on chat with Larry pinned at the top
+- **Status:** native app only: implemented in [542ad39](https://github.com/idvorkin/context-grabber/commit/542ad39), on the Cockpit's pinned thread (cockpit `ace4083`); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; on the devices not yet
+- **Issues:** [#598](https://github.com/idvorkin/context-grabber/issues/598)
+- **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man with something to tell Larry and no thread to put it in
+- **I want to** find one chat always at the top of the list
+- **so that** I can drop anything into it without starting a new thread
+
+#### Acceptance Criteria:
+- **Scenario:** The pinned thread
+- **Given:** the Cockpit has a pinned thread, even one with no messages
+- **When:** I open the chat list
+- **Then:** it is first, with a pin and *Drop anything here* until it has a message; it opens and takes messages like any thread, has no swipe to archive and no tick in *Select*, never says *Looks done*, and its screen has no ⋯ menu; with only this thread live, *Select* is off
 
 ---
 
