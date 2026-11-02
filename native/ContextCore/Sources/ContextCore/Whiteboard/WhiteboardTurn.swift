@@ -70,7 +70,7 @@ public enum WhiteboardTurn {
     return .away(reason: reason)
   }
 
-  /// One shape from the answer; nil for a kind it doesn't know or too few points to draw.
+  /// One shape from the answer; nil for a kind it doesn't know, too few points to draw, or a label with no outlines.
   static func shape(_ json: [String: Any]) -> Shape? {
     guard let kind = (json["kind"] as? String).flatMap(Shape.Kind.init(rawValue:)) else { return nil }
     let points = (json["points"] as? [[Any]] ?? []).compactMap { pair -> CGPoint? in
@@ -79,7 +79,7 @@ public enum WhiteboardTurn {
     }
     let text = (json["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
     if kind == .text {
-      guard !points.isEmpty, let text, !text.isEmpty else { return nil }
+      guard !points.isEmpty, let text, !glyphLines(text, topLeft: .zero, height: 28).isEmpty else { return nil }
     } else {
       guard points.count >= 2 else { return nil }
     }

@@ -78,6 +78,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }
 
+  /// The board's note says what a turn brought, a ghost or the Cockpit away. The second stroke shows the test can see it.
   func testGhostsOffAsksNothing() throws {
     let (app, ghosts) = try openBoard()
     ghosts.tap()
@@ -85,8 +86,11 @@ final class WhiteboardTurnUITests: XCTestCase {
     stroke(app)
     wait(app, strokes: 1)
     sleep(4)
-    XCTAssertEqual(ghosts.label, "Ghosts off")
+    let note = app.staticTexts["whiteboard-note"]
+    XCTAssertFalse(note.exists, note.debugDescription)
     ghosts.tap()
     wait(ghosts, label: "Ghosts on", timeout: 3)
+    stroke(app, atHeight: 0.6)
+    wait(note, label: "1 suggestion: tap one to keep it", timeout: 8)
   }
 }

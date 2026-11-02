@@ -52,6 +52,20 @@ final class WhiteboardTurnTests: XCTestCase {
         ], say: "the third circle", thread: "t1"))
   }
 
+  /// An emoji is a bitmap with no outline: a ghost of it would count in the bar with nothing to see or tap.
+  func testALabelWithNoOutlinesIsSkippedAndOneWithSomeIsKept() {
+    let body = Data(
+      """
+      {"ok": true, "shapes": [
+        {"kind": "text", "points": [[5, 5]], "text": "👍"},
+        {"kind": "text", "points": [[5, 5]], "text": "ok 👍"}
+      ]}
+      """.utf8)
+    XCTAssertEqual(
+      WhiteboardTurn.answer(status: 200, body: body),
+      .shapes([.init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "ok 👍")], say: "", thread: nil))
+  }
+
   func testNothingToAddIsAnAnswer() {
     XCTAssertEqual(
       WhiteboardTurn.answer(status: 200, body: Data(#"{"ok": true}"#.utf8)), .shapes([], say: "", thread: nil))

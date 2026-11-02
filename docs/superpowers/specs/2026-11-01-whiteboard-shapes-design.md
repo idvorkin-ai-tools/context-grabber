@@ -32,7 +32,8 @@ Larry's colour. A tap keeps one as real ink. Nothing they suggest changes the bo
   isn't answering* until a turn gets through.
 - Only on the device that draws the board. A board that is look-only gets no ghosts.
 - A point in an answer that lies past anywhere the board could reach is ignored, and a shape left with too few points
-  isn't shown: a model's bad number never breaks the board.
+  isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
+  isn't shown or counted either.
 
 ### Larry's turn (stories 349, 353, 355)
 
