@@ -1,8 +1,8 @@
 //  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347): PencilKit's canvas and the system tool
 //  picker on a board far bigger than the screen, saved a moment after each stroke, and sent to Larry as a new chat
 //  thread holding its picture (the Inbox's image path, so it waits in the outbox when the network is away). A board
-//  another device draws opens to look at only. Claude's ghosts after a pause and Larry's turn come back as shapes,
-//  drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 349).
+//  another device draws opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
+//  as shapes, drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 345, 349).
 
 import BugKit
 import Combine

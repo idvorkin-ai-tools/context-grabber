@@ -66,7 +66,7 @@ suggest changes the board until Igor keeps it.
 - Larry drawing during a call (story 346).
 - Vectors instead of the picture: a turn sends a picture of what is drawn.
 
-## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, #604, #605)
+## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, 360–368, #604, #605)
 
 - A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
 - About a second after he stops talking, what he said goes with a picture of the board, without waiting for a stroke:
