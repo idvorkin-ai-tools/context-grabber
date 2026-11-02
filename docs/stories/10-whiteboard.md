@@ -404,7 +404,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 370:
 
 - **Summary:** Claude's marks arrive one at a time
-- **Status:** PENDING
+- **Status:** implemented in [754298b](https://github.com/idvorkin/context-grabber/commit/754298b); verified by host tests (`WhiteboardStreamTests`: partial lines, unknown lines skipped, the last line, a broken stream before and after a mark, a plain answer) and the simulator against the fake Cockpit (`WhiteboardTurnUITests`: six marks climb the count, a Cockpit that doesn't stream still brings its ghost). The real Cockpit doesn't stream yet (cockpit main 3322c57 and a live request, 2026-11-02: one JSON), so real streaming, the first-mark time and a real broken stream are still to see on the iPad; the old set staying until the first new mark and sending a turn away part way are not covered by a test
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -448,7 +448,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 371:
 
 - **Summary:** Ghosts look like ink
-- **Status:** PENDING
+- **Status:** implemented in [754298b](https://github.com/idvorkin/context-grabber/commit/754298b); verified on the simulator by a screenshot from `WhiteboardTurnUITests`, solid orange lines on an iPhone simulator; how they sit beside real Pencil ink is to judge on the iPad
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
