@@ -13,15 +13,13 @@ struct WhiteboardListView: View {
   @State private var renaming: BoardEntry?
   @State private var newName = ""
   @State private var deleting: BoardEntry?
+  /// A link named a board that isn't here (#603).
+  @State private var linkProblem: BugProblem?
   private let app: AppModel
   private let onDone: () -> Void
 
   init(app: AppModel, onDone: @escaping () -> Void) {
-    // The archive's device id (the vendor id): which boards this install draws on.
-    let device =
-      app.database.setting(ArchiveModel.deviceKey) ?? UIDevice.current.identifierForVendor?.uuidString.lowercased()
-      ?? "this-device"
-    _store = StateObject(wrappedValue: WhiteboardStore(log: app.log, device: device))
+    _store = StateObject(wrappedValue: WhiteboardStore(log: app.log, device: app.whiteboardDevice))
     self.app = app
     self.onDone = onDone
   }
@@ -31,6 +29,7 @@ struct WhiteboardListView: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
           if let problem = store.problem { BugProblemView(problem: problem, logger: app.bugLogger) }
+          if let linkProblem { BugProblemView(problem: linkProblem, logger: app.bugLogger) }
           if let note = store.syncNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
           if store.index.boards.isEmpty {
             ContentUnavailableView(
@@ -63,7 +62,15 @@ struct WhiteboardListView: View {
       }
     }
     .accessibilityIdentifier("whiteboard-list")
-    .task { await store.sync(reason: "open") }
+    .task {
+      if let linked = app.whiteboardLink {
+        app.whiteboardLink = nil
+        linkProblem = await store.find(linked, context: "WhiteboardListView.link")
+        if linkProblem == nil, path.isEmpty { path = [linked] }
+      } else {
+        await store.sync(reason: "open")
+      }
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { Task { await store.sync(reason: "foreground") } }
     }

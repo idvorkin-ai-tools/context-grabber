@@ -53,6 +53,8 @@ final class AppModel: ObservableObject {
   /// True while the Cockpit covers the app. The page itself outlives this: see `cockpit`.
   @Published var showCockpit = false
   @Published var showWhiteboard = false
+  /// The board a link asked for (#603): the boards open it as they come up.
+  var whiteboardLink: String?
 
   /// Made on the first open and kept for the launch, so closing the Cockpit hides the page rather than closing it.
   /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks.
@@ -133,6 +135,8 @@ final class AppModel: ObservableObject {
     places.prune(reason: "launch")
     liveActivity.endLeftovers()
     LinkLauncher.handler = { [weak self] route in self?.open(route: route, from: "shortcut") }
+    chat.findBoard = { [weak self] board, context in await self?.findBoard(board, context: context) }
+    chat.openBoard = { [weak self] board in self?.open(route: .whiteboard(board: board), from: "chat") }
     // Chat: a reply's notification opens its thread (set before the launch finishes, for a tap that launches us).
     chatNotifications.open = { [weak self] thread in self?.open(route: .chat(thread: thread), from: "notification") }
     chatNotifications.onScreen = { [weak self] in self?.chat.openThread }
@@ -300,6 +304,9 @@ final class AppModel: ObservableObject {
     case .card(let think): openCard(think: think, from: source)
     case .supermix: openWorkoutSupermix(from: source)
     case .chat(let thread): openInbox(from: source, thread: thread)
+    case .whiteboard(let board):
+      whiteboardLink = board
+      openWhiteboard(from: source)
     }
   }
 
@@ -632,6 +639,17 @@ final class AppModel: ObservableObject {
 
   private var cockpitOpened = false
 
+  /// The archive's device id (the vendor id): which boards this install draws on.
+  var whiteboardDevice: String {
+    database.setting(ArchiveModel.deviceKey) ?? UIDevice.current.identifierForVendor?.uuidString.lowercased()
+      ?? "this-device"
+  }
+
+  /// #603: nil when the board is on this device, once iCloud has been asked; otherwise the problem to show.
+  func findBoard(_ id: String, context: String) async -> BugProblem? {
+    await WhiteboardStore(log: log, device: whiteboardDevice).find(id, context: context)
+  }
+
   func openWhiteboard(from source: String) {
     log.event("ui", ["action": "open_whiteboard", "from": source])
     screen = "whiteboard"
@@ -767,6 +785,9 @@ final class AppModel: ObservableObject {
       openCard(think: false, from: "hook")
     }
     if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
+    if let board = env["GRABBER_BOARD_FIXTURE"], !board.isEmpty {
+      WhiteboardStore(log: log, device: whiteboardDevice).addFixture(board)
+    }
     if env["GRABBER_WHITEBOARD"] == "open" { openWhiteboard(from: "hook") }
     if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }
     if env["GRABBER_HOME"] == "settings" { openHomeSettings() }

@@ -30,7 +30,7 @@ Title of a new thread: the note's first line, else the text's, else the link's s
 ## Reading (ContextCore `ChatWire`)
 
 `GET /chat` → summaries (`key, title, count, last_ts, last_who, last_text, unread, done, igor_receipt`).
-`GET /chat/<key>` → messages (`id, ts, who, text, source, attachments: [ref], receipt {state, note}`).
+`GET /chat/<key>` → messages (`id, ts, who, text, source, attachments: [ref], board?, receipt {state, note}`).
 `POST /chat-seen {thread}` when a thread is opened. Images at `<cockpit>/attachments/<ref>`.
 
 A thread's screen merges the server's messages with this phone's outbox items for that thread whose id the server

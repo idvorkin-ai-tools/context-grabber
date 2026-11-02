@@ -21,6 +21,9 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   /// for another device's; nil until one did.
   public var fetched: Int64?
 
+  /// This device holds the drawing of the version it knows of.
+  public var current: Bool { fetched == updated }
+
   public init(
     id: String, title: String, created: Int64, updated: Int64, strokes: Int, device: String, deviceName: String,
     uploaded: Int64? = nil, fetched: Int64? = nil

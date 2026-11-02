@@ -359,7 +359,7 @@ struct ChatThreadView: View {
               logger: logger)
           }
           ForEach(messages) { message in
-            MessageBubble(message: message, cockpit: chat.cockpit, logger: logger)
+            MessageBubble(message: message, chat: chat, logger: logger)
           }
           // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
@@ -435,7 +435,7 @@ struct ChatThreadView: View {
 
 private struct MessageBubble: View {
   let message: ChatMessage
-  let cockpit: String
+  let chat: ChatModel
   let logger: BugLogger
 
   var body: some View {
@@ -443,8 +443,8 @@ private struct MessageBubble: View {
       if message.fromIgor { Spacer(minLength: 48) }
       VStack(alignment: message.fromIgor ? .trailing : .leading, spacing: 4) {
         ForEach(message.attachments, id: \.self) { ref in
-          if let url = ChatWire.attachmentURL(ref, cockpit: cockpit) {
-            ChatImage(url: url, message: message.id, logger: logger)
+          if let url = ChatWire.attachmentURL(ref, cockpit: chat.cockpit) {
+            ChatImage(url: url, message: message.id, board: message.board, chat: chat, logger: logger)
           }
         }
         if !message.text.isEmpty {
@@ -516,13 +516,48 @@ private struct PendingBubble: View {
 private struct ChatImage: View {
   let url: URL
   let message: String
+  /// The whiteboard it was sent from: the full-size view offers Jump to board (#603).
+  let board: String?
+  let chat: ChatModel
   let logger: BugLogger
   /// GRABBER_CHAT_IMAGE=open: the thread's picture opens full size by itself, for the simulator.
   @State private var full = ProcessInfo.processInfo.environment["GRABBER_CHAT_IMAGE"] == "open"
+  @State private var looking = false
+  @State private var jumpProblem: BugProblem?
+  /// The cover is going down for a jump: the board opens once it has, so no cover is left stuck.
+  @State private var leaving = false
 
   private func close(how: String) {
     full = false
     logger("ui", ["action": "close_chat_image", "message": .string(message), "how": .string(how)])
+  }
+
+  /// The board is found first, so a missing one leaves the picture open with the reason on it.
+  private func jump(to board: String) {
+    looking = true
+    jumpProblem = nil
+    Task {
+      let problem = await chat.findBoard(board, "ChatThreadView.jumpToBoard")
+      looking = false
+      logger(
+        "ui",
+        [
+          "action": "jump_to_board", "message": .string(message), "board": .string(board),
+          "found": .string(problem == nil ? "yes" : "no"),
+        ])
+      guard full else { return }  // closed while it looked
+      jumpProblem = problem
+      if problem == nil {
+        leaving = true
+        full = false
+      }
+    }
+  }
+
+  private func coverDismissed() {
+    jumpProblem = nil
+    if leaving, let board { chat.openBoard(board) }
+    leaving = false
   }
 
   var body: some View {
@@ -541,13 +576,31 @@ private struct ChatImage: View {
         ProgressView().frame(width: 120, height: 90)
       }
     }
-    .fullScreenCover(isPresented: $full) {
+    .fullScreenCover(isPresented: $full, onDismiss: coverDismissed) {
       ZStack(alignment: .topTrailing) {
         Color.black.ignoresSafeArea()
         AsyncImage(url: url) {
           $0.resizable().scaledToFit()
         } placeholder: {
           ProgressView()
+        }
+        if let board {
+          VStack(spacing: 8) {
+            Spacer()
+            if let jumpProblem {
+              BugProblemView(problem: jumpProblem, logger: logger)
+                .padding(8).background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
+            }
+            Button {
+              jump(to: board)
+            } label: {
+              Text(looking ? "Looking for the board…" : "Jump to board").font(.headline)
+                .padding(.horizontal, 16).padding(.vertical, 8)
+                .background(.black.opacity(0.65), in: Capsule())
+            }
+            .foregroundStyle(.white).disabled(looking).accessibilityIdentifier("chat-image-jump")
+          }
+          .padding().frame(maxWidth: .infinity)
         }
         // #592: on a white picture (a whiteboard Larry marked up) a bare white Done vanished and left no way back.
         Button {

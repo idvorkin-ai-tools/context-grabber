@@ -155,6 +155,24 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertNotNil(phone.board("a"))
   }
 
+  func testABoardIsCurrentOnlyOnceItsLatestDrawingArrived() {
+    var phone = BoardIndex()
+    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    _ = phone.merge(cloud: [board], device: "phone")
+    XCTAssertEqual(phone.board("a")?.current, false, "listed, but its download hasn't landed")
+    phone.fetched("a", at: 10)
+    XCTAssertEqual(phone.board("a")?.current, true)
+    var drawnOn = board
+    drawnOn.updated = 20
+    _ = phone.merge(cloud: [drawnOn], device: "phone")
+    XCTAssertEqual(phone.board("a")?.current, false, "iCloud has newer ink than the copy here")
+    var ipad = BoardIndex()
+    ipad.add(id: "b", at: nov1, device: "ipad", deviceName: "iPad")
+    XCTAssertEqual(ipad.board("b")?.current, true, "a board drawn here is always current")
+    ipad.drew("b", strokes: 2, at: 2_000_000_000_000)
+    XCTAssertEqual(ipad.board("b")?.current, true)
+  }
+
   func testOwnBoardsDrawnHereNeverNeedAFetch() {
     var ipad = BoardIndex()
     ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")

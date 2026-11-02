@@ -244,6 +244,20 @@ final class ChatTests: XCTestCase {
     XCTAssertNil(ChatWire.summaries(Data("<html>".utf8)))
   }
 
+  /// #603: the board a picture came from, echoed by the Cockpit; old rows have none.
+  func testAMessageCarriesItsBoardWhenItHasOne() throws {
+    let json = #"""
+      {"ok": true, "messages": [
+        {"id": "a", "ts": "", "who": "igor", "text": "", "attachments": ["2026-11-01/0000000000000592.png"], "board": "b-1"},
+        {"id": "b", "ts": "", "who": "igor", "text": "old row"},
+        {"id": "c", "ts": "", "who": "igor", "text": "", "board": ""},
+        {"id": "d", "ts": "", "who": "igor", "text": "", "board": 7}
+      ]}
+      """#
+    let messages = try XCTUnwrap(ChatWire.messages(Data(json.utf8)))
+    XCTAssertEqual(messages.map(\.board), ["b-1", nil, nil, nil])
+  }
+
   func testAThreadsMessagesCarryReceiptsAndImages() throws {
     let body = #"""
       {"ok": true, "thread": "igor2-88g.374", "messages": [

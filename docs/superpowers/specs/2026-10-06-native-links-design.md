@@ -54,6 +54,8 @@ the cutover registers `grabber` and every saved link keeps working.
 | `grabbernative://breathe?autostart=1` | a session from the remembered sliders, begun |
 | `grabbernative://places` | Places |
 | `grabbernative://cockpit` | the Cockpit |
+| `grabbernative://whiteboard` | the boards |
+| `grabbernative://whiteboard?board=<id>` | that board, as it is now, after asking iCloud (a chat picture's *Jump to board*, #603); a board that is unknown, or whose latest drawing didn't come down, stays on the boards and says so |
 | `grabbernative://call` | the call screen, calling Larry on the remembered backend; a live call is brought forward, not restarted |
 | `grabbernative://call?via=eleven` | …on that backend (`eleven`, `gemini`, `openai`, `drill`, `direct`) |
 | `grabbernative://card` | the card screen on a fresh card, face up |
@@ -96,8 +98,8 @@ Native", "Open Places in Grabber Native", "Open Cockpit in Grabber Native", "Cal
 
 ## The Links screen
 
-A row near the bottom of the home screen, *Links for Shortcuts*, opens a list of every link above with a line
-saying what it does and a **Copy** button. Copying puts the link on the clipboard and the row says *Copied* for a
+A row near the bottom of the home screen, *Links for Shortcuts*, opens a list of every link above (but the one
+needing a board's id) with a line saying what it does and a **Copy** button. Copying puts the link on the clipboard and the row says *Copied* for a
 moment. A footer says the actions are also in the Shortcuts app under Grabber Native, and that the scheme becomes
 `grabber://` at the cutover.
 
@@ -118,5 +120,5 @@ a file).
   was not fully understood.
 - The six actions are in the Shortcuts app under Grabber Native; a shortcut of *Start Gym Timer* (1 MIN) run with
   the app closed opens the timer counting down.
-- The Links screen lists every link above; Copy puts exactly that link on the clipboard.
+- The Links screen lists every link above but the one needing a board's id; Copy puts exactly that link on the clipboard.
 - Context Grabber's own links (`grabber://…` from its widgets and the Cockpit page) still open Context Grabber.
