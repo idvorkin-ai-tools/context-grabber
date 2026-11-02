@@ -10,7 +10,7 @@ final class WhiteboardTurnUITests: XCTestCase {
   /// A new board open, Ghosts on, the app talking to the fake Cockpit.
   /// `cockpit` picks how the fake Cockpit answers: "/plain" doesn't stream, "/many" streams six marks.
   private func openBoard(
-    keepHook: Bool = false, ghostSeconds: Int? = nil, cockpit way: String = "", say: String? = nil
+    keepHook: Bool = false, ghostSeconds: Int? = nil, say: String? = nil, cockpit way: String = ""
   ) throws -> (XCUIApplication, XCUIElement) {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")

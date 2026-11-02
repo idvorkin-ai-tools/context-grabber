@@ -178,7 +178,8 @@ final class WhiteboardModel: ObservableObject {
   private var threadKey: String { "whiteboard_thread_\(board.id)" }
 
   private func makeDictation() -> NoteDictation {
-    let dictation = NoteDictation(logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.callLive() ?? false })
+    let dictation = NoteDictation(
+      logger: log.bugLogger, hostMicrophoneBusy: { [weak self] in self?.callLive() ?? false })
     dictation.$listening.removeDuplicates().sink { [weak self] on in
       MainActor.assumeIsolated { self?.micOn = on }
     }
@@ -300,7 +301,8 @@ final class WhiteboardModel: ObservableObject {
       let request =
         who == .claude
         ? try WhiteboardTurn.suggestRequest(
-          title: WhiteboardSpeech.context(title: title, said: said), picture: png, width: image.cgImage?.width ?? 0, height: image.cgImage?.height ?? 0,
+          title: WhiteboardSpeech.context(title: title, said: said), picture: png, width: image.cgImage?.width ?? 0,
+          height: image.cgImage?.height ?? 0,
           cockpit: cockpit)
         : try WhiteboardTurn.request(
           who: who, board: board.id, title: title, picture: png, thread: thread, cockpit: cockpit)
