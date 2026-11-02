@@ -74,7 +74,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Back** (top bar) closes the board and returns to the boards, where **Done** leaves the Whiteboard.
 - **The board's colour** (Igor, 2026-11-02, #607: "Give me the ability to change background colors"): a
   **Board** menu in the top bar, on the device that draws the board, offers five colours: *Plain*, *Cream*, *Sage*, *Lilac* and
-  *Grey*.
+  *Grey*. On a width as narrow as an iPhone's, the menu sits at the bottom of the screen, so the top bar's buttons stay
+  in view and don't move under *More*.
   - **Each board keeps its own colour.** It's remembered with the board and goes through iCloud with the drawing, like
     its name. A new board starts on Plain. Choosing a colour moves the board to the top of the list, as a rename does.
   - **Each colour has a pale shade and a deep one**, so black ink, which turns white in dark mode, stays easy to read

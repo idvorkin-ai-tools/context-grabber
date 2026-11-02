@@ -799,6 +799,7 @@ struct WhiteboardView: View {
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   private let logger: BugLogger
   private let callLive: AnyPublisher<Bool, Never>
   private let reportOpen: AnyPublisher<Bool, Never>
@@ -829,8 +830,9 @@ struct WhiteboardView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {
-        ToolbarItem(placement: .topBarTrailing) {
-          // The board's own settings, in one menu so the bar stays narrow enough for an iPhone (story 378).
+        // The board's own settings, in one menu. Six items in an iPhone's top bar push Larry's turn and Send under *More*,
+        // so at that width this one goes to the bottom (story 378).
+        ToolbarItem(placement: horizontalSizeClass == .compact ? .bottomBar : .topBarTrailing) {
           Menu {
             Section("Colour") {
               Picker("Colour", selection: Binding(get: { model.paper }, set: { model.setPaper($0) })) {

@@ -239,6 +239,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     ghosts.tap()
     wait(ghosts, label: "Ghosts off", timeout: 3)
     let paper = app.buttons["whiteboard-board"]
+    XCTAssertFalse(app.buttons["OverflowBarButtonItem"].exists, "the top bar has room for all its buttons")
     XCTAssertEqual(paper.label, "Board, Plain")
     try assertPaper(0xFFFFFF, "Plain, light")
 

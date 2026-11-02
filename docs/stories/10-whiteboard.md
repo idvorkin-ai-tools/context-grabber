@@ -773,6 +773,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open the Board menu in the bar, choose Cream, draw, go back and open the board again
 - **Then:** the board is cream both times, and the other boards haven't changed
 
+- **Scenario:** On an iPhone's width
+- **Given:** a board of mine is open on a narrow screen
+- **When:** I look for the Board menu
+- **Then:** it is at the bottom of the screen, and Larry's turn and Send are still in the top bar, not under *More*
+
 - **Scenario:** Light and dark mode
 - **Given:** a board is Cream
 - **When:** the iPad changes between light and dark mode
