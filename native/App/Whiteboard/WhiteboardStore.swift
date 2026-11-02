@@ -180,6 +180,12 @@ final class WhiteboardStore: ObservableObject {
     Task { await sync(reason: "rename") }
   }
 
+  func setPaper(_ paper: BoardPaper, board id: String) {
+    index.setPaper(id, to: paper, at: Int64(Date().timeIntervalSince1970 * 1000))
+    saveIndex()
+    Task { await sync(reason: "paper") }
+  }
+
   func delete(_ id: String, reason: String = "asked") {
     index.remove(id)
     saveIndex()
@@ -347,6 +353,7 @@ struct BoardCloud {
     record["strokes"] = board.strokes
     record["device"] = board.device
     record["deviceName"] = board.deviceName
+    record["paper"] = board.paperID
     record["drawing"] = CKAsset(fileURL: drawing)
     record["picture"] = picture.map(CKAsset.init(fileURL:))
     // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds.
@@ -376,7 +383,7 @@ struct BoardCloud {
     while more {
       let changes = try await database.recordZoneChanges(
         inZoneWith: zone.zoneID, since: token,
-        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName"])
+        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName", "paper"])
       for (id, result) in changes.modificationResultsByID {
         guard let record = try? result.get().record, let entry = Self.entry(record) else {
           unread.insert(id.recordName)
@@ -410,6 +417,6 @@ struct BoardCloud {
     return BoardEntry(
       id: record.recordID.recordName, title: title, created: created, updated: updated,
       strokes: (record["strokes"] as? Int) ?? 0, device: device,
-      deviceName: (record["deviceName"] as? String) ?? "another device")
+      deviceName: (record["deviceName"] as? String) ?? "another device", paperID: record["paper"] as? String)
   }
 }

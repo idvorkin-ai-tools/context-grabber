@@ -9,7 +9,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   public var title: String
   /// Unix ms.
   public var created: Int64
-  /// Unix ms of the last stroke or rename: the list's order, and how iCloud's copy is told to be newer.
+  /// Unix ms of the last stroke, rename or colour: the list's order, and how iCloud's copy is told to be newer.
   public var updated: Int64
   public var strokes: Int
   /// The install that draws it (the archive's device id) and what that device is ("iPad").
@@ -20,13 +20,17 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   /// The `updated` whose drawing this device holds: always current for a board drawn here, the last that arrived
   /// for another device's; nil until one did.
   public var fetched: Int64?
+  /// The board's colour by name; nil, or a name from a newer build, shows as Plain and is kept as it is.
+  public var paperID: String?
+
+  public var paper: BoardPaper { paperID.flatMap(BoardPaper.init(rawValue:)) ?? .plain }
 
   /// This device holds the drawing of the version it knows of.
   public var current: Bool { fetched == updated }
 
   public init(
     id: String, title: String, created: Int64, updated: Int64, strokes: Int, device: String, deviceName: String,
-    uploaded: Int64? = nil, fetched: Int64? = nil
+    uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil
   ) {
     self.id = id
     self.title = title
@@ -37,6 +41,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
     self.deviceName = deviceName
     self.uploaded = uploaded
     self.fetched = fetched
+    self.paperID = paperID
   }
 }
 
@@ -96,6 +101,17 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     guard !trimmed.isEmpty, let i = boards.firstIndex(where: { $0.id == id }) else { return }
     let current = boards[i].fetched == boards[i].updated
     boards[i].title = trimmed
+    boards[i].updated = max(ms, boards[i].updated)
+    if current { boards[i].fetched = boards[i].updated }
+  }
+
+  /// A colour for the board. One not yet changed stays new, so closing it without a stroke still takes it away (its
+  /// first stroke takes the colour up); any other is a change iCloud has to take.
+  public mutating func setPaper(_ id: String, to paper: BoardPaper, at ms: Int64) {
+    guard let i = boards.firstIndex(where: { $0.id == id }), boards[i].paper != paper else { return }
+    boards[i].paperID = paper.rawValue
+    guard boards[i].updated != boards[i].created else { return }
+    let current = boards[i].fetched == boards[i].updated
     boards[i].updated = max(ms, boards[i].updated)
     if current { boards[i].fetched = boards[i].updated }
   }

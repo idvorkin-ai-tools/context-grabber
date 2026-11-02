@@ -755,6 +755,64 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 378:
+
+- **Summary:** Choose the board's colour
+- **Status:** not implemented yet
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who looks at a board for a long time
+- **I want to** choose its background from a few colours, and have it remember
+- **so that** the board is pleasant to draw on, and I can tell one idea from another
+
+#### Acceptance Criteria:
+- **Scenario:** A colour for this board
+- **Given:** a board of mine is open
+- **When:** I tap the palette button in the bar, choose Cream, draw, go back and open the board again
+- **Then:** the board is cream both times, and the other boards haven't changed
+
+- **Scenario:** Light and dark mode
+- **Given:** a board is Cream
+- **When:** the iPad changes between light and dark mode
+- **Then:** the board goes between a pale shade and a deep one, and the ink stays easy to read on both
+
+- **Scenario:** Ghosts on a colour
+- **Given:** a board is any of the colours
+- **When:** Claude's orange ghosts and Larry's blue ones show
+- **Then:** I can see them about as well as on Plain
+
+- **Scenario:** An empty board
+- **Given:** I opened a new board and chose a colour
+- **When:** I close it without a stroke
+- **Then:** it leaves no card
+
+- **Scenario:** What Claude and Larry see
+- **Given:** a board is Sage and the iPad is in dark mode
+- **When:** Claude takes a turn or I send the board to Larry
+- **Then:** the picture they get is dark ink on white
+
+---
+
+### User Story 379:
+
+- **Summary:** The colour goes with the board
+- **Status:** not implemented yet
+- **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
+
+#### Use Case:
+- **As someone** who looks at the iPad's boards on the phone
+- **I want to** see them in the colour I chose
+- **so that** a board looks like the same board everywhere
+
+#### Acceptance Criteria:
+- **Scenario:** On the phone
+- **Given:** I chose Sage for a board on the iPad and closed it
+- **When:** I open the Whiteboard on the phone and tap that board's card
+- **Then:** the card and the look-only board are sage, in the phone's own mode, and the phone offers no way to change it
+
+---
+
 ### User Story 380:
 
 - **Summary:** Larry's turn doesn't hold up the drawing

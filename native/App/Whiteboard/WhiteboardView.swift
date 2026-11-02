@@ -31,6 +31,8 @@ final class WhiteboardModel: ObservableObject {
   }
   /// Story 344's switch, remembered across boards.
   @Published private(set) var ghostsOn: Bool
+  /// The board's colour (story 378).
+  @Published private(set) var paper: BoardPaper
   /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
   @Published private(set) var turnNote: String?
   /// The picture is on its way to Larry's thread.
@@ -93,6 +95,7 @@ final class WhiteboardModel: ObservableObject {
   ) {
     self.callLive = callLive
     self.board = board
+    paper = board.paper
     self.store = store
     self.log = log
     self.inbox = inbox
@@ -182,6 +185,13 @@ final class WhiteboardModel: ObservableObject {
       ghosts.removeAll { $0.who == .claude }
       if turnNote == Self.ghostsAway { turnNote = nil }
     }
+  }
+
+  func setPaper(_ new: BoardPaper) {
+    guard editable, new != paper else { return }
+    paper = new
+    store.setPaper(new, board: board.id)
+    log.event("whiteboard", ["action": "paper", "board": board.id, "paper": new.rawValue])
   }
 
   /// Story 380: the picture goes to the board's thread and Igor keeps drawing; Larry's marks come when they come.
@@ -624,7 +634,7 @@ final class WhiteboardModel: ObservableObject {
     draw?(kept)
   }
 
-  /// Dark ink on white whatever the iPad's mode: what Larry and Claude see.
+  /// Dark ink on white whatever the iPad's mode and the board's colour: what Larry and Claude see.
   private func picture(rect: CGRect, scale: CGFloat) -> UIImage {
     var ink = UIImage()
     UITraitCollection(userInterfaceStyle: .light).performAsCurrent { ink = drawing.image(from: rect, scale: scale) }
@@ -723,11 +733,30 @@ extension WhiteboardTurn.Who {
   var color: UIColor { self == .claude ? .systemOrange : .systemBlue }
 }
 
+extension UIColor {
+  convenience init(rgb: UInt32) {
+    self.init(
+      red: CGFloat(rgb >> 16 & 0xFF) / 255, green: CGFloat(rgb >> 8 & 0xFF) / 255, blue: CGFloat(rgb & 0xFF) / 255,
+      alpha: 1)
+  }
+}
+
+extension BoardPaper {
+  /// Follows the view's mode, as the ink does. Plain is the system's own, as every board was before colours.
+  var color: UIColor {
+    guard self != .plain else { return .systemBackground }
+    let light = UIColor(rgb: light)
+    let dark = UIColor(rgb: dark)
+    return UIColor { $0.userInterfaceStyle == .dark ? dark : light }
+  }
+}
+
 /// One board, pushed from the list: drawn on here, or looked at when another device draws it.
 struct WhiteboardView: View {
   @StateObject private var model: WhiteboardModel
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.colorScheme) private var colorScheme
   private let logger: BugLogger
   private let callLive: AnyPublisher<Bool, Never>
   private let reportOpen: AnyPublisher<Bool, Never>
@@ -758,6 +787,24 @@ struct WhiteboardView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {
+        ToolbarItem(placement: .topBarTrailing) {
+          Menu {
+            Picker("Board colour", selection: Binding(get: { model.paper }, set: { model.setPaper($0) })) {
+              ForEach(BoardPaper.allCases, id: \.self) { paper in
+                Label {
+                  Text(paper.name)
+                } icon: {
+                  swatch(paper)
+                }.tag(paper)
+              }
+            }
+          } label: {
+            Label("Board colour", systemImage: "paintpalette")
+          }
+          // Which one, for VoiceOver and the UI test, in the label for the reason below.
+          .accessibilityLabel("Board colour: \(model.paper.name)")
+          .accessibilityIdentifier("whiteboard-paper")
+        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             model.tapMic()
@@ -821,6 +868,19 @@ struct WhiteboardView: View {
     .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
   }
 
+  /// A dot of the colour as this mode shows it; a menu only keeps an image's own colours with `.alwaysOriginal`.
+  private func swatch(_ paper: BoardPaper) -> Image {
+    let traits = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
+    let dot = CGRect(x: 1, y: 1, width: 18, height: 18)
+    return Image(
+      uiImage: UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20)).image { ctx in
+        paper.color.resolvedColor(with: traits).setFill()
+        UIColor.separator.resolvedColor(with: traits).setStroke()
+        ctx.cgContext.fillEllipse(in: dot)
+        ctx.cgContext.strokeEllipse(in: dot)
+      }.withRenderingMode(.alwaysOriginal))
+  }
+
   private var note: String? {
     let count = model.ghosts.count
     let parts = [
@@ -847,7 +907,7 @@ private struct BoardCanvas: UIViewRepresentable {
     // The system's own choice: with a Pencil paired, only it draws (palm rejection, a finger moves the board);
     // without one (an iPhone, the simulator), a finger draws.
     canvas.drawingPolicy = .default
-    canvas.backgroundColor = .systemBackground
+    canvas.backgroundColor = model.paper.color
     canvas.isOpaque = true
     canvas.contentSize = CGSize(width: WhiteboardFrame.side, height: WhiteboardFrame.side)
     canvas.minimumZoomScale = 0.1
@@ -880,6 +940,7 @@ private struct BoardCanvas: UIViewRepresentable {
   }
 
   func updateUIView(_ canvas: BoardCanvasView, context: Context) {
+    canvas.backgroundColor = model.paper.color
     canvas.show(model.ghosts)
   }
 
