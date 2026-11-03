@@ -11,6 +11,8 @@ public struct InboxDraft: Equatable, Sendable {
   public var image: Data?
   /// Set when the image is a whiteboard's picture.
   public var whiteboard: WhiteboardPicture?
+  /// With `whiteboard`: the board's strokes as `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
+  public var strokes: Data?
 
   public init() {}
 
@@ -33,7 +35,9 @@ public struct InboxDraft: Equatable, Sendable {
       id: id, kind: picture != nil ? .image : .text, sharedAt: sharedAt,
       text: picture != nil ? nil : trimmedText, note: picture != nil ? trimmedText : nil, thread: thread,
       whiteboard: whiteboard)
-    let saved = try store.add(item, image: picture, imageExtension: picture.map(Self.fileExtension(of:)) ?? "jpg")
+    let saved = try store.add(
+      item, image: picture, imageExtension: picture.map(Self.fileExtension(of:)) ?? "jpg",
+      strokes: whiteboard != nil ? strokes : nil)
     self = InboxDraft()
     return saved
   }

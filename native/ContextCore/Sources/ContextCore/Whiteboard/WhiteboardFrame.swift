@@ -10,8 +10,12 @@ public enum WhiteboardFrame {
   public static let side: CGFloat = 20_000
   /// Blank board kept around the drawing in Larry's picture.
   public static let margin: CGFloat = 40
-  /// The picture's longer side, at most.
+  /// The picture's pixel budget: `maxPixels` squared, spent on whatever shape the drawing is (story 420). A cap on
+  /// the long side alone sent a tall column of notes as a 248 x 2048 sliver with the handwriting five pixels high
+  /// (Igor, 2026-11-03: "maybe zoom into the pages").
   public static let maxPixels: CGFloat = 2048
+  /// The long side, at most: what the model APIs behind the Cockpit still take whole.
+  public static let maxLong: CGFloat = 8000
   /// Never drawn finer than the iPad's own screen.
   public static let maxScale: CGFloat = 2
 
@@ -25,12 +29,13 @@ public enum WhiteboardFrame {
     return CGPoint(x: clamp(centre.x, viewport.width), y: clamp(centre.y, viewport.height))
   }
 
-  /// Larry's picture: the drawing plus a margin, and the scale that keeps its longer side within `maxPixels`. Nil for
-  /// an empty drawing.
+  /// Larry's picture: the drawing plus a margin, and the scale that keeps it within the pixel budget and the long
+  /// side within `maxLong`. Nil for an empty drawing.
   public static func export(_ drawing: CGRect) -> (rect: CGRect, scale: CGFloat)? {
     guard !drawing.isNull, !drawing.isEmpty else { return nil }
     let rect = drawing.insetBy(dx: -margin, dy: -margin)
-    let scale = min(maxScale, maxPixels / max(rect.width, rect.height))
+    let budget = (maxPixels * maxPixels / (rect.width * rect.height)).squareRoot()
+    let scale = min(maxScale, budget, maxLong / max(rect.width, rect.height))
     return (rect, scale)
   }
 

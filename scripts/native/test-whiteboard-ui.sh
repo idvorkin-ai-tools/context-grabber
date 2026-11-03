@@ -27,5 +27,5 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
 status=$?
 grep -q 'Igor just said: draw a circle' "$report" || { echo "the spoken words never reached the fake Cockpit"; status=1; }
 if grep -q 'draw a square' "$report"; then echo "words spoken with Ghosts off reached the fake Cockpit"; status=1; fi
-echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep -c "\"picture_id\"" "$report") board pictures to Larry"
+echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep "\"body\"" "$report" | grep -c "\"picture_id\"") board pictures to Larry"
 exit $status

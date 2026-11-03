@@ -97,6 +97,10 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     until the next stroke, so a second tap never sends the same board twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
+  - **The picture frames the drawing at a readable size** (stories 420, 422, 425, 429; Igor, 2026-11-03: "maybe zoom into the pages").
+    It spends about four million pixels on whatever shape the drawing is, never finer than the screen and never past
+    8,000 pixels on a side, so a tall column of notes keeps its handwriting legible instead of shrinking to a
+    248-pixel-wide sliver. The board's strokes go with it (the shapes spec), which is what Larry reads when he can.
 - **Back** (top bar) closes the board and returns to the boards, where **Done** leaves the Whiteboard.
 - **The board's colour** (Igor, 2026-11-02, #607: "Give me the ability to change background colors"): a
   **Board** menu in the top bar, on the device that draws the board, offers five colours: *Plain*, *Cream*, *Sage*, *Lilac* and
