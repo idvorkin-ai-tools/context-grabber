@@ -1254,7 +1254,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Picking a file
 - **Given:** I am in a thread or a new chat
 - **When:** I tap the paperclip and choose a PDF
-- **Then:** it sits above the field by name and size with *Remove*, and Send is on with no words typed
+- **Then:** it sits above the field by name and size with *Remove file*, and Send is on with no words typed
 
 ---
 
@@ -1273,7 +1273,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** Removing it
 - **Given:** a file is on the bar
-- **When:** I tap *Remove*
+- **When:** I tap *Remove file*
 - **Then:** the bar holds only what I typed, and nothing is sent
 
 ---
