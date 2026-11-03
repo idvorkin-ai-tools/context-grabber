@@ -1,4 +1,4 @@
-//  #587, stories 440–444 (chat spec, Sharing into a chat that is already going): which chats the share card offers
+//  #587, stories 495–499 (chat spec, Sharing into a chat that is already going): which chats the share card offers
 //  beside *New chat*, and what it says when it cannot read them. The list is the one thing the card asks the network;
 //  what is shared still goes through the Inbox.
 
@@ -6,7 +6,7 @@ import Foundation
 
 public enum ShareThreads {
   /// How many chats the card offers.
-  public static let limit = 5
+  static let limit = 5
   /// The card works without the list, so it stops hoping sooner than Chat's own read does.
   static let timeout: TimeInterval = 6
 
@@ -16,7 +16,7 @@ public enum ShareThreads {
   }
 
   /// The live chats, in the list's order (the pinned one, then newest activity).
-  public static func recent(_ threads: [ChatSummary], limit: Int = limit) -> [ChatSummary] {
+  public static func recent(_ threads: [ChatSummary]) -> [ChatSummary] {
     Array(threads.filter { !$0.done && !$0.archived }.prefix(limit))
   }
 

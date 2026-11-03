@@ -163,10 +163,10 @@ recording ends with the report still open, the report's mic comes back at his ne
   Send sends what is in the field — the words heard so far — and stops the recording there. Nothing comes back into
   the emptied bar afterwards; the bar is ready for the next message, and the mic for the next recording.
 
-**Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
-share becomes a new thread whose first message is the shared thing with the note. The title is the note's first
-line, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane mode and while the app is
-not running, as now.
+**Sharing in.** The share card keeps its preview and optional note, and *Add to Inbox* becomes *Start a chat*. A
+share with *New chat* ticked becomes a new thread whose first message is the shared thing with the note. The title
+is the note's first line, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane mode and
+while the app is not running, as now.
 
 **Sharing into a chat that is already going** (#587, Igor 2026-11-01: *"let's allow me to select some of the previous
 chats as well"*). Under the note the card lists *New chat*, ticked, and the five most recent chats that are still

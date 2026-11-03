@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// #587, stories 440–444: which chats the share card offers, and a share picked into one going out as its next message.
+/// #587, stories 495–499: which chats the share card offers, and a share picked into one going out as its next message.
 final class ShareThreadsTests: XCTestCase {
   private var dir: URL!
   private var store: InboxStore { InboxStore(directory: dir) }
@@ -24,7 +24,7 @@ final class ShareThreadsTests: XCTestCase {
     { request in ChatTests.answer(request, status, body) }
   }
 
-  // MARK: Story 440: what the card offers
+  // MARK: Story 495: what the card offers
 
   func testTheCardOffersFiveLiveChatsInTheListsOrder() {
     let rows = [
@@ -59,7 +59,7 @@ final class ShareThreadsTests: XCTestCase {
     XCTAssertEqual(request?.timeoutInterval, ShareThreads.timeout)
   }
 
-  // MARK: Story 442: the list cannot be read
+  // MARK: Story 497: the list cannot be read
 
   func testAnErrorAnswerIsNewChatOnlyAndNamesTheStatus() async {
     let read = await ShareThreads.read(cockpit: cockpit, transport: answer(500, #"{"ok": false}"#))
@@ -110,7 +110,7 @@ final class ShareThreadsTests: XCTestCase {
     XCTAssertNil(item.offered)
   }
 
-  // MARK: Story 441: into the chat picked
+  // MARK: Story 496: into the chat picked
 
   func testALinkPickedIntoAChatIsItsNextMessageWithNoNewThread() async throws {
     try store.add(
@@ -150,7 +150,7 @@ final class ShareThreadsTests: XCTestCase {
     XCTAssertEqual(paths, ["/attachments", "/chat/igor2-88g.900"])
   }
 
-  // MARK: Story 443: the chat has gone
+  // MARK: Story 498: the chat has gone
 
   func testAShareIntoAGoneChatIsRefusedOnceAndStaysVisibleInTheList() async throws {
     try store.add(InboxItem(id: "share-1", kind: .text, sharedAt: 1, text: "hello", thread: "gone"))

@@ -1,7 +1,7 @@
 //  #305, story 038: Grabber Native in any app's share sheet. A small card previews what is shared (a link, text or
 //  one image), takes an optional note, and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
 //  The app sends it to Larry later (story 039). The one question asked of the network here is which recent chats to
-//  offer beside *New chat* (#587, stories 440–444), and nothing waits for its answer.
+//  offer beside *New chat* (#587, stories 495–499), and nothing waits for its answer.
 
 import ContextCore
 import SwiftUI
@@ -174,7 +174,7 @@ struct ShareCard: View {
   let add: (String, String?) -> String?
   let cancel: () -> Void
   @State private var note = ""
-  /// The chat ticked; nil is *New chat*. Only a tap changes it, never the list arriving (story 444).
+  /// The chat ticked; nil is *New chat*. Only a tap changes it, never the list arriving (story 499).
   @State private var thread: String?
   @State private var failure: String?
   @State private var added = false
