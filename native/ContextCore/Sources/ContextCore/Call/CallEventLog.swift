@@ -76,10 +76,12 @@ public final class CallEventLog {
     return (head + ["---"] + lines).joined(separator: "\n")
   }
 
-  /// A call whose log says something went wrong: the audio healed itself, a problem reached the screen, a step
-  /// failed, or it ended badly. The trigger is what the log says, so anything it learns to say is covered.
+  /// A call whose log says something went wrong: the audio needed more than a working mic re-arm, a problem reached
+  /// the screen, a step failed, or it ended badly. The trigger is what the log says, so anything it learns to say is
+  /// covered.
   public static func hadTrouble<S: Sequence>(_ events: S) -> Bool where S.Element == CallEvent {
-    events.contains { e in
+    var rearmsUnanswered = 0
+    let troubled = events.contains { e in
       // #417: the voices' recommendation failing to load is an expected fallback (cached, or the bridge's own
       // choice), never trouble with the call itself.
       if e.type == "call_settings" { return false }
@@ -88,10 +90,20 @@ public final class CallEventLog {
       // #545: a tool the bridge ran for Larry failing ("didn't get a usable answer back") is Larry's side, not the
       // call's: its audio and connection were fine.
       if e.type == "call_bridge", e.fields["kind"] as? String == "tool_result" { return false }
-      if e.type == "call_heal" { return true }
+      if e.type == "call_heal" {
+        guard e.fields["action"] as? String == "rearm_mic" else { return true }
+        // #450, #348: a re-arm that worked is the heal doing its job. One that failed, or never answered, is trouble.
+        switch e.fields["ok"] as? Bool {
+        case true?: rearmsUnanswered -= 1
+        case false?: return true
+        case nil: rearmsUnanswered += 1
+        }
+        return false
+      }
       if e.type == "call_problem", let p = e.fields["problem"] as? String, !p.isEmpty { return true }
       if e.type == "call_ended", e.fields["badly"] as? Bool == true { return true }
       return e.type.hasPrefix("call_") && e.fields["ok"] as? Bool == false
     }
+    return troubled || rearmsUnanswered > 0
   }
 }

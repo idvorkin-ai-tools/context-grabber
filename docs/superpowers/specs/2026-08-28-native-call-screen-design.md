@@ -279,8 +279,10 @@ the dump — it never has — the log can go up as a private gist instead:
 on demand from the fold, or on its own after a troubled call. That is
 its own spec: [Diagnostics gist upload](2026-09-05-diagnostics-gist-upload-design.md). The Swift-native app
 uploads no gist: a troubled call files an automatic report that the Mac's listener picks up (story 248).
-What counts as trouble is the call's own: its audio healing itself, a problem on screen, one of its steps failing,
-or a bad ending. A failure that belongs to someone else does not count: the voices' recommendation not loading
+What counts as trouble is the call's own: its audio needing more than a working mic repair, a problem on screen, one
+of its steps failing, or a bad ending. A mic that went quiet and came back when re-armed does not count (#450, #348;
+Igor, 2026-11-03): the call carried on, so there is nothing to report, and the call's log still has the lines. A
+re-arm that fails, or never says how it went, still counts. A failure that belongs to someone else does not count: the voices' recommendation not loading
 (#417), the log not reaching the archive (#442), or Larry not answering a question the bridge put to him on the
 call's behalf (#545, a tool answer marked failed). The call's log still carries those lines.
 

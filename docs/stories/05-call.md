@@ -465,7 +465,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A call that went wrong files a report on its own, and the Mac files the issue
 - **Status:** implemented in [0a56f3a](https://github.com/idvorkin/context-grabber/commit/0a56f3a) (the report, the gist gone) and [9fd7f3b](https://github.com/idvorkin/context-grabber/commit/9fd7f3b) (the smoke check: a dropped call reports once, a second is skipped); verified on the simulator by `just native-test-sim` (2026-10-11: a clean call files none, a dropped call files one with call-log.txt, a second after a relaunch is skipped; smoke-check fix [7c4ed4b](https://github.com/idvorkin/context-grabber/commit/7c4ed4b)); the listener filing one and a real troubled call on the phone not yet
-- **Issues:** [#545](https://github.com/idvorkin/context-grabber/issues/545): a failed Larry tool answer is not the call's trouble, in the #545 fix; verified by `CallDiagnosticsTests` (host)
+- **Issues:** [#450](https://github.com/idvorkin/context-grabber/issues/450), [#348](https://github.com/idvorkin/context-grabber/issues/348), [#545](https://github.com/idvorkin/context-grabber/issues/545): a failed Larry tool answer is not the call's trouble, in the #545 fix; verified by `CallDiagnosticsTests` (host)
 - **Spec:** [Swift-native app](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
@@ -493,6 +493,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a call whose audio, connection and ending were all fine
 - **When:** the bridge says a question it put to Larry got no usable answer (a failed tool answer)
 - **Then:** no report is saved, since that is Larry's side and not the call's, and the call's log still has the line
+
+- **Scenario:** The mic repairs itself (#450, #348)
+- **Given:** a call whose mic went quiet during a pause
+- **When:** the app re-arms the mic, it comes back, and the call carries on and ends well
+- **Then:** no report is saved, and the call's log still has the lines; a re-arm that fails or never reports back still saves one
 
 - **Scenario:** A very long call
 - **Given:** the call's log is longer than the report's 5 MB
