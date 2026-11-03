@@ -7,7 +7,7 @@ Spec: [2026-10-25-native-chat-design.md](../specs/2026-10-25-native-chat-design.
 
 Nothing new on disk. `InboxItem` gains two optional fields:
 
-- `thread` — the Cockpit thread key it is posted to. `nil` starts a new thread (every share, every **+**).
+- `thread` — the Cockpit thread key it is posted to. `nil` starts a new thread (a share with *New chat* ticked, every **+**).
 - `chat_thread` — the key it landed on, set with `sent_at`. A sent item with no `chat_thread` was sent to Larry's
   inbox before chat: it lives under *Earlier shares*.
 
@@ -34,7 +34,7 @@ Title of a new thread: the note's first line, else the text's, else the link's s
 `POST /chat-seen {thread}` when a thread is opened. Images at `<cockpit>/attachments/<ref>`.
 
 A thread's screen merges the server's messages with this phone's outbox items for that thread whose id the server
-does not have yet (shown **Not sent yet**, or *Larry refused it*). A new thread not yet sent is a list row of its own.
+does not have yet (shown **Not sent yet**, or *Larry refused it*). A new thread not yet sent is a list row of its own, and so is an unsent message for a thread the list does not hold (#587).
 
 ## Hearing back (`ChatNotify`, App `ChatBackground`)
 

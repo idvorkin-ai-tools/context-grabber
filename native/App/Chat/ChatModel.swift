@@ -301,8 +301,9 @@ final class ChatModel: ObservableObject {
       .sorted { $0.sharedAt < $1.sharedAt }
   }
 
-  /// New threads not yet on the Cockpit: a share or a + that has not left the phone, or was refused.
-  var pendingThreads: [InboxItem] { inbox.items.filter { $0.thread == nil && $0.status != .sent } }
+  /// New threads not yet on the Cockpit (a share or a + that has not left the phone, or was refused), and a message
+  /// for a chat the list does not hold (#587).
+  var pendingThreads: [InboxItem] { ChatWire.pendingThreads(inbox.items, listed: threads) }
 
   var earlierShares: [InboxItem] { inbox.items.filter(\.isEarlierShare) }
 

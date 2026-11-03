@@ -9,7 +9,7 @@ Inbox's list. Part of the [Swift-native app](2026-10-04-swift-native-app-design.
 ## Summary
 
 The Inbox becomes **Chat**: a list of conversations with Larry, each a thread of Igor's messages and Larry's replies.
-Every share from another app starts a new thread. The threads are the Cockpit's chat threads — the same ones the
+A share from another app starts a new thread unless Igor picks a recent one on its card (#587). The threads are the Cockpit's chat threads — the same ones the
 Cockpit's Chat tab shows and Larry already answers — so a conversation started on the phone can be picked up on the
 laptop and back. Writing still works with no network, as the Inbox does today. While the app is open the thread
 updates by itself; while it is not, the phone checks now and then and notifies Igor of a reply.
@@ -17,7 +17,8 @@ updates by itself; while it is not, the phone checks now and then and notifies I
 ## Goals
 
 - Talk to Larry in threads from the phone, without Telegram.
-- Every share starts its own thread, with the shared thing as its first message.
+- A share starts its own thread, with the shared thing as its first message, or goes into a recent thread Igor picks
+  on its card (#587).
 - Nothing written is lost: a message waits on the phone until the Cockpit has it, and reaches it once.
 - Igor can tell, without opening each thread, which ones Larry has answered.
 
@@ -29,7 +30,7 @@ updates by itself; while it is not, the phone checks now and then and notifies I
 - Searching, renaming or deleting threads from the phone. Archiving is the phone's way to close one (#589).
 - A voice conversation inside a thread (the Call screen is that). Speaking a message is in (#448): it becomes text
   Igor reads before he sends.
-- Sharing a file in from another app (#633). A file reaches a thread through the paperclip; the share card is unchanged.
+- Sharing a file in from another app (#633). A file reaches a thread through the paperclip; the share card takes no files.
 
 ## What Igor sees
 
@@ -162,10 +163,28 @@ recording ends with the report still open, the report's mic comes back at his ne
   Send sends what is in the field — the words heard so far — and stops the recording there. Nothing comes back into
   the emptied bar afterwards; the bar is ready for the next message, and the mic for the next recording.
 
-**Sharing in.** The share card is unchanged — preview, optional note, *Add to Inbox* becomes *Start a chat*. Each
-share becomes a new thread whose first message is the shared thing with the note. The title is the note's first
-line, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane mode and while the app is
-not running, as now.
+**Sharing in.** The share card keeps its preview and optional note, and *Add to Inbox* becomes *Start a chat*. A
+share with *New chat* ticked becomes a new thread whose first message is the shared thing with the note. The title
+is the note's first line, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane mode and
+while the app is not running, as now.
+
+**Sharing into a chat that is already going** (#587, Igor 2026-11-01: *"let's allow me to select some of the previous
+chats as well"*). Under the note the card lists *New chat*, ticked, and the five most recent chats that are still
+live, each with its title and how long ago it last moved: the always-on chat first, then newest activity. Done and
+archived chats are not offered. Tapping a row ticks it, and the card's button reads *Start a chat* for *New chat* and
+*Send* for a chat. The shared thing, with the note, becomes the next message in that chat, under the same rules as any
+message from the thread's bar: it waits on the phone, goes once, and shows in the thread as *Not sent yet* until it has
+gone. Sharing still never waits on the network:
+
+- The card opens at once with *New chat* ticked and can be sent straight away; the recent chats are asked of the
+  Cockpit as it opens, and appear when they come. Their arrival never moves the tick. This one question is the only
+  thing the card asks the network; the shared thing itself is written to the phone and sent by the app, as before.
+- With the Cockpit out of reach, or answering with something else, within a few seconds the card offers *New chat*
+  alone and one quiet line says why, selectable and with *Copy*. In aeroplane mode this is how a share looks.
+- A chat with nothing to offer (a new install, every chat Done) is *New chat* alone, with no line.
+- A share into a chat the Cockpit no longer has is refused like any other: it is not resent, and it reads *Larry refused
+  it* with the Cockpit's reason. A message into a chat the list does not hold stays visible in the list under *Not sent
+  yet*, refused or waiting, with a swipe to delete, since no thread on screen could show it.
 
 **Sending.** The same rules the Inbox has: tried when the app opens or comes to the front, when the network returns
 and after a failed send's network change, oldest first, never while offline. A message resent after a lost answer
@@ -202,6 +221,8 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 
 ## Explaining itself
 
+- `inbox` added says whether a share starts a chat or names its thread, and what the card's list held when Igor sent
+  it (how many chats, still reading, or why it failed): the card itself cannot write to the session log.
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
   text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
   refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
@@ -241,6 +262,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   again* retries the same message, and delivers it once the Cockpit takes files. A kept file the phone can't read says
   so and has no *Send again*.
 - A new chat that began with a refused file says where the file stays and that a new message starts a separate chat.
+- The share card lists *New chat* (ticked) and up to five recent live chats, with title and age, as soon as the Cockpit
+  answers; a share into one lands as that chat's next message, once, with no new thread and no new title; with the
+  Cockpit out of reach the card offers *New chat* alone, says why, and still closes at once on sending.
 
 ## Depends on the Cockpit
 

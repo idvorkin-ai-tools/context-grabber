@@ -26,7 +26,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   /// The Cockpit's reason when it said the item itself is wrong; such an item is never sent again on its own
   /// (a document can go again on a tap: `canSendAgain`).
   public var refused: String?
-  /// Chat (spec 2026-10-25): the Cockpit thread this message goes to; nil starts a new thread (every share, every +).
+  /// Chat (spec 2026-10-25): the Cockpit thread this message goes to; nil starts a new thread (a share with *New chat* ticked, every +).
   public var thread: String?
   /// The thread it landed on, set with `sentAt`. A sent item without one went to Larry's inbox before chat: an
   /// *Earlier share*.
@@ -35,6 +35,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var whiteboard: WhiteboardPicture?
   /// The board's strokes beside the item, `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
   public var strokesFile: String?
+  /// What the share card's list of chats held when this was shared (#587), for the log: a count, or why not.
+  public var offered: String?
 
   /// Why a document whose bytes the phone can't read was refused: no request went (story 492).
   public static let fileUnreadable = "the file could not be read from the phone"
@@ -73,7 +75,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   }
 
   enum CodingKeys: String, CodingKey {
-    case id, kind, url, text, note, refused, thread, whiteboard
+    case id, kind, url, text, note, refused, thread, whiteboard, offered
     case chatThread = "chat_thread"
     case sharedAt = "shared_at"
     case imageFile = "image_file"

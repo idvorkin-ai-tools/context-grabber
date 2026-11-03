@@ -215,6 +215,13 @@ public enum ChatWire {
     threads.filter { !$0.done && picked.contains($0.key) }.map(\.key)
   }
 
+  /// What only the list can show of what has not reached a thread: a new chat, or a message for a chat the list does
+  /// not hold, so no thread on screen can show it (a share into a chat that has gone, #587).
+  public static func pendingThreads(_ items: [InboxItem], listed threads: [ChatSummary]) -> [InboxItem] {
+    let keys = Set(threads.map(\.key))
+    return items.filter { item in item.status != .sent && item.thread.map { !keys.contains($0) } ?? true }
+  }
+
   /// Where an attachment's image is served; nil for a ref that is not one the Cockpit mints.
   public static func attachmentURL(_ ref: String, cockpit: String) -> URL? {
     guard ref.range(of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp)$"#, options: .regularExpression) != nil
