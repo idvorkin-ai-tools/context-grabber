@@ -30,7 +30,7 @@ opens it. The popover replaces the grey list menu the music tile had; there is n
 
 **Holding.** Press and hold a tile with a popover and, after the usual iOS hold, the tile gives a light tick and a
 popover opens beside it, its arrow pointing at the tile. Inside, the choices sit in a grid of small tiles (three to a
-row), each with its drawn picture and a short name under it. Where a plain tap makes one of the choices (the Workout Supermix, Think of a card), it comes first; the timer's and breathing's tap opens their remembered preset ready, so their choices simply run in order.
+row), each with its drawn picture and a short name under it. Where a plain tap makes one of the choices (the Workout Supermix, Think of a card, Random's Anything), it comes first; the timer's and breathing's tap opens their remembered preset ready, so their choices simply run in order.
 
 **Choosing.** Tap a choice and the popover closes and that choice opens, exactly as if it had its own tile. A tap
 outside the popover, or a swipe, closes it with nothing opened. Holding a tile with no popover does nothing, as
