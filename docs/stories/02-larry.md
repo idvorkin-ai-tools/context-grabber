@@ -1656,6 +1656,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I tap the voice button immediately left of the +
 - **Then:** an empty thread titled *New chat* opens with the ordinary bar and no sheet or dialog, the bar's mic is already red with the seconds counting, the keyboard stays down, and the session log has a `ui` line with action `open_new_chat` and voice true, then `chat_voice` lines, never my words
 
+- **Scenario:** The buttons never cover a row
+- **Given:** Chat lists more rows than fit, or an archived row sits at the bottom of the list with *Undo* showing above it
+- **When:** I swipe a row I can see, starting anywhere along it
+- **Then:** its swipe action opens, since the + and the voice button sit in a bar of their own below the list and no row lies behind them
 ---
 
 ### User Story 471:
