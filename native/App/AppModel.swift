@@ -817,6 +817,17 @@ final class AppModel: ObservableObject {
         log.event("error", ["where": "chat_hook", "message": "\(error)"])
       }
     }
+    if let send = env["GRABBER_CHAT_SEND_FILE"], !send.isEmpty {
+      // #633: "<thread>|<path>" attached and sent as the bar would; the document picker can't be driven from a script.
+      let parts = send.split(separator: "|", maxSplits: 1).map(String.init)
+      do {
+        var draft = InboxDraft()
+        if case .file(let file) = try ChatFile.read(URL(fileURLWithPath: parts.last ?? "")) { draft.file = file }
+        try chat.send(&draft, thread: parts[0] == "new" ? nil : parts[0])
+      } catch {
+        log.event("error", ["where": "chat_hook", "message": "\(error)"])
+      }
+    }
     if env["GRABBER_CHAT_NEW"] == "open" {
       // #536: Chat with its + already tapped, a new thread on screen.
       openInbox(from: "hook")

@@ -96,7 +96,7 @@ public struct InboxSender: Sendable {
   }
 
   /// `log` gets one line per item: the event's fields, never the content. Chat (spec 2026-10-25): an item is a
-  /// chat message — its image uploaded first, then posted to its thread or as a new one.
+  /// chat message — its image or file uploaded first, then posted to its thread or as a new one.
   public func sendWaiting(now: @Sendable () -> Date = Date.init, log: (String, [String: Any]) -> Void) async
     -> Report
   {
@@ -118,20 +118,25 @@ public struct InboxSender: Sendable {
 
   private func send(_ item: InboxItem, fields: inout [String: Any]) async -> ChatSend.Outcome {
     var attachment: String?
+    if item.kind == .file {
+      guard let raw = store.file(of: item), let name = item.fileName else {
+        return .refused(status: 0, reason: "the file could not be read from the phone")
+      }
+      // The type, never the name: the log holds no content.
+      fields["bytes"] = raw.count
+      fields["file_type"] = (name as NSString).pathExtension.lowercased()
+      switch await upload({ try ChatSend.uploadRequest(file: raw, name: name, cockpit: cockpit) }, fields: &fields) {
+      case .ref(let ref): attachment = ref
+      case .refused(let status, let reason): return .refused(status: status, reason: reason)
+      case .retry(let reason): return .retry(reason: "file upload: \(reason)")
+      }
+    }
     if item.kind == .image {
       guard let raw = store.image(of: item), let ready = InboxSend.sendable(raw) else {
         return .refused(status: 0, reason: "The image could not be read or made small enough to send.")
       }
       fields["bytes"] = ready.count
-      let upload: ChatSend.Upload
-      do {
-        let (data, response) = try await transport(try ChatSend.uploadRequest(image: ready, cockpit: cockpit))
-        upload = ChatSend.upload(status: (response as? HTTPURLResponse)?.statusCode, body: data)
-      } catch {
-        if CockpitReach.isAway(error) { fields["unreachable"] = true }
-        upload = ChatSend.upload(status: nil, body: nil, error: error.localizedDescription)
-      }
-      switch upload {
+      switch await upload({ try ChatSend.uploadRequest(image: ready, cockpit: cockpit) }, fields: &fields) {
       case .ref(let ref): attachment = ref
       case .refused(let status, let reason): return .refused(status: status, reason: reason)
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
@@ -149,6 +154,16 @@ public struct InboxSender: Sendable {
     } catch {
       if CockpitReach.isAway(error) { fields["unreachable"] = true }
       return ChatSend.outcome(status: nil, body: nil, error: error.localizedDescription)
+    }
+  }
+
+  private func upload(_ request: () throws -> URLRequest, fields: inout [String: Any]) async -> ChatSend.Upload {
+    do {
+      let (data, response) = try await transport(try request())
+      return ChatSend.upload(status: (response as? HTTPURLResponse)?.statusCode, body: data)
+    } catch {
+      if CockpitReach.isAway(error) { fields["unreachable"] = true }
+      return ChatSend.upload(status: nil, body: nil, error: error.localizedDescription)
     }
   }
 

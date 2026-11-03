@@ -82,6 +82,22 @@ when the clipboard holds an image (preview, remove), and *Send*. Send needs text
 at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and image, with the keyboard
 still up for the next message — typed or dictated alike (#449).
 
+**Attaching a file** (Igor, 2026-11-03, #633: *"Support file and PDF upload"*). A paperclip on the bar opens the phone's
+file picker, for a PDF or any other document. The file sits above the field by name and size, with *Remove*, and goes
+with whatever is typed as one message, which reads as the file's name and then the words; a new chat's title is the
+words' first line, else the file's name. One attachment to a message: picking a file replaces a pasted image, and
+pasting an image replaces a picked file. A picture chosen in the picker is treated as a pasted one: it previews and
+sends as a picture. Send works with a file alone. It waits on the phone and lands once like any message, and in the
+thread a delivered file is a row with its type that opens it.
+
+Limits are said when the file is picked, in a copyable problem, and the draft stays as it was: over 10 MB (the Cockpit's
+limit), empty, or unreadable. Nothing is sent and the original file is untouched.
+
+**A file the Cockpit won't take.** The Cockpit can hold only pictures so far. A file it refuses stays on the phone in
+the thread (or under *Not sent yet* for a new chat), and a copyable problem names the file and gives the Cockpit's own
+reason, with *Send again* beside it. *Send again* tries the same message once more, so once the Cockpit takes files
+nothing needs picking again. A file stays until it is delivered or Igor deletes it.
+
 **A new chat** (#536). Igor, 2026-10-26: *"for the Plus, why don't we just make that a new chat versus having its own
 input dialog? That's probably a better UI."* The **+** opens an empty thread titled *New chat*, with the same bar every
 thread has — text, *Paste image*, the mic — and the keyboard up. There is no separate sheet. Back with nothing sent
@@ -212,6 +228,11 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing. A refused or
   deleted first message lets the next Send start the chat afresh, as a new message that reaches Larry.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
+- The paperclip picks a PDF or any document; it shows by name and size, *Remove* takes it off, and Send sends it with
+  or without words. A picture picked there goes as a picture. Over 10 MB, empty or unreadable says so copyably at the
+  pick and leaves the draft alone.
+- A file the Cockpit refuses is still on the phone, with a copyable problem naming it and the Cockpit's reason; *Send
+  again* retries the same message, and delivers it once the Cockpit takes files. A delivered file opens from the thread.
 
 ## Depends on the Cockpit
 
@@ -219,3 +240,10 @@ Two small changes there (a PR to idvorkin-ai-tools/cockpit), before the phone ha
 
 - Messages from the phone are recognised as the phone's, alongside the page, the command line and Telegram.
 - A message or new thread resent with the same id is recognised as one already taken, as Larry's inbox does today.
+
+Files (#633) need one more, not built yet; until then a file is refused and kept, as above:
+
+- The Cockpit's attachments accept PDFs and other documents, not only pictures, under the same 10 MB limit and the same
+  rule that it names what it stores; a message can name one, Larry is told where it is, and asking for it returns it.
+  The file's own name reaches Larry in the message's words. The Cockpit's web page shows such an attachment as something
+  to open, not as a broken picture.

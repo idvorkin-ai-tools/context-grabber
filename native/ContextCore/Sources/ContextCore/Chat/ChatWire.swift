@@ -215,11 +215,21 @@ public enum ChatWire {
     threads.filter { !$0.done && picked.contains($0.key) }.map(\.key)
   }
 
-  /// Where an attachment's image is served; nil for a ref that is not one the Cockpit mints.
+  /// Where an attachment is served; nil for a ref that is not one the Cockpit mints.
   public static func attachmentURL(_ ref: String, cockpit: String) -> URL? {
-    guard ref.range(of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.(png|jpg|gif|webp)$"#, options: .regularExpression) != nil
+    guard ref.range(of: #"^\d{4}-\d{2}-\d{2}/[0-9a-f]{16}\.[a-z0-9]{1,10}$"#, options: .regularExpression) != nil
     else { return nil }
     return URL(string: cockpit.trimmingSuffix("/") + "/attachments/" + ref)
+  }
+
+  /// An attachment drawn as a picture; anything else is a file to open (story 459).
+  public static func attachmentIsImage(_ ref: String) -> Bool {
+    ["png", "jpg", "gif", "webp"].contains((ref as NSString).pathExtension)
+  }
+
+  /// A file's row: *PDF file*.
+  public static func attachmentLabel(_ ref: String) -> String {
+    "\((ref as NSString).pathExtension.uppercased()) file"
   }
 
   /// A thread key as one path segment: `auto:note:2026-10-25` and bead ids survive, a slash cannot sneak in.

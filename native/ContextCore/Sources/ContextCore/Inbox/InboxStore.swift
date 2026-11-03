@@ -6,7 +6,7 @@
 import Foundation
 
 public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
-  public enum Kind: String, Codable, Sendable { case link, text, image }
+  public enum Kind: String, Codable, Sendable { case link, text, image, file }
 
   /// A lowercase UUID: the Cockpit's idempotency key (`[A-Za-z0-9_-]{1,64}`).
   public let id: String
@@ -18,6 +18,9 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var note: String?
   /// The image's file name beside the item, as shared (HEIC stays HEIC until it is sent).
   public var imageFile: String?
+  /// A document (#633): its name as picked, and its bytes beside the item.
+  public var fileName: String?
+  public var attachedFile: String?
   /// Unix ms when the Cockpit took it.
   public var sentAt: Int64?
   /// The Cockpit's reason when it said the item itself is wrong; such an item is never sent again.
@@ -31,6 +34,9 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var whiteboard: WhiteboardPicture?
   /// The board's strokes beside the item, `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
   public var strokesFile: String?
+
+  /// Story 457: a refused document is kept to go again; anything else refused is wrong for good.
+  public var canSendAgain: Bool { kind == .file && status == .refused }
 
   public var isEarlierShare: Bool { sentAt != nil && chatThread == nil }
 
@@ -48,7 +54,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public init(
     id: String = UUID().uuidString.lowercased(), kind: Kind, sharedAt: Int64, url: String? = nil,
     text: String? = nil, note: String? = nil, imageFile: String? = nil, thread: String? = nil,
-    whiteboard: WhiteboardPicture? = nil
+    whiteboard: WhiteboardPicture? = nil, fileName: String? = nil
   ) {
     self.id = id
     self.kind = kind
@@ -59,6 +65,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
     self.imageFile = imageFile
     self.thread = thread
     self.whiteboard = whiteboard
+    self.fileName = fileName
   }
 
   enum CodingKeys: String, CodingKey {
@@ -68,6 +75,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
     case imageFile = "image_file"
     case sentAt = "sent_at"
     case strokesFile = "strokes_file"
+    case fileName = "file_name"
+    case attachedFile = "attached_file"
   }
 }
 
@@ -89,9 +98,9 @@ public struct InboxStore: Sendable {
 
   /// The image (and a board's strokes) first, the item last, so an item on disk always has its files.
   @discardableResult
-  public func add(_ item: InboxItem, image: Data? = nil, imageExtension: String = "jpg", strokes: Data? = nil)
-    throws -> InboxItem
-  {
+  public func add(
+    _ item: InboxItem, image: Data? = nil, imageExtension: String = "jpg", strokes: Data? = nil, file: Data? = nil
+  ) throws -> InboxItem {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     var item = item
     if let image {
@@ -103,6 +112,12 @@ public struct InboxStore: Sendable {
       let name = "\(item.id).strokes"
       try strokes.write(to: directory.appendingPathComponent(name), options: .atomic)
       item.strokesFile = name
+    }
+    if let file {
+      // Never under the file's own extension: a picked .json would read as an Inbox item.
+      let name = "\(item.id).file"
+      try file.write(to: directory.appendingPathComponent(name), options: .atomic)
+      item.attachedFile = name
     }
     try write(item)
     return item
@@ -138,14 +153,19 @@ public struct InboxStore: Sendable {
     item.imageFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
   }
 
+  /// A document's bytes beside the item (#633), nil without them.
+  public func file(of item: InboxItem) -> Data? {
+    item.attachedFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
+  }
+
   /// A board's strokes beside the item (story 424), nil without them.
   public func strokes(of item: InboxItem) -> Data? {
     item.strokesFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
   }
 
-  /// The image's size on disk, without reading it.
+  /// The image's or document's size on disk, without reading it.
   public func imageBytes(of item: InboxItem) -> Int? {
-    item.imageFile.flatMap {
+    (item.imageFile ?? item.attachedFile).flatMap {
       (try? FileManager.default.attributesOfItem(atPath: directory.appendingPathComponent($0).path))?[.size] as? Int
     }
   }
@@ -161,8 +181,13 @@ public struct InboxStore: Sendable {
     try update(id) { $0.refused = reason }
   }
 
+  /// Story 457: a refused item is waiting again, the same message under the same id.
+  public func sendAgain(_ id: String) throws {
+    try update(id) { $0.refused = nil }
+  }
+
   public func delete(_ item: InboxItem) throws {
-    for beside in [item.imageFile, item.strokesFile].compactMap({ $0 }) {
+    for beside in [item.imageFile, item.strokesFile, item.attachedFile].compactMap({ $0 }) {
       try? FileManager.default.removeItem(at: directory.appendingPathComponent(beside))
     }
     try FileManager.default.removeItem(at: file(item.id))

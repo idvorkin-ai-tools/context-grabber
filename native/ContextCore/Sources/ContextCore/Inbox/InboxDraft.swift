@@ -14,11 +14,14 @@ public struct InboxDraft: Equatable, Sendable {
   /// With `whiteboard`: the board's strokes as `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
   public var strokes: Data?
 
+  /// A picked document (#633). The bar keeps one attachment: this or `image`.
+  public var file: ChatFile?
+
   public init() {}
 
   private var trimmedText: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
-  public var canAdd: Bool { !trimmedText.isEmpty || image?.isEmpty == false }
-  public var byteCount: Int { trimmedText.utf8.count + (image?.count ?? 0) }
+  public var canAdd: Bool { !trimmedText.isEmpty || image?.isEmpty == false || file != nil }
+  public var byteCount: Int { trimmedText.utf8.count + (image?.count ?? 0) + (file?.data.count ?? 0) }
 
   public enum Problem: LocalizedError {
     case empty
@@ -30,6 +33,13 @@ public struct InboxDraft: Equatable, Sendable {
     to store: InboxStore, at sharedAt: Int64, id: String = UUID().uuidString.lowercased(), thread: String? = nil
   ) throws -> InboxItem {
     guard canAdd else { throw Problem.empty }
+    if let file {
+      let item = InboxItem(
+        id: id, kind: .file, sharedAt: sharedAt, note: trimmedText, thread: thread, fileName: file.name)
+      let saved = try store.add(item, file: file.data)
+      self = InboxDraft()
+      return saved
+    }
     let picture = image?.isEmpty == false ? image : nil
     let item = InboxItem(
       id: id, kind: picture != nil ? .image : .text, sharedAt: sharedAt,
