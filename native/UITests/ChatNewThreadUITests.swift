@@ -14,6 +14,12 @@ final class ChatNewThreadUITests: XCTestCase {
     app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Message Larry")).firstMatch
   }
 
+  /// The list's "Not sent yet" section header and its rows' lines. A count against the one before, not "none": another
+  /// test's unsent message can still sit in this simulator's outbox.
+  private func notSentLines(_ app: XCUIApplication) -> Int {
+    app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Not sent yet")).count
+  }
+
   func testThePlusOpensANewThreadWithTheOrdinaryBar() throws {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
@@ -21,6 +27,7 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launch()
     let plus = app.buttons["inbox-add"]
     XCTAssertTrue(plus.waitForExistence(timeout: 20), app.debugDescription)
+    let notSentBefore = notSentLines(app)
     plus.tap()
     XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertTrue(field(app).waitForExistence(timeout: 5), "the ordinary bar's field: \(app.debugDescription)")
@@ -34,7 +41,7 @@ final class ChatNewThreadUITests: XCTestCase {
     // Back with nothing sent leaves no thread behind.
     app.navigationBars["New chat"].buttons.firstMatch.tap()
     XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertFalse(app.descendants(matching: .any)["chat-pending-waiting"].exists, "no new thread waits to go")
+    XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
   }
 
   /// GRABBER_CHAT_NEW=open: Chat with its + tapped, the new chat's field ready to type in.
@@ -111,6 +118,7 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertLessThanOrEqual(plus.frame.minX - voice.frame.maxX, 12, "right beside it")
     XCTAssertGreaterThanOrEqual(voice.frame.width, 44)
     XCTAssertGreaterThanOrEqual(voice.frame.height, 44)
+    let notSentBefore = notSentLines(app)
     voice.tap()
     XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
@@ -131,7 +139,7 @@ final class ChatNewThreadUITests: XCTestCase {
     // Story 502: back stops whatever was going and leaves no thread.
     app.navigationBars["New chat"].buttons.firstMatch.tap()
     XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertFalse(app.descendants(matching: .any)["chat-pending-waiting"].exists, "no new thread waits to go")
+    XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
 
     // Story 505: the + after it records nothing.
     plus.tap()

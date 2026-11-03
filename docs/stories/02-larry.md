@@ -1777,4 +1777,3 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** its swipe action opens, since the + and the voice button sit in an opaque bar below the list, which hides any row scrolled beneath it until I scroll that row up
 
 ---
-
