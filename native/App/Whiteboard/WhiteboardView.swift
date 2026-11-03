@@ -243,17 +243,21 @@ final class WhiteboardModel: ObservableObject {
     turnNote = "Larry has the board"
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
     let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
+    let strokes = WhiteboardStrokes.wire(strokesForLarry())
     let thread = threads.thread(board: board.id)
     let picture = WhiteboardPicture(
       board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
     let started = Date()
     var event: [String: Any] = [
       "who": "larry", "board": board.id, "bytes": jpeg.count, "picture": picture.pictureID, "new_thread": thread == nil,
+      "pixels": "\(Int(rect.width * scale))x\(Int(rect.height * scale))",
     ]
     defer {
       event["ms"] = Int(Date().timeIntervalSince(started) * 1000)
       log.event("whiteboard_turn", event)
     }
+    // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
+    event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, picture: picture))) { $1 }
     let outcome = await deliver(jpeg, picture: picture, thread: thread)
     switch outcome {
     case .sent(let key, _):
@@ -273,6 +277,44 @@ final class WhiteboardModel: ObservableObject {
       event["ok"] = false
       event["reason"] = reason
       failed(.larry, "Larry couldn't be reached: \(reason)", status: nil, stale: false)
+    }
+  }
+
+  /// Story 419: the board's strokes to the Cockpit under the picture's id. Never a reason not to send the picture.
+  private func sendStrokes(_ strokes: [[String: Any]], picture: WhiteboardPicture) async -> WhiteboardStrokes.Answer {
+    do {
+      let request = try WhiteboardStrokes.request(picture: picture, strokes: strokes, cockpit: cockpit)
+      let (body, response) = try await URLSession.shared.data(for: request)
+      return WhiteboardStrokes.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body)
+    } catch {
+      return WhiteboardStrokes.answer(status: nil, body: nil, error: error.localizedDescription)
+    }
+  }
+
+  /// Story 419: the drawing as the Cockpit's strokes, in board points: each PencilKit spline sampled every few points
+  /// (the stroke's transform applied), the ink's colour as it looks in light mode (black, not white), the width as
+  /// the mean of the stroke's own point sizes, and an id that is the same for the same ink on every send.
+  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] {
+    let light = UITraitCollection(userInterfaceStyle: .light)
+    return drawing.strokes.prefix(WhiteboardStrokes.maxStrokes).map { stroke in
+      var points = stroke.path.interpolatedPoints(by: .distance(WhiteboardStrokes.spacing)).map {
+        $0.location.applying(stroke.transform)
+      }
+      if points.isEmpty, let first = stroke.path.first { points = [first.location.applying(stroke.transform)] }
+      var red: CGFloat = 0
+      var green: CGFloat = 0
+      var blue: CGFloat = 0
+      var alpha: CGFloat = 0
+      if !stroke.ink.color.resolvedColor(with: light).getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+        (red, green, blue) = (0, 0, 0)
+      }
+      let color = WhiteboardStrokes.hex(red: red, green: green, blue: blue)
+      let sizes = stroke.path.map(\.size.width)
+      let width = sizes.isEmpty ? 3 : sizes.reduce(0, +) / CGFloat(sizes.count)
+      let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+      return WhiteboardStrokes.Stroke(
+        id: WhiteboardStrokes.id(points: points, color: color, t: t), t: t, color: color, width: width,
+        tool: WhiteboardStrokes.tool(rawValue: stroke.ink.inkType.rawValue), points: points)
     }
   }
 
@@ -779,6 +821,8 @@ final class WhiteboardModel: ObservableObject {
     draft.image = jpeg
     draft.text = store.index.board(board.id)?.title ?? board.title
     draft.whiteboard = WhiteboardPicture(board: board.id, title: draft.text, rect: rect, scale: scale)
+    // Story 419: the strokes wait beside the picture and go first when it goes.
+    draft.strokes = try? JSONSerialization.data(withJSONObject: WhiteboardStrokes.wire(strokesForLarry()))
     do {
       try inbox.add(&draft, thread: threads.thread(board: board.id))
       if problem?.context == "WhiteboardView.send" { problem = nil }

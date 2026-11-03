@@ -29,6 +29,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var chatThread: String?
   /// A whiteboard's picture: which board, which picture and where on the board it is (story 381).
   public var whiteboard: WhiteboardPicture?
+  /// The board's strokes beside the item, `WhiteboardStrokes.wire` JSON, sent before the picture (story 419).
+  public var strokesFile: String?
 
   public var isEarlierShare: Bool { sentAt != nil && chatThread == nil }
 
@@ -65,6 +67,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
     case sharedAt = "shared_at"
     case imageFile = "image_file"
     case sentAt = "sent_at"
+    case strokesFile = "strokes_file"
   }
 }
 
@@ -84,15 +87,22 @@ public struct InboxStore: Sendable {
       .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
   }
 
-  /// The image first, the item last, so an item on disk always has its image.
+  /// The image (and a board's strokes) first, the item last, so an item on disk always has its files.
   @discardableResult
-  public func add(_ item: InboxItem, image: Data? = nil, imageExtension: String = "jpg") throws -> InboxItem {
+  public func add(_ item: InboxItem, image: Data? = nil, imageExtension: String = "jpg", strokes: Data? = nil)
+    throws -> InboxItem
+  {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     var item = item
     if let image {
       let name = "\(item.id).\(imageExtension)"
       try image.write(to: directory.appendingPathComponent(name), options: .atomic)
       item.imageFile = name
+    }
+    if let strokes {
+      let name = "\(item.id).strokes.json"
+      try strokes.write(to: directory.appendingPathComponent(name), options: .atomic)
+      item.strokesFile = name
     }
     try write(item)
     return item
@@ -128,6 +138,11 @@ public struct InboxStore: Sendable {
     item.imageFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
   }
 
+  /// A board's strokes beside the item (story 419), nil without them.
+  public func strokes(of item: InboxItem) -> Data? {
+    item.strokesFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
+  }
+
   /// The image's size on disk, without reading it.
   public func imageBytes(of item: InboxItem) -> Int? {
     item.imageFile.flatMap {
@@ -147,8 +162,8 @@ public struct InboxStore: Sendable {
   }
 
   public func delete(_ item: InboxItem) throws {
-    if let image = item.imageFile {
-      try? FileManager.default.removeItem(at: directory.appendingPathComponent(image))
+    for beside in [item.imageFile, item.strokesFile].compactMap({ $0 }) {
+      try? FileManager.default.removeItem(at: directory.appendingPathComponent(beside))
     }
     try FileManager.default.removeItem(at: file(item.id))
   }
