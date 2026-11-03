@@ -421,8 +421,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 262:
 
 - **Summary:** Start a new chat with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet.
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536)
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet. #637: the + no longer floats, it sits in a bar below the list beside the voice button, in [4bccbd6](https://github.com/idvorkin/context-grabber/commit/4bccbd6); verified by `ChatArchiveUITests` (simulator); on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536), [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
@@ -432,7 +432,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Starting a new chat
-- **Given:** Chat is open, empty or populated, with one large round + fixed at the lower right above the safe area, no toolbar +, and room to scroll the last row fully above the button
+- **Given:** Chat is open, empty or populated, with one large round + fixed at the lower right in an opaque bar below the list, and no toolbar +
 - **When:** I tap the fixed +, enter text by typing or dictation, and tap Send
 - **Then:** an empty thread titled *New chat* opened with the ordinary bar and the keyboard up; my message shows at once as *Not sent yet*, is kept on the phone and sent to Larry, the thread takes that message's first line as its title, and once the Cockpit has it this screen is the live thread
 
@@ -1638,10 +1638,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 470:
+### User Story 500:
 
 - **Summary:** A voice button beside the + opens a new chat already recording
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewChatVoiceTests` (host: recording once per tap) and `ChatNewThreadUITests` (simulator: the button sits beside the +, opens *New chat* with no sheet, its mic tapped as it opens); the red seconds and the keyboard staying down on the phone not yet The bar of their own in [560960b](https://github.com/idvorkin/context-grabber/commit/560960b); verified by `ChatArchiveUITests` (simulator: a swipe on a row at the foot opens Unarchive, and the bar test fails on the list as it was); how the bar looks and a thumb's swipe on the phone not yet.
+- **Status:** native app only: implemented in [832d476](https://github.com/idvorkin/context-grabber/commit/832d476); verified by `ChatNewChatVoiceTests` (host: recording once per tap) and `ChatNewThreadUITests` (simulator: the button sits beside the +, opens *New chat* with no sheet, its mic tapped as it opens); the red seconds and the keyboard staying down on the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1656,16 +1656,12 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I tap the voice button immediately left of the +
 - **Then:** an empty thread titled *New chat* opens with the ordinary bar and no sheet or dialog, the bar's mic is already red with the seconds counting, the keyboard stays down, and the session log has a `ui` line with action `open_new_chat` and voice true, then `chat_voice` lines, never my words
 
-- **Scenario:** The buttons never cover a row
-- **Given:** Chat lists more rows than fit, or an archived row sits at the bottom of the list with *Undo* showing above it
-- **When:** I swipe a row I can see, starting anywhere along it
-- **Then:** its swipe action opens, since the + and the voice button sit in a bar of their own below the list and no row lies behind them
 ---
 
-### User Story 471:
+### User Story 501:
 
 - **Summary:** A spoken first message waits for my Send
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by the first-Send path in `ChatNewThreadUITests` (simulator: nothing sent on opening); speaking, stopping and sending on the phone not yet
+- **Status:** native app only: implemented in [832d476](https://github.com/idvorkin/context-grabber/commit/832d476); verified by the first-Send path in `ChatNewThreadUITests` (simulator: nothing sent on opening); speaking, stopping and sending on the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1682,10 +1678,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 472:
+### User Story 502:
 
 - **Summary:** Backing out of a voice chat leaves nothing
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewThreadUITests` (simulator: back leaves no thread waiting); the recording stopping mid-sentence on the phone not yet
+- **Status:** native app only: implemented in [832d476](https://github.com/idvorkin/context-grabber/commit/832d476); verified by `ChatNewThreadUITests` (simulator: back leaves no thread waiting); the recording stopping mid-sentence on the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1702,10 +1698,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 473:
+### User Story 503:
 
 - **Summary:** A live call keeps the microphone from the voice button
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewChatVoiceTests` (host) and `ChatNewThreadUITests` against the fake bridge (simulator: a live call, the new chat opens with its mic idle, the line, the keyboard up); the line beside an older mic problem not run yet, and a real call's sound on the phone not yet
+- **Status:** native app only: implemented in [832d476](https://github.com/idvorkin/context-grabber/commit/832d476); verified by `ChatNewThreadUITests` against the fake bridge (simulator: a live call, the new chat opens with its mic idle, the line, the keyboard up); the line beside an older mic problem not run yet, and a real call's sound on the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1722,10 +1718,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 474:
+### User Story 504:
 
 - **Summary:** A voice chat that can't record still opens
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewThreadUITests` (simulator: the mic's copyable line or a recording, whichever the simulator's permissions give, with nothing sent); declining on the phone not yet
+- **Status:** native app only: implemented in [832d476](https://github.com/idvorkin/context-grabber/commit/832d476); verified by `ChatNewThreadUITests` (simulator: the mic's copyable line or a recording, whichever the simulator's permissions give, with nothing sent); declining on the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1742,10 +1738,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 475:
+### User Story 505:
 
 - **Summary:** The + stays as it was beside the voice button
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewChatVoiceTests` (host: the + never records) and `ChatNewThreadUITests` (simulator: the + after the voice button leaves the mic idle); the phone not yet
+- **Status:** native app only: implemented in [832d476](https://github.com/idvorkin/context-grabber/commit/832d476); verified by `ChatNewChatVoiceTests` (host: the + never records) and `ChatNewThreadUITests` (simulator: the + after the voice button leaves the mic idle); the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1762,22 +1758,23 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 476:
+### User Story 506:
 
-- **Summary:** A recording still finishing is left alone by the voice button
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewChatVoiceTests` (host: an earlier recording is never toggled off); the line and the keyboard on the simulator and the phone not yet
+- **Summary:** The + and the voice button never cover a row
+- **Status:** native app only: implemented in [4bccbd6](https://github.com/idvorkin/context-grabber/commit/4bccbd6); verified by `ChatArchiveUITests` (simulator: both buttons sit in a bar across the list's foot, a swipe on a row at the foot opens Unarchive, and the bar test fails on the list as it was); the bar's solid fill not yet seen on the simulator, and how the bar looks and a thumb's swipe on the phone not yet
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
-- **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
+- **Spec:** [Chat with Larry in Grabber Native — The list](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
-- **As** Larry's client who tapped the voice button right after another recording
-- **I want to** be told the last one hasn't finished
-- **so that** my tap never stops it by accident and I know why this chat isn't recording
+- **As** Larry's client tidying my chats
+- **I want to** swipe any row I can see, from anywhere along it
+- **so that** the buttons at the foot of the list never swallow a swipe
 
 #### Acceptance Criteria:
-- **Scenario:** An earlier recording is still finishing
-- **Given:** an earlier recording is still finishing
-- **When:** I tap the voice button
-- **Then:** the new chat opens with the keyboard down and no new recording, the bar says *The last recording is still finishing. Tap the mic to speak.*, and the session log has a `chat_voice` line with action `refused`, why `still_recording`
+- **Scenario:** Swiping a row near the buttons
+- **Given:** Chat lists more rows than fit, or an archived row sits at the bottom of the list with *Undo* showing above it
+- **When:** I swipe a row I can see, starting anywhere along it
+- **Then:** its swipe action opens, since the + and the voice button sit in an opaque bar below the list, which hides any row scrolled beneath it until I scroll that row up
 
 ---
+

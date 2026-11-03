@@ -150,7 +150,7 @@ struct ChatListView: View {
           .accessibilityIdentifier("chat-archive-selected")
       }
     }
-    // #424, story 262: a fixed thumb target. #637, story 470: in its own bar, not floating over the list: a row behind
+    // #424, story 262: a fixed thumb target. #637, story 506: in its own opaque bar, not floating over the list: a row behind
     // the two buttons could not be swiped from where they cover it.
     .safeAreaInset(edge: .bottom) {
       HStack(spacing: 12) {
@@ -168,7 +168,7 @@ struct ChatListView: View {
       .padding(.top, 8)
       .padding([.horizontal, .bottom], 16)
       .frame(maxWidth: .infinity, alignment: .trailing)
-      .background(.bar)
+      .background(Color(.systemGroupedBackground))
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("chat-new-bar")
     }
@@ -247,8 +247,8 @@ private struct NewChatCircle: View {
   }
 }
 
-/// A new chat already recording (#637, story 470). Its own view so only it redraws with the dictation; dimmed during a
-/// call, when a tap still opens the new chat, whose bar says why nothing records (story 473).
+/// A new chat already recording (#637, story 500). Its own view so only it redraws with the dictation; dimmed during a
+/// call, when a tap still opens the new chat, whose bar says why nothing records (story 503).
 private struct NewChatVoiceButton: View {
   let chat: ChatModel
   @ObservedObject var voice: ChatVoiceModel
@@ -451,7 +451,7 @@ struct ChatThreadView: View {
           logger: logger
         )
         .padding(.horizontal, 12)
-        .background(.bar)
+        .background(Color(.systemGroupedBackground))
       }
     }
     .safeAreaInset(edge: .bottom) {
@@ -809,7 +809,7 @@ private struct ComposeBar: View {
       }
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
-    .background(.bar)
+    .background(Color(.systemGroupedBackground))
     .fileImporter(isPresented: $picking, allowedContentTypes: [.data]) { attach($0) }
     // The words stream into the draft as Igor speaks, after what was typed, for him to read before he sends (#448).
     .onChange(of: voice.words) { _, _ in takeWords() }

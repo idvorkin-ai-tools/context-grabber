@@ -47,7 +47,7 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertLessThanOrEqual(row.frame.maxY, bar.frame.minY, "scrolled clear: \(app.debugDescription)")
   }
 
-  /// Story 470 (#637): the + and the voice button have a bar of their own across the list's foot, so no row lies
+  /// Story 506 (#637): the + and the voice button have a bar of their own across the list's foot, so no row lies
   /// behind them for a swipe to land on instead.
   func testTheNewChatButtonsSitInABarOfTheirOwn() throws {
     let app = try openList()

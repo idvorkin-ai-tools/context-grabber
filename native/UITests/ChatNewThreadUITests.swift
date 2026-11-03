@@ -1,7 +1,7 @@
 //  Stories 262–264 and 301 (#536) on the simulator: Chat's + opens a new, empty thread with the ordinary bar (the field,
 //  Paste image, the mic), not the old New chat sheet. Against the fake Cockpit (scripts/native/test-chat-ui.sh starts
 //  it), the first Send starts the thread under its first line, the bar holds the next message back until it lands,
-//  and the next one goes into that thread. The voice button beside the + (#637, stories 470–475) too: its mic is
+//  and the next one goes into that thread. The voice button beside the + (#637, stories 500–505) too: its mic is
 //  tapped as it opens, and a live call keeps the microphone from it. Speaking and pasting are phone checks.
 
 import XCTest
@@ -96,8 +96,8 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertTrue(texts.contains(second), "the second went to POST /chat/<key>: \(texts)")
   }
 
-  /// Stories 470, 472 and 474: the button beside the + opens the same new chat, and its mic has already been tapped.
-  /// The simulator's first run asks for speech recognition; declining is story 474's copyable line, in the new chat's
+  /// Stories 500, 502 and 504: the button beside the + opens the same new chat, and its mic has already been tapped.
+  /// The simulator's first run asks for speech recognition; declining is story 504's copyable line, in the new chat's
   /// bar. Whichever way the recognizer goes, a tap was made for him: the mic is on its way, or it says why not.
   func testTheVoiceButtonOpensANewChatWithItsMicTapped() throws {
     let app = XCUIApplication()
@@ -128,12 +128,12 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertTrue(app.navigationBars["New chat"].exists, "nothing started a thread")
     XCTAssertFalse(app.descendants(matching: .any)["chat-new-waiting"].exists, "nothing was sent")
 
-    // Story 472: back stops whatever was going and leaves no thread.
+    // Story 502: back stops whatever was going and leaves no thread.
     app.navigationBars["New chat"].buttons.firstMatch.tap()
     XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertFalse(app.descendants(matching: .any)["chat-pending-waiting"].exists, "no new thread waits to go")
 
-    // Story 475: the + after it records nothing.
+    // Story 505: the + after it records nothing.
     plus.tap()
     XCTAssertTrue(field(app).waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["Speak a message"].waitForExistence(timeout: 5), "the + leaves the mic idle")
@@ -147,7 +147,7 @@ final class ChatNewThreadUITests: XCTestCase {
     return app.staticTexts.matching(why).firstMatch.exists
   }
 
-  /// Story 473 with a real call, against the fake bridge test-chat-ui.sh starts: the button stands down and the new
+  /// Story 503 with a real call, against the fake bridge test-chat-ui.sh starts: the button stands down and the new
   /// chat records nothing, says why and has the keyboard up.
   func testALiveCallKeepsTheMicFromTheVoiceButton() throws {
     guard let bridge = ProcessInfo.processInfo.environment["GRABBER_FAKE_BRIDGE"], !bridge.isEmpty else {
