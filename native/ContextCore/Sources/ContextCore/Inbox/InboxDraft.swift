@@ -1,5 +1,5 @@
-//  #405, stories 262–264: one compose draft becomes a text item or an image with a note. Only a successful save
-//  clears it, so Add another starts fresh and a failed write keeps the thought.
+//  #405, stories 262–264: one compose draft becomes a text item, or an image or file with a note. Only a successful
+//  save clears it, so Add another starts fresh and a failed write keeps the thought.
 
 import Foundation
 import ImageIO

@@ -1,6 +1,7 @@
 //  Chat with Larry (spec 2026-10-25-native-chat-design.md, plan 2026-10-25-native-chat-plan.md): an Inbox item goes
-//  out as a chat message on the Cockpit's threads. An image is uploaded first (`POST /attachments`, raw bytes) and
-//  named by the ref it gets back; then the message: `POST /chat` starts a new thread, `POST /chat/<key>` adds to one.
+//  out as a chat message on the Cockpit's threads. An image or file is uploaded first (`POST /attachments`, raw
+//  bytes) and named by the ref it gets back; then the message: `POST /chat` starts a new thread, `POST /chat/<key>`
+//  adds to one.
 //  The item's id is the message id, so a resend after a lost answer lands once (cockpit#64, Cockpit story 129).
 
 import Foundation

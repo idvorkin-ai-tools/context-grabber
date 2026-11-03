@@ -23,7 +23,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var attachedFile: String?
   /// Unix ms when the Cockpit took it.
   public var sentAt: Int64?
-  /// The Cockpit's reason when it said the item itself is wrong; such an item is never sent again.
+  /// The Cockpit's reason when it said the item itself is wrong; such an item is never sent again on its own
+  /// (a document can go again on a tap: `canSendAgain`).
   public var refused: String?
   /// Chat (spec 2026-10-25): the Cockpit thread this message goes to; nil starts a new thread (every share, every +).
   public var thread: String?
@@ -99,7 +100,7 @@ public struct InboxStore: Sendable {
       .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
   }
 
-  /// The image (and a board's strokes) first, the item last, so an item on disk always has its files.
+  /// The image (and a board's strokes), or a document, first, the item last, so an item on disk always has its files.
   @discardableResult
   public func add(
     _ item: InboxItem, image: Data? = nil, imageExtension: String = "jpg", strokes: Data? = nil, file: Data? = nil
