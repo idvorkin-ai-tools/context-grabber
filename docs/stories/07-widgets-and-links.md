@@ -827,3 +827,143 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** I have a `grabbernative://whiteboard?board=<id>` link
 - **When:** I open it
 - **Then:** iCloud is asked first and that board opens as it is now; a board that can't be opened leaves me on the boards with a copyable problem saying why
+
+---
+
+### User Story 460:
+
+- **Summary:** Hold a tile and open its screen in a new window on the iPad
+- **Status:** native app only: implemented on native/ipad-windows; verified on the iPad simulator (a window opened and closed by `GRABBER_WINDOW`: `window` open, appear, close, gone); the ledger and what a hold offers by `WindowLedgerTests`, on the host; the phone's links by `LinksUITests`. The hold itself, the windows side by side and iPadOS's own New Window are for the iPad.
+- **Issues:** [#634](https://github.com/idvorkin/context-grabber/issues/634)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor on the iPad
+- **I want to** open Chat, Today, the Cockpit, Places, the boards or the card in a window of its own
+- **so that** I can see two of them side by side
+
+#### Acceptance Criteria:
+- **Scenario:** A hold offers a window
+- **Given:** I am on the iPad's home screen
+- **When:** I press and hold one of those tiles, or the Today card, and choose *New window*
+- **Then:** that screen opens in a new window, with the home window as it was, and its Done closes the window
+
+- **Scenario:** A phone is as it was
+- **Given:** I am on the iPhone
+- **When:** I hold any tile
+- **Then:** nothing offers a window, and a tile that had no popover still has none
+
+---
+
+### User Story 461:
+
+- **Summary:** A screen is in one window at a time
+- **Status:** native app only: implemented on native/ipad-windows; verified on the iPad simulator (asked again, it came forward with two scenes still connected; the boards up at home left before their window opened). The hold itself, the windows side by side and iPadOS's own New Window are for the iPad.
+- **Issues:** [#634](https://github.com/idvorkin/context-grabber/issues/634)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor with a screen in its own window
+- **I want to** have every way of opening it bring that window forward
+- **so that** a page or a board never ends up in two places, where one would overwrite the other
+
+#### Acceptance Criteria:
+- **Scenario:** The tile again
+- **Given:** Chat is in a window of its own
+- **When:** I tap its tile, hold it and choose *New window*, or open a link to it
+- **Then:** that window comes forward, no second one opens, and a link's thread or board opens inside it
+
+- **Scenario:** It was showing at home
+- **Given:** the home window shows the Cockpit
+- **When:** another window asks for the Cockpit in a window
+- **Then:** it leaves the home window first and the page comes along as it was
+
+---
+
+### User Story 462:
+
+- **Summary:** A window iPadOS makes itself lists the screens rather than repeating home
+- **Status:** native app only: implemented on native/ipad-windows; not verified by a run: only the iPad's own New Window reaches it. The ledger's rule is `WindowLedgerTests`. The hold itself, the windows side by side and iPadOS's own New Window are for the iPad.
+- **Issues:** [#634](https://github.com/idvorkin/context-grabber/issues/634)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor using iPadOS's own New Window
+- **I want to** get something useful in that window
+- **so that** it doesn't show every screen the home window opens a second time
+
+#### Acceptance Criteria:
+- **Scenario:** A home window is up
+- **Given:** the home window is open
+- **When:** I make a new window of the app from iPadOS's menus
+- **Then:** it lists the screens that can have a window, and choosing one opens it and closes the list
+
+- **Scenario:** No home window
+- **Given:** I closed the home window
+- **When:** I make a new window of the app
+- **Then:** it is the home window
+
+---
+
+### User Story 463:
+
+- **Summary:** A second window leaves a call and a board alone; the audio's screens stay at home
+- **Status:** native app only: implemented on native/ipad-windows; verified on the iPad simulator (a call on the fake bridge, synthetic audio, with a board's window opened and closed: it ran to its hang-up, ended `stopped`, not `badly`, and the bridge saw `stt_stop` and `stop`). The hold itself, the windows side by side and iPadOS's own New Window are for the iPad.
+- **Issues:** [#634](https://github.com/idvorkin/context-grabber/issues/634)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor on a call or drawing on a board
+- **I want to** open and close other windows without either noticing
+- **so that** having windows costs me nothing
+
+#### Acceptance Criteria:
+- **Scenario:** A call and a window
+- **Given:** a call with Larry is up
+- **When:** I open a board in a window and close it again
+- **Then:** the call carries on as it was
+
+- **Scenario:** A call starts with a board's microphone on
+- **Given:** a board in its own window is listening
+- **When:** a call starts
+- **Then:** the board's microphone stops, as it does in the home window
+
+- **Scenario:** A board's window closes
+- **Given:** I am drawing on a board in a window
+- **When:** that window closes, by Done or the system's way
+- **Then:** what I drew is saved
+
+- **Scenario:** What has no window
+- **Given:** I am on the iPad's home screen
+- **When:** I hold the Gym Timer or Box breathing tile, or look for the call
+- **Then:** none offers *New window*, since each holds the audio and shows in the home window only
+
+---
+
+### User Story 464:
+
+- **Summary:** With windows the app still acts as one: links, coming back and reports
+- **Status:** native app only: implemented on native/ipad-windows; verified on the host (`AppPhaseLatch`, one change counted once) and on the iPad simulator (a relaunch brings the home window). A link or a report with windows open is for the iPad. The hold itself, the windows side by side and iPadOS's own New Window are for the iPad.
+- **Issues:** [#634](https://github.com/idvorkin/context-grabber/issues/634)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor with several windows open
+- **I want to** have links, refreshes and reports behave as they did with one
+- **so that** nothing runs twice or goes missing
+
+#### Acceptance Criteria:
+- **Scenario:** Coming back
+- **Given:** two windows are open
+- **When:** the app comes back to the front
+- **Then:** its refresh and syncs run once
+
+- **Scenario:** A link with the home window closed
+- **Given:** only a Chat window is open
+- **When:** a link or Shortcut asks for a screen with no window
+- **Then:** the home window comes back and shows it
+
+- **Scenario:** A report
+- **Given:** Chat is in a window of its own and in front
+- **When:** I shake or press ⌘I
+- **Then:** one report opens over that window, with its picture, naming chat

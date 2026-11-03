@@ -22,6 +22,7 @@ opens it. The popover replaces the grey list menu the music tile had; there is n
 ## Non-goals
 
 - A popover on every tile. A tile whose tap opens one screen, or another app, with no named variant inside gets none.
+  On an iPad a tile whose screen can have a window of its own has one, for *New window* ([#634](2026-11-03-ipad-windows-design.md)).
 - Call Larry. A call starts the moment it is chosen, so a slipped finger would ring Larry, and the Call screen
   already has the voice picker.
 - Rearranging, hiding or adding choices from the app.

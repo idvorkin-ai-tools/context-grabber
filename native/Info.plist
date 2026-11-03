@@ -91,6 +91,12 @@
 			</array>
 		</dict>
 	</array>
+	<!-- #634: windows on the iPad. A phone reads this and still has one. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+	</dict>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIFileSharingEnabled</key>
