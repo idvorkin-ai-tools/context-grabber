@@ -36,10 +36,10 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   /// The board's strokes beside the item, `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
   public var strokesFile: String?
 
-  /// Why a document whose bytes the phone can't read was refused: no request went (story 472).
+  /// Why a document whose bytes the phone can't read was refused: no request went (story 492).
   public static let fileUnreadable = "the file could not be read from the phone"
 
-  /// Story 468: a refused document is kept to go again; anything else refused, or its bytes gone, is wrong for good.
+  /// Story 488: a refused document is kept to go again; anything else refused, or its bytes gone, is wrong for good.
   public var canSendAgain: Bool { kind == .file && status == .refused && refused != Self.fileUnreadable }
 
   public var isEarlierShare: Bool { sentAt != nil && chatThread == nil }
@@ -185,7 +185,7 @@ public struct InboxStore: Sendable {
     try update(id) { $0.refused = reason }
   }
 
-  /// Story 468: a refused item is waiting again, the same message under the same id.
+  /// Story 488: a refused item is waiting again, the same message under the same id.
   public func sendAgain(_ id: String) throws {
     try update(id) { $0.refused = nil }
   }

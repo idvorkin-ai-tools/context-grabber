@@ -527,7 +527,7 @@ if [ "$reviewed" = 1 ] && [ "$archived" = igor2-88g.593 ] && [ "$posted" = 1 ] &
   ok "chat: Review ticked the one that looks done and Archive (1) archived it, no error events"
 else bad "chat: reviewed $reviewed, archived '$archived', POST archive x$posted, errors: $failed"; fi
 
-# A file the Cockpit can't take (#633, story 467): one upload, refused; no message follows it.
+# A file the Cockpit can't take (#633, story 487): one upload, refused; no message follows it.
 SMOKE_PDF=$(mktemp -t smoke-pdf); printf '%%PDF-1.7 smoke' >"$SMOKE_PDF"
 before=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")] | length' "$CHAT_REPORT")
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND_FILE="igor2-88g.900|$SMOKE_PDF" relaunch
@@ -538,7 +538,7 @@ after=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")]
 if [ "$refused" = 1 ] && [ "$after" = "$before" ]; then ok "chat: a file was refused as the Cockpit refuses one today and no message went without it"
 else bad "chat: a file refused x$refused, messages $before then $after"; fi
 
-# Send again too soon (story 469): the phone kept the file, so it uploads again, is refused again, no message follows.
+# Send again too soon (story 489): the phone kept the file, so it uploads again, is refused again, no message follows.
 uploads=$(jq -sr '[.[] | select(.method=="POST" and .path=="/attachments")] | length' "$CHAT_REPORT")
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND_AGAIN=1 relaunch
 wait_jq 'select(.type=="chat" and .kind=="file" and .action=="refused")' 20 || echo "      (timed out waiting for the second answer)"

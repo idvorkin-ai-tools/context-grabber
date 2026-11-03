@@ -262,7 +262,7 @@ private struct ThreadRow: View {
   }
 }
 
-/// What a refusal's copied problem carries; a file's name says which one it was (story 467).
+/// What a refusal's copied problem carries; a file's name says which one it was (story 487).
 private func refusalExtra(_ item: InboxItem) -> [String: JSONValue] {
   var extra: [String: JSONValue] = [
     "item": .string(item.id), "kind": .string(item.kind.rawValue), "thread": .string(item.thread ?? ""),
@@ -271,7 +271,7 @@ private func refusalExtra(_ item: InboxItem) -> [String: JSONValue] {
   return extra
 }
 
-/// Story 468: a refused file goes again, the same message.
+/// Story 488: a refused file goes again, the same message.
 private struct SendAgainButton: View {
   let item: InboxItem
   let inbox: InboxModel
@@ -671,7 +671,7 @@ private struct ComposeBar: View {
   /// Where a Send goes (#536): a thread, a new chat's first message, or nowhere yet.
   let target: ChatNewThread.Target
   let logger: BugLogger
-  /// A new chat's first message on the phone, for the bar's line when it was refused (story 471).
+  /// A new chat's first message on the phone, for the bar's line when it was refused (story 491).
   let first: InboxItem?
   /// A new chat's next first message: a fresh id, now the one the screen follows.
   var startAttempt: () -> String? = { nil }
@@ -680,7 +680,7 @@ private struct ComposeBar: View {
   @State private var hasImage = UIPasteboard.general.hasImages
   @State private var failure: String?
   @State private var picking = false
-  /// Why the last pick didn't take, with what was picked (stories 473, 474).
+  /// Why the last pick didn't take, with what was picked (stories 493, 494).
   @State private var pickProblem: BugProblem?
   /// A new field after each send (#449): clearing the text alone could leave the old words in a field still editing.
   @State private var field = 0
@@ -805,7 +805,7 @@ private struct ComposeBar: View {
     clearProblems()
   }
 
-  /// Story 462: one attachment to a message, the newer. A problem leaves the draft as it was (stories 473, 474).
+  /// Story 482: one attachment to a message, the newer. A problem leaves the draft as it was (stories 493, 494).
   private func attach(_ result: Result<URL, Error>) {
     do {
       let url = try result.get()

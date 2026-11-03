@@ -831,7 +831,7 @@ final class AppModel: ObservableObject {
       }
     }
     if env["GRABBER_CHAT_SEND_AGAIN"] == "1" {
-      // Story 469: every refused file sent again, as a tap on its Send again would.
+      // Story 489: every refused file sent again, as a tap on its Send again would.
       inbox.reload()
       for item in inbox.items where item.canSendAgain { inbox.sendAgain(item) }
     }

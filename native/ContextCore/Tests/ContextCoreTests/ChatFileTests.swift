@@ -3,7 +3,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// #633, stories 460–474: a document on a chat message, against the Cockpit as it is today (pictures only) and as it
+/// #633, stories 480–494: a document on a chat message, against the Cockpit as it is today (pictures only) and as it
 /// would be once it takes files.
 final class ChatFileTests: XCTestCase {
   private var dir: URL!
@@ -33,7 +33,7 @@ final class ChatFileTests: XCTestCase {
     return try draft.save(to: store, at: 1, thread: thread)
   }
 
-  // MARK: The pick (stories 460, 463, 473, 474)
+  // MARK: The pick (stories 480, 483, 493, 494)
 
   func testAPDFIsADocumentAndAPictureGoesAsAPicture() throws {
     XCTAssertEqual(
@@ -62,7 +62,7 @@ final class ChatFileTests: XCTestCase {
     XCTAssertTrue(try XCTUnwrap(big.errorDescription).contains("big.pdf"))
   }
 
-  /// Story 473's limit is 10 MB: the cap is 10 MiB, so a decimal size would call it 10.5 MB.
+  /// Story 493's limit is 10 MB: the cap is 10 MiB, so a decimal size would call it 10.5 MB.
   func testTheTooBigProblemStatesTheCapAsTenMB() {
     let over = ChatFile.Problem.tooBig(name: "over.pdf", bytes: 12 * 1024 * 1024, limit: ChatFile.maxBytes)
     XCTAssertEqual(over.errorDescription, "over.pdf is 12 MB, over the 10 MB the Cockpit takes, so it can't go.")
@@ -86,7 +86,7 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(decoded["file_type"] as? String, "pdf", "a field the log's own type would not overwrite")
   }
 
-  // MARK: The draft and the store (stories 460, 465, 466, 470)
+  // MARK: The draft and the store (stories 480, 485, 486, 490)
 
   func testAFileAloneIsAMessageItsNameThenTheWordsAndTheTitle() throws {
     var draft = InboxDraft()
@@ -119,7 +119,7 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: store.directory.path), [])
   }
 
-  // MARK: The Cockpit as it is: pictures only (stories 464, 467, 471, 472)
+  // MARK: The Cockpit as it is: pictures only (stories 484, 487, 491, 492)
 
   func testARefusedFileSaysWhyStaysAndNoMessageGoesWithoutIt() async throws {
     let item = try saved(note: "look")
@@ -222,7 +222,7 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(report.retry?.hasPrefix("file upload:"), true)
   }
 
-  // MARK: The Cockpit once it takes files (stories 466, 468)
+  // MARK: The Cockpit once it takes files (stories 486, 488)
 
   func testSendAgainGoesOnceTheCockpitTakesFilesAsTheSameMessage() async throws {
     let item = try saved(note: "look", thread: "igor2-88g.9")

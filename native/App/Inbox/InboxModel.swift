@@ -143,7 +143,7 @@ final class InboxModel: ObservableObject {
     reload()
   }
 
-  /// Story 468: a refused file tries again, the same message.
+  /// Story 488: a refused file tries again, the same message.
   func sendAgain(_ item: InboxItem) {
     do {
       try store?.sendAgain(item.id)

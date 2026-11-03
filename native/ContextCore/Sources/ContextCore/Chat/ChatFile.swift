@@ -1,4 +1,4 @@
-//  #633, stories 460–474: a PDF or any document attached to a chat message. What the picker hands over is read here,
+//  #633, stories 480–494: a PDF or any document attached to a chat message. What the picker hands over is read here,
 //  whole, so a file that can never go is said at the pick; a picture goes the way a pasted one does.
 
 import Foundation
