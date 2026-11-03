@@ -268,7 +268,7 @@ struct MetricDetailView: View {
               if let gap = MirrorText.gapTag(Sleep.trackingGap(n)) {
                 Text("⚠ \(gap)").font(.caption).foregroundStyle(.orange)
               }
-              Text(n.totalHours.map { "\(SummaryText.js($0))h" } ?? MirrorText.none).monospacedDigit()
+              Text(MirrorText.nightHours(n)).monospacedDigit()
             }
             StageStrip(night: n, height: 12, clock: clock)
           }
@@ -400,7 +400,7 @@ struct NightCard: View {
       HStack {
         Text(MirrorText.dayRow(night.date)).font(.headline)
         Spacer()
-        Text(night.totalHours.map { "\(SummaryText.js($0))h" } ?? MirrorText.none).font(.headline.monospacedDigit())
+        Text(MirrorText.nightHours(night)).font(.headline.monospacedDigit())
       }
       if let bed = night.bedtime, let wake = night.wakeTime {
         Text(
@@ -420,7 +420,7 @@ struct NightCard: View {
           }
           .font(.caption)
         }
-      } else {
+      } else if night.totalHours == nil {
         Text("No sleep recorded this night.").foregroundStyle(.secondary)
       }
     }

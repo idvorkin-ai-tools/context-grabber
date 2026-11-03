@@ -97,6 +97,12 @@ public enum MirrorText {
   static let shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   static let shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+  /// A night's hours for its row: "7.5h", "Nap 0.4h" (#539), a dash for none.
+  public static func nightHours(_ night: SleepDaily) -> String {
+    guard let hours = night.totalHours else { return none }
+    return "\(night.isNap ? "Nap " : "")\(SummaryText.js(hours))h"
+  }
+
   /// #308: a tapped night on the bedtime-and-wake chart. "Sun, Mar 15 · bed 11pm · wake 7:15am", a dash for a time
   /// Health did not give.
   public static func bedAndWake(_ night: SleepDaily, clock: LocalClock) -> String {

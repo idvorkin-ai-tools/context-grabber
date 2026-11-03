@@ -369,3 +369,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a new OTA update was published
 - **When:** I open Settings and tap About
 - **Then:** Settings shows the sleep target, the background-tracking switch with retention days, and the diagnostics-upload section; About shows version, built time, the commit as a link, channel and runtime, "Check for Updates" fetches and reloads, and a downloaded update also shows a tap-to-reload banner on Today
+
+---
+
+### User Story 440:
+
+- **Summary:** A short afternoon sleep reads as a nap, not as a night with a 1pm bedtime
+- **Issues:** [#539](https://github.com/idvorkin/context-grabber/issues/539)
+- **Status:** implemented in [11e7ec5](https://github.com/idvorkin/context-grabber/commit/11e7ec5); the rule and its boundaries verified on the host by `just native-test` (`testAShortAfternoonSleepIsANap`); the sheet's row and the tapped card not yet checked on the simulator or the phone
+
+#### Use Case:
+- **As** someone whose source logged only an afternoon nap one night
+- **I want to** see that sleep labelled as a nap, with its time still counted
+- **so that** a stray 1pm "bedtime" doesn't pull my bedtime-and-wake chart and its spreads out
+
+#### Acceptance Criteria:
+- **Scenario:** A nap isn't a night
+- **Given:** on a source's tab, a night's main sleep is 0.4 h starting at 1pm
+- **When:** I open the Sleep sheet and tap that night
+- **Then:** its row and the tapped card read *Nap 0.4h*, the card doesn't say no sleep was recorded, the time still counts toward that night's hours, and it has no bedtime or wake, so it's off the bedtime-and-wake chart and out of its "±" spreads
