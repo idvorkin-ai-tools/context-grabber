@@ -28,18 +28,24 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 341:
 
 - **Summary:** A board that keeps going past the screen
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); verified by host tests (`WhiteboardFrameTests`: where the view opens, kept on the board) and the simulator build; panning not yet tried on the iPad
+- **Status:** the free-panning board implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); the criteria below are the pages change (#636), specified and not built yet
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 
 #### Use Case:
-- **As someone** whose diagrams grow sideways
-- **I want to** pan and pinch to more board in every direction
-- **so that** I never run out of room halfway through a thought
+- **As someone** who writes down a page and keeps going
+- **I want to** scroll down a column of pages, with a blank one always waiting
+- **so that** I never run out of room halfway through a thought, and never get lost on a huge square
 
 #### Acceptance Criteria:
-- **Scenario:** Off the edge
-- **Given:** I have drawn to the right edge of the screen
-- **When:** I drag the board left with a finger and keep drawing, then pinch out
-- **Then:** fresh board slides in under the Pencil, and pinching out shows everything I drew at once
+- **Scenario:** Past the bottom
+- **Given:** I have drawn to the bottom of the last page
+- **When:** I drag the board up with a finger and keep drawing
+- **Then:** a blank page slides in under the Pencil, and a faint line marks where the last page ended
+
+- **Scenario:** Pinching out
+- **Given:** I am on a page
+- **When:** I pinch out as far as it goes
+- **Then:** it stops with the page fitting the screen's width, and the board never moves off sideways into nothing
 
 ---
 
@@ -57,7 +63,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Relaunch
 - **Given:** I drew on the board and then quit the app
 - **When:** I open the Whiteboard again and tap that board's row
-- **Then:** every stroke is there, and the view opens centred on the drawing
+- **Then:** every stroke is there, and the view opens at the place I left it
 
 ---
 
@@ -75,7 +81,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Send to Larry
 - **Given:** I have drawn on the board and the iPad is in dark mode
 - **When:** I tap Send to Larry
-- **Then:** the bar says the board is on its way, and Chat gets the board's thread, titled with the board's name ("Board, Nov 1", or what I renamed it to), holding a picture of the whole drawing, dark ink on white
+- **Then:** the bar says the board is on its way, and Chat gets the board's thread, titled with the board's name ("Board, Nov 1", or what I renamed it to), holding a picture of the page or pages on screen, dark ink on white
 
 - **Scenario:** One send, one message
 - **Given:** I have just sent the board to Larry
@@ -1777,3 +1783,118 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a drawing 200 by 100 board points
 - **When:** its picture is made
 - **Then:** it is drawn at the screen's 2x, 560 by 360 pixels with its margin
+
+---
+
+### User Story 430:
+
+- **Summary:** I can see which page I'm on
+- **Status:** specified, not built yet
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** scrolling a long board
+- **I want to** see a page number
+- **so that** I know where I am
+
+#### Acceptance Criteria:
+- **Scenario:** Scrolling
+- **Given:** a board with three pages of ink
+- **When:** I scroll until page 2 is mostly on screen
+- **Then:** the corner reads *Page 2 of 3*, stays put while the board moves, and isn't in any picture
+
+---
+
+### User Story 431:
+
+- **Summary:** An old board moves onto pages with nothing lost
+- **Status:** specified, not built yet
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards drawn before pages
+- **I want to** open them on pages as they were
+- **so that** the change never costs me a drawing
+
+#### Acceptance Criteria:
+- **Scenario:** A board that fits a page
+- **Given:** a board from before pages, its ink narrower than a page
+- **When:** I open it
+- **Then:** it opens on pages with every stroke at its old size and in the same place relative to the others, and Larry's marks still sit beside the ink they were drawn beside
+
+- **Scenario:** A board wider than a page
+- **Given:** a board from before pages with ink wider than a page
+- **When:** I open it
+- **Then:** it keeps its own wider width, no stroke scaled, and I can pan sideways only as far as that width
+
+---
+
+### User Story 432:
+
+- **Summary:** A mark past the page edge widens the board
+- **Status:** specified, not built yet
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** Larry draws back to
+- **I want to** see all of a mark drawn past the page's edge
+- **so that** nothing he drew is cut off
+
+#### Acceptance Criteria:
+- **Scenario:** Past the edge
+- **Given:** a page-width board
+- **When:** Larry's mark lands past the right edge
+- **Then:** the board widens to hold it, nothing is clipped, and my ink doesn't move
+
+---
+
+### User Story 433:
+
+- **Summary:** Larry reads the pages I'm looking at
+- **Status:** specified, not built yet
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** showing Larry part of a long board
+- **I want to** send what's on my screen
+- **so that** he reads my writing at a readable size, not a sliver of the whole column
+
+#### Acceptance Criteria:
+- **Scenario:** The middle page
+- **Given:** three pages of ink with page 2 on screen
+- **When:** I tap Send to Larry
+- **Then:** the picture shows page 2 with my writing legible, and Larry's marks in reply land on page 2
+
+- **Scenario:** Nothing on screen
+- **Given:** ink on page 1 and a blank page on screen
+- **When:** I look at Send to Larry
+- **Then:** it's disabled, because there's nothing on screen to send
+
+---
+
+### User Story 434:
+
+- **Summary:** Ruled lines, like notebook paper
+- **Status:** specified, not built yet
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who writes notes on the board
+- **I want to** turn on faint ruled lines
+- **so that** my writing has lines to sit on
+
+#### Acceptance Criteria:
+- **Scenario:** Choosing them
+- **Given:** a board with no lines
+- **When:** I choose Ruled lines in the Board menu
+- **Then:** faint horizontal lines appear that move with the board, are in no picture, can't be erased, and are still there when I reopen the board on this device
+
+- **Scenario:** One kind at a time
+- **Given:** a board with its grid on
+- **When:** I choose Ruled lines
+- **Then:** the grid goes and the ruled lines show
