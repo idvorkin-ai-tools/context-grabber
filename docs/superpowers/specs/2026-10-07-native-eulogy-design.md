@@ -58,7 +58,9 @@ ships inside the app, so it plays offline, the moment it is tapped, and keeps go
 - **Random** (dice), [#259](https://github.com/idvorkin/context-grabber/issues/259), Igor 2026-10-10: *"Add random
   page"*, a random page of the blog. It opens idvork.in/random in the browser, and the blog picks the page, so
   every tap lands somewhere different. It needs the network like the other two links; off the network the browser
-  says so, as it does for Eulogy and Recent.
+  says so, as it does for Eulogy and Recent. Holding it offers a topic
+  ([#392](https://github.com/idvorkin/context-grabber/issues/392); the
+  [popovers spec](2026-10-18-press-and-hold-popovers-design.md) has the choices); the tap stays random from everything.
 - All four are launchers like the others: they can be hidden and moved from the cog. In a phone that already has
   its own order, they show at the end of it until moved.
 

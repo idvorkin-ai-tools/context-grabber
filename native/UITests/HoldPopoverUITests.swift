@@ -36,6 +36,21 @@ final class HoldPopoverUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Tap to see its position"].waitForExistence(timeout: 10), app.debugDescription)
   }
 
+  // Stories 465, 466 (#392): Random's topics, and a topic leaves for the browser. Which link it opens is the host's
+  // (BlogLinksTests); which post lands is the blog's.
+  func testTheRandomPopoverOffersTheTopics() throws {
+    let app = XCUIApplication()
+    app.launch()
+    hold("random", in: app)
+    for id in ["anything", "ai", "tech", "family", "health", "mind", "work", "books"] {
+      XCTAssertTrue(app.buttons["random-\(id)"].waitForExistence(timeout: 10), "\(id): \(app.debugDescription)")
+    }
+    app.buttons["random-ai"].tap()
+    let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
+    XCTAssertTrue(safari.wait(for: .runningForeground, timeout: 20), "AI opened the browser")
+    safari.terminate()
+  }
+
   // Story 222: a tap outside closes the popover with nothing opened, and the tile's tap still works after a hold.
   func testATapOutsideOpensNothing() throws {
     let app = XCUIApplication()

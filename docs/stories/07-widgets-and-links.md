@@ -710,6 +710,106 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 465:
+
+- **Summary:** Holding Random offers the blog's topics
+- **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `HoldChoicesTests` (host: the eight choices in order) and `HoldPopoverUITests.testTheRandomPopoverOffersTheTopics` (simulator); the tick and the look on the phone not yet
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As someone** whose blog has years of posts on many subjects
+- **I want to** press and hold the Random tile and see the topics as small tiles
+- **so that** I can ask for one subject without leaving the home screen
+
+#### Acceptance Criteria:
+- **Scenario:** The topics popover
+- **Given:** the home screen
+- **When:** I press and hold *Random*
+- **Then:** a popover pointing at the tile offers Anything, AI, Tech, Family, Health, Mind, Work and Books, each with a picture and its name, Anything first, and the log has the popover opening
+
+---
+
+### User Story 466:
+
+- **Summary:** A topic opens the blog's random link for that topic
+- **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `BlogLinksTests` (host: each topic's link) and `HoldPopoverUITests.testTheRandomPopoverOffersTheTopics` (simulator: AI brings the browser forward); the post being on that topic needs the blog's change (story 468)
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As someone** whose blog has years of posts on many subjects
+- **I want to** choose a topic from the Random popover
+- **so that** the blog picks a post on that subject
+
+#### Acceptance Criteria:
+- **Scenario:** Choosing AI
+- **Given:** the Random popover is open
+- **When:** I tap *AI*
+- **Then:** idvork.in/random?topic=ai opens in the browser, the popover closes, and the log has `open_random` with `from: home_popover` and `topic: ai`
+
+---
+
+### User Story 467:
+
+- **Summary:** A plain tap on Random stays random from everything
+- **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `BlogLinksTests` (host: Anything is the tile's own link) and `EulogyUITests.testBlogLaunchersLeaveTheApp` (simulator: the tap still opens the browser)
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As someone** whose blog has years of posts on many subjects
+- **I want to** tap Random, or choose Anything from its popover
+- **so that** the quick way still surprises me with any post
+
+#### Acceptance Criteria:
+- **Scenario:** Tap or Anything
+- **Given:** the home screen
+- **When:** I tap *Random*, or hold it and tap *Anything*
+- **Then:** idvork.in/random opens in the browser with no topic in the link
+
+---
+
+### User Story 468:
+
+- **Summary:** A topic the blog does not know still lands on a post
+- **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
+- **Status:** native app only: the app's half implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1), which needs no change when the blog ships; the blog's half is not implemented (a PR to idvorkin/idvorkin.github.io). Checked 2026-11-03 by reading the live page and its script: idvork.in/random?topic=ai answers 200, reads no topic and picks from every post
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As someone** whose blog has years of posts on many subjects
+- **I want to** choose a topic before the blog has learned topics
+- **so that** nothing breaks while the two halves ship apart, and the choices start working by themselves
+
+#### Acceptance Criteria:
+- **Scenario:** The blog ignores the topic
+- **Given:** the blog does not read the topic in the link
+- **When:** I choose *AI* from the Random popover
+- **Then:** the browser lands on a random post drawn from everything, the app shows no error, and it cannot tell the topic was ignored
+
+---
+
+### User Story 469:
+
+- **Summary:** VoiceOver reaches every topic
+- **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1), by the same tile actions as stories 222-225; only the phone can show VoiceOver, not yet checked
+- **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
+
+#### Use Case:
+- **As someone** whose blog has years of posts on many subjects
+- **I want to** reach each topic from the Random tile's actions with VoiceOver on
+- **so that** a topic never depends on a press and hold
+
+#### Acceptance Criteria:
+- **Scenario:** VoiceOver
+- **Given:** VoiceOver is on and *Random* is focused
+- **When:** I choose the *Family* action
+- **Then:** idvork.in/random?topic=family opens in the browser
+
+---
+
 ### User Story 228:
 
 - **Summary:** A link opens a board, or the boards

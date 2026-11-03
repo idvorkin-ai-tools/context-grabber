@@ -5,11 +5,11 @@ import XCTest
 @testable import ContextCore
 
 final class HoldChoicesTests: XCTestCase {
-  func testOnlyTheFourTilesHaveAPopover() {
-    for tile in ["workout_supermix", "gym_timer", "breathe", "think_a_card"] {
+  func testOnlyTheFiveTilesHaveAPopover() {
+    for tile in ["workout_supermix", "gym_timer", "breathe", "think_a_card", "random"] {
       XCTAssertFalse(HoldChoices.choices(forTile: tile).isEmpty, tile)
     }
-    for tile in ["call", "today", "places", "cockpit", "eulogy", "recent", "random", "settings", "inbox"] {
+    for tile in ["call", "today", "places", "cockpit", "eulogy", "recent", "settings", "inbox"] {
       XCTAssertTrue(HoldChoices.choices(forTile: tile).isEmpty, "\(tile) keeps no hold")
     }
   }
@@ -43,8 +43,19 @@ final class HoldChoicesTests: XCTestCase {
     XCTAssertTrue(card.allSatisfy { $0.art != nil }, "each has drawn art")
   }
 
+  // Story 465 (#392): Anything first, as the tap's own choice, with the tile's dice.
+  func testTheRandomPopoverIsAnythingThenTheSevenTopics() {
+    let random = HoldChoices.choices(forTile: "random")
+    XCTAssertEqual(random.map(\.title), ["Anything", "AI", "Tech", "Family", "Health", "Mind", "Work", "Books"])
+    XCTAssertEqual(random[0].action, .randomPost(.anything))
+    XCTAssertEqual(random[1].action, .randomPost(.ai))
+    XCTAssertEqual(random[0].art, "tile-random")
+    XCTAssertTrue(random.allSatisfy { $0.symbol != nil }, "nothing is ever blank")
+  }
+
   func testEveryChoiceHasAPictureOrANumberAndAUniqueId() {
-    let all = ["workout_supermix", "gym_timer", "breathe", "think_a_card"].flatMap(HoldChoices.choices(forTile:))
+    let all = ["workout_supermix", "gym_timer", "breathe", "think_a_card", "random"].flatMap(
+      HoldChoices.choices(forTile:))
     XCTAssertEqual(Set(all.map(\.id)).count, all.count)
     for choice in all where choice.art == nil {
       XCTAssertTrue(choice.title.contains { $0.isNumber } || choice.symbol != nil, choice.id)

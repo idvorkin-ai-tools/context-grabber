@@ -4,6 +4,26 @@ import ContextCore
 import XCTest
 
 final class BlogLinksTests: XCTestCase {
+  // Stories 466, 467 (#392): the blog picks; the app only opens the link the issue names.
+  func testEachTopicAsksTheBlogForItself() {
+    XCTAssertEqual(
+      BlogLinks.Topic.allCases.map(\.link.absoluteString),
+      [
+        "https://idvork.in/random",
+        "https://idvork.in/random?topic=ai",
+        "https://idvork.in/random?topic=tech",
+        "https://idvork.in/random?topic=family",
+        "https://idvork.in/random?topic=health",
+        "https://idvork.in/random?topic=mind",
+        "https://idvork.in/random?topic=work",
+        "https://idvork.in/random?topic=books",
+      ])
+  }
+
+  func testAnythingIsTheTilesOwnLink() {
+    XCTAssertEqual(BlogLinks.Topic.anything.link, BlogLinks.random)
+  }
+
   func testTheEmbedInThePostIsTheSong() {
     // As the post served it on 2026-10-07: the embed's iframe comes before the plain link.
     let html =

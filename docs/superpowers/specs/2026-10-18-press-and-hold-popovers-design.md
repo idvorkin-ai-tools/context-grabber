@@ -30,7 +30,7 @@ opens it. The popover replaces the grey list menu the music tile had; there is n
 
 **Holding.** Press and hold a tile with a popover and, after the usual iOS hold, the tile gives a light tick and a
 popover opens beside it, its arrow pointing at the tile. Inside, the choices sit in a grid of small tiles (three to a
-row), each with its drawn picture and a short name under it. Where a plain tap makes one of the choices (the Workout Supermix, Think of a card), it comes first; the timer's and breathing's tap opens their remembered preset ready, so their choices simply run in order.
+row), each with its drawn picture and a short name under it. Where a plain tap makes one of the choices (the Workout Supermix, Think of a card, Random's Anything), it comes first; the timer's and breathing's tap opens their remembered preset ready, so their choices simply run in order.
 
 **Choosing.** Tap a choice and the popover closes and that choice opens, exactly as if it had its own tile. A tap
 outside the popover, or a swipe, closes it with nothing opened. Holding a tile with no popover does nothing, as
@@ -44,6 +44,7 @@ today: no lift, no preview.
 | Gym Timer | 30 SEC · 1 MIN · 2 MIN · 5-1 · Custom | Opens the timer on that preset and starts it: the get-ready countdown is the moment to put the phone down. Custom is the remembered Custom workout |
 | Box breathing | 8 s · 10 s · 12 s · 15 s | Opens breathing with that many seconds a side, for the remembered session length, and begins |
 | Think of a card | Think of a card · A card face up · Drill the stack | Think of a card counts as the tap does; face up shows a card at once; Drill opens the stack drill |
+| Random | Anything · AI · Tech · Family · Health · Mind · Work · Books | Opens a random post on that topic in the browser; Anything is the tap, random from everything. See *The blog's topics* |
 
 **The pictures.** Each choice has drawn art in the same style as the home tiles: the Workout Supermix is the tile's
 own kettlebell in headphones, Liked music a heart, Feel Good a sun; the card's three are a thought bubble over a
@@ -53,6 +54,22 @@ a picture is drawn, the choice shows Apple's nearest symbol on its tile's colour
 
 **VoiceOver.** The tile keeps its tap. Its actions list each choice by name ("Gym Timer, 2 MIN"), so every choice is
 reachable without the hold.
+
+## The blog's topics
+
+Igor, 2026-10-18 ([#392](https://github.com/idvorkin/context-grabber/issues/392)): the blog picks and the app only
+opens the link. Holding Random offers Anything first, then seven topics. *Anything* opens idvork.in/random, exactly
+as a tap does; a topic opens the same address with the topic added, such as idvork.in/random?topic=ai. Which posts
+belong to a topic is the blog's to decide, so a new post counts through its own tags with no new build of the app.
+
+Anything shows the Random tile's own dice. The seven topics show Apple's nearest symbol on the tile's colour until
+their pictures are drawn, as *The pictures* above allows.
+
+**Until the blog knows topics.** This depends on a change to the blog, and the app has no way to see whether that
+change is live: it hands the link to the browser and the browser stays in charge. When the blog ignores the topic,
+the choice still lands on a random post, drawn from everything, with no error and no note. Checked 2026-11-03: that
+is what the blog does today. The topic choices are not hidden in the meantime, so they start working by themselves
+the day the blog learns them.
 
 ## Remembering
 
@@ -66,10 +83,12 @@ choice, and the popover's opening is logged with the tile, so a hold that opened
 
 ## Acceptance criteria
 
-- Holding Workout Supermix, Gym Timer, Box breathing or Think of a card opens a popover of drawn choices pointing at
+- Holding Workout Supermix, Gym Timer, Box breathing, Think of a card or Random opens a popover of drawn choices pointing at
   the tile, the tap's own choice first where it is one; holding any other tile does nothing.
 - Choosing *2 MIN* starts the timer on 2 MIN after its get-ready countdown; choosing *10 s* begins breathing at 10 s
   a side; choosing *Drill the stack* opens the drill; choosing *Liked music* opens his likes in YouTube Music.
+- Choosing *AI* from Random opens idvork.in/random?topic=ai in the browser; choosing *Anything* opens
+  idvork.in/random with no topic.
 - A tap outside closes the popover and opens nothing.
 - A plain tap on each of these tiles does what it did before.
 - VoiceOver reaches every choice from the tile's actions.
