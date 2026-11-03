@@ -174,6 +174,9 @@ final class InboxModel: ObservableObject {
     for item in fresh.reversed() {
       var fields: [String: Any] = ["action": "added", "item": item.id, "kind": item.kind.rawValue]
       fields["note"] = item.note != nil
+      fields["new_thread"] = item.thread == nil
+      if let thread = item.thread { fields["thread"] = thread }
+      if let offered = item.offered { fields["offered"] = offered }
       if let text = item.text { fields["text_chars"] = text.count }
       if let bytes = store?.imageBytes(of: item) { fields["bytes"] = bytes }
       if let site = item.site { fields["site"] = site }

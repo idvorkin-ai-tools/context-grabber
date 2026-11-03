@@ -1,6 +1,7 @@
 //  #305, story 038: Grabber Native in any app's share sheet. A small card previews what is shared (a link, text or
 //  one image), takes an optional note, and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
-//  No network here: the app sends it to Larry later (story 039).
+//  The app sends it to Larry later (story 039). The one question asked of the network here is which recent chats to
+//  offer beside *New chat* (#587, stories 440–444), and nothing waits for its answer.
 
 import ContextCore
 import SwiftUI
@@ -9,15 +10,17 @@ import UniformTypeIdentifiers
 
 final class ShareViewController: UIViewController {
   private let shared = Shared()
+  private let recent = RecentChats()
 
   override func viewDidLoad() {
     super.viewDidLoad()
     let card = UIHostingController(
       rootView: ShareCard(
         shared: shared,
-        add: { [weak self] note in
+        recent: recent,
+        add: { [weak self] note, thread in
           guard let self else { return nil }
-          return self.add(note: note)
+          return self.add(note: note, thread: thread)
         },
         cancel: { [weak self] in self?.close(cancelled: true) }))
     addChild(card)
@@ -26,14 +29,17 @@ final class ShareViewController: UIViewController {
     view.addSubview(card.view)
     card.didMove(toParent: self)
     Task { await shared.load(extensionContext?.inputItems as? [NSExtensionItem] ?? []) }
+    Task { await recent.load() }
   }
 
   /// Nil when kept; otherwise why not, for the card to show.
-  private func add(note: String) -> String? {
+  private func add(note: String, thread: String?) -> String? {
     guard let store = InboxStore.shared() else {
       return "This build has no App Group, so the Inbox is unreachable."
     }
-    guard let item = shared.item(note: note) else { return shared.problem ?? "Nothing to add yet." }
+    guard var item = shared.item(note: note) else { return shared.problem ?? "Nothing to add yet." }
+    item.thread = thread
+    item.offered = ShareThreads.offered(recent.read)
     do {
       try store.add(item, image: shared.image, imageExtension: shared.imageExtension)
     } catch {
@@ -152,11 +158,24 @@ final class Shared: ObservableObject {
   }
 }
 
+/// The chats the card offers beside *New chat*, asked of the Cockpit once as it opens; nil until it answers.
+@MainActor
+final class RecentChats: ObservableObject {
+  @Published private(set) var read: ShareThreads.Read?
+
+  func load() async {
+    read = await ShareThreads.read(cockpit: CockpitPage.url) { try await URLSession.shared.data(for: $0) }
+  }
+}
+
 struct ShareCard: View {
   @ObservedObject var shared: Shared
-  let add: (String) -> String?
+  @ObservedObject var recent: RecentChats
+  let add: (String, String?) -> String?
   let cancel: () -> Void
   @State private var note = ""
+  /// The chat ticked; nil is *New chat*. Only a tap changes it, never the list arriving (story 444).
+  @State private var thread: String?
   @State private var failure: String?
   @State private var added = false
 
@@ -167,6 +186,7 @@ struct ShareCard: View {
         Section("Note") {
           TextField("Optional", text: $note, axis: .vertical).lineLimit(1...4)
         }
+        destinations
         if let problem = shared.problem {
           Section {
             Text(problem).textSelection(.enabled)
@@ -190,14 +210,49 @@ struct ShareCard: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: cancel) }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Start a chat") {
-            failure = add(note)
+          Button(thread == nil ? "Start a chat" : "Send") {
+            failure = add(note, thread)
             added = failure == nil
           }
           .disabled(!shared.loaded || shared.problem != nil || added)
         }
       }
     }
+  }
+
+  private var destinations: some View {
+    Section("Send to") {
+      destination("New chat", age: nil, key: nil)
+      switch recent.read {
+      case nil:
+        ProgressView().accessibilityLabel("Reading your recent chats")
+      case .threads(let rows):
+        ForEach(rows) { destination($0.title, age: $0.lastAt, key: $0.key) }
+      case .problem(let why):
+        // The card's copyable idiom, as below; the list being out of reach is normal, so it stays small.
+        VStack(alignment: .leading, spacing: 4) {
+          Text(why).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+          Button("Copy") { UIPasteboard.general.string = "ShareCard.recentChats: \(why)" }.font(.caption)
+        }
+      }
+    }
+  }
+
+  private func destination(_ title: String, age: Date?, key: String?) -> some View {
+    Button {
+      thread = key
+    } label: {
+      HStack {
+        Text(title).lineLimit(1).foregroundStyle(.primary)
+        Spacer()
+        if let age {
+          Text(age, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
+            .font(.caption).foregroundStyle(.secondary)
+        }
+        if thread == key { Image(systemName: "checkmark").foregroundStyle(.tint) }
+      }
+    }
+    .accessibilityAddTraits(thread == key ? .isSelected : [])
   }
 
   @ViewBuilder private var preview: some View {
