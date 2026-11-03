@@ -34,7 +34,7 @@ Title of a new thread: the note's first line, else the text's, else the link's s
 `POST /chat-seen {thread}` when a thread is opened. Images at `<cockpit>/attachments/<ref>`.
 
 A thread's screen merges the server's messages with this phone's outbox items for that thread whose id the server
-does not have yet (shown **Not sent yet**, or *Larry refused it*). A new thread not yet sent is a list row of its own.
+does not have yet (shown **Not sent yet**, or *Larry refused it*). A new thread not yet sent is a list row of its own, and so is an unsent message for a thread the list does not hold (#587).
 
 ## Hearing back (`ChatNotify`, App `ChatBackground`)
 

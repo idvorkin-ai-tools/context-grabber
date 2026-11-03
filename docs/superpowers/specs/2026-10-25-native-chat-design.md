@@ -30,7 +30,7 @@ updates by itself; while it is not, the phone checks now and then and notifies I
 - Searching, renaming or deleting threads from the phone. Archiving is the phone's way to close one (#589).
 - A voice conversation inside a thread (the Call screen is that). Speaking a message is in (#448): it becomes text
   Igor reads before he sends.
-- Sharing a file in from another app (#633). A file reaches a thread through the paperclip; the share card is unchanged.
+- Sharing a file in from another app (#633). A file reaches a thread through the paperclip; the share card takes no files.
 
 ## What Igor sees
 
