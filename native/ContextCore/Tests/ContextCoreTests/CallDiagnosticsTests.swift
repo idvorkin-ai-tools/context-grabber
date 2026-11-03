@@ -115,6 +115,13 @@ final class CallEventLogTests: XCTestCase {
       "the exemption is keyed on kind: a synthetic guard, no such bridge line exists")
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_ended", ["reason": "connection lost", "badly": true])])))
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_audio", ["action": "engine_start", "ok": false])])))
+    // #582: every start says where the app was. A start from the background that worked is evidence, not trouble.
+    XCTAssertFalse(
+      CallEventLog.hadTrouble(
+        events([("call_audio", ["action": "engine_start", "why": "mic", "ok": true, "app_state": "background"])])))
+    XCTAssertTrue(
+      CallEventLog.hadTrouble(
+        events([("call_audio", ["action": "engine_start", "why": "mic", "ok": false, "app_state": "active"])])))
     XCTAssertFalse(CallEventLog.hadTrouble(events([("timer_cue", ["ok": false])])))  // not the call's
   }
 }

@@ -743,7 +743,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 208:
 
 - **Summary:** A microphone that fails to open still gets the call's reset and redial
-- **Status:** implemented in [40f5d77](https://github.com/idvorkin/context-grabber/commit/40f5d77); verified by `just test` (host: `CallSessionMicTests` — a failed open resets then redials, a failed reset still redials, a buffer clears the line — and `ErrorDetailTests`) and the simulator build; whether the reset or the redial recovers from the phone's *unspecified* audio error is not yet seen on the phone
+- **Status:** implemented in [40f5d77](https://github.com/idvorkin/context-grabber/commit/40f5d77), the foreground state on a successful start too in [746a960](https://github.com/idvorkin/context-grabber/commit/746a960) (instrumentation only, #582's cause is not yet known); verified by `just test` (host: `CallSessionMicTests` — a failed open resets then redials, a failed reset still redials, a buffer clears the line — and `ErrorDetailTests`) and the simulator build; whether the reset or the redial recovers from the phone's *unspecified* audio error, and what a successful start logs, are not yet seen on the phone
 - **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582) (open: the engine is refused when the phone locks just after the tap), [#441](https://github.com/idvorkin/context-grabber/issues/441) (the phone's audio refused to start, *avfaudio error 2003329396*, and the call sat silent until the bridge hung up)
 - **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
 
@@ -756,7 +756,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The microphone fails to open
 - **Given:** a live call whose microphone failed to open, so the screen says *microphone failed*
 - **When:** no microphone buffer arrives within the startup deadline
-- **Then:** the call resets its audio once; if the reset fails or still brings no buffer, it redials once; a buffer after the reset clears *microphone failed*; and Diagnostics record the session, route, foreground state, formats and the error's own code for every failed audio start
+- **Then:** the call resets its audio once; if the reset fails or still brings no buffer, it redials once; a buffer after the reset clears *microphone failed*; and Diagnostics record the session, route, formats and the error's own code for every failed audio start, and the foreground state as the start was tried for every audio start, failed or not
 
 ---
 
