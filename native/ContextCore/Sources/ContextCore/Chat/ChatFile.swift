@@ -81,7 +81,8 @@ public struct ChatFile: Equatable, Sendable {
   /// What the log says a file is: the name's extension, never the name.
   public static func type(of name: String) -> String { (name as NSString).pathExtension.lowercased() }
 
-  static func size(_ bytes: Int) -> String { ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file) }
+  /// In binary units, as the cap is: 10 MiB reads 10 MB rather than a decimal 10.5 MB.
+  static func size(_ bytes: Int) -> String { ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .binary) }
 
   /// What the upload says it is; the Cockpit goes by the bytes.
   static func mime(name: String) -> String {

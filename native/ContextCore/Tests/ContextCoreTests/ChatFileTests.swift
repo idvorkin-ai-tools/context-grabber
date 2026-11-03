@@ -62,6 +62,13 @@ final class ChatFileTests: XCTestCase {
     XCTAssertTrue(try XCTUnwrap(big.errorDescription).contains("big.pdf"))
   }
 
+  /// Story 473's limit is 10 MB: the cap is 10 MiB, so a decimal size would call it 10.5 MB.
+  func testTheTooBigProblemStatesTheCapAsTenMB() {
+    let over = ChatFile.Problem.tooBig(name: "over.pdf", bytes: 12 * 1024 * 1024, limit: ChatFile.maxBytes)
+    XCTAssertEqual(over.errorDescription, "over.pdf is 12 MB, over the 10 MB the Cockpit takes, so it can't go.")
+    XCTAssertEqual(ChatFile(name: "cap.pdf", data: Data(count: ChatFile.maxBytes)).size, "10 MB")
+  }
+
   func testAProblemLogsItsCaseAndTypeNeverTheName() throws {
     let tooBig = ChatFile.Problem.tooBig(name: "private-scan.PDF", bytes: 11, limit: 10).logFields
     XCTAssertEqual(tooBig["problem"] as? String, "too_big")
