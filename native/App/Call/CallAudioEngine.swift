@@ -80,7 +80,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var underruns = 0
   private var publishedMicDeadline = MicStartupDeadline()
 
-  /// #441: whether the app was in front when a start failed, read on the audio queue without waiting on main.
+  /// #441, #582: whether the app was in front when a start was tried, read on the audio queue without waiting on main.
   private var appState = "unknown"
   private var appObservers: [NSObjectProtocol] = []
 
@@ -403,12 +403,15 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     guard let engine else { throw CallAudioError("no audio engine") }
     guard !engine.isRunning else { return }
     engine.prepare()
+    let stateAtAttempt = lock.withLock { appState }
     do {
       try engine.start()
       // #582: a refusal carries the app's state already; a success has to as well to tell them apart.
-      log("call_audio", ["action": "engine_start", "why": why, "ok": true, "app_state": lock.withLock { appState }])
+      log("call_audio", ["action": "engine_start", "why": why, "ok": true, "app_state": stateAtAttempt])
     } catch {
-      var fields: [String: Any] = ["action": "engine_start", "why": why, "ok": false, "message": describe(error)]
+      var fields: [String: Any] = [
+        "action": "engine_start", "why": why, "ok": false, "message": describe(error), "app_state": stateAtAttempt,
+      ]
       fields.merge(ErrorDetail.fields(error)) { a, _ in a }
       fields.merge(failureState(engine)) { a, _ in a }
       log("call_audio", fields)
@@ -425,7 +428,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       "route": Self.describeRoute(), "other_audio": session.isOtherAudioPlaying,
       "secondary_silenced": session.secondaryAudioShouldBeSilencedHint, "input_available": session.isInputAvailable,
       "input_channels": session.inputNumberOfChannels, "output_channels": session.outputNumberOfChannels,
-      "app_state": lock.withLock { appState }, "since_build_ms": (nowMs - builtAt).rounded(),
+      "since_build_ms": (nowMs - builtAt).rounded(),
       "in_vp": engine.inputNode.isVoiceProcessingEnabled,
       "mic_hw_format": describe(engine.inputNode.inputFormat(forBus: 0)),
       "mic_format": describe(engine.inputNode.outputFormat(forBus: 0)),
