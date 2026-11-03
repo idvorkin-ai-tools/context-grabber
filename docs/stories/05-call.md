@@ -93,7 +93,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 084:
 
 - **Summary:** See what the recognizer is hearing me say, big, before it is sent
-- **Status:** implemented in [4715141](https://github.com/idvorkin/context-grabber/commit/4715141); verified by `CallScreen.test.tsx` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (caption tests) and `just native-test-sim` (the fake bridge's partial and final become one Igor row); the phone still to be checked by Igor; #467: the sentence leaves the box the moment it is sent, not when Tony answers, in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) ([story 216](#user-story-216))
+- **Status:** implemented in [4715141](https://github.com/idvorkin/context-grabber/commit/4715141); verified by `CallScreen.test.tsx` and on the phone; native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (caption tests) and `just native-test-sim` (the fake bridge's partial and final become one Igor row); the phone still to be checked by Igor; #467: the sentence leaves the box the moment it is sent, not when Tony answers, in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) ([story 216](#user-story-216)); #532: a half-said sentence stays in the box when something else arrives ([story 325](#user-story-325))
 
 #### Use Case:
 - **As a** Larry's client talking on a noisy street
@@ -111,8 +111,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 216:
 
 - **Summary:** See the moment my sentence is sent to Larry, without waiting for his reply
-- **Status:** implemented in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) and [33a965b](https://github.com/idvorkin/context-grabber/commit/33a965b) (a real repeat is not taken for the recognizer's late final) and [8f94f16](https://github.com/idvorkin/context-grabber/commit/8f94f16) (every final after a send, before the next partial, is the recognizer's late account, whatever its words); verified by `just native-test` (host: `CallSessionTests` — a sent sentence leaves the live line marked sent, two sentences sent before Larry answers are two rows, a late final spelled differently, a prefix final and two split finals are not shown, a real repeat is, the mark survives an interruption and a consult, hanging up clears it) and `just native-test-sim` (the fake bridge sends two sentences before Larry answers: both are logged as sent Igor captions and the late final as restated); the phone, on a Direct call, still to be checked by Igor
-- **Issues:** [#532](https://github.com/idvorkin/context-grabber/issues/532), [#467](https://github.com/idvorkin/context-grabber/issues/467)
+- **Status:** implemented in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) and [33a965b](https://github.com/idvorkin/context-grabber/commit/33a965b) (a real repeat is not taken for the recognizer's late final) and [8f94f16](https://github.com/idvorkin/context-grabber/commit/8f94f16) (every final after a send, before the next partial, is the recognizer's late account, whatever its words); verified by `just native-test` (host: `CallSessionTests` — a sent sentence leaves the live line marked sent, two sentences sent before Larry answers are two rows, a late final spelled differently, a prefix final and two split finals are not shown, a real repeat is, the mark survives an interruption and a consult, hanging up clears it) and `just native-test-sim` (the fake bridge sends two sentences before Larry answers: both are logged as sent Igor captions and the late final as restated); the phone, on a Direct call, still to be checked by Igor; #532: what happens to the next sentence's words when one is sent is [story 325](#user-story-325)
+- **Issues:** [#467](https://github.com/idvorkin/context-grabber/issues/467)
 - **Spec:** [Native call — the live line](../superpowers/specs/2026-08-28-native-call-screen-design.md)
 
 #### Use Case:
@@ -126,10 +126,25 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I say a sentence, it is sent to Larry, and I say a second one before he answers
 - **Then:** the first sentence is an *Igor* row marked *sent* as soon as it is sent, the second builds in a fresh live line and becomes a second *Igor* row marked *sent* — two rows, neither shown twice — and when Larry answers both *sent* marks go
 
-- **Scenario:** Something arrives while I'm mid-sentence (#532)
+---
+
+### User Story 325:
+
+- **Summary:** Keep what I'm saying in one live line when something else arrives
+- **Status:** implemented in [abc8cb2](https://github.com/idvorkin/context-grabber/commit/abc8cb2), and for a consult starting and a first word that only sits inside a sent word in the review commit after it; verified by `just native-test` (host: `CallSessionTests` — Larry's words and a consult leave a half-said sentence building in one row, a finished sentence still settles, a late transcript leaves the next sentence's words live and its final counts as new speech, a transcript that holds the live words leaves nothing behind); no device call yet
+- **Issues:** [#532](https://github.com/idvorkin/context-grabber/issues/532)
+- **Spec:** [Native call — the live line](../superpowers/specs/2026-08-28-native-call-screen-design.md)
+
+#### Use Case:
+- **As a** Larry's client mid-sentence on a call, with Larry and the bridge reporting things as I talk
+- **I want to** see my half-said words carry on building where they are
+- **so that** one sentence is one row, and nothing I'm saying blinks away
+
+#### Acceptance Criteria:
+- **Scenario:** Something arrives while I'm mid-sentence
 - **Given:** a live call with half a sentence building in the live line
-- **When:** words of Larry's arrive, or the bridge reports my previous sentence as sent
-- **Then:** the words I'm saying stay in the live line and carry on building there, and my sentence isn't split into two rows
+- **When:** words of Larry's arrive, a consult starts, or the bridge reports my previous sentence as sent
+- **Then:** the words I'm saying stay in the live line and carry on building there until the turn ends or they are sent, and my sentence isn't split into two rows
 
 ---
 

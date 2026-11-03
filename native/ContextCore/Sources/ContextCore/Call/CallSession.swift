@@ -493,7 +493,7 @@ public final class CallSession {
       promoteIgor()
       clearSent()
     case .toolCall(let question):
-      promoteIgor()
+      if igorPartial.isEmpty { promoteIgor() }
       closeLarryRow()
       log("call_bridge", ["kind": "tool_call", "question": question])
       toolRowId = addRow(.tool, question.isEmpty ? "asking Larry …" : "asking Larry: \(question) …")
@@ -844,12 +844,15 @@ public final class CallSession {
   }
 
   /// The live words that belong to the sentence after `sent`: a recognizer final came before them, and the sent text
-  /// doesn't already hold them. Nil otherwise, when they're the sent sentence itself.
+  /// doesn't already hold them from the start of one of its words. Nil otherwise, when they're the sent sentence.
   private func wordsAfter(sent: String) -> String? {
     guard !igorFinal.isEmpty, !igorPartial.isEmpty else { return nil }
-    let bare = { (s: String) in s.lowercased().unicodeScalars.filter(CharacterSet.alphanumerics.contains) }
-    return String(String.UnicodeScalarView(bare(sent))).contains(String(String.UnicodeScalarView(bare(igorPartial))))
-      ? nil : igorPartial
+    let words = { (s: String) in
+      s.lowercased().unicodeScalars.split { !CharacterSet.alphanumerics.contains($0) }.map { String($0) }
+    }
+    let live = words(igorPartial).joined()
+    let sentWords = words(sent)
+    return sentWords.indices.contains { sentWords[$0...].joined().hasPrefix(live) } ? nil : igorPartial
   }
 
   /// Igor's pending row becomes a settled one, marked sent when the bridge sent it to Larry; an empty pending row

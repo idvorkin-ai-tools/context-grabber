@@ -1205,6 +1205,45 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     XCTAssertEqual(t.texts, ["igor!:What should I, eat tonight?"])
   }
 
+  // #532: a consult starting is something else arriving, like Larry's words.
+  func testAConsultLeavesAHalfSaidSentenceBuilding() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "hold"])
+    t.socket.say(["type": "tool_call", "question": "what is up"])
+    t.socket.say(["type": "stt_partial", "text": "hold on"])
+    XCTAssertEqual(t.texts, ["igor?:hold on", "tool:asking Larry: what is up …"], "one row, still building")
+    t.socket.say(["type": "turn_end"])
+    XCTAssertEqual(t.texts.first, "igor:hold on")
+  }
+
+  func testAConsultStillSettlesAFinishedSentence() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "look this up"])
+    t.socket.say(["type": "tool_call", "question": "what is up"])
+    XCTAssertEqual(t.texts, ["igor:look this up", "tool:asking Larry: what is up …"])
+  }
+
+  // #532: "i" sits inside "first" but is no word of the sent sentence, so sentence two's first word doesn't flicker.
+  func testAShortPartialInsideASentWordStaysLive() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "first sentence"])
+    t.socket.say(["type": "stt_partial", "text": "i"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "First sentence."])
+    XCTAssertEqual(t.texts, ["igor!:First sentence.", "igor?:i"])
+  }
+
+  func testAPartialSpacedDifferentlyFromTheSentWordsIsTheSentSentence() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "see you"])
+    t.socket.say(["type": "stt_partial", "text": "to day"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "See you today."])
+    XCTAssertEqual(t.texts, ["igor!:See you today."])
+  }
+
   func testARealRepeatStartsWithAPartialAndIsShown() {
     let t = CallHarness()
     t.goLive()
