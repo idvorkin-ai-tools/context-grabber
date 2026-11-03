@@ -142,7 +142,7 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertNotNil(store.strokes(of: item))
 
     let calls = Calls()
-    let sender = InboxSender(store: store, cockpit: "https://c.example") { request in
+    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
       let url = try XCTUnwrap(request.url)
       await calls.add(url.path, body: request.httpBody)
       let (status, body): (Int, String) =
@@ -161,8 +161,9 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertEqual(report.sent, ["m1"], "a 500 to the strokes never stops the picture")
     let paths = await calls.paths
     XCTAssertEqual(paths, ["/attachments", "/whiteboard/strokes", "/chat"], "strokes before the message")
+    let bodies = await calls.bodies
     let sent = try XCTUnwrap(
-      JSONSerialization.jsonObject(with: try XCTUnwrap(await calls.bodies["/whiteboard/strokes"])) as? [String: Any])
+      JSONSerialization.jsonObject(with: try XCTUnwrap(bodies["/whiteboard/strokes"])) as? [String: Any])
     XCTAssertEqual(sent["board"] as? String, "b1")
     XCTAssertEqual(sent["picture_id"] as? String, "p1")
     XCTAssertEqual((sent["strokes"] as? [[String: Any]])?.first?["id"] as? String, "s1")
@@ -184,7 +185,7 @@ final class WhiteboardStrokesTests: XCTestCase {
     let item = try draft.save(to: store, at: 1, id: "m2")
     XCTAssertNil(item.strokesFile)
     let calls = Calls()
-    let sender = InboxSender(store: store, cockpit: "https://c.example") { request in
+    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
       let url = try XCTUnwrap(request.url)
       await calls.add(url.path, body: nil)
       let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
@@ -198,6 +199,14 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertEqual(paths, ["/attachments", "/chat"])
     XCTAssertNil(lines.first?["strokes_ok"])
   }
+}
+
+/// The board-to-thread memory on its own defaults, so one test's board never lands on another's thread.
+private func freshThreads() -> WhiteboardThreads {
+  let suite = "whiteboard-strokes-\(UUID().uuidString)"
+  let defaults = UserDefaults(suiteName: suite)!
+  defaults.removePersistentDomain(forName: suite)
+  return WhiteboardThreads(defaults: defaults)
 }
 
 private actor Calls {
