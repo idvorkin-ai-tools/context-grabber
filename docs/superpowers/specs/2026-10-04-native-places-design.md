@@ -195,7 +195,8 @@ does: a trail being recorded is never invisible.
 ### Retention (story 041)
 
 Thirty days by default, from 1 to 365. Points older than the retention are deleted when the app comes to the
-front and immediately when the number is lowered; the breakdown and the point count follow.
+front and immediately when the number is lowered; the breakdown and the point count follow. A point the archive has
+not taken yet stays until it has ([the archive's spec](2026-10-19-native-stats-archive-design.md), What Igor sees).
 
 ### The precise fix (story 042)
 
@@ -221,7 +222,8 @@ already here) and 4 places (0 already here)." Doing it again adds nothing — a 
 same coordinates) is skipped, and so is a known place whose name is already taken here (the native one is kept:
 it may have been grown since). Settings, the tracking switch and other journeys' data are not imported. A file
 that is not a Context Grabber database is refused with a line saying why, and nothing changes. Imported points
-older than the retention are pruned like any others, so an old export brings back only what retention allows.
+older than the retention are pruned like any others, so an old export brings back only what retention allows once
+the archive has taken them.
 
 ## Differences from Context Grabber while both live side by side
 
@@ -263,7 +265,8 @@ same place across such a gap (story 044). More frequent collection would not hel
   switch is touched.
 - Switching tracking on and allowing Always records points with the app in the background; denying leaves the
   switch off with a line under it; the switch's state survives a relaunch.
-- Lowering retention from 30 to 7 deletes the older points at once; the point count and the breakdown follow.
+- Lowering retention from 30 to 7 deletes the older points the archive has taken at once; the point count and the
+  breakdown follow.
 - For the fixture trail and its four known places, the native stays (place, start, end, points) equal Context
   Grabber's, and so do the seven-day breakdowns.
 - Every day card's place, transit and no-data rows add up to its header within a minute.
