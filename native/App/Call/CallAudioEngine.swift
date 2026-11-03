@@ -405,7 +405,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     engine.prepare()
     do {
       try engine.start()
-      log("call_audio", ["action": "engine_start", "why": why, "ok": true])
+      // #582: a refusal carries the app's state already; a success has to as well to tell them apart.
+      log("call_audio", ["action": "engine_start", "why": why, "ok": true, "app_state": lock.withLock { appState }])
     } catch {
       var fields: [String: Any] = ["action": "engine_start", "why": why, "ok": false, "message": describe(error)]
       fields.merge(ErrorDetail.fields(error)) { a, _ in a }
