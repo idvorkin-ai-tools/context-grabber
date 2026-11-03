@@ -226,8 +226,10 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
         oddFrames = rxStream.oddFrames
         if window.underruns > underrunsBefore { underruns += 1 }
       }
-      for x in samples { rxPeak = max(rxPeak, abs(x)) }
-      if rxPeak > 0.01, firstLoudRxAt == nil { firstLoudRxAt = nowMs }
+      var framePeak: Float = 0
+      for x in samples { framePeak = max(framePeak, abs(x)) }
+      rxPeak = max(rxPeak, framePeak)
+      if framePeak > 0.01, firstLoudRxAt == nil { firstLoudRxAt = nowMs }
       guard schedule(samples, on: player, format: format) else { return }
       tail.prune(before: now)
       tail.append(samples, at: max(head, now))
@@ -263,6 +265,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       rxStream.reset()
       tail.reset()
       heardPlayerS = 0
+      // #576: the audio this flushed will never render, so the mixer's silence afterwards isn't a silent mixer.
+      firstLoudRxAt = nil
       guard let player else { return }
       let now = currentPlayerTime()
       player.stop()
