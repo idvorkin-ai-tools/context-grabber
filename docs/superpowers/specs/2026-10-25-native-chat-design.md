@@ -29,6 +29,7 @@ updates by itself; while it is not, the phone checks now and then and notifies I
 - Searching, renaming or deleting threads from the phone. Archiving is the phone's way to close one (#589).
 - A voice conversation inside a thread (the Call screen is that). Speaking a message is in (#448): it becomes text
   Igor reads before he sends.
+- Sharing a file in from another app (#633). A file reaches a thread through the paperclip; the share card is unchanged.
 
 ## What Igor sees
 
@@ -77,21 +78,42 @@ the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how
 everyone."*). A state this build doesn't know reads as 👀. Opening a thread marks it read here and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
 it.
 
-**Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a *Paste image* control
-when the clipboard holds an image (preview, remove), and *Send*. Send needs text or an image. A sent message appears
-at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and image, with the keyboard
+**Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a paperclip for a file, a
+*Paste image* control when the clipboard holds an image (preview, remove), and *Send*. Send needs text, an image or a
+file. A sent message appears
+at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and attachment, with the keyboard
 still up for the next message — typed or dictated alike (#449).
+
+**Attaching a file** (Igor, 2026-11-03, #633: *"Support file and PDF upload"*). A paperclip on the bar opens the phone's
+file picker, for a PDF or any other document. The file sits above the field by name and size, with *Remove file*, and goes
+with whatever is typed as one message, which reads as the file's name and then the words; a new chat's title is the
+words' first line, else the file's name. One attachment to a message: picking a file replaces a pasted image, and
+pasting an image replaces a picked file. A picture chosen in the picker is treated as a pasted one: it previews and
+sends as a picture, except that one over 10 MB is refused at the pick where a pasted one is made to fit. Send works
+with a file alone. It waits on the phone and lands once like any message.
+
+Limits are said when the file is picked, in a copyable problem, and the draft stays as it was: over 10 MB (the Cockpit's
+limit), empty, or unreadable. Nothing is sent and the original file is untouched.
+
+**A file the Cockpit won't take.** The Cockpit can hold only pictures so far. A file it refuses stays on the phone in
+the thread (or under *Not sent yet* for a new chat), and a copyable problem names the file and gives the Cockpit's own
+reason, with *Send again* beside it. *Send again* tries the same message once more, so once the Cockpit takes files
+nothing needs picking again. A file stays until it is delivered or Igor deletes it. In a new chat whose first message
+is a refused file, the bar says the file stays under *Not sent yet* and that a new message starts a separate chat
+without it. If the phone can no longer read the kept file, the problem says that instead and offers no *Send again*:
+no request went, and picking it again is the only way on.
 
 **A new chat** (#536). Igor, 2026-10-26: *"for the Plus, why don't we just make that a new chat versus having its own
 input dialog? That's probably a better UI."* The **+** opens an empty thread titled *New chat*, with the same bar every
-thread has — text, *Paste image*, the mic — and the keyboard up. There is no separate sheet. Back with nothing sent
+thread has — text, the paperclip, *Paste image*, the mic — and the keyboard up. There is no separate sheet. Back with nothing sent
 leaves no thread behind. The first Send starts the thread: the message shows at once as **Not sent yet**, kept on the
 phone and sent by the same rules as any message (so it waits out no network), and the thread's title becomes that
 message's first line. Once the Cockpit has it, the same screen is that thread, live like any other, and the bar takes
 the next message. Until then the bar holds the next message back and says it goes once the first reaches Larry; a
 not-yet-sent new thread also shows in the list under *Not sent yet*, as now. If Larry refuses that first message, it
 says why, copyably, as any refused message does, and the bar takes a new first message at once — a line under the bar
-says the first was refused — which starts the chat afresh; deleting the waiting first message does the same. Each
+says the first was refused — which starts the chat afresh (a refused file stays, and the line says so: *A file the
+Cockpit won't take*); deleting the waiting first message does the same. Each
 attempt is its own message, so a new try is never mistaken for the refused or deleted one, and the screen follows
 the newest.
 
@@ -148,8 +170,8 @@ not running, as now.
 **Sending.** The same rules the Inbox has: tried when the app opens or comes to the front, when the network returns
 and after a failed send's network change, oldest first, never while offline. A message resent after a lost answer
 appears once on the thread, and a share resent after a lost answer makes one thread, not two. A message the Cockpit
-refuses (too big, an unreadable image) reads *Larry refused it* with the reason, copyable, and is not resent; a swipe
-deletes it. Unreachable keeps it **Not sent yet**.
+refuses (too big, an unreadable image) reads *Larry refused it* with the reason, copyable, and is not resent on its own
+(only a file offers *Send again*, above); a swipe deletes it. Unreachable keeps it **Not sent yet**.
 
 **When the Cockpit isn't answering** (#565, 2026-10-27: the Cockpit's host was off the tailnet and Igor read the
 timeout as *"Context grabber inbox broke"*). A request that times out or cannot connect while the phone itself is
@@ -162,7 +184,7 @@ While the app is open and a message waits after a send that did not get through 
 with a server error), it is tried again on its own: after 30 seconds,
 then a minute, two, four, and every five minutes after that. The wait starts over after a send that gets through, and
 the retries stop once nothing waits or the phone goes offline (the network's return sends it, as above). A refused
-message is never retried.
+message is never retried on its own.
 
 **Hearing back.** iOS runs a background check now and then — it decides when, so a reply may wait minutes or hours.
 When the check finds a reply Igor has not seen, one notification per thread: *Larry* and the thread's title, with the
@@ -201,17 +223,24 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - With the app closed, a reply from Larry eventually raises one notification for its thread; tapping it opens the
   thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises
   none.
-- A refused message says why, copyably, and is never resent.
+- A refused message says why, copyably, and is never resent on its own; only a file offers *Send again*.
 - The picker lists the phone's microphones and the next recording uses the one picked; *Automatic* follows the
   phone's route.
 - Tap the mic, speak, tap again: the words appear in the field as they are spoken, after what was typed, and nothing
   is sent until Send; nothing heard leaves the field unchanged. During a live call the mic is dimmed and says why; a
   failure is a copyable error and the words already in the field stay. At 5:00 a recording stops on its own, its
   words in the field, with *Stopped at 5 minutes.* under the bar.
-- The + opens an empty *New chat* thread with the ordinary bar (text, Paste image, mic); its first Send starts the
-  thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing. A refused or
+- The + opens an empty *New chat* thread with the ordinary bar (text, paperclip, Paste image, mic); its first Send starts
+  the thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing. A refused or
   deleted first message lets the next Send start the chat afresh, as a new message that reaches Larry.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
+- The paperclip picks a PDF or any document; it shows by name and size, *Remove file* takes it off, and Send sends it with
+  or without words. A picture picked there goes as a picture. Over 10 MB, empty or unreadable says so copyably at the
+  pick and leaves the draft alone.
+- A file the Cockpit refuses is still on the phone, with a copyable problem naming it and the Cockpit's reason; *Send
+  again* retries the same message, and delivers it once the Cockpit takes files. A kept file the phone can't read says
+  so and has no *Send again*.
+- A new chat that began with a refused file says where the file stays and that a new message starts a separate chat.
 
 ## Depends on the Cockpit
 
@@ -219,3 +248,13 @@ Two small changes there (a PR to idvorkin-ai-tools/cockpit), before the phone ha
 
 - Messages from the phone are recognised as the phone's, alongside the page, the command line and Telegram.
 - A message or new thread resent with the same id is recognised as one already taken, as Larry's inbox does today.
+
+Files (#633) need one more, not built yet; until then a file is refused and kept, as above:
+
+- The Cockpit's attachments accept PDFs and other documents, not only pictures, under the same 10 MB limit and the same
+  rule that it names what it stores; a message can name one, Larry is told where it is, and asking for it returns it.
+  The file's own name reaches Larry in the message's words. The Cockpit's web page shows such an attachment as something
+  to open, not as a broken picture.
+
+Showing a delivered file in the phone's thread, as a row that opens it, is built with that change; no Cockpit sends one
+back today.

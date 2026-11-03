@@ -11,6 +11,7 @@ accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that 
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
+POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
@@ -39,6 +40,11 @@ BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's
 WHITE_PICTURE = "2026-11-01/0000000000000592.png"
 IMAGES = {WHITE_PICTURE: base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAAAAAC86un7AAAADElEQVR4nGP4z/AfAAQAAf8iCjrwAAAAAElFTkSuQmCC")}
+
+
+def is_picture(raw):
+    return (raw.startswith(b"\x89PNG\r\n\x1a\n") or raw.startswith(b"\xff\xd8\xff") or raw[:6] in (b"GIF87a", b"GIF89a")
+            or (raw[:4] == b"RIFF" and raw[8:12] == b"WEBP"))
 
 
 def now():
@@ -164,6 +170,8 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0") or 0))
         if path == "/attachments":
             self._report({"bytes": len(raw), "origin": self.headers.get("Origin")})
+            if not is_picture(raw):
+                return self._json(400, {"ok": False, "error": "not an image Cockpit accepts (png, jpeg, gif or webp)"})
             ref = "%s/%s.png" % (datetime.now().strftime("%Y-%m-%d"), secrets.token_hex(8))
             with LOCK:
                 IMAGES[ref] = raw

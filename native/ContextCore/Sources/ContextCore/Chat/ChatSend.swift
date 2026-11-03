@@ -1,6 +1,7 @@
 //  Chat with Larry (spec 2026-10-25-native-chat-design.md, plan 2026-10-25-native-chat-plan.md): an Inbox item goes
-//  out as a chat message on the Cockpit's threads. An image is uploaded first (`POST /attachments`, raw bytes) and
-//  named by the ref it gets back; then the message: `POST /chat` starts a new thread, `POST /chat/<key>` adds to one.
+//  out as a chat message on the Cockpit's threads. An image or file is uploaded first (`POST /attachments`, raw
+//  bytes) and named by the ref it gets back; then the message: `POST /chat` starts a new thread, `POST /chat/<key>`
+//  adds to one.
 //  The item's id is the message id, so a resend after a lost answer lands once (cockpit#64, Cockpit story 129).
 
 import Foundation
@@ -24,19 +25,20 @@ public enum ChatSend {
     case retry(reason: String)
   }
 
-  /// What the message says: a link is its address then the note, text is the text then the note, an image its note.
+  /// What the message says: a link is its address then the note, text is the text then the note, an image its note, a file its name then the note.
   public static func text(for item: InboxItem) -> String {
     let parts: [String?]
     switch item.kind {
     case .link: parts = [item.url, item.note]
     case .text: parts = [item.text, item.note]
     case .image: parts = [item.note]
+    case .file: parts = [item.fileName, item.note]
     }
     return parts.compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
       .joined(separator: "\n\n")
   }
 
-  /// A new thread's title: the note's first line, else the text's, else the link's site, else *Photo, <date>*.
+  /// A new thread's title: the note's first line, else the text's, else the link's site, else *Photo, <date>*, or the file's name.
   public static func title(for item: InboxItem, timeZone: TimeZone = .current) -> String {
     let firstLine = { (s: String?) -> String? in
       s?.split(whereSeparator: \.isNewline).lazy.map { $0.trimmingCharacters(in: .whitespaces) }
@@ -44,20 +46,47 @@ public enum ChatSend {
     }
     let picked =
       firstLine(item.note) ?? (item.kind == .text ? firstLine(item.text) : nil) ?? item.site
-      ?? (item.kind == .image ? "Photo, \(day(item.sharedAt, timeZone))" : nil) ?? firstLine(item.url) ?? "Chat"
+      ?? (item.kind == .image ? "Photo, \(day(item.sharedAt, timeZone))" : nil) ?? firstLine(item.url) ?? firstLine(
+        item.fileName) ?? "Chat"
     guard picked.count > maxTitle else { return picked }
     return String(picked.prefix(maxTitle - 1)).trimmingCharacters(in: .whitespaces) + "…"
   }
 
   public static func uploadRequest(image: Data, cockpit: String) throws -> URLRequest {
+    try uploadRequest(bytes: image, mime: InboxSend.mime(of: image), cockpit: cockpit)
+  }
+
+  /// A document, raw like an image (#633). The name goes in the message's words, not here.
+  public static func uploadRequest(file: Data, name: String, cockpit: String) throws -> URLRequest {
+    try uploadRequest(bytes: file, mime: ChatFile.mime(name: name), cockpit: cockpit)
+  }
+
+  private static func uploadRequest(bytes: Data, mime: String, cockpit: String) throws -> URLRequest {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var request = URLRequest(url: base.appendingPathComponent("attachments"))
     request.httpMethod = "POST"
     request.timeoutInterval = 60
-    request.setValue(InboxSend.mime(of: image), forHTTPHeaderField: "Content-Type")
+    request.setValue(mime, forHTTPHeaderField: "Content-Type")
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
-    request.httpBody = image
+    request.httpBody = bytes
     return request
+  }
+
+  /// A refused item's problem. A file says it is still here (story 487), or that the phone lost it (story 492).
+  public static func refusal(of item: InboxItem) -> String {
+    let reason = item.refused ?? "no reason given"
+    guard item.kind == .file else { return "Larry refused it: \(reason)" }
+    let name = item.fileName ?? "this file"
+    guard item.canSendAgain else { return "\(name) could not be read from this phone, so it can't go. Pick it again." }
+    return "The Cockpit can't take \(name): \(reason). It is still on this phone: Send again tries it once more."
+  }
+
+  /// The bar's line in a new chat whose first message was refused (#536, story 491).
+  public static func afterRefusal(of first: InboxItem?) -> String {
+    guard first?.canSendAgain == true else {
+      return "Larry refused your first message, so the next one starts the chat again."
+    }
+    return "Your file stays under Not sent yet in the chat list. A new message here starts a separate chat without it."
   }
 
   public static func upload(status: Int?, body: Data?, error: String? = nil) -> Upload {

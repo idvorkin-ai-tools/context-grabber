@@ -143,6 +143,17 @@ final class InboxModel: ObservableObject {
     reload()
   }
 
+  /// Story 488: a refused file tries again, the same message.
+  func sendAgain(_ item: InboxItem) {
+    do {
+      try store?.sendAgain(item.id)
+      log.event("chat", ["action": "send_again", "item": item.id, "kind": item.kind.rawValue])
+    } catch {
+      log.event("error", ["where": "inbox_send_again", "item": item.id, "message": "\(error)"])
+    }
+    refresh(reason: "send_again")
+  }
+
   /// Chat messages the Cockpit's thread now lists: the phone's copy, image and all, is no longer needed.
   func forget(_ delivered: [InboxItem]) {
     for item in delivered {

@@ -817,6 +817,24 @@ final class AppModel: ObservableObject {
         log.event("error", ["where": "chat_hook", "message": "\(error)"])
       }
     }
+    if let send = env["GRABBER_CHAT_SEND_FILE"], !send.isEmpty {
+      // #633: "<thread>|<path>" attached and sent as the bar would; the document picker can't be driven from a script.
+      let parts = send.split(separator: "|", maxSplits: 1).map(String.init)
+      do {
+        var draft = InboxDraft()
+        if case .file(let file) = try ChatFile.read(URL(fileURLWithPath: parts.last ?? "")) { draft.file = file }
+        try chat.send(&draft, thread: parts[0] == "new" ? nil : parts[0])
+      } catch let problem as ChatFile.Problem {
+        log.event("error", problem.logFields.merging(["where": "chat_hook"]) { _, new in new })
+      } catch {
+        log.event("error", ["where": "chat_hook", "message": "\(error)"])
+      }
+    }
+    if env["GRABBER_CHAT_SEND_AGAIN"] == "1" {
+      // Story 489: every refused file sent again, as a tap on its Send again would.
+      inbox.reload()
+      for item in inbox.items where item.canSendAgain { inbox.sendAgain(item) }
+    }
     if env["GRABBER_CHAT_NEW"] == "open" {
       // #536: Chat with its + already tapped, a new thread on screen.
       openInbox(from: "hook")

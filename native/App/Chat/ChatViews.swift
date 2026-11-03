@@ -79,7 +79,7 @@ struct ChatListView: View {
         Section("Not sent yet") {
           ForEach(chat.pendingThreads) { item in
             PendingThreadRow(
-              item: item, thumbnail: inbox.thumbnails[item.id], away: inbox.cockpitAway && !inbox.offline,
+              item: item, inbox: inbox, thumbnail: inbox.thumbnails[item.id], away: inbox.cockpitAway && !inbox.offline,
               logger: logger
             )
             .swipeActions { Button("Delete", role: .destructive) { inbox.delete(item) } }
@@ -262,8 +262,32 @@ private struct ThreadRow: View {
   }
 }
 
+/// What a refusal's copied problem carries; a file's name says which one it was (story 487).
+private func refusalExtra(_ item: InboxItem) -> [String: JSONValue] {
+  var extra: [String: JSONValue] = [
+    "item": .string(item.id), "kind": .string(item.kind.rawValue), "thread": .string(item.thread ?? ""),
+  ]
+  if let name = item.fileName { extra["file"] = .string(name) }
+  return extra
+}
+
+/// Story 488: a refused file goes again, the same message.
+private struct SendAgainButton: View {
+  let item: InboxItem
+  let inbox: InboxModel
+
+  var body: some View {
+    if item.canSendAgain {
+      Button("Send again") { inbox.sendAgain(item) }
+        .buttonStyle(.borderless)
+        .accessibilityIdentifier("chat-send-again")
+    }
+  }
+}
+
 private struct PendingThreadRow: View {
   let item: InboxItem
+  let inbox: InboxModel
   let thumbnail: CGImage?
   /// #565: the last send found the Cockpit not answering.
   let away: Bool
@@ -282,11 +306,11 @@ private struct PendingThreadRow: View {
           if item.status == .waiting { Text(notSent).font(.caption).foregroundStyle(.orange) }
         }
       }
-      if let reason = item.refused {
+      if item.status == .refused {
         BugProblemView(
-          problem: .grabber(
-            "Larry refused it: \(reason)", context: "ChatListView.send",
-            extra: ["item": .string(item.id), "kind": .string(item.kind.rawValue)]), logger: logger)
+          problem: .grabber(ChatSend.refusal(of: item), context: "ChatListView.send", extra: refusalExtra(item)),
+          logger: logger)
+        SendAgainButton(item: item, inbox: inbox)
       }
     }
     .accessibilityIdentifier("chat-pending-\(item.status)")
@@ -365,7 +389,7 @@ struct ChatThreadView: View {
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
           ForEach(pending, id: \.pendingKey) { item in
             PendingBubble(
-              item: item, thumbnail: inbox.thumbnails[item.id], away: inbox.cockpitAway && !inbox.offline,
+              item: item, inbox: inbox, thumbnail: inbox.thumbnails[item.id], away: inbox.cockpitAway && !inbox.offline,
               logger: logger
             )
             .contextMenu {
@@ -394,7 +418,7 @@ struct ChatThreadView: View {
       }
     }
     .safeAreaInset(edge: .bottom) {
-      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger) {
+      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger, first: first) {
         newThread.attempt(at: target)
       }
     }
@@ -481,6 +505,7 @@ private struct MessageBubble: View {
 
 private struct PendingBubble: View {
   let item: InboxItem
+  let inbox: InboxModel
   let thumbnail: CGImage?
   /// #565: the last send found the Cockpit not answering.
   let away: Bool
@@ -501,11 +526,11 @@ private struct PendingBubble: View {
             .background(Color.accentColor.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
             .foregroundStyle(.white)
         }
-        if let reason = item.refused {
+        if item.status == .refused {
           BugProblemView(
-            problem: .grabber(
-              "Larry refused it: \(reason)", context: "ChatThreadView.send",
-              extra: ["item": .string(item.id), "thread": .string(item.thread ?? "")]), logger: logger)
+            problem: .grabber(ChatSend.refusal(of: item), context: "ChatThreadView.send", extra: refusalExtra(item)),
+            logger: logger)
+          SendAgainButton(item: item, inbox: inbox)
         } else {
           Text(away ? "Not sent yet · the Cockpit isn't answering" : "Not sent yet").font(.caption2)
             .foregroundStyle(.orange)
@@ -646,12 +671,17 @@ private struct ComposeBar: View {
   /// Where a Send goes (#536): a thread, a new chat's first message, or nowhere yet.
   let target: ChatNewThread.Target
   let logger: BugLogger
+  /// A new chat's first message on the phone, for the bar's line when it was refused (story 491).
+  let first: InboxItem?
   /// A new chat's next first message: a fresh id, now the one the screen follows.
   var startAttempt: () -> String? = { nil }
   @State private var draft = InboxDraft()
   @State private var preview: CGImage?
   @State private var hasImage = UIPasteboard.general.hasImages
   @State private var failure: String?
+  @State private var picking = false
+  /// Why the last pick didn't take, with what was picked (stories 493, 494).
+  @State private var pickProblem: BugProblem?
   /// A new field after each send (#449): clearing the text alone could leave the old words in a field still editing.
   @State private var field = 0
   @FocusState private var focused: Bool
@@ -664,6 +694,7 @@ private struct ComposeBar: View {
             failure, context: "ChatThreadView.send",
             extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
       }
+      if let pickProblem { BugProblemView(problem: pickProblem, logger: logger) }
       // #448: what the mic could not do, copyable, or its quieter line (a call has the mic, the five-minute stop),
       // each in the thread it came from only; then, in a new chat, where its next message stands (#536). Both show.
       if voice.thread == thread, let problem = voice.problem {
@@ -678,7 +709,7 @@ private struct ComposeBar: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-waiting")
       } else if case .refused = target {
-        Text("Larry refused your first message, so the next one starts the chat again.").font(.footnote)
+        Text(ChatSend.afterRefusal(of: first)).font(.footnote)
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-refused")
@@ -695,11 +726,27 @@ private struct ComposeBar: View {
           Spacer()
         }
       }
+      if let file = draft.file {
+        HStack {
+          Label(file.name, systemImage: "doc").lineLimit(1).truncationMode(.middle)
+            .accessibilityIdentifier("chat-file-draft")
+          Text(file.size).font(.caption).foregroundStyle(.secondary)
+          Spacer()
+          Button("Remove file", role: .destructive) { draft.file = nil }.font(.caption)
+        }
+      }
       MicPicker(voice: voice)
       BugInputLevelMeter(level: voice.inputLevel, accessibilityIdentifier: "chat-mic-level")
         // Idle it is an empty track: VoiceOver skips it rather than read "0 percent" between the row and the bar.
         .accessibilityHidden(!voice.listening)
       HStack(alignment: .bottom, spacing: 8) {
+        Button {
+          picking = true
+        } label: {
+          Image(systemName: "paperclip").font(.title3)
+        }
+        .accessibilityLabel("Attach file")
+        .accessibilityIdentifier("chat-attach")
         Button(action: paste) {
           Image(systemName: "photo.on.rectangle").font(.title3)
         }
@@ -725,6 +772,7 @@ private struct ComposeBar: View {
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
     .background(.bar)
+    .fileImporter(isPresented: $picking, allowedContentTypes: [.data]) { attach($0) }
     // The words stream into the draft as Igor speaks, after what was typed, for him to read before he sends (#448).
     .onChange(of: voice.words) { _, _ in takeWords() }
     .onAppear {
@@ -752,8 +800,43 @@ private struct ComposeBar: View {
       return
     }
     draft.image = data
+    draft.file = nil
     preview = picture
+    clearProblems()
+  }
+
+  /// Story 482: one attachment to a message, the newer. A problem leaves the draft as it was (stories 493, 494).
+  private func attach(_ result: Result<URL, Error>) {
+    do {
+      let url = try result.get()
+      let bytes: Int
+      switch try ChatFile.read(url) {
+      case .image(let data):
+        guard let picture = InboxSend.thumbnail(data) else {
+          throw ChatFile.Problem.unreadable(name: url.lastPathComponent, reason: "the picture could not be drawn")
+        }
+        draft.image = data
+        draft.file = nil
+        preview = picture
+        bytes = data.count
+      case .file(let file):
+        draft.file = file
+        draft.image = nil
+        preview = nil
+        bytes = file.data.count
+      }
+      clearProblems()
+      chat.logAction("file_picked", ["file_type": ChatFile.type(of: url.lastPathComponent), "bytes": bytes])
+    } catch {
+      pickProblem = .grabber(
+        error.localizedDescription, context: "ChatThreadView.attach", extra: ["thread": .string(thread)])
+      chat.logAttachFailure(error)
+    }
+  }
+
+  private func clearProblems() {
     failure = nil
+    pickProblem = nil
   }
 
   private func send() {
@@ -768,7 +851,7 @@ private struct ComposeBar: View {
       // The message took the words heard so far: a recording still going stops, so none come back (#546).
       voice.sent(thread: thread)
       preview = nil
-      failure = nil
+      clearProblems()
       let wasFocused = focused
       field += 1
       Task { @MainActor in
