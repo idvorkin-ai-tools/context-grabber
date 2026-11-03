@@ -469,6 +469,8 @@ final class AppModel: ObservableObject {
     case .drill:
       drillOnOpen = .cardToPosition
       openCard(think: false, from: from)
+    case .randomPost(let topic):
+      openBlog(topic.link, action: "open_random", from: from, topic: topic.rawValue)
     }
   }
 
@@ -530,8 +532,12 @@ final class AppModel: ObservableObject {
   }
 
   /// Story 137: a page of Igor's blog, in the browser.
-  func openBlog(_ url: URL, action: String, from source: String) {
-    UIApplication.shared.open(url) { [log] ok in log.event("ui", ["action": action, "from": source, "ok": ok]) }
+  func openBlog(_ url: URL, action: String, from source: String, topic: String? = nil) {
+    UIApplication.shared.open(url) { [log] ok in
+      var fields: [String: Any] = ["action": action, "from": source, "ok": ok]
+      if let topic { fields["topic"] = topic }
+      log.event("ui", fields)
+    }
   }
 
   /// Story 242: a breathing session saved to Health as a Mindful Session. A refusal is logged, never shown: breathing

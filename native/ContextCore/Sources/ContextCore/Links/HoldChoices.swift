@@ -10,6 +10,8 @@ public struct HoldChoice: Equatable, Sendable, Identifiable {
     case supermix(WorkoutSupermix.Mix)
     /// The card screen with *Drill the stack* already tapped (story 220).
     case drill
+    /// The blog's random page, asking for this topic (#392).
+    case randomPost(BlogLinks.Topic)
   }
 
   public let id: String
@@ -62,6 +64,12 @@ public enum HoldChoices {
         HoldChoice(
           id: "card-drill", title: "Drill the stack", art: "choice-card_drill", symbol: "target", action: .drill),
       ]
+    case "random":
+      return BlogLinks.Topic.allCases.map {
+        HoldChoice(
+          id: "random-\($0.rawValue)", title: $0.title, art: $0 == .anything ? "tile-random" : nil, symbol: $0.symbol,
+          action: .randomPost($0))
+      }
     default:
       return []
     }
