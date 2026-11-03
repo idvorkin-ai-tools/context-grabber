@@ -7,7 +7,7 @@ Spec: [2026-10-25-native-chat-design.md](../specs/2026-10-25-native-chat-design.
 
 Nothing new on disk. `InboxItem` gains two optional fields:
 
-- `thread` — the Cockpit thread key it is posted to. `nil` starts a new thread (every share, every **+**).
+- `thread` — the Cockpit thread key it is posted to. `nil` starts a new thread (a share with *New chat* ticked, every **+**).
 - `chat_thread` — the key it landed on, set with `sent_at`. A sent item with no `chat_thread` was sent to Larry's
   inbox before chat: it lives under *Earlier shares*.
 
