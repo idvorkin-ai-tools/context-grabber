@@ -144,6 +144,45 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **Claude and Larry always get dark ink on white**, whatever the colour and the mode: the colour is for Igor's eyes,
     and every picture they read stays the same. So a mark of theirs lands the same on any colour.
 
+## Trial on paper (temporary: it goes when the board moves to PaperKit, or when the idea is dropped)
+
+(#635, #636; Igor, 2026-11-03, chose to build the board on Apple's PaperKit, as a column of pages.) Five things about
+PaperKit can only be settled on the iPad. This trial exists to settle them, and nothing else. It's a place to play, not a
+feature.
+
+- **Nothing in the trial can change, save, sync or send a real board.** It's a copy held in memory and gone when it closes.
+  Drawing, erasing, undoing or selecting in the trial leaves the real board, its picture, its row in the list and iCloud
+  exactly as they were. There's no Send, no Larry's turn, no ghosts and no mic in it. The board's own canvas is unchanged.
+- **Only on iOS 27 and up.** Below that, or on a board another device draws, *Try on paper* isn't offered. The app still
+  installs and runs on the same older systems as before.
+- **How to open it.** A long press on a row, on a board drawn on this device, offers *Try on paper*. A board that can't be
+  read shows the copyable problem, and the file stays where it is.
+- **What it shows.** A copy of the board as a column about a page wide, with the system's tool picker, faint page lines
+  under the ink, *Page 2 of 3* at the corner, pinching out that stops at the page's width, and a blank page below the last
+  ink. A faint orange ring sits on the small cross on each page, and the ring is placed separately from the cross, so the
+  ring slipping off during a scroll or pinch shows how far a suggestion would lag.
+- **What to try.** One short line under the title says that this is a copy and what to do. A **Trial** menu offers: where
+  the column sits (the ink where it is, far from the board's corner; the ink moved to the top; or a tall column, cut short);
+  what a finger does (the system's choice, select, or draw) and locking the ink against selection; adding a page now or in
+  3 seconds, so it lands mid-stroke; going to page 1, to page 11 (past 9,600 points down) or to the end; and counting how
+  many undos there are. Changing where the column sits starts over from the copy.
+- **It writes down what it finds.** Every finger touch and Pencil stroke, and what came of it (nothing, panned, zoomed,
+  selected, moved ink, drew) goes in the session log with which ink moved and how far, alongside each of the questions
+  below. So once the iPad's log is pulled, each question has its answer.
+
+The five questions:
+
+1. **Finger.** PaperKit has no mode where a finger only pans. Does a finger drag pan, or select and move ink? Does a tap
+   select? Can locking the ink stop it?
+2. **Growing the column.** Does adding a page clear undo, move the view or break a stroke in progress? If so, does a tall
+   column cut short by the view avoid that?
+3. **Things floating over the board.** Does something placed from the visible area keep up with a scroll and a pinch?
+4. **A board whose ink is far from the corner.** Old boards' ink sits about 10,000 points from the corner. Can the column
+   start there, so no stroke has to move?
+5. **Ink feel.** At the top, and past 9,600 points down, over a see-through canvas. Does it feel like Notes?
+
+Also logged: what zoom 1.0 means, how long a big board takes to load, whether strokes come back identical from PaperKit.
+
 ## Later steps (not in this build)
 
 Ghosts, Larry's turn and the board's open mic are built, and specified in

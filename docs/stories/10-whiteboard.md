@@ -1898,3 +1898,158 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with its grid on
 - **When:** I choose Ruled lines
 - **Then:** the grid goes and the ruled lines show
+
+---
+
+### User Story 435:
+
+- **Summary:** Try a board on paper, temporarily, from its long press
+- **Status:** built, verified on an iPad simulator on iOS 27 (`WhiteboardPaperTrialUITests`: offered on this device's board, not on another's); temporary: goes when the board moves to PaperKit. The hiding below iOS 27 is by construction: there's no older simulator here, and PaperKit is weak linked (`otool -L`). On the iPad: to be played with
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** deciding how a board on PaperKit should work
+- **I want to** open a board I drew in a trial on paper
+- **so that** I can feel it with my own ink before anything is built on it
+
+#### Acceptance Criteria:
+- **Scenario:** A board drawn here, on iOS 27
+- **Given:** a board drawn on this device
+- **When:** I long-press its row
+- **Then:** *Try on paper* is offered and opens the trial
+
+- **Scenario:** Another device's board
+- **Given:** a board drawn on another device
+- **When:** I long-press its row
+- **Then:** *Try on paper* isn't offered
+
+- **Scenario:** Before iOS 27
+- **Given:** a device below iOS 27
+- **When:** I long-press a row
+- **Then:** *Try on paper* isn't offered, and the app runs as it did
+
+- **Scenario:** A board that can't be read
+- **Given:** a board whose drawing can't be read
+- **When:** I choose *Try on paper*
+- **Then:** a copyable problem says so, and the file stays where it is
+
+---
+
+### User Story 436:
+
+- **Summary:** Nothing in the trial reaches a real board
+- **Status:** built, verified on an iPad simulator (`WhiteboardPaperTrialUITests`: drawing in the trial leaves the board's row and stroke count as they were; the boards' files hash the same across trial runs on the simulator, and a copy with ink added leaves no file)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** playing with an unfinished canvas
+- **I want to** know nothing I do there can touch my boards
+- **so that** I can scribble over the real ink without a second thought
+
+#### Acceptance Criteria:
+- **Scenario:** Scribbling and closing
+- **Given:** a board with one stroke, open in the trial
+- **When:** I draw, erase and undo in the trial and close it
+- **Then:** the board still has one stroke, and its picture, its place in the list and its *Changed* time are as they were
+
+- **Scenario:** Nothing to send
+- **Given:** the trial is open
+- **When:** I look for Send, Larry's turn, ghosts or the mic
+- **Then:** there's none of them, and nothing goes to the Cockpit or iCloud
+
+---
+
+### User Story 437:
+
+- **Summary:** The trial is a column of pages
+- **Status:** built, verified on an iPad simulator (`WhiteboardPaperTrialUITests` and screenshots: tool picker, page lines, page number, a page added). Pinching with real fingers, on the iPad: the simulator's pinch didn't change the zoom
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** trying the Notability-like board
+- **I want to** see my ink on a column of pages with a page number
+- **so that** I can judge the shape before it's built for real
+
+#### Acceptance Criteria:
+- **Scenario:** Opening
+- **Given:** a board with ink
+- **When:** the trial opens
+- **Then:** the tool picker, faint page lines, *Page 1 of N* at the corner and a blank page below the last ink all show
+
+- **Scenario:** Pinching out
+- **Given:** the trial is open
+- **When:** I pinch out as far as it goes
+- **Then:** it stops when the page fits the screen's width
+
+- **Scenario:** Writing on the last page
+- **Given:** a stroke reaching the last page
+- **When:** I lift the Pencil
+- **Then:** one more blank page is below, and the page number's total goes up
+
+---
+
+### User Story 438:
+
+- **Summary:** The trial says what to try, and has the switches to try it
+- **Status:** built, verified on an iPad simulator (`WhiteboardPaperTrialUITests` runs every switch, the `paper_probe` lines read: a page added mid-stroke with a finger kept the stroke and undo). On the iPad: to be played with
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with the iPad in hand and no notes
+- **I want to** read one line and find the switches in one menu
+- **so that** I don't need instructions to settle the questions
+
+#### Acceptance Criteria:
+- **Scenario:** The line
+- **Given:** the trial just opened
+- **When:** I look under the title
+- **Then:** one short line says it's a copy and what to try
+
+- **Scenario:** A page in the middle of a stroke
+- **Given:** the Trial menu
+- **When:** I choose *Add a page in 3 s* and write a long stroke across that moment
+- **Then:** the page is added, and the log says a touch was down and what became of the stroke
+
+- **Scenario:** Going far down
+- **Given:** the Trial menu
+- **When:** I choose *Go to page 11*
+- **Then:** the view goes past 9,600 points down, adding pages if it must, so I can write there
+
+---
+
+### User Story 439:
+
+- **Summary:** The trial's log settles the five questions
+- **Status:** built; the host part is `PaperProbeTests`, the lines checked on the simulator (`sim-smoke.sh`, whiteboard). Questions 2 and 4 are answered there; 1, 3 and 5 need the iPad: `just pull-logs` after Igor's played
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who plays on the iPad and reads the answers later
+- **I want to** have every touch and its outcome in the log
+- **so that** the questions are answered without my having to remember what happened
+
+#### Acceptance Criteria:
+- **Scenario:** A finger on the ink
+- **Given:** the trial is open
+- **When:** I drag a finger across some ink
+- **Then:** the log has the touch, whether it panned, selected or moved ink, and each moved stroke's id and how far it went
+
+- **Scenario:** A page added
+- **Given:** the trial is open
+- **When:** a page is added
+- **Then:** the log has where the view was and is, the zoom, whether undo survived, and whether a touch was down
+
+- **Scenario:** Scrolling
+- **Given:** the trial is open
+- **When:** I scroll or pinch
+- **Then:** the log has how often the visible area was reported, and how far the ring slipped from its cross
+
+- **Scenario:** A board far from the corner
+- **Given:** a board with ink about 10,000 points from the corner
+- **When:** the trial opens with the ink where it is
+- **Then:** the log says whether that start was kept and whether the ink is on screen, and the first stroke says whether it landed under the Pencil
