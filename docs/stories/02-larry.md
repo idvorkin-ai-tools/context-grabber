@@ -690,7 +690,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 275:
 
 - **Summary:** A share with *New chat* ticked starts its own thread with Larry
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), a share itself not yet made on any rung; sharing from Safari on the phone not yet. #587: a new thread is now the card's ticked *New chat* row rather than every share, in [fb547b8](https://github.com/idvorkin/context-grabber/commit/fb547b8); the tick is the card's own state, not yet seen on any rung, on the phone still for Igor
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), a share itself not yet made on any rung; sharing from Safari on the phone not yet. #587: a new thread is now the card's ticked *New chat* row rather than every share, in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); the tick is the card's own state, not yet seen on any rung, on the phone still for Igor
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1541,7 +1541,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 495:
 
 - **Summary:** The share card offers my recent chats beside New chat
-- **Status:** native app only: implemented in [fb547b8](https://github.com/idvorkin/context-grabber/commit/fb547b8); verified by `ShareThreadsTests` (host: five live chats, the pinned one first, Done and archived left out, read from the chat route); the app and the extension build for the simulator; simctl cannot drive a share sheet, so the card itself is not yet seen on any rung, a share from Safari on the phone still for Igor
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); verified by `ShareThreadsTests` (host: five live chats, the pinned one first, Done and archived left out, read from the chat route); the app and the extension build for the simulator; simctl cannot drive a share sheet, so the card itself is not yet seen on any rung, a share from Safari on the phone still for Igor
 - **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1561,7 +1561,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 496:
 
 - **Summary:** A share goes into the chat I pick, once
-- **Status:** native app only: implemented in [fb547b8](https://github.com/idvorkin/context-grabber/commit/fb547b8); verified by `ShareThreadsTests` (host: a link and a picture go to that thread's path with the note and the item's id, and no title); the app and the extension build for the simulator; simctl cannot drive a share sheet, so picking a chat on the card and the message landing in the real Cockpit are still for Igor on the phone
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); verified by `ShareThreadsTests` (host: a link and a picture go to that thread's path with the note and the item's id, and no title); the app and the extension build for the simulator; simctl cannot drive a share sheet, so picking a chat on the card and the message landing in the real Cockpit are still for Igor on the phone
 - **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1581,7 +1581,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 497:
 
 - **Summary:** With the Cockpit out of reach, the card offers New chat alone and says why
-- **Status:** native app only: implemented in [fb547b8](https://github.com/idvorkin/context-grabber/commit/fb547b8); verified by `ShareThreadsTests` (host: an error answer, an answer that is not a list, a timeout and another failure each read as New chat only, with the reason); the app and the extension build for the simulator; simctl cannot drive a share sheet, so the line and its *Copy* on the card, in aeroplane mode, are still for Igor on the phone; the `inbox` added line's `offered` says what the list held
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); verified by `ShareThreadsTests` (host: an error answer, an answer that is not a list, a timeout and another failure each read as New chat only, with the reason); the app and the extension build for the simulator; simctl cannot drive a share sheet, so the line and its *Copy* on the card, in aeroplane mode, are still for Igor on the phone; the `inbox` added line's `offered` says what the list held
 - **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1601,7 +1601,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 498:
 
 - **Summary:** A share into a chat the Cockpit no longer has stays visible and says why
-- **Status:** native app only: implemented in [fb547b8](https://github.com/idvorkin/context-grabber/commit/fb547b8); verified by `ShareThreadsTests` (host: a 404 is refused once and never resent, and the list keeps what no thread could show); `ChatNewThreadUITests` still pass on the simulator against the fake Cockpit with the list's wider rule; the row for a gone chat is not yet seen on any rung, on the phone still for Igor
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); verified by `ShareThreadsTests` (host: a 404 is refused once and never resent, and the list keeps what no thread could show); `ChatNewThreadUITests` still pass on the simulator against the fake Cockpit with the list's wider rule; the row for a gone chat is not yet seen on any rung, on the phone still for Igor
 - **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1621,7 +1621,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 499:
 
 - **Summary:** The card never waits for the list, and the list never moves my choice
-- **Status:** native app only: implemented in [fb547b8](https://github.com/idvorkin/context-grabber/commit/fb547b8); the tick is the card's own state and only a tap changes it; no host test can see that, and the app and the extension build for the simulator; simctl cannot drive a share sheet, so a slow list on the card is still for Igor on the phone
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); the tick is the card's own state and only a tap changes it; no host test can see that, and the app and the extension build for the simulator; simctl cannot drive a share sheet, so a slow list on the card is still for Igor on the phone
 - **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
