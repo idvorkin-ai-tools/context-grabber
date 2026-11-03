@@ -24,6 +24,15 @@ struct WhiteboardListView: View {
     self.onDone = onDone
   }
 
+  /// #603: the board a link named, as it is now, unless a board was opened while iCloud was asked.
+  private func followLink() async {
+    guard let linked = app.whiteboardLink else { return }
+    app.whiteboardLink = nil
+    let before = path
+    linkProblem = await store.find(linked, context: "WhiteboardListView.link")
+    if linkProblem == nil, path == before { path = [linked] }
+  }
+
   var body: some View {
     NavigationStack(path: $path) {
       List {
@@ -59,14 +68,15 @@ struct WhiteboardListView: View {
     }
     .accessibilityIdentifier("whiteboard-list")
     .task {
-      if let linked = app.whiteboardLink {
-        app.whiteboardLink = nil
-        linkProblem = await store.find(linked, context: "WhiteboardListView.link")
-        if linkProblem == nil, path.isEmpty { path = [linked] }
+      app.liveWhiteboards = store
+      if app.whiteboardLink != nil {
+        await followLink()
       } else {
         await store.sync(reason: "open")
       }
     }
+    // #634: in a window of its own the list is already up when a link arrives. The first value is the task's.
+    .onReceive(app.$whiteboardLink.dropFirst().compactMap { $0 }) { _ in Task { await followLink() } }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { Task { await store.sync(reason: "foreground") } }
     }

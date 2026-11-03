@@ -12,6 +12,8 @@ public struct HoldChoice: Equatable, Sendable, Identifiable {
     case drill
     /// The blog's random page, asking for this topic (#392).
     case randomPost(BlogLinks.Topic)
+    /// The tile's screen in a window of its own (#634, story 460).
+    case window(WindowScreen)
   }
 
   public let id: String
@@ -25,6 +27,17 @@ public struct HoldChoice: Equatable, Sendable, Identifiable {
 }
 
 public enum HoldChoices {
+  /// As below; `windows`: this device can open more than one (an iPad), so a tile whose screen can have a window
+  /// offers one last.
+  public static func choices(forTile tile: String, windows: Bool) -> [HoldChoice] {
+    guard windows, let screen = WindowScreen(tile: tile) else { return choices(forTile: tile) }
+    return choices(forTile: tile) + [
+      HoldChoice(
+        id: "window-\(screen.rawValue)", title: "New window", art: nil, symbol: "plus.rectangle.on.rectangle",
+        action: .window(screen))
+    ]
+  }
+
   /// The tiles a press and hold opens a popover on; every other tile keeps no hold at all.
   public static func choices(forTile tile: String) -> [HoldChoice] {
     switch tile {

@@ -54,7 +54,7 @@ final class AppModel: ObservableObject {
   @Published var showCockpit = false
   @Published var showWhiteboard = false
   /// The board a link asked for (#603): the boards open it as they come up.
-  var whiteboardLink: String?
+  @Published var whiteboardLink: String?
 
   /// Made on the first open and kept for the launch, so closing the Cockpit hides the page rather than closing it.
   /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks.
@@ -94,6 +94,17 @@ final class AppModel: ObservableObject {
   private(set) var whatsNewFrom = "home"
   /// The home row shows until its ✕ (BugKit keeps that in UserDefaults; the row hides itself on the tap).
   var whatsNewOnHome: Bool { WhatsNewSeen().showsRow(whatsNew) }
+  /// #634: which window holds what (AppModel+Windows.swift).
+  var ledger = WindowLedger()
+  var openWindowAction: OpenWindowAction?
+  var dismissWindowAction: DismissWindowAction?
+  /// `GRABBER_WINDOW` runs once, when the home window is up.
+  var windowHookRan = false
+  /// Whether this launch has looked for a home window after a screen's window came back first.
+  var restoreChecked = false
+  private var phaseLatch = AppPhaseLatch()
+  /// #634: the list on screen, so a board looked up from another window syncs through the store drawing on it.
+  weak var liveWhiteboards: WhiteboardStore?
   /// Which launchers the home screen shows, in Igor's order (story 147).
   @Published private(set) var homeLayout: HomeLayout
   @Published var showHomeSettings = false
@@ -178,13 +189,29 @@ final class AppModel: ObservableObject {
     inbox.refresh(reason: "launch")  // after the hooks, so a fixture is there to read
   }
 
+  /// What every window reports (#634): one change arrives once per window and means one thing.
+  func phaseChanged(_ phase: ScenePhase) {
+    let reported: AppPhaseLatch.Phase = phase == .active ? .active : phase == .background ? .background : .inactive
+    switch phaseLatch.report(reported) {
+    case .launch:
+      tracker.foreground(); usage.resume(reason: "launch")
+      mirror.refresh(reason: "launch")  // #355: the Today card current, in the background
+      archive.launch()  // story 270: the next slots asked for, and a run if one is due
+      chat.scheduleBackgroundCheck()  // chat: Larry's replies noticed while the app is away
+      Task { await chat.refreshList(reason: "launch") }
+    case .foreground: foreground()
+    case .background: usage.pause()
+    case nil: break
+    }
+  }
+
   /// The app came to the front (not the launch itself): prune, settle a pending permission, ask for a fix.
   func foreground() {
     usage.resume(reason: "foreground")
     dailyStrip.refresh()
     places.prune(reason: "foreground")
     tracker.foreground()
-    if showPlaces { places.reload(reason: "foreground") }
+    if showPlaces || ledger.window(holding: .places) != nil { places.reload(reason: "foreground") }
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     startDelivery()  // story 152: what waited for a connection goes up now
     inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
@@ -196,6 +223,10 @@ final class AppModel: ObservableObject {
   /// Chat's list, or with `thread` that thread on top of it (a notification's tap).
   func openInbox(from source: String, thread: String? = nil) {
     log.event("ui", ["action": "open_chat", "from": source, "waiting": inbox.waitingCount, "thread": thread ?? ""])
+    if bringForward(.chat, from: source) {
+      chat.linkThread = thread
+      return
+    }
     screen = "chat"
     inbox.reload()
     chat.linkThread = thread
@@ -204,6 +235,7 @@ final class AppModel: ObservableObject {
 
   func openPlaces(from source: String) {
     log.event("ui", ["action": "open_places", "from": source])
+    if bringForward(.places, from: source) { return }
     screen = "places"
     showPlaces = true
     places.reload(reason: "open")
@@ -257,11 +289,14 @@ final class AppModel: ObservableObject {
   /// Whatever is in front goes, then the route's screen comes up. The screen already in front stays when the link
   /// starts nothing; the call screen stays either way (a live call is brought forward, not restarted).
   private func go(to route: AppRoute, from source: String) {
+    if case .supermix = route { return present(route, from: source) }  // another app: nothing here needs to move
+    // #634: its own window comes forward, and whatever the home window shows stays.
+    if let held = WindowScreen(route: route), windowHolding(held) { return present(route, from: source) }
+    showHomeWindow()  // what this route puts up shows in the home window: it has to be there, and in sight
     if front == route.name {
       if case .call = route { return present(route, from: source) }
       if !route.starts { return }
     }
-    if case .supermix = route { return present(route, from: source) }  // another app: nothing here needs to move
     guard closeAll() else { return present(route, from: source) }
     Task {
       // SwiftUI drops a cover asked for while another is still going down.
@@ -373,7 +408,7 @@ final class AppModel: ObservableObject {
     let log = log
     let reporter = BugReporter(
       hooks: BugReporterHooks(
-        screen: { [unowned self] in self.screen },
+        screen: { [unowned self] in self.reportScreen },
         context: { ["branch": .string(BuildInfo.branch)] },
         sessionLog: { ("logs/" + log.url.lastPathComponent, Int(Date().timeIntervalSince(log.startedAt) * 1000)) },
         logger: bugLogger,
@@ -471,12 +506,17 @@ final class AppModel: ObservableObject {
       openCard(think: false, from: from)
     case .randomPost(let topic):
       openBlog(topic.link, action: "open_random", from: from, topic: topic.rawValue)
+    case .window(let screen): openInNewWindow(screen, from: from)
     }
   }
 
   /// The card screen (story 129), face up or with "think of a card" already counting.
   func openCard(think: Bool, from source: String) {
     log.event("ui", ["action": "open_card", "from": source, "think": think])
+    if bringForward(.card, from: source) {
+      drillOnOpen = nil
+      return
+    }
     screen = "card"
     card = think
   }
@@ -635,6 +675,7 @@ final class AppModel: ObservableObject {
   func openCockpit(from source: String) {
     log.event("ui", ["action": "open_cockpit", "from": source, "first": !cockpitOpened])
     cockpitOpened = true
+    if bringForward(.cockpit, from: source) { return }
     screen = "cockpit"
     showCockpit = true
   }
@@ -646,7 +687,7 @@ final class AppModel: ObservableObject {
     showCockpit = false
   }
 
-  private var cockpitOpened = false
+  var cockpitOpened = false
 
   /// The archive's device id (the vendor id): which boards this install draws on.
   var whiteboardDevice: String {
@@ -656,11 +697,12 @@ final class AppModel: ObservableObject {
 
   /// #603: nil when the board is on this device, once iCloud has been asked; otherwise the problem to show.
   func findBoard(_ id: String, context: String) async -> BugProblem? {
-    await WhiteboardStore(log: log, device: whiteboardDevice).find(id, context: context)
+    await (liveWhiteboards ?? WhiteboardStore(log: log, device: whiteboardDevice)).find(id, context: context)
   }
 
   func openWhiteboard(from source: String) {
     log.event("ui", ["action": "open_whiteboard", "from": source])
+    if bringForward(.whiteboard, from: source) { return }
     screen = "whiteboard"
     showWhiteboard = true
   }
@@ -704,6 +746,7 @@ final class AppModel: ObservableObject {
 
   func openToday(from source: String) {
     log.event("ui", ["action": "open_today", "from": source])
+    if bringForward(.today, from: source) { return }
     showToday = true
   }
 

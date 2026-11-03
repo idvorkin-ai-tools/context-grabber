@@ -28,7 +28,7 @@ struct DiagnosticsView: View {
         let arrangement = model.homeLayout.arrangement
         if arrangement.todayCard {
           Section {
-            TodayCard(mirror: model.mirror) { model.openToday(from: "home_card") }
+            HoldableTodayCard(model: model)
           }
         }
         if arrangement.dailyStrip {
@@ -235,45 +235,11 @@ private struct HomeTile: View {
   let row: HomeRow
   @ObservedObject var model: AppModel
 
-  @State private var showChoices = false
   /// Set by the long press so the lift that ends it is not also a tap.
   @State private var held = false
-  /// Opened once the popover has gone: a full-screen cover presented while it is still closing would not show.
-  @State private var chosen: HoldChoice?
 
   var body: some View {
-    // #391: press and hold a tile with choices for a popover of drawn icons; every other tile keeps no hold at all.
-    let choices = HoldChoices.choices(forTile: row.id)
-    if choices.isEmpty {
-      tile
-    } else {
-      tile
-        .simultaneousGesture(
-          LongPressGesture(minimumDuration: 0.5).onEnded { _ in
-            held = true
-            showChoices = true
-            model.holdOpened(tile: row.id)
-          }
-        )
-        .sensoryFeedback(.impact(weight: .light), trigger: showChoices) { _, open in open }
-        // The popover can cancel the touch, or never show, so the lift may never reach the button.
-        .onChange(of: showChoices) { _, open in if !open { held = false } }
-        .accessibilityActions {
-          ForEach(choices) { choice in Button(choice.title) { model.open(choice: choice) } }
-        }
-        .popover(isPresented: $showChoices) {
-          HoldPopover(choices: choices, color: row.color) { choice in
-            chosen = choice
-            showChoices = false
-          }
-          .presentationCompactAdaptation(.popover)
-          .onDisappear {
-            guard let choice = chosen else { return }
-            chosen = nil
-            model.open(choice: choice)
-          }
-        }
-    }
+    tile.modifier(HoldForChoices(tile: row.id, color: row.color, model: model, held: $held))
   }
 
   private var tile: some View {
@@ -302,6 +268,69 @@ private struct HomeTile: View {
     .foregroundStyle(.primary)
     .accessibilityLabel(row.title)
     .accessibilityIdentifier("home-\(row.id)")
+  }
+}
+
+/// #634: the Today card has no tile to hold, and on an iPad it holds like one.
+private struct HoldableTodayCard: View {
+  @ObservedObject var model: AppModel
+  @State private var held = false
+
+  var body: some View {
+    TodayCard(mirror: model.mirror) {
+      if held {
+        held = false
+        return
+      }
+      model.openToday(from: "home_card")
+    }
+    .modifier(HoldForChoices(tile: WindowScreen.today.tile, color: .pink, model: model, held: $held))
+  }
+}
+
+/// #391: press and hold for a popover of drawn icons; anything with no choices keeps no hold at all.
+private struct HoldForChoices: ViewModifier {
+  let tile: String
+  let color: Color
+  @ObservedObject var model: AppModel
+  @Binding var held: Bool
+
+  @State private var showChoices = false
+  /// Opened once the popover has gone: a full-screen cover presented while it is still closing would not show.
+  @State private var chosen: HoldChoice?
+
+  @ViewBuilder func body(content: Content) -> some View {
+    let choices = HoldChoices.choices(forTile: tile, windows: model.windowsAvailable)
+    if choices.isEmpty {
+      content
+    } else {
+      content
+        .simultaneousGesture(
+          LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+            held = true
+            showChoices = true
+            model.holdOpened(tile: tile)
+          }
+        )
+        .sensoryFeedback(.impact(weight: .light), trigger: showChoices) { _, open in open }
+        // The popover can cancel the touch, or never show, so the lift may never reach the button.
+        .onChange(of: showChoices) { _, open in if !open { held = false } }
+        .accessibilityActions {
+          ForEach(choices) { choice in Button(choice.title) { model.open(choice: choice) } }
+        }
+        .popover(isPresented: $showChoices) {
+          HoldPopover(choices: choices, color: color) { choice in
+            chosen = choice
+            showChoices = false
+          }
+          .presentationCompactAdaptation(.popover)
+          .onDisappear {
+            guard let choice = chosen else { return }
+            chosen = nil
+            model.open(choice: choice)
+          }
+        }
+    }
   }
 }
 

@@ -1,14 +1,13 @@
 //  Grabber Native: the Swift-native Context Grabber, built beside the React Native app until it can replace it
 //  (docs/superpowers/specs/2026-10-04-swift-native-app-design.md).
 
-import BugKit
+import ContextCore
 import SwiftUI
 
 @main
 struct GrabberApp: App {
   @StateObject private var model: AppModel
   @Environment(\.scenePhase) private var scenePhase
-  @State private var wasActive = false
 
   init() {
     // Story 270: StateObject defers its wrapped-value expression until the view is installed. Make the model
@@ -18,27 +17,23 @@ struct GrabberApp: App {
   }
 
   var body: some Scene {
-    WindowGroup {
-      DiagnosticsView(model: model)
-        .bugReporting(model.reporter)
-        .onOpenURL { model.open(url: $0) }
-        .onChange(of: scenePhase) { _, phase in
-          // The first activation is the launch, which pruned already; every later one is a foreground.
-          if phase == .active {
-            if wasActive {
-              model.foreground()
-            } else {
-              model.tracker.foreground(); model.usage.resume(reason: "launch")
-              model.mirror.refresh(reason: "launch")  // #355: the Today card current, in the background
-              model.archive.launch()  // story 270: the next slots asked for, and a run if one is due
-              model.chat.scheduleBackgroundCheck()  // chat: Larry's replies noticed while the app is away
-              Task { await model.chat.refreshList(reason: "launch") }
-            }
-            wasActive = true
-          } else if phase == .background {
-            model.usage.pause()
-          }
-        }
+    // The home window (#634: one at a time; another from this group says so instead, story 462). It alone takes links.
+    WindowGroup(id: AppModel.homeWindowID) {
+      HomeWindow(model: model)
+        .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }
     }
+    .handlesExternalEvents(matching: ["*"])
+    // Stories 460, 461: one screen in a window of its own.
+    WindowGroup(for: WindowScreen.self) { $screen in
+      Group {
+        if let screen {
+          ScreenWindow(model: model, screen: screen)
+        } else {
+          HomeWindow(model: model)
+        }
+      }
+      .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }
+    }
+    .handlesExternalEvents(matching: [])
   }
 }
