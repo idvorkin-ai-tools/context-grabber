@@ -507,7 +507,11 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   Larry answers are two rows, each marked *sent*. When Larry answers (or
   the turn ends) every *sent* mark goes and the rows are ordinary *Igor*
   rows. A sentence the bridge never reports as sent still drops in when
-  Tony answers or the turn ends, as before. The recognizer's own late
+  Tony answers or the turn ends, as before. What Igor is saying mid-sentence
+  never splits or flickers away because of something else that arrives
+  ([#532](https://github.com/idvorkin/context-grabber/issues/532)): words of
+  Larry's arriving leave a half-said sentence building in the box, and an
+  earlier sentence reported as sent leaves the words of the next one there. The recognizer's own late
   account of a sentence already sent never shows a second time: once a
   sentence is sent, whatever the recognizer settles before it hears new
   speech is that same sentence — spelled its own way, or only a piece of

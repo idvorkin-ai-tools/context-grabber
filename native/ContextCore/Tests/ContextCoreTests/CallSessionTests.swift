@@ -1161,6 +1161,50 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     XCTAssertEqual(t.texts, ["igor!:What should I eat tonight?", "igor?:and tomorrow"])
   }
 
+  // #532: Direct's barge-in correction arrives as a Larry transcript while Igor is mid-word.
+  func testLarrysWordsLeaveAHalfSaidSentenceBuilding() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "hold"])
+    t.socket.say(["type": "transcript", "who": "larry", "text": "Sorry, go on."])
+    XCTAssertEqual(t.texts.first, "igor?:hold")
+    t.socket.say(["type": "stt_partial", "text": "hold on"])
+    XCTAssertEqual(t.texts.filter { $0.hasPrefix("igor") }, ["igor?:hold on"], "one row, still building")
+    t.socket.say(["type": "turn_end"])
+    XCTAssertEqual(t.texts.filter { $0.hasPrefix("igor") }, ["igor:hold on"])
+  }
+
+  func testLarryAnsweringStillSettlesAFinishedSentence() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "what should"])
+    t.socket.say(["type": "stt_final", "text": "what should I eat"])
+    t.socket.say(["type": "transcript", "who": "larry", "text": "Soup."])
+    XCTAssertEqual(t.texts.first, "igor:what should I eat")
+  }
+
+  // #532: the vendor's account of sentence one arrives after sentence two's partials began.
+  func testALateTranscriptLeavesTheNextSentencesWordsLive() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "first sentence"])
+    t.socket.say(["type": "stt_partial", "text": "and the"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "First sentence."])
+    XCTAssertEqual(t.texts, ["igor!:First sentence.", "igor?:and the"])
+    t.socket.say(["type": "stt_final", "text": "and the second"])
+    // Its final isn't taken for a restatement.
+    XCTAssertEqual(t.texts, ["igor!:First sentence.", "igor?:and the second"])
+  }
+
+  func testATranscriptCoveringTheLiveWordsLeavesNothingBehind() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "what should I"])
+    t.socket.say(["type": "stt_partial", "text": "eat ton"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "What should I, eat tonight?"])
+    XCTAssertEqual(t.texts, ["igor!:What should I, eat tonight?"])
+  }
+
   func testARealRepeatStartsWithAPartialAndIsShown() {
     let t = CallHarness()
     t.goLive()

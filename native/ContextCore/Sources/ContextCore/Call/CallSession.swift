@@ -227,6 +227,7 @@ public final class CallSession {
   private var micBuffers = 0
   private var nextRowId = 1
   private var igorFinal = ""
+  private var igorPartial = ""
   private var igorRowId: Int?
   /// #467: a sentence was sent and the recognizer has heard no new speech since. Its finals in this window are its
   /// own late account of the sentence already sent, whatever their words (its spelling is not the vendor's, and a
@@ -450,8 +451,14 @@ public final class CallSession {
         // The bridge took his words and sent them to Larry (#467): the vendor's transcript replaces the
         // recognizer's, and the sentence leaves the live line now, marked sent, rather than when Larry answers.
         if source != "typed", !text.isEmpty {
+          let next = wordsAfter(sent: text)
           setIgor(final: text, partial: "")
           promoteIgor(sent: true)
+          // #532: the next sentence's words stay live, and its final is new speech, not a restatement.
+          if let next {
+            restateWindow = false
+            setIgor(final: "", partial: next)
+          }
         }
       } else if who == "larry" {
         // Larry answering means the vendor decided Igor's turn was over.
@@ -461,7 +468,8 @@ public final class CallSession {
           lastTextAt = deps.scheduler.now
         }
         cutOffPending = false
-        promoteIgor()
+        // #532: a half-said sentence keeps building; a correction line arrives mid-word.
+        if igorPartial.isEmpty { promoteIgor() }
         clearSent()
         appendLarry(text)
       }
@@ -819,6 +827,7 @@ public final class CallSession {
 
   private func setIgor(final: String, partial: String) {
     igorFinal = final
+    igorPartial = partial
     let text = joinWords(final, partial)
     if text.isEmpty {
       if let id = igorRowId { setRow(id) { $0.text = "" } }
@@ -834,12 +843,22 @@ public final class CallSession {
     }
   }
 
+  /// The live words that belong to the sentence after `sent`: a recognizer final came before them, and the sent text
+  /// doesn't already hold them. Nil otherwise, when they're the sent sentence itself.
+  private func wordsAfter(sent: String) -> String? {
+    guard !igorFinal.isEmpty, !igorPartial.isEmpty else { return nil }
+    let bare = { (s: String) in s.lowercased().unicodeScalars.filter(CharacterSet.alphanumerics.contains) }
+    return String(String.UnicodeScalarView(bare(sent))).contains(String(String.UnicodeScalarView(bare(igorPartial))))
+      ? nil : igorPartial
+  }
+
   /// Igor's pending row becomes a settled one, marked sent when the bridge sent it to Larry; an empty pending row
   /// is dropped.
   private func promoteIgor(sent: Bool = false) {
     let id = igorRowId
     igorRowId = nil
     igorFinal = ""
+    igorPartial = ""
     guard let row = row(id) else { return }
     if row.text.isEmpty {
       update { $0.captions.removeAll { $0.id == row.id } }
@@ -900,6 +919,7 @@ public final class CallSession {
     next.muted = snapshot.muted
     snapshot = next
     igorFinal = ""
+    igorPartial = ""
     igorRowId = nil
     restateWindow = false
     larryRowId = nil

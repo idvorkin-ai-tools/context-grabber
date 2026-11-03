@@ -112,7 +112,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** See the moment my sentence is sent to Larry, without waiting for his reply
 - **Status:** implemented in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) and [33a965b](https://github.com/idvorkin/context-grabber/commit/33a965b) (a real repeat is not taken for the recognizer's late final) and [8f94f16](https://github.com/idvorkin/context-grabber/commit/8f94f16) (every final after a send, before the next partial, is the recognizer's late account, whatever its words); verified by `just native-test` (host: `CallSessionTests` — a sent sentence leaves the live line marked sent, two sentences sent before Larry answers are two rows, a late final spelled differently, a prefix final and two split finals are not shown, a real repeat is, the mark survives an interruption and a consult, hanging up clears it) and `just native-test-sim` (the fake bridge sends two sentences before Larry answers: both are logged as sent Igor captions and the late final as restated); the phone, on a Direct call, still to be checked by Igor
-- **Issues:** [#467](https://github.com/idvorkin/context-grabber/issues/467)
+- **Issues:** [#532](https://github.com/idvorkin/context-grabber/issues/532), [#467](https://github.com/idvorkin/context-grabber/issues/467)
 - **Spec:** [Native call — the live line](../superpowers/specs/2026-08-28-native-call-screen-design.md)
 
 #### Use Case:
@@ -125,6 +125,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a live call, on Direct or ElevenLabs, with the live line reading *listening…*
 - **When:** I say a sentence, it is sent to Larry, and I say a second one before he answers
 - **Then:** the first sentence is an *Igor* row marked *sent* as soon as it is sent, the second builds in a fresh live line and becomes a second *Igor* row marked *sent* — two rows, neither shown twice — and when Larry answers both *sent* marks go
+
+- **Scenario:** Something arrives while I'm mid-sentence (#532)
+- **Given:** a live call with half a sentence building in the live line
+- **When:** words of Larry's arrive, or the bridge reports my previous sentence as sent
+- **Then:** the words I'm saying stay in the live line and carry on building there, and my sentence isn't split into two rows
 
 ---
 
