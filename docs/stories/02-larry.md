@@ -1537,3 +1537,103 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** a copyable problem says which, and the draft stays as it was
 
 ---
+
+### User Story 440:
+
+- **Summary:** The share card offers my recent chats beside New chat
+- **Status:** native app only: not implemented yet ([#587](https://github.com/idvorkin/context-grabber/issues/587))
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing something that belongs to a conversation already going
+- **I want to** see my recent chats on the share card
+- **so that** I can pick the one it belongs to instead of opening another thread
+
+#### Acceptance Criteria:
+- **Scenario:** The card with the Cockpit in reach
+- **Given:** I have eight live chats, the always-on one among them, plus a Done chat and an archived one
+- **When:** I share a Safari link to *Grabber Native*
+- **Then:** the card shows *New chat* ticked and five chats below it, the always-on one first and then newest activity, each with its title and age, and neither the Done nor the archived chat
+
+---
+
+### User Story 441:
+
+- **Summary:** A share goes into the chat I pick, once
+- **Status:** native app only: not implemented yet ([#587](https://github.com/idvorkin/context-grabber/issues/587))
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who picked a recent chat on the share card
+- **I want to** have the shared thing land as that chat's next message
+- **so that** Larry reads it in context and no extra thread appears
+
+#### Acceptance Criteria:
+- **Scenario:** Sending a link into a chat
+- **Given:** the card lists my chat "Should the phone chat poll?" and I wrote the note "worth a read"
+- **When:** I tap that chat, then *Send*
+- **Then:** the card closes at once, and the app sends one message into that chat holding the link and the note, with no new thread; while it waits it reads *Not sent yet* in the thread, and resending after a lost answer still makes one message
+
+---
+
+### User Story 442:
+
+- **Summary:** With the Cockpit out of reach, the card offers New chat alone and says why
+- **Status:** native app only: not implemented yet ([#587](https://github.com/idvorkin/context-grabber/issues/587))
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing in aeroplane mode or off the tailnet
+- **I want to** still share at once and know why my chats are not listed
+- **so that** nothing I share waits on the network and a missing list is not a mystery
+
+#### Acceptance Criteria:
+- **Scenario:** The list cannot be read
+- **Given:** the Cockpit does not answer, or answers with an error
+- **When:** I share something to *Grabber Native* and wait a few seconds
+- **Then:** the card offers *New chat* alone with one quiet line saying why, selectable and with *Copy*, and *Start a chat* closes the card at once with the share kept on the phone
+
+---
+
+### User Story 443:
+
+- **Summary:** A share into a chat the Cockpit no longer has stays visible and says why
+- **Status:** native app only: not implemented yet ([#587](https://github.com/idvorkin/context-grabber/issues/587))
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who shared into a chat that has since gone
+- **I want to** see that the share was refused and why
+- **so that** it does not disappear into a thread I can never open
+
+#### Acceptance Criteria:
+- **Scenario:** The chat has gone
+- **Given:** a share waits on the phone for a chat the Cockpit no longer lists
+- **When:** the app sends it and the Cockpit answers that it has no such chat
+- **Then:** Chat's list shows it under *Not sent yet* with *Larry refused it* and the reason, copyable, it is not sent again, and a swipe deletes it
+
+---
+
+### User Story 444:
+
+- **Summary:** The card never waits for the list, and the list never moves my choice
+- **Status:** native app only: not implemented yet ([#587](https://github.com/idvorkin/context-grabber/issues/587))
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing in a hurry
+- **I want to** send as soon as I have the thing on the card, whatever the list is doing
+- **so that** a slow Cockpit neither holds me up nor sends my share somewhere I did not choose
+
+#### Acceptance Criteria:
+- **Scenario:** The list arrives late
+- **Given:** the card is open with *New chat* ticked and the Cockpit has not answered yet
+- **When:** the recent chats arrive while I write my note
+- **Then:** *New chat* stays ticked until I tap something else, and tapping *Start a chat* before they arrive starts a new chat as usual
+
+---
