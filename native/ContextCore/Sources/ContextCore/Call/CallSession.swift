@@ -761,8 +761,8 @@ public final class CallSession {
     log(
       "call_heal",
       [
-        "action": rearmed ? "mic_not_reaching" : "rearm_mic", "why": "mic_ack missed", "mic_frames": framesSent,
-        "buffers": micBuffers,
+        "action": rearmed ? "mic_not_reaching" : "rearm_mic", "why": "mic_ack missed", "token": probeToken,
+        "mic_frames": framesSent, "buffers": micBuffers,
       ])
     if !rearmed {
       // Once. Two silent capture graphs in a row is a fact, not a hiccup.

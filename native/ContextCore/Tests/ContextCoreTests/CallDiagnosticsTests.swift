@@ -100,10 +100,13 @@ final class CallEventLogTests: XCTestCase {
       ("call_problem", ["problem": ""]), ("call_ended", ["reason": "stopped", "badly": false]),
     ])
     XCTAssertFalse(CallEventLog.hadTrouble(clean))
-    // #450, #348: a re-arm that worked is no trouble; one that failed or never answered is.
+    // #450, #348: a re-arm that brought the mic back is no trouble; one that failed or never answered is.
     let rearm: (String, [String: Any]) = ("call_heal", ["action": "rearm_mic", "why": "10 buffers of exact zeros"])
     let worked: (String, [String: Any]) = ("call_heal", ["action": "rearm_mic", "ok": true])
-    XCTAssertFalse(CallEventLog.hadTrouble(clean + events([rearm, worked])))
+    let back: (String, [String: Any]) = ("call_mic", ["action": "audio_back", "buffers": 11])
+    XCTAssertFalse(CallEventLog.hadTrouble(clean + events([rearm, worked, back])))
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, worked])), "the graph rebuilt, the mic never spoke")
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, back])), "no outcome logged")
     XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm])))
     XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, ("call_heal", ["action": "rearm_mic", "ok": false])])))
     XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, worked, ("call_heal", ["action": "mic_not_reaching"])])))

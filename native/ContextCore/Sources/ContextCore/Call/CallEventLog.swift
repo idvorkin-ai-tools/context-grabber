@@ -76,11 +76,13 @@ public final class CallEventLog {
     return (head + ["---"] + lines).joined(separator: "\n")
   }
 
-  /// A call whose log says something went wrong: the audio needed more than a working mic re-arm, a problem reached
-  /// the screen, a step failed, or it ended badly. The trigger is what the log says, so anything it learns to say is
-  /// covered.
+  /// A call whose log says something went wrong: the audio needed more than a mic re-arm that brought the mic back, a
+  /// problem reached the screen, a step failed, or it ended badly. The trigger is what the log says, so anything it
+  /// learns to say is covered.
   public static func hadTrouble<S: Sequence>(_ events: S) -> Bool where S.Element == CallEvent {
     var rearmsUnanswered = 0
+    var zeroRearmUnproven = false
+    var missedProbe: Int?
     let troubled = events.contains { e in
       // #417: the voices' recommendation failing to load is an expected fallback (cached, or the bridge's own
       // choice), never trouble with the call itself.
@@ -92,18 +94,27 @@ public final class CallEventLog {
       if e.type == "call_bridge", e.fields["kind"] as? String == "tool_result" { return false }
       if e.type == "call_heal" {
         guard e.fields["action"] as? String == "rearm_mic" else { return true }
-        // #450, #348: a re-arm that worked is the heal doing its job. One that failed, or never answered, is trouble.
+        // #450, #348: a re-arm that brought the mic back is the heal doing its job. One that failed, never answered,
+        // or left no sign of the mic is trouble. `ok: true` only says the audio graph rebuilt.
         switch e.fields["ok"] as? Bool {
         case true?: rearmsUnanswered -= 1
         case false?: return true
-        case nil: rearmsUnanswered += 1
+        case nil:
+          rearmsUnanswered += 1
+          if let token = e.fields["token"] as? Int { missedProbe = token } else { zeroRearmUnproven = true }
         }
         return false
+      }
+      if e.type == "call_mic", e.fields["action"] as? String == "audio_back" { zeroRearmUnproven = false }
+      if e.type == "call_ack", e.fields["stale"] as? Bool == false, let token = e.fields["token"] as? Int,
+        let missed = missedProbe, token > missed
+      {
+        missedProbe = nil
       }
       if e.type == "call_problem", let p = e.fields["problem"] as? String, !p.isEmpty { return true }
       if e.type == "call_ended", e.fields["badly"] as? Bool == true { return true }
       return e.type.hasPrefix("call_") && e.fields["ok"] as? Bool == false
     }
-    return troubled || rearmsUnanswered > 0
+    return troubled || rearmsUnanswered > 0 || zeroRearmUnproven || missedProbe != nil
   }
 }
