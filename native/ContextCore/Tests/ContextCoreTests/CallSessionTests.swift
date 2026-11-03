@@ -1161,6 +1161,89 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     XCTAssertEqual(t.texts, ["igor!:What should I eat tonight?", "igor?:and tomorrow"])
   }
 
+  // #532: Direct's barge-in correction arrives as a Larry transcript while Igor is mid-word.
+  func testLarrysWordsLeaveAHalfSaidSentenceBuilding() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "hold"])
+    t.socket.say(["type": "transcript", "who": "larry", "text": "Sorry, go on."])
+    XCTAssertEqual(t.texts.first, "igor?:hold")
+    t.socket.say(["type": "stt_partial", "text": "hold on"])
+    XCTAssertEqual(t.texts.filter { $0.hasPrefix("igor") }, ["igor?:hold on"], "one row, still building")
+    t.socket.say(["type": "turn_end"])
+    XCTAssertEqual(t.texts.filter { $0.hasPrefix("igor") }, ["igor:hold on"])
+  }
+
+  func testLarryAnsweringStillSettlesAFinishedSentence() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "what should"])
+    t.socket.say(["type": "stt_final", "text": "what should I eat"])
+    t.socket.say(["type": "transcript", "who": "larry", "text": "Soup."])
+    XCTAssertEqual(t.texts.first, "igor:what should I eat")
+  }
+
+  // #532: the vendor's account of sentence one arrives after sentence two's partials began.
+  func testALateTranscriptLeavesTheNextSentencesWordsLive() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "first sentence"])
+    t.socket.say(["type": "stt_partial", "text": "and the"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "First sentence."])
+    XCTAssertEqual(t.texts, ["igor!:First sentence.", "igor?:and the"])
+    t.socket.say(["type": "stt_final", "text": "and the second"])
+    // Its final isn't taken for a restatement.
+    XCTAssertEqual(t.texts, ["igor!:First sentence.", "igor?:and the second"])
+  }
+
+  func testATranscriptCoveringTheLiveWordsLeavesNothingBehind() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "what should I"])
+    t.socket.say(["type": "stt_partial", "text": "eat ton"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "What should I, eat tonight?"])
+    XCTAssertEqual(t.texts, ["igor!:What should I, eat tonight?"])
+  }
+
+  // #532: a consult starting is something else arriving, like Larry's words.
+  func testAConsultLeavesAHalfSaidSentenceBuilding() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_partial", "text": "hold"])
+    t.socket.say(["type": "tool_call", "question": "what is up"])
+    t.socket.say(["type": "stt_partial", "text": "hold on"])
+    XCTAssertEqual(t.texts, ["igor?:hold on", "tool:asking Larry: what is up …"], "one row, still building")
+    t.socket.say(["type": "turn_end"])
+    XCTAssertEqual(t.texts.first, "igor:hold on")
+  }
+
+  func testAConsultStillSettlesAFinishedSentence() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "look this up"])
+    t.socket.say(["type": "tool_call", "question": "what is up"])
+    XCTAssertEqual(t.texts, ["igor:look this up", "tool:asking Larry: what is up …"])
+  }
+
+  // #532: "i" sits inside "first" but is no word of the sent sentence, so sentence two's first word doesn't flicker.
+  func testAShortPartialInsideASentWordStaysLive() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "first sentence"])
+    t.socket.say(["type": "stt_partial", "text": "i"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "First sentence."])
+    XCTAssertEqual(t.texts, ["igor!:First sentence.", "igor?:i"])
+  }
+
+  func testAPartialSpacedDifferentlyFromTheSentWordsIsTheSentSentence() {
+    let t = CallHarness()
+    t.goLive()
+    t.socket.say(["type": "stt_final", "text": "see you"])
+    t.socket.say(["type": "stt_partial", "text": "to day"])
+    t.socket.say(["type": "transcript", "who": "igor", "text": "See you today."])
+    XCTAssertEqual(t.texts, ["igor!:See you today."])
+  }
+
   func testARealRepeatStartsWithAPartialAndIsShown() {
     let t = CallHarness()
     t.goLive()

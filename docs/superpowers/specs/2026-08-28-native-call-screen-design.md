@@ -13,6 +13,7 @@
 **Amended:** 2026-09-02, [#95](https://github.com/idvorkin/context-grabber/issues/95) / [#105](https://github.com/idvorkin/context-grabber/issues/105) / [#106](https://github.com/idvorkin/context-grabber/issues/106) — audio that stops mid-call heals itself; the greeting waits for the speaker; the log counts both directions and survives a freeze
 **Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 **Amended:** 2026-10-27, [#556](https://github.com/idvorkin/context-grabber/issues/556) — a Direct call picks its speech-to-text: Default, Nova-3 or Flux
+**Amended:** 2026-11-03, [#532](https://github.com/idvorkin/context-grabber/issues/532) — a half-said sentence stays in the live line when something else arrives
 
 ## Summary
 
@@ -507,7 +508,17 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   Larry answers are two rows, each marked *sent*. When Larry answers (or
   the turn ends) every *sent* mark goes and the rows are ordinary *Igor*
   rows. A sentence the bridge never reports as sent still drops in when
-  Tony answers or the turn ends, as before. The recognizer's own late
+  Tony answers or the turn ends, as before. What Igor is saying mid-sentence
+  never splits or flickers away because of something else that arrives
+  ([#532](https://github.com/idvorkin/context-grabber/issues/532)): words of
+  Larry's arriving or a consult starting leave a half-said sentence building
+  in the box, and an earlier sentence reported as sent leaves the words of the
+  next one there. Live words count as the next sentence only when the
+  recognizer had already settled a sentence and the sent text doesn't hold
+  them; otherwise they are the sent sentence and leave with it. One known
+  limit: if the recognizer spelled the sent sentence differently from the
+  vendor, its words can stay in the box as if they were new, until the next
+  speech replaces them or the turn ends and settles them. The recognizer's own late
   account of a sentence already sent never shows a second time: once a
   sentence is sent, whatever the recognizer settles before it hears new
   speech is that same sentence — spelled its own way, or only a piece of
