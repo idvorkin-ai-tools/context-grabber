@@ -98,8 +98,8 @@ the newest.
 cockpit"*; then, on learning the problem reports' dictation is Apple's own recognizer: *"All right, use that."* So the
 chat mic is the same dictation the problem report's note uses — Apple's speech recognizer, on the phone when it can
 be, no key and no service of ours. The bar has a mic button right beside *Send*, at the bar's trailing edge after the
-field, each at least a finger tall and wide (Igor, 2026-11-03, #625: *"put the record button by the send button"*). Tap it to start; it turns red and shows
-the seconds counting; tap it again to stop. The words appear **in the field as Igor speaks**, after what was in it
+field, each at least a finger tall and wide (Igor, 2026-11-03, #625: *"put the record button by the send button"*).
+Tap it to start; it turns red and shows the seconds counting; tap it again to stop. The words appear **in the field as Igor speaks**, after what was in it
 when he tapped — never sent. When he stops, the last words settle (a spinner while they do), and he reads them, fixes
 what he likes, and taps Send. A recording where nothing was heard leaves the field as it was. Nothing is kept of the
 sound.
