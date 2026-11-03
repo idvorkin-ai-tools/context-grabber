@@ -714,7 +714,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Holding Random offers the blog's topics
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: implemented in [172129b3](https://github.com/idvorkin/context-grabber/commit/172129b3); verified by `HoldChoicesTests` (host: the eight choices in order) and `HoldPopoverUITests.testTheRandomPopoverOffersTheTopics` (simulator); the tick and the look on the phone not yet
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `HoldChoicesTests` (host: the eight choices in order) and `HoldPopoverUITests.testTheRandomPopoverOffersTheTopics` (simulator); the tick and the look on the phone not yet
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -734,7 +734,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A topic opens the blog's random link for that topic
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: implemented in [172129b3](https://github.com/idvorkin/context-grabber/commit/172129b3); verified by `BlogLinksTests` (host: each topic's link) and `HoldPopoverUITests.testTheRandomPopoverOffersTheTopics` (simulator: AI brings the browser forward); the post being on that topic needs the blog's change (story 468)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `BlogLinksTests` (host: each topic's link) and `HoldPopoverUITests.testTheRandomPopoverOffersTheTopics` (simulator: AI brings the browser forward); the post being on that topic needs the blog's change (story 468)
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -754,7 +754,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A plain tap on Random stays random from everything
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: implemented in [172129b3](https://github.com/idvorkin/context-grabber/commit/172129b3); verified by `BlogLinksTests` (host: Anything is the tile's own link) and `EulogyUITests.testBlogLaunchersLeaveTheApp` (simulator: the tap still opens the browser)
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1); verified by `BlogLinksTests` (host: Anything is the tile's own link) and `EulogyUITests.testBlogLaunchersLeaveTheApp` (simulator: the tap still opens the browser)
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -774,7 +774,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** A topic the blog does not know still lands on a post
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: the app's half implemented in [172129b3](https://github.com/idvorkin/context-grabber/commit/172129b3), which needs no change when the blog ships; the blog's half is not implemented (a PR to idvorkin/idvorkin.github.io). Checked 2026-11-03 by reading the live page and its script: idvork.in/random?topic=ai answers 200, reads no topic and picks from every post
+- **Status:** native app only: the app's half implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1), which needs no change when the blog ships; the blog's half is not implemented (a PR to idvorkin/idvorkin.github.io). Checked 2026-11-03 by reading the live page and its script: idvork.in/random?topic=ai answers 200, reads no topic and picks from every post
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
@@ -794,7 +794,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** VoiceOver reaches every topic
 - **Issues:** [#392](https://github.com/idvorkin/context-grabber/issues/392)
-- **Status:** native app only: implemented in [172129b3](https://github.com/idvorkin/context-grabber/commit/172129b3), by the same tile actions as stories 222-225; only the phone can show VoiceOver, not yet checked
+- **Status:** native app only: implemented in [765ffa1](https://github.com/idvorkin/context-grabber/commit/765ffa1), by the same tile actions as stories 222-225; only the phone can show VoiceOver, not yet checked
 - **Spec:** [Press and hold a tile: a popover of drawn icons](../superpowers/specs/2026-10-18-press-and-hold-popovers-design.md)
 
 #### Use Case:
