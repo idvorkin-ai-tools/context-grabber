@@ -176,8 +176,6 @@ class Handler(BaseHTTPRequestHandler):
             strokes = data.get("strokes") or []
             self._report({"strokes": len(strokes), "board": data.get("board"), "picture_id": data.get("picture_id"),
                           "frame": data.get("frame"), "origin": self.headers.get("Origin")})
-            if not data.get("board") or not data.get("picture_id") or not isinstance(strokes, list):
-                return self._json(400, {"ok": False, "error": "board, picture_id and strokes are required"})
             return self._json(200, {"ok": True, "board": data["board"], "picture_id": data["picture_id"],
                                     "count": len(strokes), "new": len(strokes), "erased": 0})
         if path == "/fake/larry-draws":

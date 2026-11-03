@@ -297,7 +297,7 @@ final class WhiteboardModel: ObservableObject {
   /// ink on every send. Story 423: only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
   private func strokesForLarry() -> [WhiteboardStrokes.Stroke] {
     let light = UITraitCollection(userInterfaceStyle: .light)
-    return drawing.strokes.prefix(WhiteboardStrokes.maxStrokes).flatMap { stroke -> [WhiteboardStrokes.Stroke] in
+    return drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
       var red: CGFloat = 0
       var green: CGFloat = 0
       var blue: CGFloat = 0
