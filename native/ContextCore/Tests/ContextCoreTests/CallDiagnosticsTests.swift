@@ -100,7 +100,24 @@ final class CallEventLogTests: XCTestCase {
       ("call_problem", ["problem": ""]), ("call_ended", ["reason": "stopped", "badly": false]),
     ])
     XCTAssertFalse(CallEventLog.hadTrouble(clean))
-    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([("call_heal", ["action": "rearm_mic"])])))
+    // #450, #348: a re-arm that brought the mic back is no trouble; one that failed or never answered is.
+    let rearm: (String, [String: Any]) = ("call_heal", ["action": "rearm_mic", "why": "10 buffers of exact zeros"])
+    let worked: (String, [String: Any]) = ("call_heal", ["action": "rearm_mic", "ok": true])
+    let back: (String, [String: Any]) = ("call_mic", ["action": "audio_back", "buffers": 11])
+    XCTAssertFalse(CallEventLog.hadTrouble(clean + events([rearm, worked, back])))
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, worked])), "the graph rebuilt, the mic never spoke")
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, back])), "no outcome logged")
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm])))
+    let failed: (String, [String: Any]) = ("call_heal", ["action": "rearm_mic", "ok": false])
+    let notReaching: (String, [String: Any]) = ("call_heal", ["action": "mic_not_reaching"])
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, failed])))
+    XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, worked, notReaching])))
+    // Only the re-arm is exempt: every other heal still files, even after a re-arm that worked.
+    for action in ["reset_audio", "redial", "give_up"] {
+      let heal: (String, [String: Any]) = ("call_heal", ["action": action])
+      XCTAssertTrue(CallEventLog.hadTrouble(clean + events([heal])), action)
+      XCTAssertTrue(CallEventLog.hadTrouble(clean + events([rearm, worked, back, heal])), action)
+    }
     XCTAssertTrue(CallEventLog.hadTrouble(events([("call_problem", ["problem": "the microphone stopped delivering"])])))
     // #417: a failed fetch of the voices' recommendation is a fallback, not call trouble.
     XCTAssertFalse(CallEventLog.hadTrouble(clean + events([("call_settings", ["ok": false, "status": 0])])))

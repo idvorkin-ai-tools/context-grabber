@@ -495,6 +495,62 @@ final class CallSessionMicTests: XCTestCase {
     XCTAssertEqual(t.session.snapshot.problem, CallSession.micNotReaching)
   }
 
+  private func hadTrouble(_ t: CallHarness) -> Bool {
+    CallEventLog.hadTrouble(t.events.map { CallEvent(t: 0, type: $0.0, fields: $0.1) })
+  }
+
+  private func rearmOutcomes(_ t: CallHarness) -> [Bool] {
+    t.events.filter { $0.0 == "call_heal" && $0.1["action"] as? String == "rearm_mic" }
+      .compactMap { $0.1["ok"] as? Bool }
+  }
+
+  // #450, #348: the mic_ack re-arm says how it went, and files no report once the re-armed mic reaches Larry.
+  func testAMicAckRearmThatBringsTheMicBackIsNoTrouble() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic()
+    t.clock.advance(CallSession.micAckMs)
+    XCTAssertEqual(rearmOutcomes(t), [true])
+    t.audio.mic()
+    t.socket.say(["type": "mic_ack", "token": 2])
+    t.session.stop()
+    XCTAssertFalse(hadTrouble(t))
+  }
+
+  func testAMicAckRearmThatFailsIsTrouble() {
+    let t = CallHarness()
+    t.audio.restartError = Boom("no input")
+    t.goLive()
+    t.audio.mic()
+    t.clock.advance(CallSession.micAckMs)
+    XCTAssertEqual(rearmOutcomes(t), [false])
+    t.session.stop()
+    XCTAssertTrue(hadTrouble(t))
+  }
+
+  func testAMicAckRearmWithNoAckBeforeTheHangUpIsTrouble() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic()
+    t.clock.advance(CallSession.micAckMs)
+    t.audio.mic()
+    t.session.stop()
+    XCTAssertEqual(rearmOutcomes(t), [true])
+    XCTAssertTrue(hadTrouble(t))
+  }
+
+  // The bridge answering the probe the re-arm gave up on says nothing about the rebuilt mic, though it is not stale.
+  func testALateAckForTheMissedProbeDoesNotExcuseTheRearm() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.mic()
+    t.clock.advance(CallSession.micAckMs)
+    t.socket.say(["type": "mic_ack", "token": 1])
+    XCTAssertEqual(t.last("call_ack")?["stale"] as? Bool, false)
+    t.session.stop()
+    XCTAssertTrue(hadTrouble(t))
+  }
+
   func testAnAckInTimeMeansNoRearm() {
     let t = CallHarness()
     t.goLive()
@@ -655,6 +711,37 @@ final class CallSessionZerosTests: XCTestCase {
     t.audio.mic(480, value: 0.2)
     let back = t.events.filter { $0.0 == "call_mic" && $0.1["action"] as? String == "audio_back" }.map(\.1)
     XCTAssertEqual(back.first?["buffers"] as? Int, CallSession.zeroBuffersBeforeRearm + 1, "the first sound, by buffer")
+  }
+
+  // #450, #348: a rebuilt graph is not a mic that came back. Only sound after the re-arm excuses it.
+  func testAZeroRearmIsNoTroubleOnlyOnceSoundComesBack() {
+    let back = CallHarness()
+    back.goLive()
+    zeros(back, CallSession.zeroBuffersBeforeRearm)
+    back.audio.mic(480, value: 0.2)
+    back.session.stop()
+    XCTAssertFalse(CallEventLog.hadTrouble(back.events.map { CallEvent(t: 0, type: $0.0, fields: $0.1) }))
+
+    let held = CallHarness()
+    held.goLive()
+    held.audio.mic(480, value: 0.2)
+    held.audio.statsValue = PlaybackStats(scheduledS: 5, playedS: 1, clockRunning: false, pendingS: 4)
+    zeros(held, CallSession.zeroBuffersBeforeRearm)
+    held.audio.statsValue = PlaybackStats(scheduledS: 5, playedS: 1, clockRunning: true, pendingS: 4)
+    zeros(held, CallSession.zeroBuffersBeforeRearm)
+    XCTAssertEqual(held.last("call_mic")?["action"] as? String, "silence_held")
+    XCTAssertNil(held.session.snapshot.problem)
+    held.session.stop()
+    XCTAssertTrue(CallEventLog.hadTrouble(held.events.map { CallEvent(t: 0, type: $0.0, fields: $0.1) }))
+
+    let ackOnly = CallHarness()
+    ackOnly.goLive()
+    zeros(ackOnly, CallSession.zeroBuffersBeforeRearm)
+    ackOnly.socket.say(["type": "mic_ack", "token": 1])
+    ackOnly.session.stop()
+    XCTAssertTrue(
+      CallEventLog.hadTrouble(ackOnly.events.map { CallEvent(t: 0, type: $0.0, fields: $0.1) }),
+      "zeros reach the bridge too, so an ack says nothing about a mic of zeros")
   }
 
   /// Codex on #365: a sound buffer the old tap queued before the restart finished is not the rearm's recovery.
