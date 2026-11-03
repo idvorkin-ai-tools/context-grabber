@@ -24,6 +24,19 @@ final class ChatVoiceUITests: XCTestCase {
     XCTAssertTrue(mic.waitForExistence(timeout: 20), app.debugDescription)
     XCTAssertTrue(mic.isEnabled, "no call is live, so the mic is ready")
     XCTAssertFalse(app.buttons["Stop recording"].exists, "nothing records until a tap")
+    // #625: the mic is immediately beside Send, after the field, both a finger's size.
+    let send = app.buttons["Send"]
+    // The thread's identifier covers the field's too, so it is found by its placeholder.
+    let field = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Message Larry")).firstMatch
+    XCTAssertTrue(field.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(send.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertLessThanOrEqual(field.frame.maxX, mic.frame.minX, "the field comes before the mic")
+    XCTAssertLessThanOrEqual(mic.frame.maxX, send.frame.minX, "the mic comes before Send")
+    XCTAssertLessThanOrEqual(send.frame.minX - mic.frame.maxX, 8, "the mic is right beside Send")
+    for button in [mic, send] {
+      XCTAssertGreaterThanOrEqual(button.frame.width, 44, button.label)
+      XCTAssertGreaterThanOrEqual(button.frame.height, 44, button.label)
+    }
     let picker = app.buttons["Microphone: Automatic"]
     XCTAssertTrue(picker.waitForExistence(timeout: 5), "the microphone picker, on Automatic: \(app.debugDescription)")
     picker.tap()
