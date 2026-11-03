@@ -1,4 +1,4 @@
-//  Stories 450-453 (#632) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): a skill's
+//  Stories 512-515 (#632) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): a skill's
 //  thread pinned under Larry's and not archivable, its replies under its name, a failure as a copyable error that leaves
 //  Igor's message without 🏆, and the list naming the skill. The fake Cockpit outlives a test: the empty thread is
 //  looked at first, by name, before the next test writes to it.

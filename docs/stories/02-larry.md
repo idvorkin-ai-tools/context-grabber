@@ -1878,10 +1878,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 450:
+### User Story 512:
 
 - **Summary:** A skill's thread is pinned under Larry's, there before its first message
-- **Status:** native app only: implemented for #632; verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit (cockpit#90, unmerged) and the phone not yet
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit (cockpit#90, unmerged) and the phone not yet
 - **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1898,10 +1898,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 451:
+### User Story 513:
 
 - **Summary:** A skill's reply carries its name and a lettered avatar
-- **Status:** native app only: implemented for #632; verified on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit and the phone not yet
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit and the phone not yet
 - **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1918,10 +1918,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 452:
+### User Story 514:
 
 - **Summary:** A skill's failure is a copyable error, not an answer
-- **Status:** native app only: implemented for #632; verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit and the phone not yet
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit and the phone not yet
 - **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1938,10 +1938,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 453:
+### User Story 515:
 
 - **Summary:** The list row and the notification name the skill when it spoke last
-- **Status:** native app only: implemented for #632; the row verified on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the speaker's name on the host by `ChatTests`; the notification itself only the phone can show, not yet
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); the row verified on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the speaker's name on the host by `ChatTests`; the notification itself only the phone can show, not yet
 - **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1958,10 +1958,10 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 454:
+### User Story 516:
 
 - **Summary:** A Cockpit without skill threads changes nothing
-- **Status:** native app only: implemented for #632; verified on the host by `ChatTests` and on the simulator by `ChatArchiveUITests`, whose fake Cockpit has no skill thread
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatArchiveUITests`, whose fake Cockpit has no skill thread
 - **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 

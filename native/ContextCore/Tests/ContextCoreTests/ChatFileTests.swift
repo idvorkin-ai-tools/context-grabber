@@ -156,6 +156,7 @@ final class ChatFileTests: XCTestCase {
     text = try XCTUnwrap(store.item("t"))
     XCTAssertFalse(text.canSendAgain)
     XCTAssertEqual(ChatSend.refusal(of: text), "Larry refused it: no")
+    XCTAssertEqual(ChatSend.refusal(of: text, answeredBy: "idvorkin"), "idvorkin refused it: no")
   }
 
   func testAFileThePhoneCantReadSaysSoAndOffersNoSendAgain() async throws {

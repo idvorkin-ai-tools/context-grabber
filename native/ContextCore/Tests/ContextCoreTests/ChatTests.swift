@@ -406,7 +406,7 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(rows.map(\.key), ["pin", "new", "old"])
   }
 
-  // MARK: A skill's thread (#632, stories 450-454; the shapes are cockpit#90's contract)
+  // MARK: A skill's thread (#632, stories 512-516; the shapes are cockpit#90's contract)
 
   private static let skillList = #"""
     {"ok": true, "threads": [

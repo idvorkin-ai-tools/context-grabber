@@ -590,12 +590,6 @@ private struct PendingBubble: View {
   let answeredBy: String
   let logger: BugLogger
 
-  /// A refused message names who it went to, Larry or the skill (#632); a file's refusal names the Cockpit.
-  private var refusal: String {
-    guard item.kind != .file else { return ChatSend.refusal(of: item) }
-    return "\(answeredBy) refused it: \(item.refused ?? "no reason given")"
-  }
-
   var body: some View {
     HStack {
       Spacer(minLength: 48)
@@ -613,7 +607,9 @@ private struct PendingBubble: View {
         }
         if item.status == .refused {
           BugProblemView(
-            problem: .grabber(refusal, context: "ChatThreadView.send", extra: refusalExtra(item)),
+            problem: .grabber(
+              ChatSend.refusal(of: item, answeredBy: answeredBy), context: "ChatThreadView.send",
+              extra: refusalExtra(item)),
             logger: logger)
           SendAgainButton(item: item, inbox: inbox)
         } else {
