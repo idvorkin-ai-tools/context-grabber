@@ -48,6 +48,19 @@ public enum WhiteboardFrame {
     public var down: Int
   }
 
+  /// #624: what moved between two versions of a drawing with the same strokes, by each stroke's box. `dx`/`dy` are the
+  /// first moved stroke's, `topY` the highest moved stroke's top. Nil when nothing moved or the counts differ.
+  public static func strokesMoved(before: [CGRect], after: [CGRect]) -> (
+    count: Int, dx: CGFloat, dy: CGFloat, topY: CGFloat
+  )? {
+    guard before.count == after.count else { return nil }
+    let moved = zip(before, after).filter { $0 != $1 }
+    guard let first = moved.first else { return nil }
+    return (
+      moved.count, first.1.minX - first.0.minX, first.1.minY - first.0.minY, moved.map(\.0.minY).min() ?? first.0.minY
+    )
+  }
+
   /// `offset` and `viewport` in zoomed points. Equal until the view crosses a line, so nothing moves between crossings.
   public static func grid(offset: CGPoint, viewport: CGSize, zoom: CGFloat) -> Grid {
     var step = gridStep

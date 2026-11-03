@@ -85,4 +85,25 @@ final class WhiteboardFrameTests: XCTestCase {
     XCTAssertLessThanOrEqual(grid.origin.x, -30)
     XCTAssertLessThanOrEqual(grid.origin.y, -30)
   }
+
+  // #624: the board's ink below a line moved down 173 points in one go.
+  func testStrokesMovedNamesTheShiftAndTheLineItStartedFrom() throws {
+    let above = CGRect(x: 10, y: 100, width: 50, height: 20)
+    let below = CGRect(x: 10, y: 300, width: 50, height: 20)
+    let lowest = CGRect(x: 90, y: 900, width: 50, height: 20)
+    let moved = try XCTUnwrap(
+      WhiteboardFrame.strokesMoved(
+        before: [above, below, lowest],
+        after: [above, below.offsetBy(dx: 0, dy: 173), lowest.offsetBy(dx: 0, dy: 173)]))
+    XCTAssertEqual(moved.count, 2)
+    XCTAssertEqual(moved.dx, 0)
+    XCTAssertEqual(moved.dy, 173)
+    XCTAssertEqual(moved.topY, 300)
+  }
+
+  func testStrokesMovedIsNilWhenNothingMovedOrAStrokeCameOrWent() {
+    let box = CGRect(x: 10, y: 100, width: 50, height: 20)
+    XCTAssertNil(WhiteboardFrame.strokesMoved(before: [box], after: [box]))
+    XCTAssertNil(WhiteboardFrame.strokesMoved(before: [box], after: [box, box.offsetBy(dx: 0, dy: 5)]))
+  }
 }
