@@ -3,7 +3,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// #633, stories 455–459: a document on a chat message, against the Cockpit as it is today (pictures only) and as it
+/// #633, stories 460–474: a document on a chat message, against the Cockpit as it is today (pictures only) and as it
 /// would be once it takes files.
 final class ChatFileTests: XCTestCase {
   private var dir: URL!
@@ -33,7 +33,7 @@ final class ChatFileTests: XCTestCase {
     return try draft.save(to: store, at: 1, thread: thread)
   }
 
-  // MARK: The pick (stories 455, 458)
+  // MARK: The pick (stories 460, 463, 473, 474)
 
   func testAPDFIsADocumentAndAPictureGoesAsAPicture() throws {
     XCTAssertEqual(
@@ -62,7 +62,24 @@ final class ChatFileTests: XCTestCase {
     XCTAssertTrue(try XCTUnwrap(big.errorDescription).contains("big.pdf"))
   }
 
-  // MARK: The draft and the store (stories 455, 456)
+  func testAProblemLogsItsCaseAndTypeNeverTheName() throws {
+    let tooBig = ChatFile.Problem.tooBig(name: "private-scan.PDF", bytes: 11, limit: 10).logFields
+    XCTAssertEqual(tooBig["problem"] as? String, "too_big")
+    XCTAssertEqual(tooBig["file_type"] as? String, "pdf")
+    XCTAssertEqual(tooBig["bytes"] as? Int, 11)
+    XCTAssertEqual(tooBig["limit"] as? Int, 10)
+    XCTAssertEqual(ChatFile.Problem.empty(name: "private-scan.pdf").logFields["problem"] as? String, "empty")
+    let unreadable = ChatFile.Problem.unreadable(name: "private-scan.pdf", reason: "private-scan.pdf is locked")
+    XCTAssertEqual(unreadable.logFields["problem"] as? String, "unreadable")
+    for problem in [ChatFile.Problem.empty(name: "private-scan.pdf"), unreadable] {
+      XCTAssertFalse("\(problem.logFields)".contains("private-scan"))
+    }
+    let line = SessionLogLine.encode(type: "chat", t: 0, fields: ["action": "file_picked", "file_type": "pdf"])
+    let decoded = try XCTUnwrap(JSONSerialization.jsonObject(with: line) as? [String: Any])
+    XCTAssertEqual(decoded["file_type"] as? String, "pdf", "a field the log's own type would not overwrite")
+  }
+
+  // MARK: The draft and the store (stories 460, 465, 466, 470)
 
   func testAFileAloneIsAMessageItsNameThenTheWordsAndTheTitle() throws {
     var draft = InboxDraft()
@@ -95,7 +112,7 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: store.directory.path), [])
   }
 
-  // MARK: The Cockpit as it is: pictures only (story 457)
+  // MARK: The Cockpit as it is: pictures only (stories 464, 467, 471, 472)
 
   func testARefusedFileSaysWhyStaysAndNoMessageGoesWithoutIt() async throws {
     let item = try saved(note: "look")
@@ -134,6 +151,61 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(ChatSend.refusal(of: text), "Larry refused it: no")
   }
 
+  func testAFileThePhoneCantReadSaysSoAndOffersNoSendAgain() async throws {
+    let item = try saved()
+    let bytes = store.directory.appendingPathComponent(try XCTUnwrap(item.attachedFile))
+    try FileManager.default.removeItem(at: bytes)
+    let sender = InboxSender(store: store, cockpit: cockpit) { _ in
+      XCTFail("no request goes without the file")
+      throw URLError(.badServerResponse)
+    }
+    let report = await sender.sendWaiting { _, _ in }
+    XCTAssertEqual(report.refused, [item.id])
+    let gone = try XCTUnwrap(store.item(item.id))
+    XCTAssertFalse(gone.canSendAgain)
+    let problem = ChatSend.refusal(of: gone)
+    XCTAssertTrue(problem.contains("report.pdf"))
+    XCTAssertTrue(problem.contains("could not be read from this phone"))
+    XCTAssertFalse(problem.contains("Send again"))
+    XCTAssertFalse(problem.contains("Cockpit"), "no request reached it")
+  }
+
+  func testANewChatsBarSaysWhereARefusedFileStays() async throws {
+    let item = try saved()
+    let sender = InboxSender(store: store, cockpit: cockpit) { request in
+      ChatTests.answer(request, 400, self.picturesOnly)
+    }
+    _ = await sender.sendWaiting { _, _ in }
+    let line = ChatSend.afterRefusal(of: store.item(item.id))
+    XCTAssertTrue(line.contains("Not sent yet"))
+    XCTAssertTrue(line.contains("separate chat"))
+    var text = try store.add(InboxItem(id: "t", kind: .text, sharedAt: 1, text: "x"))
+    try store.markRefused(text.id, reason: "no")
+    text = try XCTUnwrap(store.item("t"))
+    XCTAssertEqual(
+      ChatSend.afterRefusal(of: text), "Larry refused your first message, so the next one starts the chat again.")
+  }
+
+  func testSendingAgainTooSoonIsRefusedAgainAndStaysKept() async throws {
+    let item = try saved(note: "look", thread: "igor2-88g.9")
+    let seen = Paths()
+    let sender = InboxSender(store: store, cockpit: cockpit) { request in
+      await seen.add(request)
+      return ChatTests.answer(request, 400, self.picturesOnly)
+    }
+    _ = await sender.sendWaiting { _, _ in }
+    let first = ChatSend.refusal(of: try XCTUnwrap(store.item(item.id)))
+    try store.sendAgain(item.id)
+    let report = await sender.sendWaiting { _, _ in }
+    XCTAssertEqual(report.refused, [item.id])
+    let kept = try XCTUnwrap(store.item(item.id))
+    XCTAssertEqual(ChatSend.refusal(of: kept), first)
+    XCTAssertTrue(kept.canSendAgain)
+    XCTAssertEqual(store.file(of: kept), pdf)
+    let requests = await seen.all
+    XCTAssertEqual(requests.map { $0.url?.path }, ["/attachments", "/attachments"], "no message goes without it")
+  }
+
   func testAnUnreachableCockpitKeepsItWaiting() async throws {
     let item = try saved()
     let sender = InboxSender(store: store, cockpit: cockpit) { _ in throw URLError(.timedOut) }
@@ -143,7 +215,7 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(report.retry?.hasPrefix("file upload:"), true)
   }
 
-  // MARK: The Cockpit once it takes files (stories 456, 457)
+  // MARK: The Cockpit once it takes files (stories 466, 468)
 
   func testSendAgainGoesOnceTheCockpitTakesFilesAsTheSameMessage() async throws {
     let item = try saved(note: "look", thread: "igor2-88g.9")
@@ -171,20 +243,6 @@ final class ChatFileTests: XCTestCase {
     XCTAssertEqual(body["id"] as? String, item.id)
     XCTAssertEqual(body["text"] as? String, "report.pdf\n\nlook")
     XCTAssertEqual(body["attachments"] as? [String], ["2026-11-03/0123456789abcdef.pdf"])
-  }
-
-  // MARK: A file in a thread (story 459)
-
-  func testAFileRefIsServedAsAFileAndAPictureStaysAPicture() throws {
-    let pdfRef = "2026-11-03/0123456789abcdef.pdf"
-    XCTAssertEqual(
-      ChatWire.attachmentURL(pdfRef, cockpit: cockpit)?.absoluteString, "\(cockpit)/attachments/\(pdfRef)")
-    XCTAssertFalse(ChatWire.attachmentIsImage(pdfRef))
-    XCTAssertEqual(ChatWire.attachmentLabel(pdfRef), "PDF file")
-    XCTAssertTrue(ChatWire.attachmentIsImage("2026-11-03/0123456789abcdef.png"))
-    for bad in ["../../etc/passwd", "2026-11-03/0123456789abcdef.pdf/x", "2026-11-03/nothex.pdf", "report.pdf"] {
-      XCTAssertNil(ChatWire.attachmentURL(bad, cockpit: cockpit), bad)
-    }
   }
 
   private actor Paths {

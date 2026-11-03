@@ -71,12 +71,21 @@ public enum ChatSend {
     return request
   }
 
-  /// A refused item's problem. A file says it is still here (story 457).
+  /// A refused item's problem. A file says it is still here (story 467), or that the phone lost it (story 472).
   public static func refusal(of item: InboxItem) -> String {
     let reason = item.refused ?? "no reason given"
     guard item.kind == .file else { return "Larry refused it: \(reason)" }
-    return "The Cockpit can't take \(item.fileName ?? "this file"): \(reason). It is still on this phone: "
-      + "Send again tries it once more."
+    let name = item.fileName ?? "this file"
+    guard item.canSendAgain else { return "\(name) could not be read from this phone, so it can't go. Pick it again." }
+    return "The Cockpit can't take \(name): \(reason). It is still on this phone: Send again tries it once more."
+  }
+
+  /// The bar's line in a new chat whose first message was refused (#536, story 471).
+  public static func afterRefusal(of first: InboxItem?) -> String {
+    guard first?.canSendAgain == true else {
+      return "Larry refused your first message, so the next one starts the chat again."
+    }
+    return "Your file stays under Not sent yet in the chat list. A new message here starts a separate chat without it."
   }
 
   public static func upload(status: Int?, body: Data?, error: String? = nil) -> Upload {

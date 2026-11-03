@@ -1237,10 +1237,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** a copyable problem says so over the picture, which stays open until I close it
 
 ---
-### User Story 455:
+
+### User Story 460:
 
 - **Summary:** A paperclip attaches a PDF or any document to a message
-- **Status:** native app only: implemented for #633; reading and classifying a pick verified on the host by `ChatFileTests`; the paperclip seen on the simulator; the document picker, the file on the bar and *Remove* only on the phone, not yet
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); reading and classifying a pick verified on the host by `ChatFileTests`; the paperclip seen on the simulator; the document picker and the file on the bar only on the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1254,14 +1255,62 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** I am in a thread or a new chat
 - **When:** I tap the paperclip and choose a PDF
 - **Then:** it sits above the field by name and size with *Remove*, and Send is on with no words typed
+
+---
+
+### User Story 461:
+
+- **Summary:** A picked file comes off the bar before it is sent
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); needs the document picker, on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who picked the wrong file
+- **I want to** take it off the bar
+- **so that** the wrong file never reaches Larry
+
+#### Acceptance Criteria:
 - **Scenario:** Removing it
 - **Given:** a file is on the bar
 - **When:** I tap *Remove*
 - **Then:** the bar holds only what I typed, and nothing is sent
+
+---
+
+### User Story 462:
+
+- **Summary:** A message carries one attachment, the newer
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); needs the document picker, on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client changing my mind about what to attach
+- **I want to** have the newer attachment replace the older
+- **so that** I always know what the message carries
+
+#### Acceptance Criteria:
 - **Scenario:** One attachment to a message
 - **Given:** a pasted image or a picked file is on the bar
 - **When:** I add the other
 - **Then:** the newer one replaces it
+
+---
+
+### User Story 463:
+
+- **Summary:** A picture from the file picker goes as a picture
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); telling a picture from a document verified on the host by `ChatFileTests`; the preview needs the document picker, on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with a photo in Files
+- **I want to** have it treated as the picture it is
+- **so that** Larry sees it as he sees any picture
+
+#### Acceptance Criteria:
 - **Scenario:** A picture from the picker
 - **Given:** I am on the bar
 - **When:** I pick a photo from Files
@@ -1269,27 +1318,59 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 456:
+### User Story 464:
 
-- **Summary:** A file waits on the phone and reaches the Cockpit once, under its name
-- **Status:** native app only: implemented for #633; verified on the host by `ChatFileTests`, and on the simulator against the fake Cockpit with files on (one upload, one message, the name in its words); waiting out no network on the phone not yet
+- **Summary:** A file sent with no network waits on the phone
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); staying in the waiting state verified on the host by `ChatFileTests`; waiting out no network on the phone not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client on a patchy connection
 - **I want to** send a file as I would any message
-- **so that** it is never lost and never lands twice, and Larry knows what it is called
+- **so that** it is never lost and never lands twice
 
 #### Acceptance Criteria:
 - **Scenario:** Sending with no network
 - **Given:** I have no connection
 - **When:** I send a file
 - **Then:** the message shows *Not sent yet* with the file's name, and goes when the network returns
+
+---
+
+### User Story 465:
+
+- **Summary:** A new chat from a file alone is titled with its name
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); verified on the host by `ChatFileTests`
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client starting a chat with only a file
+- **I want to** see the chat named after it
+- **so that** I can find it in the list
+
+#### Acceptance Criteria:
 - **Scenario:** A new chat from a file
 - **Given:** a new chat with only a file on the bar
 - **When:** I tap Send
 - **Then:** the chat is titled with the file's name
+
+---
+
+### User Story 466:
+
+- **Summary:** A file's name reaches Larry in the message's words
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); verified on the host by `ChatFileTests`, against a stand-in for a Cockpit that takes files; the real Cockpit takes pictures only today, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sending a named document
+- **I want to** have Larry told what it is called
+- **so that** he knows which document we are talking about
+
+#### Acceptance Criteria:
 - **Scenario:** Its name reaches Larry
 - **Given:** the Cockpit takes the file
 - **When:** the message lands
@@ -1297,31 +1378,79 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 457:
+### User Story 467:
 
-- **Summary:** A file the Cockpit won't take says why, stays on the phone and can be sent again
-- **Status:** native app only: implemented for #633; the refusal, the kept file and a resend under the same id verified on the host by `ChatFileTests`; the problem and *Send again* seen on the simulator against the fake Cockpit, and the refusal checked by the smoke; the tap on *Send again*, and the real Cockpit taking a file (it takes pictures only today), not yet
+- **Summary:** A file the Cockpit won't take says why and stays on the phone
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); the refusal and the kept file verified on the host by `ChatFileTests`; the problem seen on the simulator against the fake Cockpit, and the refusal checked by the smoke
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client while the Cockpit holds only pictures
 - **I want to** be told the file did not go, and keep it
-- **so that** I never believe Larry has a file he doesn't, and I don't need to pick it again later
+- **so that** I never believe Larry has a file he doesn't
 
 #### Acceptance Criteria:
 - **Scenario:** The Cockpit refuses a file
 - **Given:** the Cockpit takes only pictures
 - **When:** I send a PDF
 - **Then:** a copyable problem names the file and gives the Cockpit's reason, the file stays on the phone, and no message goes without it
+
+---
+
+### User Story 468:
+
+- **Summary:** A refused file goes with one tap once the Cockpit takes files
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); a resend under the same id, landing once in its thread, verified on the host by `ChatFileTests`, against a stand-in for a Cockpit that takes files; the real Cockpit taking a file not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client with a file the Cockpit refused
+- **I want to** send it again without picking it again
+- **so that** the day the Cockpit takes files, nothing needs redoing
+
+#### Acceptance Criteria:
 - **Scenario:** Sending it again
 - **Given:** a refused file
 - **When:** I tap *Send again* once the Cockpit takes files
 - **Then:** the same message goes, once, and lands in its thread
+
+---
+
+### User Story 469:
+
+- **Summary:** Sending a file again too soon changes nothing
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); the store and the second refusal verified on the host by `ChatFileTests`; `GRABBER_CHAT_SEND_AGAIN` and its smoke check written, not yet run on the simulator; the tap itself on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client trying again while the Cockpit holds only pictures
+- **I want to** hear the same answer and keep the file
+- **so that** trying costs me nothing
+
+#### Acceptance Criteria:
 - **Scenario:** Sending again too soon
 - **Given:** a refused file, and the Cockpit still takes only pictures
 - **When:** I tap *Send again*
 - **Then:** it is refused again with the same problem, and still kept
+
+---
+
+### User Story 470:
+
+- **Summary:** Deleting a refused file takes it off the phone
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); the store verified on the host by `ChatFileTests`; the swipe and the menu on a refused file on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who no longer needs a refused file
+- **I want to** let it go
+- **so that** it doesn't sit on my phone for good
+
+#### Acceptance Criteria:
 - **Scenario:** Letting it go
 - **Given:** a refused file
 - **When:** I delete it
@@ -1329,15 +1458,55 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 458:
+### User Story 471:
 
-- **Summary:** A file that can't go says so when it is picked
-- **Status:** native app only: implemented for #633; verified on the host by `ChatFileTests`; the problem on screen needs the document picker, on the phone, not yet
+- **Summary:** A new chat says where its refused file stays and what the next message does
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); the line's words verified on the host by `ChatFileTests`; on screen, on the simulator or the phone, not yet
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
-- **As** Larry's client picking a large or broken file
+- **As** Larry's client whose new chat began with a refused file
+- **I want to** know what happens if I keep typing
+- **so that** I don't think the file went with my next message, or lost it
+
+#### Acceptance Criteria:
+- **Scenario:** Writing on after a refused file
+- **Given:** a new chat whose first message is a refused file
+- **When:** I look at the bar
+- **Then:** a line says the file stays under *Not sent yet* and that a new message starts a separate chat without it
+
+---
+
+### User Story 472:
+
+- **Summary:** A file the phone can no longer read says so and offers no Send again
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); verified on the host by `ChatFileTests`; on screen on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client whose kept file went missing from the phone
+- **I want to** be told plainly
+- **so that** I don't blame the Cockpit, or tap a button that can only fail
+
+#### Acceptance Criteria:
+- **Scenario:** The file is gone
+- **Given:** a waiting file whose bytes are no longer on the phone
+- **When:** it comes up to send
+- **Then:** a copyable problem says the phone could not read it and to pick it again, with no *Send again*
+
+---
+
+### User Story 473:
+
+- **Summary:** A file over 10 MB says so when it is picked
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); verified on the host by `ChatFileTests`; the problem on screen needs the document picker, on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client picking a large file
 - **I want to** hear about it at once
 - **so that** I don't wait on a send that can never work
 
@@ -1346,34 +1515,25 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a file over 10 MB
 - **When:** I pick it
 - **Then:** a copyable problem gives its name and size and the limit, and the draft stays as it was
+
+---
+
+### User Story 474:
+
+- **Summary:** An empty or unreadable file says so when it is picked
+- **Status:** native app only: implemented in [b2d7112](https://github.com/idvorkin/context-grabber/commit/b2d7112); verified on the host by `ChatFileTests`; the problem on screen needs the document picker, on the phone, not yet
+- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
+- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client picking a broken file
+- **I want to** hear about it at once
+- **so that** I don't wait on a send that can never work
+
+#### Acceptance Criteria:
 - **Scenario:** Empty or unreadable
 - **Given:** a file with nothing in it or that the phone can't read
 - **When:** I pick it
 - **Then:** a copyable problem says which, and the draft stays as it was
 
 ---
-
-### User Story 459:
-
-- **Summary:** A delivered file opens from the thread
-- **Status:** native app only: implemented for #633; the row seen on the simulator against the fake Cockpit with files on; the tap, and the real Cockpit's copy opening, not yet
-- **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
-- **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
-
-#### Use Case:
-- **As** Larry's client reading back a thread
-- **I want to** tap a file in it
-- **so that** I can see what was sent
-
-#### Acceptance Criteria:
-- **Scenario:** A file in a thread
-- **Given:** a message holds a file the Cockpit keeps
-- **When:** I look at the thread
-- **Then:** it is a row with its type, not a broken picture, beside the message's words
-- **Scenario:** Opening it
-- **Given:** a file row
-- **When:** I tap it
-- **Then:** the Cockpit's copy opens
-
----
-

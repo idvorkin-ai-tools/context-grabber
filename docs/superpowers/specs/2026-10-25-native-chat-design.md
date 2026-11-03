@@ -87,8 +87,7 @@ file picker, for a PDF or any other document. The file sits above the field by n
 with whatever is typed as one message, which reads as the file's name and then the words; a new chat's title is the
 words' first line, else the file's name. One attachment to a message: picking a file replaces a pasted image, and
 pasting an image replaces a picked file. A picture chosen in the picker is treated as a pasted one: it previews and
-sends as a picture. Send works with a file alone. It waits on the phone and lands once like any message, and in the
-thread a delivered file is a row with its type that opens it.
+sends as a picture. Send works with a file alone. It waits on the phone and lands once like any message.
 
 Limits are said when the file is picked, in a copyable problem, and the draft stays as it was: over 10 MB (the Cockpit's
 limit), empty, or unreadable. Nothing is sent and the original file is untouched.
@@ -96,7 +95,10 @@ limit), empty, or unreadable. Nothing is sent and the original file is untouched
 **A file the Cockpit won't take.** The Cockpit can hold only pictures so far. A file it refuses stays on the phone in
 the thread (or under *Not sent yet* for a new chat), and a copyable problem names the file and gives the Cockpit's own
 reason, with *Send again* beside it. *Send again* tries the same message once more, so once the Cockpit takes files
-nothing needs picking again. A file stays until it is delivered or Igor deletes it.
+nothing needs picking again. A file stays until it is delivered or Igor deletes it. In a new chat whose first message
+is a refused file, the bar says the file stays under *Not sent yet* and that a new message starts a separate chat
+without it. If the phone can no longer read the kept file, the problem says that instead and offers no *Send again*:
+no request went, and picking it again is the only way on.
 
 **A new chat** (#536). Igor, 2026-10-26: *"for the Plus, why don't we just make that a new chat versus having its own
 input dialog? That's probably a better UI."* The **+** opens an empty thread titled *New chat*, with the same bar every
@@ -232,7 +234,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   or without words. A picture picked there goes as a picture. Over 10 MB, empty or unreadable says so copyably at the
   pick and leaves the draft alone.
 - A file the Cockpit refuses is still on the phone, with a copyable problem naming it and the Cockpit's reason; *Send
-  again* retries the same message, and delivers it once the Cockpit takes files. A delivered file opens from the thread.
+  again* retries the same message, and delivers it once the Cockpit takes files. A kept file the phone can't read says
+  so and has no *Send again*.
+- A new chat that began with a refused file says where the file stays and that a new message starts a separate chat.
 
 ## Depends on the Cockpit
 
@@ -247,3 +251,6 @@ Files (#633) need one more, not built yet; until then a file is refused and kept
   rule that it names what it stores; a message can name one, Larry is told where it is, and asking for it returns it.
   The file's own name reaches Larry in the message's words. The Cockpit's web page shows such an attachment as something
   to open, not as a broken picture.
+
+Showing a delivered file in the phone's thread, as a row that opens it, is built with that change; no Cockpit sends one
+back today.

@@ -145,6 +145,13 @@ final class ChatModel: ObservableObject {
     log.event("chat", fields.merging(["action": action]) { _, new in new })
   }
 
+  /// Story 473: a pick that didn't take. The problem's own fields, or for the picker's error its code: never the name.
+  func logAttachFailure(_ error: Error) {
+    let ns = error as NSError
+    let fields = (error as? ChatFile.Problem)?.logFields ?? ["problem": "picker", "domain": ns.domain, "code": ns.code]
+    log.event("error", fields.merging(["where": "chat_attach"]) { _, new in new })
+  }
+
   /// The ticked threads, together (#599). The undo offer covers only this batch.
   func archiveSelected(_ keys: [String]) async {
     undoArchive = []

@@ -11,7 +11,7 @@ accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that 
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
-POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633); FAKE_COCKPIT_FILES=1 is the Cockpit that takes files too, minting a ref with the bytes' type (.pdf for %PDF bytes, else .bin).
+POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
@@ -31,7 +31,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT, REPORT = int(sys.argv[1]), sys.argv[2]
 NEW_DELAY = float(os.environ.get("FAKE_COCKPIT_NEW_DELAY") or 0)
-TAKES_FILES = os.environ.get("FAKE_COCKPIT_FILES") == "1"
 LOCK = threading.Lock()
 THREADS = {
     "igor2-88g.900": {"title": "Should the phone chat poll?", "messages": [], "seen": ""},
@@ -160,7 +159,7 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith("/attachments/") and path[len("/attachments/"):] in IMAGES:
                 data = IMAGES[path[len("/attachments/"):]]
                 self.send_response(200)
-                self.send_header("Content-Type", "image/png" if path.endswith(".png") else "application/pdf")
+                self.send_header("Content-Type", "image/png")
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 return self.wfile.write(data)
@@ -171,12 +170,9 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0") or 0))
         if path == "/attachments":
             self._report({"bytes": len(raw), "origin": self.headers.get("Origin")})
-            ext = "png"
             if not is_picture(raw):
-                if not TAKES_FILES:
-                    return self._json(400, {"ok": False, "error": "not an image Cockpit accepts (png, jpeg, gif or webp)"})
-                ext = "pdf" if raw.startswith(b"%PDF-") else "bin"
-            ref = "%s/%s.%s" % (datetime.now().strftime("%Y-%m-%d"), secrets.token_hex(8), ext)
+                return self._json(400, {"ok": False, "error": "not an image Cockpit accepts (png, jpeg, gif or webp)"})
+            ref = "%s/%s.png" % (datetime.now().strftime("%Y-%m-%d"), secrets.token_hex(8))
             with LOCK:
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})

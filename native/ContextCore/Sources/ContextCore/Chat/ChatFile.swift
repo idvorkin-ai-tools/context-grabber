@@ -1,4 +1,4 @@
-//  #633, stories 455–459: a PDF or any document attached to a chat message. What the picker hands over is read here,
+//  #633, stories 460–474: a PDF or any document attached to a chat message. What the picker hands over is read here,
 //  whole, so a file that can never go is said at the pick; a picture goes the way a pasted one does.
 
 import Foundation
@@ -38,6 +38,18 @@ public struct ChatFile: Equatable, Sendable {
         return "\(name) could not be read: \(reason)"
       }
     }
+
+    /// For the session log: which problem, with the file's type and never its name, which stays in the copyable problem.
+    public var logFields: [String: Any] {
+      switch self {
+      case .tooBig(let name, let bytes, let limit):
+        return ["problem": "too_big", "file_type": ChatFile.type(of: name), "bytes": bytes, "limit": limit]
+      case .empty(let name):
+        return ["problem": "empty", "file_type": ChatFile.type(of: name)]
+      case .unreadable(let name, _):
+        return ["problem": "unreadable", "file_type": ChatFile.type(of: name)]
+      }
+    }
   }
 
   /// What the picker chose, read in full. The size is judged before a byte is read. ponytail: a picture over the cap
@@ -65,6 +77,9 @@ public struct ChatFile: Equatable, Sendable {
     }
     return .file(ChatFile(name: name, data: data))
   }
+
+  /// What the log says a file is: the name's extension, never the name.
+  public static func type(of name: String) -> String { (name as NSString).pathExtension.lowercased() }
 
   static func size(_ bytes: Int) -> String { ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file) }
 

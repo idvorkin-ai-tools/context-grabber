@@ -120,11 +120,11 @@ public struct InboxSender: Sendable {
     var attachment: String?
     if item.kind == .file {
       guard let raw = store.file(of: item), let name = item.fileName else {
-        return .refused(status: 0, reason: "the file could not be read from the phone")
+        return .refused(status: 0, reason: InboxItem.fileUnreadable)
       }
       // The type, never the name: the log holds no content.
       fields["bytes"] = raw.count
-      fields["file_type"] = (name as NSString).pathExtension.lowercased()
+      fields["file_type"] = ChatFile.type(of: name)
       switch await upload({ try ChatSend.uploadRequest(file: raw, name: name, cockpit: cockpit) }, fields: &fields) {
       case .ref(let ref): attachment = ref
       case .refused(let status, let reason): return .refused(status: status, reason: reason)

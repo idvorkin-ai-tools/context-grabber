@@ -262,7 +262,7 @@ private struct ThreadRow: View {
   }
 }
 
-/// What a refusal's copied problem carries; a file's name says which one it was (story 457).
+/// What a refusal's copied problem carries; a file's name says which one it was (story 467).
 private func refusalExtra(_ item: InboxItem) -> [String: JSONValue] {
   var extra: [String: JSONValue] = [
     "item": .string(item.id), "kind": .string(item.kind.rawValue), "thread": .string(item.thread ?? ""),
@@ -271,7 +271,7 @@ private func refusalExtra(_ item: InboxItem) -> [String: JSONValue] {
   return extra
 }
 
-/// Story 457: a refused file goes again, the same message.
+/// Story 468: a refused file goes again, the same message.
 private struct SendAgainButton: View {
   let item: InboxItem
   let inbox: InboxModel
@@ -418,7 +418,7 @@ struct ChatThreadView: View {
       }
     }
     .safeAreaInset(edge: .bottom) {
-      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger) {
+      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger, first: first) {
         newThread.attempt(at: target)
       }
     }
@@ -468,11 +468,7 @@ private struct MessageBubble: View {
       VStack(alignment: message.fromIgor ? .trailing : .leading, spacing: 4) {
         ForEach(message.attachments, id: \.self) { ref in
           if let url = ChatWire.attachmentURL(ref, cockpit: chat.cockpit) {
-            if ChatWire.attachmentIsImage(ref) {
-              ChatImage(url: url, message: message.id, board: message.board, chat: chat, logger: logger)
-            } else {
-              ChatFileRow(url: url, label: ChatWire.attachmentLabel(ref), message: message.id, logger: logger)
-            }
+            ChatImage(url: url, message: message.id, board: message.board, chat: chat, logger: logger)
           }
         }
         if !message.text.isEmpty {
@@ -542,26 +538,6 @@ private struct PendingBubble: View {
       }
     }
     .accessibilityIdentifier("chat-pending")
-  }
-}
-
-/// Story 459: a file in a thread opens the Cockpit's copy, in the browser that can show it.
-private struct ChatFileRow: View {
-  let url: URL
-  let label: String
-  let message: String
-  let logger: BugLogger
-  @Environment(\.openURL) private var openURL
-
-  var body: some View {
-    Button {
-      logger("ui", ["action": "open_chat_file", "message": .string(message)])
-      openURL(url)
-    } label: {
-      Label(label, systemImage: "doc").padding(.horizontal, 12).padding(.vertical, 8)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-    }
-    .accessibilityIdentifier("chat-file")
   }
 }
 
@@ -695,6 +671,8 @@ private struct ComposeBar: View {
   /// Where a Send goes (#536): a thread, a new chat's first message, or nowhere yet.
   let target: ChatNewThread.Target
   let logger: BugLogger
+  /// A new chat's first message on the phone, for the bar's line when it was refused (story 471).
+  let first: InboxItem?
   /// A new chat's next first message: a fresh id, now the one the screen follows.
   var startAttempt: () -> String? = { nil }
   @State private var draft = InboxDraft()
@@ -702,7 +680,7 @@ private struct ComposeBar: View {
   @State private var hasImage = UIPasteboard.general.hasImages
   @State private var failure: String?
   @State private var picking = false
-  /// Why the last pick didn't take, with what was picked (story 458).
+  /// Why the last pick didn't take, with what was picked (stories 473, 474).
   @State private var pickProblem: BugProblem?
   /// A new field after each send (#449): clearing the text alone could leave the old words in a field still editing.
   @State private var field = 0
@@ -731,7 +709,7 @@ private struct ComposeBar: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-waiting")
       } else if case .refused = target {
-        Text("Larry refused your first message, so the next one starts the chat again.").font(.footnote)
+        Text(ChatSend.afterRefusal(of: first)).font(.footnote)
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-new-refused")
@@ -824,31 +802,41 @@ private struct ComposeBar: View {
     draft.image = data
     draft.file = nil
     preview = picture
-    failure = nil
+    clearProblems()
   }
 
-  /// Story 455: one attachment to a message, the newer. A problem leaves the draft as it was (story 458).
+  /// Story 462: one attachment to a message, the newer. A problem leaves the draft as it was (stories 473, 474).
   private func attach(_ result: Result<URL, Error>) {
     do {
       let url = try result.get()
+      let bytes: Int
       switch try ChatFile.read(url) {
       case .image(let data):
-        guard let picture = InboxSend.thumbnail(data) else { return }
+        guard let picture = InboxSend.thumbnail(data) else {
+          throw ChatFile.Problem.unreadable(name: url.lastPathComponent, reason: "the picture could not be drawn")
+        }
         draft.image = data
         draft.file = nil
         preview = picture
+        bytes = data.count
       case .file(let file):
         draft.file = file
         draft.image = nil
         preview = nil
+        bytes = file.data.count
       }
-      pickProblem = nil
-      chat.logAction("file_picked", ["type": url.pathExtension.lowercased(), "bytes": draft.byteCount])
+      clearProblems()
+      chat.logAction("file_picked", ["file_type": ChatFile.type(of: url.lastPathComponent), "bytes": bytes])
     } catch {
       pickProblem = .grabber(
         error.localizedDescription, context: "ChatThreadView.attach", extra: ["thread": .string(thread)])
-      chat.logAction("file_pick_failed", ["reason": error.localizedDescription])
+      chat.logAttachFailure(error)
     }
+  }
+
+  private func clearProblems() {
+    failure = nil
+    pickProblem = nil
   }
 
   private func send() {
@@ -863,7 +851,7 @@ private struct ComposeBar: View {
       // The message took the words heard so far: a recording still going stops, so none come back (#546).
       voice.sent(thread: thread)
       preview = nil
-      failure = nil
+      clearProblems()
       let wasFocused = focused
       field += 1
       Task { @MainActor in
