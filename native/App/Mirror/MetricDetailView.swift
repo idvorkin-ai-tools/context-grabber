@@ -400,7 +400,7 @@ struct NightCard: View {
       HStack {
         Text(MirrorText.dayRow(night.date)).font(.headline)
         Spacer()
-        Text(night.totalHours.map { "\(SummaryText.js($0))h" } ?? MirrorText.none).font(.headline.monospacedDigit())
+        Text(MirrorText.nightHours(night)).font(.headline.monospacedDigit())
       }
       if let bed = night.bedtime, let wake = night.wakeTime {
         Text(

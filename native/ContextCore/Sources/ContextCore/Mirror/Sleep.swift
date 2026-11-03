@@ -21,6 +21,8 @@ public struct SleepDaily: Equatable, Sendable {
   /// ISO 8601, the main session's first and last moment.
   public var bedtime: String?
   public var wakeTime: String?
+  /// #539: the main session is a nap, so it has no bedtime, wake or onset; its time still counts in the hours.
+  public var isNap = false
   /// Awake time directly before falling asleep, minutes; nil when there was none.
   public var onsetMinutes: Double?
   /// The night's samples by start, for the stage strip.
@@ -86,7 +88,9 @@ public enum Sleep {
       buckets[i].samples = stableSorted(buckets[i].samples) { $0.start < $1.start }
       let night = buckets[i].samples
       let main = pickMainSleepSession(Health.filterActualSleep(night))
-      if let main {
+      if let main, isNap(main, clock: clock) {
+        buckets[i].isNap = true
+      } else if let main {
         buckets[i].bedtime = isoString(main.start)
         buckets[i].wakeTime = isoString(main.end)
         buckets[i].onsetMinutes = onsetMinutes(night, firstSleep: main.start)
@@ -102,6 +106,12 @@ public enum Sleep {
       buckets[i].totalHours = total > 0 ? round1(total) : nil
     }
     return buckets
+  }
+
+  /// #539: under two hours, starting between noon and 6pm.
+  static func isNap(_ session: (start: Double, end: Double), clock: LocalClock) -> Bool {
+    let hour = clock.hour(session.start)
+    return session.end - session.start < 2 * 60 * 60 * 1000 && hour >= 12 && hour < 18
   }
 
   /// The overnight session among a night's asleep samples: samples within an hour of each other are one session,

@@ -153,6 +153,31 @@ final class SleepTests: XCTestCase {
     XCTAssertEqual(d.wakeTime, "2026-03-15T07:00:00.000Z")
   }
 
+  // #539: a short afternoon sleep is a nap, not a night: its hours count, with no bedtime or wake.
+  func testAShortAfternoonSleepIsANap() {
+    func night(_ a: Double, _ b: Double) -> SleepDaily? {
+      Sleep.aggregateDetailed([SleepSample(start: a, end: b, value: 3)], endDate: end, clock: la)
+        .last { $0.totalHours != nil }
+    }
+    let nap = night(local(14, 13), local(14, 13, 24))
+    XCTAssertEqual(nap?.isNap, true)
+    XCTAssertEqual(nap?.totalHours, 0.4)
+    XCTAssertNil(nap?.bedtime)
+    XCTAssertNil(nap?.wakeTime)
+    XCTAssertEqual(nap.map(MirrorText.nightHours), "Nap 0.4h")
+
+    // Two hours long, or starting from 6pm, is a night, and so is a short one before noon.
+    for (a, b) in [
+      (local(14, 13), local(14, 15)), (local(14, 18), local(14, 19)), (local(14, 23), local(15, 0)),
+      (local(15, 9), local(15, 10)),
+    ] {
+      let n = night(a, b)
+      XCTAssertEqual(n?.isNap, false)
+      XCTAssertNotNil(n?.bedtime)
+    }
+    XCTAssertEqual(night(local(14, 23), local(15, 7)).map(MirrorText.nightHours), "8h")
+  }
+
   func testNightsRunNoonToNoon() {
     let empty = Sleep.aggregateDetailed(nil, endDate: end, clock: la)
     XCTAssertEqual(empty.count, 7)
