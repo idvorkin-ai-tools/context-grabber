@@ -114,12 +114,6 @@ public struct LocationStore {
     }
   }
 
-  /// Deletes points older than the retention as of `now`; returns how many went.
-  @discardableResult
-  public func prune(retentionDays: Int, now: Double) throws -> Int {
-    try prune(retentionDays: retentionDays, now: now, archivedThroughId: nil).removed
-  }
-
   /// Deletes points older than the retention as of `now`, but only those the archive has taken: with
   /// `archivedThroughId` set, a point whose row id is past it is kept whatever its age, since the archive is the
   /// trail's only other copy (a Cockpit out of reach for a month, or a refused page, must not cost points). Nil

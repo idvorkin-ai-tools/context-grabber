@@ -47,7 +47,8 @@ names where.
 **The trail is never pruned ahead of the archive.** The phone's retention (thirty days unless Igor lowers it) deletes
 an old point only once the archive has taken it. If the Cockpit is out of reach for longer than the retention, or it
 refuses a page, the points it has not taken stay on the phone, however old, until it has; the prune's log line says
-how many it kept. On a simulator with no archive to send to, retention prunes by age alone.
+how many it kept, and the footer under Places' tracking settings says that such points stay. On a simulator with no
+archive to send to, retention prunes by age alone.
 
 ## In Settings
 

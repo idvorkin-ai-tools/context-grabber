@@ -209,7 +209,7 @@ struct PlacesView: View {
       Text("Tracking")
     } footer: {
       Text(
-        "Points stay on the phone. Older ones than the retention are deleted when the app opens and when the number is lowered."
+        "Points stay on the phone. Older ones than the retention are deleted when the app opens and when the number is lowered, except any the archive has not taken yet, which stay until it has."
       )
     }
   }

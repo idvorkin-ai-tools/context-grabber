@@ -34,8 +34,8 @@ final class LocationStoreTests: XCTestCase {
     XCTAssertEqual(lastWeek.map(\.timestamp), lastWeek.map(\.timestamp).sorted(), "oldest first")
     XCTAssertEqual(lastWeek.last?.timestamp, now - 1.5, "fractional milliseconds survive, as the old app stored them")
     // Story 041: retention 30 keeps 30 days; lowering to 7 removes the rest at once.
-    XCTAssertEqual(try store.prune(retentionDays: 30, now: now), 10)
-    XCTAssertEqual(try store.prune(retentionDays: 7, now: now), 23)
+    XCTAssertEqual(try store.prune(retentionDays: 30, now: now, archivedThroughId: nil).removed, 10)
+    XCTAssertEqual(try store.prune(retentionDays: 7, now: now, archivedThroughId: nil).removed, 23)
     XCTAssertEqual(try store.count(), 7)
   }
 
