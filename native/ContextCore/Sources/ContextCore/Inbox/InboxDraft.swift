@@ -11,7 +11,7 @@ public struct InboxDraft: Equatable, Sendable {
   public var image: Data?
   /// Set when the image is a whiteboard's picture.
   public var whiteboard: WhiteboardPicture?
-  /// With `whiteboard`: the board's strokes as `WhiteboardStrokes.wire` JSON, sent before the picture (story 419).
+  /// With `whiteboard`: the board's strokes as `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
   public var strokes: Data?
 
   public init() {}
