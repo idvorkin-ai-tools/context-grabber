@@ -130,12 +130,32 @@ final class WhiteboardModel: ObservableObject {
   func changed(_ new: PKDrawing) {
     guard editable, new != drawing else { return }
     let added = new.strokes.count > drawing.strokes.count
+    logStrokesMoved(to: new)
     drawing = new
     if added, ghostsOn {
       pacer.strokeAdded()
       startPause()
     }
     drawingMoved()
+  }
+
+  /// #624: a board's ink below a line moved on its own, splitting a kept label. Names the next one.
+  private func logStrokesMoved(to new: PKDrawing) {
+    guard
+      let moved = WhiteboardFrame.strokesMoved(
+        before: drawing.strokes.map(\.renderBounds), after: new.strokes.map(\.renderBounds))
+    else { return }
+    log.event(
+      "whiteboard",
+      [
+        "action": "ink_moved", "board": board.id, "strokes": new.strokes.count, "moved": moved.count,
+        "dx": Double(moved.dx), "dy": Double(moved.dy), "top_moved_y": Double(moved.topY), "zoom": Double(zoom?() ?? 1),
+      ])
+  }
+
+  /// #624: which commands the canvas's menu offers, once each per board.
+  func canvasAsked(_ selector: String, allowed: Bool) {
+    log.event("whiteboard", ["action": "can_perform", "board": board.id, "selector": selector, "allowed": allowed])
   }
 
   private func drawingMoved() {
@@ -985,6 +1005,7 @@ private struct BoardCanvas: UIViewRepresentable {
       tap.cancelsTouchesInView = false
       canvas.addGestureRecognizer(tap)
       canvas.pasted = { [weak model] text in model?.paste(text) }
+      canvas.asked = { [weak model] selector, allowed in model?.canvasAsked(selector, allowed: allowed) }
       model.visibleRect = { [weak canvas] in
         guard let canvas else { return .null }
         let zoom = canvas.zoomScale
@@ -1051,6 +1072,9 @@ final class BoardCanvasView: PKCanvasView {
   fileprivate var toolPicker: PKToolPicker?
   /// ⌘V on a board that can be drawn on (stories 390, 394).
   fileprivate var pasted: ((String) -> Void)?
+  /// #624: each command the system asks about, the first time it asks.
+  fileprivate var asked: ((String, Bool) -> Void)?
+  private var askedAlready: Set<String> = []
   private var opened = false
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
   private let ghostLayer = CALayer()
@@ -1178,6 +1202,12 @@ final class BoardCanvasView: PKCanvasView {
 
   // hasStrings asks without reading, so it shows no paste prompt.
   override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+    let allowed = canPerform(action, sender)
+    if askedAlready.insert(NSStringFromSelector(action)).inserted { asked?(NSStringFromSelector(action), allowed) }
+    return allowed
+  }
+
+  private func canPerform(_ action: Selector, _ sender: Any?) -> Bool {
     if action == #selector(paste(_:)) {
       guard pasted != nil else { return false }
       return UIPasteboard.general.hasStrings || super.canPerformAction(action, withSender: sender)
