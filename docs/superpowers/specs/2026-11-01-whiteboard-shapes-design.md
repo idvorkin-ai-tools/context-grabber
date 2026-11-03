@@ -84,7 +84,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   asked. A look-only board takes no turn and doesn't look: its *Send to Larry* still sends, and his reply shows only in
   Chat.
 
-### The strokes go with the picture (story 419; Igor, 2026-11-03: "Can we send strokes instead?")
+### The strokes go with the picture (stories 419, 424; Igor, 2026-11-03: "Can we send strokes instead?")
 
 A picture of a tall board shrinks the handwriting to a few pixels; the strokes do not.
 
@@ -98,9 +98,11 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   exactly as the app's own picture.
 - **A mark of his that Igor kept comes back to him as ink in his colour**, so he can tell a kept mark from a
   dismissed one; a mark that was never kept is in no picture and no stroke, by design.
-- **Nothing waits on the strokes** (story 421). If the Cockpit refuses them or can't be reached, the picture still goes, the
-  session log says what became of the strokes, and the bar says nothing. A *Send* waiting in the outbox keeps its
-  strokes beside its picture and sends them first when the network is back.
+- **Nothing waits on the strokes** (stories 421, 426). If the Cockpit answers the strokes with an error, the picture
+  still goes, the session log says what became of the strokes, and the bar says nothing about them.
+- **With no network** a *Send* waits in the outbox with its strokes beside its picture, and both go when the network
+  is back (story 427). *Larry's turn* doesn't wait: a copyable error says Larry couldn't be reached, and nothing is
+  queued (story 428).
 - The strokes are the whole board each time, never a difference: a stroke missing from a send was erased.
 - **Rubbed-out ink doesn't go** (story 423). What the pixel eraser removed is missing from the strokes as it is from
   the picture; what is left of a stroke it cut goes as new strokes, one per stretch still visible.

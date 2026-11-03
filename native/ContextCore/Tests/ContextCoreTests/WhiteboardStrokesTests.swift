@@ -42,6 +42,17 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertEqual(WhiteboardStrokes.tool(rawValue: "x.averyveryverylongtoolname"), "averyveryverylon")
   }
 
+  func testAWidthFollowsTheStrokesScale() {
+    let sizes: [CGFloat] = [2, 4]
+    XCTAssertEqual(WhiteboardStrokes.width(sizes: sizes, transform: .identity), 3, accuracy: 0.0001)
+    XCTAssertEqual(
+      WhiteboardStrokes.width(sizes: sizes, transform: CGAffineTransform(scaleX: 3, y: 3)), 9, accuracy: 0.0001,
+      "a lasso's 3x resize makes the ink three times as heavy")
+    XCTAssertEqual(
+      WhiteboardStrokes.width(sizes: sizes, transform: CGAffineTransform(a: 0, b: 2, c: -2, d: 0, tx: 50, ty: 70)), 6,
+      accuracy: 0.0001, "a quarter turn at 2x: turning and moving add no weight")
+  }
+
   func testThinningKeepsTheEndsAndTheCap() {
     let many = (0..<10_000).map { CGPoint(x: CGFloat($0), y: 0.123) }
     let thinned = WhiteboardStrokes.thin(many)
@@ -176,6 +187,42 @@ final class WhiteboardStrokesTests: XCTestCase {
 
     try store.delete(try XCTUnwrap(store.item("m1")))
     XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent("m1.strokes").path))
+  }
+
+  // Story 427.
+  func testWithNoNetworkTheBoardWaitsWithItsStrokesAndBothGoLater() async throws {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: dir) }
+    let store = InboxStore(directory: dir)
+    var draft = InboxDraft()
+    draft.image = try png()
+    draft.whiteboard = WhiteboardPicture(board: "b1", title: "T", rect: frame, scale: 2, pictureID: "p1")
+    draft.strokes = try JSONSerialization.data(
+      withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
+    _ = try draft.save(to: store, at: 1, id: "m3")
+
+    let offline = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { _ in
+      throw URLError(.notConnectedToInternet)
+    }
+    let away = await offline.sendWaiting { _, _ in }
+    XCTAssertEqual(away.sent, [])
+    let waiting = try XCTUnwrap(store.item("m3"))
+    XCTAssertEqual(waiting.status, .waiting)
+    XCTAssertNotNil(store.strokes(of: waiting), "the strokes are still beside the picture")
+
+    let calls = Calls()
+    let back = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
+      let url = try XCTUnwrap(request.url)
+      await calls.add(url.path, body: nil)
+      let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
+      return (
+        Data(body.utf8), try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
+      )
+    }
+    let report = await back.sendWaiting { _, _ in }
+    XCTAssertEqual(report.sent, ["m3"])
+    let paths = await calls.paths
+    XCTAssertEqual(paths, ["/attachments", "/whiteboard/strokes", "/chat"])
   }
 
   func testAPictureWithoutStrokesSendsAsBefore() async throws {

@@ -293,8 +293,8 @@ final class WhiteboardModel: ObservableObject {
 
   /// Story 419: the drawing as the Cockpit's strokes, in board points: each PencilKit spline sampled every few points
   /// (the stroke's transform applied), the ink's colour as it looks in light mode (black, not white), the width as
-  /// the mean of the stroke's own point sizes, and an id that is the same for the same ink on every send. Story 423:
-  /// only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
+  /// the mean of the stroke's own point sizes (the transform's scale applied), and an id that is the same for the same
+  /// ink on every send. Story 423: only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
   private func strokesForLarry() -> [WhiteboardStrokes.Stroke] {
     let light = UITraitCollection(userInterfaceStyle: .light)
     return drawing.strokes.prefix(WhiteboardStrokes.maxStrokes).flatMap { stroke -> [WhiteboardStrokes.Stroke] in
@@ -306,8 +306,7 @@ final class WhiteboardModel: ObservableObject {
         (red, green, blue) = (0, 0, 0)
       }
       let color = WhiteboardStrokes.hex(red: red, green: green, blue: blue)
-      let sizes = stroke.path.map(\.size.width)
-      let width = sizes.isEmpty ? 3 : sizes.reduce(0, +) / CGFloat(sizes.count)
+      let width = WhiteboardStrokes.width(sizes: stroke.path.map(\.size.width), transform: stroke.transform)
       let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
       let tool = WhiteboardStrokes.tool(rawValue: stroke.ink.inkType.rawValue)
       return stroke.maskedPathRanges.map { range in
@@ -827,7 +826,7 @@ final class WhiteboardModel: ObservableObject {
     draft.image = jpeg
     draft.text = store.index.board(board.id)?.title ?? board.title
     draft.whiteboard = WhiteboardPicture(board: board.id, title: draft.text, rect: rect, scale: scale)
-    // Story 419: the strokes wait beside the picture and go first when it goes.
+    // Story 424: the strokes wait beside the picture and go first when it goes.
     draft.strokes = try? JSONSerialization.data(withJSONObject: WhiteboardStrokes.wire(strokesForLarry()))
     do {
       try inbox.add(&draft, thread: threads.thread(board: board.id))

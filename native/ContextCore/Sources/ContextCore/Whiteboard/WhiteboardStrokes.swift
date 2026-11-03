@@ -76,6 +76,12 @@ public enum WhiteboardStrokes {
     return String(format: "#%02x%02x%02x", byte(red), byte(green), byte(blue))
   }
 
+  /// A stroke's width in board points: the mean of its own point sizes, scaled as its transform scales its points.
+  public static func width(sizes: [CGFloat], transform: CGAffineTransform) -> CGFloat {
+    let mean = sizes.isEmpty ? 3 : sizes.reduce(0, +) / CGFloat(sizes.count)
+    return mean * hypot(transform.a, transform.b)
+  }
+
   /// A PencilKit ink type's raw value (`com.apple.ink.pen`) as the short word the Cockpit takes: lowercase letters
   /// and digits, starting with a letter, at most 16; `pen` when there is nothing usable.
   public static func tool(rawValue: String) -> String {

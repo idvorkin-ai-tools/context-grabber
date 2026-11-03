@@ -136,7 +136,7 @@ public struct InboxSender: Sendable {
       case .refused(let status, let reason): return .refused(status: status, reason: reason)
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
       }
-      // Story 419: a board's strokes go before its picture, under the picture's id. Whatever the Cockpit says to
+      // Story 424: a board's strokes go before its picture, under the picture's id. Whatever the Cockpit says to
       // them, the picture still goes: it is the fallback, and the log line says what became of the strokes.
       if let whiteboard = item.whiteboard, let raw = store.strokes(of: item) {
         fields.merge(WhiteboardStrokes.logFields(await sendStrokes(raw, picture: whiteboard))) { $1 }

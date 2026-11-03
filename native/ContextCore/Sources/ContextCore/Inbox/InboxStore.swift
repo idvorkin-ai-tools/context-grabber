@@ -29,7 +29,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var chatThread: String?
   /// A whiteboard's picture: which board, which picture and where on the board it is (story 381).
   public var whiteboard: WhiteboardPicture?
-  /// The board's strokes beside the item, `WhiteboardStrokes.wire` JSON, sent before the picture (story 419).
+  /// The board's strokes beside the item, `WhiteboardStrokes.wire` JSON, sent before the picture (story 424).
   public var strokesFile: String?
 
   public var isEarlierShare: Bool { sentAt != nil && chatThread == nil }
@@ -138,7 +138,7 @@ public struct InboxStore: Sendable {
     item.imageFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
   }
 
-  /// A board's strokes beside the item (story 419), nil without them.
+  /// A board's strokes beside the item (story 424), nil without them.
   public func strokes(of item: InboxItem) -> Data? {
     item.strokesFile.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
   }
