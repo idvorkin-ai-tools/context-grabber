@@ -406,6 +406,95 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(rows.map(\.key), ["pin", "new", "old"])
   }
 
+  // MARK: A skill's thread (#632, stories 450-454; the shapes are cockpit#90's contract)
+
+  private static let skillList = #"""
+    {"ok": true, "threads": [
+      {"key": "new", "title": "New", "count": 1, "last_ts": "2026-11-03T12:00:00-07:00", "last_who": "larry",
+       "last_author": "", "last_text": "hi", "skill": null, "pinned": false},
+      {"key": "skill", "title": "idvorkin", "count": 2, "last_ts": "2026-11-03T11:00:00-07:00", "last_who": "larry",
+       "last_author": "idvorkin", "last_text": "See the post.", "skill": "idvorkin", "pinned": true, "unread": 1},
+      {"key": "pin", "title": "Larry", "count": 0, "last_ts": "", "last_who": "", "last_author": "", "skill": null,
+       "pinned": true}
+    ]}
+    """#
+
+  func testLarrysPinnedThreadSitsAboveASkillsHoweverNewAndBothAboveTheRest() throws {
+    let rows = try XCTUnwrap(ChatWire.summaries(Data(Self.skillList.utf8)))
+    XCTAssertEqual(rows.map(\.key), ["pin", "skill", "new"])
+    XCTAssertEqual(rows.map(\.skill), [nil, "idvorkin", nil])
+    XCTAssertEqual(rows.map(\.answeredBy), ["Larry", "idvorkin", "Larry"])
+  }
+
+  func testTheRowAndTheNotificationNameTheSkillWhenItSpokeLast() throws {
+    let rows = try XCTUnwrap(ChatWire.summaries(Data(Self.skillList.utf8)))
+    XCTAssertEqual(rows[1].lastLine, "idvorkin: See the post.")
+    XCTAssertEqual(rows[1].lastSpeaker, "idvorkin")
+    XCTAssertEqual(rows[2].lastLine, "Larry: hi")
+    XCTAssertEqual(rows[0].lastLine, "Drop anything here")
+    let empty = ChatSummary(key: "s", title: "s", count: 0, lastTs: "", lastWho: "", lastText: "", skill: "idvorkin")
+    XCTAssertEqual(empty.lastLine, "Ask idvorkin")
+    let mine = ChatSummary(key: "s", title: "s", lastTs: "", lastWho: "igor", lastText: "?", skill: "idvorkin")
+    XCTAssertEqual(mine.lastLine, "You: ?")
+    let due = ChatNotify.due(rows, notified: ["z": "2026-11-01T09:00:00-07:00"])
+    XCTAssertEqual(due.map(\.key), ["skill"], "the skill's reply notifies as Larry's does")
+  }
+
+  func testReadingOrArchivingASkillsRowKeepsWhoseItIs() throws {
+    let row = try XCTUnwrap(ChatWire.summaries(Data(Self.skillList.utf8)))[1]
+    XCTAssertEqual(row.read().unread, 0)
+    for copy in [row.read(), row.archiving(false)] {
+      XCTAssertEqual(copy.skill, "idvorkin")
+      XCTAssertEqual(copy.lastAuthor, "idvorkin")
+      XCTAssertTrue(copy.pinned)
+    }
+  }
+
+  func testAnOlderCockpitsAnswersReadAsLarry() throws {
+    let rows = try XCTUnwrap(
+      ChatWire.summaries(
+        Data(
+          #"{"ok": true, "threads": [{"key": "a", "title": "A", "count": 1, "last_who": "larry", "last_text": "hi"}]}"#
+            .utf8)))
+    XCTAssertNil(rows[0].skill)
+    XCTAssertEqual(rows[0].lastLine, "Larry: hi")
+    XCTAssertEqual(rows[0].answeredBy, "Larry")
+    let messages = try XCTUnwrap(
+      ChatWire.messages(Data(#"{"ok": true, "messages": [{"id": "a", "ts": "", "who": "larry", "text": "hi"}]}"#.utf8)))
+    XCTAssertNil(messages[0].author)
+    XCTAssertNil(messages[0].authorInitial)
+    XCTAssertFalse(messages[0].isError)
+  }
+
+  func testASkillsRowsCarryTheirAuthorAndAFailureIsAnError() throws {
+    let json = #"""
+      {"ok": true, "skill": "idvorkin", "messages": [
+        {"id": "r", "ts": "x", "thread": "k", "who": "larry", "author": "idvorkin", "text": "See it.", "source": "cockpit"},
+        {"id": "e", "ts": "x", "thread": "k", "who": "larry", "author": "idvorkin", "error": true,
+         "text": "The idvorkin skill could not answer: no key. Send again to retry.", "source": "cockpit"}
+      ]}
+      """#
+    let messages = try XCTUnwrap(ChatWire.messages(Data(json.utf8)))
+    XCTAssertEqual(messages.map(\.author), ["idvorkin", "idvorkin"])
+    XCTAssertEqual(messages.map(\.authorInitial), ["I", "I"])
+    XCTAssertEqual(messages.map(\.isError), [false, true])
+    XCTAssertFalse(messages[0].fromIgor)
+  }
+
+  func testOnlyARealReplyAnswersAMessage() {
+    func igor(_ id: String) -> ChatMessage { ChatMessage(id: id, ts: "", who: "igor", text: "", receipt: .done) }
+    func reply(_ id: String) -> ChatMessage { ChatMessage(id: id, ts: "", who: "larry", text: "", author: "idvorkin") }
+    func failure(_ id: String) -> ChatMessage {
+      ChatMessage(id: id, ts: "", who: "larry", text: "", author: "idvorkin", isError: true)
+    }
+    XCTAssertEqual(ChatWire.answerFailed([igor("a"), failure("e")]), ["a"])
+    XCTAssertEqual(ChatWire.answerFailed([igor("a"), failure("e"), igor("b"), failure("f")]), ["a", "b"])
+    XCTAssertEqual(ChatWire.answerFailed([igor("a"), failure("e"), igor("b"), reply("r")]), [], "the retry answered both")
+    XCTAssertEqual(ChatWire.answerFailed([igor("a"), reply("r"), igor("b"), failure("e")]), ["b"])
+    XCTAssertEqual(ChatWire.answerFailed([igor("a"), reply("r"), failure("e")]), [], "a was answered before the failure")
+    XCTAssertEqual(ChatWire.answerFailed([igor("a")]), [], "still waiting is not a failure")
+  }
+
   func testAPinnedRowNeverLooksDone() throws {
     let rows = try JSONDecoder().decode(
       [ChatSummary].self,

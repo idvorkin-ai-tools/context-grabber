@@ -65,6 +65,9 @@ final class ChatModel: ObservableObject {
 
   func title(of key: String) -> String { threads.first { $0.key == key }?.title ?? "Chat" }
 
+  /// Who a message on this thread goes to: a skill's name on its thread (#632), otherwise Larry.
+  func answeredBy(_ key: String?) -> String { threads.first { $0.key == key }?.answeredBy ?? "Larry" }
+
   /// Live threads with a reply Igor has not read, plus what has not left the phone: the tile's number.
   var badgeCount: Int { threads.filter { !$0.done && $0.unread > 0 }.count + inbox.waitingCount }
 
@@ -216,6 +219,7 @@ final class ChatModel: ObservableObject {
       [
         "action": "open_chat_thread", "thread": key,
         "archived": threads.first { $0.key == key }.map { $0.archived ? "yes" : "no" } ?? "not_listed",
+        "skill": threads.first { $0.key == key }?.skill ?? "",
       ])
     poll?.cancel()
     poll = Task { [weak self] in
@@ -255,6 +259,9 @@ final class ChatModel: ObservableObject {
       let before = messages[key]?.last?.id
       messages[key] = rows
       threadProblem[key] = nil
+      if let last = rows.last, last.isError, last.id != before {
+        log.event("chat", ["action": "reply_failed", "thread": key, "message": last.id, "skill": last.author ?? ""])
+      }
       // A sent message the Cockpit's thread now holds is done with the outbox.
       let known = Set(rows.map(\.id))
       let delivered = inbox.items.filter { $0.status == .sent && $0.chatThread == key && known.contains($0.id) }
@@ -289,12 +296,7 @@ final class ChatModel: ObservableObject {
         log.event("chat", ["action": "seen_failed", "thread": key, "reason": "not 200"])
         return false
       }
-      if let i = threads.firstIndex(where: { $0.key == key }) {
-        let t = threads[i]
-        threads[i] = ChatSummary(
-          key: t.key, title: t.title, count: t.count, lastTs: t.lastTs, lastWho: t.lastWho, lastText: t.lastText,
-          unread: 0, done: t.done, archived: t.archived, looksDone: t.looksDone, pinned: t.pinned)
-      }
+      if let i = threads.firstIndex(where: { $0.key == key }) { threads[i] = threads[i].read() }
       return true
     } catch {
       log.event("chat", ["action": "seen_failed", "thread": key, "reason": error.localizedDescription])
@@ -423,7 +425,7 @@ final class ChatModel: ObservableObject {
 
   private func notify(_ summary: ChatSummary) async {
     let content = UNMutableNotificationContent()
-    content.title = "Larry"
+    content.title = summary.lastSpeaker
     content.subtitle = summary.title
     content.body = summary.lastText
     content.sound = .default
