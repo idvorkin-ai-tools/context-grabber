@@ -1,6 +1,6 @@
 # From the home screen: widgets, the card, and links
 
-Getting to the thing without opening the app: the Today widget, the memdeck card on the home and lock screens, links that land where I mean, and the Shortcuts app.
+Getting to the thing without opening the app: the Today widget, the memdeck card on the home and lock screens, links that land where I mean, and the Shortcuts app. On the iPad, a tile's screen in a window of its own.
 
 Part of the [user stories](README.md); persona and format are described there.
 

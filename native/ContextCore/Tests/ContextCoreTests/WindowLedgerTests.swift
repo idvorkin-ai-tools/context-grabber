@@ -70,6 +70,49 @@ final class WindowLedgerTests: XCTestCase {
     XCTAssertTrue(HoldChoices.choices(forTile: "call", windows: true).isEmpty)
   }
 
+  // #634: the ids are the home rows' own (HomeRows.swift), and these six are the ones the issue names.
+  func testEachNamedTileOffersNewWindowLastAndOnAPhoneOffersNothingNew() {
+    let tiles: [(String, WindowScreen)] = [
+      ("inbox", .chat), ("cockpit", .cockpit), ("places", .places), ("whiteboard", .whiteboard),
+      ("think_a_card", .card), ("today", .today),
+    ]
+    for (tile, screen) in tiles {
+      let last = HoldChoices.choices(forTile: tile, windows: true).last
+      XCTAssertEqual(last?.title, "New window", tile)
+      XCTAssertEqual(last?.action, .window(screen), tile)
+      XCTAssertFalse(HoldChoices.choices(forTile: tile, windows: false).contains { $0.title == "New window" }, tile)
+      XCTAssertEqual(
+        HoldChoices.choices(forTile: tile, windows: false), HoldChoices.choices(forTile: tile), "\(tile) on a phone")
+    }
+  }
+
+  func testALinkToAWindowedScreenFindsItsWindowAndAnAudioLinkNeverDoes() {
+    let windowed: [(String, WindowScreen)] = [
+      ("grabbernative://chat?thread=t", .chat), ("grabbernative://today", .today),
+      ("grabbernative://cockpit", .cockpit), ("grabbernative://places", .places),
+      ("grabbernative://whiteboard?board=b", .whiteboard), ("grabbernative://card?think=1", .card),
+    ]
+    for (link, screen) in windowed { XCTAssertEqual(WindowScreen(route: AppLink.parse(link).route), screen, link) }
+    for link in [
+      "grabbernative://timer?preset=2min", "grabbernative://breathe?breath=10", "grabbernative://call",
+      "grabbernative://home", "grabbernative://supermix",
+    ] {
+      XCTAssertNil(WindowScreen(route: AppLink.parse(link).route), link)
+    }
+  }
+
+  func testALateGoodbyeFromAClosedWindowLeavesItsSuccessorAlone() {
+    var ledger = WindowLedger()
+    _ = ledger.claimHome("home")
+    ledger.claim(.chat, window: "old")
+    ledger.keep(alive: ["home"])  // iOS let "old" go without a goodbye
+    XCTAssertNil(ledger.window(holding: .chat), "its tile opens it again as usual")
+    ledger.claim(.chat, window: "new")
+    ledger.release("old")  // the goodbye arrives after all
+    XCTAssertEqual(ledger.window(holding: .chat), "new")
+    XCTAssertEqual(ledger.home, "home")
+  }
+
   func testOneChangeReportedByTwoWindowsCountsOnce() {
     var latch = AppPhaseLatch()
     XCTAssertEqual(latch.report(.active), .launch)

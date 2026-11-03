@@ -1,6 +1,5 @@
 //  #634, stories 460-464, 470-482 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
-//  window
-//  keeps presenting what AppModel says is up; a screen in a window of its own is simply not up there.
+//  window keeps presenting what AppModel says is up; a screen in a window of its own is simply not up there.
 
 import ContextCore
 import SwiftUI
