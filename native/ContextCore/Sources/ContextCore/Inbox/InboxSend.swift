@@ -136,6 +136,11 @@ public struct InboxSender: Sendable {
       case .refused(let status, let reason): return .refused(status: status, reason: reason)
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
       }
+      // Story 419: a board's strokes go before its picture, under the picture's id. Whatever the Cockpit says to
+      // them, the picture still goes: it is the fallback, and the log line says what became of the strokes.
+      if let whiteboard = item.whiteboard, let raw = store.strokes(of: item) {
+        fields.merge(WhiteboardStrokes.logFields(await sendStrokes(raw, picture: whiteboard))) { $1 }
+      }
     }
     do {
       let request = try ChatSend.messageRequest(item, attachment: attachment, cockpit: cockpit)
@@ -144,6 +149,19 @@ public struct InboxSender: Sendable {
     } catch {
       if CockpitReach.isAway(error) { fields["unreachable"] = true }
       return ChatSend.outcome(status: nil, body: nil, error: error.localizedDescription)
+    }
+  }
+
+  private func sendStrokes(_ raw: Data, picture: WhiteboardPicture) async -> WhiteboardStrokes.Answer {
+    guard let strokes = try? JSONSerialization.jsonObject(with: raw) as? [[String: Any]] else {
+      return .away(reason: "the strokes file could not be read")
+    }
+    do {
+      let request = try WhiteboardStrokes.request(picture: picture, strokes: strokes, cockpit: cockpit)
+      let (data, response) = try await transport(request)
+      return WhiteboardStrokes.answer(status: (response as? HTTPURLResponse)?.statusCode, body: data)
+    } catch {
+      return WhiteboardStrokes.answer(status: nil, body: nil, error: error.localizedDescription)
     }
   }
 

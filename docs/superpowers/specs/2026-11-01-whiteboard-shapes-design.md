@@ -84,10 +84,28 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   asked. A look-only board takes no turn and doesn't look: its *Send to Larry* still sends, and his reply shows only in
   Chat.
 
+### The strokes go with the picture (story 419; Igor, 2026-11-03: "Can we send strokes instead?")
+
+A picture of a tall board shrinks the handwriting to a few pixels; the strokes do not.
+
+- **Every picture for Larry is preceded by the board's strokes.** *Larry's turn* and *Send to Larry* both first hand
+  the Cockpit every stroke on the board, in board points, each with when it was drawn, its colour as it looks in
+  light mode, its width, its tool and a stable id, under the picture's own id. The picture then goes as before: it is
+  what Chat shows, and what Larry reads when the strokes did not get through.
+- **Larry reads any part sharp and knows what is new.** The Cockpit keeps the strokes per picture, renders any region
+  at any size for him, and tells him which strokes were added or erased since the picture before his last reply.
+  His marks come back as before, placed by the frame of whatever he drew on, so a page he rendered himself lands as
+  exactly as the app's own picture.
+- **A mark of his that Igor kept comes back to him as ink in his colour**, so he can tell a kept mark from a
+  dismissed one; a mark that was never kept is in no picture and no stroke, by design.
+- **Nothing waits on the strokes.** If the Cockpit refuses them or can't be reached, the picture still goes, the
+  session log says what became of the strokes, and the bar says nothing. A *Send* waiting in the outbox keeps its
+  strokes beside its picture and sends them first when the network is back.
+- The strokes are the whole board each time, never a difference: a stroke missing from a send was erased.
+
 ### Not yet
 
 - Larry drawing during a call (story 346).
-- Vectors instead of the picture: a turn sends a picture of what is drawn.
 
 ## Talking while drawing (Igor, 2026-11-02: "an interactive session so I can tell him to do stuff and he can add stuff"; stories 345, 360–368, #604, #605)
 
@@ -118,6 +136,10 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 
 ## Acceptance
 
+- Write a column of notes down a tall board and tap Larry's turn: the Cockpit's render of the board (any page of it)
+  shows the handwriting as sharp as the iPad does, and its reply names the lines added since his last turn.
+- Cut the Cockpit's strokes route (a 404 or no network): the picture still arrives, and the session log says the
+  strokes did not.
 - Draw two circles on the iPad and lift the Pencil: within about 5 s faint orange shapes appear, solid like ink. Tap
   one: it becomes orange ink, the same line only stronger, that the eraser removes and undo takes back.
 - With the Cockpit streaming, marks appear one at a time, and the session log says how long the first one took. With a

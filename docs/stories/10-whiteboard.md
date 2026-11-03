@@ -1556,3 +1556,53 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with its grid on and ink on it
 - **When:** I go back to the list of boards
 - **Then:** its card shows ink only
+
+---
+
+### User Story 419:
+
+- **Summary:** The board's strokes go to Larry with every picture
+- **Status:** implemented in this branch; verified by host tests (`WhiteboardStrokesTests`: the stable id, the colour and tool words, thinning, the request's body, the answer, the strokes waiting beside the picture in the outbox and going before it whatever the Cockpit answers; `WhiteboardMarksTests` unchanged); written on a Linux box with no Xcode, so neither built nor run on the simulator here: `just native-test` and a real send from the iPad against the Cockpit are owed (the Cockpit's side is idvorkin-ai-tools/cockpit#91)
+- **Why:** Igor, 2026-11-03, on a tall board that reached Larry as a 248x2048 px sliver: "This sounds like a bug in your implementation. Can we send strokes instead?"
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** writing pages of notes down one tall board
+- **I want to** have Larry get every stroke, not a thumbnail
+- **so that** he reads every word however tall the board is, and knows which lines are new
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's turn or Send to Larry
+- **Given:** a board with ink on it
+- **When:** I tap *Larry's turn* or *Send to Larry*
+- **Then:** before the picture, every stroke on the board reaches the Cockpit in board points with its time, colour, width, tool and a stable id, under the picture's id; the picture follows as before and is what Chat shows
+
+- **Scenario:** The Cockpit refuses the strokes or is away
+- **Given:** the strokes route answering an error, or no network
+- **When:** I tap either button
+- **Then:** the picture still goes (or waits in the outbox with its strokes beside it), the bar says nothing about the strokes, and the session log says what became of them
+
+---
+
+### User Story 420:
+
+- **Summary:** The picture frames the drawing at a readable size
+- **Status:** implemented in this branch; verified by host tests (`WhiteboardFrameTests`: the pixel budget, a square board unchanged at 2048 px, the Nov 2 column at 712 x 5892 px instead of 248 x 2048, the long side capped at 8,000); not built here (no Xcode on the Linux box), so how a 5,900-pixel-tall picture looks in Chat is for the iPad
+- **Why:** Igor, 2026-11-03: "And maybe zoom into the pages".
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** whose boards are tall and narrow
+- **I want to** have the picture spend its pixels on my drawing's own shape
+- **so that** the handwriting stays legible in the picture too, not only in the strokes
+
+#### Acceptance Criteria:
+- **Scenario:** A tall column of notes
+- **Given:** a drawing 1,179 by 9,759 board points
+- **When:** a picture of it goes to Larry or to Claude's ghost turn
+- **Then:** it is about 712 by 5,892 pixels (30-point handwriting at 18 px), not 248 by 2,048
+
+- **Scenario:** A square sketch
+- **Given:** a drawing about as wide as it is tall
+- **When:** its picture is made
+- **Then:** it is 2,048 pixels on a side as before, and never finer than the screen's 2x

@@ -6,7 +6,7 @@
 GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /chat-seen, POST /attachments,
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
-GET /attachments/<ref>, POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
+GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answered, never kept), POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
 accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
@@ -171,6 +171,15 @@ class Handler(BaseHTTPRequestHandler):
         data = json.loads(raw or b"{}")
         if path in ("/whiteboard/suggest", "/plain/whiteboard/suggest", "/many/whiteboard/suggest"):
             return self._suggest(data, path.split("/")[1])
+        if path == "/whiteboard/strokes":
+            # Story 419: the board's strokes before its picture; answered as the Cockpit does, never kept.
+            strokes = data.get("strokes") or []
+            self._report({"strokes": len(strokes), "board": data.get("board"), "picture_id": data.get("picture_id"),
+                          "frame": data.get("frame"), "origin": self.headers.get("Origin")})
+            if not data.get("board") or not data.get("picture_id") or not isinstance(strokes, list):
+                return self._json(400, {"ok": False, "error": "board, picture_id and strokes are required"})
+            return self._json(200, {"ok": True, "board": data["board"], "picture_id": data["picture_id"],
+                                    "count": len(strokes), "new": len(strokes), "erased": 0})
         if path == "/fake/larry-draws":
             return self._draws(data)
         if path == "/chat" and NEW_DELAY:
