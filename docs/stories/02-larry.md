@@ -1781,7 +1781,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 507:
 
 - **Summary:** A simulator with no address leaves the real Cockpit alone
-- **Status:** native app only: not built yet
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the decision and the share card asking nothing are `ChatCockpitTests` on the host; the simulator smoke's log shows no send tried; a board's turn failing on the address that cannot resolve was not run
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1801,7 +1801,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 508:
 
 - **Summary:** The simulator's outbox stays put with no address
-- **Status:** native app only: not built yet
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host (real store, counted requests); the simulator smoke's chat section held a message back
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1821,7 +1821,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 509:
 
 - **Summary:** A simulator sends only where it is pointed
-- **Status:** native app only: not built yet
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host; the simulator smoke's chat section saw the held message reach the fake Cockpit once
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1841,7 +1841,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 510:
 
 - **Summary:** A simulator with no address says why
-- **Status:** native app only: not built yet
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the launch line, the held count and the refresh's reason are read from the log in the simulator smoke's chat section; the problem as drawn on the list and in a thread was not looked at
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1861,7 +1861,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 511:
 
 - **Summary:** A phone or an iPad is unchanged
-- **Status:** native app only: not built yet
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the decision for a device is `ChatCockpitTests` on the host; no device was built or run, so the phone itself is for Igor
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 

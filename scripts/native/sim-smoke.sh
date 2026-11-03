@@ -566,9 +566,10 @@ else bad "chat: no address: launch line x$why, held $held, list said x$listed, s
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" relaunch
 wait_jq 'select(.type=="chat" and .action=="sent")' 20 || echo "      (timed out waiting for the held message)"
 sleep 1
-delivered=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900" and (tostring | contains("smoke: no address")))] | length' "$CHAT_REPORT")
-if [ "$delivered" = 1 ]; then ok "chat: the held message went once, to the address a later launch named"
-else bad "chat: the held message reached the fake Cockpit x$delivered"; fi
+item=$(jq -sr '[.[] | select(.type=="chat" and .action=="sent")][0].item // ""' "$(newest_log)")
+delivered=$(jq -sr --arg item "$item" '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900" and .body.id==$item)] | length' "$CHAT_REPORT")
+if [ -n "$item" ] && [ "$delivered" = 1 ]; then ok "chat: the held message went once, to the address a later launch named"
+else bad "chat: the held message '$item' reached the fake Cockpit x$delivered"; fi
 fi  # chat
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
