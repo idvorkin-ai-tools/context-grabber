@@ -136,7 +136,7 @@ final class ChatVoiceModel: ObservableObject {
   }
 
   /// A recording is under way: listing the microphones alone is not one, so a Send then stops nothing.
-  private var recording: Bool { dictation.starting || dictation.listening || dictation.processing }
+  var recording: Bool { dictation.starting || dictation.listening || dictation.processing }
 
   /// Leaving the thread mid-recording stops it, so no words land in a bar that is gone.
   func cancel(thread: String, why: String) {

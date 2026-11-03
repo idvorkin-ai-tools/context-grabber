@@ -377,7 +377,8 @@ final class AppModel: ObservableObject {
         context: { ["branch": .string(BuildInfo.branch)] },
         sessionLog: { ("logs/" + log.url.lastPathComponent, Int(Date().timeIntervalSince(log.startedAt) * 1000)) },
         logger: bugLogger,
-        microphoneBusy: { [unowned self] in self.call.snapshot.isActive },
+        // #559: two recognizers at once kill the first, so a chat recording holds the microphone like a call.
+        microphoneBusy: { [unowned self] in self.call.snapshot.isActive || self.chatVoice.recording },
         flushLog: { log.flush() }),
       options: options, delivery: delivery)
     reporterStatus = reporter.$lastStatus.compactMap { $0 }.receive(on: RunLoop.main)
