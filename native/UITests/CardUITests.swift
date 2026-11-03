@@ -55,11 +55,15 @@ final class CardUITests: XCTestCase {
     XCTAssertTrue(drill.waitForExistence(timeout: 10), app.debugDescription)
     drill.tap()
 
-    XCTAssertTrue(app.staticTexts["Tap to see its position"].waitForExistence(timeout: 5), app.debugDescription)
+    let prompt = app.buttons["Tap to see its position"]
+    XCTAssertTrue(prompt.waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["Mixed"].exists, "the direction picker offers Mixed")
     XCTAssertTrue(app.buttons["Stats"].exists, "Stats is there: the app gives the drill a ledger")
     shot("card-drill")
-    app.buttons["Done"].tap()
+    // #400: the card's own Done sits under the cover and answers to the same label.
+    app.buttons.matching(NSPredicate(format: "label == 'Done' AND identifier != 'card-done'")).firstMatch.tap()
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: prompt)
+    waitForExpectations(timeout: 5)
     XCTAssertTrue(drill.waitForExistence(timeout: 5), "back on the card")
   }
 

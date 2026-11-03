@@ -33,7 +33,7 @@ final class HoldPopoverUITests: XCTestCase {
     XCTAssertTrue(app.buttons["card-think"].waitForExistence(timeout: 10), app.debugDescription)
     XCTAssertTrue(app.buttons["card-face"].exists)
     app.buttons["card-drill"].tap()
-    XCTAssertTrue(app.staticTexts["Tap to see its position"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["Tap to see its position"].waitForExistence(timeout: 10), app.debugDescription)
   }
 
   // Stories 465, 466 (#392): Random's topics, and a topic leaves for the browser. Which link it opens is the host's
