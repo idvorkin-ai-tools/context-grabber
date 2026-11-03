@@ -125,10 +125,14 @@ final class AppModel: ObservableObject {
     // Story 041: with an archive to send to, a prune keeps the points it has not taken yet.
     let archiveSends = ArchiveModel.destination(ProcessInfo.processInfo.environment) != nil
     places = PlacesModel(log: log, database: database, archiveSends: archiveSends)
-    // GRABBER_CHAT_URL: the simulator's stand-in Cockpit (scripts/native/fake-cockpit.py), so nothing reaches Larry.
-    let chatCockpit = ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"].flatMap { $0.isEmpty ? nil : $0 }
-    inbox = InboxModel(log: log, database: database, cockpit: chatCockpit ?? CockpitPage.url)
-    chat = ChatModel(inbox: inbox, log: log, database: database, cockpit: chatCockpit ?? CockpitPage.url)
+    // GRABBER_CHAT_URL: the Cockpit to use, such as the stand-in (scripts/native/fake-cockpit.py). A simulator without
+    // one reaches none, so a test run's outbox never reaches Larry (#525).
+    let chatCockpit = ChatCockpit.address(override: ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"])
+    if chatCockpit == ChatCockpit.nowhere {
+      log.event("chat", ["action": "no_address", "reason": ChatCockpit.noAddress])
+    }
+    inbox = InboxModel(log: log, database: database, cockpit: chatCockpit)
+    chat = ChatModel(inbox: inbox, log: log, database: database, cockpit: chatCockpit)
     chat.registerBackgroundTask()  // before the launch finishes, or iOS refuses the handler
     archive = ArchiveModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
     archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
