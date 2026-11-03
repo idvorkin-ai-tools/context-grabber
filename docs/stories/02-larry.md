@@ -1641,7 +1641,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 470:
 
 - **Summary:** A voice button beside the + opens a new chat already recording
-- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewChatVoiceTests` (host: recording once per tap) and `ChatNewThreadUITests` (simulator: the button sits beside the +, opens *New chat* with no sheet, its mic tapped as it opens); the red seconds and the keyboard staying down on the phone not yet
+- **Status:** native app only: implemented in [2cff47f](https://github.com/idvorkin/context-grabber/commit/2cff47f); verified by `ChatNewChatVoiceTests` (host: recording once per tap) and `ChatNewThreadUITests` (simulator: the button sits beside the +, opens *New chat* with no sheet, its mic tapped as it opens); the red seconds and the keyboard staying down on the phone not yet The bar of their own in [560960b](https://github.com/idvorkin/context-grabber/commit/560960b); verified by `ChatArchiveUITests` (simulator: a swipe on a row at the foot opens Unarchive, and the bar test fails on the list as it was); how the bar looks and a thumb's swipe on the phone not yet.
 - **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
