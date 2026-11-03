@@ -119,7 +119,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 007:
 
 - **Summary:** See how I slept, not only how long: stages, debt against a target, and bedtime consistency
-- **Issues:** [#539](https://github.com/idvorkin/context-grabber/issues/539), [#307](https://github.com/idvorkin/context-grabber/issues/307), [#306](https://github.com/idvorkin/context-grabber/issues/306), [#308](https://github.com/idvorkin/context-grabber/issues/308)
+- **Issues:** [#307](https://github.com/idvorkin/context-grabber/issues/307), [#306](https://github.com/idvorkin/context-grabber/issues/306), [#308](https://github.com/idvorkin/context-grabber/issues/308)
 - **Status:** implemented in [18ed07b](https://github.com/idvorkin/context-grabber/commit/18ed07b); verified by `sleep.test.ts` and on the phone; native app: [258a66b](https://github.com/idvorkin/context-grabber/commit/258a66b), [cb8e213](https://github.com/idvorkin/context-grabber/commit/cb8e213), verified by `just native-test` (`testSleepDebt`, `testConsistencyWrapsAroundMidnight`) and a simulator screenshot; the phone still to be checked by Igor; 7 h by default and changed on the Sleep sheet (#301): [d9c4d0d](https://github.com/idvorkin/context-grabber/commit/d9c4d0d), host-checked only (lint); the simulator and the phone in the next build turn; bedtime on top, the gap the time in bed (#307, #306): [0b73d30](https://github.com/idvorkin/context-grabber/commit/0b73d30), verified by `just native-test` (`testClockNightsPutBedtimeAboveWake`); the simulator and the phone in the next build turn; a tapped night's bed and wake (#308): [45c9026](https://github.com/idvorkin/context-grabber/commit/45c9026), verified by `just native-test` (`testBedAndWake`); the simulator and the phone in the next build turn
 
 #### Use Case:
@@ -138,11 +138,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** I went to bed at 11pm and woke at 7am, and the next night 1am to 6am
 - **When:** I look at the bedtime-and-wake chart
 - **Then:** bedtime is the top line and wake the bottom one, the hours run down the side in even steps, and the first night's gap is wider than the second's
-
-- **Scenario:** A nap isn't a night (#539)
-- **Given:** on a source's tab, a night's main sleep is 0.4 h starting at 1pm
-- **When:** I open the Sleep sheet
-- **Then:** its row reads *Nap 0.4h*, the time still counts toward that night's hours, and it has no bedtime or wake, so it's off the bedtime-and-wake chart and out of its "±" spreads
 
 - **Scenario:** One night's times from its dots
 - **Given:** the bedtime-and-wake chart shows Sunday, bed at 11pm and wake at 7am
@@ -374,3 +369,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a new OTA update was published
 - **When:** I open Settings and tap About
 - **Then:** Settings shows the sleep target, the background-tracking switch with retention days, and the diagnostics-upload section; About shows version, built time, the commit as a link, channel and runtime, "Check for Updates" fetches and reloads, and a downloaded update also shows a tap-to-reload banner on Today
+
+---
+
+### User Story 440:
+
+- **Summary:** A short afternoon sleep reads as a nap, not as a night with a 1pm bedtime
+- **Issues:** [#539](https://github.com/idvorkin/context-grabber/issues/539)
+- **Status:** implemented in [11e7ec5](https://github.com/idvorkin/context-grabber/commit/11e7ec5); the rule and its boundaries verified on the host by `just native-test` (`testAShortAfternoonSleepIsANap`); the sheet's row and the tapped card not yet checked on the simulator or the phone
+
+#### Use Case:
+- **As** someone whose source logged only an afternoon nap one night
+- **I want to** see that sleep labelled as a nap, with its time still counted
+- **so that** a stray 1pm "bedtime" doesn't pull my bedtime-and-wake chart and its spreads out
+
+#### Acceptance Criteria:
+- **Scenario:** A nap isn't a night
+- **Given:** on a source's tab, a night's main sleep is 0.4 h starting at 1pm
+- **When:** I open the Sleep sheet and tap that night
+- **Then:** its row and the tapped card read *Nap 0.4h*, the card doesn't say no sleep was recorded, the time still counts toward that night's hours, and it has no bedtime or wake, so it's off the bedtime-and-wake chart and out of its "±" spreads
