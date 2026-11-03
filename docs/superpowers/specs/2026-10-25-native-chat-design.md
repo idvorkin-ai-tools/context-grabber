@@ -73,9 +73,8 @@ it. iCloud is asked first on every jump, so newer ink from another device is the
 iCloud's reach, it opens the last drawing this device knew of. A board that was deleted, that isn't on this device even
 after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem and the picture stays open. A picture from anywhere else has no button. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
 sent, 👀 when the Cockpit has received it, 🫡 when it is with Larry, 🏆 when the thing is done (with Larry's note),
-the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how we do Telegram. Copy that for everyone."*). A
-state this build doesn't know reads as 👀. Opening a thread marks it read here
-and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
+the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how we do Telegram. Copy that for
+everyone."*). A state this build doesn't know reads as 👀. Opening a thread marks it read here and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
 it.
 
 **Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a *Paste image* control

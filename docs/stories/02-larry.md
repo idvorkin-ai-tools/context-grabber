@@ -650,7 +650,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 273:
 
 - **Summary:** A thread reads like a chat and keeps up by itself
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: messages with 👀/🏆 receipts and images, the seen request, an attachment address only for a ref the Cockpit mints), `sim-smoke.sh` (a link opens the thread, it is read and marked seen) and simulator screenshots (bubbles, links); on the phone not yet; the Cockpit's receipt ladder in [be0c46c](https://github.com/idvorkin/context-grabber/commit/be0c46c) (#630), verified by `ChatTests` (host: decoding and glyphs) and a simulator build; the glyphs not yet seen on a screen
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: messages with receipts and images, the seen request, an attachment address only for a ref the Cockpit mints), `sim-smoke.sh` (a link opens the thread, it is read and marked seen) and simulator screenshots (bubbles, links); on the phone not yet; the Cockpit's receipt ladder in [be0c46c](https://github.com/idvorkin/context-grabber/commit/be0c46c) (#630), verified by `ChatTests` (host: decoding and glyphs) and a simulator build; the glyphs not yet seen on a screen
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#630](https://github.com/idvorkin/context-grabber/issues/630)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
