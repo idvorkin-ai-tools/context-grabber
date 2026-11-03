@@ -1,7 +1,8 @@
 //  Stories 262–264 and 301 (#536) on the simulator: Chat's + opens a new, empty thread with the ordinary bar (the field,
 //  Paste image, the mic), not the old New chat sheet. Against the fake Cockpit (scripts/native/test-chat-ui.sh starts
 //  it), the first Send starts the thread under its first line, the bar holds the next message back until it lands,
-//  and the next one goes into that thread. Dictation and pasting are phone checks.
+//  and the next one goes into that thread. The voice button beside the + (#637, stories 500–505) too: its mic is
+//  tapped as it opens, and a live call keeps the microphone from it. Speaking and pasting are phone checks.
 
 import XCTest
 
@@ -13,6 +14,12 @@ final class ChatNewThreadUITests: XCTestCase {
     app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Message Larry")).firstMatch
   }
 
+  /// The list's "Not sent yet" section header and its rows' lines. A count against the one before, not "none": another
+  /// test's unsent message can still sit in this simulator's outbox.
+  private func notSentLines(_ app: XCUIApplication) -> Int {
+    app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Not sent yet")).count
+  }
+
   func testThePlusOpensANewThreadWithTheOrdinaryBar() throws {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
@@ -20,6 +27,7 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launch()
     let plus = app.buttons["inbox-add"]
     XCTAssertTrue(plus.waitForExistence(timeout: 20), app.debugDescription)
+    let notSentBefore = notSentLines(app)
     plus.tap()
     XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertTrue(field(app).waitForExistence(timeout: 5), "the ordinary bar's field: \(app.debugDescription)")
@@ -33,7 +41,7 @@ final class ChatNewThreadUITests: XCTestCase {
     // Back with nothing sent leaves no thread behind.
     app.navigationBars["New chat"].buttons.firstMatch.tap()
     XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertFalse(app.descendants(matching: .any)["chat-pending-waiting"].exists, "no new thread waits to go")
+    XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
   }
 
   /// GRABBER_CHAT_NEW=open: Chat with its + tapped, the new chat's field ready to type in.
@@ -93,6 +101,90 @@ final class ChatNewThreadUITests: XCTestCase {
     }
     XCTAssertTrue(texts.contains(first), "the first message started the thread: \(texts)")
     XCTAssertTrue(texts.contains(second), "the second went to POST /chat/<key>: \(texts)")
+  }
+
+  /// Stories 500, 502 and 504: the button beside the + opens the same new chat, and its mic has already been tapped.
+  /// The simulator's first run asks for speech recognition; declining is story 504's copyable line, in the new chat's
+  /// bar. Whichever way the recognizer goes, a tap was made for him: the mic is on its way, or it says why not.
+  func testTheVoiceButtonOpensANewChatWithItsMicTapped() throws {
+    let app = XCUIApplication()
+    app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
+    app.launchEnvironment["GRABBER_INBOX"] = "open"
+    app.launch()
+    let plus = app.buttons["inbox-add"]
+    let voice = app.buttons["inbox-add-voice"]
+    XCTAssertTrue(voice.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertLessThanOrEqual(voice.frame.maxX, plus.frame.minX, "the voice button comes before the +")
+    XCTAssertLessThanOrEqual(plus.frame.minX - voice.frame.maxX, 12, "right beside it")
+    XCTAssertGreaterThanOrEqual(voice.frame.width, 44)
+    XCTAssertGreaterThanOrEqual(voice.frame.height, 44)
+    let notSentBefore = notSentLines(app)
+    voice.tap()
+    XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
+
+    let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+    let deadline = Date().addingTimeInterval(20)
+    var answered = false
+    while Date() < deadline, !answered {
+      let decline = springboard.alerts.buttons["Don\u{2019}t Allow"]
+      if decline.exists { decline.tap() }
+      answered = micAnswered(app)
+      if !answered { Thread.sleep(forTimeInterval: 0.5) }
+    }
+    XCTAssertTrue(answered, "the mic was tapped as it opened: \(app.debugDescription)")
+    XCTAssertTrue(app.navigationBars["New chat"].exists, "nothing started a thread")
+    XCTAssertFalse(app.descendants(matching: .any)["chat-new-waiting"].exists, "nothing was sent")
+
+    // Story 502: back stops whatever was going and leaves no thread.
+    app.navigationBars["New chat"].buttons.firstMatch.tap()
+    XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
+
+    // Story 505: the + after it records nothing.
+    plus.tap()
+    XCTAssertTrue(field(app).waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["Speak a message"].waitForExistence(timeout: 5), "the + leaves the mic idle")
+    XCTAssertFalse(app.buttons["Stop recording"].exists)
+  }
+
+  /// Recording, on its way there, or its copyable line saying why not.
+  private func micAnswered(_ app: XCUIApplication) -> Bool {
+    if app.buttons["Stop recording"].exists { return true }
+    let why = NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "off for this app", "could not start")
+    return app.staticTexts.matching(why).firstMatch.exists
+  }
+
+  /// Story 503 with a real call, against the fake bridge test-chat-ui.sh starts: the button stands down and the new
+  /// chat records nothing, says why and has the keyboard up.
+  func testALiveCallKeepsTheMicFromTheVoiceButton() throws {
+    guard let bridge = ProcessInfo.processInfo.environment["GRABBER_FAKE_BRIDGE"], !bridge.isEmpty else {
+      throw XCTSkip("needs the fake bridge: run scripts/native/test-chat-ui.sh")
+    }
+    let app = XCUIApplication()
+    app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
+    app.launchEnvironment["GRABBER_CALL"] = bridge
+    app.launchEnvironment["GRABBER_CALL_AUDIO"] = "synthetic"
+    app.launchEnvironment["GRABBER_CALL_SECONDS"] = "120"
+    app.launchEnvironment["GRABBER_SILENT"] = "1"
+    app.launch()
+    let done = app.buttons["Done"]
+    XCTAssertTrue(done.waitForExistence(timeout: 20), app.debugDescription)
+    Thread.sleep(forTimeInterval: 2)  // the hook places the call a second after the screen opens
+    done.tap()
+    let tile = app.buttons["home-inbox"]
+    XCTAssertTrue(tile.waitForExistence(timeout: 10), app.debugDescription)
+    tile.tap()
+    let voice = app.buttons["inbox-add-voice"]
+    XCTAssertTrue(voice.waitForExistence(timeout: 10), app.debugDescription)
+    voice.tap()
+    XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
+    let line = app.staticTexts["A call with Larry is using the microphone. End it to speak a message."]
+    XCTAssertTrue(line.waitForExistence(timeout: 5), "the bar says why: \(app.debugDescription)")
+    XCTAssertTrue(app.buttons["Speak a message"].exists, "nothing is recording")
+    XCTAssertFalse(app.buttons["Stop recording"].exists)
+    let focus = expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: field(app))
+    wait(for: [focus], timeout: 5)
   }
 
   private func get(_ url: String) throws -> [String: Any] {

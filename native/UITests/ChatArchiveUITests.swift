@@ -34,6 +34,33 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertTrue(app.buttons["chat-thread-\(key)"].isHittable, "back in the live list", file: file, line: line)
   }
 
+  /// A row just opened under Done can be below the buttons' bar: scrolled up clear of it, as he would.
+  private func scrollClearOfTheBar(_ row: XCUIElement, _ app: XCUIApplication) {
+    let bar = app.otherElements["chat-new-bar"]
+    let origin = app.coordinate(withNormalizedOffset: .zero)
+    for _ in 0..<6 where row.frame.maxY > bar.frame.minY {
+      origin.withOffset(CGVector(dx: 30, dy: 450))
+        .press(
+          forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 30, dy: 300)), withVelocity: .slow,
+          thenHoldForDuration: 0.3)
+    }
+    XCTAssertLessThanOrEqual(row.frame.maxY, bar.frame.minY, "scrolled clear: \(app.debugDescription)")
+  }
+
+  /// Story 506 (#637): the + and the voice button have a bar of their own across the list's foot, so no row lies
+  /// behind them for a swipe to land on instead.
+  func testTheNewChatButtonsSitInABarOfTheirOwn() throws {
+    let app = try openList()
+    let bar = app.otherElements["chat-new-bar"]
+    XCTAssertTrue(bar.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertEqual(bar.frame.width, app.windows.firstMatch.frame.width, "across the whole list")
+    for id in ["inbox-add", "inbox-add-voice"] {
+      let button = app.buttons[id]
+      XCTAssertGreaterThanOrEqual(button.frame.minY, bar.frame.minY, id)
+      XCTAssertLessThanOrEqual(button.frame.maxY, bar.frame.maxY, id)
+    }
+  }
+
   func testASwipeArchivesAndUndoBringsItBack() throws {
     let app = try openList()
     app.buttons["chat-thread-\(key)"].swipeLeft()
@@ -54,6 +81,7 @@ final class ChatArchiveUITests: XCTestCase {
     done.tap()
     let row = app.buttons["chat-thread-\(key)"]
     XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
+    scrollClearOfTheBar(row, app)
     row.swipeLeft()
     app.buttons["Unarchive"].tap()
     assertBackInTheLiveList(app)
@@ -69,6 +97,7 @@ final class ChatArchiveUITests: XCTestCase {
     let done = doneFold(app)
     XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
     done.tap()
+    scrollClearOfTheBar(app.buttons["chat-thread-\(key)"], app)
     app.buttons["chat-thread-\(key)"].tap()
     XCTAssertTrue(more.waitForExistence(timeout: 10), app.debugDescription)
     more.tap()

@@ -73,7 +73,7 @@ Issues [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](ht
 [#536](https://github.com/idvorkin/context-grabber/issues/536).
 
 The Inbox became Chat (spec 2026-10-25-native-chat-design.md). Its one large, round **+**, fixed at the lower right
-above the bottom safe area (#424), now opens a new chat thread with the ordinary thread bar — see *A new chat* in the
+in a bar below the list (#424, #637), now opens a new chat thread with the ordinary thread bar — see *A new chat* in the
 chat spec — not a sheet of its own. What the sheet promised still holds there: typing, pasting text and the
 keyboard's dictation mic (and the chat mic, #448); **Paste image** when the clipboard holds one, with a preview that
 can be removed before sending, the picture kept as copied, in its own format and the right way up; an image needs no
@@ -86,8 +86,8 @@ Every Send produces a `ui` event with the kind and byte size, never the content.
 
 Acceptance criteria:
 
-- One round + stays fixed at the lower right above the safe area, with a generous tap target, in an empty and a
-  populated list; there is no top-right +, and the last row can scroll fully clear of the button.
+- One round + stays fixed at the lower right in a bar below the list, with a generous tap target, in an empty and a
+  populated list; there is no top-right +, and the last row can scroll fully clear of the bar.
 - The + opens an empty new thread with the ordinary bar; typed or dictated text can be sent from it.
 - Paste image previews the clipboard image and sends it with any accompanying text as its note; a portrait photo
   stays upright.

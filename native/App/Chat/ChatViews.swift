@@ -130,8 +130,6 @@ struct ChatListView: View {
     }
     .onAppear { chat.listOnScreen = true }
     .onDisappear { chat.listOnScreen = false }
-    // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
-    .contentMargins(.bottom, 88, for: .scrollContent)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button(selecting ? "Cancel" : "Select") {
@@ -152,22 +150,27 @@ struct ChatListView: View {
           .accessibilityIdentifier("chat-archive-selected")
       }
     }
-    .overlay(alignment: .bottomTrailing) {
-      Button {
-        chat.openNewChat(from: "chat")
-      } label: {
-        Image(systemName: "plus")
-          .font(.title2.weight(.semibold))
-          .foregroundStyle(.white)
-          .frame(width: 56, height: 56)
-          .background(Color.accentColor, in: Circle())
-          .contentShape(Circle())
+    // #424, story 262: a fixed thumb target. #637, story 506: in its own opaque bar, not floating over the list: a row behind
+    // the two buttons could not be swiped from where they cover it.
+    .safeAreaInset(edge: .bottom) {
+      HStack(spacing: 12) {
+        NewChatVoiceButton(chat: chat, voice: voice)
+        Button {
+          chat.openNewChat(from: "chat")
+        } label: {
+          NewChatCircle(systemName: "plus", color: .accentColor)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("New chat")
+        .accessibilityIdentifier("inbox-add")
+        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel("New chat")
-      .accessibilityIdentifier("inbox-add")
-      .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
-      .padding(16)
+      .padding(.top, 8)
+      .padding([.horizontal, .bottom], 16)
+      .frame(maxWidth: .infinity, alignment: .trailing)
+      .background(Color(.systemGroupedBackground))
+      .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("chat-new-bar")
     }
     .navigationDestination(isPresented: $chat.newChatOpen) {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
@@ -226,6 +229,40 @@ struct ChatListView: View {
         Button("Archive") { Task { await chat.setArchived(thread.key, true, from: "swipe") } }.tint(.indigo)
       }
     }
+  }
+}
+
+/// One of the two round thumb targets at the list's lower right.
+private struct NewChatCircle: View {
+  let systemName: String
+  let color: Color
+
+  var body: some View {
+    Image(systemName: systemName)
+      .font(.title2.weight(.semibold))
+      .foregroundStyle(.white)
+      .frame(width: 56, height: 56)
+      .background(color, in: Circle())
+      .contentShape(Circle())
+  }
+}
+
+/// A new chat already recording (#637, story 500). Its own view so only it redraws with the dictation; dimmed during a
+/// call, when a tap still opens the new chat, whose bar says why nothing records (story 503).
+private struct NewChatVoiceButton: View {
+  let chat: ChatModel
+  @ObservedObject var voice: ChatVoiceModel
+
+  var body: some View {
+    Button {
+      chat.openNewChat(from: "chat", voice: true)
+    } label: {
+      NewChatCircle(systemName: "mic.fill", color: voice.callLive ? .secondary : .accentColor)
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("New chat by voice")
+    .accessibilityIdentifier("inbox-add-voice")
+    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
   }
 }
 
@@ -414,7 +451,7 @@ struct ChatThreadView: View {
           logger: logger
         )
         .padding(.horizontal, 12)
-        .background(.bar)
+        .background(Color(.systemGroupedBackground))
       }
     }
     .safeAreaInset(edge: .bottom) {
@@ -695,11 +732,12 @@ private struct ComposeBar: View {
             extra: ["thread": .string(thread), "text_bytes": .int(draft.text.utf8.count)]), logger: logger)
       }
       if let pickProblem { BugProblemView(problem: pickProblem, logger: logger) }
-      // #448: what the mic could not do, copyable, or its quieter line (a call has the mic, the five-minute stop),
-      // each in the thread it came from only; then, in a new chat, where its next message stands (#536). Both show.
+      // #448: what the mic could not do, copyable, and its quieter line (a call has the mic, the five-minute stop),
+      // each in the thread it came from only; then, in a new chat, where its next message stands (#536). All show.
       if voice.thread == thread, let problem = voice.problem {
         BugProblemView(problem: problem, logger: logger)
-      } else if voice.thread == thread, let notice = voice.notice {
+      }
+      if voice.thread == thread, let notice = voice.notice {
         Text(notice).font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-voice-notice")
@@ -771,14 +809,17 @@ private struct ComposeBar: View {
       }
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
-    .background(.bar)
+    .background(Color(.systemGroupedBackground))
     .fileImporter(isPresented: $picking, allowedContentTypes: [.data]) { attach($0) }
     // The words stream into the draft as Igor speaks, after what was typed, for him to read before he sends (#448).
     .onChange(of: voice.words) { _, _ in takeWords() }
     .onAppear {
       takeWords()
-      // A new chat opens with the keyboard up (spec "A new chat", story 262).
-      if target == .new { focused = true }
+      guard target == .new else { return }
+      // The voice button's new chat records as it opens (#637); the bar's own tap, so words and refusals land here.
+      if chat.takeNewChatVoice() { voice.startNewChat(thread: thread, draft: draft.text) }
+      // A new chat opens with the keyboard up (spec "A new chat", story 262), unless he is talking.
+      if !voice.recording { focused = true }
     }
     .onDisappear { voice.cancel(thread: thread, why: "left_thread") }
     .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in

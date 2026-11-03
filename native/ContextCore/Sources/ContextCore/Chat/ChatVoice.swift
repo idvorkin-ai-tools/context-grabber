@@ -85,3 +85,21 @@ public struct ChatVoiceWords: Equatable, Sendable {
     return words.text
   }
 }
+
+/// The voice button beside the + (#637, stories 500 and 505): a new chat that opens recording, once. The ask rides from
+/// the tap to the new chat's bar, which takes it as it appears, so a bar coming back on screen never records again and
+/// a + after it never records at all.
+public struct ChatNewChatVoice: Equatable, Sendable {
+  private var asked = false
+
+  public init() {}
+
+  /// A tap on the + (`voice` false) or on the voice button (`voice` true).
+  public mutating func open(voice: Bool) { asked = voice }
+
+  /// Whether this new chat should record: true once per tap on the voice button.
+  public mutating func take() -> Bool {
+    defer { asked = false }
+    return asked
+  }
+}

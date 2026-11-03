@@ -96,6 +96,8 @@ final class ChatVoiceModel: ObservableObject {
     guard canPickMicrophone else { return }
     Task {
       await dictation.refreshMicrophones()
+      // #637: a recording that began first turned this listing away; the next picker on screen names the saved one.
+      if dictation.microphones.isEmpty { namedSavedMicrophone = false }
       log.event("chat_voice", ["action": "microphones", "count": dictation.microphones.count])
     }
   }
@@ -133,6 +135,13 @@ final class ChatVoiceModel: ObservableObject {
       return
     }
     dictation.toggle(note: draft) { [weak self] text in self?.heard(text, thread: thread) }
+  }
+
+  /// The voice button's new chat coming on screen (#637): the mic tapped for him, and during a call that tap's own
+  /// refusal. A listing of the microphones (this bar's picker just asked for one) gives way rather than eat the tap.
+  func startNewChat(thread: String, draft: String) {
+    if !callLive, dictation.refreshingMicrophones { dictation.stop(why: "new_chat") }
+    tap(thread: thread, draft: draft)
   }
 
   /// A recording is under way: listing the microphones alone is not one, so a Send then stops nothing.

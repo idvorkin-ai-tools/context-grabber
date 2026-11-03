@@ -39,8 +39,9 @@ the conversations with a reply Igor has not read, plus any of his messages not y
 
 **The list.** The pinned thread, then newest activity first. Each row: the thread's title, the last message's first
 line and who wrote it, when, and an unread mark when Larry has replied since Igor last looked. Finished threads fold
-under *Done*, by the same rule the Cockpit uses, so the phone and the laptop agree. The round **+** stays at the lower right; it starts a
-new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
+under *Done*, by the same rule the Cockpit uses, so the phone and the laptop agree. The round **+** stays at the lower right, in an opaque bar
+across the bottom of the list (#637), so the buttons never cover a row he can see and every row on screen can be swiped from
+anywhere along it; a row scrolled beneath the bar is hidden until he scrolls it up. The **+** starts a new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
 
 **Archiving** (Igor, 2026-11-01: "Let me archive threads both via swipe and via buttons in chat overflow"; #589, the
 Cockpit's archive shipped first). Swiping a thread left in the list offers *Archive*; it folds under *Done* at once,
@@ -117,6 +118,21 @@ says the first was refused — which starts the chat afresh (a refused file stay
 Cockpit won't take*); deleting the waiting first message does the same. Each
 attempt is its own message, so a new try is never mistaken for the refused or deleted one, and the screen follows
 the newest.
+
+**A new chat by voice** (#637). Igor, 2026-11-03: a voice button beside the **+**, for a first message that is spoken.
+It sits immediately to the left of the **+**, the same size, so the **+** stays where the thumb knows it. A tap opens a
+new chat just as the **+** does — an empty thread titled *New chat*, the same bar, no sheet or dialog — and starts
+recording straight away with the chat mic described below, as if he had tapped that mic himself. Everything about the
+recording is the chat mic's: the red button and the seconds, the words in the field as he speaks, a tap to stop, the
+five-minute stop. Nothing is sent until he taps Send, and that Send starts the thread as any first Send does. Going back
+stops the recording and leaves no thread behind. The keyboard stays down while it records, since he is talking and the
+words fill the field by themselves; a tap on the field brings it up. The **+** itself is unchanged: keyboard up,
+nothing recording.
+
+A live call still holds the microphone. During a call the voice button is dimmed, and a tap opens the new chat with the
+keyboard up, records nothing, and the bar says the call has the mic, as the thread's own mic does. A permission that is
+off, or a recognizer that will not start, shows its copyable line in the new chat's bar, and the new chat stays open to
+type in or to try the mic again. An older copyable line from the mic never hides these quieter lines: both show.
 
 **Speaking a message** (#448). Igor, 2026-10-26, first: *"transcription based, use a good model like we do in
 cockpit"*; then, on learning the problem reports' dictation is Apple's own recognizer: *"All right, use that."* So the
@@ -254,6 +270,10 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - The + opens an empty *New chat* thread with the ordinary bar (text, paperclip, Paste image, mic); its first Send starts
   the thread, which becomes the live thread once the Cockpit has it; leaving before sending leaves nothing. A refused or
   deleted first message lets the next Send start the chat afresh, as a new message that reaches Larry.
+- The voice button beside the + opens the same empty *New chat* thread already recording, the keyboard down; the words
+  land in the field, nothing is sent until Send, and that Send starts the thread; back leaves nothing. During a live
+  call it is dimmed, and a tap opens the new chat recording nothing, with the keyboard up and a line saying the call has
+  the mic. The + still opens with the keyboard up and records nothing.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
 - The paperclip picks a PDF or any document; it shows by name and size, *Remove file* takes it off, and Send sends it with
   or without words. A picture picked there goes as a picture. Over 10 MB, empty or unreadable says so copyably at the
