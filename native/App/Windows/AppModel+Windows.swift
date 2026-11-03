@@ -1,4 +1,5 @@
-//  #634, stories 460-464 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home window
+//  #634, stories 460-464, 470-482 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
+//  window
 //  keeps presenting what AppModel says is up; a screen in a window of its own is simply not up there.
 
 import ContextCore
@@ -16,11 +17,15 @@ extension AppModel {
 
   private var sceneCount: Int { UIApplication.shared.connectedScenes.count }
 
-  /// What a report calls the screen: the window it was shaken in, when that window holds one screen.
+  /// The window in front; with two side by side, either: iOS doesn't say which was touched.
+  private var frontWindow: String? {
+    UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+      .first { $0.activationState == .foregroundActive && $0.keyWindow != nil }?.session.persistentIdentifier
+  }
+
+  /// What a report calls the screen: the window in front, when that window holds one screen.
   var reportScreen: String {
-    let key = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-      .first { $0.windows.contains(where: \.isKeyWindow) }
-    return key.flatMap { ledger.screen(in: $0.session.persistentIdentifier) }?.rawValue ?? screen
+    frontWindow.flatMap { ledger.screen(in: $0) }?.rawValue ?? screen
   }
 
   /// True when this window is the home window.
@@ -55,6 +60,11 @@ extension AppModel {
     let screen = ledger.screen(in: window)
     ledger.release(window)
     log.event("window", ["action": "gone", "screen": screen?.rawValue ?? "home", "scenes": sceneCount])
+    switch screen {
+    case .card: CardStore.reloadWidget()
+    case .places: showPlacesMap = false
+    case .chat, .today, .cockpit, .whiteboard, nil: break
+    }
   }
 
   func windowHolding(_ screen: WindowScreen) -> Bool {
@@ -94,7 +104,19 @@ extension AppModel {
     dismissWindowAction?(value: screen)
   }
 
-  /// Story 464: a link, a Shortcut or a notification with the home window closed has somewhere to show.
+  /// Story 479: a route that lands in the home window, asked for from another window, shows in sight.
+  func showHomeWindow() {
+    openHomeWindowIfGone()
+    guard windowsAvailable, let home = ledger.home, frontWindow != home,
+      let session = UIApplication.shared.openSessions.first(where: { $0.persistentIdentifier == home })
+    else { return }
+    log.event("window", ["action": "bring_home", "scenes": sceneCount])
+    UIApplication.shared.activateSceneSession(for: UISceneSessionActivationRequest(session: session)) { [log] error in
+      log.event("window", ["action": "bring_home", "ok": false, "message": error.localizedDescription])
+    }
+  }
+
+  /// Story 477: a link, a Shortcut or a notification with the home window closed has somewhere to show.
   func openHomeWindowIfGone() {
     guard windowsAvailable, let openWindowAction else { return }
     checkLedger()
@@ -103,7 +125,7 @@ extension AppModel {
     openWindowAction(id: Self.homeWindowID)
   }
 
-  /// Story 464: iOS can bring back only a screen's window when the app starts (seen on the simulator: the last window
+  /// Story 482: iOS can bring back only a screen's window when the app starts (seen on the simulator: the last window
   /// in front, no home), leaving no home screen. Once per launch, after a moment for a home window on its way too.
   private func openHomeAfterRestore() {
     guard !restoreChecked else { return }

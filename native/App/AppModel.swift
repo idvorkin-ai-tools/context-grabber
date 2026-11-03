@@ -289,14 +289,14 @@ final class AppModel: ObservableObject {
   /// Whatever is in front goes, then the route's screen comes up. The screen already in front stays when the link
   /// starts nothing; the call screen stays either way (a live call is brought forward, not restarted).
   private func go(to route: AppRoute, from source: String) {
+    if case .supermix = route { return present(route, from: source) }  // another app: nothing here needs to move
+    // #634: its own window comes forward, and whatever the home window shows stays.
+    if let held = WindowScreen(route: route), windowHolding(held) { return present(route, from: source) }
+    showHomeWindow()  // what this route puts up shows in the home window: it has to be there, and in sight
     if front == route.name {
       if case .call = route { return present(route, from: source) }
       if !route.starts { return }
     }
-    if case .supermix = route { return present(route, from: source) }  // another app: nothing here needs to move
-    // #634: its own window comes forward, and whatever the home window shows stays.
-    if let held = WindowScreen(route: route), windowHolding(held) { return present(route, from: source) }
-    openHomeWindowIfGone()  // what this route puts up shows in the home window: there has to be one
     guard closeAll() else { return present(route, from: source) }
     Task {
       // SwiftUI drops a cover asked for while another is still going down.
@@ -513,7 +513,10 @@ final class AppModel: ObservableObject {
   /// The card screen (story 129), face up or with "think of a card" already counting.
   func openCard(think: Bool, from source: String) {
     log.event("ui", ["action": "open_card", "from": source, "think": think])
-    if bringForward(.card, from: source) { return }
+    if bringForward(.card, from: source) {
+      drillOnOpen = nil
+      return
+    }
     screen = "card"
     card = think
   }

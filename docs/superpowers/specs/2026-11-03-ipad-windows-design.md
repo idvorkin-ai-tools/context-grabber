@@ -33,23 +33,24 @@ home window stays as it was. Tiles that hold the audio offer no such thing.
 
 **In the window.** It is the same screen as ever, with its Done, which closes the window. Closing it the system's way
 is the same. The Cockpit's page outlives its window, as it outlives Done today. What was being drawn on a board is
-saved as the window leaves.
+saved as the window leaves. The card's home and lock screen widgets catch up as its window leaves, as they do when
+the card closes at home. A Places window closed with its full-screen map up opens on the list next time.
 
 **One place at a time.** With a screen in a window, tapping its tile brings that window forward, and so does a link, a
 Shortcut or a notification for it: a notification's thread opens in the Chat window, a *Jump to board* on the board in
 the Whiteboard window. If the home window is showing a screen when another window asks for that screen, it goes from
-home first.
+home first. A card window already open comes forward as it is: choosing *Drill the stack* or the tile's count there
+starts neither, then or the next time the card opens.
 
 **Another window of the app.** iPadOS can make a new window itself, from its own menus. With a home window up, that
-window lists the screens above, and choosing one opens it and closes the list. With no home window, it is the home
-window.
+window says home is open in another window and to hold a tile there. With no home window, it is the home window.
 
 **A call.** A call starts, runs and ends as it does now, in the home window. Opening or closing other windows does
 nothing to it. A board's microphone stops when a call starts, in whichever window the board is. Chat's dictation gives
 way too.
 
 **Links with no home window.** A link or a Shortcut for a screen that has no window brings the home window back and
-shows it there. iOS never answers a link by opening a window on its own.
+shows it there.
 
 **A relaunch.** iPadOS may bring back only a screen's window when the app starts. The home window then opens too, a
 moment later, so there is always a way to the home screen after a launch.
@@ -66,11 +67,14 @@ screen.
   home window.
 - **A link takes over the home window**, as it always has. A *Jump to board* from a Chat window, with the boards not in
   a window of their own, closes what the home window is showing to show the boards there, a running Gym Timer included.
+  The home window comes forward as it happens, so the takeover is never out of sight.
 - **The screen lock** is the app's, not a window's: a call or a workout keeps every window lit.
 - **The gentle shake** can stop when one window goes to the background while another stays in front, until the app next
   comes back. A hard shake, ⌘I and the Report a problem tile still work. BugKit decides this, for the whole app.
 - **A report from the home window can name the wrong screen** right after Today or the card opened or closed in another
   window. The picture is still of the window in front.
+- **A report with two windows side by side can name either one's screen.** Both are active and iOS doesn't say which
+  was shaken. With one window in front, it names that one.
 
 ## Acceptance criteria
 
@@ -81,3 +85,6 @@ screen.
 - No screen shows in two windows at once.
 - A window the app has closed, or the system has, leaves no trace: its tile opens it again as usual.
 - A link, a Shortcut or a notification with the home window closed still lands somewhere.
+- A link that lands in the home window, from another window in front, brings the home window forward.
+- A card or Places window that closes leaves nothing behind: the card's widgets are current, the map is down, and a
+  drill asked for while the card was in a window doesn't start later.

@@ -1,4 +1,4 @@
-//  #634, stories 460-462: what each window draws.
+//  #634, stories 460-462, 470-473: what each window draws.
 
 import BugKit
 import ContextCore
@@ -50,8 +50,8 @@ private struct WindowSeat: ViewModifier {
   }
 }
 
-/// A window of the first group: the home screen, or the chooser when a home window is already up (story 462). A phone
-/// has the one window, so it goes straight to the home screen and asks nothing.
+/// A window with no screen of its own: the home screen, or a note when a home window is already up (story 462). A
+/// phone has the one window, so it goes straight to the home screen.
 struct HomeWindow: View {
   @ObservedObject var model: AppModel
   @State private var home: Bool?
@@ -61,7 +61,10 @@ struct HomeWindow: View {
       if !model.windowsAvailable || home == true {
         DiagnosticsView(model: model)
       } else if home == false {
-        WindowChooser(model: model)
+        Text("Home is open in another window. Hold a tile there to open a screen in a window of its own.")
+          .multilineTextAlignment(.center)
+          .padding()
+          .accessibilityIdentifier("window-home-elsewhere")
       } else {
         Color.clear
       }
@@ -70,35 +73,6 @@ struct HomeWindow: View {
     .bugReporting(model.reporter)
     .onOpenURL { model.open(url: $0) }
     .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
-  }
-}
-
-/// Story 462: a window the system opened with a home window already up. Showing home again would show every cover
-/// twice, since they all answer to the one model; this offers the screens that can have a window instead.
-struct WindowChooser: View {
-  let model: AppModel
-  @Environment(\.dismissWindow) private var dismissWindow
-
-  var body: some View {
-    NavigationStack {
-      List(WindowScreen.allCases, id: \.self) { screen in
-        if let row = HomeRow.row(screen.tile) {
-          Button {
-            model.openInNewWindow(screen, from: "chooser")
-            dismissWindow()
-          } label: {
-            Label {
-              Text(screen == .card ? "Card" : row.title)
-            } icon: {
-              LauncherIcon(row: row)
-            }
-          }
-          .accessibilityIdentifier("window-chooser-\(screen.rawValue)")
-        }
-      }
-      .navigationTitle("Open in a window")
-      .navigationBarTitleDisplayMode(.inline)
-    }
   }
 }
 

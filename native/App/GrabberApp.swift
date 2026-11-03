@@ -17,8 +17,7 @@ struct GrabberApp: App {
   }
 
   var body: some Scene {
-    // The home window (#634: one at a time; another from this group offers the screens instead, story 462). It alone
-    // takes links, so iOS never answers a link with a new window.
+    // The home window (#634: one at a time; another from this group says so instead, story 462). It alone takes links.
     WindowGroup(id: AppModel.homeWindowID) {
       HomeWindow(model: model)
         .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }
@@ -26,12 +25,14 @@ struct GrabberApp: App {
     .handlesExternalEvents(matching: ["*"])
     // Stories 460, 461: one screen in a window of its own.
     WindowGroup(for: WindowScreen.self) { $screen in
-      if let screen {
-        ScreenWindow(model: model, screen: screen)
-          .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }
-      } else {
-        WindowChooser(model: model)
+      Group {
+        if let screen {
+          ScreenWindow(model: model, screen: screen)
+        } else {
+          HomeWindow(model: model)
+        }
       }
+      .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }
     }
     .handlesExternalEvents(matching: [])
   }

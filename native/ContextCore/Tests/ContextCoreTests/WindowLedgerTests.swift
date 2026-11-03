@@ -1,4 +1,4 @@
-//  #634, stories 460-464: which window holds what, and the app's phase reported by every window.
+//  #634, stories 460-464, 470-482: which window holds what, and the app's phase reported by every window.
 
 import XCTest
 

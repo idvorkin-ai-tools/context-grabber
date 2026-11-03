@@ -1,10 +1,11 @@
-//  #634, stories 460-464 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the app
+//  #634, stories 460-464, 470-482 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
+//  app
 //  names each window by its scene session and does the opening.
 
 import Foundation
 
 /// A screen that can have a window of its own. The Gym Timer, breathing and the call screen are not here: each holds
-/// the audio session, and only the home window keeps them from overlapping (story 463).
+/// the audio session, and only the home window keeps them from overlapping (story 476).
 public enum WindowScreen: String, Codable, Hashable, CaseIterable, Sendable {
   case chat, today, cockpit, places, whiteboard, card
 
