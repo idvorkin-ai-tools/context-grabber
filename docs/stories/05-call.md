@@ -9,9 +9,9 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 080:
 
 - **Summary:** A Larry call keeps going when the phone locks or goes in a pocket
-- **Status:** implemented in [b8d45ca](https://github.com/idvorkin/context-grabber/commit/b8d45ca), [c1600f0](https://github.com/idvorkin/context-grabber/commit/c1600f0); verified by `callSession.test.ts` and on the phone (daily calls); native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (`CallSession*Tests`) and `just native-test-sim` (a call to the fake bridge, [9939b6a](https://github.com/idvorkin/context-grabber/commit/9939b6a)); the lock is the phone still to be checked by Igor; native no-sound fix [d9c1fd1](https://github.com/idvorkin/context-grabber/commit/d9c1fd1) (#146: the player reconnected when the mic finds the engine stopped) verified on the phone by Igor, 2026-10-05; #186 [326396a](https://github.com/idvorkin/context-grabber/commit/326396a) (the silent-mixer check waits for audio in hand 1.5 s; a failed reopen retries at 0.5, 1 and 2 s, then says the audio stopped) verified by `CallSilentMixerTests` (host, the phone's own timings) and the simulator build; on the phone not yet
+- **Status:** implemented in [b8d45ca](https://github.com/idvorkin/context-grabber/commit/b8d45ca), [c1600f0](https://github.com/idvorkin/context-grabber/commit/c1600f0); verified by `callSession.test.ts` and on the phone (daily calls); native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599); verified by `just native-test` (`CallSession*Tests`) and `just native-test-sim` (a call to the fake bridge, [9939b6a](https://github.com/idvorkin/context-grabber/commit/9939b6a)); the lock is the phone still to be checked by Igor; native no-sound fix [d9c1fd1](https://github.com/idvorkin/context-grabber/commit/d9c1fd1) (#146: the player reconnected when the mic finds the engine stopped) verified on the phone by Igor, 2026-10-05; #186 [326396a](https://github.com/idvorkin/context-grabber/commit/326396a) (the silent-mixer check waits for audio in hand 1.5 s; a failed reopen retries at 0.5, 1 and 2 s, then says the audio stopped) verified by `CallSilentMixerTests` (host, the phone's own timings) and the simulator build; on the phone not yet; #576 [8979f02](https://github.com/idvorkin/context-grabber/commit/8979f02) (a barge-in forgets the loud-audio mark), verified by host tests and a simulator compile; on the phone not yet
 
-- **Issues:** [#136](https://github.com/idvorkin/context-grabber/issues/136) (native: the bridge refused the native socket, which sent no Origin), #146, [#186](https://github.com/idvorkin/context-grabber/issues/186) (a needless reopen that failed left the call silent both ways), [#199](https://github.com/idvorkin/context-grabber/issues/199), [#198](https://github.com/idvorkin/context-grabber/issues/198)
+- **Issues:** [#576](https://github.com/idvorkin/context-grabber/issues/576) (a barge-in read as a silent mixer), [#136](https://github.com/idvorkin/context-grabber/issues/136) (native: the bridge refused the native socket, which sent no Origin), #146, [#186](https://github.com/idvorkin/context-grabber/issues/186) (a needless reopen that failed left the call silent both ways), [#199](https://github.com/idvorkin/context-grabber/issues/199), [#198](https://github.com/idvorkin/context-grabber/issues/198)
 
 #### Use Case:
 - **As a** Larry's client walking to school with the phone in a pocket
@@ -24,6 +24,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **and Given:** the phone's auto-lock is set to 30 seconds
 - **When:** I press the side button and keep talking to Larry for two minutes with the screen dark
 - **Then:** Larry answers every time, and on unlock the captions include everything said while locked and the timer is continuous
+
+- **Scenario:** Interrupting Larry doesn't cost me the mic (#576)
+- **Given:** a call is live and Larry is talking
+- **When:** I talk over Larry and the rest of Larry's audio is dropped
+- **Then:** the call keeps listening without a gap, and the audio isn't rebuilt or reported as trouble just because the dropped audio never played
 
 - **Issues:** [#74](https://github.com/idvorkin/context-grabber/issues/74) the ask; [#73](https://github.com/idvorkin/context-grabber/issues/73) subsumed
 
