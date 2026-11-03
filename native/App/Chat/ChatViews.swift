@@ -702,7 +702,6 @@ private struct ComposeBar: View {
         }
         .disabled(!hasImage)
         .accessibilityLabel("Paste image")
-        MicButton(voice: voice, thread: thread, draft: draft.text)
         TextField("Message Larry", text: $draft.text, axis: .vertical)
           .lineLimit(1...6)
           .padding(.horizontal, 12).padding(.vertical, 8)
@@ -710,8 +709,11 @@ private struct ComposeBar: View {
           .accessibilityIdentifier("chat-compose")
           .focused($focused)
           .id(field)
+        MicButton(voice: voice, thread: thread, draft: draft.text)
         Button(action: send) {
           Image(systemName: "arrow.up.circle.fill").font(.title)
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
         }
         .disabled(!draft.canAdd || target == .waiting)
         .accessibilityLabel("Send")
@@ -805,21 +807,25 @@ private struct MicButton: View {
     Button {
       voice.tap(thread: thread, draft: draft)
     } label: {
-      switch voice.phase {
-      case .idle:
-        Image(systemName: "mic").font(.title3)
-          .foregroundStyle(voice.callLive ? Color.secondary : Color.accentColor)
-      case .recording(let since):
-        HStack(spacing: 3) {
-          Image(systemName: "stop.circle.fill").font(.title3)
-          TimelineView(.periodic(from: since, by: 1)) { context in
-            Text(ChatVoice.elapsed(context.date.timeIntervalSince(since))).font(.caption.monospacedDigit())
+      Group {
+        switch voice.phase {
+        case .idle:
+          Image(systemName: "mic").font(.title3)
+            .foregroundStyle(voice.callLive ? Color.secondary : Color.accentColor)
+        case .recording(let since):
+          HStack(spacing: 3) {
+            Image(systemName: "stop.circle.fill").font(.title3)
+            TimelineView(.periodic(from: since, by: 1)) { context in
+              Text(ChatVoice.elapsed(context.date.timeIntervalSince(since))).font(.caption.monospacedDigit())
+            }
           }
+          .foregroundStyle(.red)
+        case .starting, .finishing:
+          ProgressView()
         }
-        .foregroundStyle(.red)
-      case .starting, .finishing:
-        ProgressView()
       }
+      .frame(minWidth: 44, minHeight: 44)
+      .contentShape(Rectangle())
     }
     .disabled(voice.phase == .starting || voice.phase == .finishing)
     .accessibilityLabel(label)
