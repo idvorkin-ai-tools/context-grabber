@@ -651,7 +651,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A thread reads like a chat and keeps up by itself
 - **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: messages with 👀/🏆 receipts and images, the seen request, an attachment address only for a ref the Cockpit mints), `sim-smoke.sh` (a link opens the thread, it is read and marked seen) and simulator screenshots (bubbles, links); on the phone not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#630](https://github.com/idvorkin/context-grabber/issues/630)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -663,7 +663,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Reading a thread
 - **Given:** a thread with my messages, Larry's replies and an image
 - **When:** I open it
-- **Then:** mine are on the right and his on the left, oldest at the top, opening at the newest; links are tappable and the image shows inline and full screen on a tap; under each of mine is *sent*, 👀 once Larry has seen it, or 🏆 with his note once it is done; and the thread reads as read here and on the laptop
+- **Then:** mine are on the right and his on the left, oldest at the top, opening at the newest; links are tappable and the image shows inline and full screen on a tap; under each of mine is *sent*, 👀 once the Cockpit has it, 🫡 once it is with Larry, or 🏆 with his note once it is done (a state this build doesn't know reads as 👀); and the thread reads as read here and on the laptop
 
 ---
 

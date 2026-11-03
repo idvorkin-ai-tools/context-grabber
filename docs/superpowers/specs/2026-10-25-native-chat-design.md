@@ -72,7 +72,9 @@ board as it is now, not the old picture, leaving the thread behind as any link d
 it. iCloud is asked first on every jump, so newer ink from another device is there when the board opens; out of
 iCloud's reach, it opens the last drawing this device knew of. A board that was deleted, that isn't on this device even
 after asking iCloud, or whose latest drawing didn't come down, says so in a copyable problem and the picture stays open. A picture from anywhere else has no button. Links are tappable. Under each of Igor's messages, its state: **Not sent yet**,
-sent, 👀 when Larry has seen it, 🏆 when the thing is done (with Larry's note). Opening a thread marks it read here
+sent, 👀 when the Cockpit has received it, 🫡 when it is with Larry, 🏆 when the thing is done (with Larry's note),
+the same ladder as the Cockpit's web page (Igor, 2026-11-03, #630: *"Look at how we do Telegram. Copy that for everyone."*). A
+state this build doesn't know reads as 👀. Opening a thread marks it read here
 and on the laptop. The thread updates by itself every few seconds while it is open, and the list on each return to
 it.
 
@@ -191,7 +193,7 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
   once when the network returns; Larry's reply appears in the open thread within seconds without a manual refresh.
 - Sharing a Safari link, a Notes text and a Photos image makes three new threads with sensible titles, in aeroplane
   mode too, each delivered once.
-- 👀 and 🏆 appear under Igor's messages as Larry marks them.
+- 👀 appears under Igor's message once the Cockpit has it, 🫡 once it is with Larry, 🏆 once Larry marks it done.
 - With the app closed, a reply from Larry eventually raises one notification for its thread; tapping it opens the
   thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises
   none.

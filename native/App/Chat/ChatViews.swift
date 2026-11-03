@@ -467,11 +467,14 @@ private struct MessageBubble: View {
   }
 
   @ViewBuilder private var receipt: some View {
-    switch message.receipt {
-    case .sent: Text("sent").font(.caption2).foregroundStyle(.secondary)
-    case .seen: Text("👀").font(.caption)
-    case .done:
-      Text("🏆" + (message.doneNote.map { " \($0)" } ?? "")).font(.caption).foregroundStyle(.secondary)
+    if let glyph = message.receipt.glyph {
+      if message.receipt == .done {
+        Text(glyph + (message.doneNote.map { " \($0)" } ?? "")).font(.caption).foregroundStyle(.secondary)
+      } else {
+        Text(glyph).font(.caption)
+      }
+    } else {
+      Text("sent").font(.caption2).foregroundStyle(.secondary)
     }
   }
 }

@@ -244,6 +244,23 @@ final class ChatTests: XCTestCase {
     XCTAssertNil(ChatWire.summaries(Data("<html>".utf8)))
   }
 
+  /// #630: the Cockpit's receipt ladder. A state this build doesn't know is received, no receipt at all is sent.
+  func testTheReceiptLadderDecodesAndDrawsTheCockpitsGlyphs() throws {
+    let json = #"""
+      {"ok": true, "messages": [
+        {"id": "a", "ts": "", "who": "igor", "text": "", "receipt": {"state": "received", "received_ts": "x"}},
+        {"id": "b", "ts": "", "who": "igor", "text": "", "receipt": {"state": "seen", "seen_ts": "x"}},
+        {"id": "c", "ts": "", "who": "igor", "text": "", "receipt": {"state": "done", "done_ts": "x"}},
+        {"id": "d", "ts": "", "who": "igor", "text": "", "receipt": {"state": "delivered"}},
+        {"id": "e", "ts": "", "who": "igor", "text": "", "receipt": null},
+        {"id": "f", "ts": "", "who": "igor", "text": ""}
+      ]}
+      """#
+    let messages = try XCTUnwrap(ChatWire.messages(Data(json.utf8)))
+    XCTAssertEqual(messages.map(\.receipt), [.received, .seen, .done, .received, .sent, .sent])
+    XCTAssertEqual(messages.map(\.receipt.glyph), ["👀", "🫡", "🏆", "👀", nil, nil])
+  }
+
   /// #603: the board a picture came from, echoed by the Cockpit; old rows have none.
   func testAMessageCarriesItsBoardWhenItHasOne() throws {
     let json = #"""
