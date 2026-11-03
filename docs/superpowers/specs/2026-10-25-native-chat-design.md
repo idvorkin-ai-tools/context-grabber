@@ -107,7 +107,8 @@ sound.
 
 A problem report opened during a recording (#559) leaves the recording running: the phone can't run two recognizers at
 once, and the first one would die with an error and lose its place. The report's own mic is off while the chat holds
-the microphone, as it is during a call; Igor can type the report, or stop the recording and then speak it.
+the microphone, as it is during a call; Igor can type the report, or stop the recording and then speak it. If the
+recording ends with the report still open, the report's mic comes back at his next keystroke.
 
 - **Which microphone.** Igor, 2026-10-26: *"make sure to be able to have a mic selector and then see the audio input
   levels."* A row across the bar, above the field, names the microphone the next recording will use —
