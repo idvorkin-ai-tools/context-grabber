@@ -74,7 +74,19 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
 }
 
 public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
-  public enum Receipt: String, Sendable { case sent, seen, done }
+  /// The Cockpit's ladder (#630): it has the message, Larry has it, Larry finished it. Only ever moves forward.
+  public enum Receipt: String, Sendable {
+    case sent, received, seen, done
+
+    public var glyph: String? {
+      switch self {
+      case .sent: return nil
+      case .received: return "👀"
+      case .seen: return "🫡"
+      case .done: return "🏆"
+      }
+    }
+  }
 
   public let id: String
   public let ts: String
@@ -118,7 +130,7 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     text = (try? c.decode(String.self, forKey: .text)) ?? ""
     attachments = (try? c.decode([String].self, forKey: .attachments)) ?? []
     let body = try? c.decode(ReceiptBody.self, forKey: .receipt)
-    receipt = body?.state.flatMap(Receipt.init(rawValue:)) ?? .sent
+    receipt = body?.state.map { Receipt(rawValue: $0) ?? .received } ?? .sent
     doneNote = body?.note
     board = (try? c.decode(String.self, forKey: .board)).flatMap { $0.isEmpty ? nil : $0 }
   }
