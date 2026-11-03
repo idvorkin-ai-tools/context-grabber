@@ -489,9 +489,11 @@ final class ChatTests: XCTestCase {
     }
     XCTAssertEqual(ChatWire.answerFailed([igor("a"), failure("e")]), ["a"])
     XCTAssertEqual(ChatWire.answerFailed([igor("a"), failure("e"), igor("b"), failure("f")]), ["a", "b"])
-    XCTAssertEqual(ChatWire.answerFailed([igor("a"), failure("e"), igor("b"), reply("r")]), [], "the retry answered both")
+    XCTAssertEqual(
+      ChatWire.answerFailed([igor("a"), failure("e"), igor("b"), reply("r")]), [], "the retry answered both")
     XCTAssertEqual(ChatWire.answerFailed([igor("a"), reply("r"), igor("b"), failure("e")]), ["b"])
-    XCTAssertEqual(ChatWire.answerFailed([igor("a"), reply("r"), failure("e")]), [], "a was answered before the failure")
+    XCTAssertEqual(
+      ChatWire.answerFailed([igor("a"), reply("r"), failure("e")]), [], "a was answered before the failure")
     XCTAssertEqual(ChatWire.answerFailed([igor("a")]), [], "still waiting is not a failure")
   }
 
