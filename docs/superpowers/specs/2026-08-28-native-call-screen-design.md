@@ -394,9 +394,11 @@ hung up on a phone that sent it nothing. Now the screen still says *microphone f
 watch runs from that moment: no buffer within the deadline gets the one audio reset, and still nothing gets the
 one-time redial. An audio reset that itself fails goes on to the redial rather than stopping there. A first
 buffer from the reset clears the *microphone failed* line. Diagnostics record, for every failed start of the
-audio engine, the session's category, mode, sample rate and route, whether other audio is playing, whether the
-app is in the foreground, the microphone's and speaker's formats, and the error's own code and underlying
-error, so the next failure says what refused.
+audio engine, the session's category, mode, sample rate and route, whether other audio is playing, the
+microphone's and speaker's formats, and the error's own code and underlying error, so the next failure says what
+refused. Every start, failed or not, records whether the app was in the foreground as it was tried
+([#582](https://github.com/idvorkin/context-grabber/issues/582)), so a start from the background can be told apart
+from one in front.
 
 **Let a Bluetooth microphone settle first** ([#423](https://github.com/idvorkin/context-grabber/issues/423)).
 A car's Bluetooth microphone can take seconds to become ready. When the current
