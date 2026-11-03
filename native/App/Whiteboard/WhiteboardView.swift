@@ -293,14 +293,11 @@ final class WhiteboardModel: ObservableObject {
 
   /// Story 419: the drawing as the Cockpit's strokes, in board points: each PencilKit spline sampled every few points
   /// (the stroke's transform applied), the ink's colour as it looks in light mode (black, not white), the width as
-  /// the mean of the stroke's own point sizes, and an id that is the same for the same ink on every send.
+  /// the mean of the stroke's own point sizes, and an id that is the same for the same ink on every send. Story 423:
+  /// only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
   private func strokesForLarry() -> [WhiteboardStrokes.Stroke] {
     let light = UITraitCollection(userInterfaceStyle: .light)
-    return drawing.strokes.prefix(WhiteboardStrokes.maxStrokes).map { stroke in
-      var points = stroke.path.interpolatedPoints(by: .distance(WhiteboardStrokes.spacing)).map {
-        $0.location.applying(stroke.transform)
-      }
-      if points.isEmpty, let first = stroke.path.first { points = [first.location.applying(stroke.transform)] }
+    return drawing.strokes.prefix(WhiteboardStrokes.maxStrokes).flatMap { stroke -> [WhiteboardStrokes.Stroke] in
       var red: CGFloat = 0
       var green: CGFloat = 0
       var blue: CGFloat = 0
@@ -312,9 +309,18 @@ final class WhiteboardModel: ObservableObject {
       let sizes = stroke.path.map(\.size.width)
       let width = sizes.isEmpty ? 3 : sizes.reduce(0, +) / CGFloat(sizes.count)
       let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
-      return WhiteboardStrokes.Stroke(
-        id: WhiteboardStrokes.id(points: points, color: color, t: t), t: t, color: color, width: width,
-        tool: WhiteboardStrokes.tool(rawValue: stroke.ink.inkType.rawValue), points: points)
+      let tool = WhiteboardStrokes.tool(rawValue: stroke.ink.inkType.rawValue)
+      return stroke.maskedPathRanges.map { range in
+        var points = stroke.path.interpolatedPoints(in: range, by: .distance(WhiteboardStrokes.spacing)).map {
+          $0.location.applying(stroke.transform)
+        }
+        if points.isEmpty {
+          points = [stroke.path.interpolatedPoint(at: range.lowerBound).location.applying(stroke.transform)]
+        }
+        return WhiteboardStrokes.Stroke(
+          id: WhiteboardStrokes.id(points: points, color: color, t: t), t: t, color: color, width: width, tool: tool,
+          points: points)
+      }
     }
   }
 

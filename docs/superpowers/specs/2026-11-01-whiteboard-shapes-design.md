@@ -98,10 +98,12 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   exactly as the app's own picture.
 - **A mark of his that Igor kept comes back to him as ink in his colour**, so he can tell a kept mark from a
   dismissed one; a mark that was never kept is in no picture and no stroke, by design.
-- **Nothing waits on the strokes.** If the Cockpit refuses them or can't be reached, the picture still goes, the
+- **Nothing waits on the strokes** (story 421). If the Cockpit refuses them or can't be reached, the picture still goes, the
   session log says what became of the strokes, and the bar says nothing. A *Send* waiting in the outbox keeps its
   strokes beside its picture and sends them first when the network is back.
 - The strokes are the whole board each time, never a difference: a stroke missing from a send was erased.
+- **Rubbed-out ink doesn't go** (story 423). What the pixel eraser removed is missing from the strokes as it is from
+  the picture; what is left of a stroke it cut goes as new strokes, one per stretch still visible.
 
 ### Not yet
 

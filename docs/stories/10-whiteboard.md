@@ -1563,7 +1563,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 419:
 
 - **Summary:** The board's strokes go to Larry with every picture
-- **Status:** implemented in this branch; verified by host tests (`WhiteboardStrokesTests`: the stable id, the colour and tool words, thinning, the request's body, the answer, the strokes waiting beside the picture in the outbox and going before it whatever the Cockpit answers; `WhiteboardMarksTests` unchanged); written on a Linux box with no Xcode, so neither built nor run on the simulator here: `just native-test` and a real send from the iPad against the Cockpit are owed (the Cockpit's side is idvorkin-ai-tools/cockpit#91)
+- **Status:** implemented in [d93c618](https://github.com/idvorkin/context-grabber/commit/d93c618), tests fixed in [1dbfb8b](https://github.com/idvorkin/context-grabber/commit/1dbfb8b); verified by host tests (`WhiteboardStrokesTests`: the stable id, the colour and tool words, thinning, the request's body, the answer, the strokes waiting beside the picture in the outbox and going before it), the simulator compile and the whiteboard UI tests on the simulator (18 passed); a real send from the iPad against the Cockpit is owed (the Cockpit's side is idvorkin-ai-tools/cockpit#91)
 - **Why:** Igor, 2026-11-03, on a tall board that reached Larry as a 248x2048 px sliver: "This sounds like a bug in your implementation. Can we send strokes instead?"
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -1578,17 +1578,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap *Larry's turn* or *Send to Larry*
 - **Then:** before the picture, every stroke on the board reaches the Cockpit in board points with its time, colour, width, tool and a stable id, under the picture's id; the picture follows as before and is what Chat shows
 
-- **Scenario:** The Cockpit refuses the strokes or is away
-- **Given:** the strokes route answering an error, or no network
-- **When:** I tap either button
-- **Then:** the picture still goes (or waits in the outbox with its strokes beside it), the bar says nothing about the strokes, and the session log says what became of them
-
 ---
 
 ### User Story 420:
 
 - **Summary:** The picture frames the drawing at a readable size
-- **Status:** implemented in this branch; verified by host tests (`WhiteboardFrameTests`: the pixel budget, a square board unchanged at 2048 px, the Nov 2 column at 712 x 5892 px instead of 248 x 2048, the long side capped at 8,000); not built here (no Xcode on the Linux box), so how a 5,900-pixel-tall picture looks in Chat is for the iPad
+- **Status:** implemented in [d93c618](https://github.com/idvorkin/context-grabber/commit/d93c618); verified by host tests (`WhiteboardFrameTests`: the pixel budget, the Nov 2 column at 712 x 5892 px instead of 248 x 2048, the long side capped at 8,000) and the simulator compile; how a 5,900-pixel-tall picture looks in Chat is owed on the iPad
 - **Why:** Igor, 2026-11-03: "And maybe zoom into the pages".
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1603,7 +1598,62 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** a picture of it goes to Larry or to Claude's ghost turn
 - **Then:** it is about 712 by 5,892 pixels (30-point handwriting at 18 px), not 248 by 2,048
 
+---
+
+### User Story 421:
+
+- **Summary:** The picture goes whatever became of the strokes
+- **Status:** implemented in [d93c618](https://github.com/idvorkin/context-grabber/commit/d93c618); verified by host tests (`WhiteboardStrokesTests`: a 500 to the strokes still sends the picture and logs the reason, with the strokes file not taken for an unreadable item); a send from the iPad before cockpit#91 merges, when the route doesn't exist, is owed
+- **Why:** Igor, 2026-11-03: the picture is the fallback, including until the Cockpit has the route
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** handing a board to Larry
+- **I want to** have the picture reach him even when the strokes don't
+- **so that** a Cockpit without the strokes route never costs me a turn
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit refuses the strokes or is away
+- **Given:** the strokes route answering an error, or no network
+- **When:** I tap *Larry's turn* or *Send to Larry*
+- **Then:** the picture still goes (or waits in the outbox with its strokes beside it), the bar says nothing about the strokes, and the session log says what became of them
+
+---
+
+### User Story 422:
+
+- **Summary:** A square sketch's picture stays as it was
+- **Status:** implemented in [d93c618](https://github.com/idvorkin/context-grabber/commit/d93c618); verified by host tests (`WhiteboardFrameTests`: a square board unchanged at 2048 px) and the simulator compile
+- **Why:** the pixel budget of story 420 is for tall boards; a square one already spent it well
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** sketching on a small part of a board
+- **I want to** have its picture stay as sharp as before
+- **so that** framing tall boards costs ordinary sketches nothing
+
+#### Acceptance Criteria:
 - **Scenario:** A square sketch
 - **Given:** a drawing about as wide as it is tall
 - **When:** its picture is made
 - **Then:** it is 2,048 pixels on a side as before, and never finer than the screen's 2x
+
+---
+
+### User Story 423:
+
+- **Summary:** Rubbed-out ink doesn't go to Larry as strokes
+- **Status:** implemented on this branch after [1dbfb8b](https://github.com/idvorkin/context-grabber/commit/1dbfb8b); PencilKit's visible ranges checked with a Mac probe of masked strokes (whole range without a mask, the visible part with one, nothing when all of it is masked), and the conversion compiled for the simulator; whether a real rub with the pixel eraser reaches the Cockpit as this is owed on the iPad
+- **Why:** the picture shows the ink gone, so the strokes have to agree, or Larry reads sharp words Igor erased
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** correcting a word with the pixel eraser
+- **I want to** have the part I rubbed out gone from what Larry reads
+- **so that** he never reads what I erased, and knows it was erased
+
+#### Acceptance Criteria:
+- **Scenario:** Part of a stroke rubbed out
+- **Given:** a stroke on the board with part of it rubbed out by the pixel eraser
+- **When:** I tap *Larry's turn* or *Send to Larry*
+- **Then:** the strokes carry only the part still visible, under new ids, so the Cockpit counts the old stroke as erased

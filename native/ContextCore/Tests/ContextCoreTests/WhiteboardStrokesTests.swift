@@ -137,9 +137,11 @@ final class WhiteboardStrokesTests: XCTestCase {
     draft.strokes = try JSONSerialization.data(
       withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
     let item = try draft.save(to: store, at: 1, id: "m1")
-    XCTAssertEqual(item.strokesFile, "m1.strokes.json")
-    XCTAssertEqual(store.item("m1")?.strokesFile, "m1.strokes.json", "the file's name survives the outbox")
+    XCTAssertEqual(item.strokesFile, "m1.strokes")
+    XCTAssertEqual(store.item("m1")?.strokesFile, "m1.strokes", "the file's name survives the outbox")
     XCTAssertNotNil(store.strokes(of: item))
+    XCTAssertEqual(store.items().items.map(\.id), ["m1"])
+    XCTAssertEqual(store.items().unreadable, [], "the strokes beside an item are not an unreadable item")
 
     let calls = Calls()
     let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
@@ -170,9 +172,10 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertEqual(lines.first?["action"] as? String, "sent")
     XCTAssertEqual(lines.first?["strokes_ok"] as? Bool, false)
     XCTAssertEqual(lines.first?["strokes_reason"] as? String, "HTTP 500")
+    XCTAssertEqual(store.items().unreadable, [], "nor once the item is sent")
 
     try store.delete(try XCTUnwrap(store.item("m1")))
-    XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent("m1.strokes.json").path))
+    XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent("m1.strokes").path))
   }
 
   func testAPictureWithoutStrokesSendsAsBefore() async throws {

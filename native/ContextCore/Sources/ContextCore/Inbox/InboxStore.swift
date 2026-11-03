@@ -100,7 +100,7 @@ public struct InboxStore: Sendable {
       item.imageFile = name
     }
     if let strokes {
-      let name = "\(item.id).strokes.json"
+      let name = "\(item.id).strokes"
       try strokes.write(to: directory.appendingPathComponent(name), options: .atomic)
       item.strokesFile = name
     }
