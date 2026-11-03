@@ -130,8 +130,6 @@ struct ChatListView: View {
     }
     .onAppear { chat.listOnScreen = true }
     .onDisappear { chat.listOnScreen = false }
-    // #424, story 262: a fixed thumb target; the last row can scroll fully clear of it.
-    .contentMargins(.bottom, 88, for: .scrollContent)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button(selecting ? "Cancel" : "Select") {
@@ -152,7 +150,9 @@ struct ChatListView: View {
           .accessibilityIdentifier("chat-archive-selected")
       }
     }
-    .overlay(alignment: .bottomTrailing) {
+    // #424, story 262: a fixed thumb target. #637, story 470: in its own bar, not floating over the list: a row behind
+    // the two buttons could not be swiped from where they cover it.
+    .safeAreaInset(edge: .bottom) {
       HStack(spacing: 12) {
         NewChatVoiceButton(chat: chat, voice: voice)
         Button {
@@ -165,7 +165,12 @@ struct ChatListView: View {
         .accessibilityIdentifier("inbox-add")
         .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
       }
-      .padding(16)
+      .padding(.top, 8)
+      .padding([.horizontal, .bottom], 16)
+      .frame(maxWidth: .infinity, alignment: .trailing)
+      .background(.bar)
+      .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("chat-new-bar")
     }
     .navigationDestination(isPresented: $chat.newChatOpen) {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
