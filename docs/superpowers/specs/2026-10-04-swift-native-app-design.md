@@ -45,7 +45,7 @@ grid-based place clustering is not used by the app and is not.
 
 - New features during the port. A journey is ported as its stories describe it; requests that come up become
   stories and wait.
-- Android, the web, Mac Catalyst.
+- Android, the web. Mac Catalyst was out of the port too, and came after it: [Grabber Native on the Mac](2026-11-03-native-mac-app-design.md).
 - Keeping both apps in step. The old app gets no new work except a fix Igor asks for.
 
 ## What Igor sees, step by step
