@@ -16,6 +16,7 @@ class WhiteboardPasteUITests: XCTestCase {
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
+    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if let text { app.launchEnvironment["GRABBER_WHITEBOARD_PASTE"] = text }

@@ -11,6 +11,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
   private func launch(_ environment: [String: String] = [:]) -> XCUIApplication {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
+    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:65530"
     for (key, value) in environment { app.launchEnvironment[key] = value }

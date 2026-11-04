@@ -178,13 +178,13 @@ appear on a real board.
 only pans, and four finger drags aren't enough to go on, so the next try on the iPad has to settle it before a story can
 claim anything about fingers.
 
-### A new board on paper, behind a switch
+### A new board on paper, by default
 
-(Igor, 2026-11-03: "Let's make it the default." While the rest of the rollout above isn't built, this stays behind a switch
-he turns on, device by device.)
+(Igor, 2026-11-03: "Let's make it the default." And 2026-11-04, from the iPad, #671: "Why is Try on paper not the default? Make it
+so." New boards are on paper from now on, on every device, though the rest of the rollout above isn't built.)
 
-- **The switch.** The boards list has a menu beside **+** with *New boards on paper*. It's off until he turns it on, and it's
-  remembered on this device only.
+- **The switch.** The boards list has a menu beside **+** with *New boards on paper*. It's on until he turns it off, and
+  turning it off is remembered on this device only: the way back to the old canvas while paper still lacks something.
 - **It decides one thing.** With it on, a board made with **+** on this device is on paper. It never moves a board: a board
   stays on the canvas it started on, whichever way the switch is set later. Every old board keeps opening on the old canvas.
 - **What a board on paper is.** The column of pages described under *One board*: 820 wide, about 1,060-tall pages, pinching

@@ -2389,20 +2389,20 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 590:
 
 - **Summary:** A switch for new boards on paper
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: off until turned on)
-- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f), and on by default since [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: on until turned off)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), [#671](https://github.com/idvorkin/context-grabber/issues/671)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
-- **As someone** trying the board on paper on one device
-- **I want to** turn new boards on paper on or off from the boards list
-- **so that** the old canvas stays the default until the rest is built
+- **As someone** who wants paper
+- **I want to** have new boards on paper unless I turn that off from the boards list
+- **so that** I get paper without asking, and can go back to the old canvas while paper lacks something
 
 #### Acceptance Criteria:
 - **Scenario:** A device that never touched the switch
 - **Given:** the boards list
 - **When:** I open its menu beside +
-- **Then:** *New boards on paper* is off
+- **Then:** *New boards on paper* is on
 
 ---
 
@@ -2634,8 +2634,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
-- **As someone** trying the board on paper on one device
-- **I want to** turn the switch on once
+- **As someone** who turned the switch off on this device
+- **I want to** turn the switch back on once
 - **so that** every new board here is on paper until I turn it off
 
 #### Acceptance Criteria:
@@ -2734,7 +2734,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
-- **As someone** who turned the switch off again
+- **As someone** who turned the switch off
 - **I want to** have the boards already on paper stay there
 - **so that** turning it off can't cost me a board
 
@@ -3603,3 +3603,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper
 - **When:** I keep a ghost, paste text, or undo or redo one of those
 - **Then:** the ink is on the screen within half a second, and the view stays where it is
+
+---
+
+### User Story 651:
+
+- **Summary:** Turning new boards on paper off
+- **Status:** implemented in [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: turned off from the menu and still off after a relaunch; with the switch set off by the launch hook, a new board is on the old canvas)
+- **Issues:** [#671](https://github.com/idvorkin/context-grabber/issues/671)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who needs the old canvas while paper lacks something
+- **I want to** turn the switch off once
+- **so that** every new board here is on the old canvas until I turn it back on
+
+#### Acceptance Criteria:
+- **Scenario:** Turning it off
+- **Given:** I turned *New boards on paper* off
+- **When:** I open the app again and tap +
+- **Then:** the new board is on the old canvas
