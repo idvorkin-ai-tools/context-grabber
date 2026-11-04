@@ -2562,7 +2562,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The top bar
 - **Given:** a board on paper
 - **When:** I look at its bar
-- **Then:** there's no paste button, and the Board menu has no grid. The Ghosts switch, the mic, *Larry's turn* and *Send to Larry* are there
+- **Then:** the Board menu has no grid. The Ghosts switch, the mic, *Larry's turn*, *Send to Larry* and the paste button are there
 
 ---
 
@@ -2808,21 +2808,21 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 611:
 
-- **Summary:** Paste isn't on paper yet
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); ⌘V wasn't run
+- **Summary:** Paste wasn't on paper at first
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); ⌘V wasn't run. Ended by [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6): stories 637, 638
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** used to pasting text as ink on the old canvas
-- **I want to** have ⌘V do nothing on paper for now
+- **I want to** have had ⌘V do nothing on paper until paste was built
 - **so that** no text lands where it can't be kept as it should
 
 #### Acceptance Criteria:
 - **Scenario:** Keys
 - **Given:** a board on paper
 - **When:** I press ⌘V
-- **Then:** it isn't built here yet: the old canvas's paste, which writes text as ink, doesn't run
+- **Then:** this held until stories 637 and 638, which replace it: the text lands
 
 ---
 
@@ -3323,3 +3323,188 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a mark kept on a board, which I then closed
 - **When:** I open another board and press Undo
 - **Then:** the closed board keeps that mark
+
+---
+
+### User Story 637:
+
+- **Summary:** Paste text onto a board on paper
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator through `GRABBER_WHITEBOARD_PASTE` (`WhiteboardPaperPasteUITests`: the letters read from the screen's pixels, across the middle; `WhiteboardPasteOnPaperUITests`: each line, the cap, the emoji note, Claude's pause). The bar's button itself is for the iPad, as XCUITest's taps never reach it. The iPad simulator wasn't run
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** writing on a board on paper
+- **I want to** paste text as ink, as on any board
+- **so that** paper doesn't cost me what I could already do
+
+#### Acceptance Criteria:
+- **Scenario:** The bar
+- **Given:** a board on paper and text on the clipboard
+- **When:** I tap Paste
+- **Then:** the letters land as ink in the middle of the paper on screen, and the stroke count goes up
+
+- **Scenario:** A phone's one page
+- **Given:** a new board on paper on a phone, its page shorter than the screen
+- **When:** I paste
+- **Then:** the text is on the paper, not in the margin around it
+
+---
+
+### User Story 638:
+
+- **Summary:** ⌘V on a board on paper
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`test1CommandVOnPaperAndCommandZ`: text after a stroke, read from the log as `paper_paste` how: key, went: ink). A real keyboard on the iPad is to try
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with a keyboard on a board on paper
+- **I want to** press ⌘V and have the text land
+- **so that** my hands don't leave the keys
+
+#### Acceptance Criteria:
+- **Scenario:** Keys
+- **Given:** a board on paper and text on the clipboard
+- **When:** I press ⌘V
+- **Then:** the text lands as it does from the button
+
+---
+
+### User Story 639:
+
+- **Summary:** One undo takes a paste back on paper
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator: one ⌘Z (`test1CommandVOnPaperAndCommandZ`), and an undo and a redo by a hook on a tall paste (`testATallPasteBringsItsPagesInOneUndo`). The tool picker's own Undo is for the iPad, as a phone's has none
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who pasted the wrong thing
+- **I want to** undo it in one press
+- **so that** a paste of many strokes is one thing to take back
+
+#### Acceptance Criteria:
+- **Scenario:** Undo
+- **Given:** a paste on a board with my strokes on it
+- **When:** I undo once
+- **Then:** the whole paste goes, and my strokes stay
+
+- **Scenario:** Redo
+- **Given:** a paste I undid
+- **When:** I redo
+- **Then:** the whole paste is back
+
+---
+
+### User Story 640:
+
+- **Summary:** A paste brings the pages it needs
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); the pages and their one undo verified on an iPhone simulator (`testATallPasteBringsItsPagesInOneUndo`: 40 lines, *Page 1 of 4*, and *Page 1 of 1* after the undo); no edge below verified by host tests only (`WhiteboardPasteTests`: page 29), as the simulator's test wasn't taken that far down
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** pasting something long
+- **I want to** have the board make room, wherever I am on it
+- **so that** a paste never hits an edge I can't see
+
+#### Acceptance Criteria:
+- **Scenario:** Tall
+- **Given:** a paste taller than the pages left
+- **When:** it lands
+- **Then:** the pages it needs come with it, with a blank one below
+
+- **Scenario:** Far down
+- **Given:** a view past where the old canvas ended
+- **When:** I paste
+- **Then:** the text is in the middle of that view
+
+---
+
+### User Story 641:
+
+- **Summary:** Copied strokes paste on a board on paper
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator with hooks (`testCopiedStrokesPaste`: PaperKit's own clipboard format, *landed_here*), and the middle of the view by host tests (`BoardPagesTests`). A real lasso Copy can't be worked on the simulator, and nothing took the system's Copy there, so what a real copy puts on the clipboard, and whether PaperKit pastes it itself, is for the iPad: `paper_paste`'s `types` and `went`
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** moving ink around with the lasso
+- **I want to** paste the strokes I copied with ⌘V
+- **so that** pasting text doesn't cost me pasting ink
+
+#### Acceptance Criteria:
+- **Scenario:** Copied strokes
+- **Given:** strokes on the clipboard and no text
+- **When:** I press ⌘V
+- **Then:** they land as ink at their own size, in the middle of the paper on screen unless PaperKit places them itself
+
+- **Scenario:** Text wins
+- **Given:** text on the clipboard too
+- **When:** I press ⌘V
+- **Then:** the text lands
+
+---
+
+### User Story 642:
+
+- **Summary:** A paste stays on the page
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified by host tests (`WhiteboardPasteTests`: long text, a view by the right edge, above the first page); on an iPhone simulator only as far as a short paste across the middle
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** pasting while zoomed in by a page's edge
+- **I want to** have nothing land past the side
+- **so that** I never paste where paper can't show it
+
+#### Acceptance Criteria:
+- **Scenario:** By the edge
+- **Given:** a view near a page's side
+- **When:** I paste
+- **Then:** the text is wholly on the page
+
+- **Scenario:** Wide
+- **Given:** a line wider than the part of the page on screen
+- **When:** I paste
+- **Then:** it wraps
+
+---
+
+### User Story 643:
+
+- **Summary:** Larry knows a paste by the same names
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`testAPastesStrokesKeepTheirNamesForLarry`: the same two ids at the fake Cockpit before and after a relaunch; `paper_keep`'s `same_ids` true and `drift` 0). That the letters are in the picture is the old canvas's code, on the same drawing, and wasn't looked at. A real Cockpit wasn't used
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** working with Larry on a board with pasted text
+- **I want to** have him see the letters as ink, the same every time
+- **so that** he knows what's new
+
+#### Acceptance Criteria:
+- **Scenario:** Sent again
+- **Given:** a paste on a board on paper, sent to Larry
+- **When:** I close and open the board and send it again
+- **Then:** every letter's stroke goes under the same name, and the letters are in the picture, dark on white
+
+---
+
+### User Story 644:
+
+- **Summary:** A picture on the clipboard isn't pasted on paper
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator through a hook (`testAPictureIsNotPasted`: `went`: refused_picture, no red on the screen's pixels, the count unchanged). Pasting images remains a non-goal on every board
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with a picture on the clipboard from somewhere else
+- **I want to** have ⌘V leave the board alone
+- **so that** nothing lands that would vanish when I leave, as only strokes are saved
+
+#### Acceptance Criteria:
+- **Scenario:** A picture
+- **Given:** a picture on the clipboard and no text or strokes
+- **When:** I press ⌘V
+- **Then:** the board doesn't change
