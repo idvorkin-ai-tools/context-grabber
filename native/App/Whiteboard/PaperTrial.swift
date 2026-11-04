@@ -52,7 +52,6 @@ extension WhiteboardStore {
 }
 
 /// The screen: the trial under a title, one line of what to try, the page number, Close and the Trial menu.
-@available(iOS 27, *)
 struct PaperTrialView: View {
   @StateObject private var trial: PaperTrial
   private let onClose: () -> Void
@@ -138,7 +137,6 @@ struct PaperTrialView: View {
   }
 }
 
-@available(iOS 27, *)
 private struct PaperTrialHost: UIViewControllerRepresentable {
   let trial: PaperTrial
   func makeUIViewController(context: Context) -> PaperTrial { trial }
@@ -146,7 +144,6 @@ private struct PaperTrialHost: UIViewControllerRepresentable {
 }
 
 /// PaperKit's controller can't be subclassed, so this holds it, with the ring and the probes beside it.
-@available(iOS 27, *)
 @MainActor
 final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewController.Delegate {
   enum Finger: String { case system, selects, draws }

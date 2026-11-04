@@ -2084,7 +2084,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 525:
 
 - **Summary:** The trial isn't offered before iOS 27
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); by construction, not run: there's no older simulator here, and PaperKit is weak linked (`otool -L`)
+- **Status:** retired by [bacbc3e](https://github.com/idvorkin/context-grabber/commit/bacbc3e): the whole app now needs iOS 27, so there's no older system left to offer it on (built for the simulator, every bundle's minimum read as 27.0). Implemented earlier in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 

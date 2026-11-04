@@ -28,8 +28,7 @@ enum PlaceIconLookup {
   private static func run(_ search: MKLocalSearch) async throws -> [PointOfInterest] {
     do {
       return try await search.start().mapItems.map { item in
-        let c: CLLocationCoordinate2D
-        if #available(iOS 26, *) { c = item.location.coordinate } else { c = item.placemark.coordinate }
+        let c = item.location.coordinate
         return PointOfInterest(
           name: item.name, category: item.pointOfInterestCategory?.rawValue,
           coordinate: Coordinate(latitude: c.latitude, longitude: c.longitude))
