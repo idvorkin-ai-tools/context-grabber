@@ -105,6 +105,13 @@ final class PaperProbeTests: XCTestCase {
     XCTAssertTrue(PaperProbe.outcome(facts).contains("zoomed"))
   }
 
+  func testAFingerTapIsShortStillAndAlone() {
+    XCTAssertTrue(PaperProbe.isFingerTap(travel: 3, seconds: 0.1, fingers: 1))
+    XCTAssertFalse(PaperProbe.isFingerTap(travel: 10, seconds: 0.1, fingers: 1), "it went somewhere")
+    XCTAssertFalse(PaperProbe.isFingerTap(travel: 3, seconds: 0.5, fingers: 1), "it stayed down")
+    XCTAssertFalse(PaperProbe.isFingerTap(travel: 3, seconds: 0.1, fingers: 2), "the start of a pinch")
+  }
+
   func testALongStillTouchIsAPress() {
     var facts = PaperProbe.TouchFacts()
     facts.seconds = 1
