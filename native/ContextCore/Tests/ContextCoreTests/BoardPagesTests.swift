@@ -227,6 +227,20 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(pages.openingY(remembered: .nan, pages: 3), 0)
   }
 
+  // MARK: A mark past the page's side (the spec's "Ghosts and Larry on paper")
+
+  func testAMarkPastTheColumnIsTold() {
+    let inside = [[CGPoint(x: 0, y: 0), CGPoint(x: 820, y: 1_060)]]
+    XCTAssertFalse(pages.reachesPastSide(inside))
+    XCTAssertTrue(pages.reachesPastSide([[CGPoint(x: 821, y: 10)]]), "past the right")
+    XCTAssertTrue(pages.reachesPastSide([[CGPoint(x: -1, y: 10)]]), "past the left")
+    XCTAssertTrue(pages.reachesPastSide([[CGPoint(x: 10, y: -1)]]), "above the first page")
+    XCTAssertFalse(pages.reachesPastSide([[CGPoint(x: 10, y: 5_000)]]), "far down isn't past a side")
+    XCTAssertTrue(BoardPages(width: 1_000).reachesPastSide([[CGPoint(x: 1_001, y: 0)]]))
+    XCTAssertFalse(BoardPages(width: 1_000).reachesPastSide([[CGPoint(x: 1_000, y: 0)]]), "a wider board holds more")
+    XCTAssertFalse(pages.reachesPastSide([]))
+  }
+
   func testTheFitZoomIsWhatFitsTheColumn() {
     XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 820, atZoom: 1, column: 820), 1)
     XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 402, atZoom: 1, column: 820), 402.0 / 820)

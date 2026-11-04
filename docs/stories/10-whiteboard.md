@@ -2549,7 +2549,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 598:
 
 - **Summary:** A board on paper says what it can't do yet
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2562,7 +2562,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The top bar
 - **Given:** a board on paper
 - **When:** I look at its bar
-- **Then:** there's no ghosts switch, no *Larry's turn*, no mic and no paste button, and the Board menu has no grid
+- **Then:** there's no paste button, and the Board menu has no grid. The Ghosts switch, the mic, *Larry's turn* and *Send to Larry* are there
 
 ---
 
@@ -2789,7 +2789,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 610:
 
 - **Summary:** Send to Larry from a board on paper
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); *Send to Larry* is the old canvas's code, its button enabled on paper, and wasn't tapped on paper
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); *Send to Larry* is the old canvas's code, its button enabled on paper, and wasn't tapped on paper
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2802,7 +2802,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Larry
 - **Given:** a board on paper with ink
 - **When:** I tap *Send to Larry*
-- **Then:** the whole drawing goes, his reply shows in Chat, and marks he draws in answer don't come to the board yet
+- **Then:** the whole drawing goes, his reply shows in Chat, and marks he draws in answer come to the board (story 621)
 
 ---
 
@@ -2843,3 +2843,483 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with ink that can't be saved
 - **When:** I go back
 - **Then:** the boards list shows the problem until that board next saves
+
+---
+
+### User Story 613:
+
+- **Summary:** Ghosts come to a board on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator by every old-canvas turn test run on paper (`WhiteboardTurnOnPaperUITests`, bar the colour's dark mode and the grid), and on an iPad simulator by two of them; and `WhiteboardPaperGhostsUITests` on an iPhone and an iPad simulator, read from the screen's pixels. A real Claude answer is for the iPad
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing on a board on paper
+- **I want to** see the same faint suggestions as on any board when I pause
+- **so that** paper doesn't cost me drawing with someone
+
+#### Acceptance Criteria:
+- **Scenario:** A pause
+- **Given:** a board on paper with Ghosts on
+- **When:** I draw a stroke and pause
+- **Then:** a faint orange shape appears, and the bar says *1 suggestion: tap one to keep it*
+
+---
+
+### User Story 614:
+
+- **Summary:** A ghost stays on the ink as the board moves
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardPaperGhostsUITests`: pinched in, the ghost's place against the ink read from the pixels; `ghost_slip` was 0 in the log of a run of that pinch at 0.49 to 0.67 zoom). XCUITest's pinch barely moves on an iPad simulator, so that test skips there. How it looks through a fast scroll at 120 Hz is for the iPad: `paper_touch`'s `ghost_slip` and `ghost_checks`
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** looking around a board with suggestions on it
+- **I want to** have a ghost stay where it was drawn when I scroll or pinch
+- **so that** it never drifts off what it's about
+
+#### Acceptance Criteria:
+- **Scenario:** Scroll and pinch
+- **Given:** a ghost beside my ink on a board on paper
+- **When:** I scroll or pinch
+- **Then:** the ghost moves and zooms exactly as the ink does, and doesn't trail behind
+
+---
+
+### User Story 615:
+
+- **Summary:** A tap keeps a ghost on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and [e3167f1](https://github.com/idvorkin/context-grabber/commit/e3167f1); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: orange ink where the ghost was, from the pixels)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** looking at a suggestion I like
+- **I want to** tap it with a finger and have it become ink
+- **so that** keeping it is as easy as on any board
+
+#### Acceptance Criteria:
+- **Scenario:** On a ghost
+- **Given:** a ghost on a board on paper
+- **When:** I tap it
+- **Then:** it becomes ink in its author's colour, in the same place, and the stroke count goes up by its strokes
+
+---
+
+### User Story 616:
+
+- **Summary:** A finger doesn't draw while ghosts show on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and [e3167f1](https://github.com/idvorkin/context-grabber/commit/e3167f1); verified on an iPhone simulator and an iPad simulator, where a finger draws (`WhiteboardPaperGhostsUITests`, `WhiteboardTurnOnPaperUITests`: no dot, and the next stroke draws). What a finger drag does while ghosts show, with a Pencil paired or not, isn't settled: `paper_touch`'s `touch_mode` is `selection` then
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing with a finger, on a phone or an iPad with no Pencil
+- **I want to** keep or dismiss a ghost with the finger I draw with
+- **so that** a tap doesn't leave a dot or select my ink
+
+#### Acceptance Criteria:
+- **Scenario:** A tap off them
+- **Given:** a finger draws here, and ghosts show
+- **When:** I tap away from them
+- **Then:** they're all dismissed, no dot is drawn and nothing is selected, and my finger draws again
+
+---
+
+### User Story 617:
+
+- **Summary:** One undo takes a kept mark back
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`, by a hook, `GRABBER_WHITEBOARD_AFTER_KEEP`). The tool picker's own Undo and ⌘Z weren't pressed: a phone's picker has none, and keys reach only a run's first test. PaperKit registers no undo for a markup that's set, so this step is the app's own
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who kept a suggestion and thought again
+- **I want to** undo it with one press
+- **so that** my eraser and undo treat it as my own ink
+
+#### Acceptance Criteria:
+- **Scenario:** Undo
+- **Given:** a kept ghost
+- **When:** I undo once
+- **Then:** it's gone, and my strokes before it stay
+
+---
+
+### User Story 618:
+
+- **Summary:** A kept mark past the last page brings its pages
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the fake's `/far`, *Page 1 of 6*, kept by a hook). A ghost that far down can't be seen until it's kept: the Cockpit has never been seen to answer that far from the ink
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** whose suggestion lands below the last page
+- **I want to** have the board make room for it
+- **so that** kept ink is never out of reach below
+
+#### Acceptance Criteria:
+- **Scenario:** Far down
+- **Given:** a mark below the last page
+- **When:** it's kept
+- **Then:** the pages down to it come with it, and a blank one below
+
+---
+
+### User Story 619:
+
+- **Summary:** A kept mark has one name for Larry
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the same two ids at the fake Cockpit before and after closing and opening the board). `paper_keep`'s `same_ids` was true on every keep in both simulators' logs, with `drift` 0: the mark's id is the same before and after PaperKit. A real Cockpit wasn't used
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** working with Larry on a board that changes
+- **I want to** have each stroke keep its name every time it's sent
+- **so that** Larry knows what's new and doesn't see the board as redrawn
+
+#### Acceptance Criteria:
+- **Scenario:** Kept and sent again
+- **Given:** a kept mark on a board on paper, sent to Larry
+- **When:** I close and open the board and send it again
+- **Then:** every stroke goes under the same name
+
+---
+
+### User Story 620:
+
+- **Summary:** A ghost is never saved on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: killed with a ghost showing, and one stroke after the relaunch). The strokes sent to Larry hold only ink, as story 619's two ids show
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** leaving a board with a suggestion on it
+- **I want to** have only what I drew or kept stay
+- **so that** an unkept suggestion never turns into my ink
+
+#### Acceptance Criteria:
+- **Scenario:** Left showing
+- **Given:** a ghost on a board on paper
+- **When:** the app is killed after the save
+- **Then:** the board opens with my strokes and no ghost of Claude's
+
+---
+
+### User Story 621:
+
+- **Summary:** Larry's turn from a board on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: his two marks beside Claude's one, unprompted ones replacing them) and an iPad simulator (the first of those). Where his marks land on real ink is for the iPad, with a real Larry
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** wanting Larry's hand on a board on paper
+- **I want to** tap *Larry's turn* and have his marks come back on the board
+- **so that** paper doesn't send his answers off to Chat only
+
+#### Acceptance Criteria:
+- **Scenario:** His turn
+- **Given:** a board on paper with ink
+- **When:** I tap *Larry's turn*
+- **Then:** his marks arrive by themselves in blue, kept by a tap like Claude's, and his words show in the bar
+
+---
+
+### User Story 622:
+
+- **Summary:** Talk to a board on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the turn verified on an iPhone simulator with the spoken-words hook (`WhiteboardTurnOnPaperUITests`: words on an empty board bring a ghost, and nothing with Ghosts off). The microphone itself, and a call taking it, are for the iPad
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** talking while I draw on paper
+- **I want to** ask Claude out loud as on any board
+- **so that** my voice works whichever canvas a board is on
+
+#### Acceptance Criteria:
+- **Scenario:** Words
+- **Given:** a board on paper, empty or not
+- **When:** I tap the mic and say *draw a circle*
+- **Then:** a ghost comes about as soon as on the old canvas, in the part on screen when the board is empty
+
+---
+
+### User Story 623:
+
+- **Summary:** The Pencil holds Claude's pause on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the rule's own tests are the host's (`WhiteboardPacerTests`); a finger stroke's pause verified on the simulators (every ghost test above). The Pencil is only on the iPad: PaperKit tells when drawing begins and not when it ends, so the lift is read from the touch, and `paper_touch`'s `began_drawing` with `whiteboard_turn`'s timing will show it
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** still drawing with the Pencil
+- **I want to** not be interrupted by a turn between strokes
+- **so that** Claude answers when I stop, as on any board
+
+#### Acceptance Criteria:
+- **Scenario:** Touching down
+- **Given:** a pause under way
+- **When:** the Pencil touches down
+- **Then:** the pause stops, and starts over when it lifts
+
+---
+
+### User Story 624:
+
+- **Summary:** A mark past the page's side, for now
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the telling verified by host tests (`BoardPagesTests`); the case not driven on the simulator. The log's `paper_ghosts` says `past_side`. A later step widens the board for these
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** whose suggestion lands past the page's edge
+- **I want to** know nothing is lost
+- **so that** the board's later widening has all of it
+
+#### Acceptance Criteria:
+- **Scenario:** Past the side
+- **Given:** a mark past the column's side or above its top
+- **When:** it shows
+- **Then:** it shows only as far as the column does
+
+---
+
+### User Story 625:
+
+- **Summary:** A ghost lies under the ink on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); seen on simulator screenshots of an iPhone (a ghost beside ink, and zoomed). A ghost crossing ink wasn't shown in a test, and how it looks is for Igor's eye on the iPad. This differs from the old canvas, and it's his to overrule
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** looking at a suggestion across my own writing
+- **I want to** see my ink on top of it
+- **so that** it can't lag behind the board
+
+#### Acceptance Criteria:
+- **Scenario:** Crossing
+- **Given:** a ghost crossing my ink on a board on paper
+- **When:** I look at it
+- **Then:** the ink is on top, and the ghost shows either side of it
+
+---
+
+### User Story 626:
+
+- **Summary:** The log says what ghosts did on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the lines read from the simulators' logs (`paper_ghosts`, `paper_tap`, `paper_keep`, `paper_step`, and `paper_touch`'s `ghost_slip` and `ghost_checks`). What they say on the iPad is to come
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** working out on the iPad what the simulator can't show
+- **I want to** have the log say where a ghost sat and what each tap and keep did
+- **so that** the next try settles it without another build
+
+#### Acceptance Criteria:
+- **Scenario:** A try on the iPad
+- **Given:** a board on paper with ghosts
+- **When:** I scroll, tap and keep
+- **Then:** the log says how far a ghost slipped, what the tap came to, and what the keep did to undo and to the strokes' names
+
+---
+
+### User Story 627:
+
+- **Summary:** Ghosts off asks nothing on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: `testGhostsOffAsksNothing`)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing alone on a board on paper
+- **I want to** turn the suggestions off
+- **so that** nothing interrupts me
+
+#### Acceptance Criteria:
+- **Scenario:** Ghosts off
+- **Given:** a board on paper with Ghosts off
+- **When:** I draw and pause
+- **Then:** nothing is asked and nothing appears
+
+---
+
+### User Story 628:
+
+- **Summary:** A tap keeps a ghost during a Pencil stroke
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and [e3167f1](https://github.com/idvorkin/context-grabber/commit/e3167f1); not verified: a Pencil is only on the iPad, and `paper_tap` will show it
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing with the Pencil in one hand
+- **I want to** keep a suggestion with a finger of the other
+- **so that** I don't have to stop drawing to keep it
+
+#### Acceptance Criteria:
+- **Scenario:** During a stroke
+- **Given:** a ghost, and the Pencil drawing
+- **When:** I tap the ghost with a finger
+- **Then:** it's kept, and the stroke under way goes on
+
+---
+
+### User Story 629:
+
+- **Summary:** A palm doesn't dismiss ghosts on paper
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and [e3167f1](https://github.com/idvorkin/context-grabber/commit/e3167f1); not driven on a simulator: a touch the system calls off is for the iPad
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** resting my hand on the glass
+- **I want to** have that touch not count as a tap
+- **so that** my palm doesn't throw away the suggestions
+
+#### Acceptance Criteria:
+- **Scenario:** A palm
+- **Given:** ghosts show
+- **When:** the system calls off a touch, as it does a palm
+- **Then:** the ghosts stay
+
+---
+
+### User Story 630:
+
+- **Summary:** Redo brings a kept mark back
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: by the same hook as story 617, orange ink back from the pixels)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who undid a kept suggestion and thought again
+- **I want to** redo it with one press
+- **so that** it comes back as any ink does
+
+#### Acceptance Criteria:
+- **Scenario:** Redo
+- **Given:** a kept ghost I undid
+- **When:** I redo
+- **Then:** it's back where it was
+
+---
+
+### User Story 631:
+
+- **Summary:** The undo after a kept mark takes the stroke before it
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: by the same hook as story 617, none of his ink left, from the pixels)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** stepping back through what's on the board
+- **I want to** have undo go on past a kept mark to my own strokes
+- **so that** the kept mark doesn't stop the steps behind it
+
+#### Acceptance Criteria:
+- **Scenario:** Before it
+- **Given:** a kept ghost I undid
+- **When:** I undo again
+- **Then:** the stroke before it goes
+
+---
+
+### User Story 632:
+
+- **Summary:** One undo takes a kept mark and the pages it brought
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the fake's `/far`, *Page 1 of 6* then *Page 1 of 2*, by a hook)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who kept a suggestion far down the board
+- **I want to** undo it and its pages together
+- **so that** no empty pages are left behind
+
+#### Acceptance Criteria:
+- **Scenario:** With its page
+- **Given:** a kept mark that brought pages
+- **When:** I undo once
+- **Then:** the mark and those pages both go
+
+---
+
+### User Story 633:
+
+- **Summary:** Larry's marks come back when a board on paper opens
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: the newest set on reopening, a dismissed set staying gone)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** coming back to a board Larry drew on
+- **I want to** find his newest marks where they were
+- **so that** closing a board doesn't cost me his answer, and what I dismissed stays dismissed
+
+#### Acceptance Criteria:
+- **Scenario:** Reopened
+- **Given:** his marks showing
+- **When:** I close and open the board
+- **Then:** his newest set is there, and a set I dismissed stays gone
+
+---
+
+### User Story 634:
+
+- **Summary:** Drawing during a turn on paper brings another after the next pause
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the rule's own tests are the host's (`WhiteboardPacerTests`). With the Pencil on paper it's for the iPad
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** still drawing while Claude answers
+- **I want to** be answered about what I added too
+- **so that** a turn under way doesn't swallow my new strokes
+
+#### Acceptance Criteria:
+- **Scenario:** During a turn
+- **Given:** a turn on its way
+- **When:** I draw and lift
+- **Then:** a new turn comes after the next pause
+
+---
+
+### User Story 635:
+
+- **Summary:** A kept mark past the page's side is saved and sent
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the case not driven on the simulator. A later step widens the board for these
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** keeping a suggestion that runs past the page's edge
+- **I want to** have all of it kept, not just what shows
+- **so that** the board's later widening has all of it
+
+#### Acceptance Criteria:
+- **Scenario:** Kept past the side
+- **Given:** a mark past the column's side or above its top, that I can reach
+- **When:** I keep it
+- **Then:** it's saved and sent like any ink, and what's past the column is out of reach on paper
+
+---
+
+### User Story 636:
+
+- **Summary:** An undo doesn't outlive its board
+- **Status:** implemented with the review fixes of #636, on paper and on the old canvas; built only, not driven on a simulator. Which undo stack a board has is for the iPad: `paper_keep`'s `undo_on_window` and `paper_undo_closed`
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** going from one board to the next
+- **I want to** have Undo on the new board never reach back
+- **so that** a board I closed can't lose a kept mark without my seeing
+
+#### Acceptance Criteria:
+- **Scenario:** The next board
+- **Given:** a mark kept on a board, which I then closed
+- **When:** I open another board and press Undo
+- **Then:** the closed board keeps that mark

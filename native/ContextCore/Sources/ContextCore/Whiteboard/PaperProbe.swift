@@ -154,6 +154,11 @@ public enum PaperProbe {
     return facts.travel < 10 && facts.seconds < 0.5 ? "tap" : (facts.travel < 10 ? "press" : "drag")
   }
 
+  /// A finger's tap on a ghost: short, staying put, and the only finger, whatever a Pencil is doing beside it.
+  public static func isFingerTap(travel: CGFloat, seconds: Double, fingers: Int) -> Bool {
+    fingers == 1 && travel < 10 && seconds < 0.5
+  }
+
   /// One scroll or pinch, from the first change seen to the view settling: how often the delegate reported it against
   /// what each screen frame could see, and how far a thing placed from the delegate's numbers slipped (question 3).
   public struct Glide: Equatable, Sendable {
