@@ -74,7 +74,7 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Use Case:
 - **As Igor,** waiting on a test run
 - **I want to** have tests move on as soon as what they're waiting for is there
-- **so that** waits for animations, and pauses of a set length, stop adding up to minutes
+- **so that** looks that come a second late, and pauses of a set length, stop adding up to minutes
 
 #### Acceptance Criteria:
 - **Scenario:** The thing is already on screen
