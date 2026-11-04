@@ -2284,7 +2284,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 535:
 
 - **Summary:** Always one blank page below the last ink
-- **Status:** the page count implemented in [6c47bed](https://github.com/idvorkin/context-grabber/commit/6c47bed); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
+- **Status:** the page count implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2299,12 +2299,17 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** my ink goes past the end of page 1
 - **Then:** the board has three pages, the last of them blank
 
+- **Scenario:** Ink stopping exactly at a page's end
+- **Given:** a new board, which is one blank page
+- **When:** my ink reaches the end of page 1 and goes no further
+- **Then:** the board has two pages, and page 2 still counts as the blank one
+
 ---
 
 ### User Story 536:
 
 - **Summary:** A mark is on the page that holds it
-- **Status:** the page of a point implemented in [6c47bed](https://github.com/idvorkin/context-grabber/commit/6c47bed); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
+- **Status:** the page of a point implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2324,7 +2329,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 537:
 
 - **Summary:** Pages stack edge to edge, and a line marks where each ends
-- **Status:** page edges and end lines implemented in [6c47bed](https://github.com/idvorkin/context-grabber/commit/6c47bed); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
+- **Status:** page edges and end lines implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2344,7 +2349,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 538:
 
 - **Summary:** Every page is ruled the same
-- **Status:** the line positions implemented in [6c47bed](https://github.com/idvorkin/context-grabber/commit/6c47bed); verified by host tests (`BoardPagesTests`); not on any screen yet (the *Ruled lines* choice is a later slice), and the 40-point spacing is provisional until Igor has seen it
+- **Status:** the line positions implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet (the *Ruled lines* choice is a later slice), and the 40-point spacing is provisional until Igor has seen it
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2364,7 +2369,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 539:
 
 - **Summary:** Moving onto pages never scales a stroke
-- **Status:** the move implemented in [6c47bed](https://github.com/idvorkin/context-grabber/commit/6c47bed); verified by host tests (`BoardPagesTests`); no real board has moved yet: that's a later slice
+- **Status:** the move implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); no real board has moved yet: that's a later slice
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 

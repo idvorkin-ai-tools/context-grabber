@@ -35,21 +35,21 @@ public enum PaperProbe {
     /// What to move the ink by.
     public var shift: CGVector
 
-    private var board: BoardPages { BoardPages(origin: origin, width: width) }
+    private var board: BoardPages { BoardPages(width: width) }
 
-    public var bounds: CGRect { board.bounds(pages: heldPages) }
+    public var bounds: CGRect { board.bounds(pages: heldPages).offsetBy(dx: origin.x, dy: origin.y) }
 
     /// How much of the held column is cut off the bottom, in board points.
     public var trim: CGFloat { CGFloat(heldPages - pages) * pageHeight }
 
     /// The page holding `y` on the board, 1-based, within the pages a person can reach.
     public func page(at y: CGFloat) -> Int {
-      min(board.page(at: CGPoint(x: origin.x, y: y)), pages)
+      min(board.page(at: CGPoint(x: 0, y: y - origin.y)), pages)
     }
 
     /// True when ink as low as `inkMaxY` leaves no blank page below it.
     public func needsPage(inkMaxY: CGFloat) -> Bool {
-      board.pagesNeeded(inkMaxY: inkMaxY) > pages
+      board.pagesNeeded(inkMaxY: inkMaxY - origin.y) > pages
     }
 
     /// The small cross on a page, in points from the column's corner: what the ring is placed on.

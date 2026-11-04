@@ -76,8 +76,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     today; held sideways, the page fills the width and writing looks bigger.
   - The board scrolls up and down only. There's no pan into empty space sideways.
   - There's always one blank page below the last ink, so he never runs out of room and never has to add a page. A new
-    board is that one blank page; the first ink on it brings the next. Ink that stops at a page's end is still on that
-    page; ink past it is on the next.
+    board is that one blank page; the first ink on it brings the next. Ink that stops at a page's end leaves the page
+    below blank, and ink past it brings another page. That's about how far ink reaches. Asked which page one place is
+    on, a place exactly on the line between two pages is on the lower one.
   - Pinching out stops when the page fits the screen's width; pinching in goes up to 3× for detail, and only then can
     he move sideways, within the page.
   - A faint line marks where each page ends. It isn't ink, like the grid, and ink can cross it: a stroke that crosses

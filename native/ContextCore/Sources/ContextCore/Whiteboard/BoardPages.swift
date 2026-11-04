@@ -1,5 +1,6 @@
 //  The column of pages a board on paper is (spec 2026-11-01-whiteboard-design.md, "The board is a column of pages",
-//  stories 535–539; #636). All in board points: zoom only thins the ruled lines. PaperKit stays in the app.
+//  stories 535–539; #636). All in board points, with page 1's corner at the board's origin: zoom only thins the ruled
+//  lines. PaperKit stays in the app.
 
 import CoreGraphics
 import Foundation
@@ -10,13 +11,10 @@ public struct BoardPages: Equatable, Sendable {
   /// Blank paper kept between the column's corner and ink moved onto it.
   public static let margin: CGFloat = 40
 
-  /// The corner of page 1, on the board.
-  public var origin: CGPoint
   /// Wider than a page only for wider ink; pages never get taller for it.
   public var width: CGFloat
 
-  public init(origin: CGPoint = .zero, width: CGFloat = pageWidth) {
-    self.origin = origin
+  public init(width: CGFloat = pageWidth) {
     self.width = width
   }
 
@@ -29,11 +27,11 @@ public struct BoardPages: Equatable, Sendable {
 
   /// The page's whole rectangle: its top and bottom are the page's edges.
   public func frame(ofPage page: Int) -> CGRect {
-    CGRect(x: origin.x, y: origin.y + CGFloat(page - 1) * Self.pageHeight, width: width, height: Self.pageHeight)
+    CGRect(x: 0, y: CGFloat(page - 1) * Self.pageHeight, width: width, height: Self.pageHeight)
   }
 
   public func bounds(pages: Int) -> CGRect {
-    CGRect(x: origin.x, y: origin.y, width: width, height: CGFloat(pages) * Self.pageHeight)
+    CGRect(x: 0, y: 0, width: width, height: CGFloat(pages) * Self.pageHeight)
   }
 
   /// Where each page's faint end line goes.
@@ -42,7 +40,8 @@ public struct BoardPages: Equatable, Sendable {
   }
 
   /// The pages ink as low as `inkMaxY` needs: the ones down to it and one blank below. No ink is the one blank page.
-  /// Ink that stops at a page's end is still on that page.
+  /// Ink that stops at a page's end leaves the page below blank, though a single point on that line is on it
+  /// (`page(at:)`): this is how far ink reaches, that is where one place is.
   public func pagesNeeded(inkMaxY: CGFloat?) -> Int {
     guard let inkMaxY, inkMaxY.isFinite else { return 1 }
     return max(pagesDown(to: inkMaxY, .up), 1) + 1
@@ -54,8 +53,8 @@ public struct BoardPages: Equatable, Sendable {
   public func ruledLines(visible: ClosedRange<CGFloat>, pages: Int, zoom: CGFloat) -> [CGFloat] {
     guard zoom > 0, pages > 0 else { return [] }
     let step = WhiteboardFrame.lineStep(zoom: zoom)
-    let first = page(at: CGPoint(x: origin.x, y: visible.lowerBound))
-    let last = min(page(at: CGPoint(x: origin.x, y: visible.upperBound)), pages)
+    let first = page(at: CGPoint(x: 0, y: visible.lowerBound))
+    let last = min(page(at: CGPoint(x: 0, y: visible.upperBound)), pages)
     guard first <= last else { return [] }
     return (first...last).flatMap { page -> [CGFloat] in
       let top = frame(ofPage: page).minY
@@ -73,8 +72,7 @@ public struct BoardPages: Equatable, Sendable {
     public var transform: CGAffineTransform { CGAffineTransform(translationX: shift.dx, y: shift.dy) }
   }
 
-  /// `ink` at the first page's corner, inside a margin, on a board at the origin as wide as it needs. No ink needs no
-  /// move.
+  /// `ink` at the first page's corner, inside a margin, on a board as wide as it needs. No ink needs no move.
   public static func placing(ink: CGRect?) -> Placement {
     guard let ink = drawn(ink) else { return Placement(shift: .zero, board: BoardPages(), pages: 1) }
     let board = BoardPages(width: width(forInkWidth: ink.width))
@@ -95,7 +93,7 @@ public struct BoardPages: Equatable, Sendable {
 
   /// Whole pages from the column's top to `y`, 0 at or above the top. A page number that can't be real can't crash.
   private func pagesDown(to y: CGFloat, _ rule: FloatingPointRoundingRule) -> Int {
-    let pages = ((y - origin.y) / Self.pageHeight).rounded(rule)
+    let pages = (y / Self.pageHeight).rounded(rule)
     return pages.isFinite ? Int(min(max(pages, 0), Self.mostPages)) : 0
   }
 

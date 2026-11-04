@@ -19,7 +19,7 @@ final class BoardPagesTests: XCTestCase {
 
   func testInkOnAPageNeedsThatPageAndABlankOne() {
     XCTAssertEqual(pages.pagesNeeded(inkMaxY: 10), 2)
-    XCTAssertEqual(pages.pagesNeeded(inkMaxY: 1_060), 2, "ink stopping at the page's end is still on that page")
+    XCTAssertEqual(pages.pagesNeeded(inkMaxY: 1_060), 2, "ink stopping at the page's end leaves page 2 blank")
     XCTAssertEqual(pages.pagesNeeded(inkMaxY: 1_060.5), 3)
     XCTAssertEqual(pages.pagesNeeded(inkMaxY: 5 * 1_060), 6)
   }
@@ -32,11 +32,8 @@ final class BoardPagesTests: XCTestCase {
     }
   }
 
-  func testPagesNeededCountsFromTheColumnsTop() {
-    let far = BoardPages(origin: CGPoint(x: 10_000, y: 10_000))
-    XCTAssertEqual(far.pagesNeeded(inkMaxY: 10_010), 2)
-    XCTAssertEqual(far.pagesNeeded(inkMaxY: 12_000), 3)
-    XCTAssertEqual(far.pagesNeeded(inkMaxY: 5), 2, "ink above the column is still ink")
+  func testInkAboveTheColumnIsStillInk() {
+    XCTAssertEqual(pages.pagesNeeded(inkMaxY: -5), 2)
   }
 
   func testNumbersThatCantBeRealNeverCrash() {
@@ -59,11 +56,8 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(page(-500), 1, "above the column is page 1")
   }
 
-  func testAPointsPageIsCountedFromTheColumnsTopAndIgnoresTheSide() {
-    let far = BoardPages(origin: CGPoint(x: 10_060, y: 9_860))
-    XCTAssertEqual(far.page(at: CGPoint(x: 10_100, y: 9_870)), 1)
-    XCTAssertEqual(far.page(at: CGPoint(x: 10_100, y: 10_920)), 2)
-    XCTAssertEqual(far.page(at: CGPoint(x: 50_000, y: 10_920)), 2, "past the side is still that page")
+  func testAPointPastTheSideIsStillOnThatPage() {
+    XCTAssertEqual(pages.page(at: CGPoint(x: 50_000, y: 1_100)), 2)
   }
 
   func testThePageMostlyOnScreenIsTheOneAtItsMiddle() {
@@ -83,13 +77,12 @@ final class BoardPagesTests: XCTestCase {
   }
 
   func testAWideBoardsPagesAreWideAndNoTaller() {
-    let wide = BoardPages(origin: CGPoint(x: 5, y: 7), width: 2_000)
-    XCTAssertEqual(wide.frame(ofPage: 2), CGRect(x: 5, y: 1_067, width: 2_000, height: 1_060))
+    let wide = BoardPages(width: 2_000)
+    XCTAssertEqual(wide.frame(ofPage: 2), CGRect(x: 0, y: 1_060, width: 2_000, height: 1_060))
   }
 
   func testAPageEndLineMarksTheBottomOfEachPage() {
     XCTAssertEqual(pages.pageEnds(pages: 3), [1_060, 2_120, 3_180])
-    XCTAssertEqual(BoardPages(origin: CGPoint(x: 0, y: 100)).pageEnds(pages: 1), [1_160])
     XCTAssertEqual(pages.pageEnds(pages: 0), [])
   }
 
@@ -117,11 +110,6 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(pages.ruledLines(visible: -300 ... -100, pages: 1, zoom: 1), [], "above the first")
     XCTAssertEqual(pages.ruledLines(visible: 0...100, pages: 0, zoom: 1), [])
     XCTAssertEqual(pages.ruledLines(visible: 0...100, pages: 1, zoom: 0), [])
-  }
-
-  func testRuledLinesFollowTheColumn() {
-    let far = BoardPages(origin: CGPoint(x: 0, y: 10_000))
-    XCTAssertEqual(far.ruledLines(visible: 10_000...10_100, pages: 2, zoom: 1), [10_040, 10_080])
   }
 
   func testPinchingOutOnlyRemovesLinesAndNeverCrowdsThem() {
@@ -199,13 +187,5 @@ final class BoardPagesTests: XCTestCase {
     let placed = BoardPages.placing(ink: nil)
     XCTAssertEqual(placed.shift, .zero)
     XCTAssertEqual(placed.board, BoardPages())
-  }
-
-  // MARK: The trial stays on the same geometry
-
-  func testTheTrialAndTheBoardAgreeOnAPage() {
-    XCTAssertEqual(PaperProbe.pageWidth, BoardPages.pageWidth)
-    XCTAssertEqual(PaperProbe.pageHeight, BoardPages.pageHeight)
-    XCTAssertEqual(PaperProbe.margin, BoardPages.margin)
   }
 }
