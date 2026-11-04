@@ -368,7 +368,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Use Case:
 - **As** Larry's client with things waiting in the Inbox
 - **I want to** have them reach Larry's inbox on their own when the phone can reach the Cockpit
-- **so that** Larry sees what I shared, the note and when, without me sending anything
+- **so that** Larry sees what I shared, the message and when, without me sending anything
 
 #### Acceptance Criteria:
 - **Scenario:** Back on the tailnet
