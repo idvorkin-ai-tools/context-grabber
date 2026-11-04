@@ -12,7 +12,7 @@ per issue, through the no-mistakes pipeline (below); the agent merges it.
 
 Recipes: `just native-test` (which first runs `native-lint-format` and `native-lint`; `native-format` fixes the
 layout, a SwiftLint finding is rewritten or justified on a `swiftlint:disable:next` line), `native-test-sim`,
-`native-run-device`, `pull-logs`, `bugs-check`. Reports and crashes are filed by BugKit's always-on listener on the
+`native-run-device`, `native-run-mac`, `pull-logs`, `bugs-check`. Reports and crashes are filed by BugKit's always-on listener on the
 Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notification) and fix what lands.
 
 ## Read these before working
