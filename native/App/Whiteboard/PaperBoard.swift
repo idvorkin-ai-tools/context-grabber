@@ -584,7 +584,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       [
         "action": "paper_keep", "board": model.board.id, "strokes": strokes.count, "total": whole.strokes.count,
         "pages_before": pagesBefore, "pages": wanted, "same_ids": idsMade == idsBack, "ids_made": idsMade.count,
-        "ids_back": idsBack.count, "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
+        "ids_back": idsBack.count,
+        "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
         "could_undo": couldUndo, "could_redo": couldRedo, "can_undo": undo?.canUndo ?? false,
         "can_redo": undo?.canRedo ?? false, "undo_on_window": undo != nil && undo === view.window?.undoManager,
         "ms": ms(CACurrentMediaTime() - started),

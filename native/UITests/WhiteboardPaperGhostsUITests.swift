@@ -224,7 +224,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let bigGhost = try XCTUnwrap(ghostZoomed, "the ghost is still on screen")
     let bigInk = try XCTUnwrap(inkZoomed, "and the ink")
     XCTAssertGreaterThan(bigInk.width, ink.width * 1.2, "the board zoomed")
-    XCTAssertEqual((bigGhost.center.x - bigInk.center.x) / bigInk.width, gap, accuracy: 0.1, "the ghost zoomed with the ink")
+    XCTAssertEqual(
+      (bigGhost.center.x - bigInk.center.x) / bigInk.width, gap, accuracy: 0.1, "the ghost zoomed with the ink")
     XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing")
     XCTAssertEqual(send(app).label, strokes(1), "a pinch isn't a stroke")
   }
@@ -253,7 +254,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   /// Stories 618, 632: a mark kept far down brings its pages in the one change, and one undo takes both. The fake's `/far`
   /// answers with a circle well below the last page: a hook keeps it, as it can't be reached to tap.
   func testAMarkKeptPastTheLastPageBringsItsPagesInOneUndo() throws {
-    let app = try openBoard(way: "/far", ["GRABBER_WHITEBOARD_KEEP": "first", "GRABBER_WHITEBOARD_AFTER_KEEP": "5,undo"])
+    let app = try openBoard(
+      way: "/far", ["GRABBER_WHITEBOARD_KEEP": "first", "GRABBER_WHITEBOARD_AFTER_KEEP": "5,undo"])
     stroke(app)
     wait(send(app), label: strokes(2), timeout: 12)
     wait(pageNumber(app), label: "Page 1 of 6")
