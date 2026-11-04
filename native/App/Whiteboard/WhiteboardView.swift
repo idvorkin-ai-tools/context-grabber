@@ -295,7 +295,9 @@ final class WhiteboardModel: ObservableObject {
   /// (the stroke's transform applied), the ink's colour as it looks in light mode (black, not white), the width as
   /// the mean of the stroke's own point sizes (the transform's scale applied), and an id that is the same for the same
   /// ink on every send. Story 423: only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
-  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] {
+  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] { Self.strokesForLarry(drawing) }
+
+  static func strokesForLarry(_ drawing: PKDrawing) -> [WhiteboardStrokes.Stroke] {
     let light = UITraitCollection(userInterfaceStyle: .light)
     return drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
       var red: CGFloat = 0

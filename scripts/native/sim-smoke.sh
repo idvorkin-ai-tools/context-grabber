@@ -140,6 +140,19 @@ grid=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="grid_on")][0].boa
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ "$grid" = "smoke-grid" ] && [ -z "$errors" ]; then ok "whiteboard: the grid on from the hook, no error events"
 else bad "whiteboard: grid_on for board '$grid', errors: $errors"; fi
+# Stories 435, 436, 439, 534: the trial on paper opens a copy with old-board ink and logs what the iPad's questions need,
+# and the board it was handed has no drawing afterwards: a copy with ink added is never saved. Temporary, like the trial.
+SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-paper SIMCTL_CHILD_GRABBER_WHITEBOARD=open \
+  SIMCTL_CHILD_GRABBER_PAPER_TRIAL=smoke-paper SIMCTL_CHILD_GRABBER_PAPER_TRIAL_INK=40 relaunch
+wait_jq 'select(.type=="paper_probe" and .kind=="loaded")' 30 || echo "      (timed out waiting for the trial)"
+f=$(newest_log)
+trip=$(jq -sr '[.[] | select(.type=="paper_probe" and .kind=="round_trip")][0] | "\(.strokes) \(.missing)"' "$f")
+kept=$(jq -sr '[.[] | select(.type=="paper_probe" and .kind=="origin")][0].bounds_kept // ""' "$f")
+errors=$(jq -c 'select(.type=="error")' "$f")
+drawing=$(find "$(dirname "$DOCS")/Library/Application Support/whiteboard/boards" -name 'smoke-paper.*' 2>/dev/null)
+if [[ "$trip" == "40 "* ]] && [ -n "$kept" ] && [ -z "$drawing" ] && [ -z "$errors" ]; then
+  ok "whiteboard: the trial opened a copy ($trip missing, origin kept: $kept), nothing written, no error events"
+else bad "whiteboard: trial round trip '$trip', origin kept '$kept', written '$drawing', errors: $errors"; fi
 fi  # whiteboard
 
 if want timer; then

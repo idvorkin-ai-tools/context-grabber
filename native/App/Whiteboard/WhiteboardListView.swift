@@ -15,6 +15,9 @@ struct WhiteboardListView: View {
   @State private var deleting: BoardEntry?
   /// A link named a board that isn't here (#603).
   @State private var linkProblem: BugProblem?
+  /// The trial on paper (stories 435, 436, 524–527): an in-memory copy, temporary.
+  @State private var trialCopy: PaperTrialCopy?
+  @State private var trialProblem: BugProblem?
   private let app: AppModel
   private let onDone: () -> Void
 
@@ -38,6 +41,7 @@ struct WhiteboardListView: View {
       List {
         if let problem = store.problem { BugProblemView(problem: problem, logger: app.bugLogger) }
         if let linkProblem { BugProblemView(problem: linkProblem, logger: app.bugLogger) }
+        if let trialProblem { BugProblemView(problem: trialProblem, logger: app.bugLogger) }
         if let note = store.syncNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
         if store.index.boards.isEmpty {
           ContentUnavailableView(
@@ -67,8 +71,18 @@ struct WhiteboardListView: View {
       }
     }
     .accessibilityIdentifier("whiteboard-list")
+    .fullScreenCover(item: $trialCopy) { copy in
+      if #available(iOS 27, *) {
+        PaperTrialView(copy: copy, log: app.log) { trialCopy = nil }
+      }
+    }
     .task {
       app.liveWhiteboards = store
+      if let id = ProcessInfo.processInfo.environment["GRABBER_PAPER_TRIAL"], let board = store.index.board(id),
+        store.editable(board)
+      {
+        tryOnPaper(board)
+      }
       if app.whiteboardLink != nil {
         await followLink()
       } else {
@@ -126,6 +140,13 @@ struct WhiteboardListView: View {
           Label("Rename", systemImage: "pencil")
         }
       }
+      if #available(iOS 27, *), store.editable(board) {
+        Button {
+          tryOnPaper(board)
+        } label: {
+          Label("Try on paper", systemImage: "testtube.2")
+        }
+      }
       Button(role: .destructive) {
         deleting = board
       } label: {
@@ -133,6 +154,20 @@ struct WhiteboardListView: View {
       }
     }
     .accessibilityIdentifier("whiteboard-card")
+  }
+
+  /// Below iOS 27 nothing opens: the menu doesn't offer it, and this also stops the launch hook.
+  private func tryOnPaper(_ board: BoardEntry) {
+    guard #available(iOS 27, *) else { return }
+    do {
+      trialProblem = nil
+      trialCopy = try store.trialCopy(of: board)
+    } catch {
+      app.log.event("error", ["where": "whiteboard_trial_load", "board": board.id, "message": "\(error)"])
+      trialProblem = .grabber(
+        "This board could not be read, so it can't be tried on paper. The file is untouched: "
+          + error.localizedDescription, context: "WhiteboardListView.tryOnPaper", extra: ["board": .string(board.id)])
+    }
   }
 
   private func subtitle(_ board: BoardEntry) -> String {

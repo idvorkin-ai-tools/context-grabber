@@ -10,8 +10,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 
 - **A board on the iPad.** Draw with the Pencil and erase. Drawing should feel as good as Notes, because it's the
   same ink.
-- **Room to keep going.** The board doesn't end at the screen's edge. Two fingers pan and pinch, and there's plenty
-  of board in every direction.
+- **Room to keep going.** The board doesn't end at the bottom of the screen. It's a column of pages, like Notability,
+  and there's always another blank page below the last ink.
 - **Larry sees it.** One button sends the board to Larry on the board's chat thread with the picture attached. His
   reply arrives in Chat, like any other thread, and his marks on the board.
 - **Then we draw together.** When Igor lifts the pen, faint suggestions appear on the board. A tap keeps one, and
@@ -70,10 +70,28 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     leaves a mark.
   - Without a Pencil (the iPhone, or an iPad with none paired), a finger draws and two fingers move the board.
   - This follows the system's "Only Draw with Apple Pencil" setting.
-- **The board is big.** It opens centered on what's already drawn, or on its middle when it's empty. It stretches
-  several screens in every direction. Pinching out shows the whole drawing; pinching in goes up to 3× for detail.
+- **The board is a column of pages** (#636; Igor, 2026-11-03: "the board is way too big maybe do the set up like
+  Notability"; he chose page-width over sideways growth).
+  - A page is 820 points wide and about 1,060 tall, paper's shape. On an iPad held upright, writing stays the size it is
+    today; held sideways, the page fills the width and writing looks bigger.
+  - The board scrolls up and down only. There's no pan into empty space sideways.
+  - There's always one blank page below the last ink, so he never runs out of room and never has to add a page.
+  - Pinching out stops when the page fits the screen's width; pinching in goes up to 3× for detail, and only then can
+    he move sideways, within the page.
+  - A faint line marks where each page ends. It isn't ink, like the grid, and ink can cross it: a stroke that crosses
+    stays one stroke.
+  - **A page number** floats at the corner: *Page 2 of 3*, for the page mostly on screen. It stays put while the board
+    scrolls, stays out of the way of drawing, and isn't in any picture.
+  - A board opens where he left it on this device, or at its first page if it's new to this device.
+  - **Boards from before pages** move onto pages the first time they open. No stroke is scaled or lost and each stays
+    in the same place relative to the others. A board with ink wider than a page keeps its own wider width, and can
+    pan sideways to that width. Anything Larry or Claude drew on it stays on the ink it was drawn beside.
+  - **A mark past the page edge** widens that board, by the same rule as wide ink. Nothing is clipped.
 - **Grid lines** (Igor, 2026-11-02: "Let's give me the ability to enable grid lines"; #608). *Grid lines*, in the **Board**
   menu with the colours, turns faint lines on and off, on the device that draws the board.
+  - **Ruled paper** (#635; Igor, 2026-11-03: "I still want Lines" meant paper lines). The same menu also offers *Ruled
+    lines*: faint horizontal lines like notebook paper. A board has a grid, ruled lines or neither. Everything below about
+    the grid holds for ruled lines too.
   - Off until asked, and remembered per board on this device: a board opened with its grid on opens that way again, and
     a new board starts without one.
   - The lines belong to the board: they pan and pinch with the drawing. They're so faint that ink crossing one reads
@@ -97,7 +115,12 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     until the next stroke, so a second tap never sends the same board twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
-  - **The picture frames the drawing at a readable size** (stories 420, 422, 425, 429; Igor, 2026-11-03: "maybe zoom into the pages").
+  - **The picture shows the page or pages on screen** (#636; Igor, 2026-11-03), so what he's looking at is what Larry
+    reads, with his writing at a size Larry can see. Scroll to another page and send again to show Larry that one. The
+    same goes for *Larry's turn*. An empty page on screen is left out of the picture; if everything on screen is empty,
+    there's nothing to send and the button says so by staying disabled. Claude's own turns keep looking at what they
+    look at today. Larry's marks land by the picture's own place on the board, whichever page that is.
+  - **The picture frames its ink at a readable size** (stories 420, 422, 425, 429; Igor, 2026-11-03: "maybe zoom into the pages").
     It spends about four million pixels on whatever shape the drawing is, never finer than the screen and never past
     8,000 pixels on a side, so a tall column of notes keeps its handwriting legible instead of shrinking to a
     248-pixel-wide sliver. The board's strokes go with it (the shapes spec), which is what Larry reads when he can.
@@ -121,6 +144,45 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **Claude and Larry always get dark ink on white**, whatever the colour and the mode: the colour is for Igor's eyes,
     and every picture they read stays the same. So a mark of theirs lands the same on any colour.
 
+## Trial on paper (temporary: it goes when the board moves to PaperKit, or when the idea is dropped)
+
+(#635, #636; Igor, 2026-11-03, chose to build the board on Apple's PaperKit, as a column of pages.) Five things about
+PaperKit can only be settled on the iPad. This trial exists to settle them, and nothing else. It's a place to play, not a
+feature.
+
+- **Nothing in the trial can change, save, sync or send a real board.** It's a copy held in memory and gone when it closes.
+  Drawing, erasing, undoing or selecting in the trial leaves the real board, its picture, its row in the list and iCloud
+  exactly as they were. There's no Send, no Larry's turn, no ghosts and no mic in it. The board's own canvas is unchanged.
+- **Only on iOS 27 and up.** Below that, or on a board another device draws, *Try on paper* isn't offered. The app still
+  installs and runs on the same older systems as before.
+- **How to open it.** A long press on a row, on a board drawn on this device, offers *Try on paper*. A board that can't be
+  read shows the copyable problem, and the file stays where it is.
+- **What it shows.** A copy of the board as a column about a page wide, with the system's tool picker, faint page lines
+  under the ink, *Page 2 of 3* at the corner, pinching out that stops at the page's width, and a blank page below the last
+  ink. A faint orange ring sits on the small cross on each page, and the ring is placed separately from the cross, so the
+  ring slipping off during a scroll or pinch shows how far a suggestion would lag.
+- **What to try.** One short line under the title says that this is a copy and what to do. A **Trial** menu offers: where
+  the column sits (the ink where it is, far from the board's corner; the ink moved to the top; or a tall column, cut short);
+  what a finger does (the system's choice, select, or draw) and locking the ink against selection; adding a page now or in
+  3 seconds, so it lands mid-stroke; going to page 1, to page 11 (past 9,600 points down) or to the end; and counting how
+  many undos there are. Changing where the column sits starts over from the copy.
+- **It writes down what it finds.** Every finger touch and Pencil stroke, and what came of it (nothing, panned, zoomed,
+  selected, moved ink, drew) goes in the session log with which ink moved and how far, alongside each of the questions
+  below. So once the iPad's log is pulled, each question has its answer.
+
+The five questions:
+
+1. **Finger.** PaperKit has no mode where a finger only pans. Does a finger drag pan, or select and move ink? Does a tap
+   select? Can locking the ink stop it?
+2. **Growing the column.** Does adding a page clear undo, move the view or break a stroke in progress? If so, does a tall
+   column cut short by the view avoid that?
+3. **Things floating over the board.** Does something placed from the visible area keep up with a scroll and a pinch?
+4. **A board whose ink is far from the corner.** Old boards' ink sits about 10,000 points from the corner. Can the column
+   start there, so no stroke has to move?
+5. **Ink feel.** At the top, and past 9,600 points down, over a see-through canvas. Does it feel like Notes?
+
+Also logged: what zoom 1.0 means, how long a big board takes to load, whether strokes come back identical from PaperKit.
+
 ## Later steps (not in this build)
 
 Ghosts, Larry's turn and the board's open mic are built, and specified in
@@ -137,8 +199,13 @@ that ghosts need the tailnet.
 ## Acceptance
 
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
-- Close the board, kill the app, reopen it: the drawing is there, framed in view.
-- Pan or pinch several screens past the first view, and the board is still there to draw on.
+- Close the board, kill the app, reopen it: the drawing is there, at the place he left it.
+- A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
+  page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.
+- Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
+- An old board opens on pages with every stroke where it was, none scaled. One wider than a page keeps its width.
+- With three pages drawn and page 2 on screen, Send to Larry shows page 2 at a size he can read.
+- Ruled lines from the Board menu show like notebook paper, are in no picture, and are remembered like the grid.
 - Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
 - The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no
