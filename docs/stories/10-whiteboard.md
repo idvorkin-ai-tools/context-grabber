@@ -2389,7 +2389,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 590:
 
 - **Summary:** A switch for new boards on paper
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: off until turned on, then a new board is on paper)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2414,7 +2414,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 591:
 
 - **Summary:** A new board on paper is a column of pages
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: *Page 1 of 1*, then *of 2*) and by host tests (`BoardPagesTests`). How it feels under the Pencil is for the iPad
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2439,7 +2439,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 592:
 
 - **Summary:** Page lines under the ink, and nothing to test with
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified by reading screenshots from an iPhone and an iPad simulator: page lines under the ink, no cross, no ring. Ruled lines aren't here yet
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2459,7 +2459,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 593:
 
 - **Summary:** A board on paper is kept like any other
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: killed and reopened with the same ink; no row left when empty). The file format is the same by construction, as what's saved is a `PKDrawing`; not run against an older build
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2489,7 +2489,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 594:
 
 - **Summary:** Another device looks at a board on paper
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified by host tests only (`BoardIndexTests`: the mark survives the list and the merge, and opens on paper only on its own device). iCloud isn't signed in on the simulator, so the record's new field and the other device's view are for the iPad and iPhone
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2514,7 +2514,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 595:
 
 - **Summary:** The switch never moves a board
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: both directions)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2539,7 +2539,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 596:
 
 - **Summary:** A board on paper opens where I left it
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); the place's rules verified by host tests (`BoardPagesTests`); not driven on the simulator, where one finger draws, so coming back to a scrolled place is for the iPad
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2564,7 +2564,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 597:
 
 - **Summary:** A board on paper keeps its colour
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: Sage chosen, and in dark mode the screenshot's pixels hold dark ink on pale paper, and the list is dark again). Dark mode on the iPad itself is still to be seen
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2589,7 +2589,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 598:
 
 - **Summary:** A board on paper says what it can't do yet
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); the bar and the Board menu verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`). *Send to Larry* is the old canvas's code, its button enabled on paper, and wasn't tapped on paper; ⌘V wasn't run
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2619,7 +2619,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 599:
 
 - **Summary:** A failed save on paper says so, and doesn't vanish
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`, `GRABBER_WHITEBOARD_SAVE_FAILS`: *Copy error* on the board, and on the list after leaving it). A real full disk wasn't tried
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2644,7 +2644,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 600:
 
 - **Summary:** The log tells the Pencil from a finger
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); the line verified on the simulator's log for a finger (`whiteboard` action: paper_touch); the Pencil's is for the iPad. This story says only that the log tells them apart, not what a finger does
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2664,7 +2664,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 601:
 
 - **Summary:** *Try on paper* stays
-- **Status:** being built on this branch; verified as named in the commit that follows
+- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`; `WhiteboardTrialOnPaperUITests` on the iPhone)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
