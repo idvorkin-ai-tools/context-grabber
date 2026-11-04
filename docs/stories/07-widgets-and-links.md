@@ -1191,7 +1191,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 540:
 
 - **Summary:** A screen's window is called by that screen's name
-- **Status:** native app only: not implemented yet, [#661](https://github.com/idvorkin/context-grabber/issues/661).
+- **Status:** native app only: implemented in [4be447c](https://github.com/idvorkin/context-grabber/commit/4be447c); verified on the iPad simulator (the log's `title` line, read back from the scene, for a Chat and a Today window); the role by `WindowLedgerTests`, on the host. Where iPadOS shows the name is for the iPad: the simulator's log shows the scene holds it, not how the system draws it.
 - **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
@@ -1209,7 +1209,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 541:
 
 - **Summary:** The home window's name follows what it is showing
-- **Status:** native app only: not implemented yet, [#661](https://github.com/idvorkin/context-grabber/issues/661).
+- **Status:** native app only: implemented in [4be447c](https://github.com/idvorkin/context-grabber/commit/4be447c); verified on the iPad simulator by the log's `title` lines: there and back for Places, Cockpit, Whiteboard, Box breathing, Gym Timer, Think of a card and Today; going up only for Chat, Settings and What's new. Call Larry and the eulogy song's sheet were not run. Where iPadOS shows the name is for the iPad.
 - **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
@@ -1227,7 +1227,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 542:
 
 - **Summary:** Another window's screen leaves the home window's name alone
-- **Status:** native app only: not implemented yet, [#661](https://github.com/idvorkin/context-grabber/issues/661).
+- **Status:** native app only: implemented in [4be447c](https://github.com/idvorkin/context-grabber/commit/4be447c); verified on the iPad simulator (a Today window opened and closed, with no `title` line for the home window) and by `WindowLedgerTests`, on the host.
 - **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
@@ -1245,7 +1245,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 543:
 
 - **Summary:** A window saying home is elsewhere has no name
-- **Status:** native app only: not implemented yet, [#661](https://github.com/idvorkin/context-grabber/issues/661).
+- **Status:** native app only: implemented in [4be447c](https://github.com/idvorkin/context-grabber/commit/4be447c); the rule by `WindowLedgerTests`, on the host; not verified by a run: only iPadOS's own New Window reaches it, which is for the iPad.
 - **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
@@ -1263,7 +1263,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 544:
 
 - **Summary:** A phone names no window
-- **Status:** native app only: not implemented yet, [#661](https://github.com/idvorkin/context-grabber/issues/661).
+- **Status:** native app only: implemented in [4be447c](https://github.com/idvorkin/context-grabber/commit/4be447c); verified on an iPhone simulator (the home window and Places, no `title` line in the log).
 - **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
