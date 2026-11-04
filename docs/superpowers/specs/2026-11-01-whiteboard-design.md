@@ -203,8 +203,8 @@ he turns on, device by device.)
   seen. This differs from *Each colour has a pale shade and a deep one* above until PaperKit's ink follows the mode, and it's
   Igor's to overrule. What's saved is the same either way.
 - **Page lines only for now.** Ruled lines and grids come in a later step.
-- **What a board on paper can't do yet.** There's no paste button, no ⌘V and no grid. *Send to Larry*, *Larry's turn*, ghosts
-  and the mic work: see *Ghosts and Larry on paper*. The picture is still the whole drawing.
+- **What a board on paper can't do yet.** There's no grid. *Send to Larry*, *Larry's turn*, ghosts, the mic and paste work: see
+  *Ghosts and Larry on paper* and *Paste on paper*. The picture is still the whole drawing.
 - **On a phone, the first ink moves the view.** One page at a phone's width is shorter than the screen, so PaperKit centres it;
   the page the first ink brings fills the screen, and the view settles at the top. The ink doesn't move on the board.
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
@@ -219,8 +219,8 @@ what a finger does.
 (#636. The board's ghosts, Larry's turn and the mic, as *Whiteboard: Claude and Larry draw back* describes them, on a board on
 paper. That description is the requirement, and this lists only where paper needs saying.)
 
-- **The same bar.** A board on paper has the Ghosts switch, the mic, *Larry's turn* and *Send to Larry*, as any board does. The
-  paste button comes later.
+- **The same bar.** A board on paper has the Ghosts switch, the mic, *Larry's turn* and *Send to Larry*, as any board does,
+  and paste: see *Paste on paper*.
 - **The same turns.** A pause after a stroke asks Claude, the Pencil touching down holds that pause until it lifts, words go
   the same way, and Larry's marks arrive on their own, in his colour, where his picture was. Nothing about the Ghosts switch,
   the fading, one turn at a time or the bar's words changes.
@@ -248,6 +248,31 @@ paper. That description is the requirement, and this lists only where paper need
 
 The log says where each ghost sat against the sheet, what each finger tap came to, and what each kept mark did to the undo count
 and to the strokes' names, so the iPad can show what the simulator can't.
+
+### Paste on paper
+
+(#636. Pasting text as *Whiteboard: paste text onto the board* describes it, on a board on paper. That description is the
+requirement: the button, ⌘V, letters as real ink, the caps, the bar's words and Claude's pause are all as written there. This lists
+only where a page needs saying.)
+
+- **Where it lands.** In the middle of the part of the paper on screen. A phone's one page, shorter than the screen, has its
+  middle on the paper, not in the margin around it.
+- **It stays on the page's width.** A line wider than the part of the page on screen wraps, and nothing lands past a side.
+- **It lands wherever he is.** However far down the board he has gone, the text is in the middle of the view: the old canvas's
+  edge doesn't apply, as paper has none below.
+- **A paste brings its pages.** Text running past the last page's end, or ending on it, brings the pages it needs, with the blank
+  one below as for any ink.
+- **One undo takes the whole paste back,** with any pages it brought, and one redo brings them back. His strokes before it stay.
+- **What Larry and Claude see.** The letters are ink: they're in the picture, dark on white, and in the strokes Larry gets,
+  each with the same name every time they're sent.
+- **Strokes he copied.** With a hardware keyboard, when the clipboard holds copied strokes and no text, ⌘V pastes them, and
+  they're ink like any other: one undo, the pages they need, Claude's pause. PaperKit places them if it will; if it won't, they land
+  with their middle in the middle of the paper on screen, at their own size, and on the page's width. Text on the clipboard wins, as
+  on the old canvas.
+- **A picture on the clipboard isn't pasted,** as on any board: pasting images isn't something boards do, and only strokes are
+  saved, so one on the board would vanish on leaving. The board doesn't change.
+
+The log says what each ⌘V found on the clipboard and who took it, so the iPad can show what the simulator can't.
 
 ## Trial on paper (temporary: it goes when the board moves to PaperKit)
 
