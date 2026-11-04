@@ -96,6 +96,8 @@ final class AppModel: ObservableObject {
   var whatsNewOnHome: Bool { WhatsNewSeen().showsRow(whatsNew) }
   /// #634: which window holds what (AppModel+Windows.swift).
   var ledger = WindowLedger()
+  /// #661: any change here can change what a window should be called.
+  private var windowNames: AnyCancellable?
   var openWindowAction: OpenWindowAction?
   var dismissWindowAction: DismissWindowAction?
   /// `GRABBER_WINDOW` runs once, when the home window is up.
@@ -189,6 +191,7 @@ final class AppModel: ObservableObject {
     call.autoReport = { [weak self] reason, context, files in
       self?.reporter.autoReport(reason: reason, context: context, files: files)
     }
+    windowNames = objectWillChange.receive(on: RunLoop.main).sink { [weak self] _ in self?.nameWindows() }
     runLaunchHooks()
     inbox.refresh(reason: "launch")  // after the hooks, so a fixture is there to read
   }

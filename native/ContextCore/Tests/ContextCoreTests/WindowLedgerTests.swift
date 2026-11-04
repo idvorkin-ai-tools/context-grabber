@@ -40,6 +40,27 @@ final class WindowLedgerTests: XCTestCase {
     XCTAssertNil(ledger.screen(in: "b"))
   }
 
+  func testEachWindowsRoleIsWhatItShows() {
+    var ledger = WindowLedger()
+    _ = ledger.claimHome("a")
+    ledger.claim(.chat, window: "b")
+    _ = ledger.claimHome("c")  // iPadOS's own New Window, with home up
+    XCTAssertEqual(ledger.role(of: "a"), .home)
+    XCTAssertEqual(ledger.role(of: "b"), .screen(.chat))
+    XCTAssertEqual(ledger.role(of: "c"), .noScreen)
+    XCTAssertEqual(ledger.role(of: "never seen"), .noScreen)
+  }
+
+  func testAScreensWindowComingAndGoingLeavesTheHomeWindowsRoleAlone() {
+    var ledger = WindowLedger()
+    _ = ledger.claimHome("a")
+    ledger.claim(.today, window: "b")
+    XCTAssertEqual(ledger.role(of: "a"), .home)
+    ledger.release("b")
+    XCTAssertEqual(ledger.role(of: "a"), .home)
+    XCTAssertEqual(ledger.role(of: "b"), .noScreen)
+  }
+
   func testEveryScreenRoundTripsItsTileAndTheAudioScreensHaveNoWindow() {
     for screen in WindowScreen.allCases { XCTAssertEqual(WindowScreen(tile: screen.tile), screen) }
     XCTAssertNil(WindowScreen(tile: "gym_timer"))

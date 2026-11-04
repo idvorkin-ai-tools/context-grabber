@@ -1,4 +1,4 @@
-//  #634, stories 460-464, 470-482 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
+//  #634, stories 460-464, 470-482, 540-544 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
 //  window keeps presenting what AppModel says is up; a screen in a window of its own is simply not up there.
 
 import ContextCore
@@ -32,6 +32,7 @@ extension AppModel {
     checkLedger()
     let home = ledger.claimHome(window)
     log.event("window", ["action": home ? "home" : "extra_home", "scenes": sceneCount])
+    nameWindows()
     restoreChecked = true  // the home window is here: a screen's window opened later is no restore
     if home { runWindowHook() }
     return home
@@ -41,6 +42,7 @@ extension AppModel {
     checkLedger()
     ledger.claim(screen, window: window)
     log.event("window", ["action": "appear", "screen": screen.rawValue, "scenes": sceneCount])
+    nameWindows()
     openHomeAfterRestore()
     // A window iOS kept hidden through a relaunch, shown after the home window opened the same screen (story 461).
     _ = closeInHomeWindow(screen)
@@ -53,6 +55,44 @@ extension AppModel {
     case .cockpit: cockpitOpened = true
     case .today, .whiteboard, .card: break
     }
+  }
+
+  /// #661, stories 540-544: what iPadOS calls each window, by the names on the home tiles. `UIScene.title` is the only
+  /// way to say it (a SwiftUI `WindowGroup`'s title is fixed per group). Run on every change to this model, from one
+  /// place rather than from each window's views: the home window's can be out of the window under a full-screen cover.
+  func nameWindows() {
+    guard windowsAvailable else { return }  // a phone's one window needs no name
+    for scene in UIApplication.shared.connectedScenes {
+      let name: String
+      switch ledger.role(of: scene.session.persistentIdentifier) {
+      case .home: name = homeWindowName
+      case .screen(let screen): name = tileName(screen.tile)
+      case .noScreen: name = ""
+      }
+      let was = scene.title ?? ""
+      guard was != name else { continue }
+      scene.title = name
+      log.event("window", ["action": "title", "title": scene.title ?? "", "was": was, "scenes": sceneCount])
+    }
+  }
+
+  private func tileName(_ tile: String) -> String { HomeRow.row(tile)?.title ?? "" }
+
+  /// What the home window is showing: the covers first, as they sit over everything in its stack.
+  private var homeWindowName: String {
+    if gymTimer != nil { return tileName("gym_timer") }
+    if breathe != nil { return tileName("breathe") }
+    if card != nil { return tileName("think_a_card") }
+    if showPlaces { return tileName("places") }
+    if showCockpit { return tileName("cockpit") }
+    if showWhiteboard { return tileName("whiteboard") }
+    if callOpen { return tileName("call") }
+    if showEulogySong { return tileName("eulogy_song") }
+    if showWhatsNew { return "What's new" }  // the home row's words; it has no tile
+    if showHomeSettings { return tileName("settings") }
+    if showToday { return tileName("today") }
+    if showInbox { return tileName("inbox") }
+    return "Home"
   }
 
   func windowGone(_ window: String) {
