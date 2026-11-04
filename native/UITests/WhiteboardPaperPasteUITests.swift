@@ -1,4 +1,4 @@
-//  Stories 637–649 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what a page
+//  Stories 637–650 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what a page
 //  adds to a paste. `WhiteboardPasteOnPaperUITests` runs the old canvas's own paste tests on a board on paper, as they're the
 //  requirement. XCUITest's taps never reach the system's paste button, so these go through ⌘V or GRABBER_WHITEBOARD_PASTE.
 

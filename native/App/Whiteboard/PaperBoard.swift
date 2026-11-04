@@ -1,4 +1,4 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–649; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–650; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
 //  as any other board does, with its ghosts, Larry's marks, the mic and paste. Ghosts lie on the sheet under the ink, in
@@ -299,8 +299,6 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
-  /// PaperKit's turn at a paste: this controller stands aside.
-  private var handingOverPaste = false
   private var pressedForTests = false
   /// The undo stack a kept mark's steps went on. A closing view may no longer be able to say.
   private weak var stepsOn: UndoManager?
@@ -572,14 +570,6 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   @objc private func pasteKeyPressed() { paste(from: "key") }
 
-  /// *Paste* by any other road: a menu's, when nothing below this took it.
-  override func paste(_ sender: Any?) { paste(from: "menu") }
-
-  override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-    if action == #selector(paste(_:)) { return !handingOverPaste && UIPasteboard.general.hasStrings }
-    return super.canPerformAction(action, withSender: sender)
-  }
-
   /// Text is ink, in the middle of the view. Copied strokes are PaperKit's to place if it will, and landed here if not: nothing
   /// on the simulator takes them, and whether the iPad's PaperKit does is what this line will say. Only a picture is refused: only
   /// strokes are saved, so one on the sheet would go when he left. Strokes first, as a copy may hold a picture of them too. hasStrings
@@ -602,9 +592,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       event["went"] = "refused_picture"
       return
     }
-    handingOverPaste = true
-    let took = UIApplication.shared.sendAction(#selector(paste(_:)), to: nil, from: self, for: nil)
-    handingOverPaste = false
+    let paste = #selector(UIResponderStandardEditActions.paste(_:))
+    let took = UIApplication.shared.sendAction(paste, to: nil, from: self, for: nil)
     if took {
       event["went"] = "paperkit"
     } else if let copied {
@@ -681,7 +670,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     paper.selection = []
   }
 
-  /// A kept mark into the markup, and then any page it needs: one undo takes them both. PaperKit registers no
+  /// A kept mark into the markup, and any page it needs in the same change: one undo takes them both. PaperKit registers no
   /// undo for a markup that's set: left to itself, the next undo took back the stroke before the kept mark, and the mark
   /// stayed (the simulator, iOS 27, 2026-11-03). Its own steps go on working after this, as the elements keep their ids.
   private func keep(_ strokes: [PKStroke]) {
@@ -735,21 +724,25 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,
   /// whatever is set or scrolled after. A change of zoom draws it. On the simulator, iOS 27: 15 of 180 pastes without this, 0 of
   /// 60 with it, and a zoom brought back each of the 7 in the run that tried one. A set that opens a board is followed by a
-  /// zoom anyway, the fit. So the zoom moves too little to see and back, with the touches done.
+  /// zoom anyway, the fit. So the zoom moves too little to see and back, with the touches done and the view at rest.
   /// ponytail: works around a miss inside PaperKit, unseen on a real device so far; drop it if `paper_ink_look` shows the iOS
   /// it's built for no longer misses without it.
   private func redrawSoon() {
     redrawing?.cancel()
     redrawing = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(0.3))
-      while !Task.isCancelled, (self?.touchesDown ?? 0) > 0 { try? await Task.sleep(for: .seconds(0.2)) }
+      try? await Task.sleep(for: .seconds(0.2))
+      var seen: CGRect?
+      while !Task.isCancelled, let self, self.touchesDown > 0 || self.paper.contentVisibleFrame != seen {
+        seen = self.paper.contentVisibleFrame
+        try? await Task.sleep(for: .seconds(0.1))
+      }
       guard let self, !Task.isCancelled else { return }
       let config = self.paper.scrollConfiguration
       let (zoom, place) = (config.zoomScale, self.paper.contentVisibleFrame)
       config.zoomScale = zoom * (zoom < self.paper.zoomRange.upperBound ? 1.002 : 0.998)
       try? await Task.sleep(for: .seconds(0.05))
       config.zoomScale = zoom
-      self.paper.contentVisibleFrame = place
+      if self.touchesDown == 0 { self.paper.contentVisibleFrame = place }
     }
   }
 

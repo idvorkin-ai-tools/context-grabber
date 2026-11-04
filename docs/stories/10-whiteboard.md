@@ -3584,6 +3584,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I paste
 - **Then:** it wraps
 
+---
+
 ### User Story 650:
 
 - **Summary:** Ink the app adds always shows
