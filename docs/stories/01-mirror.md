@@ -388,3 +388,83 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** on a source's tab, a night's main sleep is 0.4 h starting at 1pm
 - **When:** I open the Sleep sheet and tap that night
 - **Then:** its row and the tapped card read *Nap 0.4h*, the card doesn't say no sleep was recorded, the time still counts toward that night's hours, and it has no bedtime or wake, so it's off the bedtime-and-wake chart and out of its "±" spreads
+
+---
+
+### User Story 441:
+
+- **Summary:** A metric's detail fills a wide window
+- **Status:** implemented in `5b84dae0`; verified on the simulator (iPad Pro 11-inch, `MetricDetailUITests`, 1 of 1), not yet on the iPad itself or on the Mac
+- **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
+- **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
+
+#### Use Case:
+- **As someone** reading a week of a metric on an iPad or the Mac
+- **I want to** have the detail use the whole window
+- **so that** the chart and the days aren't squeezed into a small dialog
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a metric in a wide window
+- **Given:** Today in a wide window: an iPad at full screen, a wide resizable iPad window, or the Mac
+- **When:** I tap a metric
+- **Then:** its detail fills the window, and the X closes it
+
+---
+
+### User Story 442:
+
+- **Summary:** A metric's detail stays a sheet on an iPhone
+- **Status:** implemented in `5b84dae0`; opening verified on the simulator (iPhone 17, `MetricDetailUITests`, 1 of 1), the drag is checked by that test but has not run yet
+- **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
+- **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
+
+#### Use Case:
+- **As someone** glancing at a metric on an iPhone
+- **I want to** drag its detail away as I always have
+- **so that** closing it doesn't mean reaching for the X
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a metric on an iPhone
+- **Given:** Today on an iPhone
+- **When:** I tap a metric and drag its detail down
+- **Then:** it was a sheet, as before, and the drag closes it
+
+---
+
+### User Story 443:
+
+- **Summary:** A metric's detail stays a sheet in a narrow iPad window
+- **Status:** implemented in `5b84dae0`; not yet verified (no test sets up a narrow Split View, and not yet on the iPad itself)
+- **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
+- **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
+
+#### Use Case:
+- **As someone** with the app beside another in a narrow Split View
+- **I want to** have the detail behave as it does on a phone
+- **so that** a window the size of a phone acts like one
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a metric in a narrow iPad window
+- **Given:** Today on an iPad, in a narrow Split View
+- **When:** I tap a metric
+- **Then:** it opens as a sheet that can be dragged away, not a cover
+
+---
+
+### User Story 444:
+
+- **Summary:** An open metric detail keeps its form when the window is resized
+- **Status:** implemented on `native/metric-full-size` (#672); not yet verified (no test resizes a window with a detail open, and not yet on the iPad itself)
+- **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
+- **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
+
+#### Use Case:
+- **As someone** reading a metric on an iPad while rearranging windows
+- **I want to** stay where I was in the detail
+- **so that** the tab and night I picked aren't lost to a resize
+
+#### Acceptance Criteria:
+- **Scenario:** Resizing the window with a detail open
+- **Given:** a metric's detail open in a wide window, on a source's tab
+- **When:** I narrow the window past the point where a new detail would open as a sheet
+- **Then:** the detail stays open as it was, on the same tab, and the next one opened follows the new width

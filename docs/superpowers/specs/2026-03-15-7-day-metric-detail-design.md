@@ -4,6 +4,8 @@
 
 Add a tap-to-drill-down feature to the Context Grabber dashboard. When a user taps any metric card (steps, heart rate, sleep, etc.), a full-screen sheet slides up showing a 7-day chart and daily breakdown for that metric.
 
+In a wide window (an iPad at full screen, a resizable iPad window that's still wide, the Mac) the detail fills the whole window, not a small dialog in the middle of it (Igor, 2026-11-04, #672: "Why is this dialog small it could be full-size"). It closes with its X, and a shake still opens a report over it. In a narrow window (an iPhone, or an iPad in a narrow Split View) it stays a sheet that can also be dragged away. The window's width decides when the detail opens: resizing the window while it's open leaves it as it is until it's closed.
+
 ## Goals
 
 - Let users see trailing 7-day trends for every health metric
@@ -141,7 +143,7 @@ type MetricCardProps = {
 3. Semi-transparent overlay fades in behind the sheet
 4. If `weeklyCache[metricKey]` exists, render immediately; otherwise show loading spinner and fetch
 5. Chart + daily breakdown renders
-6. Dismiss: tap "X" button or swipe down
+6. Dismiss: tap "X" button; in a narrow window, swipe down too
 7. Sheet slides down, overlay fades out, `selectedMetric` set to null
 
 ### Animation Details

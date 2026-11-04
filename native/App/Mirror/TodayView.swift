@@ -10,8 +10,10 @@ struct TodayView: View {
   @ObservedObject var app: AppModel
   @ObservedObject var mirror: MirrorModel
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.horizontalSizeClass) private var widthClass
   @State private var shareText: ShareItem?
   @State private var showSettings = false
+  @State private var detailFillsWindow: Bool?
 
   private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
   private let every30 = Timer.publish(every: 30 * 60, on: .main, in: .common).autoconnect()
@@ -70,11 +72,24 @@ struct TodayView: View {
     .onDisappear { if app.screen == "today" { app.screen = "home" } }
     .onChange(of: scenePhase) { _, phase in if phase == .active { mirror.grab(reason: "foreground") } }
     .onReceive(every30) { _ in mirror.grab(reason: "timer") }
-    .sheet(item: $app.openMetricKey) { item in
+    // In a wide window a sheet is a small dialog: the detail takes the whole window there (#672).
+    .sheet(item: detailFillsWindow == false ? $app.openMetricKey : .constant(nil)) { item in
       MetricDetailView(app: app, mirror: mirror, metric: item.key)
     }
+    .fullScreenCover(item: detailFillsWindow == true ? $app.openMetricKey : .constant(nil)) { item in
+      MetricDetailView(app: app, mirror: mirror, metric: item.key)
+        // A cover is its own presentation: the app's shake and report sheet do not reach into it.
+        .bugReporting(app.reporter)
+    }
+    .onChange(of: widthClass, initial: true) { settleDetailForm() }
+    .onChange(of: app.openMetricKey == nil) { settleDetailForm() }
     .sheet(item: $shareText) { item in TextShareSheet(text: item.text) }
     .sheet(isPresented: $showSettings) { MirrorSettingsView(mirror: mirror) }
+  }
+
+  /// An open detail keeps the form it opened in: only a closed one follows the window's width.
+  private func settleDetailForm() {
+    if detailFillsWindow == nil || app.openMetricKey == nil { detailFillsWindow = widthClass == .regular }
   }
 
   private var header: some View {
