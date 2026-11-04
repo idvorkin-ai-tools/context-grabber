@@ -28,7 +28,7 @@ status=$?
 # Keys reach the app for one test per boot, and the old canvas's ⌘V test had this boot's: ⌘V on paper gets the next.
 xcrun simctl shutdown "$udid" 2>/dev/null
 xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot again" >&2; exit 1; }
-TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebuild-log.sh whiteboard-keys "TEST SUCCEEDED" \
+TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebuild-log.sh whiteboard-keys "TEST EXECUTE SUCCEEDED" \
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \

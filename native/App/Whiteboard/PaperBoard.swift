@@ -56,7 +56,7 @@ class PaperHost: UIViewController {
   /// Held here: the tool picker disappears when nothing keeps it.
   private let picker = PKToolPicker()
   private let watcher = PaperTouchWatcher()
-  private var paperColor: UIColor
+  private(set) var paperColor: UIColor
 
   private(set) var touchesDown = 0
   private(set) var pencilDown = false
@@ -118,6 +118,7 @@ class PaperHost: UIViewController {
     guard color != paperColor else { return }
     paperColor = color
     view.backgroundColor = color
+    lines.backgroundColor = color
   }
 
   /// What zoom means is read off the screen, then the pinch's floor is the page's width. The caller puts the view back.
@@ -286,6 +287,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var inkFrames: [String: CGRect] = [:]
   private var saidNotInk = false
   private var remembering: Task<Void, Never>?
+  private var redrawing: Task<Void, Never>?
   /// The window this board made light, and how it was.
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?
   /// A Pencil or a drawing finger is down, as the pacer was told.
@@ -474,6 +476,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     run?.pageAdded = true
     showLines()
     showPageNumber()
+    redrawSoon()
   }
 
   func paperMarkupViewControllerDidChangeSelection(_ controller: PaperMarkupViewController) {
@@ -693,15 +696,17 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let wanted = board.pages(after: pages, inkMaxY: model.drawing.bounds.maxY, redoWaiting: false)
     let made = PKDrawing(strokes: strokes)
     registerStepBack(to: markup)
+    if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
     markup.append(contentsOf: made)
     quiet = true
     paper.markup = markup
     quiet = false
     let pagesBefore = pages
+    pages = wanted
+    run?.pageAdded = wanted > pagesBefore
     showLines()
     showPageNumber()
-    // The ink first and its pages on the next turn, from outside PaperKit's own change. The undo step above goes back past both.
-    if wanted > pagesBefore { Task { @MainActor [weak self] in self?.grow(to: wanted) } }
+    redrawSoon()
     let held = paper.markup ?? markup
     inkFrames = held.strokeFrames
     let whole = held.inkDrawing
@@ -724,6 +729,77 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "ms": ms(CACurrentMediaTime() - started),
       ])
     undoSoonForTests()
+    lookForInk(made.bounds)
+  }
+
+  /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,
+  /// whatever is set or scrolled after. A change of zoom draws it. On the simulator, iOS 27: 15 of 180 pastes without this, 0 of
+  /// 60 with it, and a zoom brought back each of the 7 in the run that tried one. A set that opens a board is followed by a
+  /// zoom anyway, the fit. So the zoom moves too little to see and back, with the touches done.
+  /// ponytail: works around a miss inside PaperKit, unseen on a real device so far; drop it if `paper_ink_look` shows the iOS
+  /// it's built for no longer misses without it.
+  private func redrawSoon() {
+    redrawing?.cancel()
+    redrawing = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(0.3))
+      while !Task.isCancelled, (self?.touchesDown ?? 0) > 0 { try? await Task.sleep(for: .seconds(0.2)) }
+      guard let self, !Task.isCancelled else { return }
+      let config = self.paper.scrollConfiguration
+      let (zoom, place) = (config.zoomScale, self.paper.contentVisibleFrame)
+      config.zoomScale = zoom * (zoom < self.paper.zoomRange.upperBound ? 1.002 : 0.998)
+      try? await Task.sleep(for: .seconds(0.05))
+      config.zoomScale = zoom
+      self.paper.contentVisibleFrame = place
+    }
+  }
+
+  /// A second after ink is kept or pasted, whether the view's own picture has it. 0 with the ink in view is the ink missing.
+  private func lookForInk(_ ink: CGRect) {
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(1))
+      guard let self, let markup = self.paper.markup else { return }
+      let corner = self.lines.convert(self.lines.spot(of: ink.origin), to: self.view)
+      let scale = self.screenScale
+      let spot = CGRect(x: corner.x, y: corner.y, width: ink.width * scale, height: ink.height * scale)
+      self.log.event(
+        "whiteboard",
+        [
+          "action": "paper_ink_look", "board": self.model.board.id, "ink": self.rect(ink), "spot": self.rect(spot),
+          "in_view": self.view.bounds.contains(spot), "strokes": markup.subelements.strokes.count,
+          "visible": self.rect(self.paper.contentVisibleFrame), "shown_px": self.shownPixels(in: spot),
+        ])
+    }
+  }
+
+  /// Pixels unlike the paper in this view's own picture of itself, in a part of it.
+  private func shownPixels(in spot: CGRect) -> Int {
+    let box = spot.intersection(view.bounds)
+    guard !box.isNull, !box.isEmpty else { return -1 }
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = 1
+    let picture = UIGraphicsImageRenderer(size: box.size, format: format).image { _ in
+      let whole = CGRect(origin: CGPoint(x: -box.minX, y: -box.minY), size: view.bounds.size)
+      view.drawHierarchy(in: whole, afterScreenUpdates: false)
+    }
+    guard let cg = picture.cgImage else { return -1 }
+    var (r, g, b): (CGFloat, CGFloat, CGFloat) = (0, 0, 0)
+    paperColor.resolvedColor(with: traitCollection).getRed(&r, green: &g, blue: &b, alpha: nil)
+    let paper = [Int(r * 255), Int(g * 255), Int(b * 255)]
+    let (w, h) = (cg.width, cg.height)
+    var bytes = [UInt8](repeating: 0, count: w * h * 4)
+    let drawn = bytes.withUnsafeMutableBytes { raw -> Bool in
+      guard
+        let context = CGContext(
+          data: raw.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+      else { return false }
+      context.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+      return true
+    }
+    guard drawn else { return -1 }
+    return stride(from: 0, to: bytes.count, by: 4).filter { i in
+      (0..<3).contains { abs(Int(bytes[i + $0]) - paper[$0]) > 40 }
+    }.count
   }
 
   /// Undo or redo of a kept mark: back to the markup as it was, and the way forward again the same way.
@@ -764,6 +840,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "action": "paper_step", "board": model.board.id, "strokes": inkFrames.count, "pages": pages,
         "can_undo": paper.undoManager?.canUndo ?? false, "can_redo": paper.undoManager?.canRedo ?? false,
       ])
+    redrawSoon()
   }
 
   /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...`: those presses after a keep, 3 s apart, for the simulator: a
@@ -879,10 +956,7 @@ final class PaperLines: UIView {
 
   init(paper: UIColor) {
     super.init(frame: .zero)
-    // See-through: the host's own colour is the paper. Opaque, the first ink pasted on a new board sometimes never showed, with
-    // the same ink in the same place as when it did: 4 of 18 on the simulator, iOS 27, and 0 of 10 once this was clear. So
-    // PaperKit seems to put a new board's ink under its content view now and then; that part is inferred, not seen.
-    backgroundColor = .clear
+    backgroundColor = paper
     isUserInteractionEnabled = false
     shape.fillColor = nil
     shape.strokeColor = UIColor(white: 0.5, alpha: 0.45).cgColor

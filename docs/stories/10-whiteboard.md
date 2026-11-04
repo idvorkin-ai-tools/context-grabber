@@ -3583,3 +3583,21 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a line wider than the part of the page on screen
 - **When:** I paste
 - **Then:** it wraps
+
+### User Story 650:
+
+- **Summary:** Ink the app adds always shows
+- **Status:** the simulator only, iPhone 17, iOS 27: pasted ink missing from the screen in 15 of 180 runs before the fix, 0 of 60 after it (`testAPasteLandsInTheMiddleOfThePaperOnScreen`, read from `paper_ink_look`). Whether it happens on a real iPad, and whether the small redraw can be felt there, is still to be seen.
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** keeping a ghost or pasting text on a board on paper
+- **I want to** see the ink as soon as it's there
+- **so that** nothing the board counts and saves is invisible to me
+
+#### Acceptance Criteria:
+- **Scenario:** Added ink shows
+- **Given:** a board on paper
+- **When:** I keep a ghost, paste text, or undo or redo one of those
+- **Then:** the ink is on the screen within half a second, and the view stays where it is

@@ -235,6 +235,8 @@ paper. That description is the requirement, and this lists only where paper need
   goes back to what it did. What a finger drag does in those seconds is part of what the iPad has yet to settle.
 - **A kept ghost is ink like his own.** It's in its author's colour, the eraser and lasso treat it like his, and it saves a moment
   later.
+- **Ink the app adds is on the screen.** A kept ghost, a paste, an undo or a redo of one shows within half a second, where it
+  belongs, with the view staying where it is. Ink that's saved and counted but not shown is a bug, however rarely it happens.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
 - **An undo doesn't outlive its board.** Closing a board takes its kept marks' undo steps with it, on either canvas, so Undo on
   the next board can't reach back and change the one that closed.
