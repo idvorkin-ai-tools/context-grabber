@@ -58,6 +58,18 @@ struct WhiteboardListView: View {
           Button("Done", action: onDone).accessibilityIdentifier("whiteboard-done")
         }
         ToolbarItem(placement: .topBarTrailing) {
+          Menu {
+            Toggle(
+              "New boards on paper",
+              isOn: Binding(get: { store.newBoardsOnPaper }, set: { store.setNewBoardsOnPaper($0) }))
+          } label: {
+            Label("Board options", systemImage: "ellipsis.circle")
+          }
+          // Its state, for VoiceOver and the UI test, as a menu's toggle isn't there until it opens.
+          .accessibilityLabel("Board options, new boards \(store.newBoardsOnPaper ? "on paper" : "on the old canvas")")
+          .accessibilityIdentifier("whiteboard-options")
+        }
+        ToolbarItem(placement: .topBarTrailing) {
           Button {
             path.append(store.create())
           } label: {
@@ -169,7 +181,8 @@ struct WhiteboardListView: View {
   private func subtitle(_ board: BoardEntry) -> String {
     let when = RelativeDateTimeFormatter().localizedString(
       for: Date(timeIntervalSince1970: Double(board.updated) / 1000), relativeTo: Date())
-    return store.editable(board) ? "Changed \(when)" : "Changed \(when) · Drawn on \(board.deviceName)"
+    guard store.editable(board) else { return "Changed \(when) · Drawn on \(board.deviceName)" }
+    return store.opensOnPaper(board) ? "Changed \(when) · On paper" : "Changed \(when)"
   }
 }
 

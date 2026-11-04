@@ -2383,3 +2383,298 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an old board with ink 2,000 points wide, far from the board's corner
 - **When:** it moves onto pages
 - **Then:** the ink sits inside the first page's corner at the same size, and the board is wide enough to hold it
+
+---
+
+### User Story 590:
+
+- **Summary:** A switch for new boards on paper
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** trying the board on paper on one device
+- **I want to** turn new boards on paper on or off from the boards list
+- **so that** the old canvas stays the default until the rest is built
+
+#### Acceptance Criteria:
+- **Scenario:** A device that never touched the switch
+- **Given:** the boards list
+- **When:** I open its menu beside +
+- **Then:** *New boards on paper* is off
+
+- **Scenario:** Turning it on
+- **Given:** the switch off
+- **When:** I turn on *New boards on paper* and tap +
+- **Then:** the new board is on paper, and the switch stays on when the app opens again
+
+---
+
+### User Story 591:
+
+- **Summary:** A new board on paper is a column of pages
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** writing down a new board
+- **I want to** get a page-wide column with a blank page below my ink and a page number at the corner
+- **so that** I never run out of room and always know where I am
+
+#### Acceptance Criteria:
+- **Scenario:** A new board
+- **Given:** the switch on
+- **When:** I tap +
+- **Then:** the board fits one page across the screen and reads *Page 1 of 1*
+
+- **Scenario:** The first ink
+- **Given:** a new board on paper
+- **When:** I draw on it
+- **Then:** it reads *Page 1 of 2*, and a blank page is there to scroll to
+
+---
+
+### User Story 592:
+
+- **Summary:** Page lines under the ink, and nothing to test with
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** looking at my own notes
+- **I want to** see faint page lines under the ink and no test marks
+- **so that** the board reads as paper and not as a trial
+
+#### Acceptance Criteria:
+- **Scenario:** A board on paper
+- **Given:** a board on paper with ink
+- **When:** I look at it
+- **Then:** a faint line marks each page's end, under the ink, with no small cross and no orange ring
+
+---
+
+### User Story 593:
+
+- **Summary:** A board on paper is kept like any other
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing on a board on paper
+- **I want to** have it saved, listed and synced as any board is
+- **so that** paper costs me nothing I rely on
+
+#### Acceptance Criteria:
+- **Scenario:** Killed after a stroke
+- **Given:** a board on paper with a stroke drawn a moment ago
+- **When:** the app is killed and opened again
+- **Then:** the row says *On paper* and the board opens with that ink
+
+- **Scenario:** Closed without a stroke
+- **Given:** a new board on paper with nothing on it
+- **When:** I go back
+- **Then:** no row is left behind
+
+- **Scenario:** In today's format
+- **Given:** a board on paper with ink
+- **When:** an older build reads its file
+- **Then:** it opens the same strokes on the old canvas, as the file is what every board's file is
+
+---
+
+### User Story 594:
+
+- **Summary:** Another device looks at a board on paper
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** looking at a board my iPad draws, on my iPhone
+- **I want to** see its ink in the look-only view
+- **so that** paper doesn't cut a board off from my other device
+
+#### Acceptance Criteria:
+- **Scenario:** On the other device
+- **Given:** a board on paper drawn on the iPad
+- **When:** I open it on the iPhone
+- **Then:** the ink shows in the look-only view on the old canvas, with no pages yet and no tool picker
+
+- **Scenario:** Back on the same device
+- **Given:** a board on paper whose list this device lost
+- **When:** iCloud brings it back
+- **Then:** it opens on paper again
+
+---
+
+### User Story 595:
+
+- **Summary:** The switch never moves a board
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with old boards and new ones side by side
+- **I want to** have each board stay on the canvas it started on
+- **so that** the switch can't cost me a board
+
+#### Acceptance Criteria:
+- **Scenario:** An old board, switch on
+- **Given:** a board from before, and the switch on
+- **When:** I open it
+- **Then:** it opens on the old canvas with its ghosts and mic
+
+- **Scenario:** A paper board, switch off
+- **Given:** a board on paper, and the switch off
+- **When:** I open it
+- **Then:** it opens on paper
+
+---
+
+### User Story 596:
+
+- **Summary:** A board on paper opens where I left it
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** coming back to a long board
+- **I want to** land on the page I was on
+- **so that** I don't scroll to find my place
+
+#### Acceptance Criteria:
+- **Scenario:** Coming back
+- **Given:** a board on paper I scrolled down and left
+- **When:** I open it on this device
+- **Then:** it opens at that place
+
+- **Scenario:** Ink erased since
+- **Given:** a place further down than the board now reaches
+- **When:** I open it
+- **Then:** it opens at the last page's top
+
+---
+
+### User Story 597:
+
+- **Summary:** A board on paper keeps its colour
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who gave a board a colour
+- **I want to** choose its colour on paper as on the old canvas
+- **so that** the page looks the way I chose
+
+#### Acceptance Criteria:
+- **Scenario:** Choosing a colour
+- **Given:** a board on paper
+- **When:** I choose Sage in the Board menu
+- **Then:** the paper under the ink turns sage
+
+- **Scenario:** In dark mode
+- **Given:** a board on paper, and the device in dark mode
+- **When:** I draw
+- **Then:** the ink shows dark on the colour's pale shade, as dark mode's deep shades aren't on paper yet
+
+---
+
+### User Story 598:
+
+- **Summary:** A board on paper says what it can't do yet
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** used to the old canvas
+- **I want to** not be offered what paper can't do yet
+- **so that** nothing looks like it works and then doesn't
+
+#### Acceptance Criteria:
+- **Scenario:** The top bar
+- **Given:** a board on paper
+- **When:** I look at its bar
+- **Then:** there's no ghosts switch, no *Larry's turn*, no mic and no paste button, and the Board menu has no grid
+
+- **Scenario:** Larry
+- **Given:** a board on paper with ink
+- **When:** I tap *Send to Larry*
+- **Then:** the whole drawing goes, his reply shows in Chat, and marks he draws in answer don't come to the board yet
+
+- **Scenario:** Keys
+- **Given:** a board on paper
+- **When:** I press ⌘V
+- **Then:** it isn't built here yet: the old canvas's paste, which writes text as ink, doesn't run
+
+---
+
+### User Story 599:
+
+- **Summary:** A failed save on paper says so, and doesn't vanish
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who can't afford to lose notes silently
+- **I want to** see a problem I can copy when a save fails
+- **so that** I know right then that something isn't kept
+
+#### Acceptance Criteria:
+- **Scenario:** While drawing
+- **Given:** a board on paper whose save fails
+- **When:** a stroke's save runs
+- **Then:** the board shows the problem with a *Copy error* button, and I can keep drawing
+
+- **Scenario:** On leaving
+- **Given:** a board on paper with ink that can't be saved
+- **When:** I go back
+- **Then:** the boards list shows the problem
+
+---
+
+### User Story 600:
+
+- **Summary:** The log tells the Pencil from a finger
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** deciding what a finger should do on paper
+- **I want to** have each touch on a board on paper logged with which it was and what came of it
+- **so that** the next try on the iPad settles it without another build
+
+#### Acceptance Criteria:
+- **Scenario:** A touch
+- **Given:** a board on paper
+- **When:** I touch it with the Pencil or a finger
+- **Then:** a line says which it was, how far it went, and whether it drew, panned, selected, moved ink or did nothing
+
+---
+
+### User Story 601:
+
+- **Summary:** *Try on paper* stays
+- **Status:** being built on this branch; verified as named in the commit that follows
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** still testing what PaperKit does
+- **I want to** open any board this device draws in the trial
+- **so that** the switch doesn't take away the place to test with
+
+#### Acceptance Criteria:
+- **Scenario:** A board on paper in the trial
+- **Given:** a board on paper
+- **When:** I long-press its row and choose *Try on paper*
+- **Then:** the trial opens a copy with its test marks, and the real board is untouched

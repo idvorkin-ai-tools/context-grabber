@@ -10,7 +10,6 @@ import ContextCore
 import PaperKit
 import PencilKit
 import SwiftUI
-import UIKit.UIGestureRecognizerSubclass
 
 /// The board as the trial gets it. A value: drawing on the trial never comes back through this.
 struct PaperTrialCopy: Identifiable {
@@ -143,9 +142,9 @@ private struct PaperTrialHost: UIViewControllerRepresentable {
   func updateUIViewController(_ controller: PaperTrial, context: Context) {}
 }
 
-/// PaperKit's controller can't be subclassed, so this holds it, with the ring and the probes beside it.
+/// The shared host, with the ring and the probes beside it.
 @MainActor
-final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewController.Delegate {
+final class PaperTrial: PaperHost, ObservableObject, PaperMarkupViewController.Delegate {
   enum Finger: String { case system, selects, draws }
 
   @Published private(set) var pageText = "Page 1 of 1"
@@ -156,11 +155,6 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
 
   private let copy: PaperTrialCopy
   private let log: SessionLog
-  private let paper: PaperMarkupViewController
-  /// Held here: the tool picker disappears when nothing keeps it.
-  private let picker = PKToolPicker()
-  private let lines: PaperLines
-  private let watcher = PaperTouchWatcher()
   /// A sibling over the board, placed from the visible area alone (question 3). It needs its zPosition: without one
   /// the simulator drew it under PaperKit's view, though it's the later subview.
   private let ring = UIView()
@@ -191,25 +185,10 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
   private var asked: String?
   private var ringPage = 1
 
-  private var touchesDown = 0
-  private var pencilDown = false
-  private var run: TouchRun?
-  private var runEnding: Task<Void, Never>?
-
-  private static let features: FeatureSet = {
-    var set = FeatureSet.empty
-    set.contentVersion = .latest
-    set.insert(.drawing)
-    set.inks = [.pen, .pencil, .marker, .monoline, .fountainPen, .watercolor, .crayon, .reed]
-    return set
-  }()
-
   init(copy: PaperTrialCopy, log: SessionLog) {
     self.copy = copy
     self.log = log
-    paper = PaperMarkupViewController(markup: nil, supportedFeatureSet: Self.features)
-    lines = PaperLines(paper: copy.paper.color)
-    super.init(nibName: nil, bundle: nil)
+    super.init(paperColor: copy.paper.color)
   }
 
   required init?(coder: NSCoder) { nil }
@@ -218,17 +197,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = copy.paper.color
-    addChild(paper)
-    paper.view.frame = view.bounds
-    paper.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    // Question 5: a see-through canvas, the paper and its lines beneath the ink.
-    paper.view.backgroundColor = .clear
-    paper.view.isOpaque = false
-    view.addSubview(paper.view)
-    paper.didMove(toParent: self)
     paper.delegate = self
-    paper.contentView = lines
     systemTouchMode = paper.directTouchMode
     systemAutoDraws = paper.directTouchAutomaticallyDraws
 
@@ -239,13 +208,6 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     ring.isUserInteractionEnabled = false
     ring.layer.zPosition = 1000
     view.addSubview(ring)
-
-    watcher.changed = { [weak self] touch, phase, down in self?.touched(touch, phase, down: down) }
-    view.addGestureRecognizer(watcher)
-
-    picker.addObserver(paper)
-    paper.pencilKitResponderState.activeToolPicker = picker
-    paper.pencilKitResponderState.toolPickerVisibility = .visible
 
     probe(
       "open", q: "other",
@@ -293,14 +255,11 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     super.viewWillDisappear(animated)
     link?.invalidate()
     link = nil
-    paper.pencilKitResponderState.toolPickerVisibility = .hidden
-    picker.removeObserver(paper)
   }
 
   /// Close: what's in the copy goes with it.
   func finish() {
-    runEnding?.cancel()
-    endRun()
+    finishTouches()
     endGlide()
     probe(
       "close", q: "other",
@@ -336,12 +295,12 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     let set = CACurrentMediaTime()
     let back = paper.markup
     let read = CACurrentMediaTime()
-    inkFrames = back.map(Self.frames) ?? [:]
+    inkFrames = back.map(\.strokeFrames) ?? [:]
     let framed = CACurrentMediaTime()
     inkAddedSinceLoad = 0
     strokes = inkFrames.count
     strokeLandingToCheck = true
-    lines.show(column)
+    showLines()
     probe(
       "markup_load", q: "other",
       [
@@ -357,13 +316,17 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
       ])
   }
 
-  /// What zoom means is read off the screen, then the pinch's floor is the page's width.
+  private func showLines() {
+    let held = max(column.heldPages, 1)
+    lines.show(
+      width: column.width, ends: BoardPages(width: column.width).pageEnds(pages: held),
+      crosses: (1...held).map(column.cross))
+  }
+
   private func fit(probing: Bool) {
     let config = paper.scrollConfiguration
-    config.bounces = .vertical
-    config.visibleScrollIndicators = .vertical
-    paper.zoomRange = 0.05...4
     if probing {
+      paper.zoomRange = 0.05...4
       let samples: [[String: Any]] = [1, 0.5, 2].map { (asked: CGFloat) in
         config.zoomScale = asked
         paper.view.layoutIfNeeded()
@@ -377,14 +340,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
         "zoom_meaning", q: "other",
         ["view_width": Double(view.bounds.width), "column_width": Double(column.width), "samples": samples])
     }
-    config.zoomScale = 1
-    paper.view.layoutIfNeeded()
-    let fit =
-      PaperProbe.fitZoom(visibleWidth: paper.contentVisibleFrame.width, atZoom: config.zoomScale, column: column.width)
-      ?? 1
-    paper.zoomRange = fit...max(3, fit)
-    config.zoomScale = fit
-    paper.view.layoutIfNeeded()
+    let fit = fit(columnWidth: column.width)
     applyTrim()
     let size = paper.contentVisibleFrame.size
     expectMove("fit")
@@ -442,17 +398,14 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
   }
 
   /// Whether the ink's wire ids survive PaperKit: through a markup and back, and then through a drawing's data. The ids
-  /// are the Cockpit's, so a change here is a change Larry would see. In memory, and never shown. The strokes are remade
-  /// on the way out: PKDrawing(strokes:) on what `subelements.strokes` gives throws an Objective-C exception, nil into
-  /// PencilKit's set of UUIDs, seen on the simulator on iOS 27 with ink appended from a drawing.
+  /// are the Cockpit's, so a change here is a change Larry would see. In memory, and never shown.
   private func roundTrip() {
     let started = CACurrentMediaTime()
     let ids = WhiteboardModel.strokesForLarry(copy.drawing).map(\.id)
     var markup = PaperMarkup(bounds: column.bounds)
     markup.append(contentsOf: copy.drawing)
     let back = markup.subelements.strokes
-    let through = PKDrawing(
-      strokes: back.map { PKStroke(ink: $0.ink, path: $0.path, transform: $0.transform, mask: $0.mask) })
+    let through = markup.inkDrawing
     let result = PaperProbe.roundTrip(ids, WhiteboardModel.strokesForLarry(through).map(\.id))
     let again = (try? PKDrawing(data: through.dataRepresentation())) ?? PKDrawing()
     let data = PaperProbe.roundTrip(ids, WhiteboardModel.strokesForLarry(again).map(\.id))
@@ -551,7 +504,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
       quiet = false
     }
     let took = CACurrentMediaTime() - started
-    lines.show(column)
+    showLines()
     applyTrim()
     run?.pageAdded = true
     let after = paper.contentVisibleFrame
@@ -643,7 +596,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
       again += 1
     }
     quiet = false
-    let restored = paper.markup.map(Self.frames) ?? [:]
+    let restored = paper.markup.map(\.strokeFrames) ?? [:]
     inkFrames = restored
     strokes = restored.count
     probe(
@@ -659,7 +612,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
   func paperMarkupViewControllerDidChangeMarkup(_ controller: PaperMarkupViewController) {
     guard !quiet, let markup = controller.markup else { return }
     let started = CACurrentMediaTime()
-    let frames = Self.frames(markup)
+    let frames = markup.strokeFrames
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
     strokes = frames.count
@@ -739,18 +692,6 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     applyTrim()
   }
 
-  private static func frames(_ markup: PaperMarkup) -> [String: CGRect] {
-    // `subelements.strokes`, not the set itself: walking the set by element took 4.3 s at 1,000 strokes on the simulator
-    // and over 40 s at 5,000, which would have made every stroke here feel slow for a reason of the probe's own.
-    Dictionary(
-      markup.subelements.strokes.map { (key($0.elementID), $0.renderFrame) }, uniquingKeysWith: { _, new in new })
-  }
-
-  private static func key(_ id: MarkupOrderedSet.ElementID) -> String {
-    if case .stroke(let uuid) = id { return uuid.uuidString }
-    return String(describing: id)
-  }
-
   // MARK: - The ring and the visible area
 
   private func placeRing(_ visible: CGRect) {
@@ -822,80 +763,11 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
 
   // MARK: - Touches
 
-  /// One touch, first down to last up, and what came of it.
-  private struct TouchRun {
-    var type: String
-    var began: Double
-    var start: CGPoint
-    var visibleAtStart: CGRect
-    var zoomAtStart: CGFloat
-    var tool: String
-    var facts = PaperProbe.TouchFacts()
-    var selected = 0
-    var frames = 0
-    var maxGap: Double = 0
-    var pageAdded = false
-
-    var kind: String { "\(type)_down" }
-  }
-
-  private var lastTouchBoardPoint: CGPoint?
-  private var touchStarts: [ObjectIdentifier: CGPoint] = [:]
-
-  private func touched(_ touch: UITouch, _ phase: PaperTouchWatcher.Phase, down: Int) {
-    let at = touch.location(in: view)
-    let id = ObjectIdentifier(touch)
-    switch phase {
-    case .began:
-      if touchesDown == 0 {
-        runEnding?.cancel()
-        endRun()
-        startRun(touch, at: at)
-      }
-      touchStarts[id] = at
-      if touch.type == .pencil { pencilDown = true }
-    case .moved:
-      if let start = touchStarts[id] {
-        if let travel = run?.facts.travel { run?.facts.travel = max(travel, hypot(at.x - start.x, at.y - start.y)) }
-      }
-    case .ended:
-      touchStarts[id] = nil
-      if touch.type == .pencil { pencilDown = false }
-    }
-    touchesDown = down
-    if let fingers = run?.facts.fingers { run?.facts.fingers = max(fingers, down) }
-    if phase == .ended, down == 0 {
-      if let began = run?.began { run?.facts.seconds = CACurrentMediaTime() - began }
-      // A pan's coasting and a selection's arrival come after the lift.
-      runEnding = Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .seconds(0.6))
-        guard !Task.isCancelled else { return }
-        self?.endRun()
-      }
-    }
-  }
-
-  private func startRun(_ touch: UITouch, at: CGPoint) {
-    let visible = paper.contentVisibleFrame
-    let scale = visible.width / max(view.bounds.width, 1)
-    lastTouchBoardPoint = CGPoint(x: visible.minX + at.x * scale, y: visible.minY + at.y * scale)
-    run = TouchRun(
-      type: Self.name(touch.type), began: CACurrentMediaTime(), start: at, visibleAtStart: visible,
-      zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName)
-  }
-
-  private func endRun() {
-    guard var run else { return }
-    self.run = nil
-    let visible = paper.contentVisibleFrame
-    let zoom = paper.scrollConfiguration.zoomScale
-    let (dx, dy) = (visible.minX - run.visibleAtStart.minX, visible.minY - run.visibleAtStart.minY)
-    run.facts.scrolled = hypot(dx, dy)
-    run.facts.zoomChanged = abs(zoom - run.zoomAtStart) > 0.001
+  override func touchEnded(_ run: TouchRun, visible: CGRect, zoom: CGFloat, dx: CGFloat, dy: CGFloat) {
     probe(
       "touch", q: run.type == "pencil" ? "feel" : "finger",
       [
-        "type": run.type, "gesture": PaperProbe.gesture(run.facts), "outcome": PaperProbe.outcome(run.facts),
+        "touch_type": run.type, "gesture": PaperProbe.gesture(run.facts), "outcome": PaperProbe.outcome(run.facts),
         "seconds": seconds(run.facts.seconds), "travel": round(run.facts.travel), "fingers": run.facts.fingers,
         "at": point(run.start), "scroll_dx": round(dx), "scroll_dy": round(dy), "zoom_from": Double(run.zoomAtStart),
         "zoom_to": Double(zoom), "selection_changes": run.facts.selectionChanges, "selected": run.selected,
@@ -915,131 +787,4 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     line["q"] = q
     log.event("paper_probe", line)
   }
-
-  private var toolName: String {
-    switch paper.drawingTool {
-    case let ink as PKInkingTool: return ink.inkType.rawValue
-    case is PKEraserTool: return "eraser"
-    case is PKLassoTool: return "lasso"
-    default: return String(describing: type(of: paper.drawingTool))
-    }
-  }
-
-  private func name(_ mode: PaperMarkupViewController.TouchMode) -> String {
-    mode == .selection ? "selection" : "drawing"
-  }
-
-  private static func name(_ type: UITouch.TouchType) -> String {
-    switch type {
-    case .direct: return "finger"
-    case .pencil: return "pencil"
-    case .indirect: return "indirect"
-    case .indirectPointer: return "pointer"
-    @unknown default: return "other"
-    }
-  }
-
-  private func round(_ value: CGFloat) -> Double { (Double(value) * 10).rounded() / 10 }
-  private func ms(_ seconds: Double) -> Int { Int((seconds * 1000).rounded()) }
-  private func seconds(_ value: Double) -> Double { (value * 100).rounded() / 100 }
-  private func point(_ p: CGPoint) -> [Double] { [round(p.x), round(p.y)] }
-  private func insets(_ i: UIEdgeInsets) -> [Double] { [round(i.top), round(i.left), round(i.bottom), round(i.right)] }
-
-  private func rect(_ r: CGRect) -> [Double] {
-    r.isNull || r.isInfinite ? [] : [round(r.minX), round(r.minY), round(r.width), round(r.height)]
-  }
-}
-
-/// Paper under the ink: its colour, a faint line where each page ends, and a small cross for the ring to sit on. In
-/// PaperKit's content view, so it moves with the board and is in nothing else.
-private final class PaperLines: UIView {
-  private let shape = CAShapeLayer()
-  private var column: PaperProbe.Column?
-
-  init(paper: UIColor) {
-    super.init(frame: .zero)
-    backgroundColor = paper
-    isUserInteractionEnabled = false
-    shape.fillColor = nil
-    shape.strokeColor = UIColor(white: 0.5, alpha: 0.45).cgColor
-    shape.lineWidth = 1
-    layer.addSublayer(shape)
-  }
-
-  required init?(coder: NSCoder) { nil }
-
-  func show(_ column: PaperProbe.Column) {
-    self.column = column
-    setNeedsLayout()
-  }
-
-  /// Column points to this view's own: PaperKit sizes it.
-  func spot(of point: CGPoint) -> CGPoint {
-    let scale = column.map { bounds.width / $0.width } ?? 1
-    return CGPoint(x: point.x * scale, y: point.y * scale)
-  }
-
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    guard let column, bounds.width > 0 else { return }
-    let path = CGMutablePath()
-    for page in 1...max(column.heldPages, 1) {
-      let edge = spot(of: CGPoint(x: 0, y: CGFloat(page) * PaperProbe.pageHeight))
-      path.move(to: edge)
-      path.addLine(to: CGPoint(x: bounds.width, y: edge.y))
-      let cross = spot(of: column.cross(page: page))
-      path.move(to: CGPoint(x: cross.x - 8, y: cross.y))
-      path.addLine(to: CGPoint(x: cross.x + 8, y: cross.y))
-      path.move(to: CGPoint(x: cross.x, y: cross.y - 8))
-      path.addLine(to: CGPoint(x: cross.x, y: cross.y + 8))
-    }
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-    shape.frame = bounds
-    shape.path = path
-    CATransaction.commit()
-  }
-}
-
-/// Sees every touch and takes none: it never recognises anything, delays nothing and can't be stopped by what does.
-private final class PaperTouchWatcher: UIGestureRecognizer {
-  enum Phase { case began, moved, ended }
-
-  var changed: ((UITouch, Phase, Int) -> Void)?
-  private var down: Set<UITouch> = []
-
-  init() {
-    super.init(target: nil, action: nil)
-    cancelsTouchesInView = false
-    delaysTouchesBegan = false
-    delaysTouchesEnded = false
-    requiresExclusiveTouchType = false
-  }
-
-  override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
-  override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
-
-  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-    for touch in touches {
-      down.insert(touch)
-      changed?(touch, .began, down.count)
-    }
-  }
-
-  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
-    for touch in touches { changed?(touch, .moved, down.count) }
-  }
-
-  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) { lift(touches) }
-  override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) { lift(touches) }
-
-  private func lift(_ touches: Set<UITouch>) {
-    for touch in touches {
-      down.remove(touch)
-      changed?(touch, .ended, down.count)
-    }
-    if down.isEmpty { state = .failed }
-  }
-
-  override func reset() { down = [] }
 }

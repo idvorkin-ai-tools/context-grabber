@@ -351,4 +351,68 @@ final class BoardIndexTests: XCTestCase {
     let cloudCopy = ipad.board("a")!
     XCTAssertEqual(ipad.merge(cloud: [cloudCopy], device: "ipad").fetch, [])
   }
+
+  // MARK: Stories 590, 593–595: which boards are on paper
+
+  private let aDate = Date(timeIntervalSince1970: 1_800_000_000)
+
+  func testANewBoardIsOnPaperOnlyWhenAsked() {
+    var index = BoardIndex()
+    index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
+    index.add(id: "new", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
+    XCTAssertEqual(index.board("old").map { BoardIndex.opensOnPaper($0, on: "ipad") }, false)
+    XCTAssertEqual(index.board("new").map { BoardIndex.opensOnPaper($0, on: "ipad") }, true)
+  }
+
+  func testABoardOnPaperOpensOnPaperOnlyWhereItsDrawn() {
+    var index = BoardIndex()
+    let board = index.add(id: "a", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
+    XCTAssertFalse(BoardIndex.opensOnPaper(board, on: "iphone"), "the look-only view elsewhere")
+  }
+
+  func testAListFromBeforePaperStillReadsAndNoBoardInItIsOnPaper() throws {
+    let board = #"{"id":"a","title":"T","created":1,"updated":2,"strokes":1,"device":"ipad","deviceName":"iPad"}"#
+    let old = #"{"boards":["# + board + #"],"deleted":[]}"#
+    let index = try JSONDecoder().decode(BoardIndex.self, from: Data(old.utf8))
+    XCTAssertEqual(index.board("a").map { BoardIndex.opensOnPaper($0, on: "ipad") }, false)
+  }
+
+  func testOnPaperSurvivesTheListBeingSavedAndReadBack() throws {
+    var index = BoardIndex()
+    index.add(id: "a", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
+    let back = try JSONDecoder().decode(BoardIndex.self, from: JSONEncoder().encode(index))
+    XCTAssertEqual(back.board("a")?.onPages, true)
+  }
+
+  func testOnPaperSurvivesEveryChangeToTheBoard() {
+    var index = BoardIndex()
+    index.add(id: "a", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
+    index.drew("a", strokes: 3, at: 2_000_000_000_000)
+    index.rename("a", to: "Notes", at: 2_000_000_000_100)
+    index.setPaper("a", to: .cream, at: 2_000_000_000_200)
+    index.uploaded("a", at: 2_000_000_000_200)
+    XCTAssertEqual(index.board("a")?.onPages, true)
+  }
+
+  func testABoardOnPaperComesBackFromICloudOnPaper() {
+    // A reinstall or an unreadable list: iCloud gives this device's board back, and it has to reopen on paper, as its
+    // ink sits at the column's corner and not in the old canvas's middle.
+    var index = BoardIndex()
+    let cloud = BoardEntry(
+      id: "a", title: "T", created: 1, updated: 2, strokes: 1, device: "ipad", deviceName: "iPad", onPages: true)
+    _ = index.merge(cloud: [cloud], device: "ipad")
+    XCTAssertEqual(index.board("a").map { BoardIndex.opensOnPaper($0, on: "ipad") }, true)
+  }
+
+  func testAnotherDevicesBoardOnPaperKeepsSayingSoAsItUpdates() {
+    var index = BoardIndex()
+    let first = BoardEntry(
+      id: "a", title: "T", created: 1, updated: 2, strokes: 1, device: "ipad", deviceName: "iPad", onPages: true)
+    _ = index.merge(cloud: [first], device: "iphone")
+    var newer = first
+    newer.updated = 3
+    _ = index.merge(cloud: [newer], device: "iphone")
+    XCTAssertEqual(index.board("a")?.onPages, true)
+    XCTAssertEqual(index.board("a").map { BoardIndex.opensOnPaper($0, on: "iphone") }, false)
+  }
 }
