@@ -8,6 +8,10 @@ import XCTest
 final class WhiteboardPasteOnPaperUITests: WhiteboardPasteUITests {
   override var boardEnvironment: [String: String] { ["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"] }
 
+  override func testACommandVPastesTheClipboardAndCommandZTakesItAllBack() throws {
+    throw XCTSkip("Keys reach one test per boot: this is WhiteboardPaperPasteUITests' test1, in a run of its own")
+  }
+
   override func tearDown() {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
@@ -77,9 +81,8 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: dy)))
   }
 
-  /// Stories 638, 639: ⌘V first in the class, as keys reach only a run's first test (seen here: a later test's ⌘V never
-  /// reached the app), and ⌘Z after it. `WhiteboardPasteUITests` tests ⌘V the old canvas's way, so a full run can't count on
-  /// this one being first: it's run alone too.
+  /// Stories 638, 639: ⌘V and ⌘Z. Keys reach the app only for the first test after a boot that presses any, and the old
+  /// canvas's ⌘V test has that in the main run, so test-whiteboard-ui.sh runs this one after a boot of its own.
   func test1CommandVOnPaperAndCommandZ() throws {
     UIPasteboard.general.string = "HI"
     let app = try openBoard()
@@ -95,7 +98,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
   }
 
   /// Story 641: strokes copied on a board on paper, and no text. Hooks copy and press: the simulator can't work the lasso, and
-  /// keys reach only a run's first test.
+  /// keys reach one test per boot.
   func testCopiedStrokesPaste() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_INK": "copy,paste"])
     sleep(2)
