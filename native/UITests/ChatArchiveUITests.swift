@@ -34,7 +34,8 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertTrue(app.buttons["chat-thread-\(key)"].isHittable, "back in the live list", file: file, line: line)
   }
 
-  /// A row just opened under Done can be below the buttons' bar: scrolled up clear of it, as he would.
+  /// The Done fold, or a row just opened under it, can be below the buttons' bar, where a tap lands on the bar: scrolled
+  /// up clear of it, as he would. A swipe's Undo line pushes the whole list down for five seconds as well.
   private func scrollClearOfTheBar(_ row: XCUIElement, _ app: XCUIApplication) {
     let bar = app.otherElements["chat-new-bar"]
     let origin = app.coordinate(withNormalizedOffset: .zero)
@@ -78,6 +79,7 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["Archive"].tap()
     let done = doneFold(app)
     XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
+    scrollClearOfTheBar(done, app)
     done.tap()
     let row = app.buttons["chat-thread-\(key)"]
     XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
@@ -96,6 +98,7 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["Archive chat"].tap()
     let done = doneFold(app)
     XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
+    scrollClearOfTheBar(done, app)
     done.tap()
     scrollClearOfTheBar(app.buttons["chat-thread-\(key)"], app)
     app.buttons["chat-thread-\(key)"].tap()
