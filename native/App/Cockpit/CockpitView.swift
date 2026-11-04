@@ -75,12 +75,10 @@ struct CockpitView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         Text("Can't reach the Cockpit").font(.title3.weight(.bold)).foregroundStyle(.white)
-        Text(
-          model.address == ChatCockpit.nowhere
-            ? "This Mac build has no Cockpit address: set GRABBER_COCKPIT_URL."
-            : "Check that Tailscale is connected and the machine serving the Cockpit is awake."
-        )
-        .font(.subheadline).foregroundStyle(Color(white: 0.67))
+        if model.address != ChatCockpit.nowhere {
+          Text("Check that Tailscale is connected and the machine serving the Cockpit is awake.")
+            .font(.subheadline).foregroundStyle(Color(white: 0.67))
+        }
         Text(error.url).font(.system(.footnote, design: .monospaced)).foregroundStyle(accent).textSelection(.enabled)
         Button("Try again") { model.retry() }
           .font(.system(size: 15, weight: .semibold))

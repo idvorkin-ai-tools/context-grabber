@@ -40,7 +40,15 @@ final class CockpitModel: NSObject, ObservableObject {
   /// Only the page knows when its call is live; the screen is held for exactly that long (keep-awake spec).
   private var callLive = false
 
-  private(set) lazy var webView: WKWebView = makeWebView()
+  private var builtWebView: WKWebView?
+
+  var webView: WKWebView {
+    if let builtWebView { return builtWebView }
+    let web = makeWebView()
+    builtWebView = web
+    load(into: web)
+    return web
+  }
 
   /// `override`: a URL, or the name of an HTML page in the app bundle (the simulator's bridge test page).
   init(log: SessionLog, override: String? = nil) {
@@ -93,7 +101,6 @@ final class CockpitModel: NSObject, ObservableObject {
     let refresh = UIRefreshControl()
     refresh.addTarget(self, action: #selector(pulled), for: .valueChanged)
     web.scrollView.refreshControl = refresh
-    load(into: web)
     return web
   }
 
@@ -106,6 +113,10 @@ final class CockpitModel: NSObject, ObservableObject {
   }
 
   private func load(into web: WKWebView) {
+    guard address != ChatCockpit.nowhere else {
+      fail("This Mac build has no Cockpit address: set GRABBER_COCKPIT_URL.")
+      return
+    }
     guard let loadURL else {
       fail("Not a URL: \(address)")
       return

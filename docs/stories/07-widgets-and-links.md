@@ -1323,7 +1323,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 582:
 
 - **Summary:** A Mac build with no address reaches no Cockpit, on any route
-- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); host tests (`ChatCockpitTests`), and verified on Igor's Mac: no connection to the real Cockpit's address in any launch, watched every half second; the chat list, the Cockpit page and a call each said why.
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); host tests (`ChatCockpitTests`), and verified on Igor's Mac: no connection to the real Cockpit's address in any launch, watched every half second; the chat list, the Cockpit page and a call each said why. The Cockpit page's reason then moved into its copyable error, with no load attempted: not yet built or seen on a Mac.
 - **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 

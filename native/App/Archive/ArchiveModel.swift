@@ -28,8 +28,8 @@ final class ArchiveModel: ObservableObject {
 
   private let log: SessionLog
   private let database: AppDatabase
-  /// Where the batches go. Nil on a simulator launched without GRABBER_ARCHIVE_URL: the simulator reaches the
-  /// tailnet too, and its fixture week and imported trail must never land in Igor's archive.
+  /// Where the batches go. Nil on a simulator or a Mac build launched without GRABBER_ARCHIVE_URL: both reach the
+  /// tailnet too, and their fixture week and imported trail must never land in Igor's archive.
   private let cockpit: String?
   private let deviceId: String
   private let health = HKHealthStore()
@@ -120,7 +120,7 @@ final class ArchiveModel: ObservableObject {
   }
 
   /// Asks iOS for the next refresh and preserves a daily batch iOS has not run yet, even past midnight.
-  /// The simulator has no scheduler: it says so once and runs only from the hook.
+  /// A simulator or a Mac build schedules nothing: it says so once and runs only while the app is open.
   func schedule(reason: String) async {
     #if targetEnvironment(simulator) || targetEnvironment(macCatalyst)
       log.event(
@@ -159,7 +159,8 @@ final class ArchiveModel: ObservableObject {
 
   private func perform(reason: String, maxPages: Int) async {
     guard let cockpit else {
-      log.event("archive", ["action": "skipped", "why": reason, "reason": "no archive URL on the simulator"])
+      let place = ChatCockpit.isMac ? "a Mac build" : "the simulator"
+      log.event("archive", ["action": "skipped", "why": reason, "reason": "no archive URL on \(place)"])
       return
     }
     guard let cursors = database.archiveCursors else {
