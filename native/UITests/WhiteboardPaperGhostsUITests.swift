@@ -209,13 +209,15 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   /// Story 614: pinched and moved, the ghost stays beside the ink, by the screen's own pixels. The same check on a sheet
   /// placed by hand would show any lag only while it moved, which is the iPad's (`paper_touch`'s ghost_slip).
   func testAGhostStaysOnTheInkWhenTheBoardMoves() throws {
+    // `paper_touch` on an iPad simulator: fingers 2, travel 11 points, whatever scale is asked for: too little to zoom.
+    try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .phone, "XCUITest's pinch barely moves on an iPad")
     let app = try openBoard()
     let ghost = try XCTUnwrap(strokeBringsAGhost(app))
     let ink = try XCTUnwrap(PaperScreen(app).ink, "black ink on screen")
     let gap = (ghost.center.x - ink.center.x) / ink.width
     shot(app, "before")
 
-    app.pinch(withScale: 1.6, velocity: 2)
+    app.pinch(withScale: 2, velocity: 1)
     sleep(2)
     shot(app, "zoomed in")
     let (ghostZoomed, inkZoomed) = (PaperScreen(app).ghost, PaperScreen(app).ink)
