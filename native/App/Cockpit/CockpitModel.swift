@@ -46,7 +46,7 @@ final class CockpitModel: NSObject, ObservableObject {
   init(log: SessionLog, override: String? = nil) {
     self.log = log
     route = AudioRouteController(log: log)
-    let raw = override.flatMap { $0.isEmpty ? nil : $0 } ?? CockpitPage.url
+    let raw = ChatCockpit.pageAddress(override: override)
     var base: URL?
     if raw.contains("://") {
       base = URL(string: raw)

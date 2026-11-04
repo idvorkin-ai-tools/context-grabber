@@ -70,7 +70,7 @@ final class CallModel: ObservableObject {
   /// What the gist (story 094, gone from this app) left behind: the token in the Keychain and the uploads' list.
   private static let gistToken = "gist_token"
   private static let gistUploads = "gist_uploads"
-  static let cockpitURL = "https://c-5004.squeaker-teeth.ts.net"
+  static let cockpitURL = ChatCockpit.callAddress(chatOverride: ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"])
 
   init(log: SessionLog, database: AppDatabase, environment: [String: String]) {
     self.log = log

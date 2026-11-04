@@ -98,8 +98,17 @@ public struct InboxStore: Sendable {
 
   /// The App Group's Inbox, or nil without the group (a test host, a build without the entitlement).
   public static func shared(group: String = appGroup) -> InboxStore? {
-    FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
-      .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
+    #if targetEnvironment(macCatalyst)
+      // #638: no share extension to share with on a Mac, and a build with no signing identity can't write the group's
+      // folder even though it is handed one. The app's own folder holds the outbox.
+      return
+        (try? FileManager.default.url(
+          for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))
+        .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
+    #else
+      return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
+        .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
+    #endif
   }
 
   /// The image (and a board's strokes), or a document, first, the item last, so an item on disk always has its files.

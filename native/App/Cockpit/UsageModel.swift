@@ -22,7 +22,7 @@ final class UsageModel: ObservableObject {
   /// `override`: another Cockpit (the simulator's checks point it at a local server).
   init(log: SessionLog, override: String? = nil) {
     self.log = log
-    base = URL(string: override.flatMap { $0.isEmpty ? nil : $0 } ?? CockpitPage.url)
+    base = URL(string: ChatCockpit.pageAddress(override: override))
   }
 
   /// Loads now and every five minutes until `pause()`.

@@ -391,8 +391,8 @@ final class ChatModel: ObservableObject {
   }
 
   func scheduleBackgroundCheck() {
-    #if targetEnvironment(simulator)
-      log.event("chat", ["action": "schedule_skipped", "reason": "simulator"])
+    #if targetEnvironment(simulator) || targetEnvironment(macCatalyst)
+      log.event("chat", ["action": "schedule_skipped", "reason": ChatCockpit.isMac ? "mac" : "simulator"])
     #else
       let request = BGAppRefreshTaskRequest(identifier: Self.backgroundTask)
       request.earliestBeginDate = Date().addingTimeInterval(Self.backgroundInterval)

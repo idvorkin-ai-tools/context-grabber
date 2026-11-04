@@ -77,8 +77,11 @@ targets:
       - package: ThinkACard
         product: ThinkACardUI
       - package: BugKit
+      # Not in the Mac build (#638): a Mac has no Live Activity or lock screen, and nothing to share from yet.
       - target: GrabberWidgets
+        destinationFilters: [iOS]
       - target: GrabberShare
+        destinationFilters: [iOS]
     # What's new (story 148): the last month's story commits, made from git log at every build by BugKit's script.
     postBuildScripts:
       - name: What's new
@@ -104,6 +107,12 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
+        # The Mac build (#638): the same bundle id, so it shares the iCloud store, and its own entitlements (no Health).
+        SUPPORTS_MACCATALYST: YES
+        DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: NO
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Mac/GrabberNativeMac.entitlements
+        # ActivityKit doesn't compile for a Mac: LiveActivityControllerMac.swift stands in.
+        "EXCLUDED_SOURCE_FILE_NAMES[sdk=macosx*]": LiveActivityController.swift GrabberActivityAttributes.swift
         # The What's new phase reads the repository's git history and stories, outside what a sandbox allows.
         ENABLE_USER_SCRIPT_SANDBOXING: NO
   # The widget extension: the Live Activity (stories 106, 166) and the live tile (story 136).
