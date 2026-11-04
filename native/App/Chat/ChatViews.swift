@@ -967,7 +967,7 @@ private struct ComposeBar: View {
     draft.text = words
   }
 
-  /// A recording writes over the bar from where it began, so it stops first, its words so far kept (story 521).
+  /// A recording writes over the bar from where it began, so it stops first, its words so far kept (story 541).
   private func take(quote message: ChatMessage) {
     takeWords()
     voice.sent(thread: thread, why: "quoted")

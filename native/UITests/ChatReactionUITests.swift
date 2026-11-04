@@ -1,5 +1,5 @@
-//  Stories 518-521 (#629) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it). Its
-//  Larry repeats what he hears, so his replies show the exact text each reaction sent. One walkthrough in a thread of
+//  Stories 518-519, 540-541 (#629) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts
+//  it). Its Larry repeats what he hears, so his replies show the exact text each reaction sent. One walkthrough in a thread of
 //  its own: the fake Cockpit outlives a test, and which message is the newest depends on what came before.
 
 import XCTest
@@ -42,7 +42,7 @@ final class ChatReactionUITests: XCTestCase {
     XCTAssertTrue(
       element(app, "label CONTAINS %@", "Larry heard: Yes").waitForExistence(timeout: 15), app.debugDescription)
 
-    // Story 520: now it is older, so the answer carries its quote.
+    // Story 540: now it is older, so the answer carries its quote.
     holdLarrys(app)
     app.buttons["No"].firstMatch.tap()
     XCTAssertTrue(
@@ -57,7 +57,7 @@ final class ChatReactionUITests: XCTestCase {
     XCTAssertTrue(quote.waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["Yes"].firstMatch.exists, "no Yes on my own message")
 
-    // Story 521: the quote lands in the bar and goes nowhere.
+    // Story 541: the quote lands in the bar and goes nowhere.
     quote.tap()
     XCTAssertTrue(element(app, "value BEGINSWITH %@", "> Yes").waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), "the keyboard is up for the reply")
