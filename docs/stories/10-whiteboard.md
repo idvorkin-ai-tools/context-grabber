@@ -2278,3 +2278,108 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with ink about 10,000 points from the corner
 - **When:** I choose *Ink where it is* in the Trial menu
 - **Then:** the log says whether that start was kept and whether the ink is on screen, and the first stroke says whether it landed under the Pencil
+
+---
+
+### User Story 535:
+
+- **Summary:** Always one blank page below the last ink
+- **Status:** the page count implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** writing down a board on paper
+- **I want to** always have one blank page below my last ink
+- **so that** I never run out of room and never have to add a page
+
+#### Acceptance Criteria:
+- **Scenario:** Ink reaching a new page
+- **Given:** a new board, which is one blank page
+- **When:** my ink goes past the end of page 1
+- **Then:** the board has three pages, the last of them blank
+
+- **Scenario:** Ink stopping exactly at a page's end
+- **Given:** a new board, which is one blank page
+- **When:** my ink reaches the end of page 1 and goes no further
+- **Then:** the board has two pages, and page 2 still counts as the blank one
+
+---
+
+### User Story 536:
+
+- **Summary:** A mark is on the page that holds it
+- **Status:** the page of a point implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who thinks of a board page by page
+- **I want to** have every place on the board belong to one page
+- **so that** the page number and what Larry is shown agree with what I see
+
+#### Acceptance Criteria:
+- **Scenario:** A mark on the line between pages
+- **Given:** a board on paper with two pages or more
+- **When:** a mark sits exactly on the line where page 1 ends
+- **Then:** that mark counts as on page 2
+
+---
+
+### User Story 537:
+
+- **Summary:** Pages stack edge to edge, and a line marks where each ends
+- **Status:** page edges and end lines implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet, as no real board is on paper
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** used to writing on paper
+- **I want to** see where each page ends, on pages all the same height
+- **so that** a board reads as sheets of paper
+
+#### Acceptance Criteria:
+- **Scenario:** A board wider than a page
+- **Given:** a board whose ink makes it 2,000 points wide
+- **When:** I look at its pages
+- **Then:** every page is that wide and still 1,060 tall, touching the next, with a line at each page's end
+
+---
+
+### User Story 538:
+
+- **Summary:** Every page is ruled the same
+- **Status:** the line positions implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet (the *Ruled lines* choice is a later slice), and the 40-point spacing is provisional until Igor has seen it
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who writes on notebook paper
+- **I want to** have the same lines at the same places on every page, thinning when I pinch out
+- **so that** the lines guide my writing without crowding the page
+
+#### Acceptance Criteria:
+- **Scenario:** Pinching out over ruled pages
+- **Given:** a board on paper with ruled lines on
+- **When:** I pinch out
+- **Then:** only lines that were already there stay, every page's lines stay the same as each other's, and none lands on a page's end
+
+---
+
+### User Story 539:
+
+- **Summary:** Moving onto pages never scales a stroke
+- **Status:** the move implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); no real board has moved yet: that's a later slice
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with boards from before pages
+- **I want to** have my strokes keep their size and their places relative to each other when a board moves onto pages
+- **so that** my old drawings are the drawings I made
+
+#### Acceptance Criteria:
+- **Scenario:** Ink wider than a page moving onto pages
+- **Given:** an old board with ink 2,000 points wide, far from the board's corner
+- **When:** it moves onto pages
+- **Then:** the ink sits inside the first page's corner at the same size, and the board is wide enough to hold it

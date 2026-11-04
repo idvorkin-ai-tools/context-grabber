@@ -66,11 +66,16 @@ public enum WhiteboardFrame {
     )
   }
 
-  /// `offset` and `viewport` in zoomed points. Equal until the view crosses a line, so nothing moves between crossings.
-  public static func grid(offset: CGPoint, viewport: CGSize, zoom: CGFloat) -> Grid {
+  /// The board points between lines at `zoom`: how the grid and the ruled lines thin.
+  static func lineStep(zoom: CGFloat) -> CGFloat {
     var step = gridStep
     while step * zoom < gridMinGap { step *= 2 }
-    let gap = step * zoom
+    return step
+  }
+
+  /// `offset` and `viewport` in zoomed points. Equal until the view crosses a line, so nothing moves between crossings.
+  public static func grid(offset: CGPoint, viewport: CGSize, zoom: CGFloat) -> Grid {
+    let gap = lineStep(zoom: zoom) * zoom
     return Grid(
       origin: CGPoint(x: (offset.x / gap).rounded(.down) * gap, y: (offset.y / gap).rounded(.down) * gap), gap: gap,
       across: Int((viewport.width / gap).rounded(.up)) + 2, down: Int((viewport.height / gap).rounded(.up)) + 2)

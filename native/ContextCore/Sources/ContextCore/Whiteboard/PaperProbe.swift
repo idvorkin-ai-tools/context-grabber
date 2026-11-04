@@ -1,15 +1,15 @@
 //  The arithmetic of the trial on paper (whiteboard spec's "Trial on paper", stories 437, 439, 529, 532–534; #635, #636). Temporary,
-//  like the trial: the real page geometry gets its own home when the board moves to PaperKit. PaperKit stays in the
-//  app: here, the column a copy of a board sits in, which ink a change moved, and what came of a touch.
+//  like the trial: the real page geometry is `BoardPages`, and this goes with the trial. PaperKit stays in the app:
+//  here, the column a copy of a board sits in, which ink a change moved, and what came of a touch.
 
 import CoreGraphics
 import Foundation
 
 public enum PaperProbe {
-  public static let pageWidth: CGFloat = 820
-  public static let pageHeight: CGFloat = 1060
+  public static let pageWidth = BoardPages.pageWidth
+  public static let pageHeight = BoardPages.pageHeight
   /// Blank paper kept between the column's corner and the ink.
-  public static let margin: CGFloat = 40
+  public static let margin = BoardPages.margin
   /// The tall layout's markup: past page 11, and more than a trial's ink should reach.
   public static let tallPages = 40
   /// Where an empty board's column starts when the ink stays where it is: the middle of the old board.
@@ -35,21 +35,21 @@ public enum PaperProbe {
     /// What to move the ink by.
     public var shift: CGVector
 
-    public var bounds: CGRect {
-      CGRect(x: origin.x, y: origin.y, width: width, height: CGFloat(heldPages) * pageHeight)
-    }
+    private var board: BoardPages { BoardPages(width: width) }
+
+    public var bounds: CGRect { board.bounds(pages: heldPages).offsetBy(dx: origin.x, dy: origin.y) }
 
     /// How much of the held column is cut off the bottom, in board points.
     public var trim: CGFloat { CGFloat(heldPages - pages) * pageHeight }
 
     /// The page holding `y` on the board, 1-based, within the pages a person can reach.
     public func page(at y: CGFloat) -> Int {
-      min(max(Int(((y - origin.y) / pageHeight).rounded(.down)) + 1, 1), pages)
+      min(board.page(at: CGPoint(x: 0, y: y - origin.y)), pages)
     }
 
     /// True when ink as low as `inkMaxY` leaves no blank page below it.
     public func needsPage(inkMaxY: CGFloat) -> Bool {
-      inkMaxY > origin.y + CGFloat(pages - 1) * pageHeight
+      board.pagesNeeded(inkMaxY: inkMaxY - origin.y) > pages
     }
 
     /// The small cross on a page, in points from the column's corner: what the ring is placed on.
@@ -60,15 +60,16 @@ public enum PaperProbe {
 
   /// A page wide (wider for ink that's wider), with the ink's pages and a blank one below.
   public static func column(ink: CGRect?, layout: Layout) -> Column {
-    let drawn = ink.flatMap { $0.isNull || $0.isEmpty ? nil : $0 }
-    let width = max(pageWidth, (drawn?.width ?? 0) + margin * 2)
-    let pages = Int((((drawn?.height ?? 0) + margin * 2) / pageHeight).rounded(.up)) + 1
+    let drawn = BoardPages.drawn(ink)
+    let width = BoardPages.width(forInkWidth: drawn?.width ?? 0)
+    // The trial keeps a margin below the ink too, so even an empty board is a page and a blank one.
+    let pages = BoardPages().pagesNeeded(inkMaxY: (drawn?.height ?? 0) + margin * 2)
     switch layout {
     case .inkInPlace:
       let origin = drawn.map { CGPoint(x: $0.minX - margin, y: $0.minY - margin) } ?? oldMiddle
       return Column(origin: origin, width: width, pages: pages, heldPages: pages, shift: .zero)
     case .moved, .tall:
-      let shift = drawn.map { CGVector(dx: margin - $0.minX, dy: margin - $0.minY) } ?? .zero
+      let shift = BoardPages.placing(ink: drawn).shift
       return Column(
         origin: .zero, width: width, pages: pages, heldPages: layout == .tall ? max(tallPages, pages) : pages,
         shift: shift)

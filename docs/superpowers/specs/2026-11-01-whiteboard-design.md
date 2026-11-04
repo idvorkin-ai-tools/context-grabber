@@ -75,7 +75,10 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - A page is 820 points wide and about 1,060 tall, paper's shape. On an iPad held upright, writing stays the size it is
     today; held sideways, the page fills the width and writing looks bigger.
   - The board scrolls up and down only. There's no pan into empty space sideways.
-  - There's always one blank page below the last ink, so he never runs out of room and never has to add a page.
+  - There's always one blank page below the last ink, so he never runs out of room and never has to add a page. A new
+    board is that one blank page; the first ink on it brings the next. Ink that stops at a page's end leaves the page
+    below blank, and ink past it brings another page. That's about how far ink reaches. Asked which page one place is
+    on, a place exactly on the line between two pages is on the lower one.
   - Pinching out stops when the page fits the screen's width; pinching in goes up to 3× for detail, and only then can
     he move sideways, within the page.
   - A faint line marks where each page ends. It isn't ink, like the grid, and ink can cross it: a stroke that crosses
@@ -83,15 +86,19 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **A page number** floats at the corner: *Page 2 of 3*, for the page mostly on screen. It stays put while the board
     scrolls, stays out of the way of drawing, and isn't in any picture.
   - A board opens where he left it on this device, or at its first page if it's new to this device.
-  - **Boards from before pages** move onto pages the first time they open. No stroke is scaled or lost and each stays
-    in the same place relative to the others. A board with ink wider than a page keeps its own wider width, and can
-    pan sideways to that width. Anything Larry or Claude drew on it stays on the ink it was drawn beside.
+  - **Boards from before pages** move onto pages the first time they open once that step ships (see *On paper* below for
+    the order). No stroke is scaled or lost and each stays in the same place relative to the others, with a little blank
+    paper between the ink and the first page's corner. A board with ink wider than a page keeps its own wider width, and
+    can pan sideways to that width. Every page on that board is that width and still about 1,060 tall. Anything Larry or
+    Claude drew on it stays on the ink it was drawn beside.
   - **A mark past the page edge** widens that board, by the same rule as wide ink. Nothing is clipped.
 - **Grid lines** (Igor, 2026-11-02: "Let's give me the ability to enable grid lines"; #608). *Grid lines*, in the **Board**
   menu with the colours, turns faint lines on and off, on the device that draws the board.
   - **Ruled paper** (#635; Igor, 2026-11-03: "I still want Lines" meant paper lines). The same menu also offers *Ruled
     lines*: faint horizontal lines like notebook paper. A board has a grid, ruled lines or neither. Everything below about
-    the grid holds for ruled lines too.
+    the grid holds for ruled lines too. Every page is ruled the same: the first line sits one line down from the page's
+    top, and the lines are as far apart as the grid's squares (40 points; provisional until Igor has seen them), so
+    they restart at each page and a line never lands on the page's end.
   - Off until asked, and remembered per board on this device: a board opened with its grid on opens that way again, and
     a new board starts without one.
   - The lines belong to the board: they pan and pinch with the drawing. They're so faint that ink crossing one reads
@@ -144,7 +151,41 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **Claude and Larry always get dark ink on white**, whatever the colour and the mode: the colour is for Igor's eyes,
     and every picture they read stays the same. So a mark of theirs lands the same on any colour.
 
-## Trial on paper (temporary: it goes when the board moves to PaperKit, or when the idea is dropped)
+## On paper: the default
+
+Igor tried the trial on his iPad on 2026-11-03: "Okay, I like that. Let's make it the default." He meant the board on
+Apple's PaperKit. His earlier decisions stand: a column of page-width boards with paper lines, old boards moving onto
+pages, strokes that never scale, and Larry seeing the pages on screen.
+
+**The rollout** (proposed to Igor by the agent driving this work; he hasn't objected, and these aren't his words):
+
+1. New boards go on paper by default once pages, Larry's marks and paste all work there.
+2. Old boards stay on the old canvas until they move onto pages.
+3. Then the old canvas goes.
+
+**What's saved doesn't change.** Boards keep saving strokes in today's file format, so older builds open every board and
+nothing has to migrate. The cost, from the same proposal: anything PaperKit could add, such as shapes or text boxes, wouldn't
+stay an editable object once saved. That fits the non-goals above.
+
+**What differs on paper.** Page lines and ruled lines lie under the ink, not over it. Everything else about pages, lines and
+pictures reads as written above. The trial's small cross on each page and its ring are there only to test with, and never
+appear on a real board.
+
+**What a finger does on paper isn't settled.** *Who draws* above describes the old canvas. PaperKit has no mode where a finger
+only pans, and the trial's log doesn't tell a Pencil from a finger, so the next try on the iPad has to tell them apart before
+a story can claim anything about fingers.
+
+## Trial on paper (temporary: it goes when the board moves to PaperKit)
+
+**What it showed on Igor's iPad, 2026-11-03:**
+
+- All 30 strokes landed where they were drawn, including across a page boundary.
+- A page added during a stroke kept that stroke under the touch.
+- A board of 6 strokes loaded in about 0.1 seconds, with nothing missing in the round trip. That's a small board: how a big
+  one loads is still to be seen.
+- Two fingers always scrolled.
+- One-finger drags drew 27 times, scrolled twice and did nothing twice. The log doesn't separate Pencil from finger, so
+  this doesn't answer question 1 below.
 
 (#635, #636; Igor, 2026-11-03, chose to build the board on Apple's PaperKit, as a column of pages.) Five things about
 PaperKit can only be settled on the iPad. This trial exists to settle them, and nothing else. It's a place to play, not a
@@ -203,9 +244,14 @@ that ghosts need the tailnet.
 - A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
   page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.
 - Pinching out stops at the page's width. The page number reads right while scrolling, and isn't in any picture.
-- An old board opens on pages with every stroke where it was, none scaled. One wider than a page keeps its width.
+- An old board opens on pages, once that step ships, with every stroke where it was relative to the others, none scaled.
+  One wider than a page keeps its width.
+- A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.
+- An old board stays on the old canvas until the step that moves it ships.
+- A new board reads *Page 1 of 1*. Ink on it makes that *of 2*; ink crossing onto page 2 makes it *of 3*.
 - With three pages drawn and page 2 on screen, Send to Larry shows page 2 at a size he can read.
-- Ruled lines from the Board menu show like notebook paper, are in no picture, and are remembered like the grid.
+- Ruled lines from the Board menu show like notebook paper, the same on every page, are in no picture, and are remembered
+  like the grid.
 - Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
 - The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no
