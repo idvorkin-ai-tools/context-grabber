@@ -22,6 +22,15 @@ bad() { not_ok "$@"; }
 want() { [[ -z "${SMOKE_ONLY:-}" || "$SMOKE_ONLY" == all || ",$SMOKE_ONLY," == *",$1,"* ]]; }
 echo "smoke: ${SMOKE_ONLY:-all}"
 
+# #419: a locked Mac starves the simulator's audio (timer cues late or empty, keepalive ok:false, breathe silent).
+# Said at both ends because the screen can lock mid-run. An audio failure under this line isn't a regression.
+mac_locked_note() {
+  case "$(ioreg -n Root -d1)" in
+    *'"CGSSessionScreenIsLocked"=Yes'*) echo "smoke: the Mac is locked ($1); audio failures here don't count, rerun unlocked (#419)" ;;
+  esac
+}
+mac_locked_note "at the start"
+
 # Igor, 2026-11-01: the app under test is muted, not the Mac (GRABBER_SILENT on every launch: its players at zero,
 # every cue still played and logged), so the timer's counts, the breathing voice and the call stay out of the room.
 export SIMCTL_CHILD_GRABBER_SILENT=1
@@ -610,4 +619,5 @@ else bad "chat: the held message '$item' reached the fake Cockpit x$delivered"; 
 fi  # chat
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
+mac_locked_note "at the end"
 smoke_done
