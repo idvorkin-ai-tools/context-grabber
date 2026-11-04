@@ -278,7 +278,8 @@ only when a launch hook names an address, and a hook can name a stand-in or the 
 whiteboard's turns and the share card reach no Cockpit at all: nothing is sent, read or marked read. What waits in the outbox stays
 waiting, however it got there, and goes when a later launch names an address. The chat list and an open thread say
 copyably that this simulator has no address and how to give it one, rather than reading as a Cockpit that is away, and
-nothing is tried again on a timer. A phone or an iPad behaves as it always has.
+nothing is tried again on a timer. A phone or an iPad behaves as it always has. A Mac build follows the same rule, and
+says Mac build instead of simulator ([#638](2026-11-03-native-mac-app-design.md)).
 
 ## Explaining itself
 

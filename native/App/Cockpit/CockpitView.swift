@@ -1,6 +1,7 @@
 //  The Cockpit screen: the page full screen, no header, a slim footer with Back, Cockpit (#234) and Done (the native app's "just the footer is
 //  fine"). The web view belongs to CockpitModel, so Done hides the page instead of throwing it away.
 
+import ContextCore
 import SwiftUI
 import UIKit
 import WebKit
@@ -74,8 +75,10 @@ struct CockpitView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         Text("Can't reach the Cockpit").font(.title3.weight(.bold)).foregroundStyle(.white)
-        Text("Check that Tailscale is connected and the machine serving the Cockpit is awake.")
-          .font(.subheadline).foregroundStyle(Color(white: 0.67))
+        if model.address != ChatCockpit.nowhere {
+          Text("Check that Tailscale is connected and the machine serving the Cockpit is awake.")
+            .font(.subheadline).foregroundStyle(Color(white: 0.67))
+        }
         Text(error.url).font(.system(.footnote, design: .monospaced)).foregroundStyle(accent).textSelection(.enabled)
         Button("Try again") { model.retry() }
           .font(.system(size: 15, weight: .semibold))

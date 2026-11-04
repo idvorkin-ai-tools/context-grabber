@@ -28,8 +28,8 @@ final class ArchiveModel: ObservableObject {
 
   private let log: SessionLog
   private let database: AppDatabase
-  /// Where the batches go. Nil on a simulator launched without GRABBER_ARCHIVE_URL: the simulator reaches the
-  /// tailnet too, and its fixture week and imported trail must never land in Igor's archive.
+  /// Where the batches go. Nil on a simulator or a Mac build launched without GRABBER_ARCHIVE_URL: both reach the
+  /// tailnet too, and their fixture week and imported trail must never land in Igor's archive.
   private let cockpit: String?
   private let deviceId: String
   private let health = HKHealthStore()
@@ -52,9 +52,9 @@ final class ArchiveModel: ObservableObject {
 
   /// Where the batches go: the Cockpit, or GRABBER_ARCHIVE_URL. On a simulator only the latter, nil otherwise: the
   /// simulator reaches the tailnet too, and its fixture week, imported trail and fake-bridge calls must never land in
-  /// Igor's archive. The call's log (story 212) goes to the same place by the same rule.
+  /// Igor's archive. The call's log (story 212) goes to the same place by the same rule. A Mac build too (#638).
   nonisolated static func destination(_ environment: [String: String]) -> String? {
-    #if targetEnvironment(simulator)
+    #if targetEnvironment(simulator) || targetEnvironment(macCatalyst)
       return environment["GRABBER_ARCHIVE_URL"]
     #else
       return environment["GRABBER_ARCHIVE_URL"] ?? CockpitPage.url
@@ -120,10 +120,11 @@ final class ArchiveModel: ObservableObject {
   }
 
   /// Asks iOS for the next refresh and preserves a daily batch iOS has not run yet, even past midnight.
-  /// The simulator has no scheduler: it says so once and runs only from the hook.
+  /// A simulator or a Mac build schedules nothing: it says so once and runs only while the app is open.
   func schedule(reason: String) async {
-    #if targetEnvironment(simulator)
-      log.event("archive", ["action": "schedule_skipped", "why": reason, "reason": "simulator"])
+    #if targetEnvironment(simulator) || targetEnvironment(macCatalyst)
+      log.event(
+        "archive", ["action": "schedule_skipped", "why": reason, "reason": ChatCockpit.isMac ? "mac" : "simulator"])
     #else
       let pending = await BGTaskScheduler.shared.pendingTaskRequests()
       let pendingDaily = pending.first { $0.identifier == ArchiveSchedule.dailyTask }
@@ -158,7 +159,8 @@ final class ArchiveModel: ObservableObject {
 
   private func perform(reason: String, maxPages: Int) async {
     guard let cockpit else {
-      log.event("archive", ["action": "skipped", "why": reason, "reason": "no archive URL on the simulator"])
+      let place = ChatCockpit.isMac ? "a Mac build" : "the simulator"
+      log.event("archive", ["action": "skipped", "why": reason, "reason": "no archive URL on \(place)"])
       return
     }
     guard let cursors = database.archiveCursors else {

@@ -57,8 +57,8 @@ final class AppModel: ObservableObject {
   @Published var whiteboardLink: String?
 
   /// Made on the first open and kept for the launch, so closing the Cockpit hides the page rather than closing it.
-  /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks.
-  /// The page's ☎ and its Grabber links come back here (story 200).
+  /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks,
+  /// and it is the only way a Mac build has one (#638). The page's ☎ and its Grabber links come back here (story 200).
   private(set) lazy var cockpit: CockpitModel = {
     let cockpit = CockpitModel(log: log, override: ProcessInfo.processInfo.environment["GRABBER_COCKPIT_URL"])
     cockpit.onAppRoute = { [weak self] route, source in self?.open(route: route, from: source) }
@@ -129,8 +129,8 @@ final class AppModel: ObservableObject {
     // Story 041: with an archive to send to, a prune keeps the points it has not taken yet.
     let archiveSends = ArchiveModel.destination(ProcessInfo.processInfo.environment) != nil
     places = PlacesModel(log: log, database: database, archiveSends: archiveSends)
-    // GRABBER_CHAT_URL: the Cockpit to use, such as the stand-in (scripts/native/fake-cockpit.py). A simulator without
-    // one reaches none, so a test run's outbox never reaches Larry (#525).
+    // GRABBER_CHAT_URL: the Cockpit to use, such as the stand-in (scripts/native/fake-cockpit.py). A simulator or a Mac
+    // build without one reaches none, so a test run's outbox never reaches Larry (#525, #638).
     let chatCockpit = ChatCockpit.address(override: ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"])
     if chatCockpit == ChatCockpit.nowhere {
       log.event("chat", ["action": "no_address", "reason": ChatCockpit.noAddress])
@@ -895,7 +895,7 @@ final class AppModel: ObservableObject {
       openInbox(from: "hook")
       chat.openNewChat(from: "hook", voice: env["GRABBER_CHAT_NEW"] == "voice")
     }
-    // Story 270: an archive run now, to GRABBER_ARCHIVE_URL (the simulator sends nowhere else).
+    // Story 270: an archive run now, to GRABBER_ARCHIVE_URL (a simulator or a Mac build sends nowhere else).
     if env["GRABBER_ARCHIVE"] == "run" { archive.run(reason: "hook") }
     if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
       // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).

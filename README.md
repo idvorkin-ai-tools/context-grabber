@@ -32,10 +32,11 @@ just setup                # swiftlint, xcbeautify, imagemagick, xcodegen from Ho
 just test                 # the host tests (seconds)
 just native-test-sim      # build for the simulator and run the smoke checks
 just native-run-device    # build, install and launch on the iPhone (DEVICE=<udid>)
+just native-run-mac       # build and open the Mac app, unsigned (COCKPIT=<url> to name a Cockpit)
 ```
 
 Needs Xcode, an Apple ID signed into Xcode, and Developer Mode on the iPhone. With a free Apple ID the app expires
-after seven days.
+after seven days. The Mac app needs only Xcode.
 
 ## Related
 

@@ -1277,3 +1277,143 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app is on an iPhone, which has one window
 - **When:** I open and close any screen
 - **Then:** the app sets no name on the window
+
+---
+
+### User Story 580:
+
+- **Summary:** One command opens the app on the Mac
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the app opens in a window with the iPad's layout and no crash report through every launch; the recipe built and opened it, with no Cockpit address.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor at his Mac
+- **I want to** run the same app there as a real Mac app
+- **so that** chat and the whiteboard are in a window beside my other work
+
+#### Acceptance Criteria:
+- **Scenario:** Starting it
+- **Given:** a checkout of the repo on a Mac
+- **When:** I run the Mac recipe
+- **Then:** the app builds with no signing identity and opens in a window of its own
+
+---
+
+### User Story 581:
+
+- **Summary:** Each screen a Mac can run comes up on the Mac
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc, by launch link and session log, with a picture of each screen: home, Today, the timer (cues played, muted), breathing (cues played, muted), Places, the Cockpit, the card, Chat, the whiteboard and a call. Drawing with a mouse is not verified: it needs a person.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor at his Mac
+- **I want to** open any home tile
+- **so that** a tile either does its work or tells me why it can't
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a tile
+- **Given:** the app is open on the Mac
+- **When:** I open any main screen
+- **Then:** it comes up, and the app keeps running
+
+---
+
+### User Story 582:
+
+- **Summary:** A Mac build with no address reaches no Cockpit, on any route
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); host tests (`ChatCockpitTests`), and verified on Igor's Mac: no connection to the real Cockpit's address in any launch, watched every half second; the chat list, the Cockpit page and a call each said why. The Cockpit page's reason then moved into its copyable error, with no load attempted: not yet built or seen on a Mac.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, whose Mac is on the tailnet
+- **I want** a Mac build to reach Larry only when I say so
+- **so that** a test launch never lands in my threads or my archive
+
+#### Acceptance Criteria:
+- **Scenario:** No address named
+- **Given:** a Mac build launched with no Cockpit address
+- **When:** chat, the Cockpit page, the usage strip, a call and the archive all try to run
+- **Then:** nothing reaches the real Cockpit, and what is on screen says copyably why
+
+---
+
+### User Story 583:
+
+- **Summary:** Named, a Mac build's chat goes to that Cockpit
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac against the stand-in: a message written in a thread reached it, its reply showed, and the outbox emptied.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor at his Mac
+- **I want to** name a Cockpit when I start the app
+- **so that** chat works there, against the stand-in or the real one
+
+#### Acceptance Criteria:
+- **Scenario:** A message from the Mac
+- **Given:** a Mac build launched with a Cockpit address
+- **When:** I send a message in a thread
+- **Then:** it reaches that Cockpit and the reply shows in the thread
+
+---
+
+### User Story 584:
+
+- **Summary:** Places says a Mac doesn't track in the background
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); built for the Mac and the screen opened on Igor's Mac, its log clean. macOS's location prompt was left unanswered, so a location fix is not verified.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor looking at Places on the Mac
+- **I want** no switch that promises a trail a Mac can't record
+- **so that** the screen is honest about what it does here
+
+#### Acceptance Criteria:
+- **Scenario:** The tracking section on a Mac
+- **Given:** Places is open on the Mac
+- **When:** I look at the tracking section
+- **Then:** a line says a Mac doesn't record in the background, where a phone has the switch
+
+---
+
+### User Story 585:
+
+- **Summary:** The timer and breathing run on a Mac with no Live Activity
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac by launch hook and session log: a timer ran through its count-in and into its first round, its cues playing muted, and a breathing session ran to its finish, with no error. The Mac build has no Live Activity code to call.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor timing a set at my desk
+- **I want** the timer to run in its window
+- **so that** the card a Mac doesn't have is no failure
+
+#### Acceptance Criteria:
+- **Scenario:** A session on the Mac
+- **Given:** the Gym Timer or Box breathing is open on the Mac
+- **When:** I start a session
+- **Then:** it runs to its end in the window, and nothing reports a missing card
+
+---
+
+### User Story 586:
+
+- **Summary:** With no iCloud a Mac build's boards stay on the Mac
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac, ad hoc: the boards list says iCloud is out of reach, a board opens, a problem report saves on the Mac, and nothing crashes. A signed Mac build, which would have iCloud, has not been built.
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor running the build with no signing identity
+- **I want** iCloud's absence to be a line and not a crash
+- **so that** the rest of the app is still there
+
+#### Acceptance Criteria:
+- **Scenario:** Opening the boards
+- **Given:** a Mac build with no iCloud
+- **When:** I open the whiteboard
+- **Then:** the list says boards stay on this device, and a board opens

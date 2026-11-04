@@ -192,9 +192,13 @@ struct PlacesView: View {
 
   private var trackingSection: some View {
     Section {
-      Toggle(
-        "Background tracking",
-        isOn: Binding(get: { tracker.trackingOn }, set: { tracker.setTracking($0, from: "switch") }))
+      #if targetEnvironment(macCatalyst)
+        Text("A Mac doesn't record where it goes in the background.").font(.footnote).foregroundStyle(.secondary)
+      #else
+        Toggle(
+          "Background tracking",
+          isOn: Binding(get: { tracker.trackingOn }, set: { tracker.setTracking($0, from: "switch") }))
+      #endif
       if !tracker.trackingNote.isEmpty {
         Text(tracker.trackingNote).font(.footnote).foregroundStyle(.orange)
       }

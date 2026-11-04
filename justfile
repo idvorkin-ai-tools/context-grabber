@@ -13,6 +13,7 @@ native_device := `scripts/native/phone-udid.sh 2>/dev/null || true`
 native_bundle := "com.idvorkin.grabbernative"
 native_sim_app := "native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app"
 native_device_app := "native/Build/Build/Products/Debug-iphoneos/GrabberNative.app"
+native_mac_app := "native/Build/Build/Products/Debug-maccatalyst/GrabberNative.app"
 native_logs := "~/tmp/agent/grabber-logs"
 # BugKit's scripts at the pinned version, as SwiftPM checked them out (tests point it elsewhere).
 bugkit_scripts := "native/Build/SourcePackages/checkouts/bug-kit/scripts"
@@ -100,6 +101,24 @@ native-build-device: _phone native-project
 native-run-device: native-build-device
     xcrun devicectl device install app --device {{native_device}} {{native_device_app}}
     xcrun devicectl device process launch --device {{native_device}} {{native_bundle}}
+
+# The Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
+native-build-mac: native-project
+    #!/usr/bin/env bash
+    set -uo pipefail
+    scripts/native/xcodebuild-log.sh build-mac "BUILD SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
+      -derivedDataPath native/Build -destination "platform=macOS,variant=Mac Catalyst,arch=arm64" \
+      CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual CODE_SIGN_ENTITLEMENTS=Mac/AdHoc.entitlements \
+      GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build
+
+# Build and open the Mac app. It reaches no Cockpit unless told: COCKPIT=<url> names chat, the page, the usage strip and a call,
+# the stand-in (scripts/native/fake-cockpit.py) or the real one. Its logs are under
+# ~/Library/Containers/com.idvorkin.grabbernative/Data/Documents/logs.
+native-run-mac: native-build-mac
+    #!/usr/bin/env bash
+    set -uo pipefail
+    c="${COCKPIT:-}"
+    open -n ${c:+--env GRABBER_CHAT_URL="$c" --env GRABBER_COCKPIT_URL="$c" --env GRABBER_USAGE_URL="$c"} {{native_mac_app}}
 
 # Copy the native app's session logs, bug reports (with screenshots) and crash files from the phone and the iPad to
 # ~/tmp/agent/grabber-logs/<phone|ipad>/ (the iPad's id: IPAD=<udid> or scripts/native/ipad-udid.local)
