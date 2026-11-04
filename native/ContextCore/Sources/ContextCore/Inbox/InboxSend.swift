@@ -117,6 +117,7 @@ public struct InboxSender: Sendable {
       if item.thread == nil, let board = item.whiteboard?.board { item.thread = threads.thread(board: board) }
       var fields: [String: Any] = ["item": item.id, "kind": item.kind.rawValue, "new_thread": item.thread == nil]
       if let thread = item.thread { fields["thread"] = thread }
+      if item.kind == .link { fields["link_in_message"] = ChatSend.carriesLink(item) }
       let outcome = await send(item, fields: &fields)
       record(item, outcome, now: now, fields: &fields, report: &report, log: log)
       if case .retry = outcome { break }

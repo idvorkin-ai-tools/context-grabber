@@ -1,7 +1,8 @@
 //  #305, story 038: Grabber Native in any app's share sheet. A small card previews what is shared (a link, text or
-//  one image), takes an optional note, and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
+//  one image), takes an optional message (#673), and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
 //  The app sends it to Larry later (story 039). The one question asked of the network here is which recent chats to
-//  offer beside *New chat* (#587, stories 495–499), and nothing waits for its answer.
+//  offer beside *New chat* (#587, stories 495–499), and nothing waits for its answer. No mic on the card: Apple's
+//  guidance keeps an app extension off the microphone (#673, story 546, Igor's to decide).
 
 import ContextCore
 import SwiftUI
@@ -71,14 +72,15 @@ final class Shared: ObservableObject {
   private(set) var problemState = ""
   @Published private(set) var loaded = false
   private(set) var imageExtension = "jpg"
+  /// The types the other app offered, for the log (#673): it settles what a share really hands over.
+  private var offeredTypes = ""
 
   func load(_ items: [NSExtensionItem]) async {
     defer { loaded = true }
     let providers = items.flatMap { $0.attachments ?? [] }
     let offered = providers.flatMap(\.registeredTypeIdentifiers).joined(separator: ", ")
-    if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.url.identifier) }),
-      let found = try? await p.loadItem(forTypeIdentifier: UTType.url.identifier) as? URL, !found.isFileURL
-    {
+    offeredTypes = offered
+    if let found = await ShareLink.find(in: providers) {
       url = found
       text = items.first?.attributedContentText?.string.nilIfEmpty
       return
@@ -101,10 +103,7 @@ final class Shared: ObservableObject {
       let (found, state) = await Self.text(p)
       guard let found, !found.isEmpty else { return fail("The shared text could not be read.", state: state, offered) }
       // A link shared as text (some apps do) is still a link.
-      if let link = URL(
-        string: found.trimmingCharacters(in: .whitespacesAndNewlines), encodingInvalidCharacters: false),
-        ["http", "https"].contains(link.scheme ?? "")
-      {
+      if let link = ShareLink.fromText(found) {
         url = link
       } else {
         text = found
@@ -122,10 +121,18 @@ final class Shared: ObservableObject {
   func item(note: String) -> InboxItem? {
     let now = Int64(Date().timeIntervalSince1970 * 1000)
     let note = note.trimmingCharacters(in: .whitespacesAndNewlines)
-    if let url { return InboxItem(kind: .link, sharedAt: now, url: url.absoluteString, text: text, note: note) }
-    if image != nil { return InboxItem(kind: .image, sharedAt: now, note: note) }
-    if let text { return InboxItem(kind: .text, sharedAt: now, text: text, note: note) }
-    return nil
+    var item: InboxItem
+    if let url {
+      item = InboxItem(kind: .link, sharedAt: now, url: url.absoluteString, text: text, note: note)
+    } else if image != nil {
+      item = InboxItem(kind: .image, sharedAt: now, note: note)
+    } else if let text {
+      item = InboxItem(kind: .text, sharedAt: now, text: text, note: note)
+    } else {
+      return nil
+    }
+    item.shareTypes = offeredTypes
+    return item
   }
 
   private static func data(_ provider: NSItemProvider, type: UTType) async -> (Data?, String?) {
@@ -176,7 +183,8 @@ struct ShareCard: View {
   @ObservedObject var recent: RecentChats
   let add: (String, String?) -> String?
   let cancel: () -> Void
-  @State private var note = ""
+  /// What he writes on the card: it lands as a chat message (#673), kept as the item's note.
+  @State private var message = ""
   /// The chat ticked; nil is *New chat*. Only a tap changes it, never the list arriving (story 499).
   @State private var thread: String?
   @State private var failure: String?
@@ -186,8 +194,8 @@ struct ShareCard: View {
     NavigationStack {
       Form {
         Section { preview }
-        Section("Note") {
-          TextField("Optional", text: $note, axis: .vertical).lineLimit(1...4)
+        Section("Message") {
+          TextField("Optional", text: $message, axis: .vertical).lineLimit(1...4).accessibilityLabel("Message")
         }
         destinations
         if let problem = shared.problem {
@@ -214,7 +222,7 @@ struct ShareCard: View {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: cancel) }
         ToolbarItem(placement: .confirmationAction) {
           Button(thread == nil ? "Start a chat" : "Send") {
-            failure = add(note, thread)
+            failure = add(message, thread)
             added = failure == nil
           }
           .disabled(!shared.loaded || shared.problem != nil || added)

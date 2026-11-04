@@ -217,16 +217,34 @@ recording ends with the report still open, the report's mic comes back at his ne
   Send sends what is in the field — the words heard so far — and stops the recording there. Nothing comes back into
   the emptied bar afterwards; the bar is ready for the next message, and the mic for the next recording.
 
-**Sharing in.** The share card keeps its preview and optional note, and *Add to Inbox* becomes *Start a chat*. A
-share with *New chat* ticked becomes a new thread whose first message is the shared thing with the note. The title
-is the note's first line, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane mode and
-while the app is not running, as now.
+**Sharing in.** The share card keeps its preview and an optional field headed *Message* (#673, Igor 2026-11-04: it
+lands as a chat message, so it is not called a note), and *Add to Inbox* becomes *Start a chat*. A
+share with *New chat* ticked becomes a new thread whose first message is the shared thing with his message. The title
+is the first line of what he wrote, else the text's, else the link's site, else *Photo, <date>*. It works in aeroplane
+mode and while the app is not running, as now.
+
+**The shared link on the message** (#673, Igor 2026-11-04: *"check that the shared link comes through"*). A share that
+holds a web link becomes a message that starts with the whole link, exactly as shared, query and fragment included,
+then what he wrote. That holds for a new chat and a chat picked from the list, with words or without, while it waits
+on the phone and once it has gone.
+
+- However the other app hands the link over, it is found: as a link, as a link's plain words, or behind another
+  attachment that is not a web link, such as a file. Text that is nothing but a link is a link.
+- Text with a link somewhere inside it stays text and goes word for word, the link where it was.
+- A link beats anything else shared with it. A picture or text shared with no web link has no link to carry: iOS does
+  not tell the card what page it came from.
+- A title the other app offers beside a link shows on the card and does not go in the message.
+
+**Speaking on the card** (#673, undecided). Igor asked for the chat mic on the card. Apple's guidance is that an app
+extension, which is what the card is, cannot use the microphone (an iMessage app excepted), and nothing on the phone
+has yet tried. So the card has no mic of its own until Igor picks a way. The keyboard's own dictation key is meant to
+work in the *Message* field as in any other field; that is still to be seen on the phone.
 
 **Sharing into a chat that is already going** (#587, Igor 2026-11-01: *"let's allow me to select some of the previous
-chats as well"*). Under the note the card lists *New chat*, ticked, and the five most recent chats that are still
+chats as well"*). Under the message field the card lists *New chat*, ticked, and the five most recent chats that are still
 live, each with its title and how long ago it last moved: the always-on chat first, then newest activity. Done and
 archived chats are not offered. Tapping a row ticks it, and the card's button reads *Start a chat* for *New chat* and
-*Send* for a chat. The shared thing, with the note, becomes the next message in that chat, under the same rules as any
+*Send* for a chat. The shared thing, with his message, becomes the next message in that chat, under the same rules as any
 message from the thread's bar: it waits on the phone, goes once, and shows in the thread as *Not sent yet* until it has
 gone. Sharing still never waits on the network:
 
@@ -309,6 +327,8 @@ says Mac build instead of simulator ([#638](2026-11-03-native-mac-app-design.md)
   once when the network returns; Larry's reply appears in the open thread within seconds without a manual refresh.
 - Sharing a Safari link, a Notes text and a Photos image makes three new threads with sensible titles, in aeroplane
   mode too, each delivered once.
+- The share card's field is headed *Message*. A Safari link shared with or without words, to a new chat or a picked
+  one, arrives with the whole link first and his words after it.
 - 👀 appears under Igor's message once the Cockpit has it, 🫡 once it is with Larry, 🏆 once Larry marks it done.
 - With the app closed, a reply from Larry eventually raises one notification for its thread; tapping it opens the
   thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises

@@ -5,7 +5,7 @@ share arbitrary content in … and we should be able to send it to Larry. We nee
 inbox, because eventually we'll add chatting capability to this app."* He chose the phased plan, 2026-10-17. Part of
 the [Swift-native app](2026-10-04-swift-native-app-design.md).
 
-> **Since 2026-10-25 the Inbox is Chat** ([Chat with Larry in Grabber Native](2026-10-25-native-chat-design.md), #438): each share starts a thread or joins a recent one picked on its card (#587), sends go to the Cockpit's chat instead of Larry's inbox, and items sent before then sit under *Earlier shares*. Sharing, offline waiting and once-each sending below still hold.
+> **Since 2026-10-25 the Inbox is Chat** ([Chat with Larry in Grabber Native](2026-10-25-native-chat-design.md), #438): each share starts a thread or joins a recent one picked on its card (#587), sends go to the Cockpit's chat instead of Larry's inbox, and items sent before then sit under *Earlier shares*. Sharing, offline waiting and once-each sending below still hold. The card's *note* below is headed *Message* since #673, and the chat spec says what becomes of a shared link.
 
 ## Summary
 
@@ -97,8 +97,9 @@ Acceptance criteria:
 ## Explaining itself
 
 - Each share is logged (`inbox`, action added, with the kind and size, never the content) when the app next opens
-  and finds it.
-- Each send in phase 2 is logged (`inbox`, action sent / refused / failed, with the item and the Cockpit's answer).
+  and finds it, with the types the other app offered (#673).
+- Each send in phase 2 is logged (`inbox`, action sent / refused / failed, with the item and the Cockpit's answer);
+  a link's line says whether the link was in the message (#673).
 - Skipping a send while offline and sending when the network returns are logged (`inbox`, action offline_skipped /
   network_back, with the waiting count, never the content).
 

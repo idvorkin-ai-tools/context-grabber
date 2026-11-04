@@ -38,6 +38,12 @@ public enum ChatSend {
       .joined(separator: "\n\n")
   }
 
+  /// Whether a link item's message holds its link whole (#673), for the log: a yes or no, never the link.
+  public static func carriesLink(_ item: InboxItem) -> Bool {
+    guard let url = item.url?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty else { return false }
+    return text(for: item).hasPrefix(url)
+  }
+
   /// A new thread's title: the note's first line, else the text's, else the link's site, else *Photo, <date>*, or the file's name.
   public static func title(for item: InboxItem, timeZone: TimeZone = .current) -> String {
     let firstLine = { (s: String?) -> String? in
