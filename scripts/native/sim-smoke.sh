@@ -22,8 +22,9 @@ bad() { not_ok "$@"; }
 want() { [[ -z "${SMOKE_ONLY:-}" || "$SMOKE_ONLY" == all || ",$SMOKE_ONLY," == *",$1,"* ]]; }
 echo "smoke: ${SMOKE_ONLY:-all}"
 
-# #419: a locked Mac starves the simulator's audio (timer cues late or empty, keepalive ok:false, breathe silent).
-# Said at both ends because the screen can lock mid-run. An audio failure under this line isn't a regression.
+# #419: a locked Mac seems to starve the simulator's audio (timer cues late or empty, keepalive ok:false, breathe
+# silent), inferred from comparing runs. Said at both ends because the screen can lock mid-run. The audio checks still
+# run and fail on purpose, to keep the evidence: an audio failure under this line isn't read as a regression.
 mac_locked_note() {
   case "$(ioreg -n Root -d1)" in
     *'"CGSSessionScreenIsLocked"=Yes'*) echo "smoke: the Mac is locked ($1); audio failures here don't count, rerun unlocked (#419)" ;;
