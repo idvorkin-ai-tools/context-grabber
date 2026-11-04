@@ -388,3 +388,28 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** on a source's tab, a night's main sleep is 0.4 h starting at 1pm
 - **When:** I open the Sleep sheet and tap that night
 - **Then:** its row and the tapped card read *Nap 0.4h*, the card doesn't say no sleep was recorded, the time still counts toward that night's hours, and it has no bedtime or wake, so it's off the bedtime-and-wake chart and out of its "±" spreads
+
+---
+
+### User Story 441:
+
+- **Summary:** A metric's detail fills the iPad's window
+- **Status:** implemented on `native/metric-full-size`; not yet verified
+- **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
+- **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
+
+#### Use Case:
+- **As someone** reading a week of a metric on an iPad
+- **I want to** have the detail use the whole window
+- **so that** the chart and the days aren't squeezed into a small dialog
+
+#### Acceptance Criteria:
+- **Scenario:** Opening a metric on an iPad
+- **Given:** Today on an iPad
+- **When:** I tap a metric
+- **Then:** its detail fills the window, and the X closes it
+
+- **Scenario:** Opening a metric on an iPhone
+- **Given:** Today on an iPhone
+- **When:** I tap a metric
+- **Then:** it opens as a sheet, as before, and can be dragged away

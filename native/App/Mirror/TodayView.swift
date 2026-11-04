@@ -10,6 +10,7 @@ struct TodayView: View {
   @ObservedObject var app: AppModel
   @ObservedObject var mirror: MirrorModel
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.horizontalSizeClass) private var widthClass
   @State private var shareText: ShareItem?
   @State private var showSettings = false
 
@@ -70,7 +71,11 @@ struct TodayView: View {
     .onDisappear { if app.screen == "today" { app.screen = "home" } }
     .onChange(of: scenePhase) { _, phase in if phase == .active { mirror.grab(reason: "foreground") } }
     .onReceive(every30) { _ in mirror.grab(reason: "timer") }
-    .sheet(item: $app.openMetricKey) { item in
+    // On an iPad a sheet is a small dialog: the detail takes the whole window there (#672).
+    .sheet(item: widthClass == .regular ? .constant(nil) : $app.openMetricKey) { item in
+      MetricDetailView(app: app, mirror: mirror, metric: item.key)
+    }
+    .fullScreenCover(item: widthClass == .regular ? $app.openMetricKey : .constant(nil)) { item in
       MetricDetailView(app: app, mirror: mirror, metric: item.key)
     }
     .sheet(item: $shareText) { item in TextShareSheet(text: item.text) }

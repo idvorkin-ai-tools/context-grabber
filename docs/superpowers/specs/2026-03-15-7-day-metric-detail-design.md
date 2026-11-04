@@ -4,6 +4,8 @@
 
 Add a tap-to-drill-down feature to the Context Grabber dashboard. When a user taps any metric card (steps, heart rate, sleep, etc.), a full-screen sheet slides up showing a 7-day chart and daily breakdown for that metric.
 
+On an iPad the detail fills the whole window, not a small dialog in the middle of it (Igor, 2026-11-04, #672: "Why is this dialog small it could be full-size"). It closes with its X. On an iPhone it stays a sheet that can also be dragged away.
+
 ## Goals
 
 - Let users see trailing 7-day trends for every health metric
