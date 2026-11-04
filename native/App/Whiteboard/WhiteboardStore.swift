@@ -17,7 +17,7 @@ final class WhiteboardStore: ObservableObject {
   @Published private(set) var problem: BugProblem?
   /// Bumped when a picture on disk changes, so the rows draw it again.
   @Published private(set) var pictures = 0
-  /// Stories 590, 595, 602, 607: this device's switch. It decides what **+** makes, and never moves a board.
+  /// Stories 590, 595, 602, 607, 651: this device's switch. It decides what **+** makes, and never moves a board.
   @Published private(set) var newBoardsOnPaper: Bool
   let device: String
   let deviceName = UIDevice.current.model

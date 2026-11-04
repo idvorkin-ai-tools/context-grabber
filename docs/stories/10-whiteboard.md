@@ -2634,8 +2634,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
-- **As someone** trying the board on paper on one device
-- **I want to** turn the switch on once
+- **As someone** who turned the switch off on this device
+- **I want to** turn the switch back on once
 - **so that** every new board here is on paper until I turn it off
 
 #### Acceptance Criteria:
@@ -2734,7 +2734,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
-- **As someone** who turned the switch off again
+- **As someone** who turned the switch off
 - **I want to** have the boards already on paper stay there
 - **so that** turning it off can't cost me a board
 
