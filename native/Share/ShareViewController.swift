@@ -164,7 +164,10 @@ final class RecentChats: ObservableObject {
   @Published private(set) var read: ShareThreads.Read?
 
   func load() async {
-    read = await ShareThreads.read(cockpit: CockpitPage.url) { try await URLSession.shared.data(for: $0) }
+    // An extension gets no launch hooks, so a simulator's card never has an address (#525).
+    read = await ShareThreads.read(cockpit: ChatCockpit.address(override: nil)) {
+      try await URLSession.shared.data(for: $0)
+    }
   }
 }
 

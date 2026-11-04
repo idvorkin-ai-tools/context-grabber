@@ -39,7 +39,7 @@ final class InboxModel: ObservableObject {
   private let database: AppDatabase
   private let cockpit: String
 
-  init(log: SessionLog, database: AppDatabase, cockpit: String = CockpitPage.url) {
+  init(log: SessionLog, database: AppDatabase, cockpit: String) {
     self.log = log
     self.database = database
     self.cockpit = cockpit

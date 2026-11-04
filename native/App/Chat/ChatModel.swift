@@ -55,7 +55,7 @@ final class ChatModel: ObservableObject {
   let cockpit: String
   private var poll: Task<Void, Never>?
 
-  init(inbox: InboxModel, log: SessionLog, database: AppDatabase, cockpit: String = CockpitPage.url) {
+  init(inbox: InboxModel, log: SessionLog, database: AppDatabase, cockpit: String) {
     self.inbox = inbox
     self.log = log
     self.database = database
@@ -73,6 +73,9 @@ final class ChatModel: ObservableObject {
   func refreshList(reason: String) async {
     inbox.reload()
     guard !inbox.offline else { return }
+    guard cockpit != ChatCockpit.nowhere else {
+      return listFailed(ChatCockpit.noAddress, reason: reason, problem: ChatCockpit.noAddress)
+    }
     do {
       let (read, status) = try await readList()
       guard let rows = read else {
@@ -238,6 +241,10 @@ final class ChatModel: ObservableObject {
   @discardableResult
   private func load(_ key: String, markSeen: Bool) async -> Bool {
     guard !inbox.offline else { return false }
+    guard cockpit != ChatCockpit.nowhere else {
+      threadFailed(key, ChatCockpit.noAddress, why: ChatCockpit.noAddress)
+      return false
+    }
     do {
       let (data, response) = try await URLSession.shared.data(for: try ChatWire.threadRequest(key, cockpit: cockpit))
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0

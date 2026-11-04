@@ -1777,3 +1777,103 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** its swipe action opens, since the + and the voice button sit in an opaque bar below the list, which hides any row scrolled beneath it until I scroll that row up
 
 ---
+
+### User Story 507:
+
+- **Summary:** A simulator with no address leaves the real Cockpit alone
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the decision and the share card asking nothing are `ChatCockpitTests` on the host; the simulator smoke's log shows no send tried; a board's turn failing on the address that cannot resolve was not run
+- **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
+- **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the person running test builds on the Mac
+- **I want to** launch a simulator build without naming a Cockpit
+- **so that** a test run never lands in Larry's chats or marks them read
+
+#### Acceptance Criteria:
+- **Scenario:** A plain launch on the simulator
+- **Given:** a simulator build launched with no chat address, on a Mac that can reach the tailnet
+- **When:** chat, the Inbox, a board's turn or the share card would ask the Cockpit for anything
+- **Then:** no request goes to the real Cockpit
+
+---
+
+### User Story 508:
+
+- **Summary:** The simulator's outbox stays put with no address
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host (real store, counted requests); the simulator smoke's chat section held a message back
+- **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
+- **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the person running test builds on the Mac
+- **I want to** leave messages behind from an earlier test run
+- **so that** the next launch without an address cannot deliver them to Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Leftover test messages
+- **Given:** a simulator whose outbox holds waiting messages from an earlier run
+- **When:** the app launches with no chat address, as a test that has nothing to do with chat does
+- **Then:** every message is still waiting afterwards, unsent and not refused, and nothing is retried on a timer
+
+---
+
+### User Story 509:
+
+- **Summary:** A simulator sends only where it is pointed
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host; the simulator smoke's chat section saw the held message reach the fake Cockpit once
+- **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
+- **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the person testing chat
+- **I want to** name an address when I launch
+- **so that** what the simulator holds goes to that stand-in, or to the real Cockpit only because I asked
+
+#### Acceptance Criteria:
+- **Scenario:** An address named at launch
+- **Given:** a simulator with a message waiting from a launch that had no address
+- **When:** a later launch names an address
+- **Then:** the message goes to that address, once
+
+---
+
+### User Story 510:
+
+- **Summary:** A simulator with no address says why
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the launch line, the held count and the refresh's reason are read from the log in the simulator smoke's chat section; the problem as drawn on the list and in a thread was not looked at
+- **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
+- **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** the person reading a test run's log
+- **I want to** see at once why chat is doing nothing
+- **so that** I don't mistake a missing address for a hang or a Cockpit that is away
+
+#### Acceptance Criteria:
+- **Scenario:** No address, chat opened
+- **Given:** a simulator launched with no chat address
+- **When:** chat opens, or a message is written
+- **Then:** the log says there is no address and how many messages it held back, and the list and an open thread show a copyable problem saying so
+
+---
+
+### User Story 511:
+
+- **Summary:** A phone or an iPad is unchanged
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the decision for a device is `ChatCockpitTests` on the host; no device was built or run, so the phone itself is for Igor
+- **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
+- **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client on the phone
+- **I want to** have nothing change about how chat reaches the Cockpit
+- **so that** a rule for test builds never holds up a real message
+
+#### Acceptance Criteria:
+- **Scenario:** A device with no address
+- **Given:** a build on a phone or an iPad, launched as always
+- **When:** a message is written
+- **Then:** it goes to the Cockpit as it did before this rule
+
+---

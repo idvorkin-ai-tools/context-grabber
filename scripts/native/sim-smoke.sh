@@ -550,6 +550,26 @@ last=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")] 
 if [ "$again" -ge 1 ] && [ "$refused" -ge 1 ] && [ "$uploads_after" -gt "$uploads" ] && [ "$last" = "$before" ]; then ok "chat: Send again uploaded the kept file, it was refused again and no message went without it"
 else bad "chat: send again x$again, refused x$refused, uploads $uploads then $uploads_after, messages $before then $last"; fi
 rm -f "$SMOKE_PDF"
+
+# No address (#525, stories 507-510): a message stays on the simulator and the log says why; a later launch that names
+# an address delivers it once, so this section leaves nothing in the outbox for the next run.
+SIMCTL_CHILD_GRABBER_CHAT_SEND="igor2-88g.900|smoke: no address" SIMCTL_CHILD_GRABBER_INBOX=open relaunch
+wait_jq 'select(.type=="inbox" and .action=="no_address")' 20 || echo "      (timed out waiting for no_address)"
+sleep 2
+f=$(newest_log)
+why=$(jq -sr '[.[] | select(.type=="chat" and .action=="no_address")] | length' "$f")
+held=$(jq -sr '[.[] | select(.type=="inbox" and .action=="no_address")][0].waiting // 0' "$f")
+listed=$(jq -sr '[.[] | select(.type=="chat" and .action=="refresh_failed" and (.reason | contains("GRABBER_CHAT_URL")))] | length' "$f")
+left=$(jq -sr '[.[] | select(.type=="chat" and (.action=="sent" or .action=="failed" or .action=="refused"))] | length' "$f")
+if [ "$why" = 1 ] && [ "$held" -ge 1 ] && [ "$listed" -ge 1 ] && [ "$left" = 0 ]; then ok "chat: no address: $held held back and the log says why"
+else bad "chat: no address: launch line x$why, held $held, list said x$listed, sends tried x$left"; fi
+SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" relaunch
+wait_jq 'select(.type=="chat" and .action=="sent")' 20 || echo "      (timed out waiting for the held message)"
+sleep 1
+item=$(jq -sr '[.[] | select(.type=="chat" and .action=="sent")][0].item // ""' "$(newest_log)")
+delivered=$(jq -sr --arg item "$item" '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900" and .body.id==$item)] | length' "$CHAT_REPORT")
+if [ -n "$item" ] && [ "$delivered" = 1 ]; then ok "chat: the held message went once, to the address a later launch named"
+else bad "chat: the held message '$item' reached the fake Cockpit x$delivered"; fi
 fi  # chat
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true

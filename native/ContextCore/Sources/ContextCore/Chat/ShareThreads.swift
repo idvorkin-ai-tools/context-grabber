@@ -21,6 +21,7 @@ public enum ShareThreads {
   }
 
   public static func read(cockpit: String, transport: InboxSender.Transport) async -> Read {
+    guard cockpit != ChatCockpit.nowhere else { return .problem("New chat only: \(ChatCockpit.noAddress).") }
     do {
       var request = try ChatWire.listRequest(cockpit: cockpit)
       request.timeoutInterval = timeout

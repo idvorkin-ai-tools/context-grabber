@@ -101,6 +101,14 @@ public struct InboxSender: Sendable {
     -> Report
   {
     var report = Report()
+    // #525: no address is nothing to retry. It all waits for a launch that names one, and the log says why.
+    guard cockpit != ChatCockpit.nowhere else {
+      let waiting = store.waiting().filter { !$0.isFixture }.count
+      if waiting > 0 {
+        log("inbox", ["action": "no_address", "waiting": waiting, "reason": ChatCockpit.noAddress])
+      }
+      return report
+    }
     // A simulator fixture never reaches Larry, whichever launch finds it.
     for queued in store.waiting() where !queued.isFixture {
       // Read again just before sending: one deleted while an earlier request was out never goes (local review).

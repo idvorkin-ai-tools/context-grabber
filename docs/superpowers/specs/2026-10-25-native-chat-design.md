@@ -235,6 +235,13 @@ can be swiped away.
 **What the phone keeps.** A message stays on the phone until the Cockpit's thread shows it; once Igor sees it there,
 in an open thread, the phone's copy (and its picture) is dropped, so the phone does not fill up with old chat.
 
+**On a simulator (#525).** A simulator reaches the tailnet too, so like the stats archive it talks to the real Cockpit
+only when a launch hook names an address, and a hook can name a stand-in or the real one. Without one, chat, the Inbox, the
+whiteboard's turns and the share card reach no Cockpit at all: nothing is sent, read or marked read. What waits in the outbox stays
+waiting, however it got there, and goes when a later launch names an address. The chat list and an open thread say
+copyably that this simulator has no address and how to give it one, rather than reading as a Cockpit that is away, and
+nothing is tried again on a timer. A phone or an iPad behaves as it always has.
+
 ## Explaining itself
 
 - `inbox` added says whether a share starts a chat or names its thread, and what the card's list held when Igor sent
@@ -245,6 +252,8 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - `chat_voice` events: record_start (thread), record_stop (thread, seconds), capped (at the five-minute limit),
   dropped (left the thread, a call started), refused (a live call). The dictation's own `dictation_start`,
   `dictation_stop` and `dictation_error` lines (the problem report's) carry the recognizer's side. Never the words.
+- `chat` no_address, once at each launch of a simulator with no address, says why chat reaches nothing; `inbox` no_address
+  (how many wait, what asked) at each send it held back; a refresh that could not run says the same in its reason.
 - A thread that cannot be read logs one error when the problem starts or changes, not one per poll.
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
@@ -285,6 +294,9 @@ in an open thread, the phone's copy (and its picture) is dropped, so the phone d
 - The share card lists *New chat* (ticked) and up to five recent live chats, with title and age, as soon as the Cockpit
   answers; a share into one lands as that chat's next message, once, with no new thread and no new title; with the
   Cockpit out of reach the card offers *New chat* alone, says why, and still closes at once on sending.
+- A simulator launched with no address sends nothing to the Cockpit, whatever its outbox holds, reads nothing from it,
+  and says why in the log and on the list; the same outbox goes once, to the address a later launch names. A phone or an
+  iPad with no address talks to the Cockpit as before.
 
 ## Depends on the Cockpit
 
