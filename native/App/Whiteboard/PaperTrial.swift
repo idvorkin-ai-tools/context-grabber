@@ -1,5 +1,5 @@
 //  The trial on paper (whiteboard spec's "Trial on paper", stories 435–439, 524–534; #635, #636). TEMPORARY: it goes when the
-//  board moves to PaperKit, or when the idea is dropped. An in-memory copy of a board on PaperKit, to settle on the iPad
+//  board moves to PaperKit. An in-memory copy of a board on PaperKit, to settle on the iPad
 //  what PaperKit's interface can't: every touch and what came of it goes in the log as `paper_probe`, with `q` naming
 //  the question it answers (docs/DEBUGGING.md).
 //
