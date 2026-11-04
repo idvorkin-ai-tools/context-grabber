@@ -10,6 +10,7 @@ final class WhiteboardRowDeleteUITests: XCTestCase {
   private func openWithAnIPadBoard(_ id: String) -> XCUIApplication {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
+    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_BOARD_FIXTURE"] = id
     app.launchEnvironment["GRABBER_BOARD_FIXTURE_FROM"] = "iPad"

@@ -69,17 +69,24 @@ final class WhiteboardOnPaperUITests: XCTestCase {
   }
 
   /// Stories 590–593, 597, 598, 602, 603: the switch, the board, what it doesn't offer, and its ink through a relaunch.
-  func testTheSwitchMakesARealBoardOnPaper() {
-    var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
+  func testANewBoardIsOnPaperUntilTheSwitchIsTurnedOff() {
+    var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     let options = app.buttons["whiteboard-options"]
     XCTAssertTrue(options.waitForExistence(timeout: 20), app.debugDescription)
-    XCTAssertEqual(options.label, "Board options, new boards on the old canvas", "off until it's turned on")
+    XCTAssertEqual(options.label, "Board options, new boards on paper", "on until it's turned off")
     options.tap()
     let toggle = app.descendants(matching: .any)["New boards on paper"].firstMatch
     XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
     toggle.tap()
-    waitFor(options, label: "Board options, new boards on paper")
+    waitFor(options, label: "Board options, new boards on the old canvas")
+    app.terminate()
+    app = launch()
+    let remembered = app.buttons["whiteboard-options"]
+    XCTAssertTrue(remembered.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertEqual(remembered.label, "Board options, new boards on the old canvas", "turning it off is remembered")
+    app.terminate()
 
+    app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     newBoard(app)
     let page = pageNumber(app)
     XCTAssertTrue(page.waitForExistence(timeout: 10), app.debugDescription)

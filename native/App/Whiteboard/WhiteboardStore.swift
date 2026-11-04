@@ -37,11 +37,15 @@ final class WhiteboardStore: ObservableObject {
   init(log: SessionLog, device: String) {
     self.log = log
     self.device = device
-    // `GRABBER_WHITEBOARD_NEW_ON_PAPER=on|off`: for the simulator, as if the switch had been set.
+    // `GRABBER_WHITEBOARD_NEW_ON_PAPER=on|off`: for the simulator, as if the switch had been set; `untouched`, as if it never was.
     if let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] {
-      UserDefaults.standard.set(hook == "on", forKey: Self.newBoardsOnPaperKey)
+      if hook == "untouched" {
+        UserDefaults.standard.removeObject(forKey: Self.newBoardsOnPaperKey)
+      } else {
+        UserDefaults.standard.set(hook == "on", forKey: Self.newBoardsOnPaperKey)
+      }
     }
-    newBoardsOnPaper = UserDefaults.standard.bool(forKey: Self.newBoardsOnPaperKey)
+    newBoardsOnPaper = UserDefaults.standard.object(forKey: Self.newBoardsOnPaperKey) as? Bool ?? true
     dir = try? FileManager.default
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true)
