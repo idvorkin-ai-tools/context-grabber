@@ -68,7 +68,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
       .firstMatch
   }
 
-  /// Stories 590–593, 597, 598, 602, 603: the switch, the board, what it doesn't offer, and its ink through a relaunch.
+  /// Stories 590–593, 597, 598, 602, 603, 651: the switch, the board, what it doesn't offer, and its ink through a relaunch.
   func testANewBoardIsOnPaperUntilTheSwitchIsTurnedOff() {
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     let options = app.buttons["whiteboard-options"]
@@ -84,6 +84,16 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     let remembered = app.buttons["whiteboard-options"]
     XCTAssertTrue(remembered.waitForExistence(timeout: 20), app.debugDescription)
     XCTAssertEqual(remembered.label, "Board options, new boards on the old canvas", "turning it off is remembered")
+
+    // Story 602: turned back on from the menu, the next board is on paper.
+    remembered.tap()
+    XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
+    toggle.tap()
+    waitFor(remembered, label: "Board options, new boards on paper")
+    newBoard(app)
+    XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 10), app.debugDescription)
     app.terminate()
 
     app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
@@ -130,7 +140,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     waitFor(send, label: "Send to Larry, 2 strokes")
   }
 
-  /// Stories 595, 607: the switch moves no board, either way.
+  /// Stories 595, 607, 651: the switch moves no board, either way, and with it off a new board is on the old canvas.
   func testTheSwitchMovesNoBoard() {
     // An old board, then the switch on: it still opens on the old canvas.
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])

@@ -2389,7 +2389,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 590:
 
 - **Summary:** A switch for new boards on paper
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f), and on by default since the change for #671; verified on an iPhone simulator (`WhiteboardOnPaperUITests`: on until turned off, and turning it off is remembered)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f), and on by default since [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: on until turned off)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), [#671](https://github.com/idvorkin/context-grabber/issues/671)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2402,12 +2402,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A device that never touched the switch
 - **Given:** the boards list
 - **When:** I open its menu beside +
-- **Then:** *New boards on paper* is on, and + makes a board on paper
-
-- **Scenario:** Turning it off
-- **Given:** I turned *New boards on paper* off
-- **When:** I open the app again and tap +
-- **Then:** it's still off, the new board is on the old canvas, and a board already on paper stays on paper
+- **Then:** *New boards on paper* is on
 
 ---
 
@@ -3608,3 +3603,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper
 - **When:** I keep a ghost, paste text, or undo or redo one of those
 - **Then:** the ink is on the screen within half a second, and the view stays where it is
+
+---
+
+### User Story 651:
+
+- **Summary:** Turning new boards on paper off
+- **Status:** implemented in [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: turned off from the menu and still off after a relaunch; with the switch set off by the launch hook, a new board is on the old canvas)
+- **Issues:** [#671](https://github.com/idvorkin/context-grabber/issues/671)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who needs the old canvas while paper lacks something
+- **I want to** turn the switch off once
+- **so that** every new board here is on the old canvas until I turn it back on
+
+#### Acceptance Criteria:
+- **Scenario:** Turning it off
+- **Given:** I turned *New boards on paper* off
+- **When:** I open the app again and tap +
+- **Then:** the new board is on the old canvas
