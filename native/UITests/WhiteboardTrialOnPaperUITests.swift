@@ -1,10 +1,10 @@
-//  Stories 435–439 on the simulator: *Try on paper* opens a copy, nothing in it reaches the real board, and another
+//  Stories 435–439, 524–534 on the simulator: *Try on paper* opens a copy, nothing in it reaches the real board, and another
 //  device's board doesn't offer it. How it feels and what a finger does with a Pencil paired are the iPad's: `just
 //  pull-logs` and read `paper_probe`. A finger draws on the simulator.
 
 import XCTest
 
-final class WhiteboardPaperTrialUITests: XCTestCase {
+final class WhiteboardTrialOnPaperUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
   /// Ghosts ask nowhere real: an address nothing answers.
@@ -64,7 +64,7 @@ final class WhiteboardPaperTrialUITests: XCTestCase {
       app.staticTexts["paper-trial-page"].label.hasPrefix("Page 1 of "), app.staticTexts["paper-trial-page"].label)
     keep(app, "trial opened")
 
-    // Story 436: nothing in here but the trial's own: no Send, no Larry's turn, no ghosts, no mic.
+    // Story 527: nothing in here but the trial's own: no Send, no Larry's turn, no ghosts, no mic.
     for id in ["whiteboard-send", "whiteboard-larry", "whiteboard-ghosts", "whiteboard-mic"] {
       XCTAssertFalse(app.buttons[id].exists, id)
     }
@@ -77,7 +77,7 @@ final class WhiteboardPaperTrialUITests: XCTestCase {
     waitFor(menu, label: "Trial, 3 strokes", timeout: 10)
     keep(app, "trial drawn on")
 
-    // Story 438: the menu's switches run; the log's `paper_probe` lines are what they're for.
+    // Stories 530, 531: the menu's switches run; the log's `paper_probe` lines are what they're for.
     menu.tap()
     let add = app.buttons["Add a page now"]
     XCTAssertTrue(add.waitForExistence(timeout: 5), app.debugDescription)

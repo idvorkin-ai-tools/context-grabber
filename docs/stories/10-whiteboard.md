@@ -28,7 +28,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 341:
 
 - **Summary:** A board that keeps going past the screen
-- **Status:** the free-panning board implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); the criteria below are the pages change (#636), specified and not built yet
+- **Status:** the free-panning board implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); the criterion below is the pages change, not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 
 #### Use Case:
@@ -42,17 +42,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I drag the board up with a finger and keep drawing
 - **Then:** a blank page slides in under the Pencil, and a faint line marks where the last page ended
 
-- **Scenario:** Pinching out
-- **Given:** I am on a page
-- **When:** I pinch out as far as it goes
-- **Then:** it stops with the page fitting the screen's width, and the board never moves off sideways into nothing
-
 ---
 
 ### User Story 342:
 
 - **Summary:** The board is still there next time
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); saving on close, on a link and in the background in [ab9c1e8](https://github.com/idvorkin/context-grabber/commit/ab9c1e8); verified by host tests (`WhiteboardFrameTests`: centred on the drawing) and the simulator build; a relaunch not yet tried on the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3); saving on close, on a link and in the background in [ab9c1e8](https://github.com/idvorkin/context-grabber/commit/ab9c1e8); verified by host tests (`WhiteboardFrameTests`: centred on the drawing) and the simulator build; a relaunch not yet tried on the iPad; that the view opens at the place I left it is the pages change, not implemented (it still opens centred on the drawing); asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 
 #### Use Case:
 - **As someone** who comes back to a sketch later
@@ -70,7 +65,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 343:
 
 - **Summary:** Show Larry the board
-- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876), the thread titled with the board's name in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023), the board's one thread instead of a new one each time in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad
+- **Status:** implemented in [9c1adc3](https://github.com/idvorkin/context-grabber/commit/9c1adc3), one send per stroke in [abe5876](https://github.com/idvorkin/context-grabber/commit/abe5876), the thread titled with the board's name in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023), the board's one thread instead of a new one each time in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardFrameTests`: the picture's margin and size) and the simulator build; a thread in Chat not yet seen from the iPad; a picture of the page or pages on screen is the pages change, not implemented (it still shows the whole drawing); asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 
 #### Use Case:
 - **As someone** who sketches to think and then wants to talk it over
@@ -1789,7 +1784,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 430:
 
 - **Summary:** I can see which page I'm on
-- **Status:** specified, not built yet
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1809,7 +1804,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 431:
 
 - **Summary:** An old board moves onto pages with nothing lost
-- **Status:** specified, not built yet
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1824,17 +1819,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open it
 - **Then:** it opens on pages with every stroke at its old size and in the same place relative to the others, and Larry's marks still sit beside the ink they were drawn beside
 
-- **Scenario:** A board wider than a page
-- **Given:** a board from before pages with ink wider than a page
-- **When:** I open it
-- **Then:** it keeps its own wider width, no stroke scaled, and I can pan sideways only as far as that width
-
 ---
 
 ### User Story 432:
 
 - **Summary:** A mark past the page edge widens the board
-- **Status:** specified, not built yet
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1854,7 +1844,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 433:
 
 - **Summary:** Larry reads the pages I'm looking at
-- **Status:** specified, not built yet
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1869,17 +1859,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap Send to Larry
 - **Then:** the picture shows page 2 with my writing legible, and Larry's marks in reply land on page 2
 
-- **Scenario:** Nothing on screen
-- **Given:** ink on page 1 and a blank page on screen
-- **When:** I look at Send to Larry
-- **Then:** it's disabled, because there's nothing on screen to send
-
 ---
 
 ### User Story 434:
 
 - **Summary:** Ruled lines, like notebook paper
-- **Status:** specified, not built yet
+- **Status:** not implemented; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1894,17 +1879,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I choose Ruled lines in the Board menu
 - **Then:** faint horizontal lines appear that move with the board, are in no picture, can't be erased, and are still there when I reopen the board on this device
 
-- **Scenario:** One kind at a time
-- **Given:** a board with its grid on
-- **When:** I choose Ruled lines
-- **Then:** the grid goes and the ruled lines show
-
 ---
 
 ### User Story 435:
 
 - **Summary:** Try a board on paper, temporarily, from its long press
-- **Status:** built, verified on an iPad simulator on iOS 27 (`WhiteboardPaperTrialUITests`: offered on this device's board, not on another's); temporary: goes when the board moves to PaperKit. The hiding below iOS 27 is by construction: there's no older simulator here, and PaperKit is weak linked (`otool -L`). On the iPad: to be played with
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator on iOS 27 (`WhiteboardTrialOnPaperUITests`: offered and opens on this device's board); played with on the iPad by Igor, 2026-11-03; temporary: goes when the board moves to PaperKit
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1919,27 +1899,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I long-press its row
 - **Then:** *Try on paper* is offered and opens the trial
 
-- **Scenario:** Another device's board
-- **Given:** a board drawn on another device
-- **When:** I long-press its row
-- **Then:** *Try on paper* isn't offered
-
-- **Scenario:** Before iOS 27
-- **Given:** a device below iOS 27
-- **When:** I long-press a row
-- **Then:** *Try on paper* isn't offered, and the app runs as it did
-
-- **Scenario:** A board that can't be read
-- **Given:** a board whose drawing can't be read
-- **When:** I choose *Try on paper*
-- **Then:** a copyable problem says so, and the file stays where it is
-
 ---
 
 ### User Story 436:
 
 - **Summary:** Nothing in the trial reaches a real board
-- **Status:** built, verified on an iPad simulator (`WhiteboardPaperTrialUITests`: drawing in the trial leaves the board's row and stroke count as they were; the boards' files hash the same across trial runs on the simulator, and a copy with ink added leaves no file)
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: drawing in the trial leaves the board's row and stroke count as they were; the boards' files hash the same across trial runs on the simulator, and a copy with ink added leaves no file)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1954,17 +1919,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I draw, erase and undo in the trial and close it
 - **Then:** the board still has one stroke, and its picture, its place in the list and its *Changed* time are as they were
 
-- **Scenario:** Nothing to send
-- **Given:** the trial is open
-- **When:** I look for Send, Larry's turn, ghosts or the mic
-- **Then:** there's none of them, and nothing goes to the Cockpit or iCloud
-
 ---
 
 ### User Story 437:
 
 - **Summary:** The trial is a column of pages
-- **Status:** built, verified on an iPad simulator (`WhiteboardPaperTrialUITests` and screenshots: tool picker, page lines, page number, a page added). Pinching with real fingers, on the iPad: the simulator's pinch didn't change the zoom
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests` and screenshots: tool picker, page lines, page number)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1979,22 +1939,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** the trial opens
 - **Then:** the tool picker, faint page lines, *Page 1 of N* at the corner and a blank page below the last ink all show
 
-- **Scenario:** Pinching out
-- **Given:** the trial is open
-- **When:** I pinch out as far as it goes
-- **Then:** it stops when the page fits the screen's width
-
-- **Scenario:** Writing on the last page
-- **Given:** a stroke reaching the last page
-- **When:** I lift the Pencil
-- **Then:** one more blank page is below, and the page number's total goes up
-
 ---
 
 ### User Story 438:
 
 - **Summary:** The trial says what to try, and has the switches to try it
-- **Status:** built, verified on an iPad simulator (`WhiteboardPaperTrialUITests` runs every switch, the `paper_probe` lines read: a page added mid-stroke with a finger kept the stroke and undo). On the iPad: to be played with
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the line, and every switch runs); played with on the iPad by Igor, 2026-11-03
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2009,22 +1959,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I look under the title
 - **Then:** one short line says it's a copy and what to try
 
-- **Scenario:** A page in the middle of a stroke
-- **Given:** the Trial menu
-- **When:** I choose *Add a page in 3 s* and write a long stroke across that moment
-- **Then:** the page is added, and the log says a touch was down and what became of the stroke
-
-- **Scenario:** Going far down
-- **Given:** the Trial menu
-- **When:** I choose *Go to page 11*
-- **Then:** the view goes past 9,600 points down, adding pages if it must, so I can write there
-
 ---
 
 ### User Story 439:
 
 - **Summary:** The trial's log settles the five questions
-- **Status:** built; the host part is `PaperProbeTests`, the lines checked on the simulator (`sim-smoke.sh`, whiteboard). Questions 2 and 4 are answered there; 1, 3 and 5 need the iPad: `just pull-logs` after Igor's played
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`) and the simulator (`WhiteboardTrialOnPaperUITests` and `sim-smoke.sh`, whiteboard). Question 1, what a finger does with a Pencil paired, needs the iPad's log: `just pull-logs`
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2039,17 +1979,302 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I drag a finger across some ink
 - **Then:** the log has the touch, whether it panned, selected or moved ink, and each moved stroke's id and how far it went
 
+---
+
+### User Story 520:
+
+- **Summary:** Pinching out stops at the page
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who zooms out to look at a page
+- **I want to** have the pinch stop when the page fits the screen
+- **so that** the board never moves off sideways into nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Pinching out
+- **Given:** I am on a page
+- **When:** I pinch out as far as it goes
+- **Then:** it stops with the page fitting the screen's width, and the board never moves off sideways into nothing
+
+---
+
+### User Story 521:
+
+- **Summary:** An old board wider than a page keeps its width
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with an old board drawn wider than a page
+- **I want to** keep all of it, at its old size
+- **so that** moving onto pages never shrinks or crops my drawing
+
+#### Acceptance Criteria:
+- **Scenario:** A board wider than a page
+- **Given:** a board from before pages with ink wider than a page
+- **When:** I open it
+- **Then:** it keeps its own wider width, no stroke scaled, and I can pan sideways only as far as that width
+
+---
+
+### User Story 522:
+
+- **Summary:** Nothing on screen, nothing to send
+- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** looking at a blank page of a long board
+- **I want to** see that Send to Larry has nothing to send
+- **so that** I never send him an empty picture
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing on screen
+- **Given:** ink on page 1 and a blank page on screen
+- **When:** I look at Send to Larry
+- **Then:** it's disabled, because there's nothing on screen to send
+
+---
+
+### User Story 523:
+
+- **Summary:** One kind of lines at a time
+- **Status:** not implemented; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** choosing what the paper looks like
+- **I want to** have ruled lines replace the grid
+- **so that** the two never pile up on one board
+
+#### Acceptance Criteria:
+- **Scenario:** One kind at a time
+- **Given:** a board with its grid on
+- **When:** I choose Ruled lines
+- **Then:** the grid goes and the ruled lines show
+
+---
+
+### User Story 524:
+
+- **Summary:** The trial isn't offered on another device's board
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator on iOS 27 (`WhiteboardTrialOnPaperUITests`: a board from an iPad offers Delete and not this)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** whose boards sync between devices
+- **I want to** find the trial only on the boards this device draws
+- **so that** a board I can't draw on here doesn't offer me a way to draw on it
+
+#### Acceptance Criteria:
+- **Scenario:** Another device's board
+- **Given:** a board drawn on another device
+- **When:** I long-press its row
+- **Then:** *Try on paper* isn't offered
+
+---
+
+### User Story 525:
+
+- **Summary:** The trial isn't offered before iOS 27
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); by construction, not run: there's no older simulator here, and PaperKit is weak linked (`otool -L`)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** on an older system
+- **I want to** see the app as it was
+- **so that** a trial of a new framework costs me nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Before iOS 27
+- **Given:** a device below iOS 27
+- **When:** I long-press a row
+- **Then:** *Try on paper* isn't offered, and the app runs as it did
+
+---
+
+### User Story 526:
+
+- **Summary:** A board that can't be read says so, and stays
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); not yet run on any rung: no test hands it an unreadable file
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** whose board file has gone bad
+- **I want to** a problem I can copy, and the file left alone
+- **so that** the trial never makes a bad file worse
+
+#### Acceptance Criteria:
+- **Scenario:** A board that can't be read
+- **Given:** a board whose drawing can't be read
+- **When:** I choose *Try on paper*
+- **Then:** a copyable problem says so, and the file stays where it is
+
+---
+
+### User Story 527:
+
+- **Summary:** The trial has nothing to send with
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: none of the four buttons exists). That nothing goes out is by construction: the trial is handed no store, model or inbox
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** playing with an unfinished canvas
+- **I want to** find no way to send from it
+- **so that** a scribble in the trial never reaches Larry or iCloud
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing to send
+- **Given:** the trial is open
+- **When:** I look for Send, Larry's turn, ghosts or the mic
+- **Then:** there's none of them, and nothing goes to the Cockpit or iCloud
+
+---
+
+### User Story 528:
+
+- **Summary:** The trial's pinch stops at the page
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`: the fit zoom); pinching with real fingers is the iPad's: the simulator's pinch didn't change the zoom
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** trying the Notability-like board
+- **I want to** have pinching out stop at the page
+- **so that** I can judge the page-width shape before it is built for real
+
+#### Acceptance Criteria:
+- **Scenario:** Pinching out
+- **Given:** the trial is open
+- **When:** I pinch out as far as it goes
+- **Then:** it stops when the page fits the screen's width
+
+---
+
+### User Story 529:
+
+- **Summary:** Writing on the last page adds a blank one
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`: when ink needs a page) and an iPad simulator (`WhiteboardTrialOnPaperUITests`: a page added)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** writing to the end of the trial's column
+- **I want to** always have a blank page below
+- **so that** I can judge how the column grows
+
+#### Acceptance Criteria:
+- **Scenario:** Writing on the last page
+- **Given:** a stroke reaching the last page
+- **When:** I lift the Pencil
+- **Then:** one more blank page is below, and the page number's total goes up
+
+---
+
+### User Story 530:
+
+- **Summary:** A page in the middle of a stroke
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`, the `paper_probe` lines read: a page added mid-stroke with a finger kept the stroke and undo); the Pencil's half is the iPad's
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** deciding how a column of pages should grow
+- **I want to** land a page in the middle of a stroke on purpose
+- **so that** question 2 gets its answer from the log
+
+#### Acceptance Criteria:
+- **Scenario:** A page in the middle of a stroke
+- **Given:** the Trial menu
+- **When:** I choose *Add a page in 3 s* and write a long stroke across that moment
+- **Then:** the page is added, and the log says a touch was down and what became of the stroke
+
+---
+
+### User Story 531:
+
+- **Summary:** Going far down the column
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the corner reads *Page 11 of*); the ink's feel there is the iPad's
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** judging the ink's feel far down a board
+- **I want to** jump past 9,600 points in one choice
+- **so that** I can write there without scrolling all that way
+
+#### Acceptance Criteria:
+- **Scenario:** Going far down
+- **Given:** the Trial menu
+- **When:** I choose *Go to page 11*
+- **Then:** the view goes past 9,600 points down, adding pages if it must, so I can write there
+
+---
+
+### User Story 532:
+
+- **Summary:** The log says what adding a page did
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`, the `paper_probe` lines read): question 2 is answered there
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who plays on the iPad and reads the answers later
+- **I want to** have each page added in the log
+- **so that** question 2 is answered without my remembering it
+
+#### Acceptance Criteria:
 - **Scenario:** A page added
 - **Given:** the trial is open
 - **When:** a page is added
 - **Then:** the log has where the view was and is, the zoom, whether undo survived, and whether a touch was down
 
+---
+
+### User Story 533:
+
+- **Summary:** The log says how far the ring slipped
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`) and the simulator that the lines are written; question 3 needs the iPad's log: `just pull-logs`
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who plays on the iPad and reads the answers later
+- **I want to** have each scroll and pinch in the log
+- **so that** question 3 is answered without my having to judge it by eye
+
+#### Acceptance Criteria:
 - **Scenario:** Scrolling
 - **Given:** the trial is open
 - **When:** I scroll or pinch
 - **Then:** the log has how often the visible area was reported, and how far the ring slipped from its cross
 
+---
+
+### User Story 534:
+
+- **Summary:** The log says whether a far corner works
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on the simulator (`WhiteboardTrialOnPaperUITests`: `stroke_landing`, and `sim-smoke.sh`: `origin`): question 4 is answered there
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with old boards whose ink sits far from the corner
+- **I want to** have the log say whether the column can start there
+- **so that** I know if the ink has to move
+
+#### Acceptance Criteria:
 - **Scenario:** A board far from the corner
 - **Given:** a board with ink about 10,000 points from the corner
-- **When:** the trial opens with the ink where it is
+- **When:** I choose *Ink where it is* in the Trial menu
 - **Then:** the log says whether that start was kept and whether the ink is on screen, and the first stroke says whether it landed under the Pencil

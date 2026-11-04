@@ -15,7 +15,7 @@ struct WhiteboardListView: View {
   @State private var deleting: BoardEntry?
   /// A link named a board that isn't here (#603).
   @State private var linkProblem: BugProblem?
-  /// The trial on paper (stories 435, 436): an in-memory copy, temporary.
+  /// The trial on paper (stories 435, 436, 524–527): an in-memory copy, temporary.
   @State private var trialCopy: PaperTrialCopy?
   @State private var trialProblem: BugProblem?
   private let app: AppModel
@@ -163,7 +163,7 @@ struct WhiteboardListView: View {
       trialProblem = nil
       trialCopy = try store.trialCopy(of: board)
     } catch {
-      app.log.event("paper_probe", ["kind": "unreadable", "q": "other", "board": board.id, "message": "\(error)"])
+      app.log.event("error", ["where": "whiteboard_trial_load", "board": board.id, "message": "\(error)"])
       trialProblem = .grabber(
         "This board could not be read, so it can't be tried on paper. The file is untouched: "
           + error.localizedDescription, context: "WhiteboardListView.tryOnPaper", extra: ["board": .string(board.id)])

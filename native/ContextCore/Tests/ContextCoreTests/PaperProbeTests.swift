@@ -1,4 +1,4 @@
-//  Stories 437, 439: the trial on paper's arithmetic.
+//  Stories 437, 439, 529, 532–534: the trial on paper's arithmetic.
 
 import ContextCore
 import CoreGraphics

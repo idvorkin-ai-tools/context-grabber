@@ -1,4 +1,4 @@
-//  The arithmetic of the trial on paper (whiteboard spec's "Trial on paper", stories 437, 439; #635, #636). Temporary,
+//  The arithmetic of the trial on paper (whiteboard spec's "Trial on paper", stories 437, 439, 529, 532–534; #635, #636). Temporary,
 //  like the trial: the real page geometry gets its own home when the board moves to PaperKit. PaperKit stays in the
 //  app: here, the column a copy of a board sits in, which ink a change moved, and what came of a touch.
 

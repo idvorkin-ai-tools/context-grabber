@@ -1,4 +1,4 @@
-//  The trial on paper (whiteboard spec's "Trial on paper", stories 435–439; #635, #636). TEMPORARY: it goes when the
+//  The trial on paper (whiteboard spec's "Trial on paper", stories 435–439, 524–534; #635, #636). TEMPORARY: it goes when the
 //  board moves to PaperKit, or when the idea is dropped. An in-memory copy of a board on PaperKit, to settle on the iPad
 //  what PaperKit's interface can't: every touch and what came of it goes in the log as `paper_probe`, with `q` naming
 //  the question it answers (docs/DEBUGGING.md).
@@ -212,9 +212,6 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     self.log = log
     paper = PaperMarkupViewController(markup: nil, supportedFeatureSet: Self.features)
     lines = PaperLines(paper: copy.paper.color)
-    if let asked = ProcessInfo.processInfo.environment["GRABBER_PAPER_TRIAL_LAYOUT"].flatMap(PaperProbe.Layout.init) {
-      layout = asked
-    }
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -393,7 +390,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
     paper.view.layoutIfNeeded()
     applyTrim()
     let size = paper.contentVisibleFrame.size
-    asked = "fit"
+    expectMove("fit")
     paper.contentVisibleFrame = CGRect(origin: column.origin, size: size)
     let reached = paper.contentVisibleFrame
     // Question 4: the simulator says the visible area counts from the column's corner, whatever the bounds' origin,
@@ -451,8 +448,6 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
   /// are the Cockpit's, so a change here is a change Larry would see. In memory, and never shown. The strokes are remade
   /// on the way out: PKDrawing(strokes:) on what `subelements.strokes` gives throws an Objective-C exception, nil into
   /// PencilKit's set of UUIDs, seen on the simulator on iOS 27 with ink appended from a drawing.
-  /// `GRABBER_PAPER_TRIAL_RAW=1` runs that raw way, for finding out which ink it happens to: a `raw_round_trip` line
-  /// and no `raw_round_trip_done` is that crash.
   private func roundTrip() {
     let started = CACurrentMediaTime()
     let ids = WhiteboardModel.strokesForLarry(copy.drawing).map(\.id)
@@ -471,14 +466,8 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
         "back": result.countBack, "same_order": result.sameOrder, "missing": result.missing, "extra": result.extra,
         "first_missing": result.firstMissing, "through_data_missing": data.missing,
         "through_data_same_order": data.sameOrder, "drawing_equal": through == copy.drawing,
-        "remade": true, "ms": ms(CACurrentMediaTime() - started),
+        "ms": ms(CACurrentMediaTime() - started),
       ])
-    if ProcessInfo.processInfo.environment["GRABBER_PAPER_TRIAL_RAW"] == "1" {
-      probe("raw_round_trip", q: "other", ["strokes": back.count])
-      log.flush()
-      let raw = PKDrawing(strokes: back)
-      probe("raw_round_trip_done", q: "other", ["strokes": raw.strokes.count])
-    }
   }
 
   // MARK: - The menu
@@ -595,7 +584,6 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
   }
 
   private func applyTrim() {
-    guard layout == .tall else { return }
     let config = paper.scrollConfiguration
     config.contentInset.bottom = -column.trim * config.zoomScale
   }
@@ -612,7 +600,7 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
   private func move(to y: CGFloat, why: String) {
     var target = paper.contentVisibleFrame
     target.origin.y = y
-    asked = why
+    expectMove(why)
     paper.setContentVisibleFrame(target, animated: true)
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(0.9))
@@ -626,6 +614,15 @@ final class PaperTrial: UIViewController, ObservableObject, PaperMarkupViewContr
           "points_down": Double(visible.minY - self.viewBase.y), "page": self.page(of: visible),
           "stayed_within_pages": visible.maxY <= reachable + 2,
         ])
+    }
+  }
+
+  private func expectMove(_ why: String) {
+    asked = why
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(0.9))
+      guard let self, self.glide == nil, self.asked == why else { return }
+      self.asked = nil
     }
   }
 
