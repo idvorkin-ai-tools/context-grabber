@@ -1152,9 +1152,10 @@ private struct BoardCanvas: UIViewRepresentable {
           height: canvas.bounds.height / zoom)
       }
       model.zoom = { [weak canvas] in canvas?.zoomScale ?? 1 }
-      model.draw = { [weak canvas] drawing, _ in
+      model.draw = { [weak canvas, weak coordinator = context.coordinator] drawing, _ in
         guard let canvas else { return }
         let before = canvas.drawing
+        coordinator?.stepsOn = canvas.undoManager
         canvas.undoManager?.registerUndo(withTarget: canvas) { $0.drawing = before }
         canvas.drawing = drawing
       }
@@ -1171,8 +1172,14 @@ private struct BoardCanvas: UIViewRepresentable {
     canvas.showGrid(model.gridOn)
   }
 
+  static func dismantleUIView(_ canvas: BoardCanvasView, coordinator: Coordinator) {
+    coordinator.stepsOn?.removeAllActions(withTarget: canvas)
+  }
+
   final class Coordinator: NSObject, PKCanvasViewDelegate {
     let model: WhiteboardModel
+    /// The undo stack a kept mark's step went on. A closing canvas may no longer be able to say.
+    weak var stepsOn: UndoManager?
     /// Held here: the tool picker disappears when nothing keeps it.
     let picker = PKToolPicker()
 

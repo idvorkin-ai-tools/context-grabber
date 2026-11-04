@@ -1,4 +1,4 @@
-//  Stories 613–626 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what paper
+//  Stories 613–635 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what paper
 //  adds to the ghost turns. `WhiteboardTurnOnPaperUITests` runs the old canvas's own tests on a board on paper, as they're the
 //  requirement. A finger draws on the simulator; the Pencil and what a finger does with one paired are the iPad's. The
 //  board isn't in the accessibility tree, so where ghosts and ink sit is read from the screen's pixels.
@@ -173,7 +173,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     return PaperScreen(app).ghost
   }
 
-  /// Stories 613, 614, 615: the bar, a ghost that can be seen, and a tap on it that makes it ink of its colour.
+  /// Stories 598, 613, 614, 615: the bar, a ghost that can be seen, and a tap on it that makes it ink of its colour.
   func testAGhostShowsOnThePaperAndATapKeepsIt() throws {
     let app = try openBoard()
     for id in ["whiteboard-ghosts", "whiteboard-mic", "whiteboard-larry", "whiteboard-send"] {
@@ -229,7 +229,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(send(app).label, strokes(1), "a pinch isn't a stroke")
   }
 
-  /// Story 617: a kept ghost goes with one undo and comes back with one redo, and the undo after that takes his stroke,
+  /// Stories 617, 630, 631: a kept ghost goes with one undo and comes back with one redo, and the undo after that takes his stroke,
   /// which is PaperKit's own step. A hook presses them, as a phone's tool picker has no Undo and keys reach only a run's
   /// first test.
   func testOneUndoTakesAKeptMarkBack() throws {
@@ -250,7 +250,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "after his stroke too")
   }
 
-  /// Stories 617, 618: a mark kept far down brings its pages in the one change, and one undo takes both. The fake's `/far`
+  /// Stories 618, 632: a mark kept far down brings its pages in the one change, and one undo takes both. The fake's `/far`
   /// answers with a circle well below the last page: a hook keeps it, as it can't be reached to tap.
   func testAMarkKeptPastTheLastPageBringsItsPagesInOneUndo() throws {
     let app = try openBoard(way: "/far", ["GRABBER_WHITEBOARD_KEEP": "first", "GRABBER_WHITEBOARD_AFTER_KEEP": "5,undo"])

@@ -1,4 +1,4 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–626; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–636; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
 //  as any other board does, with its ghosts, Larry's marks and the mic. Ghosts lie on the sheet under the ink, in
@@ -61,7 +61,7 @@ class PaperHost: UIViewController {
   private(set) var pencilDown = false
   var run: TouchRun?
   private var runEnding: Task<Void, Never>?
-  private var touchStarts: [ObjectIdentifier: (at: CGPoint, began: Double)] = [:]
+  private var touchStarts: [ObjectIdentifier: (at: CGPoint, began: Double, farthest: CGFloat)] = [:]
   /// Fingers on the glass now, and together since the last time there were none. A Pencil beside one doesn't count.
   private var fingersDown = 0
   private var fingersTogether = 0
@@ -150,7 +150,7 @@ class PaperHost: UIViewController {
         endRun()
         startRun(touch, at: at)
       }
-      touchStarts[id] = (at, CACurrentMediaTime())
+      touchStarts[id] = (at, CACurrentMediaTime(), 0)
       if touch.type == .pencil { pencilDown = true }
       if touch.type == .direct {
         fingersDown += 1
@@ -158,15 +158,18 @@ class PaperHost: UIViewController {
       }
       touchWentDown(touch)
     case .moved:
-      if let start = touchStarts[id]?.at {
-        if let travel = run?.facts.travel { run?.facts.travel = max(travel, hypot(at.x - start.x, at.y - start.y)) }
+      if let start = touchStarts[id] {
+        let went = hypot(at.x - start.at.x, at.y - start.at.y)
+        touchStarts[id]?.farthest = max(start.farthest, went)
+        if let travel = run?.facts.travel { run?.facts.travel = max(travel, went) }
       }
     case .ended, .cancelled:
       // Short, still and alone, whatever a Pencil is doing beside it. The system calling a touch off, as it does a palm, is
       // no tap.
       if phase == .ended, touch.type == .direct, let start = touchStarts[id],
         PaperProbe.isFingerTap(
-          travel: hypot(at.x - start.at.x, at.y - start.at.y), seconds: CACurrentMediaTime() - start.began,
+          travel: max(start.farthest, hypot(at.x - start.at.x, at.y - start.at.y)),
+          seconds: CACurrentMediaTime() - start.began,
           fingers: fingersTogether)
       {
         fingerTapped(at: start.at)
@@ -294,6 +297,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
+  /// The undo stack a kept mark's steps went on. A closing view may no longer be able to say.
+  private weak var stepsOn: UndoManager?
 
   private var placeKey: String { "whiteboard_paper_y_\(model.board.id)" }
 
@@ -492,8 +497,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       "whiteboard",
       [
         "action": "paper_ghosts", "board": model.board.id, "count": ghosts.count,
-        "past_side": board.reachesPastSide(drawn), "below_last_page": board.reachesBelow(drawn, pages: pages),
-        "pages": pages, "visible": rect(paper.contentVisibleFrame), "sheet": rect(lines.bounds),
+        "past_side": board.reachesPastSide(drawn), "pages": pages, "visible": rect(paper.contentVisibleFrame),
+        "sheet": rect(lines.bounds),
         "screen_scale": Double(screenScale),
       ])
     checkSeat()
@@ -581,16 +586,32 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "pages_before": pagesBefore, "pages": wanted, "same_ids": idsMade == idsBack, "ids_made": idsMade.count,
         "ids_back": idsBack.count, "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
         "could_undo": couldUndo, "could_redo": couldRedo, "can_undo": undo?.canUndo ?? false,
-        "can_redo": undo?.canRedo ?? false, "ms": ms(CACurrentMediaTime() - started),
+        "can_redo": undo?.canRedo ?? false, "undo_on_window": undo != nil && undo === view.window?.undoManager,
+        "ms": ms(CACurrentMediaTime() - started),
       ])
     undoSoonForTests()
   }
 
   /// Undo or redo of a kept mark: back to the markup as it was, and the way forward again the same way.
   private func registerStepBack(to markup: PaperMarkup) {
-    paper.undoManager?.registerUndo(withTarget: self) { controller in
+    guard let undo = paper.undoManager else { return }
+    stepsOn = undo
+    undo.registerUndo(withTarget: self) { controller in
       MainActor.assumeIsolated { controller.step(to: markup) }
     }
+  }
+
+  /// The board really closed, which a cancelled swipe back isn't: the stack can be the window's, and the next board's Undo
+  /// mustn't reach this one's steps.
+  func boardClosed() {
+    guard let stepsOn else { return }
+    stepsOn.removeAllActions(withTarget: self)
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_undo_closed", "board": model.board.id, "can_undo": stepsOn.canUndo,
+        "can_redo": stepsOn.canRedo,
+      ])
   }
 
   private func step(to markup: PaperMarkup) {
@@ -706,6 +727,10 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
   func updateUIViewController(_ controller: PaperBoardController, context: Context) {
     controller.setPaperColor(paper.color)
     controller.show(ghosts)
+  }
+
+  static func dismantleUIViewController(_ controller: PaperBoardController, coordinator: ()) {
+    controller.boardClosed()
   }
 }
 

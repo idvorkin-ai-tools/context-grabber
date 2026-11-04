@@ -236,6 +236,8 @@ paper. That description is the requirement, and this lists only where paper need
 - **A kept ghost is ink like his own.** It's in its author's colour, the eraser and lasso treat it like his, and it saves a moment
   later.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
+- **An undo doesn't outlive its board.** Closing a board takes its kept marks' undo steps with it, on either canvas, so Undo on
+  the next board can't reach back and change the one that closed.
 - **A kept mark past the last page brings the pages it needs,** with the blank page below as for any ink.
 - **Larry knows a kept mark as one stroke.** Each time the board's strokes go to Larry, the same ink has the same name, whether
   it was drawn or kept, and whether the board was just drawn on or has been closed and opened since.

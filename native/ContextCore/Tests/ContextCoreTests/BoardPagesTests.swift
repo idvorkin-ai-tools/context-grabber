@@ -232,13 +232,10 @@ final class BoardPagesTests: XCTestCase {
   func testAMarkPastTheColumnIsTold() {
     let inside = [[CGPoint(x: 0, y: 0), CGPoint(x: 820, y: 1_060)]]
     XCTAssertFalse(pages.reachesPastSide(inside))
-    XCTAssertFalse(pages.reachesBelow(inside, pages: 1), "on the last page's end is still on the column")
     XCTAssertTrue(pages.reachesPastSide([[CGPoint(x: 821, y: 10)]]), "past the right")
     XCTAssertTrue(pages.reachesPastSide([[CGPoint(x: -1, y: 10)]]), "past the left")
     XCTAssertTrue(pages.reachesPastSide([[CGPoint(x: 10, y: -1)]]), "above the first page")
     XCTAssertFalse(pages.reachesPastSide([[CGPoint(x: 10, y: 5_000)]]), "far down isn't past a side")
-    XCTAssertTrue(pages.reachesBelow([[CGPoint(x: 10, y: 1_061)]], pages: 1))
-    XCTAssertFalse(pages.reachesBelow([[CGPoint(x: 10, y: 1_061)]], pages: 2))
     XCTAssertTrue(BoardPages(width: 1_000).reachesPastSide([[CGPoint(x: 1_001, y: 0)]]))
     XCTAssertFalse(BoardPages(width: 1_000).reachesPastSide([[CGPoint(x: 1_000, y: 0)]]), "a wider board holds more")
     XCTAssertFalse(pages.reachesPastSide([]))

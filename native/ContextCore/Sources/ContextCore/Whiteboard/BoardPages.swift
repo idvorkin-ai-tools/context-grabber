@@ -66,11 +66,6 @@ public struct BoardPages: Equatable, Sendable {
     lines.joined().contains { $0.x < 0 || $0.x > width || $0.y < 0 }
   }
 
-  /// A mark reaching below the last page. Kept, it brings its pages.
-  public func reachesBelow(_ lines: [[CGPoint]], pages: Int) -> Bool {
-    lines.joined().contains { $0.y > CGFloat(max(pages, 1)) * Self.pageHeight }
-  }
-
   /// The corner's *Page 2 of 3*, for the page at the middle of the view: the one mostly on screen. Below the column it's
   /// still the last page.
   public func pageText(visibleMidY: CGFloat, pages: Int) -> String {
