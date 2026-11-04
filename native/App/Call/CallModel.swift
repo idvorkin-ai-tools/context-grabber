@@ -38,7 +38,7 @@ final class CallModel: ObservableObject {
 
   let events = CallEventLog()
   let bridgeURL: String
-  /// Story 212: where every call's log goes at its end (the stats archive's destination, same simulator rule).
+  /// Story 212: where every call's log goes at its end (the stats archive's destination, same simulator and Mac rule).
   private let archiveURL: String?
   private let log: SessionLog
   private let database: AppDatabase

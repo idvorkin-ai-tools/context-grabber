@@ -59,7 +59,7 @@ It is not a memdeck trainer: magic shows up in the mirror, and drills live in th
 The Gym Timer times rounds; sets and weights belong to exercise-analyzer.
 Larry's own work, his agents and PRs, stays in the Cockpit rather than on the home screen.
 It is built from Igor's eulogy for Igor, not as a mirror for anyone else's.
-It runs on Igor's iPhone, iPad and watch first; a web version is fine when it helps, and Android and Mac Catalyst are out.
+It runs on Igor's iPhone, iPad and watch first, and on his Mac as a Catalyst build; a web version is fine when it helps, and Android is out.
 Igor's private data travels only to his own devices, his own iCloud and Larry's bridge, and call diagnostics leave only as unlisted gists marked for deletion once read.
 
 A change aligns when it makes the mirror truer at a glance, gives Larry better context, removes a step Igor would otherwise do by hand, or puts one of his jobs behind the front door.

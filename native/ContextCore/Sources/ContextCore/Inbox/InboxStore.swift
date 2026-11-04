@@ -96,7 +96,8 @@ public struct InboxStore: Sendable {
   /// The App Group the app, the widgets and the share extension share (project.yml gives each the entitlement).
   public static let appGroup = "group.com.idvorkin.grabbernative"
 
-  /// The App Group's Inbox, or nil without the group (a test host, a build without the entitlement).
+  /// The App Group's Inbox, or nil without the group (a test host, a build without the entitlement). On a Mac, the
+  /// app's own folder.
   public static func shared(group: String = appGroup) -> InboxStore? {
     #if targetEnvironment(macCatalyst)
       // #638: no share extension to share with on a Mac, and a build with no signing identity can't write the group's

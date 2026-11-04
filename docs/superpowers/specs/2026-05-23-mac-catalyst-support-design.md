@@ -1,5 +1,7 @@
 # Mac Catalyst Support — Design Spec
 
+The React Native app's, kept for history. The app on the Mac today: [Grabber Native on the Mac](2026-11-03-native-mac-app-design.md).
+
 ## Summary
 
 Context Grabber is built and signed for Mac Catalyst (see the 2026-05-23 handoff doc + `patches/react-native-audio-api+*.patch` + `patches/expo-live-activity+*.patch`). The app launches as a windowed Mac app, the React tree mounts, and the dashboard chrome renders. But HealthKit doesn't exist on Mac, so the first thing the app does on launch — `HealthKit.requestAuthorization` — throws "Health data is unavailable on this device," which fills the whole screen with an error banner and aborts the rest of the snapshot pipeline. Nothing else (location, counter, journal, share) is reachable.
