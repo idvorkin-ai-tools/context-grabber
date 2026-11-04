@@ -196,7 +196,8 @@ he turns on, device by device.)
 - **On another device, and on older builds,** it opens in the look-only view on the old canvas, with the same ink. That
   view has no pages yet.
 - **If a save fails,** the board shows the copyable problem and keeps drawing. If the failure comes as he leaves the board,
-  the problem shows on the boards list instead of going with it.
+  the problem shows on the boards list instead of going with it, whichever canvas the board is on, until that board next
+  saves.
 - **Always light, for now.** While a board on paper is on screen, the whole screen is in light mode, even with the device in
   dark mode: its colour's pale shade, and dark ink. The boards list goes back to the device's mode. On the simulator, PaperKit in dark mode drew new black ink black, so it couldn't be
   seen. This differs from *Each colour has a pale shade and a deep one* above until PaperKit's ink follows the mode, and it's

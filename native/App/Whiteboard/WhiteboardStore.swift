@@ -17,12 +17,14 @@ final class WhiteboardStore: ObservableObject {
   @Published private(set) var problem: BugProblem?
   /// Bumped when a picture on disk changes, so the rows draw it again.
   @Published private(set) var pictures = 0
-  /// Stories 590, 595: this device's switch. It decides what **+** makes, and never moves a board.
+  /// Stories 590, 595, 602, 607: this device's switch. It decides what **+** makes, and never moves a board.
   @Published private(set) var newBoardsOnPaper: Bool
   let device: String
   let deviceName = UIDevice.current.model
   /// This device's boards open on screen: a delete from another device waits until their last save.
   private var open: Set<String> = []
+  /// The board the list's problem is about, when it's a save that failed on leaving.
+  private var unsavedBoard: String?
   private let dir: URL?
   private let log: SessionLog
   private let cloud = BoardCloud()
@@ -57,9 +59,11 @@ final class WhiteboardStore: ObservableObject {
     log.event("whiteboard", ["action": on ? "new_on_paper_on" : "new_on_paper_off"])
   }
 
-  /// A board closed with ink that couldn't be saved: the board's screen is gone, so the list says it (story 599).
-  func closedUnsaved(_ problem: BugProblem) {
+  /// A board closed with ink that couldn't be saved: the board's screen is gone, so the list says it until that board
+  /// next saves (story 612).
+  func closedUnsaved(_ problem: BugProblem, board id: String) {
     self.problem = problem
+    unsavedBoard = id
   }
 
   // MARK: - The list on disk
@@ -183,11 +187,15 @@ final class WhiteboardStore: ObservableObject {
   /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it.
   func save(_ drawing: PKDrawing, board id: String) throws {
     guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
-    // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (story 599).
+    // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (stories 599, 612).
     if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil {
       throw CocoaError(.fileWriteOutOfSpace)
     }
     try drawing.dataRepresentation().write(to: url, options: .atomic)
+    if unsavedBoard == id {
+      unsavedBoard = nil
+      if problem?.context == "WhiteboardView.save" { problem = nil }
+    }
     writePicture(of: drawing, id: id)
     index.drew(id, strokes: drawing.strokes.count, at: Int64(Date().timeIntervalSince1970 * 1000))
     saveIndex()

@@ -51,7 +51,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  /// On PaperKit (stories 590–601). No ghosts, Larry's marks or mic there yet, so none are asked for.
+  /// On PaperKit (stories 590–612). No ghosts, Larry's marks or mic there yet, so none are asked for.
   let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
@@ -795,7 +795,7 @@ final class WhiteboardModel: ObservableObject {
       save()
       log.event(
         "whiteboard", ["action": "close", "board": board.id, "strokes": drawing.strokes.count, "saved": !dirty])
-      if dirty, let problem { store.closedUnsaved(problem) }
+      if dirty, let problem { store.closedUnsaved(problem, board: board.id) }
     }
     store.closed(board.id, empty: drawing.strokes.isEmpty)
   }

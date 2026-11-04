@@ -352,7 +352,7 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.merge(cloud: [cloudCopy], device: "ipad").fetch, [])
   }
 
-  // MARK: Stories 590, 593–595: which boards are on paper
+  // MARK: Stories 590, 593–595, 602, 606, 607: which boards are on paper
 
   private let aDate = Date(timeIntervalSince1970: 1_800_000_000)
 

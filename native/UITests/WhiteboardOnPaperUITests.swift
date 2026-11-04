@@ -1,4 +1,4 @@
-//  Stories 590–601 on the simulator: a new board on paper is a real board behind a switch, and the old canvas is left
+//  Stories 590–612 on the simulator: a new board on paper is a real board behind a switch, and the old canvas is left
 //  alone. How the Pencil feels and what a finger does with one paired are the iPad's (`whiteboard` action: paper_touch).
 //  A finger draws on the simulator.
 
@@ -68,7 +68,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
       .firstMatch
   }
 
-  /// Stories 590, 591, 592, 593, 598: the switch, the board, what it doesn't offer, and its ink through a relaunch.
+  /// Stories 590–593, 597, 598, 602, 603: the switch, the board, what it doesn't offer, and its ink through a relaunch.
   func testTheSwitchMakesARealBoardOnPaper() {
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
     let options = app.buttons["whiteboard-options"]
@@ -120,13 +120,13 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     waitFor(page, label: "Page 1 of 2")
     keep(app, "the same ink after a relaunch")
 
-    // Story 591: another stroke, and it stays where it was drawn.
+    // Story 603: another stroke, and it stays where it was drawn.
     sleep(1)
     stroke(app, atHeight: 0.4)
     waitFor(send, label: "Send to Larry, 2 strokes")
   }
 
-  /// Story 595: the switch moves no board, either way.
+  /// Stories 595, 607: the switch moves no board, either way.
   func testTheSwitchMovesNoBoard() {
     // An old board, then the switch on: it still opens on the old canvas.
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
@@ -163,7 +163,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     XCTAssertFalse(app.buttons["whiteboard-ghosts"].exists)
   }
 
-  /// Story 597: in dark mode new ink can be seen. PaperKit left to itself draws it black on black. Read off the screenshot:
+  /// Story 609: in dark mode new ink can be seen. PaperKit left to itself draws it black on black. Read off the screenshot:
   /// the canvas isn't in the accessibility tree.
   func testInkShowsInDarkMode() throws {
     let mode = XCUIDevice.shared.appearance
@@ -207,7 +207,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     XCTAssertLessThan(Int(data[0]), 60, "the boards list is dark again")
   }
 
-  /// Story 593: a new board on paper closed without a stroke leaves no row.
+  /// Story 604: a new board on paper closed without a stroke leaves no row.
   func testAnEmptyBoardOnPaperLeavesNoRow() {
     let app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"])
     XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20), app.debugDescription)
@@ -222,7 +222,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     XCTAssertEqual(app.buttons.matching(identifier: "whiteboard-card").count, before)
   }
 
-  /// Story 599: a failed save is a problem that can be copied, on the board, and on the list if he then leaves.
+  /// Stories 599, 612: a failed save is a problem that can be copied, on the board, and on the list if he then leaves.
   func testAFailedSaveShowsAndDoesNotVanishOnLeaving() {
     let app = launch([
       "GRABBER_WHITEBOARD_NEW_ON_PAPER": "on", "GRABBER_WHITEBOARD_SAVE_FAILS": "1",

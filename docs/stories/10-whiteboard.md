@@ -2389,7 +2389,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 590:
 
 - **Summary:** A switch for new boards on paper
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: off until turned on, then a new board is on paper)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: off until turned on)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2404,17 +2404,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open its menu beside +
 - **Then:** *New boards on paper* is off
 
-- **Scenario:** Turning it on
-- **Given:** the switch off
-- **When:** I turn on *New boards on paper* and tap +
-- **Then:** the new board is on paper, and the switch stays on when the app opens again
-
 ---
 
 ### User Story 591:
 
 - **Summary:** A new board on paper is a column of pages
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: *Page 1 of 1*, then *of 2*) and by host tests (`BoardPagesTests`). How it feels under the Pencil is for the iPad
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: *Page 1 of 1*) and by host tests (`BoardPagesTests`). How it feels under the Pencil is for the iPad
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2429,17 +2424,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap +
 - **Then:** the board fits one page across the screen and reads *Page 1 of 1*
 
-- **Scenario:** The first ink
-- **Given:** a new board on paper
-- **When:** I draw on it
-- **Then:** it reads *Page 1 of 2*, and a blank page is there to scroll to
-
 ---
 
 ### User Story 592:
 
 - **Summary:** Page lines under the ink, and nothing to test with
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified by reading screenshots from an iPhone and an iPad simulator: page lines under the ink, no cross, no ring. Ruled lines aren't here yet
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by reading screenshots from an iPhone and an iPad simulator: page lines under the ink, no cross, no ring. Ruled lines aren't here yet
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2459,7 +2449,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 593:
 
 - **Summary:** A board on paper is kept like any other
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: killed and reopened with the same ink; no row left when empty). The file format is the same by construction, as what's saved is a `PKDrawing`; not run against an older build
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: killed and reopened with the same ink)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2474,22 +2464,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** the app is killed and opened again
 - **Then:** the row says *On paper* and the board opens with that ink
 
-- **Scenario:** Closed without a stroke
-- **Given:** a new board on paper with nothing on it
-- **When:** I go back
-- **Then:** no row is left behind
-
-- **Scenario:** In today's format
-- **Given:** a board on paper with ink
-- **When:** an older build reads its file
-- **Then:** it opens the same strokes on the old canvas, as the file is what every board's file is
-
 ---
 
 ### User Story 594:
 
 - **Summary:** Another device looks at a board on paper
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified by host tests only (`BoardIndexTests`: the mark survives the list and the merge, and opens on paper only on its own device). iCloud isn't signed in on the simulator, so the record's new field and the other device's view are for the iPad and iPhone
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by host tests only (`BoardIndexTests`: the mark survives the list and the merge, and opens on paper only on its own device). iCloud isn't signed in on the simulator, so the other device's view is for the iPad and iPhone
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2504,17 +2484,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open it on the iPhone
 - **Then:** the ink shows in the look-only view on the old canvas, with no pages yet and no tool picker
 
-- **Scenario:** Back on the same device
-- **Given:** a board on paper whose list this device lost
-- **When:** iCloud brings it back
-- **Then:** it opens on paper again
-
 ---
 
 ### User Story 595:
 
 - **Summary:** The switch never moves a board
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: both directions)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: an old board with the switch on)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2529,17 +2504,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open it
 - **Then:** it opens on the old canvas with its ghosts and mic
 
-- **Scenario:** A paper board, switch off
-- **Given:** a board on paper, and the switch off
-- **When:** I open it
-- **Then:** it opens on paper
-
 ---
 
 ### User Story 596:
 
 - **Summary:** A board on paper opens where I left it
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); the place's rules verified by host tests (`BoardPagesTests`); not driven on the simulator, where one finger draws, so coming back to a scrolled place is for the iPad
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); the place's rule verified by host tests (`BoardPagesTests`); not driven on the simulator, where one finger draws, so coming back to a scrolled place is for the iPad
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2554,17 +2524,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open it on this device
 - **Then:** it opens at that place
 
-- **Scenario:** Ink erased since
-- **Given:** a place further down than the board now reaches
-- **When:** I open it
-- **Then:** it opens at the last page's top
-
 ---
 
 ### User Story 597:
 
 - **Summary:** A board on paper keeps its colour
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: Sage chosen, and in dark mode the screenshot's pixels hold dark ink on pale paper, and the list is dark again). Dark mode on the iPad itself is still to be seen
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: Sage chosen, and read off a screenshot)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2579,17 +2544,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I choose Sage in the Board menu
 - **Then:** the paper under the ink turns sage
 
-- **Scenario:** In dark mode
-- **Given:** a board on paper, and the device in dark mode
-- **When:** I draw
-- **Then:** the ink shows dark on the colour's pale shade, as dark mode's deep shades aren't on paper yet
-
 ---
 
 ### User Story 598:
 
 - **Summary:** A board on paper says what it can't do yet
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); the bar and the Board menu verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`). *Send to Larry* is the old canvas's code, its button enabled on paper, and wasn't tapped on paper; ⌘V wasn't run
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2604,22 +2564,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I look at its bar
 - **Then:** there's no ghosts switch, no *Larry's turn*, no mic and no paste button, and the Board menu has no grid
 
-- **Scenario:** Larry
-- **Given:** a board on paper with ink
-- **When:** I tap *Send to Larry*
-- **Then:** the whole drawing goes, his reply shows in Chat, and marks he draws in answer don't come to the board yet
-
-- **Scenario:** Keys
-- **Given:** a board on paper
-- **When:** I press ⌘V
-- **Then:** it isn't built here yet: the old canvas's paste, which writes text as ink, doesn't run
-
 ---
 
 ### User Story 599:
 
 - **Summary:** A failed save on paper says so, and doesn't vanish
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`, `GRABBER_WHITEBOARD_SAVE_FAILS`: *Copy error* on the board, and on the list after leaving it). A real full disk wasn't tried
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`, `GRABBER_WHITEBOARD_SAVE_FAILS`: *Copy error* on the board). A real full disk wasn't tried
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2634,17 +2584,12 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** a stroke's save runs
 - **Then:** the board shows the problem with a *Copy error* button, and I can keep drawing
 
-- **Scenario:** On leaving
-- **Given:** a board on paper with ink that can't be saved
-- **When:** I go back
-- **Then:** the boards list shows the problem
-
 ---
 
 ### User Story 600:
 
 - **Summary:** The log tells the Pencil from a finger
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); the line verified on the simulator's log for a finger (`whiteboard` action: paper_touch); the Pencil's is for the iPad. This story says only that the log tells them apart, not what a finger does
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); the line verified on the simulator's log for a finger (`whiteboard` action: paper_touch); the Pencil's is for the iPad. This story says only that the log tells them apart, not what a finger does
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2664,7 +2609,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 601:
 
 - **Summary:** *Try on paper* stays
-- **Status:** implemented in [4633c61](https://github.com/idvorkin/context-grabber/commit/4633c61); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`; `WhiteboardTrialOnPaperUITests` on the iPhone)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`; `WhiteboardTrialOnPaperUITests` on the iPhone)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2678,3 +2623,223 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper
 - **When:** I long-press its row and choose *Try on paper*
 - **Then:** the trial opens a copy with its test marks, and the real board is untouched
+
+---
+
+### User Story 602:
+
+- **Summary:** Turning new boards on paper on
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: turned on, then a new board is on paper). That the switch is still on after a relaunch isn't asserted there
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** trying the board on paper on one device
+- **I want to** turn the switch on once
+- **so that** every new board here is on paper until I turn it off
+
+#### Acceptance Criteria:
+- **Scenario:** Turning it on
+- **Given:** the switch off
+- **When:** I turn on *New boards on paper* and tap +
+- **Then:** the new board is on paper, and the switch stays on when the app opens again
+
+---
+
+### User Story 603:
+
+- **Summary:** The first ink brings the next page
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: *Page 1 of 2*) and by host tests (`BoardPagesTests`)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** writing down a new board
+- **I want to** have a blank page ready below my ink
+- **so that** I never stop to make room
+
+#### Acceptance Criteria:
+- **Scenario:** The first ink
+- **Given:** a new board on paper
+- **When:** I draw on it
+- **Then:** it reads *Page 1 of 2*, and a blank page is there to scroll to
+
+---
+
+### User Story 604:
+
+- **Summary:** A board on paper closed empty leaves nothing
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: no row left)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** opening a new board and changing my mind
+- **I want to** leave nothing behind when I go back
+- **so that** the list holds only what I drew
+
+#### Acceptance Criteria:
+- **Scenario:** Closed without a stroke
+- **Given:** a new board on paper with nothing on it
+- **When:** I go back
+- **Then:** no row is left behind
+
+---
+
+### User Story 605:
+
+- **Summary:** A board on paper is saved in today's format
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); the same format by construction, as what's saved is a `PKDrawing`; not run against an older build
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with devices on different builds
+- **I want to** have a board on paper saved as every board is
+- **so that** an older build can still read it
+
+#### Acceptance Criteria:
+- **Scenario:** In today's format
+- **Given:** a board on paper with ink
+- **When:** an older build reads its file
+- **Then:** it opens the same strokes on the old canvas, as the file is what every board's file is
+
+---
+
+### User Story 606:
+
+- **Summary:** A board on paper comes back on paper
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by host tests only (`BoardIndexTests`: the mark survives the list and the merge). iCloud isn't signed in on the simulator, so the record's new field is for the iPad
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** whose device lost its list of boards
+- **I want to** have a board on paper come back as it was
+- **so that** iCloud's copy doesn't land me on the old canvas
+
+#### Acceptance Criteria:
+- **Scenario:** Back on the same device
+- **Given:** a board on paper whose list this device lost
+- **When:** iCloud brings it back
+- **Then:** it opens on paper again
+
+---
+
+### User Story 607:
+
+- **Summary:** Turning the switch off leaves paper boards on paper
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: a paper board with the switch off)
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who turned the switch off again
+- **I want to** have the boards already on paper stay there
+- **so that** turning it off can't cost me a board
+
+#### Acceptance Criteria:
+- **Scenario:** A paper board, switch off
+- **Given:** a board on paper, and the switch off
+- **When:** I open it
+- **Then:** it opens on paper
+
+---
+
+### User Story 608:
+
+- **Summary:** A remembered place past the end of the board
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); the rule verified by host tests (`BoardPagesTests`); not driven on the simulator
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who erased ink from a long board
+- **I want to** open at the last page if my place is gone
+- **so that** I don't land past the end of the board
+
+#### Acceptance Criteria:
+- **Scenario:** Ink erased since
+- **Given:** a place further down than the board now reaches
+- **When:** I open it
+- **Then:** it opens at the last page's top
+
+---
+
+### User Story 609:
+
+- **Summary:** A board on paper in dark mode
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [9af014a](https://github.com/idvorkin/context-grabber/commit/9af014a); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the screenshot's pixels hold dark ink on pale paper, and the list is dark again). Dark mode on the iPad itself is still to be seen
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with my device in dark mode
+- **I want to** see my ink on a board on paper
+- **so that** what I draw never vanishes black on black
+
+#### Acceptance Criteria:
+- **Scenario:** In dark mode
+- **Given:** a board on paper, and the device in dark mode
+- **When:** I draw
+- **Then:** the ink shows dark on the colour's pale shade, as dark mode's deep shades aren't on paper yet
+
+---
+
+### User Story 610:
+
+- **Summary:** Send to Larry from a board on paper
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); *Send to Larry* is the old canvas's code, its button enabled on paper, and wasn't tapped on paper
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** with a board on paper to show Larry
+- **I want to** send it as I would any board
+- **so that** paper doesn't cut Larry off, even before his marks come back
+
+#### Acceptance Criteria:
+- **Scenario:** Larry
+- **Given:** a board on paper with ink
+- **When:** I tap *Send to Larry*
+- **Then:** the whole drawing goes, his reply shows in Chat, and marks he draws in answer don't come to the board yet
+
+---
+
+### User Story 611:
+
+- **Summary:** Paste isn't on paper yet
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); ⌘V wasn't run
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** used to pasting text as ink on the old canvas
+- **I want to** have ⌘V do nothing on paper for now
+- **so that** no text lands where it can't be kept as it should
+
+#### Acceptance Criteria:
+- **Scenario:** Keys
+- **Given:** a board on paper
+- **When:** I press ⌘V
+- **Then:** it isn't built here yet: the old canvas's paste, which writes text as ink, doesn't run
+
+---
+
+### User Story 612:
+
+- **Summary:** A save that fails on leaving shows on the list
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`, `GRABBER_WHITEBOARD_SAVE_FAILS`: *Copy error* on the list after leaving). The problem going once that board saves wasn't driven, as the hook fails every save. Boards on the old canvas take the same path, and that wasn't driven either
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** who can't afford to lose notes silently
+- **I want to** be told when the ink I just left couldn't be kept
+- **so that** the failure doesn't go with the board's screen
+
+#### Acceptance Criteria:
+- **Scenario:** On leaving
+- **Given:** a board with ink that can't be saved
+- **When:** I go back
+- **Then:** the boards list shows the problem until that board next saves

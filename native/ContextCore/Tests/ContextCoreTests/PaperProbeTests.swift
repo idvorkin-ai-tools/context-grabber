@@ -64,13 +64,6 @@ final class PaperProbeTests: XCTestCase {
     XCTAssertTrue(column.needsPage(inkMaxY: column.origin.y + 1_061))
   }
 
-  func testFitZoomAssumesNothingAboutWhatOneMeans() {
-    // A person at zoom 2 sees 410 points: 820 at 1, so a page wide at 1.
-    XCTAssertEqual(PaperProbe.fitZoom(visibleWidth: 410, atZoom: 2, column: 820), 1)
-    XCTAssertEqual(PaperProbe.fitZoom(visibleWidth: 1_180, atZoom: 1, column: 820) ?? 0, 1_180 / 820, accuracy: 0.001)
-    XCTAssertNil(PaperProbe.fitZoom(visibleWidth: 0, atZoom: 1, column: 820))
-  }
-
   func testInkChangeNamesWhatMovedByHowMuch() {
     let before = [
       "a": CGRect(x: 0, y: 0, width: 10, height: 10), "b": CGRect(x: 5, y: 5, width: 10, height: 10),

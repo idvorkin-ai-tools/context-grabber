@@ -1,4 +1,4 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–601; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–612; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
 //  as any other board does. Ghosts, Larry's marks, paste and grids aren't here yet (S5–S7).
@@ -15,7 +15,9 @@ extension PaperMarkup {
   /// on iOS 27 with ink appended from a drawing.
   var inkDrawing: PKDrawing {
     PKDrawing(
-      strokes: subelements.strokes.map { PKStroke(ink: $0.ink, path: $0.path, transform: $0.transform, mask: $0.mask) })
+      strokes: subelements.strokes.map {
+        PKStroke(ink: $0.ink, path: $0.path, transform: $0.transform, mask: $0.mask, randomSeed: $0.randomSeed)
+      })
   }
 
   /// `subelements.strokes`, not the set itself: walking the set by element took 4.3 s at 1,000 strokes on the simulator

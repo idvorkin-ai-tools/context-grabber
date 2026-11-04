@@ -189,7 +189,7 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(placed.board, BoardPages())
   }
 
-  // MARK: Stories 591, 596: a real board's pages and place
+  // MARK: Stories 591, 596, 603, 608: a real board's pages and place
 
   func testPagesAddedAsInkReachesThemAndNeverTakenBack() {
     XCTAssertEqual(pages.pages(after: 1, inkMaxY: nil, redoWaiting: false), 1)
@@ -230,6 +230,9 @@ final class BoardPagesTests: XCTestCase {
   func testTheFitZoomIsWhatFitsTheColumn() {
     XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 820, atZoom: 1, column: 820), 1)
     XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 402, atZoom: 1, column: 820), 402.0 / 820)
+    // A person at zoom 2 sees 410 points: 820 at 1, so a page wide at 1. Nothing assumes what zoom 1 means.
+    XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 410, atZoom: 2, column: 820), 1)
+    XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 1_180, atZoom: 1, column: 820) ?? 0, 1_180 / 820, accuracy: 0.001)
     XCTAssertNil(BoardPages.fitZoom(visibleWidth: 0, atZoom: 1, column: 820), "no width seen yet")
   }
 }
