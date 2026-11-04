@@ -149,7 +149,8 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     ])
     wait(send(app), label: strokes(80))
     let many = pageNumber(app)
-    expectation(for: NSPredicate(format: "NOT (label ENDSWITH ' of 1') AND NOT (label ENDSWITH ' of 2')"), evaluatedWith: many)
+    expectation(
+      for: NSPredicate(format: "NOT (label ENDSWITH ' of 1') AND NOT (label ENDSWITH ' of 2')"), evaluatedWith: many)
     waitForExpectations(timeout: 5)
     let brought = many.label
     shot(app, "a tall paste")

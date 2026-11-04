@@ -640,7 +640,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste`: those, 2 s apart from a second after the first ink, for the simulator: it
   /// can't work the lasso, and keys reach only a run's first test. Copy selects all the ink and copies, as the lasso's does.
   private func pressSoonForTests() {
-    guard !pressedForTests, let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_AFTER_INK"] else { return }
+    guard !pressedForTests, let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_AFTER_INK"] else {
+      return
+    }
     pressedForTests = true
     Task { @MainActor [weak self] in
       for press in hook.split(separator: ",") {
@@ -714,7 +716,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       [
         "action": "paper_keep", "board": model.board.id, "strokes": strokes.count, "total": whole.strokes.count,
         "pages_before": pagesBefore, "pages": wanted, "same_ids": idsMade == idsBack, "ids_made": idsMade.count,
-        "ids_back": idsBack.count, "ink": rect(made.bounds), "visible": rect(paper.contentVisibleFrame), "sheet": rect(lines.bounds), "markup": rect(held.bounds),
+        "ids_back": idsBack.count, "ink": rect(made.bounds), "visible": rect(paper.contentVisibleFrame),
+        "sheet": rect(lines.bounds), "markup": rect(held.bounds),
         "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
         "could_undo": couldUndo, "could_redo": couldRedo, "can_undo": undo?.canUndo ?? false,
         "can_redo": undo?.canRedo ?? false, "undo_on_window": undo != nil && undo === view.window?.undoManager,
