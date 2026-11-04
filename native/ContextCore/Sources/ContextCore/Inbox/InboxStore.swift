@@ -37,6 +37,8 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
   public var strokesFile: String?
   /// What the share card's list of chats held when this was shared (#587), for the log: a count, or why not.
   public var offered: String?
+  /// The types the other app offered on a share (#673), for the log: never content.
+  public var shareTypes: String?
 
   /// Why a document whose bytes the phone can't read was refused: no request went (story 492).
   public static let fileUnreadable = "the file could not be read from the phone"
@@ -83,6 +85,7 @@ public struct InboxItem: Codable, Equatable, Sendable, Identifiable {
     case strokesFile = "strokes_file"
     case fileName = "file_name"
     case attachedFile = "attached_file"
+    case shareTypes = "share_types"
   }
 }
 

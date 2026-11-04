@@ -177,6 +177,7 @@ final class InboxModel: ObservableObject {
       fields["new_thread"] = item.thread == nil
       if let thread = item.thread { fields["thread"] = thread }
       if let offered = item.offered { fields["offered"] = offered }
+      if let types = item.shareTypes { fields["share_types"] = types }
       if let text = item.text { fields["text_chars"] = text.count }
       if let bytes = store?.imageBytes(of: item) { fields["bytes"] = bytes }
       if let site = item.site { fields["site"] = site }

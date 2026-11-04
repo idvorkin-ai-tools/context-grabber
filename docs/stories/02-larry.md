@@ -341,20 +341,20 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 038:
 
 - **Summary:** Share anything to Grabber Native and it waits in my Inbox
-- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor; any text the share sheet offers (RTF and HTML turned plain) and a copyable reason when a share cannot be read, in [d5095e8](https://github.com/idvorkin/context-grabber/commit/d5095e8); the tile's picture, the raccoon posting a letter (#395): [3efd0b8](https://github.com/idvorkin/context-grabber/commit/3efd0b8), verified by `scripts/native/test-tile-art.sh` (host: transparent, square, filling the tile) and by eye on light and dark; the phone in the next build turn
-- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305), [#395](https://github.com/idvorkin/context-grabber/issues/395) (the tile's picture)
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: newest first, the count, sent and refused leaving it, delete taking the image, an empty note, an unreadable file named not fatal; previews are bounded thumbnails since [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); the simulator build, the `GRABBER_INBOX_FIXTURE` Inbox and a swipe in the next build turn; sharing from Safari, Notes and Photos in aeroplane mode on the phone still for Igor; any text the share sheet offers (RTF and HTML turned plain) and a copyable reason when a share cannot be read, in [d5095e8](https://github.com/idvorkin/context-grabber/commit/d5095e8); the tile's picture, the raccoon posting a letter (#395): [3efd0b8](https://github.com/idvorkin/context-grabber/commit/3efd0b8), verified by `scripts/native/test-tile-art.sh` (host: transparent, square, filling the tile) and by eye on light and dark; the phone in the next build turn; #673: the card's field is headed *Message*, in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3)
+- **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305), [#395](https://github.com/idvorkin/context-grabber/issues/395) (the tile's picture), [#673](https://github.com/idvorkin/context-grabber/issues/673) (the card's *Message*)
 - **Spec:** [Share into Grabber Native, and Larry's inbox](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
 #### Use Case:
 - **As** Larry's client who comes across things worth talking about all day
-- **I want to** share a link, some text or a photo from any app to Grabber Native, with a note
+- **I want to** share a link, some text or a photo from any app to Grabber Native, with a message
 - **so that** it is kept for Larry the moment I see it, even with no signal
 
 #### Acceptance Criteria:
 - **Scenario:** Sharing from three apps in aeroplane mode
 - **Given:** the phone is in aeroplane mode
-- **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a note to one and tapping *Add to Inbox* (*Start a chat* since #438, story 275) each time
-- **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the note, the link's site and when, the Inbox tile (the raccoon posting a letter) counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
+- **When:** I share a Safari link, a Notes text and a Photos image to *Grabber Native*, adding a message to one and tapping *Add to Inbox* (*Start a chat* since #438, story 275) each time
+- **Then:** each card closes at once, the Inbox lists the three newest first with what each is, the message, the link's site and when, the Inbox tile (the raccoon posting a letter) counts three not yet sent, a swipe deletes one and the count follows, and when I next open the app the log has an `inbox` added line for each with its kind and size but never its content
 
 ---
 
@@ -368,7 +368,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Use Case:
 - **As** Larry's client with things waiting in the Inbox
 - **I want to** have them reach Larry's inbox on their own when the phone can reach the Cockpit
-- **so that** Larry sees what I shared, the note and when, without me sending anything
+- **so that** Larry sees what I shared, the message and when, without me sending anything
 
 #### Acceptance Criteria:
 - **Scenario:** Back on the tailnet
@@ -690,8 +690,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 275:
 
 - **Summary:** A share with *New chat* ticked starts its own thread with Larry
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), a share itself not yet made on any rung; sharing from Safari on the phone not yet. #587: a new thread is now the card's ticked *New chat* row rather than every share, in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); the tick is the card's own state, not yet seen on any rung, on the phone still for Igor
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by `ChatTests` (host: a new thread's title from the note, the text, the link's site or *Photo, <date>*; one `POST /chat` with the item's id), a share itself not yet made on any rung; sharing from Safari on the phone not yet. #587: a new thread is now the card's ticked *New chat* row rather than every share, in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); the tick is the card's own state, not yet seen on any rung, on the phone still for Igor; #673: the card's field is headed *Message*, in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3)
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), [#673](https://github.com/idvorkin/context-grabber/issues/673) (the card's *Message*)
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -701,9 +701,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Sharing a link
-- **Given:** I share a Safari link to *Grabber Native* with the note "worth a read"
+- **Given:** I share a Safari link to *Grabber Native* with the message "worth a read"
 - **When:** I tap *Start a chat*
-- **Then:** the card closes at once, Chat lists a thread titled "worth a read" under *Not sent yet* until it reaches the Cockpit, and then as a thread whose first message is the link and the note
+- **Then:** the card closes at once, Chat lists a thread titled "worth a read" under *Not sent yet* until it reaches the Cockpit, and then as a thread whose first message is the link and the message
 
 ---
 
@@ -1561,8 +1561,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 496:
 
 - **Summary:** A share goes into the chat I pick, once
-- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); verified by `ShareThreadsTests` (host: a link and a picture go to that thread's path with the note and the item's id, and no title); the app and the extension build for the simulator; simctl cannot drive a share sheet, so picking a chat on the card and the message landing in the real Cockpit are still for Igor on the phone
-- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); verified by `ShareThreadsTests` (host: a link and a picture go to that thread's path with the note and the item's id, and no title); the app and the extension build for the simulator; simctl cannot drive a share sheet, so picking a chat on the card and the message landing in the real Cockpit are still for Igor on the phone; #673: the card's field is headed *Message*, in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3)
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587), [#673](https://github.com/idvorkin/context-grabber/issues/673) (the card's *Message*)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1572,9 +1572,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Sending a link into a chat
-- **Given:** the card lists my chat "Should the phone chat poll?" and I wrote the note "worth a read"
+- **Given:** the card lists my chat "Should the phone chat poll?" and I wrote the message "worth a read"
 - **When:** I tap that chat, then *Send*
-- **Then:** the card closes at once, and the app sends one message into that chat holding the link and the note, with no new thread; while it waits it reads *Not sent yet* in the thread, and resending after a lost answer still makes one message
+- **Then:** the card closes at once, and the app sends one message into that chat holding the link and the message, with no new thread; while it waits it reads *Not sent yet* in the thread, and resending after a lost answer still makes one message
 
 ---
 
@@ -1621,8 +1621,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 499:
 
 - **Summary:** The card never waits for the list, and the list never moves my choice
-- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); the tick is the card's own state and only a tap changes it; no host test can see that, and the app and the extension build for the simulator; simctl cannot drive a share sheet, so a slow list on the card is still for Igor on the phone
-- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587)
+- **Status:** native app only: implemented in [c362df7](https://github.com/idvorkin/context-grabber/commit/c362df7); the tick is the card's own state and only a tap changes it; no host test can see that, and the app and the extension build for the simulator; simctl cannot drive a share sheet, so a slow list on the card is still for Igor on the phone; #673: the card's field is headed *Message*, in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3)
+- **Issues:** [#587](https://github.com/idvorkin/context-grabber/issues/587), [#673](https://github.com/idvorkin/context-grabber/issues/673) (the card's *Message*)
 - **Spec:** [Chat with Larry in Grabber Native — Sharing into a chat that is already going](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1633,7 +1633,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** The list arrives late
 - **Given:** the card is open with *New chat* ticked and the Cockpit has not answered yet
-- **When:** the recent chats arrive while I write my note
+- **When:** the recent chats arrive while I write my message
 - **Then:** *New chat* stays ticked until I tap something else, and tapping *Start a chat* before they arrive starts a new chat as usual
 
 ---
@@ -2095,5 +2095,95 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the phone cannot store a message
 - **When:** I hold a message of Larry's and tap *Yes*
 - **Then:** a copyable problem at the top of the thread says so, naming the thread and the message it answered, no message appears, and the log's `error` line with where: chat_react names them but never the text
+
+---
+
+### User Story 543:
+
+- **Summary:** The share card's field says Message
+- **Status:** native app only: implemented in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3); verified by the iPhone 17 simulator build of the app and the extension (it compiles; nothing was run); simctl cannot drive a share sheet, so the card itself is not yet seen on any rung, a share from Safari on the phone still for Igor
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
+- **Spec:** [Chat with Larry in Grabber Native — Sharing in](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing a page to a chat
+- **I want to** see the card's field called *Message*
+- **so that** I know what I write lands as a chat message, not a note kept somewhere
+
+#### Acceptance Criteria:
+- **Scenario:** Opening the card
+- **Given:** I am reading a page in Safari
+- **When:** I share it to *Grabber Native*
+- **Then:** the card's field is headed *Message* with *Optional* inside it, VoiceOver reads it as *Message*, and the word *note* is nowhere on the card
+
+---
+
+### User Story 544:
+
+- **Summary:** A shared link reaches the message whole, down every path of the card
+- **Status:** native app only: implemented before this issue, checked and instrumented in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3); verified by `ShareLinkTests` (host: new chat and a picked chat, with and without words, the whole request body, query and fragment kept, a long message cut only in the title, the log line holding neither link nor words); a share from Safari reaching Larry on the phone still for Igor, the `chat` line's link_in_message settling it
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
+- **Spec:** [Chat with Larry in Grabber Native — The shared link on the message](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sending a page to Larry
+- **I want to** have the link to the page on the message every time
+- **so that** Larry can go back to the page I meant, whatever else I wrote
+
+#### Acceptance Criteria:
+- **Scenario:** One link, each way out of the card
+- **Given:** a page shared from Safari at an address with a query and a fragment
+- **When:** I send it to *New chat* and then to a picked chat, each with and without a message
+- **Then:** all four messages start with the whole address exactly as shared, my words after it when there are any, and the log's `chat` line says link_in_message: true and holds neither the address nor my words
+
+---
+
+### User Story 545:
+
+- **Summary:** The card finds the link however the other app hands it over
+- **Status:** native app only: implemented in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3); verified by `ShareLinkTests` (host, with real item providers; three of its tests failed against the card's old logic: a file before the link, a link as words or bytes, and a provider made from a URL answering with bytes on the Mac; also a link as plain words behind a picture or a text, and behind an email address; a link as marked-up text behind a picture, a text or an email address, also driven through the real card source on the Mac); what apps really hand over on the phone not yet seen, the `inbox` added line's share_types will show it
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
+- **Spec:** [Chat with Larry in Grabber Native — The shared link on the message](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing from an app that hands links over its own way
+- **I want to** get the link all the same
+- **so that** the card never says it can't read a share that had a link in it
+
+#### Acceptance Criteria:
+- **Scenario:** A file attachment ahead of the link
+- **Given:** an app shares a file first and a web link after it
+- **When:** the card opens
+- **Then:** the card previews the web link, the message carries it, and the `inbox` added line's share_types names what the app offered
+
+- **Scenario:** A link as words, behind something else
+- **Given:** an app shares a picture or a line of text first, and after it a web link as plain words or as marked-up text whose words are the link
+- **When:** the card opens
+- **Then:** the card previews the web link and the message carries it
+
+- **Scenario:** An address that is not a web link
+- **Given:** an app shares an email address first and a web link after it
+- **When:** the card opens
+- **Then:** the card previews the web link and the message carries it; shared with no web link, the email address is the link as before
+
+---
+
+### User Story 546:
+
+- **Summary:** Speaking a message on the share card
+- **Status:** not implemented: Igor to pick the way, [#673](https://github.com/idvorkin/context-grabber/issues/673). Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted); not tried on a phone
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
+- **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing a page with my hands full
+- **I want to** say my message on the card, as I do in a chat
+- **so that** what I think about the page goes with it without typing
+
+#### Acceptance Criteria:
+- **Scenario:** Saying the message
+- **Given:** the share card is open on a page from Safari
+- **When:** I start speaking from the card
+- **Then:** my words appear in the *Message* field as I speak and are not sent until I tap *Start a chat* or *Send*, and anything that stops it is a copyable line on the card
 
 ---
