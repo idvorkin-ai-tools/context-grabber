@@ -3624,7 +3624,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I open the app again and tap +
 - **Then:** the new board is on the old canvas
 
-### User Story 651:
+### User Story 652:
 
 - **Summary:** A grid on a board on paper
 - **Status:** implemented in [b39e590](https://github.com/idvorkin/context-grabber/commit/b39e590); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`; host `BoardPagesTests`; feel on a big board is the iPad's)
@@ -3642,7 +3642,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I choose *Grid lines* in the Board menu
 - **Then:** faint squares lie under the ink, run on unbroken from page to page, and thin when pinched out
 
-### User Story 652:
+### User Story 653:
 
 - **Summary:** Lines stay with their board on paper
 - **Status:** implemented in [b39e590](https://github.com/idvorkin/context-grabber/commit/b39e590); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`)
@@ -3660,7 +3660,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I leave it and open it again
 - **Then:** the lines are on. A new board starts with none
 
-### User Story 653:
+### User Story 654:
 
 - **Summary:** Lines are never ink
 - **Status:** implemented in [b39e590](https://github.com/idvorkin/context-grabber/commit/b39e590); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, the stroke count; that they can't be erased or lassoed follows from their not being in the drawing, and hasn't been driven with those tools)
@@ -3678,7 +3678,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I turn lines on or off
 - **Then:** the stroke count stays the same, nothing is added to undo, and they're not in the saved drawing, the card or any picture
 
-### User Story 654:
+### User Story 655:
 
 - **Summary:** Lines and ghosts show on every colour
 - **Status:** implemented in [b39e590](https://github.com/idvorkin/context-grabber/commit/b39e590); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour)
@@ -3696,7 +3696,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I choose any of the five colours
 - **Then:** its pale shade shows, even with the device in dark mode, and the lines and ghosts show on it
 
-### User Story 655:
+### User Story 656:
 
 - **Summary:** Changing colour or lines leaves the ink
 - **Status:** implemented in [b39e590](https://github.com/idvorkin/context-grabber/commit/b39e590); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change)
@@ -3714,7 +3714,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I change the colour or the lines
 - **Then:** the ink stays where it was and the view doesn't move
 
-### User Story 656:
+### User Story 657:
 
 - **Summary:** The Board menu never costs a stroke
 - **Status:** implemented in [b39e590](https://github.com/idvorkin/context-grabber/commit/b39e590); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5)

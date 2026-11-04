@@ -1,4 +1,4 @@
-//  Stories 434, 523, 538, 651–656 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it):
+//  Stories 434, 523, 538, 652–657 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it):
 //  what the sheet under a board on paper shows. `WhiteboardTurnOnPaperUITests` runs the old canvas's grid and colour tests on
 //  paper; these are what paper adds. The board isn't in the accessibility tree, so the lines are read from the screen's pixels.
 
