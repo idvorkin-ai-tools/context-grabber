@@ -29,6 +29,12 @@ The simulator cannot be shaken or tapped from a script, so the app reads **launc
 (pass them through `simctl` as `SIMCTL_CHILD_<name>`); checks wait for an event in a *new* launch's log instead of
 sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim-smoke.sh`](../scripts/native/sim-smoke.sh)).
 
+**A locked Mac seems to starve the simulator's audio** (#419: inferred from comparing locked and unlocked runs of the
+same code, not traced into CoreAudio). Timer cues come late or empty, the keepalive fails, breathing is silent and the
+real-audio call can hear only zeros, on code that passes unlocked. The smoke prints a line when the Mac is locked at its
+start or end, and still runs and fails those checks, so the evidence stays; judge the timer, breathing, voice and
+real-audio call checks only from an unlocked run.
+
 **Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
 this branch changed since `origin/main`: cockpit, whiteboard, timer, breathe, places, call, mirror, drill or
 chat. [`smoke-features.sh`](../scripts/native/smoke-features.sh) maps the changed paths to sections. A change to shared
