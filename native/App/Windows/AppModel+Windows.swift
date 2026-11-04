@@ -1,4 +1,4 @@
-//  #634, stories 460-464, 470-482, 540-544 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
+//  #634, stories 460-464, 470-482, 560-564 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
 //  window keeps presenting what AppModel says is up; a screen in a window of its own is simply not up there.
 
 import ContextCore
@@ -57,7 +57,7 @@ extension AppModel {
     }
   }
 
-  /// #661, stories 540-544: what iPadOS calls each window, by the names on the home tiles. `UIScene.title` is the only
+  /// #661, stories 560-564: what iPadOS calls each window, by the names on the home tiles. `UIScene.title` is the only
   /// way to say it (a SwiftUI `WindowGroup`'s title is fixed per group). Run on every change to this model, from one
   /// place rather than from each window's views: the home window's can be out of the window under a full-screen cover.
   func nameWindows() {

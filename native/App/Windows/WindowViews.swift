@@ -31,7 +31,6 @@ private struct SceneReader: UIViewRepresentable {
 private struct WindowSeat: ViewModifier {
   let model: AppModel
   let seated: (String) -> Void
-  @State private var window: String?
   @Environment(\.openWindow) private var openWindow
   @Environment(\.dismissWindow) private var dismissWindow
 
@@ -41,12 +40,10 @@ private struct WindowSeat: ViewModifier {
         SceneReader { id in
           model.openWindowAction = openWindow
           model.dismissWindowAction = dismissWindow
-          window = id
           seated(id)
         }
         .frame(width: 0, height: 0)
       }
-      .onDisappear { if let window { model.windowGone(window) } }
   }
 }
 

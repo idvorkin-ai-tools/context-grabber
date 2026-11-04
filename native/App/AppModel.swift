@@ -98,6 +98,8 @@ final class AppModel: ObservableObject {
   var ledger = WindowLedger()
   /// #661: any change here can change what a window should be called.
   private var windowNames: AnyCancellable?
+  /// #634, #661: a window goes when its scene does; its views also disappear under a full-screen cover.
+  private var windowDisconnects: AnyCancellable?
   var openWindowAction: OpenWindowAction?
   var dismissWindowAction: DismissWindowAction?
   /// `GRABBER_WINDOW` runs once, when the home window is up.
@@ -192,6 +194,9 @@ final class AppModel: ObservableObject {
       self?.reporter.autoReport(reason: reason, context: context, files: files)
     }
     windowNames = objectWillChange.receive(on: RunLoop.main).sink { [weak self] _ in self?.nameWindows() }
+    windowDisconnects = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
+      .compactMap { ($0.object as? UIScene)?.session.persistentIdentifier }
+      .sink { [weak self] window in self?.windowGone(window) }
     runLaunchHooks()
     inbox.refresh(reason: "launch")  // after the hooks, so a fixture is there to read
   }

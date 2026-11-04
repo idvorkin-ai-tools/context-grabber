@@ -1,4 +1,4 @@
-//  #634, stories 460-464, 470-482, 540-543 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
+//  #634, stories 460-464, 470-482, 560-563 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
 //  app names each window by its scene session and does the opening.
 
 import Foundation
@@ -69,7 +69,7 @@ public struct WindowLedger: Equatable, Sendable {
 
   public func screen(in window: String) -> WindowScreen? { screens.first { $0.value == window }?.key }
 
-  /// What a window is here to show, which is what names it (#661, stories 540-543).
+  /// What a window is here to show, which is what names it (#661, stories 560-563).
   public func role(of window: String) -> WindowRole {
     if window == home { return .home }
     return screen(in: window).map(WindowRole.screen) ?? .noScreen
