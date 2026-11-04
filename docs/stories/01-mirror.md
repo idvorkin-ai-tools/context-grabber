@@ -394,7 +394,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 441:
 
 - **Summary:** A metric's detail fills the iPad's window
-- **Status:** implemented on `native/metric-full-size`; not yet verified
+- **Status:** implemented in `5b84dae0`; verified on the simulator (iPad Pro 11-inch and iPhone 17, `MetricDetailUITests`, 1 of 1 each), not yet on the iPad itself
 - **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
 - **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
 
