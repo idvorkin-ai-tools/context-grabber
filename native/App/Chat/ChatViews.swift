@@ -284,12 +284,9 @@ private struct ThreadRow: View {
               .foregroundStyle(.secondary)
           }
         }
-        Text(
-          thread.count == 0
-            ? "Drop anything here" : "\(thread.larryHasLastWord ? "Larry" : "You"): \(thread.lastText)"
-        )
-        .font(.subheadline)
-        .foregroundStyle(.secondary).lineLimit(2)
+        Text(thread.lastLine)
+          .font(.subheadline)
+          .foregroundStyle(.secondary).lineLimit(2)
         if thread.looksDone, !thread.done {
           Label("Looks done", systemImage: "checkmark.seal").font(.caption).foregroundStyle(.secondary)
         }
@@ -392,6 +389,7 @@ struct ChatThreadView: View {
   /// A new chat's latest first message while it is still only on the phone.
   private var first: InboxItem? { newThread.sent.flatMap { id in inbox.items.first { $0.id == id } } }
   private var messages: [ChatMessage] { key.flatMap { chat.messages[$0] } ?? [] }
+  private var answeredBy: String { chat.answeredBy(key) }
   private var pending: [InboxItem] {
     if let key { return chat.pending(in: key) }
     return first.map { [$0] } ?? []
@@ -419,15 +417,18 @@ struct ChatThreadView: View {
               problem: .grabber(problem, context: "ChatThreadView.load", extra: ["thread": .string(key)]),
               logger: logger)
           }
+          let answerFailed = ChatWire.answerFailed(messages)
           ForEach(messages) { message in
-            MessageBubble(message: message, chat: chat, logger: logger)
+            MessageBubble(
+              message: message, thread: key ?? "", answerFailed: answerFailed.contains(message.id), chat: chat,
+              logger: logger)
           }
           // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
           ForEach(pending, id: \.pendingKey) { item in
             PendingBubble(
               item: item, inbox: inbox, thumbnail: inbox.thumbnails[item.id], away: inbox.cockpitAway && !inbox.offline,
-              logger: logger
+              answeredBy: answeredBy, logger: logger
             )
             .contextMenu {
               Button("Delete", role: .destructive) { inbox.delete(item) }
@@ -455,7 +456,9 @@ struct ChatThreadView: View {
       }
     }
     .safeAreaInset(edge: .bottom) {
-      ComposeBar(chat: chat, voice: voice, thread: barKey, target: target, logger: logger, first: first) {
+      ComposeBar(
+        chat: chat, voice: voice, thread: barKey, target: target, answeredBy: answeredBy, logger: logger, first: first
+      ) {
         newThread.attempt(at: target)
       }
     }
@@ -496,13 +499,48 @@ struct ChatThreadView: View {
 
 private struct MessageBubble: View {
   let message: ChatMessage
+  let thread: String
+  /// A failure is all that followed it (#632): its receipt doesn't say done.
+  let answerFailed: Bool
   let chat: ChatModel
   let logger: BugLogger
 
   var body: some View {
+    if message.isError { failure } else { bubble }
+  }
+
+  /// The skill's name and its letter, over what it wrote (#632).
+  @ViewBuilder private var byline: some View {
+    if let author = message.author, let initial = message.authorInitial {
+      HStack(spacing: 6) {
+        Text(initial).font(.caption.weight(.semibold)).foregroundStyle(.white)
+          .frame(width: 22, height: 22)
+          .background(Color.indigo, in: Circle())
+          .accessibilityHidden(true)
+        Text(author).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+      }
+    }
+  }
+
+  /// Why the skill could not answer, copyable; the Cockpit's own words.
+  private var failure: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      byline
+      BugProblemView(
+        problem: .grabber(
+          message.text, context: "ChatThreadView.skillReply",
+          extra: [
+            "thread": .string(thread), "message": .string(message.id), "skill": .string(message.author ?? ""),
+            "ts": .string(message.ts),
+          ]), logger: logger)
+    }
+  }
+
+  private var bubble: some View {
     HStack {
       if message.fromIgor { Spacer(minLength: 48) }
       VStack(alignment: message.fromIgor ? .trailing : .leading, spacing: 4) {
+        byline
         ForEach(message.attachments, id: \.self) { ref in
           if let url = ChatWire.attachmentURL(ref, cockpit: chat.cockpit) {
             ChatImage(url: url, message: message.id, board: message.board, chat: chat, logger: logger)
@@ -524,11 +562,13 @@ private struct MessageBubble: View {
       if !message.fromIgor { Spacer(minLength: 48) }
     }
     .accessibilityElement(children: .combine)
-    .accessibilityIdentifier(message.fromIgor ? "chat-mine" : "chat-larry")
+    .accessibilityIdentifier(message.fromIgor ? "chat-mine" : message.author == nil ? "chat-larry" : "chat-skill")
   }
 
   @ViewBuilder private var receipt: some View {
-    if let glyph = message.receipt.glyph {
+    if answerFailed {
+      Text(ChatMessage.Receipt.received.glyph ?? "").font(.caption)
+    } else if let glyph = message.receipt.glyph {
       if message.receipt == .done {
         Text(glyph + (message.doneNote.map { " \($0)" } ?? "")).font(.caption).foregroundStyle(.secondary)
       } else {
@@ -546,6 +586,8 @@ private struct PendingBubble: View {
   let thumbnail: CGImage?
   /// #565: the last send found the Cockpit not answering.
   let away: Bool
+  /// Who the thread's messages go to: Larry, or its skill (#632).
+  let answeredBy: String
   let logger: BugLogger
 
   var body: some View {
@@ -565,7 +607,9 @@ private struct PendingBubble: View {
         }
         if item.status == .refused {
           BugProblemView(
-            problem: .grabber(ChatSend.refusal(of: item), context: "ChatThreadView.send", extra: refusalExtra(item)),
+            problem: .grabber(
+              ChatSend.refusal(of: item, answeredBy: answeredBy), context: "ChatThreadView.send",
+              extra: refusalExtra(item)),
             logger: logger)
           SendAgainButton(item: item, inbox: inbox)
         } else {
@@ -707,6 +751,8 @@ private struct ComposeBar: View {
   let thread: String
   /// Where a Send goes (#536): a thread, a new chat's first message, or nowhere yet.
   let target: ChatNewThread.Target
+  /// Who the field says it writes to (#632).
+  let answeredBy: String
   let logger: BugLogger
   /// A new chat's first message on the phone, for the bar's line when it was refused (story 491).
   let first: InboxItem?
@@ -790,7 +836,7 @@ private struct ComposeBar: View {
         }
         .disabled(!hasImage)
         .accessibilityLabel("Paste image")
-        TextField("Message Larry", text: $draft.text, axis: .vertical)
+        TextField("Message \(answeredBy)", text: $draft.text, axis: .vertical)
           .lineLimit(1...6)
           .padding(.horizontal, 12).padding(.vertical, 8)
           .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 18))

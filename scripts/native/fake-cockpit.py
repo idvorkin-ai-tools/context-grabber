@@ -13,7 +13,7 @@ label as kind + points, with the picture's picture_id and frame echoed). POST /f
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
 POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
-Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
+Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
 """
@@ -87,7 +87,26 @@ def summary(key, t):
     return {"key": key, "title": t["title"], "count": len(t["messages"]), "last_ts": last["ts"],
             "last_who": last["who"], "last_text": last["text"] or ("[image]" if t["messages"] else ""), "larry_ts": larry,
             "unread": unread, "done": t.get("archived", False), "archived": t.get("archived", False),
-            "looks_done": t.get("looks_done", False), "pinned": t.get("pinned", False)}
+            "looks_done": t.get("looks_done", False), "pinned": t.get("pinned", False), "skill": t.get("skill"),
+            "last_author": last.get("author", "")}
+
+
+def skill_reply_later(key, text):
+    def go():
+        time.sleep(1)
+        with LOCK:
+            t = THREADS[key]
+            fail = "fail" in (text or "")
+            r = row(key, "larry", ("The %s skill could not answer: a fake failure. Send again to retry." % t["skill"])
+                    if fail else "idvorkin heard: " + (text or "a picture"))
+            r["author"] = t["skill"]
+            if fail:
+                r["error"] = True
+            t["messages"].append(r)
+            for m in t["messages"]:
+                if m["who"] == "igor":
+                    m["receipt"] = {"state": "done"}
+    threading.Thread(target=go, daemon=True).start()
 
 
 def reply_later(key, text):
@@ -188,6 +207,11 @@ class Handler(BaseHTTPRequestHandler):
                                     "count": len(strokes), "new": len(strokes), "erased": 0})
         if path == "/fake/larry-draws":
             return self._draws(data)
+        if path == "/fake/skill-thread":
+            with LOCK:
+                THREADS.setdefault("igor2-88g.632", {"title": "idvorkin", "seen": "", "pinned": True,
+                                                     "skill": "idvorkin", "messages": []})
+            return self._json(200, {"ok": True})
         if path == "/chat" and NEW_DELAY:
             time.sleep(NEW_DELAY)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
@@ -236,6 +260,9 @@ class Handler(BaseHTTPRequestHandler):
             t["archived"] = False
             if data.get("board"):
                 BOARD_MESSAGES[key] = m
+        if t.get("skill"):
+            skill_reply_later(key, data.get("text"))
+            return self._json(200, {"ok": True, "thread": key, "message": m, "marker": None, "skill": t["skill"]})
         if data.get("board"):
             answer_board_later(key)
         else:

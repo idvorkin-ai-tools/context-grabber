@@ -20,14 +20,27 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
   public let looksDone: Bool
   /// The one always-on thread with Larry (#598): first in the list, and never archived.
   public let pinned: Bool
+  /// The skill that answers this thread instead of Larry (#632, cockpit#90); nil on any other, and on an older Cockpit.
+  public let skill: String?
+  /// The skill's name when it spoke last, otherwise empty.
+  public let lastAuthor: String
 
   public var id: String { key }
   public var larryHasLastWord: Bool { lastWho == "larry" }
   public var lastAt: Date? { ChatWire.date(lastTs) }
+  /// Who a message on this thread goes to.
+  public var answeredBy: String { skill ?? "Larry" }
+  /// Who spoke last, for the row and the notification.
+  public var lastSpeaker: String { !lastAuthor.isEmpty ? lastAuthor : larryHasLastWord ? "Larry" : "You" }
+  /// The row's second line.
+  public var lastLine: String {
+    count > 0 ? "\(lastSpeaker): \(lastText)" : skill.map { "Ask \($0)" } ?? "Drop anything here"
+  }
 
   public init(
     key: String, title: String, count: Int = 1, lastTs: String, lastWho: String, lastText: String, unread: Int = 0,
-    done: Bool = false, archived: Bool = false, looksDone: Bool = false, pinned: Bool = false
+    done: Bool = false, archived: Bool = false, looksDone: Bool = false, pinned: Bool = false, skill: String? = nil,
+    lastAuthor: String = ""
   ) {
     self.key = key
     self.title = title
@@ -40,21 +53,31 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     self.archived = archived
     self.looksDone = looksDone
     self.pinned = pinned
+    self.skill = skill
+    self.lastAuthor = lastAuthor
   }
 
   /// The same row archived or brought back, as it shows until the Cockpit's next list.
   public func archiving(_ archive: Bool) -> ChatSummary {
     ChatSummary(
       key: key, title: title, count: count, lastTs: lastTs, lastWho: lastWho, lastText: lastText, unread: unread,
-      done: archive, archived: archive, looksDone: looksDone, pinned: pinned)
+      done: archive, archived: archive, looksDone: looksDone, pinned: pinned, skill: skill, lastAuthor: lastAuthor)
+  }
+
+  /// The same row with its replies read, as it shows until the Cockpit's next list.
+  public func read() -> ChatSummary {
+    ChatSummary(
+      key: key, title: title, count: count, lastTs: lastTs, lastWho: lastWho, lastText: lastText, unread: 0,
+      done: done, archived: archived, looksDone: looksDone, pinned: pinned, skill: skill, lastAuthor: lastAuthor)
   }
 
   enum CodingKeys: String, CodingKey {
-    case key, title, count, unread, done, archived, pinned
+    case key, title, count, unread, done, archived, pinned, skill
     case looksDone = "looks_done"
     case lastTs = "last_ts"
     case lastWho = "last_who"
     case lastText = "last_text"
+    case lastAuthor = "last_author"
   }
 
   public init(from decoder: Decoder) throws {
@@ -70,6 +93,8 @@ public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
     pinned = (try? c.decode(Bool.self, forKey: .pinned)) ?? false
     looksDone = !pinned && ((try? c.decode(Bool.self, forKey: .looksDone)) ?? false)
     done = (try? c.decode(Bool.self, forKey: .done)) ?? false
+    skill = (try? c.decode(String.self, forKey: .skill)).flatMap { $0.isEmpty ? nil : $0 }
+    lastAuthor = (try? c.decode(String.self, forKey: .lastAuthor)) ?? ""
   }
 }
 
@@ -98,13 +123,19 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
   public let doneNote: String?
   /// The whiteboard its picture was sent from (cockpit#85, #603); nil on a row without one.
   public let board: String?
+  /// The skill that wrote it (#632, cockpit#90); nil on anything else. `who` stays "larry" on a skill's row.
+  public let author: String?
+  /// The skill could not answer and `text` says why: drawn as an error, and not an answer.
+  public let isError: Bool
 
   public var fromIgor: Bool { who == "igor" }
   public var at: Date? { ChatWire.date(ts) }
+  /// The letter on the author's avatar.
+  public var authorInitial: String? { author?.first.map { $0.uppercased() } }
 
   public init(
     id: String, ts: String, who: String, text: String, attachments: [String] = [], receipt: Receipt = .sent,
-    doneNote: String? = nil, board: String? = nil
+    doneNote: String? = nil, board: String? = nil, author: String? = nil, isError: Bool = false
   ) {
     self.id = id
     self.ts = ts
@@ -114,9 +145,11 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     self.receipt = receipt
     self.doneNote = doneNote
     self.board = board
+    self.author = author
+    self.isError = isError
   }
 
-  enum CodingKeys: String, CodingKey { case id, ts, who, text, attachments, receipt, board }
+  enum CodingKeys: String, CodingKey { case id, ts, who, text, attachments, receipt, board, author, error }
   struct ReceiptBody: Decodable {
     let state: String?
     let note: String?
@@ -133,6 +166,8 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     receipt = body?.state.map { Receipt(rawValue: $0) ?? .received } ?? .sent
     doneNote = body?.note
     board = (try? c.decode(String.self, forKey: .board)).flatMap { $0.isEmpty ? nil : $0 }
+    author = (try? c.decode(String.self, forKey: .author)).flatMap { $0.isEmpty ? nil : $0 }
+    isError = (try? c.decode(Bool.self, forKey: .error)) ?? false
   }
 }
 
@@ -151,13 +186,33 @@ public enum ChatWire {
   public static func summaries(_ data: Data) -> [ChatSummary]? {
     guard let list = try? JSONDecoder().decode(List.self, from: data), list.ok else { return nil }
     return list.threads.sorted {
-      $0.pinned != $1.pinned ? $0.pinned : ($0.lastAt ?? .distantPast) > ($1.lastAt ?? .distantPast)
+      if $0.pinned != $1.pinned { return $0.pinned }
+      // Larry's pinned thread above a skill's, whichever is newer (#632).
+      if $0.pinned, ($0.skill == nil) != ($1.skill == nil) { return $0.skill == nil }
+      return ($0.lastAt ?? .distantPast) > ($1.lastAt ?? .distantPast)
     }
   }
 
   public static func messages(_ data: Data) -> [ChatMessage]? {
     guard let thread = try? JSONDecoder().decode(Thread.self, from: data), thread.ok else { return nil }
     return thread.messages
+  }
+
+  /// Igor's messages with a failure after them and no real reply yet (#632). The Cockpit marks them done either way, so
+  /// these are the ones whose 🏆 would be a lie.
+  public static func answerFailed(_ messages: [ChatMessage]) -> Set<String> {
+    var failed: Set<String> = []
+    var sawFailure = false
+    for message in messages.reversed() {
+      if message.isError {
+        sawFailure = true
+      } else if !message.fromIgor {
+        break
+      } else if sawFailure {
+        failed.insert(message.id)
+      }
+    }
+    return failed
   }
 
   public static func listRequest(cockpit: String) throws -> URLRequest {

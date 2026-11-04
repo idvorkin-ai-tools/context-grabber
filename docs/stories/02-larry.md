@@ -803,7 +803,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Offline or refused
 - **Given:** no network, or the Cockpit refuses the message (too big, an unreadable image)
 - **When:** I send
-- **Then:** offline it stays *Not sent yet* and goes by itself when the network returns, never twice even if an answer was lost; refused it says *Larry refused it* with the reason, copyable, and is never sent again on its own (a file says it is kept and offers *Send again*, stories 487, 488); a long press deletes it
+- **Then:** offline it stays *Not sent yet* and goes by itself when the network returns, never twice even if an answer was lost; refused it says *Larry refused it* (on a skill's thread, the skill's name, story 517) with the reason, copyable, and is never sent again on its own (a file says it is kept and offers *Send again*, stories 487, 488); a long press deletes it
 
 - **Scenario:** The Cockpit isn't answering (#565)
 - **Given:** the phone is online but the Cockpit times out or cannot be reached
@@ -1875,5 +1875,125 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a build on a phone or an iPad, launched as always
 - **When:** a message is written
 - **Then:** it goes to the Cockpit as it did before this rule
+
+---
+
+### User Story 512:
+
+- **Summary:** A skill's thread is pinned under Larry's, there before its first message
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit (cockpit#90, unmerged) and the phone not yet
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor with a skill answering its own thread
+- **I want to** find it right under Larry's pinned thread, always on
+- **so that** I can ask the skill anything without hunting for the thread or closing it by accident
+
+#### Acceptance Criteria:
+- **Scenario:** Two pinned threads
+- **Given:** the Cockpit pins Larry's thread and an idvorkin skill thread with no messages, and other threads are newer
+- **When:** I open Chat
+- **Then:** Larry's comes first, then idvorkin reading *Ask idvorkin*, then the rest, and idvorkin has no *Archive* swipe, no tick in *Select* and no **⋯** menu, and its bar says *Message idvorkin*
+
+---
+
+### User Story 513:
+
+- **Summary:** A skill's reply carries its name and a lettered avatar
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit and the phone not yet
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor reading a thread
+- **I want to** see who is speaking when it isn't Larry
+- **so that** I never mistake the skill's words for Larry's
+
+#### Acceptance Criteria:
+- **Scenario:** The skill answers
+- **Given:** I sent a message on the idvorkin thread
+- **When:** the reply lands
+- **Then:** it appears by itself with *idvorkin* and a lettered avatar above the bubble, and Larry's replies elsewhere stay as they were
+
+---
+
+### User Story 514:
+
+- **Summary:** A skill's failure is a copyable error, not an answer
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit and the phone not yet
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor whose question the skill could not answer
+- **I want to** see the failure as a failure, and copy it
+- **so that** I know to send again and never read 🏆 on something unanswered
+
+#### Acceptance Criteria:
+- **Scenario:** The skill fails, then answers
+- **Given:** the Cockpit wrote a failure row after my message and marked my message done
+- **When:** I look at the thread
+- **Then:** the failure is a copyable problem under the skill's name, my message shows 👀 and not 🏆, and once a real reply follows my messages before it show 🏆
+
+---
+
+### User Story 515:
+
+- **Summary:** The list row and the notification name the skill when it spoke last
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); the row verified on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the speaker's name on the host by `ChatTests`; the notification itself only the phone can show, not yet
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor scanning the list or a notification
+- **I want to** see *idvorkin*, not *Larry*, on what the skill said
+- **so that** I know who has answered without opening the thread
+
+#### Acceptance Criteria:
+- **Scenario:** The skill spoke last
+- **Given:** the last message on a thread is from the skill
+- **When:** I read its row, or a notification comes for it
+- **Then:** the row reads *idvorkin: …* and the notification's title is *idvorkin*; where I spoke last it still reads *You: …*
+
+---
+
+### User Story 516:
+
+- **Summary:** A Cockpit without skill threads changes nothing
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatArchiveUITests`, whose fake Cockpit has no skill thread
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor on a build newer than the Cockpit
+- **I want to** see Chat as it was
+- **so that** the app can ship before the Cockpit's half does
+
+#### Acceptance Criteria:
+- **Scenario:** The fields aren't there
+- **Given:** the Cockpit's answers have no skill, author or error fields
+- **When:** I open Chat and a thread
+- **Then:** the list, the replies, the bar and the notifications read Larry as before, with one pinned thread
+
+---
+
+### User Story 517:
+
+- **Summary:** A message refused on a skill's thread names the skill
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2) and [1286e05](https://github.com/idvorkin/context-grabber/commit/1286e05); the words verified on the host by `ChatFileTests`; on screen, on the simulator or the phone, not yet
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor writing on a skill's thread
+- **I want to** see the skill named when my message is refused
+- **so that** I never think Larry was the one I wrote to
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit refuses a text
+- **Given:** I am on the idvorkin thread
+- **When:** the Cockpit refuses a text I send there
+- **Then:** it reads *idvorkin refused it* with the reason, as a copyable problem
 
 ---

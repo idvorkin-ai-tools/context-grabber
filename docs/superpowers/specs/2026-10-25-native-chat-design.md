@@ -58,6 +58,23 @@ the list with a pin, for dropping anything into, even before it has a message. I
 ticked in *Select*, its screen has no **⋯** menu, it never folds under *Done* and it never says *Looks done*. With only
 the pinned thread live there is nothing to tick, so *Select* is off.
 
+**A skill's thread** (#632; the Cockpit's half is cockpit#90). The Cockpit can pin a second kind of thread that a skill
+answers instead of Larry; the first is *idvorkin*. It sits right under Larry's pinned thread, above everything else,
+however recent the others are, and is there before its first message, reading *Ask idvorkin*. Everything the pinned
+thread can't do, it can't do either: no archive, no ticking, no **⋯**, no *Done*, no *Looks done*. The bar says *Message
+idvorkin* and a message there is not sent to Larry. The reply comes in by itself like any other, usually within half a
+minute, with the skill's name and a lettered avatar above the bubble; Larry's own replies look as they always did. The
+list row and the notification name the skill when it spoke last (*idvorkin: …*), not Larry. A refused message on this
+thread reads *idvorkin refused it*.
+
+When the skill can't answer, the Cockpit says why in the thread, and the app draws that as a copyable error under the
+skill's name, not as a bubble. It is not an answer: a message of Igor's with only a failure after it does not show 🏆,
+whatever the Cockpit's receipt says, and shows 👀 until a real reply follows. A notification or list row can't tell a
+failure from a reply, since the list doesn't say, so it shows the failure's own words under the skill's name.
+
+A Cockpit that doesn't have skill threads yet changes nothing: no second pinned thread, and Larry's threads read as
+before.
+
 **Archiving several, and threads that look done** (Igor, 2026-11-02; #599). *Select* at the top of the list turns the
 live threads into checkboxes, and *Archive (N)* at the bottom archives them together, with *Undo* for five seconds for
 all of them (*Archived 3 chats*). *Cancel* leaves the list as it was. Larry marks a thread he judges finished, and a new
@@ -249,6 +266,8 @@ nothing is tried again on a timer. A phone or an iPad behaves as it always has.
 - `chat` events in the session log: sent / refused / failed (thread, message id, the Cockpit's answer; never the
   text; a new thread's sent line names where it landed), offline_skipped and network_back as the Inbox logs them,
   refreshed (count of unread), and background_check (when iOS ran it, what it found, notifications raised).
+- `chat` reply_failed (thread, message id, the skill; once per failure on screen, never the text); opening a thread
+  names its skill.
 - `chat_voice` events: record_start (thread), record_stop (thread, seconds), capped (at the five-minute limit),
   dropped (left the thread, a call started), refused (a live call). The dictation's own `dictation_start`,
   `dictation_stop` and `dictation_error` lines (the problem report's) carry the recognizer's side. Never the words.
@@ -297,6 +316,9 @@ nothing is tried again on a timer. A phone or an iPad behaves as it always has.
 - A simulator launched with no address sends nothing to the Cockpit, whatever its outbox holds, reads nothing from it,
   and says why in the log and on the list; the same outbox goes once, to the address a later launch names. A phone or an
   iPad with no address talks to the Cockpit as before.
+- A skill's thread sits under Larry's pinned thread whichever is newer, can't be archived, and its replies carry the
+  skill's name and avatar. A failure is a copyable error and leaves Igor's message without 🏆. An older Cockpit shows
+  none of this.
 
 ## Depends on the Cockpit
 
