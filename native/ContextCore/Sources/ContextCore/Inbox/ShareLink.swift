@@ -6,15 +6,24 @@ import Foundation
 import UniformTypeIdentifiers
 
 public enum ShareLink {
-  /// The first web link any provider holds. A file URL conforms to a URL too, so one first must not hide a link behind it.
+  /// The first web link any provider holds, as a URL and then as plain words. Nothing shared ahead of it hides it. With
+  /// no web link, the first other address that is not a file.
   public static func find(in providers: [NSItemProvider]) async -> URL? {
+    var other: URL?
     for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
       guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier),
-        let found = url(from: item), !found.isFileURL
+        let found = url(from: item)
+      else { continue }
+      if isWeb(found) { return found }
+      if other == nil, !found.isFileURL { other = found }
+    }
+    for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
+      guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier),
+        let found = url(from: item), isWeb(found)
       else { continue }
       return found
     }
-    return nil
+    return other
   }
 
   /// What a provider's URL item holds, in any of the forms apps register it as. Even a provider made from a URL can
@@ -28,8 +37,12 @@ public enum ShareLink {
 
   /// Text that is nothing but a web link. Text with more in it stays text, the link inside it word for word.
   public static func fromText(_ text: String) -> URL? {
-    guard let link = parse(text), ["http", "https"].contains(link.scheme ?? "") else { return nil }
+    guard let link = parse(text), isWeb(link) else { return nil }
     return link
+  }
+
+  private static func isWeb(_ link: URL) -> Bool {
+    ["http", "https"].contains(link.scheme?.lowercased() ?? "")
   }
 
   private static func parse(_ words: String) -> URL? {

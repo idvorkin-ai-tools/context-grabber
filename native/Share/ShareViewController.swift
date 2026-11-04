@@ -102,7 +102,7 @@ final class Shared: ObservableObject {
     if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.text.identifier) }) {
       let (found, state) = await Self.text(p)
       guard let found, !found.isEmpty else { return fail("The shared text could not be read.", state: state, offered) }
-      // A link shared as text (some apps do) is still a link.
+      // A link shared as marked-up text is still a link; ShareLink.find has already read the plain kind.
       if let link = ShareLink.fromText(found) {
         url = link
       } else {

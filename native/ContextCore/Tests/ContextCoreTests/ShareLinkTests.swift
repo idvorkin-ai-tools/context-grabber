@@ -50,11 +50,44 @@ final class ShareLinkTests: XCTestCase {
   func testAPictureOrTextAloneHasNoLink() async {
     let found = await ShareLink.find(in: [provider("just words" as NSString, .plainText)])
     XCTAssertNil(found)
+    let picture = await ShareLink.find(in: [provider(Data([0xFF, 0xD8]) as NSData, .jpeg)])
+    XCTAssertNil(picture)
+    let wordsAroundALink = await ShareLink.find(in: [provider("look at \(page)" as NSString, .plainText)])
+    XCTAssertNil(wordsAroundALink)
     XCTAssertNil(ShareLink.url(from: "two words"))
+  }
+
+  func testALinkAsPlainWordsBeatsAPictureOrATextAheadOfIt() async {
+    let link = provider(page as NSString, .plainText)
+    let behindPicture = await ShareLink.find(in: [provider(Data([0xFF, 0xD8]) as NSData, .jpeg), link])
+    XCTAssertEqual(behindPicture?.absoluteString, page)
+    let behindTitle = await ShareLink.find(in: [provider("Page title" as NSString, .plainText), link])
+    XCTAssertEqual(behindTitle?.absoluteString, page)
+  }
+
+  func testAnAddressThatIsNotAWebLinkDoesNotHideOne() async throws {
+    let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
+    let beforeURL = await ShareLink.find(in: [mail, provider(try XCTUnwrap(URL(string: page)) as NSURL, .url)])
+    XCTAssertEqual(beforeURL?.absoluteString, page)
+    let beforeWords = await ShareLink.find(in: [mail, provider(page as NSString, .plainText)])
+    XCTAssertEqual(beforeWords?.absoluteString, page)
+  }
+
+  func testAnAddressThatIsNotAWebLinkIsTheLinkWhenNoWebLinkCameWithIt() async throws {
+    let mail = "mailto:igor@example.com"
+    let found = await ShareLink.find(in: [
+      provider(URL(fileURLWithPath: "/tmp/page.pdf") as NSURL, .fileURL),
+      provider(try XCTUnwrap(URL(string: mail)) as NSURL, .url),
+      provider("Page title" as NSString, .plainText),
+    ])
+    XCTAssertEqual(found?.absoluteString, mail)
+    let words = await ShareLink.find(in: [provider(mail as NSString, .plainText)])
+    XCTAssertNil(words)
   }
 
   func testTextThatIsOnlyALinkIsALinkAndTextAroundOneStaysText() {
     XCTAssertEqual(ShareLink.fromText("  \(page)\n")?.absoluteString, page)
+    XCTAssertEqual(ShareLink.fromText("HTTPS://idvork.in/a")?.absoluteString, "HTTPS://idvork.in/a")
     XCTAssertNil(ShareLink.fromText("look at \(page)"))
     XCTAssertNil(ShareLink.fromText("mailto:igor@example.com"))
     XCTAssertEqual(
