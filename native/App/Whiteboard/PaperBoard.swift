@@ -1,7 +1,8 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–612; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–626; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
-//  as any other board does. Ghosts, Larry's marks, paste and grids aren't here yet (S5–S7).
+//  as any other board does, with its ghosts, Larry's marks and the mic. Ghosts lie on the sheet under the ink, in
+//  PaperKit's content view, so they move with the board whatever it does. Paste and grids aren't here yet (S6, S7).
 
 import ContextCore
 import PaperKit
@@ -148,6 +149,7 @@ class PaperHost: UIViewController {
       }
       touchStarts[id] = at
       if touch.type == .pencil { pencilDown = true }
+      touchWentDown(touch)
     case .moved:
       if let start = touchStarts[id] {
         if let travel = run?.facts.travel { run?.facts.travel = max(travel, hypot(at.x - start.x, at.y - start.y)) }
@@ -158,8 +160,10 @@ class PaperHost: UIViewController {
     }
     touchesDown = down
     if let fingers = run?.facts.fingers { run?.facts.fingers = max(fingers, down) }
+    if phase == .ended { touchLifted(touch, down: down) }
     if phase == .ended, down == 0 {
       if let began = run?.began { run?.facts.seconds = CACurrentMediaTime() - began }
+      if let run, run.type == Self.name(.direct), PaperProbe.gesture(run.facts) == "tap" { fingerTapped(at: run.start) }
       // A pan's coasting and a selection's arrival come after the lift.
       runEnding = Task { @MainActor [weak self] in
         try? await Task.sleep(for: .seconds(0.6))
@@ -194,6 +198,11 @@ class PaperHost: UIViewController {
     run.facts.zoomChanged = abs(zoom - run.zoomAtStart) > 0.001
     touchEnded(run, visible: visible, zoom: zoom, dx: dx, dy: dy)
   }
+
+  func touchWentDown(_ touch: UITouch) {}
+  func touchLifted(_ touch: UITouch, down: Int) {}
+  /// One finger, short and staying put, at this spot in `view`. PaperKit may do its own thing with the same touch.
+  func fingerTapped(at spot: CGPoint) {}
 
   /// What a touch came to, for the log.
   func touchEnded(_ run: TouchRun, visible: CGRect, zoom: CGFloat, dx: CGFloat, dy: CGFloat) {}
@@ -256,6 +265,15 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var remembering: Task<Void, Never>?
   /// The window this board made light, and how it was.
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?
+  /// A Pencil or a drawing finger is down, as the pacer was told.
+  private var toolDown = false
+  /// What a finger does when no ghost shows; set while they do, as it taps and doesn't draw.
+  private var fingerUsually: (mode: PaperMarkupViewController.TouchMode, autoDraws: Bool)?
+  /// A tap's selection comes after the lift: until this time one is put straight back.
+  private var noSelectionUntil: Double = 0
+  /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
+  /// that took. For the iPad: the spec's "A ghost sits on the paper".
+  private var seat = (worst: CGFloat(0), checks: 0)
 
   private var placeKey: String { "whiteboard_paper_y_\(model.board.id)" }
 
@@ -270,6 +288,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func viewDidLoad() {
     super.viewDidLoad()
     paper.delegate = self
+    model.visibleRect = { [weak self] in self?.paper.contentVisibleFrame ?? .null }
+    model.zoom = { [weak self] in self?.screenScale ?? 1 }
+    model.draw = { [weak self] _, added in self?.keep(added) }
+  }
+
+  /// Screen points to a board point, whatever PaperKit's zoom scale means.
+  private var screenScale: CGFloat {
+    view.bounds.width / max(paper.contentVisibleFrame.width, 1)
   }
 
   override func viewDidLayoutSubviews() {
@@ -415,20 +441,194 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   func paperMarkupViewControllerDidChangeSelection(_ controller: PaperMarkupViewController) {
     run?.facts.selectionChanges += 1
     run?.selected = controller.selection.count
+    if !controller.selection.isEmpty, CACurrentMediaTime() < noSelectionUntil { controller.selection = [] }
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
     run?.facts.beganDrawing = true
+    // A finger drawing is only known from here. Late, it's a stroke already over, with no lift to come.
+    if touchesDown > 0 { toolWentDown() }
   }
 
   func paperMarkupViewControllerDidChangeContentVisibleFrame(_ controller: PaperMarkupViewController) {
     showPageNumber()
+    checkSeat()
     remembering?.cancel()
     remembering = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(0.5))
       guard !Task.isCancelled else { return }
       self?.rememberPlace()
     }
+  }
+
+  // MARK: - Ghosts
+
+  /// The ghosts on the sheet, and a finger that taps while they show.
+  func show(_ ghosts: [Ghost]) {
+    guard lines.ghostLayers.show(ghosts) else { return }
+    fingerTaps(!ghosts.isEmpty)
+    let drawn = ghosts.flatMap(\.lines)
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_ghosts", "board": model.board.id, "count": ghosts.count,
+        "past_side": board.reachesPastSide(drawn), "below_last_page": board.reachesBelow(drawn, pages: pages),
+        "pages": pages, "visible": rect(paper.contentVisibleFrame), "sheet": rect(lines.bounds),
+        "screen_scale": Double(screenScale),
+      ])
+    checkSeat()
+  }
+
+  /// As the old canvas's `.pencilOnly`, which PaperKit doesn't have: a finger selects rather than draws, and a tap's
+  /// selection is put straight back, so a tap leaves nothing.
+  private func fingerTaps(_ taps: Bool) {
+    if taps, fingerUsually == nil {
+      fingerUsually = (paper.directTouchMode, paper.directTouchAutomaticallyDraws)
+      paper.directTouchAutomaticallyDraws = false
+      paper.directTouchMode = .selection
+    } else if !taps, let usual = fingerUsually {
+      fingerUsually = nil
+      paper.directTouchMode = usual.mode
+      paper.directTouchAutomaticallyDraws = usual.autoDraws
+    }
+  }
+
+  /// Where the sheet has a ghost against where the visible frame says it should be, in screen points.
+  private func checkSeat() {
+    guard let point = model.ghosts.first?.lines.first?.first else { return }
+    let visible = paper.contentVisibleFrame
+    let onSheet = lines.convert(lines.spot(of: point), to: view)
+    let scale = screenScale
+    let framed = CGPoint(x: (point.x - visible.minX) * scale, y: (point.y - visible.minY) * scale)
+    seat.worst = max(seat.worst, hypot(onSheet.x - framed.x, onSheet.y - framed.y))
+    seat.checks += 1
+  }
+
+  override func fingerTapped(at spot: CGPoint) {
+    let count = model.ghosts.count
+    guard count > 0 else { return }
+    let at = lines.columnPoint(of: view.convert(spot, to: lines))
+    noSelectionUntil = CACurrentMediaTime() + 0.8
+    let selected = paper.selection.count
+    if selected > 0 { paper.selection = [] }
+    model.tap(at: at, zoom: screenScale)
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_tap", "board": model.board.id, "at": point(at), "ghosts_before": count,
+        "ghosts_after": model.ghosts.count, "selected_at_tap": selected, "screen_scale": Double(screenScale),
+      ])
+  }
+
+  /// A kept mark into the markup, and any page it needs in the same change: one undo takes them both. PaperKit registers no
+  /// undo for a markup that's set: left to itself, the next undo took back the stroke before the kept mark, and the mark
+  /// stayed (the simulator, iOS 27, 2026-11-03). Its own steps go on working after this, as the elements keep their ids.
+  private func keep(_ strokes: [PKStroke]) {
+    let started = CACurrentMediaTime()
+    guard var markup = paper.markup else {
+      // Not laid out yet: the load takes the model's drawing, with this in it.
+      log.event("whiteboard", ["action": "paper_keep", "board": model.board.id, "no_markup": true])
+      return
+    }
+    let undo = paper.undoManager
+    let (couldUndo, couldRedo) = (undo?.canUndo ?? false, undo?.canRedo ?? false)
+    let wanted = board.pages(after: pages, inkMaxY: model.drawing.bounds.maxY, redoWaiting: false)
+    let made = PKDrawing(strokes: strokes)
+    registerStepBack(to: markup)
+    if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
+    markup.append(contentsOf: made)
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    let pagesBefore = pages
+    pages = wanted
+    run?.pageAdded = wanted > pagesBefore
+    showLines()
+    showPageNumber()
+    let held = paper.markup ?? markup
+    inkFrames = held.strokeFrames
+    let whole = held.inkDrawing
+    model.settled(whole)
+    // The names Larry knows them by, from the mark as made and as PaperKit gives it back: the spec's "Larry knows a kept
+    // mark as one stroke".
+    let back = PKDrawing(strokes: Array(whole.strokes.suffix(strokes.count)))
+    let idsMade = WhiteboardModel.strokesForLarry(made).map(\.id)
+    let idsBack = WhiteboardModel.strokesForLarry(back).map(\.id)
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_keep", "board": model.board.id, "strokes": strokes.count, "total": whole.strokes.count,
+        "pages_before": pagesBefore, "pages": wanted, "same_ids": idsMade == idsBack, "ids_made": idsMade.count,
+        "ids_back": idsBack.count, "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
+        "could_undo": couldUndo, "could_redo": couldRedo, "can_undo": undo?.canUndo ?? false,
+        "can_redo": undo?.canRedo ?? false, "ms": ms(CACurrentMediaTime() - started),
+      ])
+    undoSoonForTests()
+  }
+
+  /// Undo or redo of a kept mark: back to the markup as it was, and the way forward again the same way.
+  private func registerStepBack(to markup: PaperMarkup) {
+    paper.undoManager?.registerUndo(withTarget: self) { controller in
+      MainActor.assumeIsolated { controller.step(to: markup) }
+    }
+  }
+
+  private func step(to markup: PaperMarkup) {
+    if let now = paper.markup { registerStepBack(to: now) }
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    pages = board.pages(in: markup.bounds)
+    inkFrames = markup.strokeFrames
+    model.stepped(markup.inkDrawing)
+    showLines()
+    showPageNumber()
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_step", "board": model.board.id, "strokes": inkFrames.count, "pages": pages,
+        "can_undo": paper.undoManager?.canUndo ?? false, "can_redo": paper.undoManager?.canRedo ?? false,
+      ])
+  }
+
+  /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...`: those presses after a keep, 3 s apart, for the simulator: a
+  /// phone's tool picker has no Undo, and keys reach only a run's first test.
+  private func undoSoonForTests() {
+    guard let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_AFTER_KEEP"] else { return }
+    let parts = hook.split(separator: ",")
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(Double(parts.first ?? "") ?? 3))
+      for press in parts.dropFirst() {
+        guard let self else { return }
+        press == "undo" ? self.paper.undoManager?.undo() : self.paper.undoManager?.redo()
+        self.log.event(
+          "whiteboard",
+          [
+            "action": "paper_press_hook", "press": String(press), "board": self.model.board.id,
+            "strokes": self.model.drawing.strokes.count, "pages": self.pages,
+            "can_undo": self.paper.undoManager?.canUndo ?? false, "can_redo": self.paper.undoManager?.canRedo ?? false,
+          ])
+        try? await Task.sleep(for: .seconds(3))
+      }
+    }
+  }
+
+  /// The word to the pacer: the Pencil touching down, or a finger once it's seen to be drawing.
+  private func toolWentDown() {
+    guard !toolDown else { return }
+    toolDown = true
+    model.beganDrawing()
+  }
+
+  override func touchWentDown(_ touch: UITouch) {
+    if touch.type == .pencil { toolWentDown() }
+  }
+
+  /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
+  override func touchLifted(_ touch: UITouch, down: Int) {
+    guard toolDown, touch.type == .pencil || down == 0 else { return }
+    toolDown = false
+    model.endedDrawing()
   }
 
   // MARK: - The log
@@ -447,8 +647,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "ink_moved": run.facts.inkMoved, "ink_removed": run.facts.inkRemoved, "began_drawing": run.facts.beganDrawing,
         "page_added_during": run.pageAdded, "tool": run.tool, "touch_mode": name(paper.directTouchMode),
         "auto_draws": paper.directTouchAutomaticallyDraws, "pages": pages,
-        "page": board.page(at: CGPoint(x: 0, y: visible.midY)),
+        "page": board.page(at: CGPoint(x: 0, y: visible.midY)), "ghosts": model.ghosts.count,
+        "ghost_slip": round(seat.worst), "ghost_checks": seat.checks,
       ])
+    seat = (0, 0)
   }
 }
 
@@ -463,7 +665,7 @@ struct PaperBoardCanvas: View {
   }
 
   var body: some View {
-    PaperBoardHost(controller: controller, paper: model.paper)
+    PaperBoardHost(controller: controller, paper: model.paper, ghosts: model.ghosts)
       .overlay(alignment: .topTrailing) {
         Text(controller.pageText).font(.footnote.monospacedDigit())
           .padding(.vertical, 4).padding(.horizontal, 10)
@@ -477,21 +679,24 @@ struct PaperBoardCanvas: View {
 private struct PaperBoardHost: UIViewControllerRepresentable {
   let controller: PaperBoardController
   let paper: BoardPaper
+  let ghosts: [Ghost]
 
   func makeUIViewController(context: Context) -> PaperBoardController { controller }
 
   func updateUIViewController(_ controller: PaperBoardController, context: Context) {
     controller.setPaperColor(paper.color)
+    controller.show(ghosts)
   }
 }
 
-/// Paper under the ink: its colour, a faint line where each page ends, and any small crosses asked for. In PaperKit's
-/// content view, so it moves with the board and is in nothing else.
+/// Paper under the ink: its colour, a faint line where each page ends, any small crosses asked for, and the ghosts. In
+/// PaperKit's content view, so it moves with the board and is in nothing else.
 final class PaperLines: UIView {
   private let shape = CAShapeLayer()
   private var width: CGFloat = 0
   private var ends: [CGFloat] = []
   private var crosses: [CGPoint] = []
+  let ghostLayers = GhostLayers()
 
   init(paper: UIColor) {
     super.init(frame: .zero)
@@ -501,6 +706,7 @@ final class PaperLines: UIView {
     shape.strokeColor = UIColor(white: 0.5, alpha: 0.45).cgColor
     shape.lineWidth = 1
     layer.addSublayer(shape)
+    layer.addSublayer(ghostLayers.holder)
   }
 
   required init?(coder: NSCoder) { nil }
@@ -517,6 +723,12 @@ final class PaperLines: UIView {
   func spot(of point: CGPoint) -> CGPoint {
     let scale = width > 0 ? bounds.width / width : 1
     return CGPoint(x: point.x * scale, y: point.y * scale)
+  }
+
+  /// This view's own point to the column's.
+  func columnPoint(of spot: CGPoint) -> CGPoint {
+    let scale = width > 0 ? bounds.width / width : 1
+    return CGPoint(x: spot.x / scale, y: spot.y / scale)
   }
 
   override func layoutSubviews() {
@@ -539,6 +751,7 @@ final class PaperLines: UIView {
     CATransaction.setDisableActions(true)
     shape.frame = bounds
     shape.path = path
+    ghostLayers.holder.setAffineTransform(CGAffineTransform(scaleX: bounds.width / width, y: bounds.width / width))
     CATransaction.commit()
   }
 }

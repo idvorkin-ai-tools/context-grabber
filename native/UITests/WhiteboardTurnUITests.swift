@@ -1,11 +1,20 @@
 //  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
-//  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check.
+//  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check. `WhiteboardTurnOnPaperUITests` runs these on a board on paper.
 
 import XCTest
 
-final class WhiteboardTurnUITests: XCTestCase {
+class WhiteboardTurnUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
+
+  /// What else the app is started with: a subclass runs these on a board on paper.
+  var boardEnvironment: [String: String] { [:] }
+
+  /// The fake Cockpit's ghost is a circle whose left edge is 10 points past the drawing's right edge, halfway down it, and a
+  /// finger's stroke ends at 60% across.
+  func tapOnTheGhost(_ app: XCUIApplication) {
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
+  }
 
   /// A new board open, Ghosts on, the app talking to the fake Cockpit.
   /// `cockpit` picks how the fake Cockpit answers: "/plain" doesn't stream, "/many" streams six marks.
@@ -21,6 +30,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     if keepHook { app.launchEnvironment["GRABBER_WHITEBOARD_KEEP"] = "first" }
     if let say { app.launchEnvironment["GRABBER_WHITEBOARD_SAY"] = say }
     if let ghostSeconds { app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "\(ghostSeconds)" }
+    for (key, value) in boardEnvironment { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
@@ -179,7 +189,6 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }
 
-  /// The fake Cockpit's ghost is a circle whose left edge is 10 points past the drawing's right edge, halfway down it.
   func testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt() throws {
     let (app, ghosts) = try openBoard()
     stroke(app)
@@ -191,7 +200,8 @@ final class WhiteboardTurnUITests: XCTestCase {
     stroke(app, atHeight: 0.5)
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
     XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 2 strokes")
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
+    sleep(1)  // Past the ghost drawing in.
+    tapOnTheGhost(app)
     wait(app, strokes: 3)
     XCTAssertEqual(ghosts.label, "Ghosts on")
   }

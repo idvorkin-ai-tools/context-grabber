@@ -1,4 +1,4 @@
-//  Stories 590–612 on the simulator: a new board on paper is a real board behind a switch, and the old canvas is left
+//  Stories 590–612 on the simulator, its ghosts in `WhiteboardPaperGhostsUITests`: a new board on paper is a real board behind a switch, and the old canvas is left
 //  alone. How the Pencil feels and what a finger does with one paired are the iPad's (`whiteboard` action: paper_touch).
 //  A finger draws on the simulator.
 
@@ -84,9 +84,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     let page = pageNumber(app)
     XCTAssertTrue(page.waitForExistence(timeout: 10), app.debugDescription)
     waitFor(page, label: "Page 1 of 1")
-    for id in ["whiteboard-larry", "whiteboard-ghosts", "whiteboard-mic", "whiteboard-paste"] {
-      XCTAssertFalse(app.buttons[id].exists, id)
-    }
+    XCTAssertFalse(app.buttons["whiteboard-paste"].exists, "story 598: no paste on paper yet")
     XCTAssertTrue(app.buttons["whiteboard-board"].exists, "the colours are still there")
     sleep(2)
     keep(app, "a new board on paper")
@@ -131,7 +129,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     // An old board, then the switch on: it still opens on the old canvas.
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
     newBoard(app)
-    XCTAssertTrue(app.buttons["whiteboard-ghosts"].waitForExistence(timeout: 10), "the old canvas's buttons")
+    XCTAssertTrue(app.buttons["whiteboard-paste"].waitForExistence(timeout: 10), "the old canvas's button")
     sleep(1)
     stroke(app, atHeight: 0.5)
     waitFor(app.buttons["whiteboard-send"], label: "Send to Larry, 1 strokes")
@@ -142,7 +140,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"])
     XCTAssertTrue(oldRow(app).waitForExistence(timeout: 20), app.debugDescription)
     oldRow(app).tap()
-    XCTAssertTrue(app.buttons["whiteboard-ghosts"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-paste"].waitForExistence(timeout: 10), app.debugDescription)
     XCTAssertFalse(pageNumber(app).exists)
     app.navigationBars.buttons.element(boundBy: 0).tap()
 
@@ -160,7 +158,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     XCTAssertTrue(paper.waitForExistence(timeout: 20), app.debugDescription)
     paper.tap()
     XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
-    XCTAssertFalse(app.buttons["whiteboard-ghosts"].exists)
+    XCTAssertFalse(app.buttons["whiteboard-paste"].exists)
   }
 
   /// Story 609: in dark mode new ink can be seen. PaperKit left to itself draws it black on black. Read off the screenshot:

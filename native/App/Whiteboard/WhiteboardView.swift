@@ -51,7 +51,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  /// On PaperKit (stories 590–612). No ghosts, Larry's marks or mic there yet, so none are asked for.
+  /// On PaperKit (stories 590–626). No paste or grid there yet.
   let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
@@ -62,8 +62,9 @@ final class WhiteboardModel: ObservableObject {
   /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
   var visibleRect: (() -> CGRect)?
   var zoom: (() -> CGFloat)?
-  /// Puts a kept ghost or a paste on the canvas (undoably); the canvas sets it.
-  var draw: ((PKDrawing) -> Void)?
+  /// Puts a kept ghost or a paste on the canvas (undoably), given the whole drawing and what's new in it; the canvas sets
+  /// it.
+  var draw: ((PKDrawing, [PKStroke]) -> Void)?
   private var pacer = WhiteboardPacer()
   private let callLive: @MainActor () -> Bool
   private lazy var dictation = makeDictation()
@@ -135,10 +136,23 @@ final class WhiteboardModel: ObservableObject {
     let added = new.strokes.count > drawing.strokes.count
     logStrokesMoved(to: new)
     drawing = new
-    if added, ghostsOn, !onPaper {
+    if added, ghostsOn {
       pacer.strokeAdded()
       startPause()
     }
+    drawingMoved()
+  }
+
+  /// Kept ink as the canvas reads it back. Nothing to ask about or save that the keep hasn't already started.
+  func settled(_ new: PKDrawing) {
+    guard editable, new != drawing else { return }
+    drawing = new
+  }
+
+  /// A kept mark undone or redone on paper: saved like any change, and not a stroke for Claude to answer.
+  func stepped(_ new: PKDrawing) {
+    guard editable, new != drawing else { return }
+    drawing = new
     drawingMoved()
   }
 
@@ -352,7 +366,7 @@ final class WhiteboardModel: ObservableObject {
   /// The board appearing or the app coming back: looks at its thread, once it has one, until `stopWatchingLarry`.
   /// Story 382.
   func startWatchingLarry() {
-    guard editable, !onPaper, watchTask == nil else { return }
+    guard editable, watchTask == nil else { return }
     watchTask = Task { [weak self] in
       while !Task.isCancelled {
         await self?.lookAtThread()
@@ -727,7 +741,7 @@ final class WhiteboardModel: ObservableObject {
     kept.strokes += strokes
     drawing = kept
     drawingMoved()
-    draw?(kept)
+    draw?(kept, strokes)
   }
 
   /// Stories 390, 391: the text as ink in the middle of the view, one undo, and a change like a drawn stroke. Black ink
@@ -862,6 +876,61 @@ struct Ghost: Identifiable {
   let lines: [[CGPoint]]
 }
 
+/// The ghosts on screen, in board points: one shape layer a ghost, the ink it would become, faint, in its colour. Whoever
+/// holds `holder` scales it to sit on the drawing. Never part of the drawing, and in no picture.
+@MainActor
+final class GhostLayers {
+  let holder = CALayer()
+  private var shown: [String: CAShapeLayer] = [:]
+
+  init() {
+    holder.anchorPoint = .zero
+    holder.frame = .zero
+  }
+
+  /// True when the ghosts on show changed.
+  @discardableResult
+  func show(_ ghosts: [Ghost]) -> Bool {
+    guard Set(ghosts.map(\.id)) != Set(shown.keys) else { return false }
+    let live = Set(ghosts.map(\.id))
+    for (id, gone) in shown where !live.contains(id) {
+      shown[id] = nil
+      CATransaction.begin()
+      CATransaction.setCompletionBlock { gone.removeFromSuperlayer() }
+      let fade = CABasicAnimation(keyPath: "opacity")
+      fade.fromValue = gone.presentation()?.opacity ?? 1
+      fade.toValue = 0
+      fade.duration = 0.3
+      gone.opacity = 0
+      gone.add(fade, forKey: "fade")
+      CATransaction.commit()
+    }
+    let arriving = ghosts.filter { shown[$0.id] == nil }
+    for (i, ghost) in arriving.enumerated() {
+      let path = CGMutablePath()
+      for line in ghost.lines { path.addLines(between: line) }
+      let shape = CAShapeLayer()
+      shape.path = path
+      shape.fillColor = nil
+      shape.strokeColor = ghost.who.color.withAlphaComponent(0.5).cgColor
+      shape.lineWidth = 3.7
+      shape.lineCap = .round
+      shape.lineJoin = .round
+      // Drawn in one after another, like someone sketching beside him.
+      let drawIn = CABasicAnimation(keyPath: "strokeEnd")
+      drawIn.fromValue = 0
+      drawIn.toValue = 1
+      drawIn.duration = 0.25
+      drawIn.beginTime = CACurrentMediaTime() + 0.25 * Double(i)
+      drawIn.fillMode = .backwards
+      shape.add(drawIn, forKey: "drawIn")
+      holder.addSublayer(shape)
+      shown[ghost.id] = shape
+    }
+    return true
+  }
+}
+
 extension WhiteboardTurn.Who {
   /// Claude orange, Larry blue (spec 2026-11-01-whiteboard-shapes-design.md).
   var color: UIColor { self == .claude ? .systemOrange : .systemBlue }
@@ -950,7 +1019,7 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-board")
         }
       }
-      // Story 598: none of these work on paper yet, so none are offered.
+      // Story 598: paste doesn't work on paper yet, so it isn't offered.
       if model.editable, !model.onPaper {
         ToolbarItem(placement: .topBarTrailing) {
           // The system's button: no *Allow Paste?* prompt, and iOS dims it when the clipboard holds no text.
@@ -960,6 +1029,8 @@ struct WhiteboardView: View {
           .labelStyle(.iconOnly)
           .accessibilityIdentifier("whiteboard-paste")
         }
+      }
+      if model.editable {
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             model.tapMic()
@@ -1081,7 +1152,7 @@ private struct BoardCanvas: UIViewRepresentable {
           height: canvas.bounds.height / zoom)
       }
       model.zoom = { [weak canvas] in canvas?.zoomScale ?? 1 }
-      model.draw = { [weak canvas] drawing in
+      model.draw = { [weak canvas] drawing, _ in
         guard let canvas else { return }
         let before = canvas.drawing
         canvas.undoManager?.registerUndo(withTarget: canvas) { $0.drawing = before }
@@ -1144,8 +1215,7 @@ final class BoardCanvasView: PKCanvasView {
   private var askedAlready: Set<String> = []
   private var opened = false
   /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
-  private let ghostLayer = CALayer()
-  private var shown: [String: CAShapeLayer] = [:]
+  private let ghostLayers = GhostLayers()
   /// Story 407: one thin solid line, repeated each way by the GPU. Nothing is rasterised, and nothing changes between
   /// crossings of a line, so the grid costs next to nothing while drawing and panning. Made the first time it's asked for.
   private var grid: (holder: CALayer, across: CAReplicatorLayer, down: CAReplicatorLayer)?
@@ -1155,10 +1225,8 @@ final class BoardCanvasView: PKCanvasView {
   override func layoutSubviews() {
     super.layoutSubviews()
     layGrid()
-    if ghostLayer.superlayer == nil {
-      ghostLayer.anchorPoint = .zero
-      ghostLayer.frame = .zero
-      layer.addSublayer(ghostLayer)
+    if ghostLayers.holder.superlayer == nil {
+      layer.addSublayer(ghostLayers.holder)
       followZoom()
     }
     guard !opened, bounds.width > 0, bounds.height > 0 else { return }
@@ -1170,8 +1238,8 @@ final class BoardCanvasView: PKCanvasView {
   func followZoom() {
     CATransaction.begin()
     CATransaction.setDisableActions(true)
-    ghostLayer.setAffineTransform(CGAffineTransform(scaleX: zoomScale, y: zoomScale))
-    ghostLayer.zPosition = 10
+    ghostLayers.holder.setAffineTransform(CGAffineTransform(scaleX: zoomScale, y: zoomScale))
+    ghostLayers.holder.zPosition = 10
     CATransaction.commit()
     layGrid()
   }
@@ -1225,46 +1293,10 @@ final class BoardCanvasView: PKCanvasView {
     CATransaction.commit()
   }
 
-  /// One shape layer a ghost: the ink it would become, faint, in its colour.
   fileprivate func show(_ ghosts: [Ghost]) {
-    guard Set(ghosts.map(\.id)) != Set(shown.keys) else { return }
+    guard ghostLayers.show(ghosts) else { return }
     // Where a finger draws, it taps and pans while ghosts show (story 354).
     drawingPolicy = ghosts.isEmpty ? .default : .pencilOnly
-    let live = Set(ghosts.map(\.id))
-    for (id, gone) in shown where !live.contains(id) {
-      shown[id] = nil
-      CATransaction.begin()
-      CATransaction.setCompletionBlock { gone.removeFromSuperlayer() }
-      let fade = CABasicAnimation(keyPath: "opacity")
-      fade.fromValue = gone.presentation()?.opacity ?? 1
-      fade.toValue = 0
-      fade.duration = 0.3
-      gone.opacity = 0
-      gone.add(fade, forKey: "fade")
-      CATransaction.commit()
-    }
-    let arriving = ghosts.filter { shown[$0.id] == nil }
-    for (i, ghost) in arriving.enumerated() {
-      let path = CGMutablePath()
-      for line in ghost.lines { path.addLines(between: line) }
-      let shape = CAShapeLayer()
-      shape.path = path
-      shape.fillColor = nil
-      shape.strokeColor = ghost.who.color.withAlphaComponent(0.5).cgColor
-      shape.lineWidth = 3.7
-      shape.lineCap = .round
-      shape.lineJoin = .round
-      // Drawn in one after another, like someone sketching beside him.
-      let drawIn = CABasicAnimation(keyPath: "strokeEnd")
-      drawIn.fromValue = 0
-      drawIn.toValue = 1
-      drawIn.duration = 0.25
-      drawIn.beginTime = CACurrentMediaTime() + 0.25 * Double(i)
-      drawIn.fillMode = .backwards
-      shape.add(drawIn, forKey: "drawIn")
-      ghostLayer.addSublayer(shape)
-      shown[ghost.id] = shape
-    }
   }
 
   // hasStrings asks without reading, so it shows no paste prompt.

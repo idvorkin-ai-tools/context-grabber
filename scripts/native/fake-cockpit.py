@@ -7,7 +7,7 @@ GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /c
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
 GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answered, never kept), POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
-accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
+accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart; one ending /far gets a circle far below the picture, past a board on paper's last page. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
@@ -38,6 +38,7 @@ THREADS = {
 }
 CREATED = {}
 BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's picture
+STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 WHITE_PICTURE = "2026-11-01/0000000000000592.png"
 IMAGES = {WHITE_PICTURE: base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAAAAAC86un7AAAADElEQVR4nGP4z/AfAAQAAf8iCjrwAAAAAElFTkSuQmCC")}
@@ -173,6 +174,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urllib.parse.unquote(self.path.split("?")[0])
         self._report({})
         with LOCK:
+            if path == "/fake/strokes":
+                return self._json(200, {"ok": True, "sends": STROKE_SENDS})
             if path == "/chat":
                 rows = [summary(k, t) for k, t in THREADS.items() if t["messages"] or t.get("pinned")]
                 return self._json(200, {"ok": True, "threads": rows})
@@ -200,11 +203,13 @@ class Handler(BaseHTTPRequestHandler):
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})
         data = json.loads(raw or b"{}")
-        if path in ("/whiteboard/suggest", "/plain/whiteboard/suggest", "/many/whiteboard/suggest"):
+        if path in ("/whiteboard/suggest", "/plain/whiteboard/suggest", "/many/whiteboard/suggest", "/far/whiteboard/suggest"):
             return self._suggest(data, path.split("/")[1])
         if path == "/whiteboard/strokes":
             # Story 419: the board's strokes before its picture; answered as the Cockpit does, never kept.
             strokes = data.get("strokes") or []
+            with LOCK:
+                STROKE_SENDS.append([s.get("id") for s in strokes])
             self._report({"strokes": len(strokes), "board": data.get("board"), "picture_id": data.get("picture_id"),
                           "frame": data.get("frame"), "origin": self.headers.get("Origin")})
             return self._json(200, {"ok": True, "board": data["board"], "picture_id": data["picture_id"],
@@ -281,6 +286,9 @@ class Handler(BaseHTTPRequestHandler):
         if not data.get("image") or not w or not h:
             return self._json(400, {"ok": False, "error": "no picture"})
         circle = {"kind": "circle", "cx": w - 20, "cy": h / 2, "r": 40}
+        if cockpit == "far":
+            # At most 2 px a point: well below any first page and the blank one after it.
+            return self._stream([{"kind": "circle", "cx": w / 2, "cy": h + 8000, "r": 40}], 0)
         if cockpit == "plain" or not accepts:
             return self._json(200, {"ok": True, "strokes": [circle]})
         if cockpit != "many":
