@@ -1,0 +1,138 @@
+# Building and testing
+
+How a change gets from a commit to Igor's phone quickly, without giving up the evidence that it works. Written for this
+app and meant to be shared with Igor's other apps once it has proved itself here.
+
+The numbers these stories start from (2026-11-04, the whiteboard's UI tests on the iPhone 17 simulator): 56 tests in
+about 25 minutes, one at a time, about 27 seconds each. Almost none of that is compiling or moving between tests. Of the
+steps timed, about a third is waiting for the app to go idle, a fifth starting and stopping the app, a fifth finding
+things on screen, and a sixth waiting for things to appear.
+
+Part of the [user stories](README.md); persona and format are described there.
+
+---
+
+### User Story 670:
+
+- **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
+- **Status:** not implemented; bead `context-grabber-3k6`
+
+#### Use Case:
+- **As Igor,** waiting for a fix to reach his phone
+- **I want to** have each rule tested on the Mac, in a library with no simulator, and keep the simulator for what only a real screen can show
+- **so that** a change is proved in seconds, and the simulator's queue stays short
+
+#### Acceptance Criteria:
+- **Scenario:** A rule that needs no screen
+- **Given:** a UI test whose check does not depend on a real view, gesture or system service
+- **When:** the test is reviewed
+- **Then:** its check moves to a host test, and the UI test is deleted or shrinks to what only the screen can show
+
+---
+
+### User Story 671:
+
+- **Summary:** My other apps share the testing tools instead of each growing its own
+- **Status:** not implemented; bead `context-grabber-3k6`
+
+#### Use Case:
+- **As Igor,** with several apps on one Mac
+- **I want to** have the test helpers and the practice that worked here available to my other apps
+- **so that** a speedup found in one app reaches the rest, and no app solves it again
+
+#### Acceptance Criteria:
+- **Scenario:** A practice that has proved itself here
+- **Given:** a testing helper or practice has shortened this app's runs, with the measurement to show it
+- **When:** another app starts its testing work
+- **Then:** it can take the helper from the shared library and read the practice in the shared practices for every app
+
+---
+
+### User Story 672:
+
+- **Summary:** UI tests keep the app open unless a restart is the point
+- **Status:** not implemented; bead `context-grabber-3k6`
+
+#### Use Case:
+- **As Igor,** waiting on a test run
+- **I want to** have UI tests share a running app and move it to the state each one needs
+- **so that** the run doesn't spend minutes starting and stopping the app
+
+#### Acceptance Criteria:
+- **Scenario:** A test that isn't about restarting
+- **Given:** a UI test that doesn't check what survives a restart
+- **When:** it begins after another test
+- **Then:** it runs in the already open app, starting from the same clean state a fresh launch would give it
+
+---
+
+### User Story 673:
+
+- **Summary:** A test checks for what it needs without a fixed wait
+- **Status:** not implemented; bead `context-grabber-3k6`
+
+#### Use Case:
+- **As Igor,** waiting on a test run
+- **I want to** have tests move on as soon as what they're waiting for is there
+- **so that** looks that come a second late, and pauses of a set length, stop adding up to minutes
+
+#### Acceptance Criteria:
+- **Scenario:** The thing is already on screen
+- **Given:** a UI test is waiting for something already on screen
+- **When:** it checks
+- **Then:** it moves on in well under a second
+
+---
+
+### User Story 674:
+
+- **Summary:** After the pipeline, only what its changes touched runs again
+- **Status:** not implemented; bead `context-grabber-3k6`
+
+#### Use Case:
+- **As Igor,** waiting for a ready PR to merge
+- **I want to** have the last check before merging rerun only the tests a pipeline's changes could affect
+- **so that** a change to a doc comment doesn't cost another full run
+
+#### Acceptance Criteria:
+- **Scenario:** The pipeline touched one test and a comment
+- **Given:** the whole suite passed before the pipeline ran
+- **and Given:** the pipeline changed only documents, comments and one test class
+- **When:** the check before merging runs
+- **Then:** it runs that test class, says what it skipped and why, and the PR's comment names the rung
+
+---
+
+### User Story 675:
+
+- **Summary:** The most urgent work goes first on the simulator
+- **Status:** not implemented; bead `context-grabber-3k6`
+
+#### Use Case:
+- **As Igor,** waiting for something he asked for
+- **I want to** have a ready PR's last check run ahead of exploratory runs and repeats
+- **so that** a fix one check away from my phone doesn't wait behind a test being repeated
+
+#### Acceptance Criteria:
+- **Scenario:** Two runs waiting on the one simulator
+- **Given:** a ready PR's last check and an exploratory run are both waiting
+- **When:** the simulator comes free
+- **Then:** the PR's check runs first
+
+---
+
+### User Story 676:
+
+- **Summary:** A full whiteboard run takes under ten minutes
+- **Status:** not implemented; bead `context-grabber-3k6`; ten minutes is a proposed target, Igor's to change
+
+#### Use Case:
+- **As Igor,** deciding whether a whiteboard change is safe
+- **I want to** have the whole whiteboard suite finish in under ten minutes
+- **so that** running it is an easy choice rather than a half-hour wait
+
+#### Acceptance Criteria:
+- **Scenario:** A full run on an idle Mac
+- **Given:** nothing else is using the simulator
+- **When:** the full whiteboard suite runs
+- **Then:** it finishes in under ten minutes and proves every behaviour the 25-minute suite proved, on the simulator or on the Mac
