@@ -36,6 +36,22 @@ is the same. The Cockpit's page outlives its window, as it outlives Done today. 
 saved as the window leaves. The card's home and lock screen widgets catch up as its window leaves, as they do when
 the card closes at home. A Places window closed with its full-screen map up opens on the list next time.
 
+**Its name.** Igor, 2026-11-03 ([#661](https://github.com/idvorkin/context-grabber/issues/661), from the iPad, in the
+Chat window): *"Let's name the windows so this window should be called chat if I opened chat Maybe just name the window
+based on what it's currently active"*. Each window tells iPadOS what it is showing, under the name that screen's home
+tile already has: Chat, Today, Cockpit, Places, Whiteboard, Think of a card. iPadOS shows that name where it tells one
+window of an app from another, such as the app switcher, Stage Manager and the window menus; which of those show it,
+and how, is iPadOS's own choice.
+
+The home window on the home grid is called Home. When it shows something else the name follows, and it returns to Home
+when that closes: a Gym Timer, Box breathing, a call (*Call Larry*), Settings, the eulogy song's sheet (*Eulogy song*)
+and What's new are named as their tiles and rows are, as are the six above when they are up at home. A screen's window
+shows only its one screen, so its name stays. What is opened inside a screen doesn't rename the window: a thread in
+Chat is still Chat, a metric's week over Today is still Today.
+
+A window that says home is open in another window has no screen to be named after, and the app gives it no name. On a
+phone the app names nothing.
+
 **One place at a time.** With a screen in a window, tapping its tile brings that window forward, and so does a link, a
 Shortcut or a notification for it: a notification's thread opens in the Chat window, a *Jump to board* on the board in
 the Whiteboard window. If the home window is showing a screen when another window asks for that screen, it goes from
@@ -86,5 +102,10 @@ screen.
 - A window the app has closed, or the system has, leaves no trace: its tile opens it again as usual.
 - A link, a Shortcut or a notification with the home window closed still lands somewhere.
 - A link that lands in the home window, from another window in front, brings the home window forward.
+- A screen's window is named for its screen, by the name on its home tile, from the moment it opens.
+- The home window is named Home on the home grid, takes the name of what it shows when that goes up, and is Home again
+  when that closes. A screen opening or closing in another window doesn't rename it.
+- A window saying home is open elsewhere has no name from the app.
+- On an iPhone the app names no window.
 - A card or Places window that closes leaves nothing behind: the card's widgets are current, the map is down, and a
   drill asked for while the card was in a window doesn't start later.

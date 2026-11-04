@@ -1187,3 +1187,93 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** iPadOS brings back only a screen's window
 - **When:** the app starts
 - **Then:** the home window opens too, a moment later
+
+### User Story 560:
+
+- **Summary:** A screen's window is called by that screen's name
+- **Status:** native app only: implemented in [df9b8ac](https://github.com/idvorkin/context-grabber/commit/df9b8ac); verified on the iPad simulator (the log's `title` line, read back from the scene, for a Chat and a Today window); the role by `WindowLedgerTests`, on the host. Where iPadOS shows the name is for the iPad: the simulator's log shows the scene holds it, not how the system draws it.
+- **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor with several windows of the app open on the iPad
+- **I want to** have each window named for the screen in it
+- **so that** I can pick the one I want from the system's list of windows
+
+#### Acceptance Criteria:
+- **Scenario:** Chat in a window of its own
+- **Given:** Chat is in a window of its own
+- **When:** iPadOS shows the app's windows by name
+- **Then:** that window reads Chat, the name on its home tile
+
+### User Story 561:
+
+- **Summary:** The home window's name follows what it is showing
+- **Status:** native app only: implemented in [df9b8ac](https://github.com/idvorkin/context-grabber/commit/df9b8ac); verified on the iPad simulator by the log's `title` lines: there and back for Places, Cockpit, Whiteboard, Box breathing, Gym Timer, Think of a card and Today; going up only for Chat, Settings and What's new. Call Larry and the eulogy song's sheet were not run. Where iPadOS shows the name is for the iPad.
+- **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor moving around in the home window
+- **I want to** have its name say what is in it now
+- **so that** it never reads as a screen I have left
+
+#### Acceptance Criteria:
+- **Scenario:** Places over home, then closed
+- **Given:** the home window is on the home grid and reads Home
+- **When:** I open Places there and later close it
+- **Then:** it reads Places while Places is up, then Home again
+
+### User Story 562:
+
+- **Summary:** Another window's screen leaves the home window's name alone
+- **Status:** native app only: implemented in [df9b8ac](https://github.com/idvorkin/context-grabber/commit/df9b8ac); verified on the iPad simulator (a Today window opened and closed, with no `title` line for the home window) and by `WindowLedgerTests`, on the host.
+- **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor with Today in a window of its own
+- **I want to** have the home window keep its own name
+- **so that** two windows never claim one screen
+
+#### Acceptance Criteria:
+- **Scenario:** Today opens in its own window
+- **Given:** the home window is on the home grid
+- **When:** Today opens in a window of its own
+- **Then:** the home window still reads Home and the new window reads Today
+
+### User Story 563:
+
+- **Summary:** A window saying home is elsewhere has no name
+- **Status:** native app only: implemented in [df9b8ac](https://github.com/idvorkin/context-grabber/commit/df9b8ac); the rule by `WindowLedgerTests`, on the host; not verified by a run: only iPadOS's own New Window reaches it, which is for the iPad.
+- **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor using iPadOS's own New Window
+- **I want to** not see a name for a screen that window doesn't have
+- **so that** the window list doesn't offer a second Home
+
+#### Acceptance Criteria:
+- **Scenario:** A new window with home up
+- **Given:** the home window is open
+- **When:** I make a new window of the app from iPadOS's menus
+- **Then:** it says home is open in another window and the app gives it no name
+
+### User Story 564:
+
+- **Summary:** A phone names no window
+- **Status:** native app only: implemented in [df9b8ac](https://github.com/idvorkin/context-grabber/commit/df9b8ac); verified on an iPhone simulator (the home window and Places, no `title` line in the log).
+- **Issues:** [#661](https://github.com/idvorkin/context-grabber/issues/661)
+- **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor on the iPhone
+- **I want to** have the phone stay as it was
+- **so that** the iPad's window names cost the phone nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Moving between screens on a phone
+- **Given:** the app is on an iPhone, which has one window
+- **When:** I open and close any screen
+- **Then:** the app sets no name on the window

@@ -1,4 +1,4 @@
-//  #634, stories 460-464, 470-482 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
+//  #634, stories 460-464, 470-482, 560-563 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
 //  app names each window by its scene session and does the opening.
 
 import Foundation
@@ -68,6 +68,19 @@ public struct WindowLedger: Equatable, Sendable {
   public func window(holding screen: WindowScreen) -> String? { screens[screen] }
 
   public func screen(in window: String) -> WindowScreen? { screens.first { $0.value == window }?.key }
+
+  /// What a window is here to show, which is what names it (#661, stories 560-563).
+  public func role(of window: String) -> WindowRole {
+    if window == home { return .home }
+    return screen(in: window).map(WindowRole.screen) ?? .noScreen
+  }
+}
+
+public enum WindowRole: Equatable, Sendable {
+  case home
+  case screen(WindowScreen)
+  /// A window that says home is elsewhere (story 462), or one that hasn't said what it is yet.
+  case noScreen
 }
 
 /// #634: every window reports the app's phase, so one change arrives once per window. This says what it means, once.
