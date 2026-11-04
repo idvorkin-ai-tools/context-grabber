@@ -28,13 +28,8 @@ final class WhiteboardTurnOnPaperUITests: WhiteboardTurnUITests {
     PaperScreen.tap(app, ghost.center)
   }
 
-  override func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
-    throw XCTSkip("A board on paper is always light for now, and `WhiteboardOnPaperUITests` covers its colour")
-  }
-
-  override func testTheGridShowsWhenAskedAndStaysWithItsBoard() throws {
-    throw XCTSkip("The grid comes to paper in a later step")
-  }
+  /// A board on paper is always light, for now: the spec's "Always light".
+  override var creamInDarkMode: UInt32 { 0xFBF3DC }
 }
 
 /// What's on the screen, by colour, as parts of the window (0...1), between the bars.

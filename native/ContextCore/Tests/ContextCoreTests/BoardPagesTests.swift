@@ -86,6 +86,28 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(pages.pageEnds(pages: 0), [])
   }
 
+  // MARK: Story 651: the grid on paper
+
+  func testTheGridRunsOnUnbrokenFromPageToPage() {
+    let lines = pages.gridLines(visible: CGRect(x: 0, y: 1_000, width: 820, height: 120), pages: 2, zoom: 1)
+    XCTAssertEqual(lines.down, [1_000, 1_040, 1_080, 1_120], "the same squares on either side of the page's end")
+    XCTAssertEqual(lines.across.first, 40)
+    XCTAssertEqual(lines.across.last, 800, "none on the column's edges")
+  }
+
+  func testTheGridStaysOnTheColumnAndThinsWithLinesThatWereThere() {
+    XCTAssertEqual(
+      pages.gridLines(visible: CGRect(x: 0, y: -100, width: 50, height: 150), pages: 1, zoom: 1).down, [40])
+    XCTAssertEqual(
+      pages.gridLines(visible: CGRect(x: 0, y: 1_000, width: 50, height: 500), pages: 1, zoom: 1).down, [1_000, 1_040])
+    XCTAssertTrue(pages.gridLines(visible: CGRect(x: 0, y: 0, width: 50, height: 50), pages: 0, zoom: 1).down.isEmpty)
+    let page = CGRect(x: 0, y: 0, width: 820, height: 1_060)
+    let close = Set(pages.gridLines(visible: page, pages: 1, zoom: 1).down)
+    let far = pages.gridLines(visible: page, pages: 1, zoom: 0.3).down
+    XCTAssertLessThan(far.count, close.count)
+    XCTAssertTrue(far.allSatisfy(close.contains))
+  }
+
   // MARK: Story 538: ruled lines
 
   func testEveryPageIsRuledTheSameAndNoLineLandsOnItsEnd() {

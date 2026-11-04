@@ -98,6 +98,21 @@ public struct BoardPages: Equatable, Sendable {
     return visibleWidth * zoom / column
   }
 
+  /// The grid within `visible` (board points), on the first `pages` pages: squares from the column's corner that run on
+  /// unbroken from page to page, thinned by zoom as the ruled lines are. None on the column's own edges.
+  public func gridLines(visible: CGRect, pages: Int, zoom: CGFloat) -> (across: [CGFloat], down: [CGFloat]) {
+    guard zoom > 0, pages > 0 else { return ([], []) }
+    let step = WhiteboardFrame.lineStep(zoom: zoom)
+    let column = bounds(pages: pages)
+    func lines(_ low: CGFloat, _ high: CGFloat, end: CGFloat) -> [CGFloat] {
+      let first = max((low / step).rounded(.up), 1)
+      let last = min((high / step).rounded(.down), ((end - 0.5) / step).rounded(.down))
+      guard first.isFinite, last.isFinite, first <= last else { return [] }
+      return stride(from: first, through: last, by: 1).map { $0 * step }
+    }
+    return (lines(visible.minX, visible.maxX, end: column.maxX), lines(visible.minY, visible.maxY, end: column.maxY))
+  }
+
   /// The ruled lines within `visible` (board `y`), on the first `pages` pages. Every page is ruled the same from its
   /// own top, so a line never lands on a page's end; thinned by zoom as the grid is, so the lines that stay were lines
   /// already.

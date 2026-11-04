@@ -33,6 +33,8 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var ghostsOn: Bool
   /// Story 407's switch, remembered per board on this device. Lines over the board, never in the drawing or a picture.
   @Published private(set) var gridOn: Bool
+  /// On paper only: a board has a grid, ruled lines or neither.
+  @Published private(set) var ruledOn: Bool
   /// The board's colour (story 378).
   @Published private(set) var paper: BoardPaper
   /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
@@ -51,7 +53,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  /// On PaperKit (stories 590–650). No grid there yet.
+  /// On PaperKit (stories 590–656).
   let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
@@ -114,6 +116,7 @@ final class WhiteboardModel: ObservableObject {
     self.cockpit = cockpit
     ghostsOn = UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true
     gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
+    ruledOn = UserDefaults.standard.bool(forKey: "whiteboard_ruled_\(board.id)")
     editable = store.editable(board)
     onPaper = store.opensOnPaper(board)
     var loaded = PKDrawing()
@@ -236,10 +239,18 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
+  func setRuled(_ on: Bool) {
+    ruledOn = on
+    UserDefaults.standard.set(on, forKey: "whiteboard_ruled_\(board.id)")
+    log.event("whiteboard", ["action": on ? "ruled_on" : "ruled_off", "board": board.id])
+    if on, gridOn { setGrid(false) }
+  }
+
   func setGrid(_ on: Bool) {
     gridOn = on
     UserDefaults.standard.set(on, forKey: "whiteboard_grid_\(board.id)")
     log.event("whiteboard", ["action": on ? "grid_on" : "grid_off", "board": board.id])
+    if on, ruledOn { setRuled(false) }
   }
 
   func setPaper(_ new: BoardPaper) {
@@ -1019,16 +1030,19 @@ struct WhiteboardView: View {
                 }
               }
             }
-            if !model.onPaper {
-              Section("Grid") {
-                Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+            Section(model.onPaper ? "Lines" : "Grid") {
+              Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+              if model.onPaper {
+                Toggle("Ruled lines", isOn: Binding(get: { model.ruledOn }, set: { model.setRuled($0) }))
               }
             }
           } label: {
             Label("Board", systemImage: "paintpalette")
           }
           // Its colour and grid, for VoiceOver and the UI test, in the label for the reason below.
-          .accessibilityLabel("Board, \(model.paper.name)\(model.gridOn ? ", grid on" : "")")
+          .accessibilityLabel(
+            "Board, \(model.paper.name)\(model.gridOn ? ", grid on" : model.ruledOn ? ", ruled lines on" : "")"
+          )
           .accessibilityIdentifier("whiteboard-board")
         }
       }

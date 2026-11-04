@@ -67,7 +67,7 @@ public enum WhiteboardFrame {
   }
 
   /// The board points between lines at `zoom`: how the grid and the ruled lines thin.
-  static func lineStep(zoom: CGFloat) -> CGFloat {
+  public static func lineStep(zoom: CGFloat) -> CGFloat {
     var step = gridStep
     while step * zoom < gridMinGap { step *= 2 }
     return step

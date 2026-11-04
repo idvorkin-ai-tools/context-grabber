@@ -241,6 +241,9 @@ class WhiteboardTurnUITests: XCTestCase {
     }
   }
 
+  /// Cream's deep shade: a board on paper stays in its pale one.
+  var creamInDarkMode: UInt32 { 0x2B2416 }
+
   /// Stories 378, 402, 403: the colour is on the canvas, follows the mode, and stays when the board opens again.
   func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
     let before = XCUIDevice.shared.appearance
@@ -262,7 +265,7 @@ class WhiteboardTurnUITests: XCTestCase {
     wait(paper, label: "Board, Cream", timeout: 3)
     try assertPaper(0xFBF3DC, "Cream, light")
     XCUIDevice.shared.appearance = .dark
-    try assertPaper(0x2B2416, "Cream, dark")
+    try assertPaper(creamInDarkMode, "Cream, dark")
     stroke(app)
     wait(app, strokes: 1)
     keepShot("Ink on Cream, dark, the tool picker back")
