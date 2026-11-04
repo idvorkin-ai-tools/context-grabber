@@ -2141,7 +2141,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 545:
 
 - **Summary:** The card finds the link however the other app hands it over
-- **Status:** native app only: implemented in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3); verified by `ShareLinkTests` (host, with real item providers; three of its tests failed against the card's old logic: a file before the link, a link as words or bytes, and a provider made from a URL answering with bytes on the Mac; also a link as plain words behind a picture or a text, and behind an email address); what apps really hand over on the phone not yet seen, the `inbox` added line's share_types will show it
+- **Status:** native app only: implemented in [48534a3](https://github.com/idvorkin/context-grabber/commit/48534a3); verified by `ShareLinkTests` (host, with real item providers; three of its tests failed against the card's old logic: a file before the link, a link as words or bytes, and a provider made from a URL answering with bytes on the Mac; also a link as plain words behind a picture or a text, and behind an email address; a link as marked-up text behind a picture, a text or an email address, also driven through the real card source on the Mac); what apps really hand over on the phone not yet seen, the `inbox` added line's share_types will show it
 - **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
 - **Spec:** [Chat with Larry in Grabber Native — The shared link on the message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2156,8 +2156,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** the card opens
 - **Then:** the card previews the web link, the message carries it, and the `inbox` added line's share_types names what the app offered
 
-- **Scenario:** A link as plain words, behind something else
-- **Given:** an app shares a picture or a line of text first, and a web link as plain words after it
+- **Scenario:** A link as words, behind something else
+- **Given:** an app shares a picture or a line of text first, and after it a web link as plain words or as marked-up text whose words are the link
 - **When:** the card opens
 - **Then:** the card previews the web link and the message carries it
 

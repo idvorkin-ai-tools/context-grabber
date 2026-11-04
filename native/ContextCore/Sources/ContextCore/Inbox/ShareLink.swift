@@ -6,9 +6,12 @@ import Foundation
 import UniformTypeIdentifiers
 
 public enum ShareLink {
-  /// The first web link any provider holds, as a URL and then as plain words. Nothing shared ahead of it hides it. With
-  /// no web link, the first other address that is not a file.
-  public static func find(in providers: [NSItemProvider]) async -> URL? {
+  /// The first web link any provider holds: as a URL, then as plain words, then as marked-up text whose words are the
+  /// link. Nothing shared ahead of it hides it. With no web link, the first other address that is not a file.
+  /// `markedUp` turns a provider's RTF or HTML into its words: that takes UIKit's text system, so the card brings it.
+  public static func find(
+    in providers: [NSItemProvider], markedUp: (NSItemProvider) async -> String? = { _ in nil }
+  ) async -> URL? {
     var other: URL?
     for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
       guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier),
@@ -22,6 +25,12 @@ public enum ShareLink {
         let found = url(from: item), isWeb(found)
       else { continue }
       return found
+    }
+    for provider in providers
+    where provider.hasItemConformingToTypeIdentifier(UTType.text.identifier)
+      && !provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier)
+    {
+      if let words = await markedUp(provider), let found = fromText(words) { return found }
     }
     return other
   }

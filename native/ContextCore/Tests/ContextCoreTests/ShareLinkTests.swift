@@ -65,6 +65,25 @@ final class ShareLinkTests: XCTestCase {
     XCTAssertEqual(behindTitle?.absoluteString, page)
   }
 
+  /// The spec's "a web link beats anything else shared with it", for a link that comes only as marked-up text. The
+  /// reader stands in for UIKit's text system, which the card brings.
+  func testALinkAsMarkedUpTextBeatsWhateverIsAheadOfIt() async throws {
+    let html = provider(Data(page.utf8) as NSData, .html)
+    let words: (NSItemProvider) async -> String? = { [page] _ in page }
+    let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
+    let ahead = [provider(Data([0xFF, 0xD8]) as NSData, .jpeg), provider("Page title" as NSString, .plainText), mail]
+    for first in ahead {
+      let found = await ShareLink.find(in: [first, html], markedUp: words)
+      XCTAssertEqual(found?.absoluteString, page)
+    }
+  }
+
+  func testMarkedUpTextThatIsMoreThanALinkIsNoLink() async {
+    let html = provider(Data("x".utf8) as NSData, .html)
+    let found = await ShareLink.find(in: [html]) { [page] _ in "look at \(page)" }
+    XCTAssertNil(found)
+  }
+
   func testAnAddressThatIsNotAWebLinkDoesNotHideOne() async throws {
     let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
     let beforeURL = await ShareLink.find(in: [mail, provider(try XCTUnwrap(URL(string: page)) as NSURL, .url)])

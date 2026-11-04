@@ -80,7 +80,7 @@ final class Shared: ObservableObject {
     let providers = items.flatMap { $0.attachments ?? [] }
     let offered = providers.flatMap(\.registeredTypeIdentifiers).joined(separator: ", ")
     offeredTypes = offered
-    if let found = await ShareLink.find(in: providers) {
+    if let found = await ShareLink.find(in: providers, markedUp: { await Self.text($0).0 }) {
       url = found
       text = items.first?.attributedContentText?.string.nilIfEmpty
       return
@@ -102,12 +102,7 @@ final class Shared: ObservableObject {
     if let p = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.text.identifier) }) {
       let (found, state) = await Self.text(p)
       guard let found, !found.isEmpty else { return fail("The shared text could not be read.", state: state, offered) }
-      // A link shared as marked-up text is still a link; ShareLink.find has already read the plain kind.
-      if let link = ShareLink.fromText(found) {
-        url = link
-      } else {
-        text = found
-      }
+      text = found
       return
     }
     fail("Grabber Native takes a link, some text or one image.", state: "nothing it reads", offered)

@@ -228,9 +228,9 @@ holds a web link becomes a message that starts with the whole link, exactly as s
 then what he wrote. That holds for a new chat and a chat picked from the list, with words or without, while it waits
 on the phone and once it has gone.
 
-- However the other app hands the link over, it is found: as a link, as a link's plain words, or behind another
-  attachment that is not a web link, such as a file, an email address or another text. Text that is nothing but a link
-  is a link.
+- However the other app hands the link over, it is found: as a link, as a link's plain words, as marked-up text (RTF,
+  HTML) whose words are the link, or behind another attachment that is not a web link, such as a file, an email address
+  or another text. Text that is nothing but a link is a link.
 - Text with a link somewhere inside it stays text and goes word for word, the link where it was.
 - A web link beats anything else shared with it, a picture included. An address that is not a web link, such as an
   email address, is the shared link only when no web link came with it. A picture or text shared with no web link has
