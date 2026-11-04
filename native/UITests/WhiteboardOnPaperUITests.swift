@@ -173,7 +173,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     newBoard(app)
     sleep(2)
     // The first stroke brings page 2, and on a phone that moves the view: the second is the one that stays put.
-    stroke(app, atHeight: 0.2)
+    stroke(app, atHeight: 0.3)
     waitFor(app.buttons["whiteboard-send"], label: "Send to Larry, 1 strokes")
     sleep(1)
     stroke(app, atHeight: 0.5)
@@ -199,7 +199,8 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     // The list goes back to the device's mode.
     app.navigationBars.buttons.element(boundBy: 0).tap()
     XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 10), app.debugDescription)
-    sleep(1)
+    sleep(2)  // Past the board sliding away, whose screen is still light.
+    keep(app, "the list after a board on paper, in dark mode")
     let list = try XCTUnwrap(app.screenshot().image.cgImage)
     let corner = try XCTUnwrap(list.cropping(to: CGRect(x: 4, y: list.height / 2, width: 1, height: 1)))
     context.draw(corner, in: CGRect(x: 0, y: 0, width: 1, height: 200))
