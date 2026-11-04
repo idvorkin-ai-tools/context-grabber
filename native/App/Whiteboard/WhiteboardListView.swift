@@ -72,9 +72,7 @@ struct WhiteboardListView: View {
     }
     .accessibilityIdentifier("whiteboard-list")
     .fullScreenCover(item: $trialCopy) { copy in
-      if #available(iOS 27, *) {
-        PaperTrialView(copy: copy, log: app.log) { trialCopy = nil }
-      }
+      PaperTrialView(copy: copy, log: app.log) { trialCopy = nil }
     }
     .task {
       app.liveWhiteboards = store
@@ -140,7 +138,7 @@ struct WhiteboardListView: View {
           Label("Rename", systemImage: "pencil")
         }
       }
-      if #available(iOS 27, *), store.editable(board) {
+      if store.editable(board) {
         Button {
           tryOnPaper(board)
         } label: {
@@ -156,9 +154,7 @@ struct WhiteboardListView: View {
     .accessibilityIdentifier("whiteboard-card")
   }
 
-  /// Below iOS 27 nothing opens: the menu doesn't offer it, and this also stops the launch hook.
   private func tryOnPaper(_ board: BoardEntry) {
-    guard #available(iOS 27, *) else { return }
     do {
       trialProblem = nil
       trialCopy = try store.trialCopy(of: board)

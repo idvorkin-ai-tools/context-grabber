@@ -3,7 +3,7 @@
 name: GrabberNative
 options:
   deploymentTarget:
-    iOS: "18.0"
+    iOS: "27.0"
   createIntermediateGroups: true
 packages:
   ContextCore:
@@ -149,8 +149,8 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
-  # The share extension (#305, story 038): anything shared from another app lands in the Inbox in the App Group,
-  # with no network, for the app to send to Larry.
+  # The share extension (#305, story 038): anything shared from another app lands in the Inbox in the App Group, for
+  # the app to send to Larry. Its one network question is which recent chats to offer, and nothing waits for it (#587).
   GrabberShare:
     type: app-extension
     platform: iOS

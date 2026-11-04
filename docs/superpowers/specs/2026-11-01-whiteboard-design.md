@@ -163,6 +163,9 @@ pages, strokes that never scale, and Larry seeing the pages on screen.
 2. Old boards stay on the old canvas until they move onto pages.
 3. Then the old canvas goes.
 
+**The app needs iOS 27 from here on.** Reading ink back out of PaperKit starts there, and Igor's iPhone and iPad both run
+it. Nothing else about the app changes with this, and a device on an older system would stop getting new builds.
+
 **What's saved doesn't change.** Boards keep saving strokes in today's file format, so older builds open every board and
 nothing has to migrate. The cost, from the same proposal: anything PaperKit could add, such as shapes or text boxes, wouldn't
 stay an editable object once saved. That fits the non-goals above.
@@ -194,8 +197,7 @@ feature.
 - **Nothing in the trial can change, save, sync or send a real board.** It's a copy held in memory and gone when it closes.
   Drawing, erasing, undoing or selecting in the trial leaves the real board, its picture, its row in the list and iCloud
   exactly as they were. There's no Send, no Larry's turn, no ghosts and no mic in it. The board's own canvas is unchanged.
-- **Only on iOS 27 and up.** Below that, or on a board another device draws, *Try on paper* isn't offered. The app still
-  installs and runs on the same older systems as before.
+- **Only on this device's own boards.** On a board another device draws, *Try on paper* isn't offered.
 - **How to open it.** A long press on a row, on a board drawn on this device, offers *Try on paper*. A board that can't be
   read shows the copyable problem, and the file stays where it is.
 - **What it shows.** A copy of the board as a column about a page wide, with the system's tool picker, faint page lines

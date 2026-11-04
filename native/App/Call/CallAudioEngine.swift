@@ -333,8 +333,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   // MARK: - on the queue
 
   private func configureSession() throws {
-    var options: AVAudioSession.CategoryOptions = [.defaultToSpeaker, .allowBluetoothA2DP]
-    if #available(iOS 26.0, *) { options.insert(.allowBluetoothHFP) } else { options.insert(.allowBluetooth) }
+    let options: AVAudioSession.CategoryOptions = [.defaultToSpeaker, .allowBluetoothA2DP, .allowBluetoothHFP]
     try session.setCategory(.playAndRecord, mode: .voiceChat, options: options)
     try session.setActive(true)
     log(
