@@ -19,8 +19,13 @@ public enum WhiteboardPaste {
     public var cut: Bool { kept < total }
   }
 
-  /// `text` as outlines of `height`-point letters inside `visible` (board points), on the board.
-  public static func layout(_ text: String, visible: CGRect, height: CGFloat) -> Layout {
+  /// The old canvas's fixed square. A board on paper has its own: a page wide, with no end below.
+  public static let wholeBoard = CGRect(x: 0, y: 0, width: WhiteboardFrame.side, height: WhiteboardFrame.side)
+
+  /// `text` as outlines of `height`-point letters inside `visible` (board points), on `board`.
+  public static func layout(
+    _ text: String, visible: CGRect, height: CGFloat, board: CGRect = wholeBoard
+  ) -> Layout {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     let (rows, kept) = rows(trimmed, width: visible.width * 0.8, height: height)
     var lines: [[CGPoint]] = []
@@ -35,8 +40,11 @@ public enum WhiteboardPaste {
     // Centred; a block taller than the view starts at its top, so the first line shows.
     let x = visible.midX - width / 2
     let y = max(visible.midY - tall / 2, visible.minY + height)
-    let onBoard = { (v: CGFloat, span: CGFloat) in min(max(v, 0), max(WhiteboardFrame.side - span, 0)) }
-    let (dx, dy) = (onBoard(x, width) - minX, onBoard(y, tall) - minY)
+    let onBoard = { (v: CGFloat, span: CGFloat, low: CGFloat, high: CGFloat) in
+      min(max(v, low), max(high - span, low))
+    }
+    let dx = onBoard(x, width, board.minX, board.maxX) - minX
+    let dy = onBoard(y, tall, board.minY, board.maxY) - minY
     return Layout(
       lines: lines.map { $0.map { CGPoint(x: $0.x + dx, y: $0.y + dy) } }, kept: kept, total: trimmed.count)
   }

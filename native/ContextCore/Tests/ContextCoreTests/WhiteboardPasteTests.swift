@@ -15,6 +15,40 @@ final class WhiteboardPasteTests: XCTestCase {
       height: (ys.max() ?? 0) - (ys.min() ?? 0))
   }
 
+  // MARK: Stories 637, 640, 642, 647, 649: on a board on paper
+
+  func testOnPaperItLandsInTheViewPastTheOldBoardsEdge() {
+    let far = CGRect(x: 0, y: 30_000, width: 820, height: 1_000)
+    let box = bounds(WhiteboardPaste.layout("HI", visible: far, height: 24, board: BoardPages().pasteReach).lines)
+    XCTAssertEqual(box.midY, far.midY, accuracy: 0.5, "page 29, in the middle of the view")
+    XCTAssertEqual(box.midX, far.midX, accuracy: 0.5)
+    let old = bounds(WhiteboardPaste.layout("HI", visible: far, height: 24).lines)
+    XCTAssertLessThanOrEqual(old.maxY, WhiteboardFrame.side, "the old canvas keeps its edge")
+  }
+
+  func testOnPaperItStaysOnThePagesWidth() {
+    let reach = BoardPages().pasteReach
+    let page = CGRect(x: 0, y: 0, width: 820, height: 1_000)
+    let long = String(repeating: "wide ", count: 60)
+    let box = bounds(WhiteboardPaste.layout(long, visible: page, height: 49, board: reach).lines)
+    XCTAssertGreaterThanOrEqual(box.minX, 0)
+    XCTAssertLessThanOrEqual(box.maxX, 820)
+    // Zoomed in by the right edge: the view's middle is near the side, and short text still fits.
+    let edge = CGRect(x: 700, y: 0, width: 120, height: 100)
+    let near = bounds(WhiteboardPaste.layout("HI HI", visible: edge, height: 24, board: reach).lines)
+    XCTAssertLessThanOrEqual(near.maxX, 820)
+    let top = CGRect(x: 0, y: -200, width: 820, height: 100)
+    let above = bounds(WhiteboardPaste.layout("HI", visible: top, height: 24, board: reach).lines)
+    XCTAssertGreaterThanOrEqual(above.minY, 0, "nothing lands above the first page")
+  }
+
+  func testATallPasteRunsDownThePagesAndAsksForThem() {
+    let view = CGRect(x: 0, y: 0, width: 820, height: 1_500)
+    let text = Array(repeating: "HI", count: 40).joined(separator: "\n")
+    let box = bounds(WhiteboardPaste.layout(text, visible: view, height: 49, board: BoardPages().pasteReach).lines)
+    XCTAssertEqual(BoardPages().pages(after: 2, inkMaxY: box.maxY, redoWaiting: false), 4)
+  }
+
   func testShortTextIsCentredInTheView() {
     let layout = WhiteboardPaste.layout("Hello", visible: view, height: 24)
     XCTAssertFalse(layout.lines.isEmpty)

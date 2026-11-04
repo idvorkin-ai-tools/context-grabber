@@ -241,6 +241,30 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertFalse(pages.reachesPastSide([]))
   }
 
+  // MARK: Story 641: copied strokes
+
+  func testCopiedInkLandsInTheMiddleOfTheView() {
+    let view = CGRect(x: 0, y: 2_000, width: 820, height: 1_000)
+    let ink = CGRect(x: 10, y: 20, width: 100, height: 50)
+    let shift = pages.pasteShift(ink: ink, visible: view)
+    let moved = ink.offsetBy(dx: shift.dx, dy: shift.dy)
+    XCTAssertEqual(moved.midX, view.midX, accuracy: 0.01)
+    XCTAssertEqual(moved.midY, view.midY, accuracy: 0.01)
+  }
+
+  func testCopiedInkStaysOnTheColumn() {
+    let right = CGRect(x: 780, y: 0, width: 40, height: 100)
+    let ink = CGRect(x: 0, y: 0, width: 200, height: 300)
+    var shift = pages.pasteShift(ink: ink, visible: right)
+    var moved = ink.offsetBy(dx: shift.dx, dy: shift.dy)
+    XCTAssertEqual(moved.maxX, 820, accuracy: 0.01, "against the right side")
+    XCTAssertEqual(moved.minY, 0, accuracy: 0.01, "and not above the first page")
+    let wide = CGRect(x: 50, y: 0, width: 2_000, height: 10)
+    shift = pages.pasteShift(ink: wide, visible: right)
+    moved = wide.offsetBy(dx: shift.dx, dy: shift.dy)
+    XCTAssertEqual(moved.minX, 0, accuracy: 0.01, "too wide starts at the left")
+  }
+
   func testTheFitZoomIsWhatFitsTheColumn() {
     XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 820, atZoom: 1, column: 820), 1)
     XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 402, atZoom: 1, column: 820), 402.0 / 820)

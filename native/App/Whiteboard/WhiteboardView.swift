@@ -51,7 +51,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  /// On PaperKit (stories 590–626). No paste or grid there yet.
+  /// On PaperKit (stories 590–650). No grid there yet.
   let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
@@ -62,6 +62,8 @@ final class WhiteboardModel: ObservableObject {
   /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
   var visibleRect: (() -> CGRect)?
   var zoom: (() -> CGFloat)?
+  /// Where a paste may land, in board points; a board on paper sets its own.
+  var pasteReach = WhiteboardPaste.wholeBoard
   /// Puts a kept ghost or a paste on the canvas (undoably), given the whole drawing and what's new in it; the canvas sets
   /// it.
   var draw: ((PKDrawing, [PKStroke]) -> Void)?
@@ -751,7 +753,7 @@ final class WhiteboardModel: ObservableObject {
   func paste(_ text: String) {
     guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
     let height = Self.pasteLetters / min(zoom, 1)
-    let layout = WhiteboardPaste.layout(text, visible: visible, height: height)
+    let layout = WhiteboardPaste.layout(text, visible: visible, height: height, board: pasteReach)
     let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8)
     log.event(
       "whiteboard",
@@ -769,6 +771,17 @@ final class WhiteboardModel: ObservableObject {
     }
     if layout.cut {
       pasteNote = "Pasted the first \(layout.kept) of \(layout.total.formatted()) characters"
+    }
+  }
+
+  /// Copied strokes the canvas didn't place itself: one undo, and a change like a drawn stroke, as a paste of text is.
+  func paste(strokes: [PKStroke]) {
+    guard editable, !strokes.isEmpty else { return }
+    log.event("whiteboard", ["action": "paste_strokes", "board": board.id, "strokes": strokes.count])
+    add(strokes)
+    if ghostsOn {
+      pacer.strokeAdded()
+      startPause()
     }
   }
 
@@ -1019,8 +1032,7 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-board")
         }
       }
-      // Story 598: paste doesn't work on paper yet, so it isn't offered.
-      if model.editable, !model.onPaper {
+      if model.editable {
         ToolbarItem(placement: .topBarTrailing) {
           // The system's button: no *Allow Paste?* prompt, and iOS dims it when the clipboard holds no text.
           PasteButton(payloadType: String.self) { texts in
@@ -1029,8 +1041,6 @@ struct WhiteboardView: View {
           .labelStyle(.iconOnly)
           .accessibilityIdentifier("whiteboard-paste")
         }
-      }
-      if model.editable {
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             model.tapMic()

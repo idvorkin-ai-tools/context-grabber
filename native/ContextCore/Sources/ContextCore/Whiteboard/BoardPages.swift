@@ -54,6 +54,19 @@ public struct BoardPages: Equatable, Sendable {
     redoWaiting ? current : max(current, pagesNeeded(inkMaxY: inkMaxY))
   }
 
+  /// Where a paste may land: the column's width, and as far down as he likes, as a paste brings its pages.
+  public var pasteReach: CGRect {
+    CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude)
+  }
+
+  /// How far to move copied ink so its middle is in the middle of `visible`, inside the column's width where it fits and above
+  /// nothing: a wider one starts at the column's left.
+  public func pasteShift(ink: CGRect, visible: CGRect) -> CGVector {
+    let x = min(max(visible.midX - ink.width / 2, 0), max(width - ink.width, 0))
+    let y = max(visible.midY - ink.height / 2, 0)
+    return CGVector(dx: x - ink.minX, dy: y - ink.minY)
+  }
+
   /// How many pages a column of this height holds, at least one.
   public func pages(in bounds: CGRect) -> Int {
     let held = (bounds.height / Self.pageHeight).rounded()

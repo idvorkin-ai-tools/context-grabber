@@ -4,8 +4,11 @@
 
 import XCTest
 
-final class WhiteboardPasteUITests: XCTestCase {
+class WhiteboardPasteUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
+
+  /// What else the app is started with: a subclass runs these on a board on paper.
+  var boardEnvironment: [String: String] { [:] }
 
   /// A new board open, Ghosts on, the app talking to the fake Cockpit.
   private func openBoard(pasting text: String? = nil) throws -> XCUIApplication {
@@ -16,6 +19,7 @@ final class WhiteboardPasteUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if let text { app.launchEnvironment["GRABBER_WHITEBOARD_PASTE"] = text }
+    for (key, value) in boardEnvironment { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
