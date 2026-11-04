@@ -95,6 +95,8 @@ struct PaperScreen {
   var ghost: Box? { box { r, g, b in r > 240 && g > 180 && g < 225 && b > 90 && b < 170 } }
   /// A kept one.
   var kept: Box? { box { r, g, b in r > 225 && g > 120 && g < 175 && b < 60 } }
+  /// A picture pasted by mistake, in the tests' own red.
+  var red: Box? { box { r, g, b in r > 240 && g < 40 && b < 40 } }
   /// Black ink.
   var ink: Box? { box { r, g, b in r < 70 && g < 70 && b < 70 } }
 
@@ -179,7 +181,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     for id in ["whiteboard-ghosts", "whiteboard-mic", "whiteboard-larry", "whiteboard-send"] {
       XCTAssertTrue(app.buttons[id].exists, id)
     }
-    XCTAssertFalse(app.buttons["whiteboard-paste"].exists, "paste comes in a later step")
+    XCTAssertTrue(app.buttons["whiteboard-paste"].exists, "and paste")
     let ghost = try XCTUnwrap(strokeBringsAGhost(app), "a faint orange ghost on screen")
     shot(app, "a ghost on paper")
     XCTAssertEqual(send(app).label, strokes(1), "a ghost isn't ink")
