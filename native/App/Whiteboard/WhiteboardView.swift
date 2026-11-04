@@ -51,7 +51,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  /// On PaperKit (stories 590–644). No grid there yet.
+  /// On PaperKit (stories 590–649). No grid there yet.
   let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore

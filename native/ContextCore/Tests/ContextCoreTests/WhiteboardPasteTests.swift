@@ -15,7 +15,7 @@ final class WhiteboardPasteTests: XCTestCase {
       height: (ys.max() ?? 0) - (ys.min() ?? 0))
   }
 
-  // MARK: Stories 637, 640, 642: on a board on paper
+  // MARK: Stories 637, 640, 642, 647, 649: on a board on paper
 
   func testOnPaperItLandsInTheViewPastTheOldBoardsEdge() {
     let far = CGRect(x: 0, y: 30_000, width: 820, height: 1_000)

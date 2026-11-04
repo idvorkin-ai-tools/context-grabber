@@ -1,4 +1,4 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–644; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–649; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
 //  as any other board does, with its ghosts, Larry's marks, the mic and paste. Ghosts lie on the sheet under the ink, in

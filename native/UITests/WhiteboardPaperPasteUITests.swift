@@ -1,4 +1,4 @@
-//  Stories 637–644 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what a page
+//  Stories 637–649 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what a page
 //  adds to a paste. `WhiteboardPasteOnPaperUITests` runs the old canvas's own paste tests on a board on paper, as they're the
 //  requirement. XCUITest's taps never reach the system's paste button, so these go through ⌘V or GRABBER_WHITEBOARD_PASTE.
 
@@ -124,7 +124,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     XCTAssertNil(PaperScreen(app).red, "no picture on the sheet")
   }
 
-  /// Story 637: in the middle of the paper on screen, by the screen's own pixels, and the first ink's next page.
+  /// Stories 637, 645: in the middle of the paper on screen, by the screen's own pixels, and the first ink's next page.
   func testAPasteLandsInTheMiddleOfThePaperOnScreen() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
     wait(send(app), label: strokes(2))
@@ -140,8 +140,8 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     XCTAssertEqual(ink.width, 0.1, accuracy: 0.08, "at a size that reads")
   }
 
-  /// Stories 639, 640: a tall paste brings its pages, and one undo takes both back, and one redo brings them. The lines are
-  /// from a hook's presses, as a phone's tool picker has no Undo.
+  /// Stories 639, 640, 646: a tall paste brings its pages, and one undo takes both back, and one redo brings them. The
+  /// lines are from a hook's presses, as a phone's tool picker has no Undo.
   func testATallPasteBringsItsPagesInOneUndo() throws {
     let tall = Array(repeating: "HI", count: 40).joined(separator: "\n")
     let app = try openBoard([
