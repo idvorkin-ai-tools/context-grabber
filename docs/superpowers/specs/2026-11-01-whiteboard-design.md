@@ -203,9 +203,8 @@ he turns on, device by device.)
   seen. This differs from *Each colour has a pale shade and a deep one* above until PaperKit's ink follows the mode, and it's
   Igor's to overrule. What's saved is the same either way.
 - **Page lines only for now.** Ruled lines and grids come in a later step.
-- **What a board on paper can't do yet.** There are no ghosts, no *Larry's turn*, no marks from Larry on the board, no mic,
-  no paste button and no ⌘V. *Send to Larry* works: the picture is still the whole drawing, and his reply shows in Chat. His
-  marks in answer don't come back to the board yet.
+- **What a board on paper can't do yet.** There's no paste button, no ⌘V and no grid. *Send to Larry*, *Larry's turn*, ghosts
+  and the mic work: see *Ghosts and Larry on paper*. The picture is still the whole drawing.
 - **On a phone, the first ink moves the view.** One page at a phone's width is shorter than the screen, so PaperKit centres it;
   the page the first ink brings fills the screen, and the view settles at the top. The ink doesn't move on the board.
 - **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
@@ -214,6 +213,39 @@ he turns on, device by device.)
 
 The log says which touches were the Pencil's and which a finger's, and what each did, so the next try on the iPad can settle
 what a finger does.
+
+### Ghosts and Larry on paper
+
+(#636. The board's ghosts, Larry's turn and the mic, as *Whiteboard: Claude and Larry draw back* describes them, on a board on
+paper. That description is the requirement, and this lists only where paper needs saying.)
+
+- **The same bar.** A board on paper has the Ghosts switch, the mic, *Larry's turn* and *Send to Larry*, as any board does. The
+  paste button comes later.
+- **The same turns.** A pause after a stroke asks Claude, the Pencil touching down holds that pause until it lifts, words go
+  the same way, and Larry's marks arrive on their own, in his colour, where his picture was. Nothing about the Ghosts switch,
+  the fading, one turn at a time or the bar's words changes.
+- **A ghost sits on the paper.** It moves and zooms with the board exactly as the ink does, because it lies on the same sheet:
+  it can't drift off the ink or trail behind a scroll or a pinch.
+- **A ghost lies under the ink, as the page lines do.** Where one crosses ink, the ink is on top. On the old canvas it lay over
+  the ink. That's the one difference in how it looks, and it's what keeps it from ever lagging. It's Igor's to overrule.
+- **A ghost is never ink until it's kept.** It isn't in the drawing, the saved file, any picture or the strokes Larry gets.
+  Leaving the board with a ghost showing saves nothing of it.
+- **A finger tap keeps or dismisses,** as on the old canvas: on a ghost it keeps that one, off them it dismisses them all.
+  While ghosts show, a finger doesn't draw, wherever a finger would, so a tap leaves no dot and selects nothing. With none left it
+  goes back to what it did. What a finger drag does in those seconds is part of what the iPad has yet to settle.
+- **A kept ghost is ink like his own.** It's in its author's colour, the eraser and lasso treat it like his, and it saves a moment
+  later.
+- **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
+- **A kept mark past the last page brings the pages it needs,** with the blank page below as for any ink.
+- **Larry knows a kept mark as one stroke.** Each time the board's strokes go to Larry, the same ink has the same name, whether
+  it was drawn or kept, and whether the board was just drawn on or has been closed and opened since.
+- **A mark past the page's side, for now.** Until a mark past the edge widens the board (a later step), a ghost past the column's
+  side shows only as far as the column does, and one kept there is saved and sent like any ink, and is out of reach on paper.
+  Nothing is lost, and the log says when it happened. The same goes for a mark above the first page.
+- **If a turn fails,** the bar and the copyable problem say so as on any board.
+
+The log says where each ghost sat against the sheet, what each finger tap came to, and what each kept mark did to the undo count
+and to the strokes' names, so the iPad can show what the simulator can't.
 
 ## Trial on paper (temporary: it goes when the board moves to PaperKit)
 
