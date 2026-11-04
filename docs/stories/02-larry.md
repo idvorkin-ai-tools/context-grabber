@@ -803,7 +803,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Offline or refused
 - **Given:** no network, or the Cockpit refuses the message (too big, an unreadable image)
 - **When:** I send
-- **Then:** offline it stays *Not sent yet* and goes by itself when the network returns, never twice even if an answer was lost; refused it says *Larry refused it* with the reason, copyable, and is never sent again on its own (a file says it is kept and offers *Send again*, stories 487, 488); a long press deletes it
+- **Then:** offline it stays *Not sent yet* and goes by itself when the network returns, never twice even if an answer was lost; refused it says *Larry refused it* (on a skill's thread, the skill's name, story 517) with the reason, copyable, and is never sent again on its own (a file says it is kept and offers *Send again*, stories 487, 488); a long press deletes it
 
 - **Scenario:** The Cockpit isn't answering (#565)
 - **Given:** the phone is online but the Cockpit times out or cannot be reached
@@ -1975,5 +1975,25 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the Cockpit's answers have no skill, author or error fields
 - **When:** I open Chat and a thread
 - **Then:** the list, the replies, the bar and the notifications read Larry as before, with one pinned thread
+
+---
+
+### User Story 517:
+
+- **Summary:** A message refused on a skill's thread names the skill
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2) and [1286e05](https://github.com/idvorkin/context-grabber/commit/1286e05); the words verified on the host by `ChatFileTests`; on screen, on the simulator or the phone, not yet
+- **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
+- **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor writing on a skill's thread
+- **I want to** see the skill named when my message is refused
+- **so that** I never think Larry was the one I wrote to
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit refuses a text
+- **Given:** I am on the idvorkin thread
+- **When:** the Cockpit refuses a text I send there
+- **Then:** it reads *idvorkin refused it* with the reason, as a copyable problem
 
 ---
