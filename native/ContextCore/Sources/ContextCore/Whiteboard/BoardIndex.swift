@@ -22,6 +22,8 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
   public var fetched: Int64?
   /// The board's colour by name; nil, or a name from a newer build, shows as Plain and is kept as it is.
   public var paperID: String?
+  /// Made as a board on paper (stories 590, 591, 593). Set once when it's made; nil is every board from before.
+  public var onPages: Bool?
 
   public var paper: BoardPaper { paperID.flatMap(BoardPaper.init(rawValue:)) ?? .plain }
 
@@ -30,7 +32,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
 
   public init(
     id: String, title: String, created: Int64, updated: Int64, strokes: Int, device: String, deviceName: String,
-    uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil
+    uploaded: Int64? = nil, fetched: Int64? = nil, paperID: String? = nil, onPages: Bool? = nil
   ) {
     self.id = id
     self.title = title
@@ -42,6 +44,7 @@ public struct BoardEntry: Codable, Equatable, Identifiable, Sendable {
     self.uploaded = uploaded
     self.fetched = fetched
     self.paperID = paperID
+    self.onPages = onPages
   }
 }
 
@@ -73,6 +76,11 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   /// Only the device that made a board draws on it.
   public static func editable(_ board: BoardEntry, on device: String) -> Bool { board.device == device }
 
+  /// A board on paper opens on paper only where it's drawn: elsewhere it's the look-only view, as every board is.
+  public static func opensOnPaper(_ board: BoardEntry, on device: String) -> Bool {
+    board.onPages == true && editable(board, on: device)
+  }
+
   /// A new board's name: *Board, Nov 1*, then *Board, Nov 1 (2)* for the day's second.
   public func newTitle(at date: Date, timeZone: TimeZone = .current) -> String {
     let f = DateFormatter()
@@ -89,12 +97,13 @@ public struct BoardIndex: Codable, Equatable, Sendable {
 
   @discardableResult
   public mutating func add(
-    id: String, at date: Date, device: String, deviceName: String, title: String? = nil, timeZone: TimeZone = .current
+    id: String, at date: Date, device: String, deviceName: String, title: String? = nil, timeZone: TimeZone = .current,
+    onPages: Bool = false
   ) -> BoardEntry {
     let ms = Int64(date.timeIntervalSince1970 * 1000)
     let entry = BoardEntry(
       id: id, title: title ?? newTitle(at: date, timeZone: timeZone), created: ms, updated: ms, strokes: 0,
-      device: device, deviceName: deviceName, fetched: ms)
+      device: device, deviceName: deviceName, fetched: ms, onPages: onPages ? true : nil)
     boards.append(entry)
     return entry
   }

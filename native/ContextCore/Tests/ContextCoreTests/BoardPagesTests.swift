@@ -188,4 +188,51 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(placed.shift, .zero)
     XCTAssertEqual(placed.board, BoardPages())
   }
+
+  // MARK: Stories 591, 596, 603, 608: a real board's pages and place
+
+  func testPagesAddedAsInkReachesThemAndNeverTakenBack() {
+    XCTAssertEqual(pages.pages(after: 1, inkMaxY: nil, redoWaiting: false), 1)
+    XCTAssertEqual(pages.pages(after: 1, inkMaxY: 100, redoWaiting: false), 2)
+    XCTAssertEqual(pages.pages(after: 2, inkMaxY: 1_100, redoWaiting: false), 3)
+    XCTAssertEqual(pages.pages(after: 5, inkMaxY: 100, redoWaiting: false), 5, "erasing leaves the room")
+    XCTAssertEqual(pages.pages(after: 5, inkMaxY: nil, redoWaiting: false), 5, "erasing it all too")
+  }
+
+  func testNoPageIsAddedWhileRedoHasStepsWaiting() {
+    XCTAssertEqual(pages.pages(after: 1, inkMaxY: 100, redoWaiting: true), 1)
+    XCTAssertEqual(pages.pages(after: 2, inkMaxY: 5_000, redoWaiting: true), 2)
+  }
+
+  func testAColumnsHeightSaysItsPages() {
+    XCTAssertEqual(pages.pages(in: pages.bounds(pages: 1)), 1)
+    XCTAssertEqual(pages.pages(in: pages.bounds(pages: 7)), 7)
+    XCTAssertEqual(pages.pages(in: .zero), 1)
+    XCTAssertEqual(pages.pages(in: .null), 1, "a null rectangle can't crash it")
+    XCTAssertGreaterThan(pages.pages(in: .infinite), 0, "nor an endless one")
+  }
+
+  func testThePageNumberReadsAtTheCorner() {
+    XCTAssertEqual(pages.pageText(visibleMidY: 500, pages: 1), "Page 1 of 1")
+    XCTAssertEqual(pages.pageText(visibleMidY: 1_060, pages: 3), "Page 2 of 3")
+    XCTAssertEqual(pages.pageText(visibleMidY: 9_000, pages: 3), "Page 3 of 3", "a phone's view runs past the column")
+    XCTAssertEqual(pages.pageText(visibleMidY: -50, pages: 3), "Page 1 of 3")
+  }
+
+  func testABoardOpensWhereItWasLeft() {
+    XCTAssertEqual(pages.openingY(remembered: nil, pages: 3), 0, "new to this device: the first page")
+    XCTAssertEqual(pages.openingY(remembered: 1_500, pages: 3), 1_500)
+    XCTAssertEqual(pages.openingY(remembered: 9_000, pages: 3), 2_120, "ink erased since: the last page's top")
+    XCTAssertEqual(pages.openingY(remembered: -40, pages: 3), 0)
+    XCTAssertEqual(pages.openingY(remembered: .nan, pages: 3), 0)
+  }
+
+  func testTheFitZoomIsWhatFitsTheColumn() {
+    XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 820, atZoom: 1, column: 820), 1)
+    XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 402, atZoom: 1, column: 820), 402.0 / 820)
+    // A person at zoom 2 sees 410 points: 820 at 1, so a page wide at 1. Nothing assumes what zoom 1 means.
+    XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 410, atZoom: 2, column: 820), 1)
+    XCTAssertEqual(BoardPages.fitZoom(visibleWidth: 1_180, atZoom: 1, column: 820) ?? 0, 1_180 / 820, accuracy: 0.001)
+    XCTAssertNil(BoardPages.fitZoom(visibleWidth: 0, atZoom: 1, column: 820), "no width seen yet")
+  }
 }

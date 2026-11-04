@@ -175,8 +175,45 @@ pictures reads as written above. The trial's small cross on each page and its ri
 appear on a real board.
 
 **What a finger does on paper isn't settled.** *Who draws* above describes the old canvas. PaperKit has no mode where a finger
-only pans, and the trial's log doesn't tell a Pencil from a finger, so the next try on the iPad has to tell them apart before
-a story can claim anything about fingers.
+only pans, and four finger drags aren't enough to go on, so the next try on the iPad has to settle it before a story can
+claim anything about fingers.
+
+### A new board on paper, behind a switch
+
+(Igor, 2026-11-03: "Let's make it the default." While the rest of the rollout above isn't built, this stays behind a switch
+he turns on, device by device.)
+
+- **The switch.** The boards list has a menu beside **+** with *New boards on paper*. It's off until he turns it on, and it's
+  remembered on this device only.
+- **It decides one thing.** With it on, a board made with **+** on this device is on paper. It never moves a board: a board
+  stays on the canvas it started on, whichever way the switch is set later. Every old board keeps opening on the old canvas.
+- **What a board on paper is.** The column of pages described under *One board*: 820 wide, about 1,060-tall pages, pinching
+  out stopping at the page's width, faint page lines under the ink, *Page 1 of 1* at the corner, and always a blank page
+  below the last ink. No test cross and no ring. Its row in the list says *On paper*.
+- **It's a real board.** It keeps its name and colour, can be renamed and deleted, saves a moment after each stroke and again
+  on leaving or going to the background, goes through iCloud, and leaves no row behind if it closes without a stroke. It
+  opens where he left it on this device.
+- **On another device, and on older builds,** it opens in the look-only view on the old canvas, with the same ink. That
+  view has no pages yet.
+- **If a save fails,** the board shows the copyable problem and keeps drawing. If the failure comes as he leaves the board,
+  the problem shows on the boards list instead of going with it, whichever canvas the board is on, until that board next
+  saves.
+- **Always light, for now.** While a board on paper is on screen, the whole screen is in light mode, even with the device in
+  dark mode: its colour's pale shade, and dark ink. The boards list goes back to the device's mode. On the simulator, PaperKit in dark mode drew new black ink black, so it couldn't be
+  seen. This differs from *Each colour has a pale shade and a deep one* above until PaperKit's ink follows the mode, and it's
+  Igor's to overrule. What's saved is the same either way.
+- **Page lines only for now.** Ruled lines and grids come in a later step.
+- **What a board on paper can't do yet.** There are no ghosts, no *Larry's turn*, no marks from Larry on the board, no mic,
+  no paste button and no ⌘V. *Send to Larry* works: the picture is still the whole drawing, and his reply shows in Chat. His
+  marks in answer don't come back to the board yet.
+- **On a phone, the first ink moves the view.** One page at a phone's width is shorter than the screen, so PaperKit centres it;
+  the page the first ink brings fills the screen, and the view settles at the top. The ink doesn't move on the board.
+- **Undo and a new page.** Adding a page can count as a step of undo: one press may take back the page and not a stroke.
+  The next stroke brings the page back. Whether this matters on the iPad is still to be seen.
+- ***Try on paper* stays**, on any board this device draws, as the place to test with.
+
+The log says which touches were the Pencil's and which a finger's, and what each did, so the next try on the iPad can settle
+what a finger does.
 
 ## Trial on paper (temporary: it goes when the board moves to PaperKit)
 
@@ -187,8 +224,9 @@ a story can claim anything about fingers.
 - A board of 6 strokes loaded in about 0.1 seconds, with nothing missing in the round trip. That's a small board: how a big
   one loads is still to be seen.
 - Two fingers always scrolled.
-- One-finger drags drew 27 times, scrolled twice and did nothing twice. The log doesn't separate Pencil from finger, so
-  this doesn't answer question 1 below.
+- One-finger drags drew 27 times, scrolled twice and did nothing twice. The trial's log named each touch's kind in a way
+  that was overwritten, so only the line's question marks Pencil from finger. By that, the 27 were the Pencil's and the
+  four others a finger's: too few to answer question 1 below.
 
 (#635, #636; Igor, 2026-11-03, chose to build the board on Apple's PaperKit, as a column of pages.) Five things about
 PaperKit can only be settled on the iPad. This trial exists to settle them, and nothing else. It's a place to play, not a
@@ -249,6 +287,9 @@ that ghosts need the tailnet.
 - An old board opens on pages, once that step ships, with every stroke where it was relative to the others, none scaled.
   One wider than a page keeps its width.
 - A new board made after the default ships is on paper, shows no test cross or ring, and an older build still opens it.
+- With *New boards on paper* on, a new board is on paper and an old one still opens on the old canvas; with it off, a board
+  already on paper stays on paper.
+- A save that fails on a board on paper shows a problem that can be copied, on the board or, when leaving it, on the list.
 - An old board stays on the old canvas until the step that moves it ships.
 - A new board reads *Page 1 of 1*. Ink on it makes that *of 2*; ink crossing onto page 2 makes it *of 3*.
 - With three pages drawn and page 2 on screen, Send to Larry shows page 2 at a size he can read.

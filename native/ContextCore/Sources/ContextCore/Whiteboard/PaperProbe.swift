@@ -76,13 +76,6 @@ public enum PaperProbe {
     }
   }
 
-  /// The zoom that fits a width on screen, from what one zoom scale showed: what zoom 1.0 means is the trial's to find
-  /// out, so nothing here assumes it. Nil until a width has been seen.
-  public static func fitZoom(visibleWidth: CGFloat, atZoom zoom: CGFloat, column: CGFloat) -> CGFloat? {
-    guard visibleWidth > 0, zoom > 0, column > 0 else { return nil }
-    return visibleWidth * zoom / column
-  }
-
   public struct InkMove: Equatable, Sendable {
     public var id: String
     public var dx: CGFloat

@@ -17,10 +17,14 @@ final class WhiteboardStore: ObservableObject {
   @Published private(set) var problem: BugProblem?
   /// Bumped when a picture on disk changes, so the rows draw it again.
   @Published private(set) var pictures = 0
+  /// Stories 590, 595, 602, 607: this device's switch. It decides what **+** makes, and never moves a board.
+  @Published private(set) var newBoardsOnPaper: Bool
   let device: String
   let deviceName = UIDevice.current.model
   /// This device's boards open on screen: a delete from another device waits until their last save.
   private var open: Set<String> = []
+  /// The board the list's problem is about, when it's a save that failed on leaving.
+  private var unsavedBoard: String?
   private let dir: URL?
   private let log: SessionLog
   private let cloud = BoardCloud()
@@ -28,9 +32,16 @@ final class WhiteboardStore: ObservableObject {
   /// A sync asked for while one ran: it runs again when that one ends, so what changed meanwhile goes up too.
   private var again = false
 
+  static let newBoardsOnPaperKey = "whiteboard_new_boards_on_paper"
+
   init(log: SessionLog, device: String) {
     self.log = log
     self.device = device
+    // `GRABBER_WHITEBOARD_NEW_ON_PAPER=on|off`: for the simulator, as if the switch had been set.
+    if let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] {
+      UserDefaults.standard.set(hook == "on", forKey: Self.newBoardsOnPaperKey)
+    }
+    newBoardsOnPaper = UserDefaults.standard.bool(forKey: Self.newBoardsOnPaperKey)
     dir = try? FileManager.default
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true)
@@ -40,6 +51,20 @@ final class WhiteboardStore: ObservableObject {
   func drawingURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).drawing") }
   func pictureURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).png") }
   func editable(_ board: BoardEntry) -> Bool { BoardIndex.editable(board, on: device) }
+  func opensOnPaper(_ board: BoardEntry) -> Bool { BoardIndex.opensOnPaper(board, on: device) }
+
+  func setNewBoardsOnPaper(_ on: Bool) {
+    newBoardsOnPaper = on
+    UserDefaults.standard.set(on, forKey: Self.newBoardsOnPaperKey)
+    log.event("whiteboard", ["action": on ? "new_on_paper_on" : "new_on_paper_off"])
+  }
+
+  /// A board closed with ink that couldn't be saved: the board's screen is gone, so the list says it until that board
+  /// next saves (story 612).
+  func closedUnsaved(_ problem: BugProblem, board id: String) {
+    self.problem = problem
+    unsavedBoard = id
+  }
 
   // MARK: - The list on disk
 
@@ -115,9 +140,9 @@ final class WhiteboardStore: ObservableObject {
   /// A fresh board on this device: in the list at once, gone again if it closes without a stroke.
   func create() -> String {
     let id = UUID().uuidString.lowercased()
-    index.add(id: id, at: Date(), device: device, deviceName: deviceName)
+    index.add(id: id, at: Date(), device: device, deviceName: deviceName, onPages: newBoardsOnPaper)
     saveIndex()
-    log.event("whiteboard", ["action": "new", "board": id])
+    log.event("whiteboard", ["action": "new", "board": id, "on_paper": newBoardsOnPaper])
     return id
   }
 
@@ -162,7 +187,15 @@ final class WhiteboardStore: ObservableObject {
   /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it.
   func save(_ drawing: PKDrawing, board id: String) throws {
     guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
+    // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (stories 599, 612).
+    if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil {
+      throw CocoaError(.fileWriteOutOfSpace)
+    }
     try drawing.dataRepresentation().write(to: url, options: .atomic)
+    if unsavedBoard == id {
+      unsavedBoard = nil
+      if problem?.context == "WhiteboardView.save" { problem = nil }
+    }
     writePicture(of: drawing, id: id)
     index.drew(id, strokes: drawing.strokes.count, at: Int64(Date().timeIntervalSince1970 * 1000))
     saveIndex()
@@ -364,6 +397,8 @@ struct BoardCloud {
     record["device"] = board.device
     record["deviceName"] = board.deviceName
     record["paper"] = board.paperID
+    // So a reinstall on the device that draws it reopens it on paper. A board from before has no value here.
+    record["onPages"] = board.onPages == true ? 1 : nil
     record["drawing"] = CKAsset(fileURL: drawing)
     record["picture"] = picture.map(CKAsset.init(fileURL:))
     // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds. Ink beats a delete
@@ -411,7 +446,7 @@ struct BoardCloud {
     while more {
       let changes = try await database.recordZoneChanges(
         inZoneWith: zone.zoneID, since: token,
-        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName", "paper"])
+        desiredKeys: ["title", "created", "updated", "strokes", "device", "deviceName", "paper", "onPages"])
       for (id, result) in changes.modificationResultsByID {
         if let board = BoardIndex.tombstoned(by: id.recordName) {
           if let record = try? result.get().record { tombstones[board] = (record["updated"] as? Int64) ?? .max }
@@ -449,6 +484,7 @@ struct BoardCloud {
     return BoardEntry(
       id: record.recordID.recordName, title: title, created: created, updated: updated,
       strokes: (record["strokes"] as? Int) ?? 0, device: device,
-      deviceName: (record["deviceName"] as? String) ?? "another device", paperID: record["paper"] as? String)
+      deviceName: (record["deviceName"] as? String) ?? "another device", paperID: record["paper"] as? String,
+      onPages: (record["onPages"] as? Int) == 1 ? true : nil)
   }
 }

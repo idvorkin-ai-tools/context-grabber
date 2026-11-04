@@ -51,6 +51,8 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
+  /// On PaperKit (stories 590–612). No ghosts, Larry's marks or mic there yet, so none are asked for.
+  let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
   private let log: SessionLog
@@ -110,6 +112,7 @@ final class WhiteboardModel: ObservableObject {
     ghostsOn = UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true
     gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
     editable = store.editable(board)
+    onPaper = store.opensOnPaper(board)
     var loaded = PKDrawing()
     do {
       loaded = try store.drawing(board.id)
@@ -132,7 +135,7 @@ final class WhiteboardModel: ObservableObject {
     let added = new.strokes.count > drawing.strokes.count
     logStrokesMoved(to: new)
     drawing = new
-    if added, ghostsOn {
+    if added, ghostsOn, !onPaper {
       pacer.strokeAdded()
       startPause()
     }
@@ -349,7 +352,7 @@ final class WhiteboardModel: ObservableObject {
   /// The board appearing or the app coming back: looks at its thread, once it has one, until `stopWatchingLarry`.
   /// Story 382.
   func startWatchingLarry() {
-    guard editable, watchTask == nil else { return }
+    guard editable, !onPaper, watchTask == nil else { return }
     watchTask = Task { [weak self] in
       while !Task.isCancelled {
         await self?.lookAtThread()
@@ -790,7 +793,9 @@ final class WhiteboardModel: ObservableObject {
     guard editable else { return }
     if dirty {
       save()
-      log.event("whiteboard", ["action": "close", "board": board.id, "strokes": drawing.strokes.count])
+      log.event(
+        "whiteboard", ["action": "close", "board": board.id, "strokes": drawing.strokes.count, "saved": !dirty])
+      if dirty, let problem { store.closedUnsaved(problem, board: board.id) }
     }
     store.closed(board.id, empty: drawing.strokes.isEmpty)
   }
@@ -802,6 +807,7 @@ final class WhiteboardModel: ObservableObject {
       try store.save(drawing, board: board.id)
       dirty = false
       saveFailing = false
+      if problem?.context == "WhiteboardView.save" { problem = nil }
     } catch {
       if !saveFailing {
         log.event("error", ["where": "whiteboard_save", "message": "\(error)", "strokes": drawing.strokes.count])
@@ -886,6 +892,7 @@ struct WhiteboardView: View {
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   private let logger: BugLogger
+  private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
   private let reportOpen: AnyPublisher<Bool, Never>
 
@@ -898,6 +905,7 @@ struct WhiteboardView: View {
     callLive = app.call.$snapshot.map(\.isActive).removeDuplicates().eraseToAnyPublisher()
     reportOpen = app.reporter.$flow.map(\.isPresented).removeDuplicates().eraseToAnyPublisher()
     logger = app.bugLogger
+    log = app.log
   }
 
   var body: some View {
@@ -909,7 +917,10 @@ struct WhiteboardView: View {
       if let problem = model.problem {
         BugProblemView(problem: problem, logger: logger).padding(.horizontal)
       }
-      BoardCanvas(model: model).ignoresSafeArea(edges: .bottom)
+      Group {
+        if model.onPaper { PaperBoardCanvas(model: model, log: log) } else { BoardCanvas(model: model) }
+      }
+      .ignoresSafeArea(edges: .bottom)
     }
     .navigationTitle(model.board.title)
     .navigationBarTitleDisplayMode(.inline)
@@ -926,8 +937,10 @@ struct WhiteboardView: View {
                 }
               }
             }
-            Section("Grid") {
-              Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+            if !model.onPaper {
+              Section("Grid") {
+                Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+              }
             }
           } label: {
             Label("Board", systemImage: "paintpalette")
@@ -936,6 +949,9 @@ struct WhiteboardView: View {
           .accessibilityLabel("Board, \(model.paper.name)\(model.gridOn ? ", grid on" : "")")
           .accessibilityIdentifier("whiteboard-board")
         }
+      }
+      // Story 598: none of these work on paper yet, so none are offered.
+      if model.editable, !model.onPaper {
         ToolbarItem(placement: .topBarTrailing) {
           // The system's button: no *Allow Paste?* prompt, and iOS dims it when the clipboard holds no text.
           PasteButton(payloadType: String.self) { texts in

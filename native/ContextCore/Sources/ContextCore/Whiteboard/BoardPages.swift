@@ -47,6 +47,38 @@ public struct BoardPages: Equatable, Sendable {
     return max(pagesDown(to: inkMaxY, .up), 1) + 1
   }
 
+  /// The pages a board on paper should hold after a change: never fewer while it's open, as erasing leaves room. While
+  /// redo has steps waiting nothing is added, so he can step back and forward through what he did; his next new stroke
+  /// clears them, and adds whatever page is due.
+  public func pages(after current: Int, inkMaxY: CGFloat?, redoWaiting: Bool) -> Int {
+    redoWaiting ? current : max(current, pagesNeeded(inkMaxY: inkMaxY))
+  }
+
+  /// How many pages a column of this height holds, at least one.
+  public func pages(in bounds: CGRect) -> Int {
+    let held = (bounds.height / Self.pageHeight).rounded()
+    return held.isFinite ? max(Int(min(held, Self.mostPages)), 1) : 1
+  }
+
+  /// The corner's *Page 2 of 3*, for the page at the middle of the view: the one mostly on screen. Below the column it's
+  /// still the last page.
+  public func pageText(visibleMidY: CGFloat, pages: Int) -> String {
+    "Page \(min(page(at: CGPoint(x: 0, y: visibleMidY)), max(pages, 1))) of \(max(pages, 1))"
+  }
+
+  /// Where a board opens: where he left it on this device, or the first page if he never has. A place past the end,
+  /// from ink erased since, is the last page's top.
+  public func openingY(remembered: Double?, pages: Int) -> CGFloat {
+    guard let remembered, remembered.isFinite else { return 0 }
+    return min(max(CGFloat(remembered), 0), frame(ofPage: max(pages, 1)).minY)
+  }
+
+  /// The zoom that fits a width on screen, from what one zoom scale showed. Nil until a width has been seen.
+  public static func fitZoom(visibleWidth: CGFloat, atZoom zoom: CGFloat, column: CGFloat) -> CGFloat? {
+    guard visibleWidth > 0, zoom > 0, column > 0 else { return nil }
+    return visibleWidth * zoom / column
+  }
+
   /// The ruled lines within `visible` (board `y`), on the first `pages` pages. Every page is ruled the same from its
   /// own top, so a line never lands on a page's end; thinned by zoom as the grid is, so the lines that stay were lines
   /// already.
