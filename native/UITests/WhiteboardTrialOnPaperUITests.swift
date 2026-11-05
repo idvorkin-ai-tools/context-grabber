@@ -29,6 +29,12 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     waitForExpectations(timeout: timeout)
   }
 
+  /// A board row's label without its "Changed …" time, which moves with the clock; the name and any " · On paper" or
+  /// " · Drawn on …" stay.
+  private func steadyLabel(_ row: XCUIElement) -> String {
+    row.label.replacingOccurrences(of: "Changed [^·]*", with: "Changed ", options: .regularExpression)
+  }
+
   private func keep(_ app: XCUIApplication, _ name: String) {
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = name
@@ -50,8 +56,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
 
     let row = app.buttons["whiteboard-card"].firstMatch
     XCTAssertTrue(row.appears(within: 10), app.debugDescription)
-    // The row's "Changed …" part is relative to now, so it moves with the clock; the name and stroke count do not.
-    let before = row.label.components(separatedBy: ", Changed").first
+    let before = steadyLabel(row)
     row.press(forDuration: 1.2)
     let tryIt = app.buttons["Try on paper"]
     XCTAssertTrue(tryIt.appears(within: 5), app.debugDescription)
@@ -109,7 +114,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
 
     // The real board: its row reads as it did, and it holds the one stroke it had. Not a mark from the trial.
     XCTAssertTrue(row.appears(within: 10), app.debugDescription)
-    XCTAssertEqual(row.label.components(separatedBy: ", Changed").first, before)
+    XCTAssertEqual(steadyLabel(row), before)
     row.tap()
     XCTAssertTrue(send.appears(within: 10), app.debugDescription)
     waitFor(send, label: "Send to Larry, 1 strokes")
