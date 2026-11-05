@@ -34,12 +34,18 @@ broken app (#680, reversing the first rule here). So a Mac build behaves as his 
 the Inbox, the whiteboard's turns, the Cockpit page, the usage strip and a call all reach his Cockpit. A message sent
 from the Mac is a real message to Larry.
 
-A launch can name another address, and that covers every one of those routes:
+A launch can name another address, for chat and a call, for the page and for the usage strip; the one-command run names
+all of them at once, and a launch that names only some leaves the rest on Igor's Cockpit:
 
 - Named a stand-in, it talks only to the stand-in.
-- Named nowhere, nothing leaves the Mac for any Cockpit, and each route says copyably that it has no address, as a
-  simulator's chat does. This is how a test launch stays out of Igor's threads: **a test launch must name one or the
-  other.**
+- Named nowhere, nothing leaves the Mac for any Cockpit. Chat and the page say copyably that there is no address, as a
+  simulator's chat does, a call ends with its usual copyable reason, and the usage strip isn't drawn.
+
+This is how a test launch stays out of Igor's threads: **a test launch must name one or the other.**
+
+**The outbox.** A launch on Igor's own Cockpit and a launch named anywhere else keep separate outboxes. A message a test
+launch leaves waiting never goes to Larry on a later plain launch: it waits for a later test launch, and goes to the
+address that one names. A real message left waiting never goes to a stand-in: it waits for a launch on Igor's Cockpit.
 
 The stats archive and a call's log still send nothing, ever, unless a launch names an archive; the Mac has no Health to
 archive. On a phone and an iPad nothing changes. A simulator is unchanged too: its chat reaches only what it is pointed at.
@@ -69,6 +75,8 @@ when the app is quit nothing runs, and that isn't an error.
 - With no address named, chat, the Cockpit page and the usage strip reach Igor's Cockpit, with no error shown.
 - Named nowhere, no connection to the real Cockpit is made, on any route.
 - With a stand-in named, a message sent in Chat reaches the stand-in and its reply shows.
+- A message left waiting by a test launch is not sent by a later plain launch, and one left waiting by a plain launch is
+  not sent by a later test launch.
 - A phone and an iPad simulator build still compile, and their behaviour is untouched.
 
 ## Later

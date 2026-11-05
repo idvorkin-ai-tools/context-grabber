@@ -35,7 +35,7 @@ final class ShareViewController: UIViewController {
 
   /// Nil when kept; otherwise why not, for the card to show.
   private func add(note: String, thread: String?) -> String? {
-    guard let store = InboxStore.shared() else {
+    guard let store = InboxStore.shared(cockpit: ChatCockpit.address(override: nil)) else {
       return "This build has no App Group, so the Inbox is unreachable."
     }
     guard var item = shared.item(note: note) else { return shared.problem ?? "Nothing to add yet." }

@@ -43,7 +43,7 @@ final class InboxModel: ObservableObject {
     self.log = log
     self.database = database
     self.cockpit = cockpit
-    store = InboxStore.shared()
+    store = InboxStore.shared(cockpit: cockpit)
     pathMonitor.pathUpdateHandler = { [weak self] path in
       // .requiresConnection (an on-demand VPN such as Tailscale's) comes up when a connection is tried, so it counts.
       let available = path.status != .unsatisfied

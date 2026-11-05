@@ -299,7 +299,8 @@ whiteboard's turns and the share card reach no Cockpit at all: nothing is sent, 
 waiting, however it got there, and goes when a later launch names an address. The chat list and an open thread say
 copyably that this simulator has no address and how to give it one, rather than reading as a Cockpit that is away, and
 nothing is tried again on a timer. A phone or an iPad behaves as it always has. A Mac build reaches Igor's Cockpit as
-his phone does, unless a launch names another address or nowhere ([#680](2026-11-03-native-mac-app-design.md)).
+his phone does, unless a launch names another address or nowhere, and such a launch keeps its own outbox, so what it
+leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md)).
 
 ## Explaining itself
 
