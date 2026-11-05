@@ -362,7 +362,7 @@ struct NamingSheet: View {
           }
           Section {
             Button("Save") { save(centroid) }
-            .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+              .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
           }
         case .merge(let source, let centroid, _, let s):
           Section { NamingMap(centre: centroid, radius: nil, nearest: s.nearest).listRowInsets(EdgeInsets()) }
