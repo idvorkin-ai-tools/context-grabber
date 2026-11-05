@@ -1844,7 +1844,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 433:
 
 - **Summary:** Larry reads the pages I'm looking at
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented on paper in [a5dbc315](https://github.com/idvorkin/context-grabber/commit/a5dbc315), for Send to Larry and *Larry's turn*; verified on the host (`BoardPicturePagesTests`) and on an iPhone 17 simulator (`testThePictureIsThePageOnScreen`: the frame the fake Cockpit got is page 2's alone, and Larry's marks came back to it). Whether Larry reads the writing well, and how it feels on the iPad, haven't been checked; the old canvas still sends the whole board; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2024,7 +2024,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 522:
 
 - **Summary:** Nothing on screen, nothing to send
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented on paper in [a5dbc315](https://github.com/idvorkin/context-grabber/commit/a5dbc315), Send to Larry and *Larry's turn* both disabled; verified on the host (`BoardPicturePagesTests`) and on an iPhone 17 simulator (`testThePictureIsThePageOnScreen`). Not yet checked on the iPad; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 

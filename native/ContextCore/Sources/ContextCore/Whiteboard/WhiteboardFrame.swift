@@ -29,11 +29,12 @@ public enum WhiteboardFrame {
     return CGPoint(x: clamp(centre.x, viewport.width), y: clamp(centre.y, viewport.height))
   }
 
-  /// Larry's picture: the drawing plus a margin, and the scale that keeps it within the pixel budget and the long
-  /// side within `maxLong`. Nil for an empty drawing.
-  public static func export(_ drawing: CGRect) -> (rect: CGRect, scale: CGFloat)? {
+  /// Larry's picture: the drawing plus a margin, kept `within` (the pages a picture on paper shows, story 433), and the
+  /// scale that keeps it within the pixel budget and the long side within `maxLong`. Nil for an empty drawing.
+  public static func export(_ drawing: CGRect, within: CGRect = .infinite) -> (rect: CGRect, scale: CGFloat)? {
     guard !drawing.isNull, !drawing.isEmpty else { return nil }
-    let rect = drawing.insetBy(dx: -margin, dy: -margin)
+    let rect = drawing.insetBy(dx: -margin, dy: -margin).intersection(within)
+    guard !rect.isNull, !rect.isEmpty else { return nil }
     let budget = (maxPixels * maxPixels / (rect.width * rect.height)).squareRoot()
     let scale = min(maxScale, budget, maxLong / max(rect.width, rect.height))
     return (rect, scale)

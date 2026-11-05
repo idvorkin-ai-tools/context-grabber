@@ -306,6 +306,86 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(send(app), label: strokes(1))
   }
 
+  /// Stories 433, 522 (#636): ink on page 1 and page 2 on screen is nothing to send, Send and Larry's turn both; ink on
+  /// page 2 then goes as a picture of page 2 alone, by the frame the fake Cockpit got, and Larry's marks come back beside
+  /// it. A hook moves the view, as XCUITest has no two-finger drag.
+  func testThePictureIsThePageOnScreen() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard(["GRABBER_WHITEBOARD_PAGE_AFTER_INK": "2"])
+    // Ghosts off: a ghost showing would make the next finger a tap.
+    ghosts(app).tap()
+    wait(ghosts(app), label: "Ghosts off")
+    stroke(app, atHeight: 0.3)
+    wait(send(app), label: strokes(1))
+    wait(pageNumber(app), label: "Page 2 of 2")
+    sleep(1)
+    shot(app, "page 2, blank")
+    XCTAssertFalse(send(app).isEnabled, "page 1's ink is off screen: nothing to send")
+    XCTAssertFalse(app.buttons["whiteboard-larry"].isEnabled, "nor a turn to hand him")
+
+    stroke(app, atHeight: 0.6)
+    wait(send(app), label: strokes(2))
+    wait(pageNumber(app), label: "Page 2 of 3")
+    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: send(app))
+    waitForExpectations(timeout: 5)
+    let before = try pictureFrames(cockpit)
+    send(app).tap()
+    let frame = try newPictureFrame(cockpit, besides: before)
+    let (top, bottom) = (BoardPage.height, 2 * BoardPage.height)
+    XCTAssertGreaterThanOrEqual(frame.y, top, "page 2 only: \(frame)")
+    XCTAssertLessThanOrEqual(frame.y + frame.h, bottom, "page 2 only: \(frame)")
+    XCTAssertGreaterThanOrEqual(frame.scale, 1, "at a size Larry can read: \(frame)")
+    wait(ghosts(app), label: "Ghosts off, 2 showing", timeout: 20)
+    XCTAssertEqual(pageNumber(app).label, "Page 2 of 3", "his marks landed by the picture, on page 2")
+    shot(app, "Larry's marks on page 2")
+  }
+
+  private enum BoardPage { static let height: Double = 1060 }
+
+  private struct Frame: CustomStringConvertible {
+    let id: String
+    let y: Double
+    let h: Double
+    let scale: Double
+    var description: String { "y \(y) h \(h) scale \(scale)" }
+  }
+
+  private func get(_ cockpit: String, _ path: String) throws -> [String: Any] {
+    let url = try XCTUnwrap(URL(string: cockpit + path))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered \(path)")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    return try XCTUnwrap(try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any])
+  }
+
+  /// Every board picture of Igor's on the fake's threads, with its frame.
+  private func pictureFrames(_ cockpit: String) throws -> [Frame] {
+    let threads = try XCTUnwrap(try get(cockpit, "/chat")["threads"] as? [[String: Any]])
+    return try threads.compactMap { $0["key"] as? String }.flatMap { key -> [Frame] in
+      let messages = try get(cockpit, "/chat/\(key)")["messages"] as? [[String: Any]] ?? []
+      return messages.compactMap { m in
+        guard m["who"] as? String == "igor", let id = m["picture_id"] as? String,
+          let f = m["frame"] as? [String: Any], let y = f["y"] as? Double, let h = f["h"] as? Double
+        else { return nil }
+        return Frame(id: id, y: y, h: h, scale: f["scale"] as? Double ?? 0)
+      }
+    }
+  }
+
+  private func newPictureFrame(_ cockpit: String, besides before: [Frame]) throws -> Frame {
+    let seen = Set(before.map(\.id))
+    let until = Date().addingTimeInterval(15)
+    while Date() < until {
+      if let new = try pictureFrames(cockpit).first(where: { !seen.contains($0.id) }) { return new }
+      Thread.sleep(forTimeInterval: 0.5)
+    }
+    return try XCTUnwrap(nil as Frame?, "no new board picture reached the fake Cockpit")
+  }
+
   private func sends(_ cockpit: String) throws -> [[String]] {
     let url = try XCTUnwrap(URL(string: cockpit + "/fake/strokes"))
     var got: Data?

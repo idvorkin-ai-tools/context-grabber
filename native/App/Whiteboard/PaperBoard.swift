@@ -308,6 +308,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
   private var pressedForTests = false
+  private var movedForTests = false
   /// The undo stack a kept mark's steps went on. A closing view may no longer be able to say.
   private weak var stepsOn: UndoManager?
 
@@ -491,6 +492,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private func showPageNumber() {
     let text = board.pageText(visibleMidY: paper.contentVisibleFrame.midY, pages: pages)
     if text != pageText { pageText = text }
+    model.screenMoved()
   }
 
   private func rememberPlace() {
@@ -521,7 +523,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let drawing = markup.inkDrawing
     model.changed(drawing)
-    if change.added.count > 0 { pressSoonForTests() }
+    if change.added.count > 0 {
+      pressSoonForTests()
+      goToPageSoonForTests()
+    }
     // An undo can take back a page added earlier: the count follows what the markup holds.
     pages = board.pages(in: markup.bounds)
     let wanted = board.pages(
@@ -726,6 +731,29 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         }
         try? await Task.sleep(for: .seconds(1))
       }
+    }
+  }
+
+  /// `GRABBER_WHITEBOARD_PAGE_AFTER_INK=<page>`: a second after the first ink, the view goes to that page's top (as far as
+  /// the column lets it), for the simulator: a finger draws there and XCUITest has no two-finger drag (stories 433, 522).
+  private func goToPageSoonForTests() {
+    guard !movedForTests, let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_PAGE_AFTER_INK"],
+      let page = Int(hook)
+    else { return }
+    movedForTests = true
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(1))
+      guard let self else { return }
+      let size = self.paper.contentVisibleFrame.size
+      self.paper.contentVisibleFrame = CGRect(origin: CGPoint(x: 0, y: self.board.frame(ofPage: page).minY), size: size)
+      self.showPageNumber()
+      self.layRules()
+      self.log.event(
+        "whiteboard",
+        [
+          "action": "paper_page_hook", "board": self.model.board.id, "page": page, "pages": self.pages,
+          "visible": self.rect(self.paper.contentVisibleFrame),
+        ])
     }
   }
 
