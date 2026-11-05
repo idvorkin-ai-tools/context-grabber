@@ -31,7 +31,7 @@ final class WhiteboardModel: ObservableObject {
   }
   /// Story 344's switch, remembered across boards.
   @Published private(set) var ghostsOn: Bool
-  /// Story 407's switch, remembered per board on this device. Lines over the board, never in the drawing or a picture.
+  /// Story 407's switch, remembered per board on this device. Lines on the board, never in the drawing or a picture.
   @Published private(set) var gridOn: Bool
   /// On paper only: a board has a grid, ruled lines or neither.
   @Published private(set) var ruledOn: Bool
@@ -1060,7 +1060,7 @@ struct WhiteboardView: View {
           } label: {
             Label("Board", systemImage: "paintpalette")
           }
-          // Its colour and grid, for VoiceOver and the UI test, in the label for the reason below.
+          // Its colour and lines, for VoiceOver and the UI test, in the label for the reason below.
           .accessibilityLabel(
             "Board, \(model.paper.name)\(model.gridOn ? ", grid on" : model.ruledOn ? ", ruled lines on" : "")"
           )

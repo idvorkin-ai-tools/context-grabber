@@ -826,7 +826,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
   }
 
-  /// A second after ink is kept or pasted, whether the view's own picture has it. 0 with the ink in view is the ink missing.
+  /// A second after ink is kept or pasted or the sheet changes under it, whether the view's own picture has it. 0 with the
+  /// ink in view is the ink missing.
   private func lookForInk(_ ink: CGRect, why: String) {
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))

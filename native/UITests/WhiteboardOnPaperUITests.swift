@@ -68,7 +68,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
       .firstMatch
   }
 
-  /// Stories 590–593, 597, 598, 602, 603, 651: the switch, the board, what it doesn't offer, and its ink through a relaunch.
+  /// Stories 590–593, 597, 598, 602, 603, 651: the switch, the board, what its menu offers, and its ink through a relaunch.
   func testANewBoardIsOnPaperUntilTheSwitchIsTurnedOff() {
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     let options = app.buttons["whiteboard-options"]
