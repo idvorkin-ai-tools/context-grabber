@@ -136,3 +136,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** nothing else is using the simulator
 - **When:** the full whiteboard suite runs
 - **Then:** it finishes in under ten minutes and proves every behaviour the 25-minute suite proved, on the simulator or on the Mac
+
+---
+
+### User Story 680:
+
+- **Summary:** One command climbs the test ladder, cheapest rung first, and stops at the first failure
+- **Status:** not implemented; bead `context-grabber-3k6`; [spec](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+
+#### Use Case:
+- **As Igor,** waiting to know whether a change is safe
+- **I want to** run one command that tries the cheapest checks first and only goes on to the simulator tests this change touches
+- **so that** a mistake shows up in seconds, and a change to one screen doesn't cost a half-hour run
+
+#### Acceptance Criteria:
+- **Scenario:** A change to the chat screen, and a failure on a cheap rung
+- **Given:** the branch changed only chat's code
+- **and Given:** the Mac build fails on it
+- **and Given:** no other Xcode build is running
+- **When:** the ladder runs
+- **Then:** it stops at the Mac rung without starting the simulator, printing the seconds for each rung and that it stopped on the Mac
