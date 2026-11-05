@@ -20,7 +20,7 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 | File | What it settles |
 |---|---|
 | [VISION.md](VISION.md) | what the app is for and who it serves: the humane mirror, the front door, the phone's line to Larry |
-| [docs/TESTING.md](docs/TESTING.md) | the test ladder (host → simulator → phone), which change is verified where, the launch hooks, the real-data fixtures, what only the phone can show |
+| [docs/TESTING.md](docs/TESTING.md) | the test ladder (lint → host → Mac → simulator → phone), which change is verified where, the launch hooks, the real-data fixtures, what only the phone can show |
 | [docs/DEBUGGING.md](docs/DEBUGGING.md) | the session log and its events, copyable errors, instrument before theorizing, how a bug goes from the phone to a closed issue |
 | [docs/stories/README.md](docs/stories/README.md) | the spec: user stories per journey, each with its status and commits |
 | [docs/superpowers/specs/](docs/superpowers/specs/) | the design spec behind each feature — functionality, not implementation; updated before the code |
@@ -29,10 +29,12 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 ## Rules
 
 - Shared practices for all apps live in idvorkin/bug-kit (README: Shared practices for every app). A bug in BugKit's own code (the report dialog, dictation, the store, crash capture, CloudKit, the listener, What's new) or a practice that applies to every app is filed there and linked from this repo's issue, never fixed here.
-- **Test ladder**: host `just test` (swift-format and SwiftLint, `ContextCore`'s XCTest, the signing-guard, breath-clip
-  and tile-art checks; seconds) → the simulator (`just native-test-sim`, launch hooks judged from the session log, and
-  the UI tests in `native/UITests/`) → the phone (`just native-run-device`). Verify on the cheapest rung that can see
-  the change and **say which rung you used**. Audio session behaviour, HealthKit, GPS, widgets, Live Activities,
+- **Test ladder**: `just test-ladder` climbs it, cheapest rung first, stopping at the first failure (`--dry-run` says
+  what it would run). Rung 0 lint and 1 host are `just test` (swift-format and SwiftLint, `ContextCore`'s XCTest, the
+  script checks; seconds) → 1.5 the Mac build (`just native-build-mac`) → 2 the simulator (`just native-test-sim`,
+  launch hooks judged from the session log, and the UI tests in `native/UITests/`; never while another xcodebuild runs)
+  → 3 the phone (`just native-run-device`). Verify on the cheapest rung that can see the change and **say which rung
+  you used**. Audio session behaviour, HealthKit, GPS, widgets, Live Activities,
   Shortcuts and the voice bridge exist only on the phone ([TESTING.md](docs/TESTING.md)).
 - **Spec first, story always.** The design spec (`docs/superpowers/specs/`) is updated before the code — the full
   rule is below. And every feature or behaviour change updates the user stories (`docs/stories/`) in the same PR: a
@@ -109,6 +111,7 @@ Specs live in `docs/superpowers/specs/` as `YYYY-MM-DD-<feature>-design.md`; imp
 
 ```bash
 just setup                # swiftlint, xcbeautify, imagemagick, xcodegen from Homebrew
+just test-ladder          # climb: lint, host, Mac, simulator's touched UI tests; stops at the first failure (--dry-run, --full, --all)
 just test                 # = just native-test: lint, ContextCore's host tests, the script checks
 just native-test-sim      # simulator build + the launch-hook smoke (scripts/native/sim-smoke.sh)
 just native-sim-health    # once per simulator: grant Health access (a UI test taps the sheet)

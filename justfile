@@ -1,8 +1,13 @@
 # Context Grabber task runner: Grabber Native, the Swift app under native/
 # (docs/superpowers/specs/2026-10-04-swift-native-app-design.md). The React Native app's code was removed 2026-10-17.
 
-# Every host check (the native rung 1)
+# Every host check (the native rungs 0 and 1, the whole tree's layout included)
 test: native-test
+
+# The ladder, cheapest rung first, stopping at the first failure (docs/TESTING.md, story 680):
+# --dry-run prints the rungs and classes, --full runs the touched areas' suites, --all every UI test class.
+test-ladder *args:
+    scripts/native/test-ladder.sh {{args}}
 
 # --- The native app (native/, docs/superpowers/specs/2026-10-04-swift-native-app-design.md) ---
 
@@ -37,8 +42,15 @@ native-lint:
     command -v swiftlint >/dev/null || { echo "swiftlint is not installed: just setup (or brew install swiftlint)" >&2; exit 1; }
     cd native && swiftlint lint --strict --quiet
 
-# Native rung 1: ContextCore's host tests on the Mac (seconds)
-native-test: native-lint-format native-lint
+# Native rung 0 on its own: swift-format over the Swift files this branch touched, SwiftLint over the tree.
+native-lint-touched:
+    scripts/native/test-ladder.sh --rung 0
+
+# What the gate runs: the whole tree's lint, then the host rung.
+native-test: native-lint-format native-lint native-test-host
+
+# Native rung 1: ContextCore's host tests on the Mac and the script checks (seconds)
+native-test-host:
     #!/usr/bin/env bash
     # pipefail: a failing suite must fail the recipe instead of hiding behind tail's exit 0.
     set -uo pipefail
@@ -49,6 +61,8 @@ native-test: native-lint-format native-lint
     scripts/native/test-breath-clips.py
     # #304, #299: every home tile has its drawn art; the strip's poodle and quill are template images.
     scripts/native/test-tile-art.sh
+    # Story 680: which rungs and UI test classes a change gets, from the real script's dry run.
+    scripts/native/test-ladder-map.sh
 
 # GrabberNative.xcodeproj is generated from native/project.yml and not committed
 native-project:
@@ -72,10 +86,11 @@ native-sim-health: native-project
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
       -only-testing:GrabberNativeUITests/HealthAccessUITests test
 
-# Native rung 2: the simulator build driven by launch hooks, judged from its session log
+# Native rung 2's smoke: the simulator build driven by launch hooks, judged from its session log. It waits while another
+# xcodebuild runs: a simulator run under contention counts as failed.
 # Only the features this branch touched (scripts/native/smoke-features.sh), the app silent; SMOKE_ONLY=all for every one.
 native-test-sim: native-build-sim
-    SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
+    scripts/native/xcodebuild-idle.sh && SMOKE_ONLY="${SMOKE_ONLY-$(scripts/native/smoke-features.sh)}" bash scripts/native/sim-smoke.sh "{{native_sim}}" {{native_bundle}} {{native_sim_app}}
 
 # Stops a phone recipe with how to name the phone when it has no id
 _phone:
@@ -102,7 +117,7 @@ native-run-device: native-build-device
     xcrun devicectl device install app --device {{native_device}} {{native_device_app}}
     xcrun devicectl device process launch --device {{native_device}} {{native_bundle}}
 
-# The Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
+# Native rung 1.5, the Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
 native-build-mac: native-project
     #!/usr/bin/env bash
     set -uo pipefail
