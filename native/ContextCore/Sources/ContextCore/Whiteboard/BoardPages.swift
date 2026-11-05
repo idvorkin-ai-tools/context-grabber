@@ -128,6 +128,43 @@ public struct BoardPages: Equatable, Sendable {
     }
   }
 
+  /// Story 433: the pages Larry's picture shows, from what's on screen (`visible`, board points) and each stroke's box. A
+  /// page is on screen when it fills a quarter of the screen (of the page, on a screen taller than one), or holds the
+  /// screen's middle; one with none of its ink on screen is left out (story 522), so a page's blank bottom showing above
+  /// the next isn't a reason to send its ink.
+  public func pagesShown(visible: CGRect, ink: [CGRect]) -> [Int] {
+    guard Self.drawn(visible) != nil else { return [] }
+    let middle = page(at: CGPoint(x: 0, y: visible.midY))
+    let enough = min(visible.height, Self.pageHeight) / 4
+    let first = page(at: CGPoint(x: 0, y: visible.minY))
+    let last = max(page(at: CGPoint(x: 0, y: visible.maxY)), first)
+    return (first...last).filter { page in
+      let seen = visible.intersection(band(page))
+      guard !seen.isNull, page == middle || seen.height >= enough else { return false }
+      return ink.contains { $0.intersects(seen) }
+    }
+  }
+
+  /// Story 433: Larry's picture of the pages on screen: their ink (all of it, on screen or not, cut at their edges), with
+  /// the margin kept on them, at a readable scale. Nil when nothing on screen has ink, so there's nothing to send.
+  /// ponytail: one rectangle, so a blank page between two shown ones (three pages on a screen) stays in as white paper.
+  public func picture(visible: CGRect, ink: [CGRect]) -> (rect: CGRect, scale: CGFloat)? {
+    let shown = pagesShown(visible: visible, ink: ink)
+    guard let top = shown.first, let bottom = shown.last else { return nil }
+    let cut = shown.reduce(CGRect.null) { sum, page in
+      ink.reduce(sum) { sum, box in sum.union(box.intersection(band(page))) }
+    }
+    return WhiteboardFrame.export(cut, within: band(top).union(band(bottom)))
+  }
+
+  /// A page's rows, as wide as anything: ink past the column's side is still on that page.
+  private func band(_ page: Int) -> CGRect {
+    let rows = frame(ofPage: page)
+    return CGRect(x: -Self.wide / 2, y: rows.minY, width: Self.wide, height: rows.height)
+  }
+
+  private static let wide: CGFloat = 1e12
+
   /// Ink moving onto pages: only ever a translation, so no stroke can scale, and the strokes keep their places relative
   /// to each other.
   public struct Placement: Equatable, Sendable {

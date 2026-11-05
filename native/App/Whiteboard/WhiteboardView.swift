@@ -41,6 +41,8 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var turnNote: String?
   /// The picture is on its way to Larry's thread.
   @Published private(set) var larrySending = false
+  /// On paper: ink on the board, none of it on screen, so Send and Larry's turn have nothing to show him (story 522).
+  @Published private(set) var nothingOnScreen = false
   /// Looking at Larry's thread has failed for a while (story 383).
   @Published private(set) var larryAway = false
   /// What the last paste left off or couldn't draw, shown until the board next changes (stories 392, 393).
@@ -86,6 +88,9 @@ final class WhiteboardModel: ObservableObject {
   private var saveFailing = false
   private var turnFailing = false
   private var marks = WhiteboardMarks()
+  /// On paper: each stroke's box, for what's on screen (story 433), and the frame the last Send showed.
+  private var inkBoxes: [CGRect] = []
+  private var sentFrame: CGRect?
   /// The row his showing marks came from.
   private var shownRow: String?
   private var watchTask: Task<Void, Never>?
@@ -132,6 +137,7 @@ final class WhiteboardModel: ObservableObject {
     }
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
+    if onPaper { inkBoxes = loaded.strokes.map(\.renderBounds) }
     log.event(
       "whiteboard",
       ["action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": store.editable(board)])
@@ -154,6 +160,7 @@ final class WhiteboardModel: ObservableObject {
   func settled(_ new: PKDrawing) {
     guard editable, new != drawing else { return }
     drawing = new
+    inkMoved()
   }
 
   /// A kept mark undone or redone on paper: saved like any change, and not a stroke for Claude to answer.
@@ -185,6 +192,8 @@ final class WhiteboardModel: ObservableObject {
   private func drawingMoved() {
     isEmpty = drawing.strokes.isEmpty
     sent = nil
+    sentFrame = nil
+    inkMoved()
     pasteNote = nil
     dirty = true
     saveTask?.cancel()
@@ -193,6 +202,33 @@ final class WhiteboardModel: ObservableObject {
       guard !Task.isCancelled else { return }
       self?.save()
     }
+  }
+
+  /// The ink changed: what's on screen may have too.
+  private func inkMoved() {
+    guard onPaper else { return }
+    inkBoxes = drawing.strokes.map(\.renderBounds)
+    screenMoved()
+  }
+
+  /// On paper, the view moved or the ink changed (story 433): what Send and Larry's turn would show. A Send already made is
+  /// of the pages it showed, so another page on screen can be sent too.
+  func screenMoved() {
+    guard onPaper else { return }
+    let frame = pictureFrame()?.rect
+    let nothing = !drawing.strokes.isEmpty && frame == nil
+    if nothing != nothingOnScreen { nothingOnScreen = nothing }
+    if let sentFrame, sentFrame != frame {
+      self.sentFrame = nil
+      sent = nil
+    }
+  }
+
+  /// Larry's picture, for Send and his turn: on paper, the pages on screen (story 433); on the old canvas, the whole drawing.
+  /// Claude's own turns frame theirs as they always have.
+  private func pictureFrame() -> (rect: CGRect, scale: CGFloat)? {
+    guard onPaper else { return WhiteboardFrame.export(drawing.bounds) }
+    return BoardPages().picture(visible: visibleRect?() ?? .null, ink: inkBoxes)
   }
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
@@ -269,7 +305,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func handToLarry() async {
-    guard editable, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
+    guard editable, let (rect, scale) = pictureFrame() else { return }
     larrySending = true
     defer { larrySending = false }
     turnNote = "Larry has the board"
@@ -864,10 +900,10 @@ final class WhiteboardModel: ObservableObject {
     threads.firstSendWaiting(board: board.id, in: items)
   }
 
-  /// Story 343: the whole drawing, dark ink on white whatever the iPad's mode, on the board's thread with Larry, titled
-  /// with the board's name; the first one starts it (story 381).
+  /// Story 343: the whole drawing (on paper, the pages on screen: story 433), dark ink on white whatever the iPad's mode,
+  /// on the board's thread with Larry, titled with the board's name; the first one starts it (story 381).
   func send() {
-    guard sent == nil, !larrySending, let (rect, scale) = WhiteboardFrame.export(drawing.bounds) else { return }
+    guard sent == nil, !larrySending, let (rect, scale) = pictureFrame() else { return }
     let ink = picture(rect: rect, scale: scale)
     let jpeg = ink.jpegData(compressionQuality: 0.85) ?? Data()
     var draft = InboxDraft()
@@ -880,11 +916,13 @@ final class WhiteboardModel: ObservableObject {
       try inbox.add(&draft, thread: threads.thread(board: board.id))
       if problem?.context == "WhiteboardView.send" { problem = nil }
       sent = "Sent to Larry: his reply shows in Chat"
+      sentFrame = rect
       log.event(
         "whiteboard",
         [
           "action": "send", "board": board.id, "strokes": drawing.strokes.count, "bytes": jpeg.count,
           "pixels": "\(Int(ink.size.width * ink.scale))x\(Int(ink.size.height * ink.scale))",
+          "frame": [Double(rect.minX), Double(rect.minY), Double(rect.width), Double(rect.height)],
         ])
     } catch {
       log.event("error", ["where": "whiteboard_send", "message": "\(error)", "bytes": jpeg.count])
@@ -1106,7 +1144,9 @@ struct WhiteboardView: View {
           } label: {
             Label("Larry's turn", systemImage: "hand.draw")
           }
-          .disabled(model.isEmpty || model.larrySending || model.firstSendWaiting(in: inbox.items))
+          .disabled(
+            model.isEmpty || model.nothingOnScreen || model.larrySending || model.firstSendWaiting(in: inbox.items)
+          )
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
@@ -1118,7 +1158,7 @@ struct WhiteboardView: View {
         }
         // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
         .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
-        .disabled(model.isEmpty || model.sent != nil || model.larrySending)
+        .disabled(model.isEmpty || model.nothingOnScreen || model.sent != nil || model.larrySending)
         .accessibilityIdentifier("whiteboard-send")
       }
     }
