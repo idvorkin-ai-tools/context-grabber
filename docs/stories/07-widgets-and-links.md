@@ -1323,7 +1323,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 582:
 
 - **Summary:** A Mac build reaches my Cockpit by itself, and a test launch can keep away from it
-- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); host tests (`ChatCockpitTests`), and verified on Igor's Mac: no connection to the real Cockpit's address in any launch, watched every half second; the chat list, the Cockpit page and a call each said why. The Cockpit page's reason then moved into its copyable error, with no load attempted: not yet built or seen on a Mac.
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); host tests (`ChatCockpitTests`), and verified on Igor's Mac: no connection to the real Cockpit's address in any launch, watched every half second; the chat list, the Cockpit page and a call each said why. The Cockpit page's reason then moved into its copyable error, with no load attempted: not yet built or seen on a Mac.; [#680](https://github.com/idvorkin/context-grabber/issues/680), connecting by default: [dd827e96](https://github.com/idvorkin/context-grabber/commit/dd827e96); host tests (`ChatCockpitTests`), and verified on Igor's Mac, ad hoc, with no address named: chat read his 125 threads from his Cockpit and logged no `no_address`.
 - **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638), [#680](https://github.com/idvorkin/context-grabber/issues/680)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1348,7 +1348,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 583:
 
 - **Summary:** Named, a Mac build's chat goes to that Cockpit
-- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac against the stand-in: a message written in a thread reached it, its reply showed, and the outbox emptied.
+- **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); verified on Igor's Mac against the stand-in: a message written in a thread reached it, its reply showed, and the outbox emptied.; [#680](https://github.com/idvorkin/context-grabber/issues/680), connecting by default: [dd827e96](https://github.com/idvorkin/context-grabber/commit/dd827e96); host tests (`ChatCockpitTests`), and verified on Igor's Mac, ad hoc, with no address named: chat read his 125 threads from his Cockpit and logged no `no_address`.
 - **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
