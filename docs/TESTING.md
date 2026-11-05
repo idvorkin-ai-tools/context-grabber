@@ -52,7 +52,8 @@ costs about the suite's time; a change to one test file costs that file. `--full
 change touched, in place of that area's classes.
 
 The Mac and simulator rungs run in the build lane, one job at a time: `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`,
-with `time-limit` inside the lock and `caffeinate -i`. The simulator is shut down after, pass or fail.
+then, inside the lock, the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i`, so the time limit
+counts only the rung's own run. The simulator is shut down after, pass or fail.
 
 **Never run a simulator rung while another xcodebuild is running.** Startup waits fail under contention, and a run
 under contention counts as failed and is rerun, not debugged. The lock doesn't cover this, since a device build skips

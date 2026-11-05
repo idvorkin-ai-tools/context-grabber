@@ -163,13 +163,11 @@ say_unmapped() {
   echo "so no UI tests were chosen for them; --all runs every UI test class"
 }
 
-# The build lane: one job at a time on the simulator and in Xcode, across every agent, with a time limit inside the
-# lock so a hung run can't hold it (docs/TESTING.md).
+# The build lane: one job at a time on the simulator and in Xcode, across every agent. Inside the lock the rung first
+# waits for other xcodebuilds, then runs under a time limit so a hung run can't hold it (docs/TESTING.md).
 lane() {
-  local minutes=$2 limit=() tl=$HOME/gits/mac-driver/bin/time-limit
-  [ -x "$tl" ] && limit=("$tl" "$minutes")
   mkdir -p "$HOME/tmp/agent/locks"
-  LADDER_ASKED=$(date +%s) LADDER_WAITED=$waited lockf -k -t 3600 "$HOME/tmp/agent/locks/build.lock" ${limit[@]+"${limit[@]}"} caffeinate -i \
+  LADDER_ASKED=$(date +%s) LADDER_WAITED=$waited LADDER_MINUTES=$2 lockf -k -t 3600 "$HOME/tmp/agent/locks/build.lock" \
     "$self" ${orig[@]+"${orig[@]}"} --rung "$1" --in-lane
 }
 
@@ -184,7 +182,6 @@ rung_1() { just native-test-host; }
 
 rung_mac() {
   [ "$in_lane" -eq 1 ] || { lane 1.5 30; return; }
-  scripts/native/xcodebuild-idle.sh || return
   just native-build-mac
 }
 
@@ -275,7 +272,6 @@ simulator_steps() {
 rung_simulator() {
   [ "$in_lane" -eq 1 ] || { lane 2 $(($full == 1 ? 130 : 60)); return; }
   trap leave_simulator EXIT
-  scripts/native/xcodebuild-idle.sh || return
   udid=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
   # Our own xcodebuild is one; a second is someone else's, and device builds don't take the build lock.
   contended=$(mktemp -u)
@@ -305,8 +301,18 @@ rung_simulator() {
 [ "$dry" -eq 0 ] || exit 0
 
 if [ "$in_lane" -eq 1 ]; then
-  # How long the lock took, for the report: the rung's own seconds are the rest.
-  [ -z "${LADDER_WAITED:-}" ] || echo $(($(date +%s) - LADDER_ASKED)) >"$LADDER_WAITED"
+  if [ -z "${LADDER_TIMED:-}" ]; then
+    scripts/native/xcodebuild-idle.sh || exit
+    # How long the lock and the other xcodebuilds took, for the report: the rung's own seconds are the rest.
+    [ -z "${LADDER_WAITED:-}" ] || echo $(($(date +%s) - LADDER_ASKED)) >"$LADDER_WAITED"
+    tl=$HOME/gits/mac-driver/bin/time-limit limit=()
+    if [ -x "$tl" ]; then
+      limit=("$tl" "${LADDER_MINUTES:?}")
+    else
+      echo "no $tl: rung $only runs with no time limit, and a hang holds the build lock" >&2
+    fi
+    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} caffeinate -i "$self" "${orig[@]}"
+  fi
   case $only in
     1.5) rung_mac ;;
     2) rung_simulator ;;
@@ -330,7 +336,7 @@ climb() {  # <rung> <name> <function>
   status=$?
   [ -s "$waited" ] && lock_wait=$(<"$waited")
   took="$((SECONDS - start - lock_wait)) s"
-  [ "$lock_wait" -eq 0 ] || took="$took, after $lock_wait s waiting for the build lock"
+  [ "$lock_wait" -eq 0 ] || took="$took, after $lock_wait s waiting for the build lock and other xcodebuilds"
   if [ "$status" -eq 0 ]; then
     report+=("rung $1 $2: ok, $took")
     return 0
