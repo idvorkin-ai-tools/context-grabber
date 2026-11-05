@@ -119,7 +119,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   the board's name: the first send or Larry's turn on a board starts the thread, and later ones go to it, so marks he
   draws in answer come back to the board.
   - The bar says *Sent to Larry: his reply shows in Chat*. One send makes one message: the button stays disabled
-    until the next stroke, so a second tap never sends the same board twice.
+    until the next stroke, or on paper until other pages are on screen, so a second tap never sends the same
+    picture twice.
   - With no network, the board waits in the Inbox outbox like any other message and goes when the network is back.
   - An empty board can't be sent; the button is disabled.
   - **The picture shows the page or pages on screen** (#636; Igor, 2026-11-03), so what he's looking at is what Larry
