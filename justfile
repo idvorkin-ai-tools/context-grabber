@@ -4,7 +4,7 @@
 # Every host check (the native rungs 0 and 1, the whole tree's layout included)
 test: native-test
 
-# The ladder, cheapest rung first, stopping at the first failure (docs/TESTING.md, story 680):
+# The ladder, cheapest rung first, stopping at the first failure (docs/TESTING.md, story 683):
 # --dry-run prints the rungs and classes, --full runs the touched areas' suites, --all every UI test class.
 test-ladder *args:
     scripts/native/test-ladder.sh {{args}}
@@ -61,7 +61,7 @@ native-test-host:
     scripts/native/test-breath-clips.py
     # #304, #299: every home tile has its drawn art; the strip's poodle and quill are template images.
     scripts/native/test-tile-art.sh
-    # Story 680: which rungs and UI test classes a change gets, from the real script's dry run.
+    # Story 683: which rungs and UI test classes a change gets, from the real script's dry run.
     scripts/native/test-ladder-map.sh
 
 # GrabberNative.xcodeproj is generated from native/project.yml and not committed

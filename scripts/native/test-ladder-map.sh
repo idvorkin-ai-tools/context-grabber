@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Host test for the ladder (story 680): runs the real scripts/native/test-ladder.sh and reads what it says. The dry runs
+# Host test for the ladder (story 683): runs the real scripts/native/test-ladder.sh and reads what it says. The dry runs
 # check which rungs and UI test classes a change gets; the rest run it with fake just, xcodebuild, xcrun, lockf, pgrep and
 # uv, so nothing builds, nothing boots and nothing takes the real lock.
 set -uo pipefail

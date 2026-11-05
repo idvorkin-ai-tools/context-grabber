@@ -30,7 +30,7 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 ## Climbing: `just test-ladder`
 
 `just test-ladder` climbs from rung 0 and stops at the first failure, printing the seconds per rung and the rung it
-stopped on (story 680). It reads the change from the branch since `origin/main`, committed or not (`--base <ref>` for
+stopped on (story 683). It reads the change from the branch since `origin/main`, committed or not (`--base <ref>` for
 another base). A rung with nothing to answer is skipped: the Mac and simulator builds aren't run for words, host tests
 or test scripts alone, and a UI test isn't in the Mac build. `--dry-run` prints the rungs and classes and runs nothing;
 `--changed <path>` tries the map on a path; `--rung <n>` runs one rung. It never climbs to the phone.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Story 680: climb the test ladder (docs/TESTING.md), cheapest rung first, stopping at the first failure, printing the
+# Story 683: climb the test ladder (docs/TESTING.md), cheapest rung first, stopping at the first failure, printing the
 # seconds per rung and which rung it stopped on. The change is everything on this branch since the base, committed or
 # not. Rung 3, the phone, stays Igor's.
 #   0 Lint        swift-format over the touched Swift files, SwiftLint over the tree
@@ -169,7 +169,7 @@ lane() {
   local minutes=$2 limit=() tl=$HOME/gits/mac-driver/bin/time-limit
   [ -x "$tl" ] && limit=("$tl" "$minutes")
   mkdir -p "$HOME/tmp/agent/locks"
-  lockf -k -t 3600 "$HOME/tmp/agent/locks/build.lock" ${limit[@]+"${limit[@]}"} caffeinate -i \
+  LADDER_ASKED=$(date +%s) LADDER_WAITED=$waited lockf -k -t 3600 "$HOME/tmp/agent/locks/build.lock" ${limit[@]+"${limit[@]}"} caffeinate -i \
     "$self" ${orig[@]+"${orig[@]}"} --rung "$1" --in-lane
 }
 
@@ -208,6 +208,7 @@ fresh_boot() {
 start_cockpit() {  # <port> <seconds POST /chat is held>
   FAKE_COCKPIT_NEW_DELAY=$2 scripts/native/fake-cockpit.py "$1" "$(mktemp -t fake-cockpit)" >/dev/null 2>&1 &
   cockpit=$!
+  disown
   sleep 1
   kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $1" >&2; return 1; }
 }
@@ -234,6 +235,7 @@ chat_classes() {
   start_cockpit "${CHAT_PORT:-8798}" "${FAKE_COCKPIT_NEW_DELAY:-3}" || return
   scripts/native/fake-bridge.py "${CHAT_BRIDGE_PORT:-8797}" "$(mktemp -t fake-bridge)" >/dev/null 2>&1 &
   bridge=$!
+  disown
   sleep 1
   kill -0 "$bridge" 2>/dev/null || { echo "the fake bridge did not start" >&2; return 1; }
   TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:${CHAT_PORT:-8798}" TEST_RUNNER_GRABBER_FAKE_BRIDGE="ws://localhost:${CHAT_BRIDGE_PORT:-8797}" \
@@ -259,6 +261,8 @@ whiteboard_classes() {
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }
 
 simulator_steps() {
+  # A fresh worktree has no project until it is generated, and a new test file needs it regenerated.
+  step project just native-project || return
   step compile xcodebuild_sim build-for-testing "TEST BUILD SUCCEEDED" build-for-testing || return
   if [ "$run_chat_classes" -gt 0 ]; then step "chat classes" chat_classes || return; fi
   if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
@@ -282,6 +286,7 @@ rung_simulator() {
     done
   ) >/dev/null 2>&1 &
   sampler=$!
+  disown
   simulator_steps
   local status=$?
   # Our xcodebuild is done here, so any still running is another's.
@@ -300,6 +305,8 @@ rung_simulator() {
 [ "$dry" -eq 0 ] || exit 0
 
 if [ "$in_lane" -eq 1 ]; then
+  # How long the lock took, for the report: the rung's own seconds are the rest.
+  [ -z "${LADDER_WAITED:-}" ] || echo $(($(date +%s) - LADDER_ASKED)) >"$LADDER_WAITED"
   case $only in
     1.5) rung_mac ;;
     2) rung_simulator ;;
@@ -308,6 +315,8 @@ if [ "$in_lane" -eq 1 ]; then
 fi
 
 report=()
+waited=$(mktemp -t ladder-wait)
+trap 'rm -f "$waited"' EXIT
 finish() {
   echo "seconds per rung:"
   printf '  %s\n' "${report[@]}"
@@ -315,14 +324,18 @@ finish() {
 }
 climb() {  # <rung> <name> <function>
   wanted "$1" || return 0
-  local start=$SECONDS status
+  local start=$SECONDS status took lock_wait=0
+  : >"$waited"
   "$3"
   status=$?
+  [ -s "$waited" ] && lock_wait=$(<"$waited")
+  took="$((SECONDS - start - lock_wait)) s"
+  [ "$lock_wait" -eq 0 ] || took="$took, after $lock_wait s waiting for the build lock"
   if [ "$status" -eq 0 ]; then
-    report+=("rung $1 $2: ok, $((SECONDS - start)) s")
+    report+=("rung $1 $2: ok, $took")
     return 0
   fi
-  report+=("rung $1 $2: FAILED, $((SECONDS - start)) s")
+  report+=("rung $1 $2: FAILED, $took")
   finish
   case $status in
     75) echo "stopped on rung $1 $2: it could not start, the build lock or another xcodebuild was still busy (exit 75)" ;;

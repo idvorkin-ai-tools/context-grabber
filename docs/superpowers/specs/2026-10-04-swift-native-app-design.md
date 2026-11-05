@@ -413,7 +413,7 @@ seconds; the simulator runs the app from launch hooks and is judged from the ses
 phone is for what only the phone can show. Details live in [TESTING.md](../../TESTING.md) and
 [DEBUGGING.md](../../DEBUGGING.md).
 
-One command climbs the ladder for a change (story 680). It takes the cheapest rung first and stops at the first
+One command climbs the ladder for a change (story 683). It takes the cheapest rung first and stops at the first
 failure, and it prints the seconds each rung took and which rung it stopped on. A rung with nothing to answer is
 skipped, and the output says why.
 

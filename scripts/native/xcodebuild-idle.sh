@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Never start a simulator rung while another xcodebuild runs: startup waits fail under the load, so a run under
-# contention proves nothing (docs/TESTING.md, story 680). Waits for every xcodebuild on this Mac to finish, saying so,
+# contention proves nothing (docs/TESTING.md, story 683). Waits for every xcodebuild on this Mac to finish, saying so,
 # and refuses with 75 after XCODEBUILD_IDLE_WAIT seconds (default half an hour).
 # Usage: xcodebuild-idle.sh   — before anything that drives the simulator
 set -uo pipefail
