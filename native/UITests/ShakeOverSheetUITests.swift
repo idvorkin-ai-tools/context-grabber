@@ -12,6 +12,9 @@ final class ShakeOverSheetUITests: XCTestCase {
     let report = app.navigationBars["Report a problem"]
     XCTAssertTrue(report.appears(within: 15), app.debugDescription)
     report.buttons["Cancel"].tap()
+    // The report has to be gone, not just closing: the sheet's bar shows underneath it the whole time, so its being there
+    // proves nothing, and a swipe during the close lands on the report going away.
+    XCTAssertTrue(report.waitForNonExistence(timeout: 5), app.debugDescription)
     // The sheet underneath is still there.
     XCTAssertTrue(app.navigationBars["Home screen"].appears(within: 5), app.debugDescription)
     // A second report, from the sheet's own button: the first one's close let go of it.
