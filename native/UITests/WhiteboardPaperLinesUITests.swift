@@ -117,7 +117,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     }
   }
 
-  /// Stories 434, 523, 538, 651, 653: ruled lines run across only, the grid both ways, one takes the other's place, and they
+  /// Stories 434, 523, 538, 652, 654: ruled lines run across only, the grid both ways, one takes the other's place, and they
   /// don't count as ink or as a step of undo.
   func testRuledLinesAndTheGridAreOneChoiceAndNeverInk() throws {
     let app = try openBoard()
@@ -145,7 +145,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "lines aren't ink")
   }
 
-  /// Story 652: ruled lines stay with their board, and a new board starts without.
+  /// Story 653: ruled lines stay with their board, and a new board starts without.
   func testRuledLinesStayWithTheBoardUnderTheInk() throws {
     let app = try openBoard()
     stroke(app)
@@ -168,7 +168,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     wait(board(app), label: "Board, Plain")
   }
 
-  /// Stories 654, 655: every colour shows the page's end line and the grid, and changing either leaves pasted ink on screen.
+  /// Stories 655, 656: every colour shows the page's end line and the grid, and changing either leaves pasted ink on screen.
   func testEveryColourShowsItsLinesAndKeepsTheInk() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
     wait(send(app), label: "Send to Larry, 2 strokes")
@@ -191,7 +191,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 2 strokes", "neither is ink")
   }
 
-  /// Story 656: the first stroke after the menu draws, and after leaving the menu with no choice too.
+  /// Story 657: the first stroke after the menu draws, and after leaving the menu with no choice too.
   func testTheFirstStrokeAfterTheMenuDraws() throws {
     let app = try openBoard()
     menu(app, "Grey", expect: "Board, Grey")
@@ -206,7 +206,15 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     wait(send(app), label: "Send to Larry, 2 strokes")
   }
 
-  /// Story 654: a ghost shows on the colour furthest from white.
+  /// Story 657: choosing the colour the board already has costs no stroke either.
+  func testTheFirstStrokeAfterChoosingTheSameColourDraws() throws {
+    let app = try openBoard()
+    menu(app, "Plain", expect: "Board, Plain")
+    stroke(app)
+    wait(send(app), label: "Send to Larry, 1 strokes")
+  }
+
+  /// Story 655: a ghost shows on the colour furthest from white.
   func testAGhostShowsOnTheDarkestColours() throws {
     let app = try openBoard(ghostsOn: true)
     menu(app, "Grey", expect: "Board, Grey")

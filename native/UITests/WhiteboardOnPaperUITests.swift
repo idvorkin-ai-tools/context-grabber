@@ -116,7 +116,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     colours.tap()
     let sage = app.descendants(matching: .any)["Sage"].firstMatch
     XCTAssertTrue(sage.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertTrue(app.descendants(matching: .any)["Grid lines"].exists, "story 651: the grid")
+    XCTAssertTrue(app.descendants(matching: .any)["Grid lines"].exists, "story 652: the grid")
     XCTAssertTrue(app.descendants(matching: .any)["Ruled lines"].exists, "story 434: ruled lines")
     sage.tap()
     waitFor(colours, label: "Board, Sage")

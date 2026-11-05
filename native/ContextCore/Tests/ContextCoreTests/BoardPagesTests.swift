@@ -86,7 +86,7 @@ final class BoardPagesTests: XCTestCase {
     XCTAssertEqual(pages.pageEnds(pages: 0), [])
   }
 
-  // MARK: Story 651: the grid on paper
+  // MARK: Story 652: the grid on paper
 
   func testTheGridRunsOnUnbrokenFromPageToPage() {
     let lines = pages.gridLines(visible: CGRect(x: 0, y: 1_000, width: 820, height: 120), pages: 2, zoom: 1)

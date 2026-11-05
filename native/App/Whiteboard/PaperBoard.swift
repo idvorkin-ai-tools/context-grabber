@@ -1,8 +1,8 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–650; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
 //  as any other board does, with its ghosts, Larry's marks, the mic and paste. Ghosts lie on the sheet under the ink, in
-//  PaperKit's content view, so they move with the board whatever it does. Grids aren't here yet (S7).
+//  PaperKit's content view, so they move with the board whatever it does.
 
 import ContextCore
 import PaperKit
@@ -56,7 +56,8 @@ class PaperHost: UIViewController {
   /// Held here: the tool picker disappears when nothing keeps it.
   private let picker = PKToolPicker()
   private let watcher = PaperTouchWatcher()
-  private(set) var paperColor: UIColor
+  private(set) var boardPaper: BoardPaper
+  var paperColor: UIColor { boardPaper.color }
 
   private(set) var touchesDown = 0
   private(set) var pencilDown = false
@@ -76,10 +77,10 @@ class PaperHost: UIViewController {
     return set
   }()
 
-  init(paperColor: UIColor) {
-    self.paperColor = paperColor
+  init(boardPaper: BoardPaper) {
+    self.boardPaper = boardPaper
     paper = PaperMarkupViewController(markup: nil, supportedFeatureSet: Self.features)
-    lines = PaperLines(paper: paperColor)
+    lines = PaperLines(paper: boardPaper.color)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -114,9 +115,10 @@ class PaperHost: UIViewController {
     picker.removeObserver(paper)
   }
 
-  func setPaperColor(_ color: UIColor) {
-    guard color != paperColor else { return }
-    paperColor = color
+  func setBoardPaper(_ new: BoardPaper) {
+    guard new != boardPaper else { return }
+    boardPaper = new
+    let color = new.color
     view.backgroundColor = color
     lines.backgroundColor = color
   }
@@ -293,7 +295,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var redrawing: Task<Void, Never>?
   private var responding: Task<Void, Never>?
   private var rules = PaperRules.none
-  private var rulesLaid: (rules: PaperRules, pages: Int, step: CGFloat, width: CGFloat, y: ClosedRange<CGFloat>)?
+  private var rulesLaid: (rules: PaperRules, pages: Int, step: CGFloat, y: ClosedRange<CGFloat>)?
   /// The window this board made light, and how it was.
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?
   /// A Pencil or a drawing finger is down, as the pacer was told.
@@ -314,7 +316,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   init(model: WhiteboardModel, log: SessionLog) {
     self.model = model
     self.log = log
-    super.init(paperColor: model.paper.color)
+    super.init(boardPaper: model.paper)
   }
 
   required init?(coder: NSCoder) { nil }
@@ -326,6 +328,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
+    model.menuChose = { [weak self] in self?.takeTheResponderBack() }
   }
 
   /// The part of the column on screen: the visible frame runs past the paper where a phone's one page is shorter than the
@@ -424,9 +427,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     lookAfterChange()
   }
 
-  override func setPaperColor(_ color: UIColor) {
-    guard color != paperColor else { return }
-    super.setPaperColor(color)
+  override func setBoardPaper(_ new: BoardPaper) {
+    guard new != boardPaper else { return }
+    super.setBoardPaper(new)
     lookAfterChange()
   }
 
@@ -453,7 +456,6 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// The sheet changed under the ink, which must not lose it: `paper_ink_look` says if it did.
   private func lookAfterChange() {
-    takeTheResponderBack()
     guard let ink = paper.markup?.inkDrawing, !ink.strokes.isEmpty else { return }
     lookForInk(ink.bounds, why: "sheet")
   }
@@ -465,13 +467,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let visible = paper.contentVisibleFrame
     let step = WhiteboardFrame.lineStep(zoom: zoom)
     lines.hair = 1 / (traitCollection.displayScale * max(zoom, 0.01))
-    if let laid = rulesLaid, laid.rules == rules, laid.pages == pages, laid.step == step, laid.width == board.width,
+    if let laid = rulesLaid, laid.rules == rules, laid.pages == pages, laid.step == step,
       laid.y.contains(visible.minY), laid.y.contains(visible.maxY)
     {
       return
     }
     let y = (visible.minY - visible.height)...(visible.maxY + visible.height)
-    rulesLaid = (rules, pages, step, board.width, y)
+    rulesLaid = (rules, pages, step, y)
     switch rules {
     case .none:
       lines.showRules(across: [], span: 0...0, down: [])
@@ -1012,7 +1014,7 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
   func makeUIViewController(context: Context) -> PaperBoardController { controller }
 
   func updateUIViewController(_ controller: PaperBoardController, context: Context) {
-    controller.setPaperColor(paper.color)
+    controller.setBoardPaper(paper)
     controller.setRules(rules)
     controller.show(ghosts)
   }
@@ -1022,11 +1024,11 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
   }
 }
 
-/// Paper under the ink: its colour, a faint line where each page ends, any small crosses asked for, and the ghosts. In
-/// PaperKit's content view, so it moves with the board and is in nothing else.
 /// What a board's paper is ruled with. A board has one or none.
 enum PaperRules { case none, grid, ruled }
 
+/// Paper under the ink: its colour, its grid or ruled lines, a faint line where each page ends, any small crosses asked
+/// for, and the ghosts. In PaperKit's content view, so it moves with the board and is in nothing else.
 final class PaperLines: UIView {
   private let shape = CAShapeLayer()
   /// The grid or ruled lines, under the page lines and the ghosts, as ink lies over all of this.

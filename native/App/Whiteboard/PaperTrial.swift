@@ -188,7 +188,7 @@ final class PaperTrial: PaperHost, ObservableObject, PaperMarkupViewController.D
   init(copy: PaperTrialCopy, log: SessionLog) {
     self.copy = copy
     self.log = log
-    super.init(paperColor: copy.paper.color)
+    super.init(boardPaper: copy.paper)
   }
 
   required init?(coder: NSCoder) { nil }

@@ -53,7 +53,7 @@ final class WhiteboardModel: ObservableObject {
   let board: BoardEntry
   /// Drawn here, or only looked at (a board from another device, story 347).
   let editable: Bool
-  /// On PaperKit (stories 590–656).
+  /// On PaperKit (stories 590–657).
   let onPaper: Bool
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
@@ -69,6 +69,8 @@ final class WhiteboardModel: ObservableObject {
   /// Puts a kept ghost or a paste on the canvas (undoably), given the whole drawing and what's new in it; the canvas sets
   /// it.
   var draw: ((PKDrawing, [PKStroke]) -> Void)?
+  /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
+  var menuChose: (() -> Void)?
   private var pacer = WhiteboardPacer()
   private let callLive: @MainActor () -> Bool
   private lazy var dictation = makeDictation()
@@ -1024,16 +1026,35 @@ struct WhiteboardView: View {
         ToolbarItem(placement: horizontalSizeClass == .compact ? .bottomBar : .topBarTrailing) {
           Menu {
             Section("Colour") {
-              Picker("Colour", selection: Binding(get: { model.paper }, set: { model.setPaper($0) })) {
-                ForEach(BoardPaper.allCases, id: \.self) { paper in
-                  Text(paper.name).tag(paper)
-                }
+              ForEach(BoardPaper.allCases, id: \.self) { paper in
+                Toggle(
+                  paper.name,
+                  isOn: Binding(
+                    get: { model.paper == paper },
+                    set: { _ in
+                      model.setPaper(paper)
+                      model.menuChose?()
+                    }))
               }
             }
             Section(model.onPaper ? "Lines" : "Grid") {
-              Toggle("Grid lines", isOn: Binding(get: { model.gridOn }, set: { model.setGrid($0) }))
+              Toggle(
+                "Grid lines",
+                isOn: Binding(
+                  get: { model.gridOn },
+                  set: {
+                    model.setGrid($0)
+                    model.menuChose?()
+                  }))
               if model.onPaper {
-                Toggle("Ruled lines", isOn: Binding(get: { model.ruledOn }, set: { model.setRuled($0) }))
+                Toggle(
+                  "Ruled lines",
+                  isOn: Binding(
+                    get: { model.ruledOn },
+                    set: {
+                      model.setRuled($0)
+                      model.menuChose?()
+                    }))
               }
             }
           } label: {
