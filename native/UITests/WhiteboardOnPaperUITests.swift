@@ -68,7 +68,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
       .firstMatch
   }
 
-  /// Stories 590–593, 597, 598, 602, 603, 651: the switch, the board, what it doesn't offer, and its ink through a relaunch.
+  /// Stories 590–593, 597, 598, 602, 603, 651: the switch, the board, what its menu offers, and its ink through a relaunch.
   func testANewBoardIsOnPaperUntilTheSwitchIsTurnedOff() {
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     let options = app.buttons["whiteboard-options"]
@@ -77,7 +77,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     options.tap()
     let toggle = app.descendants(matching: .any)["New boards on paper"].firstMatch
     XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
-    toggle.tap()
+    toggle.tapWhenSettled()
     waitFor(options, label: "Board options, new boards on the old canvas")
     app.terminate()
     app = launch()
@@ -88,7 +88,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     // Story 602: turned back on from the menu, the next board is on paper.
     remembered.tap()
     XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
-    toggle.tap()
+    toggle.tapWhenSettled()
     waitFor(remembered, label: "Board options, new boards on paper")
     newBoard(app)
     XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
@@ -116,8 +116,9 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     colours.tap()
     let sage = app.descendants(matching: .any)["Sage"].firstMatch
     XCTAssertTrue(sage.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertFalse(app.descendants(matching: .any)["Grid lines"].exists, "story 598: no grid on paper yet")
-    sage.tap()
+    XCTAssertTrue(app.descendants(matching: .any)["Grid lines"].exists, "story 652: the grid")
+    XCTAssertTrue(app.descendants(matching: .any)["Ruled lines"].exists, "story 434: ruled lines")
+    sage.tapWhenSettled()
     waitFor(colours, label: "Board, Sage")
     sleep(1)
     keep(app, "the paper in sage")

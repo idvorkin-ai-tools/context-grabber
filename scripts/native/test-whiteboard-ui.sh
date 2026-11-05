@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The whiteboard turn, paste and boards-list UI tests on the simulator (stories 344, 345, 349, 351, 354, 357, 358, 360, 367, 370, 371, 373, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 399, 402, 403, 435–439, 524–534, 590–626, 637–641, 643–646, 650), with a fake Cockpit:
+# The whiteboard turn, paste and boards-list UI tests on the simulator (stories 344, 345, 349, 351, 354, 357, 358, 360, 367, 370, 371, 373, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 399, 402, 403, 435–439, 524–534, 590–626, 637–641, 643–646, 650, 652–657), with a fake Cockpit:
 # scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-whiteboard-ui.sh <simulator udid>   — run it in the build lane:
@@ -23,7 +23,7 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardTrialOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardTurnOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPasteOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests -skip-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ test
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardTrialOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardTurnOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPasteOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests -skip-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ test
 status=$?
 # Keys reach the app for one test per boot, and the old canvas's ⌘V test had this boot's: ⌘V on paper gets the next.
 xcrun simctl shutdown "$udid" 2>/dev/null

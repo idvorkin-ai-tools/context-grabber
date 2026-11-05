@@ -170,7 +170,7 @@ it. Nothing else about the app changes with this, and a device on an older syste
 nothing has to migrate. The cost, from the same proposal: anything PaperKit could add, such as shapes or text boxes, wouldn't
 stay an editable object once saved. That fits the non-goals above.
 
-**What differs on paper.** Page lines and ruled lines lie under the ink, not over it. Everything else about pages, lines and
+**What differs on paper.** Page lines, ruled lines and the grid lie under the ink, not over it. Everything else about pages, lines and
 pictures reads as written above. The trial's small cross on each page and its ring are there only to test with, and never
 appear on a real board.
 
@@ -202,8 +202,18 @@ so." New boards are on paper from now on, on every device, though the rest of th
   dark mode: its colour's pale shade, and dark ink. The boards list goes back to the device's mode. On the simulator, PaperKit in dark mode drew new black ink black, so it couldn't be
   seen. This differs from *Each colour has a pale shade and a deep one* above until PaperKit's ink follows the mode, and it's
   Igor's to overrule. What's saved is the same either way.
-- **Page lines only for now.** Ruled lines and grids come in a later step.
-- **What a board on paper can't do yet.** There's no grid. *Send to Larry*, *Larry's turn*, ghosts, the mic and paste work: see
+- **Grid and ruled lines.** The **Board** menu offers *Grid lines* and *Ruled lines*, as *Grid lines* above describes: a grid,
+  ruled lines or neither, choosing one takes away the other, off until asked, and remembered per board on this device. They lie
+  under the ink and the ghosts, on every page. The grid's squares run on unbroken from page to page; ruled lines start again at
+  each page's top. Pinching out thins them as it does on the old canvas, so a phone showing a whole page's width shows every
+  second line. Neither is ink: they can't be erased, lassoed or undone, and they're not in the saved drawing, the card or any
+  picture. The old canvas keeps its grid and doesn't gain ruled lines, as it's going.
+- **Colour on paper.** A board on paper has the five colours, kept and shared as *The board's colour* says, in their pale shade
+  for the reason under *Always light*. Page lines, the grid, ruled lines and ghosts all show on each of them.
+- **Changing the colour or the lines leaves the ink alone.** Ink already on screen stays on screen, where it was, the view
+  doesn't move, nothing is added to undo, and the board's stroke count doesn't change.
+- **The Board menu never costs a stroke.** The first stroke after the menu closes draws, whether something was chosen or not.
+- **What a board on paper can't do yet.** *Send to Larry*, *Larry's turn*, ghosts, the mic and paste work: see
   *Ghosts and Larry on paper* and *Paste on paper*. The picture is still the whole drawing.
 - **On a phone, the first ink moves the view.** One page at a phone's width is shorter than the screen, so PaperKit centres it;
   the page the first ink brings fills the screen, and the view settles at the top. The ink doesn't move on the board.
@@ -356,6 +366,10 @@ that ghosts need the tailnet.
 - With three pages drawn and page 2 on screen, Send to Larry shows page 2 at a size he can read.
 - Ruled lines from the Board menu show like notebook paper, the same on every page, are in no picture, and are remembered
   like the grid.
+- On a board on paper, the grid and ruled lines lie under the ink. Choosing one takes the other away, each is remembered by that
+  board on this device, and a new board starts with neither.
+- On each colour of a board on paper, page lines, grid and ghosts show; changing colour or lines leaves the ink on screen, the
+  stroke count the same and no new undo step.
 - Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
   iPad is in dark mode.
 - The tile opens the boards, newest first. + New board opens an empty board; closing it without a stroke leaves no

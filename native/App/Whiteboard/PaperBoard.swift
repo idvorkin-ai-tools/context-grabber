@@ -1,8 +1,8 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–650; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
 //  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
 //  as any other board does, with its ghosts, Larry's marks, the mic and paste. Ghosts lie on the sheet under the ink, in
-//  PaperKit's content view, so they move with the board whatever it does. Grids aren't here yet (S7).
+//  PaperKit's content view, so they move with the board whatever it does.
 
 import ContextCore
 import PaperKit
@@ -56,7 +56,8 @@ class PaperHost: UIViewController {
   /// Held here: the tool picker disappears when nothing keeps it.
   private let picker = PKToolPicker()
   private let watcher = PaperTouchWatcher()
-  private(set) var paperColor: UIColor
+  private(set) var boardPaper: BoardPaper
+  var paperColor: UIColor { boardPaper.color }
 
   private(set) var touchesDown = 0
   private(set) var pencilDown = false
@@ -76,10 +77,10 @@ class PaperHost: UIViewController {
     return set
   }()
 
-  init(paperColor: UIColor) {
-    self.paperColor = paperColor
+  init(boardPaper: BoardPaper) {
+    self.boardPaper = boardPaper
     paper = PaperMarkupViewController(markup: nil, supportedFeatureSet: Self.features)
-    lines = PaperLines(paper: paperColor)
+    lines = PaperLines(paper: boardPaper.color)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -114,9 +115,10 @@ class PaperHost: UIViewController {
     picker.removeObserver(paper)
   }
 
-  func setPaperColor(_ color: UIColor) {
-    guard color != paperColor else { return }
-    paperColor = color
+  func setBoardPaper(_ new: BoardPaper) {
+    guard new != boardPaper else { return }
+    boardPaper = new
+    let color = new.color
     view.backgroundColor = color
     lines.backgroundColor = color
   }
@@ -147,6 +149,9 @@ class PaperHost: UIViewController {
     switch phase {
     case .began:
       if touchesDown == 0 {
+        // A menu leaves nothing the first responder when it closes, and with that PaperKit drew no stroke and showed no tool
+        // picker (3 of 3 on the simulator, iOS 27).
+        if !paper.isFirstResponder { paper.becomeFirstResponder() }
         runEnding?.cancel()
         endRun()
         startRun(touch, at: at)
@@ -288,6 +293,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var saidNotInk = false
   private var remembering: Task<Void, Never>?
   private var redrawing: Task<Void, Never>?
+  private var responding: Task<Void, Never>?
+  private var rules = PaperRules.none
+  private var rulesLaid: (rules: PaperRules, pages: Int, step: CGFloat, y: ClosedRange<CGFloat>)?
   /// The window this board made light, and how it was.
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?
   /// A Pencil or a drawing finger is down, as the pacer was told.
@@ -308,7 +316,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   init(model: WhiteboardModel, log: SessionLog) {
     self.model = model
     self.log = log
-    super.init(paperColor: model.paper.color)
+    super.init(boardPaper: model.paper)
   }
 
   required init?(coder: NSCoder) { nil }
@@ -320,6 +328,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
+    model.menuChose = { [weak self] in self?.takeTheResponderBack() }
   }
 
   /// The part of the column on screen: the visible frame runs past the paper where a phone's one page is shorter than the
@@ -403,10 +412,80 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let size = paper.contentVisibleFrame.size
     paper.contentVisibleFrame = CGRect(origin: CGPoint(x: 0, y: y), size: size)
     showPageNumber()
+    layRules()
   }
 
   private func showLines() {
     lines.show(width: board.width, ends: board.pageEnds(pages: pages))
+    layRules()
+  }
+
+  func setRules(_ wanted: PaperRules) {
+    guard wanted != rules else { return }
+    rules = wanted
+    layRules()
+    lookAfterChange()
+  }
+
+  override func setBoardPaper(_ new: BoardPaper) {
+    guard new != boardPaper else { return }
+    super.setBoardPaper(new)
+    lookAfterChange()
+  }
+
+  /// A choice in the menu, which leaves nothing the first responder as it closes: PaperKit then draws no stroke, and shows no
+  /// tool picker (3 of 3 on the simulator, iOS 27), and giving it back as the touch lands is too late for that touch (5 of 5).
+  /// So it goes back as the menu goes, for as long as that takes.
+  private func takeTheResponderBack() {
+    responding?.cancel()
+    responding = Task { @MainActor [weak self] in
+      var lost = 0
+      for _ in 0..<30 {
+        try? await Task.sleep(for: .seconds(0.1))
+        guard let self, !Task.isCancelled else { return }
+        if !self.paper.isFirstResponder {
+          lost += 1
+          self.paper.becomeFirstResponder()
+        }
+      }
+      self?.log.event(
+        "whiteboard",
+        ["action": "paper_responder", "times_lost": lost, "has_it": self?.paper.isFirstResponder ?? false])
+    }
+  }
+
+  /// The sheet changed under the ink, which must not lose it: `paper_ink_look` says if it did.
+  private func lookAfterChange() {
+    guard let ink = paper.markup?.inkDrawing, !ink.strokes.isEmpty else { return }
+    lookForInk(ink.bounds, why: "sheet")
+  }
+
+  /// The grid or ruled lines for a screen above and below the view, so they're laid again only now and then in a scroll, and
+  /// when the zoom thins them or a page is added.
+  private func layRules() {
+    let zoom = screenScale
+    let visible = paper.contentVisibleFrame
+    let step = WhiteboardFrame.lineStep(zoom: zoom)
+    lines.hair = 1 / (traitCollection.displayScale * max(zoom, 0.01))
+    if let laid = rulesLaid, laid.rules == rules, laid.pages == pages, laid.step == step,
+      laid.y.contains(visible.minY), laid.y.contains(visible.maxY)
+    {
+      return
+    }
+    let y = (visible.minY - visible.height)...(visible.maxY + visible.height)
+    rulesLaid = (rules, pages, step, y)
+    switch rules {
+    case .none:
+      lines.showRules(across: [], span: 0...0, down: [])
+    case .ruled:
+      lines.showRules(across: [], span: 0...0, down: board.ruledLines(visible: y, pages: pages, zoom: zoom))
+    case .grid:
+      let area = CGRect(x: 0, y: y.lowerBound, width: board.width, height: y.upperBound - y.lowerBound)
+      let grid = board.gridLines(visible: area, pages: pages, zoom: zoom)
+      let column = board.bounds(pages: pages)
+      let span = min(max(y.lowerBound, 0), column.maxY)...max(min(y.upperBound, column.maxY), 0)
+      lines.showRules(across: grid.across, span: span, down: grid.down)
+    }
   }
 
   private func showPageNumber() {
@@ -491,6 +570,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   func paperMarkupViewControllerDidChangeContentVisibleFrame(_ controller: PaperMarkupViewController) {
     showPageNumber()
+    layRules()
     checkSeat()
     remembering?.cancel()
     remembering = Task { @MainActor [weak self] in
@@ -718,7 +798,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "ms": ms(CACurrentMediaTime() - started),
       ])
     undoSoonForTests()
-    lookForInk(made.bounds)
+    lookForInk(made.bounds, why: "kept")
   }
 
   /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,
@@ -746,8 +826,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
   }
 
-  /// A second after ink is kept or pasted, whether the view's own picture has it. 0 with the ink in view is the ink missing.
-  private func lookForInk(_ ink: CGRect) {
+  /// A second after ink is kept or pasted or the sheet changes under it, whether the view's own picture has it. 0 with the
+  /// ink in view is the ink missing.
+  private func lookForInk(_ ink: CGRect, why: String) {
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))
       guard let self, let markup = self.paper.markup else { return }
@@ -757,7 +838,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       self.log.event(
         "whiteboard",
         [
-          "action": "paper_ink_look", "board": self.model.board.id, "ink": self.rect(ink), "spot": self.rect(spot),
+          "action": "paper_ink_look", "why": why, "board": self.model.board.id, "ink": self.rect(ink),
+          "spot": self.rect(spot),
           "in_view": self.view.bounds.contains(spot), "strokes": markup.subelements.strokes.count,
           "visible": self.rect(self.paper.contentVisibleFrame), "shown_px": self.shownPixels(in: spot),
         ])
@@ -910,14 +992,17 @@ struct PaperBoardCanvas: View {
   }
 
   var body: some View {
-    PaperBoardHost(controller: controller, paper: model.paper, ghosts: model.ghosts)
-      .overlay(alignment: .topTrailing) {
-        Text(controller.pageText).font(.footnote.monospacedDigit())
-          .padding(.vertical, 4).padding(.horizontal, 10)
-          .background(.thinMaterial, in: Capsule())
-          .padding(10)
-          .allowsHitTesting(false)
-      }
+    PaperBoardHost(
+      controller: controller, paper: model.paper, ghosts: model.ghosts,
+      rules: model.gridOn ? .grid : model.ruledOn ? .ruled : .none
+    )
+    .overlay(alignment: .topTrailing) {
+      Text(controller.pageText).font(.footnote.monospacedDigit())
+        .padding(.vertical, 4).padding(.horizontal, 10)
+        .background(.thinMaterial, in: Capsule())
+        .padding(10)
+        .allowsHitTesting(false)
+    }
   }
 }
 
@@ -925,11 +1010,13 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
   let controller: PaperBoardController
   let paper: BoardPaper
   let ghosts: [Ghost]
+  let rules: PaperRules
 
   func makeUIViewController(context: Context) -> PaperBoardController { controller }
 
   func updateUIViewController(_ controller: PaperBoardController, context: Context) {
-    controller.setPaperColor(paper.color)
+    controller.setBoardPaper(paper)
+    controller.setRules(rules)
     controller.show(ghosts)
   }
 
@@ -938,10 +1025,28 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
   }
 }
 
-/// Paper under the ink: its colour, a faint line where each page ends, any small crosses asked for, and the ghosts. In
-/// PaperKit's content view, so it moves with the board and is in nothing else.
+/// What a board's paper is ruled with. A board has one or none.
+enum PaperRules { case none, grid, ruled }
+
+/// Paper under the ink: its colour, its grid or ruled lines, a faint line where each page ends, any small crosses asked
+/// for, and the ghosts. In PaperKit's content view, so it moves with the board and is in nothing else.
 final class PaperLines: UIView {
   private let shape = CAShapeLayer()
+  /// The grid or ruled lines, under the page lines and the ghosts, as ink lies over all of this.
+  private let rules = CAShapeLayer()
+  /// A hair on screen, in board points: the lines stay that wide at any zoom.
+  var hair: CGFloat = 1 {
+    didSet {
+      guard hair != oldValue else { return }
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
+      rules.lineWidth = hair
+      CATransaction.commit()
+    }
+  }
+  private var rulesAcross: [CGFloat] = []
+  private var rulesSpan: ClosedRange<CGFloat> = 0...0
+  private var rulesDown: [CGFloat] = []
   private var width: CGFloat = 0
   private var ends: [CGFloat] = []
   private var crosses: [CGPoint] = []
@@ -954,6 +1059,9 @@ final class PaperLines: UIView {
     shape.fillColor = nil
     shape.strokeColor = UIColor(white: 0.5, alpha: 0.45).cgColor
     shape.lineWidth = 1
+    rules.fillColor = nil
+    rules.strokeColor = UIColor(white: 0.5, alpha: 0.3).cgColor
+    layer.addSublayer(rules)
     layer.addSublayer(shape)
     layer.addSublayer(ghostLayers.holder)
   }
@@ -965,6 +1073,12 @@ final class PaperLines: UIView {
     self.width = width
     self.ends = ends
     self.crosses = crosses
+    setNeedsLayout()
+  }
+
+  /// In board points: lines over `span` at each of `across`, and side to side at each of `down`.
+  func showRules(across: [CGFloat], span: ClosedRange<CGFloat>, down: [CGFloat]) {
+    (rulesAcross, rulesSpan, rulesDown) = (across, span, down)
     setNeedsLayout()
   }
 
@@ -996,10 +1110,21 @@ final class PaperLines: UIView {
       path.move(to: CGPoint(x: cross.x, y: cross.y - 8))
       path.addLine(to: CGPoint(x: cross.x, y: cross.y + 8))
     }
+    let ruled = CGMutablePath()
+    for x in rulesAcross {
+      ruled.move(to: spot(of: CGPoint(x: x, y: rulesSpan.lowerBound)))
+      ruled.addLine(to: spot(of: CGPoint(x: x, y: rulesSpan.upperBound)))
+    }
+    for y in rulesDown {
+      ruled.move(to: spot(of: CGPoint(x: 0, y: y)))
+      ruled.addLine(to: spot(of: CGPoint(x: width, y: y)))
+    }
     CATransaction.begin()
     CATransaction.setDisableActions(true)
     shape.frame = bounds
     shape.path = path
+    rules.frame = bounds
+    rules.path = ruled
     ghostLayers.holder.setAffineTransform(CGAffineTransform(scaleX: bounds.width / width, y: bounds.width / width))
     CATransaction.commit()
   }

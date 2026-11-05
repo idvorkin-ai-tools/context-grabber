@@ -1864,8 +1864,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 434:
 
 - **Summary:** Ruled lines, like notebook paper
-- **Status:** not implemented; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
-- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Status:** implemented on paper in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`). 40 points is provisional until Igor has seen it; the old canvas has no ruled lines; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#678](https://github.com/idvorkin/context-grabber/issues/678)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
@@ -2044,7 +2044,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 523:
 
 - **Summary:** One kind of lines at a time
-- **Status:** not implemented; asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
+- **Status:** implemented on paper in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`); asks: [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2349,7 +2349,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 538:
 
 - **Summary:** Every page is ruled the same
-- **Status:** the line positions implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); not on any screen yet (the *Ruled lines* choice is a later slice), and the 40-point spacing is provisional until Igor has seen it
+- **Status:** the line positions implemented in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34); verified by host tests (`BoardPagesTests`); the 40-point spacing is provisional until Igor has seen it. Drawn on paper in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`), which shows one page at a time; two pages ruled alike is from `BoardPagesTests`.
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2429,7 +2429,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 592:
 
 - **Summary:** Page lines under the ink, and nothing to test with
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by reading screenshots from an iPhone and an iPad simulator: page lines under the ink, no cross, no ring. Ruled lines aren't here yet
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by reading screenshots from an iPhone and an iPad simulator: page lines under the ink, no cross, no ring. Ruled lines are story 434
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2549,7 +2549,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 598:
 
 - **Summary:** A board on paper says what it can't do yet
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu). The paste button back in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); that it's there is checked on an iPhone simulator (`WhiteboardPaperGhostsUITests`: `testAGhostShowsOnThePaperAndATapKeepsIt`)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) and [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: the bar and the Board menu). The paste button back in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); that it's there is checked on an iPhone simulator (`WhiteboardPaperGhostsUITests`: `testAGhostShowsOnThePaperAndATapKeepsIt`). The Board menu's grid in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2562,7 +2562,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The top bar
 - **Given:** a board on paper
 - **When:** I look at its bar
-- **Then:** the Board menu has no grid. The Ghosts switch, the mic, *Larry's turn*, *Send to Larry* and the paste button are there
+- **Then:** the Ghosts switch, the mic, *Larry's turn*, *Send to Larry* and the paste button are there
 
 ---
 
@@ -3623,3 +3623,111 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** I turned *New boards on paper* off
 - **When:** I open the app again and tap +
 - **Then:** the new board is on the old canvas
+
+### User Story 652:
+
+- **Summary:** A grid on a board on paper
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`; host `BoardPagesTests`; feel on a big board is the iPad's)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#678](https://github.com/idvorkin/context-grabber/issues/678)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** thinking on paper
+- **I want to** turn on faint grid lines under my ink
+- **so that** I can line things up without the lines competing with the ink
+
+#### Acceptance Criteria:
+- **Scenario:** The grid
+- **Given:** a board on paper
+- **When:** I choose *Grid lines* in the Board menu
+- **Then:** faint squares lie under the ink, run on unbroken from page to page, and thin when pinched out
+
+### User Story 653:
+
+- **Summary:** Lines stay with their board on paper
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** going back to a board
+- **I want to** find its lines as I left them
+- **so that** each board keeps its own look
+
+#### Acceptance Criteria:
+- **Scenario:** Reopening
+- **Given:** a board on paper with ruled lines on
+- **When:** I leave it and open it again
+- **Then:** the lines are on. A new board starts with none
+
+### User Story 654:
+
+- **Summary:** Lines are never ink
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, the stroke count; that they can't be erased or lassoed follows from their not being in the drawing, and hasn't been driven with those tools)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing over lines
+- **I want to** have them left out of everything that is the drawing
+- **so that** what I save and send is only what I drew
+
+#### Acceptance Criteria:
+- **Scenario:** Lines on
+- **Given:** a board on paper with a stroke
+- **When:** I turn lines on or off
+- **Then:** the stroke count stays the same, nothing is added to undo, and they're not in the saved drawing, the card or any picture
+
+### User Story 655:
+
+- **Summary:** Lines and ghosts show on every colour
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** choosing a colour on paper
+- **I want to** still see the page lines, the grid and ghosts
+- **so that** a colour never hides what I need
+
+#### Acceptance Criteria:
+- **Scenario:** Each colour
+- **Given:** a board on paper
+- **When:** I choose any of the five colours
+- **Then:** its pale shade shows, even with the device in dark mode, and the lines and ghosts show on it
+
+### User Story 656:
+
+- **Summary:** Changing colour or lines leaves the ink
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** changing how the paper looks
+- **I want to** have the ink stay on screen
+- **so that** nothing I drew seems to vanish
+
+#### Acceptance Criteria:
+- **Scenario:** A change under ink
+- **Given:** ink on screen on a board on paper
+- **When:** I change the colour or the lines
+- **Then:** the ink stays where it was and the view doesn't move
+
+### User Story 657:
+
+- **Summary:** The Board menu never costs a stroke
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** drawing right after the menu
+- **I want to** have my first stroke draw
+- **so that** I don't lose a mark to a menu
+
+#### Acceptance Criteria:
+- **Scenario:** After the menu
+- **Given:** a board on paper
+- **When:** I close the Board menu, with a choice or without one, and draw
+- **Then:** the stroke draws
