@@ -50,7 +50,8 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
 
     let row = app.buttons["whiteboard-card"].firstMatch
     XCTAssertTrue(row.appears(within: 10), app.debugDescription)
-    let before = row.label
+    // The row's "Changed …" part is relative to now, so it moves with the clock; the name and stroke count do not.
+    let before = row.label.components(separatedBy: ", Changed").first
     row.press(forDuration: 1.2)
     let tryIt = app.buttons["Try on paper"]
     XCTAssertTrue(tryIt.appears(within: 5), app.debugDescription)
@@ -108,7 +109,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
 
     // The real board: its row reads as it did, and it holds the one stroke it had. Not a mark from the trial.
     XCTAssertTrue(row.appears(within: 10), app.debugDescription)
-    XCTAssertEqual(row.label, before)
+    XCTAssertEqual(row.label.components(separatedBy: ", Changed").first, before)
     row.tap()
     XCTAssertTrue(send.appears(within: 10), app.debugDescription)
     waitFor(send, label: "Send to Larry, 1 strokes")
