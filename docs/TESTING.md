@@ -95,7 +95,7 @@ checks always run. To run every section, set `SMOKE_ONLY=all just native-test-si
 `SMOKE_ONLY=timer,breathe`. The app under test plays silently, while the Mac's own sound is left alone. The simulator would otherwise play the
 timer's counts, the breathing voice and the call through the Mac's speakers. `GRABBER_SILENT=1` goes to every launch,
 and it sets the app's players to zero volume, so every cue still plays and still shows in the log. The host rung
-(`just test`) plays nothing and stays whole: all of it takes about 20 seconds once built.
+(`just test`) plays nothing and stays whole (its time is in the rung table above).
 
 | Hook | Effect |
 |---|---|
