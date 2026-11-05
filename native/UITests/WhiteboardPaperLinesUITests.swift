@@ -51,7 +51,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     board(app).tap()
     let choice = app.descendants(matching: .any)[item].firstMatch
     XCTAssertTrue(choice.waitForExistence(timeout: 5), app.debugDescription)
-    choice.tap()
+    choice.tapWhenSettled()
     wait(board(app), label: expect, timeout: 5)
     sleep(1)  // The menu gone and the sheet laid.
   }
