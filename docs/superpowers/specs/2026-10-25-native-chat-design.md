@@ -39,9 +39,11 @@ the conversations with a reply Igor has not read, plus any of his messages not y
 
 **The list.** The pinned thread, then newest activity first. Each row: the thread's title, the last message's first
 line and who wrote it, when, and an unread mark when Larry has replied since Igor last looked. Finished threads fold
-under *Done*, by the same rule the Cockpit uses, so the phone and the laptop agree. The round **+** stays at the lower right, in an opaque bar
-across the bottom of the list (#637), so the buttons never cover a row he can see and every row on screen can be swiped from
-anywhere along it; a row scrolled beneath the bar is hidden until he scrolls it up. The **+** starts a new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
+under *Done*, by the same rule the Cockpit uses, so the phone and the laptop agree. The round **+** and the voice button stay at the lower right,
+floating over the list, and the list runs to the bottom of the screen (Igor, 2026-11-05, #685: *"These buttons might as well
+float ... to maximize my available space"*; this replaces the opaque bar of #637). A row passing under them shows through
+around them, and the end of the list scrolls up clear of them, so no row is ever stuck beneath. A swipe can't start on a
+button itself, only on the rest of the row. The **+** starts a new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
 
 **Archiving** (Igor, 2026-11-01: "Let me archive threads both via swipe and via buttons in chat overflow"; #589, the
 Cockpit's archive shipped first). Swiping a thread left in the list offers *Archive*; it folds under *Done* at once,

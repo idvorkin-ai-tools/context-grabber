@@ -432,7 +432,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Starting a new chat
-- **Given:** Chat is open, empty or populated, with one large round + fixed at the lower right in an opaque bar below the list, and no toolbar +
+- **Given:** Chat is open, empty or populated, with one large round + fixed at the lower right, and no toolbar +
 - **When:** I tap the fixed +, enter text by typing or dictation, and tap Send
 - **Then:** an empty thread titled *New chat* opened with the ordinary bar and the keyboard up; my message shows at once as *Not sent yet*, is kept on the phone and sent to Larry, the thread takes that message's first line as its title, and once the Cockpit has it this screen is the live thread
 
@@ -1760,21 +1760,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 506:
 
-- **Summary:** The + and the voice button never cover a row
+- **Summary:** The + and the voice button float over the list, which uses the whole screen
 - **Status:** native app only: implemented in [dd6c94d](https://github.com/idvorkin/context-grabber/commit/dd6c94d); verified by `ChatArchiveUITests` (simulator: both buttons sit in a bar across the list's foot, a swipe on a row at the foot opens Unarchive, and the bar test fails on the list as it was); the bar's solid fill not yet seen on the simulator, and how the bar looks and a thumb's swipe on the phone not yet
-- **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
+- **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637), [#685](https://github.com/idvorkin/context-grabber/issues/685)
 - **Spec:** [Chat with Larry in Grabber Native — The list](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client tidying my chats
-- **I want to** swipe any row I can see, from anywhere along it
-- **so that** the buttons at the foot of the list never swallow a swipe
+- **I want** the list to run to the bottom of the screen with the buttons floating over it
+- **so that** I see as many chats as fit, and can still reach every one
 
 #### Acceptance Criteria:
-- **Scenario:** Swiping a row near the buttons
-- **Given:** Chat lists more rows than fit, or an archived row sits at the bottom of the list with *Undo* showing above it
-- **When:** I swipe a row I can see, starting anywhere along it
-- **Then:** its swipe action opens, since the + and the voice button sit in an opaque bar below the list, which hides any row scrolled beneath it until I scroll that row up
+- **Scenario:** A long list
+- **Given:** Chat lists more rows than fit
+- **When:** I look at the bottom of the screen
+- **Then:** rows run to the bottom, with the + and the voice button floating over them at the lower right, and no bar behind them
+
+- **Scenario:** The last row
+- **Given:** Chat lists more rows than fit
+- **When:** I scroll to the end of the list
+- **Then:** the last row sits clear above the buttons, where I can tap it and swipe it from anywhere along it
 
 ---
 
