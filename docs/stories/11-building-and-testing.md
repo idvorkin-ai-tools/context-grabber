@@ -142,7 +142,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 680:
 
 - **Summary:** One command climbs the test ladder, cheapest rung first, and stops at the first failure
-- **Status:** not implemented; bead `context-grabber-3k6`; [spec](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+- **Status:** not implemented: written in dddd5fc4 and checked only on the host, with fakes and dry runs; the real Mac and simulator rungs have not run yet; bead `context-grabber-3k6`; [spec](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
 #### Use Case:
 - **As Igor,** waiting to know whether a change is safe
