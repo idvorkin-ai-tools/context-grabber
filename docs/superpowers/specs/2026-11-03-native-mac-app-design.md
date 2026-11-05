@@ -19,7 +19,7 @@ doesn't show, and never crashes. An iPhone and an iPad change in no way at all.
 
 ## Non-goals
 
-- Menu commands, keyboard shortcuts, a Mac sidebar, a Mac look. A later piece of work.
+- Menu commands, other keyboard shortcuts, a Mac sidebar, a Mac look. A later piece of work.
 - A file finder. It prompted the issue, and it is a different app.
 - Widgets and the share sheet on the Mac (below).
 - Anything on an iPhone or an iPad.
@@ -67,6 +67,11 @@ written on the Mac waits on the Mac until it goes.
 **iCloud.** In the build the command makes, whiteboards stay on the Mac, the daily strip doesn't sync, and a problem
 report stays in the app's folder. The whiteboard says its sync is off, as in any build without it. A build signed with
 Igor's team has iCloud too.
+
+**Enter sends** (#683). Wherever the app asks Igor to type and then confirm, Enter or Command+Enter confirms, on the Mac:
+chat's bar (where Shift+Enter is a new line, see the chat spec), renaming a board, adding a place, and naming one. A
+problem report's note keeps Enter for a new line, because it is a long note, and sends with Command+Enter, as the report
+dialog already does. A key confirms only what the button would: a form missing what it needs stays as it is.
 
 **Background work.** A Mac runs no background tasks for the app. While the window is open chat keeps itself up to date;
 when the app is quit nothing runs, and that isn't an error.

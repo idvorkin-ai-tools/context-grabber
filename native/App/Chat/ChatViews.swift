@@ -923,6 +923,9 @@ private struct ComposeBar: View {
           .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 18))
           .accessibilityIdentifier("chat-compose")
           .focused($focused)
+          .macEnterConfirms {
+            if draft.canAdd && target != .waiting { send() }
+          }
           .id(field)
         MicButton(voice: voice, thread: thread, draft: draft.text)
         Button(action: send) {

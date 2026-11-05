@@ -126,6 +126,11 @@ file. A sent message appears
 at once with **Not sent yet** until the Cockpit has it, and the bar empties at once, text and attachment, with the keyboard
 still up for the next message — typed or dictated alike (#449).
 
+**Sending from a Mac's keyboard** (Igor, 2026-11-05, #683: *"Either Command+Enter or Enter should work in all the dialogues
+to hit send."*). On the Mac, Enter sends and Command+Enter sends. Shift+Enter starts a new line, for a longer message. Both
+send only what Send itself would: with nothing to send, or with the thread still waiting to exist, a key does nothing and
+the words stay. A phone and an iPad keep the keyboard they have, where Return starts a new line.
+
 **Attaching a file** (Igor, 2026-11-03, #633: *"Support file and PDF upload"*). A paperclip on the bar opens the phone's
 file picker, for a PDF or any other document. The file sits above the field by name and size, with *Remove file*, and goes
 with whatever is typed as one message, which reads as the file's name and then the words; a new chat's title is the
