@@ -48,18 +48,15 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertLessThanOrEqual(row.frame.maxY, bar.frame.minY, "scrolled clear: \(app.debugDescription)")
   }
 
-  /// Story 506 (#637): the + and the voice button have a bar of their own across the list's foot, so no row lies
-  /// behind them for a swipe to land on instead.
-  func testTheNewChatButtonsSitInABarOfTheirOwn() throws {
+  /// Story 506 (#685): the + and the voice button float over the list, which runs to the foot of the screen, with no bar
+  /// across it.
+  func testTheNewChatButtonsFloatOverTheList() throws {
     let app = try openList()
     let bar = app.otherElements["chat-new-bar"]
     XCTAssertTrue(bar.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertEqual(bar.frame.width, app.windows.firstMatch.frame.width, "across the whole list")
-    for id in ["inbox-add", "inbox-add-voice"] {
-      let button = app.buttons[id]
-      XCTAssertGreaterThanOrEqual(button.frame.minY, bar.frame.minY, id)
-      XCTAssertLessThanOrEqual(button.frame.maxY, bar.frame.maxY, id)
-    }
+    XCTAssertLessThan(bar.frame.width, app.windows.firstMatch.frame.width / 2, "only the buttons, not a bar")
+    let list = app.collectionViews.firstMatch
+    XCTAssertGreaterThanOrEqual(list.frame.maxY, app.buttons["inbox-add"].frame.maxY, "the list runs beneath them")
   }
 
   func testASwipeArchivesAndUndoBringsItBack() throws {
@@ -137,6 +134,8 @@ final class ChatArchiveUITests: XCTestCase {
     two.tap()
     let archive = app.buttons["chat-archive-selected"]
     XCTAssertEqual(archive.label, "Archive (2)")
+    let buttons = app.otherElements["chat-new-bar"]
+    XCTAssertFalse(archive.frame.intersects(buttons.frame), "Archive clear of the floating buttons")
     select.tap()
     XCTAssertTrue(app.buttons["chat-thread-\(key)"].waitForExistence(timeout: 5), "Cancel leaves the list")
     XCTAssertFalse(doneFold(app).exists, "nothing archived")

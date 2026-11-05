@@ -141,18 +141,10 @@ struct ChatListView: View {
         .accessibilityIdentifier("chat-select")
       }
     }
-    .safeAreaInset(edge: .bottom) {
-      if selecting {
-        Button("Archive (\(pickedLive.count))") { archivePicked() }
-          .buttonStyle(.borderedProminent)
-          .disabled(pickedLive.isEmpty)
-          .padding(.bottom, 8)
-          .accessibilityIdentifier("chat-archive-selected")
-      }
-    }
-    // #424, story 262: a fixed thumb target. #637, story 506: in its own opaque bar, not floating over the list: a row behind
-    // the two buttons could not be swiped from where they cover it.
-    .safeAreaInset(edge: .bottom) {
+    // #424, story 262: a fixed thumb target. #685, story 506: floating, so the list has the whole screen; its margin lets
+    // the last row scroll clear of them.
+    .contentMargins(.bottom, 76, for: .scrollContent)
+    .overlay(alignment: .bottomTrailing) {
       HStack(spacing: 12) {
         NewChatVoiceButton(chat: chat, voice: voice)
         Button {
@@ -165,12 +157,18 @@ struct ChatListView: View {
         .accessibilityIdentifier("inbox-add")
         .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
       }
-      .padding(.top, 8)
       .padding([.horizontal, .bottom], 16)
-      .frame(maxWidth: .infinity, alignment: .trailing)
-      .background(Color(.systemGroupedBackground))
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("chat-new-bar")
+    }
+    .safeAreaInset(edge: .bottom) {
+      if selecting {
+        Button("Archive (\(pickedLive.count))") { archivePicked() }
+          .buttonStyle(.borderedProminent)
+          .disabled(pickedLive.isEmpty)
+          .padding(.bottom, 8)
+          .accessibilityIdentifier("chat-archive-selected")
+      }
     }
     .navigationDestination(isPresented: $chat.newChatOpen) {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
