@@ -413,6 +413,26 @@ seconds; the simulator runs the app from launch hooks and is judged from the ses
 phone is for what only the phone can show. Details live in [TESTING.md](../../TESTING.md) and
 [DEBUGGING.md](../../DEBUGGING.md).
 
+One command climbs the ladder for a change (story 683). It takes the cheapest rung first and stops at the first
+failure, and it prints the seconds each rung took and which rung it stopped on. A rung with nothing to answer is
+skipped, and the output says why.
+
+- **Lint**: the layout of the Swift files the branch touched, and the smell check over the tree.
+- **Host**: the platform-free tests and the script checks.
+- **Mac**: the Mac build, because code written only for the Mac compiles nowhere else. It runs when the change
+  touches anything that goes into that build, and not for words, tests or test scripts alone.
+- **Simulator**: the simulator build with its UI tests, then the UI test classes the change touches. Only chat and the
+  whiteboard are mapped so far, and a changed test file names its own class. A change to app code outside the map runs
+  no UI tests. The output names those paths and the option that runs every UI test class. Asked for in full, the
+  simulator rung runs the whole suite of each area the change touched, in place of that area's classes.
+- **Phone**: never climbed by the command; it stays Igor's.
+
+Only one job uses the simulator at a time. The simulator rung waits its turn in the build lane. It also waits while
+any other Xcode build is running, because startup waits fail under that load, and it says so. If the other build is
+still running after half an hour, the rung refuses to start. A test that fails while another build ran is reported as
+contention: it counts as failed and is rerun, not debugged. The simulator is shut down afterwards. A dry run prints the
+rungs and classes without running any of them.
+
 ## Acceptance criteria
 
 Step 1:
