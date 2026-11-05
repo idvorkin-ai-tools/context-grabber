@@ -162,7 +162,6 @@ struct PlacesView: View {
     }
   }
 
-  /// A fresh precise fix for the form; one older than thirty seconds is refused, with how old it was.
   private func addPlace() {
     guard
       places.addPlace(
@@ -175,6 +174,7 @@ struct PlacesView: View {
     gpsStatus = ""
   }
 
+  /// A fresh precise fix for the form; one older than thirty seconds is refused, with how old it was.
   private func useCurrent() {
     gpsStatus = "Getting a fresh GPS fix…"
     tracker.requestFix(reason: "use_current") { location in

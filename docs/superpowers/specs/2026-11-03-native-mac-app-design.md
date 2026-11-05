@@ -68,8 +68,9 @@ written on the Mac waits on the Mac until it goes.
 report stays in the app's folder. The whiteboard says its sync is off, as in any build without it. A build signed with
 Igor's team has iCloud too.
 
-**Enter sends** (#683). Wherever the app asks Igor to type and then confirm, Enter or Command+Enter confirms, on the Mac:
-chat's bar (where Shift+Enter is a new line, see the chat spec), renaming a board, adding a place, and naming one. A
+**Enter sends** (#683). Wherever the app asks Igor to type and then confirm, Enter confirms, on the Mac: chat's bar
+(where Command+Enter sends too and Shift+Enter is a new line, see the chat spec), renaming a board, adding a place, and
+naming one. A
 problem report's note keeps Enter for a new line, because it is a long note, and sends with Command+Enter, as the report
 dialog already does. A key confirms only what the button would: a form missing what it needs stays as it is.
 
