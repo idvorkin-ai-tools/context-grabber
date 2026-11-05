@@ -1322,19 +1322,24 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 582:
 
-- **Summary:** A Mac build with no address reaches no Cockpit, on any route
+- **Summary:** A Mac build reaches my Cockpit by itself, and a test launch can keep away from it
 - **Status:** native app only: implemented in [e171012a](https://github.com/idvorkin/context-grabber/commit/e171012a); host tests (`ChatCockpitTests`), and verified on Igor's Mac: no connection to the real Cockpit's address in any launch, watched every half second; the chat list, the Cockpit page and a call each said why. The Cockpit page's reason then moved into its copyable error, with no load attempted: not yet built or seen on a Mac.
-- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638)
+- **Issues:** [#638](https://github.com/idvorkin/context-grabber/issues/638), [#680](https://github.com/idvorkin/context-grabber/issues/680)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
 - **As** Igor, whose Mac is on the tailnet
-- **I want** a Mac build to reach Larry only when I say so
-- **so that** a test launch never lands in my threads or my archive
+- **I want** the Mac build to reach my Cockpit with nothing to set, as my phone does
+- **so that** chat works as soon as it opens, while a test launch can still stay out of my threads
 
 #### Acceptance Criteria:
 - **Scenario:** No address named
 - **Given:** a Mac build launched with no Cockpit address
+- **When:** I open chat
+- **Then:** my threads load from my Cockpit, with no error about an address
+
+- **Scenario:** A test launch named nowhere
+- **Given:** a Mac build launched with the address named nowhere
 - **When:** chat, the Cockpit page, the usage strip, a call and the archive all try to run
 - **Then:** nothing reaches the real Cockpit, and what is on screen says copyably why
 

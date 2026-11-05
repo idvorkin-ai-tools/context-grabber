@@ -13,9 +13,9 @@ doesn't show, and never crashes. An iPhone and an iPad change in no way at all.
 ## Goals
 
 - Igor can run the app on his Mac with one command.
-- Chat and the whiteboard work on the Mac once it is pointed at a Cockpit.
+- Chat and the whiteboard work on the Mac as soon as it opens, against Igor's own Cockpit, as on his phone.
 - Nothing a Mac lacks can take the app down, or read as something broken that could be fixed.
-- A Mac launch can never talk to the real Cockpit or to Larry by accident.
+- A test launch can keep away from Larry by naming a stand-in or nowhere.
 
 ## Non-goals
 
@@ -27,21 +27,22 @@ doesn't show, and never crashes. An iPhone and an iPad change in no way at all.
 ## What Igor sees
 
 **Starting it.** One command builds and opens the app. It carries no iCloud and no Health, because those need a signed
-build. With no address named it reaches no Cockpit; a run can name a stand-in or the real one.
+build. With no address named it reaches Igor's Cockpit; a run can name a stand-in, or nowhere.
 
-**Which Cockpit.** A Mac reaches the tailnet just as a simulator does, so a Mac build follows the simulator's rule
-(chat spec, *On a simulator*) and goes further. With no address, nothing leaves the Mac for any Cockpit:
+**Which Cockpit.** Igor's Mac is his own machine on his tailnet, and having to name his own Cockpit on it read as a
+broken app (#680, reversing the first rule here). So a Mac build behaves as his phone does: with no address named, chat,
+the Inbox, the whiteboard's turns, the Cockpit page, the usage strip and a call all reach his Cockpit. A message sent
+from the Mac is a real message to Larry.
 
-- Chat, the Inbox and the whiteboard's turns reach none, and the chat list and an open thread say copyably that this Mac
-  build has no address and how to give it one. What is waiting stays waiting.
-- The Cockpit page shows its "Can't reach" panel with the copyable error, saying this Mac build has no address and how
-  to give it one, rather than asking about Tailscale.
-- The usage strip isn't drawn, as off the tailnet.
-- A call can't connect, and ends with its usual copyable reason.
-- The stats archive and a call's log send nothing, ever, unless a launch names an archive.
+A launch can name another address, and that covers every one of those routes:
 
-A launch that names the real Cockpit is the only way a Mac build reaches it. On a phone and an iPad nothing changes; a
-simulator's Cockpit page, usage strip and call are as they were.
+- Named a stand-in, it talks only to the stand-in.
+- Named nowhere, nothing leaves the Mac for any Cockpit, and each route says copyably that it has no address, as a
+  simulator's chat does. This is how a test launch stays out of Igor's threads: **a test launch must name one or the
+  other.**
+
+The stats archive and a call's log still send nothing, ever, unless a launch names an archive; the Mac has no Health to
+archive. On a phone and an iPad nothing changes. A simulator is unchanged too: its chat reaches only what it is pointed at.
 
 **Health.** A Mac has no Health store. Today says Health isn't available, as it does on any device without one, and the
 rest of the app carries on. Box breathing saves no Mindful Minutes.
@@ -65,7 +66,8 @@ when the app is quit nothing runs, and that isn't an error.
 ## Acceptance
 
 - The app opens on Igor's Mac, and each home tile either opens its screen or says why it can't.
-- With no address named, no connection to the real Cockpit is made, on any route.
+- With no address named, chat, the Cockpit page and the usage strip reach Igor's Cockpit, with no error shown.
+- Named nowhere, no connection to the real Cockpit is made, on any route.
 - With a stand-in named, a message sent in Chat reaches the stand-in and its reply shows.
 - A phone and an iPad simulator build still compile, and their behaviour is untouched.
 

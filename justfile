@@ -111,8 +111,8 @@ native-build-mac: native-project
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual CODE_SIGN_ENTITLEMENTS=Mac/AdHoc.entitlements \
       GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" build
 
-# Build and open the Mac app. It reaches no Cockpit unless told: COCKPIT=<url> names chat, the page, the usage strip and a call,
-# the stand-in (scripts/native/fake-cockpit.py) or the real one. Its logs are under
+# Build and open the Mac app. It reaches the real Cockpit unless told: COCKPIT=<url> names chat, the page, the usage strip and
+# a call, the stand-in (scripts/native/fake-cockpit.py) or nowhere (https://no-address.invalid). A test launch names one. Its logs are under
 # ~/Library/Containers/com.idvorkin.grabbernative/Data/Documents/logs.
 native-run-mac: native-build-mac
     #!/usr/bin/env bash

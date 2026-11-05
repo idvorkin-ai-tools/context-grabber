@@ -129,8 +129,8 @@ final class AppModel: ObservableObject {
     // Story 041: with an archive to send to, a prune keeps the points it has not taken yet.
     let archiveSends = ArchiveModel.destination(ProcessInfo.processInfo.environment) != nil
     places = PlacesModel(log: log, database: database, archiveSends: archiveSends)
-    // GRABBER_CHAT_URL: the Cockpit to use, such as the stand-in (scripts/native/fake-cockpit.py). A simulator or a Mac
-    // build without one reaches none, so a test run's outbox never reaches Larry (#525, #638).
+    // GRABBER_CHAT_URL: the Cockpit to use, such as the stand-in (scripts/native/fake-cockpit.py). A simulator without
+    // one reaches none, so a test run's outbox never reaches Larry (#525); a Mac test launch names one (#680).
     let chatCockpit = ChatCockpit.address(override: ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"])
     if chatCockpit == ChatCockpit.nowhere {
       log.event("chat", ["action": "no_address", "reason": ChatCockpit.noAddress])

@@ -32,25 +32,31 @@ final class ChatCockpitTests: XCTestCase {
     XCTAssertEqual(ChatCockpit.address(override: "http://localhost:8797", simulator: false), "http://localhost:8797")
   }
 
-  // MARK: A Mac build (#638, stories 582-583)
+  // MARK: A Mac build (#680, stories 582-583)
 
-  func testAMacBuildWithNoAddressReachesNoRealCockpitOnAnyRoute() {
-    XCTAssertEqual(ChatCockpit.address(override: nil, simulator: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.pageAddress(override: nil, mac: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.pageAddress(override: "", mac: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: nil, mac: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "", mac: true), ChatCockpit.nowhere)
+  func testAMacBuildWithNoAddressReachesTheRealCockpitOnEveryRoute() {
+    XCTAssertEqual(ChatCockpit.address(override: nil, simulator: false), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: nil), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: ""), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: nil, mac: true), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "", mac: true), CockpitPage.url)
+  }
+
+  func testATestLaunchOnAMacNamedNowhereReachesNothingOnEveryRoute() {
+    XCTAssertEqual(ChatCockpit.address(override: ChatCockpit.nowhere, simulator: false), ChatCockpit.nowhere)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: ChatCockpit.nowhere), ChatCockpit.nowhere)
+    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: ChatCockpit.nowhere, mac: true), ChatCockpit.nowhere)
   }
 
   func testAMacBuildGoesWhereItIsPointed() {
-    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://127.0.0.1:8797", mac: true), "http://127.0.0.1:8797")
+    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://127.0.0.1:8797"), "http://127.0.0.1:8797")
     XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "http://127.0.0.1:8797", mac: true), "http://127.0.0.1:8797")
     XCTAssertEqual(ChatCockpit.callAddress(chatOverride: CockpitPage.url, mac: true), CockpitPage.url)
   }
 
   func testAPhoneAndASimulatorKeepThePageAndTheCallOnTheRealCockpit() {
-    XCTAssertEqual(ChatCockpit.pageAddress(override: nil, mac: false), CockpitPage.url)
-    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://localhost:8797", mac: false), "http://localhost:8797")
+    XCTAssertEqual(ChatCockpit.pageAddress(override: nil), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://localhost:8797"), "http://localhost:8797")
     XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "http://localhost:8797", mac: false), CockpitPage.url)
   }
 
