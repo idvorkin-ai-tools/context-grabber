@@ -134,6 +134,8 @@ final class ChatArchiveUITests: XCTestCase {
     two.tap()
     let archive = app.buttons["chat-archive-selected"]
     XCTAssertEqual(archive.label, "Archive (2)")
+    let buttons = app.otherElements["chat-new-bar"]
+    XCTAssertFalse(archive.frame.intersects(buttons.frame), "Archive clear of the floating buttons")
     select.tap()
     XCTAssertTrue(app.buttons["chat-thread-\(key)"].waitForExistence(timeout: 5), "Cancel leaves the list")
     XCTAssertFalse(doneFold(app).exists, "nothing archived")

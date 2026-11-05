@@ -421,8 +421,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 262:
 
 - **Summary:** Start a new chat with the keyboard or dictation
-- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet. #637: the + no longer floats, it sits in a bar below the list beside the voice button, in [dd6c94d](https://github.com/idvorkin/context-grabber/commit/dd6c94d); verified by `ChatArchiveUITests` (simulator); on the phone not yet.
-- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536), [#637](https://github.com/idvorkin/context-grabber/issues/637)
+- **Status:** native app only: implemented in [c5a4025](https://github.com/idvorkin/context-grabber/commit/c5a4025); verified by `InboxDraftTests` and the full `just test` (host); the sheet, dictation and pasting on the phone not yet; #424: the + is a floating button in the lower right in [066dae4](https://github.com/idvorkin/context-grabber/commit/066dae4); verified by `just test` (host) and the simulator build; on the phone not yet. #536: the + opens a new thread with the ordinary bar instead of a sheet in [ca6fe3d](https://github.com/idvorkin/context-grabber/commit/ca6fe3d); verified by `ChatNewThreadUITests` (simulator: the + opens an empty *New chat* thread with the bar, its mic and Paste image, and no sheet); sending from it on the phone not yet. #637: the + no longer floats, it sits in a bar below the list beside the voice button, in [dd6c94d](https://github.com/idvorkin/context-grabber/commit/dd6c94d); verified by `ChatArchiveUITests` (simulator); on the phone not yet. #685: the + floats over the list again, beside the voice button, in [dd5d9ef8](https://github.com/idvorkin/context-grabber/commit/dd5d9ef8); verified by `ChatArchiveUITests` (simulator: chat suite 34 passed; one swipe test failed on the suite's slow first launch, then passed 3 of 3 alone); on the phone not yet.
+- **Issues:** [#405](https://github.com/idvorkin/context-grabber/issues/405), [#424](https://github.com/idvorkin/context-grabber/issues/424), [#536](https://github.com/idvorkin/context-grabber/issues/536), [#637](https://github.com/idvorkin/context-grabber/issues/637), [#685](https://github.com/idvorkin/context-grabber/issues/685)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat](../superpowers/specs/2026-10-25-native-chat-design.md); [Adding from inside the app](../superpowers/specs/2026-10-17-native-share-inbox-design.md#adding-from-inside-the-app)
 
 #### Use Case:
@@ -1061,8 +1061,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 311:
 
 - **Summary:** Archive several chats at once
-- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet
-- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599)
+- **Status:** native app only: implemented in [9027855](https://github.com/idvorkin/context-grabber/commit/9027855); verified on the simulator by `ChatArchiveUITests` against the fake Cockpit; the real Cockpit not yet; #685: *Archive (N)* sits below the floating buttons, clear of them, on the #685 branch after review, with an assertion added to `ChatArchiveUITests` that has not run yet (the pipeline is host-only)
+- **Issues:** [#599](https://github.com/idvorkin/context-grabber/issues/599), [#685](https://github.com/idvorkin/context-grabber/issues/685)
 - **Spec:** [Native chat](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1073,7 +1073,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Acceptance Criteria:
 - **Scenario:** Several together
 - **Given:** the chat list shows live threads
-- **When:** I tap *Select*, tick two, and tap *Archive (2)*
+- **When:** I tap *Select*, tick two, and tap *Archive (2)*, below the floating buttons and clear of them
 - **Then:** both fold under *Done*, the list says *Archived 2 chats* with *Undo* for five seconds, and *Undo* brings both back
 
 ---
@@ -1768,18 +1768,13 @@ Part of the [user stories](README.md); persona and format are described there. T
 #### Use Case:
 - **As** Larry's client tidying my chats
 - **I want** the list to run to the bottom of the screen with the buttons floating over it
-- **so that** I see as many chats as fit, and can still reach every one
+- **so that** I see as many chats as fit
 
 #### Acceptance Criteria:
 - **Scenario:** A long list
 - **Given:** Chat lists more rows than fit
 - **When:** I look at the bottom of the screen
 - **Then:** rows run to the bottom, with the + and the voice button floating over them at the lower right, and no bar behind them
-
-- **Scenario:** The last row
-- **Given:** Chat lists more rows than fit
-- **When:** I scroll to the end of the list
-- **Then:** the last row sits clear above the buttons, where I can tap it and swipe it from anywhere along it
 
 ---
 
@@ -2190,5 +2185,25 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the share card is open on a page from Safari
 - **When:** I start speaking from the card
 - **Then:** my words appear in the *Message* field as I speak and are not sent until I tap *Start a chat* or *Send*, and anything that stops it is a copyable line on the card
+
+---
+
+### User Story 547:
+
+- **Summary:** The last chat scrolls clear of the floating buttons
+- **Status:** native app only: implemented in [dd5d9ef8](https://github.com/idvorkin/context-grabber/commit/dd5d9ef8); `ChatArchiveUITests` scrolls a row clear of the buttons before tapping and swiping it (simulator: chat suite 34 passed; one swipe test failed on the suite's slow first launch, then passed 3 of 3 alone); the very last row of a list longer than the screen not measured, and on the phone not yet
+- **Issues:** [#685](https://github.com/idvorkin/context-grabber/issues/685)
+- **Spec:** [Chat with Larry in Grabber Native — The list](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client tidying my chats
+- **I want** the end of the list to scroll up clear of the buttons
+- **so that** no row is stuck beneath them
+
+#### Acceptance Criteria:
+- **Scenario:** The last row
+- **Given:** Chat lists more rows than fit
+- **When:** I scroll to the end of the list
+- **Then:** the last row sits clear above the buttons, where I can tap it and swipe it from anywhere along it
 
 ---

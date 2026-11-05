@@ -78,7 +78,7 @@ A Cockpit that doesn't have skill threads yet changes nothing: no second pinned 
 before.
 
 **Archiving several, and threads that look done** (Igor, 2026-11-02; #599). *Select* at the top of the list turns the
-live threads into checkboxes, and *Archive (N)* at the bottom archives them together, with *Undo* for five seconds for
+live threads into checkboxes, and *Archive (N)* at the bottom, below the floating buttons and clear of them, archives them together, with *Undo* for five seconds for
 all of them (*Archived 3 chats*). *Cancel* leaves the list as it was. Larry marks a thread he judges finished, and a new
 message clears the mark. A marked thread says *Looks done* on its row and is never moved or archived by itself: a line
 at the top of the list says *2 chats look done* with *Review*, which opens *Select* with those already ticked, so one

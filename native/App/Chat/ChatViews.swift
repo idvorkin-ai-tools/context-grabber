@@ -141,15 +141,6 @@ struct ChatListView: View {
         .accessibilityIdentifier("chat-select")
       }
     }
-    .safeAreaInset(edge: .bottom) {
-      if selecting {
-        Button("Archive (\(pickedLive.count))") { archivePicked() }
-          .buttonStyle(.borderedProminent)
-          .disabled(pickedLive.isEmpty)
-          .padding(.bottom, 8)
-          .accessibilityIdentifier("chat-archive-selected")
-      }
-    }
     // #424, story 262: a fixed thumb target. #685, story 506: floating, so the list has the whole screen; its margin lets
     // the last row scroll clear of them.
     .contentMargins(.bottom, 76, for: .scrollContent)
@@ -169,6 +160,15 @@ struct ChatListView: View {
       .padding([.horizontal, .bottom], 16)
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("chat-new-bar")
+    }
+    .safeAreaInset(edge: .bottom) {
+      if selecting {
+        Button("Archive (\(pickedLive.count))") { archivePicked() }
+          .buttonStyle(.borderedProminent)
+          .disabled(pickedLive.isEmpty)
+          .padding(.bottom, 8)
+          .accessibilityIdentifier("chat-archive-selected")
+      }
     }
     .navigationDestination(isPresented: $chat.newChatOpen) {
       ChatThreadView(newChat: chat, voice: voice, logger: logger)
