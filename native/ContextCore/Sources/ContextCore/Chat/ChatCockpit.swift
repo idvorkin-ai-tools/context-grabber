@@ -5,8 +5,8 @@
 import Foundation
 
 public enum ChatCockpit {
-  /// A simulator's address when it was given none, and a test launch's on a Mac when named. `.invalid` never resolves (RFC 6761), so a route with no guard of
-  /// its own, such as a board's turn, fails rather than finding the real Cockpit.
+  /// A simulator's address when it was given none, and a test launch's on a Mac when named. `.invalid` never resolves
+  /// (RFC 6761), so a route with no guard of its own, such as a board's turn, fails rather than finding the real Cockpit.
   public static let nowhere = "https://no-address.invalid"
 
   /// The reason, in the log and on the list.
