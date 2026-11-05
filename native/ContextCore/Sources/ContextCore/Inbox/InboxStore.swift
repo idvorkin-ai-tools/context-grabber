@@ -100,19 +100,26 @@ public struct InboxStore: Sendable {
   public static let appGroup = "group.com.idvorkin.grabbernative"
 
   /// The App Group's Inbox, or nil without the group (a test host, a build without the entitlement). On a Mac, the
-  /// app's own folder.
-  public static func shared(group: String = appGroup) -> InboxStore? {
+  /// app's own folder, by which Cockpit this launch talks to.
+  public static func shared(cockpit: String, group: String = appGroup) -> InboxStore? {
     #if targetEnvironment(macCatalyst)
       // #638: no share extension to share with on a Mac, and a build with no signing identity can't write the group's
       // folder even though it is handed one. The app's own folder holds the outbox.
       return
         (try? FileManager.default.url(
           for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))
-        .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
+        .map { mac(base: $0, cockpit: cockpit) }
     #else
       return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
         .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
     #endif
+  }
+
+  /// #680, story 588: a Mac has one app folder for real launches and test launches, and a sender sends all that waits
+  /// to its own address, so a launch named away from the real Cockpit keeps its own outbox.
+  public static func mac(base: URL, cockpit: String) -> InboxStore {
+    let folder = cockpit == CockpitPage.url ? "Inbox" : "Inbox-test"
+    return InboxStore(directory: base.appendingPathComponent(folder, isDirectory: true))
   }
 
   /// The image (and a board's strokes), or a document, first, the item last, so an item on disk always has its files.

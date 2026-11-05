@@ -32,25 +32,31 @@ final class ChatCockpitTests: XCTestCase {
     XCTAssertEqual(ChatCockpit.address(override: "http://localhost:8797", simulator: false), "http://localhost:8797")
   }
 
-  // MARK: A Mac build (#638, stories 582-583)
+  // MARK: A Mac build (#680, stories 582-583)
 
-  func testAMacBuildWithNoAddressReachesNoRealCockpitOnAnyRoute() {
-    XCTAssertEqual(ChatCockpit.address(override: nil, simulator: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.pageAddress(override: nil, mac: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.pageAddress(override: "", mac: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: nil, mac: true), ChatCockpit.nowhere)
-    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "", mac: true), ChatCockpit.nowhere)
+  func testAMacBuildWithNoAddressReachesTheRealCockpitOnEveryRoute() {
+    XCTAssertEqual(ChatCockpit.address(override: nil, simulator: false), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: nil), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: ""), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: nil, mac: true), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "", mac: true), CockpitPage.url)
+  }
+
+  func testATestLaunchOnAMacNamedNowhereReachesNothingOnEveryRoute() {
+    XCTAssertEqual(ChatCockpit.address(override: ChatCockpit.nowhere, simulator: false), ChatCockpit.nowhere)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: ChatCockpit.nowhere), ChatCockpit.nowhere)
+    XCTAssertEqual(ChatCockpit.callAddress(chatOverride: ChatCockpit.nowhere, mac: true), ChatCockpit.nowhere)
   }
 
   func testAMacBuildGoesWhereItIsPointed() {
-    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://127.0.0.1:8797", mac: true), "http://127.0.0.1:8797")
+    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://127.0.0.1:8797"), "http://127.0.0.1:8797")
     XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "http://127.0.0.1:8797", mac: true), "http://127.0.0.1:8797")
     XCTAssertEqual(ChatCockpit.callAddress(chatOverride: CockpitPage.url, mac: true), CockpitPage.url)
   }
 
   func testAPhoneAndASimulatorKeepThePageAndTheCallOnTheRealCockpit() {
-    XCTAssertEqual(ChatCockpit.pageAddress(override: nil, mac: false), CockpitPage.url)
-    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://localhost:8797", mac: false), "http://localhost:8797")
+    XCTAssertEqual(ChatCockpit.pageAddress(override: nil), CockpitPage.url)
+    XCTAssertEqual(ChatCockpit.pageAddress(override: "http://localhost:8797"), "http://localhost:8797")
     XCTAssertEqual(ChatCockpit.callAddress(chatOverride: "http://localhost:8797", mac: false), CockpitPage.url)
   }
 
@@ -110,6 +116,59 @@ final class ChatCockpitTests: XCTestCase {
     XCTAssertEqual(first.sent, ["a"])
     XCTAssertEqual(second.sent, [])
     XCTAssertEqual(urls, ["http://localhost:8797/chat/igor2-88g.900"])
+  }
+
+  // MARK: A Mac's two outboxes (#680, story 588)
+
+  private func send(_ outbox: InboxStore, to cockpit: String, asked: Asked) async -> InboxSender.Report {
+    let sender = InboxSender(store: outbox, cockpit: cockpit) { request in
+      await asked.add(request.url?.absoluteString)
+      let url = try XCTUnwrap(request.url)
+      let ok = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
+      return (Data(#"{"ok": true, "thread": "t"}"#.utf8), ok)
+    }
+    return await sender.sendWaiting(log: { _, _ in })
+  }
+
+  func testAMessageATestLaunchHeldNeverGoesToTheRealCockpitOnAPlainLaunch() async throws {
+    let held = InboxStore.mac(base: dir, cockpit: ChatCockpit.nowhere)
+    try held.add(InboxItem(id: "a", kind: .text, sharedAt: 1, text: "test", thread: "t"))
+    let asked = Asked()
+    let plain = ChatCockpit.address(override: nil, simulator: false)
+    let report = await send(InboxStore.mac(base: dir, cockpit: plain), to: plain, asked: asked)
+    let requests = await asked.count
+    XCTAssertEqual(requests, 0)
+    XCTAssertEqual(report.sent, [])
+    XCTAssertEqual(held.waitingCount, 1, "it still waits for a test launch")
+  }
+
+  func testAMessageATestLaunchHeldGoesOnceToTheStandInALaterTestLaunchNames() async throws {
+    let held = InboxStore.mac(base: dir, cockpit: ChatCockpit.nowhere)
+    try held.add(InboxItem(id: "a", kind: .text, sharedAt: 1, text: "test", thread: "t"))
+    let asked = Asked()
+    let standIn = "http://127.0.0.1:8797"
+    let first = await send(InboxStore.mac(base: dir, cockpit: standIn), to: standIn, asked: asked)
+    let second = await send(InboxStore.mac(base: dir, cockpit: standIn), to: standIn, asked: asked)
+    let urls = await asked.urls
+    XCTAssertEqual(first.sent, ["a"])
+    XCTAssertEqual(second.sent, [])
+    XCTAssertEqual(urls, ["http://127.0.0.1:8797/chat/t"])
+  }
+
+  func testARealMessageWaitingNeverGoesToAStandInAndGoesOnTheNextPlainLaunch() async throws {
+    let real = InboxStore.mac(base: dir, cockpit: CockpitPage.url)
+    try real.add(InboxItem(id: "a", kind: .text, sharedAt: 1, text: "real", thread: "t"))
+    let asked = Asked()
+    let standIn = "http://127.0.0.1:8797"
+    let toStandIn = await send(InboxStore.mac(base: dir, cockpit: standIn), to: standIn, asked: asked)
+    let requests = await asked.count
+    XCTAssertEqual(toStandIn.sent, [])
+    XCTAssertEqual(requests, 0)
+    XCTAssertEqual(real.waitingCount, 1, "not marked sent")
+    let plain = await send(InboxStore.mac(base: dir, cockpit: CockpitPage.url), to: CockpitPage.url, asked: asked)
+    let urls = await asked.urls
+    XCTAssertEqual(plain.sent, ["a"])
+    XCTAssertEqual(urls, ["\(CockpitPage.url)/chat/t"])
   }
 
   // MARK: The share card
