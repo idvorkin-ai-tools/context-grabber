@@ -11,7 +11,7 @@ final class DailyStripUITests: XCTestCase {
     let balloons =
       app.otherElements["strip-balloons"].exists
       ? app.otherElements["strip-balloons"] : app.descendants(matching: .any)["strip-balloons"]
-    XCTAssertTrue(balloons.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(balloons.appears(within: 15), app.debugDescription)
     let call = app.buttons["home-call"]
     XCTAssertLessThan(balloons.frame.maxY, call.frame.minY, "above the tiles")
     XCTAssertLessThan(balloons.frame.height, 40, "one tight line")
@@ -25,7 +25,7 @@ final class DailyStripUITests: XCTestCase {
     // #342, story 254: press and hold opens the week; − today and + yesterday stay in the sheet until Confirm.
     balloons.press(forDuration: 1.0)
     let todayCount = app.staticTexts["strip-week-count-0"]
-    XCTAssertTrue(todayCount.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(todayCount.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.staticTexts["strip-week-count-6"].exists, "seven days")
     XCTAssertEqual(todayCount.label, "\(start + 1)")
     let yesterday = app.staticTexts["strip-week-count-1"]
@@ -65,10 +65,10 @@ final class DailyStripUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let journal = app.buttons["strip-journal"]
-    XCTAssertTrue(journal.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(journal.appears(within: 15), app.debugDescription)
     journal.press(forDuration: 1.0)
     let yesterday = app.buttons["strip-day-1"]
-    XCTAssertTrue(yesterday.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(yesterday.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["strip-day-13"].exists)
     XCTAssertTrue(app.buttons["strip-day-0"].exists)
     let initial = yesterday.isSelected
@@ -79,20 +79,20 @@ final class DailyStripUITests: XCTestCase {
     app.buttons["strip-backdate-cancel"].tap()
     XCTAssertTrue(yesterday.waitForNonExistence(timeout: 5))
     journal.press(forDuration: 1.0)
-    XCTAssertTrue(yesterday.waitForExistence(timeout: 5))
+    XCTAssertTrue(yesterday.appears(within: 5))
     XCTAssertEqual(yesterday.isSelected, initial, "Cancel discards edits")
     yesterday.tap()
     app.buttons["strip-grid-done"].tap()
     XCTAssertTrue(yesterday.waitForNonExistence(timeout: 5))
     journal.press(forDuration: 1.0)
-    XCTAssertTrue(yesterday.waitForExistence(timeout: 5))
+    XCTAssertTrue(yesterday.appears(within: 5))
     XCTAssertEqual(yesterday.isSelected, !initial, "Done saved the toggle")
     XCTAssertEqual(app.buttons["strip-day-0"].isSelected, todayDone)
     yesterday.tap()
     app.buttons["strip-grid-done"].tap()
     XCTAssertTrue(yesterday.waitForNonExistence(timeout: 5))
     journal.press(forDuration: 1.0)
-    XCTAssertTrue(yesterday.waitForExistence(timeout: 5))
+    XCTAssertTrue(yesterday.appears(within: 5))
     XCTAssertEqual(yesterday.isSelected, initial, "mark and unmark both persist")
     app.buttons["strip-backdate-cancel"].tap()
   }

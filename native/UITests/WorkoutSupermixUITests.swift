@@ -9,7 +9,7 @@ final class WorkoutSupermixUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let row = app.buttons["home-workout_supermix"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     if !row.isHittable { app.swipeUp() }
     row.tap()
     XCTAssertTrue(safari.wait(for: .runningForeground, timeout: 15), "the mix opened in the browser")
@@ -21,11 +21,11 @@ final class WorkoutSupermixUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let row = app.buttons["home-workout_supermix"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     if !row.isHittable { app.swipeUp() }
     row.press(forDuration: 1.5)
     for id in ["workout", "liked", "feel_good"] {
-      XCTAssertTrue(app.buttons["supermix-\(id)"].waitForExistence(timeout: 10), "\(id) is in the popover")
+      XCTAssertTrue(app.buttons["supermix-\(id)"].appears(within: 10), "\(id) is in the popover")
     }
     app.buttons["supermix-liked"].tap()
     XCTAssertTrue(safari.wait(for: .runningForeground, timeout: 15), "the mix opened in the browser")

@@ -9,9 +9,9 @@ final class CockpitCallUITests: XCTestCase {
     app.launchEnvironment["GRABBER_COCKPIT_URL"] = "cockpit-bridge-test"
     app.launch()
     let phone = app.webViews.buttons["☎ Call"]
-    XCTAssertTrue(phone.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(phone.appears(within: 20), app.debugDescription)
     phone.tap()
-    XCTAssertTrue(app.staticTexts["call-status"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["call-status"].appears(within: 10), app.debugDescription)
     XCTAssertEqual(app.state, .runningForeground)
   }
 }

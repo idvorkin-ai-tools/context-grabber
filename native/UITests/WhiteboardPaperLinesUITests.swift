@@ -12,7 +12,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20))
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
     app.terminate()
   }
 
@@ -26,10 +26,10 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
-    XCTAssertTrue(ghosts.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     if ghosts.label.hasPrefix(ghostsOn ? "Ghosts off" : "Ghosts on") { ghosts.tap() }
     return app
   }
@@ -50,7 +50,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
   private func menu(_ app: XCUIApplication, _ item: String, expect: String) {
     board(app).tap()
     let choice = app.descendants(matching: .any)[item].firstMatch
-    XCTAssertTrue(choice.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(choice.appears(within: 5), app.debugDescription)
     choice.tapWhenSettled()
     wait(board(app), label: expect, timeout: 5)
     sleep(1)  // The menu gone and the sheet laid.
@@ -153,18 +153,18 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     menu(app, "Ruled lines", expect: "Board, Plain, ruled lines on")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     card.tap()
-    XCTAssertTrue(board(app).waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
     wait(board(app), label: "Board, Plain, ruled lines on")
     sleep(1)
     XCTAssertNotNil(PaperScreen(app).ink, "the ink is back with its lines")
 
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 10), app.debugDescription)
     new.tap()
-    XCTAssertTrue(board(app).waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
     wait(board(app), label: "Board, Plain")
   }
 

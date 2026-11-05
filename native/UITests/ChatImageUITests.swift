@@ -18,7 +18,7 @@ final class ChatImageUITests: XCTestCase {
     app.launchEnvironment["GRABBER_LINK"] = "grabbernative://chat?thread=\(thread)"
     if let board { app.launchEnvironment["GRABBER_BOARD_FIXTURE"] = board }
     app.launch()
-    XCTAssertTrue(app.buttons["chat-image-done"].waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-image-done"].appears(within: 20), app.debugDescription)
     return app
   }
 
@@ -73,32 +73,32 @@ final class ChatImageUITests: XCTestCase {
   func testAPictureFromABoardJumpsToIt() throws {
     let app = try openPicture(thread: "igor2-88g.603", board: "board-603")
     let jump = app.buttons["chat-image-jump"]
-    XCTAssertTrue(jump.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(jump.appears(within: 5), app.debugDescription)
     jump.tap()
-    XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(app.descendants(matching: .any)["whiteboard"].appears(within: 15), app.debugDescription)
     XCTAssertFalse(app.buttons["chat-image-done"].exists, "no zoom left stuck over the board")
 
     // Out of the board and the list: home, not a stuck cover.
     let back = app.navigationBars.buttons.firstMatch
-    XCTAssertTrue(back.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(back.appears(within: 5), app.debugDescription)
     back.tap()
     let done = app.buttons["whiteboard-done"]
-    XCTAssertTrue(done.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(done.appears(within: 10), app.debugDescription)
     done.tap()
-    XCTAssertTrue(app.buttons["home-call"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["home-call"].appears(within: 10), app.debugDescription)
   }
 
   func testAPictureWithNoBoardHasNoJump() throws {
     let app = try openPicture()
-    XCTAssertFalse(app.buttons["chat-image-jump"].waitForExistence(timeout: 3), app.debugDescription)
+    XCTAssertFalse(app.buttons["chat-image-jump"].appears(within: 3), app.debugDescription)
   }
 
   func testAMissingBoardSaysSoAndThePictureStays() throws {
     let app = try openPicture(thread: "igor2-88g.604")
     let jump = app.buttons["chat-image-jump"]
-    XCTAssertTrue(jump.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(jump.appears(within: 5), app.debugDescription)
     jump.tap()
-    XCTAssertTrue(app.buttons["copy-error"].waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(app.buttons["copy-error"].appears(within: 20), app.debugDescription)
     XCTAssertTrue(app.buttons["chat-image-done"].exists, "the picture stays")
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.lifetime = .keepAlways
@@ -114,7 +114,7 @@ final class ChatImageUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_LINK"] = "grabbernative://whiteboard?board=board-gone-603"
     app.launch()
-    XCTAssertTrue(app.buttons["copy-error"].waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(app.buttons["copy-error"].appears(within: 20), app.debugDescription)
     XCTAssertTrue(app.buttons["whiteboard-done"].exists, app.debugDescription)
   }
 }

@@ -13,31 +13,31 @@ final class PlacesUnnamedUITests: XCTestCase {
     app.launchEnvironment["GRABBER_PLACES"] = "map,unnamed"
     app.launch()
     let dots = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'unnamed-'"))
-    guard dots.firstMatch.waitForExistence(timeout: 30) else {
+    guard dots.firstMatch.appears(within: 30) else {
       throw XCTSkip("no unnamed place in the last seven days: is import-fixture.db in Documents?")
     }
     let before = dots.count
     let name = app.buttons["name-this-place"]
-    XCTAssertTrue(name.waitForExistence(timeout: 10), "the hook opens the longest place's card")
+    XCTAssertTrue(name.appears(within: 10), "the hook opens the longest place's card")
     name.tap()
 
     // #160: either card shows where the place is. A stay within 500 m of a known place gets the merge card first.
     let map = app.descendants(matching: .any)["naming-map"]
-    XCTAssertTrue(map.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(map.appears(within: 5), app.debugDescription)
     let createNew = app.buttons["Create new place"]
     if createNew.exists {
       shot("naming-map-merge")
       createNew.tap()
-      XCTAssertTrue(map.waitForExistence(timeout: 5), "the name card's map: \(app.debugDescription)")
+      XCTAssertTrue(map.appears(within: 5), "the name card's map: \(app.debugDescription)")
     }
     let field = app.textFields["Place name"]
-    XCTAssertTrue(field.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(field.appears(within: 5), app.debugDescription)
     shot("naming-map-name")
     field.tap()
     field.typeText("UITest Spot")
     app.buttons["Save"].tap()
 
-    XCTAssertTrue(app.descendants(matching: .any)["UITest Spot"].waitForExistence(timeout: 10), "a named pin now")
+    XCTAssertTrue(app.descendants(matching: .any)["UITest Spot"].appears(within: 10), "a named pin now")
     // The unnamed list is worked out again off the main thread after the save: wait for one dot fewer. Not for
     // this dot's id to go: ids are ranks ("Place 1"), so the next place takes the named one's id (#261).
     let fewer = NSPredicate { _, _ in dots.count == before - 1 }

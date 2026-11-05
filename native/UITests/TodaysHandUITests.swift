@@ -8,15 +8,15 @@ final class TodaysHandUITests: XCTestCase {
   func testTheLargeWidgetDealsInPlaceAndStartsTheCount() throws {
     let app = XCUIApplication()
     app.launch()
-    XCTAssertTrue(app.buttons["home-think_a_card"].waitForExistence(timeout: 15))
+    XCTAssertTrue(app.buttons["home-think_a_card"].appears(within: 15))
 
     XCUIDevice.shared.press(.home)
     let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
     let role = springboard.staticTexts["Today, be"]
-    if !role.waitForExistence(timeout: 3) { addTheLargeWidget(springboard) }
-    XCTAssertTrue(role.waitForExistence(timeout: 10), springboard.debugDescription)
+    if !role.appears(within: 3) { addTheLargeWidget(springboard) }
+    XCTAssertTrue(role.appears(within: 10), springboard.debugDescription)
     let card = springboard.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Memdeck card'")).firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(card.appears(within: 5), springboard.debugDescription)
     shot("todays-hand")
 
     // A tap deals in place: a different card, and the app stays in the background.
@@ -29,26 +29,26 @@ final class TodaysHandUITests: XCTestCase {
     shot("todays-hand-dealt")
 
     springboard.buttons["Think of a card"].tap()
-    XCTAssertTrue(app.buttons["card-done"].waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(app.buttons["card-done"].appears(within: 15), app.debugDescription)
   }
 
   /// Long press, Edit, Add Widget, search, swipe to the large size, Add Widget.
   private func addTheLargeWidget(_ springboard: XCUIApplication) {
     springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)).press(forDuration: 1.5)
     let edit = springboard.buttons["Edit"]
-    if edit.waitForExistence(timeout: 5) { edit.tap() }
+    if edit.appears(within: 5) { edit.tap() }
     let addWidget = springboard.buttons["Add Widget"]
-    XCTAssertTrue(addWidget.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(addWidget.appears(within: 5), springboard.debugDescription)
     addWidget.tap()
     let search = springboard.searchFields.firstMatch
-    XCTAssertTrue(search.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(search.appears(within: 5), springboard.debugDescription)
     search.tap()
     search.typeText("Grabber")
     let result = springboard.cells.containing(.staticText, identifier: "Grabber Native").firstMatch
-    XCTAssertTrue(result.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(result.appears(within: 5), springboard.debugDescription)
     result.tap()
     let add = springboard.buttons.matching(NSPredicate(format: "label CONTAINS 'Add Widget'")).firstMatch
-    XCTAssertTrue(add.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(add.appears(within: 5), springboard.debugDescription)
     // The gallery opens on the usage tile's small size; Today's hand is after its medium.
     for _ in 0..<2 {
       springboard.swipeLeft()
@@ -58,7 +58,7 @@ final class TodaysHandUITests: XCTestCase {
     add.tap()
     sleep(2)
     let done = springboard.buttons["Done"]
-    if done.waitForExistence(timeout: 3) { done.tap() }
+    if done.appears(within: 3) { done.tap() }
     sleep(2)
   }
 

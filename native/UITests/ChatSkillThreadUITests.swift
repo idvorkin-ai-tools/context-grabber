@@ -20,7 +20,7 @@ final class ChatSkillThreadUITests: XCTestCase {
     app.launchEnvironment["GRABBER_INBOX"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launch()
-    XCTAssertTrue(app.buttons["chat-thread-\(skill)"].waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-thread-\(skill)"].appears(within: 20), app.debugDescription)
     return app
   }
 
@@ -38,7 +38,7 @@ final class ChatSkillThreadUITests: XCTestCase {
 
   private func send(_ text: String, _ app: XCUIApplication) {
     let field = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Message idvorkin")).firstMatch
-    XCTAssertTrue(field.waitForExistence(timeout: 10), "the bar names the skill: \(app.debugDescription)")
+    XCTAssertTrue(field.appears(within: 10), "the bar names the skill: \(app.debugDescription)")
     field.tap()
     field.typeText(text)
     app.buttons["Send"].tap()  // by label: the thread's identifier covers its children
@@ -53,23 +53,23 @@ final class ChatSkillThreadUITests: XCTestCase {
     let thread = app.buttons["chat-thread-\(skill)"]
     let larrys = app.buttons["chat-thread-igor2-88g.1268"]
     let other = app.buttons["chat-thread-igor2-88g.592"]
-    XCTAssertTrue(larrys.waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertTrue(other.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(larrys.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(other.appears(within: 5), app.debugDescription)
     XCTAssertLessThan(larrys.frame.minY, thread.frame.minY, "under Larry's")
     XCTAssertLessThan(thread.frame.minY, other.frame.minY, "above the rest")
     XCTAssertTrue(thread.label.contains("Pinned"), thread.label)
     XCTAssertTrue(thread.label.contains("Ask idvorkin"), thread.label)
     thread.swipeLeft()
-    XCTAssertFalse(app.buttons["Archive"].waitForExistence(timeout: 2), "no swipe to archive")
+    XCTAssertFalse(app.buttons["Archive"].appears(within: 2), "no swipe to archive")
     // With nothing to reveal, the simulated swipe lands as a tap and opens the thread.
     if app.buttons["BackButton"].exists { app.buttons["BackButton"].tap() }
-    XCTAssertTrue(app.buttons["chat-select"].waitForExistence(timeout: 3), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-select"].appears(within: 3), app.debugDescription)
     app.buttons["chat-select"].tap()
-    XCTAssertTrue(app.buttons["chat-tick-igor2-88g.592"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-tick-igor2-88g.592"].appears(within: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["chat-tick-\(skill)"].exists, "not tickable")
     app.buttons["chat-select"].tap()
     thread.tap()
-    XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.textFields.firstMatch.appears(within: 10), app.debugDescription)
     XCTAssertFalse(app.buttons["chat-thread-more"].exists, "no menu to archive it from")
   }
 
@@ -78,23 +78,23 @@ final class ChatSkillThreadUITests: XCTestCase {
     app.buttons["chat-thread-\(skill)"].tap()
 
     send("please fail", app)
-    XCTAssertTrue(any(app, labelContains: "could not answer").waitForExistence(timeout: 15), app.debugDescription)
-    XCTAssertTrue(app.buttons["copy-error"].waitForExistence(timeout: 2), "copyable: \(app.debugDescription)")
+    XCTAssertTrue(any(app, labelContains: "could not answer").appears(within: 15), app.debugDescription)
+    XCTAssertTrue(app.buttons["copy-error"].appears(within: 2), "copyable: \(app.debugDescription)")
     let mine = any(app, labelContains: "please fail")
-    XCTAssertTrue(mine.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(mine.appears(within: 5), app.debugDescription)
     XCTAssertFalse(mine.label.contains("🏆"), "a failure is not an answer: \(mine.label)")
     XCTAssertTrue(mine.label.contains("👀"), mine.label)
 
     send("hello there", app)
     let reply = any(app, labelContains: "idvorkin heard")
-    XCTAssertTrue(reply.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(reply.appears(within: 15), app.debugDescription)
     XCTAssertTrue(reply.label.contains("idvorkin"), reply.label)
     let answered = NSPredicate(format: "label CONTAINS %@", "🏆")
     wait(for: [expectation(for: answered, evaluatedWith: mine)], timeout: 10)
 
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let row = app.buttons["chat-thread-\(skill)"]
-    XCTAssertTrue(row.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 10), app.debugDescription)
     let named = NSPredicate(format: "label CONTAINS %@", "idvorkin: idvorkin heard")
     wait(for: [expectation(for: named, evaluatedWith: row)], timeout: 10)
   }

@@ -9,33 +9,33 @@ final class CockpitBackUITests: XCTestCase {
     app.launchEnvironment["GRABBER_COCKPIT_URL"] = "cockpit-bridge-test"
     app.launch()
     let row = app.buttons["home-cockpit"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     row.tap()
 
     let away = app.links["Open another page"]
-    XCTAssertTrue(away.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(away.appears(within: 15), app.debugDescription)
     XCTAssertFalse(app.buttons["cockpit-back"].exists, "no Back on the start page")
     away.tap()
     let back = app.buttons["cockpit-back"]
-    XCTAssertTrue(back.waitForExistence(timeout: 10), "Back appears on the page the Cockpit opened")
+    XCTAssertTrue(back.appears(within: 10), "Back appears on the page the Cockpit opened")
     XCTAssertTrue(app.buttons["cockpit-home"].exists)
     shot(app, "cockpit-away")
 
     back.tap()
-    XCTAssertTrue(away.waitForExistence(timeout: 10), "Back returns to the dashboard")
+    XCTAssertTrue(away.appears(within: 10), "Back returns to the dashboard")
     XCTAssertTrue(app.buttons["cockpit-back"].waitForNonExistence(timeout: 5), "and Back goes")
 
     // Two pages deep, then Cockpit: the start page in one tap.
     away.tap()
     let deeper = app.links["One page deeper"]
-    XCTAssertTrue(deeper.waitForExistence(timeout: 10))
+    XCTAssertTrue(deeper.appears(within: 10))
     deeper.tap()
     sleep(1)
     app.buttons["cockpit-home"].tap()
-    XCTAssertTrue(away.waitForExistence(timeout: 10), "Cockpit returns to the start page")
+    XCTAssertTrue(away.appears(within: 10), "Cockpit returns to the start page")
 
     app.buttons["cockpit-done"].tap()
-    XCTAssertTrue(row.waitForExistence(timeout: 5), "Done leaves the Cockpit")
+    XCTAssertTrue(row.appears(within: 5), "Done leaves the Cockpit")
   }
 
   private func shot(_ app: XCUIApplication, _ name: String) {

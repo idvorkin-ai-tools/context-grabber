@@ -39,26 +39,26 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
   func testDrawingInTheTrialLeavesTheRealBoardAlone() {
     let app = launch()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
     let send = app.buttons["whiteboard-send"]
-    XCTAssertTrue(send.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(send.appears(within: 10), app.debugDescription)
     sleep(1)
     stroke(app, atHeight: 0.5)
     waitFor(send, label: "Send to Larry, 1 strokes")
     app.navigationBars.buttons.element(boundBy: 0).tap()
 
     let row = app.buttons["whiteboard-card"].firstMatch
-    XCTAssertTrue(row.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 10), app.debugDescription)
     let before = row.label
     row.press(forDuration: 1.2)
     let tryIt = app.buttons["Try on paper"]
-    XCTAssertTrue(tryIt.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(tryIt.appears(within: 5), app.debugDescription)
     tryIt.tap()
 
     // Story 437: the line, the page number and the menu with the copy's one stroke.
     let menu = app.buttons["paper-trial-menu"]
-    XCTAssertTrue(menu.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(menu.appears(within: 15), app.debugDescription)
     XCTAssertTrue(app.staticTexts["paper-trial-note"].exists, app.debugDescription)
     waitFor(menu, label: "Trial, 1 strokes")
     XCTAssertTrue(
@@ -81,13 +81,13 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     // Stories 530, 531: the menu's switches run; the log's `paper_probe` lines are what they're for.
     menu.tap()
     let add = app.buttons["Add a page now"]
-    XCTAssertTrue(add.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(add.appears(within: 5), app.debugDescription)
     add.tap()
     sleep(2)
     keep(app, "trial with a page added")
     menu.tap()
     let far = app.buttons["Go to page 11"]
-    XCTAssertTrue(far.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(far.appears(within: 5), app.debugDescription)
     far.tap()
     expectation(
       for: NSPredicate(format: "label BEGINSWITH 'Page 11 of'"), evaluatedWith: app.staticTexts["paper-trial-page"])
@@ -95,7 +95,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     keep(app, "trial on page 11")
     menu.tap()
     let inPlace = app.buttons["Ink where it is"]
-    XCTAssertTrue(inPlace.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(inPlace.appears(within: 5), app.debugDescription)
     inPlace.tap()
     waitFor(menu, label: "Trial, 1 strokes", timeout: 10)
     sleep(1)
@@ -107,10 +107,10 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     app.buttons["paper-trial-close"].tap()
 
     // The real board: its row reads as it did, and it holds the one stroke it had. Not a mark from the trial.
-    XCTAssertTrue(row.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 10), app.debugDescription)
     XCTAssertEqual(row.label, before)
     row.tap()
-    XCTAssertTrue(send.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(send.appears(within: 10), app.debugDescription)
     waitFor(send, label: "Send to Larry, 1 strokes")
   }
 
@@ -123,7 +123,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
       "GRABBER_BOARD_FIXTURE": id, "GRABBER_PAPER_TRIAL": id, "GRABBER_PAPER_TRIAL_INK": "40",
     ])
     let menu = app.buttons["paper-trial-menu"]
-    XCTAssertTrue(menu.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(menu.appears(within: 20), app.debugDescription)
     waitFor(menu, label: "Trial, 40 strokes", timeout: 10)
     sleep(2)
     keep(app, "probes opened")
@@ -138,7 +138,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     func choose(_ item: String) {
       menu.tap()
       let entry = app.descendants(matching: .any)[item].firstMatch
-      XCTAssertTrue(entry.waitForExistence(timeout: 5), item + app.debugDescription)
+      XCTAssertTrue(entry.appears(within: 5), item + app.debugDescription)
       entry.tap()
       sleep(1)
     }
@@ -188,9 +188,9 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     ])
     let row = app.buttons.matching(identifier: "whiteboard-card")
       .matching(NSPredicate(format: "label CONTAINS 'Drawn on iPad'")).firstMatch
-    XCTAssertTrue(row.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 20), app.debugDescription)
     row.press(forDuration: 1.2)
-    XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["Delete"].appears(within: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["Try on paper"].exists, "only this device's boards")
   }
 }

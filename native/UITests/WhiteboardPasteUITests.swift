@@ -23,10 +23,10 @@ class WhiteboardPasteUITests: XCTestCase {
     for (key, value) in boardEnvironment { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
-    XCTAssertTrue(ghosts.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
     return app
   }
@@ -40,7 +40,7 @@ class WhiteboardPasteUITests: XCTestCase {
   /// The board's note, which also says how many suggestions show.
   private func waitForNote(_ app: XCUIApplication, saying words: String) {
     let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", words)).firstMatch
-    XCTAssertTrue(note.waitForExistence(timeout: 8), app.debugDescription)
+    XCTAssertTrue(note.appears(within: 8), app.debugDescription)
   }
 
   /// First in the class on purpose: on the simulator only the first test of a run gets its keys through (seen in three
@@ -58,7 +58,7 @@ class WhiteboardPasteUITests: XCTestCase {
   func testEachLineIsInkAndClaudesPauseStarts() throws {
     let app = try openBoard(
       pasting: "Plan for Tuesday\nCall the bank, then a long line that wraps across the phone\n\nHI")
-    XCTAssertTrue(app.buttons["whiteboard-paste"].exists)
+    XCTAssertTrue(app.buttons["whiteboard-paste"].appears(within: 5))
     let ghosts = app.buttons["whiteboard-ghosts"]
     expectation(for: NSPredicate(format: "label == %@", "Ghosts on, 1 showing"), evaluatedWith: ghosts)
     waitForExpectations(timeout: 10)

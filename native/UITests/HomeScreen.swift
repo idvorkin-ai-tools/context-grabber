@@ -6,11 +6,11 @@ import XCTest
 extension XCUIApplication {
   func openHomeSettings(timeout: TimeInterval = 15, file: StaticString = #filePath, line: UInt = #line) {
     XCTAssertTrue(
-      buttons["home-call"].waitForExistence(timeout: timeout) || buttons["home-settings"].exists,
+      buttons["home-call"].appears(within: timeout) || buttons["home-settings"].exists,
       "the home screen: \(debugDescription)", file: file, line: line)
     let tile = buttons["home-settings"]
     for _ in 0..<8 where !(tile.exists && tile.isHittable) { swipeUp() }
-    XCTAssertTrue(tile.waitForExistence(timeout: 5), "the Settings tile: \(debugDescription)", file: file, line: line)
+    XCTAssertTrue(tile.appears(within: 5), "the Settings tile: \(debugDescription)", file: file, line: line)
     tile.tap()
   }
 
@@ -18,10 +18,10 @@ extension XCUIApplication {
   func openLaunchers(file: StaticString = #filePath, line: UInt = #line) {
     openHomeSettings(file: file, line: line)
     let row = buttons["home-settings-launchers"]
-    XCTAssertTrue(row.waitForExistence(timeout: 5), "the Launchers row: \(debugDescription)", file: file, line: line)
+    XCTAssertTrue(row.appears(within: 5), "the Launchers row: \(debugDescription)", file: file, line: line)
     row.tap()
     XCTAssertTrue(
-      navigationBars["Launchers"].waitForExistence(timeout: 5), "the Launchers page: \(debugDescription)", file: file,
+      navigationBars["Launchers"].appears(within: 5), "the Launchers page: \(debugDescription)", file: file,
       line: line)
   }
 }

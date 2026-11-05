@@ -26,11 +26,11 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launchEnvironment["GRABBER_INBOX"] = "open"
     app.launch()
     let plus = app.buttons["inbox-add"]
-    XCTAssertTrue(plus.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(plus.appears(within: 20), app.debugDescription)
     let notSentBefore = notSentLines(app)
     plus.tap()
-    XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertTrue(field(app).waitForExistence(timeout: 5), "the ordinary bar's field: \(app.debugDescription)")
+    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 5), app.debugDescription)
+    XCTAssertTrue(field(app).appears(within: 5), "the ordinary bar's field: \(app.debugDescription)")
     XCTAssertTrue(app.buttons["Paste image"].exists, "Paste image is on the bar")
     XCTAssertTrue(app.buttons["Speak a message"].exists, "the chat mic is on the bar")
     XCTAssertTrue(app.buttons["Microphone: Automatic"].exists, "the microphone picker is on the bar")
@@ -40,7 +40,7 @@ final class ChatNewThreadUITests: XCTestCase {
 
     // Back with nothing sent leaves no thread behind.
     app.navigationBars["New chat"].buttons.firstMatch.tap()
-    XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(plus.appears(within: 5), app.debugDescription)
     XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
   }
 
@@ -50,9 +50,9 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
     app.launchEnvironment["GRABBER_CHAT_NEW"] = "open"
     app.launch()
-    XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 20), app.debugDescription)
     let field = field(app)
-    XCTAssertTrue(field.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(field.appears(within: 5), app.debugDescription)
     let focused = NSPredicate(format: "hasKeyboardFocus == true")
     let focus = expectation(for: focused, evaluatedWith: field)
     wait(for: [focus], timeout: 5)
@@ -69,19 +69,19 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launchEnvironment["GRABBER_INBOX"] = "open"
     app.launch()
     let plus = app.buttons["inbox-add"]
-    XCTAssertTrue(plus.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(plus.appears(within: 20), app.debugDescription)
     plus.tap()
     let field = field(app)
-    XCTAssertTrue(field.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(field.appears(within: 5), app.debugDescription)
     field.tap()
     field.typeText(first)
     app.buttons["Send"].tap()
 
     // The title is the first line at once; the bar holds the next message back while the Cockpit takes it (the
     // fake holds POST /chat three seconds), then lets go.
-    XCTAssertTrue(app.navigationBars[first].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.navigationBars[first].appears(within: 5), app.debugDescription)
     let waiting = app.staticTexts["The next message goes once your first one reaches Larry."]
-    XCTAssertTrue(waiting.waitForExistence(timeout: 3), "the hold-back line: \(app.debugDescription)")
+    XCTAssertTrue(waiting.appears(within: 3), "the hold-back line: \(app.debugDescription)")
     let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: waiting)
     wait(for: [gone], timeout: 20)
 
@@ -113,14 +113,14 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launch()
     let plus = app.buttons["inbox-add"]
     let voice = app.buttons["inbox-add-voice"]
-    XCTAssertTrue(voice.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(voice.appears(within: 20), app.debugDescription)
     XCTAssertLessThanOrEqual(voice.frame.maxX, plus.frame.minX, "the voice button comes before the +")
     XCTAssertLessThanOrEqual(plus.frame.minX - voice.frame.maxX, 12, "right beside it")
     XCTAssertGreaterThanOrEqual(voice.frame.width, 44)
     XCTAssertGreaterThanOrEqual(voice.frame.height, 44)
     let notSentBefore = notSentLines(app)
     voice.tap()
-    XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
 
     let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
@@ -138,13 +138,13 @@ final class ChatNewThreadUITests: XCTestCase {
 
     // Story 502: back stops whatever was going and leaves no thread.
     app.navigationBars["New chat"].buttons.firstMatch.tap()
-    XCTAssertTrue(plus.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(plus.appears(within: 5), app.debugDescription)
     XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
 
     // Story 505: the + after it records nothing.
     plus.tap()
-    XCTAssertTrue(field(app).waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertTrue(app.buttons["Speak a message"].waitForExistence(timeout: 5), "the + leaves the mic idle")
+    XCTAssertTrue(field(app).appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["Speak a message"].appears(within: 5), "the + leaves the mic idle")
     XCTAssertFalse(app.buttons["Stop recording"].exists)
   }
 
@@ -169,18 +169,18 @@ final class ChatNewThreadUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launch()
     let done = app.buttons["Done"]
-    XCTAssertTrue(done.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(done.appears(within: 20), app.debugDescription)
     Thread.sleep(forTimeInterval: 2)  // the hook places the call a second after the screen opens
     done.tap()
     let tile = app.buttons["home-inbox"]
-    XCTAssertTrue(tile.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(tile.appears(within: 10), app.debugDescription)
     tile.tap()
     let voice = app.buttons["inbox-add-voice"]
-    XCTAssertTrue(voice.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(voice.appears(within: 10), app.debugDescription)
     voice.tap()
-    XCTAssertTrue(app.navigationBars["New chat"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 5), app.debugDescription)
     let line = app.staticTexts["A call with Larry is using the microphone. End it to speak a message."]
-    XCTAssertTrue(line.waitForExistence(timeout: 5), "the bar says why: \(app.debugDescription)")
+    XCTAssertTrue(line.appears(within: 5), "the bar says why: \(app.debugDescription)")
     XCTAssertTrue(app.buttons["Speak a message"].exists, "nothing is recording")
     XCTAssertFalse(app.buttons["Stop recording"].exists)
     let focus = expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: field(app))

@@ -12,7 +12,7 @@ final class PlacesRangeUITests: XCTestCase {
     app.launch()
     let week = app.buttons["places-range-7"]
     let today = app.buttons["places-range-1"]
-    XCTAssertTrue(week.waitForExistence(timeout: 30), app.debugDescription)
+    XCTAssertTrue(week.appears(within: 30), app.debugDescription)
     today.tap()  // whatever an earlier run left
     XCTAssertTrue(today.isSelected)
     week.tap()
@@ -25,7 +25,7 @@ final class PlacesRangeUITests: XCTestCase {
     app.terminate()
     app.launchEnvironment["GRABBER_IMPORT_DB"] = nil
     app.launch()
-    XCTAssertTrue(week.waitForExistence(timeout: 30), app.debugDescription)
+    XCTAssertTrue(week.appears(within: 30), app.debugDescription)
     XCTAssertTrue(week.isSelected, "remembered after a relaunch")
     today.tap()
     XCTAssertTrue(today.isSelected, "and back to today")

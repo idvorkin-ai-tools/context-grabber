@@ -10,7 +10,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
   /// The switch is remembered, so every test leaves it off for the tests after it.
   override func tearDown() {
     let app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20))
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
     app.terminate()
   }
 
@@ -43,9 +43,9 @@ final class WhiteboardOnPaperUITests: XCTestCase {
 
   private func newBoard(_ app: XCUIApplication) {
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
-    XCTAssertTrue(app.buttons["whiteboard-send"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-send"].appears(within: 10), app.debugDescription)
   }
 
   /// By its words: the board's screen gives its own id to what's inside it.
@@ -72,34 +72,34 @@ final class WhiteboardOnPaperUITests: XCTestCase {
   func testANewBoardIsOnPaperUntilTheSwitchIsTurnedOff() {
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     let options = app.buttons["whiteboard-options"]
-    XCTAssertTrue(options.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(options.appears(within: 20), app.debugDescription)
     XCTAssertEqual(options.label, "Board options, new boards on paper", "on until it's turned off")
     options.tap()
     let toggle = app.descendants(matching: .any)["New boards on paper"].firstMatch
-    XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(toggle.appears(within: 5), app.debugDescription)
     toggle.tapWhenSettled()
     waitFor(options, label: "Board options, new boards on the old canvas")
     app.terminate()
     app = launch()
     let remembered = app.buttons["whiteboard-options"]
-    XCTAssertTrue(remembered.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(remembered.appears(within: 20), app.debugDescription)
     XCTAssertEqual(remembered.label, "Board options, new boards on the old canvas", "turning it off is remembered")
 
     // Story 602: turned back on from the menu, the next board is on paper.
     remembered.tap()
-    XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(toggle.appears(within: 5), app.debugDescription)
     toggle.tapWhenSettled()
     waitFor(remembered, label: "Board options, new boards on paper")
     newBoard(app)
-    XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(pageNumber(app).appears(within: 10), app.debugDescription)
     app.navigationBars.buttons.element(boundBy: 0).tap()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
     app.terminate()
 
     app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
     newBoard(app)
     let page = pageNumber(app)
-    XCTAssertTrue(page.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(page.appears(within: 10), app.debugDescription)
     waitFor(page, label: "Page 1 of 1")
     XCTAssertTrue(app.buttons["whiteboard-board"].exists, "the colours are still there")
     sleep(2)
@@ -115,7 +115,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     let colours = app.buttons["whiteboard-board"]
     colours.tap()
     let sage = app.descendants(matching: .any)["Sage"].firstMatch
-    XCTAssertTrue(sage.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(sage.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.descendants(matching: .any)["Grid lines"].exists, "story 652: the grid")
     XCTAssertTrue(app.descendants(matching: .any)["Ruled lines"].exists, "story 434: ruled lines")
     sage.tapWhenSettled()
@@ -128,9 +128,9 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     app.terminate()
     app = launch()
     let saved = row(app, "On paper")
-    XCTAssertTrue(saved.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(saved.appears(within: 20), app.debugDescription)
     saved.tap()
-    XCTAssertTrue(send.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(send.appears(within: 10), app.debugDescription)
     waitFor(send, label: "Send to Larry, 1 strokes")
     waitFor(page, label: "Page 1 of 2")
     keep(app, "the same ink after a relaunch")
@@ -146,19 +146,19 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     // An old board, then the switch on: it still opens on the old canvas.
     var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
     newBoard(app)
-    XCTAssertTrue(app.buttons["whiteboard-send"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-send"].appears(within: 10), app.debugDescription)
     XCTAssertFalse(pageNumber(app).exists, "the old canvas")
     sleep(1)
     stroke(app, atHeight: 0.5)
     waitFor(app.buttons["whiteboard-send"], label: "Send to Larry, 1 strokes")
     app.navigationBars.buttons.element(boundBy: 0).tap()
-    XCTAssertTrue(oldRow(app).waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(oldRow(app).appears(within: 10), app.debugDescription)
     app.terminate()
 
     app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"])
-    XCTAssertTrue(oldRow(app).waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(oldRow(app).appears(within: 20), app.debugDescription)
     oldRow(app).tap()
-    XCTAssertTrue(app.buttons["whiteboard-send"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-send"].appears(within: 10), app.debugDescription)
     XCTAssertFalse(pageNumber(app).exists)
     app.navigationBars.buttons.element(boundBy: 0).tap()
 
@@ -169,13 +169,13 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     waitFor(app.buttons["whiteboard-send"], label: "Send to Larry, 1 strokes")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let paper = row(app, "On paper")
-    XCTAssertTrue(paper.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(paper.appears(within: 10), app.debugDescription)
     app.terminate()
 
     app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
-    XCTAssertTrue(paper.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(paper.appears(within: 20), app.debugDescription)
     paper.tap()
-    XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(pageNumber(app).appears(within: 10), app.debugDescription)
   }
 
   /// Story 609: in dark mode new ink can be seen. PaperKit left to itself draws it black on black. Read off the screenshot:
@@ -213,7 +213,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
 
     // The list goes back to the device's mode.
     app.navigationBars.buttons.element(boundBy: 0).tap()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
     sleep(2)  // Past the board sliding away, whose screen is still light.
     keep(app, "the list after a board on paper, in dark mode")
     let list = try XCTUnwrap(app.screenshot().image.cgImage)
@@ -225,14 +225,14 @@ final class WhiteboardOnPaperUITests: XCTestCase {
   /// Story 604: a new board on paper closed without a stroke leaves no row.
   func testAnEmptyBoardOnPaperLeavesNoRow() {
     let app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"])
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20), app.debugDescription)
     sleep(1)
     let before = app.buttons.matching(identifier: "whiteboard-card").count
     newBoard(app)
-    XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(pageNumber(app).appears(within: 10), app.debugDescription)
     sleep(1)
     app.navigationBars.buttons.element(boundBy: 0).tap()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
     sleep(1)
     XCTAssertEqual(app.buttons.matching(identifier: "whiteboard-card").count, before)
   }
@@ -246,14 +246,14 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     sleep(2)
     stroke(app, atHeight: 0.3)
     let copy = copyError(app)
-    XCTAssertTrue(copy.waitForExistence(timeout: 10), "on the board" + app.debugDescription)
+    XCTAssertTrue(copy.appears(within: 10), "on the board" + app.debugDescription)
     keep(app, "a failed save on the board")
     sleep(1)
     stroke(app, atHeight: 0.4)
     sleep(1)
     app.navigationBars.buttons.element(boundBy: 0).tap()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 10), app.debugDescription)
-    XCTAssertTrue(copy.waitForExistence(timeout: 10), "on the list" + app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
+    XCTAssertTrue(copy.appears(within: 10), "on the list" + app.debugDescription)
     keep(app, "a failed save on the list")
   }
 
@@ -266,16 +266,16 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     waitFor(app.buttons["whiteboard-send"], label: "Send to Larry, 1 strokes")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let board = row(app, "On paper")
-    XCTAssertTrue(board.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(board.appears(within: 10), app.debugDescription)
     board.press(forDuration: 1.2)
     let tryIt = app.buttons["Try on paper"]
-    XCTAssertTrue(tryIt.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(tryIt.appears(within: 5), app.debugDescription)
     tryIt.tap()
     let menu = app.buttons["paper-trial-menu"]
-    XCTAssertTrue(menu.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(menu.appears(within: 15), app.debugDescription)
     waitFor(menu, label: "Trial, 1 strokes")
     keep(app, "the trial, with its test marks")
     app.buttons["paper-trial-close"].tap()
-    XCTAssertTrue(board.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(board.appears(within: 10), app.debugDescription)
   }
 }

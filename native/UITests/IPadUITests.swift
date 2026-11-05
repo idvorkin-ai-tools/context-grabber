@@ -13,7 +13,7 @@ final class IPadUITests: XCTestCase {
       XCUIDevice.shared.orientation = .landscapeLeft
       // Today is the card across the top (story 151); the launchers below it are half-width tiles and rows.
       let today = app.buttons["home-today-card"]
-      XCTAssertTrue(today.waitForExistence(timeout: 15), app.debugDescription)
+      XCTAssertTrue(today.appears(within: 15), app.debugDescription)
       if id == "home" {
         // An iPad app, not a phone-sized window: the Today card spans most of the screen's width (the screen, not the
         // app's window, which shrinks with a phone-only app), once the turn to landscape has settled.
@@ -27,7 +27,7 @@ final class IPadUITests: XCTestCase {
         launcher.tap()
         // The journey's own screen, not just an app still in front: a launcher that did nothing would pass that.
         let screen = destination(id, in: app)
-        XCTAssertTrue(screen.waitForExistence(timeout: 15), "\(id) opened its screen: \(app.debugDescription)")
+        XCTAssertTrue(screen.appears(within: 15), "\(id) opened its screen: \(app.debugDescription)")
         // On top, once its push or cover has finished arriving. Today's first visit on a fresh simulator puts the
         // system's Health Access sheet over it; that sheet is the screen working, and only a person can answer it.
         let onTop = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: screen)

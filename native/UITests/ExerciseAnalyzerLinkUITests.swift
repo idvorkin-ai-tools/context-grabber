@@ -9,7 +9,7 @@ final class ExerciseAnalyzerLinkUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let row = app.buttons["home-exercise_analyzer"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     row.tap()
     XCTAssertTrue(analyzer.wait(for: .runningForeground, timeout: 15), "Exercise Analyzer came to the front")
   }

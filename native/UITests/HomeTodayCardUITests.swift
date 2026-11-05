@@ -8,11 +8,11 @@ final class HomeTodayCardUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_MIRROR"] = "fixture"
     app.launch()
-    XCTAssertTrue(app.staticTexts["hook-done"].waitForExistence(timeout: 60), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["hook-done"].appears(within: 60), app.debugDescription)
     app.navigationBars.buttons.element(boundBy: 0).tap()  // back to home
 
     let card = app.buttons["home-today-card"]
-    XCTAssertTrue(card.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     XCTAssertFalse(card.label.contains("tap to look"), "the card shows the grab: \(card.label)")
     XCTAssertTrue(card.label.contains("as of"), card.label)
     // The tiles lead under the card, three to a line (#284): Call beside Timer, Places starting the next line.

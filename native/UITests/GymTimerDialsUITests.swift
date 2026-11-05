@@ -13,7 +13,7 @@ final class GymTimerDialsUITests: XCTestCase {
     app.launchEnvironment["GRABBER_TIMER_DIAL"] = "drums"
     app.launch()
     let work = app.descendants(matching: .any)["dial-work"]
-    XCTAssertTrue(work.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(work.appears(within: 15), app.debugDescription)
     // Start from a known place whatever an earlier run left: tap the upper third down to the floor.
     for _ in 0..<70 where work.value as? String != "0:10" {
       work.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap()

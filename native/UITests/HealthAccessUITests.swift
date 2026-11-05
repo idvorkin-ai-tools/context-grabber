@@ -11,6 +11,6 @@ final class HealthAccessUITests: XCTestCase {
     app.launch()
     let done = app.staticTexts["hook-done"]
     HealthSheet.allow(in: app) { done.exists }
-    XCTAssertTrue(done.waitForExistence(timeout: 180), app.debugDescription)
+    XCTAssertTrue(done.appears(within: 180), app.debugDescription)
   }
 }

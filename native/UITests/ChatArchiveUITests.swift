@@ -20,7 +20,7 @@ final class ChatArchiveUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launch()
     let row = app.buttons["chat-thread-\(key)"]
-    XCTAssertTrue(row.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 20), app.debugDescription)
     return app
   }
 
@@ -53,7 +53,7 @@ final class ChatArchiveUITests: XCTestCase {
   func testTheNewChatButtonsFloatOverTheList() throws {
     let app = try openList()
     let bar = app.otherElements["chat-new-bar"]
-    XCTAssertTrue(bar.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(bar.appears(within: 5), app.debugDescription)
     XCTAssertLessThan(bar.frame.width, app.windows.firstMatch.frame.width / 2, "only the buttons, not a bar")
     let list = app.collectionViews.firstMatch
     XCTAssertGreaterThanOrEqual(list.frame.maxY, app.buttons["inbox-add"].frame.maxY, "the list runs beneath them")
@@ -64,7 +64,7 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["chat-thread-\(key)"].swipeLeft()
     app.buttons["Archive"].tap()
     let undo = app.buttons["chat-archive-undo"]
-    XCTAssertTrue(undo.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(undo.appears(within: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["chat-thread-\(key)"].isHittable, "folded under Done")
     undo.tap()
     assertBackInTheLiveList(app)
@@ -75,11 +75,11 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["chat-thread-\(key)"].swipeLeft()
     app.buttons["Archive"].tap()
     let done = doneFold(app)
-    XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(done.appears(within: 5), app.debugDescription)
     scrollClearOfTheBar(done, app)
     done.tap()
     let row = app.buttons["chat-thread-\(key)"]
-    XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 5), app.debugDescription)
     scrollClearOfTheBar(row, app)
     row.swipeLeft()
     app.buttons["Unarchive"].tap()
@@ -90,18 +90,18 @@ final class ChatArchiveUITests: XCTestCase {
     let app = try openList()
     app.buttons["chat-thread-\(key)"].tap()
     let more = app.buttons["chat-thread-more"]
-    XCTAssertTrue(more.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(more.appears(within: 10), app.debugDescription)
     more.tap()
     app.buttons["Archive chat"].tap()
     let done = doneFold(app)
-    XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(done.appears(within: 5), app.debugDescription)
     scrollClearOfTheBar(done, app)
     done.tap()
     scrollClearOfTheBar(app.buttons["chat-thread-\(key)"], app)
     app.buttons["chat-thread-\(key)"].tap()
-    XCTAssertTrue(more.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(more.appears(within: 10), app.debugDescription)
     more.tap()
-    XCTAssertTrue(app.buttons["Unarchive chat"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["Unarchive chat"].appears(within: 5), app.debugDescription)
     app.buttons["Unarchive chat"].tap()
     app.navigationBars.buttons.element(boundBy: 0).tap()
     assertBackInTheLiveList(app)
@@ -110,17 +110,17 @@ final class ChatArchiveUITests: XCTestCase {
   func testReviewTicksWhatLooksDoneAndOneTapArchivesIt() throws {
     let app = try openList()
     let done = "igor2-88g.593"
-    XCTAssertTrue(app.staticTexts["Looks done"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Looks done"].appears(within: 5), app.debugDescription)
     app.buttons["chat-review-done"].tap()
     let archive = app.buttons["chat-archive-selected"]
-    XCTAssertTrue(archive.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(archive.appears(within: 5), app.debugDescription)
     XCTAssertEqual(archive.label, "Archive (1)")
     archive.tap()
     let undo = app.buttons["chat-archive-undo"]
-    XCTAssertTrue(undo.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(undo.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.staticTexts["Archived \"Finished plan\""].exists, app.debugDescription)
     undo.tap()
-    XCTAssertTrue(app.buttons["chat-review-done"].waitForExistence(timeout: 10), "the proposal is back")
+    XCTAssertTrue(app.buttons["chat-review-done"].appears(within: 10), "the proposal is back")
     XCTAssertTrue(app.buttons["chat-thread-\(done)"].isHittable, "back in the live list")
   }
 
@@ -129,7 +129,7 @@ final class ChatArchiveUITests: XCTestCase {
     let select = app.buttons["chat-select"]
     select.tap()
     let (one, two) = (app.buttons["chat-tick-\(key)"], app.buttons["chat-tick-igor2-88g.593"])
-    XCTAssertTrue(one.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(one.appears(within: 5), app.debugDescription)
     one.tap()
     two.tap()
     let archive = app.buttons["chat-archive-selected"]
@@ -137,7 +137,7 @@ final class ChatArchiveUITests: XCTestCase {
     let buttons = app.otherElements["chat-new-bar"]
     XCTAssertFalse(archive.frame.intersects(buttons.frame), "Archive clear of the floating buttons")
     select.tap()
-    XCTAssertTrue(app.buttons["chat-thread-\(key)"].waitForExistence(timeout: 5), "Cancel leaves the list")
+    XCTAssertTrue(app.buttons["chat-thread-\(key)"].appears(within: 5), "Cancel leaves the list")
     XCTAssertFalse(doneFold(app).exists, "nothing archived")
 
     select.tap()
@@ -146,7 +146,7 @@ final class ChatArchiveUITests: XCTestCase {
     one.tap()
     two.tap()
     archive.tap()
-    XCTAssertTrue(app.staticTexts["Archived 2 chats"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Archived 2 chats"].appears(within: 5), app.debugDescription)
     app.buttons["chat-archive-undo"].tap()
     assertBackInTheLiveList(app)
   }
@@ -154,22 +154,22 @@ final class ChatArchiveUITests: XCTestCase {
   func testThePinnedThreadIsOnTopAndCannotBeArchived() throws {
     let app = try openList()
     let pinned = app.buttons["chat-thread-igor2-88g.1268"]
-    XCTAssertTrue(pinned.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(pinned.appears(within: 5), app.debugDescription)
     XCTAssertLessThan(pinned.frame.minY, app.buttons["chat-thread-\(key)"].frame.minY, "first in the list")
     XCTAssertTrue(pinned.label.contains("Pinned"), pinned.label)
     XCTAssertTrue(pinned.label.contains("Drop anything here"), pinned.label)
     pinned.swipeLeft()
-    XCTAssertFalse(app.buttons["Archive"].waitForExistence(timeout: 2), "no swipe to archive")
+    XCTAssertFalse(app.buttons["Archive"].appears(within: 2), "no swipe to archive")
     // With nothing to reveal, the simulated swipe lands as a tap and opens the thread.
     if app.buttons["BackButton"].exists { app.buttons["BackButton"].tap() }
-    XCTAssertTrue(app.buttons["chat-select"].waitForExistence(timeout: 3), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-select"].appears(within: 3), app.debugDescription)
     app.buttons["chat-select"].tap()
-    XCTAssertTrue(app.buttons["chat-tick-\(key)"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["chat-tick-\(key)"].appears(within: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["chat-tick-igor2-88g.1268"].exists, "not tickable")
     app.buttons["chat-select"].tap()
 
     pinned.tap()
-    XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), "it opens on the bar that writes to it")
+    XCTAssertTrue(app.textFields.firstMatch.appears(within: 10), "it opens on the bar that writes to it")
     XCTAssertFalse(app.buttons["chat-thread-more"].exists, "no menu to archive it from")
   }
 }

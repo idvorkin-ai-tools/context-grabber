@@ -13,9 +13,9 @@ enum HealthSheet {
     let allow = app.buttons["UIA.Health.Allow.Button"]
     for _ in 0..<attempts {
       if done() { return true }
-      if selectAll.waitForExistence(timeout: 20), selectAll.isHittable { selectAll.tap() }
+      if selectAll.appears(within: 20), selectAll.isHittable { selectAll.tap() }
       for _ in 0..<4 { app.swipeUp(velocity: .fast) }
-      if allow.waitForExistence(timeout: 5) {
+      if allow.appears(within: 5) {
         var swipes = 0
         while !allow.isHittable, swipes < 20 {
           app.swipeUp(velocity: .fast)
@@ -28,9 +28,9 @@ enum HealthSheet {
       // iOS 27 adds a second page: how much history to share. All of it, then Allow.
       let allHistory = app.staticTexts["All Recorded Data and Future Data"]
       let finalAllow = app.buttons.matching(NSPredicate(format: "label == 'Allow'")).firstMatch
-      if allHistory.waitForExistence(timeout: 5) {
+      if allHistory.appears(within: 5) {
         allHistory.tap()
-        if finalAllow.waitForExistence(timeout: 5), finalAllow.isEnabled { finalAllow.tap() }
+        if finalAllow.appears(within: 5), finalAllow.isEnabled { finalAllow.tap() }
       }
       sleep(2)
     }

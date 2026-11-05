@@ -12,11 +12,11 @@ final class CardUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let row = app.buttons["home-think_a_card"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     row.tap()
 
     let card = app.descendants(matching: .any).matching(cardName).firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     // The ask started from the row: the count's digit is up beside the card. The rank is a digit too (a two shows
     // "2"), so the count is the small one.
     let count = app.staticTexts.matching(NSPredicate(format: "label IN {'3', '2', '1'}"))
@@ -40,7 +40,7 @@ final class CardUITests: XCTestCase {
     waitForExpectations(timeout: 5)
 
     app.buttons["card-done"].tap()
-    XCTAssertTrue(row.waitForExistence(timeout: 5), "back home")
+    XCTAssertTrue(row.appears(within: 5), "back home")
   }
 
   // Story 220: Drill the stack covers the card with the trainer's drill, asking Card → position first; Done returns
@@ -49,14 +49,14 @@ final class CardUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     let row = app.buttons["home-think_a_card"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     row.tap()
     let drill = app.buttons["card-drill"]
-    XCTAssertTrue(drill.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(drill.appears(within: 10), app.debugDescription)
     drill.tap()
 
     let prompt = app.buttons["Tap to see its position"]
-    XCTAssertTrue(prompt.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(prompt.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["Mixed"].exists, "the direction picker offers Mixed")
     XCTAssertTrue(app.buttons["Stats"].exists, "Stats is there: the app gives the drill a ledger")
     shot("card-drill")
@@ -64,7 +64,7 @@ final class CardUITests: XCTestCase {
     app.buttons.matching(NSPredicate(format: "label == 'Done' AND identifier != 'card-done'")).firstMatch.tap()
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: prompt)
     waitForExpectations(timeout: 5)
-    XCTAssertTrue(drill.waitForExistence(timeout: 5), "back on the card")
+    XCTAssertTrue(drill.appears(within: 5), "back on the card")
   }
 
   private func shot(_ name: String) {

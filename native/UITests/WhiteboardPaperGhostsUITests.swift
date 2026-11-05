@@ -15,7 +15,7 @@ final class WhiteboardTurnOnPaperUITests: WhiteboardTurnUITests {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20))
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
     app.terminate()
   }
 
@@ -108,7 +108,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20))
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
     app.terminate()
   }
 
@@ -128,10 +128,10 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
-    XCTAssertTrue(ghosts.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
     sleep(2)
     return app
@@ -278,7 +278,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let card = app.buttons.matching(identifier: "whiteboard-card")
       .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     card.tap()
     wait(send(app), label: strokes(2))
     let larry = app.buttons["whiteboard-larry"]
@@ -301,7 +301,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     app.launch()
     let card = app.buttons.matching(identifier: "whiteboard-card")
       .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
     card.tap()
     wait(send(app), label: strokes(1))
   }
