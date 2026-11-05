@@ -355,7 +355,7 @@ class WhiteboardTurnUITests: XCTestCase {
     view.tap()
     let item = app.descendants(matching: .any)["Grid lines"].firstMatch
     XCTAssertTrue(item.waitForExistence(timeout: 3), app.debugDescription)
-    item.tap()
+    item.tapWhenSettled()
     wait(view, label: expect, timeout: 3)
   }
 

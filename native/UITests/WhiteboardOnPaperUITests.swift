@@ -77,7 +77,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     options.tap()
     let toggle = app.descendants(matching: .any)["New boards on paper"].firstMatch
     XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
-    toggle.tap()
+    toggle.tapWhenSettled()
     waitFor(options, label: "Board options, new boards on the old canvas")
     app.terminate()
     app = launch()
@@ -88,7 +88,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     // Story 602: turned back on from the menu, the next board is on paper.
     remembered.tap()
     XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
-    toggle.tap()
+    toggle.tapWhenSettled()
     waitFor(remembered, label: "Board options, new boards on paper")
     newBoard(app)
     XCTAssertTrue(pageNumber(app).waitForExistence(timeout: 10), app.debugDescription)
@@ -118,7 +118,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     XCTAssertTrue(sage.waitForExistence(timeout: 5), app.debugDescription)
     XCTAssertTrue(app.descendants(matching: .any)["Grid lines"].exists, "story 652: the grid")
     XCTAssertTrue(app.descendants(matching: .any)["Ruled lines"].exists, "story 434: ruled lines")
-    sage.tap()
+    sage.tapWhenSettled()
     waitFor(colours, label: "Board, Sage")
     sleep(1)
     keep(app, "the paper in sage")
