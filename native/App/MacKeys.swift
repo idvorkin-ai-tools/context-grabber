@@ -20,7 +20,7 @@ extension View {
     #endif
   }
 
-  /// #730, story 730: on a Mac, Command+V or Edit > Paste with a picture on the clipboard does what `action` does; meant
+  /// #730, story 548: on a Mac, Command+V or Edit > Paste with a picture on the clipboard does what `action` does; meant
   /// for the paste the text field itself can't take, so words still paste as words. A phone and an iPad paste as they did.
   @ViewBuilder
   func macPastesImage(perform action: @escaping () -> Void) -> some View {

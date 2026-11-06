@@ -849,7 +849,6 @@ private struct ComposeBar: View {
   /// A new field after each send (#449): clearing the text alone could leave the old words in a field still editing.
   @State private var field = 0
   @FocusState private var focused: Bool
-  @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
     VStack(spacing: 6) {
@@ -965,12 +964,6 @@ private struct ComposeBar: View {
     .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
       hasImage = UIPasteboard.general.hasImages
     }
-    #if targetEnvironment(macCatalyst)
-      // #730: a Mac posts no pasteboard change for another app's copy; its window coming back to the front is the cue.
-      .onChange(of: scenePhase) { _, phase in
-        if phase == .active { hasImage = UIPasteboard.general.hasImages }
-      }
-    #endif
   }
 
   private func takeWords() {
