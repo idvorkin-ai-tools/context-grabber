@@ -1,11 +1,14 @@
 //  #681, stories 684 and 685: a Mac can't be shaken, so the menu bar carries Settings and a problem report. #722,
-//  story 722: every shortcut is a menu item too: New Board, Go to the home destinations, Report a Problem. A phone and
-//  an iPad show no new items and get none of the keys.
+//  stories 722-727: every shortcut is a menu item too: New Board, Go to the home destinations, Report a Problem. A
+//  phone and an iPad show no new items and get none of the keys.
 
+import BugKit
 import SwiftUI
 
 struct MacMenuCommands: Commands {
   @ObservedObject var model: AppModel
+  /// The report sheet covers home too; its state lives here, not on the model.
+  @ObservedObject var reporter: BugReporter
 
   var body: some Commands {
     #if targetEnvironment(macCatalyst)

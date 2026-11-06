@@ -23,7 +23,7 @@ struct GrabberApp: App {
         .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }
     }
     .handlesExternalEvents(matching: ["*"])
-    .commands { MacMenuCommands(model: model) }
+    .commands { MacMenuCommands(model: model, reporter: model.reporter) }
     // Stories 460, 461: one screen in a window of its own.
     WindowGroup(for: WindowScreen.self) { $screen in
       Group {

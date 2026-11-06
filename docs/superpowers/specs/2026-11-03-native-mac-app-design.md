@@ -95,7 +95,8 @@ then the tiles, as Igor arranged them. A hidden one is not listed, and the daily
 either. Rearranging or hiding a tile changes the menu straight away. Only the first nine carry a number; the Settings
 tile is always reached by Command+Comma instead.
 
-Go items and New Board are dimmed while another screen covers home, for the same reason Settings… is: a live timer or
+Go items and New Board are dimmed while another screen covers home (the settings, What's new and the report dialog
+count too), for the same reason Settings… is: a live timer or
 call is never closed to make room. New Board also works while the whiteboard is in front, and opens the new board there. It
 takes Command+Shift+N because Command+N stays the Mac's own New Window. Report a Problem… works from any screen.
 
