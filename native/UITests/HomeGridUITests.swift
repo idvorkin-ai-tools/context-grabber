@@ -47,9 +47,17 @@ final class HomeGridUITests: XCTestCase {
     XCTAssertEqual(recent.frame.midY, random.frame.midY, accuracy: 4, "Recent and Random share a line")
     XCTAssertGreaterThan(settings.frame.minY, random.frame.maxY, "Settings comes after the launchers")
     XCTAssertEqual(settings.frame.width, recent.frame.width, accuracy: 2, "Settings is a tile like the rest")
-    XCTAssertEqual(report.frame.minX, call.frame.minX, accuracy: 2, "Report a problem starts the last line")
-    XCTAssertEqual(settings.frame.midY, report.frame.midY, accuracy: 4, "Settings follows it on the last line")
-    XCTAssertGreaterThan(settings.frame.minX, report.frame.maxX, "Settings is the last tile")
+    XCTAssertGreaterThan(settings.frame.midY, report.frame.midY - 4, "Settings comes after Report a problem")
+    // Settings is the last tile (#693: Inbox and Whiteboard now follow Report a problem, so which line Settings lands
+    // on moves with the launchers; that every other tile comes before it does not).
+    let tiles = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'home-'")).allElementsBoundByIndex
+      .filter { $0.identifier != "home-settings" && abs($0.frame.width - settings.frame.width) < 2 }
+    XCTAssertGreaterThan(tiles.count, 10, app.debugDescription)
+    for tile in tiles {
+      let before = tile.frame.midY < settings.frame.midY - 4
+        || (abs(tile.frame.midY - settings.frame.midY) < 4 && tile.frame.maxX < settings.frame.minX)
+      XCTAssertTrue(before, "\(tile.identifier) comes before Settings")
+    }
 
     settings.tap()
     XCTAssertTrue(app.navigationBars["Home screen"].appears(within: 5), app.debugDescription)
