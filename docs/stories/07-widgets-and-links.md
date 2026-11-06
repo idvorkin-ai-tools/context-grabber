@@ -1475,3 +1475,123 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the Mac app, which has no Health store
 - **When:** Today opens or I pull to grab
 - **Then:** where the cards would be it says *Health lives on your phone. This Mac has none.*, with no copyable error; a phone or iPad that can't reach Health still shows the error
+
+---
+
+### User Story 677:
+
+- **Summary:** Send a chat message from the Mac's keyboard
+- **Status:** implemented on branch native/mac-send-keys (#683); the Mac build compiles. Not yet verified by pressing the keys on a Mac (the unsigned test runner refuses the UI test; Igor checks by hand)
+- **Issues:** [#683](https://github.com/idvorkin/context-grabber/issues/683)
+- **Spec:** [Chat](../superpowers/specs/2026-10-25-native-chat-design.md), [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, typing to Larry on the Mac
+- **I want** Enter or Command+Enter to send
+- **so that** my hands stay on the keyboard instead of reaching for the Send button
+
+#### Acceptance Criteria:
+- **Scenario:** Sending with a key
+- **Given:** the Mac build, a thread open, and words in the bar
+- **When:** I press Enter or Command+Enter
+- **Then:** the message sends and the bar empties, as a click on Send does
+
+---
+
+### User Story 679:
+
+- **Summary:** Start a new line in a Mac chat message with Shift+Enter
+- **Status:** implemented on branch native/mac-send-keys (#683); the Mac build compiles. Not yet verified by pressing the keys on a Mac (the unsigned test runner refuses the UI test; Igor checks by hand)
+- **Issues:** [#683](https://github.com/idvorkin/context-grabber/issues/683)
+- **Spec:** [Chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, writing Larry a longer message on the Mac
+- **I want** Shift+Enter to start a new line
+- **so that** I can break a message into lines without sending it half written
+
+#### Acceptance Criteria:
+- **Scenario:** A longer message
+- **Given:** the Mac build and words in the bar
+- **When:** I press Shift+Enter
+- **Then:** the bar starts a new line and nothing sends
+
+---
+
+### User Story 680:
+
+- **Summary:** Enter on an empty Mac chat bar sends nothing
+- **Status:** implemented on branch native/mac-send-keys (#683); the Mac build compiles. Not yet verified by pressing the keys on a Mac (the unsigned test runner refuses the UI test; Igor checks by hand)
+- **Issues:** [#683](https://github.com/idvorkin/context-grabber/issues/683)
+- **Spec:** [Chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, pressing Enter out of habit on the Mac
+- **I want** an empty bar to ignore it
+- **so that** no blank message lands in the thread
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing to send
+- **Given:** the Mac build and an empty bar
+- **When:** I press Enter
+- **Then:** nothing sends and no blank message appears
+
+---
+
+### User Story 678:
+
+- **Summary:** Confirm a short form on the Mac with Enter
+- **Status:** implemented on branch native/mac-send-keys (#683); the Mac build compiles. Not yet verified by pressing the keys on a Mac (the unsigned test runner refuses the UI test; Igor checks by hand)
+- **Issues:** [#683](https://github.com/idvorkin/context-grabber/issues/683)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, typing a name on the Mac
+- **I want** Enter to confirm it
+- **so that** every place I type on the Mac finishes the same way
+
+#### Acceptance Criteria:
+- **Scenario:** Confirming a form
+- **Given:** the Mac build, and renaming a board, adding a place or naming one, with what it needs filled in
+- **When:** I press Enter
+- **Then:** it does what its button does
+
+---
+
+### User Story 681:
+
+- **Summary:** Enter on a Mac form missing what it needs does nothing
+- **Status:** implemented on branch native/mac-send-keys (#683); the Mac build compiles. Not yet verified by pressing the keys on a Mac (the unsigned test runner refuses the UI test; Igor checks by hand)
+- **Issues:** [#683](https://github.com/idvorkin/context-grabber/issues/683)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, pressing Enter on a half-filled form on the Mac
+- **I want** the form to wait for what it needs
+- **so that** nothing half made is added and I don't lose what I typed
+
+#### Acceptance Criteria:
+- **Scenario:** A form missing what it needs
+- **Given:** the Mac build and adding a place with no name
+- **When:** I press Enter
+- **Then:** nothing is added and what I typed stays
+
+---
+
+### User Story 682:
+
+- **Summary:** Send a problem report's note from the Mac with Command+Enter
+- **Status:** the report dialog's own behaviour, unchanged by #683. Not yet verified by pressing the keys on a Mac (Igor checks by hand)
+- **Issues:** [#683](https://github.com/idvorkin/context-grabber/issues/683)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, writing a long problem report on the Mac
+- **I want** Command+Enter to send it while Enter starts a new line
+- **so that** a long note keeps its lines and still sends from the keyboard
+
+#### Acceptance Criteria:
+- **Scenario:** A problem report's note
+- **Given:** the Mac build, the report dialog open and a note typed
+- **When:** I press Command+Enter
+- **Then:** the report sends

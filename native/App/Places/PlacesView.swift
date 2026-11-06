@@ -131,27 +131,20 @@ struct PlacesView: View {
       .onDelete { offsets in offsets.map { places.knownPlaces[$0] }.forEach(places.deletePlace) }
 
       DisclosureGroup("Add place") {
-        TextField("Name", text: $addName)
+        TextField("Name", text: $addName).macEnterConfirms(perform: addPlace)
         HStack {
           TextField("Latitude", text: $addLat).keyboardType(.numbersAndPunctuation)
+            .macEnterConfirms(perform: addPlace)
           TextField("Longitude", text: $addLng).keyboardType(.numbersAndPunctuation)
+            .macEnterConfirms(perform: addPlace)
         }
         HStack {
           TextField("Radius (m)", text: $addRadius).keyboardType(.numberPad)
+            .macEnterConfirms(perform: addPlace)
           Button("Use current") { useCurrent() }.buttonStyle(.bordered)
         }
         if !gpsStatus.isEmpty { Text(gpsStatus).font(.caption).foregroundStyle(.secondary) }
-        Button("Add place") {
-          if places.addPlace(
-            name: addName, latitude: Double(addLat), longitude: Double(addLng), radius: Double(addRadius), from: "form")
-          {
-            addName = ""
-            addLat = ""
-            addLng = ""
-            addRadius = "100"
-            gpsStatus = ""
-          }
-        }
+        Button("Add place", action: addPlace)
       }
       DisclosureGroup("Import places (JSON)") {
         TextField(
@@ -167,6 +160,18 @@ struct PlacesView: View {
     } header: {
       Text("Known places (\(places.knownPlaces.count))")
     }
+  }
+
+  private func addPlace() {
+    guard
+      places.addPlace(
+        name: addName, latitude: Double(addLat), longitude: Double(addLng), radius: Double(addRadius), from: "form")
+    else { return }
+    addName = ""
+    addLat = ""
+    addLng = ""
+    addRadius = "100"
+    gpsStatus = ""
   }
 
   /// A fresh precise fix for the form; one older than thirty seconds is refused, with how old it was.
@@ -334,6 +339,13 @@ struct NamingSheet: View {
     }
   }
 
+  private func save(_ centroid: Coordinate) {
+    guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+    places.addPlace(
+      name: name, latitude: centroid.latitude, longitude: centroid.longitude, radius: Double(radius),
+      from: "name_place")
+  }
+
   var body: some View {
     NavigationStack {
       Form {
@@ -341,20 +353,16 @@ struct NamingSheet: View {
         case .name(let source, let centroid, _):
           Section { NamingMap(centre: centroid, radius: Double(radius)).listRowInsets(EdgeInsets()) }
           Section {
-            TextField("Place name", text: $name)
-            TextField("Radius (m)", text: $radius).keyboardType(.numberPad)
+            TextField("Place name", text: $name).macEnterConfirms { save(centroid) }
+            TextField("Radius (m)", text: $radius).keyboardType(.numberPad).macEnterConfirms { save(centroid) }
           } header: {
             Text("Name \(source)")
           } footer: {
             Text(String(format: "%.5f, %.5f", centroid.latitude, centroid.longitude)).font(.caption.monospaced())
           }
           Section {
-            Button("Save") {
-              places.addPlace(
-                name: name, latitude: centroid.latitude, longitude: centroid.longitude, radius: Double(radius),
-                from: "name_place")
-            }
-            .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+            Button("Save") { save(centroid) }
+              .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
           }
         case .merge(let source, let centroid, _, let s):
           Section { NamingMap(centre: centroid, radius: nil, nearest: s.nearest).listRowInsets(EdgeInsets()) }
