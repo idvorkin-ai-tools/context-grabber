@@ -55,6 +55,8 @@ final class AppModel: ObservableObject {
   @Published var showWhiteboard = false
   /// The board a link asked for (#603): the boards open it as they come up.
   @Published var whiteboardLink: String?
+  /// #722, story 724: the Mac's New Board asked for a board; the boards open one as they come up, or at once if up.
+  @Published var whiteboardNewBoard = false
 
   /// Made on the first open and kept for the launch, so closing the Cockpit hides the page rather than closing it.
   /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks and a
@@ -359,8 +361,10 @@ final class AppModel: ObservableObject {
     }
   }
 
-  /// Nothing covers home: what is presented from it, its settings, can show.
-  var homeInFront: Bool { front == "home" && !showEulogySong }
+  /// Nothing covers home, not even a sheet or a pushed screen: what is presented from it can show.
+  var homeInFront: Bool {
+    front == "home" && !showEulogySong && !showHomeSettings && !showWhatsNew && !reporter.flow.isPresented
+  }
 
   func openHomeSettings() {
     log.event("ui", ["action": "home_settings"])
@@ -720,6 +724,13 @@ final class AppModel: ObservableObject {
     if bringForward(.whiteboard, from: source) { return }
     screen = "whiteboard"
     showWhiteboard = true
+  }
+
+  /// #722, story 724: the whiteboard, on a new empty board.
+  func newBoard(from source: String) {
+    log.event("ui", ["action": "new_board", "from": source])
+    whiteboardNewBoard = true
+    if !showWhiteboard { openWhiteboard(from: source) }
   }
 
   func closeWhiteboard() {

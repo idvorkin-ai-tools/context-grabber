@@ -101,6 +101,13 @@ struct WhiteboardListView: View {
     }
     // #634: in a window of its own the list is already up when a link arrives. The first value is the task's.
     .onReceive(app.$whiteboardLink.dropFirst().compactMap { $0 }) { _ in Task { await followLink() } }
+    // #722: the Mac's New Board, as the list comes up or while it is up.
+    .onReceive(app.$whiteboardNewBoard.filter { $0 }) { _ in
+      Task {
+        app.whiteboardNewBoard = false
+        path = [store.create()]
+      }
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { Task { await store.sync(reason: "foreground") } }
     }

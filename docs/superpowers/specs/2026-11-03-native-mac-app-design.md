@@ -80,6 +80,29 @@ there"*). A Mac can't be shaken, so the menu bar carries what a shake or a home 
 *Report a Problem…*, which opens the same report dialog a shake opens on a phone, with a screenshot of the window. A phone
 and an iPad show no new menu items.
 
+**Keyboard shortcuts** (#722, Igor: *"do shortcuts for stuff … and make them available also via menu since it's a
+mac"*). Every shortcut is also a menu item, so the menu bar is where to find them:
+
+| Menu | Item | Keys | Does |
+|---|---|---|---|
+| App menu | Settings… | Command+Comma | the app's settings, over home |
+| File | New Board | Command+Shift+N | the whiteboard, on a new empty board |
+| Go | the first nine home destinations | Command+1 … Command+9 | that destination, as a tap on its tile would |
+| Help | Report a Problem… | Command+Shift+R | the report dialog, as a shake opens it |
+
+The Go menu lists the home screen's destinations in the order home shows them: the Today card first when it is shown,
+then the tiles, as Igor arranged them. A hidden one is not listed, and the daily strip, which opens nothing, is not
+either. Rearranging or hiding a tile changes the menu straight away. Only the first nine carry a number; the Settings
+tile is always reached by Command+Comma instead.
+
+Go items and New Board are dimmed while another screen covers home (the settings, What's new and the report dialog
+count too), for the same reason Settings… is: a live timer or
+call is never closed to make room. New Board also works while the whiteboard is in front, and opens the new board there. It
+takes Command+Shift+N because Command+N stays the Mac's own New Window. Report a Problem… works from any screen.
+
+A phone and an iPad show no new menu items, and an iPad with a hardware keyboard gets none of these shortcuts either:
+the menu is the Mac's alone.
+
 **Background work.** A Mac runs no background tasks for the app. While the window is open chat keeps itself up to date;
 when the app is quit nothing runs, and that isn't an error.
 
@@ -92,8 +115,16 @@ when the app is quit nothing runs, and that isn't an error.
 - A message left waiting by a test launch is not sent by a later plain launch, and one left waiting by a plain launch is
   not sent by a later test launch.
 - A phone and an iPad simulator build still compile, and their behaviour is untouched.
+- On the Mac, Command+1 opens the first destination home shows, and the Go menu names the same destinations in the
+  same order as home; after hiding or moving a tile, the menu follows.
+- On the Mac, Command+Shift+N from home opens the whiteboard on a new empty board; from the whiteboard it opens a new
+  board there too.
+- On the Mac, Command+Shift+R opens the report dialog from any screen.
+- While a timer, a call or any other screen covers home, the Go items and New Board are dimmed and their keys do
+  nothing.
 
 ## Later
 
-Further menu commands and keyboard shortcuts, window sizes and a Mac sidebar, the iPad's "New window" as a Mac menu item, a
+Shortcuts that reach a destination from over another screen, shortcuts inside a screen (start or stop the timer, send
+in chat), the shortcuts on an iPad's hardware keyboard, window sizes and a Mac sidebar, the iPad's "New window" as a Mac menu item, a
 signed build that carries iCloud, widgets on the Mac's desktop, and the share extension.
