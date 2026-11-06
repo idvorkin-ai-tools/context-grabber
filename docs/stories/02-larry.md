@@ -2207,3 +2207,23 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** the last row sits clear above the buttons, where I can tap it and swipe it from anywhere along it
 
 ---
+
+### User Story 548:
+
+- **Summary:** Paste a copied photo into a Mac chat with Command+V
+- **Status:** native app only: implemented in [3fdb7c3](https://github.com/idvorkin/context-grabber/commit/3fdb7c3); the Mac build compiles and `just test` passes (host). Not yet verified on a Mac by pressing the key (the unsigned test runner refuses Mac UI tests; Igor checks by hand). A phone and an iPad are unchanged
+- **Issues:** [#730](https://github.com/idvorkin/context-grabber/issues/730)
+- **Spec:** [Chat with Larry in Grabber Native — Pasting a picture on a Mac](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, writing to Larry on the Mac
+- **I want to** paste a photo I copied in another app straight into the chat bar
+- **so that** I can show Larry a picture without saving it to a file and picking it
+
+#### Acceptance Criteria:
+- **Scenario:** A photo copied elsewhere
+- **Given:** the Mac build, a thread open, and a photo copied in Photos, Preview or a browser
+- **When:** I come back to the window, click in the bar and press Command+V (or choose Edit > Paste)
+- **Then:** the photo sits above the field with its preview and *Remove image*, the words I typed stay, and *Paste image* is live; words on the clipboard still paste as words
+
+---

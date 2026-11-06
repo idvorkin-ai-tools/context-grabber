@@ -131,6 +131,14 @@ to hit send."*). On the Mac, Enter sends and Command+Enter sends. Shift+Enter st
 send only what Send itself would: with nothing to send, or with the thread still waiting to exist, a key does nothing and
 the words stay. A phone and an iPad keep the keyboard they have, where Return starts a new line.
 
+**Pasting a picture on a Mac** (Igor, 2026-11-06, #730: *"Should be able to paste photo into chat box on context
+grabber"*). On the Mac, a picture copied in any app (Photos, Preview, a browser, a screenshot) pastes into the bar with
+Command+V or Edit > Paste while the cursor is in the bar's field. It sits above the field with its preview and *Remove
+image*, as *Paste image* puts it there, and the words already typed stay. When the clipboard also holds words, the key
+pastes the words, as any text field does; *Paste image* takes the picture either way. *Paste image* is live whenever the
+clipboard holds a picture, checked again each time Igor comes back to the window from another app, so a photo copied
+elsewhere is one click or one key away. A phone and an iPad paste as they always have.
+
 **Attaching a file** (Igor, 2026-11-03, #633: *"Support file and PDF upload"*). A paperclip on the bar opens the phone's
 file picker, for a PDF or any other document. The file sits above the field by name and size, with *Remove file*, and goes
 with whatever is typed as one message, which reads as the file's name and then the words; a new chat's title is the
@@ -323,6 +331,8 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
   `dictation_stop` and `dictation_error` lines (the problem report's) carry the recognizer's side. Never the words.
 - `chat` no_address, once at each launch of a simulator with no address, says why chat reaches nothing; `inbox` no_address
   (how many wait, what asked) at each send it held back; a refresh that could not run says the same in its reason.
+- `chat` image_pasted says how a picture came in (the button or the Mac's paste) and its bytes; a clipboard picture that
+  could not be read logs the same line with what the clipboard held instead.
 - `chat` events for the press-and-hold menu: reaction (yes or no, thread, message id, whether it was the newest), quote
   and copy (thread, message id). A Yes or No the phone could not keep logs an error with the same fields and the
   reason. Never the text.
@@ -361,6 +371,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
   call it is dimmed, and a tap opens the new chat recording nothing, with the keyboard up and a line saying the call has
   the mic. The + still opens with the keyboard up and records nothing.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
+- On the Mac, a picture copied in another app makes *Paste image* live on coming back to the window, and Command+V or
+  Edit > Paste in the bar's field attaches it with its preview, the typed words kept. Words on the clipboard still
+  paste as words. A phone and an iPad are unchanged.
 - The paperclip picks a PDF or any document; it shows by name and size, *Remove file* takes it off, and Send sends it with
   or without words. A picture picked there goes as a picture. Over 10 MB, empty or unreadable says so copyably at the
   pick and leaves the draft alone.

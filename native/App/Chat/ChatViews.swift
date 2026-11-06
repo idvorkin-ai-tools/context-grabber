@@ -912,7 +912,9 @@ private struct ComposeBar: View {
         }
         .accessibilityLabel("Attach file")
         .accessibilityIdentifier("chat-attach")
-        Button(action: paste) {
+        Button {
+          paste(from: "button")
+        } label: {
           Image(systemName: "photo.on.rectangle").font(.title3)
         }
         .disabled(!hasImage)
@@ -926,6 +928,7 @@ private struct ComposeBar: View {
           .macEnterConfirms {
             if draft.canAdd && target != .waiting { send() }
           }
+          .macPastesImage { paste(from: "mac_paste") }
           .id(field)
         MicButton(voice: voice, thread: thread, draft: draft.text)
         Button(action: send) {
@@ -977,11 +980,17 @@ private struct ComposeBar: View {
     quoting = nil
   }
 
-  private func paste() {
+  /// `how`: the Paste image button, or on a Mac the paste key or menu (#730).
+  private func paste(from how: String) {
     guard let data = Self.clipboardImage(), let picture = InboxSend.thumbnail(data) else {
+      let board = UIPasteboard.general
+      chat.logAction(
+        "image_pasted",
+        ["how": how, "read": false, "has_image": board.hasImages, "types": Array(board.types.prefix(8))])
       failure = "The clipboard image could not be read. Copy the image again and try Paste image."
       return
     }
+    chat.logAction("image_pasted", ["how": how, "read": true, "bytes": data.count])
     draft.image = data
     draft.file = nil
     preview = picture
