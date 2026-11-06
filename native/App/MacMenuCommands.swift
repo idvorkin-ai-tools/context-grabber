@@ -1,5 +1,5 @@
-//  #681, story 684: a Mac can't be shaken, so the menu bar carries Settings and a problem report. A phone and an iPad
-//  show no new items.
+//  #681, stories 684 and 685: a Mac can't be shaken, so the menu bar carries Settings and a problem report. A phone
+//  and an iPad show no new items.
 
 import SwiftUI
 
