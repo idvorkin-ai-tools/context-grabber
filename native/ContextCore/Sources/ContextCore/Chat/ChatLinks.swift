@@ -19,8 +19,8 @@ public struct ChatLink: Equatable, Sendable, Identifiable {
     }
   }
 
-  /// A pull request's state, as the Cockpit will tell it (option C, later).
-  public enum PullRequestState: String, Equatable, Sendable { case open, merged, closed }
+  /// A pull request's state, as the Cockpit tells it (option C, `ChatPRStates`); the raw value is the chip's word.
+  public enum PullRequestState: String, Equatable, Sendable { case open, draft, merged, closed }
 
   /// The link as written, its trailing punctuation dropped.
   public let url: URL
@@ -29,7 +29,7 @@ public struct ChatLink: Equatable, Sendable, Identifiable {
   public let label: String
   /// Two links to the same page share it.
   public let id: String
-  /// ponytail: always nil until the Cockpit reports PR state (option C); a chip with none reads as today.
+  /// A PR chip's state once the Cockpit has reported it (`ChatPRStates.applied`); nil reads as the number alone.
   public var state: PullRequestState?
 
   public init(url: URL, kind: Kind, label: String, id: String, state: PullRequestState? = nil) {

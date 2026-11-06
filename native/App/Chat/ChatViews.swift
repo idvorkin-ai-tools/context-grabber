@@ -25,6 +25,12 @@ struct ChatListView: View {
 
   private var live: [ChatSummary] { chat.threads.filter { !$0.done } }
   private var done: [ChatSummary] { chat.threads.filter(\.done) }
+  /// The PRs a wide list's rows show as chips, for their states (#736, option C); none on a narrow list.
+  private var listRefs: [String] {
+    guard widthClass == .regular else { return [] }
+    let shown = (live + (doneOpen ? done : [])).flatMap { (chat.rowLinks[$0.key] ?? []).prefix(ChatLinks.rowLimit) }
+    return ChatPRStates.refs(shown)
+  }
   private var looksDone: [ChatSummary] { live.filter(\.looksDone) }
   /// *Select* is on: live rows tick instead of opening (#599).
   @State private var selecting = false
@@ -132,6 +138,7 @@ struct ChatListView: View {
     }
     .onAppear { chat.listOnScreen = true }
     .onDisappear { chat.listOnScreen = false }
+    .task(id: listRefs) { await chat.watchPRStates(listRefs, from: "list") }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button(selecting ? "Cancel" : "Select") {
@@ -222,7 +229,7 @@ struct ChatListView: View {
         ThreadRow(thread: thread)
         // Borderless chips take their own taps; the rest of the row still opens the thread.
         if widthClass == .regular, let links = chat.rowLinks[thread.key], !links.isEmpty {
-          RowLinks(chat: chat, thread: thread.key, links: links).padding(.leading, 19)
+          RowLinks(chat: chat, thread: thread.key, links: chat.withStates(links)).padding(.leading, 19)
         }
       }
       .task(id: "\(thread.lastTs) \(inbox.offline)") { if widthClass == .regular { await chat.readRowLinks(thread) } }
@@ -312,15 +319,32 @@ private struct LinkChip: View {
 
   var body: some View {
     Button(action: open) {
-      Label(link.label, systemImage: icon)
-        .font(.caption.weight(.medium))
-        .lineLimit(1)
-        .padding(.horizontal, 10).padding(.vertical, 5)
-        .background(Color(.tertiarySystemFill), in: Capsule())
+      HStack(spacing: 4) {
+        Image(systemName: icon).foregroundStyle(tint ?? Color.accentColor)
+        Text(link.label)
+        if let state = link.state { Text(state.rawValue).foregroundStyle(tint ?? .secondary) }
+      }
+      .font(.caption.weight(.medium))
+      .lineLimit(1)
+      .padding(.horizontal, 10).padding(.vertical, 5)
+      .background(Color(.tertiarySystemFill), in: Capsule())
     }
     .buttonStyle(.borderless)
+    .accessibilityLabel(link.chipText)
     .accessibilityHint(link.url.absoluteString)
     .accessibilityIdentifier("chat-link-chip")
+    .accessibilityValue(link.state?.rawValue ?? "")
+  }
+
+  /// Story 554: a PR's state in GitHub's colours; nil while it is unknown, and for any other link.
+  private var tint: Color? {
+    switch link.state {
+    case .open: return .green
+    case .draft: return .gray
+    case .merged: return .purple
+    case .closed: return .red
+    case nil: return nil
+    }
   }
 
   private var icon: String {
@@ -383,6 +407,7 @@ private struct ThreadLinksStrip: View {
         AllLinksView(links: links) { open($0, from: "all") }
       }
       .task { runLinksHook() }
+      .task(id: ChatPRStates.refs(links)) { await chat.watchPRStates(ChatPRStates.refs(links), from: "thread") }
     }
   }
 
@@ -416,7 +441,7 @@ private struct AllLinksView: View {
           open(link)
         } label: {
           VStack(alignment: .leading, spacing: 2) {
-            Text(link.label).font(.body)
+            Text(link.chipText).font(.body)
             Text(link.url.absoluteString).font(.caption).foregroundStyle(.secondary).lineLimit(2)
           }
         }
@@ -608,7 +633,7 @@ struct ChatThreadView: View {
     .safeAreaInset(edge: .top) {
       VStack(spacing: 0) {
         if let key {
-          ThreadLinksStrip(chat: chat, thread: key, links: chat.rowLinks[key] ?? [])
+          ThreadLinksStrip(chat: chat, thread: key, links: chat.withStates(chat.rowLinks[key] ?? []))
         }
         if let problem = chat.archiveProblem {
           BugProblemView(
