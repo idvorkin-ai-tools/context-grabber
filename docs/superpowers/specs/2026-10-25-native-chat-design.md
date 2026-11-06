@@ -155,9 +155,23 @@ so the list never reads every thread on each refresh. A row with no links, a row
 every row offline or with no Cockpit address look as they do today, with no chips and no problem shown. An iPhone's
 list, and an iPad in a narrow split, are unchanged.
 
-**Later: a pull request's state** (option C, waits on the Cockpit). A PR chip will also say whether that pull request
-is open, merged or closed, as the Cockpit already knows for its own summaries. Not built: today a PR chip says only
-its number. When it is built, a chip whose state is unknown reads as today.
+**A pull request's state** (option C of #736, Igor chose *"A then C"*, 2026-11-06). A PR chip also says where that
+pull request stands, as the Cockpit tracks it, without opening GitHub: in the thread's strip, in *All links*, and in
+the wide thread list's rows.
+
+- **The words and colours.** After its number the chip reads one word, its icon and word in that state's colour:
+  *open* in green, *draft* in grey, *merged* in purple, *closed* in red (closed without merging). A VoiceOver reading
+  of the chip says the number and the word.
+- **Unknown reads as today.** A PR the Cockpit hasn't reported yet — just named, so its state is still being looked
+  up — shows its number alone, and gains its word within the next check. Gists and web links never carry a word.
+- **It stays current while it is on screen.** While a thread with PR chips is open, or a wide list showing PR chips
+  is on screen, the app asks the Cockpit again about every half minute (and sooner, a few seconds after a check that
+  left a PR still being looked up), so a PR merged on the laptop flips to *merged* without leaving or pulling to
+  refresh. Off screen it asks nothing.
+- **Never an error wall.** Offline, with no Cockpit address, or when the Cockpit can't answer, the chips look as they
+  did: a chip whose state was never learned shows its number alone, and one already learned keeps its word until the
+  next answer. No problem is shown for it; the failure is written to the session log, once until a check succeeds
+  again.
 
 **Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a paperclip for a file, a
 *Paste image* control when the clipboard holds an image (preview, remove), and *Send*. Send needs text, an image or a
@@ -440,6 +454,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
   A thread with no links has no strip.
 - On the Mac and a full-width iPad, each row of the thread list shows that thread's three newest link chips, each
   tappable from the list; a row without links looks as it does today, and an iPhone's list is unchanged.
+- A PR chip reads *open*, *draft*, *merged* or *closed* after its number, in green, grey, purple or red, in the strip,
+  *All links* and a wide list's rows; a PR the Cockpit hasn't reported reads as before. Merging a PR while its thread
+  is open flips its chip to *merged* within about half a minute. Offline or with the Cockpit down, no problem shows.
 - A PR chip says nothing yet of whether the pull request is merged (later, with the Cockpit).
 
 ## Depends on the Cockpit
@@ -458,3 +475,8 @@ Files (#633) need one more, not built yet; until then a file is refused and kept
 
 Showing a delivered file in the phone's thread, as a row that opens it, is built with that change; no Cockpit sends one
 back today.
+
+A pull request's state (#736, option C) needs nothing new: the Cockpit already tracks pull requests for its own
+summaries and answers, for any list of them the app names, each one's state and whether it is a draft; one it wasn't
+tracking yet is looked up within seconds of being named. It can also push changes as they happen; the app asks again
+every half minute instead, for now.

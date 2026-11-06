@@ -115,6 +115,57 @@ final class ChatModel: ObservableObject {
     log.event("chat", ["action": "links_read_failed", "thread": thread.key, "reason": why])
   }
 
+  // MARK: A pull request's state on its chip (#736, option C)
+
+  /// What the Cockpit last said of each PR ref; a chip whose ref is missing shows its number alone.
+  @Published private(set) var prStates: [String: ChatLink.PullRequestState] = [:]
+  /// Set by a failed check, cleared by an answer: a Cockpit that stays down is logged once.
+  private var prStatesFailing = false
+
+  /// The links as their chips read, with the states known so far.
+  func withStates(_ links: [ChatLink]) -> [ChatLink] { ChatPRStates.applied(prStates, to: links) }
+
+  /// Asks the Cockpit for these PRs' states until cancelled: the open thread's and a wide list's `.task`.
+  /// ponytail: polls every 30 s (5 s while a ref is pending); /pr-states/stream (SSE, snapshot then deltas, resumed by
+  /// Last-Event-ID, ends after 10 min) would flip a chip at once — the upgrade if half a minute feels slow.
+  func watchPRStates(_ refs: [String], from place: String) async {
+    guard !refs.isEmpty else { return }
+    while !Task.isCancelled {
+      let pending = await readPRStates(refs, from: place)
+      try? await Task.sleep(for: .seconds(pending ? ChatPRStates.pendingSeconds : ChatPRStates.pollSeconds))
+    }
+  }
+
+  /// One check; true when the Cockpit is still looking a ref up. Offline or with no address it asks nothing.
+  private func readPRStates(_ refs: [String], from place: String) async -> Bool {
+    guard !inbox.offline, cockpit != ChatCockpit.nowhere else { return false }
+    do {
+      let (data, response) = try await URLSession.shared.data(for: try ChatPRStates.request(refs, cockpit: cockpit))
+      let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+      guard status == 200, let answer = ChatPRStates.parse(data) else {
+        prStatesFailed("HTTP \(status)", refs: refs.count, from: place)
+        return false
+      }
+      prStatesFailing = false
+      var next = prStates
+      for ref in refs { next[ref] = answer.states[ref] }
+      if next != prStates { prStates = next }
+      return answer.pending
+    } catch is CancellationError {
+    } catch let error as URLError where error.code == .cancelled {
+    } catch {
+      prStatesFailed(error.localizedDescription, refs: refs.count, from: place)
+    }
+    return false
+  }
+
+  /// The chips keep what they showed; only the log hears of it, once until a check succeeds.
+  private func prStatesFailed(_ why: String, refs: Int, from place: String) {
+    guard !prStatesFailing else { return }
+    prStatesFailing = true
+    log.event("chat", ["action": "pr_states_failed", "reason": why, "refs": refs, "from": place])
+  }
+
   func title(of key: String) -> String { threads.first { $0.key == key }?.title ?? "Chat" }
 
   /// Who a message on this thread goes to: a skill's name on its thread (#632), otherwise Larry.
