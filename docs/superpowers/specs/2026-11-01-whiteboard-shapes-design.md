@@ -24,7 +24,7 @@ suggest changes the board until Igor keeps it.
   a Cockpit answers all at once, they all arrive then and draw in one after another as before; the app asks in a way
   that gets either.
 - While ghosts show, the bar says how many and *tap one to keep it*.
-- **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour, and his eraser and undo treat it like his own
+- **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour (or the one it asked for, below), and his eraser and undo treat it like his own
   strokes.
 - **Ghosts stay while he draws** (Igor, 2026-11-02: drawing together, not taking turns). The Pencil touching down
   leaves them, and an answer that lands while he draws still shows. Each new answer from Claude replaces his unkept
@@ -48,6 +48,29 @@ suggest changes the board until Igor keeps it.
 - A point in an answer that lies past anywhere the board could reach is ignored, and a shape left with too few points
   isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
   isn't shown or counted either.
+
+### How a mark looks: pen, colour, lettering (#698)
+
+Igor, 2026-11-05, picked from Larry's note: *choosing the pen width, the font and the color … it fixes the bold text at
+the same time.* Any mark from Claude or Larry can say how it looks; one that says nothing looks as it does today, except
+that labels are no longer bold.
+
+- **Pen.** A mark can name its pen width, in the same units as its position on the board. A line, arrow, curve, circle,
+  arc or box drawn without one keeps today's width.
+- **Labels are no longer bold.** A label with no pen of its own is drawn at a pen about a ninth of its letter height,
+  so its letters read as handwriting, not a marker. A label kept as ink is kept at that pen too. Ink kept before this
+  change stays as it was saved.
+- **Colour.** A mark can name its colour. One without a colour is in its author's: Claude's orange, Larry's blue.
+  A ghost in a named colour is as faint as any other ghost, and a kept mark is ink in that colour.
+- **Lettering.** A label can ask for *print* (the default) or *hand*, a handwriting face. The hand face is the app's
+  own, not Igor's writing.
+- **Boxes.** Besides the shapes above, a mark can be a box given by its top-left corner, width and height. It's an
+  outline; there's no fill.
+- **Nothing a mark asks for breaks the board.** A colour that isn't a colour, an unknown lettering or a pen of zero or
+  less is ignored and the mark is drawn as if it hadn't asked. A pen wider than any kept stroke could be is held to
+  that width. A kind of mark the app doesn't know is dropped, as today.
+- **A kept mark keeps its look.** Kept, it is ink at the width and colour it showed as a ghost, and it saves, syncs,
+  undoes and erases like any other ink.
 
 ### Larry's turn (stories 349, 353, 355–357, 380–389)
 
@@ -133,8 +156,8 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 ## Where it runs
 
 On the Cockpit (Igor's pick: no model key on the device, and Larry is there). Claude's ghosts come from its ghost
-endpoint, which takes the board's picture and answers with strokes: lines, arrows, polylines, circles, arcs and
-labels. Larry's marks come over chat ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)): a picture
+endpoint, which takes the board's picture and answers with strokes: lines, arrows, polylines, circles, arcs, boxes
+and labels. Larry's marks come over chat ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)): a picture
 sent to him carries which board it is, a new id, and its place on the board, and the Cockpit keeps those on the row and
 hands them back; his rows carry shapes in the picture's pixels, in the ghost endpoint's format or the older one.
 

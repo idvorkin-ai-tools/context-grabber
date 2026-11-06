@@ -488,7 +488,7 @@ final class WhiteboardModel: ObservableObject {
     ghosts =
       ghosts.filter { $0.who != .larry }
       + row.shapes.map { shape in
-        Ghost(id: UUID().uuidString, who: .larry, lines: WhiteboardTurn.lines(shape, frame: frame, scale: row.scale))
+        Ghost(shape, who: .larry, frame: frame, scale: row.scale)
       }
     log.event(
       "whiteboard_marks",
@@ -721,7 +721,7 @@ final class WhiteboardModel: ObservableObject {
     ghosts =
       (first ? ghosts.filter { $0.who != who } : ghosts)
       + shapes.map { shape in
-        Ghost(id: UUID().uuidString, who: who, lines: WhiteboardTurn.lines(shape, frame: rect, scale: scale))
+        Ghost(shape, who: who, frame: rect, scale: scale)
       }
     if who == .claude { fadeClaudesGhosts() }
     if first, ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_KEEP"] == "first", let ghost = ghosts.first {
@@ -766,7 +766,7 @@ final class WhiteboardModel: ObservableObject {
 
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
   private func keep(_ ghost: Ghost) {
-    let strokes = Self.strokes(ghost.lines, color: ghost.who.color, width: 3.7, spacing: 4)
+    let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4)
     ghosts.removeAll { $0.id == ghost.id }
     if ghost.who == .larry { settleLarrysRow() }
     log.event("whiteboard", ["action": "keep", "board": board.id, "who": ghost.who.rawValue, "strokes": strokes.count])
@@ -938,6 +938,17 @@ struct Ghost: Identifiable {
   let id: String
   let who: WhiteboardTurn.Who
   let lines: [[CGPoint]]
+  /// The colour and pen it asked for, or its author's colour and the default pen (#698).
+  let color: UIColor
+  let width: CGFloat
+
+  init(_ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat) {
+    id = UUID().uuidString
+    self.who = who
+    lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
+    color = shape.color.map { UIColor(rgb: $0) } ?? who.color
+    width = WhiteboardTurn.width(shape, scale: scale)
+  }
 }
 
 /// The ghosts on screen, in board points: one shape layer a ghost, the ink it would become, faint, in its colour. Whoever
@@ -976,8 +987,8 @@ final class GhostLayers {
       let shape = CAShapeLayer()
       shape.path = path
       shape.fillColor = nil
-      shape.strokeColor = ghost.who.color.withAlphaComponent(0.5).cgColor
-      shape.lineWidth = 3.7
+      shape.strokeColor = ghost.color.withAlphaComponent(0.5).cgColor
+      shape.lineWidth = ghost.width
       shape.lineCap = .round
       shape.lineJoin = .round
       // Drawn in one after another, like someone sketching beside him.

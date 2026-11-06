@@ -21,13 +21,52 @@ public enum WhiteboardTurn {
     public var text: String?
     /// A label's height in the picture's pixels.
     public var size: CGFloat?
+    /// The pen's width in the picture's pixels (#698); nil draws at the default (`width`).
+    public var pen: CGFloat?
+    /// `0xRRGGBB` (#698); nil draws in its author's colour.
+    public var color: UInt32?
+    /// A label's lettering (#698).
+    public var face: Face
 
-    public init(kind: Kind, points: [CGPoint], text: String? = nil, size: CGFloat? = nil) {
+    public init(
+      kind: Kind, points: [CGPoint], text: String? = nil, size: CGFloat? = nil, pen: CGFloat? = nil,
+      color: UInt32? = nil, face: Face = .print
+    ) {
       self.kind = kind
       self.points = points
       self.text = text
       self.size = size
+      self.pen = pen
+      self.color = color
+      self.face = face
     }
+  }
+
+  /// A label's lettering: print, or a handwriting face the system has (not Igor's hand).
+  public enum Face: String, Sendable {
+    case print, hand
+    var fontName: String { self == .print ? "Helvetica" : "Noteworthy-Light" }
+  }
+
+  /// A mark's pen with nothing asked for, in board points: the width of a kept stroke.
+  public static let defaultPen: CGFloat = 3.7
+  /// The widest pen a mark can ask for, in board points: no wider than a Pencil stroke gets.
+  public static let widestPen: CGFloat = 24
+
+  /// The pen `shape` draws with, in board points. A label with no pen of its own gets one in proportion to its letters,
+  /// about a ninth of their height, so it reads as writing rather than a marker (#698's bold fix).
+  public static func width(_ shape: Shape, scale: CGFloat) -> CGFloat {
+    let pen =
+      shape.pen.map { $0 / scale } ?? (shape.kind == .text ? textHeight(shape, scale: scale) * 0.11 : defaultPen)
+    return min(widestPen, max(0.5, pen))
+  }
+
+  /// `#RRGGBB` as a colour; nil for anything else.
+  static func hexColor(_ any: Any?) -> UInt32? {
+    guard let s = any as? String, s.count == 7, s.first == "#", s.dropFirst().allSatisfy(\.isHexDigit) else {
+      return nil
+    }
+    return UInt32(s.dropFirst(), radix: 16)
   }
 
   public enum Answer: Equatable, Sendable {
@@ -85,8 +124,17 @@ public enum WhiteboardTurn {
   /// A stroke from the ghost endpoint as a shape's JSON, so `shape` checks it the same way; nil for a kind it doesn't
   /// know or a number that's missing.
   static func shapeJSON(stroke s: [String: Any]) -> [String: Any]? {
+    let looks = s.filter { ["pen", "color", "font"].contains($0.key) }
+    return strokeShape(s).map { $0.merging(looks) { a, _ in a } }
+  }
+
+  private static func strokeShape(_ s: [String: Any]) -> [String: Any]? {
     let n = { (key: String) in s[key] as? Double }
     switch s["kind"] as? String {
+    case "rect":
+      // Top-left, width and height.
+      guard let x = n("x"), let y = n("y"), let w = n("w"), let h = n("h") else { return nil }
+      return ["kind": "rect", "points": [[x, y], [x + w, y + h]]]
     case let kind? where kind == "line" || kind == "arrow":
       guard let x1 = n("x1"), let y1 = n("y1"), let x2 = n("x2"), let y2 = n("y2") else { return nil }
       return ["kind": kind, "points": [[x1, y1], [x2, y2]]]
@@ -114,7 +162,8 @@ public enum WhiteboardTurn {
       // The Cockpit's x, y is the text's baseline; a shape's text hangs from its top-left.
       guard let x = n("x"), let y = n("y") else { return nil }
       let size = n("size") ?? 18
-      return ["kind": "text", "points": [[x, y - labelAscent * size]], "text": s["text"] ?? "", "size": size]
+      let face = (s["font"] as? String).flatMap(Face.init(rawValue:)) ?? .print
+      return ["kind": "text", "points": [[x, y - ascent(face) * size]], "text": s["text"] ?? "", "size": size]
     default:
       return nil
     }
@@ -128,12 +177,19 @@ public enum WhiteboardTurn {
       return CGPoint(x: x, y: y)
     }
     let text = (json["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let face = (json["font"] as? String).flatMap(Face.init(rawValue:)) ?? .print
     if kind == .text {
-      guard !points.isEmpty, let text, !glyphLines(text, topLeft: .zero, height: 28).isEmpty else { return nil }
+      guard !points.isEmpty, let text, !glyphLines(text, topLeft: .zero, height: 28, face: face).isEmpty else {
+        return nil
+      }
     } else {
       guard points.count >= 2 else { return nil }
     }
-    return Shape(kind: kind, points: points, text: text, size: json["size"].flatMap(number))
+    // A pen of zero or less, or one past reach, is no pen: the mark draws as if it hadn't asked.
+    let pen = json["pen"].flatMap(number).flatMap { $0 > 0 ? $0 : nil }
+    return Shape(
+      kind: kind, points: points, text: text, size: json["size"].flatMap(number), pen: pen,
+      color: hexColor(json["color"]), face: face)
   }
 
   /// A number within reach of a picture: no point on the board is further out in pixels than its side at the finest
@@ -183,10 +239,15 @@ public enum WhiteboardTurn {
       return [[a, b], [wing(.pi / 6), b, wing(-.pi / 6)]]
     case .text:
       let size = (shape.size ?? 28) / scale
-      let height = max(8, size)
-      let top = CGPoint(x: p[0].x, y: p[0].y + labelAscent * (size - height))
-      return glyphLines(shape.text ?? "", topLeft: top, height: height)
+      let height = textHeight(shape, scale: scale)
+      let top = CGPoint(x: p[0].x, y: p[0].y + ascent(shape.face) * (size - height))
+      return glyphLines(shape.text ?? "", topLeft: top, height: height, face: shape.face)
     }
+  }
+
+  /// A label's letter height on the board: never under 8 points, so it stays readable.
+  static func textHeight(_ shape: Shape, scale: CGFloat) -> CGFloat {
+    max(8, (shape.size ?? 28) / scale)
   }
 
   /// Whether `point` is within `tolerance` of any of `lines`: a tap on a ghost.
@@ -222,14 +283,16 @@ public enum WhiteboardTurn {
   }
 
   /// How far a label's baseline sits below its top, as a share of its size.
-  private static let labelAscent = CTFontGetAscent(CTFontCreateWithName("Helvetica" as CFString, 100, nil)) / 100
+  static func ascent(_ face: Face) -> CGFloat {
+    CTFontGetAscent(CTFontCreateWithName(face.fontName as CFString, 100, nil)) / 100
+  }
 
   /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
-  static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat) -> [[CGPoint]] {
-    let font = CTFontCreateWithName("Helvetica" as CFString, height, nil)
+  static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] {
+    let font = CTFontCreateWithName(face.fontName as CFString, height, nil)
     let line = CTLineCreateWithAttributedString(
       NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
-    let ascent = labelAscent * height
+    let baseline = ascent(face) * height
     var out: [[CGPoint]] = []
     for run in (CTLineGetGlyphRuns(line) as? [CTRun]) ?? [] {
       let count = CTRunGetGlyphCount(run)
@@ -243,7 +306,7 @@ public enum WhiteboardTurn {
       for (glyph, at) in zip(glyphs, positions) {
         guard let path = CTFontCreatePathForGlyph(runFont, glyph, nil) else { continue }
         // Glyphs are drawn y-up from the baseline; the board is y-down from the label's top.
-        let place = { (q: CGPoint) in CGPoint(x: topLeft.x + at.x + q.x, y: topLeft.y + ascent - q.y) }
+        let place = { (q: CGPoint) in CGPoint(x: topLeft.x + at.x + q.x, y: topLeft.y + baseline - q.y) }
         out += flatten(path).map { $0.map(place) }
       }
     }

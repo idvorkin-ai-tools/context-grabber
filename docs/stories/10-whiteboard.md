@@ -3731,3 +3731,22 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper
 - **When:** I close the Board menu, with a choice or without one, and draw
 - **Then:** the stroke draws
+
+### User Story 698:
+
+- **Summary:** Claude's and Larry's marks look the way they ask, and labels read as writing
+- **Status:** implemented in [bb3f487](https://github.com/idvorkin/context-grabber/commit/bb3f487); verified on the host (`WhiteboardTurnTests`, 22 of 22, five new). Not yet seen on a device
+- **Issues:** [#698](https://github.com/idvorkin/context-grabber/issues/698)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
+
+#### Use Case:
+- **As someone** drawing with Larry on the board
+- **I want to** see his marks at the width, colour and lettering he chose, with labels in a thin pen
+- **so that** what he writes reads like writing and his diagram says what he meant, not a bold blue marker
+
+#### Acceptance Criteria:
+- **Scenario:** A mark that asks for its look
+- **Given:** a board with a thread, and Larry answers with a box in green at a fine pen and a label in the hand face
+- **and Given:** another label of his that names no pen, colour or face
+- **When:** his marks arrive and I keep them
+- **Then:** the box is a green outline at the fine pen, the first label is in handwriting letters, the second is in his blue print at a thin pen, not bold, and each kept mark is ink exactly as its ghost showed
