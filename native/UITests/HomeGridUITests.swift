@@ -54,7 +54,8 @@ final class HomeGridUITests: XCTestCase {
       .filter { $0.identifier != "home-settings" && abs($0.frame.width - settings.frame.width) < 2 }
     XCTAssertGreaterThan(tiles.count, 10, app.debugDescription)
     for tile in tiles {
-      let before = tile.frame.midY < settings.frame.midY - 4
+      let before =
+        tile.frame.midY < settings.frame.midY - 4
         || (abs(tile.frame.midY - settings.frame.midY) < 4 && tile.frame.maxX < settings.frame.minX)
       XCTAssertTrue(before, "\(tile.identifier) comes before Settings")
     }
