@@ -17,19 +17,24 @@ final class CardUITests: XCTestCase {
 
     let card = app.descendants(matching: .any).matching(cardName).firstMatch
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    let asked = card.label
     // The ask started from the row: the count's digit is up beside the card. The rank is a digit too (a two shows
-    // "2"), so the count is the small one.
+    // "2"), so the count is the small one. Under load the scan can outlast the count, so a card already dealt counts.
     let count = app.staticTexts.matching(NSPredicate(format: "label IN {'3', '2', '1'}"))
-    let counting = NSPredicate { _, _ in count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 } }
+    let counting = NSPredicate { _, _ in
+      count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 } || card.label != asked
+    }
     expectation(for: counting, evaluatedWith: count)
     waitForExpectations(timeout: 3)
     shot("card-asking")
-    let asked = card.label
-    // Three beats, then the new card and no count.
-    let dealt = NSPredicate { _, _ in !count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 } }
-    expectation(for: dealt, evaluatedWith: count)
-    waitForExpectations(timeout: 8)
-    XCTAssertNotEqual(card.label, asked, "the ask dealt a new card")
+    // Three beats, then the new card and no count. #694: wait on the card's own label, one element; a predicate over
+    // every digit on screen took 30 s a poll under a loaded Mac, and timed out with the card long dealt. A predicate
+    // expectation on `card` holds the element it first found, which the deal replaces, so look the new card up afresh.
+    let dealt = app.descendants(matching: .any).matching(cardName).matching(NSPredicate(format: "label != %@", asked))
+    XCTAssertTrue(dealt.firstMatch.appears(within: 15), "the ask dealt a new card")
+    XCTAssertFalse(
+      count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 },
+      "the count is gone once the card is dealt")
     shot("card-dealt")
 
     // A tap on the middle third switches the card.
