@@ -40,10 +40,17 @@ final class ChatModel: ObservableObject {
   var findBoard: @MainActor (String, String) async -> BugProblem? = { _, _ in nil }
   /// #603, set by the app: leaves the thread for that board.
   var openBoard: @MainActor (String) -> Void = { _ in }
+  /// Threads whose strip of links Igor folded away (#736), remembered across launches.
+  @Published private(set) var foldedLinks: Set<String> = []
+  /// Each thread's links (#736), from its last read: the open thread's strip and a wide list's rows.
+  @Published private(set) var rowLinks: [String: [ChatLink]] = [:]
+  /// The row's last activity each thread's links were read for: read again only when it changes.
+  private var rowLinksAt: [String: String] = [:]
 
   static let backgroundTask = "com.idvorkin.grabbernative.chat"
   static let notifiedKey = "chat_notified"
   static let askedKey = "chat_asked_notifications"
+  static let foldedLinksKey = "chat_links_folded"
   /// How often an open thread is read again.
   static let pollSeconds = 4.0
   /// How soon iOS may run the next background check (it decides when).
@@ -61,6 +68,51 @@ final class ChatModel: ObservableObject {
     self.database = database
     self.cockpit = cockpit
     inbox.didAdd = { [weak self] in self?.askForNotificationsOnce() }
+    foldedLinks =
+      database.setting(Self.foldedLinksKey)
+      .flatMap { try? JSONDecoder().decode(Set<String>.self, from: Data($0.utf8)) } ?? []
+  }
+
+  // MARK: Links in a thread (#736)
+
+  func setLinksFolded(_ key: String, _ folded: Bool) {
+    if folded { foldedLinks.insert(key) } else { foldedLinks.remove(key) }
+    if let data = try? JSONEncoder().encode(foldedLinks.sorted()) {
+      database.setSetting(Self.foldedLinksKey, String(decoding: data, as: UTF8.self))
+    }
+    log.event("chat", ["action": "links_folded", "thread": key, "folded": folded])
+  }
+
+  /// Where a chip was tapped: the strip, All links, or the list. Never the link itself.
+  func logLinkOpened(_ link: ChatLink, thread: String, from place: String) {
+    log.event("chat", ["action": "link_opened", "thread": thread, "from": place, "kind": link.kind.logName])
+  }
+
+  /// A wide list's row reads its thread's links once per new activity; a failure only logs, the row shows none.
+  func readRowLinks(_ thread: ChatSummary) async {
+    guard thread.count > 0, rowLinksAt[thread.key] != thread.lastTs, !inbox.offline,
+      cockpit != ChatCockpit.nowhere
+    else { return }
+    do {
+      let request = try ChatWire.threadRequest(thread.key, cockpit: cockpit)
+      let (data, response) = try await URLSession.shared.data(for: request)
+      let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+      guard status == 200, let rows = ChatWire.messages(data) else {
+        return rowLinksFailed(thread, "HTTP \(status)")
+      }
+      rowLinksAt[thread.key] = thread.lastTs
+      rowLinks[thread.key] = ChatLinks.inThread(rows)
+    } catch is CancellationError {
+    } catch let error as URLError where error.code == .cancelled {
+    } catch {
+      rowLinksFailed(thread, error.localizedDescription)
+    }
+  }
+
+  /// Logged once per thread and activity; the next activity tries again. A read the row cancelled is tried again.
+  private func rowLinksFailed(_ thread: ChatSummary, _ why: String) {
+    rowLinksAt[thread.key] = thread.lastTs
+    log.event("chat", ["action": "links_read_failed", "thread": thread.key, "reason": why])
   }
 
   func title(of key: String) -> String { threads.first { $0.key == key }?.title ?? "Chat" }
@@ -268,6 +320,7 @@ final class ChatModel: ObservableObject {
       }
       let before = messages[key]?.last?.id
       messages[key] = rows
+      rowLinks[key] = ChatLinks.inThread(rows)
       threadProblem[key] = nil
       if let last = rows.last, last.isError, last.id != before {
         log.event("chat", ["action": "reply_failed", "thread": key, "message": last.id, "skill": last.author ?? ""])
