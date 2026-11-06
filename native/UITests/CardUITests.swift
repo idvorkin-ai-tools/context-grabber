@@ -28,9 +28,10 @@ final class CardUITests: XCTestCase {
     waitForExpectations(timeout: 3)
     shot("card-asking")
     // Three beats, then the new card and no count. #694: wait on the card's own label, one element; a predicate over
-    // every digit on screen took 30 s a poll under a loaded Mac, and timed out with the card long dealt.
-    expectation(for: NSPredicate(format: "label != %@", asked), evaluatedWith: card)
-    waitForExpectations(timeout: 15)
+    // every digit on screen took 30 s a poll under a loaded Mac, and timed out with the card long dealt. A predicate
+    // expectation on `card` holds the element it first found, which the deal replaces, so look the new card up afresh.
+    let dealt = app.descendants(matching: .any).matching(cardName).matching(NSPredicate(format: "label != %@", asked))
+    XCTAssertTrue(dealt.firstMatch.appears(within: 15), "the ask dealt a new card")
     XCTAssertFalse(
       count.allElementsBoundByIndex.contains { $0.exists && $0.frame.height < 100 },
       "the count is gone once the card is dealt")
