@@ -1632,3 +1632,48 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I choose Settings… from the app's menu, or press Command+Comma
 - **Then:** the app's settings open over home
 
+
+### User Story 722:
+
+- **Summary:** Keyboard shortcuts on the Mac, each one a menu item
+- **Status:** implemented in PENDING; verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, using the app on a Mac with a keyboard under my hands
+- **I want** keys for the places I go and the things I start, listed in the menu bar
+- **so that** I get there without reaching for the trackpad, and can look up a key I forgot
+
+#### Acceptance Criteria:
+- **Scenario:** Going to a home destination
+- **Given:** the Mac build is open on home, with no other screen covering it
+- **When:** I press Command+1 through Command+9, or choose a destination from the Go menu
+- **Then:** that destination opens, as a tap on its tile would, and the Go menu lists them in the order home shows them,
+  the Today card first when it is shown
+
+- **Scenario:** The Go menu follows home
+- **Given:** I have hidden or moved a tile in Settings
+- **When:** I open the Go menu
+- **Then:** the hidden tile is gone from it, the moved one is in its new place, and the numbers follow
+
+- **Scenario:** A new board
+- **Given:** the Mac build is open on home, or on the whiteboard
+- **When:** I press Command+Shift+N, or choose New Board from the File menu
+- **Then:** the whiteboard opens on a new empty board, and Command+N is still the Mac's New Window
+
+- **Scenario:** Reporting a problem by key
+- **Given:** the Mac build is open on any screen
+- **When:** I press Command+Shift+R
+- **Then:** the report dialog opens, as Report a Problem… in the Help menu opens it
+
+- **Scenario:** Another screen is in front
+- **Given:** a timer, a call or any other screen covers home
+- **When:** I open the Go menu, or press one of its keys
+- **Then:** its items are dimmed and nothing happens, so nothing live is closed; New Board is dimmed too, unless the
+  whiteboard is the screen in front
+
+- **Scenario:** A phone and an iPad
+- **Given:** the app on an iPhone, or on an iPad with a hardware keyboard
+- **When:** I look for these menus or press these keys
+- **Then:** nothing new is there: the menu and its keys are the Mac's alone
