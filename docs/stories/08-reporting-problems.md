@@ -159,7 +159,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 147:
 
 - **Summary:** The home screen holds only what I open, and Settings holds the rest
-- **Issues:** [#166](https://github.com/idvorkin/context-grabber/issues/166), [#286](https://github.com/idvorkin/context-grabber/issues/286), [#302](https://github.com/idvorkin/context-grabber/issues/302), [#303](https://github.com/idvorkin/context-grabber/issues/303)
+- **Issues:** [#166](https://github.com/idvorkin/context-grabber/issues/166), [#286](https://github.com/idvorkin/context-grabber/issues/286), [#302](https://github.com/idvorkin/context-grabber/issues/302), [#303](https://github.com/idvorkin/context-grabber/issues/303), [#714](https://github.com/idvorkin/context-grabber/issues/714)
 - **Status:** native app: implemented in [80b7186](https://github.com/idvorkin/context-grabber/commit/80b7186) ([spec](../superpowers/specs/2026-10-06-native-home-screen-design.md)); verified by host tests (`HomeLayoutTests`) and on the simulator (`HomeSettingsUITests`: Cockpit hidden and Gym Timer moved to the top through the cog, both still so after a relaunch, Reset puts them back; the log's `ui` home_settings / home_rows lines; screenshots of the home screen and the sheet); the phone still to be checked by Igor; no title, verified by a simulator screenshot: [adfed5a](https://github.com/idvorkin/context-grabber/commit/adfed5a); no bar and the cog in the bottom corner [aa18183](https://github.com/idvorkin/context-grabber/commit/aa18183), verified by `HomeSettingsUITests` and a simulator screenshot; the cog becomes the last tile, *Settings* (#286): [e7948d8](https://github.com/idvorkin/context-grabber/commit/e7948d8), verified on the simulator by `HomeSettingsUITests`, `ResetAudioUITests`, `LinksUITests`, `WhatsNewStoryLinkUITests` and `WhatsNewSeenUITests` (each opens Settings from the tile) and a screenshot read by eye; the phone not yet; the launchers on their own page (#302): [e2dac70](https://github.com/idvorkin/context-grabber/commit/e2dac70), host-checked only (lint); `HomeSettingsUITests` and `HomeGridUITests` on the simulator in the next build turn; the About page from BugKit 0.3.3 (#303): [2d99ac9](https://github.com/idvorkin/context-grabber/commit/2d99ac9), host-checked only (lint, `just native-test`); the built Info.plist and both links in the next build turn
 
 #### Use Case:
@@ -177,6 +177,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the Launchers page under Settings is open
 - **When:** I drag Gym Timer to the top and relaunch the app
 - **Then:** Gym Timer is the first row on the home screen, before and after the relaunch
+
+- **Scenario:** Moving a launcher on the Mac
+- **Given:** the Launchers page under Settings is open in the Mac app, where dragging a row does not move it
+- **When:** I click Gym Timer's *Move up* arrow until it is first, then relaunch the app
+- **Then:** Gym Timer moves up one place per click and is the first row on the home screen before and after the relaunch, its switch is unchanged, the first row's *Move up* and the last row's *Move down* are dimmed, and each click logs a `ui` home_rows line; the iPhone and the iPad show no arrows and still drag
 
 - **Scenario:** A launcher added by a later build
 - **Given:** I have reordered and hidden rows in an earlier build
