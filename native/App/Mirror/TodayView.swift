@@ -29,7 +29,10 @@ struct TodayView: View {
             Text(line).font(.callout).foregroundStyle(.secondary).accessibilityIdentifier("today-summary")
           }
         }
-        if mirror.snapshot == nil && !mirror.grabbing {
+        if let note = mirror.note, mirror.snapshot == nil {
+          Text(note).foregroundStyle(.secondary).padding(.top, 40).frame(maxWidth: .infinity)
+            .accessibilityIdentifier("today-note")
+        } else if mirror.snapshot == nil && !mirror.grabbing {
           Text("No data yet — pull to grab.").foregroundStyle(.secondary).padding(.top, 40).frame(maxWidth: .infinity)
         } else {
           LazyVGrid(columns: columns, spacing: 10) {

@@ -50,8 +50,10 @@ address that one names. A real message left waiting never goes to a stand-in: it
 The stats archive and a call's log still send nothing, ever, unless a launch names an archive; the Mac has no Health to
 archive. On a phone and an iPad nothing changes. A simulator is unchanged too: its chat reaches only what it is pointed at.
 
-**Health.** A Mac has no Health store. Today says Health isn't available, as it does on any device without one, and the
-rest of the app carries on. Box breathing saves no Mindful Minutes.
+**Health.** A Mac has no Health store. Today says so in one quiet line, *Health lives on your phone. This Mac has none.*,
+where the cards would be: no error, nothing to copy, and no *pull to grab* (Igor, 2026-11-06, #700: the error on every
+grab read as if something had broken). Pulling to grab again changes nothing. The rest of the app carries on, and box
+breathing saves no Mindful Minutes. A phone or iPad that can't reach Health still shows the copyable error.
 
 **Places.** The map, the known places and an imported trail work, and "where am I" works if macOS grants location.
 Nothing records in the background on a Mac: where the switch would be, a line says so.

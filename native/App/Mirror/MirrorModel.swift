@@ -16,6 +16,8 @@ final class MirrorModel: ObservableObject {
   @Published private(set) var grabStartedAt: Date?
   /// The last grab's failure, shown with its state and a copy button.
   @Published var problem: BugProblem?
+  /// A quiet line in place of the cards: a Mac has no Health store, which is no failure (#700).
+  @Published private(set) var note: String?
   @Published var sleepTarget: Double = MirrorModel.defaultSleepTarget
   /// The fixture hook's state, on screen for the simulator's UI test: "running", then "done" or "failed".
   @Published var hookStatus: String?
@@ -55,6 +57,7 @@ final class MirrorModel: ObservableObject {
   }
 
   var grabbing: Bool { phase != nil }
+  static let macHealthNote = "Health lives on your phone. This Mac has none."
 
   /// #396, story 226: the Today card's numbers onto the usage tile, keyed by the day of the grab (not of the look),
   /// so the tile never shows an older grab's steps as today's.
@@ -133,7 +136,11 @@ final class MirrorModel: ObservableObject {
       phase = "Health access"
       guard HealthKitSource.isAvailable else {
         log.event("health_auth", ["ok": false, "message": "Health is not available on this device"])
-        problem = .grabber("Health is not available on this device.", context: "Today.grab")
+        if ProcessInfo.processInfo.isMacCatalystApp || ProcessInfo.processInfo.isiOSAppOnMac {
+          note = Self.macHealthNote
+        } else {
+          problem = .grabber("Health is not available on this device.", context: "Today.grab")
+        }
         phase = nil
         return
       }
