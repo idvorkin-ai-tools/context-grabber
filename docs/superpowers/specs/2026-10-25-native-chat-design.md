@@ -120,6 +120,45 @@ whole message and replaces selecting its text by a long press, which the same ge
 - **A failure.** A *Yes* or *No* that can't be kept on the phone says so in a copyable problem at the top of the thread,
   with the thread and the message it answered, and nothing is sent.
 
+**Links in a thread** (Igor, 2026-11-06, #736: *"If there's a PR or a blog link … It would be nice to get that extracted
+and ready to go so I can just quickly click on it"*; he picked option A of three, the wide thread list with it, and C
+later). An open thread collects every pull request, gist and web link its messages hold, Igor's and Larry's, into one
+strip of chips under the thread's title, so the PR Larry opened an hour ago is one tap away instead of a scroll back.
+
+- **What counts.** A link written out in full, starting `http://` or `https://`, in any message's words. A bare name
+  that only looks like a site (*AGENTS.md*, *idvork.in/foo* with no `https://`) is not collected, though it stays
+  tappable in its bubble as today. Punctuation that ends the sentence or wraps the link (a full stop, a comma, a
+  closing bracket with no opening one, quotes, backticks, a bold mark's stars) is not part of the link.
+- **How a chip reads.** A GitHub pull request reads *PR #734*, whichever of its pages the link was to (its files, a
+  comment). A gist reads *gist*. Any other link reads its site, with no *www.*, and the last part of its path:
+  *idvork.in/ai-journal*; when that last part is only a number, the part before it too (*github.com/issues/736*); a
+  site's front page is the site alone. A long path is cut short with an ellipsis.
+- **Order and repeats.** Newest message first, links within one message in the order they were written. A link that
+  appears again (the same page, with or without a trailing slash, *www.* or a fragment; the same pull request from any
+  of its pages) is one chip, where it was newest, and opens the newest one written.
+- **At most ten.** The strip shows the ten newest; past ten it ends with *All links (N)*, which opens a list of every
+  link in the thread in the same order, each with its chip's words and the link in full, tap to open.
+- **Tap opens it** where iOS opens that link, leaving the thread as any link does.
+- **Folding.** The strip starts with a *Links* control. Tapping it folds the chips away, leaving *Links (N)* alone on
+  the line; tapping again unfolds them. Each thread remembers whether it is folded, across leaving it and across
+  launches; a thread never folded shows its chips.
+- **No links, no strip.** A thread with none shows nothing extra; the strip appears as soon as a message with a link
+  arrives, and a new chat gains it once its first message with a link is on the Cockpit.
+- **Links in the bubbles stay tappable** as they are; press and hold on a bubble works as ever.
+
+**Links in the thread list on an iPad or a Mac** (#736). Where the screen is wide — an iPad in full width (or a wide
+enough window) and the Mac — each row in the list also shows that thread's three newest link chips under its last
+line, read and labelled as in the thread, each tappable straight from the list without opening the thread. Tapping
+the rest of the row opens the thread as before. A thread whose links have not been read on this device yet shows its
+chips once its messages are read; that happens for the rows on screen and again only when a thread has something new,
+so the list never reads every thread on each refresh. A row with no links, a row whose messages could not be read, and
+every row offline or with no Cockpit address look as they do today, with no chips and no problem shown. An iPhone's
+list, and an iPad in a narrow split, are unchanged.
+
+**Later: a pull request's state** (option C, waits on the Cockpit). A PR chip will also say whether that pull request
+is open, merged or closed, as the Cockpit already knows for its own summaries. Not built: today a PR chip says only
+its number. When it is built, a chip whose state is unknown reads as today.
+
 **Writing.** One bar at the bottom: a growing text field with the keyboard's dictation mic, a paperclip for a file, a
 *Paste image* control when the clipboard holds an image (preview, remove), and *Send*. Send needs text, an image or a
 file. A sent message appears
@@ -336,6 +375,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - `chat` events for the press-and-hold menu: reaction (yes or no, thread, message id, whether it was the newest), quote
   and copy (thread, message id). A Yes or No the phone could not keep logs an error with the same fields and the
   reason. Never the text.
+- `chat` link_opened (thread, where it was tapped: the strip, *All links* or the list, and the chip's kind: pr, gist or
+  web; never the link), links_folded (thread, folded or not), and links_read_failed (thread, why) once per thread when
+  a wide list could not read a row's links.
 - A thread that cannot be read logs one error when the problem starts or changes, not one per poll.
 - Every error on screen is copyable, with the thread and the Cockpit's answer.
 
@@ -390,6 +432,15 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - A skill's thread sits under Larry's pinned thread whichever is newer, can't be archived, and its replies carry the
   skill's name and avatar. A failure is a copyable error and leaves Igor's message without 🏆. An older Cockpit shows
   none of this.
+- An open thread with links shows them as chips under its title, newest first, one chip per page: a pull request as
+  *PR #N*, a gist as *gist*, anything else as its site and the last part of its path; a tap opens it. Only links
+  written with `https://` (or `http://`) count, and the sentence's punctuation is not part of them.
+- Past ten links the strip ends with *All links (N)*, listing every one in the same order, each tappable.
+- *Links* folds the chips away and unfolds them; the thread remembers which, after leaving it and after a relaunch.
+  A thread with no links has no strip.
+- On the Mac and a full-width iPad, each row of the thread list shows that thread's three newest link chips, each
+  tappable from the list; a row without links looks as it does today, and an iPhone's list is unchanged.
+- A PR chip says nothing yet of whether the pull request is merged (later, with the Cockpit).
 
 ## Depends on the Cockpit
 

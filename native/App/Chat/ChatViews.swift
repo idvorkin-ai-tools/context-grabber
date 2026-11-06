@@ -13,6 +13,8 @@ struct ChatListView: View {
   let voice: ChatVoiceModel
   let logger: BugLogger
   @State private var doneOpen = false
+  /// #736: an iPad at full width and the Mac show each row's newest links; an iPhone's list is unchanged.
+  @Environment(\.horizontalSizeClass) private var widthClass
 
   init(chat: ChatModel, voice: ChatVoiceModel, logger: @escaping BugLogger) {
     self.chat = chat
@@ -216,7 +218,14 @@ struct ChatListView: View {
     NavigationLink {
       ChatThreadView(chat: chat, voice: voice, key: thread.key, title: thread.title, logger: logger)
     } label: {
-      ThreadRow(thread: thread)
+      VStack(alignment: .leading, spacing: 6) {
+        ThreadRow(thread: thread)
+        // Borderless chips take their own taps; the rest of the row still opens the thread.
+        if widthClass == .regular, let links = chat.rowLinks[thread.key], !links.isEmpty {
+          RowLinks(chat: chat, thread: thread.key, links: links).padding(.leading, 19)
+        }
+      }
+      .task(id: thread.lastTs) { if widthClass == .regular { await chat.readRowLinks(thread) } }
     }
     .accessibilityIdentifier("chat-thread-\(thread.key)")
     // #589: a swipe left archives a live thread, or brings back an archived one.
@@ -291,6 +300,140 @@ private struct ThreadRow: View {
       }
     }
     .accessibilityElement(children: .combine)
+  }
+}
+
+// MARK: - Links in a thread (#736)
+
+/// One link as a chip: a tap opens it where iOS opens that link.
+private struct LinkChip: View {
+  let link: ChatLink
+  let open: () -> Void
+
+  var body: some View {
+    Button(action: open) {
+      Label(link.label, systemImage: icon)
+        .font(.caption.weight(.medium))
+        .lineLimit(1)
+        .padding(.horizontal, 10).padding(.vertical, 5)
+        .background(Color(.tertiarySystemFill), in: Capsule())
+    }
+    .buttonStyle(.borderless)
+    .accessibilityHint(link.url.absoluteString)
+    .accessibilityIdentifier("chat-link-chip")
+  }
+
+  private var icon: String {
+    switch link.kind {
+    case .pullRequest: return "arrow.triangle.pull"
+    case .gist: return "doc.text"
+    case .web: return "link"
+    }
+  }
+}
+
+/// Stories 549-552: the thread's links under its title, folded or not as this thread was left.
+private struct ThreadLinksStrip: View {
+  @ObservedObject var chat: ChatModel
+  let thread: String
+  let links: [ChatLink]
+  @State private var allOpen = false
+  @Environment(\.openURL) private var openURL
+
+  private var folded: Bool { chat.foldedLinks.contains(thread) }
+
+  var body: some View {
+    if !links.isEmpty {
+      let strip = ChatLinks.strip(links)
+      HStack(spacing: 8) {
+        Button {
+          chat.setLinksFolded(thread, !folded)
+        } label: {
+          Label(folded ? "Links (\(links.count))" : "Links", systemImage: folded ? "chevron.right" : "chevron.down")
+            .font(.caption.weight(.semibold))
+        }
+        .buttonStyle(.borderless)
+        .accessibilityIdentifier("chat-links-fold")
+        .accessibilityValue(folded ? "folded" : "unfolded")
+        if !folded {
+          ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+              ForEach(strip.shown) { link in
+                LinkChip(link: link) { open(link, from: "strip") }
+              }
+              if strip.more > 0 {
+                Button("All links (\(links.count))") { allOpen = true }
+                  .font(.caption.weight(.semibold))
+                  .buttonStyle(.borderless)
+                  .accessibilityIdentifier("chat-links-all")
+              }
+            }
+          }
+        } else {
+          Spacer()
+        }
+      }
+      .padding(.horizontal, 12).padding(.vertical, 6)
+      .background(Color(.systemBackground).opacity(0.95))
+      .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("chat-links")
+      .sheet(isPresented: $allOpen) {
+        AllLinksView(links: links) { open($0, from: "all") }
+      }
+    }
+  }
+
+  private func open(_ link: ChatLink, from place: String) {
+    chat.logLinkOpened(link, thread: thread, from: place)
+    openURL(link.url)
+  }
+}
+
+/// Story 551: every link in the thread, newest first.
+private struct AllLinksView: View {
+  let links: [ChatLink]
+  let open: (ChatLink) -> Void
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    NavigationStack {
+      List(links) { link in
+        Button {
+          dismiss()
+          open(link)
+        } label: {
+          VStack(alignment: .leading, spacing: 2) {
+            Text(link.label).font(.body)
+            Text(link.url.absoluteString).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+          }
+        }
+      }
+      .navigationTitle("All links (\(links.count))")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+      }
+      .accessibilityIdentifier("chat-links-all-list")
+    }
+  }
+}
+
+/// Story 553: a wide list's row shows its thread's newest few links.
+private struct RowLinks: View {
+  let chat: ChatModel
+  let thread: String
+  let links: [ChatLink]
+  @Environment(\.openURL) private var openURL
+
+  var body: some View {
+    HStack(spacing: 6) {
+      ForEach(links.prefix(ChatLinks.rowLimit)) { link in
+        LinkChip(link: link) {
+          chat.logLinkOpened(link, thread: thread, from: "list")
+          openURL(link.url)
+        }
+      }
+    }
   }
 }
 
@@ -451,6 +594,9 @@ struct ChatThreadView: View {
     // Not in the scroll view: it opens at the newest message, so a long thread would hide this.
     .safeAreaInset(edge: .top) {
       VStack(spacing: 0) {
+        if let key {
+          ThreadLinksStrip(chat: chat, thread: key, links: ChatLinks.inThread(messages))
+        }
         if let problem = chat.archiveProblem {
           BugProblemView(
             problem: .grabber(problem, context: "ChatThreadView.archive", extra: ["cockpit": .string(chat.cockpit)]),
