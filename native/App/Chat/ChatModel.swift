@@ -42,7 +42,7 @@ final class ChatModel: ObservableObject {
   var openBoard: @MainActor (String) -> Void = { _ in }
   /// Threads whose strip of links Igor folded away (#736), remembered across launches.
   @Published private(set) var foldedLinks: Set<String> = []
-  /// A wide list's rows (#736): each thread's links, read for the row's last activity.
+  /// Each thread's links (#736), from its last read: the open thread's strip and a wide list's rows.
   @Published private(set) var rowLinks: [String: [ChatLink]] = [:]
   /// The row's last activity each thread's links were read for: read again only when it changes.
   private var rowLinksAt: [String: String] = [:]
@@ -93,23 +93,26 @@ final class ChatModel: ObservableObject {
     guard thread.count > 0, rowLinksAt[thread.key] != thread.lastTs, !inbox.offline,
       cockpit != ChatCockpit.nowhere
     else { return }
-    rowLinksAt[thread.key] = thread.lastTs
     do {
       let request = try ChatWire.threadRequest(thread.key, cockpit: cockpit)
       let (data, response) = try await URLSession.shared.data(for: request)
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let rows = ChatWire.messages(data) else {
-        return rowLinksFailed(thread.key, "HTTP \(status)")
+        return rowLinksFailed(thread, "HTTP \(status)")
       }
+      rowLinksAt[thread.key] = thread.lastTs
       rowLinks[thread.key] = ChatLinks.inThread(rows)
+    } catch is CancellationError {
+    } catch let error as URLError where error.code == .cancelled {
     } catch {
-      rowLinksFailed(thread.key, error.localizedDescription)
+      rowLinksFailed(thread, error.localizedDescription)
     }
   }
 
-  /// Logged once per thread and activity; the next activity tries again.
-  private func rowLinksFailed(_ key: String, _ why: String) {
-    log.event("chat", ["action": "links_read_failed", "thread": key, "reason": why])
+  /// Logged once per thread and activity; the next activity tries again. A read the row cancelled is tried again.
+  private func rowLinksFailed(_ thread: ChatSummary, _ why: String) {
+    rowLinksAt[thread.key] = thread.lastTs
+    log.event("chat", ["action": "links_read_failed", "thread": thread.key, "reason": why])
   }
 
   func title(of key: String) -> String { threads.first { $0.key == key }?.title ?? "Chat" }

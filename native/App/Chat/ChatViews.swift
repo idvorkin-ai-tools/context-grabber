@@ -225,7 +225,7 @@ struct ChatListView: View {
           RowLinks(chat: chat, thread: thread.key, links: links).padding(.leading, 19)
         }
       }
-      .task(id: thread.lastTs) { if widthClass == .regular { await chat.readRowLinks(thread) } }
+      .task(id: "\(thread.lastTs) \(inbox.offline)") { if widthClass == .regular { await chat.readRowLinks(thread) } }
     }
     .accessibilityIdentifier("chat-thread-\(thread.key)")
     // #589: a swipe left archives a live thread, or brings back an archived one.
@@ -338,6 +338,8 @@ private struct ThreadLinksStrip: View {
   let thread: String
   let links: [ChatLink]
   @State private var allOpen = false
+  /// GRABBER_CHAT_LINKS=fold / all: once the strip shows, *Links* or *All links* taps itself, for the simulator.
+  @State private var linksHook = ProcessInfo.processInfo.environment["GRABBER_CHAT_LINKS"]
   @Environment(\.openURL) private var openURL
 
   private var folded: Bool { chat.foldedLinks.contains(thread) }
@@ -380,6 +382,17 @@ private struct ThreadLinksStrip: View {
       .sheet(isPresented: $allOpen) {
         AllLinksView(links: links) { open($0, from: "all") }
       }
+      .task { runLinksHook() }
+    }
+  }
+
+  private func runLinksHook() {
+    guard let hook = linksHook else { return }
+    linksHook = nil
+    switch hook {
+    case "fold": chat.setLinksFolded(thread, !folded)
+    case "all": allOpen = true
+    default: break
     }
   }
 
@@ -595,7 +608,7 @@ struct ChatThreadView: View {
     .safeAreaInset(edge: .top) {
       VStack(spacing: 0) {
         if let key {
-          ThreadLinksStrip(chat: chat, thread: key, links: ChatLinks.inThread(messages))
+          ThreadLinksStrip(chat: chat, thread: key, links: chat.rowLinks[key] ?? [])
         }
         if let problem = chat.archiveProblem {
           BugProblemView(
