@@ -8,10 +8,10 @@ final class BreatheStyleUITests: XCTestCase {
     app.launchEnvironment["GRABBER_BREATHE"] = "open"
     app.launch()
     let cog = app.buttons["breathe-style"]
-    XCTAssertTrue(cog.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(cog.appears(within: 15), app.debugDescription)
     cog.tap()
     let tide = app.buttons["breathe-style-tide"]
-    XCTAssertTrue(tide.waitForExistence(timeout: 5))
+    XCTAssertTrue(tide.appears(within: 5))
     tide.tap()
     XCTAssertTrue(tide.isSelected)
     let shot = XCTAttachment(screenshot: app.screenshot())
@@ -21,9 +21,9 @@ final class BreatheStyleUITests: XCTestCase {
 
     app.terminate()
     app.launch()
-    XCTAssertTrue(cog.waitForExistence(timeout: 15))
+    XCTAssertTrue(cog.appears(within: 15))
     cog.tap()
-    XCTAssertTrue(app.buttons["breathe-style-tide"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["breathe-style-tide"].appears(within: 5))
     XCTAssertTrue(app.buttons["breathe-style-tide"].isSelected, "Tide is remembered across launches")
     XCTAssertFalse(app.buttons["breathe-style-line"].isSelected)
   }

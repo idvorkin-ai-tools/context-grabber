@@ -9,12 +9,12 @@ final class BreatheMindfulUITests: XCTestCase {
     let first = XCUIApplication()
     first.launch()
     let today = first.buttons["home-today-card"]
-    XCTAssertTrue(today.waitForExistence(timeout: 15), first.debugDescription)
+    XCTAssertTrue(today.appears(within: 15), first.debugDescription)
     today.tap()
     // Measured 37 s on this Mac (2026-10-08) for Health's sheet to come up; give it 90. No sheet means access was
     // granted on this simulator before; the Meditation count below is what decides.
     let sheet = first.navigationBars["Health Access"]
-    if sheet.waitForExistence(timeout: 90) {
+    if sheet.appears(within: 90) {
       XCTAssertTrue(HealthSheet.allow(in: first) { !sheet.exists }, "Health's sheet stayed: \(first.debugDescription)")
     }
     first.terminate()
@@ -22,16 +22,16 @@ final class BreatheMindfulUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_BREATHE"] = "5,3,off"  // three 20 s cycles: one minute, no sound
     app.launch()
-    XCTAssertTrue(app.staticTexts["Done"].waitForExistence(timeout: 90), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Done"].appears(within: 90), app.debugDescription)
     if app.buttons["Back to start"].exists { app.buttons["Back to start"].tap() }
     let close = app.buttons["breathe-close"]
-    XCTAssertTrue(close.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(close.appears(within: 10), app.debugDescription)
     close.tap()
     let card = app.buttons["home-today-card"]
-    XCTAssertTrue(card.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 15), app.debugDescription)
     card.tap()
     let meditation = app.buttons["card-meditation"]
-    XCTAssertTrue(meditation.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(meditation.appears(within: 15), app.debugDescription)
     let counted = expectation(for: NSPredicate(format: "label CONTAINS '1 min'"), evaluatedWith: meditation)
     XCTAssertEqual(
       XCTWaiter().wait(for: [counted], timeout: 30), .completed, "Meditation counts it: \(meditation.label)")

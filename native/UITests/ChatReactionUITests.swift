@@ -15,7 +15,7 @@ final class ChatReactionUITests: XCTestCase {
 
   private func holdLarrys(_ app: XCUIApplication) {
     let bubble = element(app, "label BEGINSWITH %@", larrysWords)
-    XCTAssertTrue(bubble.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(bubble.appears(within: 20), app.debugDescription)
     bubble.press(forDuration: 1.2)
   }
 
@@ -32,7 +32,7 @@ final class ChatReactionUITests: XCTestCase {
     // Story 518: Larry's offers all four.
     holdLarrys(app)
     let yes = app.buttons["Yes"].firstMatch
-    XCTAssertTrue(yes.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(yes.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["No"].firstMatch.exists)
     XCTAssertTrue(app.buttons["Quote in reply"].firstMatch.exists)
     XCTAssertTrue(app.buttons["Copy"].firstMatch.exists)
@@ -40,28 +40,28 @@ final class ChatReactionUITests: XCTestCase {
     // Story 519: the newest gets the bare word.
     yes.tap()
     XCTAssertTrue(
-      element(app, "label CONTAINS %@", "Larry heard: Yes").waitForExistence(timeout: 15), app.debugDescription)
+      element(app, "label CONTAINS %@", "Larry heard: Yes").appears(within: 15), app.debugDescription)
 
     // Story 540: now it is older, so the answer carries its quote.
     holdLarrys(app)
     app.buttons["No"].firstMatch.tap()
     XCTAssertTrue(
-      element(app, "label CONTAINS %@", "Larry heard: > \(larrysWords)").waitForExistence(timeout: 15),
+      element(app, "label CONTAINS %@", "Larry heard: > \(larrysWords)").appears(within: 15),
       app.debugDescription)
 
     // Story 518: my own offers no answer to myself.
     let mine = element(app, "label BEGINSWITH %@", "Yes")
-    XCTAssertTrue(mine.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(mine.appears(within: 5), app.debugDescription)
     mine.press(forDuration: 1.2)
     let quote = app.buttons["Quote in reply"].firstMatch
-    XCTAssertTrue(quote.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(quote.appears(within: 5), app.debugDescription)
     XCTAssertFalse(app.buttons["Yes"].firstMatch.exists, "no Yes on my own message")
 
     // Story 541: the quote lands in the bar and goes nowhere.
     quote.tap()
-    XCTAssertTrue(element(app, "value BEGINSWITH %@", "> Yes").waitForExistence(timeout: 5), app.debugDescription)
-    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), "the keyboard is up for the reply")
+    XCTAssertTrue(element(app, "value BEGINSWITH %@", "> Yes").appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.keyboards.firstMatch.appears(within: 5), "the keyboard is up for the reply")
     XCTAssertFalse(
-      element(app, "label CONTAINS %@", "Larry heard: > Yes").waitForExistence(timeout: 3), "nothing sent")
+      element(app, "label CONTAINS %@", "Larry heard: > Yes").appears(within: 3), "nothing sent")
   }
 }

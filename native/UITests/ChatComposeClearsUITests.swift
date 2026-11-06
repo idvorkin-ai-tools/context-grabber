@@ -14,24 +14,24 @@ final class ChatComposeClearsUITests: XCTestCase {
     addTeardownBlock {
       for text in ["first", "second"] {
         let bubble = app.staticTexts[text].firstMatch
-        guard bubble.waitForExistence(timeout: 3) else { continue }
+        guard bubble.appears(within: 3) else { continue }
         bubble.press(forDuration: 1.2)
         let delete = app.buttons["Delete"].firstMatch
-        if delete.waitForExistence(timeout: 3) { delete.tap() }
-        XCTAssertFalse(app.staticTexts[text].waitForExistence(timeout: 2), "\(text) left in the outbox")
+        if delete.appears(within: 3) { delete.tap() }
+        XCTAssertFalse(app.staticTexts[text].appears(within: 2), "\(text) left in the outbox")
       }
     }
     // The thread's identifier covers its children, so the bar is found by its placeholder.
     let byPlaceholder = NSPredicate(format: "placeholderValue == %@ OR value == %@", "Message Larry", "Message Larry")
     let compose = app.descendants(matching: .any).matching(byPlaceholder).firstMatch
-    XCTAssertTrue(compose.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(compose.appears(within: 20), app.debugDescription)
     compose.tap()
     compose.typeText("first")
     app.buttons["Send"].tap()
     // The first send asks for notifications (chat spec); a clean simulator shows the system alert, so answer it
     // and focus the field again. The send under test is the next one, which the alert never interrupts.
     let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
-    if allow.waitForExistence(timeout: 3) {
+    if allow.appears(within: 3) {
       allow.tap()
       compose.tap()
     }

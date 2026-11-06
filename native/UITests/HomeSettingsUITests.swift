@@ -18,7 +18,7 @@ final class HomeSettingsUITests: XCTestCase {
     // Drag the Gym Timer above Call Larry by its reorder handle.
     let handle = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS 'Gym Timer'"))
       .firstMatch
-    XCTAssertTrue(handle.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(handle.appears(within: 5), app.debugDescription)
     let callHandle = app.buttons.matching(
       NSPredicate(format: "label BEGINSWITH 'Reorder' AND label CONTAINS 'Call Larry'")
     )
@@ -29,7 +29,7 @@ final class HomeSettingsUITests: XCTestCase {
     // Hide the Cockpit, further down the list than the screen reaches.
     let cockpit = app.switches["home-row-cockpit"]
     for _ in 0..<6 where !cockpit.isHittable { app.swipeUp() }
-    XCTAssertTrue(cockpit.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(cockpit.appears(within: 5), app.debugDescription)
     XCTAssertEqual(cockpit.value as? String, "1")
     cockpit.switches.firstMatch.tap()
     XCTAssertEqual(cockpit.value as? String, "0")
@@ -45,7 +45,7 @@ final class HomeSettingsUITests: XCTestCase {
     openSheet(app)
     app.buttons["home-rows-reset"].tap()
     app.buttons["home-settings-done"].tap()
-    XCTAssertTrue(app.buttons["home-cockpit"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["home-cockpit"].appears(within: 5))
     XCTAssertTrue(before(app.buttons["home-call"], app.buttons["home-gym_timer"]), app.debugDescription)
   }
 
@@ -54,13 +54,13 @@ final class HomeSettingsUITests: XCTestCase {
     let reset = app.buttons["home-rows-reset"]
     // Reset is under the launchers, below the fold once the list outgrows the screen.
     for _ in 0..<6 where !reset.isHittable { app.swipeUp() }
-    XCTAssertTrue(reset.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(reset.appears(within: 5), app.debugDescription)
   }
 
   /// The Cockpit gone, the Gym Timer first.
   private func assertHome(_ app: XCUIApplication) {
     let gym = app.buttons["home-gym_timer"]
-    XCTAssertTrue(gym.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(gym.appears(within: 10), app.debugDescription)
     XCTAssertFalse(app.buttons["home-cockpit"].exists)
     let call = app.buttons["home-call"]
     XCTAssertTrue(before(gym, call), "gym \(gym.frame) call \(call.frame)")

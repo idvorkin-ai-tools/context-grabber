@@ -15,14 +15,14 @@ final class UsageTileUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     // The strip is drawn once a reading loaded; that load is what writes the tile's reading.
-    XCTAssertTrue(app.buttons["usage-strip"].waitForExistence(timeout: 30), "the Cockpit is reachable from this Mac")
+    XCTAssertTrue(app.buttons["usage-strip"].appears(within: 30), "the Cockpit is reachable from this Mac")
 
     XCUIDevice.shared.press(.home)
     let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
     // The tile's buttons are in SpringBoard's tree; a simulator that has the tile already skips the gallery.
     let gymTimer = springboard.buttons["Gym Timer"]
-    if !gymTimer.waitForExistence(timeout: 3) { addTheMediumTile(springboard) }
-    XCTAssertTrue(gymTimer.waitForExistence(timeout: 10), springboard.debugDescription)
+    if !gymTimer.appears(within: 3) { addTheMediumTile(springboard) }
+    XCTAssertTrue(gymTimer.appears(within: 10), springboard.debugDescription)
     XCTAssertTrue(
       springboard.staticTexts["Week 99% left"].exists
         || springboard.staticTexts.matching(
@@ -31,7 +31,7 @@ final class UsageTileUITests: XCTestCase {
     shot(springboard, "home-screen")
 
     gymTimer.tap()
-    XCTAssertTrue(app.buttons["STOP"].waitForExistence(timeout: 15), "Gym Timer on the tile starts the last preset")
+    XCTAssertTrue(app.buttons["STOP"].appears(within: 15), "Gym Timer on the tile starts the last preset")
     shot(app, "timer-from-tile")
   }
 
@@ -39,28 +39,28 @@ final class UsageTileUITests: XCTestCase {
   private func addTheMediumTile(_ springboard: XCUIApplication) {
     springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)).press(forDuration: 1.5)
     let edit = springboard.buttons["Edit"]
-    if edit.waitForExistence(timeout: 5) { edit.tap() }
+    if edit.appears(within: 5) { edit.tap() }
     let addWidget = springboard.buttons["Add Widget"]
-    XCTAssertTrue(addWidget.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(addWidget.appears(within: 5), springboard.debugDescription)
     addWidget.tap()
     let search = springboard.searchFields.firstMatch
-    XCTAssertTrue(search.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(search.appears(within: 5), springboard.debugDescription)
     search.tap()
     search.typeText("Grabber")
     let result = springboard.cells.containing(.staticText, identifier: "Grabber Native").firstMatch
-    XCTAssertTrue(result.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(result.appears(within: 5), springboard.debugDescription)
     result.tap()
     shot(springboard, "gallery-small")
     // The label carries a leading symbol (" Add Widget").
     let add = springboard.buttons.matching(NSPredicate(format: "label CONTAINS 'Add Widget'")).firstMatch
-    XCTAssertTrue(add.waitForExistence(timeout: 5), springboard.debugDescription)
+    XCTAssertTrue(add.appears(within: 5), springboard.debugDescription)
     springboard.swipeLeft()  // the gallery opens on the small size
     sleep(1)
     shot(springboard, "gallery-medium")
     add.tap()
     sleep(2)
     let done = springboard.buttons["Done"]
-    if done.waitForExistence(timeout: 3) { done.tap() }
+    if done.appears(within: 3) { done.tap() }
     sleep(2)
   }
 }

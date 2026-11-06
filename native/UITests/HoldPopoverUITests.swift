@@ -6,7 +6,7 @@ import XCTest
 final class HoldPopoverUITests: XCTestCase {
   private func hold(_ tile: String, in app: XCUIApplication) {
     let row = app.buttons["home-\(tile)"]
-    XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(row.appears(within: 15), app.debugDescription)
     for _ in 0..<4 where !row.isHittable { app.swipeUp() }
     row.press(forDuration: 1.5)
   }
@@ -17,12 +17,12 @@ final class HoldPopoverUITests: XCTestCase {
     app.launch()
     hold("gym_timer", in: app)
     for id in ["30sec", "1min", "2min", "5-1", "custom"] {
-      XCTAssertTrue(app.buttons["timer-\(id)"].waitForExistence(timeout: 10), "\(id): \(app.debugDescription)")
+      XCTAssertTrue(app.buttons["timer-\(id)"].appears(within: 10), "\(id): \(app.debugDescription)")
     }
     app.buttons["timer-1min"].tap()
     let face = app.descendants(matching: .any).matching(identifier: "timer-face").firstMatch
-    XCTAssertTrue(face.waitForExistence(timeout: 10), "the timer opened: \(app.debugDescription)")
-    XCTAssertTrue(app.buttons["STOP"].waitForExistence(timeout: 10), "and started")
+    XCTAssertTrue(face.appears(within: 10), "the timer opened: \(app.debugDescription)")
+    XCTAssertTrue(app.buttons["STOP"].appears(within: 10), "and started")
   }
 
   // Story 225: Drill the stack from the card's popover opens the drill without the card screen's button.
@@ -30,10 +30,10 @@ final class HoldPopoverUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     hold("think_a_card", in: app)
-    XCTAssertTrue(app.buttons["card-think"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["card-think"].appears(within: 10), app.debugDescription)
     XCTAssertTrue(app.buttons["card-face"].exists)
     app.buttons["card-drill"].tap()
-    XCTAssertTrue(app.buttons["Tap to see its position"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["Tap to see its position"].appears(within: 10), app.debugDescription)
   }
 
   // Stories 465, 466 (#392): Random's topics, and a topic leaves for the browser. Which link it opens is the host's
@@ -43,7 +43,7 @@ final class HoldPopoverUITests: XCTestCase {
     app.launch()
     hold("random", in: app)
     for id in ["anything", "ai", "tech", "family", "health", "mind", "work", "books"] {
-      XCTAssertTrue(app.buttons["random-\(id)"].waitForExistence(timeout: 10), "\(id): \(app.debugDescription)")
+      XCTAssertTrue(app.buttons["random-\(id)"].appears(within: 10), "\(id): \(app.debugDescription)")
     }
     app.buttons["random-ai"].tap()
     let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
@@ -56,12 +56,12 @@ final class HoldPopoverUITests: XCTestCase {
     let app = XCUIApplication()
     app.launch()
     hold("breathe", in: app)
-    XCTAssertTrue(app.buttons["breathe-10"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.buttons["breathe-10"].appears(within: 10), app.debugDescription)
     // UIKit's region outside a popover; a tap at the very top lands in the status bar and never reaches it.
     let outside = app.otherElements["PopoverDismissRegion"]
-    XCTAssertTrue(outside.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(outside.appears(within: 5), app.debugDescription)
     outside.tap()
-    XCTAssertFalse(app.buttons["breathe-10"].waitForExistence(timeout: 2), "the popover closed")
+    XCTAssertFalse(app.buttons["breathe-10"].appears(within: 2), "the popover closed")
     XCTAssertTrue(app.buttons["home-breathe"].isHittable, "still on the home screen")
   }
 }

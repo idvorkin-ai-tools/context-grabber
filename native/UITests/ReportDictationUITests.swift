@@ -9,7 +9,7 @@ final class ReportDictationUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_SHAKE_AFTER"] = "4"
     app.launch()
-    XCTAssertTrue(app.navigationBars["Report a problem"].waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(app.navigationBars["Report a problem"].appears(within: 15), app.debugDescription)
     let mic = app.buttons["report-dictate"]
     XCTAssertTrue(mic.exists, app.debugDescription)
     XCTAssertTrue(mic.isEnabled, "no call is up, so the microphone is on")

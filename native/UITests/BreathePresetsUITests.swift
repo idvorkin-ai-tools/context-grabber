@@ -8,7 +8,7 @@ final class BreathePresetsUITests: XCTestCase {
     app.launchEnvironment["GRABBER_BREATHE"] = "open"
     app.launch()
     let twelve = app.buttons["breathe-preset-12"]
-    XCTAssertTrue(twelve.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(twelve.appears(within: 15), app.debugDescription)
     twelve.tap()
     let summary = app.staticTexts["breathe-summary"]
     // 12 s a side at 5 minutes: 6 cycles of 48 s.
@@ -17,12 +17,12 @@ final class BreathePresetsUITests: XCTestCase {
 
     app.buttons["breathe-preset-custom"].tap()
     let inSlider = app.descendants(matching: .any)["breathe-in"]
-    XCTAssertTrue(inSlider.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(inSlider.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.descendants(matching: .any)["breathe-out"].exists)
 
     app.terminate()
     app.launch()
-    XCTAssertTrue(app.buttons["breathe-preset-custom"].waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(app.buttons["breathe-preset-custom"].appears(within: 15), app.debugDescription)
     XCTAssertTrue(app.buttons["breathe-preset-custom"].isSelected, "Custom is remembered")
     XCTAssertTrue(app.descendants(matching: .any)["breathe-in"].exists, "its sliders show again")
   }

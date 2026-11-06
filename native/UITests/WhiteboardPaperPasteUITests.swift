@@ -17,7 +17,7 @@ final class WhiteboardPasteOnPaperUITests: WhiteboardPasteUITests {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20))
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
     app.terminate()
   }
 }
@@ -30,7 +30,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].waitForExistence(timeout: 20))
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
     app.terminate()
   }
 
@@ -49,10 +49,10 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
-    XCTAssertTrue(ghosts.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
     return app
   }
@@ -177,7 +177,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     app.launch()
     let card = app.buttons.matching(identifier: "whiteboard-card")
       .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
     card.tap()
     wait(send(app), label: strokes(2))
     expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: larry)

@@ -34,10 +34,10 @@ class WhiteboardTurnUITests: XCTestCase {
     for (key, value) in boardEnvironment { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 20), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
     new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
-    XCTAssertTrue(ghosts.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
     sleep(1)
     return (app, ghosts)
@@ -87,7 +87,7 @@ class WhiteboardTurnUITests: XCTestCase {
     wait(ghosts, label: "Ghosts on, 3 showing", timeout: 15)
     XCTAssertTrue(
       app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Larry: this is where it goes")).firstMatch
-        .waitForExistence(timeout: 3), app.debugDescription)
+        .appears(within: 3), app.debugDescription)
   }
 
   /// The fake Cockpit draws on the board's thread, as Larry does when he has something to add.
@@ -107,9 +107,9 @@ class WhiteboardTurnUITests: XCTestCase {
   private func reopenBoard(_ app: XCUIApplication) {
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let card = app.buttons["whiteboard-card"].firstMatch
-    XCTAssertTrue(card.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 5), app.debugDescription)
     card.tap()
-    XCTAssertTrue(app.buttons["whiteboard-ghosts"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-ghosts"].appears(within: 5), app.debugDescription)
   }
 
   /// Stories 382, 383, 386 and 388, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept ones with no
@@ -125,15 +125,15 @@ class WhiteboardTurnUITests: XCTestCase {
       NSPredicate(format: "label CONTAINS %@", "\(count) suggestion\(count == 1 ? "" : "s"): tap one to keep it")
     }
     XCTAssertTrue(
-      app.staticTexts.matching(marks(2)).firstMatch.waitForExistence(timeout: 15), app.debugDescription)
+      app.staticTexts.matching(marks(2)).firstMatch.appears(within: 15), app.debugDescription)
 
     try larryDraws(3, on: cockpit)
     XCTAssertTrue(
-      app.staticTexts.matching(marks(3)).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+      app.staticTexts.matching(marks(3)).firstMatch.appears(within: 10), app.debugDescription)
 
     reopenBoard(app)
     XCTAssertTrue(
-      app.staticTexts.matching(marks(3)).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+      app.staticTexts.matching(marks(3)).firstMatch.appears(within: 10), app.debugDescription)
 
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
     let none = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "tap one to keep it")).firstMatch
@@ -259,7 +259,7 @@ class WhiteboardTurnUITests: XCTestCase {
 
     paper.tap()
     let cream = app.buttons["Cream"]
-    XCTAssertTrue(cream.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(cream.appears(within: 5), app.debugDescription)
     keepShot("The menu")
     cream.tapWhenSettled()
     wait(paper, label: "Board, Cream", timeout: 3)
@@ -290,7 +290,7 @@ class WhiteboardTurnUITests: XCTestCase {
     ghosts.tap()
     wait(ghosts, label: "Ghosts on", timeout: 3)
     stroke(app, atHeight: 0.6)
-    XCTAssertTrue(note.waitForExistence(timeout: 8), app.debugDescription)
+    XCTAssertTrue(note.appears(within: 8), app.debugDescription)
   }
 
   /// Stories 407–410: off until asked, visible when on and gone when off (read from the pixels: the board isn't in the
@@ -336,9 +336,9 @@ class WhiteboardTurnUITests: XCTestCase {
     tapGrid(app, board, expect: "Board, Plain, grid on")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(new.appears(within: 5), app.debugDescription)
     new.tap()
-    XCTAssertTrue(board.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(board.appears(within: 5), app.debugDescription)
     XCTAssertEqual(board.label, "Board, Plain")
   }
 
@@ -354,7 +354,7 @@ class WhiteboardTurnUITests: XCTestCase {
   private func tapGrid(_ app: XCUIApplication, _ view: XCUIElement, expect: String) {
     view.tap()
     let item = app.descendants(matching: .any)["Grid lines"].firstMatch
-    XCTAssertTrue(item.waitForExistence(timeout: 3), app.debugDescription)
+    XCTAssertTrue(item.appears(within: 3), app.debugDescription)
     item.tapWhenSettled()
     wait(view, label: expect, timeout: 3)
   }

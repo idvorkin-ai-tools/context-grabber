@@ -20,7 +20,7 @@ final class HomeGridUITests: XCTestCase {
     let timer = app.buttons["home-gym_timer"]
     let breathe = app.buttons["home-breathe"]
     for _ in 0..<6 where !call.isHittable { app.swipeDown() }
-    XCTAssertTrue(call.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(call.appears(within: 10), app.debugDescription)
     if let shots = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] {
       try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(shots)/home-grid.png"))
     }
@@ -52,6 +52,6 @@ final class HomeGridUITests: XCTestCase {
     XCTAssertGreaterThan(settings.frame.minX, report.frame.maxX, "Settings is the last tile")
 
     settings.tap()
-    XCTAssertTrue(app.navigationBars["Home screen"].waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(app.navigationBars["Home screen"].appears(within: 5), app.debugDescription)
   }
 }

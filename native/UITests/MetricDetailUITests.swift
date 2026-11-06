@@ -17,7 +17,7 @@ final class MetricDetailUITests: XCTestCase {
   func testTheDetailFillsAnIPadsWindowAndDragsAwayOnAnIPhone() throws {
     let app = launchOnTheDetail()
     let close = app.buttons["Close"].firstMatch
-    XCTAssertTrue(close.waitForExistence(timeout: 30), app.debugDescription)
+    XCTAssertTrue(close.appears(within: 30), app.debugDescription)
     let bar = app.navigationBars.containing(.button, identifier: "Close").firstMatch
     XCTAssertTrue(bar.exists, app.debugDescription)
     let shot = XCTAttachment(screenshot: app.screenshot())
@@ -39,10 +39,10 @@ final class MetricDetailUITests: XCTestCase {
   func testAShakeOpensAReportOverTheDetail() throws {
     let app = launchOnTheDetail(["GRABBER_SHAKE_AFTER": "20"])
     let close = app.buttons["Close"].firstMatch
-    XCTAssertTrue(close.waitForExistence(timeout: 30), app.debugDescription)
+    XCTAssertTrue(close.appears(within: 30), app.debugDescription)
     let report = app.navigationBars["Report a problem"]
-    XCTAssertTrue(report.waitForExistence(timeout: 30), app.debugDescription)
+    XCTAssertTrue(report.appears(within: 30), app.debugDescription)
     report.buttons["Cancel"].tap()
-    XCTAssertTrue(close.waitForExistence(timeout: 5), "the detail is still there underneath")
+    XCTAssertTrue(close.appears(within: 5), "the detail is still there underneath")
   }
 }
