@@ -1461,7 +1461,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 700:
 
 - **Summary:** Today on the Mac says quietly that Health lives on the phone
-- **Status:** implemented (commit to follow); verified by the Mac build only
+- **Status:** implemented in [eeb68d1](https://github.com/idvorkin/context-grabber/commit/eeb68d1); verified by the Mac build only
 - **Issues:** [#700](https://github.com/idvorkin/context-grabber/issues/700)
 - **Spec:** [The Mac app](../superpowers/specs/2026-11-03-native-mac-app-design.md), *Health*
 
