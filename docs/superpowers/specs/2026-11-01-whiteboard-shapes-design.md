@@ -24,7 +24,7 @@ suggest changes the board until Igor keeps it.
   a Cockpit answers all at once, they all arrive then and draw in one after another as before; the app asks in a way
   that gets either.
 - While ghosts show, the bar says how many and *tap one to keep it*.
-- **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour, and his eraser and undo treat it like his own
+- **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour (or the one it asked for, below), and his eraser and undo treat it like his own
   strokes.
 - **Ghosts stay while he draws** (Igor, 2026-11-02: drawing together, not taking turns). The Pencil touching down
   leaves them, and an answer that lands while he draws still shows. Each new answer from Claude replaces his unkept
@@ -156,8 +156,8 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 ## Where it runs
 
 On the Cockpit (Igor's pick: no model key on the device, and Larry is there). Claude's ghosts come from its ghost
-endpoint, which takes the board's picture and answers with strokes: lines, arrows, polylines, circles, arcs and
-labels. Larry's marks come over chat ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)): a picture
+endpoint, which takes the board's picture and answers with strokes: lines, arrows, polylines, circles, arcs, boxes
+and labels. Larry's marks come over chat ([cockpit#85](https://github.com/idvorkin-ai-tools/cockpit/issues/85)): a picture
 sent to him carries which board it is, a new id, and its place on the board, and the Cockpit keeps those on the row and
 hands them back; his rows carry shapes in the picture's pixels, in the ghost endpoint's format or the older one.
 
