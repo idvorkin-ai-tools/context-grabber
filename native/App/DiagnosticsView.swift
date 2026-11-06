@@ -543,6 +543,12 @@ private struct HomeSettingsView: View {
 private struct HomeLaunchersView: View {
   @ObservedObject var model: AppModel
 
+  #if targetEnvironment(macCatalyst)
+    static let reorderHint = "Use the arrows to reorder."
+  #else
+    static let reorderHint = "Drag to reorder."
+  #endif
+
   var body: some View {
     List {
       Section {
@@ -555,13 +561,14 @@ private struct HomeLaunchersView: View {
               }
             }
             .accessibilityIdentifier("home-row-\(id)")
+            .macMoveArrows(id: id, model: model)
           }
         }
         .onMove { model.moveHomeRows(fromOffsets: $0, toOffset: $1) }
         Button("Reset to default") { model.resetHomeRows() }
           .accessibilityIdentifier("home-rows-reset")
       } footer: {
-        Text("Drag to reorder. A hidden launcher still opens from its link or Shortcut.")
+        Text("\(Self.reorderHint) A hidden launcher still opens from its link or Shortcut.")
       }
     }
     // The reorder handles always showing: dragging is what this page is for.
@@ -574,5 +581,40 @@ private struct HomeLaunchersView: View {
         Button("Done") { model.showHomeSettings = false }.accessibilityIdentifier("home-settings-done")
       }
     }
+  }
+}
+
+extension View {
+  /// #714: on the Mac a pointer drag on the reorder handle does not move the row, so each row also gets Move up /
+  /// Move down arrows, through the same move (and its save and log) the drag uses. A phone and an iPad keep the drag.
+  @ViewBuilder
+  fileprivate func macMoveArrows(id: String, model: AppModel) -> some View {
+    #if targetEnvironment(macCatalyst)
+      let order = model.homeLayout.order
+      let index = order.firstIndex(of: id) ?? 0
+      HStack(spacing: 8) {
+        self
+        Button {
+          model.moveHomeRows(fromOffsets: [index], toOffset: index - 1)
+        } label: {
+          Image(systemName: "chevron.up")
+        }
+        .disabled(index == 0)
+        .accessibilityLabel("Move \(HomeRow.row(id)?.title ?? id) up")
+        .accessibilityIdentifier("home-row-up-\(id)")
+        Button {
+          model.moveHomeRows(fromOffsets: [index], toOffset: index + 2)
+        } label: {
+          Image(systemName: "chevron.down")
+        }
+        .disabled(index >= order.count - 1)
+        .accessibilityLabel("Move \(HomeRow.row(id)?.title ?? id) down")
+        .accessibilityIdentifier("home-row-down-\(id)")
+      }
+      // Borderless, so a click on an arrow is that arrow's alone and never the row's switch.
+      .buttonStyle(.borderless)
+    #else
+      self
+    #endif
   }
 }

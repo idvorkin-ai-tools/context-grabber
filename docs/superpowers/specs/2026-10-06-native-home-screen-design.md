@@ -198,7 +198,11 @@ Order, hiding and Reset in Settings work as before.
 1. **Launchers** — its own page (#302: *"launchers on its own page under settings"*): the sheet's first row,
    *Launchers*, opens it, with *Done* still at the top right. It lists every launcher, shown or hidden, in the current order, each with its icon, its name and a
    switch. A switch off hides that row from the home screen at once; on brings it back in the same place.
-   Rows are dragged by their handle to reorder; the home screen follows. A footer says hidden rows still open
+   Rows are dragged by their handle to reorder; the home screen follows. On the Mac (#714: *"re-order isn't
+   supported on Mac… list box doesn't move"*), where a pointer drag on the handle does not move the row, each row
+   also carries a *Move up* and a *Move down* arrow: a click moves that launcher one place, the first row's up
+   arrow and the last row's down arrow are dimmed, a click on an arrow never flips the row's switch, and the
+   footer says to use the arrows. The iPhone and the iPad keep dragging only. A footer says hidden rows still open
    from links and Shortcuts. *Reset to default* puts every row back, in the default order.
 2. **About and diagnostics** — what used to be the bottom of the home screen: *Build* (commit, branch, version), *This launch*
    (the log's name and when it started, and where to find logs in Files), and *Report a problem* with its
@@ -231,6 +235,8 @@ Order, hiding and Reset in Settings work as before.
 - The home screen shows only the launchers (and anything placed above them), with a Settings tile after them and nothing above the first card but the status bar.
 - Hiding a row through Settings removes it from the home screen; after a relaunch it is still hidden.
 - Moving a row through Settings moves it on the home screen; after a relaunch the order holds.
+- On the Mac, a launcher's *Move up* / *Move down* arrow moves it one place in the list and on the home screen; the
+  first row cannot go up, the last cannot go down, and the row's switch does not change (#714).
 - Reset brings back every row in the default order.
 - A launcher unknown to the remembered order shows at the end; a forgotten one does not break anything.
 - The build, the log and *Report a problem* are reachable from the sheet, and a shake with the

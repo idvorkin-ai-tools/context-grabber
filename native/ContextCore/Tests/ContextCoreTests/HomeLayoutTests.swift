@@ -59,6 +59,17 @@ final class HomeLayoutTests: XCTestCase {
     XCTAssertEqual(layout.order, ["call", "breathe", "today", "places", "think_a_card", "cockpit", "gym_timer"])
   }
 
+  /// #714: the Mac's arrows move one place, up as (i, i - 1) and down as (i, i + 2).
+  func testTheMacArrowsMoveOnePlace() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    layout.move(fromOffsets: [2], toOffset: 1)  // Gym Timer up
+    XCTAssertEqual(layout.order, ["call", "gym_timer", "today", "breathe", "places", "think_a_card", "cockpit"])
+    layout.move(fromOffsets: [1], toOffset: 3)  // and down again
+    XCTAssertEqual(layout.order, ["call", "today", "gym_timer", "breathe", "places", "think_a_card", "cockpit"])
+    layout.move(fromOffsets: [5], toOffset: 7)  // the next-to-last row down to the end
+    XCTAssertEqual(layout.order, ["call", "today", "gym_timer", "breathe", "places", "cockpit", "think_a_card"])
+  }
+
   func testWhatIsStoredReadsBackTheSame() {
     var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
     layout.move(fromOffsets: [6], toOffset: 1)
