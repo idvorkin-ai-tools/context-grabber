@@ -4,13 +4,14 @@
 import SwiftUI
 
 struct MacMenuCommands: Commands {
-  let model: AppModel
+  @ObservedObject var model: AppModel
 
   var body: some Commands {
     #if targetEnvironment(macCatalyst)
       CommandGroup(replacing: .appSettings) {
         Button("Settings…") { model.openHomeSettings() }
           .keyboardShortcut(",")
+          .disabled(!model.homeInFront)
       }
       CommandGroup(replacing: .help) {
         Button("Report a Problem…") { model.startBugReport(from: "mac_menu") }

@@ -1598,15 +1598,15 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 684:
 
-- **Summary:** Reach Settings and a problem report from the Mac's menu bar
-- **Status:** implemented on branch native/mac-menu (#681); the Mac build compiles. Not yet verified by choosing the items from a Mac's menu bar
+- **Summary:** Report a problem from the Mac's menu bar
+- **Status:** implemented on branch native/mac-menu (#681); the Mac build compiles. Not yet verified by choosing the item from a Mac's menu bar
 - **Issues:** [#681](https://github.com/idvorkin/context-grabber/issues/681)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
 - **As** Igor, using the app on a Mac, which can't be shaken
-- **I want** Settings and a problem report in the menu bar
-- **so that** I can report what I see and change a setting without hunting for a tile
+- **I want** a problem report in the menu bar
+- **so that** I can report what I see without a shake
 
 #### Acceptance Criteria:
 - **Scenario:** Reporting a problem
@@ -1614,8 +1614,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I choose Report a Problem… from the Help menu
 - **Then:** the report dialog opens, as a shake opens it on a phone
 
+### User Story 685:
+
+- **Summary:** Open Settings from the Mac's menu bar
+- **Status:** implemented on branch native/mac-menu (#681); the Mac build compiles. Not yet verified by choosing the item from a Mac's menu bar
+- **Issues:** [#681](https://github.com/idvorkin/context-grabber/issues/681)
+- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, using the app on a Mac
+- **I want** Settings… in the app's menu, with Command+Comma
+- **so that** I change a setting the way every Mac app lets me, without hunting for a tile
+
+#### Acceptance Criteria:
 - **Scenario:** Opening Settings
-- **Given:** the Mac build is open
+- **Given:** the Mac build is open on home, with no other screen covering it (Settings… is dimmed while one does)
 - **When:** I choose Settings… from the app's menu, or press Command+Comma
-- **Then:** the app's settings open
+- **Then:** the app's settings open over home
 

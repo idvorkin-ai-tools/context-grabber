@@ -76,7 +76,7 @@ dialog already does. A key confirms only what the button would: a form missing w
 
 **The menu bar** (#681, Igor: *"In catalyst how to rage shake? Add Settings and Bug to Menu so I can launch it from
 there"*). A Mac can't be shaken, so the menu bar carries what a shake or a home tile would. The app's own menu has
-*Settings…*, in the place and with the Command+Comma every Mac app uses, which opens the app's settings. The Help menu has
+*Settings…*, in the place and with the Command+Comma every Mac app uses, which opens the app's settings. It is dimmed while another screen covers home (Places, a timer, a call, the Cockpit…), because settings open over home and a live timer or call is never closed to make room. The Help menu has
 *Report a Problem…*, which opens the same report dialog a shake opens on a phone, with a screenshot of the window. A phone
 and an iPad show no new menu items.
 
