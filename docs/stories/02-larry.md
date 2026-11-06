@@ -2311,7 +2311,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 553:
 
 - **Summary:** On the Mac and a full-width iPad, the thread list shows each thread's newest links
-- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone. Whether a chip in a row takes its own tap, rather than opening the thread, is for the simulator (an iPad) or the Mac by hand
+- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab), a row's read cut short by scrolling tried again in [69f16f74](https://github.com/idvorkin/context-grabber/commit/69f16f74); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone. Whether a chip in a row takes its own tap, rather than opening the thread, is for the simulator (an iPad) or the Mac by hand
 - **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
 - **Spec:** [Chat with Larry in Grabber Native — Links in the thread list on an iPad or a Mac](../superpowers/specs/2026-10-25-native-chat-design.md)
 
