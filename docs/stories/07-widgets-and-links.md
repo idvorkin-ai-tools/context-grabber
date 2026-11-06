@@ -1636,7 +1636,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 722:
 
 - **Summary:** Keyboard shortcuts on the Mac, each one a menu item
-- **Status:** implemented in PENDING; verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
 - **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
