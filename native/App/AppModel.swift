@@ -359,6 +359,9 @@ final class AppModel: ObservableObject {
     }
   }
 
+  /// Nothing covers home: what is presented from it, its settings, can show.
+  var homeInFront: Bool { front == "home" && !showEulogySong }
+
   func openHomeSettings() {
     log.event("ui", ["action": "home_settings"])
     screen = "home_settings"

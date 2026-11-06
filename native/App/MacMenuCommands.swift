@@ -1,0 +1,23 @@
+//  #681, stories 684 and 685: a Mac can't be shaken, so the menu bar carries Settings and a problem report. A phone
+//  and an iPad show no new items.
+
+import SwiftUI
+
+struct MacMenuCommands: Commands {
+  @ObservedObject var model: AppModel
+
+  var body: some Commands {
+    #if targetEnvironment(macCatalyst)
+      CommandGroup(replacing: .appSettings) {
+        Button("Settings…") { model.openHomeSettings() }
+          .keyboardShortcut(",")
+          .disabled(!model.homeInFront)
+      }
+      CommandGroup(replacing: .help) {
+        Button("Report a Problem…") { model.startBugReport(from: "mac_menu") }
+      }
+    #else
+      EmptyCommands()
+    #endif
+  }
+}

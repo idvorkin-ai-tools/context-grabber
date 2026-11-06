@@ -19,7 +19,7 @@ doesn't show, and never crashes. An iPhone and an iPad change in no way at all.
 
 ## Non-goals
 
-- Menu commands, other keyboard shortcuts, a Mac sidebar, a Mac look. A later piece of work.
+- Other menu commands, keyboard shortcuts, a Mac sidebar, a Mac look. A later piece of work.
 - A file finder. It prompted the issue, and it is a different app.
 - Widgets and the share sheet on the Mac (below).
 - Anything on an iPhone or an iPad.
@@ -74,6 +74,12 @@ naming one. A
 problem report's note keeps Enter for a new line, because it is a long note, and sends with Command+Enter, as the report
 dialog already does. A key confirms only what the button would: a form missing what it needs stays as it is.
 
+**The menu bar** (#681, Igor: *"In catalyst how to rage shake? Add Settings and Bug to Menu so I can launch it from
+there"*). A Mac can't be shaken, so the menu bar carries what a shake or a home tile would. The app's own menu has
+*Settings…*, in the place and with the Command+Comma every Mac app uses, which opens the app's settings. It is dimmed while another screen covers home (Places, a timer, a call, the Cockpit…), because settings open over home and a live timer or call is never closed to make room. The Help menu has
+*Report a Problem…*, which opens the same report dialog a shake opens on a phone, with a screenshot of the window. A phone
+and an iPad show no new menu items.
+
 **Background work.** A Mac runs no background tasks for the app. While the window is open chat keeps itself up to date;
 when the app is quit nothing runs, and that isn't an error.
 
@@ -89,5 +95,5 @@ when the app is quit nothing runs, and that isn't an error.
 
 ## Later
 
-Menu commands and keyboard shortcuts, window sizes and a Mac sidebar, the iPad's "New window" as a Mac menu item, a
+Further menu commands and keyboard shortcuts, window sizes and a Mac sidebar, the iPad's "New window" as a Mac menu item, a
 signed build that carries iCloud, widgets on the Mac's desktop, and the share extension.
