@@ -1457,3 +1457,21 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** one message left waiting by a test launch and one by a launch with no address named
 - **When:** a later launch of either kind sends what waits
 - **Then:** it sends only the message its own kind of launch left
+
+### User Story 700:
+
+- **Summary:** Today on the Mac says quietly that Health lives on the phone
+- **Status:** implemented in [eeb68d1](https://github.com/idvorkin/context-grabber/commit/eeb68d1); verified by the Mac build only
+- **Issues:** [#700](https://github.com/idvorkin/context-grabber/issues/700)
+- **Spec:** [The Mac app](../superpowers/specs/2026-11-03-native-mac-app-design.md), *Health*
+
+#### Use Case:
+- **As someone** using Grabber on the Mac
+- **I want to** see a plain line that Health lives on my phone
+- **so that** an every-grab red error doesn't make me think the app broke
+
+#### Acceptance Criteria:
+- **Scenario:** Today on a Mac
+- **Given:** the Mac app, which has no Health store
+- **When:** Today opens or I pull to grab
+- **Then:** where the cards would be it says *Health lives on your phone. This Mac has none.*, with no copyable error; a phone or iPad that can't reach Health still shows the error
