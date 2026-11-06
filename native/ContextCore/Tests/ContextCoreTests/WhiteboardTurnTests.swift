@@ -238,4 +238,80 @@ final class WhiteboardTurnTests: XCTestCase {
     let ink = WhiteboardTurn.lines(shapes[0], frame: .zero, scale: 0.5).flatMap { WhiteboardTurn.inkPoints($0) }
     XCTAssertEqual(ink.last, CGPoint(x: 100, y: 0))
   }
+
+  // #698: a mark can choose its pen, colour and lettering; one that doesn't looks as before, but labels aren't bold.
+  private func strokes(_ json: String) throws -> [WhiteboardTurn.Shape] {
+    let body = Data(#"{"ok": true, "strokes": [\#(json)]}"#.utf8)
+    guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
+      XCTFail("no shapes")
+      return []
+    }
+    return shapes
+  }
+
+  func testAMarkCarriesThePenColourAndLetteringItAsksFor() throws {
+    let shapes = try strokes(
+      #"""
+      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 8, "color": "#12AB34"},
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20, "font": "hand"},
+      {"kind": "circle", "cx": 50, "cy": 60, "r": 10, "pen": 2}
+      """#)
+    XCTAssertEqual(shapes.map(\.kind), [.line, .text, .ellipse])
+    XCTAssertEqual(shapes[0].color, 0x12AB34)
+    // The pen is in the picture's pixels: a picture at twice the board's size halves it on the board.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), 4)
+    XCTAssertEqual(shapes[1].face, .hand)
+    XCTAssertFalse(WhiteboardTurn.lines(shapes[1], frame: .zero, scale: 1).isEmpty, "the hand face draws letters")
+    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), 2)
+  }
+
+  func testAMarkThatAsksForNothingLooksAsBeforeAndLabelsArentBold() throws {
+    let shapes = try strokes(
+      #"""
+      {"kind": "arrow", "x1": 0, "y1": 0, "x2": 9, "y2": 9},
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 40}
+      """#)
+    XCTAssertNil(shapes[0].color)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), WhiteboardTurn.defaultPen)
+    XCTAssertEqual(shapes[1].face, .print)
+    // A 40-pixel label on a picture at twice the board: 20-point letters, a pen of 2.2, not the old 3.7.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 2), 2.2, accuracy: 0.001)
+  }
+
+  func testABoxIsItsCornerWidthAndHeight() throws {
+    let shapes = try strokes(#"{"kind": "rect", "x": 10, "y": 20, "w": 30, "h": 40, "pen": 3}"#)
+    XCTAssertEqual(shapes.map(\.kind), [.rect])
+    XCTAssertEqual(shapes[0].points, [CGPoint(x: 10, y: 20), CGPoint(x: 40, y: 60)])
+    XCTAssertEqual(shapes[0].pen, 3)
+    XCTAssertEqual(WhiteboardTurn.lines(shapes[0], frame: .zero, scale: 1).first?.count, 5)
+  }
+
+  func testWhatAMarkAsksForNeverBreaksTheBoard() throws {
+    let shapes = try strokes(
+      #"""
+      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 0, "color": "red", "font": "gothic"},
+      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": -4, "color": "#12AB3"},
+      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 900},
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "font": "gothic"}
+      """#)
+    XCTAssertEqual(shapes.count, 4)
+    XCTAssertEqual(shapes[0].pen, nil)
+    XCTAssertEqual(shapes[0].color, nil)
+    XCTAssertEqual(shapes[1].pen, nil)
+    XCTAssertEqual(shapes[1].color, nil)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1), WhiteboardTurn.defaultPen)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), WhiteboardTurn.widestPen)
+    XCTAssertEqual(shapes[3].face, .print)
+  }
+
+  func testLarrysChatShapesCarryTheirLooksToo() throws {
+    let shape = WhiteboardTurn.anyShape(
+      [
+        "kind": "label", "text": "ok", "x": 5.0, "y": 30.0, "size": 18.0, "color": "#000000", "pen": 1.5,
+        "font": "hand",
+      ])
+    XCTAssertEqual(shape?.color, 0)
+    XCTAssertEqual(shape?.pen, 1.5)
+    XCTAssertEqual(shape?.face, .hand)
+  }
 }
