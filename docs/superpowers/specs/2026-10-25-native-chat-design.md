@@ -457,7 +457,6 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - A PR chip reads *open*, *draft*, *merged* or *closed* after its number, in green, grey, purple or red, in the strip,
   *All links* and a wide list's rows; a PR the Cockpit hasn't reported reads as before. Merging a PR while its thread
   is open flips its chip to *merged* within about half a minute. Offline or with the Cockpit down, no problem shows.
-- A PR chip says nothing yet of whether the pull request is merged (later, with the Cockpit).
 
 ## Depends on the Cockpit
 

@@ -143,7 +143,9 @@ final class ChatModel: ObservableObject {
       let (data, response) = try await URLSession.shared.data(for: try ChatPRStates.request(refs, cockpit: cockpit))
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let answer = ChatPRStates.parse(data) else {
-        prStatesFailed("HTTP \(status)", refs: refs.count, from: place)
+        let said = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
+        let why = status == 200 ? "bad answer: \(said ?? "unreadable")" : "HTTP \(status)"
+        prStatesFailed(why, refs: refs.count, from: place)
         return false
       }
       prStatesFailing = false
