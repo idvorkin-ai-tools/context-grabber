@@ -2227,3 +2227,123 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** the photo sits above the field with its preview and *Remove image*, the words I typed stay, and *Paste image* is live; words on the clipboard still paste as words
 
 ---
+
+### User Story 549:
+
+- **Summary:** A thread's links wait as chips under its title
+- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, back in a chat where Larry opened a PR an hour ago
+- **I want to** see that thread's PRs, gists and blog links as chips at the top
+- **so that** I open the one I want in one tap instead of scrolling back for it
+
+#### Acceptance Criteria:
+- **Scenario:** A thread with a PR, a gist and a blog post
+- **Given:** a thread whose messages hold https://github.com/idvorkin/context-grabber/pull/734 (twice, once to its files), a gist and https://idvork.in/ai-journal.
+- **When:** I open the thread
+- **Then:** under its title I see *PR #734*, *gist* and *idvork.in/ai-journal*, newest first, each once, without the full stop after the link; tapping one opens it, and the links in the bubbles stay tappable
+
+---
+
+### User Story 550:
+
+- **Summary:** Fold a thread's links away, and it stays folded
+- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, in a long-running thread whose links I no longer need
+- **I want to** fold its chips away
+- **so that** the thread has its room back, and only that thread loses its chips
+
+#### Acceptance Criteria:
+- **Scenario:** Folding, leaving and coming back
+- **Given:** an open thread with its links showing
+- **When:** I tap *Links*, leave the thread, quit the app and open the thread again
+- **Then:** it shows *Links (N)* alone, folded, and another thread's chips still show; tapping *Links (N)* unfolds them
+
+---
+
+### User Story 551:
+
+- **Summary:** Past ten links, *All links* lists the rest
+- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, in a thread with a day's worth of PRs
+- **I want** the strip to stay short and still reach every link
+- **so that** the chips don't become a wall and nothing is lost
+
+#### Acceptance Criteria:
+- **Scenario:** Thirteen links
+- **Given:** a thread whose messages hold thirteen different links
+- **When:** I tap *All links (13)* at the end of the strip
+- **Then:** a list shows all thirteen, newest first, each with its chip's words and the link in full, and a tap opens one
+
+---
+
+### User Story 552:
+
+- **Summary:** A thread without links has no strip
+- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, chatting about the day with no links in it
+- **I want** the thread to look as it always has
+- **so that** the strip is there only when it has something to offer
+
+#### Acceptance Criteria:
+- **Scenario:** Words only, then a link
+- **Given:** a thread whose messages mention *AGENTS.md* and *idvork.in/foo* but no link written with https://
+- **When:** I open it, and Larry then replies with https://idvork.in/eulogy
+- **Then:** at first there is no strip, and with Larry's reply the strip appears with *idvork.in/eulogy* alone
+
+---
+
+### User Story 553:
+
+- **Summary:** On the Mac and a full-width iPad, the thread list shows each thread's newest links
+- **Status:** native app only: implemented in [771196ab](https://github.com/idvorkin/context-grabber/commit/771196ab); `ChatLinksTests` (host, real PR, gist and blog links) pass and the Mac build compiles; not yet seen on the simulator or the phone. Whether a chip in a row takes its own tap, rather than opening the thread, is for the simulator (an iPad) or the Mac by hand
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — Links in the thread list on an iPad or a Mac](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor at the Mac with several chats going
+- **I want** each row of the list to show its thread's newest links
+- **so that** I can open the PR from a chat without opening the chat
+
+#### Acceptance Criteria:
+- **Scenario:** The list on the Mac
+- **Given:** the Mac build, and live threads, one with four links and one with none
+- **When:** I open Chat
+- **Then:** the first row shows its three newest link chips under its last line, a chip opens its link and the rest of the row opens the thread; the other row looks as it does today, and on an iPhone no row shows chips
+
+---
+
+### User Story 554:
+
+- **Summary:** A PR chip says whether the pull request is merged
+- **Status:** not implemented: option C of #736, waiting on the Cockpit to report a pull request's state; a PR chip says only its number today
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — Later: a pull request's state](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, looking over a thread's PRs
+- **I want** each PR chip to say open, merged or closed
+- **so that** I know which ones still need me without opening them
+
+#### Acceptance Criteria:
+- **Scenario:** One merged, one open
+- **Given:** a thread with PR #734 (merged) and PR #736 (open), and a Cockpit that reports their state
+- **When:** I open the thread
+- **Then:** *PR #734* reads merged and *PR #736* reads open; a PR whose state the Cockpit does not know reads as today
+
+---
