@@ -2211,7 +2211,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 730:
 
 - **Summary:** Paste a copied photo into a Mac chat with Command+V
-- **Status:** native app only: implemented on branch native/730-chat-paste-photo; the Mac build compiles and `just test` passes (host). Not yet verified on a Mac by pressing the key (the unsigned test runner refuses Mac UI tests; Igor checks by hand). A phone and an iPad are unchanged
+- **Status:** native app only: implemented in [3fdb7c3](https://github.com/idvorkin/context-grabber/commit/3fdb7c3); the Mac build compiles and `just test` passes (host). Not yet verified on a Mac by pressing the key (the unsigned test runner refuses Mac UI tests; Igor checks by hand). A phone and an iPad are unchanged
 - **Issues:** [#730](https://github.com/idvorkin/context-grabber/issues/730)
 - **Spec:** [Chat with Larry in Grabber Native — Pasting a picture on a Mac](../superpowers/specs/2026-10-25-native-chat-design.md)
 
