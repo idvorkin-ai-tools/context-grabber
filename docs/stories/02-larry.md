@@ -2331,19 +2331,54 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 554:
 
 - **Summary:** A PR chip says whether the pull request is merged
-- **Status:** not implemented: option C of #736, waiting on the Cockpit to report a pull request's state; a PR chip says only its number today
+- **Status:** native app only: implemented in [f406191c](https://github.com/idvorkin/context-grabber/commit/f406191c), from the Cockpit's PR states; `ChatPRStatesTests` (host, the answer as Larry's contract gives it) pass and the Mac build compiles; not yet seen on the simulator or the phone
 - **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
-- **Spec:** [Chat with Larry in Grabber Native — Later: a pull request's state](../superpowers/specs/2026-10-25-native-chat-design.md)
+- **Spec:** [Chat with Larry in Grabber Native — A pull request's state](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Igor, looking over a thread's PRs
-- **I want** each PR chip to say open, merged or closed
+- **I want** each PR chip to say open, draft, merged or closed
 - **so that** I know which ones still need me without opening them
 
 #### Acceptance Criteria:
 - **Scenario:** One merged, one open
 - **Given:** a thread with PR #734 (merged) and PR #736 (open), and a Cockpit that reports their state
 - **When:** I open the thread
-- **Then:** *PR #734* reads merged and *PR #736* reads open; a PR whose state the Cockpit does not know reads as today
+- **Then:** *PR #734* reads merged in purple and *PR #736* reads open in green (a draft reads draft in grey, a closed one closed in red); a PR whose state the Cockpit does not know yet reads as today
+
+- **Scenario:** The Cockpit can't be reached
+- **Given:** a thread with PR chips, offline or with the Cockpit down
+- **When:** I open the thread
+- **Then:** the chips show their numbers alone (or the words they last had) and no problem is shown; the session log has one `pr_states_failed` with the reason
+
+---
+
+### User Story 728:
+
+- **Summary:** A PR chip flips to its new state while I'm looking, in the thread and the wide list
+- **Status:** native app only: implemented in [f406191c](https://github.com/idvorkin/context-grabber/commit/f406191c), the Cockpit asked again every half minute while chips are on screen (sooner while a PR is still being looked up); `ChatPRStatesTests` (host) pass and the Mac build compiles; the flip itself is not yet seen on the simulator, the Mac or the phone
+- **Issues:** [#736](https://github.com/idvorkin/context-grabber/issues/736)
+- **Spec:** [Chat with Larry in Grabber Native — A pull request's state](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, with a chat open while Larry's PR goes through on the laptop
+- **I want** its chip to change from open to merged by itself, and the Mac's thread list to show each row's PR states too
+- **so that** I know it landed without opening GitHub, leaving the thread or pulling to refresh
+
+#### Acceptance Criteria:
+- **Scenario:** Merged while the thread is open
+- **Given:** an open thread whose *PR #736* chip reads open
+- **When:** the pull request is merged on GitHub and I stay on the thread
+- **Then:** within about half a minute the chip reads merged in purple, with nothing tapped
+
+- **Scenario:** The wide list
+- **Given:** the Mac build, the thread list showing a row with *PR #734* and *PR #736* chips
+- **When:** I look at the list
+- **Then:** each PR chip carries its state's word and colour as in the thread, and changes there too while the list is on screen; an iPhone's list is unchanged
+
+- **Scenario:** A PR named for the first time
+- **Given:** Larry has just written a link to a PR the Cockpit was not tracking
+- **When:** the chip appears
+- **Then:** it shows its number alone, then its state within seconds
 
 ---
