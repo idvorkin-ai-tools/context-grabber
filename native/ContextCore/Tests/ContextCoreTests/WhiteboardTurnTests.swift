@@ -292,9 +292,12 @@ final class WhiteboardTurnTests: XCTestCase {
       {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 0, "color": "red", "font": "gothic"},
       {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": -4, "color": "#12AB3"},
       {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 900},
-      {"kind": "label", "text": "hi", "x": 10, "y": 40, "font": "gothic"}
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "font": "gothic"},
+      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "color": "#+12345"}
       """#)
-    XCTAssertEqual(shapes.count, 4)
+    XCTAssertEqual(shapes.count, 5)
+    // A sign is not a hex digit, though Swift's number parsing would take it.
+    XCTAssertNil(shapes[4].color)
     XCTAssertEqual(shapes[0].pen, nil)
     XCTAssertEqual(shapes[0].color, nil)
     XCTAssertEqual(shapes[1].pen, nil)
