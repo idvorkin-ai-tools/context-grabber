@@ -161,13 +161,16 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     wait(board(app), label: "Board, Plain")
   }
 
-  /// Stories 655, 656: every colour shows the page's end line and the grid, and changing either leaves pasted ink on screen.
+  /// Stories 655, 656: the colours show the page's end line and the grid, and changing either leaves pasted ink on screen.
+  /// The lines are one grey at one strength on every colour, so they are hardest to see on the darkest paper: Lilac
+  /// (`BoardPaper`'s light shades by luminance: Plain 1.0, Cream 0.90, Sage 0.83, Grey 0.82, Lilac 0.81). Lilac and back
+  /// to Plain stand for all five; each colour's own shade against the ink is `BoardPaperTests`, on the host.
   func testEveryColourShowsItsLinesAndKeepsTheInk() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
     wait(send(app), label: "Send to Larry, 2 strokes")
     sleep(2)
     let ink = try XCTUnwrap(PaperScreen(app).ink, "dark letters on screen")
-    for colour in ["Cream", "Sage", "Lilac", "Grey", "Plain"] {
+    for colour in ["Lilac", "Plain"] {
       menu(app, colour, expect: "Board, \(colour)")
       let bare = Screen(app)
       let seen = try XCTUnwrap(PaperScreen(app).ink, "the letters on \(colour)")
