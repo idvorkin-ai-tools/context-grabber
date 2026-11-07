@@ -15,7 +15,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 670:
 
 - **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
-- **Status:** not implemented; bead `context-grabber-3k6`
+- **Status:** in progress; bead `context-grabber-3k6`. First move (bead `context-grabber-5eq`, the audit's rank 1): the whiteboard turn's rules are `WhiteboardGhostTurnsTests` on the host, and four `WhiteboardTurnUITests` cases (eight simulator runs with the paper copies) are gone; Mac host run to confirm
 
 #### Use Case:
 - **As Igor,** waiting for a fix to reach his phone
