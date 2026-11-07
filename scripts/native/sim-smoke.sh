@@ -547,19 +547,9 @@ yes_posts=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.62
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ "$reacted" = 1 ] && [ "$yes_posts" = 1 ] && [ -z "$failed" ]; then ok "chat: Yes on the newest went up once as the bare word, no error events"
 else bad "chat: reaction x$reacted, POST of three characters x$yes_posts, errors: $failed"; fi
-for choice in quote copy; do
-  before=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.629")] | length' "$CHAT_REPORT")
-  SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_HOLD=$choice \
-    SIMCTL_CHILD_GRABBER_LINK="grabbernative://chat?thread=igor2-88g.629" relaunch
-  wait_jq "select(.type==\"chat\" and .action==\"$choice\")" 20 || echo "      (timed out waiting for $choice)"
-  sleep 2
-  f=$(newest_log)
-  held=$(jq -sr --arg choice "$choice" '[.[] | select(.type=="chat" and .action==$choice and .thread=="igor2-88g.629" and .message!=null)] | length' "$f")
-  after=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.629")] | length' "$CHAT_REPORT")
-  failed=$(jq -c 'select(.type=="error")' "$f")
-  if [ "$held" = 1 ] && [ "$after" = "$before" ] && [ -z "$failed" ]; then ok "chat: $choice named the thread and the message and sent nothing, no error events"
-  else bad "chat: $choice x$held, messages $before then $after, errors: $failed"; fi
-done
+# Quote and Copy (stories 540-541) are not relaunches here: which choices a message offers and what GRABBER_CHAT_HOLD
+# names are ChatReactionTests' (`ChatHold`), the quote's words are `ChatQuote`'s, and ChatReactionUITests holds a
+# message for real and quotes it. Neither calls the outbox; the Yes above is the hold menu reaching a Cockpit.
 
 # Stories 312, 314: the hook reviews what looks done and archives it; ChatArchiveUITests taps Select and Undo.
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_INBOX=open \

@@ -15,6 +15,46 @@ public enum ChatReaction: String, CaseIterable, Sendable {
   }
 }
 
+/// What holding a message offers (stories 518, 540-541): Yes and No answer Larry, so never on Igor's own message, and
+/// Quote in reply and Copy take its words, so never on a picture alone. Only Yes and No send anything.
+public enum ChatHold: Hashable, Sendable {
+  case react(ChatReaction), quote, copy
+
+  /// The hold menu for `message`, in its order.
+  public static func choices(for message: ChatMessage) -> [ChatHold] {
+    let answers = message.fromIgor ? [] : ChatReaction.allCases.map(ChatHold.react)
+    let hasWords = !message.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    return answers + (hasWords ? [.quote, .copy] : [])
+  }
+
+  /// GRABBER_CHAT_HOLD's value (yes, no, quote or copy): the choice that taps itself on the simulator.
+  public init?(hook: String) {
+    switch hook {
+    case "quote": self = .quote
+    case "copy": self = .copy
+    default:
+      guard let reaction = ChatReaction(rawValue: hook) else { return nil }
+      self = .react(reaction)
+    }
+  }
+
+  public var label: String {
+    switch self {
+    case .react(let reaction): reaction.label
+    case .quote: "Quote in reply"
+    case .copy: "Copy"
+    }
+  }
+
+  public var systemImage: String {
+    switch self {
+    case .react(let reaction): reaction == .yes ? "hand.thumbsup" : "hand.thumbsdown"
+    case .quote: "text.quote"
+    case .copy: "doc.on.doc"
+    }
+  }
+}
+
 public enum ChatQuote {
   /// The most of a message a quote carries: a long reply would otherwise fill the bar and bury the answer.
   public static let maxCharacters = 280
