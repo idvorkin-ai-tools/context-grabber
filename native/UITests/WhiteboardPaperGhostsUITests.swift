@@ -143,8 +143,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   }
 
   private func wait(_ element: XCUIElement, label: String, timeout: TimeInterval = 10) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func ghosts(_ app: XCUIApplication) -> XCUIElement { app.buttons["whiteboard-ghosts"] }

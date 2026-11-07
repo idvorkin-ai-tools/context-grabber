@@ -32,9 +32,9 @@ class WhiteboardPasteUITests: XCTestCase {
   }
 
   private func wait(_ app: XCUIApplication, strokes: Int) {
-    let send = app.buttons["whiteboard-send"]
-    expectation(for: NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), evaluatedWith: send)
-    waitForExpectations(timeout: 8)
+    waitUntil(
+      NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), app.buttons["whiteboard-send"],
+      timeout: 8)
   }
 
   /// The board's note, which also says how many suggestions show.
