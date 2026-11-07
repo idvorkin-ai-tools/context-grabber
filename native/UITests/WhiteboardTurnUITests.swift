@@ -323,11 +323,20 @@ class WhiteboardTurnUITests: XCTestCase {
       }
       return bytes
     }
+    let started = Date()
+    defer { print("ui-pixels: boardPixelsDiffering \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
     let (x, y) = (pixels(a), pixels(b))
     var differing = 0
-    for i in stride(from: 0, to: min(x.count, y.count), by: 4) {
-      let channels = (0..<3).map { abs(Int(x[i + $0]) - Int(y[i + $0])) }
-      if channels.contains(where: { $0 > 2 }) { differing += 1 }
+    // Raw bytes, no array a pixel: the UI tests are a Debug build.
+    x.withUnsafeBufferPointer { x in
+      y.withUnsafeBufferPointer { y in
+        for i in stride(from: 0, to: min(x.count, y.count), by: 4)
+        where abs(Int(x[i]) - Int(y[i])) > 2 || abs(Int(x[i + 1]) - Int(y[i + 1])) > 2
+          || abs(Int(x[i + 2]) - Int(y[i + 2])) > 2
+        {
+          differing += 1
+        }
+      }
     }
     return differing
   }

@@ -86,21 +86,36 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
 
     private var rowsLooked: Range<Int> { height / 5..<(height * 3 / 4) }
 
-    private func differs(_ other: Screen, x: Int, y: Int) -> Bool {
-      let i = (y * width + x) * 4
-      return (0..<3).contains { abs(Int(bytes[i + $0]) - Int(other.bytes[i + $0])) > 3 }
-    }
-
     /// Lines running across, and lines running down, this screen has and `other` doesn't: rows or columns differing most of
-    /// their length.
+    /// their length (a channel more than 3 apart). One pass over raw bytes: the UI tests are a Debug build, where a closure
+    /// a pixel took seconds a call.
     func lines(against other: Screen) -> (across: Int, down: Int) {
+      let started = Date()
+      defer { print("ui-pixels: lines(against:) \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
+      let rows = rowsLooked
+      var downCounts = [Int](repeating: 0, count: width)
       var across = 0
-      for y in rowsLooked where (0..<width).filter({ differs(other, x: $0, y: y) }).count > width / 2 { across += 1 }
-      var down = 0
-      for x in 0..<width where rowsLooked.filter({ differs(other, x: x, y: $0) }).count > rowsLooked.count / 2 {
-        down += 1
+      bytes.withUnsafeBufferPointer { a in
+        other.bytes.withUnsafeBufferPointer { b in
+          downCounts.withUnsafeMutableBufferPointer { down in
+            for y in rows {
+              var differing = 0
+              var i = y * width * 4
+              for x in 0..<width {
+                if abs(Int(a[i]) - Int(b[i])) > 3 || abs(Int(a[i + 1]) - Int(b[i + 1])) > 3
+                  || abs(Int(a[i + 2]) - Int(b[i + 2])) > 3
+                {
+                  differing += 1
+                  down[x] += 1
+                }
+                i += 4
+              }
+              if differing > width / 2 { across += 1 }
+            }
+          }
+        }
       }
-      return (across, down)
+      return (across, downCounts.filter { $0 > rows.count / 2 }.count)
     }
 
     /// Pixels with more orange in them than `paper` has where nothing is drawn: a ghost on any colour.

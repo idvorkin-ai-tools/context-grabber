@@ -63,25 +63,26 @@ struct PaperScreen {
   }
 
   private func box(_ matches: (Int, Int, Int) -> Bool) -> Box? {
-    var found: Box?
-    // Clear of the bars and the page number above, and the tool picker below.
-    for y in stride(from: height / 5, to: height * 3 / 4, by: 2) {
-      for x in stride(from: 0, to: width, by: 2) {
-        let i = (y * width + x) * 4
-        guard matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])) else { continue }
-        let (nx, ny) = (CGFloat(x) / CGFloat(width), CGFloat(y) / CGFloat(height))
-        if var seen = found {
-          seen.minX = min(seen.minX, nx)
-          seen.maxX = max(seen.maxX, nx)
-          seen.minY = min(seen.minY, ny)
-          seen.maxY = max(seen.maxY, ny)
-          found = seen
-        } else {
-          found = Box(minX: nx, minY: ny, maxX: nx, maxY: ny)
+    let started = Date()
+    defer { print("ui-pixels: PaperScreen.box \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
+    // The extremes in pixels, turned into parts of the window once at the end.
+    var (minX, minY, maxX, maxY) = (Int.max, Int.max, -1, -1)
+    bytes.withUnsafeBufferPointer { bytes in
+      // Clear of the bars and the page number above, and the tool picker below.
+      for y in stride(from: height / 5, to: height * 3 / 4, by: 2) {
+        var i = y * width * 4
+        for x in stride(from: 0, to: width, by: 2) {
+          if matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])) {
+            (minX, maxX) = (min(minX, x), max(maxX, x))
+            (minY, maxY) = (min(minY, y), max(maxY, y))
+          }
+          i += 8
         }
       }
     }
-    return found
+    guard maxX >= 0 else { return nil }
+    let (w, h) = (CGFloat(width), CGFloat(height))
+    return Box(minX: CGFloat(minX) / w, minY: CGFloat(minY) / h, maxX: CGFloat(maxX) / w, maxY: CGFloat(maxY) / h)
   }
 
   /// A faint ghost of Claude's on pale paper, or a kept one at full strength.
