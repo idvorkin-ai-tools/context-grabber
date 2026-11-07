@@ -3717,7 +3717,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 657:
 
 - **Summary:** The Board menu never costs a stroke
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet; since bead `context-grabber-y8r` the three cases are one test, `testTheFirstStrokeAfterTheMenuDraws`, in one launch
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
