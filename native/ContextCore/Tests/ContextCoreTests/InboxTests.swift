@@ -63,8 +63,13 @@ final class InboxTests: XCTestCase {
   // MARK: Images (story 039: a HEIC photo arrives as a JPEG)
 
   #if canImport(ImageIO)
+    /// The HEIC is a 64-pixel file made once (libheif's heif-enc), not encoded here: the test that encoded one on the fly
+    /// took 27 s of a host run on a busy Mac.
     func testAHEICBecomesAJPEGAndAJPEGGoesAsItIs() throws {
-      let heic = try Self.image(.heic)
+      let heic = try Data(
+        contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+          .appendingPathComponent("Fixtures/photo-64.heic"))
+      XCTAssertEqual(InboxSend.mime(of: heic), "image/heic", "the fixture reads as a HEIC")
       let sent = try XCTUnwrap(InboxSend.sendable(heic))
       XCTAssertEqual(InboxSend.mime(of: sent), "image/jpeg")
       let jpeg = try Self.image(.jpeg)
