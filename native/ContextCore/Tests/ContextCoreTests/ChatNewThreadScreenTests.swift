@@ -135,6 +135,7 @@ final class ChatNewThreadScreenTests: XCTestCase {
     ]
     let held = ChatNewThread().pending(fixedKey: "k", items: items, messages: ["k": [message("there")]])
     XCTAssertEqual(held.map(\.id), ["early", "sent", "late"], "the Cockpit's copy replaces the phone's")
-    XCTAssertEqual(ChatWire.pending(in: "k", items: items, messages: nil).map(\.id), ["there", "early", "sent", "late"])
+    XCTAssertEqual(
+      ChatWire.pending(in: "k", items: items, messages: nil).map(\.id), ["there", "early", "sent", "late"])
   }
 }
