@@ -30,8 +30,6 @@ public protocol ChatArchiveList: AnyObject {
 public enum ChatArchiveAction: Equatable, Sendable {
   case archive, unarchive
 
-  public var archives: Bool { self == .archive }
-
   /// A swipe left archives a live thread, or brings back an archived one; a pinned or Done thread has none.
   public static func swipe(_ thread: ChatSummary) -> ChatArchiveAction? {
     if thread.archived { return .unarchive }

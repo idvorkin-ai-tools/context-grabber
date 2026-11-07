@@ -15,7 +15,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 670:
 
 - **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
-- **Status:** in progress; bead `context-grabber-3k6`. First move (bead `context-grabber-5eq`, the audit's rank 1): the whiteboard turn's rules are `WhiteboardGhostTurnsTests` on the host, and four `WhiteboardTurnUITests` cases (eight simulator runs with the paper copies) are gone. The Inbox's send orchestration (bead `context-grabber-gp7`, the audit's rank 3) is `InboxOutboxTests` on the host, also on Linux, and three of the smoke's chat relaunches are gone (the refused file, *Send again* and the held message's delivery); Mac host run to confirm
+- **Status:** not implemented; bead `context-grabber-3k6`; moves so far: the whiteboard turn's rules are `WhiteboardGhostTurnsTests` on the host and four `WhiteboardTurnUITests` cases are gone, in 3985337 (bead `context-grabber-5eq`, the audit's rank 1); the whiteboard persistence policy is `BoardKeepingTests` on the host, in f41be39 (the audit's rank 4); the Inbox's send orchestration is `InboxOutboxTests` on the host, also on Linux, and three of the smoke's chat relaunches are gone, in 845a6f2 (bead `context-grabber-gp7`, the audit's rank 3); the chat archive and new-thread rules are `ChatArchiverTests` and `ChatNewThreadScreenTests` on the host, in 23dd212 (bead `context-grabber-t8i`, the audit's rank 2); verified together on the Mac host (rung 1, ContextCore 1,123 tests) and the simulator (rung 2, the whiteboard and chat UI suites and the smoke)
 
 #### Use Case:
 - **As Igor,** waiting for a fix to reach his phone

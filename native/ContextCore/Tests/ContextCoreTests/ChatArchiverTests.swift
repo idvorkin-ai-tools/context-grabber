@@ -379,8 +379,6 @@ final class ChatArchiverTests: XCTestCase {
     XCTAssertEqual(ChatArchiveAction.menu(row("a", done: true)), .archive)
     XCTAssertEqual(ChatArchiveAction.menu(row("a", archived: true)), .unarchive)
     XCTAssertNil(ChatArchiveAction.menu(row("p", pinned: true)))
-    XCTAssertTrue(ChatArchiveAction.archive.archives)
-    XCTAssertFalse(ChatArchiveAction.unarchive.archives)
   }
 
   // MARK: Select and Review
