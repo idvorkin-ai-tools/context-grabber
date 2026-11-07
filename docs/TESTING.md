@@ -19,7 +19,9 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 On a Linux box, with no Xcode, `just test-linux` runs `ContextCore`'s XCTests under Linux Swift, then cross-builds the
 package and its tests for arm64 macOS, iOS and the iOS simulator with a Darwin Swift SDK (xtool's): compiled, never
 run. It is not a rung: it catches a type, concurrency or API slip in `ContextCore` before the Mac does, and the Mac's
-rung 1 still decides. Most of the host tests run on Linux; `just test-linux` prints the count. It needs a Swift 6 Linux toolchain and SQLite's
+rung 1 still decides. At f83889f, 1,064 of the Mac's 1,123 host tests ran on Linux (one of them skipped: the
+simulator-exports comparison, which only `sim-smoke.sh` arms) in about 8 s, once built; `just test-linux` prints the
+count. It needs a Swift 6 Linux toolchain and SQLite's
 header (`libsqlite3-dev`); without a `darwin` Swift SDK the cross-build says it was skipped. The script's header lists
 the settings for a toolchain that is not on `PATH`.
 
