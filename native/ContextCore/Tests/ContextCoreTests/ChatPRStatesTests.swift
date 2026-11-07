@@ -9,24 +9,18 @@ final class ChatPRStatesTests: XCTestCase {
     the log is https://gist.github.com/idvorkin/3f2a9c1e8b7d, and https://github.com/idvorkin/context-grabber/pull/734/files.
     """
 
-  #if canImport(Darwin)
-    private var links: [ChatLink] { ChatLinks.found(in: text) }
-  #endif
+  private var links: [ChatLink] { ChatLinks.found(in: text) }
 
-  #if canImport(Darwin)
-    func testRefsAreThePRsOnceEachInOrder() {
-      XCTAssertEqual(ChatPRStates.refs(links), ["idvorkin/context-grabber#734", "idvorkin/context-grabber#736"])
-    }
-  #endif
+  func testRefsAreThePRsOnceEachInOrder() {
+    XCTAssertEqual(ChatPRStates.refs(links), ["idvorkin/context-grabber#734", "idvorkin/context-grabber#736"])
+  }
 
-  #if canImport(Darwin)
-    func testRefsStopAtTheCockpitsLimit() {
-      let many = (1...250).map { "https://github.com/a/b/pull/\($0)" }.joined(separator: " ")
-      let refs = ChatPRStates.refs(ChatLinks.found(in: many))
-      XCTAssertEqual(refs.count, ChatPRStates.refLimit)
-      XCTAssertEqual(refs.first, "a/b#1")
-    }
-  #endif
+  func testRefsStopAtTheCockpitsLimit() {
+    let many = (1...250).map { "https://github.com/a/b/pull/\($0)" }.joined(separator: " ")
+    let refs = ChatPRStates.refs(ChatLinks.found(in: many))
+    XCTAssertEqual(refs.count, ChatPRStates.refLimit)
+    XCTAssertEqual(refs.first, "a/b#1")
+  }
 
   func testTheRequestNamesTheRefsWithTheHashEncoded() throws {
     let request = try ChatPRStates.request(
@@ -70,20 +64,16 @@ final class ChatPRStatesTests: XCTestCase {
     XCTAssertNil(ChatPRStates.parse(Data("<html>502</html>".utf8)))
   }
 
-  #if canImport(Darwin)
-    func testTheChipsGainTheirWordsAndAnUnknownPRReadsAsToday() throws {
-      let states = try XCTUnwrap(ChatPRStates.parse(answer)).states
-      let applied = ChatPRStates.applied(states, to: ChatLinks.found(in: text + " https://github.com/a/b/pull/9"))
-      XCTAssertEqual(applied.map(\.chipText), ["PR #734 merged", "PR #736 open", "gist", "PR #734 merged", "PR #9"])
-      XCTAssertEqual(applied.map(\.state), [.merged, .open, nil, .merged, nil])
-    }
-  #endif
+  func testTheChipsGainTheirWordsAndAnUnknownPRReadsAsToday() throws {
+    let states = try XCTUnwrap(ChatPRStates.parse(answer)).states
+    let applied = ChatPRStates.applied(states, to: ChatLinks.found(in: text + " https://github.com/a/b/pull/9"))
+    XCTAssertEqual(applied.map(\.chipText), ["PR #734 merged", "PR #736 open", "gist", "PR #734 merged", "PR #9"])
+    XCTAssertEqual(applied.map(\.state), [.merged, .open, nil, .merged, nil])
+  }
 
-  #if canImport(Darwin)
-    func testAStateTheCockpitNoLongerReportsIsCleared() {
-      var link = links[0]
-      link.state = .open
-      XCTAssertNil(ChatPRStates.applied([:], to: [link])[0].state)
-    }
-  #endif
+  func testAStateTheCockpitNoLongerReportsIsCleared() {
+    var link = links[0]
+    link.state = .open
+    XCTAssertNil(ChatPRStates.applied([:], to: [link])[0].state)
+  }
 }

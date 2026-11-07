@@ -175,9 +175,7 @@ public struct BoardPages: Equatable, Sendable {
     public var board: BoardPages
     public var pages: Int
 
-    #if canImport(CoreGraphics)
-      public var transform: CGAffineTransform { CGAffineTransform(translationX: shift.dx, y: shift.dy) }
-    #endif
+    public var transform: CGAffineTransform { CGAffineTransform(translationX: shift.dx, y: shift.dy) }
   }
 
   /// `ink` at the first page's corner, inside a margin, on a board as wide as it needs. No ink needs no move.

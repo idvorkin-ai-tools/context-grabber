@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The Linux rung (context-grabber-bf1): what a Linux box can say about ContextCore without a Mac.
-#   1. ContextCore's XCTests, built and run on Linux. Units that need an Apple framework (ImageIO, UTType, CoreText,
-#      JavaScriptCore, PencilKit, NSDataDetector) are left out by `#if canImport`, and so are their tests.
+#   1. ContextCore's XCTests, built and run on Linux. Units that need an Apple framework (ImageIO, NSItemProvider,
+#      CoreText, JavaScriptCore, PencilKit) are left out by `#if canImport`, and so are their tests; link finding, upload
+#      types and the affine transform have Linux stand-ins, so theirs run here too (docs/TESTING.md, Off the Mac).
 #   2. ContextCore and its tests cross-built with a Darwin Swift SDK (xtool's) for macOS, iOS and the iOS simulator:
 #      Mach-O compiled, never executed. Skipped, and said so, when no `darwin` SDK is installed.
 # Neither covers the Xcode targets, signing, Catalyst or anything at runtime on Apple: the Mac's `just native-test` does.

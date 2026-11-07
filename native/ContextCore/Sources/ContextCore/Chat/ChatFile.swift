@@ -55,33 +55,36 @@ public struct ChatFile: Equatable, Sendable {
     }
   }
 
-  #if canImport(UniformTypeIdentifiers)
-    /// What the picker chose, read in full. The size is judged before a byte is read. ponytail: a picture over the cap
-    /// is refused here too, though a pasted one is shrunk on sending; read it first if photos from Files ever hit this.
-    public static func read(_ url: URL, maxBytes: Int = maxBytes) throws -> Picked {
-      let name = url.lastPathComponent
+  /// What the picker chose, read in full. The size is judged before a byte is read. ponytail: a picture over the cap
+  /// is refused here too, though a pasted one is shrunk on sending; read it first if photos from Files ever hit this.
+  public static func read(_ url: URL, maxBytes: Int = maxBytes) throws -> Picked {
+    let name = url.lastPathComponent
+    #if canImport(Darwin)
       let scoped = url.startAccessingSecurityScopedResource()
       defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-      if let bytes = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize, bytes > maxBytes {
-        throw Problem.tooBig(name: name, bytes: bytes, limit: maxBytes)
-      }
-      let data: Data
-      do {
-        data = try Data(contentsOf: url)
-      } catch {
-        throw Problem.unreadable(name: name, reason: error.localizedDescription)
-      }
-      guard !data.isEmpty else { throw Problem.empty(name: name) }
-      guard data.count <= maxBytes else { throw Problem.tooBig(name: name, bytes: data.count, limit: maxBytes) }
+    #endif
+    if let bytes = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize, bytes > maxBytes {
+      throw Problem.tooBig(name: name, bytes: bytes, limit: maxBytes)
+    }
+    let data: Data
+    do {
+      data = try Data(contentsOf: url)
+    } catch {
+      throw Problem.unreadable(name: name, reason: error.localizedDescription)
+    }
+    guard !data.isEmpty else { throw Problem.empty(name: name) }
+    guard data.count <= maxBytes else { throw Problem.tooBig(name: name, bytes: data.count, limit: maxBytes) }
+    #if canImport(UniformTypeIdentifiers)
       // The type too, not the bytes alone: ImageIO can read a PDF, which must stay a document.
       if UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) == true,
         InboxSend.thumbnail(data, maxPixels: 1) != nil
       {
         return .image(data)
       }
-      return .file(ChatFile(name: name, data: data))
-    }
-  #endif
+    #endif
+    // Linux (just test-linux) reads no image, so a picture goes as a document there; the Mac tests the picture.
+    return .file(ChatFile(name: name, data: data))
+  }
 
   /// What the log says a file is: the name's extension, never the name.
   public static func type(of name: String) -> String { (name as NSString).pathExtension.lowercased() }
@@ -96,8 +99,18 @@ public struct ChatFile: Equatable, Sendable {
     #if canImport(UniformTypeIdentifiers)
       UTType(filenameExtension: (name as NSString).pathExtension)?.preferredMIMEType ?? "application/octet-stream"
     #else
-      // Linux (just test-linux): no type database, so no type. Tested on the Mac only.
-      "application/octet-stream"
+      linuxMIME[(name as NSString).pathExtension.lowercased()] ?? "application/octet-stream"
     #endif
   }
+
+  #if !canImport(UniformTypeIdentifiers)
+    /// Linux only (just test-linux): no type database there, so the common types as UTType names them on Apple.
+    /// `testTheUploadNamesItsTypeAsApplesTypesDo` holds both to the same answers. ponytail: an extension missing here
+    /// goes as bytes on Linux only; add it with a line in that test.
+    static let linuxMIME: [String: String] = [
+      "pdf": "application/pdf", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "gif": "image/gif",
+      "txt": "text/plain", "json": "application/json", "zip": "application/zip", "html": "text/html",
+      "csv": "text/csv",
+    ]
+  #endif
 }

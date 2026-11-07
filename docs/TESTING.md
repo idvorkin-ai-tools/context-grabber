@@ -19,20 +19,22 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 On a Linux box, with no Xcode, `just test-linux` runs `ContextCore`'s XCTests under Linux Swift, then cross-builds the
 package and its tests for arm64 macOS, iOS and the iOS simulator with a Darwin Swift SDK (xtool's): compiled, never
 run. It is not a rung: it catches a type, concurrency or API slip in `ContextCore` before the Mac does, and the Mac's
-rung 1 still decides. 943 of the 1,028 host tests run on Linux. It needs a Swift 6 Linux toolchain and SQLite's
+rung 1 still decides. 970 of the 1,029 host tests run on Linux. It needs a Swift 6 Linux toolchain and SQLite's
 header (`libsqlite3-dev`); without a `darwin` Swift SDK the cross-build says it was skipped. The script's header lists
 the settings for a toolchain that is not on `PATH`.
 
 A unit that needs an Apple framework is under `#if canImport(<framework>)`, and so are the tests that use it. Where
 portable code calls one, Linux gets a stand-in that declines (no image is readable, a label has no outline), and the
-tests that need the real one stay on the Mac. Left out on Linux:
+tests that need the real one stay on the Mac. Three stand-ins answer instead, so their tests run on both: finding a
+message's links (NSDataDetector on Apple, a scan for `http://` and `https://` on Linux), a file's upload type (UTType
+on Apple, a table of common types on Linux) and an affine transform (CoreGraphics on Apple, a shim on Linux). The
+same tests pass on Linux, but only the Mac's run says the app is right. Left out on Linux:
 
 | What | Why |
 |---|---|
-| Image reading and shrinking, file types, picked files, share-sheet providers | ImageIO, UniformTypeIdentifiers, NSItemProvider |
-| Label outlines, pasted text, a stroke's transform | CoreText, CGAffineTransform, PencilKit |
+| Image reading and shrinking, a picked picture, share-sheet providers | ImageIO, NSItemProvider |
+| Label outlines, pasted text | CoreText |
 | The audio bridge's script run in a page | JavaScriptCore |
-| Finding the links in a message | NSDataDetector is in Apple's Foundation only |
 | The mirror fixture written back byte for byte | Linux's JSONSerialization misreads a 17-digit double |
 
 ## What kind of change is verified where

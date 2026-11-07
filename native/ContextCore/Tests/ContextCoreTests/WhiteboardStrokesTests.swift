@@ -49,18 +49,16 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertEqual(WhiteboardStrokes.tool(rawValue: "x.averyveryverylongtoolname"), "averyveryverylon")
   }
 
-  #if canImport(ImageIO)
-    func testAWidthFollowsTheStrokesScale() {
-      let sizes: [CGFloat] = [2, 4]
-      XCTAssertEqual(WhiteboardStrokes.width(sizes: sizes, transform: .identity), 3, accuracy: 0.0001)
-      XCTAssertEqual(
-        WhiteboardStrokes.width(sizes: sizes, transform: CGAffineTransform(scaleX: 3, y: 3)), 9, accuracy: 0.0001,
-        "a lasso's 3x resize makes the ink three times as heavy")
-      XCTAssertEqual(
-        WhiteboardStrokes.width(sizes: sizes, transform: CGAffineTransform(a: 0, b: 2, c: -2, d: 0, tx: 50, ty: 70)), 6,
-        accuracy: 0.0001, "a quarter turn at 2x: turning and moving add no weight")
-    }
-  #endif
+  func testAWidthFollowsTheStrokesScale() {
+    let sizes: [CGFloat] = [2, 4]
+    XCTAssertEqual(WhiteboardStrokes.width(sizes: sizes, transform: .identity), 3, accuracy: 0.0001)
+    XCTAssertEqual(
+      WhiteboardStrokes.width(sizes: sizes, transform: CGAffineTransform(scaleX: 3, y: 3)), 9, accuracy: 0.0001,
+      "a lasso's 3x resize makes the ink three times as heavy")
+    XCTAssertEqual(
+      WhiteboardStrokes.width(sizes: sizes, transform: CGAffineTransform(a: 0, b: 2, c: -2, d: 0, tx: 50, ty: 70)), 6,
+      accuracy: 0.0001, "a quarter turn at 2x: turning and moving add no weight")
+  }
 
   func testThinningKeepsTheEndsAndTheCap() {
     let many = (0..<10_000).map { CGPoint(x: CGFloat($0), y: 0.123) }
