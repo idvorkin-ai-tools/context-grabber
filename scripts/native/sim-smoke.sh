@@ -19,6 +19,14 @@ smoke_init "$SIM" "$BUNDLE"
 DOCS=$SMOKE_DOCS
 relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
 bad() { not_ok "$@"; }
+listening() {  # listening <port>: waits up to 5 s for a fake server to take connections, a tenth of a second at a time
+  local tries=0
+  until nc -z localhost "$1" 2>/dev/null; do
+    tries=$((tries + 1))
+    [ "$tries" -ge 50 ] && return 1
+    sleep 0.1
+  done
+}
 
 # Igor, 2026-11-01: only the features a change touched (SMOKE_ONLY, which the recipe takes from smoke-features.sh;
 # unset, empty or "all" runs everything, "none" only the checks that always run). The launch and report checks just below always run.
@@ -361,9 +369,11 @@ if want call; then
 xcrun simctl privacy "$SIM" grant microphone "$BUNDLE" 2>/dev/null || true
 PORT=${CALL_PORT:-8799}
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
+# Taken already, another bridge would answer instead; checked first, as the wait below can't tell whose it is.
+nc -z localhost "$PORT" 2>/dev/null && bad "call: port $PORT is taken before the fake bridge started"
 "$(dirname "$0")/fake-bridge.py" "$PORT" "$REPORT" >/dev/null 2>&1 &
 BRIDGE=$!
-sleep 2
+listening "$PORT"
 # Another bridge already on the port would answer instead and leave this report empty.
 kill -0 "$BRIDGE" 2>/dev/null || bad "call: the fake bridge did not start on port $PORT (is one already running?)"
 call_check() {  # $1: label, $2: audio (synthetic or empty)
@@ -422,9 +432,10 @@ if [ "$clean" = "0" ]; then ok "call: a clean call files no automatic report"; e
 stash bugs-auto.json  # an earlier run's ten-minute window would skip the first report; put back at exit
 DROP_PORT=$((PORT + 1))
 DROP_REPORT=$(mktemp -t fake-bridge-drop); : >"$DROP_REPORT"
+nc -z localhost "$DROP_PORT" 2>/dev/null && bad "trouble: port $DROP_PORT is taken before the dropping fake bridge started"
 "$(dirname "$0")/fake-bridge.py" "$DROP_PORT" "$DROP_REPORT" drop >/dev/null 2>&1 &
 DROP=$!
-sleep 2
+listening "$DROP_PORT"
 kill -0 "$DROP" 2>/dev/null || bad "trouble: the dropping fake bridge did not start on port $DROP_PORT"
 trouble_call() {
   SIMCTL_CHILD_GRABBER_CALL="ws://localhost:$DROP_PORT" SIMCTL_CHILD_GRABBER_CALL_AUDIO=synthetic relaunch
@@ -504,9 +515,10 @@ if want chat; then
 # opening that thread reads it and marks it seen. The log names the thread, never the text.
 CHAT_PORT=${CHAT_PORT:-8797}
 CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
+nc -z localhost "$CHAT_PORT" 2>/dev/null && bad "chat: port $CHAT_PORT is taken before the fake Cockpit started"
 "$(dirname "$0")/fake-cockpit.py" "$CHAT_PORT" "$CHAT_REPORT" >/dev/null 2>&1 &
 COCKPIT=$!
-sleep 1
+listening "$CHAT_PORT"
 kill -0 "$COCKPIT" 2>/dev/null || bad "chat: the fake Cockpit did not start on port $CHAT_PORT"
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND="new|smoke: a new thread" relaunch
 wait_for chat 20 || echo "      (timed out waiting for chat)"
