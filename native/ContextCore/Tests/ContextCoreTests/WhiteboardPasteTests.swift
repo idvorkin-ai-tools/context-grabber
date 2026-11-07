@@ -162,6 +162,24 @@ final class WhiteboardPasteTests: XCTestCase {
       XCTAssertFalse(WhiteboardPaste.layout("🎉 yes", visible: view, height: 24).lines.isEmpty)
     }
 
+    /// Stories 390, 391: each letter's outline is one stroke, a line at a time.
+    func testEachLettersOutlineIsOneStroke() {
+      XCTAssertEqual(WhiteboardPaste.layout("HI", visible: view, height: 24).lines.count, 2)
+      XCTAssertEqual(WhiteboardPaste.layout("HI\nHI", visible: view, height: 24).lines.count, 4)
+    }
+
+    /// Stories 392, 393: what the board's bar says after a paste.
+    func testTheNoteSaysHowMuchWasLeftOffOrThatNothingCanBeDrawn() {
+      let long = WhiteboardPaste.layout(String(repeating: "I", count: 1234), visible: view, height: 24)
+      XCTAssertEqual(long.lines.count, WhiteboardPaste.maxCharacters, "an I is one stroke, and the first 500 land")
+      XCTAssertEqual(long.note, "Pasted the first 500 of \(1234.formatted()) characters")
+      for nothing in ["🎉🎉", "   \n "] {
+        XCTAssertEqual(
+          WhiteboardPaste.layout(nothing, visible: view, height: 24).note, "Nothing in that text can be drawn", nothing)
+      }
+      XCTAssertNil(WhiteboardPaste.layout("HI", visible: view, height: 24).note, "a whole paste says nothing")
+    }
+
     func testStaysOnTheBoardAtItsCorner() {
       let corner = CGRect(x: 19_900, y: 19_900, width: 100, height: 100)
       let box = bounds(WhiteboardPaste.layout("Hello there", visible: corner, height: 24).lines)

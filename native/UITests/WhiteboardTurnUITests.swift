@@ -1,24 +1,23 @@
-//  Stories 344, 345, 349, 354, 357, 360, 367, 371, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  Stories 344, 345, 349, 354, 357, 360, 371, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
 //  starts it): a stroke and a pause bring Claude's ghost through a streamed answer, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, a kept ghost is ink.
-//  A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check. `WhiteboardTurnOnPaperUITests` runs these on a board on paper.
-//  The turn's rules (Claude's fade, the count climbing, a Cockpit that doesn't stream, Ghosts off, stale answers, spoken words held) are `WhiteboardGhostTurnsTests`, on the host.
+//  A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check. The bar, the note and the turns are the same whichever canvas
+//  a board is on, so these run on the old canvas only; what paper changes (its ghosts, taps, lines and colours, by pixels) is `WhiteboardPaperGhostsUITests`'
+//  and `WhiteboardPaperLinesUITests`'. The turn's rules (Claude's fade, the count climbing, a Cockpit that doesn't stream, Ghosts off for strokes and for words,
+//  stale answers, spoken words held, a tap's keep or dismiss) are `WhiteboardGhostTurnsTests`, on the host.
 
 import XCTest
 
-class WhiteboardTurnUITests: XCTestCase {
+final class WhiteboardTurnUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
-
-  /// What else the app is started with: a subclass runs these on a board on paper.
-  var boardEnvironment: [String: String] { [:] }
 
   /// The fake Cockpit's ghost is a circle whose left edge is 10 points past the drawing's right edge, halfway down it, and a
   /// finger's stroke ends at 60% across.
-  func tapOnTheGhost(_ app: XCUIApplication) {
+  private func tapOnTheGhost(_ app: XCUIApplication) {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
   }
 
   /// A new board open, Ghosts on, the app talking to the fake Cockpit, which streams one mark.
-  private func openBoard(keepHook: Bool = false, say: String? = nil) throws -> (XCUIApplication, XCUIElement) {
+  private func openBoard(say: String? = nil) throws -> (XCUIApplication, XCUIElement) {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
@@ -26,9 +25,7 @@ class WhiteboardTurnUITests: XCTestCase {
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
-    if keepHook { app.launchEnvironment["GRABBER_WHITEBOARD_KEEP"] = "first" }
     if let say { app.launchEnvironment["GRABBER_WHITEBOARD_SAY"] = say }
-    for (key, value) in boardEnvironment { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.appears(within: 20), app.debugDescription)
@@ -63,15 +60,6 @@ class WhiteboardTurnUITests: XCTestCase {
     app.buttons["whiteboard-mic"].tap()
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
     wait(app, strokes: 0)
-  }
-
-  func testSpeakingWithGhostsOffAsksNothing() throws {
-    let (app, ghosts) = try openBoard(say: "draw a square")
-    ghosts.tap()
-    wait(ghosts, label: "Ghosts off", timeout: 3)
-    app.buttons["whiteboard-mic"].tap()
-    sleep(4)
-    XCTAssertEqual(ghosts.label, "Ghosts off")
   }
 
   /// The one path from a streamed answer to a ghost on screen (story 370's reading is `WhiteboardGhostTurnsTests`).
@@ -149,13 +137,6 @@ class WhiteboardTurnUITests: XCTestCase {
     XCTAssertFalse(none.exists, app.debugDescription)
   }
 
-  func testTheKeepHookTurnsTheFirstGhostIntoInk() throws {
-    let (app, ghosts) = try openBoard(keepHook: true)
-    stroke(app)
-    wait(app, strokes: 2)
-    XCTAssertEqual(ghosts.label, "Ghosts on")
-  }
-
   func testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt() throws {
     let (app, ghosts) = try openBoard()
     stroke(app)
@@ -207,8 +188,8 @@ class WhiteboardTurnUITests: XCTestCase {
     }
   }
 
-  /// Cream's deep shade: a board on paper stays in its pale one.
-  var creamInDarkMode: UInt32 { 0x2B2416 }
+  /// Cream's deep shade. A board on paper stays in its pale one: `WhiteboardOnPaperUITests.testInkShowsInDarkMode`.
+  private let creamInDarkMode: UInt32 = 0x2B2416
 
   /// Stories 378, 402, 403: the colour is on the canvas, follows the mode, and stays when the board opens again.
   func testABoardsColourShowsInBothModesAndStaysWithIt() throws {

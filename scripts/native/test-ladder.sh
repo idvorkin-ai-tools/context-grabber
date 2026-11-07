@@ -41,7 +41,7 @@ fi
 
 # The areas' classes. The suite scripts hold what each area runs in full.
 chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
-whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperPasteUITests WhiteboardPasteOnPaperUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnOnPaperUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnUITests"
 
 classes=()
 unknown=()
@@ -238,19 +238,12 @@ chat_classes() {
 }
 
 whiteboard_classes() {
-  local key_test=WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ skip=() port=${WHITEBOARD_PORT:-8799}
-  local address="http://localhost:$port" paper_paste=0
-  case " ${whiteboard[*]} " in *" WhiteboardPaperPasteUITests "*) paper_paste=1 ;; esac
-  # Keyboard events reach the app for one test per boot (test-whiteboard-ui.sh): ⌘V on paper gets a boot of its own.
-  [ "$paper_paste" -eq 1 ] && skip=("-skip-testing:GrabberNativeUITests/$key_test")
+  local port=${WHITEBOARD_PORT:-8799}
+  # Keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), and one test does.
   fresh_boot || return
   start_cockpit "$port" 0 || return
-  TEST_RUNNER_GRABBER_FAKE_COCKPIT=$address \
-    xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") ${skip[@]+"${skip[@]}"} test-without-building || return
-  [ "$paper_paste" -eq 1 ] || return 0
-  fresh_boot || return
-  TEST_RUNNER_GRABBER_FAKE_COCKPIT=$address \
-    xcodebuild_sim whiteboard-keys "TEST EXECUTE SUCCEEDED" "-only-testing:GrabberNativeUITests/$key_test" test-without-building
+  TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" \
+    xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") test-without-building
 }
 
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }

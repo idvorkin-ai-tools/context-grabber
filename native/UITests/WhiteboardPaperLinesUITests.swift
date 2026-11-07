@@ -1,20 +1,12 @@
 //  Stories 434, 523, 538, 652–657 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it):
-//  what the sheet under a board on paper shows. `WhiteboardTurnOnPaperUITests` runs the old canvas's grid and colour tests on
-//  paper; these are what paper adds. The board isn't in the accessibility tree, so the lines are read from the screen's pixels.
+//  what the sheet under a board on paper shows: its lines and colours, by the screen's own pixels, as the board isn't in the
+//  accessibility tree. The old canvas's are `WhiteboardTurnUITests`', and a board on paper staying light in dark mode is
+//  `WhiteboardOnPaperUITests`'.
 
 import XCTest
 
 final class WhiteboardPaperLinesUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
-
-  override func tearDown() {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
-    app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
 
   private func openBoard(ghostsOn: Bool = false, _ extra: [String: String] = [:]) throws -> XCUIApplication {
     let app = XCUIApplication()
@@ -145,20 +137,21 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "lines aren't ink")
   }
 
-  /// Story 653: ruled lines stay with their board, and a new board starts without.
+  /// Stories 403, 653: a board on paper keeps its colour and ruled lines, and a new board starts without.
   func testRuledLinesStayWithTheBoardUnderTheInk() throws {
     let app = try openBoard()
     stroke(app)
     wait(send(app), label: "Send to Larry, 1 strokes")
-    menu(app, "Ruled lines", expect: "Board, Plain, ruled lines on")
+    menu(app, "Cream", expect: "Board, Cream")
+    menu(app, "Ruled lines", expect: "Board, Cream, ruled lines on")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     card.tap()
     XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
-    wait(board(app), label: "Board, Plain, ruled lines on")
+    wait(board(app), label: "Board, Cream, ruled lines on")
     sleep(1)
-    XCTAssertNotNil(PaperScreen(app).ink, "the ink is back with its lines")
+    XCTAssertNotNil(PaperScreen(app).ink, "the ink is back with its colour and lines")
 
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let new = app.buttons["whiteboard-new"]

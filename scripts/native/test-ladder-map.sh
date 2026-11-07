@@ -71,7 +71,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
 }
 
 chat_all="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
-board_all="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperPasteUITests WhiteboardPasteOnPaperUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnOnPaperUITests WhiteboardTurnUITests"
+board_all="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnUITests"
 
 dry --changed native/App/Chat/ChatViews.swift
 says "chat code: lint names the file" "rung 0 Lint: swift-format over 1 touched Swift file(s), SwiftLint over the tree"
@@ -97,12 +97,6 @@ dry --changed native/UITests/CardUITests.swift
 says "a test file: its own class" "rung 2 UI tests: CardUITests"
 says "a test file: the simulator builds it" "rung 2 Simulator: the build with its UI tests"
 says "a test file: not in the Mac build" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
-
-dry --changed native/UITests/WhiteboardPaperPasteUITests.swift
-says "a test file of two classes: both" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperPasteUITests WhiteboardPasteOnPaperUITests"
-
-dry --changed native/UITests/WhiteboardTurnUITests.swift
-says "a test class: and what inherits it" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardTurnOnPaperUITests WhiteboardTurnUITests"
 
 dry --changed native/App/Gym/GymTimerView.swift
 says "unmapped code: says so" "no UI test map for: native/App/Gym/GymTimerView.swift"
@@ -140,14 +134,24 @@ cp -f "$ladder" "$repo/scripts/native/"
   git -c user.name=t -c user.email=t@example.com add .
   git -c user.name=t -c user.email=t@example.com commit -qm base
   git checkout -qb work
-  mkdir -p docs native/App/Chat native/App/Whiteboard
+  mkdir -p docs native/App/Chat native/App/Whiteboard native/UITests
   echo a >docs/a.md
   git add .
   git -c user.name=t -c user.email=t@example.com commit -qm words
   PATH="$fakes:$PATH" scripts/native/test-ladder.sh --dry-run --base main >"$tmp/words" 2>&1
   echo b >native/App/Chat/New.swift
   PATH="$fakes:$PATH" scripts/native/test-ladder.sh --dry-run --base main >"$tmp/untracked" 2>&1
+  # No test file in the tree holds two classes or a subclass, so these stand in for one that does.
+  printf 'final class FirstUITests: XCTestCase {}\nfinal class SecondUITests: XCTestCase {}\n' >native/UITests/TwoUITests.swift
+  printf 'class BaseUITests: XCTestCase {}\n' >native/UITests/BaseUITests.swift
+  printf 'final class ChildUITests: BaseUITests {}\n' >native/UITests/ChildUITests.swift
+  PATH="$fakes:$PATH" scripts/native/test-ladder.sh --dry-run --changed native/UITests/TwoUITests.swift >"$tmp/two" 2>&1
+  PATH="$fakes:$PATH" scripts/native/test-ladder.sh --dry-run --changed native/UITests/BaseUITests.swift >"$tmp/inherits" 2>&1
 )
+cp -f "$tmp/two" "$out"
+says "a test file of two classes: both" "rung 2 UI tests: FirstUITests SecondUITests"
+cp -f "$tmp/inherits" "$out"
+says "a test class: and what inherits it" "rung 2 UI tests: BaseUITests ChildUITests"
 cp -f "$tmp/words" "$out"
 says "the diff, docs committed: measured from the base" "test ladder: 1 changed path(s), measured from main"
 says "the diff, docs committed: no UI tests" "rung 2 UI tests: none, no app UI change"
@@ -180,12 +184,12 @@ if head -1 "$MARKS/xcodebuild" | grep -q " build-for-testing"; then ok "the buil
 if grep -q "only-testing:GrabberNativeUITests/CardUITests test-without-building" "$MARKS/xcodebuild"; then ok "then its class alone"; else bad "then its class alone"; fi
 if grep -q "simctl shutdown" "$MARKS/xcrun"; then ok "the simulator is shut down after"; else bad "the simulator is shut down after"; fi
 
-run -- --changed native/UITests/WhiteboardPaperPasteUITests.swift
+run -- --changed native/UITests/WhiteboardPasteUITests.swift
 status=$?
-if [ "$status" -eq 0 ]; then ok "paste on paper: climbs"; else bad "paste on paper: climbs, exit $status"; fi
-if grep -q "skip-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ" "$MARKS/xcodebuild"; then ok "paste on paper: the keys test held back"; else bad "paste on paper: the keys test held back"; fi
-if grep -q "only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ" "$MARKS/xcodebuild"; then ok "paste on paper: then on a boot of its own"; else bad "paste on paper: then on a boot of its own"; fi
-if [ "$(grep -c "simctl boot " "$MARKS/xcrun")" -eq 2 ]; then ok "paste on paper: two boots"; else bad "paste on paper: two boots"; fi
+if [ "$status" -eq 0 ]; then ok "paste: climbs"; else bad "paste: climbs, exit $status"; fi
+if grep -q "only-testing:GrabberNativeUITests/WhiteboardPasteUITests test-without-building" "$MARKS/xcodebuild"; then ok "paste: its class, keys test and all"; else bad "paste: its class, keys test and all"; fi
+if grep -q "skip-testing" "$MARKS/xcodebuild"; then bad "paste: nothing held back"; else ok "paste: nothing held back"; fi
+if [ "$(grep -c "simctl boot " "$MARKS/xcrun")" -eq 1 ]; then ok "paste: one boot"; else bad "paste: one boot"; fi
 
 run -- --changed native/App/Chat/ChatViews.swift
 status=$?
