@@ -1,7 +1,10 @@
-import CoreGraphics
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class WhiteboardFrameTests: XCTestCase {
   let iPad = CGSize(width: 1000, height: 800)

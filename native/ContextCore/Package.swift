@@ -9,7 +9,9 @@ let package = Package(
     .library(name: "ContextCore", targets: ["ContextCore"])
   ],
   targets: [
-    .target(name: "ContextCore"),
+    // Linux only (just test-linux): SQLite from libsqlite3-dev. The Apple SDKs carry it as the SQLite3 module.
+    .systemLibrary(name: "CSQLite", providers: [.apt(["libsqlite3-dev"])]),
+    .target(name: "ContextCore", dependencies: [.target(name: "CSQLite", condition: .when(platforms: [.linux]))]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"]),
   ],
   swiftLanguageModes: [.v5]

@@ -3,6 +3,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 extension ChatLink {
   /// The Cockpit's name for a PR chip's pull request, `owner/name#n`; nil for any other chip.
   public var prRef: String? {

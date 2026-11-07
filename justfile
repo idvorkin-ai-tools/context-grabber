@@ -64,6 +64,11 @@ native-test-host:
     # Story 683: which rungs and UI test classes a change gets, from the real script's dry run.
     scripts/native/test-ladder-map.sh
 
+# The Linux rung, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on
+# Linux, then the package and its tests cross-built for macOS, iOS and the simulator with a Darwin Swift SDK.
+test-linux:
+    scripts/native/test-linux.sh
+
 # GrabberNative.xcodeproj is generated from native/project.yml and not committed
 native-project:
     cd native && xcodegen --quiet

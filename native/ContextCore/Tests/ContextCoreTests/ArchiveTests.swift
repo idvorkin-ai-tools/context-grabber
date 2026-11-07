@@ -2,6 +2,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// Story 270 (context-grabber-3il): every record off the phone, once each, the cursor moved only on a 2xx.
 final class ArchiveTests: XCTestCase {
   /// The Cockpit's rule for a guid, copied from its archive.py (GUID_RE): the contract both sides keep.

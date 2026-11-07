@@ -6,6 +6,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 public enum ChatSend {
   /// What Cockpit's chat calls a message from this app.
   public static let source = "app"

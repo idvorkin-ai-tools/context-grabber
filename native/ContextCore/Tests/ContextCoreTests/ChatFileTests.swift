@@ -1,7 +1,14 @@
-import UniformTypeIdentifiers
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(UniformTypeIdentifiers)
+  import UniformTypeIdentifiers
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 /// #633, stories 480–494: a document on a chat message, against the Cockpit as it is today (pictures only) and as it
 /// would be once it takes files.
@@ -35,32 +42,34 @@ final class ChatFileTests: XCTestCase {
 
   // MARK: The pick (stories 480, 483, 493, 494)
 
-  func testAPDFIsADocumentAndAPictureGoesAsAPicture() throws {
-    XCTAssertEqual(
-      try ChatFile.read(file("report.pdf", pdf)), .file(ChatFile(name: "report.pdf", data: pdf)))
-    let png = try InboxTests.image(.png, side: 8)
-    XCTAssertEqual(try ChatFile.read(file("shot.png", png)), .image(png))
-    // Named like a picture but not one: it stays a document rather than failing later.
-    let notPicture = Data("hello".utf8)
-    XCTAssertEqual(
-      try ChatFile.read(file("fake.png", notPicture)), .file(ChatFile(name: "fake.png", data: notPicture)))
-  }
+  #if canImport(UniformTypeIdentifiers)
+    func testAPDFIsADocumentAndAPictureGoesAsAPicture() throws {
+      XCTAssertEqual(
+        try ChatFile.read(file("report.pdf", pdf)), .file(ChatFile(name: "report.pdf", data: pdf)))
+      let png = try InboxTests.image(.png, side: 8)
+      XCTAssertEqual(try ChatFile.read(file("shot.png", png)), .image(png))
+      // Named like a picture but not one: it stays a document rather than failing later.
+      let notPicture = Data("hello".utf8)
+      XCTAssertEqual(
+        try ChatFile.read(file("fake.png", notPicture)), .file(ChatFile(name: "fake.png", data: notPicture)))
+    }
 
-  func testTooBigEmptyAndUnreadableEachSaySoNamingTheFile() throws {
-    XCTAssertThrowsError(try ChatFile.read(file("big.pdf", Data(count: 11)), maxBytes: 10)) {
-      XCTAssertEqual($0 as? ChatFile.Problem, .tooBig(name: "big.pdf", bytes: 11, limit: 10))
+    func testTooBigEmptyAndUnreadableEachSaySoNamingTheFile() throws {
+      XCTAssertThrowsError(try ChatFile.read(file("big.pdf", Data(count: 11)), maxBytes: 10)) {
+        XCTAssertEqual($0 as? ChatFile.Problem, .tooBig(name: "big.pdf", bytes: 11, limit: 10))
+      }
+      XCTAssertThrowsError(try ChatFile.read(file("empty.pdf", Data()))) {
+        XCTAssertEqual($0 as? ChatFile.Problem, .empty(name: "empty.pdf"))
+        XCTAssertTrue($0.localizedDescription.contains("empty.pdf"))
+      }
+      XCTAssertThrowsError(try ChatFile.read(dir.appendingPathComponent("gone.pdf"))) {
+        guard case .unreadable(let name, _)? = $0 as? ChatFile.Problem else { return XCTFail("\($0)") }
+        XCTAssertEqual(name, "gone.pdf")
+      }
+      let big = ChatFile.Problem.tooBig(name: "big.pdf", bytes: 12_000_000, limit: ChatFile.maxBytes)
+      XCTAssertTrue(try XCTUnwrap(big.errorDescription).contains("big.pdf"))
     }
-    XCTAssertThrowsError(try ChatFile.read(file("empty.pdf", Data()))) {
-      XCTAssertEqual($0 as? ChatFile.Problem, .empty(name: "empty.pdf"))
-      XCTAssertTrue($0.localizedDescription.contains("empty.pdf"))
-    }
-    XCTAssertThrowsError(try ChatFile.read(dir.appendingPathComponent("gone.pdf"))) {
-      guard case .unreadable(let name, _)? = $0 as? ChatFile.Problem else { return XCTFail("\($0)") }
-      XCTAssertEqual(name, "gone.pdf")
-    }
-    let big = ChatFile.Problem.tooBig(name: "big.pdf", bytes: 12_000_000, limit: ChatFile.maxBytes)
-    XCTAssertTrue(try XCTUnwrap(big.errorDescription).contains("big.pdf"))
-  }
+  #endif
 
   /// Story 493's limit is 10 MB: the cap is 10 MiB, so a decimal size would call it 10.5 MB.
   func testTheTooBigProblemStatesTheCapAsTenMB() {
@@ -121,34 +130,36 @@ final class ChatFileTests: XCTestCase {
 
   // MARK: The Cockpit as it is: pictures only (stories 484, 487, 491, 492)
 
-  func testARefusedFileSaysWhyStaysAndNoMessageGoesWithoutIt() async throws {
-    let item = try saved(note: "look")
-    let seen = Paths()
-    let sender = InboxSender(store: store, cockpit: cockpit) { request in
-      await seen.add(request)
-      return ChatTests.answer(request, 400, self.picturesOnly)
+  #if canImport(UniformTypeIdentifiers)
+    func testARefusedFileSaysWhyStaysAndNoMessageGoesWithoutIt() async throws {
+      let item = try saved(note: "look")
+      let seen = Paths()
+      let sender = InboxSender(store: store, cockpit: cockpit) { request in
+        await seen.add(request)
+        return ChatTests.answer(request, 400, self.picturesOnly)
+      }
+      let lines = Lines()
+      let report = await sender.sendWaiting { _, fields in lines.add(fields) }
+      XCTAssertEqual(report.refused, [item.id])
+      let requests = await seen.all
+      XCTAssertEqual(requests.map { $0.url?.path }, ["/attachments"])
+      XCTAssertEqual(requests[0].httpBody, pdf)
+      XCTAssertEqual(requests[0].value(forHTTPHeaderField: "Content-Type"), "application/pdf")
+
+      let kept = try XCTUnwrap(store.item(item.id))
+      XCTAssertEqual(kept.status, .refused)
+      XCTAssertEqual(store.file(of: kept), pdf, "the file is not lost")
+      XCTAssertTrue(kept.canSendAgain)
+      let problem = ChatSend.refusal(of: kept)
+      XCTAssertTrue(problem.contains("report.pdf"))
+      XCTAssertTrue(problem.contains("not an image Cockpit accepts"))
+      XCTAssertTrue(problem.contains("Send again"))
+
+      let line = try XCTUnwrap(lines.all.first)
+      XCTAssertEqual(line["file_type"] as? String, "pdf")
+      XCTAssertFalse("\(line)".contains("report"), "the log holds the type, never the name")
     }
-    let lines = Lines()
-    let report = await sender.sendWaiting { _, fields in lines.add(fields) }
-    XCTAssertEqual(report.refused, [item.id])
-    let requests = await seen.all
-    XCTAssertEqual(requests.map { $0.url?.path }, ["/attachments"])
-    XCTAssertEqual(requests[0].httpBody, pdf)
-    XCTAssertEqual(requests[0].value(forHTTPHeaderField: "Content-Type"), "application/pdf")
-
-    let kept = try XCTUnwrap(store.item(item.id))
-    XCTAssertEqual(kept.status, .refused)
-    XCTAssertEqual(store.file(of: kept), pdf, "the file is not lost")
-    XCTAssertTrue(kept.canSendAgain)
-    let problem = ChatSend.refusal(of: kept)
-    XCTAssertTrue(problem.contains("report.pdf"))
-    XCTAssertTrue(problem.contains("not an image Cockpit accepts"))
-    XCTAssertTrue(problem.contains("Send again"))
-
-    let line = try XCTUnwrap(lines.all.first)
-    XCTAssertEqual(line["file_type"] as? String, "pdf")
-    XCTAssertFalse("\(line)".contains("report"), "the log holds the type, never the name")
-  }
+  #endif
 
   func testARefusedPictureOrTextStaysWrongForGood() throws {
     var text = try store.add(InboxItem(id: "t", kind: .text, sharedAt: 1, text: "x"))

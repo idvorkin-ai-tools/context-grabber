@@ -1,46 +1,53 @@
-import CoreGraphics
 import Foundation
-import PencilKit
 import XCTest
 
 @testable import ContextCore
 
-final class WhiteboardTurnTests: XCTestCase {
-  func testShapesComeBackAndBadOnesAreSkipped() {
-    let body = Data(
-      """
-      {"ok": true, "shapes": [
-        {"kind": "ellipse", "points": [[0, 0], [10, 20]]},
-        {"kind": "text", "points": [[5, 5]], "text": "dip", "size": 20},
-        {"kind": "star", "points": [[0, 0], [1, 1]]},
-        {"kind": "line", "points": [[0, 0]]},
-        {"kind": "text", "points": [[5, 5]], "text": "  "},
-        {"kind": "arrow", "points": [[0, 0], ["x", 1], [3, 4]]}
-      ]}
-      """.utf8)
-    XCTAssertEqual(
-      WhiteboardTurn.answer(status: 200, body: body),
-      .shapes(
-        [
-          .init(kind: .ellipse, points: [.zero, CGPoint(x: 10, y: 20)]),
-          .init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "dip", size: 20),
-          .init(kind: .arrow, points: [.zero, CGPoint(x: 3, y: 4)]),
-        ]))
-  }
+#if canImport(PencilKit)
+  import CoreGraphics
+  import PencilKit
+#endif
 
-  /// An emoji is a bitmap with no outline: a ghost of it would count in the bar with nothing to see or tap.
-  func testALabelWithNoOutlinesIsSkippedAndOneWithSomeIsKept() {
-    let body = Data(
-      """
-      {"ok": true, "shapes": [
-        {"kind": "text", "points": [[5, 5]], "text": "👍"},
-        {"kind": "text", "points": [[5, 5]], "text": "ok 👍"}
-      ]}
-      """.utf8)
-    XCTAssertEqual(
-      WhiteboardTurn.answer(status: 200, body: body),
-      .shapes([.init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "ok 👍")]))
-  }
+final class WhiteboardTurnTests: XCTestCase {
+  #if canImport(CoreText)
+    func testShapesComeBackAndBadOnesAreSkipped() {
+      let body = Data(
+        """
+        {"ok": true, "shapes": [
+          {"kind": "ellipse", "points": [[0, 0], [10, 20]]},
+          {"kind": "text", "points": [[5, 5]], "text": "dip", "size": 20},
+          {"kind": "star", "points": [[0, 0], [1, 1]]},
+          {"kind": "line", "points": [[0, 0]]},
+          {"kind": "text", "points": [[5, 5]], "text": "  "},
+          {"kind": "arrow", "points": [[0, 0], ["x", 1], [3, 4]]}
+        ]}
+        """.utf8)
+      XCTAssertEqual(
+        WhiteboardTurn.answer(status: 200, body: body),
+        .shapes(
+          [
+            .init(kind: .ellipse, points: [.zero, CGPoint(x: 10, y: 20)]),
+            .init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "dip", size: 20),
+            .init(kind: .arrow, points: [.zero, CGPoint(x: 3, y: 4)]),
+          ]))
+    }
+  #endif
+
+  #if canImport(CoreText)
+    /// An emoji is a bitmap with no outline: a ghost of it would count in the bar with nothing to see or tap.
+    func testALabelWithNoOutlinesIsSkippedAndOneWithSomeIsKept() {
+      let body = Data(
+        """
+        {"ok": true, "shapes": [
+          {"kind": "text", "points": [[5, 5]], "text": "👍"},
+          {"kind": "text", "points": [[5, 5]], "text": "ok 👍"}
+        ]}
+        """.utf8)
+      XCTAssertEqual(
+        WhiteboardTurn.answer(status: 200, body: body),
+        .shapes([.init(kind: .text, points: [CGPoint(x: 5, y: 5)], text: "ok 👍")]))
+    }
+  #endif
 
   func testNothingToAddIsAnAnswer() {
     XCTAssertEqual(
@@ -61,50 +68,54 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(body["text"] as? String, "Plan")
   }
 
-  func testEveryKindOfStrokeBecomesAShape() throws {
-    let body = Data(
-      #"""
-      {"ok": true, "model": "m", "strokes": [
-        {"kind": "line", "x1": 1, "y1": 2, "x2": 3, "y2": 4},
-        {"kind": "arrow", "x1": 5, "y1": 6, "x2": 7, "y2": 8, "why": "here"},
-        {"kind": "polyline", "points": [[0, 0], [1, 1], [2, 0]]},
-        {"kind": "circle", "cx": 50, "cy": 60, "r": 10},
-        {"kind": "arc", "cx": 0, "cy": 0, "r": 10, "start": 270, "end": 90},
-        {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20},
-        {"kind": "blob"},
-        {"kind": "line", "x1": 1}
-      ]}
-      """#.utf8)
-    guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
-      return XCTFail("no shapes")
-    }
-    XCTAssertEqual(shapes.map(\.kind), [.line, .arrow, .path, .ellipse, .path, .text])
-    XCTAssertEqual(shapes[0].points, [CGPoint(x: 1, y: 2), CGPoint(x: 3, y: 4)])
-    XCTAssertEqual(shapes[3].points, [CGPoint(x: 40, y: 50), CGPoint(x: 60, y: 70)])
-    // 270 to 90 clockwise passes through 0: straight up, right, straight down, on a picture whose y runs down.
-    let arc = shapes[4].points
-    XCTAssertEqual(arc.first!.y, -10, accuracy: 0.001)
-    XCTAssertEqual(arc[arc.count / 2].x, 10, accuracy: 0.001)
-    XCTAssertEqual(arc.last!.y, 10, accuracy: 0.001)
-    XCTAssertEqual(shapes[5].text, "hi")
-  }
-
-  /// The Cockpit draws a label as SVG `<text x y>`, so y is the baseline, and an H stands on its baseline. It holds
-  /// when the picture is scaled down to the board, and when a tiny label is clamped up to the smallest readable size.
-  func testALabelStandsOnTheCockpitsBaseline() throws {
-    let cases: [(size: Int, scale: CGFloat)] = [(20, 1), (40, 2), (10, 2)]
-    for (size, scale) in cases {
-      let label = #"{"kind": "label", "text": "H", "x": 10, "y": 40, "size": \#(size)}"#
-      let body = Data(#"{"ok": true, "strokes": [\#(label)]}"#.utf8)
+  #if canImport(CoreText)
+    func testEveryKindOfStrokeBecomesAShape() throws {
+      let body = Data(
+        #"""
+        {"ok": true, "model": "m", "strokes": [
+          {"kind": "line", "x1": 1, "y1": 2, "x2": 3, "y2": 4},
+          {"kind": "arrow", "x1": 5, "y1": 6, "x2": 7, "y2": 8, "why": "here"},
+          {"kind": "polyline", "points": [[0, 0], [1, 1], [2, 0]]},
+          {"kind": "circle", "cx": 50, "cy": 60, "r": 10},
+          {"kind": "arc", "cx": 0, "cy": 0, "r": 10, "start": 270, "end": 90},
+          {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20},
+          {"kind": "blob"},
+          {"kind": "line", "x1": 1}
+        ]}
+        """#.utf8)
       guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
         return XCTFail("no shapes")
       }
-      let frame = CGRect(x: 1000, y: 2000, width: 400, height: 300)
-      let lines = WhiteboardTurn.lines(try XCTUnwrap(shapes.first), frame: frame, scale: scale)
-      let lowest = try XCTUnwrap(lines.joined().map(\.y).max())
-      XCTAssertEqual(lowest, 2000 + 40 / scale, accuracy: 0.01, "size \(size) at scale \(scale)")
+      XCTAssertEqual(shapes.map(\.kind), [.line, .arrow, .path, .ellipse, .path, .text])
+      XCTAssertEqual(shapes[0].points, [CGPoint(x: 1, y: 2), CGPoint(x: 3, y: 4)])
+      XCTAssertEqual(shapes[3].points, [CGPoint(x: 40, y: 50), CGPoint(x: 60, y: 70)])
+      // 270 to 90 clockwise passes through 0: straight up, right, straight down, on a picture whose y runs down.
+      let arc = shapes[4].points
+      XCTAssertEqual(arc.first!.y, -10, accuracy: 0.001)
+      XCTAssertEqual(arc[arc.count / 2].x, 10, accuracy: 0.001)
+      XCTAssertEqual(arc.last!.y, 10, accuracy: 0.001)
+      XCTAssertEqual(shapes[5].text, "hi")
     }
-  }
+  #endif
+
+  #if canImport(CoreText)
+    /// The Cockpit draws a label as SVG `<text x y>`, so y is the baseline, and an H stands on its baseline. It holds
+    /// when the picture is scaled down to the board, and when a tiny label is clamped up to the smallest readable size.
+    func testALabelStandsOnTheCockpitsBaseline() throws {
+      let cases: [(size: Int, scale: CGFloat)] = [(20, 1), (40, 2), (10, 2)]
+      for (size, scale) in cases {
+        let label = #"{"kind": "label", "text": "H", "x": 10, "y": 40, "size": \#(size)}"#
+        let body = Data(#"{"ok": true, "strokes": [\#(label)]}"#.utf8)
+        guard case .shapes(let shapes) = WhiteboardTurn.answer(status: 200, body: body) else {
+          return XCTFail("no shapes")
+        }
+        let frame = CGRect(x: 1000, y: 2000, width: 400, height: 300)
+        let lines = WhiteboardTurn.lines(try XCTUnwrap(shapes.first), frame: frame, scale: scale)
+        let lowest = try XCTUnwrap(lines.joined().map(\.y).max())
+        XCTAssertEqual(lowest, 2000 + 40 / scale, accuracy: 0.01, "size \(size) at scale \(scale)")
+      }
+    }
+  #endif
 
   func testAskingTooSoonSkipsAGhostTurn() {
     XCTAssertEqual(WhiteboardTurn.answer(status: 429, body: Data(#"{"ok": false}"#.utf8)), .tooSoon)
@@ -150,15 +161,17 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertTrue(arrow[1][2].x < 90 && arrow[1][2].y > 0)
   }
 
-  func testALabelIsDrawnAsLettersInsideItsBox() {
-    let lines = WhiteboardTurn.lines(
-      .init(kind: .text, points: [CGPoint(x: 100, y: 100)], text: "Hi", size: 40), frame: .zero, scale: 1)
-    XCTAssertFalse(lines.isEmpty)
-    let points = lines.flatMap { $0 }
-    XCTAssertGreaterThanOrEqual(points.map(\.y).min() ?? 0, 100 - 1)
-    XCTAssertLessThanOrEqual(points.map(\.y).max() ?? 0, 100 + 40 + 1)
-    XCTAssertGreaterThanOrEqual(points.map(\.x).min() ?? 0, 100 - 1)
-  }
+  #if canImport(CoreText)
+    func testALabelIsDrawnAsLettersInsideItsBox() {
+      let lines = WhiteboardTurn.lines(
+        .init(kind: .text, points: [CGPoint(x: 100, y: 100)], text: "Hi", size: 40), frame: .zero, scale: 1)
+      XCTAssertFalse(lines.isEmpty)
+      let points = lines.flatMap { $0 }
+      XCTAssertGreaterThanOrEqual(points.map(\.y).min() ?? 0, 100 - 1)
+      XCTAssertLessThanOrEqual(points.map(\.y).max() ?? 0, 100 + 40 + 1)
+      XCTAssertGreaterThanOrEqual(points.map(\.x).min() ?? 0, 100 - 1)
+    }
+  #endif
 
   func testATapNearAGhostsLineHitsIt() {
     let lines = [[CGPoint(x: 0, y: 0), CGPoint(x: 100, y: 0)]]
@@ -167,42 +180,46 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertFalse(WhiteboardTurn.hit(lines, at: CGPoint(x: 115, y: 0), tolerance: 10))
   }
 
-  /// A character Helvetica lacks draws in CoreText's fallback font: an arrow is wider than tall, while the same glyph
-  /// id in Helvetica is an unrelated letter taller than wide.
-  func testALabelCharacterFromAFallbackFontKeepsItsShape() {
-    let points = WhiteboardTurn.lines(
-      .init(kind: .text, points: [.zero], text: "→", size: 40), frame: .zero, scale: 1
-    ).flatMap { $0 }
-    let width = (points.map(\.x).max() ?? 0) - (points.map(\.x).min() ?? 0)
-    let height = (points.map(\.y).max() ?? 0) - (points.map(\.y).min() ?? 0)
-    XCTAssertGreaterThan(height, 0)
-    XCTAssertGreaterThan(width, height * 1.3)
-  }
+  #if canImport(CoreText)
+    /// A character Helvetica lacks draws in CoreText's fallback font: an arrow is wider than tall, while the same glyph
+    /// id in Helvetica is an unrelated letter taller than wide.
+    func testALabelCharacterFromAFallbackFontKeepsItsShape() {
+      let points = WhiteboardTurn.lines(
+        .init(kind: .text, points: [.zero], text: "→", size: 40), frame: .zero, scale: 1
+      ).flatMap { $0 }
+      let width = (points.map(\.x).max() ?? 0) - (points.map(\.x).min() ?? 0)
+      let height = (points.map(\.y).max() ?? 0) - (points.map(\.y).min() ?? 0)
+      XCTAssertGreaterThan(height, 0)
+      XCTAssertGreaterThan(width, height * 1.3)
+    }
+  #endif
 
-  /// PencilKit's own spline, through the points a kept ghost gets: it must pass every corner the ghost showed.
-  func testKeptInkPassesEveryCornerOfTheShape() {
-    let shapes: [WhiteboardTurn.Shape] = [
-      .init(kind: .rect, points: [.zero, CGPoint(x: 100, y: 100)]),
-      .init(kind: .arrow, points: [.zero, CGPoint(x: 90, y: 0)]),
-      .init(kind: .text, points: [.zero], text: "HE", size: 40),
-      .init(kind: .path, points: [.zero, CGPoint(x: 60, y: 0), CGPoint(x: 60, y: 60)]),
-    ]
-    for shape in shapes {
-      for line in WhiteboardTurn.lines(shape, frame: .zero, scale: 1) {
-        let path = PKStrokePath(
-          controlPoints: WhiteboardTurn.inkPoints(line).enumerated().map { i, p in
-            PKStrokePoint(
-              location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: 3.7, height: 3.7), opacity: 1, force: 1,
-              azimuth: 0, altitude: .pi / 2)
-          }, creationDate: Date())
-        let drawn = path.interpolatedPoints(by: .distance(0.25)).map(\.location)
-        for corner in line {
-          let miss = drawn.map { hypot($0.x - corner.x, $0.y - corner.y) }.min() ?? .infinity
-          XCTAssertLessThan(miss, 1.5, "\(shape.kind) at \(corner)")
+  #if canImport(CoreText)
+    /// PencilKit's own spline, through the points a kept ghost gets: it must pass every corner the ghost showed.
+    func testKeptInkPassesEveryCornerOfTheShape() {
+      let shapes: [WhiteboardTurn.Shape] = [
+        .init(kind: .rect, points: [.zero, CGPoint(x: 100, y: 100)]),
+        .init(kind: .arrow, points: [.zero, CGPoint(x: 90, y: 0)]),
+        .init(kind: .text, points: [.zero], text: "HE", size: 40),
+        .init(kind: .path, points: [.zero, CGPoint(x: 60, y: 0), CGPoint(x: 60, y: 60)]),
+      ]
+      for shape in shapes {
+        for line in WhiteboardTurn.lines(shape, frame: .zero, scale: 1) {
+          let path = PKStrokePath(
+            controlPoints: WhiteboardTurn.inkPoints(line).enumerated().map { i, p in
+              PKStrokePoint(
+                location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: 3.7, height: 3.7), opacity: 1, force: 1,
+                azimuth: 0, altitude: .pi / 2)
+            }, creationDate: Date())
+          let drawn = path.interpolatedPoints(by: .distance(0.25)).map(\.location)
+          for corner in line {
+            let miss = drawn.map { hypot($0.x - corner.x, $0.y - corner.y) }.min() ?? .infinity
+            XCTAssertLessThan(miss, 1.5, "\(shape.kind) at \(corner)")
+          }
         }
       }
     }
-  }
+  #endif
 
   func testInkPointsKeepEveryCornerAndStayBoundedOnAnAbsurdEdge() {
     let line = [CGPoint.zero, CGPoint(x: 12, y: 0), CGPoint(x: 12, y: 1)]
@@ -249,34 +266,38 @@ final class WhiteboardTurnTests: XCTestCase {
     return shapes
   }
 
-  func testAMarkCarriesThePenColourAndLetteringItAsksFor() throws {
-    let shapes = try strokes(
-      #"""
-      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 8, "color": "#12AB34"},
-      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20, "font": "hand"},
-      {"kind": "circle", "cx": 50, "cy": 60, "r": 10, "pen": 2}
-      """#)
-    XCTAssertEqual(shapes.map(\.kind), [.line, .text, .ellipse])
-    XCTAssertEqual(shapes[0].color, 0x12AB34)
-    // The pen is in the picture's pixels: a picture at twice the board's size halves it on the board.
-    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), 4)
-    XCTAssertEqual(shapes[1].face, .hand)
-    XCTAssertFalse(WhiteboardTurn.lines(shapes[1], frame: .zero, scale: 1).isEmpty, "the hand face draws letters")
-    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), 2)
-  }
+  #if canImport(CoreText)
+    func testAMarkCarriesThePenColourAndLetteringItAsksFor() throws {
+      let shapes = try strokes(
+        #"""
+        {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 8, "color": "#12AB34"},
+        {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20, "font": "hand"},
+        {"kind": "circle", "cx": 50, "cy": 60, "r": 10, "pen": 2}
+        """#)
+      XCTAssertEqual(shapes.map(\.kind), [.line, .text, .ellipse])
+      XCTAssertEqual(shapes[0].color, 0x12AB34)
+      // The pen is in the picture's pixels: a picture at twice the board's size halves it on the board.
+      XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), 4)
+      XCTAssertEqual(shapes[1].face, .hand)
+      XCTAssertFalse(WhiteboardTurn.lines(shapes[1], frame: .zero, scale: 1).isEmpty, "the hand face draws letters")
+      XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), 2)
+    }
+  #endif
 
-  func testAMarkThatAsksForNothingLooksAsBeforeAndLabelsArentBold() throws {
-    let shapes = try strokes(
-      #"""
-      {"kind": "arrow", "x1": 0, "y1": 0, "x2": 9, "y2": 9},
-      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 40}
-      """#)
-    XCTAssertNil(shapes[0].color)
-    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), WhiteboardTurn.defaultPen)
-    XCTAssertEqual(shapes[1].face, .print)
-    // A 40-pixel label on a picture at twice the board: 20-point letters, a pen of 2.2, not the old 3.7.
-    XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 2), 2.2, accuracy: 0.001)
-  }
+  #if canImport(CoreText)
+    func testAMarkThatAsksForNothingLooksAsBeforeAndLabelsArentBold() throws {
+      let shapes = try strokes(
+        #"""
+        {"kind": "arrow", "x1": 0, "y1": 0, "x2": 9, "y2": 9},
+        {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 40}
+        """#)
+      XCTAssertNil(shapes[0].color)
+      XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), WhiteboardTurn.defaultPen)
+      XCTAssertEqual(shapes[1].face, .print)
+      // A 40-pixel label on a picture at twice the board: 20-point letters, a pen of 2.2, not the old 3.7.
+      XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 2), 2.2, accuracy: 0.001)
+    }
+  #endif
 
   func testABoxIsItsCornerWidthAndHeight() throws {
     let shapes = try strokes(#"{"kind": "rect", "x": 10, "y": 20, "w": 30, "h": 40, "pen": 3}"#)
@@ -286,35 +307,37 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(WhiteboardTurn.lines(shapes[0], frame: .zero, scale: 1).first?.count, 5)
   }
 
-  func testWhatAMarkAsksForNeverBreaksTheBoard() throws {
-    let shapes = try strokes(
-      #"""
-      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 0, "color": "red", "font": "gothic"},
-      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": -4, "color": "#12AB3"},
-      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 900},
-      {"kind": "label", "text": "hi", "x": 10, "y": 40, "font": "gothic"},
-      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "color": "#+12345"}
-      """#)
-    XCTAssertEqual(shapes.count, 5)
-    // A sign is not a hex digit, though Swift's number parsing would take it.
-    XCTAssertNil(shapes[4].color)
-    XCTAssertEqual(shapes[0].pen, nil)
-    XCTAssertEqual(shapes[0].color, nil)
-    XCTAssertEqual(shapes[1].pen, nil)
-    XCTAssertEqual(shapes[1].color, nil)
-    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1), WhiteboardTurn.defaultPen)
-    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), WhiteboardTurn.widestPen)
-    XCTAssertEqual(shapes[3].face, .print)
-  }
+  #if canImport(CoreText)
+    func testWhatAMarkAsksForNeverBreaksTheBoard() throws {
+      let shapes = try strokes(
+        #"""
+        {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 0, "color": "red", "font": "gothic"},
+        {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": -4, "color": "#12AB3"},
+        {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 900},
+        {"kind": "label", "text": "hi", "x": 10, "y": 40, "font": "gothic"},
+        {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "color": "#+12345"}
+        """#)
+      XCTAssertEqual(shapes.count, 5)
+      // A sign is not a hex digit, though Swift's number parsing would take it.
+      XCTAssertNil(shapes[4].color)
+      XCTAssertEqual(shapes[0].pen, nil)
+      XCTAssertEqual(shapes[0].color, nil)
+      XCTAssertEqual(shapes[1].pen, nil)
+      XCTAssertEqual(shapes[1].color, nil)
+      XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1), WhiteboardTurn.defaultPen)
+      XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), WhiteboardTurn.widestPen)
+      XCTAssertEqual(shapes[3].face, .print)
+    }
 
-  func testLarrysChatShapesCarryTheirLooksToo() throws {
-    let shape = WhiteboardTurn.anyShape(
-      [
-        "kind": "label", "text": "ok", "x": 5.0, "y": 30.0, "size": 18.0, "color": "#000000", "pen": 1.5,
-        "font": "hand",
-      ])
-    XCTAssertEqual(shape?.color, 0)
-    XCTAssertEqual(shape?.pen, 1.5)
-    XCTAssertEqual(shape?.face, .hand)
-  }
+    func testLarrysChatShapesCarryTheirLooksToo() throws {
+      let shape = WhiteboardTurn.anyShape(
+        [
+          "kind": "label", "text": "ok", "x": 5.0, "y": 30.0, "size": 18.0, "color": "#000000", "pen": 1.5,
+          "font": "hand",
+        ])
+      XCTAssertEqual(shape?.color, 0)
+      XCTAssertEqual(shape?.pen, 1.5)
+      XCTAssertEqual(shape?.face, .hand)
+    }
+  #endif
 }

@@ -152,7 +152,12 @@ public enum AudioBridge {
   /// JSONSerialization hands back NSNumber for both 1 and true; only a JSON boolean is a boolean.
   private static func isBool(_ value: Any?) -> Bool {
     guard let number = value as? NSNumber else { return false }
-    return CFGetTypeID(number) == CFBooleanGetTypeID()
+    #if canImport(Darwin)
+      return CFGetTypeID(number) == CFBooleanGetTypeID()
+    #else
+      // Linux (just test-linux): no CFBooleanGetTypeID, but a JSON boolean is its own NSNumber subclass there too.
+      return type(of: number) == type(of: NSNumber(value: true))
+    #endif
   }
 
   // MARK: - app → page

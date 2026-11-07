@@ -1,10 +1,13 @@
 //  The Cockpit bridge's wire format, ported from __tests__/audioBridge.test.ts and cockpitClient.test.ts. The
 //  injected scripts ARE the wire format, so they are run in JavaScriptCore against a stand-in window.
 
-import JavaScriptCore
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(JavaScriptCore)
+  import JavaScriptCore
+#endif
 
 private let mic = AudioDevice(id: "BuiltInMicrophoneBottom", name: "iPhone Microphone", type: "MicrophoneBuiltIn")
 private let pods = AudioDevice(id: "AC:12:34:56:78:9A-tacl", name: "AirPods Pro", type: "BluetoothHFP")
@@ -132,138 +135,144 @@ final class BridgePayloadTests: XCTestCase {
   }
 }
 
-/// A stand-in page: `win` is the window, CustomEvent records type and detail, and the WebKit message handler (or a
-/// React Native one) collects what the page posts.
-private final class FakePage {
-  let context = JSContext()!
+// The bridge script run for real in JavaScriptCore: Apple-only, so these stay on the Mac (just test-linux).
+#if canImport(JavaScriptCore)
+  /// A stand-in page: `win` is the window, CustomEvent records type and detail, and the WebKit message handler (or a
+  /// React Native one) collects what the page posts.
+  private final class FakePage {
+    let context = JSContext()!
 
-  init(webkit: Bool = true, reactNative: Bool = false) {
-    context.evaluateScript(
-      """
-      var sent = []; var events = [];
-      function CustomEvent(type, init) { this.type = type; this.detail = init && init.detail; }
-      var win = { dispatchEvent: function (e) { events.push(e); } };
-      """)
-    if webkit {
+    init(webkit: Bool = true, reactNative: Bool = false) {
       context.evaluateScript(
-        "win.webkit = { messageHandlers: { grabber: { postMessage: function (m) { sent.push('wk:' + m); } } } };")
+        """
+        var sent = []; var events = [];
+        function CustomEvent(type, init) { this.type = type; this.detail = init && init.detail; }
+        var win = { dispatchEvent: function (e) { events.push(e); } };
+        """)
+      if webkit {
+        context.evaluateScript(
+          "win.webkit = { messageHandlers: { grabber: { postMessage: function (m) { sent.push('wk:' + m); } } } };")
+      }
+      if reactNative {
+        context.evaluateScript("win.ReactNativeWebView = { postMessage: function (m) { sent.push('rn:' + m); } };")
+      }
     }
-    if reactNative {
-      context.evaluateScript("win.ReactNativeWebView = { postMessage: function (m) { sent.push('rn:' + m); } };")
-    }
-  }
 
-  @discardableResult
-  func run(_ script: String) -> JavaScriptCore.JSValue? {
-    let fn = context.evaluateScript("(function (window, CustomEvent) {\n\(script)\n})")
-    return fn?.call(withArguments: [
-      context.objectForKeyedSubscript("win")!, context.objectForKeyedSubscript("CustomEvent")!,
-    ])
-  }
-
-  func eval(_ js: String) -> JavaScriptCore.JSValue { context.evaluateScript(js) }
-  var exception: JavaScriptCore.JSValue? { context.exception }
-  var sent: [String] { eval("sent").toArray() as? [String] ?? [] }
-}
-
-final class BridgeScriptTests: XCTestCase {
-  func testInstallsAFeatureDetectableGlobal() {
-    let page = FakePage()
-    page.run(AudioBridge.installScript())
-    XCTAssertNil(page.exception)
-    XCTAssertEqual(page.eval("win.CockpitAudioBridge.version").toInt32(), 1)
-    XCTAssertEqual(page.eval("win.CockpitAudioBridge.platform").toString(), "ios")
-    XCTAssertTrue(page.eval("win.CockpitAudioBridge.last === null").toBool())
-    // The page's own "inside the app" tell (cockpit index.html insideGrabber) holds.
-    XCTAssertTrue(page.eval("!!win.ReactNativeWebView").toBool())
-  }
-
-  func testPostsWellFormedRequestsTheParserAcceptsThroughWebKit() {
-    let page = FakePage()
-    page.run(AudioBridge.installScript())
-    page.eval(
-      """
-      var b = win.CockpitAudioBridge;
-      b.listDevices("a"); b.setInput("mic-bt", "b"); b.setOutput("speaker", "c"); b.getRoute();
-      b.post({ type: "call.state", live: true });
-      """)
-    XCTAssertTrue(page.sent.allSatisfy { $0.hasPrefix("wk:") })
-    // Round trip: what the injected helper emits is exactly what the app parses. Drift is the whole risk.
-    XCTAssertEqual(
-      page.sent.map { AudioBridge.parse(String($0.dropFirst(3))) },
-      [
-        .audio(.listDevices(requestId: "a")), .audio(.setInput(id: "mic-bt", requestId: "b")),
-        .audio(.setOutput(port: "speaker", requestId: "c")), .audio(.getRoute(requestId: nil)), .callState(live: true),
+    @discardableResult
+    func run(_ script: String) -> JavaScriptCore.JSValue? {
+      let fn = context.evaluateScript("(function (window, CustomEvent) {\n\(script)\n})")
+      return fn?.call(withArguments: [
+        context.objectForKeyedSubscript("win")!, context.objectForKeyedSubscript("CustomEvent")!,
       ])
+    }
+
+    func eval(_ js: String) -> JavaScriptCore.JSValue { context.evaluateScript(js) }
+    var exception: JavaScriptCore.JSValue? { context.exception }
+    var sent: [String] { eval("sent").toArray() as? [String] ?? [] }
   }
 
-  func testAnExistingReactNativeWebViewIsLeftAlone() {
-    let page = FakePage(webkit: true, reactNative: true)
-    page.run(AudioBridge.installScript())
-    page.eval("win.CockpitAudioBridge.listDevices('x')")
-    XCTAssertEqual(page.sent.count, 1)
-    XCTAssertTrue(page.sent[0].hasPrefix("rn:"))
-  }
+  final class BridgeScriptTests: XCTestCase {
+    func testInstallsAFeatureDetectableGlobal() {
+      let page = FakePage()
+      page.run(AudioBridge.installScript())
+      XCTAssertNil(page.exception)
+      XCTAssertEqual(page.eval("win.CockpitAudioBridge.version").toInt32(), 1)
+      XCTAssertEqual(page.eval("win.CockpitAudioBridge.platform").toString(), "ios")
+      XCTAssertTrue(page.eval("win.CockpitAudioBridge.last === null").toBool())
+      // The page's own "inside the app" tell (cockpit index.html insideGrabber) holds.
+      XCTAssertTrue(page.eval("!!win.ReactNativeWebView").toBool())
+    }
 
-  func testDoesNotThrowWithNoMessageHandlerAtAll() {
-    let page = FakePage(webkit: false)
-    page.run(AudioBridge.installScript())
-    page.eval("win.CockpitAudioBridge.listDevices()")
-    XCTAssertNil(page.exception)
-    XCTAssertEqual(page.sent, [])
-  }
+    func testPostsWellFormedRequestsTheParserAcceptsThroughWebKit() {
+      let page = FakePage()
+      page.run(AudioBridge.installScript())
+      page.eval(
+        """
+        var b = win.CockpitAudioBridge;
+        b.listDevices("a"); b.setInput("mic-bt", "b"); b.setOutput("speaker", "c"); b.getRoute();
+        b.post({ type: "call.state", live: true });
+        """)
+      XCTAssertTrue(page.sent.allSatisfy { $0.hasPrefix("wk:") })
+      // Round trip: what the injected helper emits is exactly what the app parses. Drift is the whole risk.
+      XCTAssertEqual(
+        page.sent.map { AudioBridge.parse(String($0.dropFirst(3))) },
+        [
+          .audio(.listDevices(requestId: "a")), .audio(.setInput(id: "mic-bt", requestId: "b")),
+          .audio(.setOutput(port: "speaker", requestId: "c")), .audio(.getRoute(requestId: nil)),
+          .callState(live: true),
+        ])
+    }
 
-  func testReinjectionKeepsTheExistingBridge() {
-    let page = FakePage()
-    page.run(AudioBridge.installScript())
-    page.eval("var first = win.CockpitAudioBridge; first.last = { marker: true };")
-    page.run(AudioBridge.installScript())
-    XCTAssertTrue(page.eval("win.CockpitAudioBridge === first && win.CockpitAudioBridge.last.marker").toBool())
-  }
+    func testAnExistingReactNativeWebViewIsLeftAlone() {
+      let page = FakePage(webkit: true, reactNative: true)
+      page.run(AudioBridge.installScript())
+      page.eval("win.CockpitAudioBridge.listDevices('x')")
+      XCTAssertEqual(page.sent.count, 1)
+      XCTAssertTrue(page.sent[0].hasPrefix("rn:"))
+    }
 
-  func testScriptsEndInAPrimitive() {
-    XCTAssertTrue(AudioBridge.installScript().trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("true;"))
-    XCTAssertTrue(
-      AudioBridge.emitScript(AudioBridge.readyPayload(available: true)).trimmingCharacters(in: .whitespacesAndNewlines)
+    func testDoesNotThrowWithNoMessageHandlerAtAll() {
+      let page = FakePage(webkit: false)
+      page.run(AudioBridge.installScript())
+      page.eval("win.CockpitAudioBridge.listDevices()")
+      XCTAssertNil(page.exception)
+      XCTAssertEqual(page.sent, [])
+    }
+
+    func testReinjectionKeepsTheExistingBridge() {
+      let page = FakePage()
+      page.run(AudioBridge.installScript())
+      page.eval("var first = win.CockpitAudioBridge; first.last = { marker: true };")
+      page.run(AudioBridge.installScript())
+      XCTAssertTrue(page.eval("win.CockpitAudioBridge === first && win.CockpitAudioBridge.last.marker").toBool())
+    }
+
+    func testScriptsEndInAPrimitive() {
+      XCTAssertTrue(AudioBridge.installScript().trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("true;"))
+      XCTAssertTrue(
+        AudioBridge.emitScript(AudioBridge.readyPayload(available: true)).trimmingCharacters(
+          in: .whitespacesAndNewlines
+        )
         .hasSuffix("true;"))
-  }
+    }
 
-  func testEmitDispatchesOnItsOwnEventTypeAndRecordsLast() {
-    let page = FakePage()
-    page.run(AudioBridge.installScript())
-    page.run(AudioBridge.emitScript(AudioBridge.devicesPayload(snapshot, requestId: "r1")))
-    XCTAssertNil(page.exception)
-    XCTAssertEqual(page.eval("events.length").toInt32(), 1)
-    XCTAssertEqual(page.eval("events[0].type").toString(), "cockpit-audio")
-    XCTAssertEqual(page.eval("events[0].detail.requestId").toString(), "r1")
-    XCTAssertEqual(page.eval("events[0].detail.inputs[1].name").toString(), "AirPods Pro")
-    XCTAssertTrue(page.eval("events[0].detail.current.input.id === 'BuiltInMicrophoneBottom'").toBool())
-    XCTAssertEqual(page.eval("win.CockpitAudioBridge.last.type").toString(), "audio.devices")
-  }
+    func testEmitDispatchesOnItsOwnEventTypeAndRecordsLast() {
+      let page = FakePage()
+      page.run(AudioBridge.installScript())
+      page.run(AudioBridge.emitScript(AudioBridge.devicesPayload(snapshot, requestId: "r1")))
+      XCTAssertNil(page.exception)
+      XCTAssertEqual(page.eval("events.length").toInt32(), 1)
+      XCTAssertEqual(page.eval("events[0].type").toString(), "cockpit-audio")
+      XCTAssertEqual(page.eval("events[0].detail.requestId").toString(), "r1")
+      XCTAssertEqual(page.eval("events[0].detail.inputs[1].name").toString(), "AirPods Pro")
+      XCTAssertTrue(page.eval("events[0].detail.current.input.id === 'BuiltInMicrophoneBottom'").toBool())
+      XCTAssertEqual(page.eval("win.CockpitAudioBridge.last.type").toString(), "audio.devices")
+    }
 
-  func testSurvivesADeviceNameFullOfQuotesNewlinesAndScriptTags() {
-    // A Bluetooth device is named by whoever paired it, and the name lands inside a script the app evaluates.
-    let nasty = "He said \"hi\"\n</script>\\ '  \u{2028}\u{2029} `${x}`"
-    var named = snapshot
-    named.inputs = [AudioDevice(id: "x", name: nasty, type: "BluetoothHFP")]
-    let page = FakePage()
-    page.run(AudioBridge.installScript())
-    page.run(AudioBridge.emitScript(AudioBridge.devicesPayload(named)))
-    XCTAssertNil(page.exception)
-    XCTAssertEqual(page.eval("events[0].detail.inputs[0].name").toString(), nasty)
-    XCTAssertFalse(AudioBridge.emitScript(AudioBridge.devicesPayload(named)).contains("</script>"))
-  }
+    func testSurvivesADeviceNameFullOfQuotesNewlinesAndScriptTags() {
+      // A Bluetooth device is named by whoever paired it, and the name lands inside a script the app evaluates.
+      let nasty = "He said \"hi\"\n</script>\\ '  \u{2028}\u{2029} `${x}`"
+      var named = snapshot
+      named.inputs = [AudioDevice(id: "x", name: nasty, type: "BluetoothHFP")]
+      let page = FakePage()
+      page.run(AudioBridge.installScript())
+      page.run(AudioBridge.emitScript(AudioBridge.devicesPayload(named)))
+      XCTAssertNil(page.exception)
+      XCTAssertEqual(page.eval("events[0].detail.inputs[0].name").toString(), nasty)
+      XCTAssertFalse(AudioBridge.emitScript(AudioBridge.devicesPayload(named)).contains("</script>"))
+    }
 
-  func testEmitWithoutABridgeOrDispatchEventDoesNotThrowIntoIOS() {
-    let page = FakePage()
-    page.run(AudioBridge.emitScript(AudioBridge.readyPayload(available: true)))
-    XCTAssertNil(page.exception)
-    XCTAssertEqual(page.eval("events[0].detail.type").toString(), "audio.ready")
-    page.eval("delete win.dispatchEvent")
-    page.run(AudioBridge.emitScript(AudioBridge.readyPayload(available: true)))
-    XCTAssertNil(page.exception)
+    func testEmitWithoutABridgeOrDispatchEventDoesNotThrowIntoIOS() {
+      let page = FakePage()
+      page.run(AudioBridge.emitScript(AudioBridge.readyPayload(available: true)))
+      XCTAssertNil(page.exception)
+      XCTAssertEqual(page.eval("events[0].detail.type").toString(), "audio.ready")
+      page.eval("delete win.dispatchEvent")
+      page.run(AudioBridge.emitScript(AudioBridge.readyPayload(available: true)))
+      XCTAssertNil(page.exception)
+    }
   }
-}
+#endif
 
 final class AudioRoutingTests: XCTestCase {
   private let speakerPort = AudioDevice(id: "Speaker-uid", name: "Speaker", type: "Speaker")

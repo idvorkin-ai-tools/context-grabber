@@ -5,6 +5,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// A page of a stream, as its source read it.
 public struct ArchivePage {
   public var records: [[String: Any]]

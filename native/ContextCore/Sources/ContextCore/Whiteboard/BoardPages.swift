@@ -2,8 +2,11 @@
 //  stories 535–539; #636). All in board points, with page 1's corner at the board's origin: zoom only thins the ruled
 //  lines. PaperKit stays in the app.
 
-import CoreGraphics
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 public struct BoardPages: Equatable, Sendable {
   public static let pageWidth: CGFloat = 820
@@ -172,7 +175,9 @@ public struct BoardPages: Equatable, Sendable {
     public var board: BoardPages
     public var pages: Int
 
-    public var transform: CGAffineTransform { CGAffineTransform(translationX: shift.dx, y: shift.dy) }
+    #if canImport(CoreGraphics)
+      public var transform: CGAffineTransform { CGAffineTransform(translationX: shift.dx, y: shift.dy) }
+    #endif
   }
 
   /// `ink` at the first page's corner, inside a margin, on a board as wide as it needs. No ink needs no move.

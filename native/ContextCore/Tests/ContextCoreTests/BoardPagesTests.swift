@@ -1,8 +1,11 @@
 //  Stories 535–539: the column of pages.
 
 import ContextCore
-import CoreGraphics
 import XCTest
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class BoardPagesTests: XCTestCase {
   private let pages = BoardPages()
@@ -155,46 +158,48 @@ final class BoardPagesTests: XCTestCase {
 
   private let oldInk = CGRect(x: 10_100, y: 9_900, width: 300, height: 500)
 
-  func testMovingOntoPagesIsATranslationAndNothingElse() {
-    let boards = [
-      oldInk, CGRect(x: 9_000, y: 9_000, width: 2_000, height: 40),
-      CGRect(x: 10_000, y: 2_000, width: 500, height: 15_000),
-    ]
-    for ink in boards {
-      let transform = BoardPages.placing(ink: ink).transform
-      XCTAssertEqual(transform.a, 1)
-      XCTAssertEqual(transform.b, 0)
-      XCTAssertEqual(transform.c, 0)
-      XCTAssertEqual(transform.d, 1)
-      XCTAssertEqual(ink.applying(transform).size, ink.size)
+  #if canImport(CoreGraphics)
+    func testMovingOntoPagesIsATranslationAndNothingElse() {
+      let boards = [
+        oldInk, CGRect(x: 9_000, y: 9_000, width: 2_000, height: 40),
+        CGRect(x: 10_000, y: 2_000, width: 500, height: 15_000),
+      ]
+      for ink in boards {
+        let transform = BoardPages.placing(ink: ink).transform
+        XCTAssertEqual(transform.a, 1)
+        XCTAssertEqual(transform.b, 0)
+        XCTAssertEqual(transform.c, 0)
+        XCTAssertEqual(transform.d, 1)
+        XCTAssertEqual(ink.applying(transform).size, ink.size)
+      }
     }
-  }
 
-  func testStrokesKeepTheirWidthAndPlacesRelativeToEachOther() {
-    let transform = BoardPages.placing(ink: oldInk).transform
-    XCTAssertEqual(WhiteboardStrokes.width(sizes: [3, 5], transform: transform), 4, "the pen's width")
-    let movedA = CGPoint(x: 10_100, y: 9_900).applying(transform)
-    let movedB = CGPoint(x: 10_400, y: 10_400).applying(transform)
-    XCTAssertEqual(movedB.x - movedA.x, 300)
-    XCTAssertEqual(movedB.y - movedA.y, 500)
-  }
+    func testStrokesKeepTheirWidthAndPlacesRelativeToEachOther() {
+      let transform = BoardPages.placing(ink: oldInk).transform
+      XCTAssertEqual(WhiteboardStrokes.width(sizes: [3, 5], transform: transform), 4, "the pen's width")
+      let movedA = CGPoint(x: 10_100, y: 9_900).applying(transform)
+      let movedB = CGPoint(x: 10_400, y: 10_400).applying(transform)
+      XCTAssertEqual(movedB.x - movedA.x, 300)
+      XCTAssertEqual(movedB.y - movedA.y, 500)
+    }
 
-  func testInkLandsInsideTheFirstPagesCorner() {
-    let placed = BoardPages.placing(ink: oldInk)
-    let moved = oldInk.applying(placed.transform)
-    XCTAssertEqual(moved.origin, CGPoint(x: 40, y: 40))
-    XCTAssertEqual(placed.board, BoardPages())
-    XCTAssertEqual(placed.pages, 2)
-    XCTAssertTrue(placed.board.bounds(pages: placed.pages).contains(moved))
-  }
+    func testInkLandsInsideTheFirstPagesCorner() {
+      let placed = BoardPages.placing(ink: oldInk)
+      let moved = oldInk.applying(placed.transform)
+      XCTAssertEqual(moved.origin, CGPoint(x: 40, y: 40))
+      XCTAssertEqual(placed.board, BoardPages())
+      XCTAssertEqual(placed.pages, 2)
+      XCTAssertTrue(placed.board.bounds(pages: placed.pages).contains(moved))
+    }
 
-  func testInkWiderThanAPageWidensTheBoardInsteadOfShrinking() {
-    let wide = CGRect(x: 9_000, y: 9_000, width: 2_000, height: 40)
-    let placed = BoardPages.placing(ink: wide)
-    XCTAssertEqual(placed.board.width, 2_080)
-    XCTAssertEqual(placed.board.frame(ofPage: 1).height, 1_060)
-    XCTAssertTrue(placed.board.bounds(pages: placed.pages).contains(wide.applying(placed.transform)))
-  }
+    func testInkWiderThanAPageWidensTheBoardInsteadOfShrinking() {
+      let wide = CGRect(x: 9_000, y: 9_000, width: 2_000, height: 40)
+      let placed = BoardPages.placing(ink: wide)
+      XCTAssertEqual(placed.board.width, 2_080)
+      XCTAssertEqual(placed.board.frame(ofPage: 1).height, 1_060)
+      XCTAssertTrue(placed.board.bounds(pages: placed.pages).contains(wide.applying(placed.transform)))
+    }
+  #endif
 
   func testTallInkTakesThePagesItNeedsPlusABlankOne() {
     XCTAssertEqual(

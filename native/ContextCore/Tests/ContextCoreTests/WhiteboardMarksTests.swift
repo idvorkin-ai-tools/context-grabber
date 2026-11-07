@@ -1,8 +1,15 @@
-import CoreGraphics
 import Foundation
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 final class WhiteboardMarksTests: XCTestCase {
   private let frame = CGRect(x: 1000, y: 2000, width: 300, height: 200)

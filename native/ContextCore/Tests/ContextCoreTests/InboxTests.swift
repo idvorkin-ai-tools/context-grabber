@@ -1,9 +1,16 @@
-import CoreGraphics
-import ImageIO
-import UniformTypeIdentifiers
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(ImageIO)
+  import CoreGraphics
+  import ImageIO
+  import UniformTypeIdentifiers
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 /// Stories 038 and 039 (#305): the Inbox on disk, and each item to Larry's inbox per cockpit#63.
 final class InboxTests: XCTestCase {
@@ -55,22 +62,24 @@ final class InboxTests: XCTestCase {
 
   // MARK: Images (story 039: a HEIC photo arrives as a JPEG)
 
-  func testAHEICBecomesAJPEGAndAJPEGGoesAsItIs() throws {
-    let heic = try Self.image(.heic)
-    let sent = try XCTUnwrap(InboxSend.sendable(heic))
-    XCTAssertEqual(InboxSend.mime(of: sent), "image/jpeg")
-    let jpeg = try Self.image(.jpeg)
-    XCTAssertEqual(InboxSend.sendable(jpeg), jpeg)
-    XCTAssertNil(InboxSend.sendable(Data("not an image".utf8)))
-  }
+  #if canImport(ImageIO)
+    func testAHEICBecomesAJPEGAndAJPEGGoesAsItIs() throws {
+      let heic = try Self.image(.heic)
+      let sent = try XCTUnwrap(InboxSend.sendable(heic))
+      XCTAssertEqual(InboxSend.mime(of: sent), "image/jpeg")
+      let jpeg = try Self.image(.jpeg)
+      XCTAssertEqual(InboxSend.sendable(jpeg), jpeg)
+      XCTAssertNil(InboxSend.sendable(Data("not an image".utf8)))
+    }
 
-  func testAnImageOverTheCapIsMadeSmallerToFit() throws {
-    let jpeg = try Self.image(.jpeg, side: 1500)
-    let cap = jpeg.count / 3
-    let sent = try XCTUnwrap(InboxSend.sendable(jpeg, maxBytes: cap))
-    XCTAssertLessThanOrEqual(sent.count, cap)
-    XCTAssertEqual(InboxSend.mime(of: sent), "image/jpeg")
-  }
+    func testAnImageOverTheCapIsMadeSmallerToFit() throws {
+      let jpeg = try Self.image(.jpeg, side: 1500)
+      let cap = jpeg.count / 3
+      let sent = try XCTUnwrap(InboxSend.sendable(jpeg, maxBytes: cap))
+      XCTAssertLessThanOrEqual(sent.count, cap)
+      XCTAssertEqual(InboxSend.mime(of: sent), "image/jpeg")
+    }
+  #endif
 
   // MARK: The sender (story 039)
 
@@ -171,12 +180,14 @@ final class InboxTests: XCTestCase {
     XCTAssertEqual(report.sent, ["a"])
   }
 
-  func testAThumbnailIsBoundedWhateverThePhotosSize() throws {
-    let big = try Self.image(.jpeg, side: 1500)
-    let thumb = try XCTUnwrap(InboxSend.thumbnail(big, maxPixels: 200))
-    XCTAssertLessThanOrEqual(max(thumb.width, thumb.height), 200)
-    XCTAssertNil(InboxSend.thumbnail(Data("no".utf8)))
-  }
+  #if canImport(ImageIO)
+    func testAThumbnailIsBoundedWhateverThePhotosSize() throws {
+      let big = try Self.image(.jpeg, side: 1500)
+      let thumb = try XCTUnwrap(InboxSend.thumbnail(big, maxPixels: 200))
+      XCTAssertLessThanOrEqual(max(thumb.width, thumb.height), 200)
+      XCTAssertNil(InboxSend.thumbnail(Data("no".utf8)))
+    }
+  #endif
 
   func testASimulatorFixtureIsNeverSent() async throws {
     try store.add(InboxItem(id: InboxItem.fixtureID(), kind: .text, sharedAt: 1, text: "test"))
@@ -194,25 +205,27 @@ final class InboxTests: XCTestCase {
     func add(_ id: String) { ids.append(id) }
   }
 
-  /// A noisy picture, so JPEG cannot squash it to nothing.
-  static func image(_ type: UTType, side: Int = 400) throws -> Data {
-    let ctx = try XCTUnwrap(
-      CGContext(
-        data: nil, width: side, height: side, bitsPerComponent: 8, bytesPerRow: 0,
-        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue))
-    var rng = SystemRandomNumberGenerator()
-    for y in stride(from: 0, to: side, by: 4) {
-      for x in stride(from: 0, to: side, by: 4) {
-        ctx.setFillColor(
-          red: .random(in: 0...1, using: &rng), green: .random(in: 0...1, using: &rng),
-          blue: .random(in: 0...1, using: &rng), alpha: 1)
-        ctx.fill(CGRect(x: x, y: y, width: 4, height: 4))
+  #if canImport(ImageIO)
+    /// A noisy picture, so JPEG cannot squash it to nothing.
+    static func image(_ type: UTType, side: Int = 400) throws -> Data {
+      let ctx = try XCTUnwrap(
+        CGContext(
+          data: nil, width: side, height: side, bitsPerComponent: 8, bytesPerRow: 0,
+          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue))
+      var rng = SystemRandomNumberGenerator()
+      for y in stride(from: 0, to: side, by: 4) {
+        for x in stride(from: 0, to: side, by: 4) {
+          ctx.setFillColor(
+            red: .random(in: 0...1, using: &rng), green: .random(in: 0...1, using: &rng),
+            blue: .random(in: 0...1, using: &rng), alpha: 1)
+          ctx.fill(CGRect(x: x, y: y, width: 4, height: 4))
+        }
       }
+      let out = NSMutableData()
+      let dest = try XCTUnwrap(CGImageDestinationCreateWithData(out, type.identifier as CFString, 1, nil))
+      CGImageDestinationAddImage(dest, try XCTUnwrap(ctx.makeImage()), nil)
+      XCTAssertTrue(CGImageDestinationFinalize(dest))
+      return out as Data
     }
-    let out = NSMutableData()
-    let dest = try XCTUnwrap(CGImageDestinationCreateWithData(out, type.identifier as CFString, 1, nil))
-    CGImageDestinationAddImage(dest, try XCTUnwrap(ctx.makeImage()), nil)
-    XCTAssertTrue(CGImageDestinationFinalize(dest))
-    return out as Data
-  }
+  #endif
 }

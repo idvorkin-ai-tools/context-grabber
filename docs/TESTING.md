@@ -14,6 +14,27 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 | 2 Simulator | the build with its UI tests; the UI test classes the change touches; `just native-test-sim`'s smoke, the app driven by launch hooks and judged from its session log; the areas' whole suites (`scripts/native/test-chat-ui.sh`, `test-whiteboard-ui.sh`) | `just test-ladder` for the build and the touched classes, `--full` for the suites; `just native-test-sim` for the smoke | build ~5 min; a class ~30 s a test; smoke ~1 min; the whiteboard's suite ~28 min | a real view, gesture or system service: it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events, the card's deal and count |
 | 3 Phone | Grabber Native on the iPhone | `just native-run-device`, then `just pull-logs` | minutes + a person | the shake, and everything the phone-only rows below list |
 
+## Off the Mac: `just test-linux`
+
+On a Linux box, with no Xcode, `just test-linux` runs `ContextCore`'s XCTests under Linux Swift, then cross-builds the
+package and its tests for arm64 macOS, iOS and the iOS simulator with a Darwin Swift SDK (xtool's): compiled, never
+run. It is not a rung: it catches a type, concurrency or API slip in `ContextCore` before the Mac does, and the Mac's
+rung 1 still decides. 943 of the 1,028 host tests run on Linux. It needs a Swift 6 Linux toolchain and SQLite's
+header (`libsqlite3-dev`); without a `darwin` Swift SDK the cross-build says it was skipped. The script's header lists
+the settings for a toolchain that is not on `PATH`.
+
+A unit that needs an Apple framework is under `#if canImport(<framework>)`, and so are the tests that use it. Where
+portable code calls one, Linux gets a stand-in that declines (no image is readable, a label has no outline), and the
+tests that need the real one stay on the Mac. Left out on Linux:
+
+| What | Why |
+|---|---|
+| Image reading and shrinking, file types, picked files, share-sheet providers | ImageIO, UniformTypeIdentifiers, NSItemProvider |
+| Label outlines, pasted text, a stroke's transform | CoreText, CGAffineTransform, PencilKit |
+| The audio bridge's script run in a page | JavaScriptCore |
+| Finding the links in a message | NSDataDetector is in Apple's Foundation only |
+| The mirror fixture written back byte for byte | Linux's JSONSerialization misreads a 17-digit double |
+
 ## What kind of change is verified where
 
 | Change | Where it must be verified | How |

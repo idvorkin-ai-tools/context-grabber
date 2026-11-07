@@ -2,6 +2,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// #525, stories 507–511: a simulator's chat reaches only the Cockpit it was pointed at.
 final class ChatCockpitTests: XCTestCase {
   private var dir: URL!

@@ -2,8 +2,11 @@
 //  like the trial: the real page geometry is `BoardPages`, and this goes with the trial. PaperKit stays in the app:
 //  here, the column a copy of a board sits in, which ink a change moved, and what came of a touch.
 
-import CoreGraphics
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 public enum PaperProbe {
   public static let pageWidth = BoardPages.pageWidth

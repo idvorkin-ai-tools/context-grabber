@@ -2,8 +2,11 @@
 //  save clears it, so Add another starts fresh and a failed write keeps the thought.
 
 import Foundation
-import ImageIO
-import UniformTypeIdentifiers
+
+#if canImport(ImageIO)
+  import ImageIO
+  import UniformTypeIdentifiers
+#endif
 
 public struct InboxDraft: Equatable, Sendable {
   public var text = ""
@@ -53,7 +56,12 @@ public struct InboxDraft: Equatable, Sendable {
   }
 
   static func fileExtension(of image: Data) -> String {
-    CGImageSourceCreateWithData(image as CFData, nil).flatMap(CGImageSourceGetType)
-      .flatMap { UTType($0 as String)?.preferredFilenameExtension } ?? "jpg"
+    #if canImport(ImageIO)
+      CGImageSourceCreateWithData(image as CFData, nil).flatMap(CGImageSourceGetType)
+        .flatMap { UTType($0 as String)?.preferredFilenameExtension } ?? "jpg"
+    #else
+      // Linux (just test-linux): no ImageIO to say what the bytes are, so the default. Tested on the Mac only.
+      "jpg"
+    #endif
   }
 }

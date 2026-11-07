@@ -49,40 +49,43 @@ public enum ChatLinks {
   /// A web chip's path part, before it is cut short.
   static let pathLimit = 24
 
-  /// Every link written out with `http://` or `https://`, in the order written, repeats kept.
-  public static func found(in text: String) -> [ChatLink] {
-    guard let detector = makeDetector() else { return [] }
-    return found(in: text, detector)
-  }
-
-  private static func makeDetector() -> NSDataDetector? {
-    try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-  }
-
-  private static func found(in text: String, _ detector: NSDataDetector) -> [ChatLink] {
-    let ns = text as NSString
-    return detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).compactMap { match in
-      let written = trimmed(ns.substring(with: match.range))
-      let lower = written.lowercased()
-      guard lower.hasPrefix("https://") || lower.hasPrefix("http://"), let url = URL(string: written),
-        let host = url.host?.lowercased(), !host.isEmpty
-      else { return nil }
-      return link(url, host: host)
+  // NSDataDetector is Darwin Foundation only; Linux (just test-linux) has no link finding, and its tests run on the Mac.
+  #if canImport(Darwin)
+    /// Every link written out with `http://` or `https://`, in the order written, repeats kept.
+    public static func found(in text: String) -> [ChatLink] {
+      guard let detector = makeDetector() else { return [] }
+      return found(in: text, detector)
     }
-  }
 
-  /// A thread's links, newest message first, one per page (the newest one written).
-  public static func inThread(_ messages: [ChatMessage]) -> [ChatLink] {
-    guard let detector = makeDetector() else { return [] }
-    var seen = Set<String>()
-    var out: [ChatLink] = []
-    for message in messages.reversed() where !message.isError {
-      for link in found(in: message.text, detector) where seen.insert(link.id).inserted {
-        out.append(link)
+    private static func makeDetector() -> NSDataDetector? {
+      try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+    }
+
+    private static func found(in text: String, _ detector: NSDataDetector) -> [ChatLink] {
+      let ns = text as NSString
+      return detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).compactMap { match in
+        let written = trimmed(ns.substring(with: match.range))
+        let lower = written.lowercased()
+        guard lower.hasPrefix("https://") || lower.hasPrefix("http://"), let url = URL(string: written),
+          let host = url.host?.lowercased(), !host.isEmpty
+        else { return nil }
+        return link(url, host: host)
       }
     }
-    return out
-  }
+
+    /// A thread's links, newest message first, one per page (the newest one written).
+    public static func inThread(_ messages: [ChatMessage]) -> [ChatLink] {
+      guard let detector = makeDetector() else { return [] }
+      var seen = Set<String>()
+      var out: [ChatLink] = []
+      for message in messages.reversed() where !message.isError {
+        for link in found(in: message.text, detector) where seen.insert(link.id).inserted {
+          out.append(link)
+        }
+      }
+      return out
+    }
+  #endif
 
   /// The strip's chips, and what *All links* adds past them.
   public static func strip(_ links: [ChatLink]) -> (shown: [ChatLink], more: Int) {

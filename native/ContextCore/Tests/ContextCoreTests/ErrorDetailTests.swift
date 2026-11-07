@@ -2,6 +2,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// #441, story 208: a failed audio start says which error it was, not only the system's sentence.
 final class ErrorDetailTests: XCTestCase {
   func testTheAudioHardwaresUnspecifiedErrorReadsAsItsFourCC() {
