@@ -504,7 +504,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 187:
 
 - **Summary:** Another count voice is chosen from the timer's gear and remembered
-- **Status:** native app only: implemented in [d6ce5b6](https://github.com/idvorkin/context-grabber/commit/d6ce5b6) (split out of story 182, which had two scenarios); verified by `just native-test` (`CountVoiceTests`), a simulator screenshot of the sheet, and `just native-test-sim`'s `aussie` hook check (written, but the Mac's audio was down for its runs); hearing the sample and her count on the phone still to be checked by Igor
+- **Status:** native app only: implemented in [d6ce5b6](https://github.com/idvorkin/context-grabber/commit/d6ce5b6) (split out of story 182, which had two scenarios); verified by `just native-test` (`CountVoiceTests`), a simulator screenshot of the sheet, and `just native-test-sim`'s `aussie` hook check (written, but the Mac's audio was down for its runs; retired, as `CountVoiceTests` covers her files and the smoke's default run plays a voice's own); hearing the sample and her count on the phone still to be checked by Igor
 
 #### Use Case:
 - **As a** lifter who wants a different voice today
