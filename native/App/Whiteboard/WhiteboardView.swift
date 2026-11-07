@@ -755,14 +755,12 @@ final class WhiteboardModel: ObservableObject {
         "action": "paste", "board": board.id, "characters": layout.kept, "of": layout.total, "strokes": strokes.count,
       ])
     guard !strokes.isEmpty else {
-      pasteNote = "Nothing in that text can be drawn"
+      pasteNote = layout.note
       return
     }
     add(strokes)
     if turns.stroked() { startPause() }
-    if layout.cut {
-      pasteNote = "Pasted the first \(layout.kept) of \(layout.total.formatted()) characters"
-    }
+    if let note = layout.note { pasteNote = note }
   }
 
   /// Copied strokes the canvas didn't place itself: one undo, and a change like a drawn stroke, as a paste of text is.
