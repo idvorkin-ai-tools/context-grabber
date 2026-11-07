@@ -256,7 +256,8 @@ simulator_steps() {
   if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
   if [ "$n_other" -gt 0 ]; then step "other classes" other_classes || return; fi
   [ "$full" -eq 1 ] || return 0
-  if [ "$n_chat" -gt 0 ]; then step "chat suite" scripts/native/test-chat-ui.sh "$udid" || return; fi
+  # The build above is the suites' too (SUITE_PREBUILT; the whiteboard's script doesn't read it yet).
+  if [ "$n_chat" -gt 0 ]; then step "chat suite" env SUITE_PREBUILT=1 scripts/native/test-chat-ui.sh "$udid" || return; fi
   if [ "$n_whiteboard" -gt 0 ]; then step "whiteboard suite" scripts/native/test-whiteboard-ui.sh "$udid" || return; fi
 }
 
