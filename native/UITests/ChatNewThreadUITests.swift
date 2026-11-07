@@ -1,8 +1,10 @@
-//  Stories 262–264 and 301 (#536) on the simulator: Chat's + opens a new, empty thread with the ordinary bar (the field,
-//  Paste image, the mic), not the old New chat sheet. Against the fake Cockpit (scripts/native/test-chat-ui.sh starts
-//  it), the first Send starts the thread under its first line, the bar holds the next message back until it lands,
-//  and the next one goes into that thread. The voice button beside the + (#637, stories 500–505) too: its mic is
-//  tapped as it opens, and a live call keeps the microphone from it. Speaking and pasting are phone checks.
+//  Stories 262–264, 274 and 301 (#536, #449) and 500–505 (#637) on the simulator: only what the real screen can show.
+//  Against the fake Cockpit (scripts/native/test-chat-ui.sh starts it), a typed first Send starts the thread under its
+//  first line, the bar holds the next back until it lands, the next goes into that thread, and the field empties with
+//  the keyboard still up. The voice button's mic is tapped as the new chat opens, and the + opens the ordinary bar with
+//  the keyboard up; a live call keeps the microphone from it. Where a Send goes, when Send is enabled, the bar's lines,
+//  the title, what waits on the phone and the focus rule are `ChatNewThreadScreenTests` and `ChatNewThreadTests`, on
+//  the host. Speaking and pasting are phone checks.
 
 import XCTest
 
@@ -18,44 +20,6 @@ final class ChatNewThreadUITests: XCTestCase {
   /// test's unsent message can still sit in this simulator's outbox.
   private func notSentLines(_ app: XCUIApplication) -> Int {
     app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Not sent yet")).count
-  }
-
-  func testThePlusOpensANewThreadWithTheOrdinaryBar() throws {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
-    app.launchEnvironment["GRABBER_INBOX"] = "open"
-    app.launch()
-    let plus = app.buttons["inbox-add"]
-    XCTAssertTrue(plus.appears(within: 20), app.debugDescription)
-    let notSentBefore = notSentLines(app)
-    plus.tap()
-    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 5), app.debugDescription)
-    XCTAssertTrue(field(app).appears(within: 5), "the ordinary bar's field: \(app.debugDescription)")
-    XCTAssertTrue(app.buttons["Paste image"].exists, "Paste image is on the bar")
-    XCTAssertTrue(app.buttons["Speak a message"].exists, "the chat mic is on the bar")
-    XCTAssertTrue(app.buttons["Microphone: Automatic"].exists, "the microphone picker is on the bar")
-    XCTAssertFalse(app.buttons["Send"].isEnabled, "nothing to send yet")
-    XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
-    XCTAssertFalse(app.buttons["Cancel"].exists, "no sheet")
-
-    // Back with nothing sent leaves no thread behind.
-    app.navigationBars["New chat"].buttons.firstMatch.tap()
-    XCTAssertTrue(plus.appears(within: 5), app.debugDescription)
-    XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
-  }
-
-  /// GRABBER_CHAT_NEW=open: Chat with its + tapped, the new chat's field ready to type in.
-  func testTheHookOpensANewChatWithTheFieldFocused() throws {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
-    app.launchEnvironment["GRABBER_CHAT_NEW"] = "open"
-    app.launch()
-    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 20), app.debugDescription)
-    let field = field(app)
-    XCTAssertTrue(field.appears(within: 5), app.debugDescription)
-    let focused = NSPredicate(format: "hasKeyboardFocus == true")
-    let focus = expectation(for: focused, evaluatedWith: field)
-    wait(for: [focus], timeout: 5)
   }
 
   /// Story 262 and 263 against the fake Cockpit: the first Send starts the thread, the next one goes into it.
@@ -84,12 +48,24 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertTrue(waiting.appears(within: 3), "the hold-back line: \(app.debugDescription)")
     let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: waiting)
     wait(for: [gone], timeout: 20)
+    // The first send asks for notifications (chat spec); a clean simulator shows the system alert over the keyboard.
+    let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
+    if allow.appears(within: 3) { allow.tap() }
 
     let second = "and the next one"
     field.tap()
     field.typeText(second)
     XCTAssertTrue(app.buttons["Send"].isEnabled, "the next message can go now")
     app.buttons["Send"].tap()
+
+    // Story 274 (#449): the field empties, with the keyboard still up, and the next words go in with no tap.
+    let empty = NSPredicate { _, _ in
+      ((field.value as? String) ?? "").replacingOccurrences(of: "Message Larry", with: "").isEmpty
+    }
+    wait(for: [expectation(for: empty, evaluatedWith: field)], timeout: 5)
+    XCTAssertTrue(app.keyboards.firstMatch.exists, "the keyboard stays up for the next message")
+    field.typeText("third")
+    XCTAssertTrue(app.buttons["Send"].isEnabled, "the words went into the field")
 
     // On the Cockpit: one thread under the first line, holding both messages.
     let deadline = Date().addingTimeInterval(20)
@@ -141,11 +117,20 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertTrue(plus.appears(within: 5), app.debugDescription)
     XCTAssertLessThanOrEqual(notSentLines(app), notSentBefore, "no new thread waits to go: \(app.debugDescription)")
 
-    // Story 505: the + after it records nothing.
+    // Story 505: the + after it records nothing. Stories 262 and 301: it opens the ordinary bar, not the old sheet,
+    // with the keyboard up.
     plus.tap()
-    XCTAssertTrue(field(app).appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.navigationBars["New chat"].appears(within: 5), app.debugDescription)
+    let bar = field(app)
+    XCTAssertTrue(bar.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["Speak a message"].appears(within: 5), "the + leaves the mic idle")
     XCTAssertFalse(app.buttons["Stop recording"].exists)
+    XCTAssertTrue(app.buttons["Paste image"].exists, "Paste image is on the bar")
+    XCTAssertTrue(app.buttons["Microphone: Automatic"].exists, "the microphone picker is on the bar")
+    XCTAssertFalse(app.buttons["Send"].isEnabled, "nothing to send yet")
+    XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
+    XCTAssertFalse(app.buttons["Cancel"].exists, "no sheet")
+    wait(for: [expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: bar)], timeout: 5)
   }
 
   /// Recording, on its way there, or its copyable line saying why not.
