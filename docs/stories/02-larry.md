@@ -361,7 +361,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 039:
 
 - **Summary:** What is in my Inbox reaches Larry, once each
-- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); a share made while a send is out goes in one more pass when it ends, in [3bf50ec](https://github.com/idvorkin/context-grabber/commit/3bf50ec); a send over the tailnet from the phone still for Igor; since #438 an item goes to the Cockpit's chat, not its inbox (stories 274, 275)
+- **Status:** native app only: implemented in [99b308e](https://github.com/idvorkin/context-grabber/commit/99b308e); verified by `InboxTests` (host: the request per cockpit#63 with the Cockpit's Origin and no token, every answer class, a HEIC as JPEG, an image over the cap made smaller, oldest first and stopping at the first unreachable, an unreadable image refused without asking, a fixture never sent; an item deleted while the send is out is not sent, in [8589513](https://github.com/idvorkin/context-grabber/commit/8589513)); a share made while a send is out goes in one more pass when it ends, in [3bf50ec](https://github.com/idvorkin/context-grabber/commit/3bf50ec); a send over the tailnet from the phone still for Igor; since #438 an item goes to the Cockpit's chat, not its inbox (stories 274, 275); since context-grabber-gp7, one send at a time and the extra pass for a share made meanwhile are `InboxOutboxTests` (host, a held transport)
 - **Issues:** [#305](https://github.com/idvorkin/context-grabber/issues/305)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -563,7 +563,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 269:
 
 - **Summary:** My Inbox waits offline and sends itself when the network returns
-- **Status:** native app only: implemented in [7efc955](https://github.com/idvorkin/context-grabber/commit/7efc955); the retry on a path change after a failed send (Codex on #409) in [22c36ef](https://github.com/idvorkin/context-grabber/commit/22c36ef), and for a change that came while the failing send was out in [77d67d6](https://github.com/idvorkin/context-grabber/commit/77d67d6); a network that comes up on demand (an on-demand VPN) counts as available in [4be2267](https://github.com/idvorkin/context-grabber/commit/4be2267); verified by `InboxSendPolicyTests` and `InboxTests` with the full `just test` (host); the offline line and the send on the network's return on the phone not yet; #565, a failed send tried again on its own while the app is open (30 s doubling to 5 min) in [5a76646](https://github.com/idvorkin/context-grabber/commit/5a76646), verified by `InboxSendPolicyTests` (host) and a simulator build; the `inbox` backoff line on the phone not yet; #633, a refused file goes again on *Send again* in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294), verified by `ChatFileTests` (host)
+- **Status:** native app only: implemented in [7efc955](https://github.com/idvorkin/context-grabber/commit/7efc955); the retry on a path change after a failed send (Codex on #409) in [22c36ef](https://github.com/idvorkin/context-grabber/commit/22c36ef), and for a change that came while the failing send was out in [77d67d6](https://github.com/idvorkin/context-grabber/commit/77d67d6); a network that comes up on demand (an on-demand VPN) counts as available in [4be2267](https://github.com/idvorkin/context-grabber/commit/4be2267); verified by `InboxSendPolicyTests` and `InboxTests` with the full `just test` (host); the offline line and the send on the network's return on the phone not yet; #565, a failed send tried again on its own while the app is open (30 s doubling to 5 min) in [5a76646](https://github.com/idvorkin/context-grabber/commit/5a76646), verified by `InboxSendPolicyTests` (host) and a simulator build; the `inbox` backoff line on the phone not yet; #633, a refused file goes again on *Send again* in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294), verified by `ChatFileTests` (host); since context-grabber-gp7, the send's timing (waiting for the first path reading, offline skipped, the network's return, a new route's half-second retry, the backoff's 30 s then 60 s and what stops it) is `InboxOutboxTests` (host, an injected clock, timers and transport)
 - **Issues:** [#406](https://github.com/idvorkin/context-grabber/issues/406), [#565](https://github.com/idvorkin/context-grabber/issues/565), [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Share into Grabber Native, and Larry's inbox — phase 2](../superpowers/specs/2026-10-17-native-share-inbox-design.md)
 
@@ -1381,7 +1381,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 487:
 
 - **Summary:** A file the Cockpit won't take says why and stays on the phone
-- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the refusal and the kept file verified on the host by `ChatFileTests`; the problem seen on the simulator against the fake Cockpit, and the refusal checked by the smoke
+- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the refusal and the kept file verified on the host by `ChatFileTests`; the problem seen on the simulator against the fake Cockpit, and the refusal checked by the smoke until context-grabber-gp7; since then the refusal with no message after it is `InboxOutboxTests` (host) and the smoke no longer relaunches for it
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1401,7 +1401,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 488:
 
 - **Summary:** A refused file goes with one tap once the Cockpit takes files
-- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); a resend under the same id, landing once in its thread, verified on the host by `ChatFileTests`, against a stand-in for a Cockpit that takes files; the real Cockpit taking a file not yet
+- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); a resend under the same id, landing once in its thread, verified on the host by `ChatFileTests`, against a stand-in for a Cockpit that takes files; the real Cockpit taking a file not yet; since context-grabber-gp7, *Send again* through the outbox, refused then taken, is `InboxOutboxTests` (host)
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1421,7 +1421,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 489:
 
 - **Summary:** Sending a file again too soon changes nothing
-- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the store and the second refusal verified on the host by `ChatFileTests`; `GRABBER_CHAT_SEND_AGAIN` and its smoke check written, not yet run on the simulator; the tap itself on the phone, not yet
+- **Status:** native app only: implemented in [e149294](https://github.com/idvorkin/context-grabber/commit/e149294); the store and the second refusal verified on the host by `ChatFileTests`; `GRABBER_CHAT_SEND_AGAIN` and its smoke check written, not yet run on the simulator; the tap itself on the phone, not yet; since context-grabber-gp7 the kept file uploading again, refused again with no message, is `InboxOutboxTests` (host) and the smoke check is gone
 - **Issues:** [#633](https://github.com/idvorkin/context-grabber/issues/633)
 - **Spec:** [Chat with Larry in Grabber Native — Attaching a file](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1801,7 +1801,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 508:
 
 - **Summary:** The simulator's outbox stays put with no address
-- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host (real store, counted requests); the simulator smoke's chat section held a message back
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host (real store, counted requests); the simulator smoke's chat section held a message back until context-grabber-gp7; since then the held message, with no retry, is `InboxOutboxTests` (host) instead
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1821,7 +1821,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 509:
 
 - **Summary:** A simulator sends only where it is pointed
-- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host; the simulator smoke's chat section saw the held message reach the fake Cockpit once
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); `ChatCockpitTests` on the host; the simulator smoke's chat section saw the held message reach the fake Cockpit once until context-grabber-gp7; since then a relaunch over the same outbox delivering it once is `InboxOutboxTests` (host) instead
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1841,7 +1841,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 510:
 
 - **Summary:** A simulator with no address says why
-- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the launch line, the held count and the refresh's reason are read from the log in the simulator smoke's chat section; the problem as drawn on the list and in a thread was not looked at
+- **Status:** native app only: implemented in [87bb116](https://github.com/idvorkin/context-grabber/commit/87bb116); the launch line, the held count and the refresh's reason are read from the log in the simulator smoke's chat section; the problem as drawn on the list and in a thread was not looked at; since context-grabber-gp7 the held count is host-only (`ChatCockpitTests`, `InboxOutboxTests`) and the smoke reads the launch line and the list's reason in one launch with nothing waiting
 - **Issues:** [#525](https://github.com/idvorkin/context-grabber/issues/525)
 - **Spec:** [Chat with Larry in Grabber Native — On a simulator](../superpowers/specs/2026-10-25-native-chat-design.md)
 

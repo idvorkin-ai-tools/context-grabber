@@ -15,7 +15,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 670:
 
 - **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
-- **Status:** in progress; bead `context-grabber-3k6`. First move (bead `context-grabber-5eq`, the audit's rank 1): the whiteboard turn's rules are `WhiteboardGhostTurnsTests` on the host, and four `WhiteboardTurnUITests` cases (eight simulator runs with the paper copies) are gone; Mac host run to confirm
+- **Status:** in progress; bead `context-grabber-3k6`. First move (bead `context-grabber-5eq`, the audit's rank 1): the whiteboard turn's rules are `WhiteboardGhostTurnsTests` on the host, and four `WhiteboardTurnUITests` cases (eight simulator runs with the paper copies) are gone. The Inbox's send orchestration (bead `context-grabber-gp7`, the audit's rank 3) is `InboxOutboxTests` on the host, also on Linux, and three of the smoke's chat relaunches are gone (the refused file, *Send again* and the held message's delivery); Mac host run to confirm
 
 #### Use Case:
 - **As Igor,** waiting for a fix to reach his phone
