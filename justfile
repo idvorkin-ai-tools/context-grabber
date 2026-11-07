@@ -69,9 +69,11 @@ native-test-host:
 test-linux:
     scripts/native/test-linux.sh
 
-# GrabberNative.xcodeproj is generated from native/project.yml and not committed
+# GrabberNative.xcodeproj is generated from native/project.yml and not committed. --use-cache skips the generation when
+# the spec and the files it names are what the last one saw (XcodeGen's cache, under ~/.xcodegen/cache per spec path),
+# so a climb doesn't rewrite an unchanged project and make Xcode plan the build again.
 native-project:
-    cd native && xcodegen --quiet
+    cd native && xcodegen --quiet --use-cache
 
 native-build-sim: native-project
     #!/usr/bin/env bash
