@@ -75,7 +75,12 @@ export MARKS=$tmp/marks/locked
 mkdir -p "$MARKS"
 (run locked FAKE_LOCKED=Yes) &
 pid=$!
-sleep 3
+# Until the guard says it's waiting (a tenth of a second at a time, up to 10 s), not a fixed 3 s.
+for _ in $(seq 100); do
+  grep -q "Mac is locked; waiting" "$tmp/logs/build-device.log" 2>/dev/null && break
+  sleep 0.1
+done
+sleep 1  # and a second of it, for "starts no build" to mean something
 check "the guard is waiting for the Mac to unlock" 'grep -q "Mac is locked; waiting" "$tmp/logs/build-device.log"'
 check "a locked Mac starts no build" '[ ! -e "$MARKS/build" ]'
 # The waiting guard and its wrappers carry the fake device or this test's directory on their command lines.
