@@ -208,12 +208,15 @@ start_cockpit() {  # <port> <seconds POST /chat is held>
   kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $1" >&2; return 1; }
 }
 xcodebuild_sim() {  # <log name> <done line> <xcodebuild arguments...>
-  local name=$1 done=$2
+  local name=$1 done=$2 packages=()
   shift 2
+  # A run of what this climb just built: its packages were resolved by that build minutes ago, so don't ask the remotes
+  # again. A build itself still resolves, so a moved BugKit or ThinkACard pin is fetched.
+  case " $* " in *" test-without-building "*) packages=(-skipPackageUpdates) ;; esac
   scripts/native/xcodebuild-log.sh "ladder-$name" "$done" \
     xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
     -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
-    GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" "$@"
+    GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" ${packages[@]+"${packages[@]}"} "$@"
 }
 only_testing() { for c in "$@"; do printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c"; done; }
 step() {  # <label> <command...>: times one step of rung 2
