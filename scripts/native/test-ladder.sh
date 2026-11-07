@@ -227,7 +227,7 @@ step() {  # <label> <command...>: times one step of rung 2
 }
 
 chat_classes() {
-  start_cockpit "${CHAT_PORT:-8798}" "${FAKE_COCKPIT_NEW_DELAY:-3}" || return
+  start_cockpit "${CHAT_PORT:-8798}" "${FAKE_COCKPIT_NEW_DELAY:-2}" || return
   scripts/native/fake-bridge.py "${CHAT_BRIDGE_PORT:-8797}" "$(mktemp -t fake-bridge)" >/dev/null 2>&1 &
   bridge=$!
   disown

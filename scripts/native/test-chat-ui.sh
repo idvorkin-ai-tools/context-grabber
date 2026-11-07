@@ -11,7 +11,7 @@ udid=$1
 port=${CHAT_PORT:-8798}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
-FAKE_COCKPIT_NEW_DELAY=${FAKE_COCKPIT_NEW_DELAY:-3} scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
+FAKE_COCKPIT_NEW_DELAY=${FAKE_COCKPIT_NEW_DELAY:-2} scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
 cockpit=$!
 bridge_port=${CHAT_BRIDGE_PORT:-8797}
 scripts/native/fake-bridge.py "$bridge_port" "$(mktemp -t fake-bridge)" >/dev/null 2>&1 &
