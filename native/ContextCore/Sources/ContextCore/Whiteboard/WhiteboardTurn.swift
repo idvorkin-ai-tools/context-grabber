@@ -109,12 +109,20 @@ public enum WhiteboardTurn {
     return request
   }
 
-  public static func answer(status: Int?, body: Data?, error: String? = nil) -> Answer {
+  /// Whether a label has letters to draw in a face. The app's is `hasLetters` (CoreText's outlines); a test hands in
+  /// its own, so the parse rules run where there are no fonts (`just test-linux`).
+  public typealias Lettering = (String, Face) -> Bool
+
+  /// `lettering` decides which labels are kept; only a test passes one.
+  public static func answer(
+    status: Int?, body: Data?, error: String? = nil, lettering: Lettering = hasLetters
+  ) -> Answer {
     guard let status else { return .away(reason: error ?? "no answer") }
     if status == 429 { return .tooSoon }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, let json, json["ok"] as? Bool == true {
-      return .shapes(((json["shapes"] as? [Any] ?? []) + (json["strokes"] as? [Any] ?? [])).compactMap(anyShape))
+      let all = (json["shapes"] as? [Any] ?? []) + (json["strokes"] as? [Any] ?? [])
+      return .shapes(all.compactMap { anyShape($0, lettering: lettering) })
     }
     let reason = (json?["error"] as? String) ?? "HTTP \(status)"
     if (400..<500).contains(status) { return .refused(status: status, reason: reason) }
@@ -123,9 +131,9 @@ public enum WhiteboardTurn {
 
   /// A shape in either format the Cockpit sends: `kind` + `points`, or a stroke from the ghost endpoint. Both have a
   /// `line` and an `arrow`, told apart by their points.
-  static func anyShape(_ json: Any) -> Shape? {
+  static func anyShape(_ json: Any, lettering: Lettering = hasLetters) -> Shape? {
     guard let json = json as? [String: Any] else { return nil }
-    return shape(json) ?? shapeJSON(stroke: json).flatMap(shape)
+    return shape(json, lettering: lettering) ?? shapeJSON(stroke: json).flatMap { shape($0, lettering: lettering) }
   }
 
   /// A stroke from the ghost endpoint as a shape's JSON, so `shape` checks it the same way; nil for a kind it doesn't
@@ -177,7 +185,7 @@ public enum WhiteboardTurn {
   }
 
   /// One shape from the answer; nil for a kind it doesn't know, too few points to draw, or a label with no outlines.
-  static func shape(_ json: [String: Any]) -> Shape? {
+  static func shape(_ json: [String: Any], lettering: Lettering = hasLetters) -> Shape? {
     guard let kind = (json["kind"] as? String).flatMap(Shape.Kind.init(rawValue:)) else { return nil }
     let points = (json["points"] as? [[Any]] ?? []).compactMap { pair -> CGPoint? in
       guard pair.count == 2, let x = number(pair[0]), let y = number(pair[1]) else { return nil }
@@ -186,9 +194,7 @@ public enum WhiteboardTurn {
     let text = (json["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
     let face = (json["font"] as? String).flatMap(Face.init(rawValue:)) ?? .print
     if kind == .text {
-      guard !points.isEmpty, let text, !glyphLines(text, topLeft: .zero, height: 28, face: face).isEmpty else {
-        return nil
-      }
+      guard !points.isEmpty, let text, lettering(text, face) else { return nil }
     } else {
       guard points.count >= 2 else { return nil }
     }
@@ -250,6 +256,11 @@ public enum WhiteboardTurn {
       let top = CGPoint(x: p[0].x, y: p[0].y + ascent(shape.face) * (size - height))
       return glyphLines(shape.text ?? "", topLeft: top, height: height, face: shape.face)
     }
+  }
+
+  /// Whether `text` has an outline to draw in `face`: an emoji alone has none, so its ghost would be nothing to see.
+  public static func hasLetters(_ text: String, _ face: Face) -> Bool {
+    !glyphLines(text, topLeft: .zero, height: 28, face: face).isEmpty
   }
 
   /// A label's letter height on the board: never under 8 points, so it stays readable.
@@ -370,8 +381,8 @@ public enum WhiteboardTurn {
       return out
     }
   #else
-    // Linux (just test-linux) has no fonts: a label has no outline there, so a text shape is dropped. The label tests
-    // run on the Mac only.
+    // Linux (just test-linux) has no fonts: a label has no outline there, so the app's `hasLetters` drops every text
+    // shape. The parse tests hand `answer` their own lettering; the outline tests run on the Mac only.
     static func ascent(_ face: Face) -> CGFloat { 0 }
     static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] { [] }
   #endif

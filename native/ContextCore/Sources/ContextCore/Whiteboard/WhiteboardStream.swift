@@ -47,7 +47,7 @@ public struct WhiteboardStream: Sendable {
       reason = error
       return nil
     }
-    guard let shape = WhiteboardTurn.shapeJSON(stroke: json).flatMap(WhiteboardTurn.shape) else { return nil }
+    guard let shape = WhiteboardTurn.shapeJSON(stroke: json).flatMap({ WhiteboardTurn.shape($0) }) else { return nil }
     shapes.append(shape)
     return shape
   }
