@@ -44,15 +44,14 @@ final class WhiteboardTurnUITests: XCTestCase {
   }
 
   private func wait(_ button: XCUIElement, label: String, timeout: TimeInterval) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: button)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), button, timeout: timeout)
   }
 
   /// How many strokes the board holds, from the Send button's label.
   private func wait(_ app: XCUIApplication, strokes: Int) {
-    let send = app.buttons["whiteboard-send"]
-    expectation(for: NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), evaluatedWith: send)
-    waitForExpectations(timeout: 8)
+    waitUntil(
+      NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), app.buttons["whiteboard-send"],
+      timeout: 8)
   }
 
   func testSpeakingOnAnEmptyBoardBringsAGhostWithoutAStroke() throws {

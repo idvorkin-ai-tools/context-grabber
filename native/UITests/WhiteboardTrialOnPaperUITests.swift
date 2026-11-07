@@ -26,8 +26,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
   }
 
   private func waitFor(_ element: XCUIElement, label: String, timeout: TimeInterval = 8) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func keep(_ app: XCUIApplication, _ name: String) {
