@@ -39,9 +39,8 @@ if [ "$given" -eq 0 ]; then
   while IFS= read -r f; do changed+=("$f"); done < <({ git diff --name-only "$fork"; git ls-files --others --exclude-standard; } | sort -u)
 fi
 
-# The areas' classes. The suite scripts hold what each area runs in full; ChatComposeClearsUITests is in no suite and
-# needs no fake, so it goes with the other classes.
-chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests ChatComposeClearsUITests"
+# The areas' classes. The suite scripts hold what each area runs in full.
+chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
 whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperPasteUITests WhiteboardPasteOnPaperUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnOnPaperUITests WhiteboardTurnUITests"
 
 classes=()
@@ -102,7 +101,6 @@ chat=() whiteboard=() other=()
 if [ "${#classes[@]}" -gt 0 ]; then
   while IFS= read -r c; do
     case $c in
-      ChatComposeClearsUITests) other+=("$c") ;;
       Chat*) chat+=("$c") ;;
       Whiteboard*) whiteboard+=("$c") ;;
       *) other+=("$c") ;;

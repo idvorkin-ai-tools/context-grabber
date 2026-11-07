@@ -79,7 +79,7 @@ says "chat code: the host rung" "rung 1 Host: ContextCore's tests and the script
 says "chat code: the Mac build" "rung 1.5 Mac: the Catalyst build"
 says "chat code: the simulator build" "rung 2 Simulator: the build with its UI tests"
 says "chat code: chat's classes" "rung 2 UI tests (chat, fake Cockpit and bridge): $chat_all"
-says "chat code: the class with no fake runs apart" "rung 2 UI tests: ChatComposeClearsUITests"
+never "chat code: no class runs apart" "rung 2 UI tests: "
 never "chat code: no whiteboard" "Whiteboard"
 never "chat code: no suite without --full" "rung 2 full"
 
