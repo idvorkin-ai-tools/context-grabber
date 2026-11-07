@@ -51,18 +51,13 @@ public enum ChatLinks {
 
   /// Every link written out with `http://` or `https://`, in the order written, repeats kept.
   public static func found(in text: String) -> [ChatLink] {
-    guard let detector = makeDetector() else { return [] }
-    return found(in: text, detector)
+    guard let finder = Finder() else { return [] }
+    return found(in: text, finder)
   }
 
-  private static func makeDetector() -> NSDataDetector? {
-    try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-  }
-
-  private static func found(in text: String, _ detector: NSDataDetector) -> [ChatLink] {
-    let ns = text as NSString
-    return detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).compactMap { match in
-      let written = trimmed(ns.substring(with: match.range))
+  private static func found(in text: String, _ finder: Finder) -> [ChatLink] {
+    finder.written(in: text).compactMap { match in
+      let written = trimmed(match)
       let lower = written.lowercased()
       guard lower.hasPrefix("https://") || lower.hasPrefix("http://"), let url = URL(string: written),
         let host = url.host?.lowercased(), !host.isEmpty
@@ -73,16 +68,72 @@ public enum ChatLinks {
 
   /// A thread's links, newest message first, one per page (the newest one written).
   public static func inThread(_ messages: [ChatMessage]) -> [ChatLink] {
-    guard let detector = makeDetector() else { return [] }
+    guard let finder = Finder() else { return [] }
     var seen = Set<String>()
     var out: [ChatLink] = []
     for message in messages.reversed() where !message.isError {
-      for link in found(in: message.text, detector) where seen.insert(link.id).inserted {
+      for link in found(in: message.text, finder) where seen.insert(link.id).inserted {
         out.append(link)
       }
     }
     return out
   }
+
+  #if canImport(Darwin)
+    /// What NSDataDetector calls a link, as written.
+    private struct Finder {
+      let detector: NSDataDetector
+
+      init?() {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
+          return nil
+        }
+        self.detector = detector
+      }
+
+      func written(in text: String) -> [String] {
+        let ns = text as NSString
+        return detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).map {
+          ns.substring(with: $0.range)
+        }
+      }
+    }
+  #else
+    /// Linux (just test-linux): NSDataDetector is Darwin Foundation only, so a stand-in finds each `http://` or
+    /// `https://` that starts a word and runs to the next space or angle bracket; `trimmed` then drops what ends the
+    /// sentence, as it does for the detector. The same tests run on both, but only the Mac's say the app is right.
+    /// ponytail: a link the detector finds without a scheme never counts anyway; a link with a space in it would need
+    /// the detector's own rules.
+    private struct Finder {
+      init?() {}
+
+      func written(in text: String) -> [String] {
+        var out: [String] = []
+        let chars = Array(text)
+        var i = 0
+        while i < chars.count {
+          let startsWord = i == 0 || !(chars[i - 1].isLetter || chars[i - 1].isNumber)
+          if startsWord, let scheme = Self.scheme(chars, at: i) {
+            var end = i + scheme
+            while end < chars.count, !chars[end].isWhitespace, !"<>\"".contains(chars[end]) { end += 1 }
+            if end > i + scheme { out.append(String(chars[i..<end])) }
+            i = end
+          } else {
+            i += 1
+          }
+        }
+        return out
+      }
+
+      /// How long the `http://` or `https://` at `i` is, in any case.
+      private static func scheme(_ chars: [Character], at i: Int) -> Int? {
+        for prefix in ["https://", "http://"] where i + prefix.count <= chars.count {
+          if String(chars[i..<(i + prefix.count)]).lowercased() == prefix { return prefix.count }
+        }
+        return nil
+      }
+    }
+  #endif
 
   /// The strip's chips, and what *All links* adds past them.
   public static func strip(_ links: [ChatLink]) -> (shown: [ChatLink], more: Int) {

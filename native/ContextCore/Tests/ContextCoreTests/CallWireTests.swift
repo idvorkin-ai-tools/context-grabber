@@ -125,7 +125,8 @@ final class CallProtocolTests: XCTestCase {
     XCTAssertEqual(
       object(CallProtocol.startFrame(backend: .eleven, location: here))["location"] as? NSDictionary, fields)
     XCTAssertNil(object(CallProtocol.startFrame(backend: .eleven))["location"])
-    let frame = NSMutableDictionary(dictionary: fields)
+    // mutableCopy, not init(dictionary:): Linux Foundation has no NSDictionary initializer of that shape.
+    let frame = fields.mutableCopy() as! NSMutableDictionary
     frame["type"] = "location"
     XCTAssertEqual(object(CallProtocol.locationFrame(here)), frame)
     let nowhere = CallLocation(lat: 1, lon: 2, accuracyM: nil, at: "t", place: nil)

@@ -5,6 +5,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// One upload: a page of one stream's records.
 public struct ArchiveBatch {
   public var stream: String

@@ -1,8 +1,11 @@
 //  Stories 437, 439, 529, 532–534: the trial on paper's arithmetic.
 
 import ContextCore
-import CoreGraphics
 import XCTest
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class PaperProbeTests: XCTestCase {
   private let oldInk = CGRect(x: 10_100, y: 9_900, width: 300, height: 500)

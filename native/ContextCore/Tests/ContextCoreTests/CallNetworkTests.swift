@@ -2,6 +2,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// #440, #439, story 209: the network a call ran on, and the error a lost socket gave, as log fields.
 final class CallNetworkTests: XCTestCase {
   func testAPathReadsAsItsStatusInterfacesAndCost() {

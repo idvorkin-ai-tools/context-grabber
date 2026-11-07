@@ -2,6 +2,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// Time moved by hand: `advance` fires every timer that falls due, in order, including ones scheduled meanwhile.
 final class FakeScheduler: CallScheduler {
   final class Timer: CallTimer {

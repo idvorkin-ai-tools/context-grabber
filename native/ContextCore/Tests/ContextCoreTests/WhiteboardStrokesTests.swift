@@ -1,10 +1,17 @@
-import CoreGraphics
 import Foundation
-import ImageIO
-import UniformTypeIdentifiers
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(ImageIO)
+  import CoreGraphics
+  import ImageIO
+  import UniformTypeIdentifiers
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 /// Story 419 (cockpit-f7c): the board's strokes go to the Cockpit before each picture, in board points, with ids the
 /// Cockpit can tell apart across sends.
@@ -123,132 +130,138 @@ final class WhiteboardStrokesTests: XCTestCase {
 
   // MARK: Through the outbox (Send to Larry)
 
-  /// A 1 x 1 PNG: enough for the sender's image rules.
-  private func png() throws -> Data {
-    let context = try XCTUnwrap(
-      CGContext(
-        data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-    let image = try XCTUnwrap(context.makeImage())
-    let out = NSMutableData()
-    let destination = try XCTUnwrap(CGImageDestinationCreateWithData(out, UTType.png.identifier as CFString, 1, nil))
-    CGImageDestinationAddImage(destination, image, nil)
-    XCTAssertTrue(CGImageDestinationFinalize(destination))
-    return out as Data
-  }
-
-  func testStrokesWaitBesideThePictureAndGoBeforeItWhateverTheCockpitSays() async throws {
-    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
-    defer { try? FileManager.default.removeItem(at: dir) }
-    let store = InboxStore(directory: dir)
-    var draft = InboxDraft()
-    draft.image = try png()
-    draft.text = "Board, Nov 3"
-    draft.whiteboard = WhiteboardPicture(board: "b1", title: "Board, Nov 3", rect: frame, scale: 2, pictureID: "p1")
-    draft.strokes = try JSONSerialization.data(
-      withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
-    let item = try draft.save(to: store, at: 1, id: "m1")
-    XCTAssertEqual(item.strokesFile, "m1.strokes")
-    XCTAssertEqual(store.item("m1")?.strokesFile, "m1.strokes", "the file's name survives the outbox")
-    XCTAssertNotNil(store.strokes(of: item))
-    XCTAssertEqual(store.items().items.map(\.id), ["m1"])
-    XCTAssertEqual(store.items().unreadable, [], "the strokes beside an item are not an unreadable item")
-
-    let calls = Calls()
-    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
-      let url = try XCTUnwrap(request.url)
-      await calls.add(url.path, body: request.httpBody)
-      let (status, body): (Int, String) =
-        switch url.path {
-        case "/attachments": (200, #"{"ok": true, "ref": "r1"}"#)
-        case "/whiteboard/strokes": (500, "boom")
-        default: (200, #"{"ok": true, "thread": "t1"}"#)
-        }
-      return (
-        Data(body.utf8),
-        try XCTUnwrap(HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil))
-      )
+  #if canImport(ImageIO)
+    /// A 1 x 1 PNG: enough for the sender's image rules.
+    private func png() throws -> Data {
+      let context = try XCTUnwrap(
+        CGContext(
+          data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+      let image = try XCTUnwrap(context.makeImage())
+      let out = NSMutableData()
+      let destination = try XCTUnwrap(CGImageDestinationCreateWithData(out, UTType.png.identifier as CFString, 1, nil))
+      CGImageDestinationAddImage(destination, image, nil)
+      XCTAssertTrue(CGImageDestinationFinalize(destination))
+      return out as Data
     }
-    var lines: [[String: Any]] = []
-    let report = await sender.sendWaiting { _, fields in lines.append(fields) }
-    XCTAssertEqual(report.sent, ["m1"], "a 500 to the strokes never stops the picture")
-    let paths = await calls.paths
-    XCTAssertEqual(paths, ["/attachments", "/whiteboard/strokes", "/chat"], "strokes before the message")
-    let bodies = await calls.bodies
-    let sent = try XCTUnwrap(
-      JSONSerialization.jsonObject(with: try XCTUnwrap(bodies["/whiteboard/strokes"])) as? [String: Any])
-    XCTAssertEqual(sent["board"] as? String, "b1")
-    XCTAssertEqual(sent["picture_id"] as? String, "p1")
-    XCTAssertEqual((sent["strokes"] as? [[String: Any]])?.first?["id"] as? String, "s1")
-    XCTAssertEqual(lines.first?["action"] as? String, "sent")
-    XCTAssertEqual(lines.first?["strokes_ok"] as? Bool, false)
-    XCTAssertEqual(lines.first?["strokes_reason"] as? String, "HTTP 500")
-    XCTAssertEqual(store.items().unreadable, [], "nor once the item is sent")
+  #endif
 
-    try store.delete(try XCTUnwrap(store.item("m1")))
-    XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent("m1.strokes").path))
-  }
+  #if canImport(ImageIO)
+    func testStrokesWaitBesideThePictureAndGoBeforeItWhateverTheCockpitSays() async throws {
+      let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
+      defer { try? FileManager.default.removeItem(at: dir) }
+      let store = InboxStore(directory: dir)
+      var draft = InboxDraft()
+      draft.image = try png()
+      draft.text = "Board, Nov 3"
+      draft.whiteboard = WhiteboardPicture(board: "b1", title: "Board, Nov 3", rect: frame, scale: 2, pictureID: "p1")
+      draft.strokes = try JSONSerialization.data(
+        withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
+      let item = try draft.save(to: store, at: 1, id: "m1")
+      XCTAssertEqual(item.strokesFile, "m1.strokes")
+      XCTAssertEqual(store.item("m1")?.strokesFile, "m1.strokes", "the file's name survives the outbox")
+      XCTAssertNotNil(store.strokes(of: item))
+      XCTAssertEqual(store.items().items.map(\.id), ["m1"])
+      XCTAssertEqual(store.items().unreadable, [], "the strokes beside an item are not an unreadable item")
 
-  // Story 427.
-  func testWithNoNetworkTheBoardWaitsWithItsStrokesAndBothGoLater() async throws {
-    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
-    defer { try? FileManager.default.removeItem(at: dir) }
-    let store = InboxStore(directory: dir)
-    var draft = InboxDraft()
-    draft.image = try png()
-    draft.whiteboard = WhiteboardPicture(board: "b1", title: "T", rect: frame, scale: 2, pictureID: "p1")
-    draft.strokes = try JSONSerialization.data(
-      withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
-    _ = try draft.save(to: store, at: 1, id: "m3")
+      let calls = Calls()
+      let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
+        let url = try XCTUnwrap(request.url)
+        await calls.add(url.path, body: request.httpBody)
+        let (status, body): (Int, String) =
+          switch url.path {
+          case "/attachments": (200, #"{"ok": true, "ref": "r1"}"#)
+          case "/whiteboard/strokes": (500, "boom")
+          default: (200, #"{"ok": true, "thread": "t1"}"#)
+          }
+        return (
+          Data(body.utf8),
+          try XCTUnwrap(HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil))
+        )
+      }
+      var lines: [[String: Any]] = []
+      let report = await sender.sendWaiting { _, fields in lines.append(fields) }
+      XCTAssertEqual(report.sent, ["m1"], "a 500 to the strokes never stops the picture")
+      let paths = await calls.paths
+      XCTAssertEqual(paths, ["/attachments", "/whiteboard/strokes", "/chat"], "strokes before the message")
+      let bodies = await calls.bodies
+      let sent = try XCTUnwrap(
+        JSONSerialization.jsonObject(with: try XCTUnwrap(bodies["/whiteboard/strokes"])) as? [String: Any])
+      XCTAssertEqual(sent["board"] as? String, "b1")
+      XCTAssertEqual(sent["picture_id"] as? String, "p1")
+      XCTAssertEqual((sent["strokes"] as? [[String: Any]])?.first?["id"] as? String, "s1")
+      XCTAssertEqual(lines.first?["action"] as? String, "sent")
+      XCTAssertEqual(lines.first?["strokes_ok"] as? Bool, false)
+      XCTAssertEqual(lines.first?["strokes_reason"] as? String, "HTTP 500")
+      XCTAssertEqual(store.items().unreadable, [], "nor once the item is sent")
 
-    let offline = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { _ in
-      throw URLError(.notConnectedToInternet)
+      try store.delete(try XCTUnwrap(store.item("m1")))
+      XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent("m1.strokes").path))
     }
-    let away = await offline.sendWaiting { _, _ in }
-    XCTAssertEqual(away.sent, [])
-    let waiting = try XCTUnwrap(store.item("m3"))
-    XCTAssertEqual(waiting.status, .waiting)
-    XCTAssertNotNil(store.strokes(of: waiting), "the strokes are still beside the picture")
 
-    let calls = Calls()
-    let back = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
-      let url = try XCTUnwrap(request.url)
-      await calls.add(url.path, body: nil)
-      let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
-      return (
-        Data(body.utf8), try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
-      )
-    }
-    let report = await back.sendWaiting { _, _ in }
-    XCTAssertEqual(report.sent, ["m3"])
-    let paths = await calls.paths
-    XCTAssertEqual(paths, ["/attachments", "/whiteboard/strokes", "/chat"])
-  }
+    // Story 427.
+    func testWithNoNetworkTheBoardWaitsWithItsStrokesAndBothGoLater() async throws {
+      let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
+      defer { try? FileManager.default.removeItem(at: dir) }
+      let store = InboxStore(directory: dir)
+      var draft = InboxDraft()
+      draft.image = try png()
+      draft.whiteboard = WhiteboardPicture(board: "b1", title: "T", rect: frame, scale: 2, pictureID: "p1")
+      draft.strokes = try JSONSerialization.data(
+        withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
+      _ = try draft.save(to: store, at: 1, id: "m3")
 
-  func testAPictureWithoutStrokesSendsAsBefore() async throws {
-    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
-    defer { try? FileManager.default.removeItem(at: dir) }
-    let store = InboxStore(directory: dir)
-    var draft = InboxDraft()
-    draft.image = try png()
-    draft.whiteboard = WhiteboardPicture(board: "b1", title: "T", rect: frame, scale: 2, pictureID: "p1")
-    let item = try draft.save(to: store, at: 1, id: "m2")
-    XCTAssertNil(item.strokesFile)
-    let calls = Calls()
-    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
-      let url = try XCTUnwrap(request.url)
-      await calls.add(url.path, body: nil)
-      let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
-      return (
-        Data(body.utf8), try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
-      )
+      let offline = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { _ in
+        throw URLError(.notConnectedToInternet)
+      }
+      let away = await offline.sendWaiting { _, _ in }
+      XCTAssertEqual(away.sent, [])
+      let waiting = try XCTUnwrap(store.item("m3"))
+      XCTAssertEqual(waiting.status, .waiting)
+      XCTAssertNotNil(store.strokes(of: waiting), "the strokes are still beside the picture")
+
+      let calls = Calls()
+      let back = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
+        let url = try XCTUnwrap(request.url)
+        await calls.add(url.path, body: nil)
+        let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
+        return (
+          Data(body.utf8),
+          try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
+        )
+      }
+      let report = await back.sendWaiting { _, _ in }
+      XCTAssertEqual(report.sent, ["m3"])
+      let paths = await calls.paths
+      XCTAssertEqual(paths, ["/attachments", "/whiteboard/strokes", "/chat"])
     }
-    var lines: [[String: Any]] = []
-    _ = await sender.sendWaiting { _, fields in lines.append(fields) }
-    let paths = await calls.paths
-    XCTAssertEqual(paths, ["/attachments", "/chat"])
-    XCTAssertNil(lines.first?["strokes_ok"])
-  }
+
+    func testAPictureWithoutStrokesSendsAsBefore() async throws {
+      let dir = FileManager.default.temporaryDirectory.appendingPathComponent("inbox-\(UUID().uuidString)")
+      defer { try? FileManager.default.removeItem(at: dir) }
+      let store = InboxStore(directory: dir)
+      var draft = InboxDraft()
+      draft.image = try png()
+      draft.whiteboard = WhiteboardPicture(board: "b1", title: "T", rect: frame, scale: 2, pictureID: "p1")
+      let item = try draft.save(to: store, at: 1, id: "m2")
+      XCTAssertNil(item.strokesFile)
+      let calls = Calls()
+      let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads()) { request in
+        let url = try XCTUnwrap(request.url)
+        await calls.add(url.path, body: nil)
+        let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
+        return (
+          Data(body.utf8),
+          try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
+        )
+      }
+      var lines: [[String: Any]] = []
+      _ = await sender.sendWaiting { _, fields in lines.append(fields) }
+      let paths = await calls.paths
+      XCTAssertEqual(paths, ["/attachments", "/chat"])
+      XCTAssertNil(lines.first?["strokes_ok"])
+    }
+  #endif
 }
 
 /// The board-to-thread memory on its own defaults, so one test's board never lands on another's thread.

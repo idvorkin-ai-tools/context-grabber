@@ -3,9 +3,16 @@
 //  over chat (`WhiteboardMarks`).
 //  Here: the request, the answer, and each shape as the ink lines that draw it on the board.
 
-import CoreGraphics
-import CoreText
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+  import CoreText
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 public enum WhiteboardTurn {
   /// Whose marks: Claude's ghosts after a pause or spoken words, or Larry's from his chat thread.
@@ -282,82 +289,90 @@ public enum WhiteboardTurn {
     return out
   }
 
-  /// How far a label's baseline sits below its top, as a share of its size.
-  static func ascent(_ face: Face) -> CGFloat {
-    CTFontGetAscent(CTFontCreateWithName(face.fontName as CFString, 100, nil)) / 100
-  }
-
-  /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
-  static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] {
-    let font = CTFontCreateWithName(face.fontName as CFString, height, nil)
-    let line = CTLineCreateWithAttributedString(
-      NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
-    let baseline = ascent(face) * height
-    var out: [[CGPoint]] = []
-    for run in (CTLineGetGlyphRuns(line) as? [CTRun]) ?? [] {
-      let count = CTRunGetGlyphCount(run)
-      var glyphs = [CGGlyph](repeating: 0, count: count)
-      var positions = [CGPoint](repeating: .zero, count: count)
-      CTRunGetGlyphs(run, CFRange(location: 0, length: count), &glyphs)
-      CTRunGetPositions(run, CFRange(location: 0, length: count), &positions)
-      // CoreText's fallback for a character Helvetica lacks: the run's glyph ids index the run's own font.
-      // swiftlint:disable:next force_cast
-      let runFont = (CTRunGetAttributes(run) as NSDictionary)[kCTFontAttributeName] as! CTFont
-      for (glyph, at) in zip(glyphs, positions) {
-        guard let path = CTFontCreatePathForGlyph(runFont, glyph, nil) else { continue }
-        // Glyphs are drawn y-up from the baseline; the board is y-down from the label's top.
-        let place = { (q: CGPoint) in CGPoint(x: topLeft.x + at.x + q.x, y: topLeft.y + baseline - q.y) }
-        out += flatten(path).map { $0.map(place) }
-      }
+  #if canImport(CoreText)
+    /// How far a label's baseline sits below its top, as a share of its size.
+    static func ascent(_ face: Face) -> CGFloat {
+      CTFontGetAscent(CTFontCreateWithName(face.fontName as CFString, 100, nil)) / 100
     }
-    return out
-  }
 
-  /// A path's subpaths as polylines, curves sampled in eight steps.
-  static func flatten(_ path: CGPath) -> [[CGPoint]] {
-    var out: [[CGPoint]] = []
-    var current: [CGPoint] = []
-    var start = CGPoint.zero
-    let steps = 8
-    path.applyWithBlock { element in
-      let e = element.pointee
-      // A subpath that goes on after a close starts where the last one started.
-      if current.isEmpty, e.type != .moveToPoint { current = [start] }
-      let last = current.last ?? start
-      switch e.type {
-      case .moveToPoint:
-        if current.count > 1 { out.append(current) }
-        start = e.points[0]
-        current = [start]
-      case .addLineToPoint:
-        current.append(e.points[0])
-      case .addQuadCurveToPoint:
-        let (c, end) = (e.points[0], e.points[1])
-        for i in 1...steps {
-          let t = CGFloat(i) / CGFloat(steps)
-          let u = 1 - t
-          current.append(
-            CGPoint(
-              x: u * u * last.x + 2 * u * t * c.x + t * t * end.x, y: u * u * last.y + 2 * u * t * c.y + t * t * end.y))
+    /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
+    static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] {
+      let font = CTFontCreateWithName(face.fontName as CFString, height, nil)
+      let line = CTLineCreateWithAttributedString(
+        NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
+      let baseline = ascent(face) * height
+      var out: [[CGPoint]] = []
+      for run in (CTLineGetGlyphRuns(line) as? [CTRun]) ?? [] {
+        let count = CTRunGetGlyphCount(run)
+        var glyphs = [CGGlyph](repeating: 0, count: count)
+        var positions = [CGPoint](repeating: .zero, count: count)
+        CTRunGetGlyphs(run, CFRange(location: 0, length: count), &glyphs)
+        CTRunGetPositions(run, CFRange(location: 0, length: count), &positions)
+        // CoreText's fallback for a character Helvetica lacks: the run's glyph ids index the run's own font.
+        // swiftlint:disable:next force_cast
+        let runFont = (CTRunGetAttributes(run) as NSDictionary)[kCTFontAttributeName] as! CTFont
+        for (glyph, at) in zip(glyphs, positions) {
+          guard let path = CTFontCreatePathForGlyph(runFont, glyph, nil) else { continue }
+          // Glyphs are drawn y-up from the baseline; the board is y-down from the label's top.
+          let place = { (q: CGPoint) in CGPoint(x: topLeft.x + at.x + q.x, y: topLeft.y + baseline - q.y) }
+          out += flatten(path).map { $0.map(place) }
         }
-      case .addCurveToPoint:
-        let (c1, c2, end) = (e.points[0], e.points[1], e.points[2])
-        for i in 1...steps {
-          let t = CGFloat(i) / CGFloat(steps)
-          let u = 1 - t
-          let x = u * u * u * last.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * end.x
-          let y = u * u * u * last.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * end.y
-          current.append(CGPoint(x: x, y: y))
-        }
-      case .closeSubpath:
-        current.append(start)
-        if current.count > 1 { out.append(current) }
-        current = []
-      @unknown default:
-        break
       }
+      return out
     }
-    if current.count > 1 { out.append(current) }
-    return out
-  }
+
+    /// A path's subpaths as polylines, curves sampled in eight steps.
+    static func flatten(_ path: CGPath) -> [[CGPoint]] {
+      var out: [[CGPoint]] = []
+      var current: [CGPoint] = []
+      var start = CGPoint.zero
+      let steps = 8
+      path.applyWithBlock { element in
+        let e = element.pointee
+        // A subpath that goes on after a close starts where the last one started.
+        if current.isEmpty, e.type != .moveToPoint { current = [start] }
+        let last = current.last ?? start
+        switch e.type {
+        case .moveToPoint:
+          if current.count > 1 { out.append(current) }
+          start = e.points[0]
+          current = [start]
+        case .addLineToPoint:
+          current.append(e.points[0])
+        case .addQuadCurveToPoint:
+          let (c, end) = (e.points[0], e.points[1])
+          for i in 1...steps {
+            let t = CGFloat(i) / CGFloat(steps)
+            let u = 1 - t
+            current.append(
+              CGPoint(
+                x: u * u * last.x + 2 * u * t * c.x + t * t * end.x, y: u * u * last.y + 2 * u * t * c.y + t * t * end.y
+              ))
+          }
+        case .addCurveToPoint:
+          let (c1, c2, end) = (e.points[0], e.points[1], e.points[2])
+          for i in 1...steps {
+            let t = CGFloat(i) / CGFloat(steps)
+            let u = 1 - t
+            let x = u * u * u * last.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * end.x
+            let y = u * u * u * last.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * end.y
+            current.append(CGPoint(x: x, y: y))
+          }
+        case .closeSubpath:
+          current.append(start)
+          if current.count > 1 { out.append(current) }
+          current = []
+        @unknown default:
+          break
+        }
+      }
+      if current.count > 1 { out.append(current) }
+      return out
+    }
+  #else
+    // Linux (just test-linux) has no fonts: a label has no outline there, so a text shape is dropped. The label tests
+    // run on the Mac only.
+    static func ascent(_ face: Face) -> CGFloat { 0 }
+    static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] { [] }
+  #endif
 }

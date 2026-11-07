@@ -1,7 +1,14 @@
-import UniformTypeIdentifiers
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(UniformTypeIdentifiers)
+  import UniformTypeIdentifiers
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 /// #673, stories 544–545: the shared link, from what the other app hands over to the message the Cockpit gets.
 final class ShareLinkTests: XCTestCase {
@@ -16,93 +23,99 @@ final class ShareLinkTests: XCTestCase {
 
   override func tearDown() { try? FileManager.default.removeItem(at: dir) }
 
-  private func provider(_ item: NSSecureCoding, _ type: UTType) -> NSItemProvider {
-    NSItemProvider(item: item, typeIdentifier: type.identifier)
-  }
+  #if canImport(UniformTypeIdentifiers)
+    private func provider(_ item: NSSecureCoding, _ type: UTType) -> NSItemProvider {
+      NSItemProvider(item: item, typeIdentifier: type.identifier)
+    }
+  #endif
 
   // MARK: Story 545: however the other app hands it over
 
-  func testALinkHandedOverAsAURLIsFoundWhole() async throws {
-    let found = await ShareLink.find(in: [provider(try XCTUnwrap(URL(string: page)) as NSURL, .url)])
-    XCTAssertEqual(found?.absoluteString, page)
-  }
-
-  func testAFileFirstDoesNotHideTheWebLinkBehindIt() async throws {
-    let file = URL(fileURLWithPath: "/tmp/page.pdf") as NSURL
-    let found = await ShareLink.find(in: [
-      provider(file, .fileURL), provider(try XCTUnwrap(URL(string: page)) as NSURL, .url),
-    ])
-    XCTAssertEqual(found?.absoluteString, page)
-  }
-
-  func testOnlyAFileIsNoLink() async {
-    let found = await ShareLink.find(in: [provider(URL(fileURLWithPath: "/tmp/page.pdf") as NSURL, .fileURL)])
-    XCTAssertNil(found)
-  }
-
-  func testALinkHandedOverAsWordsOrBytesIsStillALink() async {
-    let words = await ShareLink.find(in: [provider(page as NSString, .url)])
-    XCTAssertEqual(words?.absoluteString, page)
-    let bytes = await ShareLink.find(in: [provider(Data(page.utf8) as NSData, .url)])
-    XCTAssertEqual(bytes?.absoluteString, page)
-  }
-
-  func testAPictureOrTextAloneHasNoLink() async {
-    let found = await ShareLink.find(in: [provider("just words" as NSString, .plainText)])
-    XCTAssertNil(found)
-    let picture = await ShareLink.find(in: [provider(Data([0xFF, 0xD8]) as NSData, .jpeg)])
-    XCTAssertNil(picture)
-    let wordsAroundALink = await ShareLink.find(in: [provider("look at \(page)" as NSString, .plainText)])
-    XCTAssertNil(wordsAroundALink)
-    XCTAssertNil(ShareLink.url(from: "two words"))
-  }
-
-  func testALinkAsPlainWordsBeatsAPictureOrATextAheadOfIt() async {
-    let link = provider(page as NSString, .plainText)
-    let behindPicture = await ShareLink.find(in: [provider(Data([0xFF, 0xD8]) as NSData, .jpeg), link])
-    XCTAssertEqual(behindPicture?.absoluteString, page)
-    let behindTitle = await ShareLink.find(in: [provider("Page title" as NSString, .plainText), link])
-    XCTAssertEqual(behindTitle?.absoluteString, page)
-  }
-
-  /// The spec's "a web link beats anything else shared with it", for a link that comes only as marked-up text. The
-  /// reader stands in for UIKit's text system, which the card brings.
-  func testALinkAsMarkedUpTextBeatsWhateverIsAheadOfIt() async throws {
-    let html = provider(Data(page.utf8) as NSData, .html)
-    let words: (NSItemProvider) async -> String? = { [page] _ in page }
-    let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
-    let ahead = [provider(Data([0xFF, 0xD8]) as NSData, .jpeg), provider("Page title" as NSString, .plainText), mail]
-    for first in ahead {
-      let found = await ShareLink.find(in: [first, html], markedUp: words)
+  #if canImport(UniformTypeIdentifiers)
+    func testALinkHandedOverAsAURLIsFoundWhole() async throws {
+      let found = await ShareLink.find(in: [provider(try XCTUnwrap(URL(string: page)) as NSURL, .url)])
       XCTAssertEqual(found?.absoluteString, page)
     }
-  }
 
-  func testMarkedUpTextThatIsMoreThanALinkIsNoLink() async {
-    let html = provider(Data("x".utf8) as NSData, .html)
-    let found = await ShareLink.find(in: [html]) { [page] _ in "look at \(page)" }
-    XCTAssertNil(found)
-  }
+    func testAFileFirstDoesNotHideTheWebLinkBehindIt() async throws {
+      let file = URL(fileURLWithPath: "/tmp/page.pdf") as NSURL
+      let found = await ShareLink.find(in: [
+        provider(file, .fileURL), provider(try XCTUnwrap(URL(string: page)) as NSURL, .url),
+      ])
+      XCTAssertEqual(found?.absoluteString, page)
+    }
 
-  func testAnAddressThatIsNotAWebLinkDoesNotHideOne() async throws {
-    let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
-    let beforeURL = await ShareLink.find(in: [mail, provider(try XCTUnwrap(URL(string: page)) as NSURL, .url)])
-    XCTAssertEqual(beforeURL?.absoluteString, page)
-    let beforeWords = await ShareLink.find(in: [mail, provider(page as NSString, .plainText)])
-    XCTAssertEqual(beforeWords?.absoluteString, page)
-  }
+    func testOnlyAFileIsNoLink() async {
+      let found = await ShareLink.find(in: [provider(URL(fileURLWithPath: "/tmp/page.pdf") as NSURL, .fileURL)])
+      XCTAssertNil(found)
+    }
 
-  func testAnAddressThatIsNotAWebLinkIsTheLinkWhenNoWebLinkCameWithIt() async throws {
-    let mail = "mailto:igor@example.com"
-    let found = await ShareLink.find(in: [
-      provider(URL(fileURLWithPath: "/tmp/page.pdf") as NSURL, .fileURL),
-      provider(try XCTUnwrap(URL(string: mail)) as NSURL, .url),
-      provider("Page title" as NSString, .plainText),
-    ])
-    XCTAssertEqual(found?.absoluteString, mail)
-    let words = await ShareLink.find(in: [provider(mail as NSString, .plainText)])
-    XCTAssertNil(words)
-  }
+    func testALinkHandedOverAsWordsOrBytesIsStillALink() async {
+      let words = await ShareLink.find(in: [provider(page as NSString, .url)])
+      XCTAssertEqual(words?.absoluteString, page)
+      let bytes = await ShareLink.find(in: [provider(Data(page.utf8) as NSData, .url)])
+      XCTAssertEqual(bytes?.absoluteString, page)
+    }
+
+    func testAPictureOrTextAloneHasNoLink() async {
+      let found = await ShareLink.find(in: [provider("just words" as NSString, .plainText)])
+      XCTAssertNil(found)
+      let picture = await ShareLink.find(in: [provider(Data([0xFF, 0xD8]) as NSData, .jpeg)])
+      XCTAssertNil(picture)
+      let wordsAroundALink = await ShareLink.find(in: [provider("look at \(page)" as NSString, .plainText)])
+      XCTAssertNil(wordsAroundALink)
+      XCTAssertNil(ShareLink.url(from: "two words"))
+    }
+
+    func testALinkAsPlainWordsBeatsAPictureOrATextAheadOfIt() async {
+      let link = provider(page as NSString, .plainText)
+      let behindPicture = await ShareLink.find(in: [provider(Data([0xFF, 0xD8]) as NSData, .jpeg), link])
+      XCTAssertEqual(behindPicture?.absoluteString, page)
+      let behindTitle = await ShareLink.find(in: [provider("Page title" as NSString, .plainText), link])
+      XCTAssertEqual(behindTitle?.absoluteString, page)
+    }
+
+    /// The spec's "a web link beats anything else shared with it", for a link that comes only as marked-up text. The
+    /// reader stands in for UIKit's text system, which the card brings.
+    func testALinkAsMarkedUpTextBeatsWhateverIsAheadOfIt() async throws {
+      let html = provider(Data(page.utf8) as NSData, .html)
+      let words: (NSItemProvider) async -> String? = { [page] _ in page }
+      let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
+      let ahead = [
+        provider(Data([0xFF, 0xD8]) as NSData, .jpeg), provider("Page title" as NSString, .plainText), mail,
+      ]
+      for first in ahead {
+        let found = await ShareLink.find(in: [first, html], markedUp: words)
+        XCTAssertEqual(found?.absoluteString, page)
+      }
+    }
+
+    func testMarkedUpTextThatIsMoreThanALinkIsNoLink() async {
+      let html = provider(Data("x".utf8) as NSData, .html)
+      let found = await ShareLink.find(in: [html]) { [page] _ in "look at \(page)" }
+      XCTAssertNil(found)
+    }
+
+    func testAnAddressThatIsNotAWebLinkDoesNotHideOne() async throws {
+      let mail = provider(try XCTUnwrap(URL(string: "mailto:igor@example.com")) as NSURL, .url)
+      let beforeURL = await ShareLink.find(in: [mail, provider(try XCTUnwrap(URL(string: page)) as NSURL, .url)])
+      XCTAssertEqual(beforeURL?.absoluteString, page)
+      let beforeWords = await ShareLink.find(in: [mail, provider(page as NSString, .plainText)])
+      XCTAssertEqual(beforeWords?.absoluteString, page)
+    }
+
+    func testAnAddressThatIsNotAWebLinkIsTheLinkWhenNoWebLinkCameWithIt() async throws {
+      let mail = "mailto:igor@example.com"
+      let found = await ShareLink.find(in: [
+        provider(URL(fileURLWithPath: "/tmp/page.pdf") as NSURL, .fileURL),
+        provider(try XCTUnwrap(URL(string: mail)) as NSURL, .url),
+        provider("Page title" as NSString, .plainText),
+      ])
+      XCTAssertEqual(found?.absoluteString, mail)
+      let words = await ShareLink.find(in: [provider(mail as NSString, .plainText)])
+      XCTAssertNil(words)
+    }
+  #endif
 
   func testTextThatIsOnlyALinkIsALinkAndTextAroundOneStaysText() {
     XCTAssertEqual(ShareLink.fromText("  \(page)\n")?.absoluteString, page)

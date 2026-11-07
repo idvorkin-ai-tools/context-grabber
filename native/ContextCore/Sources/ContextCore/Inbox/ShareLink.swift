@@ -3,37 +3,42 @@
 //  attachment.
 
 import Foundation
-import UniformTypeIdentifiers
+
+#if canImport(UniformTypeIdentifiers)
+  import UniformTypeIdentifiers
+#endif
 
 public enum ShareLink {
-  /// The first web link any provider holds: as a URL, then as plain words, then as marked-up text whose words are the
-  /// link. Nothing shared ahead of it hides it. With no web link, the first other address that is not a file.
-  /// `markedUp` turns a provider's RTF or HTML into its words: that takes UIKit's text system, so the card brings it.
-  public static func find(
-    in providers: [NSItemProvider], markedUp: (NSItemProvider) async -> String? = { _ in nil }
-  ) async -> URL? {
-    var other: URL?
-    for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
-      guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier),
-        let found = url(from: item)
-      else { continue }
-      if isWeb(found) { return found }
-      if other == nil, !found.isFileURL { other = found }
+  #if canImport(UniformTypeIdentifiers)
+    /// The first web link any provider holds: as a URL, then as plain words, then as marked-up text whose words are the
+    /// link. Nothing shared ahead of it hides it. With no web link, the first other address that is not a file.
+    /// `markedUp` turns a provider's RTF or HTML into its words: that takes UIKit's text system, so the card brings it.
+    public static func find(
+      in providers: [NSItemProvider], markedUp: (NSItemProvider) async -> String? = { _ in nil }
+    ) async -> URL? {
+      var other: URL?
+      for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
+        guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier),
+          let found = url(from: item)
+        else { continue }
+        if isWeb(found) { return found }
+        if other == nil, !found.isFileURL { other = found }
+      }
+      for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
+        guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier),
+          let found = url(from: item), isWeb(found)
+        else { continue }
+        return found
+      }
+      for provider in providers
+      where provider.hasItemConformingToTypeIdentifier(UTType.text.identifier)
+        && !provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier)
+      {
+        if let words = await markedUp(provider), let found = fromText(words) { return found }
+      }
+      return other
     }
-    for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
-      guard let item = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier),
-        let found = url(from: item), isWeb(found)
-      else { continue }
-      return found
-    }
-    for provider in providers
-    where provider.hasItemConformingToTypeIdentifier(UTType.text.identifier)
-      && !provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier)
-    {
-      if let words = await markedUp(provider), let found = fromText(words) { return found }
-    }
-    return other
-  }
+  #endif
 
   /// What a provider's URL item holds, in any of the forms apps register it as. Even a provider made from a URL can
   /// answer with its bytes (seen on the Mac under `swift test`, 2026-11-04), so `as? URL` alone is not enough.

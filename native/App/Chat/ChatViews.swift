@@ -23,20 +23,16 @@ struct ChatListView: View {
     self.logger = logger
   }
 
-  private var live: [ChatSummary] { chat.threads.filter { !$0.done } }
-  private var done: [ChatSummary] { chat.threads.filter(\.done) }
+  private var live: [ChatSummary] { ChatListSelection.live(chat.threads) }
+  private var done: [ChatSummary] { ChatListSelection.done(chat.threads) }
   /// The PRs a wide list's rows show as chips, for their states (#736, option C); none on a narrow list.
   private var listRefs: [String] {
     guard widthClass == .regular else { return [] }
     let shown = (live + (doneOpen ? done : [])).flatMap { (chat.rowLinks[$0.key] ?? []).prefix(ChatLinks.rowLimit) }
     return ChatPRStates.refs(shown)
   }
-  private var looksDone: [ChatSummary] { live.filter(\.looksDone) }
-  /// *Select* is on: live rows tick instead of opening (#599).
-  @State private var selecting = false
-  @State private var picked: Set<String> = []
-  /// What is ticked and still live: a refresh can finish or archive a ticked thread and take its row away.
-  private var pickedLive: [String] { ChatWire.liveKeys(picked, in: chat.threads) }
+  /// Select and Review (#599): what ticks, what *Archive (N)* takes, what shows meanwhile (`ChatListSelection`).
+  @State private var selection = ChatListSelection()
   /// GRABBER_CHAT_SELECT=archive: once the list is read, *Review* and *Archive (N)* tap themselves, for the simulator.
   @State private var selectHook = ProcessInfo.processInfo.environment["GRABBER_CHAT_SELECT"] == "archive"
 
@@ -57,10 +53,10 @@ struct ChatListView: View {
           problem: .grabber(problem, context: "ChatListView.archive", extra: ["cockpit": .string(chat.cockpit)]),
           logger: logger)
       }
-      if !chat.undoArchive.isEmpty {
+      if let line = ChatArchiver.undoLine(chat.undoArchive) {
         let undo = chat.undoArchive
         HStack {
-          Text(undo.count == 1 ? "Archived \"\(undo[0].title)\"" : "Archived \(undo.count) chats").lineLimit(1)
+          Text(line).lineLimit(1)
           Spacer()
           Button("Undo") {
             Task { await chat.setArchived(undo.map(\.key), false, from: "undo") }
@@ -69,9 +65,9 @@ struct ChatListView: View {
         }
         .font(.footnote)
       }
-      if !selecting, !looksDone.isEmpty {
+      if let line = selection.reviewLine(chat.threads) {
         HStack {
-          Text(looksDone.count == 1 ? "1 chat looks done" : "\(looksDone.count) chats look done")
+          Text(line)
           Spacer()
           Button("Review") { review(from: "looks_done") }
             .accessibilityIdentifier("chat-review-done")
@@ -96,14 +92,14 @@ struct ChatListView: View {
       }
       Section {
         ForEach(live) { thread in
-          if !selecting {
+          if !selection.selecting {
             threadLink(thread)
-          } else if !thread.pinned {
+          } else if selection.shows(thread) {
             tickRow(thread)
           }
         }
       }
-      if !done.isEmpty, !selecting {
+      if selection.showsDone(chat.threads) {
         Section {
           DisclosureGroup("Done (\(done.count))", isExpanded: $doneOpen) {
             ForEach(done) { thread in threadLink(thread) }
@@ -141,12 +137,10 @@ struct ChatListView: View {
     .task(id: listRefs) { await chat.watchPRStates(listRefs, from: "list") }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
-        Button(selecting ? "Cancel" : "Select") {
-          picked = []
-          selecting.toggle()
-          if selecting { chat.logAction("select", ["from": "toolbar"]) }
+        Button(selection.toggleTitle) {
+          if selection.toggle() { chat.logAction("select", ["from": "toolbar"]) }
         }
-        .disabled(!selecting && live.allSatisfy(\.pinned))
+        .disabled(!selection.canToggle(chat.threads))
         .accessibilityIdentifier("chat-select")
       }
     }
@@ -171,10 +165,10 @@ struct ChatListView: View {
       .accessibilityIdentifier("chat-new-bar")
     }
     .safeAreaInset(edge: .bottom) {
-      if selecting {
-        Button("Archive (\(pickedLive.count))") { archivePicked() }
+      if selection.selecting {
+        Button(selection.archiveTitle(chat.threads)) { archivePicked() }
           .buttonStyle(.borderedProminent)
-          .disabled(pickedLive.isEmpty)
+          .disabled(!selection.canArchive(chat.threads))
           .padding(.bottom, 8)
           .accessibilityIdentifier("chat-archive-selected")
       }
@@ -192,22 +186,19 @@ struct ChatListView: View {
   }
 
   private func review(from: String) {
-    picked = Set(looksDone.map(\.key))
-    selecting = true
-    chat.logAction("select", ["from": from, "count": picked.count])
+    let count = selection.review(chat.threads)
+    chat.logAction("select", ["from": from, "count": count])
   }
 
   private func archivePicked() {
-    let keys = pickedLive
-    picked = []
-    selecting = false
+    let keys = selection.archivePicked(chat.threads)
     Task { await chat.archiveSelected(keys) }
   }
 
   private func tickRow(_ thread: ChatSummary) -> some View {
-    let ticked = picked.contains(thread.key)
+    let ticked = selection.ticked(thread.key)
     return Button {
-      if ticked { picked.remove(thread.key) } else { picked.insert(thread.key) }
+      selection.tick(thread.key)
     } label: {
       HStack(alignment: .top, spacing: 10) {
         Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
@@ -237,10 +228,12 @@ struct ChatListView: View {
     .accessibilityIdentifier("chat-thread-\(thread.key)")
     // #589: a swipe left archives a live thread, or brings back an archived one.
     .swipeActions {
-      if thread.archived {
+      switch ChatArchiveAction.swipe(thread) {
+      case .unarchive:
         Button("Unarchive") { Task { await chat.setArchived(thread.key, false, from: "swipe") } }.tint(.blue)
-      } else if !thread.done, !thread.pinned {
+      case .archive:
         Button("Archive") { Task { await chat.setArchived(thread.key, true, from: "swipe") } }.tint(.indigo)
+      case nil: EmptyView()
       }
     }
   }
@@ -301,7 +294,7 @@ private struct ThreadRow: View {
         Text(thread.lastLine)
           .font(.subheadline)
           .foregroundStyle(.secondary).lineLimit(2)
-        if thread.looksDone, !thread.done {
+        if thread.showsLooksDone {
           Label("Looks done", systemImage: "checkmark.seal").font(.caption).foregroundStyle(.secondary)
         }
       }
@@ -570,22 +563,17 @@ struct ChatThreadView: View {
     self.logger = logger
   }
 
-  private var key: String? { fixedKey ?? newThread.landed }
+  private var key: String? { newThread.key(fixedKey: fixedKey) }
   /// A new chat's latest first message while it is still only on the phone.
-  private var first: InboxItem? { newThread.sent.flatMap { id in inbox.items.first { $0.id == id } } }
+  private var first: InboxItem? { newThread.first(in: inbox.items) }
   private var messages: [ChatMessage] { key.flatMap { chat.messages[$0] } ?? [] }
   private var answeredBy: String { chat.answeredBy(key) }
   private var pending: [InboxItem] {
-    if let key { return chat.pending(in: key) }
-    return first.map { [$0] } ?? []
+    newThread.pending(fixedKey: fixedKey, items: inbox.items, messages: chat.messages)
   }
   /// A new chat takes its first message's first line as the title, as the Cockpit will.
   private var title: String {
-    guard fixedKey == nil else { return fixedTitle }
-    if let landed = newThread.landed, let known = chat.threads.first(where: { $0.key == landed }) {
-      return known.title
-    }
-    return first.map { ChatSend.title(for: $0) } ?? fixedTitle
+    newThread.title(fixedKey: fixedKey, fixedTitle: fixedTitle, threads: chat.threads, first: first)
   }
   private var target: ChatNewThread.Target {
     ChatNewThread.target(fixedKey: fixedKey, landed: newThread.landed, first: first)
@@ -655,16 +643,16 @@ struct ChatThreadView: View {
         chat: chat, voice: voice, thread: barKey, target: target, answeredBy: answeredBy, logger: logger, first: first,
         quoting: $quoting
       ) {
-        newThread.attempt(at: target)
+        newThread.send(at: target)
       }
     }
     .navigationTitle(title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
-      if let key, let thread = chat.threads.first(where: { $0.key == key }), !thread.pinned {
+      if let key, let action = chat.threads.first(where: { $0.key == key }).flatMap(ChatArchiveAction.menu) {
         ToolbarItem(placement: .topBarTrailing) {
           Menu {
-            if thread.archived {
+            if action == .unarchive {
               Button("Unarchive chat", systemImage: "tray.and.arrow.up") {
                 Task { await chat.setArchived(key, false, from: "menu") }
               }
@@ -686,9 +674,7 @@ struct ChatThreadView: View {
     .onDisappear { if let key { chat.close(key) } }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
     .onChange(of: first?.chatThread) { _, thread in
-      guard newThread.landed == nil, let thread else { return }
-      newThread.land(in: thread)
-      chat.open(thread)
+      if let landed = newThread.firstMoved(to: thread) { chat.open(landed) }
     }
     .onChange(of: messages.last?.id, initial: true) { runHoldHook() }
   }
@@ -1021,8 +1007,8 @@ private struct ComposeBar: View {
   let first: InboxItem?
   /// A message to quote into the bar (#629): taken as soon as it is set.
   @Binding var quoting: ChatMessage?
-  /// A new chat's next first message: a fresh id, now the one the screen follows.
-  var startAttempt: () -> String? = { nil }
+  /// What a Send does (`ChatNewThread.send`): into a thread, a new chat's fresh first message, or nothing yet.
+  var sendAt: () -> ChatNewThread.Send = { .hold }
   @State private var draft = InboxDraft()
   @State private var preview: CGImage?
   @State private var hasImage = UIPasteboard.general.hasImages
@@ -1053,15 +1039,10 @@ private struct ComposeBar: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityIdentifier("chat-voice-notice")
       }
-      if target == .waiting {
-        Text("The next message goes once your first one reaches Larry.").font(.footnote).foregroundStyle(.secondary)
+      if let line = ChatNewThread.barLine(target, first: first) {
+        Text(line).font(.footnote).foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .accessibilityIdentifier("chat-new-waiting")
-      } else if case .refused = target {
-        Text(ChatSend.afterRefusal(of: first)).font(.footnote)
-          .foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .accessibilityIdentifier("chat-new-refused")
+          .accessibilityIdentifier(target == .waiting ? "chat-new-waiting" : "chat-new-refused")
       }
       if let preview {
         HStack {
@@ -1110,7 +1091,7 @@ private struct ComposeBar: View {
           .accessibilityIdentifier("chat-compose")
           .focused($focused)
           .macEnterConfirms {
-            if draft.canAdd && target != .waiting { send() }
+            if ChatNewThread.canSend(target, draftReady: draft.canAdd) { send() }
           }
           .macPastesImage { paste(from: "mac_paste") }
           .id(field)
@@ -1120,7 +1101,7 @@ private struct ComposeBar: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .disabled(!draft.canAdd || target == .waiting)
+        .disabled(!ChatNewThread.canSend(target, draftReady: draft.canAdd))
         .accessibilityLabel("Send")
         .accessibilityIdentifier("chat-send")
       }
@@ -1135,11 +1116,12 @@ private struct ComposeBar: View {
     }
     .onAppear {
       takeWords()
-      guard target == .new else { return }
       // The voice button's new chat records as it opens (#637); the bar's own tap, so words and refusals land here.
-      if chat.takeNewChatVoice() { voice.startNewChat(thread: thread, draft: draft.text) }
+      if ChatNewThread.takesVoiceOnOpen(target), chat.takeNewChatVoice() {
+        voice.startNewChat(thread: thread, draft: draft.text)
+      }
       // A new chat opens with the keyboard up (spec "A new chat", story 262), unless he is talking.
-      if !voice.recording { focused = true }
+      if ChatNewThread.focusesOnOpen(target, recording: voice.recording) { focused = true }
     }
     .onDisappear { voice.cancel(thread: thread, why: "left_thread") }
     .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
@@ -1217,12 +1199,10 @@ private struct ComposeBar: View {
 
   private func send() {
     do {
-      switch target {
+      switch sendAt() {
       case .thread(let key): try chat.send(&draft, thread: key)
-      case .new, .refused:
-        guard let id = startAttempt() else { return }
-        try chat.send(&draft, thread: nil, id: id)
-      case .waiting: return
+      case .start(let id): try chat.send(&draft, thread: nil, id: id)
+      case .hold: return
       }
       // The message took the words heard so far: a recording still going stops, so none come back (#546).
       voice.sent(thread: thread)

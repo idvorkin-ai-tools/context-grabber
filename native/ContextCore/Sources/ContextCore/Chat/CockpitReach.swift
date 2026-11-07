@@ -3,6 +3,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 public enum CockpitReach {
   public static let away = "The Cockpit isn't answering — your messages are kept and go when it does"
 

@@ -89,7 +89,7 @@ struct WhiteboardListView: View {
     .task {
       app.liveWhiteboards = store
       if let id = ProcessInfo.processInfo.environment["GRABBER_PAPER_TRIAL"], let board = store.index.board(id),
-        store.editable(board)
+        store.offersTrial(board)
       {
         tryOnPaper(board)
       }
@@ -157,7 +157,7 @@ struct WhiteboardListView: View {
           Label("Rename", systemImage: "pencil")
         }
       }
-      if store.editable(board) {
+      if store.offersTrial(board) {
         Button {
           tryOnPaper(board)
         } label: {

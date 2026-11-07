@@ -2,7 +2,10 @@
 //  whole, so a file that can never go is said at the pick; a picture goes the way a pasted one does.
 
 import Foundation
-import UniformTypeIdentifiers
+
+#if canImport(UniformTypeIdentifiers)
+  import UniformTypeIdentifiers
+#endif
 
 public struct ChatFile: Equatable, Sendable {
   /// The Cockpit's cap on an attachment.
@@ -56,8 +59,10 @@ public struct ChatFile: Equatable, Sendable {
   /// is refused here too, though a pasted one is shrunk on sending; read it first if photos from Files ever hit this.
   public static func read(_ url: URL, maxBytes: Int = maxBytes) throws -> Picked {
     let name = url.lastPathComponent
-    let scoped = url.startAccessingSecurityScopedResource()
-    defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+    #if canImport(Darwin)
+      let scoped = url.startAccessingSecurityScopedResource()
+      defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+    #endif
     if let bytes = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize, bytes > maxBytes {
       throw Problem.tooBig(name: name, bytes: bytes, limit: maxBytes)
     }
@@ -69,12 +74,15 @@ public struct ChatFile: Equatable, Sendable {
     }
     guard !data.isEmpty else { throw Problem.empty(name: name) }
     guard data.count <= maxBytes else { throw Problem.tooBig(name: name, bytes: data.count, limit: maxBytes) }
-    // The type too, not the bytes alone: ImageIO can read a PDF, which must stay a document.
-    if UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) == true,
-      InboxSend.thumbnail(data, maxPixels: 1) != nil
-    {
-      return .image(data)
-    }
+    #if canImport(UniformTypeIdentifiers)
+      // The type too, not the bytes alone: ImageIO can read a PDF, which must stay a document.
+      if UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) == true,
+        InboxSend.thumbnail(data, maxPixels: 1) != nil
+      {
+        return .image(data)
+      }
+    #endif
+    // Linux (just test-linux) reads no image, so a picture goes as a document there; the Mac tests the picture.
     return .file(ChatFile(name: name, data: data))
   }
 
@@ -88,6 +96,21 @@ public struct ChatFile: Equatable, Sendable {
 
   /// What the upload says it is; the Cockpit goes by the bytes.
   static func mime(name: String) -> String {
-    UTType(filenameExtension: (name as NSString).pathExtension)?.preferredMIMEType ?? "application/octet-stream"
+    #if canImport(UniformTypeIdentifiers)
+      UTType(filenameExtension: (name as NSString).pathExtension)?.preferredMIMEType ?? "application/octet-stream"
+    #else
+      linuxMIME[(name as NSString).pathExtension.lowercased()] ?? "application/octet-stream"
+    #endif
   }
+
+  #if !canImport(UniformTypeIdentifiers)
+    /// Linux only (just test-linux): no type database there, so the common types as UTType names them on Apple.
+    /// `testTheUploadNamesItsTypeAsApplesTypesDo` holds both to the same answers. ponytail: an extension missing here
+    /// goes as bytes on Linux only; add it with a line in that test.
+    static let linuxMIME: [String: String] = [
+      "pdf": "application/pdf", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "gif": "image/gif",
+      "txt": "text/plain", "json": "application/json", "zip": "application/zip", "html": "text/html",
+      "csv": "text/csv",
+    ]
+  #endif
 }

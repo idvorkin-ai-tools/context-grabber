@@ -1,8 +1,11 @@
 //  The whiteboard's geometry (spec 2026-11-01-whiteboard-design.md, stories 341–343): how big the board is, where the
 //  view opens, and what part of it the picture for Larry covers.
 
-import CoreGraphics
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 public enum WhiteboardFrame {
   /// The board's side in points. ponytail: a fixed square, ten iPad screens each way from the middle, standing in for

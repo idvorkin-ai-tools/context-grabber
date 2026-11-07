@@ -2,6 +2,10 @@ import XCTest
 
 @testable import ContextCore
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 /// Chat with Larry (spec 2026-10-25-native-chat-design.md): what goes out, what comes back, who gets notified.
 final class ChatTests: XCTestCase {
   private var dir: URL!
@@ -79,15 +83,17 @@ final class ChatTests: XCTestCase {
     XCTAssertEqual(ChatWire.encode("with space"), "with%20space")
   }
 
-  func testAnImageIsUploadedAsItsRawBytes() throws {
-    let png = try InboxTests.image(.png, side: 8)
-    let request = try ChatSend.uploadRequest(image: png, cockpit: cockpit)
-    XCTAssertEqual(request.url?.absoluteString, "\(cockpit)/attachments")
-    XCTAssertEqual(request.httpMethod, "POST")
-    XCTAssertEqual(request.httpBody, png)
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "image/png")
-    XCTAssertEqual(request.value(forHTTPHeaderField: "Origin"), cockpit)
-  }
+  #if canImport(ImageIO)
+    func testAnImageIsUploadedAsItsRawBytes() throws {
+      let png = try InboxTests.image(.png, side: 8)
+      let request = try ChatSend.uploadRequest(image: png, cockpit: cockpit)
+      XCTAssertEqual(request.url?.absoluteString, "\(cockpit)/attachments")
+      XCTAssertEqual(request.httpMethod, "POST")
+      XCTAssertEqual(request.httpBody, png)
+      XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "image/png")
+      XCTAssertEqual(request.value(forHTTPHeaderField: "Origin"), cockpit)
+    }
+  #endif
 
   func testEveryAnswerClass() {
     let ref = Data(#"{"ok": true, "ref": "2026-10-25/0123456789abcdef.png", "url": "/attachments/x"}"#.utf8)
@@ -136,50 +142,52 @@ final class ChatTests: XCTestCase {
     XCTAssertFalse(lines.contains { $0.1.values.contains { "\($0)".contains("new topic") } }, "no content in the log")
   }
 
-  func testAnImageIsUploadedThenNamedByItsRefInTheMessage() async throws {
-    let png = try InboxTests.image(.png, side: 8)
-    try store.add(
-      InboxItem(id: "photo-0001", kind: .image, sharedAt: 1, note: "look"), image: png, imageExtension: "png")
-    let seen = Requests()
-    let sender = InboxSender(store: store, cockpit: cockpit) { request in
-      await seen.add(request)
-      if request.url?.path == "/attachments" {
-        return Self.answer(request, 200, #"{"ok": true, "ref": "2026-10-25/0123456789abcdef.png"}"#)
+  #if canImport(ImageIO)
+    func testAnImageIsUploadedThenNamedByItsRefInTheMessage() async throws {
+      let png = try InboxTests.image(.png, side: 8)
+      try store.add(
+        InboxItem(id: "photo-0001", kind: .image, sharedAt: 1, note: "look"), image: png, imageExtension: "png")
+      let seen = Requests()
+      let sender = InboxSender(store: store, cockpit: cockpit) { request in
+        await seen.add(request)
+        if request.url?.path == "/attachments" {
+          return Self.answer(request, 200, #"{"ok": true, "ref": "2026-10-25/0123456789abcdef.png"}"#)
+        }
+        return Self.answer(request, 200, #"{"ok": true, "thread": "igor2-88g.9"}"#)
       }
-      return Self.answer(request, 200, #"{"ok": true, "thread": "igor2-88g.9"}"#)
+      let report = await sender.sendWaiting { _, _ in }
+      XCTAssertEqual(report.sent, ["photo-0001"])
+      let requests = await seen.all
+      XCTAssertEqual(requests.map { $0.url?.path }, ["/attachments", "/chat"])
+      XCTAssertEqual(requests[0].httpBody, png)
+      let body = try json(requests[1].httpBody)
+      XCTAssertEqual(body["attachments"] as? [String], ["2026-10-25/0123456789abcdef.png"])
+      XCTAssertEqual(body["text"] as? String, "look")
     }
-    let report = await sender.sendWaiting { _, _ in }
-    XCTAssertEqual(report.sent, ["photo-0001"])
-    let requests = await seen.all
-    XCTAssertEqual(requests.map { $0.url?.path }, ["/attachments", "/chat"])
-    XCTAssertEqual(requests[0].httpBody, png)
-    let body = try json(requests[1].httpBody)
-    XCTAssertEqual(body["attachments"] as? [String], ["2026-10-25/0123456789abcdef.png"])
-    XCTAssertEqual(body["text"] as? String, "look")
-  }
 
-  func testARefusedUploadRefusesTheMessageAndAFailedOneStopsTheRun() async throws {
-    let png = try InboxTests.image(.png, side: 8)
-    try store.add(InboxItem(id: "photo-0001", kind: .image, sharedAt: 1), image: png, imageExtension: "png")
-    try store.add(InboxItem(id: "photo-0002", kind: .image, sharedAt: 2), image: png, imageExtension: "png")
-    try store.add(InboxItem(id: "text-0003", kind: .text, sharedAt: 3, text: "waits"))
-    let calls = Requests()
-    let sender = InboxSender(store: store, cockpit: cockpit) { request in
-      await calls.add(request)
-      let count = await calls.all.count
-      return count == 1
-        ? Self.answer(request, 400, #"{"ok": false, "error": "not an image Cockpit accepts"}"#)
-        : Self.answer(request, 503, "down")
+    func testARefusedUploadRefusesTheMessageAndAFailedOneStopsTheRun() async throws {
+      let png = try InboxTests.image(.png, side: 8)
+      try store.add(InboxItem(id: "photo-0001", kind: .image, sharedAt: 1), image: png, imageExtension: "png")
+      try store.add(InboxItem(id: "photo-0002", kind: .image, sharedAt: 2), image: png, imageExtension: "png")
+      try store.add(InboxItem(id: "text-0003", kind: .text, sharedAt: 3, text: "waits"))
+      let calls = Requests()
+      let sender = InboxSender(store: store, cockpit: cockpit) { request in
+        await calls.add(request)
+        let count = await calls.all.count
+        return count == 1
+          ? Self.answer(request, 400, #"{"ok": false, "error": "not an image Cockpit accepts"}"#)
+          : Self.answer(request, 503, "down")
+      }
+      let report = await sender.sendWaiting { _, _ in }
+      XCTAssertEqual(report.refused, ["photo-0001"])
+      XCTAssertEqual(report.retry, "image upload: HTTP 503")
+      XCTAssertEqual(store.item("photo-0001")?.refused, "not an image Cockpit accepts")
+      XCTAssertEqual(store.item("photo-0002")?.status, .waiting)
+      XCTAssertEqual(store.item("text-0003")?.status, .waiting, "nothing after an unreachable Cockpit is tried")
+      let paths = await calls.paths
+      XCTAssertEqual(paths, ["/attachments", "/attachments"], "a refused upload sends no message")
     }
-    let report = await sender.sendWaiting { _, _ in }
-    XCTAssertEqual(report.refused, ["photo-0001"])
-    XCTAssertEqual(report.retry, "image upload: HTTP 503")
-    XCTAssertEqual(store.item("photo-0001")?.refused, "not an image Cockpit accepts")
-    XCTAssertEqual(store.item("photo-0002")?.status, .waiting)
-    XCTAssertEqual(store.item("text-0003")?.status, .waiting, "nothing after an unreachable Cockpit is tried")
-    let paths = await calls.paths
-    XCTAssertEqual(paths, ["/attachments", "/attachments"], "a refused upload sends no message")
-  }
+  #endif
 
   // #565: a timeout or no connection is the Cockpit away; an error it answers with is not.
   func testATimeoutIsTheCockpitAwayAndAServerErrorIsNot() async throws {

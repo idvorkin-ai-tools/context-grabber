@@ -1,7 +1,14 @@
-import UniformTypeIdentifiers
 import XCTest
 
 @testable import ContextCore
+
+#if canImport(UniformTypeIdentifiers)
+  import UniformTypeIdentifiers
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 /// #633, stories 480–494: a document on a chat message, against the Cockpit as it is today (pictures only) and as it
 /// would be once it takes files.
@@ -35,16 +42,18 @@ final class ChatFileTests: XCTestCase {
 
   // MARK: The pick (stories 480, 483, 493, 494)
 
-  func testAPDFIsADocumentAndAPictureGoesAsAPicture() throws {
-    XCTAssertEqual(
-      try ChatFile.read(file("report.pdf", pdf)), .file(ChatFile(name: "report.pdf", data: pdf)))
-    let png = try InboxTests.image(.png, side: 8)
-    XCTAssertEqual(try ChatFile.read(file("shot.png", png)), .image(png))
-    // Named like a picture but not one: it stays a document rather than failing later.
-    let notPicture = Data("hello".utf8)
-    XCTAssertEqual(
-      try ChatFile.read(file("fake.png", notPicture)), .file(ChatFile(name: "fake.png", data: notPicture)))
-  }
+  #if canImport(UniformTypeIdentifiers)
+    func testAPDFIsADocumentAndAPictureGoesAsAPicture() throws {
+      XCTAssertEqual(
+        try ChatFile.read(file("report.pdf", pdf)), .file(ChatFile(name: "report.pdf", data: pdf)))
+      let png = try InboxTests.image(.png, side: 8)
+      XCTAssertEqual(try ChatFile.read(file("shot.png", png)), .image(png))
+      // Named like a picture but not one: it stays a document rather than failing later.
+      let notPicture = Data("hello".utf8)
+      XCTAssertEqual(
+        try ChatFile.read(file("fake.png", notPicture)), .file(ChatFile(name: "fake.png", data: notPicture)))
+    }
+  #endif
 
   func testTooBigEmptyAndUnreadableEachSaySoNamingTheFile() throws {
     XCTAssertThrowsError(try ChatFile.read(file("big.pdf", Data(count: 11)), maxBytes: 10)) {
@@ -60,6 +69,15 @@ final class ChatFileTests: XCTestCase {
     }
     let big = ChatFile.Problem.tooBig(name: "big.pdf", bytes: 12_000_000, limit: ChatFile.maxBytes)
     XCTAssertTrue(try XCTUnwrap(big.errorDescription).contains("big.pdf"))
+  }
+
+  /// The same answers on Apple, from UTType, and on Linux, from ChatFile's table.
+  func testTheUploadNamesItsTypeAsApplesTypesDo() {
+    let expected = [
+      "report.pdf": "application/pdf", "shot.PNG": "image/png", "a.jpg": "image/jpeg", "notes.txt": "text/plain",
+      "data.json": "application/json", "logs.zip": "application/zip", "odd.qqqzz": "application/octet-stream",
+    ]
+    for (name, mime) in expected { XCTAssertEqual(ChatFile.mime(name: name), mime, name) }
   }
 
   /// Story 493's limit is 10 MB: the cap is 10 MiB, so a decimal size would call it 10.5 MB.

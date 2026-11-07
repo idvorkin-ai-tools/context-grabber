@@ -109,9 +109,12 @@ public struct InboxStore: Sendable {
         (try? FileManager.default.url(
           for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))
         .map { mac(base: $0, cockpit: cockpit) }
-    #else
+    #elseif canImport(Darwin)
       return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
         .map { InboxStore(directory: $0.appendingPathComponent("Inbox", isDirectory: true)) }
+    #else
+      // Linux (just test-linux) has no App Groups: an un-entitled host, as a Mac test host is.
+      return nil
     #endif
   }
 

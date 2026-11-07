@@ -2,8 +2,11 @@
 //  stories 535–539; #636). All in board points, with page 1's corner at the board's origin: zoom only thins the ruled
 //  lines. PaperKit stays in the app.
 
-import CoreGraphics
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 public struct BoardPages: Equatable, Sendable {
   public static let pageWidth: CGFloat = 820

@@ -4,8 +4,15 @@
 //  a stroke as the Cockpit takes it, its stable id, the request and the answer. PencilKit stays in the app, which
 //  turns its strokes into these.
 
-import CoreGraphics
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 public enum WhiteboardStrokes {
   /// One stroke in board points, as the Cockpit stores it (`whiteboard_strokes.py`).

@@ -3,7 +3,13 @@
 //  with the same tables, so the cutover opens it in place; the host tests run the same code in memory.
 
 import Foundation
-import SQLite3
+
+// The Apple SDKs carry SQLite as a module; Linux (just test-linux) takes it from the system library target.
+#if canImport(SQLite3)
+  import SQLite3
+#else
+  import CSQLite
+#endif
 
 public enum SQLiteValue: Equatable, Sendable {
   case int(Int64)

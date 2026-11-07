@@ -4,59 +4,74 @@
 //  and the sender.
 
 import Foundation
-import ImageIO
-import UniformTypeIdentifiers
+
+#if canImport(ImageIO)
+  import ImageIO
+  import UniformTypeIdentifiers
+#endif
+
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
 public enum InboxSend {
   /// The Cockpit's cap on a decoded image.
   public static let maxImageBytes = 10 * 1024 * 1024
 
-  /// PNG, JPEG, GIF and WebP go as they are; anything else (HEIC) becomes a JPEG, made smaller until it fits the
-  /// Cockpit's 10 MB. Nil when the bytes are not an image ImageIO can read.
-  public static func sendable(_ image: Data, maxBytes: Int = maxImageBytes) -> Data? {
-    guard let source = CGImageSourceCreateWithData(image as CFData, nil) else { return nil }
-    let type = CGImageSourceGetType(source).map { $0 as String }
-    let kept: Set<String> = [UTType.png, .jpeg, .gif, .webP].map(\.identifier).reduce(into: []) { $0.insert($1) }
-    if let type, kept.contains(type), image.count <= maxBytes { return image }
-    let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
-    let long = max(props?[kCGImagePropertyPixelWidth] as? Int ?? 4096, props?[kCGImagePropertyPixelHeight] as? Int ?? 0)
-    // The whole picture first (up to 4096 on its long side), then three quarters each time, down to 512.
-    let first = min(long, 4096)
-    let sides = sequence(first: first) { $0 * 3 / 4 }.prefix { $0 == first || $0 >= 512 }
-    for side in sides {
-      let options: [CFString: Any] = [
-        kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: side,
-        kCGImageSourceCreateThumbnailWithTransform: true,
-      ]
-      guard let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
-      let out = NSMutableData()
-      guard let dest = CGImageDestinationCreateWithData(out, UTType.jpeg.identifier as CFString, 1, nil) else {
-        return nil
+  #if canImport(ImageIO)
+    /// PNG, JPEG, GIF and WebP go as they are; anything else (HEIC) becomes a JPEG, made smaller until it fits the
+    /// Cockpit's 10 MB. Nil when the bytes are not an image ImageIO can read.
+    public static func sendable(_ image: Data, maxBytes: Int = maxImageBytes) -> Data? {
+      guard let source = CGImageSourceCreateWithData(image as CFData, nil) else { return nil }
+      let type = CGImageSourceGetType(source).map { $0 as String }
+      let kept: Set<String> = [UTType.png, .jpeg, .gif, .webP].map(\.identifier).reduce(into: []) { $0.insert($1) }
+      if let type, kept.contains(type), image.count <= maxBytes { return image }
+      let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+      let long = max(
+        props?[kCGImagePropertyPixelWidth] as? Int ?? 4096, props?[kCGImagePropertyPixelHeight] as? Int ?? 0)
+      // The whole picture first (up to 4096 on its long side), then three quarters each time, down to 512.
+      let first = min(long, 4096)
+      let sides = sequence(first: first) { $0 * 3 / 4 }.prefix { $0 == first || $0 >= 512 }
+      for side in sides {
+        let options: [CFString: Any] = [
+          kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: side,
+          kCGImageSourceCreateThumbnailWithTransform: true,
+        ]
+        guard let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        let out = NSMutableData()
+        guard let dest = CGImageDestinationCreateWithData(out, UTType.jpeg.identifier as CFString, 1, nil) else {
+          return nil
+        }
+        CGImageDestinationAddImage(dest, cg, [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary)
+        guard CGImageDestinationFinalize(dest) else { return nil }
+        if out.length <= maxBytes { return out as Data }
       }
-      CGImageDestinationAddImage(dest, cg, [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary)
-      guard CGImageDestinationFinalize(dest) else { return nil }
-      if out.length <= maxBytes { return out as Data }
+      return nil
     }
-    return nil
-  }
 
-  /// A small picture for a preview, decoded at most `maxPixels` on its long side: a full-size photo decoded whole
-  /// would take hundreds of MB, past the share extension's memory (local review).
-  public static func thumbnail(_ image: Data, maxPixels: Int = 600) -> CGImage? {
-    guard let source = CGImageSourceCreateWithData(image as CFData, nil) else { return nil }
-    let options: [CFString: Any] = [
-      kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: maxPixels,
-      kCGImageSourceCreateThumbnailWithTransform: true, kCGImageSourceShouldCacheImmediately: true,
-    ]
-    return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
-  }
+    /// A small picture for a preview, decoded at most `maxPixels` on its long side: a full-size photo decoded whole
+    /// would take hundreds of MB, past the share extension's memory (local review).
+    public static func thumbnail(_ image: Data, maxPixels: Int = 600) -> CGImage? {
+      guard let source = CGImageSourceCreateWithData(image as CFData, nil) else { return nil }
+      let options: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: maxPixels,
+        kCGImageSourceCreateThumbnailWithTransform: true, kCGImageSourceShouldCacheImmediately: true,
+      ]
+      return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+    }
 
-  static func mime(of image: Data) -> String {
-    guard let source = CGImageSourceCreateWithData(image as CFData, nil),
-      let type = CGImageSourceGetType(source).flatMap({ UTType($0 as String) })
-    else { return "application/octet-stream" }
-    return type.preferredMIMEType ?? "application/octet-stream"
-  }
+    static func mime(of image: Data) -> String {
+      guard let source = CGImageSourceCreateWithData(image as CFData, nil),
+        let type = CGImageSourceGetType(source).flatMap({ UTType($0 as String) })
+      else { return "application/octet-stream" }
+      return type.preferredMIMEType ?? "application/octet-stream"
+    }
+  #else
+    // Linux (just test-linux) has no ImageIO: no image can be read, so each is refused and goes as bytes of no known
+    // type. The image rules are tested on the Mac only.
+    public static func sendable(_ image: Data, maxBytes: Int = maxImageBytes) -> Data? { nil }
+    static func mime(of image: Data) -> String { "application/octet-stream" }
+  #endif
 
   static func origin(of url: URL) -> String { CockpitPage.origin(of: url) }
 

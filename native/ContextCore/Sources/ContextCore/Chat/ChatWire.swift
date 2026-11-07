@@ -4,6 +4,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 public struct ChatSummary: Decodable, Equatable, Sendable, Identifiable {
   public let key: String
   public let title: String

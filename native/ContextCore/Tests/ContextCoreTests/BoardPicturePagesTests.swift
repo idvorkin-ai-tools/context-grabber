@@ -1,8 +1,11 @@
 //  Stories 433, 522 (#636): on paper, Larry's picture shows the pages on screen, and nothing on screen is nothing to send.
 
 import ContextCore
-import CoreGraphics
 import XCTest
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class BoardPicturePagesTests: XCTestCase {
   private let pages = BoardPages()

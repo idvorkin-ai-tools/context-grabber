@@ -1,6 +1,7 @@
-//  Stories 435–439, 524–534 on the simulator: *Try on paper* opens a copy, nothing in it reaches the real board, and another
-//  device's board doesn't offer it. How it feels and what a finger does with a Pencil paired are the iPad's: `just
-//  pull-logs` and read `paper_probe`. A finger draws on the simulator.
+//  Stories 435–439, 524–534 on the simulator: *Try on paper* opens a copy, and its switches run. That the copy reads the
+//  board and writes nothing back, and that only this device's boards offer it, are `BoardKeepingTests`'. How it feels
+//  and what a finger does with a Pencil paired are the iPad's: `just pull-logs` and read `paper_probe`. A finger draws
+//  on the simulator.
 
 import XCTest
 
@@ -29,12 +30,6 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     waitForExpectations(timeout: timeout)
   }
 
-  /// A board row's label without its "Changed …" time, which moves with the clock; the name and any " · On paper" or
-  /// " · Drawn on …" stay.
-  private func steadyLabel(_ row: XCUIElement) -> String {
-    row.label.replacingOccurrences(of: "Changed [^·]*", with: "Changed ", options: .regularExpression)
-  }
-
   private func keep(_ app: XCUIApplication, _ name: String) {
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = name
@@ -42,7 +37,9 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     add(shot)
   }
 
-  func testDrawingInTheTrialLeavesTheRealBoardAlone() {
+  /// The copy opens with the board's ink and takes a finger's; that it reads the board and writes nothing back is
+  /// `BoardKeepingTests`' (the trial is handed a drawing, never the store).
+  func testTheTrialOpensWithTheBoardsInkAndItsSwitchesRun() {
     let app = launch()
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.appears(within: 20), app.debugDescription)
@@ -56,7 +53,6 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
 
     let row = app.buttons["whiteboard-card"].firstMatch
     XCTAssertTrue(row.appears(within: 10), app.debugDescription)
-    let before = steadyLabel(row)
     row.press(forDuration: 1.2)
     let tryIt = app.buttons["Try on paper"]
     XCTAssertTrue(tryIt.appears(within: 5), app.debugDescription)
@@ -111,13 +107,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     keep(app, "trial with the ink where it is")
 
     app.buttons["paper-trial-close"].tap()
-
-    // The real board: its row reads as it did, and it holds the one stroke it had. Not a mark from the trial.
-    XCTAssertTrue(row.appears(within: 10), app.debugDescription)
-    XCTAssertEqual(steadyLabel(row), before)
-    row.tap()
-    XCTAssertTrue(send.appears(within: 10), app.debugDescription)
-    waitFor(send, label: "Send to Larry, 1 strokes")
+    XCTAssertTrue(row.appears(within: 10), "closing it is back on the list" + app.debugDescription)
   }
 
   /// Drives every switch with a finger, so a run's `paper_probe` lines hold what the simulator can say about the
@@ -185,18 +175,5 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
     choose("Count the undos")
 
     XCTAssertTrue(menu.exists, app.debugDescription)
-  }
-
-  func testABoardFromAnotherDeviceDoesNotOfferIt() {
-    let app = launch([
-      "GRABBER_BOARD_FIXTURE": "paper-trial-\(UUID().uuidString.lowercased())",
-      "GRABBER_BOARD_FIXTURE_FROM": "iPad",
-    ])
-    let row = app.buttons.matching(identifier: "whiteboard-card")
-      .matching(NSPredicate(format: "label CONTAINS 'Drawn on iPad'")).firstMatch
-    XCTAssertTrue(row.appears(within: 20), app.debugDescription)
-    row.press(forDuration: 1.2)
-    XCTAssertTrue(app.buttons["Delete"].appears(within: 5), app.debugDescription)
-    XCTAssertFalse(app.buttons["Try on paper"].exists, "only this device's boards")
   }
 }

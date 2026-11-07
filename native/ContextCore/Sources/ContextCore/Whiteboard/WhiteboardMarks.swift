@@ -2,8 +2,11 @@
 //  to the board's chat thread with where it sits on the board; Larry's rows come back with shapes in that picture's
 //  pixels and the same place. Here: what a picture carries, his rows as the app reads them, and which row to show.
 
-import CoreGraphics
 import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 /// A board's picture on its way to Larry: the three fields the Cockpit stores on the row and echoes.
 public struct WhiteboardPicture: Codable, Equatable, Sendable {

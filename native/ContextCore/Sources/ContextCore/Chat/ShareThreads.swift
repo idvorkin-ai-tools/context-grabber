@@ -4,6 +4,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 public enum ShareThreads {
   /// How many chats the card offers.
   static let limit = 5

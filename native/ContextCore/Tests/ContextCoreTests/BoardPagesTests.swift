@@ -1,8 +1,11 @@
 //  Stories 535–539: the column of pages.
 
 import ContextCore
-import CoreGraphics
 import XCTest
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
 
 final class BoardPagesTests: XCTestCase {
   private let pages = BoardPages()

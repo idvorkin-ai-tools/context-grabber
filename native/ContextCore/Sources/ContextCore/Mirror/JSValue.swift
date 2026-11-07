@@ -162,7 +162,12 @@ extension JSValue {
     case let a as [Any]: return .array(a.map(unordered))
     case let s as String: return .string(s)
     case let n as NSNumber:
-      return CFGetTypeID(n) == CFBooleanGetTypeID() ? .bool(n.boolValue) : .number(n.doubleValue)
+      #if canImport(Darwin)
+        return CFGetTypeID(n) == CFBooleanGetTypeID() ? .bool(n.boolValue) : .number(n.doubleValue)
+      #else
+        // Linux (just test-linux): no CFBooleanGetTypeID, but a JSON boolean is its own NSNumber subclass there too.
+        return type(of: n) == type(of: NSNumber(value: true)) ? .bool(n.boolValue) : .number(n.doubleValue)
+      #endif
     default: return .null
     }
   }
