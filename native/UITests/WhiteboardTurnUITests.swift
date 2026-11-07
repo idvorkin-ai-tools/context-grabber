@@ -1,6 +1,7 @@
-//  Stories 344, 349, 351, 354, 357, 358, 370, 371, 373, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
-//  starts it): a stroke and a pause bring Claude's ghost, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, Claude's fade and Larry's stay, a kept ghost is ink, the
-//  switch stops the asking. A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check. `WhiteboardTurnOnPaperUITests` runs these on a board on paper.
+//  Stories 344, 345, 349, 354, 357, 360, 367, 371, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it): a stroke and a pause bring Claude's ghost through a streamed answer, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, a kept ghost is ink.
+//  A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check. `WhiteboardTurnOnPaperUITests` runs these on a board on paper.
+//  The turn's rules (Claude's fade, the count climbing, a Cockpit that doesn't stream, Ghosts off, stale answers, spoken words held) are `WhiteboardGhostTurnsTests`, on the host.
 
 import XCTest
 
@@ -16,21 +17,17 @@ class WhiteboardTurnUITests: XCTestCase {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
   }
 
-  /// A new board open, Ghosts on, the app talking to the fake Cockpit.
-  /// `cockpit` picks how the fake Cockpit answers: "/plain" doesn't stream, "/many" streams six marks.
-  private func openBoard(
-    keepHook: Bool = false, ghostSeconds: Int? = nil, say: String? = nil, cockpit way: String = ""
-  ) throws -> (XCUIApplication, XCUIElement) {
+  /// A new board open, Ghosts on, the app talking to the fake Cockpit, which streams one mark.
+  private func openBoard(keepHook: Bool = false, say: String? = nil) throws -> (XCUIApplication, XCUIElement) {
     let cockpit = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
-    app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit + way
+    app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if keepHook { app.launchEnvironment["GRABBER_WHITEBOARD_KEEP"] = "first" }
     if let say { app.launchEnvironment["GRABBER_WHITEBOARD_SAY"] = say }
-    if let ghostSeconds { app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "\(ghostSeconds)" }
     for (key, value) in boardEnvironment { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]
@@ -77,6 +74,7 @@ class WhiteboardTurnUITests: XCTestCase {
     XCTAssertEqual(ghosts.label, "Ghosts off")
   }
 
+  /// The one path from a streamed answer to a ghost on screen (story 370's reading is `WhiteboardGhostTurnsTests`).
   func testAPauseBringsAGhostAndLarryTakesATurn() throws {
     let (app, ghosts) = try openBoard()
     stroke(app)
@@ -88,6 +86,11 @@ class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(
       app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Larry: this is where it goes")).firstMatch
         .appears(within: 3), app.debugDescription)
+    // Story 371: what the ghosts look like, Claude's and Larry's, is for a person to judge: kept with the test's result.
+    let picture = XCTAttachment(screenshot: app.screenshot())
+    picture.name = "ghosts-like-ink"
+    picture.lifetime = .keepAlways
+    add(picture)
   }
 
   /// The fake Cockpit draws on the board's thread, as Larry does when he has something to add.
@@ -144,43 +147,6 @@ class WhiteboardTurnUITests: XCTestCase {
     reopenBoard(app)
     sleep(4)
     XCTAssertFalse(none.exists, app.debugDescription)
-  }
-
-  func testClaudesGhostsFadeAndLarrysStay() throws {
-    let (app, ghosts) = try openBoard(ghostSeconds: 15)
-    stroke(app)
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
-    app.buttons["whiteboard-larry"].tap()
-    wait(ghosts, label: "Ghosts on, 3 showing", timeout: 10)
-    wait(ghosts, label: "Ghosts on, 2 showing", timeout: 20)
-  }
-
-  /// Story 370: the count climbs. XCUI's own predicate waits look once a second, too coarse for marks 400 ms apart, so
-  /// this reads the label in a loop and keeps each count it sees.
-  func testMarksArriveOneAtATime() throws {
-    let (app, ghosts) = try openBoard(cockpit: "/many")
-    stroke(app)
-    var counts: [Int] = []
-    let until = Date().addingTimeInterval(15)
-    while counts.last != 6, Date() < until {
-      let count = ghosts.label.split(separator: " ").compactMap { Int($0) }.first
-      if let count, count != counts.last { counts.append(count) }
-    }
-    XCTAssertEqual(counts.last, 6, "\(counts)")
-    XCTAssertEqual(counts, counts.sorted(), "only ever climbs: \(counts)")
-    XCTAssertGreaterThan(counts.count, 1, "seen on the way: \(counts)")
-    // What the ghosts look like is for a person to judge: kept with the test's result.
-    let picture = XCTAttachment(screenshot: app.screenshot())
-    picture.name = "ghosts-like-ink"
-    picture.lifetime = .keepAlways
-    add(picture)
-  }
-
-  /// Story 373: a Cockpit that answers with one JSON.
-  func testACockpitThatDoesNotStreamStillBringsAGhost() throws {
-    let (app, ghosts) = try openBoard(cockpit: "/plain")
-    stroke(app)
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
   }
 
   func testTheKeepHookTurnsTheFirstGhostIntoInk() throws {
@@ -274,23 +240,6 @@ class WhiteboardTurnUITests: XCTestCase {
     reopenBoard(app)
     wait(paper, label: "Board, Cream", timeout: 3)
     try assertPaper(0xFBF3DC, "Cream, reopened")
-  }
-
-  /// A ghost shows in the board's note, found by what it says: an identifier on the note never matched, with the note on
-  /// screen. The second stroke shows the same query can see it.
-  func testGhostsOffAsksNothing() throws {
-    let (app, ghosts) = try openBoard()
-    ghosts.tap()
-    wait(ghosts, label: "Ghosts off", timeout: 3)
-    stroke(app)
-    wait(app, strokes: 1)
-    sleep(4)
-    let note = app.staticTexts["1 suggestion: tap one to keep it"]
-    XCTAssertFalse(note.exists, note.debugDescription)
-    ghosts.tap()
-    wait(ghosts, label: "Ghosts on", timeout: 3)
-    stroke(app, atHeight: 0.6)
-    XCTAssertTrue(note.appears(within: 8), app.debugDescription)
   }
 
   /// Stories 407–410: off until asked, visible when on and gone when off (read from the pixels: the board isn't in the
