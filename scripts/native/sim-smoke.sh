@@ -574,49 +574,19 @@ if [ "$reviewed" = 1 ] && [ "$archived" = igor2-88g.593 ] && [ "$posted" = 1 ] &
   ok "chat: Review ticked the one that looks done and Archive (1) archived it, no error events"
 else bad "chat: reviewed $reviewed, archived '$archived', POST archive x$posted, errors: $failed"; fi
 
-# A file the Cockpit can't take (#633, story 487): one upload, refused; no message follows it.
-SMOKE_PDF=$(mktemp -t smoke-pdf); printf '%%PDF-1.7 smoke' >"$SMOKE_PDF"
-before=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")] | length' "$CHAT_REPORT")
-SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND_FILE="igor2-88g.900|$SMOKE_PDF" relaunch
-wait_jq 'select(.type=="chat" and .kind=="file")' 20 || echo "      (timed out waiting for the file's answer)"
-f=$(newest_log)
-refused=$(jq -sr '[.[] | select(.type=="chat" and .kind=="file" and .action=="refused" and .status==400 and .file_type!=null)] | length' "$f")
-after=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")] | length' "$CHAT_REPORT")
-if [ "$refused" = 1 ] && [ "$after" = "$before" ]; then ok "chat: a file was refused as the Cockpit refuses one today and no message went without it"
-else bad "chat: a file refused x$refused, messages $before then $after"; fi
-
-# Send again too soon (story 489): the phone kept the file, so it uploads again, is refused again, no message follows.
-uploads=$(jq -sr '[.[] | select(.method=="POST" and .path=="/attachments")] | length' "$CHAT_REPORT")
-SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND_AGAIN=1 relaunch
-wait_jq 'select(.type=="chat" and .kind=="file" and .action=="refused")' 20 || echo "      (timed out waiting for the second answer)"
-f=$(newest_log)
-again=$(jq -sr '[.[] | select(.type=="chat" and .action=="send_again")] | length' "$f")
-refused=$(jq -sr '[.[] | select(.type=="chat" and .kind=="file" and .action=="refused" and .status==400)] | length' "$f")
-uploads_after=$(jq -sr '[.[] | select(.method=="POST" and .path=="/attachments")] | length' "$CHAT_REPORT")
-last=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900")] | length' "$CHAT_REPORT")
-if [ "$again" -ge 1 ] && [ "$refused" -ge 1 ] && [ "$uploads_after" -gt "$uploads" ] && [ "$last" = "$before" ]; then ok "chat: Send again uploaded the kept file, it was refused again and no message went without it"
-else bad "chat: send again x$again, refused x$refused, uploads $uploads then $uploads_after, messages $before then $last"; fi
-rm -f "$SMOKE_PDF"
-
-# No address (#525, stories 507-510): a message stays on the simulator and the log says why; a later launch that names
-# an address delivers it once, so this section leaves nothing in the outbox for the next run.
-SIMCTL_CHILD_GRABBER_CHAT_SEND="igor2-88g.900|smoke: no address" SIMCTL_CHILD_GRABBER_INBOX=open relaunch
-wait_jq 'select(.type=="inbox" and .action=="no_address")' 20 || echo "      (timed out waiting for no_address)"
-sleep 2
+# The outbox's own rules (context-grabber-gp7) are host tests, not relaunches here: a refused file kept and sent again
+# with no message (stories 487-489), and a message held with no address that a later launch delivers once (#525,
+# stories 507-510), in InboxOutboxTests, ChatFileTests and ChatCockpitTests. The sends above stay as the app's outbox
+# reaching a Cockpit over real HTTP. What stays here is the launch's wiring with no address, which only the app has:
+# the launch says so, the list says why (naming GRABBER_CHAT_URL), and nothing is tried.
+SIMCTL_CHILD_GRABBER_INBOX=open relaunch
+wait_jq 'select(.type=="chat" and .action=="refresh_failed")' 20 || echo "      (timed out waiting for the list)"
 f=$(newest_log)
 why=$(jq -sr '[.[] | select(.type=="chat" and .action=="no_address")] | length' "$f")
-held=$(jq -sr '[.[] | select(.type=="inbox" and .action=="no_address")][0].waiting // 0' "$f")
 listed=$(jq -sr '[.[] | select(.type=="chat" and .action=="refresh_failed" and (.reason | contains("GRABBER_CHAT_URL")))] | length' "$f")
 left=$(jq -sr '[.[] | select(.type=="chat" and (.action=="sent" or .action=="failed" or .action=="refused"))] | length' "$f")
-if [ "$why" = 1 ] && [ "$held" -ge 1 ] && [ "$listed" -ge 1 ] && [ "$left" = 0 ]; then ok "chat: no address: $held held back and the log says why"
-else bad "chat: no address: launch line x$why, held $held, list said x$listed, sends tried x$left"; fi
-SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" relaunch
-wait_jq 'select(.type=="chat" and .action=="sent")' 20 || echo "      (timed out waiting for the held message)"
-sleep 1
-item=$(jq -sr '[.[] | select(.type=="chat" and .action=="sent")][0].item // ""' "$(newest_log)")
-delivered=$(jq -sr --arg item "$item" '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.900" and .body.id==$item)] | length' "$CHAT_REPORT")
-if [ -n "$item" ] && [ "$delivered" = 1 ]; then ok "chat: the held message went once, to the address a later launch named"
-else bad "chat: the held message '$item' reached the fake Cockpit x$delivered"; fi
+if [ "$why" = 1 ] && [ "$listed" -ge 1 ] && [ "$left" = 0 ]; then ok "chat: no address: the launch and the list say why and nothing is tried"
+else bad "chat: no address: launch line x$why, list said x$listed, sends tried x$left"; fi
 fi  # chat
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true

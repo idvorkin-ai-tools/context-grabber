@@ -9,23 +9,14 @@ import Network
 @MainActor
 final class InboxModel: ObservableObject {
   @Published private(set) var items: [InboxItem] = []
-  @Published private(set) var sending = false
+  /// When and whether to send (ContextCore's `InboxOutbox`, host-tested): this model hands it the network path, the
+  /// clock and URLSession, and shows what it says.
+  private let outbox: InboxOutbox
   // #406, story 269: unknown at launch; the first path reading releases any waiting send.
-  @Published private(set) var sendPolicy = InboxSendPolicy()
-  var offline: Bool { sendPolicy.path == .offline }
-  private let pathMonitor = NWPathMonitor()
-  private var pathRetry: Task<Void, Never>?
-  /// #565: the next try on its own after a failed send, while the app is open.
-  private var backoff: Task<Void, Never>?
+  var offline: Bool { outbox.offline }
   /// #565: the last send found the Cockpit not answering; a waiting message says so.
-  @Published private(set) var cockpitAway = false
-  private let started = ContinuousClock.now
-  private var now: Double {
-    let elapsed = (ContinuousClock.now - started).components
-    return Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
-  }
-  /// A refresh came while a send was out: one more pass when it ends, for what was shared meanwhile (local review).
-  private var sendAgain = false
+  var cockpitAway: Bool { outbox.cockpitAway }
+  private let pathMonitor = NWPathMonitor()
   /// Each image item's small preview, decoded once per item.
   private(set) var thumbnails: [String: CGImage] = [:]
   var waitingCount: Int { items.filter { $0.status == .waiting }.count }
@@ -37,13 +28,29 @@ final class InboxModel: ObservableObject {
   var didAdd: (() -> Void)?
   private let log: SessionLog
   private let database: AppDatabase
-  private let cockpit: String
 
   init(log: SessionLog, database: AppDatabase, cockpit: String) {
     self.log = log
     self.database = database
-    self.cockpit = cockpit
-    store = InboxStore.shared(cockpit: cockpit)
+    let store = InboxStore.shared(cockpit: cockpit)
+    self.store = store
+    let started = ContinuousClock.now
+    outbox = InboxOutbox(
+      store: store, cockpit: cockpit,
+      now: {
+        let elapsed = (ContinuousClock.now - started).components
+        return Double(elapsed.seconds) + Double(elapsed.attoseconds) / 1e18
+      },
+      schedule: InboxTaskTimer.schedule, log: { [log] type, fields in log.event(type, fields) },
+      transport: { try await URLSession.shared.data(for: $0) })
+    outbox.waitingCount = { [weak self] in self?.waitingCount ?? 0 }
+    outbox.refresh = { [weak self] reason in self?.refresh(reason: reason) }
+    outbox.finished = { [weak self] report in
+      guard let self else { return }
+      objectWillChange.send()
+      reload()
+      if !report.sent.isEmpty { didSend?() }
+    }
     pathMonitor.pathUpdateHandler = { [weak self] path in
       // .requiresConnection (an on-demand VPN such as Tailscale's) comes up when a connection is tried, so it counts.
       let available = path.status != .unsatisfied
@@ -51,7 +58,9 @@ final class InboxModel: ObservableObject {
       let expensive = path.isExpensive
       let constrained = path.isConstrained
       Task { @MainActor [weak self] in
-        self?.networkChanged(
+        guard let self else { return }
+        objectWillChange.send()
+        outbox.networkChanged(
           available: available, interfaces: interfaces, expensive: expensive, constrained: constrained)
       }
     }
@@ -60,42 +69,14 @@ final class InboxModel: ObservableObject {
 
   deinit {
     pathMonitor.cancel()
-    pathRetry?.cancel()
-    backoff?.cancel()
-  }
-
-  private func networkChanged(available: Bool, interfaces: Set<String>, expensive: Bool, constrained: Bool) {
-    let wasOffline = offline
-    let previousRetry = sendPolicy.retryAfter
-    let becameOnline = sendPolicy.updatePath(
-      available ? .online : .offline, interfaces: interfaces, expensive: expensive, constrained: constrained,
-      waitingCount: store?.waitingCount ?? 0, now: now)
-    schedulePathRetry(ifChangedFrom: previousRetry)
-    if becameOnline {
-      // Read shares made while away before deciding whether there is anything to send.
-      refresh(reason: wasOffline ? "network_back" : "network_ready")
-    } else if offline && !wasOffline {
-      refresh(reason: "network_offline")
-    }
-  }
-
-  private func schedulePathRetry(ifChangedFrom previousRetry: Double?) {
-    guard previousRetry != sendPolicy.retryAfter else { return }
-    pathRetry?.cancel()
-    guard sendPolicy.retryAfter != nil else { return }
-    pathRetry = Task { [weak self] in
-      do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
-      guard let self else { return }
-      let decision = sendPolicy.pathRetryDecision(waitingCount: store?.waitingCount ?? 0, sending: sending, now: now)
-      if decision == .send || decision == .sendAgain { refresh(reason: "network_changed") }
-    }
   }
 
   /// Reads the Inbox, logs what the share extension added since the last look, then sends what waits.
   func refresh(reason: String) {
     reload()
     announceNew()
-    send(reason: reason)
+    objectWillChange.send()
+    outbox.send(reason: reason)
   }
 
   /// Stories 262–264: saved locally before sending; never logs the draft's content. `thread`: the chat thread this
@@ -127,8 +108,7 @@ final class InboxModel: ObservableObject {
     }
     thumbnails = kept
     items = read.items
-    // Nothing waits, so nothing says the Cockpit is away (local review).
-    if waitingCount == 0 { cockpitAway = false }
+    outbox.read(waiting: waitingCount)
     for name in read.unreadable { log.event("error", ["where": "inbox_read", "file": name]) }
   }
 
@@ -144,15 +124,7 @@ final class InboxModel: ObservableObject {
   }
 
   /// Story 488: a refused file tries again, the same message.
-  func sendAgain(_ item: InboxItem) {
-    do {
-      try store?.sendAgain(item.id)
-      log.event("chat", ["action": "send_again", "item": item.id, "kind": item.kind.rawValue])
-    } catch {
-      log.event("error", ["where": "inbox_send_again", "item": item.id, "message": "\(error)"])
-    }
-    refresh(reason: "send_again")
-  }
+  func sendAgain(_ item: InboxItem) { outbox.sendAgain(item) }
 
   /// Chat messages the Cockpit's thread now lists: the phone's copy, image and all, is no longer needed.
   func forget(_ delivered: [InboxItem]) {
@@ -169,78 +141,10 @@ final class InboxModel: ObservableObject {
 
   /// One `inbox` added line per item, the first time the app sees it: the kind and the size, never the content.
   private func announceNew() {
-    let seen = Set((database.setting("inbox_seen") ?? "").split(separator: ",").map(String.init))
-    let fresh = items.filter { !seen.contains($0.id) }
-    for item in fresh.reversed() {
-      var fields: [String: Any] = ["action": "added", "item": item.id, "kind": item.kind.rawValue]
-      fields["note"] = item.note != nil
-      fields["new_thread"] = item.thread == nil
-      if let thread = item.thread { fields["thread"] = thread }
-      if let offered = item.offered { fields["offered"] = offered }
-      if let types = item.shareTypes { fields["share_types"] = types }
-      if let text = item.text { fields["text_chars"] = text.count }
-      if let bytes = store?.imageBytes(of: item) { fields["bytes"] = bytes }
-      if let site = item.site { fields["site"] = site }
-      log.event("inbox", fields)
-    }
-    if fresh.contains(where: { !$0.isFixture }) { didAdd?() }
-    // Only ids still in the Inbox, so the setting does not grow forever.
-    database.setSetting("inbox_seen", items.map(\.id).joined(separator: ","))
-  }
-
-  private func send(reason: String) {
-    guard let store else { return }
-    let decision = sendPolicy.decision(waitingCount: waitingCount, sending: sending)
-    if reason == "network_back" || reason == "network_changed", decision == .send || decision == .sendAgain {
-      log.event("inbox", ["action": reason, "waiting": waitingCount, "sending": sending])
-    }
-    switch decision {
-    case .wait: return
-    case .offlineSkipped:
-      log.event("inbox", ["action": "offline_skipped", "waiting": waitingCount, "why": reason])
-      return
-    case .sendAgain:
-      sendAgain = true
-      return
-    case .send: break
-    }
-    sending = true
-    sendPolicy.startedSend()
-    let sender = InboxSender(store: store, cockpit: cockpit) { try await URLSession.shared.data(for: $0) }
-    Task { [log] in
-      let report = await sender.sendWaiting { type, fields in
-        var fields = fields
-        fields["why"] = reason
-        log.event(type, fields)
-      }
-      let previousRetry = sendPolicy.retryAfter
-      sendPolicy.finishedSend(retry: report.retry != nil, now: now, scheduled: reason == "backoff")
-      schedulePathRetry(ifChangedFrom: previousRetry)
-      sending = false
-      cockpitAway = report.unreachable
-      reload()
-      scheduleBackoff()
-      if !report.sent.isEmpty { didSend?() }
-      if sendAgain {
-        sendAgain = false
-        send(reason: "again")
-      }
-    }
-  }
-
-  /// #565: a failed send is tried again on its own (30 s, doubling to 5 min) until nothing waits or the phone is
-  /// offline; a send from any other trigger replaces the wait. ponytail: a suspended app's timer fires late, on resume.
-  private func scheduleBackoff() {
-    backoff?.cancel()
-    backoff = nil
-    guard let delay = sendPolicy.backoffDelay, waitingCount > 0 else { return }
-    log.event("inbox", ["action": "backoff", "seconds": delay, "failed_in_a_row": sendPolicy.failedInARow])
-    backoff = Task { [weak self] in
-      do { try await Task.sleep(for: .seconds(delay)) } catch { return }
-      // A send already out reschedules when it ends; joining it would be a second try straight after (local review).
-      guard let self, !offline, !sending, waitingCount > 0 else { return }
-      refresh(reason: "backoff")
-    }
+    let look = InboxSeen.look(items, seen: database.setting("inbox_seen"))
+    for item in look.fresh { log.event("inbox", item.addedLogFields(bytes: store?.imageBytes(of: item))) }
+    if look.anyReal { didAdd?() }
+    database.setSetting("inbox_seen", look.setting)
   }
 
   // MARK: Launch hooks (docs/TESTING.md)

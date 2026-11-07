@@ -15,7 +15,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 670:
 
 - **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
-- **Status:** not implemented; bead `context-grabber-3k6`
+- **Status:** in progress; bead `context-grabber-3k6`. The Inbox's send orchestration (bead `context-grabber-gp7`, the audit's rank 3) is `InboxOutboxTests` on the host, also on Linux, and three of the smoke's chat relaunches are gone (the refused file, *Send again* and the held message's delivery); Mac host run to confirm
 
 #### Use Case:
 - **As Igor,** waiting for a fix to reach his phone
