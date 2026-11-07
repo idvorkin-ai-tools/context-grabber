@@ -10,6 +10,9 @@ xcrun simctl install "$SIM" "$APP"
 # ~/gits/bug-kit.
 root=$(cd "$(dirname "$0")/../.." && pwd)
 BUG_KIT=$(\ls -d "$root/native/Build/SourcePackages/checkouts/bug-kit" 2>/dev/null || echo ~/gits/bug-kit)
+# BugKit's wait_for looks every SMOKE_POLL seconds, 2 by default, and the smoke waits on it 22 times: 1 halves the slack.
+# (Whole seconds only: its count is integer arithmetic.)
+export SMOKE_POLL=${SMOKE_POLL:-1}
 # shellcheck source=/dev/null
 source "$BUG_KIT/scripts/smoke-lib.sh"
 smoke_init "$SIM" "$BUNDLE"
@@ -72,10 +75,10 @@ else bad "report: note '$got_note' log '$got_log' screen '$screen' screenshot '$
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$errors" ]; then ok "report: no error events"; else bad "report: error events: $errors"; fi
 
-wait_jq() {  # like wait_for, on any jq filter
+wait_jq() {  # like wait_for, on any jq filter; looks five times a second, so a line costs at most 0.2 s past its arrival
   local waited=0
-  while [ "$waited" -lt "$2" ]; do
-    sleep 1; waited=$((waited + 1))
+  while [ "$waited" -lt $(($2 * 5)) ]; do
+    sleep 0.2; waited=$((waited + 1))
     local f; f=$(newest_log)
     [ -n "$f" ] && [ "$f" != "$previous_log" ] && [ -n "$(jq -c "$1" "$f" 2>/dev/null)" ] && return 0
   done
