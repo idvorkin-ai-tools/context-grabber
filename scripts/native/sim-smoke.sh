@@ -215,14 +215,9 @@ if [ "$la" = "start:GET READY update:WORK update:REST update:WORK end:DONE!" ]; 
 elif [ "$la" = "unavailable:" ]; then ok "live activity: Live Activities are off on this simulator (logged once per session)"
 else bad "live activity: '$la'"; fi
 
-# Story 187: a launch hook picks the Australian woman for this visit; her first cue plays from her own file.
-SIMCTL_CHILD_GRABBER_COUNT_VOICE=aussie SIMCTL_CHILD_GRABBER_TIMER="10,10,2" relaunch
-wait_for timer_cue 20 || echo "      (timed out waiting for timer_cue)"
-f=$(newest_log)
-first=$(jq -sr '[.[] | select(.type=="timer_cue")][0] | "\(.cue) \(.voice) \(.ok)"' "$f")
-errors=$(jq -c 'select(.type=="error")' "$f")
-if [ "$first" = "three aussie true" ] && [ -z "$errors" ]; then ok "voice: the hook's aussie says three"
-else bad "voice: first cue '$first', errors '$errors'"; fi
+# Story 187's own rules are host tests, not a relaunch here: each voice's files on disk and which it plays
+# (CountVoiceTests.testEveryVoiceHasEveryCueOnDisk, testIgorPlaysTheSharedFilesAndTheOthersTheirOwn). The run above
+# still plays a voice's own files on the simulator.
 
 fi  # timer
 
@@ -269,16 +264,9 @@ else bad "breathe: tones '$tones'"; fi
 failed=$(jq -c 'select(.type=="error" or ((.type|startswith("breath_")) and .ok == false))' "$f")
 if [ -z "$failed" ]; then ok "breathe: nothing failed"; else bad "breathe: $failed"; fi
 
-# Story 162: paused 3 s into a 6 s inhale (as a tap on the circle would), the session stays put: no further step,
-# no finish, while well past when the hold was due.
-SIMCTL_CHILD_GRABBER_BREATHE="6,1,off,3" relaunch
-wait_for breath_pause 20 || echo "      (timed out waiting for breath_pause)"
-sleep 5
-f=$(newest_log)
-paused=$(jq -sr '[.[] | select(.type=="breath_pause") | "\(.reason):\(.phase)"] | join(" ")' "$f")
-after=$(jq -sr '[.[] | select(.type=="breath_phase" or .type=="breath_finished") | .phase // "done"] | join(" ")' "$f")
-if [ "$paused" = "hook:inhale" ] && [ "$after" = "inhale" ]; then ok "breathe: paused mid-inhale, nothing moved on"
-else bad "breathe: pauses '$paused', steps '$after'"; fi
+# Story 162's pause is a host test, not a relaunch here: nothing moves on while paused and a resume picks up mid-step
+# (BreathRunTests.testPauseFreezesEverythingAndResumeContinuesMidPhaseWithNoJump). GRABBER_BREATHE's fourth field
+# still pauses by itself, for watching the paused circle by hand.
 
 fi  # breathe
 
@@ -298,13 +286,8 @@ imp=$(jq -sr '[.[] | select(.type=="import")][0] | "\(.ok) \(.points_added) \(.p
 opened=$(jq -sr '[.[] | select(.type=="places_open")][-1] | "\(.points) \(.known) \(.stays)"' "$f")
 if [ "$imp" = "true 36601 0 4" ] && [ "$opened" = "36601 4 34" ]; then ok "places: imported 36601 points and 4 places; 34 stays, as the TypeScript makes"
 else bad "places: import '$imp', open (points known stays) '$opened'"; fi
-# Story 055: the same file again adds nothing.
-SIMCTL_CHILD_GRABBER_IMPORT_DB="import-fixture.db,recent" SIMCTL_CHILD_GRABBER_PLACES=open relaunch
-wait_for places_open 30 || echo "      (timed out waiting for places_open)"
-f=$(newest_log)
-imp=$(jq -sr '[.[] | select(.type=="import")][0] | "\(.ok) \(.points_added) \(.points_already) \(.places_added) \(.places_already)"' "$f")
-if [ "$imp" = "true 0 36601 0 4" ]; then ok "places: a second import adds nothing"
-else bad "places: second import '$imp'"; fi
+# Story 055: the same file again adds nothing, shifted as the hook shifts it, is a host test, not a relaunch here
+# (PlacesFixtureTests.testImportTheRealExportTwice, testARecentImportTwiceAddsNothingTheSecondTime).
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$failed" ]; then ok "places: no error events"; else bad "places: $failed"; fi
 
@@ -425,8 +408,8 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
 call_check synthetic synthetic
 call_check "real audio" ""
 
-# Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a second within ten
-# minutes, across a relaunch, is skipped; a clean call files none. The second fake bridge cuts every connection.
+# Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a clean call files none.
+# The second fake bridge cuts every connection.
 clean=$(jq -s '[.[] | select(.type=="bug_report_auto")] | length' "$(newest_log)")
 if [ "$clean" = "0" ]; then ok "call: a clean call files no automatic report"; else bad "call: a clean call filed $clean automatic report(s)"; fi
 stash bugs-auto.json  # an earlier run's ten-minute window would skip the first report; put back at exit
@@ -456,8 +439,8 @@ if [ "$src" = "auto" ] && [ "$why" = "call_trouble" ] && [[ ",$files," == *",$fo
 else
   bad "trouble: source '$src' reason '$why' folder '$folder' files '$files' bug_report_auto $logged bridge drops $dropped"
 fi
-trouble_call
-require_event bug_report_auto_skipped 'select(.reason == "call_trouble")' "trouble: a second within ten minutes, after a relaunch, is skipped"
+# A second within ten minutes, after a relaunch, is skipped: BugKit's host tests, not a relaunch here
+# (AutoReportTests.oneReportPerReasonPerWindow, theWindowHoldsAcrossARelaunch, with the 600 s window the app keeps).
 kill "$DROP" 2>/dev/null || true
 
 fi  # call

@@ -148,4 +148,27 @@ final class PlacesFixtureTests: XCTestCase {
     XCTAssertEqual(stays.map(\.placeId), expected.stays.map(\.placeId))
     XCTAssertEqual(stays.map(\.pointCount), expected.stays.map(\.pointCount))
   }
+
+  /// Story 055 as the simulator's hook does it: the export shifted by whole days into the last day (`recent`), twice
+  /// with the same shift, as two launches on one day get. The second adds nothing.
+  func testARecentImportTwiceAddsNothingTheSecondTime() throws {
+    let target = FileManager.default.temporaryDirectory.appendingPathComponent("places-recent-\(UUID().uuidString).db")
+    defer { try? FileManager.default.removeItem(at: target) }
+    let store = try LocationStore(db: SQLiteDatabase(path: target.path))
+    let source = fixtures.appendingPathComponent("context-grabber.db").path
+    // Read from a copy, as the app does: opening the checked-in fixture itself would write to it.
+    let copy = FileManager.default.temporaryDirectory.appendingPathComponent("places-copy-\(UUID().uuidString).db")
+    defer { try? FileManager.default.removeItem(at: copy) }
+    try FileManager.default.copyItem(atPath: source, toPath: copy.path)
+    let newest = try XCTUnwrap(
+      try SQLiteDatabase(path: copy.path).run("SELECT MAX(timestamp) AS t FROM locations").first?["t"]?.doubleValue)
+    let shift = LocationStore.recentShiftMs(newest: newest, now: Geo.ms(Date()))
+    XCTAssertGreaterThan(shift, 0)
+    let first = try store.importDatabase(at: source, shiftMs: shift)
+    XCTAssertEqual(first, ImportResult(pointsAdded: 36_601, pointsAlreadyHere: 0, placesAdded: 4, placesAlreadyHere: 0))
+    let second = try store.importDatabase(at: source, shiftMs: shift)
+    XCTAssertEqual(
+      second, ImportResult(pointsAdded: 0, pointsAlreadyHere: 36_601, placesAdded: 0, placesAlreadyHere: 4))
+    XCTAssertEqual(try store.count(), 36_601)
+  }
 }
