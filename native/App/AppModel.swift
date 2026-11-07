@@ -390,7 +390,7 @@ final class AppModel: ObservableObject {
   /// #742: the Mac's pointer drag, one row dropped on another.
   func dropHomeRow(_ moving: String, onto target: String) -> Bool {
     guard homeLayout.drop(moving, onto: target) else { return false }
-    saveHomeLayout(change: "drop")
+    saveHomeLayout(change: "move")
     return true
   }
 
