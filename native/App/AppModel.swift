@@ -387,6 +387,13 @@ final class AppModel: ObservableObject {
     saveHomeLayout(change: "move")
   }
 
+  /// #742: the Mac's pointer drag, one row dropped on another.
+  func dropHomeRow(_ moving: String, onto target: String) -> Bool {
+    guard homeLayout.drop(moving, onto: target) else { return false }
+    saveHomeLayout(change: "move")
+    return true
+  }
+
   func resetHomeRows() {
     homeLayout = HomeLayout(known: HomeRow.ids, storedOrder: nil, storedHidden: nil)
     saveHomeLayout(change: "reset")

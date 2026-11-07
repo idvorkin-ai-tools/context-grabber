@@ -44,6 +44,17 @@ public struct HomeLayout: Equatable, Sendable {
     order = rest
   }
 
+  /// #742: the Mac's pointer drag. `moving`, dropped on `target`, takes the target's place: rows between them shift by
+  /// one. An unknown id, or a row dropped on itself, changes nothing. Returns whether the order changed.
+  @discardableResult
+  public mutating func drop(_ moving: String, onto target: String) -> Bool {
+    guard moving != target, let from = order.firstIndex(of: moving), let to = order.firstIndex(of: target) else {
+      return false
+    }
+    move(fromOffsets: [from], toOffset: to > from ? to + 1 : to)
+    return true
+  }
+
   public var encodedOrder: String { order.joined(separator: ",") }
   /// Hidden ids in display order, so the stored value and the log read the same way each time.
   public var encodedHidden: String { order.filter(hidden.contains).joined(separator: ",") }

@@ -70,6 +70,21 @@ final class HomeLayoutTests: XCTestCase {
     XCTAssertEqual(layout.order, ["call", "today", "gym_timer", "breathe", "places", "cockpit", "think_a_card"])
   }
 
+  /// #742: on the Mac a row dragged onto another takes its place, up or down; onto itself or an unknown id, nothing.
+  func testAMacDropTakesTheTargetsPlace() {
+    var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
+    XCTAssertTrue(layout.drop("gym_timer", onto: "call"))  // up to the top
+    XCTAssertEqual(layout.order, ["gym_timer", "call", "today", "breathe", "places", "think_a_card", "cockpit"])
+    XCTAssertTrue(layout.drop("call", onto: "cockpit"))  // down to the end
+    XCTAssertEqual(layout.order, ["gym_timer", "today", "breathe", "places", "think_a_card", "cockpit", "call"])
+    XCTAssertTrue(layout.drop("today", onto: "places"))  // down two places
+    XCTAssertEqual(layout.order, ["gym_timer", "breathe", "places", "today", "think_a_card", "cockpit", "call"])
+    let before = layout.order
+    XCTAssertFalse(layout.drop("today", onto: "today"))
+    XCTAssertFalse(layout.drop("nope", onto: "today"))
+    XCTAssertEqual(layout.order, before)
+  }
+
   func testWhatIsStoredReadsBackTheSame() {
     var layout = HomeLayout(known: known, storedOrder: nil, storedHidden: nil)
     layout.move(fromOffsets: [6], toOffset: 1)
