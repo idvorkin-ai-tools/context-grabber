@@ -19,13 +19,11 @@ struct PaperTrialCopy: Identifiable {
 }
 
 extension WhiteboardStore {
-  /// The board's ink, read and nothing else: unlike `drawing(_:)`, a file that can't be read stays where it is.
-  /// `GRABBER_PAPER_TRIAL_INK=<n>` adds n strokes to the copy, for the simulator, where no board has old ink.
+  /// The board's ink, read and nothing else (`BoardKeeping.trialInk`): unlike `drawing(_:)`, a file that can't be read
+  /// stays where it is. `GRABBER_PAPER_TRIAL_INK=<n>` adds n strokes to the copy, for the simulator, where no board has
+  /// old ink.
   func trialCopy(of board: BoardEntry) throws -> PaperTrialCopy {
-    var drawing = PKDrawing()
-    if let url = drawingURL(board.id), FileManager.default.fileExists(atPath: url.path) {
-      drawing = try PKDrawing(data: Data(contentsOf: url))
-    }
+    var drawing = try trialInk(board.id, decode: PKDrawing.init(data:)) ?? PKDrawing()
     if let extra = ProcessInfo.processInfo.environment["GRABBER_PAPER_TRIAL_INK"].flatMap(Int.init), extra > 0 {
       drawing.strokes += Self.oldBoardInk(extra)
     }
