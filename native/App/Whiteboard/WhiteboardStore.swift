@@ -23,39 +23,45 @@ final class WhiteboardStore: ObservableObject {
   let deviceName = UIDevice.current.model
   /// This device's boards open on screen: a delete from another device waits until their last save.
   private var open: Set<String> = []
-  /// The board the list's problem is about, when it's a save that failed on leaving.
-  private var unsavedBoard: String?
-  private let dir: URL?
+  /// Every decision about keeping boards on this device: this store only carries them out (ContextCore, host-tested).
+  private var keeping: BoardKeeping
   private let log: SessionLog
   private let cloud = BoardCloud()
   private var running: Task<Void, Never>?
   /// A sync asked for while one ran: it runs again when that one ends, so what changed meanwhile goes up too.
   private var again = false
 
-  static let newBoardsOnPaperKey = "whiteboard_new_boards_on_paper"
+  static let newBoardsOnPaperKey = BoardKeeping.newBoardsOnPaperKey
 
   init(log: SessionLog, device: String) {
     self.log = log
     self.device = device
-    // `GRABBER_WHITEBOARD_NEW_ON_PAPER=on|off`: for the simulator, as if the switch had been set; `untouched`, as if it never was.
-    if let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] {
-      if hook == "untouched" {
-        UserDefaults.standard.removeObject(forKey: Self.newBoardsOnPaperKey)
-      } else {
-        UserDefaults.standard.set(hook == "on", forKey: Self.newBoardsOnPaperKey)
-      }
+    // `GRABBER_WHITEBOARD_NEW_ON_PAPER=on|off|untouched`: for the simulator, as if the switch had been set, or never was.
+    switch BoardKeeping.switchHook(ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_NEW_ON_PAPER"]) {
+    case .set(let on)?: UserDefaults.standard.set(on, forKey: Self.newBoardsOnPaperKey)
+    case .forget?: UserDefaults.standard.removeObject(forKey: Self.newBoardsOnPaperKey)
+    case nil: break
     }
-    newBoardsOnPaper = UserDefaults.standard.object(forKey: Self.newBoardsOnPaperKey) as? Bool ?? true
-    dir = try? FileManager.default
+    newBoardsOnPaper = BoardKeeping.newBoardsOnPaper(
+      stored: UserDefaults.standard.object(forKey: Self.newBoardsOnPaperKey) as? Bool)
+    let dir = try? FileManager.default
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true)
+    // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (stories 599, 612).
+    let saveFails = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
+    keeping = BoardKeeping(dir: dir, disk: saveFails ? FullDisk(over: FileBoardDisk()) : FileBoardDisk())
     load()
   }
 
-  func drawingURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).drawing") }
-  func pictureURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).png") }
+  func drawingURL(_ id: String) -> URL? { keeping.drawingURL(id) }
+  func pictureURL(_ id: String) -> URL? { keeping.pictureURL(id) }
+  private var dir: URL? { keeping.dir }
   func editable(_ board: BoardEntry) -> Bool { BoardIndex.editable(board, on: device) }
   func opensOnPaper(_ board: BoardEntry) -> Bool { BoardIndex.opensOnPaper(board, on: device) }
+  func offersTrial(_ board: BoardEntry) -> Bool { BoardKeeping.offersTrial(board, on: device) }
+  func trialInk<Drawing>(_ id: String, decode: (Data) throws -> Drawing) throws -> Drawing? {
+    try keeping.trialInk(id, decode: decode)
+  }
 
   func setNewBoardsOnPaper(_ on: Bool) {
     newBoardsOnPaper = on
@@ -67,30 +73,20 @@ final class WhiteboardStore: ObservableObject {
   /// next saves (story 612).
   func closedUnsaved(_ problem: BugProblem, board id: String) {
     self.problem = problem
-    unsavedBoard = id
+    keeping.closedUnsaved(id)
   }
 
   // MARK: - The list on disk
 
-  private var indexURL: URL? { dir?.appendingPathComponent("index.json") }
-
   private func load() {
-    guard let dir, let indexURL else {
+    guard dir != nil else {
       problem = .grabber(
         "This build has nowhere to keep boards, so what is drawn is lost on close.", context: "WhiteboardStore.load")
       return
     }
-    do {
-      try FileManager.default.createDirectory(
-        at: dir.appendingPathComponent("boards"), withIntermediateDirectories: true)
-      if FileManager.default.fileExists(atPath: indexURL.path) {
-        index = try JSONDecoder().decode(BoardIndex.self, from: Data(contentsOf: indexURL))
-      }
-    } catch {
-      // Kept aside, never saved over: iCloud gives this device's boards back on the next sync.
-      let aside = indexURL.appendingPathExtension("unreadable")
-      try? FileManager.default.removeItem(at: aside)
-      try? FileManager.default.moveItem(at: indexURL, to: aside)
+    let read = keeping.readIndex()
+    index = read.index
+    if let error = read.unreadable {
       log.event("error", ["where": "whiteboard_index", "message": "\(error)"])
       problem = .grabber(
         "The list of boards could not be read, so it was set aside; iCloud brings the boards back: "
@@ -106,9 +102,8 @@ final class WhiteboardStore: ObservableObject {
   }
 
   private func saveIndex() {
-    guard let indexURL else { return }
     do {
-      try JSONEncoder().encode(index).write(to: indexURL, options: .atomic)
+      try keeping.writeIndex(index)
     } catch {
       log.event("error", ["where": "whiteboard_index", "message": "\(error)", "boards": index.boards.count])
       problem = .grabber(
@@ -174,31 +169,15 @@ final class WhiteboardStore: ObservableObject {
       context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
   }
 
-  /// A board's drawing; one that cannot be read is moved aside before the error goes up. If that move fails, the file
-  /// stays in place and the next save writes over it, which the spec's "The board is kept" does not allow yet.
+  /// A board's drawing; one that cannot be read is moved aside before the error goes up (`BoardKeeping.drawing`).
   func drawing(_ id: String) throws -> PKDrawing {
-    guard let url = drawingURL(id), FileManager.default.fileExists(atPath: url.path) else { return PKDrawing() }
-    do {
-      return try PKDrawing(data: Data(contentsOf: url))
-    } catch {
-      let aside = url.appendingPathExtension("unreadable")
-      try? FileManager.default.removeItem(at: aside)
-      try? FileManager.default.moveItem(at: url, to: aside)
-      throw error
-    }
+    try keeping.drawing(id, decode: PKDrawing.init(data:)) ?? PKDrawing()
   }
 
   /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it.
   func save(_ drawing: PKDrawing, board id: String) throws {
-    guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
-    // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (stories 599, 612).
-    if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil {
-      throw CocoaError(.fileWriteOutOfSpace)
-    }
-    try drawing.dataRepresentation().write(to: url, options: .atomic)
-    if unsavedBoard == id {
-      unsavedBoard = nil
-      if problem?.context == "WhiteboardView.save" { problem = nil }
+    if try keeping.save(drawing.dataRepresentation(), board: id), problem?.context == "WhiteboardView.save" {
+      problem = nil
     }
     writePicture(of: drawing, id: id)
     index.drew(id, strokes: drawing.strokes.count, at: Int64(Date().timeIntervalSince1970 * 1000))
@@ -210,7 +189,7 @@ final class WhiteboardStore: ObservableObject {
   /// Closing a board, after its last save: a new one left without a stroke is gone; anything else goes up to iCloud.
   func closed(_ id: String, empty: Bool) {
     open.remove(id)
-    if empty, let board = index.board(id), board.updated == board.created, editable(board) {
+    if BoardKeeping.dropsOnClose(index.board(id), empty: empty, device: device) {
       delete(id, reason: "empty")
       return
     }
@@ -234,7 +213,7 @@ final class WhiteboardStore: ObservableObject {
     let own = index.board(id).map(editable) ?? true
     index.remove(id, device: device)
     saveIndex()
-    for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
+    keeping.removeFiles(id)
     pictures += 1
     log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own])
     if !index.deleted.isEmpty { Task { await sync(reason: "delete") } }
@@ -294,9 +273,7 @@ final class WhiteboardStore: ObservableObject {
       let merged = index.merge(
         cloud: listed.boards, device: device, unread: listed.unread, tombstones: listed.tombstones, open: open)
       if merged.resend { again = true }
-      for id in merged.dropped {
-        for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? FileManager.default.removeItem(at: url) }
-      }
+      for id in merged.dropped { keeping.removeFiles(id) }
       // Each board on its own: one that fails is asked for again next sync, the rest still arrive.
       var failed: (any Error)?
       for id in merged.fetch {
