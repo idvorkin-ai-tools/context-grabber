@@ -87,18 +87,24 @@ public enum InboxSend {
 public struct InboxSender: Sendable {
   public typealias Transport = @Sendable (URLRequest) async throws -> (Data, URLResponse)
 
+  /// An image's bytes made ready to upload, nil when they can't be: `InboxSend.sendable` in the app. A test can hand in
+  /// its own, so the sending rules run where there is no ImageIO (`just test-linux`).
+  public typealias ReadyImage = @Sendable (Data) -> Data?
+
   let store: InboxStore
   let cockpit: String
   let transport: Transport
   let threads: WhiteboardThreads
+  let readyImage: ReadyImage
 
   public init(
     store: InboxStore, cockpit: String, threads: WhiteboardThreads = WhiteboardThreads(),
-    transport: @escaping Transport
+    readyImage: @escaping ReadyImage = { InboxSend.sendable($0) }, transport: @escaping Transport
   ) {
     self.store = store
     self.cockpit = cockpit
     self.threads = threads
+    self.readyImage = readyImage
     self.transport = transport
   }
 
@@ -156,7 +162,7 @@ public struct InboxSender: Sendable {
       }
     }
     if item.kind == .image {
-      guard let raw = store.image(of: item), let ready = InboxSend.sendable(raw) else {
+      guard let raw = store.image(of: item), let ready = readyImage(raw) else {
         return .refused(status: 0, reason: "The image could not be read or made small enough to send.")
       }
       fields["bytes"] = ready.count

@@ -138,23 +138,21 @@ final class ShareThreadsTests: XCTestCase {
     XCTAssertEqual(store.item("share-1")?.chatThread, "igor2-88g.900")
   }
 
-  #if canImport(ImageIO)
-    func testAPicturePickedIntoAChatIsUploadedThenPostedThere() async throws {
-      let png = try InboxTests.image(.png, side: 8)
-      try store.add(
-        InboxItem(id: "photo-1", kind: .image, sharedAt: 1, thread: "igor2-88g.900"), image: png, imageExtension: "png")
-      let asked = Requests()
-      let sender = InboxSender(store: store, cockpit: cockpit) { request in
-        await asked.add(request)
-        return request.url?.path == "/attachments"
-          ? ChatTests.answer(request, 200, #"{"ok": true, "ref": "2026-10-25/0123456789abcdef.png"}"#)
-          : ChatTests.answer(request, 200, #"{"ok": true, "thread": "igor2-88g.900"}"#)
-      }
-      _ = await sender.sendWaiting { _, _ in }
-      let paths = await asked.all.map { $0.url?.path }
-      XCTAssertEqual(paths, ["/attachments", "/chat/igor2-88g.900"])
+  func testAPicturePickedIntoAChatIsUploadedThenPostedThere() async throws {
+    let png = TestImages.png
+    try store.add(
+      InboxItem(id: "photo-1", kind: .image, sharedAt: 1, thread: "igor2-88g.900"), image: png, imageExtension: "png")
+    let asked = Requests()
+    let sender = InboxSender(store: store, cockpit: cockpit, readyImage: TestImages.asTheyAre) { request in
+      await asked.add(request)
+      return request.url?.path == "/attachments"
+        ? ChatTests.answer(request, 200, #"{"ok": true, "ref": "2026-10-25/0123456789abcdef.png"}"#)
+        : ChatTests.answer(request, 200, #"{"ok": true, "thread": "igor2-88g.900"}"#)
     }
-  #endif
+    _ = await sender.sendWaiting { _, _ in }
+    let paths = await asked.all.map { $0.url?.path }
+    XCTAssertEqual(paths, ["/attachments", "/chat/igor2-88g.900"])
+  }
 
   // MARK: Story 498: the chat has gone
 
