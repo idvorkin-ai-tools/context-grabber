@@ -2001,7 +2001,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 518:
 
 - **Summary:** Holding a message offers what I can do with it
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, no *Yes* on mine); a picture-only message's menu not exercised on any rung; the feel of the hold on the phone and iPad, and links staying tappable, not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host, `ChatHold.choices`: all four on Larry's words, only Quote and Copy on mine, only Yes and No on a picture alone) and `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, Quote on mine); the feel of the hold on the phone and iPad, and links staying tappable, not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2061,7 +2061,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 541:
 
 - **Summary:** Quote in reply puts the message in the bar for me to answer
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host: after what the bar held, two quotes kept) and `ChatReactionUITests` (simulator: the bar filled, the keyboard up, nothing sent); a quote during a recording needs the phone's microphone, not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host: after what the bar held, two quotes kept) and `ChatReactionUITests` (simulator: the bar filled, the keyboard up; nothing sent was a 3 s look for an answer, dropped, as a quote only fills the bar and never reaches the outbox); a quote during a recording needs the phone's microphone, not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 

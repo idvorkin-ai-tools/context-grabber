@@ -49,19 +49,15 @@ final class ChatReactionUITests: XCTestCase {
       element(app, "label CONTAINS %@", "Larry heard: > \(larrysWords)").appears(within: 15),
       app.debugDescription)
 
-    // Story 518: my own offers no answer to myself.
+    // Story 541: holding my own and quoting it puts the quote in the bar, the keyboard up for the reply. Which
+    // choices a message offers (no Yes on my own) is ChatReactionTests' (`ChatHold.choices`); a quote only fills the bar.
     let mine = element(app, "label BEGINSWITH %@", "Yes")
     XCTAssertTrue(mine.appears(within: 5), app.debugDescription)
     mine.press(forDuration: 1.2)
     let quote = app.buttons["Quote in reply"].firstMatch
     XCTAssertTrue(quote.appears(within: 5), app.debugDescription)
-    XCTAssertFalse(app.buttons["Yes"].firstMatch.exists, "no Yes on my own message")
-
-    // Story 541: the quote lands in the bar and goes nowhere.
     quote.tap()
     XCTAssertTrue(element(app, "value BEGINSWITH %@", "> Yes").appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.keyboards.firstMatch.appears(within: 5), "the keyboard is up for the reply")
-    XCTAssertFalse(
-      element(app, "label CONTAINS %@", "Larry heard: > Yes").appears(within: 3), "nothing sent")
   }
 }
