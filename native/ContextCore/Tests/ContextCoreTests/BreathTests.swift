@@ -319,10 +319,12 @@ final class BreathToneTests: XCTestCase {
 
   func testAPresetSeedsCustomFirstSoItCannotBecomeIt() {
     let writes = BreathSetup.writes(preset: 15) { $0 == BreathSetup.breathKey ? "10" : nil }
-    XCTAssertEqual(writes.map(\.key), [
-      BreathSetup.customInKey, BreathSetup.customOutKey, BreathSetup.patternKey, BreathSetup.breathKey,
-      BreathSetup.customKey,
-    ])
+    XCTAssertEqual(
+      writes.map(\.key),
+      [
+        BreathSetup.customInKey, BreathSetup.customOutKey, BreathSetup.patternKey, BreathSetup.breathKey,
+        BreathSetup.customKey,
+      ])
     XCTAssertEqual(writes.map(\.value), ["10", "10", "", "15", "0"])
   }
 

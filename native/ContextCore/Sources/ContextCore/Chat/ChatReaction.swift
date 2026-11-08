@@ -18,7 +18,9 @@ public enum ChatReaction: String, CaseIterable, Sendable {
 /// What holding a message offers (stories 518, 540-541): Yes and No answer Larry, so never on Igor's own message, and
 /// Quote in reply and Copy take its words, so never on a picture alone. Only Yes and No send anything.
 public enum ChatHold: Hashable, Sendable {
-  case react(ChatReaction), quote, copy
+  case react(ChatReaction)
+  case quote
+  case copy
 
   /// The hold menu for `message`, in its order.
   public static func choices(for message: ChatMessage) -> [ChatHold] {

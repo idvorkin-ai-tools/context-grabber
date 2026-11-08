@@ -142,7 +142,9 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertEqual(store.items().unreadable, [], "the strokes beside an item are not an unreadable item")
 
     let calls = Calls()
-    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre) { request in
+    let sender = InboxSender(
+      store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre
+    ) { request in
       let url = try XCTUnwrap(request.url)
       await calls.add(url.path, body: request.httpBody)
       let (status, body): (Int, String) =
@@ -188,7 +190,9 @@ final class WhiteboardStrokesTests: XCTestCase {
       withJSONObject: WhiteboardStrokes.wire([WhiteboardStrokes.Stroke(id: "s1", points: points)]))
     _ = try draft.save(to: store, at: 1, id: "m3")
 
-    let offline = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre) { _ in
+    let offline = InboxSender(
+      store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre
+    ) { _ in
       throw URLError(.notConnectedToInternet)
     }
     let away = await offline.sendWaiting { _, _ in }
@@ -198,7 +202,9 @@ final class WhiteboardStrokesTests: XCTestCase {
     XCTAssertNotNil(store.strokes(of: waiting), "the strokes are still beside the picture")
 
     let calls = Calls()
-    let back = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre) { request in
+    let back = InboxSender(
+      store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre
+    ) { request in
       let url = try XCTUnwrap(request.url)
       await calls.add(url.path, body: nil)
       let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#
@@ -223,7 +229,9 @@ final class WhiteboardStrokesTests: XCTestCase {
     let item = try draft.save(to: store, at: 1, id: "m2")
     XCTAssertNil(item.strokesFile)
     let calls = Calls()
-    let sender = InboxSender(store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre) { request in
+    let sender = InboxSender(
+      store: store, cockpit: "https://c.example", threads: freshThreads(), readyImage: TestImages.asTheyAre
+    ) { request in
       let url = try XCTUnwrap(request.url)
       await calls.add(url.path, body: nil)
       let body = url.path == "/attachments" ? #"{"ok": true, "ref": "r1"}"# : #"{"ok": true, "thread": "t1"}"#

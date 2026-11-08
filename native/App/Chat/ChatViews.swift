@@ -738,7 +738,6 @@ private struct MessageBubble: View {
   let quote: () -> Void
   let copy: () -> Void
 
-
   var body: some View {
     if message.isError { failure } else { bubble }
   }
@@ -972,7 +971,8 @@ private struct ChatImage: View {
       .gesture(
         DragGesture(minimumDistance: ChatImageClose.minimumDrag).onEnded {
           if ChatImageClose.closes(dragHeight: $0.translation.height) { close(how: "swipe") }
-        })
+        }
+      )
       .onAppear { logger("ui", ["action": "open_chat_image", "message": .string(message)]) }
     }
   }
