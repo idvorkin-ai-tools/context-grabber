@@ -1766,7 +1766,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 731:
 
 - **Summary:** A new window lets me choose what it shows
-- **Status:** implemented in COMMIT; `WindowOfferTests` (host) pass and the Mac build compiles; not yet opened with Command+N on the Mac or the iPad's New Window
+- **Status:** implemented in [a696cd71](https://github.com/idvorkin/context-grabber/commit/a696cd71); `WindowOfferTests` (host) pass and the Mac build compiles; not yet opened with Command+N on the Mac or the iPad's New Window
 - **Issues:** [#782](https://github.com/idvorkin/context-grabber/issues/782)
 - **Spec:** [Windows on the iPad — Another window of the app](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
