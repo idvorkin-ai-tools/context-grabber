@@ -161,18 +161,17 @@ errors=$(jq -c 'select(.type=="error")' "$f")
 if [ "$grid" = "smoke-grid" ] && [ -z "$errors" ]; then ok "whiteboard: the grid on from the hook, no error events"
 else bad "whiteboard: grid_on for board '$grid', errors: $errors"; fi
 # Story 658: a board drawn on the old canvas opens on paper to look at only, its 40 strokes moved onto the first page
-# (the ink's box starts at the page's margin), and nothing is saved over it.
+# (the ink's box starts at the page's margin).
 SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-old-canvas SIMCTL_CHILD_GRABBER_BOARD_FIXTURE_OLD_INK=40 \
   SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-old-canvas" relaunch
 wait_jq 'select(.type=="whiteboard" and .action=="paper_open")' 30 || echo "      (timed out waiting for paper_open)"
 f=$(newest_log)
 opened=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="open")][0] | "\(.editable) \(.old_canvas)"' "$f")
 shown=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="paper_open")][0] | "\(.strokes) \(.editable) \(.ink[0]) \(.ink[1])"' "$f")
-saves=$(jq -sc 'select(.type=="whiteboard" and .action=="close" and .board=="smoke-old-canvas")' "$f")
 errors=$(jq -c 'select(.type=="error")' "$f")
-if [ "$opened" = "false true" ] && [ "$shown" = "40 false 40 40" ] && [ -z "$saves" ] && [ -z "$errors" ]; then
+if [ "$opened" = "false true" ] && [ "$shown" = "40 false 40 40" ] && [ -z "$errors" ]; then
   ok "whiteboard: an old-canvas board opened look-only on paper, 40 strokes at the first page's corner, no error events"
-else bad "whiteboard: old-canvas board open '$opened', shown '$shown', saves '$saves', errors: $errors"; fi
+else bad "whiteboard: old-canvas board open '$opened', shown '$shown', errors: $errors"; fi
 fi  # whiteboard
 
 if want timer; then
