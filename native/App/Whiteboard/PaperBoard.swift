@@ -1,7 +1,8 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657; #636): PaperKit's controller, which
-//  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log, which the trial on
-//  paper shares; and on it `PaperBoardController`, which draws on a real board through its model, so it saves and syncs
-//  as any other board does, with its ghosts, Larry's marks, the mic and paste. Ghosts lie on the sheet under the ink, in
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657, 729; #636): PaperKit's controller, which
+//  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log; and on it
+//  `PaperBoardController`, which draws on a board through its model, so it saves and syncs, with its ghosts, Larry's
+//  marks, the mic and paste. A look-only board (another device's, or one drawn on the old canvas) shows the same way with
+//  drawing off and no tools. Ghosts lie on the sheet under the ink, in
 //  PaperKit's content view, so they move with the board whatever it does.
 
 import ContextCore
@@ -58,6 +59,8 @@ class PaperHost: UIViewController {
   private let watcher = PaperTouchWatcher()
   private(set) var boardPaper: BoardPaper
   var paperColor: UIColor { boardPaper.color }
+  /// False on a look-only board: nothing draws, and there's no tool picker; a finger still pans and pinches.
+  var drawsHere = true
 
   private(set) var touchesDown = 0
   private(set) var pencilDown = false
@@ -98,12 +101,14 @@ class PaperHost: UIViewController {
     view.addSubview(paper.view)
     paper.didMove(toParent: self)
     paper.contentView = lines
+    paper.isEditable = drawsHere
     watcher.changed = { [weak self] touch, phase, down in self?.touched(touch, phase, down: down) }
     view.addGestureRecognizer(watcher)
   }
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    guard drawsHere else { return }
     picker.addObserver(paper)
     paper.pencilKitResponderState.activeToolPicker = picker
     paper.pencilKitResponderState.toolPickerVisibility = .visible
@@ -111,6 +116,7 @@ class PaperHost: UIViewController {
 
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
+    guard drawsHere else { return }
     paper.pencilKitResponderState.toolPickerVisibility = .hidden
     picker.removeObserver(paper)
   }
@@ -284,7 +290,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   private let model: WhiteboardModel
   private let log: SessionLog
-  private let board = BoardPages()
+  /// A page wide, or wider for an old-canvas board's wider ink (story 729).
+  private var board = BoardPages()
   private var pages = 1
   private var laidWidth: CGFloat = 0
   /// What the column's own changes shouldn't report as a person's.
@@ -318,6 +325,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     self.model = model
     self.log = log
     super.init(boardPaper: model.paper)
+    drawsHere = model.editable
   }
 
   required init?(coder: NSCoder) { nil }
@@ -386,7 +394,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   private func load() {
     let started = CACurrentMediaTime()
-    let drawing = model.drawing
+    var drawing = model.drawing
+    if model.oldCanvas {
+      // Story 729: the old canvas put ink about 10,000 points from its corner. Moved, never scaled, to the first page's
+      // corner for showing only: a look-only board saves nothing, so its file keeps the ink where it was.
+      let placed = BoardPages.placing(ink: drawing.strokes.isEmpty ? nil : drawing.bounds)
+      board = placed.board
+      drawing = drawing.transformed(using: placed.transform)
+    }
     pages = board.pagesNeeded(inkMaxY: drawing.strokes.isEmpty ? nil : drawing.bounds.maxY)
     var markup = PaperMarkup(bounds: board.bounds(pages: pages))
     markup.append(contentsOf: drawing)
@@ -399,7 +414,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       "whiteboard",
       [
         "action": "paper_open", "board": model.board.id, "strokes": inkFrames.count, "pages": pages,
-        "ms": ms(CACurrentMediaTime() - started),
+        "width": Double(board.width), "ink": rect(drawing.strokes.isEmpty ? .zero : drawing.bounds),
+        "editable": drawsHere, "ms": ms(CACurrentMediaTime() - started),
       ])
   }
 
@@ -1056,8 +1072,7 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
 /// What a board's paper is ruled with. A board has one or none.
 enum PaperRules { case none, grid, ruled }
 
-/// Paper under the ink: its colour, its grid or ruled lines, a faint line where each page ends, any small crosses asked
-/// for, and the ghosts. In PaperKit's content view, so it moves with the board and is in nothing else.
+/// Paper under the ink: its colour, its grid or ruled lines, a faint line where each page ends, and the ghosts. In PaperKit's content view, so it moves with the board and is in nothing else.
 final class PaperLines: UIView {
   private let shape = CAShapeLayer()
   /// The grid or ruled lines, under the page lines and the ghosts, as ink lies over all of this.
@@ -1077,7 +1092,6 @@ final class PaperLines: UIView {
   private var rulesDown: [CGFloat] = []
   private var width: CGFloat = 0
   private var ends: [CGFloat] = []
-  private var crosses: [CGPoint] = []
   let ghostLayers = GhostLayers()
 
   init(paper: UIColor) {
@@ -1096,11 +1110,10 @@ final class PaperLines: UIView {
 
   required init?(coder: NSCoder) { nil }
 
-  /// In board points. The crosses are the trial's, to test with; a real board has none.
-  func show(width: CGFloat, ends: [CGFloat], crosses: [CGPoint] = []) {
+  /// In board points.
+  func show(width: CGFloat, ends: [CGFloat]) {
     self.width = width
     self.ends = ends
-    self.crosses = crosses
     setNeedsLayout()
   }
 
@@ -1130,13 +1143,6 @@ final class PaperLines: UIView {
       let edge = spot(of: CGPoint(x: 0, y: end))
       path.move(to: edge)
       path.addLine(to: CGPoint(x: bounds.width, y: edge.y))
-    }
-    for mark in crosses {
-      let cross = spot(of: mark)
-      path.move(to: CGPoint(x: cross.x - 8, y: cross.y))
-      path.addLine(to: CGPoint(x: cross.x + 8, y: cross.y))
-      path.move(to: CGPoint(x: cross.x, y: cross.y - 8))
-      path.addLine(to: CGPoint(x: cross.x, y: cross.y + 8))
     }
     let ruled = CGMutablePath()
     for x in rulesAcross {

@@ -1,7 +1,7 @@
-//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347): PencilKit's canvas and the system tool
-//  picker on a board far bigger than the screen, saved a moment after each stroke, and sent to Larry on the board's chat
-//  thread holding its picture (the Inbox's image path, so it waits in the outbox when the network is away). A board
-//  another device draws opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
+//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347, 729): a column of pages on PaperKit with the
+//  system tool picker, saved a moment after each stroke, and sent to Larry on the board's chat thread holding its picture
+//  (the Inbox's image path, so it waits in the outbox when the network is away). A board another device draws, or one
+//  drawn on the old canvas (gone 2026-11-07), opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
 //  as shapes, drawn faint until a tap keeps one (spec 2026-11-01-whiteboard-shapes-design.md, stories 344, 345, 349).
 
 import BugKit
@@ -56,10 +56,12 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var micFinishing = false
   @Published private(set) var heardNote: String?
   let board: BoardEntry
-  /// Drawn here, or only looked at (a board from another device, story 347).
+  /// Drawn on here, or only looked at: a board from another device (story 347) or from the old canvas (story 729).
   let editable: Bool
-  /// On PaperKit (stories 590–657).
-  let onPaper: Bool
+  /// Drawn on the old canvas: its ink is moved onto pages to be shown, and it can't be sent (story 729).
+  let oldCanvas: Bool
+  /// Why it's only looked at, for the bar; nil on a board drawn on here.
+  let lookOnlyNote: String?
   @Published private(set) var drawing: PKDrawing
   private let store: WhiteboardStore
   private let log: SessionLog
@@ -124,8 +126,9 @@ final class WhiteboardModel: ObservableObject {
       on: UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true, ghostLife: .seconds(Self.ghostSeconds))
     gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
     ruledOn = UserDefaults.standard.bool(forKey: "whiteboard_ruled_\(board.id)")
-    editable = store.editable(board)
-    onPaper = store.opensOnPaper(board)
+    editable = store.drawable(board)
+    oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
+    lookOnlyNote = store.lookOnlyNote(board)
     var loaded = PKDrawing()
     do {
       loaded = try store.drawing(board.id)
@@ -137,10 +140,13 @@ final class WhiteboardModel: ObservableObject {
     }
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
-    if onPaper { inkBoxes = loaded.strokes.map(\.renderBounds) }
+    inkBoxes = loaded.strokes.map(\.renderBounds)
     log.event(
       "whiteboard",
-      ["action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": store.editable(board)])
+      [
+        "action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": editable,
+        "old_canvas": oldCanvas,
+      ])
     if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GRID"] == "on" { setGrid(true) }
   }
 
@@ -181,11 +187,6 @@ final class WhiteboardModel: ObservableObject {
       ])
   }
 
-  /// #624: which commands the canvas's menu offers, once each per board.
-  func canvasAsked(_ selector: String, allowed: Bool) {
-    log.event("whiteboard", ["action": "can_perform", "board": board.id, "selector": selector, "allowed": allowed])
-  }
-
   private func drawingMoved() {
     isEmpty = drawing.strokes.isEmpty
     sent = nil
@@ -203,7 +204,6 @@ final class WhiteboardModel: ObservableObject {
 
   /// The ink changed: what's on screen may have too.
   private func inkMoved() {
-    guard onPaper else { return }
     inkBoxes = drawing.strokes.map(\.renderBounds)
     screenMoved()
   }
@@ -211,7 +211,6 @@ final class WhiteboardModel: ObservableObject {
   /// On paper, the view moved or the ink changed (story 433): what Send and Larry's turn would show. A Send already made is
   /// of the pages it showed, so another page on screen can be sent too.
   func screenMoved() {
-    guard onPaper else { return }
     let frame = pictureFrame()?.rect
     let nothing = !drawing.strokes.isEmpty && frame == nil
     if nothing != nothingOnScreen { nothingOnScreen = nothing }
@@ -221,11 +220,10 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Larry's picture, for Send and his turn: on paper, the pages on screen (story 433); on the old canvas, the whole drawing.
-  /// Claude's own turns frame theirs as they always have.
+  /// Larry's picture, for Send and his turn: the pages on screen (story 433). Claude's own turns frame theirs as they
+  /// always have.
   private func pictureFrame() -> (rect: CGRect, scale: CGFloat)? {
-    guard onPaper else { return WhiteboardFrame.export(drawing.bounds) }
-    return BoardPages().picture(visible: visibleRect?() ?? .null, ink: inkBoxes)
+    BoardPages().picture(visible: visibleRect?() ?? .null, ink: inkBoxes)
   }
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
@@ -999,7 +997,7 @@ struct WhiteboardView: View {
         BugProblemView(problem: problem, logger: logger).padding(.horizontal)
       }
       Group {
-        if model.onPaper { PaperBoardCanvas(model: model, log: log) } else { BoardCanvas(model: model) }
+        PaperBoardCanvas(model: model, log: log)
       }
       .ignoresSafeArea(edges: .bottom)
     }
@@ -1023,7 +1021,7 @@ struct WhiteboardView: View {
                     }))
               }
             }
-            Section(model.onPaper ? "Lines" : "Grid") {
+            Section("Lines") {
               Toggle(
                 "Grid lines",
                 isOn: Binding(
@@ -1032,16 +1030,14 @@ struct WhiteboardView: View {
                     model.setGrid($0)
                     model.menuChose?()
                   }))
-              if model.onPaper {
-                Toggle(
-                  "Ruled lines",
-                  isOn: Binding(
-                    get: { model.ruledOn },
-                    set: {
-                      model.setRuled($0)
-                      model.menuChose?()
-                    }))
-              }
+              Toggle(
+                "Ruled lines",
+                isOn: Binding(
+                  get: { model.ruledOn },
+                  set: {
+                    model.setRuled($0)
+                    model.menuChose?()
+                  }))
             }
           } label: {
             Label("Board", systemImage: "paintpalette")
@@ -1098,16 +1094,19 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          model.send()
-        } label: {
-          Label("Send to Larry", systemImage: "paperplane")
+      // An old-canvas board's ink sits where the column put it, not where it's saved: nothing to frame for Larry (story 729).
+      if !model.oldCanvas {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            model.send()
+          } label: {
+            Label("Send to Larry", systemImage: "paperplane")
+          }
+          // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
+          .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
+          .disabled(model.isEmpty || model.nothingOnScreen || model.sent != nil || model.larrySending)
+          .accessibilityIdentifier("whiteboard-send")
         }
-        // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
-        .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
-        .disabled(model.isEmpty || model.nothingOnScreen || model.sent != nil || model.larrySending)
-        .accessibilityIdentifier("whiteboard-send")
       }
     }
     .accessibilityIdentifier("whiteboard")
@@ -1144,226 +1143,8 @@ struct WhiteboardView: View {
       model.larryAway ? "Larry's marks: the Cockpit isn't answering" : nil,
       model.micOn ? model.heardNote.map { "Heard: \($0)" } ?? "Listening…" : nil,
       count == 0 ? nil : "\(count) suggestion\(count == 1 ? "" : "s"): tap one to keep it",
-      model.sent ?? (model.editable ? nil : "Drawn on \(model.board.deviceName): look only"),
+      model.sent ?? model.lookOnlyNote,
     ].compactMap { $0 }
     return parts.isEmpty ? nil : parts.joined(separator: " · ")
-  }
-}
-
-/// PencilKit's canvas on a board far bigger than the screen, with the ghosts on a layer that pans and zooms with it.
-private struct BoardCanvas: UIViewRepresentable {
-  @ObservedObject var model: WhiteboardModel
-
-  func makeCoordinator() -> Coordinator { Coordinator(model: model) }
-
-  func makeUIView(context: Context) -> BoardCanvasView {
-    let canvas = BoardCanvasView()
-    canvas.drawing = model.drawing
-    canvas.delegate = context.coordinator
-    // The system's own choice: with a Pencil paired, only it draws (palm rejection, a finger moves the board);
-    // without one (an iPhone, the simulator), a finger draws.
-    canvas.drawingPolicy = .default
-    canvas.backgroundColor = model.paper.color
-    canvas.isOpaque = true
-    canvas.contentSize = CGSize(width: WhiteboardFrame.side, height: WhiteboardFrame.side)
-    canvas.minimumZoomScale = 0.1
-    canvas.maximumZoomScale = 3
-    if model.editable {
-      canvas.toolPicker = context.coordinator.picker
-      // Stories 344, 354: a finger tap keeps a ghost (the Pencil draws, and they stay while it does).
-      let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:)))
-      tap.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
-      tap.cancelsTouchesInView = false
-      canvas.addGestureRecognizer(tap)
-      canvas.pasted = { [weak model] text in model?.paste(text) }
-      canvas.asked = { [weak model] selector, allowed in model?.canvasAsked(selector, allowed: allowed) }
-      model.visibleRect = { [weak canvas] in
-        guard let canvas else { return .null }
-        let zoom = canvas.zoomScale
-        return CGRect(
-          x: canvas.contentOffset.x / zoom, y: canvas.contentOffset.y / zoom, width: canvas.bounds.width / zoom,
-          height: canvas.bounds.height / zoom)
-      }
-      model.zoom = { [weak canvas] in canvas?.zoomScale ?? 1 }
-      model.draw = { [weak canvas, weak coordinator = context.coordinator] drawing, _ in
-        guard let canvas else { return }
-        let before = canvas.drawing
-        coordinator?.stepsOn = canvas.undoManager
-        canvas.undoManager?.registerUndo(withTarget: canvas) { $0.drawing = before }
-        canvas.drawing = drawing
-      }
-    } else {
-      // Story 347: pan and pinch only.
-      canvas.drawingGestureRecognizer.isEnabled = false
-    }
-    return canvas
-  }
-
-  func updateUIView(_ canvas: BoardCanvasView, context: Context) {
-    canvas.backgroundColor = model.paper.color
-    canvas.show(model.ghosts)
-    canvas.showGrid(model.gridOn)
-  }
-
-  static func dismantleUIView(_ canvas: BoardCanvasView, coordinator: Coordinator) {
-    coordinator.stepsOn?.removeAllActions(withTarget: canvas)
-  }
-
-  final class Coordinator: NSObject, PKCanvasViewDelegate {
-    let model: WhiteboardModel
-    /// The undo stack a kept mark's step went on. A closing canvas may no longer be able to say.
-    weak var stepsOn: UndoManager?
-    /// Held here: the tool picker disappears when nothing keeps it.
-    let picker = PKToolPicker()
-
-    init(model: WhiteboardModel) { self.model = model }
-
-    func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
-      let drawing = canvasView.drawing
-      MainActor.assumeIsolated { model.changed(drawing) }
-    }
-
-    func canvasViewDidEndUsingTool(_ canvasView: PKCanvasView) {
-      MainActor.assumeIsolated { model.endedDrawing() }
-    }
-
-    func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {
-      MainActor.assumeIsolated { model.beganDrawing() }
-    }
-
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-      MainActor.assumeIsolated { (scrollView as? BoardCanvasView)?.followZoom() }
-    }
-
-    @objc func tapped(_ tap: UITapGestureRecognizer) {
-      guard let canvas = tap.view as? BoardCanvasView else { return }
-      let zoom = canvas.zoomScale
-      let at = tap.location(in: canvas)
-      MainActor.assumeIsolated {
-        model.tap(at: CGPoint(x: at.x / zoom, y: at.y / zoom), zoom: zoom)
-      }
-    }
-  }
-}
-
-final class BoardCanvasView: PKCanvasView {
-  fileprivate var toolPicker: PKToolPicker?
-  /// ⌘V on a board that can be drawn on (stories 390, 394).
-  fileprivate var pasted: ((String) -> Void)?
-  /// #624: each command the system asks about, the first time it asks.
-  fileprivate var asked: ((String, Bool) -> Void)?
-  private var askedAlready: Set<String> = []
-  private var opened = false
-  /// Holds the ghosts in board points; scaled with the zoom so they sit on the drawing.
-  private let ghostLayers = GhostLayers()
-  /// Story 407: one thin solid line, repeated each way by the GPU. Nothing is rasterised, and nothing changes between
-  /// crossings of a line, so the grid costs next to nothing while drawing and panning. Made the first time it's asked for.
-  private var grid: (holder: CALayer, across: CAReplicatorLayer, down: CAReplicatorLayer)?
-  private var gridLaid: WhiteboardFrame.Grid?
-
-  /// The first layout knows the screen's size: the view opens centred on the drawing.
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    layGrid()
-    if ghostLayers.holder.superlayer == nil {
-      layer.addSublayer(ghostLayers.holder)
-      followZoom()
-    }
-    guard !opened, bounds.width > 0, bounds.height > 0 else { return }
-    opened = true
-    let drawn = drawing.strokes.isEmpty ? nil : drawing.bounds
-    contentOffset = WhiteboardFrame.openingOffset(drawing: drawn, viewport: bounds.size)
-  }
-
-  func followZoom() {
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-    ghostLayers.holder.setAffineTransform(CGAffineTransform(scaleX: zoomScale, y: zoomScale))
-    ghostLayers.holder.zPosition = 10
-    CATransaction.commit()
-    layGrid()
-  }
-
-  fileprivate func showGrid(_ on: Bool) {
-    guard on != !(grid?.holder.isHidden ?? true) else { return }
-    if grid == nil { grid = Self.makeGrid(in: layer) }
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-    grid?.holder.isHidden = !on
-    CATransaction.commit()
-    layGrid()
-  }
-
-  /// A grey that reads on a light or a dark background, whichever is behind it.
-  private static func makeGrid(in parent: CALayer) -> (CALayer, CAReplicatorLayer, CAReplicatorLayer) {
-    let holder = CALayer()
-    let across = CAReplicatorLayer()
-    let down = CAReplicatorLayer()
-    for replicator in [across, down] {
-      let line = CALayer()
-      line.backgroundColor = UIColor(white: 0.5, alpha: 0.3).cgColor
-      replicator.addSublayer(line)
-      holder.addSublayer(replicator)
-    }
-    // Above the ink and under the ghosts: a layer behind the ink doesn't show through PencilKit's canvas (0 pixels on
-    // the simulator, opaque or not), and a see-through canvas would blend the whole screen on every frame. A hair this
-    // faint barely tints a stroke it crosses.
-    holder.zPosition = 5
-    parent.addSublayer(holder)
-    return (holder, across, down)
-  }
-
-  private func layGrid() {
-    guard let grid, !grid.holder.isHidden, bounds.width > 0 else { return }
-    let wanted = WhiteboardFrame.grid(offset: contentOffset, viewport: bounds.size, zoom: zoomScale)
-    guard wanted != gridLaid else { return }
-    gridLaid = wanted
-    let hair = 1 / traitCollection.displayScale
-    let width = CGFloat(wanted.across) * wanted.gap
-    let height = CGFloat(wanted.down) * wanted.gap
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-    grid.holder.frame = CGRect(origin: wanted.origin, size: .zero)
-    grid.across.instanceCount = wanted.across
-    grid.across.instanceTransform = CATransform3DMakeTranslation(wanted.gap, 0, 0)
-    grid.across.sublayers?.first?.frame = CGRect(x: 0, y: 0, width: hair, height: height)
-    grid.down.instanceCount = wanted.down
-    grid.down.instanceTransform = CATransform3DMakeTranslation(0, wanted.gap, 0)
-    grid.down.sublayers?.first?.frame = CGRect(x: 0, y: 0, width: width, height: hair)
-    CATransaction.commit()
-  }
-
-  fileprivate func show(_ ghosts: [Ghost]) {
-    guard ghostLayers.show(ghosts) else { return }
-    // Where a finger draws, it taps and pans while ghosts show (story 354).
-    drawingPolicy = ghosts.isEmpty ? .default : .pencilOnly
-  }
-
-  // hasStrings asks without reading, so it shows no paste prompt.
-  override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-    let allowed = canPerform(action, sender)
-    if askedAlready.insert(NSStringFromSelector(action)).inserted { asked?(NSStringFromSelector(action), allowed) }
-    return allowed
-  }
-
-  private func canPerform(_ action: Selector, _ sender: Any?) -> Bool {
-    if action == #selector(paste(_:)) {
-      guard pasted != nil else { return false }
-      return UIPasteboard.general.hasStrings || super.canPerformAction(action, withSender: sender)
-    }
-    return super.canPerformAction(action, withSender: sender)
-  }
-
-  override func paste(_ sender: Any?) {
-    guard let pasted else { return }
-    if let text = UIPasteboard.general.string { pasted(text) } else { super.paste(sender) }
-  }
-
-  override func didMoveToWindow() {
-    super.didMoveToWindow()
-    guard window != nil, let toolPicker else { return }
-    toolPicker.addObserver(self)
-    toolPicker.setVisible(true, forFirstResponder: self)
-    becomeFirstResponder()
   }
 }

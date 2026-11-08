@@ -15,9 +15,6 @@ struct WhiteboardListView: View {
   @State private var deleting: BoardEntry?
   /// A link named a board that isn't here (#603).
   @State private var linkProblem: BugProblem?
-  /// The trial on paper (stories 435, 436, 524–527): an in-memory copy, temporary.
-  @State private var trialCopy: PaperTrialCopy?
-  @State private var trialProblem: BugProblem?
   private let app: AppModel
   private let onDone: () -> Void
 
@@ -41,7 +38,6 @@ struct WhiteboardListView: View {
       List {
         if let problem = store.problem { BugProblemView(problem: problem, logger: app.bugLogger) }
         if let linkProblem { BugProblemView(problem: linkProblem, logger: app.bugLogger) }
-        if let trialProblem { BugProblemView(problem: trialProblem, logger: app.bugLogger) }
         if let note = store.syncNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
         if store.index.boards.isEmpty {
           ContentUnavailableView(
@@ -58,18 +54,6 @@ struct WhiteboardListView: View {
           Button("Done", action: onDone).accessibilityIdentifier("whiteboard-done")
         }
         ToolbarItem(placement: .topBarTrailing) {
-          Menu {
-            Toggle(
-              "New boards on paper",
-              isOn: Binding(get: { store.newBoardsOnPaper }, set: { store.setNewBoardsOnPaper($0) }))
-          } label: {
-            Label("Board options", systemImage: "ellipsis.circle")
-          }
-          // Its state, for VoiceOver and the UI test, as a menu's toggle isn't there until it opens.
-          .accessibilityLabel("Board options, new boards \(store.newBoardsOnPaper ? "on paper" : "on the old canvas")")
-          .accessibilityIdentifier("whiteboard-options")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
           Button {
             path.append(store.create())
           } label: {
@@ -83,16 +67,8 @@ struct WhiteboardListView: View {
       }
     }
     .accessibilityIdentifier("whiteboard-list")
-    .fullScreenCover(item: $trialCopy) { copy in
-      PaperTrialView(copy: copy, log: app.log) { trialCopy = nil }
-    }
     .task {
       app.liveWhiteboards = store
-      if let id = ProcessInfo.processInfo.environment["GRABBER_PAPER_TRIAL"], let board = store.index.board(id),
-        store.offersTrial(board)
-      {
-        tryOnPaper(board)
-      }
       if app.whiteboardLink != nil {
         await followLink()
       } else {
@@ -157,13 +133,6 @@ struct WhiteboardListView: View {
           Label("Rename", systemImage: "pencil")
         }
       }
-      if store.offersTrial(board) {
-        Button {
-          tryOnPaper(board)
-        } label: {
-          Label("Try on paper", systemImage: "testtube.2")
-        }
-      }
       Button(role: .destructive) {
         deleting = board
       } label: {
@@ -173,23 +142,11 @@ struct WhiteboardListView: View {
     .accessibilityIdentifier("whiteboard-card")
   }
 
-  private func tryOnPaper(_ board: BoardEntry) {
-    do {
-      trialProblem = nil
-      trialCopy = try store.trialCopy(of: board)
-    } catch {
-      app.log.event("error", ["where": "whiteboard_trial_load", "board": board.id, "message": "\(error)"])
-      trialProblem = .grabber(
-        "This board could not be read, so it can't be tried on paper. The file is untouched: "
-          + error.localizedDescription, context: "WhiteboardListView.tryOnPaper", extra: ["board": .string(board.id)])
-    }
-  }
-
   private func subtitle(_ board: BoardEntry) -> String {
     let when = RelativeDateTimeFormatter().localizedString(
       for: Date(timeIntervalSince1970: Double(board.updated) / 1000), relativeTo: Date())
     guard store.editable(board) else { return "Changed \(when) · Drawn on \(board.deviceName)" }
-    return store.opensOnPaper(board) ? "Changed \(when) · On paper" : "Changed \(when)"
+    return store.drawable(board) ? "Changed \(when) · On paper" : "Changed \(when)"
   }
 }
 
