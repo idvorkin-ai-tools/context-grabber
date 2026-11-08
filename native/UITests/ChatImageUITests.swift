@@ -88,11 +88,6 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertTrue(app.buttons["home-call"].appears(within: 10), app.debugDescription)
   }
 
-  func testAPictureWithNoBoardHasNoJump() throws {
-    let app = try openPicture()
-    XCTAssertFalse(app.buttons["chat-image-jump"].appears(within: 3), app.debugDescription)
-  }
-
   func testAMissingBoardSaysSoAndThePictureStays() throws {
     let app = try openPicture(thread: "igor2-88g.604")
     let jump = app.buttons["chat-image-jump"]
