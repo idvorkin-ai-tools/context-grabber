@@ -61,11 +61,10 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertTrue(done.waitForNonExistence(timeout: 5), app.debugDescription)
   }
 
-  func testASwipeDownClosesAndASwipeUpDoesNot() throws {
+  /// Which drags close it (only down, past 80 points) is ChatImageCloseTests'; this is the real swipe.
+  func testASwipeDownCloses() throws {
     let app = try openPicture()
     let done = app.buttons["chat-image-done"]
-    app.swipeUp()
-    XCTAssertFalse(done.waitForNonExistence(timeout: 2), "only a swipe down closes it")
     app.swipeDown()
     XCTAssertTrue(done.waitForNonExistence(timeout: 5), app.debugDescription)
   }

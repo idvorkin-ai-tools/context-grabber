@@ -969,7 +969,10 @@ private struct ChatImage: View {
         }
         .foregroundStyle(.white).padding().accessibilityIdentifier("chat-image-done")
       }
-      .gesture(DragGesture(minimumDistance: 30).onEnded { if $0.translation.height > 80 { close(how: "swipe") } })
+      .gesture(
+        DragGesture(minimumDistance: ChatImageClose.minimumDrag).onEnded {
+          if ChatImageClose.closes(dragHeight: $0.translation.height) { close(how: "swipe") }
+        })
       .onAppear { logger("ui", ["action": "open_chat_image", "message": .string(message)]) }
     }
   }
