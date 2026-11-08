@@ -86,9 +86,10 @@ mac"*). Every shortcut is also a menu item, so the menu bar is where to find the
 | Menu | Item | Keys | Does |
 |---|---|---|---|
 | App menu | Settings… | Command+Comma | the app's settings, over home |
+| App menu | Report a Problem… | Command+Shift+R | the report dialog, over whatever screen is in front |
 | File | New Board | Command+Shift+N | the whiteboard, on a new empty board |
 | Go | the first nine home destinations | Command+1 … Command+9 | that destination, as a tap on its tile would |
-| Help | Report a Problem… | Command+Shift+R | the report dialog, as a shake opens it |
+| Help | Report a Problem… | | the same, where a Mac app usually keeps it |
 
 The Go menu lists the home screen's destinations in the order home shows them: the Today card first when it is shown,
 then the tiles, as Igor arranged them. A hidden one is not listed, and the daily strip, which opens nothing, is not
@@ -99,6 +100,12 @@ Go items and New Board are dimmed while another screen covers home (the settings
 count too), for the same reason Settings… is: a live timer or
 call is never closed to make room. New Board also works while the whiteboard is in front, and opens the new board there. It
 takes Command+Shift+N because Command+N stays the Mac's own New Window. Report a Problem… works from any screen.
+
+**Reporting from any screen** (Igor, 2026-11-07, #783: *"Put log bug into the menu so I can always call it whatever
+screen I'm on"*). He reached for the report from the Go menu, where *Report a problem* is a home destination, and found it
+dimmed in chat, so he went back home to report. So *Report a problem* in the Go menu stays live on every screen: it opens
+the report dialog over whatever is in front and closes nothing, unlike the other Go items. And *Report a Problem…* sits in
+the app menu too, under *Settings…*, with Command+Shift+R, so it is in the first menu he opens. The Help menu keeps it.
 
 A phone and an iPad show no new menu items, and an iPad with a hardware keyboard gets none of these shortcuts either:
 the menu is the Mac's alone.
@@ -120,6 +127,8 @@ when the app is quit nothing runs, and that isn't an error.
 - On the Mac, Command+Shift+N from home opens the whiteboard on a new empty board; from the whiteboard it opens a new
   board there too.
 - On the Mac, Command+Shift+R opens the report dialog from any screen.
+- In chat, a timer or any other screen, *Report a problem* in the Go menu and *Report a Problem…* in the app menu are live
+  and open the report dialog over that screen; the other Go items are dimmed.
 - While a timer, a call or any other screen covers home, the Go items and New Board are dimmed and their keys do
   nothing.
 

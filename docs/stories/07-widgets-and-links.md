@@ -1707,7 +1707,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Reporting a problem by key
 - **Given:** the Mac build is open on any screen
 - **When:** I press Command+Shift+R
-- **Then:** the report dialog opens, as Report a Problem… in the Help menu opens it
+- **Then:** the report dialog opens, as Report a Problem… in the app menu (and the Help menu) opens it
 
 
 ### User Story 726:
@@ -1727,7 +1727,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a timer, a call, the settings, What's new, the report dialog or any other screen covers home
 - **When:** I open the Go menu, or press one of its keys
 - **Then:** its items are dimmed and nothing happens, so nothing live is closed; New Board is dimmed too, unless home or
-  the whiteboard is the screen in front
+  the whiteboard is the screen in front; *Report a problem* stays live (story 730)
 
 
 ### User Story 727:
@@ -1747,3 +1747,24 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app on an iPhone, or on an iPad with a hardware keyboard
 - **When:** I look for these menus or press these keys
 - **Then:** nothing new is there: the menu and its keys are the Mac's alone
+
+
+### User Story 730:
+
+- **Summary:** Report a problem from the menu on any screen, on the Mac
+- **Status:** implemented in COMMIT; `MacGoMenuTests` (host) pass and the Mac build compiles; not yet chosen from the menu on the Mac
+- **Issues:** [#783](https://github.com/idvorkin/context-grabber/issues/783)
+- **Spec:** [Grabber Native on the Mac — Reporting from any screen](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, in chat or any other screen of the app on the Mac, having just seen something wrong
+- **I want** to open the problem report from the menu bar where I look for it
+- **so that** I report it from where it happened, with that screen in the report, instead of going back home to the tile
+
+#### Acceptance Criteria:
+- **Scenario:** Reporting from chat by the menu
+- **Given:** the Mac build with chat (or a timer, Places, the whiteboard) in front of home
+- **When:** I choose *Report a problem* in the Go menu, or *Report a Problem…* in the app menu, or press Command+Shift+R
+- **Then:** the report dialog opens over that screen with its screenshot, and nothing in front is closed; the other Go
+  items stay dimmed
+

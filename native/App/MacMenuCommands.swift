@@ -19,6 +19,9 @@ struct MacMenuCommands: Commands {
         Button("Settings…") { model.openHomeSettings() }
           .keyboardShortcut(",")
           .disabled(!model.homeInFront)
+        // Story 730 (#783): the report in the first menu he opens, over whatever screen is in front.
+        Button("Report a Problem…") { model.startBugReport(from: "mac_menu") }
+          .keyboardShortcut("r", modifiers: [.command, .shift])
       }
       // Command+N stays the Mac's New Window.
       CommandGroup(after: .newItem) {
@@ -45,12 +48,11 @@ struct MacMenuCommands: Commands {
             row.open(model)
           }
           .keyboardShortcut(index < 9 ? KeyboardShortcut(KeyEquivalent(Character("\(index + 1)"))) : nil)
-          .disabled(!model.homeInFront)
+          .disabled(!MacGoMenu.live(row.id, homeInFront: model.homeInFront))
         }
       }
       CommandGroup(replacing: .help) {
-        Button("Report a Problem…") { model.startBugReport(from: "mac_menu") }
-          .keyboardShortcut("r", modifiers: [.command, .shift])
+        Button("Report a Problem…") { model.startBugReport(from: "mac_help_menu") }
       }
     #else
       EmptyCommands()
