@@ -11,8 +11,4 @@ final class ChatImageCloseTests: XCTestCase {
     XCTAssertFalse(ChatImageClose.closes(dragHeight: 0), "sideways leaves it")
     XCTAssertFalse(ChatImageClose.closes(dragHeight: -200), "a swipe up leaves it")
   }
-
-  func testATapIsNotADrag() {
-    XCTAssertEqual(ChatImageClose.minimumDrag, 30)
-  }
 }

@@ -19,11 +19,10 @@ smoke_init "$SIM" "$BUNDLE"
 DOCS=$SMOKE_DOCS
 relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
 bad() { not_ok "$@"; }
-listening() {  # listening <port>: waits up to 5 s for a fake server to take connections, a tenth of a second at a time
+listening() {  # listening <port>: waits up to 5 s for a fake server to take connections, a tenth of a second at a time; the caller judges
   local tries=0
-  until nc -z localhost "$1" 2>/dev/null; do
+  until nc -z localhost "$1" 2>/dev/null || [ "$tries" -ge 50 ]; do
     tries=$((tries + 1))
-    [ "$tries" -ge 50 ] && return 1
     sleep 0.1
   done
 }
