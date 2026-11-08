@@ -79,7 +79,7 @@ public struct WindowLedger: Equatable, Sendable {
 public enum WindowRole: Equatable, Sendable {
   case home
   case screen(WindowScreen)
-  /// A window that says home is elsewhere (story 462), or one that hasn't said what it is yet.
+  /// A window choosing a screen while home is elsewhere (story 731), or one that hasn't said what it is yet.
   case noScreen
 }
 

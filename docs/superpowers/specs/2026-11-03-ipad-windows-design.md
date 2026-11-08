@@ -49,7 +49,7 @@ and What's new are named as their tiles and rows are, as are the six above when 
 shows only its one screen, so its name stays. What is opened inside a screen doesn't rename the window: a thread in
 Chat is still Chat, a metric's week over Today is still Today.
 
-A window that says home is open in another window has no screen to be named after, and the app gives it no name. On a
+A window choosing what to show, while home is open in another window, has no screen to be named after, and the app gives it no name. On a
 phone the app names nothing.
 
 **One place at a time.** With a screen in a window, tapping its tile brings that window forward, and so does a link, a
