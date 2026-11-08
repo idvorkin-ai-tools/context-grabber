@@ -3,12 +3,15 @@
 //  phone and an iPad show no new items and get none of the keys.
 
 import BugKit
+import ContextCore
 import SwiftUI
 
 struct MacMenuCommands: Commands {
   @ObservedObject var model: AppModel
   /// The report sheet covers home too; its state lives here, not on the model.
   @ObservedObject var reporter: BugReporter
+  /// Story 729 (#781): chat's text size, which the chat views read.
+  @AppStorage(ChatTextSize.defaultsKey) private var chatTextStep = ChatTextSize.standard
 
   var body: some Commands {
     #if targetEnvironment(macCatalyst)
@@ -22,6 +25,18 @@ struct MacMenuCommands: Commands {
         Button("New Board") { model.newBoard(from: "mac_menu") }
           .keyboardShortcut("n", modifiers: [.command, .shift])
           .disabled(!model.homeInFront && !model.showWhiteboard)
+      }
+      // Story 729 (#781): chat's text size, from any screen; it shows wherever chat does.
+      CommandGroup(after: .toolbar) {
+        Button("Bigger Text") { setChatText(ChatTextSize.bigger(chatText), "bigger") }
+          .keyboardShortcut("=")
+          .disabled(!ChatTextSize.canGrow(chatText))
+        Button("Smaller Text") { setChatText(ChatTextSize.smaller(chatText), "smaller") }
+          .keyboardShortcut("-")
+          .disabled(!ChatTextSize.canShrink(chatText))
+        Button("Actual Size") { setChatText(ChatTextSize.standard, "actual") }
+          .keyboardShortcut("0")
+          .disabled(chatText == ChatTextSize.standard)
       }
       CommandMenu("Go") {
         ForEach(Array(destinations.enumerated()), id: \.element.id) { index, row in
@@ -40,6 +55,13 @@ struct MacMenuCommands: Commands {
     #else
       EmptyCommands()
     #endif
+  }
+
+  private var chatText: Int { ChatTextSize.restored(chatTextStep) }
+
+  private func setChatText(_ step: Int, _ how: String) {
+    chatTextStep = step
+    model.log.event("ui", ["action": "chat_text_size", "how": how, "step": step, "from": "mac_menu"])
   }
 
   /// What home shows, in its order: the Today card when shown, then the tiles; the daily strip opens nothing.

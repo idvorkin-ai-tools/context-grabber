@@ -2382,3 +2382,24 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** it shows its number alone, then its state within seconds
 
 ---
+
+### User Story 729:
+
+- **Summary:** Bigger and smaller chat text on the Mac
+- **Status:** implemented in COMMIT; `ChatTextSizeTests` (host) pass and the Mac build compiles; not yet pressed on the Mac
+- **Issues:** [#781](https://github.com/idvorkin/context-grabber/issues/781)
+- **Spec:** [Chat with Larry in Grabber Native — Bigger and smaller text on a Mac](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, reading Larry's replies in the Mac's chat window from across the desk
+- **I want** Command+= and Command+Minus to make chat's text bigger and smaller, and Command+0 to put it back
+- **so that** a long reply is comfortable to read at whatever distance I'm sitting, and stays that way next time
+
+#### Acceptance Criteria:
+- **Scenario:** Bigger, then remembered
+- **Given:** the Mac build with a chat thread open
+- **When:** I press Command+= twice, quit and reopen the app, and open the thread again
+- **Then:** its messages, the bar and the thread list are two sizes bigger, the rest of the app is unchanged, and View >
+  Actual Size (Command+0) puts chat back to the system's size; at the largest size Bigger Text is dimmed
+
+---

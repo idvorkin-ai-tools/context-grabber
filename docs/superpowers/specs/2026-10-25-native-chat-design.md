@@ -184,6 +184,13 @@ to hit send."*). On the Mac, Enter sends and Command+Enter sends. Shift+Enter st
 send only what Send itself would: with nothing to send, or with the thread still waiting to exist, a key does nothing and
 the words stay. A phone and an iPad keep the keyboard they have, where Return starts a new line.
 
+**Bigger and smaller text on a Mac** (Igor, 2026-11-07, #781: *"Chat window should support font bigger smaller"*). On
+the Mac, the View menu has *Bigger Text* (Command+=), *Smaller Text* (Command+Minus) and *Actual Size*
+(Command+0). They change the size of everything in chat, the thread list and an open thread alike, in every window chat
+shows in, one step at a time through the system's text sizes, from the smallest to the largest accessibility size. At
+either end the key does nothing more and its item is dimmed. The size is remembered on this Mac across relaunches.
+Nothing else in the app changes size. A phone and an iPad show no new items and follow the system's text size as before.
+
 **Pasting a picture on a Mac** (Igor, 2026-11-06, #730: *"Should be able to paste photo into chat box on context
 grabber"*). On the Mac, a picture copied in any app (Photos, Preview, a browser, a screenshot) pastes into the bar with
 Command+V or Edit > Paste while the cursor is in the bar's field. It sits above the field with its preview and *Remove
@@ -427,6 +434,8 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
   call it is dimmed, and a tap opens the new chat recording nothing, with the keyboard up and a line saying the call has
   the mic. The + still opens with the keyboard up and records nothing.
 - Waiting Inbox items become threads on first launch; sent ones stay under *Earlier shares*.
+- On the Mac, Command+= makes chat's text one size bigger and Command+Minus one smaller, Command+0 puts it back, the
+  size is the same after a relaunch, and nothing outside chat changes size.
 - On the Mac, a picture copied in another app makes *Paste image* live on coming back to the window, and Command+V or
   Edit > Paste in the bar's field attaches it with its preview, the typed words kept. Words on the clipboard still
   paste as words. A phone and an iPad are unchanged.

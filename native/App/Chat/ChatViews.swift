@@ -183,6 +183,7 @@ struct ChatListView: View {
         ChatThreadView(chat: chat, voice: voice, key: key, title: chat.title(of: key), logger: logger)
       }
     }
+    .chatTextSize()
   }
 
   private func review(from: String) {
@@ -677,6 +678,7 @@ struct ChatThreadView: View {
       if let landed = newThread.firstMoved(to: thread) { chat.open(landed) }
     }
     .onChange(of: messages.last?.id, initial: true) { runHoldHook() }
+    .chatTextSize()
   }
 
   private func runHoldHook() {
