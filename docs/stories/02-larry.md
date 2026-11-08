@@ -2386,7 +2386,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 729:
 
 - **Summary:** Bigger and smaller chat text on the Mac
-- **Status:** implemented in COMMIT; `ChatTextSizeTests` (host) pass and the Mac build compiles; not yet pressed on the Mac
+- **Status:** implemented in [97914da4](https://github.com/idvorkin/context-grabber/commit/97914da4); `ChatTextSizeTests` (host) pass and the Mac build compiles; not yet pressed on the Mac
 - **Issues:** [#781](https://github.com/idvorkin/context-grabber/issues/781)
 - **Spec:** [Chat with Larry in Grabber Native — Bigger and smaller text on a Mac](../superpowers/specs/2026-10-25-native-chat-design.md)
 
