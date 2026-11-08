@@ -1,9 +1,7 @@
 //  What the whiteboard store decides about keeping boards on this device (spec 2026-11-01-whiteboard-design.md):
 //  where a board's files go, the list read or set aside, a failed save remembered until that board saves (stories 599,
-//  612), a new board closed without a stroke dropped (stories 344, 604), the *New boards on paper* switch (590, 602),
-//  and the trial on paper's read-only copy, offered only on this device's boards (435–439, 601). The app's
-//  `WhiteboardStore` and `WhiteboardListView` only carry these out: PencilKit decodes, UIKit draws the picture,
-//  CloudKit syncs. The disk is handed in, so a test can give it one that fails.
+//  612) and a new board closed without a stroke dropped (stories 344, 604). The app's `WhiteboardStore` and
+//  `WhiteboardListView` only carry these out: PencilKit decodes, UIKit draws the picture, CloudKit syncs. The disk is handed in, so a test can give it one that fails.
 
 import Foundation
 
@@ -60,26 +58,6 @@ public struct BoardKeeping {
   public func drawingURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).drawing") }
   public func pictureURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).png") }
   var indexURL: URL? { dir?.appendingPathComponent("index.json") }
-
-  // MARK: - The switch (stories 590, 595, 602, 607, 651)
-
-  /// The store's key for *New boards on paper*.
-  public static let newBoardsOnPaperKey = "whiteboard_new_boards_on_paper"
-
-  public enum SwitchHook: Equatable {
-    case set(Bool)
-    case forget
-  }
-
-  /// What `GRABBER_WHITEBOARD_NEW_ON_PAPER` asks of the stored switch, for the simulator: `on` or `off` (anything but
-  /// `on` is off) as if it had been set, `untouched` as if it never was; no hook leaves it be.
-  public static func switchHook(_ hook: String?) -> SwitchHook? {
-    guard let hook else { return nil }
-    return hook == "untouched" ? .forget : .set(hook == "on")
-  }
-
-  /// On until it's turned off. It only decides what **+** makes: a board keeps what it was made as.
-  public static func newBoardsOnPaper(stored: Bool?) -> Bool { stored ?? true }
 
   // MARK: - The list
 
@@ -141,20 +119,6 @@ public struct BoardKeeping {
   /// A deleted board's drawing and picture, gone from this device.
   public func removeFiles(_ id: String) {
     for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? disk.remove(url) }
-  }
-
-  // MARK: - The trial on paper (TEMPORARY, as the trial is)
-
-  /// *Try on paper* is offered on this device's boards, on paper or not (stories 435, 601), never another device's.
-  public static func offersTrial(_ board: BoardEntry, on device: String) -> Bool {
-    BoardIndex.editable(board, on: device)
-  }
-
-  /// The board's ink for the trial's copy, read and nothing else: unlike `drawing(_:decode:)`, a file that can't be
-  /// read stays where it is, and nothing is written, moved or removed. Nil when the board has no ink yet.
-  public func trialInk<Drawing>(_ id: String, decode: (Data) throws -> Drawing) throws -> Drawing? {
-    guard let url = drawingURL(id), disk.exists(url) else { return nil }
-    return try decode(disk.read(url))
   }
 
   private func setAside(_ url: URL) {

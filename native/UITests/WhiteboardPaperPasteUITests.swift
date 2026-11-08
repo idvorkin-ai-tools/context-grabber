@@ -18,7 +18,6 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = try cockpit()
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "on"
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]

@@ -151,35 +151,18 @@ final class BoardKeepingTests: XCTestCase {
     keeping.removeFiles("a")  // Files already gone are what was asked for.
   }
 
-  // MARK: Stories 590, 595, 602, 607, 651: the switch
+  // MARK: Story 658: which boards can be drawn on, through a relaunch
 
-  func testNewBoardsAreOnPaperUntilTheSwitchIsTurnedOff() {
-    XCTAssertTrue(BoardKeeping.newBoardsOnPaper(stored: nil), "on until it's turned off")
-    XCTAssertFalse(BoardKeeping.newBoardsOnPaper(stored: false))
-    XCTAssertTrue(BoardKeeping.newBoardsOnPaper(stored: true), "turned back on")
-  }
-
-  func testTheSimulatorsHookSetsOrForgetsTheSwitch() {
-    XCTAssertEqual(BoardKeeping.switchHook("on"), .set(true))
-    XCTAssertEqual(BoardKeeping.switchHook("off"), .set(false))
-    XCTAssertEqual(BoardKeeping.switchHook("untouched"), .forget)
-    XCTAssertNil(BoardKeeping.switchHook(nil))
-  }
-
-  /// The UI case `testTheSwitchMovesNoBoard`, without its four launches: a board keeps what it was made as through a
-  /// relaunch, whichever way the switch goes after.
-  func testTheSwitchMovesNoBoardThroughARelaunch() throws {
+  func testABoardKeepsWhatItWasMadeOnThroughARelaunch() throws {
     let keeping = keeping()
     var index = BoardIndex()
-    index.add(
-      id: "old", at: aDate, device: "ipad", deviceName: "iPad", onPages: BoardKeeping.newBoardsOnPaper(stored: false))
-    index.add(
-      id: "paper", at: aDate, device: "ipad", deviceName: "iPad", onPages: BoardKeeping.newBoardsOnPaper(stored: true))
+    index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
+    index.add(id: "paper", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
     try keeping.writeIndex(index)
     let relaunched = BoardKeeping(dir: dir, disk: TestDisk()).readIndex()
     XCTAssertNil(relaunched.unreadable)
-    XCTAssertEqual(relaunched.index.board("old").map { BoardIndex.opensOnPaper($0, on: "ipad") }, false)
-    XCTAssertEqual(relaunched.index.board("paper").map { BoardIndex.opensOnPaper($0, on: "ipad") }, true)
+    XCTAssertEqual(relaunched.index.board("old").map { BoardIndex.drawable($0, on: "ipad") }, false)
+    XCTAssertEqual(relaunched.index.board("paper").map { BoardIndex.drawable($0, on: "ipad") }, true)
   }
 
   // MARK: The list
@@ -206,38 +189,5 @@ final class BoardKeepingTests: XCTestCase {
     XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
     XCTAssertEqual(
       try String(contentsOf: url.appendingPathExtension("unreadable"), encoding: .utf8), "{ not a list")
-  }
-
-  // MARK: Stories 435–439, 524–534, 601: the trial on paper's copy
-
-  func testTryOnPaperIsOfferedOnThisDevicesBoardsOnly() {
-    var index = BoardIndex()
-    let old = index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
-    let paper = index.add(id: "paper", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    let other = index.add(id: "other", at: aDate, device: "iphone", deviceName: "iPhone")
-    XCTAssertTrue(BoardKeeping.offersTrial(old, on: "ipad"))
-    XCTAssertTrue(BoardKeeping.offersTrial(paper, on: "ipad"), "story 601: a board on paper still offers it")
-    XCTAssertFalse(BoardKeeping.offersTrial(other, on: "ipad"), "only this device's boards")
-  }
-
-  func testTheTrialReadsTheBoardsInkAndChangesNothingOnDisk() throws {
-    let disk = TestDisk()
-    var keeping = keeping(disk)
-    _ = try keeping.save(Data("ink: one stroke".utf8), board: "a")
-    disk.changes = []
-    XCTAssertEqual(try keeping.trialInk("a", decode: decode), "ink: one stroke")
-    XCTAssertNil(try keeping.trialInk("none", decode: decode), "a board with no ink yet: an empty copy")
-    XCTAssertEqual(disk.changes, [], "nothing written, moved or removed")
-    XCTAssertEqual(try keeping.drawing("a", decode: decode), "ink: one stroke", "the real board as it was")
-  }
-
-  func testAnUnreadableBoardFailsTheTrialAndStaysWhereItIs() throws {
-    let disk = TestDisk()
-    let keeping = keeping(disk)
-    let url = try XCTUnwrap(keeping.drawingURL("a"))
-    try put("not a drawing", at: url)
-    XCTAssertThrowsError(try keeping.trialInk("a", decode: decode))
-    XCTAssertEqual(disk.changes, [])
-    XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "not a drawing", "the file is untouched")
   }
 }

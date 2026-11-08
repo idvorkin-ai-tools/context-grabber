@@ -76,9 +76,21 @@ public struct BoardIndex: Codable, Equatable, Sendable {
   /// Only the device that made a board draws on it.
   public static func editable(_ board: BoardEntry, on device: String) -> Bool { board.device == device }
 
-  /// A board on paper opens on paper only where it's drawn: elsewhere it's the look-only view, as every board is.
-  public static func opensOnPaper(_ board: BoardEntry, on device: String) -> Bool {
+  /// Every board opens on paper (Igor, 2026-11-07: the old canvas is gone). Only a board made on paper, on the device
+  /// that made it, can be drawn on; the rest are look-only.
+  public static func drawable(_ board: BoardEntry, on device: String) -> Bool {
     board.onPages == true && editable(board, on: device)
+  }
+
+  /// Drawn on the canvas that's gone: its ink sits where that canvas put it, so it's moved onto pages to be shown, and
+  /// it's look-only even on the device that made it.
+  public static func drawnOnTheOldCanvas(_ board: BoardEntry) -> Bool { board.onPages != true }
+
+  /// What the bar says on a board that can't be drawn on here; nil on one that can.
+  public static func lookOnlyNote(_ board: BoardEntry, on device: String) -> String? {
+    if drawable(board, on: device) { return nil }
+    if !editable(board, on: device) { return "Drawn on \(board.deviceName): look only" }
+    return "Drawn on the old canvas: look only"
   }
 
   /// A new board's name: *Board, Nov 1*, then *Board, Nov 1 (2)* for the day's second.

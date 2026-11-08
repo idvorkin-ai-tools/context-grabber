@@ -295,7 +295,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 354:
 
 - **Summary:** Ghosts on a device where a finger draws
-- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt` verified on the simulator by `WhiteboardTurnUITests`; an iPhone and an iPad with no Pencil not yet tried
+- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt` verified on the simulator by `WhiteboardTurnUITests` (an old-canvas test, dropped 2026-11-07; on paper `WhiteboardPaperGhostsUITests.testAGhostShowsOnThePaperAndATapKeepsIt` and `testATapOffDismissesLeavesNoDotAndAFingerDrawsAgain` hold it); an iPhone and an iPad with no Pencil not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -1884,7 +1884,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 435:
 
 - **Summary:** Try a board on paper, temporarily, from its long press
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator on iOS 27 (`WhiteboardTrialOnPaperUITests`: opens on this device's board) and by host tests (`BoardKeepingTests`: offered on this device's boards only); played with on the iPad by Igor, 2026-11-03; temporary: goes when the board moves to PaperKit
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator on iOS 27 (`WhiteboardTrialOnPaperUITests`: opens on this device's board) and by host tests (`BoardKeepingTests`: offered on this device's boards only); played with on the iPad by Igor, 2026-11-03; temporary: goes when the board moves to PaperKit
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1904,7 +1904,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 436:
 
 - **Summary:** Nothing in the trial reaches a real board
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`BoardKeepingTests`: the trial's copy reads the board's ink and writes, moves or removes nothing, and an unreadable board stays where it is), and by construction: the trial is handed a drawing, never the store. Earlier, on an iPad simulator, the boards' files hashed the same across trial runs, and a copy with ink added left no file
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`BoardKeepingTests`: the trial's copy reads the board's ink and writes, moves or removes nothing, and an unreadable board stays where it is), and by construction: the trial is handed a drawing, never the store. Earlier, on an iPad simulator, the boards' files hashed the same across trial runs, and a copy with ink added left no file
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1924,7 +1924,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 437:
 
 - **Summary:** The trial is a column of pages
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests` and screenshots: tool picker, page lines, page number)
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests` and screenshots: tool picker, page lines, page number)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1944,7 +1944,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 438:
 
 - **Summary:** The trial says what to try, and has the switches to try it
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the line, and every switch runs); played with on the iPad by Igor, 2026-11-03; since bead `context-grabber-y8r` the every-switch probe runs only when asked (`TEST_RUNNER_GRABBER_PAPER_PROBES=1`), not in each suite run
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the line, and every switch runs); played with on the iPad by Igor, 2026-11-03; since bead `context-grabber-y8r` the every-switch probe runs only when asked (`TEST_RUNNER_GRABBER_PAPER_PROBES=1`), not in each suite run
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -1964,7 +1964,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 439:
 
 - **Summary:** The trial's log settles the five questions
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`) and the simulator (`WhiteboardTrialOnPaperUITests` and `sim-smoke.sh`, whiteboard). Question 1, what a finger does with a Pencil paired, needs the iPad's log: `just pull-logs`
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`) and the simulator (`WhiteboardTrialOnPaperUITests` and `sim-smoke.sh`, whiteboard). Question 1, what a finger does with a Pencil paired, needs the iPad's log: `just pull-logs`
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2064,7 +2064,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 524:
 
 - **Summary:** The trial isn't offered on another device's board
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`BoardKeepingTests`: another device's board isn't offered it; the list's menu asks `BoardKeeping.offersTrial`)
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`BoardKeepingTests`: another device's board isn't offered it; the list's menu asks `BoardKeeping.offersTrial`)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2084,7 +2084,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 525:
 
 - **Summary:** The trial isn't offered before iOS 27
-- **Status:** retired by [bacbc3e](https://github.com/idvorkin/context-grabber/commit/bacbc3e): the whole app now needs iOS 27, so there's no older system left to offer it on (built for the simulator, every bundle's minimum read as 27.0). Implemented earlier in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827)
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: retired by [bacbc3e](https://github.com/idvorkin/context-grabber/commit/bacbc3e): the whole app now needs iOS 27, so there's no older system left to offer it on (built for the simulator, every bundle's minimum read as 27.0). Implemented earlier in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2104,7 +2104,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 526:
 
 - **Summary:** A board that can't be read says so, and stays
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); not yet run on any rung: no test hands it an unreadable file
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); not yet run on any rung: no test hands it an unreadable file
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2124,7 +2124,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 527:
 
 - **Summary:** The trial has nothing to send with
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: none of the four buttons exists). That nothing goes out is by construction: the trial is handed no store, model or inbox
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: none of the four buttons exists). That nothing goes out is by construction: the trial is handed no store, model or inbox
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2144,7 +2144,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 528:
 
 - **Summary:** The trial's pinch stops at the page
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`BoardPagesTests`: the fit zoom); pinching with real fingers is the iPad's: the simulator's pinch didn't change the zoom
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`BoardPagesTests`: the fit zoom); pinching with real fingers is the iPad's: the simulator's pinch didn't change the zoom
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2164,7 +2164,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 529:
 
 - **Summary:** Writing on the last page adds a blank one
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`: when ink needs a page) and an iPad simulator (`WhiteboardTrialOnPaperUITests`: a page added)
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`: when ink needs a page) and an iPad simulator (`WhiteboardTrialOnPaperUITests`: a page added)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2184,7 +2184,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 530:
 
 - **Summary:** A page in the middle of a stroke
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`, the `paper_probe` lines read: a page added mid-stroke with a finger kept the stroke and undo); the Pencil's half is the iPad's
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`, the `paper_probe` lines read: a page added mid-stroke with a finger kept the stroke and undo); the Pencil's half is the iPad's
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2204,7 +2204,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 531:
 
 - **Summary:** Going far down the column
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the corner reads *Page 11 of*); the ink's feel there is the iPad's
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the corner reads *Page 11 of*); the ink's feel there is the iPad's
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2224,7 +2224,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 532:
 
 - **Summary:** The log says what adding a page did
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`, the `paper_probe` lines read): question 2 is answered there
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`, the `paper_probe` lines read): question 2 is answered there
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2244,7 +2244,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 533:
 
 - **Summary:** The log says how far the ring slipped
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`) and the simulator that the lines are written; question 3 needs the iPad's log: `just pull-logs`
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified by host tests (`PaperProbeTests`) and the simulator that the lines are written; question 3 needs the iPad's log: `just pull-logs`
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2264,7 +2264,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 534:
 
 - **Summary:** The log says whether a far corner works
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on the simulator (`WhiteboardTrialOnPaperUITests`: `stroke_landing`, and `sim-smoke.sh`: `origin`): question 4 is answered there
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on the simulator (`WhiteboardTrialOnPaperUITests`: `stroke_landing`, and `sim-smoke.sh`: `origin`): question 4 is answered there
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2389,7 +2389,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 590:
 
 - **Summary:** A switch for new boards on paper
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f), and on by default since [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: on until turned off)
+- **Status:** removed 2026-11-07 with the *New boards on paper* switch and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f), and on by default since [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: on until turned off)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), [#671](https://github.com/idvorkin/context-grabber/issues/671)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2469,7 +2469,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 594:
 
 - **Summary:** Another device looks at a board on paper
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by host tests only (`BoardIndexTests`: the mark survives the list and the merge, and opens on paper only on its own device). iCloud isn't signed in on the simulator, so the other device's view is for the iPad and iPhone
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified by host tests only (`BoardIndexTests`: the mark survives the list and the merge, and opens on paper only on its own device). iCloud isn't signed in on the simulator, so the other device's view is for the iPad and iPhone; shown on paper since [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e) (host tests: `BoardIndexTests`)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2482,14 +2482,14 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** On the other device
 - **Given:** a board on paper drawn on the iPad
 - **When:** I open it on the iPhone
-- **Then:** the ink shows in the look-only view on the old canvas, with no pages yet and no tool picker
+- **Then:** the ink shows look-only on paper, on its pages, with no tool picker (the old canvas went 2026-11-07, story 658)
 
 ---
 
 ### User Story 595:
 
 - **Summary:** The switch never moves a board
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator earlier (`WhiteboardOnPaperUITests`: an old board with the switch on), and now by host tests (`BoardKeepingTests`: a board keeps what it was made as through a relaunch)
+- **Status:** removed 2026-11-07 with the *New boards on paper* switch and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator earlier (`WhiteboardOnPaperUITests`: an old board with the switch on), and now by host tests (`BoardKeepingTests`: a board keeps what it was made as through a relaunch)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2609,7 +2609,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 601:
 
 - **Summary:** *Try on paper* stays
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified earlier on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`; `WhiteboardTrialOnPaperUITests` on the iPhone), and now by host tests (`BoardKeepingTests`: a board on paper is offered it, and its copy reads the ink and writes nothing)
+- **Status:** removed 2026-11-07 with the trial on paper and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified earlier on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`; `WhiteboardTrialOnPaperUITests` on the iPhone), and now by host tests (`BoardKeepingTests`: a board on paper is offered it, and its copy reads the ink and writes nothing)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2629,7 +2629,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 602:
 
 - **Summary:** Turning new boards on paper on
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: turned on, then a new board is on paper). That the switch is still on after a relaunch isn't asserted there
+- **Status:** removed 2026-11-07 with the *New boards on paper* switch and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: turned on, then a new board is on paper). That the switch is still on after a relaunch isn't asserted there
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2729,7 +2729,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 607:
 
 - **Summary:** Turning the switch off leaves paper boards on paper
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator earlier (`WhiteboardOnPaperUITests`: a paper board with the switch off), and now by host tests (`BoardKeepingTests`: a board keeps what it was made as through a relaunch)
+- **Status:** removed 2026-11-07 with the *New boards on paper* switch and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator earlier (`WhiteboardOnPaperUITests`: a paper board with the switch off), and now by host tests (`BoardKeepingTests`: a board keeps what it was made as through a relaunch)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3349,7 +3349,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 638:
 
 - **Summary:** ⌘V on a board on paper
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`test1CommandVOnPaperAndCommandZ`: text after a stroke, read from the log as `paper_paste` how: key, went: ink; since bead `context-grabber-y8r`, `WhiteboardPasteUITests.testCommandVPastesAndCommandZTakesItBackOnBothCanvases`, after the old canvas's in the same launch). A real keyboard on the iPad is to try, with text and a picture copied from another app, to see whether *Allow Paste?* shows: story 390 says it doesn't, this key reads the clipboard itself, and `paper_paste` can't show a prompt
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`test1CommandVOnPaperAndCommandZ`: text after a stroke, read from the log as `paper_paste` how: key, went: ink; since bead `context-grabber-y8r`, `WhiteboardPasteUITests.testCommandVPastesAndCommandZTakesItBackOnBothCanvases`, after the old canvas's in the same launch; since 2026-11-07 `testCommandVPastesAndCommandZTakesItBack`, on paper only). A real keyboard on the iPad is to try, with text and a picture copied from another app, to see whether *Allow Paste?* shows: story 390 says it doesn't, this key reads the clipboard itself, and `paper_paste` can't show a prompt
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3369,7 +3369,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 639:
 
 - **Summary:** One undo takes a paste back on paper
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator: one ⌘Z (`test1CommandVOnPaperAndCommandZ`, since bead `context-grabber-y8r` `testCommandVPastesAndCommandZTakesItBackOnBothCanvases`), and an undo by a hook on a tall paste (`testATallPasteBringsItsPagesInOneUndo`). The tool picker's own Undo is for the iPad, as a phone's has none
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator: one ⌘Z (`test1CommandVOnPaperAndCommandZ`, since bead `context-grabber-y8r` `testCommandVPastesAndCommandZTakesItBackOnBothCanvases`, since 2026-11-07 `testCommandVPastesAndCommandZTakesItBack`), and an undo by a hook on a tall paste (`testATallPasteBringsItsPagesInOneUndo`). The tool picker's own Undo is for the iPad, as a phone's has none
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3609,7 +3609,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 651:
 
 - **Summary:** Turning new boards on paper off
-- **Status:** implemented in [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: turned off and back on from the menu) and by host tests (`BoardKeepingTests`: on until it's turned off, the launch hook, and a board made with it off stays on the old canvas through a relaunch). That the store's `UserDefaults` keeps it across a relaunch is no longer driven on the simulator; every launch hook relies on the same write and read
+- **Status:** removed 2026-11-07 with the *New boards on paper* switch and the old canvas (Igor: "Old canvas can be erased"), in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e). Before: implemented in [6a96779](https://github.com/idvorkin/context-grabber/commit/6a96779); verified on an iPhone simulator (`WhiteboardOnPaperUITests`: turned off and back on from the menu) and by host tests (`BoardKeepingTests`: on until it's turned off, the launch hook, and a board made with it off stays on the old canvas through a relaunch). That the store's `UserDefaults` keeps it across a relaunch is no longer driven on the simulator; every launch hook relies on the same write and read
 - **Issues:** [#671](https://github.com/idvorkin/context-grabber/issues/671)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3627,7 +3627,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 652:
 
 - **Summary:** A grid on a board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`; host `BoardPagesTests`; feel on a big board is the iPad's)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesAndTheGridAreOneChoiceAndNeverInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, an old-canvas test dropped 2026-11-07; host `BoardPagesTests`; feel on a big board is the iPad's)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#678](https://github.com/idvorkin/context-grabber/issues/678)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3645,7 +3645,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 653:
 
 - **Summary:** Lines stay with their board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3681,7 +3681,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 655:
 
 - **Summary:** Lines and ghosts show on every colour
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3750,3 +3750,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **and Given:** another label of his that names no pen, colour or face
 - **When:** his marks arrive and I keep them
 - **Then:** the box is a green outline at the fine pen, the first label is in handwriting letters, the second is in his blue print at a thin pen, not bold, and each kept mark is ink exactly as its ghost showed
+
+---
+
+### User Story 658:
+
+- **Summary:** A board drawn on the old canvas opens to look at, on paper
+- **Status:** implemented in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e); verified by host tests (`BoardIndexTests`: only a board made on paper, on its own device, is drawn on; the bar's words for each look-only board; `BoardKeepingTests`: through a relaunch; `BoardPagesTests`: the ink moved, never scaled) and on the simulator (`WhiteboardOnPaperUITests.testAnOldCanvasBoardOpensLookOnlyOnPaper`; the smoke's `paper_open`). Igor's own old boards on the iPad not yet seen
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Paper is the only canvas*
+
+#### Use Case:
+- **As someone** whose early boards were drawn before paper
+- **I want to** open one and see its ink on paper, where every board now lives
+- **so that** the old canvas can go without taking my old sketches with it
+
+#### Acceptance Criteria:
+- **Scenario:** An old board, after the old canvas is gone
+- **Given:** a board I drew on the old canvas, on this device
+- **and Given:** the app has only paper
+- **When:** I open it
+- **Then:** its ink shows on the first page, every stroke where it was relative to the others and none scaled, the bar says *Drawn on the old canvas: look only*, and there are no tools, no Board menu and no Send, so nothing draws on it or changes its file

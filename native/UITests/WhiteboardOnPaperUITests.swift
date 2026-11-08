@@ -1,12 +1,10 @@
-//  Stories 590–612 on the simulator, its ghosts in `WhiteboardPaperGhostsUITests`: a new board on paper is a real board behind a switch, and the old canvas is left
-//  alone. How the Pencil feels and what a finger does with one paired are the iPad's (`whiteboard` action: paper_touch).
+//  Stories 590–612 and 658 on the simulator, its ghosts in `WhiteboardPaperGhostsUITests`: a new board is a real board on
+//  paper, and a board drawn on the old canvas opens look-only on paper. How the Pencil feels and what a finger does with one paired are the iPad's (`whiteboard` action: paper_touch).
 //  A finger draws on the simulator.
 
 import XCTest
 
 final class WhiteboardOnPaperUITests: XCTestCase {
-  /// The switch is remembered, but every whiteboard test that makes a board sets it as it launches, so none is left to
-  /// reset it for the next.
   override func setUp() { continueAfterFailure = false }
 
   private func launch(_ environment: [String: String] = [:]) -> XCUIApplication {
@@ -56,24 +54,10 @@ final class WhiteboardOnPaperUITests: XCTestCase {
       .firstMatch
   }
 
-  /// Stories 590–593, 597, 598, 602, 603, 651: the switch in its menu, the board, what its menu offers, and its ink
-  /// through a relaunch. The switch's default, its being remembered and its moving no board are `BoardKeepingTests`'.
-  func testANewBoardIsOnPaperUntilTheSwitchIsTurnedOff() {
-    var app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "untouched"])
-    let options = app.buttons["whiteboard-options"]
-    XCTAssertTrue(options.appears(within: 20), app.debugDescription)
-    XCTAssertEqual(options.label, "Board options, new boards on paper", "on until it's turned off")
-    options.tap()
-    let toggle = app.descendants(matching: .any)["New boards on paper"].firstMatch
-    XCTAssertTrue(toggle.appears(within: 5), app.debugDescription)
-    toggle.tapWhenSettled()
-    waitFor(options, label: "Board options, new boards on the old canvas")
-
-    // Story 602: turned back on from the menu, the next board is on paper.
-    options.tap()
-    XCTAssertTrue(toggle.appears(within: 5), app.debugDescription)
-    toggle.tapWhenSettled()
-    waitFor(options, label: "Board options, new boards on paper")
+  /// Stories 590–593, 597, 598, 603, 651: a new board is on paper (there's no switch, 2026-11-07), what its menu offers,
+  /// and its ink through a relaunch.
+  func testANewBoardIsOnPaperAndKeepsItsInk() {
+    var app = launch()
     newBoard(app)
     let page = pageNumber(app)
     XCTAssertTrue(page.appears(within: 10), app.debugDescription)
@@ -118,13 +102,39 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     waitFor(send, label: "Send to Larry, 2 strokes")
   }
 
+  /// Story 658: a board drawn on the old canvas opens on paper to look at only: its ink on the first page, the bar saying
+  /// why, and no tools, no Board menu and no Send. A finger drag pans; nothing draws.
+  func testAnOldCanvasBoardOpensLookOnlyOnPaper() throws {
+    // A fresh id, so runs on one simulator don't meet each other's boards; opened by its link, as the list holds many.
+    let id = "old-canvas-\(UUID().uuidString.lowercased())"
+    let app = launch([
+      "GRABBER_BOARD_FIXTURE": id, "GRABBER_BOARD_FIXTURE_OLD_INK": "40",
+      "GRABBER_LINK": "grabbernative://whiteboard?board=\(id)",
+    ])
+    let page = pageNumber(app)
+    XCTAssertTrue(page.appears(within: 10), app.debugDescription)
+    let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Drawn on the old canvas: look only"))
+    XCTAssertTrue(note.firstMatch.appears(within: 5), app.debugDescription)
+    XCTAssertFalse(app.buttons["whiteboard-send"].exists, "nothing to send")
+    XCTAssertFalse(app.buttons["whiteboard-board"].exists, "no Board menu")
+    XCTAssertFalse(app.buttons["whiteboard-ghosts"].exists, "no ghosts")
+    sleep(2)
+    keep(app, "an old-canvas board, look only")
+    let ink = try XCTUnwrap(PaperScreen(app).ink, "the old ink on the first page")
+
+    stroke(app, atHeight: 0.75)
+    sleep(2)
+    let after = try XCTUnwrap(PaperScreen(app).ink, "the old ink still there")
+    XCTAssertEqual(after.maxY - after.minY, ink.maxY - ink.minY, accuracy: 0.02, "a drag below the ink drew nothing")
+  }
+
   /// Story 609: in dark mode new ink can be seen. PaperKit left to itself draws it black on black. Read off the screenshot:
   /// the canvas isn't in the accessibility tree.
   func testInkShowsInDarkMode() throws {
     let mode = XCUIDevice.shared.appearance
     addTeardownBlock { XCUIDevice.shared.appearance = mode }
     XCUIDevice.shared.appearance = .dark
-    let app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"])
+    let app = launch()
     newBoard(app)
     sleep(2)
     // The first stroke brings page 2, and on a phone that moves the view: the second is the one that stays put.
@@ -165,7 +175,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
   /// Stories 599, 612: a failed save is a problem that can be copied, on the board, and on the list if he then leaves.
   func testAFailedSaveShowsAndDoesNotVanishOnLeaving() {
     let app = launch([
-      "GRABBER_WHITEBOARD_NEW_ON_PAPER": "on", "GRABBER_WHITEBOARD_SAVE_FAILS": "1",
+      "GRABBER_WHITEBOARD_SAVE_FAILS": "1"
     ])
     newBoard(app)
     sleep(2)

@@ -1,6 +1,6 @@
-//  The arithmetic of the trial on paper (whiteboard spec's "Trial on paper", stories 437, 439, 529, 532–534; #635, #636). Temporary,
-//  like the trial: the real page geometry is `BoardPages`, and this goes with the trial. PaperKit stays in the app:
-//  here, the column a copy of a board sits in, which ink a change moved, and what came of a touch.
+//  What a board on paper logs about a touch (whiteboard spec's "On paper: the default", stories 437, 439, 529, 532–534):
+//  which ink a change moved, what came of a touch, and whether a finger tapped. PaperKit stays in the app. The trial on
+//  paper that this began with is gone (2026-11-07); the real page geometry is `BoardPages`.
 
 import Foundation
 
@@ -9,76 +9,6 @@ import Foundation
 #endif
 
 public enum PaperProbe {
-  public static let pageWidth = BoardPages.pageWidth
-  public static let pageHeight = BoardPages.pageHeight
-  /// Blank paper kept between the column's corner and the ink.
-  public static let margin = BoardPages.margin
-  /// The tall layout's markup: past page 11, and more than a trial's ink should reach.
-  public static let tallPages = 40
-  /// Where an empty board's column starts when the ink stays where it is: the middle of the old board.
-  public static let oldMiddle = CGPoint(x: 10_000, y: 10_000)
-
-  /// The ways of placing a copy of a board that the questions need.
-  public enum Layout: String, CaseIterable, Sendable {
-    /// The column starts at the ink: a non-zero origin, nothing moved (question 4).
-    case inkInPlace = "ink_in_place"
-    /// The ink moved to the top of a column at the origin.
-    case moved
-    /// A column at the origin held much taller than it shows, cut short by the view: growing touches no markup (question 2's fallback).
-    case tall
-  }
-
-  public struct Column: Equatable, Sendable {
-    public var origin: CGPoint
-    public var width: CGFloat
-    /// Pages a person can reach.
-    public var pages: Int
-    /// Pages the markup holds; more than `pages` only when tall.
-    public var heldPages: Int
-    /// What to move the ink by.
-    public var shift: CGVector
-
-    private var board: BoardPages { BoardPages(width: width) }
-
-    public var bounds: CGRect { board.bounds(pages: heldPages).offsetBy(dx: origin.x, dy: origin.y) }
-
-    /// How much of the held column is cut off the bottom, in board points.
-    public var trim: CGFloat { CGFloat(heldPages - pages) * pageHeight }
-
-    /// The page holding `y` on the board, 1-based, within the pages a person can reach.
-    public func page(at y: CGFloat) -> Int {
-      min(board.page(at: CGPoint(x: 0, y: y - origin.y)), pages)
-    }
-
-    /// True when ink as low as `inkMaxY` leaves no blank page below it.
-    public func needsPage(inkMaxY: CGFloat) -> Bool {
-      board.pagesNeeded(inkMaxY: inkMaxY - origin.y) > pages
-    }
-
-    /// The small cross on a page, in points from the column's corner: what the ring is placed on.
-    public func cross(page: Int) -> CGPoint {
-      CGPoint(x: width / 2, y: CGFloat(page - 1) * pageHeight + 200)
-    }
-  }
-
-  /// A page wide (wider for ink that's wider), with the ink's pages and a blank one below.
-  public static func column(ink: CGRect?, layout: Layout) -> Column {
-    let drawn = BoardPages.drawn(ink)
-    let width = BoardPages.width(forInkWidth: drawn?.width ?? 0)
-    // The trial keeps a margin below the ink too, so even an empty board is a page and a blank one.
-    let pages = BoardPages().pagesNeeded(inkMaxY: (drawn?.height ?? 0) + margin * 2)
-    switch layout {
-    case .inkInPlace:
-      let origin = drawn.map { CGPoint(x: $0.minX - margin, y: $0.minY - margin) } ?? oldMiddle
-      return Column(origin: origin, width: width, pages: pages, heldPages: pages, shift: .zero)
-    case .moved, .tall:
-      let shift = BoardPages.placing(ink: drawn).shift
-      return Column(
-        origin: .zero, width: width, pages: pages, heldPages: layout == .tall ? max(tallPages, pages) : pages,
-        shift: shift)
-    }
-  }
-
   public struct InkMove: Equatable, Sendable {
     public var id: String
     public var dx: CGFloat
@@ -160,53 +90,5 @@ public enum PaperProbe {
   /// A finger's tap on a ghost: short, staying put, and the only finger, whatever a Pencil is doing beside it.
   public static func isFingerTap(travel: CGFloat, seconds: Double, fingers: Int) -> Bool {
     fingers == 1 && travel < 10 && seconds < 0.5
-  }
-
-  /// One scroll or pinch, from the first change seen to the view settling: how often the delegate reported it against
-  /// what each screen frame could see, and how far a thing placed from the delegate's numbers slipped (question 3).
-  public struct Glide: Equatable, Sendable {
-    public private(set) var delegateCalls = 0
-    public private(set) var maxGap: Double = 0
-    /// Screen frames seen, those where the visible area had moved, and those where it had moved past what the delegate last said.
-    public private(set) var ticks = 0
-    public private(set) var movedTicks = 0
-    public private(set) var staleTicks = 0
-    public private(set) var maxSlip: CGFloat = 0
-    private var lastCall: Double?
-
-    public init() {}
-
-    public mutating func delegateCalled(at time: Double) {
-      if let lastCall { maxGap = max(maxGap, time - lastCall) }
-      lastCall = time
-      delegateCalls += 1
-    }
-
-    public mutating func tick(moved: Bool, stale: Bool, slip: CGFloat) {
-      ticks += 1
-      if moved { movedTicks += 1 }
-      if stale { staleTicks += 1 }
-      maxSlip = max(maxSlip, slip)
-    }
-  }
-
-  /// `a` as it came back as `b`: same ink in the same order, or what differs.
-  public struct RoundTrip: Equatable, Sendable {
-    public var count: Int
-    public var countBack: Int
-    public var sameOrder: Bool
-    public var missing: Int
-    public var extra: Int
-    /// The first few ids that went missing, to look up in the board's strokes.
-    public var firstMissing: [String]
-  }
-
-  public static func roundTrip(_ a: [String], _ b: [String]) -> RoundTrip {
-    let there = Set(b)
-    let here = Set(a)
-    let gone = a.filter { !there.contains($0) }
-    return RoundTrip(
-      count: a.count, countBack: b.count, sameOrder: a == b, missing: gone.count,
-      extra: b.filter { !here.contains($0) }.count, firstMissing: Array(gone.prefix(3)))
   }
 }

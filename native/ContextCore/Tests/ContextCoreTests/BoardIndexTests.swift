@@ -352,29 +352,45 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.merge(cloud: [cloudCopy], device: "ipad").fetch, [])
   }
 
-  // MARK: Stories 590, 593–595, 602, 606, 607: which boards are on paper
+  // MARK: Stories 590, 593–595, 606, 658: which boards can be drawn on
 
   private let aDate = Date(timeIntervalSince1970: 1_800_000_000)
 
-  func testANewBoardIsOnPaperOnlyWhenAsked() {
+  func testOnlyABoardMadeOnPaperCanBeDrawnOn() {
     var index = BoardIndex()
     index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
     index.add(id: "new", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    XCTAssertEqual(index.board("old").map { BoardIndex.opensOnPaper($0, on: "ipad") }, false)
-    XCTAssertEqual(index.board("new").map { BoardIndex.opensOnPaper($0, on: "ipad") }, true)
+    XCTAssertEqual(index.board("old").map { BoardIndex.drawable($0, on: "ipad") }, false, "story 658: look-only")
+    XCTAssertEqual(index.board("new").map { BoardIndex.drawable($0, on: "ipad") }, true)
+    XCTAssertEqual(index.board("old").map(BoardIndex.drawnOnTheOldCanvas), true)
+    XCTAssertEqual(index.board("new").map(BoardIndex.drawnOnTheOldCanvas), false)
   }
 
-  func testABoardOnPaperOpensOnPaperOnlyWhereItsDrawn() {
+  func testABoardOnPaperIsDrawnOnOnlyWhereItsMade() {
     var index = BoardIndex()
     let board = index.add(id: "a", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    XCTAssertFalse(BoardIndex.opensOnPaper(board, on: "iphone"), "the look-only view elsewhere")
+    XCTAssertFalse(BoardIndex.drawable(board, on: "iphone"), "the look-only view elsewhere")
+  }
+
+  /// Story 658: the bar names why a board is look-only. Another device's board says whose it is, whichever canvas it was
+  /// drawn on; this device's own old board says it's from the old canvas.
+  func testTheBarSaysWhyABoardIsLookOnly() {
+    var index = BoardIndex()
+    let mine = index.add(id: "mine", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
+    let old = index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
+    let theirs = index.add(id: "theirs", at: aDate, device: "iphone", deviceName: "iPhone", onPages: true)
+    let theirsOld = index.add(id: "theirs-old", at: aDate, device: "iphone", deviceName: "iPhone")
+    XCTAssertNil(BoardIndex.lookOnlyNote(mine, on: "ipad"))
+    XCTAssertEqual(BoardIndex.lookOnlyNote(old, on: "ipad"), "Drawn on the old canvas: look only")
+    XCTAssertEqual(BoardIndex.lookOnlyNote(theirs, on: "ipad"), "Drawn on iPhone: look only")
+    XCTAssertEqual(BoardIndex.lookOnlyNote(theirsOld, on: "ipad"), "Drawn on iPhone: look only")
   }
 
   func testAListFromBeforePaperStillReadsAndNoBoardInItIsOnPaper() throws {
     let board = #"{"id":"a","title":"T","created":1,"updated":2,"strokes":1,"device":"ipad","deviceName":"iPad"}"#
     let old = #"{"boards":["# + board + #"],"deleted":[]}"#
     let index = try JSONDecoder().decode(BoardIndex.self, from: Data(old.utf8))
-    XCTAssertEqual(index.board("a").map { BoardIndex.opensOnPaper($0, on: "ipad") }, false)
+    XCTAssertEqual(index.board("a").map { BoardIndex.drawable($0, on: "ipad") }, false)
   }
 
   func testOnPaperSurvivesTheListBeingSavedAndReadBack() throws {
@@ -401,7 +417,7 @@ final class BoardIndexTests: XCTestCase {
     let cloud = BoardEntry(
       id: "a", title: "T", created: 1, updated: 2, strokes: 1, device: "ipad", deviceName: "iPad", onPages: true)
     _ = index.merge(cloud: [cloud], device: "ipad")
-    XCTAssertEqual(index.board("a").map { BoardIndex.opensOnPaper($0, on: "ipad") }, true)
+    XCTAssertEqual(index.board("a").map { BoardIndex.drawable($0, on: "ipad") }, true)
   }
 
   func testAnotherDevicesBoardOnPaperKeepsSayingSoAsItUpdates() {
@@ -413,6 +429,6 @@ final class BoardIndexTests: XCTestCase {
     newer.updated = 3
     _ = index.merge(cloud: [newer], device: "iphone")
     XCTAssertEqual(index.board("a")?.onPages, true)
-    XCTAssertEqual(index.board("a").map { BoardIndex.opensOnPaper($0, on: "iphone") }, false)
+    XCTAssertEqual(index.board("a").map { BoardIndex.drawable($0, on: "iphone") }, false)
   }
 }

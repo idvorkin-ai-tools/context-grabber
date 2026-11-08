@@ -17,8 +17,6 @@ final class WhiteboardStore: ObservableObject {
   @Published private(set) var problem: BugProblem?
   /// Bumped when a picture on disk changes, so the rows draw it again.
   @Published private(set) var pictures = 0
-  /// Stories 590, 595, 602, 607, 651: this device's switch. It decides what **+** makes, and never moves a board.
-  @Published private(set) var newBoardsOnPaper: Bool
   let device: String
   let deviceName = UIDevice.current.model
   /// This device's boards open on screen: a delete from another device waits until their last save.
@@ -31,19 +29,9 @@ final class WhiteboardStore: ObservableObject {
   /// A sync asked for while one ran: it runs again when that one ends, so what changed meanwhile goes up too.
   private var again = false
 
-  static let newBoardsOnPaperKey = BoardKeeping.newBoardsOnPaperKey
-
   init(log: SessionLog, device: String) {
     self.log = log
     self.device = device
-    // `GRABBER_WHITEBOARD_NEW_ON_PAPER=on|off|untouched`: for the simulator, as if the switch had been set, or never was.
-    switch BoardKeeping.switchHook(ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_NEW_ON_PAPER"]) {
-    case .set(let on)?: UserDefaults.standard.set(on, forKey: Self.newBoardsOnPaperKey)
-    case .forget?: UserDefaults.standard.removeObject(forKey: Self.newBoardsOnPaperKey)
-    case nil: break
-    }
-    newBoardsOnPaper = BoardKeeping.newBoardsOnPaper(
-      stored: UserDefaults.standard.object(forKey: Self.newBoardsOnPaperKey) as? Bool)
     let dir = try? FileManager.default
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true)
@@ -57,17 +45,9 @@ final class WhiteboardStore: ObservableObject {
   func pictureURL(_ id: String) -> URL? { keeping.pictureURL(id) }
   private var dir: URL? { keeping.dir }
   func editable(_ board: BoardEntry) -> Bool { BoardIndex.editable(board, on: device) }
-  func opensOnPaper(_ board: BoardEntry) -> Bool { BoardIndex.opensOnPaper(board, on: device) }
-  func offersTrial(_ board: BoardEntry) -> Bool { BoardKeeping.offersTrial(board, on: device) }
-  func trialInk<Drawing>(_ id: String, decode: (Data) throws -> Drawing) throws -> Drawing? {
-    try keeping.trialInk(id, decode: decode)
-  }
-
-  func setNewBoardsOnPaper(_ on: Bool) {
-    newBoardsOnPaper = on
-    UserDefaults.standard.set(on, forKey: Self.newBoardsOnPaperKey)
-    log.event("whiteboard", ["action": on ? "new_on_paper_on" : "new_on_paper_off"])
-  }
+  /// Story 658: only a board made on paper, here, is drawn on; every other board opens look-only.
+  func drawable(_ board: BoardEntry) -> Bool { BoardIndex.drawable(board, on: device) }
+  func lookOnlyNote(_ board: BoardEntry) -> String? { BoardIndex.lookOnlyNote(board, on: device) }
 
   /// A board closed with ink that couldn't be saved: the board's screen is gone, so the list says it until that board
   /// next saves (story 612).
@@ -136,21 +116,46 @@ final class WhiteboardStore: ObservableObject {
 
   // MARK: - Boards
 
-  /// A fresh board on this device: in the list at once, gone again if it closes without a stroke.
+  /// A fresh board on this device, always on paper: in the list at once, gone again if it closes without a stroke.
   func create() -> String {
     let id = UUID().uuidString.lowercased()
-    index.add(id: id, at: Date(), device: device, deviceName: deviceName, onPages: newBoardsOnPaper)
+    index.add(id: id, at: Date(), device: device, deviceName: deviceName, onPages: true)
     saveIndex()
-    log.event("whiteboard", ["action": "new", "board": id, "on_paper": newBoardsOnPaper])
+    log.event("whiteboard", ["action": "new", "board": id, "on_paper": true])
     return id
   }
 
-  /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board with a known id, for the simulator (#603): this device's, or with
-  /// `GRABBER_BOARD_FIXTURE_FROM=<device name>` another device's (#613).
-  func addFixture(_ id: String, from other: String? = nil) {
+  /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board on paper with a known id, for the simulator (#603): this device's, or
+  /// with `GRABBER_BOARD_FIXTURE_FROM=<device name>` another device's (#613). With `GRABBER_BOARD_FIXTURE_OLD_INK=<n>`
+  /// it's a board drawn on the old canvas instead, with n strokes where that canvas put ink (story 658).
+  func addFixture(_ id: String, from other: String? = nil, oldInk: Int? = nil) {
     guard index.board(id) == nil else { return }
-    index.add(id: id, at: Date(), device: other ?? device, deviceName: other ?? deviceName)
+    index.add(
+      id: id, at: Date(), device: other ?? device, deviceName: other ?? deviceName, onPages: oldInk == nil)
+    if let oldInk, oldInk > 0 {
+      do {
+        try save(PKDrawing(strokes: Self.oldCanvasInk(oldInk)), board: id)
+      } catch {
+        log.event("error", ["where": "whiteboard_fixture", "board": id, "message": "\(error)"])
+      }
+    }
     saveIndex()
+  }
+
+  /// Rows of short strokes where the old canvas put ink, about 10,000 points from its corner, the same on every run.
+  private static func oldCanvasInk(_ count: Int) -> [PKStroke] {
+    (0..<count).map { (i: Int) -> PKStroke in
+      let left: CGFloat = 10_060 + CGFloat(i % 20) * 34
+      let top: CGFloat = 10_040 + CGFloat(i / 20) * 40
+      let points: [PKStrokePoint] = (0..<8).map { (step: Int) -> PKStrokePoint in
+        let wiggle: CGFloat = step % 2 == 0 ? 0 : 14
+        return PKStrokePoint(
+          location: CGPoint(x: left + CGFloat(step) * 3, y: top + wiggle), timeOffset: Double(step) * 0.01,
+          size: CGSize(width: 3, height: 3), opacity: 1, force: 1, azimuth: 0, altitude: CGFloat.pi / 2)
+      }
+      let made = Date(timeIntervalSince1970: 1_800_000_000 + Double(i))
+      return PKStroke(ink: PKInk(.pen, color: .black), path: PKStrokePath(controlPoints: points, creationDate: made))
+    }
   }
 
   /// Why a board can't be opened as it is now, once iCloud has been asked; nil when it can (#603). Out of iCloud's
