@@ -113,6 +113,7 @@ private struct WindowChoice: View {
       .navigationTitle("New Window")
     }
     .accessibilityIdentifier("window-choice")
+    .onAppear { model.chooseForHook(closing: scene) }
   }
 }
 

@@ -104,8 +104,10 @@ final class AppModel: ObservableObject {
   private var windowDisconnects: AnyCancellable?
   var openWindowAction: OpenWindowAction?
   var dismissWindowAction: DismissWindowAction?
-  /// `GRABBER_WINDOW` runs once, when the home window is up.
+  /// `GRABBER_WINDOW` and `GRABBER_WINDOW_CHOOSE` run once, when the home window is up.
   var windowHookRan = false
+  /// `GRABBER_WINDOW_CHOOSE`: the screen the new window's chooser picks, until it has.
+  var windowHookChoice: WindowScreen?
   /// Whether this launch has looked for a home window after a screen's window came back first.
   var restoreChecked = false
   private var phaseLatch = AppPhaseLatch()
