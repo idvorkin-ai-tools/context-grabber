@@ -516,3 +516,37 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the Gym Timer is upright
 - **When:** I tap the gear, then *Australian woman* under *Count voice*
 - **Then:** the checkmark moves to her row, she says *go* once as a sample, the session log has a `ui` line with `action: count_voice` and `voice: aussie`, the next cue is in her voice, and after quitting and reopening the app she is still the one counting
+
+---
+
+### User Story 188:
+
+- **Summary:** A workout survives leaving the timer, and the timer remembers its mode
+- **Status:** native app only: implemented in COMMIT_791; verified by `just test` (lint + host) and the simulator's `GymTimerUITests` (the rounds and the stopwatch still running after *Done* and back through the timer's link, the mode kept) and `LinksUITests` (a breathing link pauses the workout, which is found paused); the cues and the card carrying on off-screen still to be checked by Igor on the phone
+- **Issues:** #791
+
+#### Use Case:
+- **As a** lifter mid-workout who pops out of the Gym Timer to check something else in the app
+- **I want to** come back and find the round, the stopwatch, the set count and the mode exactly where they were
+- **so that** looking away never costs me the workout I am in the middle of
+
+#### Acceptance Criteria:
+- **Scenario:** Leaving a running workout
+- **Given:** a rounds workout is on round 2 of 6 with the cues speaking, or the stopwatch is running
+- **When:** I press *Done*, look at the home screen or another screen, and open the Gym Timer again (its tile, a link, or the lock-screen card)
+- **Then:** it is still running at the right time, the cues kept sounding and the lock-screen card stayed up meanwhile, as with the phone locked, and the screen is kept awake again only once the timer is back in front
+
+- **Scenario:** Leaving a stopped workout
+- **Given:** the rounds timer is paused at 0:37 of round 3, or finished, or the stopwatch is stopped at 1:12
+- **When:** I press *Done* and come back
+- **Then:** it is exactly as I left it (paused at 0:37 of round 3, the finish, 1:12), and while I was away there was no card, no audio session and no keep-awake
+
+- **Scenario:** The mode and the count are kept
+- **Given:** I chose Sets and counted 4, or chose Stopwatch
+- **When:** I press *Done* and come back, or quit and relaunch the app
+- **Then:** the timer opens in that same mode with the same count; a link or tile that starts a workout opens it in Rounds
+
+- **Scenario:** Another session takes the audio
+- **Given:** a rounds workout is running and I have left the timer
+- **When:** I open Box breathing or the call with Larry
+- **Then:** the workout pauses where it was (its card and cues stop), and when I open the timer again it is paused there, ready to RESUME

@@ -1,7 +1,8 @@
 //  Grabber Native's widget extension: the live tile on the home screen (story 136), Today's hand (#221), and the Live Activity — the
 //  lock-screen card and the Dynamic Island — shared by the Gym Timer and Box breathing (stories 106, 166; spec
 //  2026-10-04-native-live-activity-design.md). The views are generic: a screen decides the words, the times and the
-//  colour. No widgetURL: a tap opens the app, and a card only lives while its screen covers the app (story 125).
+//  colour. Breathing's card has no widgetURL: it only lives while its screen covers the app, so a tap that opens the
+//  app opens it. The timer's card carries the timer's link, as a workout outlives its screen (story 125, #791).
 
 import ActivityKit
 import ContextCore
@@ -91,12 +92,21 @@ private enum Palette {
 }
 
 struct GrabberLiveActivity: Widget {
+  /// Back to the timer as it is: no start, no preset, so a running workout is never paused or replaced.
+  // swiftlint:disable:next force_unwrapping
+  private static let timerLink = URL(string: AppLink.link(for: .timer(TimerLink())))!
+
+  private static func link(_ attributes: GrabberActivityAttributes) -> URL? {
+    attributes.kind == LiveActivityKind.gymTimer.rawValue ? timerLink : nil
+  }
+
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: GrabberActivityAttributes.self) { context in
       LockScreenCard(state: context.state)
         .padding(16)
         .activityBackgroundTint(.black)
         .activitySystemActionForegroundColor(.white)
+        .widgetURL(Self.link(context.attributes))
     } dynamicIsland: { context in
       let s = context.state
       return DynamicIsland {
@@ -125,6 +135,7 @@ struct GrabberLiveActivity: Widget {
           .foregroundStyle(Palette.of(s)).minimumScaleFactor(0.6)
       }
       .keylineTint(Palette.of(s))
+      .widgetURL(Self.link(context.attributes))
     }
   }
 }

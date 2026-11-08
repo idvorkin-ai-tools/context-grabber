@@ -229,6 +229,18 @@ copyable problem under the tiles, naming the mix and its link, until the next tr
 The timer does what stories 100–116 say, with these differences while the two apps live side by side:
 
 - **It opens from the native app's home screen**, full screen, and *Done* returns there.
+- **A workout survives leaving the timer** (#791, story 188). *Done* (or a link to another screen) takes the
+  timer off the screen, not the workout: a running rounds timer keeps counting, its cues keep sounding and its
+  lock-screen card stays up, exactly as with the phone locked; a running stopwatch keeps running. Coming back —
+  from the home tile, a link, or a tap on the card — shows it where it is now, in the mode Igor left it in. A
+  paused, finished or idle timer is found as it was left (paused stays paused at the same time). With nothing
+  running, leaving lets go as before: no card, no audio session. The screen is kept awake only while the timer
+  is on it. Two things still stop the clock: opening Box breathing or the Larry call pauses a running rounds
+  workout (two voices and two cards would fight), and the pause is there to resume on coming back. Quitting
+  the app ends everything.
+- **The mode is remembered.** Rounds, Stopwatch or Sets: the timer opens in the one last chosen, across leaving
+  and across a relaunch, like the set count and the chosen preset. A link or tile that starts a workout opens
+  in Rounds.
 - **The timer's log is the session log.** What the audio session, the duck window, the cues and the phases did is
   written there as events, so a shake attaches it. The *Log* button stays for the gym, where the Mac is not: it
   copies this launch's timer events behind a build line.

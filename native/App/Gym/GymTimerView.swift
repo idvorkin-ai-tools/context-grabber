@@ -12,7 +12,8 @@ private let stopRed = Color(red: 0.902, green: 0.224, blue: 0.275)
 private let dim = Color(white: 0.53)
 
 struct GymTimerView: View {
-  @StateObject private var model: GymTimerModel
+  /// The app's, not this view's: a workout outlives the screen (story 188).
+  @ObservedObject private var model: GymTimerModel
   @Environment(\.scenePhase) private var scenePhase
   @State private var showAccessory = false
   @State private var showSettings = false
@@ -22,8 +23,7 @@ struct GymTimerView: View {
   private let onExit: () -> Void
 
   init(app: AppModel, launch: GymTimerLaunch, onExit: @escaping () -> Void) {
-    _model = StateObject(
-      wrappedValue: GymTimerModel(log: app.log, database: app.database, liveActivity: app.liveActivity))
+    model = app.gym
     self.launch = launch
     self.onExit = onExit
   }
@@ -49,9 +49,10 @@ struct GymTimerView: View {
       model.appear(forcedTurn: launch.turn)
       if let voice = launch.voice { model.useCountVoiceOnce(voice) }
       if launch.settings { openSettings(from: "hook") }
+      if launch.preset != nil || launch.custom != nil { model.mode = .rounds }
       if let preset = launch.preset { model.choosePreset(preset) }
       if let custom = launch.custom { model.useCustomOnce(custom) }
-      if launch.autostart { model.toggleTimer() }
+      if launch.autostart { model.autostart() }
     }
     .onDisappear { model.disappear() }
     .onChange(of: scenePhase) { _, phase in

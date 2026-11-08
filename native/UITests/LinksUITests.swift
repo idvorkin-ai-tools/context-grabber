@@ -27,7 +27,7 @@ final class LinksUITests: XCTestCase {
     XCTAssertTrue(app.buttons["STOP"].appears(within: 20), "the link starts the workout")
     shot(app, "timer-from-link")
 
-    // Warm, over the running timer: the timer goes and the breathing begins.
+    // Warm, over the running timer: the timer goes and the breathing begins; the workout pauses (story 188).
     openWarm("grabbernative://breathe?breath=5&minutes=2")
     XCTAssertTrue(app.descendants(matching: .any)["breathe-pause"].appears(within: 10), "the session begins")
     XCTAssertFalse(app.buttons["STOP"].exists, "the timer is gone")
@@ -37,9 +37,9 @@ final class LinksUITests: XCTestCase {
     openWarm("grabbernative://nowhere")
     XCTAssertTrue(app.buttons["home-call"].appears(within: 10), "an unknown link lands on home")
 
-    // A preset it does not know: the timer, ready.
+    // A preset it does not know: the timer, with the workout breathing paused (story 188), not a new one.
     openWarm("grabbernative://timer?preset=9min")
-    XCTAssertTrue(app.buttons["START"].appears(within: 10), "the timer opens ready")
+    XCTAssertTrue(app.buttons["RESUME"].appears(within: 10), "the timer opens on the paused workout")
     XCTAssertFalse(app.buttons["STOP"].exists)
   }
 

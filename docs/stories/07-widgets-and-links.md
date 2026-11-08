@@ -100,7 +100,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 125:
 
 - **Summary:** Tap the Live Activity and land on the timer
-- **Status:** implemented in [a5ff68d](https://github.com/idvorkin/context-grabber/commit/a5ff68d); verified on the phone; native app: [ea8c689](https://github.com/idvorkin/context-grabber/commit/ea8c689), by construction rather than a link — the card lives only while the timer's full screen is up (RESET and leaving end it, a killed launch's card is ended at the next launch), so opening the app is opening the timer; verified by reading the code only, the tap not yet on the phone
+- **Status:** implemented in [a5ff68d](https://github.com/idvorkin/context-grabber/commit/a5ff68d); verified on the phone; native app: [ea8c689](https://github.com/idvorkin/context-grabber/commit/ea8c689), by construction rather than a link — the card lives only while the timer's full screen is up (RESET and leaving end it, a killed launch's card is ended at the next launch), so opening the app is opening the timer; verified by reading the code only, the tap not yet on the phone; since #791 the card can outlive the timer's screen (a workout running while Igor is elsewhere in the app), so its tap carries the timer's link: COMMIT_791
+- **Issues:** #791
 
 #### Use Case:
 - **As a** lifter watching the countdown in the Dynamic Island
@@ -112,6 +113,16 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a rounds timer is running and the Live Activity shows the countdown
 - **When:** I tap the Live Activity
 - **Then:** the app opens on the Gym Timer in rounds mode with the timer still running, not on the dashboard
+
+- **Scenario:** From the island back to a workout I left
+- **Given:** a rounds timer is running, I pressed *Done* and am on the home screen or another screen, and the Live Activity still counts down
+- **When:** I tap the Live Activity
+- **Then:** whatever is in front gives way and the Gym Timer comes up with the same workout still running at the right time, in the mode I left it in — not restarted and not another preset
+
+- **Scenario:** The card while I look elsewhere
+- **Given:** a rounds timer is running
+- **When:** I press *Done* and stay in the app
+- **Then:** the card stays on the lock screen and the island and keeps moving from phase to phase; it goes only when that workout is paused (opening breathing or a call does this), reset, or finished and shown its few minutes; leaving a paused, finished or idle timer removes it at once
 
 ---
 

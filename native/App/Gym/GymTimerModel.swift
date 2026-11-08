@@ -1,6 +1,8 @@
-//  The Gym Timer's state for one visit to the screen: the rounds engine and its clock, the stopwatch, the set
-//  count, the chosen preset, and which way the phone is turned. The logic is ContextCore's; this class owns the
-//  clock, carries out the engine's effects, remembers, and writes the session log.
+//  The Gym Timer's state for the app's lifetime (#791): the rounds engine and its clock, the stopwatch, the set
+//  count, the mode, the chosen preset, and which way the phone is turned. The app owns one, so a workout outlives
+//  the screen: leaving it lets go of only what the screen needed (the lit screen, the accelerometer), and of the
+//  audio and the card too when nothing is running. The logic is ContextCore's; this class owns the clock, carries
+//  out the engine's effects, remembers, and writes the session log.
 
 import BugKit
 import ContextCore
@@ -19,7 +21,10 @@ enum GymMode: String, CaseIterable {
 
 @MainActor
 final class GymTimerModel: ObservableObject {
-  @Published var mode: GymMode = .rounds
+  /// Remembered across leaving and relaunching (story 188).
+  @Published var mode: GymMode = .rounds {
+    didSet { if mode != oldValue { database.setSetting(Self.modeKey, mode.rawValue) } }
+  }
   @Published private(set) var presetId = "30sec"
   @Published private(set) var custom = CustomPreset.default
   /// Every change reaches the lock screen from here, and only from here (story 106).
@@ -50,6 +55,9 @@ final class GymTimerModel: ObservableObject {
   private static let presetKey = "gym_custom_preset"
   private static let chosenKey = "gym_active_preset"
   private static let setsKey = "gym_sets_count"
+  private static let modeKey = "gym_mode"
+  /// The timer screen is up: keep-awake and the accelerometer are on.
+  private var onScreen = false
 
   init(log: SessionLog, database: AppDatabase, liveActivity: LiveActivityController) {
     self.log = log
@@ -62,6 +70,7 @@ final class GymTimerModel: ObservableObject {
     custom = CustomPreset.decode(database.setting(Self.presetKey))
     sets = SetCounter.clamp(Int(database.setting(Self.setsKey) ?? "") ?? 0)
     if let chosen = database.setting(Self.chosenKey), Self.isPreset(chosen) { presetId = chosen }
+    if let stored = database.setting(Self.modeKey).flatMap(GymMode.init(rawValue:)) { mode = stored }
     countVoice = CountVoice.decode(database.setting(CountVoice.settingKey))
     engine.setProfile(profile)
     timer = engine.state
@@ -152,6 +161,18 @@ final class GymTimerModel: ObservableObject {
     }
     RunLoop.main.add(ticking, forMode: .common)
     clock = ticking
+  }
+
+  /// A link, tile or hook that starts a workout (story 188): a running one is left alone (a tap on its card or a
+  /// tile must never pause it), a paused one resumes, a finished one goes back to ready and starts again.
+  func autostart() {
+    mode = .rounds
+    if timer.isRunning {
+      log.event("timer_autostart", ["action": "already_running", "round": timer.currentRound])
+      return
+    }
+    if timer.phase == .done { resetTimer() }
+    toggleTimer()
   }
 
   func resetTimer() {
@@ -249,9 +270,14 @@ final class GymTimerModel: ObservableObject {
   // MARK: - the screen's lifetime
 
   /// The timer is open: the screen stays lit (story 115) and the display follows the phone's turn (story 109).
+  /// A workout left running (story 188) is shown where it is now.
   func appear(forcedTurn: DeviceTurn? = nil) {
+    onScreen = true
     UIApplication.shared.isIdleTimerDisabled = true
-    log.event("keep_awake", ["on": true, "reason": "gym_timer"])
+    log.event(
+      "keep_awake",
+      ["on": true, "reason": "gym_timer", "mode": mode.rawValue, "running": timer.isRunning || stopwatch.isRunning])
+    if timer.isRunning { tick() }
     if let forcedTurn {
       turn = forcedTurn
       return
@@ -271,17 +297,37 @@ final class GymTimerModel: ObservableObject {
     }
   }
 
-  /// Done: the lock goes back to the phone's own setting and the session is let go.
+  /// Done: the lock goes back to the phone's own setting. A running workout carries on, cues, card and all, as
+  /// with the phone locked (story 188); with nothing running the session and the card are let go.
   func disappear() {
+    onScreen = false
     motion.stopAccelerometerUpdates()
     UIApplication.shared.isIdleTimerDisabled = false
-    log.event("keep_awake", ["on": false, "reason": "gym_timer"])
+    log.event(
+      "keep_awake",
+      [
+        "on": false, "reason": "gym_timer", "running": timer.isRunning, "stopwatch": stopwatch.isRunning,
+      ])
+    if timer.isRunning { return }
+    release(reason: "leave")
+  }
+
+  /// Box breathing or a call is opening (story 188): two voices and two cards would fight, so a running rounds
+  /// workout pauses where it is, to resume on coming back. Off the screen, its session and card go too.
+  func yield(to other: String) {
+    guard timer.isRunning else { return }
+    log.event("timer_yield", ["to": other, "on_screen": onScreen])
+    toggleTimer()
+    if !onScreen { release(reason: "yield") }
+  }
+
+  /// Nothing running and nothing on screen to sound for: the clock, the audio session and the card go.
+  private func release(reason: String) {
     clock?.invalidate()
     clock = nil
     audio.stop()
     duck.close()
-    // The card lives only while the timer covers the app, so a tap on it always lands here (story 125).
-    liveActivity.end(.gymTimer, reason: "leave")
+    liveActivity.end(.gymTimer, reason: reason)
   }
 
   // MARK: - accessory work

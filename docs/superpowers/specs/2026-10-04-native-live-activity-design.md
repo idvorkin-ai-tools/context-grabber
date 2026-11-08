@@ -24,7 +24,8 @@ differs. There is never more than one: starting one screen's card ends the other
 
 - Read the step, where you are in the whole, and the time left without unlocking (stories 106, 166).
 - The countdown reaches zero at the step's true end, the same moment the next cue sounds.
-- A tap on the lock-screen card or the island opens the app on the running screen (story 125).
+- A tap on the lock-screen card or the island opens the app on the running screen (story 125), even when Igor
+  had left that screen while the workout ran on (#791).
 - Never a stale card: what the lock screen shows is what is running, or nothing.
 
 ## Non-goals
@@ -86,7 +87,10 @@ goes by itself.
 ### When it goes away
 
 - **RESET** (the timer) or **Back** (breathing) removes the card at once.
-- **Leaving the screen** (*Done* on the timer, the close button on breathing) removes it at once, finished or not.
+- **Leaving the screen** removes it at once — the close button on breathing always; *Done* on the timer only when
+  no workout is running (paused, finished or idle). A running rounds workout keeps its card while Igor is
+  elsewhere in the app, as it does with the phone locked (#791, story 188); the card goes when that workout is
+  paused off-screen (opening breathing or a call does this), reset, or finished and shown its few minutes.
 - **Choosing a timer preset after the finish** is a RESET and removes it.
 - **Starting the other screen** removes the first one's card; only one is ever shown.
 - **The app killed** (swiped away, or iOS ends it) can leave a card behind that no longer counts true. The next
@@ -104,8 +108,10 @@ or from a locked phone.
 ### The tap
 
 A tap on the lock-screen card or the island opens the app on the screen it came from, still running (or paused,
-or finished) as it was. There is no link to follow: the card only exists while its screen is open, so opening
-the app is opening that screen.
+or finished) as it was. Breathing's card only exists while its screen is open, so opening the app is opening
+that screen. The timer's card can outlive its screen (a workout running while Igor looks at something else), so
+its tap carries the timer's link: whatever is in front gives way and the timer comes up as it is now — never a
+restart, never another preset.
 
 ## Acceptance criteria
 
@@ -117,8 +123,10 @@ the app is opening that screen.
 - Pausing shows *PAUSED* and a still time; resuming counts down again from it.
 - The finish shows *DONE!* / *4 rounds completed* or *Done* / *4 min 48 s · 9 cycles*; the card is gone a few
   minutes later by itself.
-- RESET, Back, leaving the screen, or a preset chosen after the finish remove the card at once.
-- A tap on the card while it runs opens the app on its screen.
+- RESET, Back, leaving breathing, leaving the timer with no workout running, or a preset chosen after the
+  finish remove the card at once.
+- Leaving the timer with a rounds workout running keeps the card counting; the cues keep sounding.
+- A tap on the card while it runs opens the app on its screen, from home or any other screen.
 - After the app is swiped away mid-session and opened again, no card from that session remains.
 - A breathing session locked straight after Begin shows *Ready* and the seconds to the first inhale, then the
   steps.
@@ -139,5 +147,6 @@ the app is opening that screen.
 - One card per session, changed at steps and pauses rather than every second: iOS rations Live Activity
   updates, and a countdown that runs on the phone's clock is both cheaper and exactly on time.
 - One look for both screens: a third screen later (a call, a meditation) says what to show and gets the card.
-- The tap needs no deep link because the card's life is its screen's life. The React Native app needed a link
-  because its timer was one tab among several.
+- Breathing's tap needs no deep link because its card's life is its screen's life. The timer's tap carries one
+  because, since #791, a workout outlives its screen — as the React Native app's did, its timer being one tab
+  among several.
