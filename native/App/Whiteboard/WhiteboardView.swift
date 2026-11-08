@@ -1,4 +1,4 @@
-//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347, 729): a column of pages on PaperKit with the
+//  A whiteboard (spec 2026-11-01-whiteboard-design.md, stories 340–343, 347, 658): a column of pages on PaperKit with the
 //  system tool picker, saved a moment after each stroke, and sent to Larry on the board's chat thread holding its picture
 //  (the Inbox's image path, so it waits in the outbox when the network is away). A board another device draws, or one
 //  drawn on the old canvas (gone 2026-11-07), opens to look at only. Claude's ghosts after a pause or spoken words and Larry's turn come back
@@ -56,9 +56,9 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var micFinishing = false
   @Published private(set) var heardNote: String?
   let board: BoardEntry
-  /// Drawn on here, or only looked at: a board from another device (story 347) or from the old canvas (story 729).
+  /// Drawn on here, or only looked at: a board from another device (story 347) or from the old canvas (story 658).
   let editable: Bool
-  /// Drawn on the old canvas: its ink is moved onto pages to be shown, and it can't be sent (story 729).
+  /// Drawn on the old canvas: its ink is moved onto pages to be shown, and it can't be sent (story 658).
   let oldCanvas: Bool
   /// Why it's only looked at, for the bar; nil on a board drawn on here.
   let lookOnlyNote: String?
@@ -1094,7 +1094,7 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
-      // An old-canvas board's ink sits where the column put it, not where it's saved: nothing to frame for Larry (story 729).
+      // An old-canvas board's ink sits where the column put it, not where it's saved: nothing to frame for Larry (story 658).
       if !model.oldCanvas {
         ToolbarItem(placement: .topBarTrailing) {
           Button {

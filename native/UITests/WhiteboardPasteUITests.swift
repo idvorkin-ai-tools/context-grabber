@@ -1,4 +1,4 @@
-//  Stories 390–393, 638 and 639 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it),
+//  Stories 390–393, 638 and 639 on the simulator, on paper, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it),
 //  read from the Send button's label (the strokes drawn). HI is two strokes, one a letter. The text's layout, its caps, a
 //  stroke a letter and what the bar says are `WhiteboardPasteTests`, on the host; these are the keys, the canvas and the
 //  bar. XCUITest's taps never reach the system's paste button, so the button is the iPad's check and these go through
@@ -15,7 +15,6 @@ final class WhiteboardPasteUITests: XCTestCase {
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if let text { app.launchEnvironment["GRABBER_WHITEBOARD_PASTE"] = text }
@@ -47,39 +46,16 @@ final class WhiteboardPasteUITests: XCTestCase {
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.3)))
   }
 
-  /// Stories 390, 638, 639: ⌘V pastes the clipboard and ⌘Z takes it all back, on the old canvas and then on a board on
-  /// paper, whose keys are its own. On the simulator, keys reach the app only in the first test after a boot that presses
-  /// any (seen in three runs), so this is the suite's one test that presses keys, both canvases in one launch, and the
-  /// suite needs one boot.
-  func testCommandVPastesAndCommandZTakesItBackOnBothCanvases() throws {
+  /// Stories 390, 638, 639: ⌘V pastes the clipboard and ⌘Z takes it all back, on paper. On the simulator, keys reach the
+  /// app only in the first test after a boot that presses any (seen in three runs), so this is the suite's one test that
+  /// presses keys, and the suite needs one boot.
+  func testCommandVPastesAndCommandZTakesItBack() throws {
     UIPasteboard.general.string = "HI"
     let app = try openBoard()
-    sleep(1)
-    app.typeKey("v", modifierFlags: .command)
-    wait(app, strokes: 2)
-    app.typeKey("z", modifierFlags: .command)
-    wait(app, strokes: 0)
-
-    // New boards on paper, from the list's menu, and one of them.
-    app.navigationBars.buttons.element(boundBy: 0).tap()
-    let options = app.buttons["whiteboard-options"]
-    XCTAssertTrue(options.appears(within: 10), app.debugDescription)
-    options.tap()
-    let toggle = app.descendants(matching: .any)["New boards on paper"].firstMatch
-    XCTAssertTrue(toggle.appears(within: 5), app.debugDescription)
-    toggle.tapWhenSettled()
-    expectation(for: NSPredicate(format: "label == %@", "Board options, new boards on paper"), evaluatedWith: options)
-    waitForExpectations(timeout: 10)
-    let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.appears(within: 5), app.debugDescription)
-    new.tap()
     let ghosts = app.buttons["whiteboard-ghosts"]
-    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     // Ghosts off, so nothing else lands on the paper.
-    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
-    XCTAssertTrue(
-      app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Page '")).firstMatch.appears(within: 10),
-      "a board on paper" + app.debugDescription)
+    ghosts.tap()
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts off'"), ghosts, timeout: 5)
     sleep(2)
     // The first ink brings the next page, which on a phone moves the view: the paste comes after it.
     stroke(app)

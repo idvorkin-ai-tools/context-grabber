@@ -45,7 +45,7 @@ final class WhiteboardStore: ObservableObject {
   func pictureURL(_ id: String) -> URL? { keeping.pictureURL(id) }
   private var dir: URL? { keeping.dir }
   func editable(_ board: BoardEntry) -> Bool { BoardIndex.editable(board, on: device) }
-  /// Story 729: only a board made on paper, here, is drawn on; every other board opens look-only.
+  /// Story 658: only a board made on paper, here, is drawn on; every other board opens look-only.
   func drawable(_ board: BoardEntry) -> Bool { BoardIndex.drawable(board, on: device) }
   func lookOnlyNote(_ board: BoardEntry) -> String? { BoardIndex.lookOnlyNote(board, on: device) }
 
@@ -127,7 +127,7 @@ final class WhiteboardStore: ObservableObject {
 
   /// `GRABBER_BOARD_FIXTURE=<id>`: an empty board on paper with a known id, for the simulator (#603): this device's, or
   /// with `GRABBER_BOARD_FIXTURE_FROM=<device name>` another device's (#613). With `GRABBER_BOARD_FIXTURE_OLD_INK=<n>`
-  /// it's a board drawn on the old canvas instead, with n strokes where that canvas put ink (story 729).
+  /// it's a board drawn on the old canvas instead, with n strokes where that canvas put ink (story 658).
   func addFixture(_ id: String, from other: String? = nil, oldInk: Int? = nil) {
     guard index.board(id) == nil else { return }
     index.add(

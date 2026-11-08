@@ -151,7 +151,7 @@ final class BoardKeepingTests: XCTestCase {
     keeping.removeFiles("a")  // Files already gone are what was asked for.
   }
 
-  // MARK: Story 729: which boards can be drawn on, through a relaunch
+  // MARK: Story 658: which boards can be drawn on, through a relaunch
 
   func testABoardKeepsWhatItWasMadeOnThroughARelaunch() throws {
     let keeping = keeping()

@@ -352,7 +352,7 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.merge(cloud: [cloudCopy], device: "ipad").fetch, [])
   }
 
-  // MARK: Stories 590, 593–595, 606, 729: which boards can be drawn on
+  // MARK: Stories 590, 593–595, 606, 658: which boards can be drawn on
 
   private let aDate = Date(timeIntervalSince1970: 1_800_000_000)
 
@@ -360,7 +360,7 @@ final class BoardIndexTests: XCTestCase {
     var index = BoardIndex()
     index.add(id: "old", at: aDate, device: "ipad", deviceName: "iPad")
     index.add(id: "new", at: aDate, device: "ipad", deviceName: "iPad", onPages: true)
-    XCTAssertEqual(index.board("old").map { BoardIndex.drawable($0, on: "ipad") }, false, "story 729: look-only")
+    XCTAssertEqual(index.board("old").map { BoardIndex.drawable($0, on: "ipad") }, false, "story 658: look-only")
     XCTAssertEqual(index.board("new").map { BoardIndex.drawable($0, on: "ipad") }, true)
     XCTAssertEqual(index.board("old").map(BoardIndex.drawnOnTheOldCanvas), true)
     XCTAssertEqual(index.board("new").map(BoardIndex.drawnOnTheOldCanvas), false)
@@ -372,7 +372,7 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertFalse(BoardIndex.drawable(board, on: "iphone"), "the look-only view elsewhere")
   }
 
-  /// Story 729: the bar names why a board is look-only. Another device's board says whose it is, whichever canvas it was
+  /// Story 658: the bar names why a board is look-only. Another device's board says whose it is, whichever canvas it was
   /// drawn on; this device's own old board says it's from the old canvas.
   func testTheBarSaysWhyABoardIsLookOnly() {
     var index = BoardIndex()

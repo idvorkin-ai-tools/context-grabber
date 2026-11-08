@@ -89,7 +89,6 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = try cockpit() + way
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "on"
     app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "600"
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
@@ -263,7 +262,6 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     _ = try XCTUnwrap(strokeBringsAGhost(app))
     sleep(2)  // Past the save.
     app.terminate()
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "on"
     app.launch()
     let card = app.buttons.matching(identifier: "whiteboard-card")
       .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch

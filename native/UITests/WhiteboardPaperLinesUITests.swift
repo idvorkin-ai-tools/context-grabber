@@ -14,7 +14,6 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = try XCTUnwrap(
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "on"
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
     let new = app.buttons["whiteboard-new"]

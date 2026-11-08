@@ -71,7 +71,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
 }
 
 chat_all="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
-board_all="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnUITests"
+board_all="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 
 dry --changed native/App/Chat/ChatViews.swift
 says "chat code: lint names the file" "rung 0 Lint: swift-format over 1 touched Swift file(s), SwiftLint over the tree"

@@ -41,7 +41,7 @@ fi
 
 # The areas' classes. The suite scripts hold what each area runs in full.
 chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
-whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 
 classes=()
 unknown=()

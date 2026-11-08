@@ -24,7 +24,7 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardTrialOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests test
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests test
 status=$?
 grep -q 'Igor just said: draw a circle' "$report" || { echo "the spoken words never reached the fake Cockpit"; status=1; }
 echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep "\"body\"" "$report" | grep -c "\"picture_id\"") board pictures to Larry"

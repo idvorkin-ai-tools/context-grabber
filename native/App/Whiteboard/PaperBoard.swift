@@ -1,4 +1,4 @@
-//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657, 729; #636): PaperKit's controller, which
+//  A board on paper (whiteboard spec's "On paper: the default", stories 590–657, 658; #636): PaperKit's controller, which
 //  can't be subclassed, held in `PaperHost` with the page lines, the tool picker and the touch log; and on it
 //  `PaperBoardController`, which draws on a board through its model, so it saves and syncs, with its ghosts, Larry's
 //  marks, the mic and paste. A look-only board (another device's, or one drawn on the old canvas) shows the same way with
@@ -290,7 +290,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   private let model: WhiteboardModel
   private let log: SessionLog
-  /// A page wide, or wider for an old-canvas board's wider ink (story 729).
+  /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private var board = BoardPages()
   private var pages = 1
   private var laidWidth: CGFloat = 0
@@ -396,7 +396,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let started = CACurrentMediaTime()
     var drawing = model.drawing
     if model.oldCanvas {
-      // Story 729: the old canvas put ink about 10,000 points from its corner. Moved, never scaled, to the first page's
+      // Story 658: the old canvas put ink about 10,000 points from its corner. Moved, never scaled, to the first page's
       // corner for showing only: a look-only board saves nothing, so its file keeps the ink where it was.
       let placed = BoardPages.placing(ink: drawing.strokes.isEmpty ? nil : drawing.bounds)
       board = placed.board

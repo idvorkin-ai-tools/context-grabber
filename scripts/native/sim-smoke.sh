@@ -160,19 +160,19 @@ grid=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="grid_on")][0].boa
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ "$grid" = "smoke-grid" ] && [ -z "$errors" ]; then ok "whiteboard: the grid on from the hook, no error events"
 else bad "whiteboard: grid_on for board '$grid', errors: $errors"; fi
-# Stories 435, 436, 439, 534: the trial on paper opens a copy with old-board ink and logs what the iPad's questions need,
-# and the board it was handed has no drawing afterwards: a copy with ink added is never saved. Temporary, like the trial.
-SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-paper SIMCTL_CHILD_GRABBER_WHITEBOARD=open \
-  SIMCTL_CHILD_GRABBER_PAPER_TRIAL=smoke-paper SIMCTL_CHILD_GRABBER_PAPER_TRIAL_INK=40 relaunch
-wait_jq 'select(.type=="paper_probe" and .kind=="loaded")' 30 || echo "      (timed out waiting for the trial)"
+# Story 658: a board drawn on the old canvas opens on paper to look at only, its 40 strokes moved onto the first page
+# (the ink's box starts at the page's margin), and nothing is saved over it.
+SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-old-canvas SIMCTL_CHILD_GRABBER_BOARD_FIXTURE_OLD_INK=40 \
+  SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-old-canvas" relaunch
+wait_jq 'select(.type=="whiteboard" and .action=="paper_open")' 30 || echo "      (timed out waiting for paper_open)"
 f=$(newest_log)
-trip=$(jq -sr '[.[] | select(.type=="paper_probe" and .kind=="round_trip")][0] | "\(.strokes) \(.missing)"' "$f")
-kept=$(jq -sr '[.[] | select(.type=="paper_probe" and .kind=="origin")][0].bounds_kept // ""' "$f")
+opened=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="open")][0] | "\(.editable) \(.old_canvas)"' "$f")
+shown=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="paper_open")][0] | "\(.strokes) \(.editable) \(.ink[0]) \(.ink[1])"' "$f")
+saves=$(jq -sc 'select(.type=="whiteboard" and .action=="close" and .board=="smoke-old-canvas")' "$f")
 errors=$(jq -c 'select(.type=="error")' "$f")
-drawing=$(find "$(dirname "$DOCS")/Library/Application Support/whiteboard/boards" -name 'smoke-paper.*' 2>/dev/null)
-if [[ "$trip" == "40 "* ]] && [ -n "$kept" ] && [ -z "$drawing" ] && [ -z "$errors" ]; then
-  ok "whiteboard: the trial opened a copy ($trip missing, origin kept: $kept), nothing written, no error events"
-else bad "whiteboard: trial round trip '$trip', origin kept '$kept', written '$drawing', errors: $errors"; fi
+if [ "$opened" = "false true" ] && [ "$shown" = "40 false 40 40" ] && [ -z "$saves" ] && [ -z "$errors" ]; then
+  ok "whiteboard: an old-canvas board opened look-only on paper, 40 strokes at the first page's corner, no error events"
+else bad "whiteboard: old-canvas board open '$opened', shown '$shown', saves '$saves', errors: $errors"; fi
 fi  # whiteboard
 
 if want timer; then

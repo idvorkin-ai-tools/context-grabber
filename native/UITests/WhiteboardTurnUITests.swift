@@ -1,20 +1,16 @@
-//  Stories 344, 345, 349, 354, 357, 360, 371, 378, 380–389, 402, 403 and 407–410 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
-//  starts it): a stroke and a pause bring Claude's ghost through a streamed answer, Larry's turn hands him the board and his marks arrive by themselves beside Claude's, a kept ghost is ink.
-//  A finger draws on the simulator, which is story 354's device. The Pencil is the iPad's check. The bar, the note and the turns are the same whichever canvas
-//  a board is on, so these run on the old canvas only; what paper changes (its ghosts, taps, lines and colours, by pixels) is `WhiteboardPaperGhostsUITests`'
-//  and `WhiteboardPaperLinesUITests`'. The turn's rules (Claude's fade, the count climbing, a Cockpit that doesn't stream, Ghosts off for strokes and for words,
-//  stale answers, spoken words held, a tap's keep or dismiss) are `WhiteboardGhostTurnsTests`, on the host.
+//  Stories 344, 345, 349, 357, 360, 371, 380–389 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it), on a board on paper (the only canvas since 2026-11-07): a stroke and a pause bring Claude's ghost through a
+//  streamed answer, words spoken on an empty board bring one with no stroke, and Larry's turn hands him the board and his
+//  marks arrive by themselves beside Claude's. A finger draws on the simulator; the Pencil is the iPad's check. What paper
+//  shows (its ghosts, taps, lines and colours, by pixels) is `WhiteboardPaperGhostsUITests`' and
+//  `WhiteboardPaperLinesUITests`'. The turn's rules (Claude's fade, the count climbing, a Cockpit that doesn't stream, Ghosts
+//  off for strokes and for words, stale answers, spoken words held, a tap's keep or dismiss) are `WhiteboardGhostTurnsTests`,
+//  on the host.
 
 import XCTest
 
 final class WhiteboardTurnUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
-
-  /// The fake Cockpit's ghost is a circle whose left edge is 10 points past the drawing's right edge, halfway down it, and a
-  /// finger's stroke ends at 60% across.
-  private func tapOnTheGhost(_ app: XCUIApplication) {
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)).withOffset(CGVector(dx: 12, dy: 0)).tap()
-  }
 
   /// A new board open, Ghosts on, the app talking to the fake Cockpit, which streams one mark.
   private func openBoard(say: String? = nil) throws -> (XCUIApplication, XCUIElement) {
@@ -22,7 +18,6 @@ final class WhiteboardTurnUITests: XCTestCase {
       ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     if let say { app.launchEnvironment["GRABBER_WHITEBOARD_SAY"] = say }
@@ -134,190 +129,5 @@ final class WhiteboardTurnUITests: XCTestCase {
     reopenBoard(app)
     sleep(4)
     XCTAssertFalse(none.exists, app.debugDescription)
-  }
-
-  func testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt() throws {
-    let (app, ghosts) = try openBoard()
-    stroke(app)
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
-    wait(ghosts, label: "Ghosts on", timeout: 3)
-    XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 1 strokes")
-
-    stroke(app, atHeight: 0.5)
-    wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)
-    XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 2 strokes")
-    sleep(1)  // Past the ghost drawing in.
-    tapOnTheGhost(app)
-    wait(app, strokes: 3)
-    XCTAssertEqual(ghosts.label, "Ghosts on")
-  }
-
-  /// The colour of the screen where nothing is drawn, as 0xRRGGBB: the canvas isn't in the accessibility tree.
-  private func paperOnScreen() throws -> UInt32 {
-    let shot = try XCTUnwrap(XCUIScreen.main.screenshot().image.cgImage)
-    var pixel = [UInt8](repeating: 0, count: 4)
-    let space = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
-    let context = try XCTUnwrap(
-      CGContext(
-        data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: space,
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-    context.draw(
-      shot,
-      in: CGRect(
-        x: -CGFloat(shot.width) * 0.85, y: -CGFloat(shot.height) * 0.65, width: CGFloat(shot.width),
-        height: CGFloat(shot.height)))
-    return UInt32(pixel[0]) << 16 | UInt32(pixel[1]) << 8 | UInt32(pixel[2])
-  }
-
-  private func keepShot(_ name: String) {
-    let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-    shot.name = name
-    shot.lifetime = .keepAlways
-    add(shot)
-  }
-
-  private func assertPaper(_ expected: UInt32, _ what: String) throws {
-    sleep(1)
-    let seen = try paperOnScreen()
-    for shift: UInt32 in [16, 8, 0] {
-      let channel = { (rgb: UInt32) in Int(rgb >> shift & 0xFF) }
-      XCTAssertLessThanOrEqual(
-        abs(channel(seen) - channel(expected)), 4, "\(what): saw \(String(seen, radix: 16))")
-    }
-  }
-
-  /// Cream's deep shade. A board on paper stays in its pale one: `WhiteboardOnPaperUITests.testInkShowsInDarkMode`.
-  private let creamInDarkMode: UInt32 = 0x2B2416
-
-  /// Stories 378, 402, 403: the colour is on the canvas, follows the mode, and stays when the board opens again.
-  func testABoardsColourShowsInBothModesAndStaysWithIt() throws {
-    let before = XCUIDevice.shared.appearance
-    addTeardownBlock { XCUIDevice.shared.appearance = before }
-    XCUIDevice.shared.appearance = .light
-    let (app, ghosts) = try openBoard()
-    ghosts.tap()
-    wait(ghosts, label: "Ghosts off", timeout: 3)
-    let paper = app.buttons["whiteboard-board"]
-    XCTAssertFalse(app.buttons["OverflowBarButtonItem"].exists, "the top bar has room for all its buttons")
-    XCTAssertEqual(paper.label, "Board, Plain")
-    try assertPaper(0xFFFFFF, "Plain, light")
-
-    paper.tap()
-    let cream = app.buttons["Cream"]
-    XCTAssertTrue(cream.appears(within: 5), app.debugDescription)
-    keepShot("The menu")
-    cream.tapWhenSettled()
-    wait(paper, label: "Board, Cream", timeout: 3)
-    try assertPaper(0xFBF3DC, "Cream, light")
-    XCUIDevice.shared.appearance = .dark
-    try assertPaper(creamInDarkMode, "Cream, dark")
-    stroke(app)
-    wait(app, strokes: 1)
-    keepShot("Ink on Cream, dark, the tool picker back")
-    XCUIDevice.shared.appearance = .light
-
-    reopenBoard(app)
-    wait(paper, label: "Board, Cream", timeout: 3)
-    try assertPaper(0xFBF3DC, "Cream, reopened")
-  }
-
-  /// Stories 407–410: off until asked, visible when on and gone when off (read from the pixels: the board isn't in the
-  /// accessibility tree), and remembered by this board and no other. Ghosts off, so nothing else moves on the board. A
-  /// reopened board frames its drawing differently, so its pixels are compared with themselves.
-  func testTheGridShowsWhenAskedAndStaysWithItsBoard() throws {
-    let (app, ghosts) = try openBoard()
-    ghosts.tap()
-    wait(ghosts, label: "Ghosts off", timeout: 3)
-    stroke(app)
-    wait(app, strokes: 1)
-    let board = app.buttons["whiteboard-board"]
-    XCTAssertEqual(board.label, "Board, Plain")
-    let off = settledScreen(app)
-
-    tapGrid(app, board, expect: "Board, Plain, grid on")
-    let on = settledScreen(app)
-    let picture = XCTAttachment(image: on)
-    picture.name = "grid-on"
-    picture.lifetime = .keepAlways
-    add(picture)
-    XCTAssertGreaterThan(boardPixelsDiffering(off, on), Self.gridPixels, "no grid lines appeared")
-
-    tapGrid(app, board, expect: "Board, Plain")
-    XCTAssertLessThan(boardPixelsDiffering(off, settledScreen(app)), Self.noPixels, "the lines stayed")
-
-    // Left on: it opens on, and it draws them.
-    tapGrid(app, board, expect: "Board, Plain, grid on")
-    reopenBoard(app)
-    XCTAssertEqual(board.label, "Board, Plain, grid on")
-    let reopenedOn = settledScreen(app)
-    tapGrid(app, board, expect: "Board, Plain")
-    let reopenedOff = settledScreen(app)
-    XCTAssertGreaterThan(
-      boardPixelsDiffering(reopenedOn, reopenedOff), Self.gridPixels, "the reopened board drew no lines")
-
-    // Left off: it opens off, and draws none.
-    reopenBoard(app)
-    XCTAssertEqual(board.label, "Board, Plain")
-    XCTAssertLessThan(boardPixelsDiffering(reopenedOff, settledScreen(app)), Self.noPixels, "off, and lines showed")
-
-    // A new board has its own switch.
-    tapGrid(app, board, expect: "Board, Plain, grid on")
-    app.navigationBars.buttons.element(boundBy: 0).tap()
-    let new = app.buttons["whiteboard-new"]
-    XCTAssertTrue(new.appears(within: 5), app.debugDescription)
-    new.tap()
-    XCTAssertTrue(board.appears(within: 5), app.debugDescription)
-    XCTAssertEqual(board.label, "Board, Plain")
-  }
-
-  private static let gridPixels = 1000
-  private static let noPixels = 50
-
-  private func settledScreen(_ app: XCUIApplication) -> UIImage {
-    sleep(1)
-    return app.screenshot().image
-  }
-
-  /// The grid's switch, in the Board menu.
-  private func tapGrid(_ app: XCUIApplication, _ view: XCUIElement, expect: String) {
-    view.tap()
-    let item = app.descendants(matching: .any)["Grid lines"].firstMatch
-    XCTAssertTrue(item.appears(within: 3), app.debugDescription)
-    item.tapWhenSettled()
-    wait(view, label: expect, timeout: 3)
-  }
-
-  /// How many pixels differ in the middle of the screen, clear of the bars and the tool picker.
-  private func boardPixelsDiffering(_ a: UIImage, _ b: UIImage) -> Int {
-    func pixels(_ image: UIImage) -> [UInt8] {
-      let cg = image.cgImage!
-      let width = cg.width
-      let height = cg.height / 2
-      var bytes = [UInt8](repeating: 0, count: width * height * 4)
-      bytes.withUnsafeMutableBytes { buffer in
-        let context = CGContext(
-          data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
-          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
-        context.draw(cg, in: CGRect(x: 0, y: -cg.height / 4, width: width, height: cg.height))
-      }
-      return bytes
-    }
-    let started = Date()
-    defer { print("ui-pixels: boardPixelsDiffering \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
-    let (x, y) = (pixels(a), pixels(b))
-    var differing = 0
-    // Raw bytes, no array a pixel: the UI tests are a Debug build.
-    x.withUnsafeBufferPointer { x in
-      y.withUnsafeBufferPointer { y in
-        for i in stride(from: 0, to: min(x.count, y.count), by: 4)
-        where abs(Int(x[i]) - Int(y[i])) > 2 || abs(Int(x[i + 1]) - Int(y[i + 1])) > 2
-          || abs(Int(x[i + 2]) - Int(y[i + 2])) > 2
-        {
-          differing += 1
-        }
-      }
-    }
-    return differing
   }
 }
