@@ -17,7 +17,7 @@ struct GrabberApp: App {
   }
 
   var body: some Scene {
-    // The home window (#634: one at a time; another from this group says so instead, story 462). It alone takes links.
+    // The home window (#634: one at a time; another from this group offers a choice of screens instead, story 731. It alone takes links.
     WindowGroup(id: AppModel.homeWindowID) {
       HomeWindow(model: model)
         .onChange(of: scenePhase) { _, phase in model.phaseChanged(phase) }

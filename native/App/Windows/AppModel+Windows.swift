@@ -137,6 +137,31 @@ extension AppModel {
     }
   }
 
+  /// Story 731 (#782): a new window's choice. The screen opens in a window of its own (or its window comes forward),
+  /// and the window that asked closes, so no screen shows twice.
+  func chooseForNewWindow(_ screen: WindowScreen, closing window: String?) {
+    log.event("window", ["action": "choose", "screen": screen.rawValue, "scenes": sceneCount])
+    openInNewWindow(screen, from: "new_window")
+    guard let window,
+      let session = UIApplication.shared.openSessions.first(where: { $0.persistentIdentifier == window })
+    else { return }
+    // After the new window has asked to open: closing first would leave the app nothing to open it from.
+    Task {
+      try? await Task.sleep(for: .milliseconds(900))
+      UIApplication.shared.requestSceneSessionDestruction(session, options: nil) { [log] error in
+        log.event("window", ["action": "choose_close", "ok": false, "message": error.localizedDescription])
+      }
+    }
+  }
+
+  /// `GRABBER_WINDOW_CHOOSE=<screen>`: once home is up, a new window opens as Command+N would, and its chooser picks
+  /// that screen as a tap would. docs/TESTING.md.
+  func chooseForHook(closing window: String?) {
+    guard let screen = windowHookChoice else { return }
+    windowHookChoice = nil
+    chooseForNewWindow(screen, closing: window)
+  }
+
   /// A screen's Done, and anything else closing its window.
   func closeWindow(_ screen: WindowScreen) {
     log.event("window", ["action": "close", "screen": screen.rawValue])
@@ -204,7 +229,18 @@ extension AppModel {
   /// `GRABBER_WINDOW=<screen>[,again][,close]`: opens that screen's window, then three seconds apart asks for it again
   /// (it comes forward, no second window) and closes it, as a hold and a Done would. docs/TESTING.md.
   private func runWindowHook() {
-    guard !windowHookRan, let spec = ProcessInfo.processInfo.environment["GRABBER_WINDOW"] else { return }
+    guard !windowHookRan else { return }
+    let environment = ProcessInfo.processInfo.environment
+    if let choice = environment["GRABBER_WINDOW_CHOOSE"].flatMap(WindowScreen.init(rawValue:)) {
+      windowHookRan = true
+      windowHookChoice = choice
+      Task {
+        try? await Task.sleep(for: .seconds(1))
+        openWindowAction?(id: Self.homeWindowID)
+      }
+      return
+    }
+    guard let spec = environment["GRABBER_WINDOW"] else { return }
     windowHookRan = true
     let parts = spec.split(separator: ",").map(String.init)
     guard let screen = parts.first.flatMap(WindowScreen.init(rawValue:)) else { return }

@@ -79,7 +79,7 @@ public struct WindowLedger: Equatable, Sendable {
 public enum WindowRole: Equatable, Sendable {
   case home
   case screen(WindowScreen)
-  /// A window that says home is elsewhere (story 462), or one that hasn't said what it is yet.
+  /// A window choosing a screen while home is elsewhere (story 731), or one that hasn't said what it is yet.
   case noScreen
 }
 
@@ -103,6 +103,17 @@ public struct AppPhaseLatch: Equatable, Sendable {
     case .active:
       defer { launched = true }
       return launched ? .foreground : .launch
+    }
+  }
+}
+
+extension WindowScreen {
+  /// Story 731 (#782): what a new window offers while the home window is up: the screens that can have a window of their
+  /// own, in the order home shows them (`todayCard` first when home shows it, then `tiles`, which are home's shown tiles).
+  public static func offered(todayCard: Bool, tiles: [String]) -> [WindowScreen] {
+    var seen = Set<WindowScreen>()
+    return ((todayCard ? ["today"] : []) + tiles).compactMap(WindowScreen.init(tile:)).filter {
+      seen.insert($0).inserted
     }
   }
 }

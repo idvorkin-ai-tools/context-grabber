@@ -22,7 +22,7 @@ log. A phone changes in no way at all.
   don't talk over each other lives in how one window shows one of them at a time.
 - Two windows of one screen. Two windows on the Chat list add nothing, the Cockpit's page can be in one place only,
   and one board drawn in two windows would overwrite itself.
-- A home screen in every window.
+- A home screen in every window. A new window offers the screens that can have one (above), not the whole of home.
 - Anything on a phone.
 
 ## What Igor sees
@@ -49,7 +49,7 @@ and What's new are named as their tiles and rows are, as are the six above when 
 shows only its one screen, so its name stays. What is opened inside a screen doesn't rename the window: a thread in
 Chat is still Chat, a metric's week over Today is still Today.
 
-A window that says home is open in another window has no screen to be named after, and the app gives it no name. On a
+A window choosing what to show, while home is open in another window, has no screen to be named after, and the app gives it no name. On a
 phone the app names nothing.
 
 **One place at a time.** With a screen in a window, tapping its tile brings that window forward, and so does a link, a
@@ -58,8 +58,15 @@ the Whiteboard window. If the home window is showing a screen when another windo
 home first. A card window already open comes forward as it is: choosing *Drill the stack* or the tile's count there
 starts neither, then or the next time the card opens.
 
-**Another window of the app.** iPadOS can make a new window itself, from its own menus. With a home window up, that
-window says home is open in another window and to hold a tile there. With no home window, it is the home window.
+**Another window of the app.** iPadOS can make a new window itself, from its own menus, and on the Mac File > New Window
+(Command+N) does. With no home window, it is the home window. With a home window up (Igor, 2026-11-07, #782, from the
+Mac: *"If I make a new window, start on the main page and let me select a new thing"*), it starts as a short version of
+home: the screens that can have a window of their own, as home's tiles with their names and icons, in the order home
+shows them (the Today card first when home shows it), and nothing home hides. Choosing one turns this window into that
+screen's window. If that screen is already in a window, that window comes forward instead and this one closes, so no
+screen shows twice; if the home window is showing it, it goes from home first, as a hold's *New window* does. The
+screens that hold the audio (the Gym Timer, Box breathing, a call), Settings and the rest of home aren't offered: they
+stay in the home window. Closing this window without choosing leaves everything as it was.
 
 **A call.** A call starts, runs and ends as it does now, in the home window. Opening or closing other windows does
 nothing to it. A board's microphone stops when a call starts, in whichever window the board is. Chat's dictation gives
@@ -105,7 +112,10 @@ screen.
 - A screen's window is named for its screen, by the name on its home tile, from the moment it opens.
 - The home window is named Home on the home grid, takes the name of what it shows when that goes up, and is Home again
   when that closes. A screen opening or closing in another window doesn't rename it.
-- A window saying home is open elsewhere has no name from the app.
+- A window choosing what to show has no name from the app. Choosing Chat there makes it the Chat window, named Chat;
+  choosing a screen already in a window brings that window forward and closes this one.
+- On the Mac, Command+N with home open opens a window offering the screens home shows that can have a window, in home's
+  order, and nothing else.
 - On an iPhone the app names no window.
 - A card or Places window that closes leaves nothing behind: the card's widgets are current, the map is down, and a
   drill asked for while the card was in a window doesn't start later.
