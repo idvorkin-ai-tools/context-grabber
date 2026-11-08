@@ -522,7 +522,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 188:
 
 - **Summary:** A workout survives leaving the timer, and the timer remembers its mode
-- **Status:** native app only: implemented in COMMIT_791; verified by `just test` (lint + host) and the simulator's `GymTimerUITests` (the rounds and the stopwatch still running after *Done* and back through the timer's link, the mode kept) and `LinksUITests` (a breathing link pauses the workout, which is found paused); the cues and the card carrying on off-screen still to be checked by Igor on the phone
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897); verified by `just test` (lint + host) and the simulator's `GymTimerUITests` (the rounds and the stopwatch still running after *Done* and back through the timer's link, the mode kept) and `LinksUITests` (a breathing link pauses the workout, which is found paused); the cues and the card carrying on off-screen still to be checked by Igor on the phone
 - **Issues:** #791
 
 #### Use Case:
