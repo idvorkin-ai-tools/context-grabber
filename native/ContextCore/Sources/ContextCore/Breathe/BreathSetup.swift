@@ -39,4 +39,16 @@ public struct BreathSetup: Equatable, Sendable {
       seeds
     )
   }
+
+  /// What choosing a preset's `seconds` (nil for Custom) writes, in order; `restore` reads it back as that choice.
+  /// Custom's sides are seeded first, from what the settings hold now, so the preset cannot become them (#200).
+  public static func writes(preset seconds: Int?, _ setting: (String) -> String?) -> [(key: String, value: String)] {
+    restore(setting).seeds + [(patternKey, "")] + (seconds.map { [(breathKey, String($0))] } ?? [])
+      + [(customKey, seconds == nil ? "1" : "0")]
+  }
+
+  /// #289: what choosing a pattern writes. It wins until a preset or Custom is chosen.
+  public static func writes(pattern: BreathPattern) -> [(key: String, value: String)] {
+    [(patternKey, pattern.key), (customKey, "0")]
+  }
 }
