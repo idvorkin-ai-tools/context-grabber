@@ -96,7 +96,7 @@ then the tiles, as Igor arranged them. A hidden one is not listed, and the daily
 either. Rearranging or hiding a tile changes the menu straight away. Only the first nine carry a number; the Settings
 tile is always reached by Command+Comma instead.
 
-Go items and New Board are dimmed while another screen covers home (the settings, What's new and the report dialog
+Go items (all but *Report a problem*, below) and New Board are dimmed while another screen covers home (the settings, What's new and the report dialog
 count too), for the same reason Settings… is: a live timer or
 call is never closed to make room. New Board also works while the whiteboard is in front, and opens the new board there. It
 takes Command+Shift+N because Command+N stays the Mac's own New Window. Report a Problem… works from any screen.
@@ -129,8 +129,8 @@ when the app is quit nothing runs, and that isn't an error.
 - On the Mac, Command+Shift+R opens the report dialog from any screen.
 - In chat, a timer or any other screen, *Report a problem* in the Go menu and *Report a Problem…* in the app menu are live
   and open the report dialog over that screen; the other Go items are dimmed.
-- While a timer, a call or any other screen covers home, the Go items and New Board are dimmed and their keys do
-  nothing.
+- While a timer, a call or any other screen covers home, the Go items other than *Report a problem* and New Board are
+  dimmed and their keys do nothing.
 
 ## Later
 
