@@ -22,9 +22,13 @@ extension XCTestCase {
     _ predicate: NSPredicate, _ object: Any?, timeout: TimeInterval, file: StaticString = #filePath, line: UInt = #line
   ) {
     let deadline = Date().addingTimeInterval(timeout)
-    while !predicate.evaluate(with: object) {
+    // An element that is gone for a moment (mid-navigation) reads as not yet, rather than failing on the read.
+    let element = object as? XCUIElement
+    while !(element.map { $0.exists } ?? true) || !predicate.evaluate(with: object) {
       guard Date() < deadline else {
-        XCTFail("not within \(timeout) s: \(predicate.predicateFormat)", file: file, line: line)
+        // What it was, so a miss says where it went (7 Nov: two misses showed only what was wanted).
+        let seen = element.map { $0.exists ? "label is \"\($0.label)\"" : "element not found" } ?? "no element"
+        XCTFail("not within \(timeout) s: \(predicate.predicateFormat); \(seen)", file: file, line: line)
         return
       }
       RunLoop.current.run(until: Date().addingTimeInterval(0.1))
