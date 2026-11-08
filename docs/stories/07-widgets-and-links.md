@@ -100,7 +100,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 125:
 
 - **Summary:** Tap the Live Activity and land on the timer
-- **Status:** implemented in [a5ff68d](https://github.com/idvorkin/context-grabber/commit/a5ff68d); verified on the phone; native app: [ea8c689](https://github.com/idvorkin/context-grabber/commit/ea8c689), by construction rather than a link — the card lives only while the timer's full screen is up (RESET and leaving end it, a killed launch's card is ended at the next launch), so opening the app is opening the timer; verified by reading the code only, the tap not yet on the phone
+- **Status:** implemented in [a5ff68d](https://github.com/idvorkin/context-grabber/commit/a5ff68d); verified on the phone; native app: [ea8c689](https://github.com/idvorkin/context-grabber/commit/ea8c689), by construction rather than a link — the card lives only while the timer's full screen is up (RESET and leaving end it, a killed launch's card is ended at the next launch), so opening the app is opening the timer; verified by reading the code only, the tap not yet on the phone; since #791 the card can outlive the timer's screen (a workout running while Igor is elsewhere in the app), so its tap carries the timer's link: [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897) (stories 732, 733)
+- **Issues:** #791
 
 #### Use Case:
 - **As a** lifter watching the countdown in the Dynamic Island
@@ -1779,3 +1780,43 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I press Command+N and choose Chat
 - **Then:** the window becomes the Chat window, named Chat; it offered only the screens home shows that can have a window,
   in home's order; had Chat already been in a window, that window would have come forward and this one closed
+
+---
+
+### User Story 732:
+
+- **Summary:** Tap the Live Activity to get back to a workout I left
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897); verified by `just test` (lint + host) and the simulator's `GymTimerUITests` and `LinksUITests`; the card on the lock screen and its tap still to be checked by Igor on the phone
+- **Issues:** #791
+- **Spec:** [Native Live Activity — When it goes away, The tap](../superpowers/specs/2026-10-04-native-live-activity-design.md)
+
+#### Use Case:
+- **As a** lifter who pressed *Done* on a running workout to look at something else in the app
+- **I want to** tap the Live Activity and land on that same workout
+- **so that** the card is always the way back to the clock that is counting
+
+#### Acceptance Criteria:
+- **Scenario:** From the island back to a workout I left
+- **Given:** a rounds timer is running, I pressed *Done* and am on another screen, and the Live Activity still counts down
+- **When:** I tap the Live Activity
+- **Then:** whatever is in front gives way and the Gym Timer comes up with the same workout still running at the right time, in the mode I left it in — not restarted and not another preset
+
+---
+
+### User Story 733:
+
+- **Summary:** The Live Activity stays while a workout runs off the timer's screen
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897); verified by `just test` (lint + host) and the simulator's `GymTimerUITests` and `LinksUITests`; the card on the lock screen and its tap still to be checked by Igor on the phone
+- **Issues:** #791
+- **Spec:** [Native Live Activity — When it goes away, The tap](../superpowers/specs/2026-10-04-native-live-activity-design.md)
+
+#### Use Case:
+- **As a** lifter with a workout running while I look elsewhere in the app
+- **I want** the lock-screen card and the island to keep counting
+- **so that** I can read the round and the time left without going back to the timer
+
+#### Acceptance Criteria:
+- **Scenario:** The card while I look elsewhere
+- **Given:** a rounds timer is running
+- **When:** I press *Done* and stay in the app
+- **Then:** the card stays on the lock screen and the island and keeps moving from phase to phase, until that workout is paused (story 191), reset, or finished and shown its few minutes

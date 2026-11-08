@@ -42,6 +42,15 @@ final class AppModel: ObservableObject {
   @Published private(set) var audioResetLine = ""
   /// Non-nil while the Gym Timer covers the app; says how it was asked for.
   @Published var gymTimer: GymTimerLaunch?
+  private var gymModel: GymTimerModel?
+  /// The Gym Timer's state, made on first open and kept for the app's life: a workout outlives its screen (story
+  /// 188, #791).
+  var gym: GymTimerModel {
+    if let gymModel { return gymModel }
+    let made = GymTimerModel(log: log, database: database, liveActivity: liveActivity)
+    gymModel = made
+    return made
+  }
   /// Non-nil while the breathing screen covers the app.
   @Published var breathe: BreatheLaunch?
   /// Non-nil while the card screen covers the app (story 129): true when it opened counting.
@@ -224,6 +233,7 @@ final class AppModel: ObservableObject {
   /// The app came to the front (not the launch itself): prune, settle a pending permission, ask for a fix.
   func foreground() {
     usage.resume(reason: "foreground")
+    if gymTimer == nil { gymModel?.catchUp() }  // a workout left running off the timer's screen (story 188)
     dailyStrip.refresh()
     places.prune(reason: "foreground")
     tracker.foreground()
@@ -490,6 +500,7 @@ final class AppModel: ObservableObject {
 
   func openBreathe(_ launch: BreatheLaunch = BreatheLaunch(), from source: String) {
     log.event("ui", ["action": "open_breathe", "from": source, "autostart": launch.begins])
+    gymModel?.yield(to: "breathe")
     screen = "breathe"
     breathe = launch
   }
@@ -630,6 +641,7 @@ final class AppModel: ObservableObject {
   /// Story 137: the eulogy song, played in the app; the sheet shows where it is. Resumes rather than restarts.
   func playEulogySong(from source: String) {
     log.event("ui", ["action": "open_eulogy_song_player", "from": source])
+    gymModel?.yield(to: "eulogy_song")
     screen = "eulogy_song"
     showEulogySong = true
     eulogySong.play(from: source)
@@ -703,6 +715,7 @@ final class AppModel: ObservableObject {
   func openCockpit(from source: String) {
     log.event("ui", ["action": "open_cockpit", "from": source, "first": !cockpitOpened])
     cockpitOpened = true
+    gymModel?.yield(to: "cockpit")
     if bringForward(.cockpit, from: source) { return }
     screen = "cockpit"
     showCockpit = true
@@ -751,6 +764,7 @@ final class AppModel: ObservableObject {
 
   func openCall(from source: String) {
     log.event("ui", ["action": "open_call", "from": source, "state": call.snapshot.state.rawValue])
+    gymModel?.yield(to: "call")
     if gymTimer != nil { closeGymTimer() }
     screen = "call"
     callOpen = true
