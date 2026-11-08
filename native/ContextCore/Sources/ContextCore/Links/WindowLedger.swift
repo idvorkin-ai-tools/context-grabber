@@ -106,3 +106,14 @@ public struct AppPhaseLatch: Equatable, Sendable {
     }
   }
 }
+
+extension WindowScreen {
+  /// Story 731 (#782): what a new window offers while the home window is up: the screens that can have a window of their
+  /// own, in the order home shows them (`todayCard` first when home shows it, then `tiles`, which are home's shown tiles).
+  public static func offered(todayCard: Bool, tiles: [String]) -> [WindowScreen] {
+    var seen = Set<WindowScreen>()
+    return ((todayCard ? ["today"] : []) + tiles).compactMap(WindowScreen.init(tile:)).filter {
+      seen.insert($0).inserted
+    }
+  }
+}

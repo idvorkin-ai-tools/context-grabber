@@ -259,7 +259,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I look at the home screen
 - **Then:** a map widget shows today's route over the map with the current position marked, refreshed with the last grab
 
-
 ---
 
 ### User Story 134:
@@ -933,7 +932,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 462:
 
 - **Summary:** A window iPadOS makes itself says home is elsewhere rather than repeating it
-- **Status:** native app only: implemented in [cc011df](https://github.com/idvorkin/context-grabber/commit/cc011df) and its review fix; not verified by a run: only the iPad's own New Window reaches it, which is for the iPad. The ledger's rule is `WindowLedgerTests`.
+- **Status:** replaced by story 731 (#782). Was native app only: implemented in [cc011df](https://github.com/idvorkin/context-grabber/commit/cc011df) and its review fix; not verified by a run: only the iPad's own New Window reaches it, which is for the iPad. The ledger's rule is `WindowLedgerTests`.
 - **Issues:** [#634](https://github.com/idvorkin/context-grabber/issues/634)
 - **Spec:** [Windows on the iPad](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
@@ -946,7 +945,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A home window is up
 - **Given:** the home window is open
 - **When:** I make a new window of the app from iPadOS's menus
-- **Then:** it says home is open in another window and to hold a tile there
+- **Then:** it says home is open in another window and to hold a tile there (replaced by story 731, #782: it now offers
+  the screens that can have a window)
 
 ---
 
@@ -1632,7 +1632,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I choose Settings… from the app's menu, or press Command+Comma
 - **Then:** the app's settings open over home
 
-
 ### User Story 722:
 
 - **Summary:** Keyboard shortcuts on the Mac: the Go menu
@@ -1652,7 +1651,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** that destination opens, as a tap on its tile would, and the Go menu lists them in the order home shows them,
   the Today card first when it is shown
 
-
 ### User Story 723:
 
 - **Summary:** The Go menu follows home
@@ -1670,7 +1668,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** I have hidden or moved a tile in Settings
 - **When:** I open the Go menu
 - **Then:** the hidden tile is gone from it, the moved one is in its new place, and the numbers follow
-
 
 ### User Story 724:
 
@@ -1690,7 +1687,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I press Command+Shift+N, or choose New Board from the File menu
 - **Then:** the whiteboard opens on a new empty board, and Command+N is still the Mac's New Window
 
-
 ### User Story 725:
 
 - **Summary:** Report a Problem by key on the Mac
@@ -1708,7 +1704,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the Mac build is open on any screen
 - **When:** I press Command+Shift+R
 - **Then:** the report dialog opens, as Report a Problem… in the app menu (and the Help menu) opens it
-
 
 ### User Story 726:
 
@@ -1729,7 +1724,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** its items are dimmed and nothing happens, so nothing live is closed; New Board is dimmed too, unless home or
   the whiteboard is the screen in front; *Report a problem* stays live (story 730)
 
-
 ### User Story 727:
 
 - **Summary:** No Mac menus on a phone or an iPad
@@ -1747,7 +1741,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the app on an iPhone, or on an iPad with a hardware keyboard
 - **When:** I look for these menus or press these keys
 - **Then:** nothing new is there: the menu and its keys are the Mac's alone
-
 
 ### User Story 730:
 
@@ -1768,3 +1761,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the report dialog opens over that screen with its screenshot, and nothing in front is closed; the other Go
   items stay dimmed
 
+||||||| parent of a696cd71 (New window with home up offers the screens that can have a window (#782, story 731))
+
+### User Story 731:
+
+- **Summary:** A new window lets me choose what it shows
+- **Status:** implemented in COMMIT; `WindowOfferTests` (host) pass and the Mac build compiles; not yet opened with Command+N on the Mac or the iPad's New Window
+- **Issues:** [#782](https://github.com/idvorkin/context-grabber/issues/782)
+- **Spec:** [Windows on the iPad — Another window of the app](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor, on the Mac with the app's home window open
+- **I want** File > New Window (Command+N) to start on a short home where I pick what the window shows
+- **so that** I can put Chat, Today, a board or the Cockpit beside home without hunting for a tile to hold
+
+#### Acceptance Criteria:
+- **Scenario:** Choosing Chat in a new window
+- **Given:** the home window is open and no Chat window is
+- **When:** I press Command+N and choose Chat
+- **Then:** the window becomes the Chat window, named Chat; it offered only the screens home shows that can have a window,
+  in home's order; had Chat already been in a window, that window would have come forward and this one closed

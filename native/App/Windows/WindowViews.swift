@@ -47,29 +47,72 @@ private struct WindowSeat: ViewModifier {
   }
 }
 
-/// A window with no screen of its own: the home screen, or a note when a home window is already up (story 462). A
-/// phone has the one window, so it goes straight to the home screen.
+/// A window with no screen of its own: the home screen, or, when a home window is already up, a choice of the screens
+/// that can have a window (story 731, #782). A phone has the one window, so it goes straight to the home screen.
 struct HomeWindow: View {
   @ObservedObject var model: AppModel
   @State private var home: Bool?
+  @State private var scene: String?
 
   var body: some View {
     Group {
       if !model.windowsAvailable || home == true {
         DiagnosticsView(model: model)
       } else if home == false {
-        Text("Home is open in another window. Hold a tile there to open a screen in a window of its own.")
-          .multilineTextAlignment(.center)
-          .padding()
-          .accessibilityIdentifier("window-home-elsewhere")
+        WindowChoice(model: model, scene: scene)
       } else {
         Color.clear
       }
     }
-    .modifier(WindowSeat(model: model) { home = model.homeWindowAppeared($0) })
+    .modifier(
+      WindowSeat(model: model) {
+        scene = $0
+        home = model.homeWindowAppeared($0)
+      }
+    )
     .bugReporting(model.reporter)
     .onOpenURL { model.open(url: $0) }
     .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
+  }
+}
+
+/// Story 731 (#782): a new window while home is up starts as a short home: the screens that can have a window, as home's
+/// tiles, in home's order. Choosing one makes it that screen's window (or brings forward the one that has it).
+private struct WindowChoice: View {
+  @ObservedObject var model: AppModel
+  let scene: String?
+
+  private var offered: [WindowScreen] {
+    let arrangement = model.homeLayout.arrangement
+    return WindowScreen.offered(todayCard: arrangement.todayCard, tiles: arrangement.tiles)
+  }
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section {
+          ForEach(offered, id: \.self) { screen in
+            if let row = HomeRow.row(screen.tile) {
+              Button {
+                model.chooseForNewWindow(screen, closing: scene)
+              } label: {
+                Label {
+                  Text(row.title).foregroundStyle(.primary)
+                } icon: {
+                  Image(systemName: row.icon).foregroundStyle(.white).frame(width: 30, height: 30)
+                    .background(row.color, in: RoundedRectangle(cornerRadius: 7))
+                }
+              }
+              .accessibilityIdentifier("window-choice-\(screen.rawValue)")
+            }
+          }
+        } footer: {
+          Text("Home is open in another window. Timers, breathing and calls stay there.")
+        }
+      }
+      .navigationTitle("New Window")
+    }
+    .accessibilityIdentifier("window-choice")
   }
 }
 

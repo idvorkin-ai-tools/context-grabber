@@ -137,6 +137,23 @@ extension AppModel {
     }
   }
 
+  /// Story 731 (#782): a new window's choice. The screen opens in a window of its own (or its window comes forward),
+  /// and the window that asked closes, so no screen shows twice.
+  func chooseForNewWindow(_ screen: WindowScreen, closing window: String?) {
+    log.event("window", ["action": "choose", "screen": screen.rawValue, "scenes": sceneCount])
+    openInNewWindow(screen, from: "new_window")
+    guard let window,
+      let session = UIApplication.shared.openSessions.first(where: { $0.persistentIdentifier == window })
+    else { return }
+    // After the new window has asked to open: closing first would leave the app nothing to open it from.
+    Task {
+      try? await Task.sleep(for: .milliseconds(900))
+      UIApplication.shared.requestSceneSessionDestruction(session, options: nil) { [log] error in
+        log.event("window", ["action": "choose_close", "ok": false, "message": error.localizedDescription])
+      }
+    }
+  }
+
   /// A screen's Done, and anything else closing its window.
   func closeWindow(_ screen: WindowScreen) {
     log.event("window", ["action": "close", "screen": screen.rawValue])
