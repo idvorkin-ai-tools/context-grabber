@@ -1694,7 +1694,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 725:
 
 - **Summary:** Report a Problem by key on the Mac
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
 - **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1713,7 +1713,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 726:
 
 - **Summary:** The Go keys never close a live screen
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
 - **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1752,7 +1752,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 730:
 
 - **Summary:** Report a problem from the menu on any screen, on the Mac
-- **Status:** implemented in [14ead5eb](https://github.com/idvorkin/context-grabber/commit/14ead5eb); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet chosen from the menu on the Mac
+- **Status:** implemented in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet chosen from the menu on the Mac
 - **Issues:** [#783](https://github.com/idvorkin/context-grabber/issues/783)
 - **Spec:** [Grabber Native on the Mac — Reporting from any screen](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
