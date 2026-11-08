@@ -855,7 +855,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 303:
 
 - **Summary:** I speak a message in a thread and read the words before I send them
-- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in [f040853](https://github.com/idvorkin/context-grabber/commit/f040853), with the microphone picker; verified by `ChatVoiceTests`, `ChatVoiceClockTests` and `ChatVoiceWordsTests` (host: the five-minute limit and its line, the recording clock, a timer that dies with its recording, a thread's words taken by that thread only) and `ChatVoiceUITests` (simulator: no Deepgram key in Settings any more; the thread's mic and its microphone picker are there and ready); speaking on the phone not yet; #544: the microphone picker is a full-width row a finger tall, as the problem report's is, in [442e0a5](https://github.com/idvorkin/context-grabber/commit/442e0a5); host `just native-test`; the simulator's ChatVoiceUITests and the phone not yet; #546: a Send mid-recording stops it, so no words come back into the emptied bar, in [84e4f70](https://github.com/idvorkin/context-grabber/commit/84e4f70); no automated test (the decision lives in the app target); on the phone not yet; #625: the mic moved beside Send in [f52d9dd](https://github.com/idvorkin/context-grabber/commit/f52d9dd); verified by ChatVoiceUITests on the iPhone 17 simulator, where it measures the order, the gap and the 44-point targets; the iPad and a finger on it are still to try; #559: a chat recording holds the microphone against the problem report, in [080fbf7](https://github.com/idvorkin/context-grabber/commit/080fbf7); host `just native-test` and a simulator compile; dictating on the phone not yet.
+- **Status:** native app only: implemented with Deepgram in [2015662](https://github.com/idvorkin/context-grabber/commit/2015662), moved to the problem report's Apple dictation with the five-minute cap in [f040853](https://github.com/idvorkin/context-grabber/commit/f040853), with the microphone picker; verified by `ChatVoiceTests`, `ChatVoiceClockTests` and `ChatVoiceWordsTests` (host: the five-minute limit and its line, the recording clock, a timer that dies with its recording, a thread's words taken by that thread only) and `ChatVoiceUITests` (Settings asks for no Deepgram key because that section is gone from the code; on the simulator: the thread's mic and its microphone picker are there and ready); speaking on the phone not yet; #544: the microphone picker is a full-width row a finger tall, as the problem report's is, in [442e0a5](https://github.com/idvorkin/context-grabber/commit/442e0a5); host `just native-test`; the simulator's ChatVoiceUITests and the phone not yet; #546: a Send mid-recording stops it, so no words come back into the emptied bar, in [84e4f70](https://github.com/idvorkin/context-grabber/commit/84e4f70); no automated test (the decision lives in the app target); on the phone not yet; #625: the mic moved beside Send in [f52d9dd](https://github.com/idvorkin/context-grabber/commit/f52d9dd); verified by ChatVoiceUITests on the iPhone 17 simulator, where it measures the order, the gap and the 44-point targets; the iPad and a finger on it are still to try; #559: a chat recording holds the microphone against the problem report, in [080fbf7](https://github.com/idvorkin/context-grabber/commit/080fbf7); host `just native-test` and a simulator compile; dictating on the phone not yet.
 - **Issues:** [#559](https://github.com/idvorkin/context-grabber/issues/559), [#448](https://github.com/idvorkin/context-grabber/issues/448), [#544](https://github.com/idvorkin/context-grabber/issues/544), [#546](https://github.com/idvorkin/context-grabber/issues/546), [#625](https://github.com/idvorkin/context-grabber/issues/625)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -960,7 +960,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 306:
 
 - **Summary:** A picture opened full size in a thread always has a way back
-- **Status:** native app only: implemented in [8625876](https://github.com/idvorkin/context-grabber/commit/8625876); verified by the simulator build; tapping Done and swiping down over a white picture on the iPad not yet
+- **Status:** native app only: implemented in [8625876](https://github.com/idvorkin/context-grabber/commit/8625876); verified by the simulator build, `ChatImageCloseTests` (host: only a swipe down past 80 points closes) and `ChatImageUITests` (simulator: Done and a swipe down close it); tapping Done and swiping down over a white picture on the iPad not yet
 - **Issues:** [#592](https://github.com/idvorkin/context-grabber/issues/592)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1881,7 +1881,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 512:
 
 - **Summary:** A skill's thread is pinned under Larry's, there before its first message
-- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit; the real Cockpit (cockpit#90, unmerged) and the phone not yet
+- **Status:** native app only: implemented in [50b4df2](https://github.com/idvorkin/context-grabber/commit/50b4df2); verified on the host by `ChatTests` and `ChatArchiverTests` (a pinned row has no swipe, tick or menu) and on the simulator by `ChatSkillThreadUITests` against the fake Cockpit (pinned under Larry's); the real Cockpit (cockpit#90, unmerged) and the phone not yet
 - **Issues:** [#632](https://github.com/idvorkin/context-grabber/issues/632)
 - **Spec:** [Chat with Larry in Grabber Native — A skill's thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2001,7 +2001,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 518:
 
 - **Summary:** Holding a message offers what I can do with it
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, no *Yes* on mine); a picture-only message's menu not exercised on any rung; the feel of the hold on the phone and iPad, and links staying tappable, not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host, `ChatHold.choices`: all four on Larry's words, only Quote and Copy on mine, only Yes and No on a picture alone) and `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, Quote on mine); the feel of the hold on the phone and iPad, and links staying tappable, not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2061,7 +2061,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 541:
 
 - **Summary:** Quote in reply puts the message in the bar for me to answer
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host: after what the bar held, two quotes kept) and `ChatReactionUITests` (simulator: the bar filled, the keyboard up, nothing sent); a quote during a recording needs the phone's microphone, not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host: after what the bar held, two quotes kept) and `ChatReactionUITests` (simulator: the bar filled, the keyboard up; nothing sent was a 3 s look for an answer, dropped, as a quote only fills the bar and never reaches the outbox); a quote during a recording needs the phone's microphone, not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 

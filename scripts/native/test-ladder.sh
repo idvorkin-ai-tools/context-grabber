@@ -41,7 +41,7 @@ fi
 
 # The areas' classes. The suite scripts hold what each area runs in full.
 chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
-whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperPasteUITests WhiteboardPasteOnPaperUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnOnPaperUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTrialOnPaperUITests WhiteboardTurnUITests"
 
 classes=()
 unknown=()
@@ -208,12 +208,15 @@ start_cockpit() {  # <port> <seconds POST /chat is held>
   kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $1" >&2; return 1; }
 }
 xcodebuild_sim() {  # <log name> <done line> <xcodebuild arguments...>
-  local name=$1 done=$2
+  local name=$1 done=$2 packages=()
   shift 2
+  # A run of what this climb just built: its packages were resolved by that build minutes ago, so don't ask the remotes
+  # again. A build itself still resolves, so a moved BugKit or ThinkACard pin is fetched.
+  case " $* " in *" test-without-building "*) packages=(-skipPackageUpdates) ;; esac
   scripts/native/xcodebuild-log.sh "ladder-$name" "$done" \
     xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
     -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
-    GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" "$@"
+    GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" ${packages[@]+"${packages[@]}"} "$@"
 }
 only_testing() { for c in "$@"; do printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c"; done; }
 step() {  # <label> <command...>: times one step of rung 2
@@ -227,7 +230,7 @@ step() {  # <label> <command...>: times one step of rung 2
 }
 
 chat_classes() {
-  start_cockpit "${CHAT_PORT:-8798}" "${FAKE_COCKPIT_NEW_DELAY:-3}" || return
+  start_cockpit "${CHAT_PORT:-8798}" "${FAKE_COCKPIT_NEW_DELAY:-2}" || return
   scripts/native/fake-bridge.py "${CHAT_BRIDGE_PORT:-8797}" "$(mktemp -t fake-bridge)" >/dev/null 2>&1 &
   bridge=$!
   disown
@@ -238,19 +241,12 @@ chat_classes() {
 }
 
 whiteboard_classes() {
-  local key_test=WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ skip=() port=${WHITEBOARD_PORT:-8799}
-  local address="http://localhost:$port" paper_paste=0
-  case " ${whiteboard[*]} " in *" WhiteboardPaperPasteUITests "*) paper_paste=1 ;; esac
-  # Keyboard events reach the app for one test per boot (test-whiteboard-ui.sh): ⌘V on paper gets a boot of its own.
-  [ "$paper_paste" -eq 1 ] && skip=("-skip-testing:GrabberNativeUITests/$key_test")
+  local port=${WHITEBOARD_PORT:-8799}
+  # Keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), and one test does.
   fresh_boot || return
   start_cockpit "$port" 0 || return
-  TEST_RUNNER_GRABBER_FAKE_COCKPIT=$address \
-    xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") ${skip[@]+"${skip[@]}"} test-without-building || return
-  [ "$paper_paste" -eq 1 ] || return 0
-  fresh_boot || return
-  TEST_RUNNER_GRABBER_FAKE_COCKPIT=$address \
-    xcodebuild_sim whiteboard-keys "TEST EXECUTE SUCCEEDED" "-only-testing:GrabberNativeUITests/$key_test" test-without-building
+  TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" \
+    xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") test-without-building
 }
 
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }
@@ -263,7 +259,8 @@ simulator_steps() {
   if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
   if [ "$n_other" -gt 0 ]; then step "other classes" other_classes || return; fi
   [ "$full" -eq 1 ] || return 0
-  if [ "$n_chat" -gt 0 ]; then step "chat suite" scripts/native/test-chat-ui.sh "$udid" || return; fi
+  # The build above is the suites' too (SUITE_PREBUILT; the whiteboard's script doesn't read it yet).
+  if [ "$n_chat" -gt 0 ]; then step "chat suite" env SUITE_PREBUILT=1 scripts/native/test-chat-ui.sh "$udid" || return; fi
   if [ "$n_whiteboard" -gt 0 ]; then step "whiteboard suite" scripts/native/test-whiteboard-ui.sh "$udid" || return; fi
 }
 

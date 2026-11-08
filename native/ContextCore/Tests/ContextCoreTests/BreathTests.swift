@@ -293,6 +293,41 @@ final class BreathToneTests: XCTestCase {
     XCTAssertEqual(reopen(), BreathSetup(preset: nil, customIn: 4, customOut: 8))
   }
 
+  /// Story 241: each choice, written as the setup screen writes it, reads back as that choice on the next open (what
+  /// BreathePresetsUITests used to check by quitting and relaunching the app).
+  func testEveryChoiceIsRememberedForTheNextOpen() {
+    var settings: [String: String] = [:]
+    func choose(_ writes: [(key: String, value: String)]) -> BreathSetup {
+      for write in writes { settings[write.key] = write.value }
+      return BreathSetup.restore { settings[$0] }.setup
+    }
+    XCTAssertEqual(
+      choose(BreathSetup.writes(preset: 12) { settings[$0] }), BreathSetup(preset: 12, customIn: 8, customOut: 8))
+    XCTAssertEqual(
+      choose(BreathSetup.writes(preset: nil) { settings[$0] }), BreathSetup(preset: nil, customIn: 8, customOut: 8),
+      "Custom, its sides seeded before the preset was chosen")
+    settings[BreathSetup.customInKey] = "4"
+    let pattern = choose(BreathSetup.writes(pattern: .fourFourSixTwo))
+    XCTAssertEqual(pattern.pattern, .fourFourSixTwo)
+    XCTAssertNil(pattern.preset)
+    XCTAssertEqual(
+      choose(BreathSetup.writes(preset: 10) { settings[$0] }), BreathSetup(preset: 10, customIn: 4, customOut: 8),
+      "a preset clears the pattern and keeps Custom's own sides")
+    XCTAssertEqual(
+      choose(BreathSetup.writes(preset: nil) { settings[$0] }), BreathSetup(preset: nil, customIn: 4, customOut: 8))
+  }
+
+  func testAPresetSeedsCustomFirstSoItCannotBecomeIt() {
+    let writes = BreathSetup.writes(preset: 15) { $0 == BreathSetup.breathKey ? "10" : nil }
+    XCTAssertEqual(
+      writes.map(\.key),
+      [
+        BreathSetup.customInKey, BreathSetup.customOutKey, BreathSetup.patternKey, BreathSetup.breathKey,
+        BreathSetup.customKey,
+      ])
+    XCTAssertEqual(writes.map(\.value), ["10", "10", "", "15", "0"])
+  }
+
   /// The old slider's length: its preset when it is one, else Custom at that length both ways.
   func testTheOldSliderLengthCarriesOver() {
     XCTAssertEqual(

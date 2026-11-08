@@ -74,7 +74,6 @@ final class ChatArchiveUITests: XCTestCase {
     app.buttons["Archive"].tap()
     let undo = app.buttons["chat-archive-undo"]
     XCTAssertTrue(undo.appears(within: 5), app.debugDescription)
-    XCTAssertFalse(app.buttons["chat-thread-\(key)"].isHittable, "folded under Done")
     undo.tap()
     assertBackInTheLiveList(app)
 

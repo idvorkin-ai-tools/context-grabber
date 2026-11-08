@@ -26,8 +26,7 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
   }
 
   private func waitFor(_ element: XCUIElement, label: String, timeout: TimeInterval = 8) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func keep(_ app: XCUIApplication, _ name: String) {
@@ -112,8 +111,12 @@ final class WhiteboardTrialOnPaperUITests: XCTestCase {
 
   /// Drives every switch with a finger, so a run's `paper_probe` lines hold what the simulator can say about the
   /// questions. What a finger does is PaperKit's to decide and the log's to record, so only the trial surviving it all
-  /// is asserted, with the Pencil's half left to the iPad.
-  func testEverySwitchRunsForTheLog() {
+  /// is asserted, with the Pencil's half left to the iPad. A probe, not a check, and about 1.7 min of the whiteboard
+  /// suite: it runs only when asked, with `TEST_RUNNER_GRABBER_PAPER_PROBES=1` in front of the xcodebuild.
+  func testEverySwitchRunsForTheLog() throws {
+    try XCTSkipUnless(
+      ProcessInfo.processInfo.environment["GRABBER_PAPER_PROBES"] == "1",
+      "a probe for the log: TEST_RUNNER_GRABBER_PAPER_PROBES=1 runs it")
     let id = "paper-probes-\(UUID().uuidString.lowercased())"
     let app = launch([
       "GRABBER_BOARD_FIXTURE": id, "GRABBER_PAPER_TRIAL": id, "GRABBER_PAPER_TRIAL_INK": "40",

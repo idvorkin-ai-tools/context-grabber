@@ -549,7 +549,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 367:
 
 - **Summary:** Ghosts off holds for speech too
-- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone; real dictation to try on the iPad
+- **Status:** implemented in [c863d76](https://github.com/idvorkin/context-grabber/commit/c863d76); verified on the simulator by `WhiteboardTurnUITests` with the hook standing in for the microphone, and since bead `context-grabber-y8r` by the host alone (`WhiteboardGhostTurnsTests`); real dictation to try on the iPad
 - **Issues:** [#604](https://github.com/idvorkin/context-grabber/issues/604), [#605](https://github.com/idvorkin/context-grabber/issues/605)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -1030,7 +1030,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A paste that is too long is cut, and the bar says so
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); both caps verified by host tests (`WhiteboardPasteTests`); the 500-character cut and its note on the simulator (`WhiteboardPasteUITests`, through a launch hook)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); both caps verified by host tests (`WhiteboardPasteTests`); the 500-character cut and its note on the simulator (`WhiteboardPasteUITests`, through a launch hook); since bead `context-grabber-y8r` the note's words are a host test too (`WhiteboardPasteTests`), and the UI case that drew 500 strokes is gone
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1050,7 +1050,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Text that cannot be drawn leaves the board alone
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook); which note, a host test since bead `context-grabber-y8r`
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1248,7 +1248,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 403:
 
 - **Summary:** The colour follows light and dark mode
-- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`)
+- **Status:** implemented in [0b5c0fe](https://github.com/idvorkin/context-grabber/commit/0b5c0fe); the colour on the canvas in both modes verified on the simulator by `WhiteboardTurnUITests` (from the screen's pixels; a screenshot of white ink on the deep Cream comes from the run before the menu moved); ink contrast on every colour by host tests (`BoardPaperTests`). On paper, which stays light, its colour staying with the board is `WhiteboardPaperLinesUITests.testRuledLinesStayWithTheBoardUnderTheInk` since bead `context-grabber-y8r`
 - **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
 
 #### Use Case:
@@ -1944,7 +1944,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 438:
 
 - **Summary:** The trial says what to try, and has the switches to try it
-- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the line, and every switch runs); played with on the iPad by Igor, 2026-11-03
+- **Status:** implemented in [f2ae827](https://github.com/idvorkin/context-grabber/commit/f2ae827); verified on an iPad simulator (`WhiteboardTrialOnPaperUITests`: the line, and every switch runs); played with on the iPad by Igor, 2026-11-03; since bead `context-grabber-y8r` the every-switch probe runs only when asked (`TEST_RUNNER_GRABBER_PAPER_PROBES=1`), not in each suite run
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2849,7 +2849,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 613:
 
 - **Summary:** Ghosts come to a board on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator by every old-canvas turn test run on paper (`WhiteboardTurnOnPaperUITests`, bar the colour's dark mode and the grid), and on an iPad simulator by two of them; and `WhiteboardPaperGhostsUITests` on an iPhone and an iPad simulator, read from the screen's pixels. A real Claude answer is for the iPad
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator by every old-canvas turn test run on paper (`WhiteboardTurnOnPaperUITests`, bar the colour's dark mode and the grid), and on an iPad simulator by two of them; and `WhiteboardPaperGhostsUITests` on an iPhone and an iPad simulator, read from the screen's pixels. A real Claude answer is for the iPad. Since bead `context-grabber-y8r` the bar and the turns, the same on either canvas, run once on the old canvas (`WhiteboardTurnUITests`), and what paper shows is `WhiteboardPaperGhostsUITests`'
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -2909,7 +2909,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 616:
 
 - **Summary:** A finger doesn't draw while ghosts show on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and [e3167f1](https://github.com/idvorkin/context-grabber/commit/e3167f1); verified on an iPhone simulator and an iPad simulator, where a finger draws (`WhiteboardPaperGhostsUITests`, `WhiteboardTurnOnPaperUITests`: no dot, and the next stroke draws). What a finger drag does while ghosts show, with a Pencil paired or not, isn't settled: `paper_touch`'s `touch_mode` is `selection` then
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2) and [e3167f1](https://github.com/idvorkin/context-grabber/commit/e3167f1); verified on an iPhone simulator and an iPad simulator, where a finger draws (`WhiteboardPaperGhostsUITests`, `WhiteboardTurnOnPaperUITests`: no dot, and the next stroke draws). What a finger drag does while ghosts show, with a Pencil paired or not, isn't settled: `paper_touch`'s `touch_mode` is `selection` then. Since bead `context-grabber-y8r`, `WhiteboardPaperGhostsUITests` alone
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3009,7 +3009,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 621:
 
 - **Summary:** Larry's turn from a board on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: his two marks beside Claude's one, unprompted ones replacing them) and an iPad simulator (the first of those). Where his marks land on real ink is for the iPad, with a real Larry
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: his two marks beside Claude's one, unprompted ones replacing them) and an iPad simulator (the first of those). Where his marks land on real ink is for the iPad, with a real Larry. Since bead `context-grabber-y8r`, Larry's marks on paper are `WhiteboardPaperGhostsUITests`' (`testThePictureIsThePageOnScreen`) and unprompted ones `WhiteboardTurnUITests`', as the bar is the same on either canvas
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3029,7 +3029,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 622:
 
 - **Summary:** Talk to a board on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the turn verified on an iPhone simulator with the spoken-words hook (`WhiteboardTurnOnPaperUITests`: words on an empty board bring a ghost, and nothing with Ghosts off). The microphone itself, and a call taking it, are for the iPad
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); the turn verified on an iPhone simulator with the spoken-words hook (`WhiteboardTurnOnPaperUITests`: words on an empty board bring a ghost, and nothing with Ghosts off). The microphone itself, and a call taking it, are for the iPad. Since bead `context-grabber-y8r`, words on an empty board are `WhiteboardTurnUITests`' (the same model on either canvas) and Ghosts off for words is `WhiteboardGhostTurnsTests`, on the host
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3129,7 +3129,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 627:
 
 - **Summary:** Ghosts off asks nothing on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: `testGhostsOffAsksNothing`); since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`), the same model on paper as on the old canvas
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: `testGhostsOffAsksNothing`); since bead `context-grabber-5eq` the rule is a host test (`WhiteboardGhostTurnsTests`), the same model on paper as on the old canvas; since bead `context-grabber-y8r` no UI case on either canvas
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3249,7 +3249,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 633:
 
 - **Summary:** Larry's marks come back when a board on paper opens
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: the newest set on reopening, a dismissed set staying gone)
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: the newest set on reopening, a dismissed set staying gone). Since bead `context-grabber-y8r`, `WhiteboardTurnUITests` on the old canvas (the same marks on either) and `WhiteboardMarksTests` on the host
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3329,7 +3329,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 637:
 
 - **Summary:** Paste text onto a board on paper
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator through `GRABBER_WHITEBOARD_PASTE` (`WhiteboardPaperPasteUITests`: the letters read from the screen's pixels, across the middle; `WhiteboardPasteOnPaperUITests`: each line, the cap, the emoji note, Claude's pause). The bar's button itself is for the iPad, as XCUITest's taps never reach it. The iPad simulator wasn't run
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator through `GRABBER_WHITEBOARD_PASTE` (`WhiteboardPaperPasteUITests`: the letters read from the screen's pixels, across the middle; `WhiteboardPasteOnPaperUITests`: each line, the cap, the emoji note, Claude's pause). The bar's button itself is for the iPad, as XCUITest's taps never reach it. The iPad simulator wasn't run. Since bead `context-grabber-y8r`, each line, the cap and the note are `WhiteboardPasteTests`, on the host, and the pause and the emoji note `WhiteboardPasteUITests`, on the old canvas
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3349,7 +3349,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 638:
 
 - **Summary:** ⌘V on a board on paper
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`test1CommandVOnPaperAndCommandZ`: text after a stroke, read from the log as `paper_paste` how: key, went: ink). A real keyboard on the iPad is to try, with text and a picture copied from another app, to see whether *Allow Paste?* shows: story 390 says it doesn't, this key reads the clipboard itself, and `paper_paste` can't show a prompt
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`test1CommandVOnPaperAndCommandZ`: text after a stroke, read from the log as `paper_paste` how: key, went: ink; since bead `context-grabber-y8r`, `WhiteboardPasteUITests.testCommandVPastesAndCommandZTakesItBackOnBothCanvases`, after the old canvas's in the same launch). A real keyboard on the iPad is to try, with text and a picture copied from another app, to see whether *Allow Paste?* shows: story 390 says it doesn't, this key reads the clipboard itself, and `paper_paste` can't show a prompt
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3369,7 +3369,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 639:
 
 - **Summary:** One undo takes a paste back on paper
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator: one ⌘Z (`test1CommandVOnPaperAndCommandZ`), and an undo by a hook on a tall paste (`testATallPasteBringsItsPagesInOneUndo`). The tool picker's own Undo is for the iPad, as a phone's has none
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator: one ⌘Z (`test1CommandVOnPaperAndCommandZ`, since bead `context-grabber-y8r` `testCommandVPastesAndCommandZTakesItBackOnBothCanvases`), and an undo by a hook on a tall paste (`testATallPasteBringsItsPagesInOneUndo`). The tool picker's own Undo is for the iPad, as a phone's has none
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3681,7 +3681,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 655:
 
 - **Summary:** Lines and ghosts show on every colour
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3699,7 +3699,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 656:
 
 - **Summary:** Changing colour or lines leaves the ink
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3717,7 +3717,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 657:
 
 - **Summary:** The Board menu never costs a stroke
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet; since bead `context-grabber-y8r` the three cases are one test, `testTheFirstStrokeAfterTheMenuDraws`, in one launch
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 

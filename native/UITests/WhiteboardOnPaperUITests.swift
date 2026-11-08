@@ -5,14 +5,9 @@
 import XCTest
 
 final class WhiteboardOnPaperUITests: XCTestCase {
+  /// The switch is remembered, but every whiteboard test that makes a board sets it as it launches, so none is left to
+  /// reset it for the next.
   override func setUp() { continueAfterFailure = false }
-
-  /// The switch is remembered, so every test leaves it off for the tests after it.
-  override func tearDown() {
-    let app = launch(["GRABBER_WHITEBOARD_NEW_ON_PAPER": "off"])
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
 
   private func launch(_ environment: [String: String] = [:]) -> XCUIApplication {
     let app = XCUIApplication()
@@ -30,8 +25,7 @@ final class WhiteboardOnPaperUITests: XCTestCase {
   }
 
   private func waitFor(_ element: XCUIElement, label: String, timeout: TimeInterval = 10) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func keep(_ app: XCUIApplication, _ name: String) {

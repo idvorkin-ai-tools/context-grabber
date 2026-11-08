@@ -22,6 +22,12 @@ import Foundation
       public var total: Int
 
       public var cut: Bool { kept < total }
+
+      /// What the board's bar says after this paste (stories 392, 393): nothing can be drawn, or how much was left off.
+      public var note: String? {
+        if lines.isEmpty { return "Nothing in that text can be drawn" }
+        return cut ? "Pasted the first \(kept) of \(total.formatted()) characters" : nil
+      }
     }
 
     /// The old canvas's fixed square. A board on paper has its own: a page wide, with no end below.

@@ -299,7 +299,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 055:
 
 - **Summary:** Bring my trail and places into the native app
-- **Status:** implemented in [3cc9b85](https://github.com/idvorkin/context-grabber/commit/3cc9b85), [5daab8f](https://github.com/idvorkin/context-grabber/commit/5daab8f); verified by `PlacesFixtureTests` (the real export imports 36 601 points and 4 places, a second time adds none), `LocationStoreTests` (a same-named native place is kept; a non-database is refused) and on the simulator (`just native-test-sim`: the hook imports the fixture twice); sharing the file into the app from Context Grabber or Files is the phone still to be checked by Igor (bead context-grabber-3ss.12)
+- **Status:** implemented in [3cc9b85](https://github.com/idvorkin/context-grabber/commit/3cc9b85), [5daab8f](https://github.com/idvorkin/context-grabber/commit/5daab8f); verified by `PlacesFixtureTests` (the real export imports 36 601 points and 4 places, a second time adds none), `LocationStoreTests` (a same-named native place is kept; a non-database is refused) and on the simulator (`just native-test-sim`: the hook imports the fixture); the second, shifted import is `PlacesFixtureTests.testARecentImportTwiceAddsNothingTheSecondTime` since the smoke stopped relaunching for it; sharing the file into the app from Context Grabber or Files is the phone still to be checked by Igor (bead context-grabber-3ss.12)
 
 #### Use Case:
 - **As** someone moving from Context Grabber to Grabber Native, which keeps its own trail until the cutover

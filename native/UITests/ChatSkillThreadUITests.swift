@@ -1,7 +1,7 @@
 //  Stories 512-515 (#632) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): a skill's
-//  thread pinned under Larry's and not archivable, its replies under its name, a failure as a copyable error that leaves
-//  Igor's message without 🏆, and the list naming the skill. The fake Cockpit outlives a test: the empty thread is
-//  looked at first, by name, before the next test writes to it.
+//  thread pinned under Larry's, its replies under its name, a failure as a copyable error that leaves Igor's message
+//  without 🏆, and the list naming the skill. That a pinned row can't be archived is ChatArchiverTests' (host). The fake
+//  Cockpit outlives a test: the empty thread is looked at first, by name, before the next test writes to it.
 
 import XCTest
 
@@ -48,7 +48,7 @@ final class ChatSkillThreadUITests: XCTestCase {
     app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
   }
 
-  func testASkillsThreadIsPinnedUnderLarrysAndCannotBeArchived() throws {
+  func testASkillsThreadIsPinnedUnderLarrysAboveTheRest() throws {
     let app = try openList()
     let thread = app.buttons["chat-thread-\(skill)"]
     let larrys = app.buttons["chat-thread-igor2-88g.1268"]
@@ -59,18 +59,9 @@ final class ChatSkillThreadUITests: XCTestCase {
     XCTAssertLessThan(thread.frame.minY, other.frame.minY, "above the rest")
     XCTAssertTrue(thread.label.contains("Pinned"), thread.label)
     XCTAssertTrue(thread.label.contains("Ask idvorkin"), thread.label)
-    thread.swipeLeft()
-    XCTAssertFalse(app.buttons["Archive"].appears(within: 2), "no swipe to archive")
-    // With nothing to reveal, the simulated swipe lands as a tap and opens the thread.
-    if app.buttons["BackButton"].exists { app.buttons["BackButton"].tap() }
-    XCTAssertTrue(app.buttons["chat-select"].appears(within: 3), app.debugDescription)
-    app.buttons["chat-select"].tap()
-    XCTAssertTrue(app.buttons["chat-tick-igor2-88g.592"].appears(within: 5), app.debugDescription)
-    XCTAssertFalse(app.buttons["chat-tick-\(skill)"].exists, "not tickable")
-    app.buttons["chat-select"].tap()
-    thread.tap()
-    XCTAssertTrue(app.textFields.firstMatch.appears(within: 10), app.debugDescription)
-    XCTAssertFalse(app.buttons["chat-thread-more"].exists, "no menu to archive it from")
+    // A pinned row has no swipe, no tick and no menu to archive it from: ChatArchiverTests
+    // (`testASwipeArchivesALiveThreadAndBringsBackAnArchivedOne`, `testThePinnedThreadHasNoTickAndSelectNeedsAnotherThread`,
+    // `testTheMenuArchivesOrUnarchivesAndThePinnedThreadHasNone`). Here it is the skill's row that comes pinned.
   }
 
   func testTheReplyNamesTheSkillAFailureIsAnErrorAndTheListSaysWho() throws {

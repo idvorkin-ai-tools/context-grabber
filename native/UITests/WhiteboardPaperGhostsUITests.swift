@@ -1,36 +1,10 @@
 //  Stories 613–635 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what paper
-//  adds to the ghost turns. `WhiteboardTurnOnPaperUITests` runs the old canvas's own tests on a board on paper, as they're the
-//  requirement. A finger draws on the simulator; the Pencil and what a finger does with one paired are the iPad's. The
-//  board isn't in the accessibility tree, so where ghosts and ink sit is read from the screen's pixels.
+//  adds to the ghost turns. The bar, the note and the turns are the same on either canvas and run once, in
+//  `WhiteboardTurnUITests`; these are what only a board on paper can show. A finger draws on the simulator; the Pencil and
+//  what a finger does with one paired are the iPad's. The board isn't in the accessibility tree, so where ghosts and ink
+//  sit is read from the screen's pixels.
 
 import XCTest
-
-/// `WhiteboardTurnUITests`, every one, on a board on paper.
-final class WhiteboardTurnOnPaperUITests: WhiteboardTurnUITests {
-  override var boardEnvironment: [String: String] { ["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"] }
-
-  /// The switch is remembered, so it's left off for the tests after these.
-  override func tearDown() {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
-    app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
-
-  /// A page's width on a phone is about half a point to the point, so where a ghost lands is read off the screen.
-  override func tapOnTheGhost(_ app: XCUIApplication) {
-    guard let ghost = PaperScreen(app).orange else {
-      XCTFail("no orange on screen")
-      return
-    }
-    PaperScreen.tap(app, ghost.center)
-  }
-
-  /// A board on paper is always light, for now: the spec's "Always light".
-  override var creamInDarkMode: UInt32 { 0xFBF3DC }
-}
 
 /// What's on the screen, by colour, as parts of the window (0...1), between the bars.
 struct PaperScreen {
@@ -63,25 +37,26 @@ struct PaperScreen {
   }
 
   private func box(_ matches: (Int, Int, Int) -> Bool) -> Box? {
-    var found: Box?
-    // Clear of the bars and the page number above, and the tool picker below.
-    for y in stride(from: height / 5, to: height * 3 / 4, by: 2) {
-      for x in stride(from: 0, to: width, by: 2) {
-        let i = (y * width + x) * 4
-        guard matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])) else { continue }
-        let (nx, ny) = (CGFloat(x) / CGFloat(width), CGFloat(y) / CGFloat(height))
-        if var seen = found {
-          seen.minX = min(seen.minX, nx)
-          seen.maxX = max(seen.maxX, nx)
-          seen.minY = min(seen.minY, ny)
-          seen.maxY = max(seen.maxY, ny)
-          found = seen
-        } else {
-          found = Box(minX: nx, minY: ny, maxX: nx, maxY: ny)
+    let started = Date()
+    defer { print("ui-pixels: PaperScreen.box \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
+    // The extremes in pixels, turned into parts of the window once at the end.
+    var (minX, minY, maxX, maxY) = (Int.max, Int.max, -1, -1)
+    bytes.withUnsafeBufferPointer { bytes in
+      // Clear of the bars and the page number above, and the tool picker below.
+      for y in stride(from: height / 5, to: height * 3 / 4, by: 2) {
+        var i = y * width * 4
+        for x in stride(from: 0, to: width, by: 2) {
+          if matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])) {
+            (minX, maxX) = (min(minX, x), max(maxX, x))
+            (minY, maxY) = (min(minY, y), max(maxY, y))
+          }
+          i += 8
         }
       }
     }
-    return found
+    guard maxX >= 0 else { return nil }
+    let (w, h) = (CGFloat(width), CGFloat(height))
+    return Box(minX: CGFloat(minX) / w, minY: CGFloat(minY) / h, maxX: CGFloat(maxX) / w, maxY: CGFloat(maxY) / h)
   }
 
   /// A faint ghost of Claude's on pale paper, or a kept one at full strength.
@@ -102,15 +77,6 @@ struct PaperScreen {
 
 final class WhiteboardPaperGhostsUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
-
-  override func tearDown() {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
-    app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
 
   private func cockpit() throws -> String {
     try XCTUnwrap(
@@ -143,8 +109,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   }
 
   private func wait(_ element: XCUIElement, label: String, timeout: TimeInterval = 10) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func ghosts(_ app: XCUIApplication) -> XCUIElement { app.buttons["whiteboard-ghosts"] }
@@ -290,8 +255,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(second, first, "the same names after coming back from the file")
   }
 
-  /// Stories 620, 621: Larry's turn, his marks on the board in his colour, the kept one saved. Ghost text is on
-  /// `WhiteboardTurnOnPaperUITests`; here, that it can be seen and kept, and that a ghost left showing isn't saved.
+  /// Stories 620, 621: Larry's turn, his marks on the board in his colour, the kept one saved. Ghost text is the bar's, the
+  /// same on either canvas (`WhiteboardTurnUITests`); here, that it can be seen and kept, and that a ghost left showing
+  /// isn't saved.
   func testAGhostLeftShowingIsNotSaved() throws {
     let app = try openBoard()
     _ = try XCTUnwrap(strokeBringsAGhost(app))

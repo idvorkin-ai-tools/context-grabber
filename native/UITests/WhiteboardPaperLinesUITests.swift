@@ -1,20 +1,12 @@
 //  Stories 434, 523, 538, 652–657 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it):
-//  what the sheet under a board on paper shows. `WhiteboardTurnOnPaperUITests` runs the old canvas's grid and colour tests on
-//  paper; these are what paper adds. The board isn't in the accessibility tree, so the lines are read from the screen's pixels.
+//  what the sheet under a board on paper shows: its lines and colours, by the screen's own pixels, as the board isn't in the
+//  accessibility tree. The old canvas's are `WhiteboardTurnUITests`', and a board on paper staying light in dark mode is
+//  `WhiteboardOnPaperUITests`'.
 
 import XCTest
 
 final class WhiteboardPaperLinesUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
-
-  override func tearDown() {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
-    app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
 
   private func openBoard(ghostsOn: Bool = false, _ extra: [String: String] = [:]) throws -> XCUIApplication {
     let app = XCUIApplication()
@@ -35,8 +27,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
   }
 
   private func wait(_ element: XCUIElement, label: String, timeout: TimeInterval = 8) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func stroke(_ app: XCUIApplication) {
@@ -86,21 +77,36 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
 
     private var rowsLooked: Range<Int> { height / 5..<(height * 3 / 4) }
 
-    private func differs(_ other: Screen, x: Int, y: Int) -> Bool {
-      let i = (y * width + x) * 4
-      return (0..<3).contains { abs(Int(bytes[i + $0]) - Int(other.bytes[i + $0])) > 3 }
-    }
-
     /// Lines running across, and lines running down, this screen has and `other` doesn't: rows or columns differing most of
-    /// their length.
+    /// their length (a channel more than 3 apart). One pass over raw bytes: the UI tests are a Debug build, where a closure
+    /// a pixel took seconds a call.
     func lines(against other: Screen) -> (across: Int, down: Int) {
+      let started = Date()
+      defer { print("ui-pixels: lines(against:) \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
+      let rows = rowsLooked
+      var downCounts = [Int](repeating: 0, count: width)
       var across = 0
-      for y in rowsLooked where (0..<width).filter({ differs(other, x: $0, y: y) }).count > width / 2 { across += 1 }
-      var down = 0
-      for x in 0..<width where rowsLooked.filter({ differs(other, x: x, y: $0) }).count > rowsLooked.count / 2 {
-        down += 1
+      bytes.withUnsafeBufferPointer { a in
+        other.bytes.withUnsafeBufferPointer { b in
+          downCounts.withUnsafeMutableBufferPointer { down in
+            for y in rows {
+              var differing = 0
+              var i = y * width * 4
+              for x in 0..<width {
+                if abs(Int(a[i]) - Int(b[i])) > 3 || abs(Int(a[i + 1]) - Int(b[i + 1])) > 3
+                  || abs(Int(a[i + 2]) - Int(b[i + 2])) > 3
+                {
+                  differing += 1
+                  down[x] += 1
+                }
+                i += 4
+              }
+              if differing > width / 2 { across += 1 }
+            }
+          }
+        }
       }
-      return (across, down)
+      return (across, downCounts.filter { $0 > rows.count / 2 }.count)
     }
 
     /// Pixels with more orange in them than `paper` has where nothing is drawn: a ghost on any colour.
@@ -145,20 +151,21 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "lines aren't ink")
   }
 
-  /// Story 653: ruled lines stay with their board, and a new board starts without.
+  /// Stories 403, 653: a board on paper keeps its colour and ruled lines, and a new board starts without.
   func testRuledLinesStayWithTheBoardUnderTheInk() throws {
     let app = try openBoard()
     stroke(app)
     wait(send(app), label: "Send to Larry, 1 strokes")
-    menu(app, "Ruled lines", expect: "Board, Plain, ruled lines on")
+    menu(app, "Cream", expect: "Board, Cream")
+    menu(app, "Ruled lines", expect: "Board, Cream, ruled lines on")
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     card.tap()
     XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
-    wait(board(app), label: "Board, Plain, ruled lines on")
+    wait(board(app), label: "Board, Cream, ruled lines on")
     sleep(1)
-    XCTAssertNotNil(PaperScreen(app).ink, "the ink is back with its lines")
+    XCTAssertNotNil(PaperScreen(app).ink, "the ink is back with its colour and lines")
 
     app.navigationBars.buttons.element(boundBy: 0).tap()
     let new = app.buttons["whiteboard-new"]
@@ -168,13 +175,16 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     wait(board(app), label: "Board, Plain")
   }
 
-  /// Stories 655, 656: every colour shows the page's end line and the grid, and changing either leaves pasted ink on screen.
+  /// Stories 655, 656: the colours show the page's end line and the grid, and changing either leaves pasted ink on screen.
+  /// The lines are one grey at one strength on every colour, so they are hardest to see on the darkest paper: Lilac
+  /// (`BoardPaper`'s light shades by luminance: Plain 1.0, Cream 0.90, Sage 0.83, Grey 0.82, Lilac 0.81). Lilac and back
+  /// to Plain stand for all five; each colour's own shade against the ink is `BoardPaperTests`, on the host.
   func testEveryColourShowsItsLinesAndKeepsTheInk() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
     wait(send(app), label: "Send to Larry, 2 strokes")
     sleep(2)
     let ink = try XCTUnwrap(PaperScreen(app).ink, "dark letters on screen")
-    for colour in ["Cream", "Sage", "Lilac", "Grey", "Plain"] {
+    for colour in ["Lilac", "Plain"] {
       menu(app, colour, expect: "Board, \(colour)")
       let bare = Screen(app)
       let seen = try XCTUnwrap(PaperScreen(app).ink, "the letters on \(colour)")
@@ -191,7 +201,8 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 2 strokes", "neither is ink")
   }
 
-  /// Story 657: the first stroke after the menu draws, and after leaving the menu with no choice too.
+  /// Story 657: the first stroke after the menu draws, after leaving the menu with no choice, and after choosing the
+  /// colour the board already has. One launch for the three: each is the stroke after a menu.
   func testTheFirstStrokeAfterTheMenuDraws() throws {
     let app = try openBoard()
     menu(app, "Grey", expect: "Board, Grey")
@@ -204,14 +215,11 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "the tap that closes the menu draws nothing")
     stroke(app)
     wait(send(app), label: "Send to Larry, 2 strokes")
-  }
 
-  /// Story 657: choosing the colour the board already has costs no stroke either.
-  func testTheFirstStrokeAfterChoosingTheSameColourDraws() throws {
-    let app = try openBoard()
-    menu(app, "Plain", expect: "Board, Plain")
+    // Choosing the colour the board already has costs no stroke either.
+    menu(app, "Grey", expect: "Board, Grey")
     stroke(app)
-    wait(send(app), label: "Send to Larry, 1 strokes")
+    wait(send(app), label: "Send to Larry, 3 strokes")
   }
 
   /// Story 655: a ghost shows on the colour furthest from white.

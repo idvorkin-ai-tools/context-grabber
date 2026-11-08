@@ -1,38 +1,11 @@
 //  Stories 637–650 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what a page
-//  adds to a paste. `WhiteboardPasteOnPaperUITests` runs the old canvas's own paste tests on a board on paper, as they're the
-//  requirement. XCUITest's taps never reach the system's paste button, so these go through ⌘V or GRABBER_WHITEBOARD_PASTE.
+//  adds to a paste. The text's layout, caps and note are `WhiteboardPasteTests`, on the host, and ⌘V and ⌘Z on paper are
+//  `WhiteboardPasteUITests`' one keys test. XCUITest's taps never reach the system's paste button, so these go through hooks.
 
 import XCTest
 
-/// `WhiteboardPasteUITests`, every one, on a board on paper.
-final class WhiteboardPasteOnPaperUITests: WhiteboardPasteUITests {
-  override var boardEnvironment: [String: String] { ["GRABBER_WHITEBOARD_NEW_ON_PAPER": "on"] }
-
-  override func testACommandVPastesTheClipboardAndCommandZTakesItAllBack() throws {
-    throw XCTSkip("Keys reach one test per boot: this is WhiteboardPaperPasteUITests' test1, in a run of its own")
-  }
-
-  override func tearDown() {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
-    app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
-}
-
 final class WhiteboardPaperPasteUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
-
-  override func tearDown() {
-    let app = XCUIApplication()
-    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
-    app.launchEnvironment["GRABBER_WHITEBOARD_NEW_ON_PAPER"] = "off"
-    app.launch()
-    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20))
-    app.terminate()
-  }
 
   private func cockpit() throws -> String {
     try XCTUnwrap(
@@ -58,8 +31,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
   }
 
   private func wait(_ element: XCUIElement, label: String, timeout: TimeInterval = 10) {
-    expectation(for: NSPredicate(format: "label == %@", label), evaluatedWith: element)
-    waitForExpectations(timeout: timeout)
+    waitUntil(NSPredicate(format: "label == %@", label), element, timeout: timeout)
   }
 
   private func send(_ app: XCUIApplication) -> XCUIElement { app.buttons["whiteboard-send"] }
@@ -79,22 +51,6 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
   private func stroke(_ app: XCUIApplication, atHeight dy: CGFloat = 0.3) {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: dy))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: dy)))
-  }
-
-  /// Stories 638, 639: ⌘V and ⌘Z. Keys reach the app only for the first test after a boot that presses any, and the old
-  /// canvas's ⌘V test has that in the main run, so test-whiteboard-ui.sh runs this one after a boot of its own.
-  func test1CommandVOnPaperAndCommandZ() throws {
-    UIPasteboard.general.string = "HI"
-    let app = try openBoard()
-    sleep(2)
-    stroke(app)
-    wait(send(app), label: strokes(1))
-    sleep(1)
-    app.typeKey("v", modifierFlags: .command)
-    wait(send(app), label: strokes(3))
-    shot(app, "pasted with keys")
-    app.typeKey("z", modifierFlags: .command)
-    wait(send(app), label: strokes(1))
   }
 
   /// Story 641: strokes copied on a board on paper, and no text. Hooks copy and press: the simulator can't work the lasso, and

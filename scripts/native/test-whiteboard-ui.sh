@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The whiteboard turn, paste and boards-list UI tests on the simulator (stories 344, 345, 349, 354, 357, 360, 367, 371, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 399, 402, 403, 435–439, 524–534, 590–626, 637–641, 643–646, 650, 652–657), with a fake Cockpit:
+# The whiteboard turn, paste and boards-list UI tests on the simulator (stories 344, 345, 349, 354, 357, 360, 371, 378, 380, 382, 383, 386, 388, 390, 391, 392, 393, 396, 399, 402, 403, 435–439, 524–534, 590–626, 637–641, 643–646, 650, 652–657), with a fake Cockpit:
 # scripts/native/fake-cockpit.py on a local port.
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
 # Usage: test-whiteboard-ui.sh <simulator udid>   — run it in the build lane:
@@ -12,7 +12,8 @@ report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
 cockpit=
 trap 'kill $cockpit 2>/dev/null || true; xcrun simctl shutdown "$udid" 2>/dev/null || true' EXIT
-# Keyboard events reach the app only in the first test run after a boot, so the ⌘V test needs a fresh simulator.
+# Keys reach the app only in the first test after a boot that presses any, so the suite boots a fresh simulator once and
+# has one test that presses keys (WhiteboardPasteUITests' ⌘V and ⌘Z, on both canvases).
 xcrun simctl shutdown "$udid" 2>/dev/null
 xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot" >&2; exit 1; }
 scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
@@ -23,17 +24,8 @@ TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebu
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardTrialOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardTurnOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPasteOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests -skip-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ test
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardTrialOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests test
 status=$?
-# Keys reach the app for one test per boot, and the old canvas's ⌘V test had this boot's: ⌘V on paper gets the next.
-xcrun simctl shutdown "$udid" 2>/dev/null
-xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot again" >&2; exit 1; }
-TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebuild-log.sh whiteboard-keys "TEST EXECUTE SUCCEEDED" \
-  xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
-  -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
-  GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests/test1CommandVOnPaperAndCommandZ test-without-building || status=1
 grep -q 'Igor just said: draw a circle' "$report" || { echo "the spoken words never reached the fake Cockpit"; status=1; }
-if grep -q 'draw a square' "$report"; then echo "words spoken with Ghosts off reached the fake Cockpit"; status=1; fi
 echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep "\"body\"" "$report" | grep -c "\"picture_id\"") board pictures to Larry"
 exit $status

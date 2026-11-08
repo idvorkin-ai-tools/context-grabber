@@ -682,10 +682,11 @@ struct ChatThreadView: View {
   private func runHoldHook() {
     guard let hook = holdHook, let message = messages.last(where: { !$0.fromIgor }) else { return }
     holdHook = nil
-    switch hook {
-    case "quote": quote(message)
-    case "copy": copy(message)
-    default: if let reaction = ChatReaction(rawValue: hook) { react(reaction, to: message) }
+    switch ChatHold(hook: hook) {
+    case .quote: quote(message)
+    case .copy: copy(message)
+    case .react(let reaction): react(reaction, to: message)
+    case nil: break
     }
   }
 
@@ -736,8 +737,6 @@ private struct MessageBubble: View {
   let react: (ChatReaction) -> Void
   let quote: () -> Void
   let copy: () -> Void
-
-  private var hasWords: Bool { !message.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
   var body: some View {
     if message.isError { failure } else { bubble }
@@ -801,16 +800,16 @@ private struct MessageBubble: View {
     .accessibilityIdentifier(message.fromIgor ? "chat-mine" : message.author == nil ? "chat-larry" : "chat-skill")
   }
 
-  /// Answering himself means nothing, and a picture alone has no words to quote or copy (story 518).
+  /// `ChatHold.choices`: answering himself means nothing, and a picture alone has no words to quote or copy (518).
   @ViewBuilder private var menu: some View {
-    if !message.fromIgor {
-      ForEach(ChatReaction.allCases, id: \.self) { reaction in
-        Button(reaction.label, systemImage: reaction == .yes ? "hand.thumbsup" : "hand.thumbsdown") { react(reaction) }
+    ForEach(ChatHold.choices(for: message), id: \.self) { choice in
+      Button(choice.label, systemImage: choice.systemImage) {
+        switch choice {
+        case .react(let reaction): react(reaction)
+        case .quote: quote()
+        case .copy: copy()
+        }
       }
-    }
-    if hasWords {
-      Button("Quote in reply", systemImage: "text.quote", action: quote)
-      Button("Copy", systemImage: "doc.on.doc", action: copy)
     }
   }
 
@@ -969,7 +968,11 @@ private struct ChatImage: View {
         }
         .foregroundStyle(.white).padding().accessibilityIdentifier("chat-image-done")
       }
-      .gesture(DragGesture(minimumDistance: 30).onEnded { if $0.translation.height > 80 { close(how: "swipe") } })
+      .gesture(
+        DragGesture(minimumDistance: ChatImageClose.minimumDrag).onEnded {
+          if ChatImageClose.closes(dragHeight: $0.translation.height) { close(how: "swipe") }
+        }
+      )
       .onAppear { logger("ui", ["action": "open_chat_image", "message": .string(message)]) }
     }
   }

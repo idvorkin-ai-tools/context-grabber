@@ -10,12 +10,22 @@ xcrun simctl install "$SIM" "$APP"
 # ~/gits/bug-kit.
 root=$(cd "$(dirname "$0")/../.." && pwd)
 BUG_KIT=$(\ls -d "$root/native/Build/SourcePackages/checkouts/bug-kit" 2>/dev/null || echo ~/gits/bug-kit)
+# BugKit's wait_for looks every SMOKE_POLL seconds, 2 by default, and the smoke waits on it 22 times: 1 halves the slack.
+# (Whole seconds only: its count is integer arithmetic.)
+export SMOKE_POLL=${SMOKE_POLL:-1}
 # shellcheck source=/dev/null
 source "$BUG_KIT/scripts/smoke-lib.sh"
 smoke_init "$SIM" "$BUNDLE"
 DOCS=$SMOKE_DOCS
 relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
 bad() { not_ok "$@"; }
+listening() {  # listening <port>: waits up to 5 s for a fake server to take connections, a tenth of a second at a time; the caller judges
+  local tries=0
+  until nc -z localhost "$1" 2>/dev/null || [ "$tries" -ge 50 ]; do
+    tries=$((tries + 1))
+    sleep 0.1
+  done
+}
 
 # Igor, 2026-11-01: only the features a change touched (SMOKE_ONLY, which the recipe takes from smoke-features.sh;
 # unset, empty or "all" runs everything, "none" only the checks that always run). The launch and report checks just below always run.
@@ -72,10 +82,10 @@ else bad "report: note '$got_note' log '$got_log' screen '$screen' screenshot '$
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$errors" ]; then ok "report: no error events"; else bad "report: error events: $errors"; fi
 
-wait_jq() {  # like wait_for, on any jq filter
+wait_jq() {  # like wait_for, on any jq filter; looks five times a second, so a line costs at most 0.2 s past its arrival
   local waited=0
-  while [ "$waited" -lt "$2" ]; do
-    sleep 1; waited=$((waited + 1))
+  while [ "$waited" -lt $(($2 * 5)) ]; do
+    sleep 0.2; waited=$((waited + 1))
     local f; f=$(newest_log)
     [ -n "$f" ] && [ "$f" != "$previous_log" ] && [ -n "$(jq -c "$1" "$f" 2>/dev/null)" ] && return 0
   done
@@ -204,14 +214,9 @@ if [ "$la" = "start:GET READY update:WORK update:REST update:WORK end:DONE!" ]; 
 elif [ "$la" = "unavailable:" ]; then ok "live activity: Live Activities are off on this simulator (logged once per session)"
 else bad "live activity: '$la'"; fi
 
-# Story 187: a launch hook picks the Australian woman for this visit; her first cue plays from her own file.
-SIMCTL_CHILD_GRABBER_COUNT_VOICE=aussie SIMCTL_CHILD_GRABBER_TIMER="10,10,2" relaunch
-wait_for timer_cue 20 || echo "      (timed out waiting for timer_cue)"
-f=$(newest_log)
-first=$(jq -sr '[.[] | select(.type=="timer_cue")][0] | "\(.cue) \(.voice) \(.ok)"' "$f")
-errors=$(jq -c 'select(.type=="error")' "$f")
-if [ "$first" = "three aussie true" ] && [ -z "$errors" ]; then ok "voice: the hook's aussie says three"
-else bad "voice: first cue '$first', errors '$errors'"; fi
+# Story 187's own rules are host tests, not a relaunch here: each voice's files on disk and which it plays
+# (CountVoiceTests.testEveryVoiceHasEveryCueOnDisk, testIgorPlaysTheSharedFilesAndTheOthersTheirOwn). The run above
+# still plays a voice's own files on the simulator.
 
 fi  # timer
 
@@ -258,16 +263,9 @@ else bad "breathe: tones '$tones'"; fi
 failed=$(jq -c 'select(.type=="error" or ((.type|startswith("breath_")) and .ok == false))' "$f")
 if [ -z "$failed" ]; then ok "breathe: nothing failed"; else bad "breathe: $failed"; fi
 
-# Story 162: paused 3 s into a 6 s inhale (as a tap on the circle would), the session stays put: no further step,
-# no finish, while well past when the hold was due.
-SIMCTL_CHILD_GRABBER_BREATHE="6,1,off,3" relaunch
-wait_for breath_pause 20 || echo "      (timed out waiting for breath_pause)"
-sleep 5
-f=$(newest_log)
-paused=$(jq -sr '[.[] | select(.type=="breath_pause") | "\(.reason):\(.phase)"] | join(" ")' "$f")
-after=$(jq -sr '[.[] | select(.type=="breath_phase" or .type=="breath_finished") | .phase // "done"] | join(" ")' "$f")
-if [ "$paused" = "hook:inhale" ] && [ "$after" = "inhale" ]; then ok "breathe: paused mid-inhale, nothing moved on"
-else bad "breathe: pauses '$paused', steps '$after'"; fi
+# Story 162's pause is a host test, not a relaunch here: nothing moves on while paused and a resume picks up mid-step
+# (BreathRunTests.testPauseFreezesEverythingAndResumeContinuesMidPhaseWithNoJump). GRABBER_BREATHE's fourth field
+# still pauses by itself, for watching the paused circle by hand.
 
 fi  # breathe
 
@@ -287,13 +285,8 @@ imp=$(jq -sr '[.[] | select(.type=="import")][0] | "\(.ok) \(.points_added) \(.p
 opened=$(jq -sr '[.[] | select(.type=="places_open")][-1] | "\(.points) \(.known) \(.stays)"' "$f")
 if [ "$imp" = "true 36601 0 4" ] && [ "$opened" = "36601 4 34" ]; then ok "places: imported 36601 points and 4 places; 34 stays, as the TypeScript makes"
 else bad "places: import '$imp', open (points known stays) '$opened'"; fi
-# Story 055: the same file again adds nothing.
-SIMCTL_CHILD_GRABBER_IMPORT_DB="import-fixture.db,recent" SIMCTL_CHILD_GRABBER_PLACES=open relaunch
-wait_for places_open 30 || echo "      (timed out waiting for places_open)"
-f=$(newest_log)
-imp=$(jq -sr '[.[] | select(.type=="import")][0] | "\(.ok) \(.points_added) \(.points_already) \(.places_added) \(.places_already)"' "$f")
-if [ "$imp" = "true 0 36601 0 4" ]; then ok "places: a second import adds nothing"
-else bad "places: second import '$imp'"; fi
+# Story 055: the same file again adds nothing, shifted as the hook shifts it, is a host test, not a relaunch here
+# (PlacesFixtureTests.testImportTheRealExportTwice, testARecentImportTwiceAddsNothingTheSecondTime).
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$failed" ]; then ok "places: no error events"; else bad "places: $failed"; fi
 
@@ -358,9 +351,11 @@ if want call; then
 xcrun simctl privacy "$SIM" grant microphone "$BUNDLE" 2>/dev/null || true
 PORT=${CALL_PORT:-8799}
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
+# Taken already, another bridge would answer instead; checked first, as the wait below can't tell whose it is.
+nc -z localhost "$PORT" 2>/dev/null && bad "call: port $PORT is taken before the fake bridge started"
 "$(dirname "$0")/fake-bridge.py" "$PORT" "$REPORT" >/dev/null 2>&1 &
 BRIDGE=$!
-sleep 2
+listening "$PORT"
 # Another bridge already on the port would answer instead and leave this report empty.
 kill -0 "$BRIDGE" 2>/dev/null || bad "call: the fake bridge did not start on port $PORT (is one already running?)"
 call_check() {  # $1: label, $2: audio (synthetic or empty)
@@ -412,16 +407,17 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
 call_check synthetic synthetic
 call_check "real audio" ""
 
-# Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a second within ten
-# minutes, across a relaunch, is skipped; a clean call files none. The second fake bridge cuts every connection.
+# Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a clean call files none.
+# The second fake bridge cuts every connection.
 clean=$(jq -s '[.[] | select(.type=="bug_report_auto")] | length' "$(newest_log)")
 if [ "$clean" = "0" ]; then ok "call: a clean call files no automatic report"; else bad "call: a clean call filed $clean automatic report(s)"; fi
 stash bugs-auto.json  # an earlier run's ten-minute window would skip the first report; put back at exit
 DROP_PORT=$((PORT + 1))
 DROP_REPORT=$(mktemp -t fake-bridge-drop); : >"$DROP_REPORT"
+nc -z localhost "$DROP_PORT" 2>/dev/null && bad "trouble: port $DROP_PORT is taken before the dropping fake bridge started"
 "$(dirname "$0")/fake-bridge.py" "$DROP_PORT" "$DROP_REPORT" drop >/dev/null 2>&1 &
 DROP=$!
-sleep 2
+listening "$DROP_PORT"
 kill -0 "$DROP" 2>/dev/null || bad "trouble: the dropping fake bridge did not start on port $DROP_PORT"
 trouble_call() {
   SIMCTL_CHILD_GRABBER_CALL="ws://localhost:$DROP_PORT" SIMCTL_CHILD_GRABBER_CALL_AUDIO=synthetic relaunch
@@ -442,8 +438,8 @@ if [ "$src" = "auto" ] && [ "$why" = "call_trouble" ] && [[ ",$files," == *",$fo
 else
   bad "trouble: source '$src' reason '$why' folder '$folder' files '$files' bug_report_auto $logged bridge drops $dropped"
 fi
-trouble_call
-require_event bug_report_auto_skipped 'select(.reason == "call_trouble")' "trouble: a second within ten minutes, after a relaunch, is skipped"
+# A second within ten minutes, after a relaunch, is skipped: BugKit's host tests, not a relaunch here
+# (AutoReportTests.oneReportPerReasonPerWindow, theWindowHoldsAcrossARelaunch, with the 600 s window the app keeps).
 kill "$DROP" 2>/dev/null || true
 
 fi  # call
@@ -501,9 +497,10 @@ if want chat; then
 # opening that thread reads it and marks it seen. The log names the thread, never the text.
 CHAT_PORT=${CHAT_PORT:-8797}
 CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
+nc -z localhost "$CHAT_PORT" 2>/dev/null && bad "chat: port $CHAT_PORT is taken before the fake Cockpit started"
 "$(dirname "$0")/fake-cockpit.py" "$CHAT_PORT" "$CHAT_REPORT" >/dev/null 2>&1 &
 COCKPIT=$!
-sleep 1
+listening "$CHAT_PORT"
 kill -0 "$COCKPIT" 2>/dev/null || bad "chat: the fake Cockpit did not start on port $CHAT_PORT"
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_SEND="new|smoke: a new thread" relaunch
 wait_for chat 20 || echo "      (timed out waiting for chat)"
@@ -547,19 +544,9 @@ yes_posts=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.62
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ "$reacted" = 1 ] && [ "$yes_posts" = 1 ] && [ -z "$failed" ]; then ok "chat: Yes on the newest went up once as the bare word, no error events"
 else bad "chat: reaction x$reacted, POST of three characters x$yes_posts, errors: $failed"; fi
-for choice in quote copy; do
-  before=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.629")] | length' "$CHAT_REPORT")
-  SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_CHAT_HOLD=$choice \
-    SIMCTL_CHILD_GRABBER_LINK="grabbernative://chat?thread=igor2-88g.629" relaunch
-  wait_jq "select(.type==\"chat\" and .action==\"$choice\")" 20 || echo "      (timed out waiting for $choice)"
-  sleep 2
-  f=$(newest_log)
-  held=$(jq -sr --arg choice "$choice" '[.[] | select(.type=="chat" and .action==$choice and .thread=="igor2-88g.629" and .message!=null)] | length' "$f")
-  after=$(jq -sr '[.[] | select(.method=="POST" and .path=="/chat/igor2-88g.629")] | length' "$CHAT_REPORT")
-  failed=$(jq -c 'select(.type=="error")' "$f")
-  if [ "$held" = 1 ] && [ "$after" = "$before" ] && [ -z "$failed" ]; then ok "chat: $choice named the thread and the message and sent nothing, no error events"
-  else bad "chat: $choice x$held, messages $before then $after, errors: $failed"; fi
-done
+# Quote and Copy (stories 540-541) are not relaunches here: which choices a message offers and what GRABBER_CHAT_HOLD
+# names are ChatReactionTests' (`ChatHold`), the quote's words are `ChatQuote`'s, and ChatReactionUITests holds a
+# message for real and quotes it. Neither calls the outbox; the Yes above is the hold menu reaching a Cockpit.
 
 # Stories 312, 314: the hook reviews what looks done and archives it; ChatArchiveUITests taps Select and Undo.
 SIMCTL_CHILD_GRABBER_CHAT_URL="http://localhost:$CHAT_PORT" SIMCTL_CHILD_GRABBER_INBOX=open \

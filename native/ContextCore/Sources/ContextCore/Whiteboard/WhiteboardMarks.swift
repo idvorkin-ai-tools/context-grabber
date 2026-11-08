@@ -147,7 +147,7 @@ public struct WhiteboardMarks: Sendable {
       let place = (message["frame"] as? [String: Any]).flatMap(frame)
       return Row(
         id: id, text: (message["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-        shapes: (message["shapes"] as? [Any] ?? []).compactMap(WhiteboardTurn.anyShape),
+        shapes: (message["shapes"] as? [Any] ?? []).compactMap { WhiteboardTurn.anyShape($0) },
         pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1)
     }
   }

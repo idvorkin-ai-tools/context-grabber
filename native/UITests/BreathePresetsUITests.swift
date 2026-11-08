@@ -1,9 +1,9 @@
-//  Story 241 (#155): breath presets one tap each, and Custom with its own in and out, all remembered.
+//  Story 241 (#155): breath presets one tap each, and Custom with its own in and out. Remembering them is BreathTests'.
 
 import XCTest
 
 final class BreathePresetsUITests: XCTestCase {
-  func testPresetsAndCustomAreRemembered() throws {
+  func testAPresetIsOneTapAndCustomShowsItsSides() throws {
     let app = XCUIApplication()
     app.launchEnvironment["GRABBER_BREATHE"] = "open"
     app.launch()
@@ -19,11 +19,6 @@ final class BreathePresetsUITests: XCTestCase {
     let inSlider = app.descendants(matching: .any)["breathe-in"]
     XCTAssertTrue(inSlider.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.descendants(matching: .any)["breathe-out"].exists)
-
-    app.terminate()
-    app.launch()
-    XCTAssertTrue(app.buttons["breathe-preset-custom"].appears(within: 15), app.debugDescription)
-    XCTAssertTrue(app.buttons["breathe-preset-custom"].isSelected, "Custom is remembered")
-    XCTAssertTrue(app.descendants(matching: .any)["breathe-in"].exists, "its sliders show again")
+    // That each choice is remembered for the next open is BreathTests' (`BreathSetup.writes` read back by `restore`).
   }
 }

@@ -42,7 +42,7 @@ final class ChatNewThreadUITests: XCTestCase {
     app.buttons["Send"].tap()
 
     // The title is the first line at once; the bar holds the next message back while the Cockpit takes it (the
-    // fake holds POST /chat three seconds), then lets go.
+    // fake holds POST /chat two seconds), then lets go.
     XCTAssertTrue(app.navigationBars[first].appears(within: 5), app.debugDescription)
     let waiting = app.staticTexts["The next message goes once your first one reaches Larry."]
     XCTAssertTrue(waiting.appears(within: 3), "the hold-back line: \(app.debugDescription)")

@@ -11,7 +11,7 @@ udid=$1
 port=${CHAT_PORT:-8798}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
-FAKE_COCKPIT_NEW_DELAY=${FAKE_COCKPIT_NEW_DELAY:-3} scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
+FAKE_COCKPIT_NEW_DELAY=${FAKE_COCKPIT_NEW_DELAY:-2} scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
 cockpit=$!
 bridge_port=${CHAT_BRIDGE_PORT:-8797}
 scripts/native/fake-bridge.py "$bridge_port" "$(mktemp -t fake-bridge)" >/dev/null 2>&1 &
@@ -20,14 +20,17 @@ trap 'kill $cockpit $bridge 2>/dev/null || true' EXIT
 sleep 1
 kill -0 "$bridge" 2>/dev/null || { echo "the fake bridge did not start on port $bridge_port" >&2; exit 1; }
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
-TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" TEST_RUNNER_GRABBER_FAKE_BRIDGE="ws://localhost:$bridge_port" scripts/native/xcodebuild-log.sh chat-ui "TEST SUCCEEDED" \
+# SUITE_PREBUILT=1 (the ladder's --full, after its own build-for-testing): run what was built rather than build again.
+action=test done="TEST SUCCEEDED"
+[ "${SUITE_PREBUILT:-}" = 1 ] && action=test-without-building done="TEST EXECUTE SUCCEEDED"
+TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" TEST_RUNNER_GRABBER_FAKE_BRIDGE="ws://localhost:$bridge_port" scripts/native/xcodebuild-log.sh chat-ui "$done" \
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
   -only-testing:GrabberNativeUITests/ChatNewThreadUITests -only-testing:GrabberNativeUITests/ChatVoiceUITests \
   -only-testing:GrabberNativeUITests/ChatImageUITests -only-testing:GrabberNativeUITests/ChatArchiveUITests \
   -only-testing:GrabberNativeUITests/ChatSkillThreadUITests \
-  -only-testing:GrabberNativeUITests/ChatReactionUITests test
+  -only-testing:GrabberNativeUITests/ChatReactionUITests "$action"
 status=$?
 echo "fake Cockpit: $(grep -c '"method": "POST", "path": "/chat"' "$report") POST /chat, $(grep -c '"path": "/chat/igor2' "$report") requests to a thread"
 exit $status
