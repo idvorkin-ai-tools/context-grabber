@@ -12,9 +12,14 @@ extension View {
 private struct ChatTextSizing: ViewModifier {
   @AppStorage(ChatTextSize.defaultsKey) private var step = ChatTextSize.standard
 
-  func body(content: Content) -> some View {
+  @ViewBuilder func body(content: Content) -> some View {
     #if targetEnvironment(macCatalyst)
-      content.dynamicTypeSize(DynamicTypeSize.allCases[ChatTextSize.restored(step)])
+      let size = ChatTextSize.restored(step)
+      if size == ChatTextSize.standard {
+        content
+      } else {
+        content.dynamicTypeSize(DynamicTypeSize.allCases[size])
+      }
     #else
       content
     #endif
