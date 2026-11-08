@@ -521,32 +521,93 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 188:
 
-- **Summary:** A workout survives leaving the timer, and the timer remembers its mode
+- **Summary:** A running workout survives leaving the timer
 - **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897); verified by `just test` (lint + host) and the simulator's `GymTimerUITests` (the rounds and the stopwatch still running after *Done* and back through the timer's link, the mode kept) and `LinksUITests` (a breathing link pauses the workout, which is found paused); the cues and the card carrying on off-screen still to be checked by Igor on the phone
 - **Issues:** #791
 
 #### Use Case:
 - **As a** lifter mid-workout who pops out of the Gym Timer to check something else in the app
-- **I want to** come back and find the round, the stopwatch, the set count and the mode exactly where they were
+- **I want to** come back and find the round and the stopwatch where they are now
 - **so that** looking away never costs me the workout I am in the middle of
 
 #### Acceptance Criteria:
 - **Scenario:** Leaving a running workout
-- **Given:** a rounds workout is on round 2 of 6 with the cues speaking, or the stopwatch is running
-- **When:** I press *Done*, look at the home screen or another screen, and open the Gym Timer again (its tile, a link, or the lock-screen card)
-- **Then:** it is still running at the right time, the cues kept sounding and the lock-screen card stayed up meanwhile, as with the phone locked, and the screen is kept awake again only once the timer is back in front
+- **Given:** a rounds workout is on round 2 of 6 with the cues speaking, and I pressed *Done* and looked at another screen
+- **When:** I open the Gym Timer again (its tile, a link, or the lock-screen card)
+- **Then:** it is still running at the right time, the cues kept sounding and the lock-screen card stayed up meanwhile, as with the phone locked; a running stopwatch likewise kept running (with no card or sound); the screen is kept awake again only once the timer is back in front
 
-- **Scenario:** Leaving a stopped workout
-- **Given:** the rounds timer is paused at 0:37 of round 3, or finished, or the stopwatch is stopped at 1:12
-- **When:** I press *Done* and come back
-- **Then:** it is exactly as I left it (paused at 0:37 of round 3, the finish, 1:12), and while I was away there was no card, no audio session and no keep-awake
+---
 
+### User Story 189:
+
+- **Summary:** A stopped workout is found as I left it
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897); verified by `just test` (lint + host) and the simulator's `GymTimerUITests` (the rounds and the stopwatch still running after *Done* and back through the timer's link, the mode kept) and `LinksUITests` (a breathing link pauses the workout, which is found paused); still to be checked by Igor on the phone
+- **Issues:** #791
+
+#### Use Case:
+- **As a** lifter who paused between rounds and stepped out of the timer
+- **I want** the pause to be exactly where I left it
+- **so that** I can RESUME the same round without redoing it
+
+#### Acceptance Criteria:
+- **Scenario:** Leaving a paused workout
+- **Given:** the rounds timer is paused at 0:37 of round 3 and I pressed *Done*
+- **When:** I open the Gym Timer again
+- **Then:** it is paused at 0:37 of round 3 (a finished timer shows its finish, a stopped stopwatch its time), and while I was away there was no card, no audio session and no keep-awake
+
+---
+
+### User Story 190:
+
+- **Summary:** The timer remembers its mode
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897); verified by `just test` (lint + host) and the simulator's `GymTimerUITests` (the rounds and the stopwatch still running after *Done* and back through the timer's link, the mode kept) and `LinksUITests` (a breathing link pauses the workout, which is found paused); still to be checked by Igor on the phone
+- **Issues:** #791
+
+#### Use Case:
+- **As a** lifter who counts sets or runs the stopwatch more than rounds
+- **I want** the timer to open in the mode I last chose
+- **so that** I don't switch it back every time I open it
+
+#### Acceptance Criteria:
 - **Scenario:** The mode and the count are kept
-- **Given:** I chose Sets and counted 4, or chose Stopwatch
+- **Given:** I chose Sets and counted 4
 - **When:** I press *Done* and come back, or quit and relaunch the app
-- **Then:** the timer opens in that same mode with the same count; a link or tile that starts a workout opens it in Rounds
+- **Then:** the timer opens in Sets with the count at 4; a link or tile that starts a workout opens it in Rounds
 
+---
+
+### User Story 191:
+
+- **Summary:** Another session that needs the audio pauses a workout I left
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897) (breathing and the call; the Cockpit and the eulogy song's player added in review); verified by `just test` (lint + host) and the simulator's `LinksUITests` (a breathing link pauses the workout, which is found paused, ready to RESUME); the Cockpit and the song still to be checked by Igor on the phone
+- **Issues:** #791
+
+#### Use Case:
+- **As a** lifter who left a workout running and then opened something with its own voice or microphone
+- **I want** the workout to pause rather than talk over it
+- **so that** two voices, two cards or a timer and a microphone never fight over the phone's audio
+
+#### Acceptance Criteria:
 - **Scenario:** Another session takes the audio
 - **Given:** a rounds workout is running and I have left the timer
-- **When:** I open Box breathing or the call with Larry
-- **Then:** the workout pauses where it was (its card and cues stop), and when I open the timer again it is paused there, ready to RESUME
+- **When:** I open Box breathing, the call with Larry, the Cockpit or the eulogy song's player
+- **Then:** the workout pauses where it was (its card and cues stop), and when I open the timer again it is paused there, ready to RESUME; a song opened in Suno plays alongside the workout like any music
+
+---
+
+### User Story 192:
+
+- **Summary:** A link's one-off timer settings last one visit
+- **Status:** native app only: implemented in #791's review round (the e5d4897 shared timer had kept a link's profile for the app's life); verified by `just test` (lint + host) only, not yet on the simulator or the phone
+- **Issues:** #791
+
+#### Use Case:
+- **As a** lifter who opened the timer from a link with its own work, rest and rounds
+- **I want** my saved Custom to be there when I next open the timer from its tile
+- **so that** a one-off link never overwrites the profile I set up
+
+#### Acceptance Criteria:
+- **Scenario:** Coming back after a custom link
+- **Given:** I opened `grabbernative://timer?custom=20,10,8`, did not start it, and pressed *Done*
+- **When:** I open the Gym Timer from its home tile
+- **Then:** the Custom chip shows my saved Custom and the chip I last chose is selected, not the link's 20/10/8

@@ -90,7 +90,8 @@ goes by itself.
 - **Leaving the screen** removes it at once — the close button on breathing always; *Done* on the timer only when
   no workout is running (paused, finished or idle). A running rounds workout keeps its card while Igor is
   elsewhere in the app, as it does with the phone locked (#791, story 188); the card goes when that workout is
-  paused off-screen (opening breathing or a call does this), reset, or finished and shown its few minutes.
+  paused off-screen (opening breathing, a call, the Cockpit or the eulogy song's player does this), reset, or
+  finished and shown its few minutes.
 - **Choosing a timer preset after the finish** is a RESET and removes it.
 - **Starting the other screen** removes the first one's card; only one is ever shown.
 - **The app killed** (swiped away, or iOS ends it) can leave a card behind that no longer counts true. The next

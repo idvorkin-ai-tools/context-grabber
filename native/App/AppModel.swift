@@ -641,6 +641,7 @@ final class AppModel: ObservableObject {
   /// Story 137: the eulogy song, played in the app; the sheet shows where it is. Resumes rather than restarts.
   func playEulogySong(from source: String) {
     log.event("ui", ["action": "open_eulogy_song_player", "from": source])
+    gymModel?.yield(to: "eulogy_song")
     screen = "eulogy_song"
     showEulogySong = true
     eulogySong.play(from: source)
@@ -714,6 +715,7 @@ final class AppModel: ObservableObject {
   func openCockpit(from source: String) {
     log.event("ui", ["action": "open_cockpit", "from": source, "first": !cockpitOpened])
     cockpitOpened = true
+    gymModel?.yield(to: "cockpit")
     if bringForward(.cockpit, from: source) { return }
     screen = "cockpit"
     showCockpit = true

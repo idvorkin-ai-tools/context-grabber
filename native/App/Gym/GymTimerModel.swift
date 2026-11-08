@@ -67,14 +67,9 @@ final class GymTimerModel: ObservableObject {
     let first = TimerProfile.presets[0].profile
     engine = TimerEngine(profile: first)
     timer = engine.state
-    custom = CustomPreset.decode(database.setting(Self.presetKey))
     sets = SetCounter.clamp(Int(database.setting(Self.setsKey) ?? "") ?? 0)
-    if let chosen = database.setting(Self.chosenKey), Self.isPreset(chosen) { presetId = chosen }
     if let stored = database.setting(Self.modeKey).flatMap(GymMode.init(rawValue:)) { mode = stored }
-    countVoice = CountVoice.decode(database.setting(CountVoice.settingKey))
-    engine.setProfile(profile)
-    timer = engine.state
-    audio.setVoice(countVoice)
+    restoreSaved()
     audio.loadCues()
   }
 
@@ -115,7 +110,7 @@ final class GymTimerModel: ObservableObject {
     log.event("ui", ["action": "custom_dial", "dial": dial, "value": value, "style": style, "from": source])
   }
 
-  /// For a link or a launch hook: a profile that is not on a chip, chosen as Custom without being remembered.
+  /// For a link or a launch hook: a profile that is not on a chip, chosen as Custom for this visit only.
   func useCustomOnce(_ preset: CustomPreset) {
     guard !locked else { return }
     custom = preset.normalized
@@ -310,10 +305,25 @@ final class GymTimerModel: ObservableObject {
       ])
     if timer.isRunning { return }
     release(reason: "leave")
+    restoreSaved()
   }
 
-  /// Box breathing or a call is opening (story 188): two voices and two cards would fight, so a running rounds
-  /// workout pauses where it is, to resume on coming back. Off the screen, its session and card go too.
+  /// The saved Custom, chip and count voice; on leaving, a visit's one-off profile and voice give way to them. A
+  /// paused workout keeps the profile it is running.
+  private func restoreSaved() {
+    countVoice = CountVoice.decode(database.setting(CountVoice.settingKey))
+    audio.setVoice(countVoice)
+    guard !locked else { return }
+    custom = CustomPreset.decode(database.setting(Self.presetKey))
+    presetId = database.setting(Self.chosenKey).flatMap { Self.isPreset($0) ? $0 : nil } ?? TimerProfile.presets[0].id
+    guard timer.phase != .done else { return }
+    engine.setProfile(profile)
+    timer = engine.state
+  }
+
+  /// Box breathing, a call, the Cockpit or the eulogy song's player is opening (story 191): two voices, two cards or
+  /// a microphone would fight, so a running rounds workout pauses where it is, to resume on coming back. Off the
+  /// screen, its session and card go too.
   func yield(to other: String) {
     guard timer.isRunning else { return }
     log.event("timer_yield", ["to": other, "on_screen": onScreen])

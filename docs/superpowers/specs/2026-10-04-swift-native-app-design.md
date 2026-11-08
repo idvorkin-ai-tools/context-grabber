@@ -235,9 +235,13 @@ The timer does what stories 100–116 say, with these differences while the two 
   from the home tile, a link, or a tap on the card — shows it where it is now, in the mode Igor left it in. A
   paused, finished or idle timer is found as it was left (paused stays paused at the same time). With nothing
   running, leaving lets go as before: no card, no audio session. The screen is kept awake only while the timer
-  is on it. Two things still stop the clock: opening Box breathing or the Larry call pauses a running rounds
-  workout (two voices and two cards would fight), and the pause is there to resume on coming back. Quitting
-  the app ends everything.
+  is on it. Some screens still stop the clock: opening Box breathing, the Larry call, the Cockpit or the eulogy
+  song's in-app player pauses a running rounds workout (two voices, two cards, or a microphone and a timer
+  fighting over the phone's audio), and the pause is there to resume on coming back. A song opened in another
+  app (Suno) plays alongside, like any music. Quitting the app ends everything.
+- **A link's one-off settings last one visit.** A custom profile from a link (`?custom=…`) or a count voice from
+  a launch hook is used for that visit and never saved; leaving the timer with nothing running puts back the
+  saved Custom, preset chip and count voice.
 - **The mode is remembered.** Rounds, Stopwatch or Sets: the timer opens in the one last chosen, across leaving
   and across a relaunch, like the set count and the chosen preset. A link or tile that starts a workout opens
   in Rounds.
