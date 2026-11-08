@@ -201,8 +201,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 2 strokes", "neither is ink")
   }
 
-  /// Story 657: the first stroke after the menu draws, after leaving the menu with no choice, and after choosing the
-  /// colour the board already has. One launch for the three: each is the stroke after a menu.
+  /// Story 657: the first stroke after the menu draws, and after leaving the menu with no choice. One launch for the two.
   func testTheFirstStrokeAfterTheMenuDraws() throws {
     let app = try openBoard()
     menu(app, "Grey", expect: "Board, Grey")
@@ -215,11 +214,15 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "the tap that closes the menu draws nothing")
     stroke(app)
     wait(send(app), label: "Send to Larry, 2 strokes")
+  }
 
-    // Choosing the colour the board already has costs no stroke either.
-    menu(app, "Grey", expect: "Board, Grey")
+  /// Story 657: choosing the colour the board already has costs no stroke either. Its own launch on a fresh board: chained
+  /// after the cases above, on a board already Grey with two strokes, the menu tap missed the colour row (7 Nov).
+  func testTheFirstStrokeAfterChoosingTheSameColourDraws() throws {
+    let app = try openBoard()
+    menu(app, "Plain", expect: "Board, Plain")
     stroke(app)
-    wait(send(app), label: "Send to Larry, 3 strokes")
+    wait(send(app), label: "Send to Larry, 1 strokes")
   }
 
   /// Story 655: a ghost shows on the colour furthest from white.
