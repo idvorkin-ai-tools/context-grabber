@@ -36,7 +36,7 @@ final class WhiteboardStore: ObservableObject {
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true)
     // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (stories 599, 612).
-    let saveFails = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
+    let saveFails = LaunchHooks.current.whiteboard.saveFails
     keeping = BoardKeeping(dir: dir, disk: saveFails ? FullDisk(over: FileBoardDisk()) : FileBoardDisk())
     load()
   }

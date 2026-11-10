@@ -71,7 +71,7 @@ final class AppModel: ObservableObject {
   /// `GRABBER_COCKPIT_URL` points it elsewhere (a URL, or a page in the app bundle) for the simulator's checks and a
   /// Mac test launch (#680). The page's ☎ and its Grabber links come back here (story 200).
   private(set) lazy var cockpit: CockpitModel = {
-    let cockpit = CockpitModel(log: log, override: ProcessInfo.processInfo.environment["GRABBER_COCKPIT_URL"])
+    let cockpit = CockpitModel(log: log, override: LaunchHooks.current.cockpitURL)
     cockpit.onAppRoute = { [weak self] route, source in self?.open(route: route, from: source) }
     return cockpit
   }()
@@ -83,7 +83,7 @@ final class AppModel: ObservableObject {
     return song
   }()
   /// The usage strip on the home screen (story 203). `GRABBER_USAGE_URL` points it at another Cockpit.
-  lazy var usage = UsageModel(log: log, override: ProcessInfo.processInfo.environment["GRABBER_USAGE_URL"])
+  lazy var usage = UsageModel(log: log, override: LaunchHooks.current.usageURL)
   /// The call screen covers the app. The call itself is `call`'s and outlives the screen.
   @Published var callOpen = false
   let call: CallModel
@@ -140,20 +140,20 @@ final class AppModel: ObservableObject {
     liveActivity = LiveActivityController(log: log)
     tracker = LocationTracker(log: log, store: database.locations)
     // Story 041: with an archive to send to, a prune keeps the points it has not taken yet.
-    let archiveSends = ArchiveModel.destination(ProcessInfo.processInfo.environment) != nil
+    let archiveSends = ArchiveModel.destination(LaunchHooks.environment) != nil
     places = PlacesModel(log: log, database: database, archiveSends: archiveSends)
     // GRABBER_CHAT_URL: the Cockpit to use, such as the stand-in (scripts/native/fake-cockpit.py). A simulator without
     // one reaches none, so a test run's outbox never reaches Larry (#525); a Mac test launch names one (#680).
-    let chatCockpit = ChatCockpit.address(override: ProcessInfo.processInfo.environment["GRABBER_CHAT_URL"])
+    let chatCockpit = ChatCockpit.address(override: LaunchHooks.current.chatURL)
     if chatCockpit == ChatCockpit.nowhere {
       log.event("chat", ["action": "no_address", "reason": ChatCockpit.noAddress])
     }
     inbox = InboxModel(log: log, database: database, cockpit: chatCockpit)
     chat = ChatModel(inbox: inbox, log: log, database: database, cockpit: chatCockpit)
     chat.registerBackgroundTask()  // before the launch finishes, or iOS refuses the handler
-    archive = ArchiveModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
+    archive = ArchiveModel(log: log, database: database, environment: LaunchHooks.environment)
     archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
-    call = CallModel(log: log, database: database, environment: ProcessInfo.processInfo.environment)
+    call = CallModel(log: log, database: database, environment: LaunchHooks.environment)
     chatVoice = ChatVoiceModel(log: log, callLive: call.$snapshot.map(\.isActive).eraseToAnyPublisher())
     // Before BugKit the ✕ was kept in the database: carry it over once, so a dismissed row stays dismissed.
     if let seen = database.setting("whats_new_seen"),
@@ -802,168 +802,6 @@ final class AppModel: ObservableObject {
   func openMetric(_ key: MetricKey, from source: String) {
     log.event("ui", ["action": "open_metric", "metric": key.rawValue, "from": source])
     openMetricKey = MetricSheetItem(key: key)
-  }
-
-  /// The simulator cannot be shaken or tapped from a script, so the app reads launch hooks from the environment
-  /// (`SIMCTL_CHILD_<name>` through simctl); docs/TESTING.md lists them.
-  private func runLaunchHooks() {
-    let env = ProcessInfo.processInfo.environment
-    if let spec = env["GRABBER_BREATHE"], !spec.isEmpty {
-      // "breath,cycles[,cue[,pause_at_seconds]]" begins that exact session; anything else just opens the sliders.
-      let parts = spec.split(separator: ",").map(String.init)
-      var launch = BreatheLaunch()
-      launch.style = env["GRABBER_BREATHE_STYLE"].flatMap(BreathStyle.init(rawValue:))
-      if parts.count >= 2, let breath = Int(parts[0]), let cycles = Int(parts[1]) {
-        launch.plan = BreathPlan(breathSeconds: breath, cycles: cycles)
-        launch.cue = parts.count > 2 ? BreathCue(rawValue: parts[2]) : nil
-        launch.pauseAt = parts.count > 3 ? Double(parts[3]) : nil
-      }
-      openBreathe(launch, from: "hook")
-    }
-    let voice = env["GRABBER_COUNT_VOICE"].flatMap(CountVoice.init(rawValue:))
-    // Story 184: which Custom control the timer draws upright; alone, it opens the timer on CUSTOM, not started.
-    let dial = env["GRABBER_TIMER_DIAL"].flatMap(DialStyle.init(rawValue:))
-    if let spec = env["GRABBER_TIMER"], !spec.isEmpty {
-      // A chip's id starts it as a tap on a widget tile would; "work,rest,rounds" runs that shape as Custom.
-      var launch = GymTimerLaunch(
-        autostart: true, turn: env["GRABBER_TURN"].flatMap(DeviceTurn.init(rawValue:)), voice: voice, dial: dial)
-      let numbers = spec.split(separator: ",").compactMap { Int($0) }
-      if numbers.count == 3 {
-        launch.custom = CustomPreset(work: numbers[0], rest: numbers[1], rounds: numbers[2])
-      } else {
-        launch.preset = spec
-      }
-      openGymTimer(launch, from: "hook")
-    } else if env["GRABBER_TIMER_SETTINGS"] == "1" {
-      openGymTimer(GymTimerLaunch(voice: voice, settings: true, dial: dial), from: "hook")
-    } else if let dial {
-      openGymTimer(GymTimerLaunch(preset: CustomPreset.id, voice: voice, dial: dial), from: "hook")
-    }
-    // Places (docs/TESTING.md): import first, so the other hooks see the imported trail.
-    if let spec = env["GRABBER_IMPORT_DB"], !spec.isEmpty {
-      // "<file>[,recent]": a path, absolute or under Documents; "recent" shifts it by whole days into the last 24 hours.
-      let parts = spec.split(separator: ",").map(String.init)
-      let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-      let url = parts[0].hasPrefix("/") ? URL(fileURLWithPath: parts[0]) : docs.appendingPathComponent(parts[0])
-      places.importDatabase(url, from: "hook", recent: parts.dropFirst().contains("recent"))
-    }
-    if let spec = env["GRABBER_RETENTION"], let days = Int(spec) {
-      places.setRetention(days, from: "hook")
-    }
-    if let spec = env["GRABBER_TRACKING"], !spec.isEmpty {
-      tracker.setTracking(spec == "on", from: "hook")
-    }
-    if let spec = env["GRABBER_PLACES"], !spec.isEmpty {
-      // "open" opens the screen; "map" also opens the map full screen; "map,unnamed" then opens the card of the
-      // longest unnamed place once the trail is read, and "map,unnamed,name" its naming card (story 056).
-      let parts = spec.split(separator: ",").map(String.init)
-      openPlaces(from: "hook")
-      if parts.first == "map" { showPlacesMap = true }
-      // "open,edit:<name>" opens that known place's screen, for a screenshot of its icon picker (story 057).
-      if let edit = parts.first(where: { $0.hasPrefix("edit:") }) {
-        let name = String(edit.dropFirst(5))
-        if let place = places.knownPlaces.first(where: { $0.name == name }) { places.edit(place, from: "hook") }
-      }
-      if parts.dropFirst().contains("unnamed") {
-        Task {
-          for _ in 0..<100 where places.loading || places.unnamed.isEmpty {
-            try? await Task.sleep(for: .milliseconds(200))
-          }
-          guard let place = places.unnamed.first else { return }
-          places.selectUnnamed(place.placeId, from: "hook")
-          if parts.contains("name") { places.startNaming(place) }
-        }
-      }
-    }
-    if env["GRABBER_EXPORT"] == "1" {
-      // Prepares the file as Export database does, without the share sheet a script cannot dismiss.
-      places.prepareExport(from: "hook")
-      places.exportFile = nil
-    }
-    if let mode = env["GRABBER_DRILL"].flatMap(StackDrill.Mode.init) {
-      // Story 220: the card screen with *Drill the stack* already tapped, in that direction.
-      drillOnOpen = mode
-      openCard(think: false, from: "hook")
-    }
-    if env["GRABBER_COCKPIT"] == "open" { openCockpit(from: "hook") }
-    if let board = env["GRABBER_BOARD_FIXTURE"], !board.isEmpty {
-      WhiteboardStore(log: log, device: whiteboardDevice).addFixture(
-        board, from: env["GRABBER_BOARD_FIXTURE_FROM"], oldInk: env["GRABBER_BOARD_FIXTURE_OLD_INK"].flatMap(Int.init))
-    }
-    if env["GRABBER_WHITEBOARD"] == "open" { openWhiteboard(from: "hook") }
-    if env["GRABBER_WHATS_NEW"] == "open" { openWhatsNew(from: "hook") }
-    if env["GRABBER_HOME"] == "settings" { openHomeSettings() }
-    if let mix = env["GRABBER_SUPERMIX"].flatMap(WorkoutSupermix.Mix.init(rawValue:)) {
-      openWorkoutSupermix(from: "hook", mix: mix)
-    }
-    // #305: three Inbox items as the share extension writes them (never sent), and the Inbox opened.
-    if env["GRABBER_INBOX_FIXTURE"] == "1" { inbox.addFixture() }
-    if env["GRABBER_INBOX"] == "open" { openInbox(from: "hook") }
-    if let send = env["GRABBER_CHAT_SEND"], !send.isEmpty {
-      // Chat: "<thread>|<text>" written in that thread as the compose bar would ("new|<text>" starts one).
-      let parts = send.split(separator: "|", maxSplits: 1).map(String.init)
-      var draft = InboxDraft()
-      draft.text = parts.count > 1 ? parts[1] : ""
-      do {
-        try chat.send(&draft, thread: parts[0] == "new" ? nil : parts[0])
-      } catch {
-        log.event("error", ["where": "chat_hook", "message": "\(error)"])
-      }
-    }
-    if let send = env["GRABBER_CHAT_SEND_FILE"], !send.isEmpty {
-      // #633: "<thread>|<path>" attached and sent as the bar would; the document picker can't be driven from a script.
-      let parts = send.split(separator: "|", maxSplits: 1).map(String.init)
-      do {
-        var draft = InboxDraft()
-        if case .file(let file) = try ChatFile.read(URL(fileURLWithPath: parts.last ?? "")) { draft.file = file }
-        try chat.send(&draft, thread: parts[0] == "new" ? nil : parts[0])
-      } catch let problem as ChatFile.Problem {
-        log.event("error", problem.logFields.merging(["where": "chat_hook"]) { _, new in new })
-      } catch {
-        log.event("error", ["where": "chat_hook", "message": "\(error)"])
-      }
-    }
-    if env["GRABBER_CHAT_SEND_AGAIN"] == "1" {
-      // Story 489: every refused file sent again, as a tap on its Send again would.
-      inbox.reload()
-      for item in inbox.items where item.canSendAgain { inbox.sendAgain(item) }
-    }
-    if env["GRABBER_CHAT_NEW"] == "open" || env["GRABBER_CHAT_NEW"] == "voice" {
-      // #536: Chat with its + already tapped, a new thread on screen; #637: `voice`, the button beside it.
-      openInbox(from: "hook")
-      chat.openNewChat(from: "hook", voice: env["GRABBER_CHAT_NEW"] == "voice")
-    }
-    // Story 270: an archive run now, to GRABBER_ARCHIVE_URL (a simulator or a Mac build sends nowhere else).
-    if env["GRABBER_ARCHIVE"] == "run" { archive.run(reason: "hook") }
-    if let bridge = env["GRABBER_CALL"], !bridge.isEmpty {
-      // A call to that bridge (the smoke run's fake one), hung up after GRABBER_CALL_SECONDS (default 8).
-      openCall(from: "hook")
-      let seconds = Double(env["GRABBER_CALL_SECONDS"] ?? "") ?? 8
-      Task {
-        try? await Task.sleep(for: .seconds(1))
-        call.start(from: "hook")
-        try? await Task.sleep(for: .seconds(seconds))
-        if call.snapshot.isActive { call.hangUp(from: "hook") }
-      }
-    }
-    if let mode = env["GRABBER_MIRROR"], !mode.isEmpty {
-      // Today on screen, a grab of the fixture week (moved to this week), both exports written to
-      // Documents/exports/; GRABBER_METRIC=<key> then opens that metric's sheet, for a screenshot.
-      mirror.hookStatus = "running"  // before Today appears, so its own grab waits for the hook's
-      openToday(from: "hook")
-      let metric = env["GRABBER_METRIC"].flatMap(MetricKey.init(rawValue:))
-      Task {
-        await mirror.runFixtureHook(mode)
-        if let metric { openMetric(metric, from: "hook") }
-      }
-    }
-    if let link = env["GRABBER_LINK"], let url = URL(string: link) {
-      // As if iOS had opened the link: simctl openurl stops at a confirmation a script cannot tap.
-      open(url: url)
-    }
-    // GRABBER_SHAKE_AFTER (a shake after that many seconds, over whatever is up: #182) and GRABBER_BUG ("a|b",
-    // reports saved with no dialog) are BugKit's hooks under this app's prefix.
-    reporter.runLaunchHooks(env)
   }
 }
 
