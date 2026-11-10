@@ -52,7 +52,8 @@ public enum AudioAsk: String, CaseIterable, Sendable {
 
 /// What the floor says when asked.
 public enum AudioDecision: Equatable, Sendable {
-  /// The holder pauses or stops; `to` is the asker as the holder's log line names it.
+  /// The holder pauses or stops. `to` is the asker as the timer's `timer_yield` and the song's `pause` lines log it;
+  /// chat's dictation takes no name (it only ever yields to a call, and logs its own `why: call_started`).
   case yield(AudioUser, to: String)
   /// The asker goes without the session while this holder has it: it waits, stays silent or says why.
   case refuse(by: AudioUser)
@@ -67,7 +68,7 @@ public struct AudioRule: Equatable, Sendable {
   public enum Enforcer: Equatable, Sendable {
     /// AppModel asks the floor and carries the decision out.
     case appModel
-    /// The class checks for itself, as it did before the table; the floor is not asked.
+    /// The class checks for itself, as it did before the table. The row is documentation: `decide` never returns it.
     case itsOwnClass
   }
 
@@ -84,6 +85,7 @@ public enum AudioFloor {
   public static let rules: [AudioRule] = [
     rule(.callScreenOpens, .timer, .holderYields(to: "call"), "AppModel.swift:767 openCall (story 191)"),
     rule(.callStarts, .song, .holderYields(to: "call"), "AppModel.swift:184 call.willStart (#197)"),
+    // `to` goes nowhere on the chat rows: ChatVoiceModel.yieldToCall takes no name.
     rule(.callStarts, .chatVoice, .holderYields(to: "call"), "AppModel.swift:186 call.willStart (#448, #546)"),
     rule(
       .callWentLive, .chatVoice, .holderYields(to: "call"), "ChatVoiceModel.swift:207 callChanged (#448)",
@@ -106,15 +108,22 @@ public enum AudioFloor {
     rule(.audioReset, .call, .askerRefused, "AppModel.swift:694 resetAudio, DiagnosticsView.swift:472 (story 149)"),
   ]
 
-  /// The holders whose having the session refuses someone: the only ones `decide` asks about.
-  public static let refusers: Set<AudioUser> = Set(rules.filter { $0.outcome == .askerRefused }.map(\.holder))
+  /// What `decide` works from: the rows AppModel carries out. An own-class row is never returned, so asking the floor
+  /// at such a moment does nothing rather than half of it.
+  static let asked: [AudioRule] = rules.filter { $0.enforcedBy == .appModel }
 
-  /// The decisions for `ask`, in the order to carry them out. The first holder that refuses is the whole answer:
+  /// Every holder `decide` can ask `isHolding` about: the ones that refuse an asker in a row AppModel carries out.
+  /// For one ask it asks only about those with a refusal row for that ask. Whoever answers `isHolding` (AppModel's
+  /// `holdsAudio`) must answer truthfully for each of these: a new one here needs a case there.
+  public static let refusers: Set<AudioUser> = Set(asked.filter { $0.outcome == .askerRefused }.map(\.holder))
+
+  /// The decisions for `ask`, in the order to carry them out, from the rows AppModel enforces only. The first holder
+  /// that refuses is the whole answer:
   /// nothing yields to an asker that goes without. Otherwise every holder with a yield rule is asked to yield,
   /// whether or not it has the session: each knows best whether it is sounding and ignores the ask when it is not.
   /// So `isHolding` is asked only about the refusing holders, in table order, and no further than the first yes.
   public static func decide(_ ask: AudioAsk, isHolding: (AudioUser) -> Bool) -> [AudioDecision] {
-    let mine = rules.filter { $0.ask == ask }
+    let mine = asked.filter { $0.ask == ask }
     if let refusal = mine.first(where: { $0.outcome == .askerRefused && isHolding($0.holder) }) {
       return [.refuse(by: refusal.holder)]
     }
