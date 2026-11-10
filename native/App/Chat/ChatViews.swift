@@ -980,18 +980,30 @@ private struct ChatImage: View {
   }
 }
 
-/// Links in a message are tappable; nothing else is interpreted (a message is never Markdown).
+/// Links in a message are tappable; nothing else is interpreted (a message is never Markdown). A lone PR or a blog
+/// preview reads short, the word itself the link (story 743, `ChatBubbleLinks`).
 enum ChatText {
   static func linked(_ text: String) -> AttributedString {
     var out = AttributedString(text)
     guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return out }
+    let short = ChatBubbleLinks.labels(in: text)
     let ns = text as NSString
-    for match in detector.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
+    // Last first, so a link read short leaves the earlier ones where they were.
+    for match in detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).reversed() {
       guard let url = match.url, let range = Range(match.range, in: text),
         let lower = AttributedString.Index(range.lowerBound, within: out),
         let upper = AttributedString.Index(range.upperBound, within: out)
       else { continue }
-      out[lower..<upper].link = url
+      let written = String(text[range])
+      let link = ChatLinks.trimmed(written)
+      if let label = short[link], let target = URL(string: link) {
+        var piece = AttributedString(label)
+        piece.link = target
+        piece.append(AttributedString(String(written.dropFirst(link.count))))
+        out.replaceSubrange(lower..<upper, with: piece)
+      } else {
+        out[lower..<upper].link = url
+      }
     }
     return out
   }

@@ -56,13 +56,18 @@ public enum ChatLinks {
   }
 
   private static func found(in text: String, _ finder: Finder) -> [ChatLink] {
+    written(in: text, finder).map(\.link)
+  }
+
+  /// Each link with the words it was written as, its sentence punctuation dropped (`trimmed`).
+  static func written(in text: String, _ finder: Finder) -> [(written: String, link: ChatLink)] {
     finder.written(in: text).compactMap { match in
       let written = trimmed(match)
       let lower = written.lowercased()
       guard lower.hasPrefix("https://") || lower.hasPrefix("http://"), let url = URL(string: written),
         let host = url.host?.lowercased(), !host.isEmpty
       else { return nil }
-      return link(url, host: host)
+      return (written: written, link: link(url, host: host))
     }
   }
 
@@ -81,7 +86,7 @@ public enum ChatLinks {
 
   #if canImport(Darwin)
     /// What NSDataDetector calls a link, as written.
-    private struct Finder {
+    struct Finder {
       let detector: NSDataDetector
 
       init?() {
@@ -104,7 +109,7 @@ public enum ChatLinks {
     /// sentence, as it does for the detector. The same tests run on both, but only the Mac's say the app is right.
     /// ponytail: a link the detector finds without a scheme never counts anyway; a link with a space in it would need
     /// the detector's own rules.
-    private struct Finder {
+    struct Finder {
       init?() {}
 
       func written(in text: String) -> [String] {
@@ -142,7 +147,7 @@ public enum ChatLinks {
 
   /// Ends a sentence or wraps the link, so it is not part of it: a full stop, quotes, backticks, a bold mark's stars,
   /// a closing bracket with no opening one.
-  static func trimmed(_ written: String) -> String {
+  public static func trimmed(_ written: String) -> String {
     var s = Substring(written)
     while let last = s.last {
       if ".,;:!?'\"`*~>".contains(last) {

@@ -2563,3 +2563,22 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** the chat from two hours ago is the first row and the only one marked *Same link*
 
 ---
+
+### User Story 743:
+
+- **Summary:** A message's PR and blog links read short in its bubble
+- **Status:** native app only: implemented on branch `chat-short-link-labels`; `ChatBubbleLinksTests` (host) written but not run (no Swift toolchain on the Linux box that built it, no Mac); not yet seen on the simulator or the phone
+- **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, reading Larry's reply that links the PR he opened and a blog preview
+- **I want to** see *PR* and *Preview* where the long addresses were
+- **so that** the message reads as words, and the links are still one tap away
+
+#### Acceptance Criteria:
+- **Scenario:** One PR and one preview, then two PRs
+- **Given:** a message "Opened https://github.com/idvorkin/context-grabber/pull/734, preview at http://c-5004.squeaker-teeth.ts.net:8445/ai-journal." and another linking PRs #734 and #736
+- **When:** I open the thread
+- **Then:** the first bubble reads "Opened PR, preview at Preview." with *PR* and *Preview* tappable to their full addresses; the second reads *PR #734* and *PR #736*; the chips under the title are unchanged, and *Copy* on either bubble copies the full addresses
+
+---

@@ -145,6 +145,16 @@ strip of chips under the thread's title, so the PR Larry opened an hour ago is o
 - **No links, no strip.** A thread with none shows nothing extra; the strip appears as soon as a message with a link
   arrives, and a new chat gains it once its first message with a link is on the Cockpit.
 - **Links in the bubbles stay tappable** as they are; press and hold on a bubble works as ever.
+- **Short links in a bubble** (Igor, 2026-11-10: *"if it's just a single PR, might as well just say PR. Same with
+  Preview on idvorkin"*; *"Your PR chips are already perfect"*, so the chips do not change). Inside a message's own
+  words, a pull request link reads *PR* when it is the only pull request that message links (the same PR written
+  twice, or to two of its pages, is still one); when the message links several, each reads its chip's words,
+  *PR #734*, and two with the same number from different repositories read the repository too
+  (*context-grabber PR #734*). A link to Igor's blog — *idvork.in*, *idvorkin.github.io*, or a preview of it on the
+  tailnet (the Cockpit's host on a port from 8400 to 8499) — reads *Preview*, or *Preview: ai-journal* (the last part
+  of its path, as its chip has it) when the message links more than one such page. Every other link shows as written.
+  The short word is the link: tapping it opens the full address; punctuation after it stays as written; *Copy* copies
+  the message as written, full addresses included.
 
 **Links in the thread list on an iPad or a Mac** (#736). Where the screen is wide — an iPad in full width (or a wide
 enough window) and the Mac — each row in the list also shows that thread's three newest link chips under its last
