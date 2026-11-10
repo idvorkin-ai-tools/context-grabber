@@ -217,10 +217,19 @@ public struct InboxSender: Sendable {
     do {
       switch outcome {
       case .sent(let thread, let duplicate):
-        try store.markSent(item.id, at: Int64(now().timeIntervalSince1970 * 1000), thread: thread)
+        let sentAt = Int64(now().timeIntervalSince1970 * 1000)
+        try store.markSent(item.id, at: sentAt, thread: thread)
         fields.merge(["action": "sent", "duplicate": duplicate, "thread": thread]) { $1 }
         report.sent.append(item.id)
         if let board = item.whiteboard?.board { threads.set(thread, board: board) }
+        // #794: a link that started this chat; the share card recommends the chat when the link is shared again.
+        if item.kind == .link, item.thread == nil, let url = item.url {
+          do {
+            fields["link_start"] = try store.recordLinkStart(url: url, thread: thread, at: sentAt)
+          } catch {
+            fields["link_start_error"] = "\(error)"
+          }
+        }
       case .refused(let status, let reason):
         try store.markRefused(item.id, reason: reason)
         fields.merge(["action": "refused", "status": status, "reason": reason]) { $1 }
