@@ -6,7 +6,7 @@ import ContextCore
 import UIKit
 
 @MainActor
-final class AppSessionHost: SessionHost {
+final class AppSessionHost: @preconcurrency SessionHost {
   private let log: SessionLog
   private let liveActivity: LiveActivityController
   private var clock: Timer?
