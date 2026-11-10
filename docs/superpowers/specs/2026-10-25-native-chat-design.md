@@ -319,6 +319,9 @@ and it is the same dictation: Apple's speech recognizer, on the phone when it ca
 - **A tap starts it.** The button turns into a red stop button while it listens, and the words appear in the *Message*
   field as he speaks, after anything already typed there. A second tap stops it and the last words settle. A quiet
   line under the field says when voice input is starting or finishing.
+- **No typing while it listens.** The field is dimmed and takes no typing from the first word until the last words
+  have settled: each new word rewrites the field from what was there at the tap, so anything typed meanwhile would
+  be lost. Stop, then edit.
 - **Nothing is sent by speaking.** The words only fill the field; the share goes when he taps *Start a chat* or *Send*.
 - **Sending mid-recording** sends what is in the field, the words heard so far, and stops the recording, as a Send
   from a thread's bar does (#546). *Cancel*, or swiping the card away, stops it and keeps nothing.

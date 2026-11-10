@@ -41,6 +41,12 @@ final class ShareViewController: UIViewController {
     Task { await recent.load() }
   }
 
+  /// The host taking the card away, however it does: SwiftUI's onDisappear is not proven to fire then.
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    dictation.stop(why: "closed")
+  }
+
   /// Nil when kept; otherwise why not, for the card to show.
   private func add(note: String, thread: String?) -> String? {
     guard let store = InboxStore.shared(cockpit: ChatCockpit.address(override: nil)) else {
@@ -202,7 +208,9 @@ struct ShareCard: View {
         Section { preview }
         Section("Message") {
           HStack(alignment: .top) {
+            // Off while it listens: each partial result rewrites the field from the note at the tap, typing and all.
             TextField("Optional", text: $message, axis: .vertical).lineLimit(1...4).accessibilityLabel("Message")
+              .disabled(dictation.listening || dictation.processing)
             micButton
           }
           if dictation.starting || dictation.processing {
@@ -285,10 +293,11 @@ struct ShareCard: View {
       case .notDetermined: "undetermined"
       @unknown default: "unknown"
       }
-    let info = Bundle.main.infoDictionary
+    // BugAppInfo.buildLine's shape, "1.2 (34) abc1234"; GitSha is the app's key, in this extension's Info.plist too.
+    let info = { Bundle.main.object(forInfoDictionaryKey: $0) as? String ?? "unknown" }
     return BugProblem(
       message: message, context: "ShareCard.dictation",
-      build: info?["CFBundleShortVersionString"] as? String ?? "unknown", extra: extra)
+      build: "\(info("CFBundleShortVersionString")) (\(info("CFBundleVersion"))) \(info("GitSha"))", extra: extra)
   }
 
   private var destinations: some View {
