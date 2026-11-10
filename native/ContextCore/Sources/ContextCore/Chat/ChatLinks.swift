@@ -56,18 +56,19 @@ public enum ChatLinks {
   }
 
   private static func found(in text: String, _ finder: Finder) -> [ChatLink] {
-    written(in: text, finder).map(\.link)
+    located(in: text, finder).map(\.link)
   }
 
-  /// Each link with the words it was written as, its sentence punctuation dropped (`trimmed`).
-  static func written(in text: String, _ finder: Finder) -> [(written: String, link: ChatLink)] {
-    finder.written(in: text).compactMap { match in
-      let written = trimmed(match)
+  /// Each link with where it is written in `text`, its sentence punctuation left outside (`trimmed`).
+  static func located(in text: String, _ finder: Finder) -> [(range: Range<String.Index>, link: ChatLink)] {
+    finder.ranges(in: text).compactMap { match in
+      let written = trimmed(String(text[match]))
       let lower = written.lowercased()
       guard lower.hasPrefix("https://") || lower.hasPrefix("http://"), let url = URL(string: written),
         let host = url.host?.lowercased(), !host.isEmpty
       else { return nil }
-      return (written: written, link: link(url, host: host))
+      let end = text.index(match.lowerBound, offsetBy: written.count)
+      return (range: match.lowerBound..<end, link: link(url, host: host))
     }
   }
 
@@ -96,11 +97,9 @@ public enum ChatLinks {
         self.detector = detector
       }
 
-      func written(in text: String) -> [String] {
-        let ns = text as NSString
-        return detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).map {
-          ns.substring(with: $0.range)
-        }
+      func ranges(in text: String) -> [Range<String.Index>] {
+        let all = NSRange(location: 0, length: (text as NSString).length)
+        return detector.matches(in: text, range: all).compactMap { Range($0.range, in: text) }
       }
     }
   #else
@@ -112,8 +111,8 @@ public enum ChatLinks {
     struct Finder {
       init?() {}
 
-      func written(in text: String) -> [String] {
-        var out: [String] = []
+      func ranges(in text: String) -> [Range<String.Index>] {
+        var out: [Range<String.Index>] = []
         let chars = Array(text)
         var i = 0
         while i < chars.count {
@@ -121,7 +120,10 @@ public enum ChatLinks {
           if startsWord, let scheme = Self.scheme(chars, at: i) {
             var end = i + scheme
             while end < chars.count, !chars[end].isWhitespace, !"<>\"".contains(chars[end]) { end += 1 }
-            if end > i + scheme { out.append(String(chars[i..<end])) }
+            if end > i + scheme {
+              let lower = text.index(text.startIndex, offsetBy: i)
+              out.append(lower..<text.index(lower, offsetBy: end - i))
+            }
             i = end
           } else {
             i += 1
