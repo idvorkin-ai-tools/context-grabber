@@ -42,6 +42,11 @@ status=${PIPESTATUS[0]}
 pkill -P "$watchdog" 2>/dev/null
 kill "$watchdog" 2>/dev/null
 wait "$watchdog" 2>/dev/null
+# Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py).
+if grep -q "^Test Case '" "$log"; then
+  "$(dirname "$0")/ui-timings.py" "$log" --run "$name" --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" ||
+    echo "ui-timings could not read $log" >&2
+fi
 if [ -e "$stopped" ]; then
   rm -f "$stopped"
   echo "xcodebuild hung after the tests finished, so it was stopped; the log has the result: $log" >&2

@@ -63,6 +63,8 @@ native-test-host:
     scripts/native/test-tile-art.sh
     # Story 683: which rungs and UI test classes a change gets, from the real script's dry run.
     scripts/native/test-ladder-map.sh
+    # Where a UI test run's time went, from a real run's log.
+    scripts/native/test-ui-timings.sh
 
 # The Linux rung, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on
 # Linux, then the package and its tests cross-built for macOS, iOS and the simulator with a Darwin Swift SDK.
