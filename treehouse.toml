@@ -1,0 +1,13 @@
+# The worktree pool (https://github.com/kunchenguid/treehouse; docs/TESTING.md, "A worktree that keeps its build").
+# A slot is a worktree that is leased, worked in, returned and leased again. Its git-ignored native/Build and
+# generated project stay in it across returns, so disk stays bounded at one build folder per slot
+# and the next branch's build reuses it (a modest ~30 s saving; docs/TESTING.md has the timings).
+
+# Four slots: enough for the agents that build at once on this Mac, and the bound on disk (four build folders).
+max_trees = 4
+
+# Named so a missing main is an error, never a quiet fall back to whatever branch the checkout is on.
+base_branch = "main"
+
+# No hooks here: treehouse ignores hooks in a repository's file. None are needed. Returning a slot runs
+# `git clean -fd` without -x, which leaves ignored files alone.
