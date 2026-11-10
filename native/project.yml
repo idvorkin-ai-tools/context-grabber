@@ -151,6 +151,8 @@ targets:
         SKIP_INSTALL: YES
   # The share extension (#305, story 038): anything shared from another app lands in the Inbox in the App Group, for
   # the app to send to Larry. Its one network question is which recent chats to offer, and nothing waits for it (#587).
+  # BugKit is here for the card's mic (#793, story 546): its dictation and its copyable error, not the reporter, which
+  # an extension cannot present. The two usage strings the mic needs are in Share/Info.plist.
   GrabberShare:
     type: app-extension
     platform: iOS
@@ -163,6 +165,7 @@ targets:
           - group.com.idvorkin.grabbernative
     dependencies:
       - package: ContextCore
+      - package: BugKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.idvorkin.grabbernative.share

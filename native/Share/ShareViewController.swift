@@ -1,10 +1,14 @@
 //  #305, story 038: Grabber Native in any app's share sheet. A small card previews what is shared (a link, text or
 //  one image), takes an optional message (#673), and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
 //  The app sends it to Larry later (story 039). The one question asked of the network here is which recent chats to
-//  offer beside *New chat* (#587, stories 495–499), and nothing waits for its answer. No mic on the card: Apple's
-//  guidance keeps an app extension off the microphone (#673, story 546, Igor's to decide).
+//  offer beside *New chat* (#587, stories 495–499), and nothing waits for its answer. The message's mic button is
+//  BugKit's NoteDictation, the problem report's (#793, story 546). Apple's guidance keeps an app extension off the
+//  microphone; whether iOS lets this one listen is the phone's to answer, and a refusal is a copyable line.
 
+import AVFAudio
+import BugKit
 import ContextCore
+import Speech
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -12,6 +16,9 @@ import UniformTypeIdentifiers
 final class ShareViewController: UIViewController {
   private let shared = Shared()
   private let recent = RecentChats()
+  // ponytail: the extension keeps no session log, so the dictation's events go nowhere and a failure's evidence is
+  // the copied problem (its state and both permissions); give it a log in the App Group if that is not enough.
+  private let dictation = NoteDictation(logger: { _, _ in })
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -19,6 +26,7 @@ final class ShareViewController: UIViewController {
       rootView: ShareCard(
         shared: shared,
         recent: recent,
+        dictation: dictation,
         add: { [weak self] note, thread in
           guard let self else { return nil }
           return self.add(note: note, thread: thread)
@@ -31,6 +39,12 @@ final class ShareViewController: UIViewController {
     card.didMove(toParent: self)
     Task { await shared.load(extensionContext?.inputItems as? [NSExtensionItem] ?? []) }
     Task { await recent.load() }
+  }
+
+  /// The host taking the card away, however it does: SwiftUI's onDisappear is not proven to fire then.
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    dictation.stop(why: "closed")
   }
 
   /// Nil when kept; otherwise why not, for the card to show.
@@ -51,6 +65,8 @@ final class ShareViewController: UIViewController {
   }
 
   private func close(cancelled: Bool) {
+    // Sent or cancelled mid-recording: the message took the words so far, and nothing more is wanted (story 546).
+    dictation.stop(why: cancelled ? "cancel" : "sent")
     if cancelled {
       extensionContext?.cancelRequest(withError: NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError))
     } else {
@@ -176,6 +192,7 @@ final class RecentChats: ObservableObject {
 struct ShareCard: View {
   @ObservedObject var shared: Shared
   @ObservedObject var recent: RecentChats
+  @ObservedObject var dictation: NoteDictation
   let add: (String, String?) -> String?
   let cancel: () -> Void
   /// What he writes on the card: it lands as a chat message (#673), kept as the item's note.
@@ -190,7 +207,17 @@ struct ShareCard: View {
       Form {
         Section { preview }
         Section("Message") {
-          TextField("Optional", text: $message, axis: .vertical).lineLimit(1...4).accessibilityLabel("Message")
+          HStack(alignment: .top) {
+            // Off while it listens: each partial result rewrites the field from the note at the tap, typing and all.
+            TextField("Optional", text: $message, axis: .vertical).lineLimit(1...4).accessibilityLabel("Message")
+              .disabled(dictation.starting || dictation.listening || dictation.processing)
+            micButton
+          }
+          if dictation.starting || dictation.processing {
+            Text(dictation.starting ? "Starting voice input…" : "Finishing voice input…")
+              .font(.caption).foregroundStyle(.secondary)
+          }
+          if let voiceProblem { BugProblemView(problem: voiceProblem) }
         }
         destinations
         if let problem = shared.problem {
@@ -203,14 +230,16 @@ struct ShareCard: View {
           }
         }
         if let failure {
-          // ponytail: no BugKit in the extension, so the copyable error is a selectable line and a Copy button;
-          // link BugKit here if the extension grows.
+          // ponytail: the card's older errors keep their selectable line and Copy button; BugKit is linked now (#793),
+          // so they can become BugProblemViews in a change of their own.
           Section {
             Text(failure).textSelection(.enabled)
             Button("Copy") { UIPasteboard.general.string = "ShareCard.add: \(failure)" }
           }
         }
       }
+      // A swipe down closes the card without Cancel.
+      .onDisappear { dictation.stop(why: "closed") }
       .navigationTitle("Grabber Native")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -224,6 +253,51 @@ struct ShareCard: View {
         }
       }
     }
+  }
+
+  /// The problem report's mic button (BugKit's BugReportSheet), on the message: a tap dictates after what is typed.
+  private var micButton: some View {
+    Button {
+      let field = $message
+      dictation.toggle(note: message) { field.wrappedValue = $0 }
+    } label: {
+      Image(systemName: dictation.listening ? "stop.circle.fill" : "mic.circle.fill")
+        .font(.title)
+        .symbolEffect(.pulse, isActive: dictation.listening)
+        .foregroundStyle(dictation.listening ? Color.red : Color.accentColor)
+    }
+    // Borderless, or the Form gives the whole row to the button and a tap in the field starts dictation.
+    .buttonStyle(.borderless)
+    .disabled(dictation.starting || dictation.processing)
+    .accessibilityLabel(dictation.listening ? "Stop dictating" : "Speak the message")
+    .accessibilityIdentifier("share-mic")
+  }
+
+  /// What stopped the dictation, copyable, with what the phone says of both permissions: the evidence for whether an
+  /// extension may listen at all (#793).
+  private var voiceProblem: BugProblem? {
+    guard let message = dictation.problem else { return nil }
+    var extra = dictation.problemState
+    extra["mic_permission"] =
+      switch AVAudioApplication.shared.recordPermission {
+      case .granted: "granted"
+      case .denied: "denied"
+      case .undetermined: "undetermined"
+      @unknown default: "unknown"
+      }
+    extra["speech_permission"] =
+      switch SFSpeechRecognizer.authorizationStatus() {
+      case .authorized: "authorized"
+      case .denied: "denied"
+      case .restricted: "restricted"
+      case .notDetermined: "undetermined"
+      @unknown default: "unknown"
+      }
+    // BugAppInfo.buildLine's shape, "1.2 (34) abc1234"; GitSha is the app's key, in this extension's Info.plist too.
+    let info = { Bundle.main.object(forInfoDictionaryKey: $0) as? String ?? "unknown" }
+    return BugProblem(
+      message: message, context: "ShareCard.dictation",
+      build: "\(info("CFBundleShortVersionString")) (\(info("CFBundleVersion"))) \(info("GitSha"))", extra: extra)
   }
 
   private var destinations: some View {

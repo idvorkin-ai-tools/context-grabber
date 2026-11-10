@@ -2171,20 +2171,20 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 546:
 
 - **Summary:** Speaking a message on the share card
-- **Status:** not implemented: Igor to pick the way, [#673](https://github.com/idvorkin/context-grabber/issues/673). Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted); not tried on a phone
-- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
+- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can. Stopping, sending, cancelling and a refusal are stories 555–558
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673), [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client sharing a page with my hands full
-- **I want to** say my message on the card, as I do in a chat
+- **I want to** say my message on the card with a mic button, as I do in a problem report
 - **so that** what I think about the page goes with it without typing
 
 #### Acceptance Criteria:
 - **Scenario:** Saying the message
 - **Given:** the share card is open on a page from Safari
-- **When:** I start speaking from the card
-- **Then:** my words appear in the *Message* field as I speak and are not sent until I tap *Start a chat* or *Send*, and anything that stops it is a copyable line on the card
+- **When:** I tap the mic button on the *Message* field and speak
+- **Then:** the button becomes a red stop button, my words appear in the *Message* field after anything I typed, the field takes no typing while it listens, and nothing is sent until I tap *Start a chat* or *Send*
 
 ---
 
@@ -2350,6 +2350,86 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a thread with PR chips, offline or with the Cockpit down
 - **When:** I open the thread
 - **Then:** the chips show their numbers alone (or the words they last had) and no problem is shown; the session log has one `pr_states_failed` with the reason
+
+---
+
+### User Story 555:
+
+- **Summary:** Stopping the share card's dictation
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client speaking a message on the share card
+- **I want** a tap on the stop button to end the recording
+- **so that** I can read and fix the message before it goes
+
+#### Acceptance Criteria:
+- **Scenario:** Stopping
+- **Given:** the card is listening
+- **When:** I tap the stop button
+- **Then:** the last words settle in the field, the mic button comes back, and the field takes typing again
+
+---
+
+### User Story 556:
+
+- **Summary:** Sending from the share card while it listens
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client speaking a message on the share card
+- **I want** *Start a chat* or *Send* to work while the card is still listening
+- **so that** I do not have to stop the recording first
+
+#### Acceptance Criteria:
+- **Scenario:** Sending while it listens
+- **Given:** the card is listening and some words are in the field
+- **When:** I tap *Start a chat* or *Send*
+- **Then:** the share goes with the words heard so far, the recording stops, and the card closes
+
+---
+
+### User Story 557:
+
+- **Summary:** Closing the share card while it listens
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client speaking a message on the share card
+- **I want** *Cancel*, or a swipe down, to stop the recording
+- **so that** nothing keeps listening after the card has gone
+
+#### Acceptance Criteria:
+- **Scenario:** Cancelling while it listens
+- **Given:** the card is listening
+- **When:** I tap *Cancel* or swipe the card away
+- **Then:** the recording stops, the card closes and nothing is kept
+
+---
+
+### User Story 558:
+
+- **Summary:** The share card says why it cannot listen
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
+- **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client speaking a message on the share card
+- **I want** a copyable line when the card cannot listen
+- **so that** one paste shows what stopped it, and I can still type the message
+
+#### Acceptance Criteria:
+- **Scenario:** The phone will not let the card listen
+- **Given:** a permission is off, or iOS refuses the card the microphone
+- **When:** I tap the mic button
+- **Then:** a line under the field says what stopped it, with a *Copy error* button whose copy names where it stopped, the build and both permissions' state, and I can still type the message and send it
 
 ---
 
