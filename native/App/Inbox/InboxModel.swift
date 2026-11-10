@@ -80,6 +80,11 @@ final class InboxModel: ObservableObject {
       log.event("error", ["where": "inbox_link_starts", "message": "\(error)"])
     }
     reload()
+    // #809: what the outbox still holds, each time the app starts or comes to the front.
+    if reason == "launch" || reason == "foreground" {
+      log.event(
+        "chat", ChatOutboxLook.whole(items, now: Int64(Date().timeIntervalSince1970 * 1000)).logFields(why: reason))
+    }
     announceNew()
     objectWillChange.send()
     outbox.send(reason: reason)

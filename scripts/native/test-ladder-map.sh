@@ -72,12 +72,19 @@ dry() { PATH="$fakes:$PATH" "$ladder" --dry-run "$@" >"$out" 2>&1; }
 # Every class the ladder can discover, by the parser its --all uses: a mapped class missing from it would run nothing.
 dry --all --changed docs/TESTING.md
 known=" $(sed -n 's/^rung 2 UI tests[^:]*: //p' "$out" | tr '\n' ' ') "
+# Ports the OS says are free: fixed ones collide when another worktree's pipeline runs this self-test at the same time,
+# and a fake Cockpit that cannot bind exits before the ladder's one-second check.
+read -r chat_port bridge_port board_port < <(python3 -c '
+import socket
+socks = [socket.socket() for _ in range(3)]
+for s in socks: s.bind(("127.0.0.1", 0))
+print(*(s.getsockname()[1] for s in socks))')
 run() {  # <env assignments...> -- <ladder arguments...>
   local vars=()
   while [ "$1" != "--" ]; do vars+=("$1"); shift; done
   shift
   rm -f "$MARKS"/*
-  env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT=18798 CHAT_BRIDGE_PORT=18797 WHITEBOARD_PORT=18799 \
+  env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
     XCODEBUILD_IDLE_POLL=1 ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 

@@ -2022,7 +2022,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** Yes or No to Larry's newest message sends that one word
 - **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host) and `ChatReactionUITests` (simulator: the fake's Larry repeats *Yes*); half-typed words staying in the bar and a *Yes* with no network follow from the code, not exercised on any rung; a real Larry waking on the phone not yet
-- **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
+- **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629), [#809](https://github.com/idvorkin/context-grabber/issues/809) (a sent message its thread never returns would make *Yes* go out quoted; the log's `chat` outbox_thread line is there to settle whether it happens)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -2042,7 +2042,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** Yes or No to an older message says which message it answers
 - **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host: the quote, its lines, the 280-character cut, a picture alone) and `ChatReactionUITests` (simulator: *No* on an older message reaches the fake under its quote); older because something newer still waits on the phone not exercised on any rung
-- **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
+- **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629), [#809](https://github.com/idvorkin/context-grabber/issues/809) (whether a sent message can count as still waiting for good; see story 519)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
