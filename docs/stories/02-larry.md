@@ -2171,7 +2171,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 546:
 
 - **Summary:** Speaking a message on the share card
-- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in COMMIT_SHA; host `just native-test` (format and lint only: the card is not compiled on the host). Not yet built for the simulator, and speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can
+- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9); host `just native-test` (format and lint only: the card is not compiled there) and a `swiftc` type check of the card as an extension against BugKit 0.3.11. Not yet built for the simulator, and speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can
 - **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673), [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
