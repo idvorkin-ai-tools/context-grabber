@@ -2436,7 +2436,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 559:
 
 - **Summary:** The share card recommends the chat this link started
-- **Status:** native app only: implemented in COMMIT794; verified by `ShareSameLinkTests` (host: a link sent as a new chat is remembered with the chat it started, that chat is recommended for the same link and listed first within the five, even from past the fifth place, and the `offered` log field names it); the card is not compiled on the host, and simctl cannot drive a share sheet, so the row on the card is not yet seen on the simulator or the phone
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: a link sent as a new chat is remembered with the chat it started, that chat is recommended for the same link and listed first within the five, even from past the fifth place, and the `offered` log field names it); the card is not compiled on the host, and simctl cannot drive a share sheet, so the row on the card is not yet seen on the simulator or the phone
 - **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
 - **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2456,7 +2456,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 740:
 
 - **Summary:** The same page is recognised however the other app dressed its address
-- **Status:** native app only: implemented in COMMIT794; verified by `ShareSameLinkTests` (host: `http` and `https`, capitals in the site, `www.`, a trailing slash, a `#` part, the order after the `?` and tracking tags all give one page; another path, port, site or `?v=` gives another); not yet seen on the simulator or the phone
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: `http` and `https`, capitals in the site, `www.`, a trailing slash, a `#` part, the order after the `?` and tracking tags all give one page; another path, port, site or `?v=` gives another); not yet seen on the simulator or the phone
 - **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
 - **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2476,7 +2476,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 741:
 
 - **Summary:** A link's chat is recommended for eight hours, and only while it is live
-- **Status:** native app only: implemented in COMMIT794; verified by `ShareSameLinkTests` (host: a chat started eight hours ago is recommended and one a little older is not; a Done or gone chat is not; the phone's note of a start is dropped past eight hours; text, a picture and an unread list recommend nothing); not yet seen on the simulator or the phone
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: a chat started eight hours ago is recommended and one a little older is not; a Done or gone chat is not; the phone's note of a start is dropped past eight hours; text, a picture and an unread list recommend nothing); not yet seen on the simulator or the phone
 - **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
 - **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2496,7 +2496,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 742:
 
 - **Summary:** Of several chats one link started, the newest live one is recommended
-- **Status:** native app only: implemented in COMMIT794; verified by `ShareSameLinkTests` (host: of three chats from one link the most recently started live one is chosen, a newer Done one passed over); not yet seen on the simulator or the phone
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: of three chats from one link the most recently started live one is chosen, a newer Done one passed over); not yet seen on the simulator or the phone
 - **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
 - **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
 
