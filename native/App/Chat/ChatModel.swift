@@ -61,6 +61,8 @@ final class ChatModel: ObservableObject {
   private let database: AppDatabase
   let cockpit: String
   private var poll: Task<Void, Never>?
+  /// #809: the `sent_pending` each thread's `outbox_thread` line last said.
+  private var outboxLogged: [String: Int] = [:]
 
   init(inbox: InboxModel, log: SessionLog, database: AppDatabase, cockpit: String) {
     self.inbox = inbox
@@ -268,6 +270,7 @@ final class ChatModel: ObservableObject {
 
   func open(_ key: String) {
     openThread = key
+    outboxLogged[key] = nil
     log.event(
       "ui",
       [
@@ -317,6 +320,7 @@ final class ChatModel: ObservableObject {
       if let last = rows.last, last.isError, last.id != before {
         log.event("chat", ["action": "reply_failed", "thread": key, "message": last.id, "skill": last.author ?? ""])
       }
+      logOutbox(key, rows)
       // A sent message the Cockpit's thread now holds is done with the outbox.
       let known = Set(rows.map(\.id))
       let delivered = inbox.items.filter { $0.status == .sent && $0.chatThread == key && known.contains($0.id) }
@@ -333,6 +337,15 @@ final class ChatModel: ObservableObject {
         key, CockpitReach.problem(error, otherwise: Self.threadFailure), why: error.localizedDescription)
       return false
     }
+  }
+
+  /// #809: the thread's share of the outbox, once per open and again when the sent items it does not hold change.
+  private func logOutbox(_ key: String, _ rows: [ChatMessage]) {
+    let look = ChatOutboxLook.thread(
+      key, items: inbox.items, messages: rows, now: Int64(Date().timeIntervalSince1970 * 1000))
+    guard outboxLogged[key] != look.sentPending else { return }
+    outboxLogged[key] = look.sentPending
+    log.event("chat", look.logFields(thread: key))
   }
 
   private static let threadFailure = "Could not read this chat from the Cockpit"
