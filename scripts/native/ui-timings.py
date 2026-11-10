@@ -21,7 +21,7 @@ CASE = re.compile(r"Test Case '-\[(\w+)\.(\w+) (\w+)\]' (started|passed|failed|s
 STEP = re.compile(r"^\s+t =\s+([\d.]+)s\s+(.*)$")
 # The activity lines that bring the app up, before the test's own first step.
 LAUNCH = re.compile(
-    r"Start Test|Set Up|Launch|Setting up automation|Wait for .* to idle|Terminate|Open |Find the Target Application"
+    r"(?:Start Test|Set Up|Launch |Setting up automation|Wait for .* to idle|Terminate |Open |Find the Target Application)"
 )
 GAP_S = 1.0
 
@@ -56,7 +56,7 @@ def summarise(case):
     steps = case.pop("steps")
     launch = 0.0
     for t, text in steps:
-        if not LAUNCH.search(text):
+        if not LAUNCH.match(text):
             launch = t
             break
     gaps = defaultdict(float)
@@ -68,7 +68,7 @@ def summarise(case):
         retries=sum("Retrying" in text for _, text in steps),
         attachments=sum("Added attachment" in text for _, text in steps),
         slow_gaps_s=round(sum(gaps.values()), 2),
-        gaps={k: round(v, 2) for k, v in sorted(gaps.items(), key=lambda kv: -kv[1])[:5]},
+        gaps={k: round(v, 2) for k, v in sorted(gaps.items(), key=lambda kv: -kv[1])},
     )
     return case
 

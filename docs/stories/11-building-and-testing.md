@@ -200,7 +200,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 745:
 
 - **Summary:** Every UI test run says where its time went
-- **Status:** implemented on branch native/ui-test-timings; verified on the host rung (`scripts/native/test-ui-timings.sh`, against a real whiteboard run's log)
+- **Status:** implemented in 28af189; verified on the host rung (`scripts/native/test-ui-timings.sh`, against a real whiteboard run's log)
 - **Issues:** [#826](https://github.com/idvorkin/context-grabber/issues/826)
 
 #### Use Case:
