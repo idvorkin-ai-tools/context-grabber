@@ -84,7 +84,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   while [ "$1" != "--" ]; do vars+=("$1"); shift; done
   shift
   rm -f "$MARKS"/*
-  env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT=$chat_port CHAT_BRIDGE_PORT=$bridge_port WHITEBOARD_PORT=$board_port \
+  env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
     XCODEBUILD_IDLE_POLL=1 ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
