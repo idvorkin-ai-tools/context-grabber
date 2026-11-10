@@ -1,6 +1,7 @@
 //  The Places screen (stories 040–053, 055): the map, the last seven days, the known places, tracking and
 //  retention, the copy / export / import actions. One screen where Context Grabber has a tab and a sheet.
 
+import BugKit
 import ContextCore
 import SwiftUI
 import UniformTypeIdentifiers
@@ -28,8 +29,11 @@ struct PlacesView: View {
           PlacesMapView(places: places, tracker: tracker, log: app.log, fullscreen: false) { app.showPlacesMap = true }
             .frame(height: 280)
             .listRowInsets(EdgeInsets())
-          if !places.status.isEmpty {
-            Text(places.status).font(.footnote).foregroundStyle(.secondary)
+          // A failure is copyable (story 059); progress, success and hints stay a plain line.
+          if let problem = places.problem {
+            BugProblemView(problem: problem, logger: app.bugLogger)
+          } else if !places.note.isEmpty {
+            Text(places.note).font(.footnote).foregroundStyle(.secondary)
           }
         }
 
@@ -84,7 +88,7 @@ struct PlacesView: View {
     .fileImporter(isPresented: $showImporter, allowedContentTypes: [.database, .item]) { result in
       switch result {
       case .success(let url): places.importDatabase(url, from: "picker")
-      case .failure(let error): places.status = "Could not open the file: \(error.localizedDescription)"
+      case .failure(let error): places.importPickFailed(error)
       }
     }
     // While the full-screen map is up it presents the naming card itself (a sheet cannot open under another).

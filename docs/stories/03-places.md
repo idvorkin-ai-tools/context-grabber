@@ -368,3 +368,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** Places is open and the phone has no location fix yet
 - **When:** I tap Copy or Find me
 - **Then:** both controls are on the map, dimmed; the tap asks for a fix and shows "Waiting for a GPS fix…" briefly; nothing is copied and the map does not move; once the fix arrives both brighten and work as before
+
+---
+
+### User Story 059:
+
+- **Summary:** A Places failure can be copied
+- **Status:** not implemented; asks: [#798](https://github.com/idvorkin/context-grabber/issues/798)
+- **Issues:** [#798](https://github.com/idvorkin/context-grabber/issues/798)
+- **Spec:** [native app, "Every failure on screen is copyable"](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+
+#### Use Case:
+- **As** someone whose import, export or place edit just failed on the phone, away from the Mac
+- **I want to** copy the failure with what Places was doing and the state around it
+- **so that** I can hand it over as it happened instead of retyping a line of grey text
+
+#### Acceptance Criteria:
+- **Scenario:** An import that is refused
+- **Given:** Places is open and I choose a file that is not a Context Grabber database
+- **When:** I tap Copy error under the map
+- **Then:** the clipboard holds the refusal, that it came from the Places import, the build, and the file's name with the error, while progress and success ("Sharing 12 KB…", "Added Home.") stay plain text with no button

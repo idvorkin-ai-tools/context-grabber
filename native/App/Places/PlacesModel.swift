@@ -2,6 +2,7 @@
 //  cards, the known places and what can be done to them, retention, the export and the import. ContextCore does
 //  the deciding; this owns the database, the log and the work off the main thread.
 
+import BugKit
 import ContextCore
 import CoreLocation
 import SwiftUI
@@ -42,8 +43,11 @@ final class PlacesModel: ObservableObject {
   @Published private(set) var pointCount = 0
   @Published private(set) var retentionDays = LocationStore.defaultRetentionDays
   @Published private(set) var loading = false
-  /// The last thing an action said (import, export, add place…), shown under the action.
-  @Published var status = ""
+  /// The last thing an action said that is not a failure (progress, success, a hint about the input), shown
+  /// under the map. Saying something new takes the last failure away.
+  @Published private(set) var note = "" { didSet { problem = nil } }
+  /// The last failure (#798, story 059): copyable, with the operation and the state that explains it.
+  @Published private(set) var problem: BugProblem?
   @Published var naming: NamingCard?
   /// Set when the export file is ready for the share sheet.
   @Published var exportFile: URL?
@@ -80,7 +84,9 @@ final class PlacesModel: ObservableObject {
   /// Reads the trail and recomputes everything; `reason` goes in the log (open, foreground, import…).
   func reload(reason: String) {
     guard let store else {
-      status = "The database did not open, so nothing can be shown. The session log has the error."
+      show(
+        "The database did not open, so nothing can be shown. The session log has the error.", context: "Places.open",
+        extra: ["reason": .string(reason)])
       return
     }
     let started = Date()
@@ -90,9 +96,11 @@ final class PlacesModel: ObservableObject {
       retentionDays = try store.retentionDays()
       points = try store.points()
       refreshIcons()
+      // The trail reads again: a failure to read it is over (any other failure stays to be copied).
+      if let context = problem?.context, context == "Places.read" || context == "Places.open" { problem = nil }
     } catch {
       log.event("error", ["where": "places_read", "message": "\(error)"])
-      status = "Could not read the trail: \(error)"
+      show("Could not read the trail: \(error)", context: "Places.read", extra: ["reason": .string(reason)], error)
       return
     }
     pointCount = points.count
@@ -375,23 +383,23 @@ final class PlacesModel: ObservableObject {
     }
   }
 
-  /// Adds a known place; returns false (with `status` saying why) when the input is not usable.
+  /// Adds a known place; returns false (with `note` or `problem` saying why) when the input is not usable.
   @discardableResult
   func addPlace(name: String, latitude: Double?, longitude: Double?, radius: Double?, from source: String) -> Bool {
     let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !name.isEmpty else {
-      status = "A place needs a name."
+      note = "A place needs a name."
       return false
     }
     guard let latitude, let longitude, (-90...90).contains(latitude), (-180...180).contains(longitude) else {
-      status = "A place needs a latitude from -90 to 90 and a longitude from -180 to 180."
+      note = "A place needs a latitude from -90 to 90 and a longitude from -180 to 180."
       return false
     }
     let radius = (radius ?? 100) > 0 ? (radius ?? 100) : 100
     do {
       try store?.addKnownPlace(name: name, latitude: latitude, longitude: longitude, radiusMeters: radius)
       log.event("known_place", ["action": "add", "name": name, "radius": Int(radius.rounded()), "from": source])
-      status = "Added \(name)."
+      note = "Added \(name)."
       naming = nil
       reload(reason: "add_place")
       return true
@@ -418,19 +426,36 @@ final class PlacesModel: ObservableObject {
         try store?.addKnownPlace(name: p.name, latitude: p.latitude, longitude: p.longitude, radiusMeters: p.radius)
       }
       log.event("known_place", ["action": "import_json", "count": places.count])
-      status =
+      note =
         places.isEmpty
         ? "No valid places found in the JSON." : "Imported \(places.count) place\(places.count == 1 ? "" : "s")."
       reload(reason: "import_places")
     } catch {
       log.event("known_place", ["action": "import_json", "ok": false, "message": "\(error)"])
-      status = "\(error)"
+      show("\(error)", context: "Places.import_places", extra: ["characters": .int(text.count)], error)
     }
   }
 
   private func fail(_ what: String, _ error: Error) {
     log.event("error", ["where": what, "message": "\(error)"])
-    status = "Could not \(what.replacingOccurrences(of: "_", with: " ")): \(error)"
+    show("Could not \(what.replacingOccurrences(of: "_", with: " ")): \(error)", context: "Places.\(what)", error)
+  }
+
+  /// A failure on screen: the message, the operation, and the state that explains it (what was asked, the error,
+  /// how much Places holds). The callers log; this only shows.
+  private func show(_ message: String, context: String, extra: [String: JSONValue] = [:], _ error: Error? = nil) {
+    var extra = extra
+    if let error { extra["error"] = .string(String(describing: error)) }
+    extra["points"] = .int(pointCount)
+    extra["known_places"] = .int(knownPlaces.count)
+    note = ""
+    problem = .grabber(message, context: context, extra: extra)
+  }
+
+  /// The file picker gave no file (the import never started).
+  func importPickFailed(_ error: Error) {
+    log.event("import", ["from": "picker", "ok": false, "message": error.localizedDescription])
+    show("Could not open the file: \(error.localizedDescription)", context: "Places.pick_import_file", error)
   }
 
   // MARK: - copy, export, import (stories 051–053, 055)
@@ -457,11 +482,11 @@ final class PlacesModel: ObservableObject {
           "from": source, "ok": true, "bytes": bytes, "points": pointCount,
           "ms": Int(Date().timeIntervalSince(started) * 1000), "path": file.path,
         ])
-      status = "Sharing \(bytes / 1024) KB…"
+      note = "Sharing \(bytes / 1024) KB…"
       exportFile = file
     } catch {
       log.event("export", ["from": source, "ok": false, "message": "\(error)"])
-      status = "Export failed: \(error)"
+      show("Export failed: \(error)", context: "Places.export", extra: ["from": .string(source)], error)
     }
   }
 
@@ -493,12 +518,14 @@ final class PlacesModel: ObservableObject {
           "shift_days": Int(shift / Geo.dayMs), "ms": Int(Date().timeIntervalSince(started) * 1000),
         ])
       prune(reason: "import")
-      status =
+      note =
         "Imported \(r.pointsAdded.formatted()) points (\(r.pointsAlreadyHere.formatted()) already here) and \(r.placesAdded) places (\(r.placesAlreadyHere) already here)."
       reload(reason: "import")
     } catch {
       log.event("import", ["from": source, "ok": false, "file": url.lastPathComponent, "message": "\(error)"])
-      status = "Import refused: \(error)"
+      show(
+        "Import refused: \(error)", context: "Places.import",
+        extra: ["from": .string(source), "file": .string(url.lastPathComponent), "recent": .bool(recent)], error)
     }
   }
 }
