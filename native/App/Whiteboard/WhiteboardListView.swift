@@ -7,7 +7,8 @@ import ContextCore
 import SwiftUI
 
 struct WhiteboardListView: View {
-  @StateObject private var store: WhiteboardStore
+  /// AppModel's, so the boards outlive this screen and every window shares one store (#819).
+  @ObservedObject private var store: WhiteboardStore
   @Environment(\.scenePhase) private var scenePhase
   @State private var path: [String] = []
   @State private var renaming: BoardEntry?
@@ -19,7 +20,7 @@ struct WhiteboardListView: View {
   private let onDone: () -> Void
 
   init(app: AppModel, onDone: @escaping () -> Void) {
-    _store = StateObject(wrappedValue: WhiteboardStore(log: app.log, device: app.whiteboardDevice))
+    _store = ObservedObject(wrappedValue: app.whiteboards)
     self.app = app
     self.onDone = onDone
   }
@@ -68,7 +69,6 @@ struct WhiteboardListView: View {
     }
     .accessibilityIdentifier("whiteboard-list")
     .task {
-      app.liveWhiteboards = store
       if app.whiteboardLink != nil {
         await followLink()
       } else {
