@@ -23,7 +23,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public private(set) var on: Bool
   /// Spoken and not yet in a turn that got through.
   public private(set) var unsaid: String?
-  /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
+  /// The last turn in a line: Larry's words or ghosts not answering.
   public var note: String?
   /// When Claude's ghosts go if nothing replaces them (story 358).
   public private(set) var fadeAt: ContinuousClock.Instant?

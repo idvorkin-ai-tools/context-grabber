@@ -154,10 +154,9 @@ final class WhiteboardResponderTests: XCTestCase {
 
   private func handOff(
     _ answered: WhiteboardResponder?, _ answer: WhiteboardTurn.Answer = .shapes([]), stale: Bool = false,
-    sending: Bool = false, waiting: Bool = false
+    waiting: Bool = false
   ) -> WhiteboardResponder.HandOff {
-    WhiteboardResponder.handOff(
-      answered: answered, answer: answer, stale: stale, larrySending: sending, firstSendWaiting: waiting)
+    WhiteboardResponder.handOff(answered: answered, answer: answer, stale: stale, firstSendWaiting: waiting)
   }
 
   func testALarryBoardsPauseGoesToHisThread() {
@@ -174,9 +173,8 @@ final class WhiteboardResponderTests: XCTestCase {
     XCTAssertEqual(handOff(.larry, .shapes([mark])), .nothing, "marks came: they show as ghosts")
   }
 
-  func testALarryBoardWaitsRatherThanSendingTwice() {
+  func testALarryBoardIsntHandedOnAStaleTurnOrBeforeItsThreadExists() {
     XCTAssertEqual(handOff(.larry, stale: true), .skipped("stale"))
-    XCTAssertEqual(handOff(.larry, sending: true), .skipped("larry_sending"))
     XCTAssertEqual(handOff(.larry, waiting: true), .skipped("first_send_waiting"))
   }
 

@@ -87,9 +87,20 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
 - **Haiku and Sonnet** answer with orange ghosts, exactly as above: Haiku is the faster model, Sonnet the sharper one.
   Spoken words are answered by the board's responder too.
 - **Larry**: a pause brings no orange ghosts. The Cockpit says the board is Larry's, and the board goes to its chat
-  thread just as *Larry's turn* sends it: *Larry has the board* in the bar, and his blue marks when he has drawn them.
-  Words spoken to the board go with that picture as its message. A pause while a picture of the board is still on its
-  way to him, or while the board's first *Send* waits in the outbox, sends nothing more.
+  thread just as *Larry's turn* sends it, and his blue marks come when he has drawn them. Words spoken to the board go
+  with that picture as its message.
+- **One Larry turn at a time, the latest wins** (story 662; Igor, 2026-11-10: "can we avoid this, think about best
+  design"). Real Larry takes a minute or more, so his thread never fills with pictures:
+  - While a turn is out (a picture sent, no answer from him yet on the thread) the bar says *Larry is looking…*, and
+    further pauses send nothing. They only note that the board moved on; words spoken meanwhile wait.
+  - When he answers, or after **3 minutes** with no answer, **one** fresh picture of the board as it is then goes, with
+    the words that waited, if the board moved on or words waited. Otherwise nothing goes and the bar stops saying he
+    is looking.
+  - *Larry's turn* and *Send to Larry* always go at once, on any board, and take over whatever was waiting: its words
+    go with them, and the turn they start is the one he is looking at.
+  - A picture that can't reach him frees the turn, and its words wait for the next one. Ghosts off forgets what the
+    pauses kept; a turn already out stays out.
+  - A pause while the board's first *Send* waits in the outbox sends nothing, so it can't start a second thread.
 - With Ghosts off nothing is asked after a pause, whoever the responder is.
 - **Every ghost turn is measured** (story 661). The session log says, for each one, how long the pause waited, how long
   the picture took to draw and to encode, and how long it took to upload, beside who answered. The Cockpit is told the
@@ -102,7 +113,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
 (Igor, 2026-11-02).
 
 - **Larry's turn** in the board's bar sends a picture of the board to the board's chat thread, saying *your turn on the
-  board*, and the bar says *Larry has the board* as soon as the picture is taken. No spinner: Igor keeps drawing, and can
+  board*, and the bar says *Larry is looking…* as soon as the picture is taken, until he answers (story 662). No spinner: Igor keeps drawing, and can
   hand him a newer picture once that one has gone. If it can't be delivered, the line goes and the problem below shows.
 - **Each board has one thread**, named after the board. The board's first *Larry's turn* or *Send to Larry* starts it,
   and later ones of either kind go to it, on this device, even when the first *Send* lands with the board closed. The
@@ -115,7 +126,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
 - **Marks land where the picture was.** Every picture goes with its place on the board, and his row brings it back, so
   his marks sit on what he saw even after Igor has drawn elsewhere, panned or zoomed. A row of marks that doesn't say
   where its picture was is not shown (the session log says so).
-- **His words show in the bar**: the text of each new row of his, as his line, in place of *Larry has the board*.
+- **His words show in the bar**: the text of each new row of his, as his line; *Larry is looking…* goes.
   A row of marks with no words clears it. The talk carries on in Chat.
 - **What shows when a board opens:** only his newest row of marks, and its line, unless Igor already kept or dismissed
   something from that row on this device. Older rows never come back: they are in Chat. After that, every new row shows.
@@ -190,8 +201,12 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Draw a circle and lift the Pencil: the turn goes half a second later (the session log's pause), not a second.
 - Open the Board menu: Responder shows Haiku, Sonnet and Larry with the board's own ticked. Pick Haiku, close and reopen
   the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.
-- Pick Larry and draw: no orange ghosts come; the bar says *Larry has the board*, the picture is in the board's chat
+- Pick Larry and draw: no orange ghosts come; the bar says *Larry is looking…*, the picture is in the board's chat
   thread, and his blue marks arrive when he answers.
+- On a Larry board, draw and pause five times while he is looking: his thread gets no new picture until he answers,
+  then exactly one, of the board as it is then. Pause again with nothing drawn since his answer: nothing more goes.
+  Speak while he is looking: the words arrive with that next picture. Tap *Larry's turn* while he is looking: a picture
+  goes at once. Leave him unanswering for 3 minutes: the bar stops saying he is looking.
 - With the Cockpit unreachable, pick another responder: the tick goes back and a copyable problem says why.
 - Every ghost turn's log line has the pause, render, encode and upload times in milliseconds, and the Cockpit's own log
   of that turn has the first three.
@@ -210,7 +225,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
   them; then the finger draws again.
 - Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's blue ghosts stay showing.
-- Tap Larry's turn: the bar says *Larry has the board* straight away and the Pencil keeps drawing. Chat has a thread
+- Tap Larry's turn: the bar says *Larry is looking…* straight away and the Pencil keeps drawing. Chat has a thread
   named after the board holding the picture. Minutes later, with no tap, blue ghosts and his line appear on what he saw,
   even if the view has moved since.
 - He draws unprompted on the thread: the same, with no tap by Igor. His next marks replace the unkept ones.

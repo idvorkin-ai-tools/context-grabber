@@ -42,7 +42,11 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var paper: BoardPaper
   /// Who answers a pause: Haiku, Sonnet or Larry, the board's knob on the Cockpit (story 659).
   @Published private(set) var responder = WhiteboardResponderKnob()
-  /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
+  /// Larry's turn, one at a time, latest wins (story 662): while one is out the bar says he is looking.
+  @Published private(set) var larry = WhiteboardLarryTurn()
+  /// Bumped on every change of the ink: what a held pause remembers, and what a picture to Larry was of.
+  private var boardVersion = 0
+  /// The last turn in a line: Larry's words or ghosts not answering.
   var turnNote: String? { turns.note }
   /// The picture is on its way to Larry's thread.
   @Published private(set) var larrySending = false
@@ -187,6 +191,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func drawingMoved() {
+    boardVersion += 1
     isEmpty = drawing.strokes.isEmpty
     sent = nil
     sentFrame = nil
@@ -258,7 +263,10 @@ final class WhiteboardModel: ObservableObject {
     UserDefaults.standard.set(on, forKey: Self.ghostsKey)
     log.event("whiteboard", ["action": on ? "ghosts_on" : "ghosts_off", "board": board.id])
     turns.setOn(on)
-    if !on { cancelPause() }
+    if !on {
+      cancelPause()
+      larry.dropped()
+    }
   }
 
   func setRuled(_ on: Bool) {
@@ -282,19 +290,24 @@ final class WhiteboardModel: ObservableObject {
     log.event("whiteboard", ["action": "paper", "board": board.id, "paper": new.rawValue])
   }
 
-  /// Story 380: the picture goes to the board's thread and Igor keeps drawing; Larry's marks come when they come.
+  /// Story 380: the picture goes to the board's thread and Igor keeps drawing; Larry's marks come when they come. It
+  /// goes now, whatever a Larry board was holding for his answer, and takes the words that waited (story 662).
   func larryTurn() {
     guard !larrySending else { return }
-    Task { await handToLarry() }
+    let words = larry.tapped(version: boardVersion, now: .now)
+    Task { await handToLarry(said: words) }
   }
 
-  /// `said`: words spoken to a Larry board, which go as the picture's message (story 659). `from`: the button, or a
-  /// pause on a board whose responder is Larry.
+  /// The turn `larry` has already counted as out: `said`, words spoken to a Larry board, go as the picture's message
+  /// (story 659). `from`: the button, a pause on a Larry board, or the picture that follows his answer or a timeout
+  /// (story 662). One that doesn't reach him frees the turn and keeps its words for the next.
   private func handToLarry(said: String? = nil, from: String = "button") async {
-    guard editable, let (rect, scale) = pictureFrame() else { return }
+    guard editable, let (rect, scale) = pictureFrame() else {
+      larry.failed(words: said)
+      return
+    }
     larrySending = true
     defer { larrySending = false }
-    turns.note = "Larry has the board"
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
     let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
     let strokes = WhiteboardStrokes.wire(strokesForLarry())
@@ -324,6 +337,7 @@ final class WhiteboardModel: ObservableObject {
       event["ok"] = false
       event["status"] = status
       event["reason"] = reason
+      larry.failed(words: said)
       // A thread the Cockpit no longer has: the next turn starts a new one.
       if status == 404, let thread { threads.forget(thread, board: board.id) }
       failed(
@@ -332,6 +346,7 @@ final class WhiteboardModel: ObservableObject {
     case .retry(let reason):
       event["ok"] = false
       event["reason"] = reason
+      larry.failed(words: said)
       failed(.larry, "Larry couldn't be reached: \(reason)", status: nil, first: turns.failed(.larry, stale: false))
     }
   }
@@ -411,6 +426,7 @@ final class WhiteboardModel: ObservableObject {
     watchTask = Task { [weak self] in
       while !Task.isCancelled {
         await self?.lookAtThread()
+        self?.larryTimedOut()
         try? await Task.sleep(for: Self.lookEvery)
       }
     }
@@ -468,6 +484,8 @@ final class WhiteboardModel: ObservableObject {
       log.event("whiteboard_marks", ["action": "unplaced", "board": board.id, "row": row])
     }
     turns.larrySaid(update.say, marks: update.marks != nil)
+    // A row landing while a picture is still going up answers an earlier one: the turn on its way stays out.
+    if update.replied, !larrySending { larryFollowUp(larry.replied(version: boardVersion, now: .now), why: "reply") }
     guard let row = update.marks, let frame = row.frame else { return }
     // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
     shownRow = row.id
@@ -478,6 +496,27 @@ final class WhiteboardModel: ObservableObject {
         "action": "shown", "board": board.id, "row": row.id, "shapes": row.shapes.count,
         "picture": row.pictureID ?? "",
       ])
+  }
+
+  /// Story 662: his turn has been out too long; the board stops waiting, as if he had answered.
+  private func larryTimedOut() {
+    guard let next = larry.tick(version: boardVersion, now: .now) else { return }
+    larryFollowUp(next, why: "timeout")
+  }
+
+  /// His answer came, or the wait ran out: one fresh picture if the board moved on or words waited, else nothing.
+  private func larryFollowUp(_ next: WhiteboardLarryTurn.Next, why: String) {
+    var event: [String: Any] = ["action": "larry_turn_over", "board": board.id, "why": why]
+    switch next {
+    case .send(let words):
+      event["next"] = "send"
+      event["said_chars"] = words?.count ?? 0
+      log.event("whiteboard", event)
+      Task { await handToLarry(said: words, from: why) }
+    case .held, .done:
+      event["next"] = "none"
+      log.event("whiteboard", event)
+    }
   }
 
   /// Igor kept or dismissed from his row: it doesn't come back when the board opens again.
@@ -650,16 +689,25 @@ final class WhiteboardModel: ObservableObject {
       failed(who, failure, status: landing.status, first: landing.firstFailure)
     }
     let handOff = WhiteboardResponder.handOff(
-      answered: read.responder, answer: answer, stale: landing.stale, larrySending: larrySending,
+      answered: read.responder, answer: answer, stale: landing.stale,
       firstSendWaiting: firstSendWaiting(in: inbox.items))
+    // Story 662: one turn of Larry's out at a time. While one is, the pause is held for his answer, with its words.
+    var toLarry: String??
     switch handOff {
     case .nothing: break
-    case .hand: event["larry"] = "hand"
     case .skipped(let why): event["larry"] = why
+    case .hand:
+      switch larry.paused(version: boardVersion, words: said, now: .now) {
+      case .send(let words):
+        event["larry"] = "hand"
+        toLarry = .some(words)
+      case .held, .done:
+        event["larry"] = "held"
+      }
     }
     log.event("whiteboard_turn", event)
-    // The turn holds the next pause until the picture has gone: one picture on its way to him at a time.
-    if handOff == .hand { await handToLarry(said: said, from: "responder") }
+    // The turn holds the next pause until the picture has gone.
+    if case .some(let words) = toLarry { await handToLarry(said: words, from: "responder") }
   }
 
   /// Reads Claude's answer as it comes, telling `landed` each mark and whether it is the answer's first. The 10 s are
@@ -939,8 +987,11 @@ final class WhiteboardModel: ObservableObject {
     let jpeg = ink.jpegData(compressionQuality: 0.85) ?? Data()
     var draft = InboxDraft()
     draft.image = jpeg
-    draft.text = store.index.board(board.id)?.title ?? board.title
-    draft.whiteboard = WhiteboardPicture(board: board.id, title: draft.text, rect: rect, scale: scale)
+    let title = store.index.board(board.id)?.title ?? board.title
+    // Story 662: a Send is Larry's turn too, out now whatever was held; words that waited go with it.
+    let words = larry.tapped(version: boardVersion, now: .now)
+    draft.text = words.map { "\(title): \($0)" } ?? title
+    draft.whiteboard = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale)
     // Story 424: the strokes wait beside the picture and go first when it goes.
     draft.strokes = try? JSONSerialization.data(withJSONObject: WhiteboardStrokes.wire(strokesForLarry()))
     do {
@@ -956,6 +1007,7 @@ final class WhiteboardModel: ObservableObject {
           "frame": [Double(rect.minX), Double(rect.minY), Double(rect.width), Double(rect.height)],
         ])
     } catch {
+      larry.failed(words: words)
       log.event("error", ["where": "whiteboard_send", "message": "\(error)", "bytes": jpeg.count])
       problem = .grabber(
         "The board could not go to Larry: \(error.localizedDescription)", context: "WhiteboardView.send",
@@ -1278,6 +1330,7 @@ struct WhiteboardView: View {
     let count = model.ghosts.count
     let parts = [
       model.turnNote,
+      model.larry.looking ? WhiteboardLarryTurn.lookingNote : nil,
       model.pasteNote,
       model.larryAway ? "Larry's marks: the Cockpit isn't answering" : nil,
       model.micOn ? model.heardNote.map { "Heard: \($0)" } ?? "Listening…" : nil,

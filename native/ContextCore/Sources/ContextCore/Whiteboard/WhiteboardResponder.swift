@@ -83,22 +83,20 @@ public enum WhiteboardResponder: String, CaseIterable, Sendable {
   public enum HandOff: Equatable, Sendable {
     /// Claude answered (or no one did): nothing for Larry.
     case nothing
-    /// The board's picture goes to its chat thread, as *Larry's turn* sends it.
+    /// The board is Larry's: `WhiteboardLarryTurn.paused` says whether its picture goes now.
     case hand
     /// A Larry board, but not this time: the reason, for the log.
     case skipped(String)
   }
 
   /// What a ghost turn's answer means for Larry: on a Larry board the Cockpit answers with no marks and says so, and
-  /// the board goes to his thread instead, unless the turn was sent away, a picture is already on its way to him, or
-  /// the board's first Send still waits (a second picture now would start a second thread).
+  /// the board is his instead (`WhiteboardLarryTurn` says whether a picture goes now or waits for his answer), unless
+  /// the turn was sent away or the board's first Send still waits (a second picture now would start a second thread).
   public static func handOff(
-    answered: WhiteboardResponder?, answer: WhiteboardTurn.Answer, stale: Bool, larrySending: Bool,
-    firstSendWaiting: Bool
+    answered: WhiteboardResponder?, answer: WhiteboardTurn.Answer, stale: Bool, firstSendWaiting: Bool
   ) -> HandOff {
     guard answered == .larry, case .shapes(let shapes) = answer, shapes.isEmpty else { return .nothing }
     if stale { return .skipped("stale") }
-    if larrySending { return .skipped("larry_sending") }
     if firstSendWaiting { return .skipped("first_send_waiting") }
     return .hand
   }
