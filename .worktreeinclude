@@ -1,0 +1,4 @@
+# Git-ignored local files treehouse copies from the main checkout into a pool slot on every lease (treehouse.toml).
+# The device ids the phone and iPad recipes read; they are not committed because the repo is public.
+scripts/native/phone-udid.local
+scripts/native/ipad-udid.local

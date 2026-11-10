@@ -194,3 +194,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the branch changed only the iPad's windows, which no simulator UI test opens
 - **When:** the ladder runs
 - **Then:** it chooses no UI tests for that change, names the changed file, and says how to run every UI test
+
+---
+
+### User Story 688:
+
+- **Summary:** A new branch builds in a worktree that already has a build
+- **Status:** not implemented; asks: [#803](https://github.com/idvorkin/context-grabber/issues/803). The pool and its seed file are committed; cold and warm builds are not yet timed
+- **Issues:** [#803](https://github.com/idvorkin/context-grabber/issues/803)
+
+#### Use Case:
+- **As Igor,** with several agents each working on a branch of its own
+- **I want to** have a new branch start in a worktree that was built before
+- **so that** its first build takes the time of what changed, and build folders stop filling the disk
+
+#### Acceptance Criteria:
+- **Scenario:** A second branch in a returned worktree
+- **Given:** a pool worktree was built for one branch and returned
+- **When:** an agent leases it for a new branch and builds for the simulator
+- **Then:** the build reuses what the earlier one compiled, and the Mac holds no more build folders than the pool has worktrees

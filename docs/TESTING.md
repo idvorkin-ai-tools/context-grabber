@@ -317,6 +317,35 @@ are `__tests__/fixtures/locations.json` (36K real points), `context-grabber.db` 
 `sqlite3` opens it on the Mac) and `heart-rate-2d.json`; a geometry threshold is checked against them before it ships
 (the place-merge gate moved 50 m → 500 m because the tight gate caught 0/10 unmatched stays).
 
+## A worktree that keeps its build
+
+Every recipe builds into the worktree's own `native/Build`, so a new worktree pays a cold build (about five minutes
+for the simulator, plus fetching the Swift packages) and leaves a build folder behind: 24 GB across worktrees on
+2026-11-09 (#803). The fix is to stop making new worktrees. [treehouse](https://github.com/kunchenguid/treehouse)
+keeps a pool of four (`treehouse.toml`) under `~/.treehouse/`, and a slot is leased, returned and leased again:
+
+```bash
+slot=$(treehouse get --lease -b native/123-my-change)   # prints the slot's path; the branch is cut from origin/main
+cd "$slot" && just native-test-sim                      # work, build, commit and push from here
+treehouse return "$slot"                                # when the branch is pushed; the branch itself is kept
+```
+
+- **The build is reused.** Returning a slot resets tracked files to main and removes untracked ones, but not ignored
+  ones (`git clean -fd`, no `-x`), so `native/Build`, its Swift packages and the generated project are still there
+  for the next lease, at the same path. Only files that differ between the two commits are rewritten, so Xcode
+  recompiles what changed.
+- **The device ids come along.** `.worktreeinclude` copies `scripts/native/phone-udid.local` and `ipad-udid.local`
+  from the main checkout into the slot on each lease, and a return removes them.
+- **A return discards uncommitted work** and stops what is still running in the slot. It asks first; `--force`
+  doesn't. Commit and push before returning. A leased slot is never handed to anyone else and never pruned.
+- **A full pool is an error, not a fifth worktree.** `treehouse status` shows who holds what; return one.
+- **Disk is bounded at four build folders.** For a slot's build alone, delete its `native/Build` (the next build
+  there is cold; also the cure for a build that fails only in one slot). `treehouse prune` lists every idle returned
+  slot and `--yes` deletes them, warm builds included, so it is for reclaiming disk, not for tidying.
+- **Slots share nothing.** Each has its own Swift package checkouts: one shared folder
+  (`-clonedSourcePackagesDirPath`) would let a branch that moves a pin switch the checkout under another slot's
+  running build, and a device build takes no `build.lock` to keep the two apart. A slot fetches them once.
+
 ## The phone
 
 `just native-run-device` builds, installs and launches; `just pull-logs` brings back the session logs, reports and
