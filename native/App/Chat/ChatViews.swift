@@ -543,6 +543,8 @@ struct ChatThreadView: View {
   @State private var quoting: ChatMessage?
   /// GRABBER_CHAT_HOLD=yes / no / quote / copy: that choice taps itself on Larry's newest message, for the simulator.
   @State private var holdHook = LaunchHooks.current.chat.hold
+  /// A Cockpit thread link tapped in a bubble (story 744): that thread, pushed over this one.
+  @State private var jumpTo: String?
   @Environment(\.dismiss) private var dismiss
 
   init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
@@ -597,6 +599,8 @@ struct ChatThreadView: View {
               message: message, thread: key ?? "", answerFailed: answerFailed.contains(message.id), chat: chat,
               logger: logger, react: { react($0, to: message) }, quote: { quote(message) }, copy: { copy(message) })
           }
+          // Story 744: a Cockpit thread link in a bubble opens that thread here; the chips above open links as ever.
+          .environment(\.openURL, OpenURLAction(handler: openInApp))
           // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
           ForEach(pending, id: \.pendingKey) { item in
@@ -678,7 +682,25 @@ struct ChatThreadView: View {
       if let landed = newThread.firstMoved(to: thread) { chat.open(landed) }
     }
     .onChange(of: messages.last?.id, initial: true) { runHoldHook() }
+    .navigationDestination(item: $jumpTo) { target in
+      ChatThreadView(chat: chat, voice: voice, key: target, title: chat.title(of: target), logger: logger)
+    }
     .chatTextSize()
+  }
+
+  /// Story 744: a Cockpit link to a thread the list knows opens it here; any other link goes where it went before.
+  private func openInApp(_ url: URL) -> OpenURLAction.Result {
+    let jump = ChatCockpitLink.jump(url, from: key, known: Set(chat.threads.map(\.key)))
+    if ChatCockpitLink.threadKey(url) != nil {
+      chat.logAction("cockpit_link", ["thread": key ?? "", "opened": jump == nil ? "browser" : "app"])
+    }
+    switch jump {
+    case .here: return .handled
+    case .thread(let target):
+      jumpTo = target
+      return .handled
+    case nil: return .systemAction
+    }
   }
 
   private func runHoldHook() {

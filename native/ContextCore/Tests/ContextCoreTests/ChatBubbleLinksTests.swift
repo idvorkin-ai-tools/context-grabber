@@ -55,6 +55,14 @@ final class ChatBubbleLinksTests: XCTestCase {
     XCTAssertEqual(ChatBubbleLinks.labels(in: text), [:])
   }
 
+  func testACockpitThreadLinkReadsInbox() {
+    let ask = "https://c-5004.squeaker-teeth.ts.net/#thread/igor2-88g.1411.2"
+    let other = "https://c-5004.squeaker-teeth.ts.net/#thread/igor2-88g.1413"
+    XCTAssertEqual(ChatBubbleLinks.labels(in: "It's in the Inbox: \(ask). Also \(pr734)"), [ask: "Inbox", pr734: "PR"])
+    XCTAssertEqual(
+      ChatBubbleLinks.labels(in: "\(ask), \(other) and \(ask) again"), [ask: "Inbox 1", other: "Inbox 2"])
+  }
+
   func testAPRBesideAPreviewIsStillTheOnlyPR() {
     let text = "\(pr734) **\(preview)**"
     XCTAssertEqual(ChatBubbleLinks.labels(in: text), [pr734: "PR", preview: "Preview"])

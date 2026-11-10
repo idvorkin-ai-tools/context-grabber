@@ -2582,3 +2582,22 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Then:** the first bubble reads "Opened PR, preview at Preview." with *PR* and *Preview* tappable to their full addresses; the second reads *PR #734* and *PR #736*; the chips under the title are unchanged, and *Copy* on either bubble copies the full addresses
 
 ---
+
+### User Story 744:
+
+- **Summary:** An Inbox link in Larry's reply opens that thread in the app
+- **Status:** native app only: implemented on branch `chat-cockpit-thread-links`; `ChatCockpitLinkTests` and `ChatBubbleLinksTests` (host) written but not run (no Swift toolchain on the Linux box that built it, no Mac); not yet seen on the simulator or the phone
+- **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, reading Larry's reply that says a decision is waiting in the Inbox
+- **I want to** tap its link and land on that question's thread in the app
+- **so that** I answer it without Safari or the web Cockpit
+
+#### Acceptance Criteria:
+- **Scenario:** A known thread, then an unknown one
+- **Given:** Larry's reply "It's in the Inbox: https://c-5004.squeaker-teeth.ts.net/#thread/igor2-88g.1411.2", a thread the chat list shows
+- **When:** I tap *Inbox* in the bubble
+- **Then:** that thread opens in the app over this one and Back returns here; a link to a thread the list does not show opens the Cockpit page as before, and the chips under the title open links as they always have
+
+---

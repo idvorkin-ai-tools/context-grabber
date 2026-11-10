@@ -1,6 +1,7 @@
 //  Short links in a bubble (spec 2026-10-25-native-chat-design.md, Links in a thread: Short links in a bubble; story
 //  743). Inside one message's words a lone pull request reads *PR* and a link to Igor's blog or its tailnet preview
-//  reads *Preview*; several in one message keep words that tell them apart. The chips (`ChatLinks`) are unchanged.
+//  reads *Preview*, a Cockpit thread link *Inbox* (story 744); several in one message keep words that tell them apart.
+//  The chips (`ChatLinks`) are unchanged.
 
 import Foundation
 
@@ -21,9 +22,16 @@ public enum ChatBubbleLinks {
       if isPreview(link) { previews.insert(link.id) }
     }
     let perNumber = Dictionary(grouping: prs.values) { $0 }.mapValues(\.count)
+    // Cockpit threads (story 744) in the order first written: one reads *Inbox*, several *Inbox 1*, *Inbox 2*.
+    var inbox: [String] = []
+    for (_, link) in links {
+      if let key = ChatCockpitLink.threadKey(link.url), !inbox.contains(key) { inbox.append(key) }
+    }
     var out: [String: String] = [:]
     for (written, link) in links {
-      if case .pullRequest(let repo, let number) = link.kind {
+      if let key = ChatCockpitLink.threadKey(link.url), let index = inbox.firstIndex(of: key) {
+        out[written] = inbox.count == 1 ? "Inbox" : "Inbox \(index + 1)"
+      } else if case .pullRequest(let repo, let number) = link.kind {
         out[written] =
           prs.count == 1 ? "PR" : (perNumber[number] ?? 0) > 1 ? "\(repoName(repo)) PR #\(number)" : link.label
       } else if isPreview(link) {

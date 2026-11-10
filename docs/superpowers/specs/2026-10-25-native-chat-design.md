@@ -155,6 +155,12 @@ strip of chips under the thread's title, so the PR Larry opened an hour ago is o
   of its path, as its chip has it) when the message links more than one such page. Every other link shows as written.
   The short word is the link: tapping it opens the full address; punctuation after it stays as written; *Copy* copies
   the message as written, full addresses included.
+- **A Cockpit thread link opens here** (Igor, 2026-11-10: to jump from a chat message straight to an Inbox question).
+  A link to a thread on the Cockpit — the Cockpit's address ending `#thread/` and the thread's key; an Inbox question is
+  a thread too — reads *Inbox* in its bubble (*Inbox 1*, *Inbox 2* when one message links several threads). Tapping
+  it opens that thread's own screen in the app, over the one it was tapped in, with Back returning there; a link to
+  the thread already open does nothing. When the chat list does not know the thread, the link opens as any link
+  does. Only the bubbles do this; a chip for the same link still opens it as a link.
 
 **Links in the thread list on an iPad or a Mac** (#736). Where the screen is wide — an iPad in full width (or a wide
 enough window) and the Mac — each row in the list also shows that thread's three newest link chips under its last
