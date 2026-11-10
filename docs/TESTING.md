@@ -319,9 +319,11 @@ are `__tests__/fixtures/locations.json` (36K real points), `context-grabber.db` 
 
 ## A worktree that keeps its build
 
-Every recipe builds into the worktree's own `native/Build`, so a new worktree pays a cold build (about five minutes
-for the simulator, plus fetching the Swift packages) and leaves a build folder behind: 24 GB across worktrees on
-2026-11-09 (#803). The fix is to stop making new worktrees. [treehouse](https://github.com/kunchenguid/treehouse)
+Every recipe builds into the worktree's own `native/Build` (about 500 MB each), and each new worktree left one
+behind: 24 GB across worktrees on 2026-11-09 (#803). The fix is to stop making new worktrees. The win is mainly
+bounded disk and the seeded device ids; speed gains are modest. Measured on this Mac with Xcode's machine-wide caches
+warm: a first build in a new slot took 39 s, a rebuild 6 s, and a returned slot re-leased for a new branch with one
+file touched 7 s. [treehouse](https://github.com/kunchenguid/treehouse)
 keeps a pool of four (`treehouse.toml`) under `~/.treehouse/`, and a slot is leased, returned and leased again:
 
 ```bash

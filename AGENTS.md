@@ -64,8 +64,8 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   wait until it is empty; shut yours down when done (`xcrun simctl shutdown <udid>`). Other agents and other repos'
   pipelines share this Mac, and two simulators at once starve both.
 - **Build in a pool slot, not a new worktree.** `slot=$(treehouse get --lease -b <branch>)`, work and build there,
-  `treehouse return "$slot"` once the branch is pushed. A slot keeps its `native/Build` across returns, so the build
-  is warm; a new worktree builds from nothing and leaves gigabytes behind. Four slots (`treehouse.toml`);
+  `treehouse return "$slot"` once the branch is pushed. A slot keeps its `native/Build` across returns, so disk stays
+  bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Four slots (`treehouse.toml`);
   [TESTING.md](docs/TESTING.md) has the rest, pruning included.
 - **Background agents** that investigate are read-only, in a worktree, notes under `~/tmp/agent/notes/`; confirm
   scope before an agent that writes to the repo. Reap background commands when done.
