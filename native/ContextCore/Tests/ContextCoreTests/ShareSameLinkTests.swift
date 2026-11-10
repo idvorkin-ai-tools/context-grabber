@@ -41,7 +41,7 @@ final class ShareSameLinkTests: XCTestCase {
     let same = [
       "https://idvork.in/eulogy", "http://idvork.in/eulogy", "https://www.idvork.in/eulogy",
       "https://IDVORK.in/eulogy/", "https://idvork.in/eulogy#roles", "https://idvork.in:443/eulogy",
-      "https://idvork.in/eulogy?utm_source=share&utm_medium=ios", "https://idvork.in/eulogy?fbclid=abc&si=xyz",
+      "https://idvork.in/eulogy?utm_source=share&utm_medium=ios", "https://idvork.in/eulogy?fbclid=abc&igshid=xyz",
       " https://idvork.in/eulogy\n",
     ]
     XCTAssertEqual(Set(same.map { ShareSameLink.key($0) }), ["idvork.in/eulogy"])
@@ -56,7 +56,30 @@ final class ShareSameLinkTests: XCTestCase {
     let key = ShareSameLink.key("https://youtube.com/watch?v=abc&t=10")
     XCTAssertEqual(key, "youtube.com/watch?t=10&v=abc")
     XCTAssertEqual(ShareSameLink.key("https://www.youtube.com/watch?t=10&si=share&v=abc&UTM_Campaign=x"), key)
+    XCTAssertEqual(
+      ShareSameLink.key("https://youtube.com/watch?v=abc&t=10&si=share&feature=x"),
+      "youtube.com/watch?feature=x&t=10&v=abc")
     XCTAssertNotEqual(ShareSameLink.key("https://youtube.com/watch?v=other&t=10"), key)
+  }
+
+  func testARouteAfterTheHashIsThePageAndAnyOtherFragmentIsNot() {
+    XCTAssertEqual(ShareSameLink.key("https://app.example.com/#/inbox/42"), "app.example.com#/inbox/42")
+    XCTAssertNotEqual(
+      ShareSameLink.key("https://app.example.com/#/inbox/42"), ShareSameLink.key("https://app.example.com/#/settings"))
+    XCTAssertEqual(ShareSameLink.key("https://example.com/a?b=1#!/thread/7"), "example.com/a?b=1#!/thread/7")
+    XCTAssertEqual(ShareSameLink.key("https://example.com/a#section"), "example.com/a")
+    XCTAssertEqual(ShareSameLink.key("https://example.com/a#:~:text=quoted"), "example.com/a")
+    XCTAssertEqual(ShareSameLink.key("https://example.com/a#"), "example.com/a")
+  }
+
+  func testSiIsATrackingTagOnYouTubeAndSpotifyOnly() {
+    XCTAssertEqual(ShareSameLink.key("https://youtu.be/abc?si=share"), "youtu.be/abc")
+    XCTAssertEqual(ShareSameLink.key("https://www.youtube.com/watch?v=abc&si=share"), "youtube.com/watch?v=abc")
+    XCTAssertEqual(ShareSameLink.key("https://music.youtube.com/watch?v=abc&SI=share"), "music.youtube.com/watch?v=abc")
+    XCTAssertEqual(ShareSameLink.key("https://open.spotify.com/track/1?si=share"), "open.spotify.com/track/1")
+    XCTAssertEqual(ShareSameLink.key("https://example.com/item?si=42"), "example.com/item?si=42")
+    XCTAssertNotEqual(
+      ShareSameLink.key("https://example.com/item?si=42"), ShareSameLink.key("https://example.com/item?si=43"))
   }
 
   func testAnotherPathOrPortOrSiteIsAnotherPage() {
@@ -140,12 +163,12 @@ final class ShareSameLinkTests: XCTestCase {
     _ = await sender.sendWaiting(now: { [now] in now }, log: { _, fields in logged.add(fields) })
     let at = Int64(now.timeIntervalSince1970 * 1000)
     XCTAssertEqual(
-      store.linkStarts(), [ShareSameLink.Start(link: "idvork.in/eulogy", thread: "t-eulogy", startedAt: at)])
+      store.linkStarts(now: now), [ShareSameLink.Start(link: "idvork.in/eulogy", thread: "t-eulogy", startedAt: at)])
     XCTAssertEqual(logged.all.first?["link_start"] as? Bool, true)
     XCTAssertFalse("\(logged.all)".contains("idvork.in"), "the log never holds the address")
     XCTAssertTrue(store.items().unreadable.isEmpty, "the ledger is not read as an item")
     XCTAssertEqual(store.items().items.map(\.id), ["share-1"])
-    XCTAssertEqual(recommended(page, store.linkStarts(), live: ["t-eulogy"]), "t-eulogy")
+    XCTAssertEqual(recommended(page, store.linkStarts(now: now), live: ["t-eulogy"]), "t-eulogy")
   }
 
   func testOnlyALinkThatStartedAChatIsRemembered() async throws {
@@ -156,14 +179,14 @@ final class ShareSameLinkTests: XCTestCase {
     }
     let report = await sender.sendWaiting { _, _ in }
     XCTAssertEqual(report.sent.count, 2)
-    XCTAssertEqual(store.linkStarts(), [])
+    XCTAssertFalse(FileManager.default.fileExists(atPath: ledger.path))
   }
 
   func testALinkStillWaitingHasStartedNothing() async throws {
     try store.add(InboxItem(id: "share-1", kind: .link, sharedAt: 1, url: page))
     let sender = InboxSender(store: store, cockpit: cockpit) { _ in throw URLError(.timedOut) }
     _ = await sender.sendWaiting { _, _ in }
-    XCTAssertEqual(store.linkStarts(), [])
+    XCTAssertFalse(FileManager.default.fileExists(atPath: ledger.path))
   }
 
   func testTheLedgerForgetsWhatIsOlderThanTheWindowAndKeepsOneRowPerLinkAndChat() throws {
@@ -171,20 +194,40 @@ final class ShareSameLinkTests: XCTestCase {
     XCTAssertTrue(try store.recordLinkStart(url: page, thread: "old", at: hour))
     XCTAssertTrue(try store.recordLinkStart(url: "https://example.com/a", thread: "a", at: 2 * hour))
     XCTAssertTrue(try store.recordLinkStart(url: "https://example.com/a", thread: "a", at: 3 * hour))
-    XCTAssertEqual(store.linkStarts().map(\.thread), ["old", "a"])
+    XCTAssertEqual(store.linkStarts(now: at(3)).map(\.thread), ["old", "a"])
     XCTAssertTrue(try store.recordLinkStart(url: page, thread: "new", at: 10 * hour))
-    XCTAssertEqual(store.linkStarts().map(\.thread), ["a", "new"])
+    XCTAssertEqual(store.linkStarts(now: at(10)).map(\.thread), ["a", "new"])
     XCTAssertFalse(try store.recordLinkStart(url: "mailto:x@example.com", thread: "m", at: 10 * hour))
   }
 
-  func testAMissingOrBrokenLedgerIsNoStarts() throws {
-    XCTAssertEqual(store.linkStarts(), [])
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    try Data("not json".utf8).write(to: dir.appendingPathComponent("link-starts.ledger"))
-    XCTAssertEqual(store.linkStarts(), [])
-    XCTAssertTrue(try store.recordLinkStart(url: page, thread: "t", at: 1))
-    XCTAssertEqual(store.linkStarts().map(\.thread), ["t"])
+  func testAStartPastTheWindowIsNeverReadAndTheAppDropsItFromThePhone() throws {
+    let hour: Int64 = 3_600_000
+    try store.recordLinkStart(url: page, thread: "old", at: hour)
+    try store.recordLinkStart(url: "https://example.com/a", thread: "a", at: 5 * hour)
+    XCTAssertEqual(store.linkStarts(now: at(9)).map(\.thread), ["old", "a"])
+    XCTAssertEqual(store.linkStarts(now: at(9.5)).map(\.thread), ["a"], "not read, though still on the phone")
+    XCTAssertEqual(try store.forgetOldLinkStarts(now: at(9)), 0)
+    XCTAssertEqual(try store.forgetOldLinkStarts(now: at(9.5)), 1)
+    XCTAssertFalse(try String(contentsOf: ledger, encoding: .utf8).contains("eulogy"))
+    XCTAssertEqual(try store.forgetOldLinkStarts(now: at(14)), 1)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: ledger.path), "nothing left, no ledger")
+    XCTAssertEqual(try store.forgetOldLinkStarts(now: at(14)), 0)
   }
+
+  func testAMissingOrBrokenLedgerIsNoStarts() throws {
+    XCTAssertEqual(store.linkStarts(now: at(0)), [])
+    XCTAssertEqual(try store.forgetOldLinkStarts(now: at(0)), 0)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    try Data("not json".utf8).write(to: ledger)
+    XCTAssertEqual(store.linkStarts(now: at(0)), [])
+    XCTAssertTrue(try store.recordLinkStart(url: page, thread: "t", at: 1))
+    XCTAssertEqual(store.linkStarts(now: at(0)).map(\.thread), ["t"])
+  }
+
+  private var ledger: URL { dir.appendingPathComponent("link-starts.ledger") }
+
+  /// `hours` after the epoch, the clock the ledger's own tests count from.
+  private func at(_ hours: Double) -> Date { Date(timeIntervalSince1970: hours * 3600) }
 
   private final class Lines: @unchecked Sendable {
     private(set) var all: [[String: Any]] = []

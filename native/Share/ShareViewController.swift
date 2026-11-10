@@ -39,8 +39,8 @@ final class ShareViewController: UIViewController {
     card.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     view.addSubview(card.view)
     card.didMove(toParent: self)
-    Task { await shared.load(extensionContext?.inputItems as? [NSExtensionItem] ?? []) }
-    Task { await recent.load() }
+    let reading = Task { await shared.load(extensionContext?.inputItems as? [NSExtensionItem] ?? []) }
+    Task { await recent.load(shared: shared, read: reading) }
   }
 
   /// The host taking the card away, however it does: SwiftUI's onDisappear is not proven to fire then.
@@ -56,7 +56,7 @@ final class ShareViewController: UIViewController {
     }
     guard var item = shared.item(note: note) else { return shared.problem ?? "Nothing to add yet." }
     item.thread = thread
-    item.offered = ShareThreads.offered(recent.read, recommended: recent.recommended(for: shared.url))
+    item.offered = ShareThreads.offered(recent.read, recommended: recent.recommended)
     do {
       try store.add(item, image: shared.image, imageExtension: shared.imageExtension)
     } catch {
@@ -182,21 +182,23 @@ final class Shared: ObservableObject {
 @MainActor
 final class RecentChats: ObservableObject {
   @Published private(set) var read: ShareThreads.Read?
-  /// The chats shared links started lately, as the app recorded them in the App Group (#794).
-  private var starts: [ShareSameLink.Start] = []
+  /// The live chat the shared link started in the last eight hours, to list first (#794); nil without one. Worked
+  /// out once, before `read` is set, so no row moves after the list is shown.
+  private(set) var recommended: String?
 
-  /// The live chat this link started in the last eight hours, to list first; nil without one or without the list.
-  func recommended(for url: URL?) -> String? {
-    guard case .threads(let live) = read else { return nil }
-    return ShareSameLink.recommended(url: url?.absoluteString, starts: starts, live: live, now: Date())
-  }
-
-  func load() async {
-    starts = InboxStore.shared(cockpit: ChatCockpit.address(override: nil))?.linkStarts() ?? []
+  /// `read`: what was shared being read. The list is not shown before it ends, since the link decides the first row.
+  func load(shared: Shared, read reading: Task<Void, Never>) async {
+    let now = Date()
     // An extension gets no launch hooks, so a simulator's card never has an address (#525).
-    read = await ShareThreads.read(cockpit: ChatCockpit.address(override: nil)) {
-      try await URLSession.shared.data(for: $0)
+    let cockpit = ChatCockpit.address(override: nil)
+    let answer = await ShareThreads.read(cockpit: cockpit) { try await URLSession.shared.data(for: $0) }
+    await reading.value
+    if case .threads(let live) = answer, let url = shared.url {
+      // The app recorded which chat each shared link started, beside the Inbox in the App Group.
+      let starts = InboxStore.shared(cockpit: cockpit)?.linkStarts(now: now) ?? []
+      recommended = ShareSameLink.recommended(url: url.absoluteString, starts: starts, live: live, now: now)
     }
+    read = answer
   }
 }
 
@@ -318,9 +320,8 @@ struct ShareCard: View {
       case nil:
         ProgressView().accessibilityLabel("Reading your recent chats")
       case .threads(let live):
-        let sameLink = recent.recommended(for: shared.url)
-        ForEach(ShareThreads.rows(live, recommended: sameLink)) {
-          destination($0.title, age: $0.lastAt, key: $0.key, sameLink: $0.key == sameLink)
+        ForEach(ShareThreads.rows(live, recommended: recent.recommended)) {
+          destination($0.title, age: $0.lastAt, key: $0.key, sameLink: $0.key == recent.recommended)
         }
       case .problem(let why):
         // The card's copyable idiom, as below; the list being out of reach is normal, so it stays small.

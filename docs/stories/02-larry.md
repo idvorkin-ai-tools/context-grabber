@@ -2453,66 +2453,6 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 740:
-
-- **Summary:** The same page is recognised however the other app dressed its address
-- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: `http` and `https`, capitals in the site, `www.`, a trailing slash, a `#` part, the order after the `?` and tracking tags all give one page; another path, port, site or `?v=` gives another); not yet seen on the simulator or the phone
-- **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
-- **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
-
-#### Use Case:
-- **As** Larry's client sharing a page from an app that tags its links
-- **I want to** have the card recognise the page I already shared whatever was added to its address
-- **so that** a tracking tag or a trailing slash does not hide the chat it belongs to
-
-#### Acceptance Criteria:
-- **Scenario:** The second share carries tracking tags
-- **Given:** a live chat I started an hour ago from `https://idvork.in/eulogy`
-- **When:** I share `http://www.idvork.in/eulogy/?utm_source=share#roles`
-- **Then:** the card recommends that chat, where sharing `https://idvork.in/eulogy/roles` would recommend none
-
----
-
-### User Story 741:
-
-- **Summary:** A link's chat is recommended for eight hours, and only while it is live
-- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: a chat started eight hours ago is recommended and one a little older is not; a Done or gone chat is not; the phone's note of a start is dropped past eight hours; text, a picture and an unread list recommend nothing); not yet seen on the simulator or the phone
-- **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
-- **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
-
-#### Use Case:
-- **As** Larry's client sharing a link I shared yesterday
-- **I want to** be offered a fresh chat once the old one has gone cold or been closed
-- **so that** a new look at a page is not steered into yesterday's conversation
-
-#### Acceptance Criteria:
-- **Scenario:** The chat is older than eight hours
-- **Given:** a chat I started from a link nine hours ago, still live
-- **When:** I share the same link again
-- **Then:** the card shows *New chat* and my recent chats as usual, no row is marked *Same link*, and no line says why
-
----
-
-### User Story 742:
-
-- **Summary:** Of several chats one link started, the newest live one is recommended
-- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: of three chats from one link the most recently started live one is chosen, a newer Done one passed over); not yet seen on the simulator or the phone
-- **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
-- **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
-
-#### Use Case:
-- **As** Larry's client who started more than one chat from the same link today
-- **I want to** have only the latest of them recommended
-- **so that** the card points at the conversation I am most likely still in
-
-#### Acceptance Criteria:
-- **Scenario:** Two chats from one link
-- **Given:** I started a chat from a link five hours ago and another from the same link two hours ago, both live
-- **When:** I share that link again
-- **Then:** the chat from two hours ago is the first row and the only one marked *Same link*
-
----
-
 ### User Story 728:
 
 - **Summary:** A PR chip flips to its new state while I'm looking, in the thread and the wide list
@@ -2561,5 +2501,65 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I press Command+= twice, quit and reopen the app, and open the thread again
 - **Then:** its messages, the bar and the thread list are two sizes bigger, the rest of the app is unchanged, and View >
   Actual Size (Command+0) puts chat back to the system's size; at the largest size Bigger Text is dimmed
+
+---
+
+### User Story 740:
+
+- **Summary:** The same page is recognised however the other app dressed its address
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: `http` and `https`, capitals in the site, `www.`, a trailing slash, a `#` part, the order after the `?` and tracking tags all give one page; another path, port, site, `?v=` or `#/` route gives another, and `si` is a tag only on YouTube and Spotify); not yet seen on the simulator or the phone
+- **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
+- **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing a page from an app that tags its links
+- **I want to** have the card recognise the page I already shared whatever was added to its address
+- **so that** a tracking tag or a trailing slash does not hide the chat it belongs to
+
+#### Acceptance Criteria:
+- **Scenario:** The second share carries tracking tags
+- **Given:** a live chat I started an hour ago from `https://idvork.in/eulogy`
+- **When:** I share `http://www.idvork.in/eulogy/?utm_source=share#roles`
+- **Then:** the card recommends that chat, where sharing `https://idvork.in/eulogy/roles` would recommend none
+
+---
+
+### User Story 741:
+
+- **Summary:** A link's chat is recommended for eight hours, and only while it is live
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: a chat started eight hours ago is recommended and one a little older is not; a Done or gone chat is not; the phone's note of a start is not read past eight hours and is dropped the next time the app comes to the front; text, a picture and an unread list recommend nothing); not yet seen on the simulator or the phone
+- **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
+- **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client sharing a link I shared yesterday
+- **I want to** be offered a fresh chat once the old one has gone cold or been closed
+- **so that** a new look at a page is not steered into yesterday's conversation
+
+#### Acceptance Criteria:
+- **Scenario:** The chat is older than eight hours
+- **Given:** a chat I started from a link nine hours ago, still live
+- **When:** I share the same link again
+- **Then:** the card shows *New chat* and my recent chats as usual, no row is marked *Same link*, and no line says why
+
+---
+
+### User Story 742:
+
+- **Summary:** Of several chats one link started, the newest live one is recommended
+- **Status:** native app only: implemented in [8d02d38d](https://github.com/idvorkin/context-grabber/commit/8d02d38d); verified by `ShareSameLinkTests` (host: of three chats from one link the most recently started live one is chosen, a newer Done one passed over); not yet seen on the simulator or the phone
+- **Issues:** [#794](https://github.com/idvorkin/context-grabber/issues/794)
+- **Spec:** [Chat with Larry in Grabber Native — The chat this link already started](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client who started more than one chat from the same link today
+- **I want to** have only the latest of them recommended
+- **so that** the card points at the conversation I am most likely still in
+
+#### Acceptance Criteria:
+- **Scenario:** Two chats from one link
+- **Given:** I started a chat from a link five hours ago and another from the same link two hours ago, both live
+- **When:** I share that link again
+- **Then:** the chat from two hours ago is the first row and the only one marked *Same link*
 
 ---
