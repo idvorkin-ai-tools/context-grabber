@@ -129,8 +129,8 @@ file comes to the Mac with the logs.
 **Every failure on screen is copyable.** A failure shows its message with a Copy error button beside it; the copy
 carries the message, the screen and operation it came from, the build, and the state that explains it. The same
 failure is in the log with that state, and the shake attaches the log. Progress, success and hints about what to
-type ("A place needs a name.") are not failures: they stay plain text with nothing to copy. The failure stays until
-the screen has something newer to say.
+type ("A place needs a name.") are not failures: they stay plain text with nothing to copy. The failure shows
+where it was asked for (in the sheet, when a sheet raised it) and stays until the next thing tried on that screen.
 
 **Which build.** The home screen's cog shows the commit and branch the build was made from. The log's first
 line carries the same.

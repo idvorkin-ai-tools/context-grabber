@@ -387,4 +387,4 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** An import that is refused
 - **Given:** Places is open and I choose a file that is not a Context Grabber database
 - **When:** I tap Copy error under the map
-- **Then:** the clipboard holds the refusal, that it came from the Places import, the build, and the file's name with the error, while progress and success ("Sharing 12 KB…", "Added Home.") stay plain text with no button
+- **Then:** the clipboard holds the refusal, that it came from the Places import, the build, and the file's name with the error, while progress and success ("Sharing 12 KB…", "Added Home.") stay plain text with no button; a failure raised from a sheet (naming a place, choosing its icon) shows in that sheet, and the next thing I try takes the old failure away

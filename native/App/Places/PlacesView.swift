@@ -384,6 +384,10 @@ struct NamingSheet: View {
             Button("Create new place") { places.createNew(from: card) }
           }
         }
+        // A save or an expand that failed says so here, where it was asked (story 059), not behind the sheet.
+        if let problem = places.problem {
+          Section { BugProblemView(problem: problem, logger: places.bugLogger) }
+        }
       }
       .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
     }
@@ -445,6 +449,10 @@ struct PlaceEditSheet: View {
           Text("Icon")
         } footer: {
           Text("A chosen icon stays, whatever the place is called or however it grows.")
+        }
+        // An icon that could not be saved says so here (story 059), not behind the sheet.
+        if let problem = places.problem {
+          Section { BugProblemView(problem: problem, logger: places.bugLogger) }
         }
       }
       .navigationTitle(place.name)
