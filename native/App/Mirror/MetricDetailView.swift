@@ -56,8 +56,8 @@ struct MetricDetailView: View {
       }
     }
     .presentationDragIndicator(.visible)
-    .onAppear { app.screen = "metric_\(metric.rawValue)" }
-    .onDisappear { app.screen = "today" }
+    .onAppear { app.nowShowing(.metric(metric)) }
+    .onDisappear { app.nowShowing(.today) }
   }
 
   // MARK: - headline

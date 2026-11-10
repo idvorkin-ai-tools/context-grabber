@@ -80,19 +80,11 @@ extension AppModel {
 
   /// What the home window is showing: the covers first, as they sit over everything in its stack.
   private var homeWindowName: String {
-    if gymTimer != nil { return tileName("gym_timer") }
-    if breathe != nil { return tileName("breathe") }
-    if card != nil { return tileName("think_a_card") }
-    if showPlaces { return tileName("places") }
-    if showCockpit { return tileName("cockpit") }
-    if showWhiteboard { return tileName("whiteboard") }
-    if callOpen { return tileName("call") }
-    if showEulogySong { return tileName("eulogy_song") }
-    if showWhatsNew { return "What's new" }  // the home row's words; it has no tile
-    if showHomeSettings { return tileName("settings") }
-    if showToday { return tileName("today") }
-    if showInbox { return tileName("inbox") }
-    return "Home"
+    switch HomeStack.named(of: up) {
+    case .home: return "Home"
+    case .whatsNew: return "What's new"  // the home row's words; it has no tile
+    case let screen: return tileName(screen.tile ?? "")
+    }
   }
 
   func windowGone(_ window: String) {
@@ -132,7 +124,7 @@ extension AppModel {
     guard closeInHomeWindow(screen) else { return openWindowAction(value: screen) }
     Task {
       // As `go` waits: the page must be off the old window before the new one takes it.
-      try? await Task.sleep(for: .milliseconds(700))
+      try? await Task.sleep(for: .milliseconds(HomeStack.coverSettles))
       openWindowAction(value: screen)
     }
   }
@@ -222,7 +214,7 @@ extension AppModel {
       guard card != nil else { return false }
       closeCard()
     }
-    self.screen = "home"
+    nowShowing(.home)
     return true
   }
 

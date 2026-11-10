@@ -33,7 +33,7 @@ final class AppModel: ObservableObject {
   private var callLocationWatch: AnyCancellable?
 
   /// The screen in front, as a report and the log name it. Each ported journey sets it when it appears.
-  @Published var screen = "home"
+  @Published private(set) var screen = HomeStack.Screen.home.reportName
   @Published var status = "" { didSet { homeProblem = nil } }
   /// A home tile's failure that has to be copyable (Codex on #386): shown under the tiles in place of `status`,
   /// until a newer `status` replaces it.
@@ -253,7 +253,7 @@ final class AppModel: ObservableObject {
       chat.linkThread = thread
       return
     }
-    screen = "chat"
+    nowShowing(.chat)
     inbox.reload()
     chat.linkThread = thread
     showInbox = true
@@ -262,7 +262,7 @@ final class AppModel: ObservableObject {
   func openPlaces(from source: String) {
     log.event("ui", ["action": "open_places", "from": source])
     if bringForward(.places, from: source) { return }
-    screen = "places"
+    nowShowing(.places)
     showPlaces = true
     places.reload(reason: "open")
     // Places is where You lives: the first open asks for While Using (the switch asks for Always).
@@ -272,7 +272,7 @@ final class AppModel: ObservableObject {
   func closePlaces() {
     guard showPlaces else { return }
     log.event("ui", ["action": "close_places"])
-    screen = "home"
+    nowShowing(.home)
     showPlaces = false
     showPlacesMap = false
   }
@@ -298,59 +298,72 @@ final class AppModel: ObservableObject {
     go(to: route, from: source)
   }
 
-  /// The screen in front, by the route that names it.
-  private var front: String {
-    if gymTimer != nil { return "timer" }
-    if breathe != nil { return "breathe" }
-    if card != nil { return "card" }
-    if showPlaces { return "places" }
-    if showCockpit { return "cockpit" }
-    if showWhiteboard { return "whiteboard" }
-    if callOpen { return "call" }
-    if showToday { return "today" }
-    if showInbox { return "chat" }
-    return "home"
+  /// What a report and the log call the screen in front (#808: one name per screen, `HomeStack.Screen`).
+  func nowShowing(_ screen: HomeStack.Screen) { self.screen = screen.reportName }
+
+  func isShowing(_ screen: HomeStack.Screen) -> Bool { self.screen == screen.reportName }
+
+  /// For the card screen, which does not import ContextCore.
+  func nowShowingCard(drill: Bool) { nowShowing(drill ? .drill : .card) }
+
+  /// Every screen showing in the home window: the one place its flags are read as screens (#808).
+  var up: Set<HomeStack.Screen> {
+    var up: Set<HomeStack.Screen> = []
+    if gymTimer != nil { up.insert(.timer) }
+    if breathe != nil { up.insert(.breathe) }
+    if card != nil { up.insert(.card) }
+    if showPlaces { up.insert(.places) }
+    if showCockpit { up.insert(.cockpit) }
+    if showWhiteboard { up.insert(.whiteboard) }
+    if callOpen { up.insert(.call) }
+    if showEulogySong { up.insert(.eulogySong) }
+    if showWhatsNew { up.insert(.whatsNew) }
+    if showHomeSettings { up.insert(.homeSettings) }
+    if showToday { up.insert(.today) }
+    if showInbox { up.insert(.chat) }
+    return up
   }
 
-  /// Whatever is in front goes, then the route's screen comes up. The screen already in front stays when the link
-  /// starts nothing; the call screen stays either way (a live call is brought forward, not restarted).
+  /// `HomeStack.go` says what to do; this does it.
   private func go(to route: AppRoute, from source: String) {
-    if case .supermix = route { return present(route, from: source) }  // another app: nothing here needs to move
-    // #634: its own window comes forward, and whatever the home window shows stays.
-    if let held = WindowScreen(route: route), windowHolding(held) { return present(route, from: source) }
-    showHomeWindow()  // what this route puts up shows in the home window: it has to be there, and in sight
-    if front == route.name {
-      if case .call = route { return present(route, from: source) }
-      if !route.starts { return }
-    }
-    guard closeAll() else { return present(route, from: source) }
-    Task {
-      // SwiftUI drops a cover asked for while another is still going down.
-      try? await Task.sleep(for: .milliseconds(700))
-      present(route, from: source)
+    let ownWindow = WindowScreen(route: route).map { windowHolding($0) } ?? false
+    carryOut(HomeStack.go(to: route, up: up, ownWindow: ownWindow)[...], from: source)
+  }
+
+  private func carryOut(_ steps: ArraySlice<HomeStack.Step>, from source: String) {
+    for (index, step) in zip(steps.indices, steps) {
+      switch step {
+      case .showHomeWindow: showHomeWindow()
+      case .close(let screen): close(screen)
+      case .present(let route): present(route, from: source)
+      case .wait(let milliseconds):
+        let rest = steps[(index + 1)...]
+        // #808 next step: nothing cancels this, so two links inside the wait each present.
+        Task {
+          try? await Task.sleep(for: .milliseconds(milliseconds))
+          carryOut(rest, from: source)
+        }
+        return
+      }
     }
   }
 
-  /// Takes down every screen over home; true when one was up.
-  private func closeAll() -> Bool {
-    var covered = false
-    if gymTimer != nil { closeGymTimer(); covered = true }
-    if breathe != nil { closeBreathe(); covered = true }
-    if card != nil { closeCard(); covered = true }
-    if showPlaces { closePlaces(); covered = true }
-    if showCockpit { closeCockpit(); covered = true }
-    if showWhiteboard { closeWhiteboard(); covered = true }
-    if callOpen { closeCall(); covered = true }
-    if showToday {
+  /// Takes down one screen a link can close.
+  private func close(_ screen: HomeStack.Screen) {
+    switch screen {
+    case .timer: closeGymTimer()
+    case .breathe: closeBreathe()
+    case .card: closeCard()
+    case .places: closePlaces()
+    case .cockpit: closeCockpit()
+    case .whiteboard: closeWhiteboard()
+    case .call: closeCall()
+    case .today:
       openMetricKey = nil
       showToday = false
-      covered = true
+    case .chat: showInbox = false
+    case .home, .eulogySong, .whatsNew, .homeSettings, .drill, .metric: break  // `HomeStack.go` closes none of these
     }
-    if showInbox {
-      showInbox = false
-      covered = true
-    }
-    return covered
   }
 
   private func present(_ route: AppRoute, from source: String) {
@@ -375,17 +388,17 @@ final class AppModel: ObservableObject {
 
   /// Nothing covers home, not even a sheet or a pushed screen: what is presented from it can show.
   var homeInFront: Bool {
-    front == "home" && !showEulogySong && !showHomeSettings && !showWhatsNew && !reporter.flow.isPresented
+    HomeStack.named(of: up) == .home && !reporter.flow.isPresented
   }
 
   func openHomeSettings() {
     log.event("ui", ["action": "home_settings"])
-    screen = "home_settings"
+    nowShowing(.homeSettings)
     showHomeSettings = true
   }
 
   func closeHomeSettings() {
-    screen = "home"
+    nowShowing(.home)
     showHomeSettings = false
   }
 
@@ -516,7 +529,7 @@ final class AppModel: ObservableObject {
         "action": "open_timer", "from": source, "autostart": launch.autostart,
         "dial": (launch.dial ?? .shipped).rawValue,
       ])
-    screen = "gym_timer"
+    nowShowing(.timer)
     gymTimer = launch
   }
 
@@ -524,21 +537,21 @@ final class AppModel: ObservableObject {
     guard gymTimer != nil else { return }  // a link closed it already; this is the cover's binding catching up
     log.event("ui", ["action": "close_timer"])
     dailyStrip.refresh()  // a finished workout makes today a gym day
-    screen = "home"
+    nowShowing(.home)
     gymTimer = nil
   }
 
   func openBreathe(_ launch: BreatheLaunch = BreatheLaunch(), from source: String) {
     log.event("ui", ["action": "open_breathe", "from": source, "autostart": launch.begins])
     askAudio(.breatheOpens)
-    screen = "breathe"
+    nowShowing(.breathe)
     breathe = launch
   }
 
   func closeBreathe() {
     guard breathe != nil else { return }
     log.event("ui", ["action": "close_breathe"])
-    screen = "home"
+    nowShowing(.home)
     breathe = nil
     dailyStrip.refresh()  // a finished session makes today a meditation day (#257)
   }
@@ -586,7 +599,7 @@ final class AppModel: ObservableObject {
       drillOnOpen = nil
       return
     }
-    screen = "card"
+    nowShowing(.card)
     card = think
   }
 
@@ -600,7 +613,7 @@ final class AppModel: ObservableObject {
     guard card != nil else { return }
     log.event("ui", ["action": "close_card"])
     CardStore.reloadWidget()  // once on leaving, not per deal: iOS rations widget reloads
-    screen = "home"
+    nowShowing(.home)
     card = nil
   }
 
@@ -670,7 +683,7 @@ final class AppModel: ObservableObject {
   func playEulogySong(from source: String) {
     log.event("ui", ["action": "open_eulogy_song_player", "from": source])
     askAudio(.songOpens)
-    screen = "eulogy_song"
+    nowShowing(.eulogySong)
     showEulogySong = true
     eulogySong.play(from: source)
   }
@@ -678,7 +691,7 @@ final class AppModel: ObservableObject {
   /// #195: the small player's tap brings the sheet back as the song is, playing or paused.
   func showEulogySongSheet(from source: String) {
     log.event("ui", ["action": "open_eulogy_song_sheet", "from": source])
-    screen = "eulogy_song"
+    nowShowing(.eulogySong)
     showEulogySong = true
   }
 
@@ -745,14 +758,14 @@ final class AppModel: ObservableObject {
     cockpitOpened = true
     askAudio(.cockpitOpens)
     if bringForward(.cockpit, from: source) { return }
-    screen = "cockpit"
+    nowShowing(.cockpit)
     showCockpit = true
   }
 
   func closeCockpit() {
     guard showCockpit else { return }
     log.event("ui", ["action": "close_cockpit"])
-    screen = "home"
+    nowShowing(.home)
     showCockpit = false
   }
 
@@ -772,7 +785,7 @@ final class AppModel: ObservableObject {
   func openWhiteboard(from source: String) {
     log.event("ui", ["action": "open_whiteboard", "from": source])
     if bringForward(.whiteboard, from: source) { return }
-    screen = "whiteboard"
+    nowShowing(.whiteboard)
     showWhiteboard = true
   }
 
@@ -786,7 +799,7 @@ final class AppModel: ObservableObject {
   func closeWhiteboard() {
     guard showWhiteboard else { return }
     log.event("ui", ["action": "close_whiteboard"])
-    screen = "home"
+    nowShowing(.home)
     showWhiteboard = false
   }
 
@@ -794,14 +807,14 @@ final class AppModel: ObservableObject {
     log.event("ui", ["action": "open_call", "from": source, "state": call.snapshot.state.rawValue])
     askAudio(.callScreenOpens)
     if gymTimer != nil { closeGymTimer() }
-    screen = "call"
+    nowShowing(.call)
     callOpen = true
   }
 
   func closeCall() {
     guard callOpen else { return }
     log.event("ui", ["action": "close_call", "state": call.snapshot.state.rawValue])
-    screen = "home"
+    nowShowing(.home)
     callOpen = false
   }
 
@@ -817,7 +830,7 @@ final class AppModel: ObservableObject {
   /// Opens the list; BugKit's view logs `open_whats_new` as it appears.
   func openWhatsNew(from source: String) {
     whatsNewFrom = source
-    screen = "whats_new"
+    nowShowing(.whatsNew)
     showWhatsNew = true
   }
 

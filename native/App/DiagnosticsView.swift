@@ -137,7 +137,7 @@ struct DiagnosticsView: View {
           get: { model.showWhatsNew },
           set: {
             model.showWhatsNew = $0
-            if !$0 { model.screen = "home" }
+            if !$0 { model.nowShowing(.home) }
           })
       ) {
         WhatsNewView(feed: model.whatsNew, reports: model.bugReports, logger: model.bugLogger, from: model.whatsNewFrom)
@@ -147,7 +147,7 @@ struct DiagnosticsView: View {
           get: { model.showEulogySong },
           set: {
             model.showEulogySong = $0
-            if !$0 { model.screen = "home" }
+            if !$0 { model.nowShowing(.home) }
           })
       ) {
         EulogySongView(song: model.eulogySong) { model.openEulogySong(from: "eulogy_song_sheet") }
@@ -161,7 +161,7 @@ struct DiagnosticsView: View {
           get: { model.showInbox },
           set: {
             model.showInbox = $0
-            if !$0 { model.screen = "home" }
+            if !$0 { model.nowShowing(.home) }
           })
       ) { ChatListView(chat: model.chat, voice: model.chatVoice, logger: model.bugLogger) }
     }
