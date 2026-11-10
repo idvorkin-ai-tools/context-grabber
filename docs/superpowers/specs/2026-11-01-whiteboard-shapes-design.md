@@ -16,7 +16,7 @@ suggest changes the board until Igor keeps it.
 
 ### Ghosts from Claude (stories 344, 350–352, 354, 357–359, 370–377)
 
-- He draws, then lifts the Pencil. After about **1 s** with nothing new Claude is asked, and within a few seconds faint
+- He draws, then lifts the Pencil. After **half a second** with nothing new Claude is asked (1 s until 2026-11-10, story 660), and within a few seconds faint
   shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
   third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next
   pause, which waits for the tool to lift.
@@ -71,6 +71,30 @@ that labels are no longer bold.
   that width. A kind of mark the app doesn't know is dropped, as today.
 - **A kept mark keeps its look.** Kept, it is ink at the width and colour it showed as a ghost, and it saves, syncs,
   undoes and erases like any other ink.
+
+### Who answers the pause: Haiku, Sonnet or Larry (stories 659, 661; Igor, 2026-11-10)
+
+Igor, 2026-11-10: "settings or a knob to go between haiku, sonnet, and the real Larry … everything measured". The
+first piece of the live-whiteboard plan: a knob to compare who answers, and the iPad's own timings to compare them by.
+
+- **The Board menu has a Responder section: Haiku, Sonnet and Larry**, one of them ticked. It is the board's own
+  setting, kept on the Cockpit, so every device drawing that board answers the same way. A board nobody has set
+  answers with Sonnet.
+- **Opening a board asks the Cockpit which one it has.** Until it answers, or when it can't be reached, Sonnet is
+  ticked, and the board draws as before. A choice Igor makes before the answer comes wins over it.
+- **Choosing one tells the Cockpit at once**, and the next pause is answered by it. If the Cockpit refuses or can't be
+  reached, the tick goes back to what the Cockpit last said and a copyable problem says what happened.
+- **Haiku and Sonnet** answer with orange ghosts, exactly as above: Haiku is the faster model, Sonnet the sharper one.
+  Spoken words are answered by the board's responder too.
+- **Larry**: a pause brings no orange ghosts. The Cockpit says the board is Larry's, and the board goes to its chat
+  thread just as *Larry's turn* sends it: *Larry has the board* in the bar, and his blue marks when he has drawn them.
+  Words spoken to the board go with that picture as its message. A pause while a picture of the board is still on its
+  way to him, or while the board's first *Send* waits in the outbox, sends nothing more.
+- With Ghosts off nothing is asked after a pause, whoever the responder is.
+- **Every ghost turn is measured** (story 661). The session log says, for each one, how long the pause waited, how long
+  the picture took to draw and to encode, and how long it took to upload, beside who answered. The Cockpit is told the
+  first three with the turn itself, so its own log puts the iPad's half beside the model's; the upload is known only
+  once the request has gone, so it is in the session log alone.
 
 ### Larry's turn (stories 349, 353, 355–357, 380–389)
 
@@ -163,6 +187,14 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 
 ## Acceptance
 
+- Draw a circle and lift the Pencil: the turn goes half a second later (the session log's pause), not a second.
+- Open the Board menu: Responder shows Haiku, Sonnet and Larry with the board's own ticked. Pick Haiku, close and reopen
+  the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.
+- Pick Larry and draw: no orange ghosts come; the bar says *Larry has the board*, the picture is in the board's chat
+  thread, and his blue marks arrive when he answers.
+- With the Cockpit unreachable, pick another responder: the tick goes back and a copyable problem says why.
+- Every ghost turn's log line has the pause, render, encode and upload times in milliseconds, and the Cockpit's own log
+  of that turn has the first three.
 - Write a column of notes down a tall board and tap Larry's turn: the Cockpit's render of the board (any page of it)
   shows the handwriting as sharp as the iPad does, and its reply names the lines added since his last turn.
 - Cut the Cockpit's strokes route (a 404 or no network): the picture still arrives, and the session log says the

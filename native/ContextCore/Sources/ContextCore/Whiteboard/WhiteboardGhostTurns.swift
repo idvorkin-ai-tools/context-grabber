@@ -232,15 +232,18 @@ extension WhiteboardStream {
     public var firstShapeMs: Int?
     /// What cut the reading short; marks that had already arrived stay.
     public var broken: String?
+    /// Who the Cockpit said answered (story 659); nil when it didn't say.
+    public var responder: WhiteboardResponder?
 
     public init(
       answer: WhiteboardTurn.Answer = .away(reason: "no answer"), streamed: Bool = false, firstShapeMs: Int? = nil,
-      broken: String? = nil
+      broken: String? = nil, responder: WhiteboardResponder? = nil
     ) {
       self.answer = answer
       self.streamed = streamed
       self.firstShapeMs = firstShapeMs
       self.broken = broken
+      self.responder = responder
     }
   }
 
@@ -284,7 +287,7 @@ extension WhiteboardStream {
     public func read(failure: String? = nil) -> Read {
       Read(
         answer: stream.answer(error: failure), streamed: stream.streaming, firstShapeMs: firstShapeMs,
-        broken: stream.broken(error: failure))
+        broken: stream.broken(error: failure), responder: stream.responder)
     }
 
     /// What a thrown error says; a cancelled reading is the caller's deadline.

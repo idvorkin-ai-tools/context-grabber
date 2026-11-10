@@ -40,6 +40,8 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var ruledOn: Bool
   /// The board's colour (story 378).
   @Published private(set) var paper: BoardPaper
+  /// Who answers a pause: Haiku, Sonnet or Larry, the board's knob on the Cockpit (story 659).
+  @Published private(set) var responder = WhiteboardResponderKnob()
   /// The last turn in a line: Larry's words, *Larry has the board*, or ghosts not answering.
   var turnNote: String? { turns.note }
   /// The picture is on its way to Larry's thread.
@@ -98,8 +100,6 @@ final class WhiteboardModel: ObservableObject {
   private var lookFailures = 0
 
   static let ghostsKey = "whiteboard_ghosts"
-  /// How long the Pencil rests before Claude is asked.
-  static let pause: Duration = .seconds(1)
   /// A pasted letter's height on screen, in points, at 100% and zoomed out.
   static let pasteLetters: CGFloat = 24
   /// How long Claude's ghosts stay when nothing replaces them.
@@ -244,11 +244,13 @@ final class WhiteboardModel: ObservableObject {
 
   private func startPause() {
     pauseTask?.cancel()
+    let started = ContinuousClock.now
     pauseTask = Task { [weak self] in
-      try? await Task.sleep(for: Self.pause)
+      try? await Task.sleep(for: WhiteboardPacer.pause)
       guard !Task.isCancelled, let self else { return }
       self.pauseTask = nil
-      if self.turns.pauseEnded() { await self.turn(.claude) }
+      // Story 661: how long the pause really waited, the timer's own lateness included.
+      if self.turns.pauseEnded() { await self.turn(.claude, paused: started.duration(to: .now)) }
     }
   }
 
@@ -286,7 +288,9 @@ final class WhiteboardModel: ObservableObject {
     Task { await handToLarry() }
   }
 
-  private func handToLarry() async {
+  /// `said`: words spoken to a Larry board, which go as the picture's message (story 659). `from`: the button, or a
+  /// pause on a board whose responder is Larry.
+  private func handToLarry(said: String? = nil, from: String = "button") async {
     guard editable, let (rect, scale) = pictureFrame() else { return }
     larrySending = true
     defer { larrySending = false }
@@ -300,7 +304,7 @@ final class WhiteboardModel: ObservableObject {
     let started = Date()
     var event: [String: Any] = [
       "who": "larry", "board": board.id, "bytes": jpeg.count, "picture": picture.pictureID, "new_thread": thread == nil,
-      "pixels": "\(Int(rect.width * scale))x\(Int(rect.height * scale))",
+      "pixels": "\(Int(rect.width * scale))x\(Int(rect.height * scale))", "from": from, "said_chars": said?.count ?? 0,
     ]
     defer {
       event["ms"] = Int(Date().timeIntervalSince(started) * 1000)
@@ -308,7 +312,7 @@ final class WhiteboardModel: ObservableObject {
     }
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, picture: picture))) { $1 }
-    let outcome = await deliver(jpeg, picture: picture, thread: thread)
+    let outcome = await deliver(jpeg, picture: picture, thread: thread, note: said ?? "Your turn on the board")
     switch outcome {
     case .sent(let key, _):
       event["ok"] = true
@@ -378,7 +382,9 @@ final class WhiteboardModel: ObservableObject {
   }
 
   /// The picture uploaded, then the message that names it.
-  private func deliver(_ jpeg: Data, picture: WhiteboardPicture, thread: String?) async -> ChatSend.Outcome {
+  private func deliver(
+    _ jpeg: Data, picture: WhiteboardPicture, thread: String?, note: String
+  ) async -> ChatSend.Outcome {
     do {
       let (body, response) = try await URLSession.shared.data(
         for: try ChatSend.uploadRequest(image: jpeg, cockpit: cockpit))
@@ -387,7 +393,7 @@ final class WhiteboardModel: ObservableObject {
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
       case .ref(let ref):
         let item = InboxItem(
-          kind: .image, sharedAt: Int64(Date().timeIntervalSince1970 * 1000), note: "Your turn on the board",
+          kind: .image, sharedAt: Int64(Date().timeIntervalSince1970 * 1000), note: note,
           thread: thread, whiteboard: picture)
         let (body, response) = try await URLSession.shared.data(
           for: try ChatSend.messageRequest(item, attachment: ref, cockpit: cockpit))
@@ -569,8 +575,9 @@ final class WhiteboardModel: ObservableObject {
     Task { await turn(.claude) }
   }
 
-  /// One turn: the board's picture to the Cockpit, shapes back as ghosts.
-  func turn(_ who: WhiteboardTurn.Who) async {
+  /// One turn: the board's picture to the Cockpit, shapes back as ghosts, or, on a board whose responder is Larry, the
+  /// picture on to his thread (story 659). `paused`: how long the pause that asked it waited; nil for spoken words.
+  func turn(_ who: WhiteboardTurn.Who, paused: Duration? = nil) async {
     let said = turns.said(who)
     // An empty board has no drawing to frame: a spoken turn sees the part on screen, and any other isn't asked.
     let framed =
@@ -581,18 +588,26 @@ final class WhiteboardModel: ObservableObject {
     defer { if turns.turnOver(who) { startPause() } }
     // ponytail: rendered and encoded on the main thread; if a big board hitches the next stroke (the turn event's
     // `bytes`), this moves to a background task.
+    // Story 661: the iPad's half of the turn, measured around the picture and its send.
+    var timings = WhiteboardTimings(pause: paused)
+    let rendering = ContinuousClock.now
     let image = picture(rect: rect, scale: scale)
+    let encoding = ContinuousClock.now
+    timings.render = rendering.duration(to: encoding)
     let png = image.pngData() ?? Data()
+    timings.encode = encoding.duration(to: .now)
     let started = Date()
     let answer: WhiteboardTurn.Answer
     var read = WhiteboardStream.Read()
+    let knobAsked = responder.generation
+    let upload = UploadClock()
     do {
       let title = store.index.board(board.id)?.title ?? board.title
       let request = try WhiteboardTurn.suggestRequest(
         title: WhiteboardSpeech.context(title: title, said: said), picture: png, width: image.cgImage?.width ?? 0,
         height: image.cgImage?.height ?? 0,
-        cockpit: cockpit)
-      read = await readClaude(request, started: started) { [weak self] shape, first in
+        cockpit: cockpit, board: board.id, timings: timings.wire)
+      read = await readClaude(request, started: started, upload: upload) { [weak self] shape, first in
         guard let self, self.turns.current(asked) else { return }
         self.land([shape], who: .claude, rect: rect, scale: scale, first: first)
       }
@@ -600,12 +615,18 @@ final class WhiteboardModel: ObservableObject {
     } catch {
       answer = WhiteboardTurn.answer(status: nil, body: nil, error: error.localizedDescription)
     }
+    timings.upload = upload.span
     let landing = turns.answered(answer, who: who, asked: asked, streamed: read.streamed, said: said)
     let ms = Int(Date().timeIntervalSince(started) * 1000)
     var event: [String: Any] = [
       "who": who.rawValue, "board": board.id, "ms": ms, "stale": landing.stale, "bytes": png.count,
       "streamed": read.streamed, "said_chars": said?.count ?? 0,
     ]
+    event.merge(timings.logFields) { $1 }
+    if let answered = read.responder {
+      event["responder"] = answered.rawValue
+      responder.heard(answered, asked: knobAsked)
+    }
     if let broken = read.broken { event["broken"] = broken }
     switch answer {
     case .shapes(let shapes):
@@ -628,20 +649,31 @@ final class WhiteboardModel: ObservableObject {
     if let failure = landing.failure {
       failed(who, failure, status: landing.status, first: landing.firstFailure)
     }
+    let handOff = WhiteboardResponder.handOff(
+      answered: read.responder, answer: answer, stale: landing.stale, larrySending: larrySending,
+      firstSendWaiting: firstSendWaiting(in: inbox.items))
+    switch handOff {
+    case .nothing: break
+    case .hand: event["larry"] = "hand"
+    case .skipped(let why): event["larry"] = why
+    }
     log.event("whiteboard_turn", event)
+    // The turn holds the next pause until the picture has gone: one picture on its way to him at a time.
+    if handOff == .hand { await handToLarry(said: said, from: "responder") }
   }
 
   /// Reads Claude's answer as it comes, telling `landed` each mark and whether it is the answer's first. The 10 s are
   /// for the whole answer: URLRequest's own timeout starts over with every byte.
   private func readClaude(
-    _ request: URLRequest, started: Date, landed: @escaping (WhiteboardTurn.Shape, Bool) -> Void
+    _ request: URLRequest, started: Date, upload: UploadClock, landed: @escaping (WhiteboardTurn.Shape, Bool) -> Void
   ) async -> WhiteboardStream.Read {
     let reading = Task { () -> WhiteboardStream.Read in
       var reading = WhiteboardStream.Reading()
       let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
       var failure: String?
       do {
-        let (bytes, response) = try await URLSession.shared.bytes(for: request)
+        upload.start()
+        let (bytes, response) = try await URLSession.shared.bytes(for: request, delegate: upload)
         reading.opened(status: (response as? HTTPURLResponse)?.statusCode, contentType: response.mimeType)
         for try await byte in bytes {
           if let mark = reading.take(byte, elapsedMs: elapsedMs) { landed(mark.shape, mark.first) }
@@ -792,7 +824,72 @@ final class WhiteboardModel: ObservableObject {
 
   /// On screen: a delete from another device waits for `close`, which comes after the last save.
   func opened() {
-    if editable { store.opened(board.id) }
+    guard editable else { return }
+    store.opened(board.id)
+    Task { await readResponder() }
+  }
+
+  /// Story 659: which responder the board has, asked as it opens. Until the Cockpit answers, or when it can't, Sonnet
+  /// stays ticked: the log says so, the bar doesn't.
+  private func readResponder() async {
+    let asked = responder.generation
+    let reply: WhiteboardResponder.Reply
+    do {
+      let (body, response) = try await URLSession.shared.data(
+        for: try WhiteboardResponder.readRequest(board: board.id, cockpit: cockpit))
+      reply = WhiteboardResponder.reply(status: (response as? HTTPURLResponse)?.statusCode, body: body)
+    } catch {
+      reply = WhiteboardResponder.reply(status: nil, body: nil, error: error.localizedDescription)
+    }
+    var event: [String: Any] = ["action": "responder_read", "board": board.id]
+    switch reply {
+    case .responder(let answered):
+      responder.heard(answered, asked: asked)
+      event["ok"] = true
+      event["responder"] = answered.rawValue
+    case .failed(let reason, let status):
+      event["ok"] = false
+      event["reason"] = reason
+      if let status { event["status"] = status }
+    }
+    event["ticked"] = responder.shown.rawValue
+    log.event("whiteboard", event)
+  }
+
+  /// Story 659: Igor picked who answers the board's pauses. It shows at once and goes to the Cockpit; a write that
+  /// fails takes the tick back and says why.
+  func setResponder(_ new: WhiteboardResponder) {
+    guard editable, let choice = responder.chose(new) else { return }
+    log.event("whiteboard", ["action": "responder", "board": board.id, "responder": new.rawValue])
+    Task { await writeResponder(new, choice: choice) }
+  }
+
+  private func writeResponder(_ new: WhiteboardResponder, choice: Int) async {
+    let reply: WhiteboardResponder.Reply
+    do {
+      let (body, response) = try await URLSession.shared.data(
+        for: try WhiteboardResponder.writeRequest(new, board: board.id, cockpit: cockpit))
+      reply = WhiteboardResponder.reply(status: (response as? HTTPURLResponse)?.statusCode, body: body)
+    } catch {
+      reply = WhiteboardResponder.reply(status: nil, body: nil, error: error.localizedDescription)
+    }
+    switch reply {
+    case .responder(let answered):
+      responder.wrote(answered, choice: choice)
+      if problem?.context == "WhiteboardView.responder" { problem = nil }
+    case .failed(let reason, let status):
+      responder.wrote(nil, choice: choice)
+      log.event(
+        "error",
+        ["where": "whiteboard_responder", "board": board.id, "responder": new.rawValue, "message": reason])
+      var extra: [String: JSONValue] = [
+        "board": .string(board.id), "responder": .string(new.rawValue), "ticked": .string(responder.shown.rawValue),
+        "cockpit": .string(cockpit),
+      ]
+      if let status { extra["status"] = .int(status) }
+      problem = .grabber(
+        "The board couldn't be given to \(new.name): \(reason)", context: "WhiteboardView.responder", extra: extra)
+    }
   }
 
   /// Leaving the board, by Back or by a link that takes it down: what is drawn is written now, not a second later,
@@ -882,6 +979,36 @@ struct Ghost: Identifiable, WhiteboardGhost {
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
     width = WhiteboardTurn.width(shape, scale: scale)
+  }
+}
+
+/// How long a ghost turn's request took to go up (story 661): from the send to its body's last byte, the connection's
+/// setup included. URLSession tells a task's own delegate as the body goes; the last word is the last byte.
+final class UploadClock: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+  private let lock = NSLock()
+  private var started: ContinuousClock.Instant?
+  private var sent: ContinuousClock.Instant?
+
+  func start() {
+    lock.withLock {
+      started = .now
+      sent = nil
+    }
+  }
+
+  /// Nil until the body has gone, or when URLSession never said.
+  var span: Duration? {
+    lock.withLock {
+      guard let started, let sent else { return nil }
+      return started.duration(to: sent)
+    }
+  }
+
+  func urlSession(
+    _ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64,
+    totalBytesExpectedToSend: Int64
+  ) {
+    lock.withLock { sent = .now }
   }
 }
 
@@ -1037,6 +1164,19 @@ struct WhiteboardView: View {
                     model.setRuled($0)
                     model.menuChose?()
                   }))
+            }
+            // Story 659: who answers a pause, the board's own on the Cockpit.
+            Section("Responder") {
+              ForEach(WhiteboardResponder.allCases, id: \.self) { responder in
+                Toggle(
+                  responder.name,
+                  isOn: Binding(
+                    get: { model.responder.shown == responder },
+                    set: { _ in
+                      model.setResponder(responder)
+                      model.menuChose?()
+                    }))
+              }
             }
           } label: {
             Label("Board", systemImage: "paintpalette")

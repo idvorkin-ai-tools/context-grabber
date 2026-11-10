@@ -3770,3 +3770,70 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **and Given:** the app has only paper
 - **When:** I open it
 - **Then:** its ink shows on the first page, every stroke where it was relative to the others and none scaled, the bar says *Drawn on the old canvas: look only*, and there are no tools, no Board menu and no Send, so nothing draws on it or changes its file
+
+---
+
+### User Story 659:
+
+- **Summary:** I pick who answers a board's pause: Haiku, Sonnet or the real Larry
+- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardResponderTests`: the read and the write on the wire, the tick while they are on their way, a failed write taking it back, who answered from a stream or a whole answer, when a Larry board's pause goes to his thread) and the Linux cross-builds of ContextCore. The menu, the Cockpit's live knob and a Larry board's hand-off not yet seen on the Mac or the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing with a model beside me
+- **I want to** choose per board whether Haiku, Sonnet or the real Larry answers when I pause
+- **so that** I can feel the difference between a fast ghost, a sharper one and Larry himself, and keep the one that suits the board
+
+#### Acceptance Criteria:
+- **Scenario:** The board's own choice
+- **Given:** a board I draw on, which nobody has set
+- **When:** I open its Board menu
+- **Then:** Responder shows Haiku, Sonnet and Larry with Sonnet ticked, and when I pick Haiku the tick moves at once and the board has Haiku when I reopen it, here and on my other devices
+
+- **Scenario:** A Larry board
+- **Given:** a board whose responder is Larry, with Ghosts on
+- **When:** I draw and pause
+- **Then:** no orange ghosts come; the bar says *Larry has the board*, the picture is in the board's chat thread, and his blue marks show when he answers
+
+- **Scenario:** The Cockpit can't take the choice
+- **Given:** the Cockpit can't be reached
+- **When:** I pick another responder
+- **Then:** the tick goes back to the one the Cockpit last said and a copyable problem says why
+
+---
+
+### User Story 660:
+
+- **Summary:** Claude is asked half a second after I lift the Pencil, not a second
+- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Ghosts from Claude*
+
+#### Use Case:
+- **As someone** drawing with Claude
+- **I want to** see ghosts sooner after I stop
+- **so that** it feels like drawing together, not waiting for a turn
+
+#### Acceptance Criteria:
+- **Scenario:** A shorter pause
+- **Given:** Ghosts are on
+- **When:** I draw a circle and lift the Pencil
+- **Then:** the turn is asked half a second later (the session log's `pause_ms` is about 500), and the Pencil going back down before then still holds it
+
+---
+
+### User Story 661:
+
+- **Summary:** Every ghost turn says how long the iPad's half took
+- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardResponderTests`: the milliseconds, what goes to the Cockpit and what only the log has, the request carrying the board and the timings). The upload time comes from URLSession's own report, seen only on a device
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** deciding which model draws the ghosts
+- **I want to** see where the wait goes: the pause, the picture, the upload, the model
+- **so that** the choice rests on measurements, not guesses
+
+#### Acceptance Criteria:
+- **Scenario:** A measured turn
+- **Given:** Ghosts are on
+- **When:** I draw, pause, and a ghost turn goes
+- **Then:** its session-log line has `pause_ms`, `render_ms`, `encode_ms` and `upload_ms` beside who answered, and the Cockpit's log of that turn has the pause, render and encode times
