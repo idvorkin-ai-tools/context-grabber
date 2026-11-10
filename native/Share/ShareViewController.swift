@@ -210,7 +210,7 @@ struct ShareCard: View {
           HStack(alignment: .top) {
             // Off while it listens: each partial result rewrites the field from the note at the tap, typing and all.
             TextField("Optional", text: $message, axis: .vertical).lineLimit(1...4).accessibilityLabel("Message")
-              .disabled(dictation.listening || dictation.processing)
+              .disabled(dictation.starting || dictation.listening || dictation.processing)
             micButton
           }
           if dictation.starting || dictation.processing {
