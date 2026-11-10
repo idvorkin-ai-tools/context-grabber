@@ -2171,7 +2171,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 546:
 
 - **Summary:** Speaking a message on the share card
-- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can. Stopping, sending, cancelling and a refusal are stories 555–558
+- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can. Stopping, sending, cancelling and a refusal are stories 555–558
 - **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673), [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2356,7 +2356,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 555:
 
 - **Summary:** Stopping the share card's dictation
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
 - **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2376,7 +2376,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 556:
 
 - **Summary:** Sending from the share card while it listens
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
 - **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2396,7 +2396,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 557:
 
 - **Summary:** Closing the share card while it listens
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
 - **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2416,7 +2416,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 558:
 
 - **Summary:** The share card says why it cannot listen
-- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
+- **Status:** native app only: implemented in [92850cd9](https://github.com/idvorkin/context-grabber/commit/92850cd9) and [9b5a4d07](https://github.com/idvorkin/context-grabber/commit/9b5a4d07); host `just native-test` (format and lint only: the card is not compiled there) and the simulator rung's Xcode build of the branch, the share extension included, against BugKit 0.3.12; speaking on the phone not yet
 - **Issues:** [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
