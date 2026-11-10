@@ -22,8 +22,8 @@ bad() { not_ok "$@"; }
 # #801: a failed check's session log is pruned or overwritten before anyone reads it, so the check keeps what it judged.
 keep_evidence() {  # keep_evidence <check> <file>...: copies them to $SMOKE_EVIDENCE/<check>-<time>/ and says where
   local dir="${SMOKE_EVIDENCE:-$HOME/tmp/agent/notes/smoke}/$1-$(date +%Y%m%d-%H%M%S)"; shift
-  mkdir -p "$dir" && cp -f "$@" "$dir/" 2>/dev/null || true
-  echo "      evidence kept in $dir"
+  if mkdir -p "$dir" && cp -f "$@" "$dir/"; then echo "      evidence kept in $dir"
+  else echo "      could not keep evidence in $dir"; fi
 }
 listening() {  # listening <port>: waits up to 5 s for a fake server to take connections, a tenth of a second at a time; the caller judges
   local tries=0

@@ -22,7 +22,11 @@ kill -0 "$bridge" 2>/dev/null || { echo "the fake bridge did not start on port $
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
 # #801: ChatReactionUITests wants Larry's question to be the newest in its thread; an earlier run's answers are still in
 # the simulator's outbox and this fake Cockpit never heard them.
-scripts/native/forget-chat-thread.sh "$udid" com.idvorkin.grabbernative igor2-88g.629 >/dev/null || true
+# Booted for the container lookup (xcodebuild would boot it anyway), the app stopped so nothing rewrites the outbox.
+xcrun simctl boot "$udid" 2>/dev/null || true
+xcrun simctl terminate "$udid" com.idvorkin.grabbernative >/dev/null 2>&1 || true
+scripts/native/forget-chat-thread.sh "$udid" com.idvorkin.grabbernative igor2-88g.629 >/dev/null \
+  || echo "the outbox's leftovers for igor2-88g.629 could not be removed: ChatReactionUITests may fail on them (#801)" >&2
 # SUITE_PREBUILT=1 (the ladder's --full, after its own build-for-testing): run what was built rather than build again.
 action=test done="TEST SUCCEEDED"
 [ "${SUITE_PREBUILT:-}" = 1 ] && action=test-without-building done="TEST EXECUTE SUCCEEDED"
