@@ -20,6 +20,9 @@ trap 'kill $cockpit $bridge 2>/dev/null || true' EXIT
 sleep 1
 kill -0 "$bridge" 2>/dev/null || { echo "the fake bridge did not start on port $bridge_port" >&2; exit 1; }
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
+# #801: ChatReactionUITests wants Larry's question to be the newest in its thread; an earlier run's answers are still in
+# the simulator's outbox and this fake Cockpit never heard them.
+scripts/native/forget-chat-thread.sh "$udid" com.idvorkin.grabbernative igor2-88g.629 >/dev/null || true
 # SUITE_PREBUILT=1 (the ladder's --full, after its own build-for-testing): run what was built rather than build again.
 action=test done="TEST SUCCEEDED"
 [ "${SUITE_PREBUILT:-}" = 1 ] && action=test-without-building done="TEST EXECUTE SUCCEEDED"
