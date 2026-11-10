@@ -156,3 +156,41 @@ Part of the [user stories](README.md); persona and format are described there.
 - **and Given:** no other Xcode build is running
 - **When:** the ladder runs
 - **Then:** it stops at the Mac rung without starting the simulator, printing the seconds for each rung and that it stopped on the Mac
+
+---
+
+### User Story 686:
+
+- **Summary:** A change to one screen runs that screen's own UI tests
+- **Status:** implemented in 0712a24, 0e7e7b1; verified on the host rung (`scripts/native/test-ladder-map.sh`)
+- **Issues:** [#795](https://github.com/idvorkin/context-grabber/issues/795)
+
+#### Use Case:
+- **As Igor,** changing one screen of the app
+- **I want to** have the ladder run that screen's own UI tests
+- **so that** the change is checked on the simulator before it reaches my phone, without the forty-five minutes of every test
+
+#### Acceptance Criteria:
+- **Scenario:** A change to the Gym Timer
+- **Given:** the branch changed only the Gym Timer's code
+- **When:** the ladder reaches the simulator rung
+- **Then:** it runs the Gym Timer's own UI tests and no other screen's, naming them before it starts
+
+---
+
+### User Story 687:
+
+- **Summary:** A change to a screen no simulator test opens is named, not passed over
+- **Status:** implemented in 0712a24, 0e7e7b1; verified on the host rung (`scripts/native/test-ladder-map.sh`)
+- **Issues:** [#795](https://github.com/idvorkin/context-grabber/issues/795)
+
+#### Use Case:
+- **As Igor,** reading what the ladder checked
+- **I want to** be told when a change got no UI tests of its own
+- **so that** a green run is never mistaken for a tested screen
+
+#### Acceptance Criteria:
+- **Scenario:** A change to the iPad's windows
+- **Given:** the branch changed only the iPad's windows, which no simulator UI test opens
+- **When:** the ladder runs
+- **Then:** it chooses no UI tests for that change, names the changed file, and says how to run every UI test
