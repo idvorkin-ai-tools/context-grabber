@@ -9,6 +9,7 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 | Rung | What runs | Command | Time | Answers |
 |---|---|---|---|---|
 | 0 Lint | swift-format's lint over the Swift files the branch touched, then SwiftLint over the tree (no force unwrap, cast or try, no implicitly unwrapped optional, unless a `swiftlint:disable:next` line gives the reason) | `just native-lint-touched` (`just native-format` fixes the layout) | ~2 s | the layout (`native/.swift-format`) of what changed; a new `!` or `try!` |
+| 1L Linux | off the Mac, the first rung: `ContextCore`'s XCTest under Linux Swift; the package and its tests cross-built for macOS, iOS and the simulator; the app's own sources (App and Shared, the widgets, the share extension, the UI tests) compiled for iOS against the real BugKit and ThinkACard pins; the ladder's map, the breath clips and the UI timing digest | `just test-linux` | tests ~10 s once built; ~4 min with the cross-builds | everything rung 1 answers but the asset catalog and the signing guard; a type, concurrency or API slip anywhere in the app's Swift, which before this only the Mac's build could find. Never what runs: no app is linked, signed or launched, and Catalyst-only code isn't compiled |
 | 1 Host | `ContextCore` XCTest (`native/ContextCore`, the platform-free package), then the device build's signing path with fakes (`scripts/native/test-signing-guard.sh`), the breathing clips, the asset catalog compiled with actool with every home tile's art present and square (`scripts/native/test-tile-art.sh`), the ladder's own map (`scripts/native/test-ladder-map.sh`), and the UI test timing digest against a real run's log (`scripts/native/test-ui-timings.sh`). `just native-test`, or `just test`, is rungs 0 and 1 with swift-format over the whole tree: what the gate runs | `just native-test-host` | ~25 s once built | everything pure: what a log line can carry, log retention; each ported module's logic |
 | 1.5 Mac | the Catalyst build, ad hoc; once open, driven by the same launch hooks (`open --env`), judged from the session log in its sandbox folder; `GRABBER_BUG=<note>` saves a report whose picture is the screen. It reaches Igor's real Cockpit unless named, so a test launch must name the stand-in or nowhere (`https://no-address.invalid`) on every route: `COCKPIT=` sets all three, and a hook-driven `open --env` launch sets `GRABBER_CHAT_URL`, `GRABBER_COCKPIT_URL` and `GRABBER_USAGE_URL` itself. Naming only the chat address leaves the page and the usage strip on the real Cockpit. A launch named anywhere but the real Cockpit has its own outbox (`Inbox-test`, beside `Inbox`), so what it leaves waiting stays among test launches | `just native-build-mac`; `just native-run-mac` opens it, `COCKPIT=<url>` to name a Cockpit | ~5 min | code under `#if targetEnvironment(macCatalyst)`, which the host cannot compile; with `native-run-mac`, it opens and every screen comes up. What a mouse can draw, what iCloud does and the keys (Enter sends, #683) on a Mac still take a person: `MacKeysUITests` presses them but waits for a signed run, as the ad hoc test runner refuses to load it |
 | 2 Simulator | the build with its UI tests; the UI test classes the change touches; `just native-test-sim`'s smoke, the app driven by launch hooks and judged from its session log; the areas' whole suites (`scripts/native/test-chat-ui.sh`, `test-whiteboard-ui.sh`) | `just test-ladder` for the build and the touched classes, `--full` for the suites; `just native-test-sim` for the smoke | build ~5 min; a class ~30 s a test; smoke ~1 min; the whiteboard's suite ~18 min on one boot (an estimate from the 7 Nov per-class times, until the Mac times it; ~28 min with two boots before) | a real view, gesture or system service: it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events, the card's deal and count |
@@ -16,14 +17,24 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 
 ## Off the Mac: `just test-linux`
 
-On a Linux box, with no Xcode, `just test-linux` runs `ContextCore`'s XCTests under Linux Swift, then cross-builds the
-package and its tests for arm64 macOS, iOS and the iOS simulator with a Darwin Swift SDK (xtool's): compiled, never
-run. It is not a rung: it catches a type, concurrency or API slip in `ContextCore` before the Mac does, and the Mac's
-rung 1 still decides. At f83889f, 1,064 of the Mac's 1,123 host tests ran on Linux (one of them skipped: the
-simulator-exports comparison, which only `sim-smoke.sh` arms) in about 8 s, once built; `just test-linux` prints the
-count. It needs a Swift 6 Linux toolchain and SQLite's
-header (`libsqlite3-dev`); without a `darwin` Swift SDK the cross-build says it was skipped. The script's header lists
-the settings for a toolchain that is not on `PATH`.
+Rung 1L. On a Linux box, with no Xcode, `just test-linux` is the first rung to climb, and an agent with no Mac climbs
+it before every push. In order, it:
+
+1. runs `ContextCore`'s XCTests under Linux Swift (all but the few that need an Apple framework, below);
+2. cross-builds the package and its tests for arm64 macOS, iOS and the iOS simulator with a Darwin Swift SDK (xtool's):
+   compiled, never run;
+3. compiles the app's own sources for iOS with that SDK: App and Shared, the widgets, the share extension and the UI
+   tests, each Xcode target as a SwiftPM target in a generated package that takes the BugKit and ThinkACard pins from
+   `native/project.yml`. Fetching those packages needs the network; without it, or without the SDK, the step says it
+   was skipped. Nothing is linked into an app, signed or launched, and code under
+   `#if targetEnvironment(macCatalyst)` isn't compiled (the Mac rung does);
+4. runs the host rung's portable script checks: the ladder's map (`test-ladder-map.sh`), the breath clips and the UI
+   timing digest. The asset catalog check needs `actool` and the signing guard BugKit's script, so they stay the Mac's.
+
+It prints each step's count or result. It needs a Swift 6 Linux toolchain and SQLite's header (`libsqlite3-dev`); the
+script's header lists the settings for a toolchain that is not on `PATH`. The Mac's rung 1 still decides: Linux runs
+the same tests on another Foundation, and only the Mac's `just native-test` (with SwiftLint, which isn't on Linux, and
+the Mac's own swift-format) and its build say the app is right.
 
 A unit that needs an Apple framework is under `#if canImport(<framework>)`, and so are the tests that use it. Where
 portable code calls one, Linux gets a stand-in that declines (no image is readable, a label has no outline), and the
@@ -44,6 +55,7 @@ same tests pass on Linux, but only the Mac's run says the app is right. Left out
 | Change | Where it must be verified | How |
 |---|---|---|
 | Words: documents, comments in Markdown | Nowhere above lint | read the diff |
+| Any Swift change, from a box with no Mac | Linux (1L) first, then the Mac's rungs | `just test-linux`; the PR says what still needs the Mac (SwiftLint, the Xcode build, the simulator) |
 | Pure logic in `ContextCore`, a rule that needs no screen | Host | an XCTest in `native/ContextCore/Tests` |
 | A script check, the ladder's map | Host | `scripts/native/test-*`, run by `just native-test-host` |
 | Mac-only code, or anything else that goes into the Mac build | Mac | `just native-build-mac`; a host test can't compile it, and neither can a simulator build |

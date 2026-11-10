@@ -216,6 +216,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 750:
+
+- **Summary:** A box with no Mac checks the whole app's Swift before anything reaches the Mac
+- **Status:** STATUS750
+- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung")
+
+#### Use Case:
+- **As Igor,** with agents working on Linux boxes while the Mac is busy or locked
+- **I want to** have every change compiled and host-tested off the Mac first, app code included
+- **so that** a type slip in a view or a broken ladder map shows up on the agent's box in minutes, not in the Mac's build an hour later
+
+#### Acceptance Criteria:
+- **Scenario:** An agent on Linux changes app code and a host test
+- **Given:** a Linux box with the Swift toolchain and the Darwin SDK, and no Mac
+- **When:** the agent runs the Linux rung
+- **Then:** ContextCore's tests run, the package and the app's sources (the app, the widgets, the share extension and the UI tests) are compiled for Apple, the ladder's map is checked, and each step says ok, failed or skipped and why
+
+---
+
 ### User Story 688:
 
 - **Summary:** A new branch builds in a worktree that already has a build
