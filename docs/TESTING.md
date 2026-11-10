@@ -72,7 +72,7 @@ script's dry run:
 | The fake Cockpit | chat's and the whiteboard's |
 | The Gym Timer, in the app or `ContextCore` | `GymTimerDialsUITests`, `GymTimerUITests` |
 | Breathing, in the app or `ContextCore` | `BreatheMindfulUITests`, `BreathePresetsUITests`, `BreatheStyleUITests` |
-| Places, in the app or `ContextCore` | `PlaceIconUITests`, `PlacesRangeUITests`, `PlacesUnnamedUITests`, in a run of their own: the ladder first installs the build, copies the real export to the app's `Documents/import-fixture.db` and launches the app once to import it, failing the rung if the import's event doesn't come |
+| Places, in the app or `ContextCore` | `PlaceIconUITests`, `PlacesProblemUITests`, `PlacesRangeUITests`, `PlacesUnnamedUITests`, in a run of their own: the ladder first installs the build, copies the real export to the app's `Documents/import-fixture.db` and launches the app once to import it, failing the rung if the import's event doesn't come |
 | The mirror (Today, a metric's detail), in the app or `ContextCore` | `HomeTodayCardUITests`, `MetricDetailUITests` |
 | The card, in the app or `ContextCore` | `CardUITests`, `TodaysHandUITests`; the role of the day's file, `TodaysHandUITests` alone |
 | The Cockpit, in the app or `ContextCore` | `CockpitBackUITests`, `CockpitCallUITests` |
