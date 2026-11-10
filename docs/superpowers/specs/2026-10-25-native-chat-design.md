@@ -356,6 +356,43 @@ gone. Sharing still never waits on the network:
   it* with the Cockpit's reason. A message into a chat the list does not hold stays visible in the list under *Not sent
   yet*, refused or waiting, with a swipe to delete, since no thread on screen could show it.
 
+**The chat this link already started** (#794, Igor 2026-11-09: *"share sheet can find a thread that started with a
+matching URL and the last I don't know four or eight hours — that should be recommended thread to append to"*). He
+shares a link, Larry answers, and an hour later he shares the same page again with a second thought: that belongs in
+the chat the first share started, not in a twin of it. So when the link on the card is one that started a chat within
+the last **eight hours**, and that chat is still live, the card recommends it: it is the first row under *New chat*,
+above the always-on chat, with *Same link* under its title. The chats appear with it already in place: no row moves once the list is
+shown. It takes one of the five places, so the card still lists
+at most five chats, and it is listed even when it is not among the five most recent.
+
+- **Recommended, not chosen.** *New chat* is still ticked when the card opens and the button still reads *Start a
+  chat*; one tap on the recommended row ticks it. The list arrives after the card opens, and a tick that moved on its
+  own under his thumb would send a share somewhere he did not choose (the rule above).
+- **Eight hours, counted from when the chat started** (when the Cockpit took the first share, which is what Larry's
+  answer follows, not when the card was sent). He offered four or eight. Eight covers one sitting with a subject, a
+  morning's link picked up again in the afternoon, where four would lose it over lunch and a meeting. Past that the same
+  link is more likely a fresh look that deserves its own chat, and the cost of being generous is small: a
+  recommendation is one row he can ignore, and it only appears for the very page he is sharing.
+- **The same link** means the same page, however the other app dressed the address. Ignored: `http` against `https`,
+  capitals in the site's name, a leading `www.`, a trailing slash, a `#` that names a place on the page, the order of what
+  follows the `?`, and the tags that only track where a click came from (`utm_…`, `fbclid`, `gclid`, `igshid` and
+  their kind, and `si` on YouTube and Spotify, where it marks who shared; elsewhere `si` may be the page). Everything
+  else counts: another path is another page, and so is another `?v=` or `?id=`, and so is a `#` that begins with `/`
+  or `!`, which on some sites is the page's address. Two addresses a site
+  treats as one page (a short link and its long form, a mobile site) are not matched.
+- **Only a share that started a chat counts**: a link shared with *New chat* ticked, once the app has sent it and the
+  chat exists. A link sent into a chat already going does not make that chat the link's, and neither does a link typed
+  into a message. A first share still waiting on the phone has started nothing yet, so a second share of it is offered
+  *New chat* and the recent chats as usual.
+- **Several chats started from the same link** in the window: the most recently started one that is still live is
+  recommended, and only that one is marked.
+- **Nothing to recommend** — a link shared for the first time, one whose chat is older than eight hours, Done,
+  archived or gone from the Cockpit, some text or a picture, or the list out of reach — and the card is exactly as
+  above, with no line saying so.
+- The phone remembers which chat each shared link started for those eight hours and no longer (the card never
+  reads an older one, and the app drops them when it next comes to the front), apart from the message itself, which is still dropped once the thread shows it (*What the phone keeps*). The app's log says that a share
+  was offered a same-link chat and whether it went there, never the address.
+
 **Sending.** The same rules the Inbox has: tried when the app opens or comes to the front, when the network returns
 and after a failed send's network change, oldest first, never while offline. A message resent after a lost answer
 appears once on the thread, and a share resent after a lost answer makes one thread, not two. A message the Cockpit

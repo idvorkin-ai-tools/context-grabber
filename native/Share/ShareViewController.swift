@@ -2,8 +2,10 @@
 //  one image), takes an optional message (#673), and *Start a chat* (chat, spec 2026-10-25) writes it to the Inbox in the App Group and closes at once.
 //  The app sends it to Larry later (story 039). The one question asked of the network here is which recent chats to
 //  offer beside *New chat* (#587, stories 495–499), and nothing waits for its answer. The message's mic button is
-//  BugKit's NoteDictation, the problem report's (#793, story 546). Apple's guidance keeps an app extension off the
-//  microphone; whether iOS lets this one listen is the phone's to answer, and a refusal is a copyable line.
+//  BugKit's NoteDictation, the problem report's (#793, story 546). A link that started a chat in the last eight hours
+//  has that chat recommended, first in the list (#794, story 559): the app wrote which chat beside the Inbox. Apple's
+//  guidance keeps an app extension off the microphone; whether iOS lets this one listen is the phone's to answer, and
+//  a refusal is a copyable line.
 
 import AVFAudio
 import BugKit
@@ -37,8 +39,8 @@ final class ShareViewController: UIViewController {
     card.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     view.addSubview(card.view)
     card.didMove(toParent: self)
-    Task { await shared.load(extensionContext?.inputItems as? [NSExtensionItem] ?? []) }
-    Task { await recent.load() }
+    let reading = Task { await shared.load(extensionContext?.inputItems as? [NSExtensionItem] ?? []) }
+    Task { await recent.load(shared: shared, read: reading) }
   }
 
   /// The host taking the card away, however it does: SwiftUI's onDisappear is not proven to fire then.
@@ -54,7 +56,7 @@ final class ShareViewController: UIViewController {
     }
     guard var item = shared.item(note: note) else { return shared.problem ?? "Nothing to add yet." }
     item.thread = thread
-    item.offered = ShareThreads.offered(recent.read)
+    item.offered = ShareThreads.offered(recent.read, recommended: recent.recommended)
     do {
       try store.add(item, image: shared.image, imageExtension: shared.imageExtension)
     } catch {
@@ -180,12 +182,23 @@ final class Shared: ObservableObject {
 @MainActor
 final class RecentChats: ObservableObject {
   @Published private(set) var read: ShareThreads.Read?
+  /// The live chat the shared link started in the last eight hours, to list first (#794); nil without one. Worked
+  /// out once, before `read` is set, so no row moves after the list is shown.
+  private(set) var recommended: String?
 
-  func load() async {
+  /// `read`: what was shared being read. The list is not shown before it ends, since the link decides the first row.
+  func load(shared: Shared, read reading: Task<Void, Never>) async {
+    let now = Date()
     // An extension gets no launch hooks, so a simulator's card never has an address (#525).
-    read = await ShareThreads.read(cockpit: ChatCockpit.address(override: nil)) {
-      try await URLSession.shared.data(for: $0)
+    let cockpit = ChatCockpit.address(override: nil)
+    let answer = await ShareThreads.read(cockpit: cockpit) { try await URLSession.shared.data(for: $0) }
+    await reading.value
+    if case .threads(let live) = answer, let url = shared.url {
+      // The app recorded which chat each shared link started, beside the Inbox in the App Group.
+      let starts = InboxStore.shared(cockpit: cockpit)?.linkStarts(now: now) ?? []
+      recommended = ShareSameLink.recommended(url: url.absoluteString, starts: starts, live: live, now: now)
     }
+    read = answer
   }
 }
 
@@ -306,8 +319,10 @@ struct ShareCard: View {
       switch recent.read {
       case nil:
         ProgressView().accessibilityLabel("Reading your recent chats")
-      case .threads(let rows):
-        ForEach(rows) { destination($0.title, age: $0.lastAt, key: $0.key) }
+      case .threads(let live):
+        ForEach(ShareThreads.rows(live, recommended: recent.recommended)) {
+          destination($0.title, age: $0.lastAt, key: $0.key, sameLink: $0.key == recent.recommended)
+        }
       case .problem(let why):
         // The card's copyable idiom, as below; the list being out of reach is normal, so it stays small.
         VStack(alignment: .leading, spacing: 4) {
@@ -318,12 +333,16 @@ struct ShareCard: View {
     }
   }
 
-  private func destination(_ title: String, age: Date?, key: String?) -> some View {
+  /// `sameLink`: the chat this link started lately, recommended and never ticked for him (story 559).
+  private func destination(_ title: String, age: Date?, key: String?, sameLink: Bool = false) -> some View {
     Button {
       thread = key
     } label: {
       HStack {
-        Text(title).lineLimit(1).foregroundStyle(.primary)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title).lineLimit(1).foregroundStyle(.primary)
+          if sameLink { Text("Same link").font(.caption).foregroundStyle(.tint) }
+        }
         Spacer()
         if let age {
           Text(age, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))

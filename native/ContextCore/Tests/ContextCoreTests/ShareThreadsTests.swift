@@ -35,11 +35,11 @@ final class ShareThreadsTests: XCTestCase {
       row("pinned", pinned: true), row("a"), row("done", done: true), row("archived", done: true, archived: true),
       row("b"), row("c"), row("d"), row("e"), row("f"),
     ]
-    XCTAssertEqual(ShareThreads.recent(rows).map(\.key), ["pinned", "a", "b", "c", "d"])
+    XCTAssertEqual(ShareThreads.rows(ShareThreads.live(rows)).map(\.key), ["pinned", "a", "b", "c", "d"])
   }
 
   func testAnArchivedRowTheCockpitDidNotMarkDoneIsStillNotOffered() {
-    XCTAssertEqual(ShareThreads.recent([row("archived", archived: true), row("a")]).map(\.key), ["a"])
+    XCTAssertEqual(ShareThreads.live([row("archived", archived: true), row("a")]).map(\.key), ["a"])
   }
 
   func testTheListIsAskedOfTheChatRouteAndSortedWithThePinnedChatFirst() async {

@@ -73,6 +73,12 @@ final class InboxModel: ObservableObject {
 
   /// Reads the Inbox, logs what the share extension added since the last look, then sends what waits.
   func refresh(reason: String) {
+    // #794: which chat a shared link started is kept eight hours and no longer.
+    do {
+      try store?.forgetOldLinkStarts()
+    } catch {
+      log.event("error", ["where": "inbox_link_starts", "message": "\(error)"])
+    }
     reload()
     announceNew()
     objectWillChange.send()
