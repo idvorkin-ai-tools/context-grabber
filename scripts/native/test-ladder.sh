@@ -42,6 +42,18 @@ fi
 # The areas' classes. The suite scripts hold what each area runs in full.
 chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatVoiceUITests"
 whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
+# #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
+# feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
+# LiveActivity, so those paths stay unmapped and the output says so.
+gym_area="GymTimerDialsUITests GymTimerUITests"
+breathe_area="BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
+places_area="PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
+mirror_area="HomeTodayCardUITests MetricDetailUITests"
+card_area="CardUITests TodaysHandUITests"
+cockpit_area="CockpitBackUITests CockpitCallUITests UsageTileUITests"
+daily_area="DailyStripUITests"
+eulogy_area="EulogyUITests"
+links_area="LinksUITests"
 
 classes=()
 unknown=()
@@ -71,6 +83,15 @@ for f in ${changed[@]+"${changed[@]}"}; do
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
       add_classes $whiteboard_area ;;
     scripts/native/fake-cockpit.py) add_classes $chat_area $whiteboard_area ;;
+    native/App/Gym/* | native/ContextCore/Sources/ContextCore/Gym/*) add_classes $gym_area ;;
+    native/App/Breathe/* | native/ContextCore/Sources/ContextCore/Breathe/*) add_classes $breathe_area ;;
+    native/App/Places/* | native/ContextCore/Sources/ContextCore/Places/*) add_classes $places_area ;;
+    native/App/Mirror/* | native/ContextCore/Sources/ContextCore/Mirror/*) add_classes $mirror_area ;;
+    native/App/Card/* | native/ContextCore/Sources/ContextCore/Card/*) add_classes $card_area ;;
+    native/App/Cockpit/* | native/ContextCore/Sources/ContextCore/Cockpit/*) add_classes $cockpit_area ;;
+    native/App/Daily/* | native/ContextCore/Sources/ContextCore/Daily/*) add_classes $daily_area ;;
+    native/App/Eulogy/*) add_classes $eulogy_area ;;
+    native/App/Links/* | native/ContextCore/Sources/ContextCore/Links/*) add_classes $links_area ;;
     native/UITests/*.swift)
       in_file=$(classes_in "$f")
       if [ -n "$in_file" ]; then
@@ -96,13 +117,15 @@ if [ "$all" -eq 1 ]; then
   unknown=()
 fi
 
-# One run per kind of class: chat's fakes differ from the whiteboard's, and the whiteboard's needs a fresh boot.
-chat=() whiteboard=() other=()
+# One run per kind of class: chat's fakes differ from the whiteboard's, the whiteboard's needs a fresh boot, and
+# Places' need Context Grabber's real export in the app's Documents.
+chat=() whiteboard=() places=() other=()
 if [ "${#classes[@]}" -gt 0 ]; then
   while IFS= read -r c; do
     case $c in
       Chat*) chat+=("$c") ;;
       Whiteboard*) whiteboard+=("$c") ;;
+      Place*) places+=("$c") ;;
       *) other+=("$c") ;;
     esac
   done < <(printf '%s\n' "${classes[@]}" | sort -u)
@@ -110,7 +133,7 @@ if [ "${#classes[@]}" -gt 0 ]; then
 fi
 [ "$all" -eq 1 ] && sim_build=1
 
-n_chat=${#chat[@]} n_whiteboard=${#whiteboard[@]} n_other=${#other[@]}
+n_chat=${#chat[@]} n_whiteboard=${#whiteboard[@]} n_places=${#places[@]} n_other=${#other[@]}
 run_chat_classes=$n_chat run_whiteboard_classes=$n_whiteboard
 if [ "$full" -eq 1 ]; then
   run_chat_classes=0
@@ -138,8 +161,9 @@ plan() {
     fi
     [ "$run_chat_classes" -gt 0 ] && echo "rung 2 UI tests (chat, fake Cockpit and bridge): ${chat[*]}"
     [ "$run_whiteboard_classes" -gt 0 ] && echo "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): ${whiteboard[*]}"
+    [ "$n_places" -gt 0 ] && echo "rung 2 UI tests (places, the real export in Documents): ${places[*]}"
     [ "$n_other" -gt 0 ] && echo "rung 2 UI tests: ${other[*]}"
-    if [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && [ "$n_other" -eq 0 ] && [ "${#unknown[@]}" -eq 0 ]; then
+    if [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && [ "$n_places" -eq 0 ] && [ "$n_other" -eq 0 ] && [ "${#unknown[@]}" -eq 0 ]; then
       echo "rung 2 UI tests: none, no app UI change"
     fi
     if [ "$full" -eq 1 ]; then
@@ -249,6 +273,20 @@ whiteboard_classes() {
     xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") test-without-building
 }
 
+places_classes() {
+  # PlacesUnnamedUITests and PlacesRangeUITests import Documents/import-fixture.db, as the smoke does (sim-smoke.sh);
+  # without it they skip or see an empty trail. The data container outlives the install the test run makes.
+  local container
+  xcrun simctl boot "$udid" 2>/dev/null
+  xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot" >&2; return 1; }
+  xcrun simctl install "$udid" native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app || return
+  container=$(xcrun simctl get_app_container "$udid" com.idvorkin.grabbernative data)
+  [ -n "$container" ] || { echo "no data container for the app on the simulator" >&2; return 1; }
+  mkdir -p "$container/Documents" || return
+  cp -f __tests__/fixtures/context-grabber.db "$container/Documents/import-fixture.db" || return
+  xcodebuild_sim places "TEST EXECUTE SUCCEEDED" $(only_testing "${places[@]}") test-without-building
+}
+
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }
 
 simulator_steps() {
@@ -257,6 +295,7 @@ simulator_steps() {
   step compile xcodebuild_sim build-for-testing "TEST BUILD SUCCEEDED" build-for-testing || return
   if [ "$run_chat_classes" -gt 0 ]; then step "chat classes" chat_classes || return; fi
   if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
+  if [ "$n_places" -gt 0 ]; then step "places classes" places_classes || return; fi
   if [ "$n_other" -gt 0 ]; then step "other classes" other_classes || return; fi
   [ "$full" -eq 1 ] || return 0
   # The build above is the suites' too (SUITE_PREBUILT; the whiteboard's script doesn't read it yet).

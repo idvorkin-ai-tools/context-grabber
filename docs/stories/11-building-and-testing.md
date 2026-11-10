@@ -143,6 +143,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** One command climbs the test ladder, cheapest rung first, and stops at the first failure
 - **Status:** implemented in 735f6b4, e1dde12; the lint, host and simulator rungs ran for real on 2026-11-05 (rung 2 on one chat class: build 34 s, `ChatArchiveUITests` 7 of 7 in 198 s, the project generated first); the Mac rung has run only in dry runs; bead `context-grabber-3k6`; [spec](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+- **Issues:** [#795](https://github.com/idvorkin/context-grabber/issues/795): only chat and the whiteboard had classes in the map, so a change to any other screen ran none of its own UI tests
 
 #### Use Case:
 - **As Igor,** waiting to know whether a change is safe
@@ -156,3 +157,14 @@ Part of the [user stories](README.md); persona and format are described there.
 - **and Given:** no other Xcode build is running
 - **When:** the ladder runs
 - **Then:** it stops at the Mac rung without starting the simulator, printing the seconds for each rung and that it stopped on the Mac
+
+- **Scenario:** A change to another screen runs that screen's own UI tests
+- **Given:** the branch changed only one feature's code: the Gym Timer, breathing, Places, the mirror, the card, the Cockpit, the daily strip, the eulogy or the links
+- **When:** the ladder reaches the simulator rung
+- **Then:** it runs that feature's own UI tests and no other feature's, and names them before it starts
+- **and Then:** the Places tests find Context Grabber's real export already on the simulator
+
+- **Scenario:** A change to a screen no simulator test opens
+- **Given:** the branch changed a screen none of the simulator's UI tests open, such as an iPad's windows or a call
+- **When:** the ladder runs
+- **Then:** it chooses no UI tests for that change, names the changed file, and says how to run every UI test

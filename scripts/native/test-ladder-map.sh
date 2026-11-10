@@ -46,6 +46,7 @@ cat >"$fakes/xcrun" <<'F'
 echo "xcrun $*" >>"$MARKS/xcrun"
 case "$*" in
   "simctl list devices available") printf '    iPhone 17 (00000000-0000-0000-0000-000000000000) (Shutdown)\n' ;;
+  "simctl get_app_container "*) echo "${FAKE_CONTAINER:-}" ;;
 esac
 exit 0
 F
@@ -98,8 +99,41 @@ says "a test file: its own class" "rung 2 UI tests: CardUITests"
 says "a test file: the simulator builds it" "rung 2 Simulator: the build with its UI tests"
 says "a test file: not in the Mac build" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
 
-dry --changed native/App/Gym/GymTimerView.swift
-says "unmapped code: says so" "no UI test map for: native/App/Gym/GymTimerView.swift"
+# #795: each feature's directory, in the app and in ContextCore, gets that feature's own classes.
+feature() {  # <name> <app path> <ContextCore path, or ""> <the line's label> <classes>
+  local label="rung 2 UI tests$4: $5" c
+  dry --changed "$2"
+  says "$1 code: its classes" "$label"
+  never "$1 code: nothing unmapped" "no UI test map"
+  never "$1 code: no chat" "Chat"
+  if [ -n "$3" ]; then
+    dry --changed "$3"
+    says "$1 in ContextCore: its classes" "$label"
+  fi
+  # A class renamed or deleted would leave the map naming nothing: xcodebuild runs no test for a name it can't find.
+  for c in $5; do
+    if grep -qE "^final class $c: XCTestCase" "native/UITests/$c.swift" 2>/dev/null; then ok "$1: $c is a real class"; else : >"$out"; bad "$1: $c is a real class"; fi
+  done
+}
+core=native/ContextCore/Sources/ContextCore
+feature gym native/App/Gym/GymTimerView.swift $core/Gym/Workout.swift "" "GymTimerDialsUITests GymTimerUITests"
+feature breathe native/App/Breathe/BreatheView.swift $core/Breathe/Breath.swift "" "BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
+feature places native/App/Places/PlacesView.swift $core/Places/Stays.swift " (places, the real export in Documents)" "PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
+feature mirror native/App/Mirror/MetricDetailView.swift $core/Mirror/Mirror.swift "" "HomeTodayCardUITests MetricDetailUITests"
+feature card native/App/Card/CardView.swift $core/Card/Deal.swift "" "CardUITests TodaysHandUITests"
+feature cockpit native/App/Cockpit/CockpitView.swift $core/Cockpit/Usage.swift "" "CockpitBackUITests CockpitCallUITests UsageTileUITests"
+feature daily native/App/Daily/DailyStripView.swift $core/Daily/Strip.swift "" "DailyStripUITests"
+feature eulogy native/App/Eulogy/EulogySong.swift "" "" "EulogyUITests"
+feature links native/App/Links/LinksView.swift $core/Links/Links.swift "" "LinksUITests"
+
+dry --changed native/App/Gym/GymTimerView.swift --changed native/App/Places/PlacesModel.swift --changed native/App/Chat/ChatViews.swift
+says "three features: places apart" "rung 2 UI tests (places, the real export in Documents): PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
+says "three features: the timer's" "rung 2 UI tests: GymTimerDialsUITests GymTimerUITests"
+says "three features: chat's" "rung 2 UI tests (chat, fake Cockpit and bridge): $chat_all"
+
+# No class on the ladder's simulator opens a second window (IPadUITests skips on a phone), so Windows stays unmapped.
+dry --changed native/App/Windows/WindowViews.swift
+says "unmapped code: says so" "no UI test map for: native/App/Windows/WindowViews.swift"
 says "unmapped code: names the option" "so no UI tests were chosen for them; --all runs every UI test class"
 never "unmapped code: chooses nothing" "rung 2 UI tests"
 
@@ -195,6 +229,24 @@ run -- --changed native/App/Chat/ChatViews.swift
 status=$?
 if [ "$status" -eq 0 ]; then ok "chat: climbs against the fakes"; else bad "chat: climbs against the fakes, exit $status"; fi
 if grep -q "GrabberNativeUITests/ChatArchiveUITests" "$MARKS/xcodebuild"; then ok "chat: runs its classes"; else bad "chat: runs its classes"; fi
+
+run FAKE_CONTAINER="$tmp/container" -- --changed native/App/Places/PlacesView.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "places: climbs against the fakes"; else bad "places: climbs against the fakes, exit $status"; fi
+if cmp -s __tests__/fixtures/context-grabber.db "$tmp/container/Documents/import-fixture.db"; then ok "places: the real export is in Documents"; else bad "places: the real export is in Documents"; fi
+if grep -q "simctl install .*GrabberNative.app" "$MARKS/xcrun"; then ok "places: the app is installed first"; else bad "places: the app is installed first"; fi
+if grep -q "only-testing:GrabberNativeUITests/PlacesUnnamedUITests test-without-building" "$MARKS/xcodebuild"; then ok "places: runs its classes"; else bad "places: runs its classes"; fi
+
+run -- --changed native/App/Places/PlacesView.swift
+status=$?
+if [ "$status" -ne 0 ]; then ok "places, no container: fails"; else bad "places, no container: fails"; fi
+says "places, no container: says why" "no data container for the app on the simulator"
+if grep -q "PlacesUnnamedUITests" "$MARKS/xcodebuild"; then bad "places, no container: no class runs"; else ok "places, no container: no class runs"; fi
+
+run -- --changed native/App/Gym/GymTimerView.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "the timer: climbs against the fakes"; else bad "the timer: climbs against the fakes, exit $status"; fi
+if grep -q "only-testing:GrabberNativeUITests/GymTimerDialsUITests -only-testing:GrabberNativeUITests/GymTimerUITests test-without-building" "$MARKS/xcodebuild"; then ok "the timer: runs its classes"; else bad "the timer: runs its classes"; fi
 
 run FAKE_BUSY=always XCODEBUILD_IDLE_WAIT=0 -- --changed native/UITests/CardUITests.swift
 status=$?
