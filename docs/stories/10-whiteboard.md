@@ -3843,7 +3843,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 662:
 
 - **Summary:** A Larry board sends him one picture at a time, the newest
-- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry
+- **Status:** implemented in [41b83fb](https://github.com/idvorkin/context-grabber/commit/41b83fb); verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
