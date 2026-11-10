@@ -2171,20 +2171,40 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 546:
 
 - **Summary:** Speaking a message on the share card
-- **Status:** not implemented: Igor to pick the way, [#673](https://github.com/idvorkin/context-grabber/issues/673). Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted); not tried on a phone
-- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673)
+- **Status:** native app only: a mic button on the card's *Message* field, the problem report's dictation, implemented in COMMIT_SHA; host `just native-test` (format and lint only: the card is not compiled on the host). Not yet built for the simulator, and speaking on the phone not yet: Apple's guidance is that an app extension cannot use the microphone (an iMessage app excepted), so the first tap on the phone settles whether it can
+- **Issues:** [#673](https://github.com/idvorkin/context-grabber/issues/673), [#793](https://github.com/idvorkin/context-grabber/issues/793)
 - **Spec:** [Chat with Larry in Grabber Native — Speaking on the card](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client sharing a page with my hands full
-- **I want to** say my message on the card, as I do in a chat
+- **I want to** say my message on the card with a mic button, as I do in a problem report
 - **so that** what I think about the page goes with it without typing
 
 #### Acceptance Criteria:
 - **Scenario:** Saying the message
 - **Given:** the share card is open on a page from Safari
-- **When:** I start speaking from the card
-- **Then:** my words appear in the *Message* field as I speak and are not sent until I tap *Start a chat* or *Send*, and anything that stops it is a copyable line on the card
+- **When:** I tap the mic button on the *Message* field and speak
+- **Then:** the button becomes a red stop button, my words appear in the *Message* field after anything I typed, and nothing is sent until I tap *Start a chat* or *Send*
+
+- **Scenario:** Stopping
+- **Given:** the card is listening
+- **When:** I tap the stop button
+- **Then:** the last words settle in the field, the mic button comes back, and I can edit the message before sending
+
+- **Scenario:** Sending while it listens
+- **Given:** the card is listening and some words are in the field
+- **When:** I tap *Start a chat* or *Send*
+- **Then:** the share goes with the words heard so far, the recording stops, and the card closes
+
+- **Scenario:** Cancelling while it listens
+- **Given:** the card is listening
+- **When:** I tap *Cancel*
+- **Then:** the recording stops, the card closes and nothing is kept
+
+- **Scenario:** The phone will not let the card listen
+- **Given:** a permission is off, or iOS refuses the card the microphone
+- **When:** I tap the mic button
+- **Then:** a line under the field says what stopped it, with a *Copy error* button whose copy names where it stopped and both permissions' state, and I can still type the message and send it
 
 ---
 
