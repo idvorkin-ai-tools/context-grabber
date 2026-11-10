@@ -61,6 +61,12 @@ another base). A rung with nothing to answer is skipped: the Mac and simulator b
 or test scripts alone, and a UI test isn't in the Mac build. `--dry-run` prints the rungs and classes and runs nothing;
 `--changed <path>` tries the map on a path; `--rung <n>` runs one rung. It never climbs to the phone.
 
+After every run of UI tests, wherever it ran from (the ladder, a suite script, `xcodebuild-log.sh` directly), the run
+says where its time went (story 745): the slowest tests, each class's total and how much of it was launching the app,
+the steps XCUITest retried, and the kinds of wait of a second or more that cost the most. It also appends one JSON line
+per test to `ui-timings.jsonl` beside the run's log (`UI_TIMINGS_JSONL` names another file), so a change meant to
+speed the runs up can be measured against the runs before it. `scripts/native/ui-timings.py <log>` reads any saved log.
+
 Which classes a change gets, from an explicit map that `scripts/native/test-ladder-map.sh` checks against the real
 script's dry run:
 

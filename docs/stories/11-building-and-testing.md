@@ -197,6 +197,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 745:
+
+- **Summary:** Every UI test run says where its time went
+- **Status:** implemented on branch native/ui-test-timings; verified on the host rung (`scripts/native/test-ui-timings.sh`, against a real whiteboard run's log)
+- **Issues:** [#826](https://github.com/idvorkin/context-grabber/issues/826)
+
+#### Use Case:
+- **As Igor,** waiting on slow simulator runs
+- **I want to** see, after every UI test run, how long each test took and how much of that was launching the app, retried steps and waiting
+- **so that** we speed up the part that actually costs the time, and can tell whether a change helped
+
+#### Acceptance Criteria:
+- **Scenario:** A UI test run finishes
+- **Given:** a run of one or more UI test classes on the simulator
+- **When:** its tests have finished, passed or failed
+- **Then:** the run prints the slowest tests, each class's total and launch time, and the kinds of wait that cost the most, and keeps one line per test that later runs can be compared against
+
+---
+
 ### User Story 688:
 
 - **Summary:** A new branch builds in a worktree that already has a build
