@@ -374,7 +374,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 059:
 
 - **Summary:** A Places failure can be copied
-- **Status:** not implemented; asks: [#798](https://github.com/idvorkin/context-grabber/issues/798)
+- **Status:** implemented in [a6c41fc](https://github.com/idvorkin/context-grabber/commit/a6c41fc), [2249b21](https://github.com/idvorkin/context-grabber/commit/2249b21); verified by `PlacesProblemUITests` (simulator, `just test-ladder --rung 2`) and `just native-test` (host)
 - **Issues:** [#798](https://github.com/idvorkin/context-grabber/issues/798)
 - **Spec:** [native app, "Every failure on screen is copyable"](../superpowers/specs/2026-10-04-swift-native-app-design.md)
 
