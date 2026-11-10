@@ -219,7 +219,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 750:
 
 - **Summary:** A box with no Mac checks the whole app's Swift before anything reaches the Mac
-- **Status:** STATUS750
+- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged
 - **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung")
 
 #### Use Case:
