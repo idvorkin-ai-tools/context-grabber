@@ -21,7 +21,7 @@ relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_
 bad() { not_ok "$@"; }
 # #801: a failed check's session log is pruned or overwritten before anyone reads it, so the check keeps what it judged.
 keep_evidence() {  # keep_evidence <check> <file>...: copies them to $SMOKE_EVIDENCE/<check>-<time>/ and says where
-  local dir="${SMOKE_EVIDENCE:-$HOME/tmp/agent/notes/smoke}/$1-$(date +%Y%m%d-%H%M%S)"; shift
+  local dir; dir="${SMOKE_EVIDENCE:-$HOME/tmp/agent/notes/smoke}/$1-$(date +%Y%m%d-%H%M%S)"; shift
   if mkdir -p "$dir" && cp -f "$@" "$dir/"; then echo "      evidence kept in $dir"
   else echo "      could not keep evidence in $dir"; fi
 }
