@@ -5,6 +5,6 @@ import ContextCore
 
 extension AppModel {
   func runBoardFixtureHook(_ hook: BoardFixtureHook) {
-    WhiteboardStore(log: log, device: whiteboardDevice).addFixture(hook.board, from: hook.from, oldInk: hook.oldInk)
+    whiteboards.addFixture(hook.board, from: hook.from, oldInk: hook.oldInk)
   }
 }

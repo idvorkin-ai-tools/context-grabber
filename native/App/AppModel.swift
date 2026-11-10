@@ -120,8 +120,9 @@ final class AppModel: ObservableObject {
   /// Whether this launch has looked for a home window after a screen's window came back first.
   var restoreChecked = false
   private var phaseLatch = AppPhaseLatch()
-  /// #634: the list on screen, so a board looked up from another window syncs through the store drawing on it.
-  weak var liveWhiteboards: WhiteboardStore?
+  /// The boards on disk and in iCloud: one store for the app's life, made on first use, shared by every window's list,
+  /// chat's *Jump to board* and the fixture hook (#819; #634 needed a lookup to go through the store drawing on screen).
+  private(set) lazy var whiteboards = WhiteboardStore(log: log, device: whiteboardDevice)
   /// Which launchers the home screen shows, in Igor's order (story 147).
   @Published private(set) var homeLayout: HomeLayout
   @Published var showHomeSettings = false
@@ -779,7 +780,7 @@ final class AppModel: ObservableObject {
 
   /// #603: nil when the board is on this device, once iCloud has been asked; otherwise the problem to show.
   func findBoard(_ id: String, context: String) async -> BugProblem? {
-    await (liveWhiteboards ?? WhiteboardStore(log: log, device: whiteboardDevice)).find(id, context: context)
+    await whiteboards.find(id, context: context)
   }
 
   func openWhiteboard(from source: String) {
