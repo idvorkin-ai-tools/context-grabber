@@ -72,21 +72,24 @@ script's dry run:
 | The fake Cockpit | chat's and the whiteboard's |
 | The Gym Timer, in the app or `ContextCore` | `GymTimerDialsUITests`, `GymTimerUITests` |
 | Breathing, in the app or `ContextCore` | `BreatheMindfulUITests`, `BreathePresetsUITests`, `BreatheStyleUITests` |
-| Places, in the app or `ContextCore` | `PlaceIconUITests`, `PlacesRangeUITests`, `PlacesUnnamedUITests`, in a run of their own: the ladder first installs the build and copies the real export to the app's `Documents/import-fixture.db` |
+| Places, in the app or `ContextCore` | `PlaceIconUITests`, `PlacesRangeUITests`, `PlacesUnnamedUITests`, in a run of their own: the ladder first installs the build, copies the real export to the app's `Documents/import-fixture.db` and launches the app once to import it, failing the rung if the import's event doesn't come |
 | The mirror (Today, a metric's detail), in the app or `ContextCore` | `HomeTodayCardUITests`, `MetricDetailUITests` |
-| The card, in the app or `ContextCore` | `CardUITests`, `TodaysHandUITests` |
-| The Cockpit and the usage strip, in the app or `ContextCore` | `CockpitBackUITests`, `CockpitCallUITests`, `UsageTileUITests` (the last needs the real Cockpit reachable from this Mac) |
+| The card, in the app or `ContextCore` | `CardUITests`, `TodaysHandUITests`; the role of the day's file, `TodaysHandUITests` alone |
+| The Cockpit, in the app or `ContextCore` | `CockpitBackUITests`, `CockpitCallUITests` |
+| The usage strip's files (`Usage*`, `CockpitUsage.swift`), in the app or `ContextCore` | `UsageTileUITests`, which needs the real Cockpit reachable from this Mac: a Cockpit change off the tailnet doesn't run it |
 | The daily strip, in the app or `ContextCore` | `DailyStripUITests` |
-| The eulogy | `EulogyUITests` |
+| The eulogy; the blog's links in `ContextCore` | `EulogyUITests` |
 | The links, in the app or `ContextCore` | `LinksUITests` |
+| The supermix link in `ContextCore` | `WorkoutSupermixUITests` |
+| A held tile's choices in `ContextCore` | `HoldPopoverUITests` |
 | Words, host tests, the home tiles' art, other scripts | none |
 | Any other app code (a call, the archive, the Live Activity, an iPad's windows, the files at the app's top level); a helper the UI tests share | none, and the output names the path and `--all`, which runs every UI test class |
 
 A feature's row is its directory under `native/App` and the one of the same name under `ContextCore`'s sources (#795).
 A class is in the map only if it runs on the ladder's simulator and opens that feature, and the map's check fails when a
-class it names is gone. The windows have no row: `IPadUITests` skips on a phone and `MacKeysUITests` exists only in the
-Mac build. `HealthAccessUITests` stays the smoke's. `PlaceIconUITests` skips until the simulator has imported the
-fixture's places once, which the two other Places classes do as they run.
+class it names is gone. A file whose feature isn't its directory's has a row of its own. The windows have no row, nor
+their ledger in `ContextCore`: `IPadUITests` skips on a phone and `MacKeysUITests` exists only in the Mac build.
+`HealthAccessUITests` stays the smoke's.
 
 A whiteboard class list is the suite less its fake-Cockpit report checks, so a change to the whiteboard's app code
 costs about the suite's time; a change to one test file costs that file. `--full` runs the whole suite of each area the

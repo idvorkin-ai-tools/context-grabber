@@ -50,7 +50,9 @@ breathe_area="BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
 places_area="PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
 mirror_area="HomeTodayCardUITests MetricDetailUITests"
 card_area="CardUITests TodaysHandUITests"
-cockpit_area="CockpitBackUITests CockpitCallUITests UsageTileUITests"
+cockpit_area="CockpitBackUITests CockpitCallUITests"
+# Apart from the Cockpit's: it asserts the real Cockpit answers, so it would fail every Cockpit change off the tailnet.
+usage_area="UsageTileUITests"
 daily_area="DailyStripUITests"
 eulogy_area="EulogyUITests"
 links_area="LinksUITests"
@@ -87,6 +89,14 @@ for f in ${changed[@]+"${changed[@]}"}; do
     native/App/Breathe/* | native/ContextCore/Sources/ContextCore/Breathe/*) add_classes $breathe_area ;;
     native/App/Places/* | native/ContextCore/Sources/ContextCore/Places/*) add_classes $places_area ;;
     native/App/Mirror/* | native/ContextCore/Sources/ContextCore/Mirror/*) add_classes $mirror_area ;;
+    # A file whose feature isn't its directory's, before the directories.
+    native/ContextCore/Sources/ContextCore/Card/EulogyRoles.swift) add_classes TodaysHandUITests ;;  # the large widget's role of the day
+    native/ContextCore/Sources/ContextCore/Links/BlogLinks.swift) add_classes $eulogy_area ;;
+    native/ContextCore/Sources/ContextCore/Links/WorkoutSupermix.swift) add_classes WorkoutSupermixUITests ;;
+    native/ContextCore/Sources/ContextCore/Links/HoldChoices.swift) add_classes HoldPopoverUITests ;;
+    native/ContextCore/Sources/ContextCore/Links/WindowLedger.swift) unknown+=("$f") ;;  # the windows', which have no class
+    native/App/Cockpit/Usage* | native/ContextCore/Sources/ContextCore/Cockpit/Usage* | native/ContextCore/Sources/ContextCore/Cockpit/CockpitUsage.swift)
+      add_classes $usage_area ;;
     native/App/Card/* | native/ContextCore/Sources/ContextCore/Card/*) add_classes $card_area ;;
     native/App/Cockpit/* | native/ContextCore/Sources/ContextCore/Cockpit/*) add_classes $cockpit_area ;;
     native/App/Daily/* | native/ContextCore/Sources/ContextCore/Daily/*) add_classes $daily_area ;;
@@ -274,16 +284,36 @@ whiteboard_classes() {
 }
 
 places_classes() {
-  # PlacesUnnamedUITests and PlacesRangeUITests import Documents/import-fixture.db, as the smoke does (sim-smoke.sh);
-  # without it they skip or see an empty trail. The data container outlives the install the test run makes.
-  local container
-  xcrun simctl boot "$udid" 2>/dev/null
-  xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot" >&2; return 1; }
-  xcrun simctl install "$udid" native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app || return
-  container=$(xcrun simctl get_app_container "$udid" com.idvorkin.grabbernative data)
+  # Places' classes want Context Grabber's real export imported, as the smoke imports it (sim-smoke.sh): the file in
+  # the app's Documents, then one launch with the import hook. PlaceIconUITests imports nothing itself and runs before
+  # the classes that do, so without the launch it would skip on a clean simulator. The data container outlives the
+  # install the test run makes.
+  # The justfile's native_sim_app and native_bundle.
+  local app=native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app bundle=com.idvorkin.grabbernative
+  local container since waited=0
+  # -b boots it if it isn't booted: a bare bootstatus after a boot that failed waits, holding the build lock.
+  xcrun simctl bootstatus "$udid" -b >/dev/null || { echo "the simulator did not boot" >&2; return 1; }
+  xcrun simctl install "$udid" "$app" || return
+  container=$(xcrun simctl get_app_container "$udid" "$bundle" data)
   [ -n "$container" ] || { echo "no data container for the app on the simulator" >&2; return 1; }
   mkdir -p "$container/Documents" || return
   cp -f __tests__/fixtures/context-grabber.db "$container/Documents/import-fixture.db" || return
+  since=$(mktemp -t ladder-places)
+  xcrun simctl terminate "$udid" "$bundle" >/dev/null 2>&1
+  SIMCTL_CHILD_GRABBER_IMPORT_DB="import-fixture.db,recent" xcrun simctl launch "$udid" "$bundle" >/dev/null || { rm -f "$since"; return 1; }
+  # The import's own event in a session log this launch wrote: never a wait for a time.
+  until find "$container/Documents/logs" -name '*.jsonl' -newer "$since" -exec cat {} + 2>/dev/null |
+    jq -e 'select(.type == "import" and .ok == true)' >/dev/null 2>&1; do
+    if [ "$waited" -ge "${PLACES_IMPORT_WAIT:-60}" ]; then
+      echo "the real export was not imported within ${PLACES_IMPORT_WAIT:-60} s, so Places' tests would skip or see no places" >&2
+      rm -f "$since"
+      return 1
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+  rm -f "$since"
+  xcrun simctl terminate "$udid" "$bundle" >/dev/null 2>&1
   xcodebuild_sim places "TEST EXECUTE SUCCEEDED" $(only_testing "${places[@]}") test-without-building
 }
 

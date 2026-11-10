@@ -47,6 +47,13 @@ echo "xcrun $*" >>"$MARKS/xcrun"
 case "$*" in
   "simctl list devices available") printf '    iPhone 17 (00000000-0000-0000-0000-000000000000) (Shutdown)\n' ;;
   "simctl get_app_container "*) echo "${FAKE_CONTAINER:-}" ;;
+  "simctl launch "*)
+    # The app, importing as its launch hook says: the session log's import event.
+    echo "launch hook ${SIMCTL_CHILD_GRABBER_IMPORT_DB:-}" >>"$MARKS/xcrun"
+    if [ -n "${SIMCTL_CHILD_GRABBER_IMPORT_DB:-}" ] && [ -n "${FAKE_IMPORTS:-}" ]; then
+      mkdir -p "$FAKE_CONTAINER/Documents/logs"
+      echo '{"type":"import","ok":true,"places_added":4}' >"$FAKE_CONTAINER/Documents/logs/session.jsonl"
+    fi ;;
 esac
 exit 0
 F
@@ -116,15 +123,38 @@ feature() {  # <name> <app path> <ContextCore path, or ""> <the line's label> <c
   done
 }
 core=native/ContextCore/Sources/ContextCore
-feature gym native/App/Gym/GymTimerView.swift $core/Gym/Workout.swift "" "GymTimerDialsUITests GymTimerUITests"
-feature breathe native/App/Breathe/BreatheView.swift $core/Breathe/Breath.swift "" "BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
-feature places native/App/Places/PlacesView.swift $core/Places/Stays.swift " (places, the real export in Documents)" "PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
-feature mirror native/App/Mirror/MetricDetailView.swift $core/Mirror/Mirror.swift "" "HomeTodayCardUITests MetricDetailUITests"
-feature card native/App/Card/CardView.swift $core/Card/Deal.swift "" "CardUITests TodaysHandUITests"
-feature cockpit native/App/Cockpit/CockpitView.swift $core/Cockpit/Usage.swift "" "CockpitBackUITests CockpitCallUITests UsageTileUITests"
-feature daily native/App/Daily/DailyStripView.swift $core/Daily/Strip.swift "" "DailyStripUITests"
+feature gym native/App/Gym/GymTimerView.swift $core/Gym/TimerEngine.swift "" "GymTimerDialsUITests GymTimerUITests"
+feature breathe native/App/Breathe/BreatheView.swift $core/Breathe/BreathEngine.swift "" "BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
+feature places native/App/Places/PlacesView.swift $core/Places/StayClustering.swift " (places, the real export in Documents)" "PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
+feature mirror native/App/Mirror/MetricDetailView.swift $core/Mirror/MirrorGrab.swift "" "HomeTodayCardUITests MetricDetailUITests"
+feature card native/App/Card/CardView.swift $core/Card/CardDeal.swift "" "CardUITests TodaysHandUITests"
+feature cockpit native/App/Cockpit/CockpitView.swift $core/Cockpit/CockpitPage.swift "" "CockpitBackUITests CockpitCallUITests"
+# The usage tile's test needs the real Cockpit, so only the usage files ask for it.
+feature usage native/App/Cockpit/UsageModel.swift $core/Cockpit/UsageSnapshot.swift "" "UsageTileUITests"
+feature "usage strip" native/App/Cockpit/UsageStripView.swift $core/Cockpit/CockpitUsage.swift "" "UsageTileUITests"
+never "usage: not the Cockpit's" "CockpitBackUITests"
+dry --changed native/App/Cockpit/CockpitView.swift
+never "cockpit code: not the usage tile, which needs the tailnet" "UsageTileUITests"
+feature daily native/App/Daily/DailyStripView.swift $core/Daily/DailyStrip.swift "" "DailyStripUITests"
 feature eulogy native/App/Eulogy/EulogySong.swift "" "" "EulogyUITests"
-feature links native/App/Links/LinksView.swift $core/Links/Links.swift "" "LinksUITests"
+feature links native/App/Links/LinksView.swift $core/Links/AppLink.swift "" "LinksUITests"
+# Files whose feature isn't their directory's.
+feature "the role of the day" $core/Card/EulogyRoles.swift "" "" "TodaysHandUITests"
+never "the role of the day: not the trainer's screen" "CardUITests"
+feature "the blog's links" $core/Links/BlogLinks.swift "" "" "EulogyUITests"
+never "the blog's links: not the link screen" "LinksUITests"
+feature "the supermix link" $core/Links/WorkoutSupermix.swift "" "" "WorkoutSupermixUITests"
+never "the supermix link: not the link screen" "LinksUITests"
+feature "a tile's choices" $core/Links/HoldChoices.swift "" "" "HoldPopoverUITests"
+never "a tile's choices: not the link screen" "LinksUITests"
+dry --changed $core/Links/WindowLedger.swift
+says "the window ledger: unmapped, as the windows are" "no UI test map for: $core/Links/WindowLedger.swift"
+never "the window ledger: not the link screen" "LinksUITests"
+# Every path the rows above name is a real file: a row for a file that moved would check nothing.
+for f in $(grep -oE '(native/App|\$core)/[A-Za-z]+/[A-Za-z+]+\.swift' "$0" | sed "s|^\$core|$core|" | sort -u); do
+  case $f in native/App/Chat/New.swift) continue ;; esac  # written into the throwaway repository below
+  if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
+done
 
 dry --changed native/App/Gym/GymTimerView.swift --changed native/App/Places/PlacesModel.swift --changed native/App/Chat/ChatViews.swift
 says "three features: places apart" "rung 2 UI tests (places, the real export in Documents): PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
@@ -230,12 +260,21 @@ status=$?
 if [ "$status" -eq 0 ]; then ok "chat: climbs against the fakes"; else bad "chat: climbs against the fakes, exit $status"; fi
 if grep -q "GrabberNativeUITests/ChatArchiveUITests" "$MARKS/xcodebuild"; then ok "chat: runs its classes"; else bad "chat: runs its classes"; fi
 
-run FAKE_CONTAINER="$tmp/container" -- --changed native/App/Places/PlacesView.swift
+run FAKE_CONTAINER="$tmp/container" FAKE_IMPORTS=1 -- --changed native/App/Places/PlacesView.swift
 status=$?
 if [ "$status" -eq 0 ]; then ok "places: climbs against the fakes"; else bad "places: climbs against the fakes, exit $status"; fi
 if cmp -s __tests__/fixtures/context-grabber.db "$tmp/container/Documents/import-fixture.db"; then ok "places: the real export is in Documents"; else bad "places: the real export is in Documents"; fi
 if grep -q "simctl install .*GrabberNative.app" "$MARKS/xcrun"; then ok "places: the app is installed first"; else bad "places: the app is installed first"; fi
+if grep -q "simctl bootstatus .* -b" "$MARKS/xcrun"; then ok "places: a boot that can fail, not one waited for"; else bad "places: a boot that can fail, not one waited for"; fi
+if grep -q "simctl launch " "$MARKS/xcrun"; then ok "places: one launch imports it before any class"; else bad "places: one launch imports it before any class"; fi
+if grep -q "import-fixture.db,recent" "$MARKS/xcrun"; then ok "places: with the import hook"; else bad "places: with the import hook"; fi
 if grep -q "only-testing:GrabberNativeUITests/PlacesUnnamedUITests test-without-building" "$MARKS/xcodebuild"; then ok "places: runs its classes"; else bad "places: runs its classes"; fi
+
+run FAKE_CONTAINER="$tmp/container-quiet" PLACES_IMPORT_WAIT=1 -- --changed native/UITests/PlaceIconUITests.swift
+status=$?
+if [ "$status" -ne 0 ]; then ok "places, no import: fails"; else bad "places, no import: fails"; fi
+says "places, no import: says why" "the real export was not imported within 1 s, so Places' tests would skip or see no places"
+if grep -q "PlaceIconUITests" "$MARKS/xcodebuild"; then bad "places, no import: no class runs to skip"; else ok "places, no import: no class runs to skip"; fi
 
 run -- --changed native/App/Places/PlacesView.swift
 status=$?
