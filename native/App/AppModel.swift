@@ -299,29 +299,29 @@ final class AppModel: ObservableObject {
   }
 
   /// What a report and the log call the screen in front (#808: one name per screen, `HomeStack.Screen`).
-  func nowShowing(_ screen: HomeStack.Screen) { self.screen = screen.reportName }
+  func nowShowing(_ shown: HomeStack.Screen) { screen = shown.reportName }
 
-  func isShowing(_ screen: HomeStack.Screen) -> Bool { self.screen == screen.reportName }
+  func isShowing(_ shown: HomeStack.Screen) -> Bool { screen == shown.reportName }
 
   /// For the card screen, which does not import ContextCore.
   func nowShowingCard(drill: Bool) { nowShowing(drill ? .drill : .card) }
 
   /// Every screen showing in the home window: the one place its flags are read as screens (#808).
   var up: Set<HomeStack.Screen> {
-    var up: Set<HomeStack.Screen> = []
-    if gymTimer != nil { up.insert(.timer) }
-    if breathe != nil { up.insert(.breathe) }
-    if card != nil { up.insert(.card) }
-    if showPlaces { up.insert(.places) }
-    if showCockpit { up.insert(.cockpit) }
-    if showWhiteboard { up.insert(.whiteboard) }
-    if callOpen { up.insert(.call) }
-    if showEulogySong { up.insert(.eulogySong) }
-    if showWhatsNew { up.insert(.whatsNew) }
-    if showHomeSettings { up.insert(.homeSettings) }
-    if showToday { up.insert(.today) }
-    if showInbox { up.insert(.chat) }
-    return up
+    var showing: Set<HomeStack.Screen> = []
+    if gymTimer != nil { showing.insert(.timer) }
+    if breathe != nil { showing.insert(.breathe) }
+    if card != nil { showing.insert(.card) }
+    if showPlaces { showing.insert(.places) }
+    if showCockpit { showing.insert(.cockpit) }
+    if showWhiteboard { showing.insert(.whiteboard) }
+    if callOpen { showing.insert(.call) }
+    if showEulogySong { showing.insert(.eulogySong) }
+    if showWhatsNew { showing.insert(.whatsNew) }
+    if showHomeSettings { showing.insert(.homeSettings) }
+    if showToday { showing.insert(.today) }
+    if showInbox { showing.insert(.chat) }
+    return showing
   }
 
   /// `HomeStack.go` says what to do; this does it.
@@ -334,7 +334,7 @@ final class AppModel: ObservableObject {
     for (index, step) in zip(steps.indices, steps) {
       switch step {
       case .showHomeWindow: showHomeWindow()
-      case .close(let screen): close(screen)
+      case .close(let closing): close(closing)
       case .present(let route): present(route, from: source)
       case .wait(let milliseconds):
         let rest = steps[(index + 1)...]
@@ -349,8 +349,8 @@ final class AppModel: ObservableObject {
   }
 
   /// Takes down one screen a link can close.
-  private func close(_ screen: HomeStack.Screen) {
-    switch screen {
+  private func close(_ closing: HomeStack.Screen) {
+    switch closing {
     case .timer: closeGymTimer()
     case .breathe: closeBreathe()
     case .card: closeCard()

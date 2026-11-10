@@ -83,7 +83,8 @@ extension AppModel {
     switch HomeStack.named(of: up) {
     case .home: return "Home"
     case .whatsNew: return "What's new"  // the home row's words; it has no tile
-    case let screen: return tileName(screen.tile ?? "")
+    // Everything else in `HomeStack.order` has a tile; the drill and a metric's week are never in `up`.
+    case let shown: return tileName(shown.tile ?? "")
     }
   }
 

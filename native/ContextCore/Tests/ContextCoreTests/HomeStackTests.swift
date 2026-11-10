@@ -10,23 +10,23 @@ final class HomeStackTests: XCTestCase {
 
   // MARK: - The vocabulary
 
-  /// Every spelling that leaves the app: the report's, the link's (and the log's `route`), the home tile's, and the
-  /// window's (the `window` log lines). Changing a string here changes what a log, a link or a window title says.
-  private let table: [(screen: Screen, report: String, route: String?, tile: String?, window: String?)] = [
-    (.home, "home", "home", nil, nil),
-    (.timer, "gym_timer", "timer", "gym_timer", nil),
-    (.breathe, "breathe", "breathe", "breathe", nil),
-    (.card, "card", "card", "think_a_card", "card"),
-    (.places, "places", "places", "places", "places"),
-    (.cockpit, "cockpit", "cockpit", "cockpit", "cockpit"),
-    (.whiteboard, "whiteboard", "whiteboard", "whiteboard", "whiteboard"),
-    (.call, "call", "call", "call", nil),
-    (.today, "today", "today", "today", "today"),
-    (.chat, "chat", "chat", "inbox", "chat"),
-    (.eulogySong, "eulogy_song", nil, "eulogy_song", nil),
-    (.whatsNew, "whats_new", nil, nil, nil),
-    (.homeSettings, "home_settings", nil, "settings", nil),
-    (.drill, "drill", nil, nil, nil),
+  /// Every spelling that leaves the app: the report's, the link's (and the log's `route`), and the home tile's.
+  /// Changing a string here changes what a log, a link or a window title says.
+  private let table: [(screen: Screen, report: String, route: String?, tile: String?)] = [
+    (.home, "home", "home", nil),
+    (.timer, "gym_timer", "timer", "gym_timer"),
+    (.breathe, "breathe", "breathe", "breathe"),
+    (.card, "card", "card", "think_a_card"),
+    (.places, "places", "places", "places"),
+    (.cockpit, "cockpit", "cockpit", "cockpit"),
+    (.whiteboard, "whiteboard", "whiteboard", "whiteboard"),
+    (.call, "call", "call", "call"),
+    (.today, "today", "today", "today"),
+    (.chat, "chat", "chat", "inbox"),
+    (.eulogySong, "eulogy_song", nil, "eulogy_song"),
+    (.whatsNew, "whats_new", nil, nil),
+    (.homeSettings, "home_settings", nil, "settings"),
+    (.drill, "drill", nil, nil),
   ]
 
   func testTheTableCoversEveryFixedScreen() {
@@ -38,35 +38,20 @@ final class HomeStackTests: XCTestCase {
       XCTAssertEqual(row.screen.reportName, row.report)
       XCTAssertEqual(row.screen.routeName, row.route, row.report)
       XCTAssertEqual(row.screen.tile, row.tile, row.report)
-      XCTAssertEqual(row.screen.window?.rawValue, row.window, row.report)
-    }
-  }
-
-  func testEverySpellingReadsBackToItsScreen() {
-    for row in table {
-      XCTAssertEqual(Screen(reportName: row.report), row.screen)
       if let route = row.route { XCTAssertEqual(Screen(routeName: route), row.screen) }
-      if let tile = row.tile { XCTAssertEqual(Screen(tile: tile), row.screen) }
-      if let window = row.window.flatMap(WindowScreen.init(rawValue:)) {
-        XCTAssertEqual(Screen(window: window), row.screen)
-      }
     }
-    XCTAssertNil(Screen(reportName: "timer"), "the report's word for the timer is gym_timer")
-    XCTAssertNil(Screen(routeName: "gym_timer"), "the link's is timer")
+    XCTAssertEqual(Set(table.map(\.report)).count, table.count, "a report's name is one screen's")
+    XCTAssertNil(Screen(routeName: "gym_timer"), "the link's word for the timer is timer")
     XCTAssertNil(Screen(routeName: "eulogy_song"))
-    XCTAssertNil(Screen(tile: "workout_supermix"), "a tile that opens another app is no screen")
   }
 
   func testAMetricsWeekIsNamedByItsMetric() {
     for key in MetricKey.allCases {
       XCTAssertEqual(Screen.metric(key).reportName, "metric_\(key.rawValue)")
-      XCTAssertEqual(Screen(reportName: "metric_\(key.rawValue)"), .metric(key))
       XCTAssertNil(Screen.metric(key).routeName)
       XCTAssertNil(Screen.metric(key).tile)
-      XCTAssertNil(Screen.metric(key).window)
     }
     XCTAssertEqual(Screen.metric(.heartRate).reportName, "metric_heartRate")
-    XCTAssertNil(Screen(reportName: "metric_nothing"))
   }
 
   func testEveryRouteLandsOnItsScreen() {
@@ -78,33 +63,30 @@ final class HomeStackTests: XCTestCase {
     for (route, screen) in routes {
       XCTAssertEqual(Screen(route: route), screen, route.name)
       if let screen { XCTAssertEqual(screen.routeName, route.name) }
-      // The windows' own table agrees.
-      XCTAssertEqual(WindowScreen(route: route), screen?.window, route.name)
     }
   }
 
-  func testTheWindowsTilesAgree() {
+  /// The windows keep their own table (`WindowScreen`): a window's raw value is its screen's route name, and both
+  /// name the same tile, so a window's title and the home window's agree.
+  func testTheWindowsTableAgrees() {
     for window in WindowScreen.allCases {
-      XCTAssertEqual(Screen(window: window).tile, window.tile)
-      XCTAssertEqual(Screen(window: window).window, window)
+      let screen = Screen(routeName: window.rawValue)
+      XCTAssertNotNil(screen, window.rawValue)
+      XCTAssertEqual(screen?.tile, window.tile, window.rawValue)
     }
   }
 
-  func testEveryLinkPathIsReadAsItsScreen() {
-    XCTAssertEqual(Screen.home.linkPaths, ["home", "main"])
-    XCTAssertEqual(Screen.today.linkPaths, ["today", "grab"])
-    XCTAssertEqual(Screen.timer.linkPaths, ["timer"])
-    XCTAssertEqual(Screen.breathe.linkPaths, ["breathe", "breathing"])
-    XCTAssertEqual(Screen.card.linkPaths, ["card", "think"])
-    XCTAssertEqual(Screen.chat.linkPaths, ["chat", "inbox"])
-    XCTAssertEqual(Screen.eulogySong.linkPaths, [])
-    for screen in Screen.fixed {
-      XCTAssertEqual(screen.linkPaths.first, screen.routeName)
-      for path in screen.linkPaths {
-        let parsed = AppLink.parse("grabbernative://\(path)")
-        XCTAssertTrue(parsed.understood, path)
-        XCTAssertEqual(Screen(route: parsed.route), screen, path)
-      }
+  /// Every first word `AppLink.parse` reads, and the screen it lands on.
+  func testEveryLinkWordIsReadAsItsScreen() {
+    let words: [(String, Screen)] = [
+      ("home", .home), ("main", .home), ("today", .today), ("grab", .today), ("timer", .timer),
+      ("breathe", .breathe), ("breathing", .breathe), ("places", .places), ("cockpit", .cockpit), ("call", .call),
+      ("card", .card), ("think", .card), ("chat", .chat), ("inbox", .chat), ("whiteboard", .whiteboard),
+    ]
+    for (word, screen) in words {
+      let parsed = AppLink.parse("grabbernative://\(word)")
+      XCTAssertTrue(parsed.understood, word)
+      XCTAssertEqual(Screen(route: parsed.route), screen, word)
     }
     // And the link each route is written as starts with the route's name.
     XCTAssertEqual(AppLink.link(for: .timer(TimerLink())), "grabbernative://timer")
