@@ -2021,7 +2021,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 519:
 
 - **Summary:** Yes or No to Larry's newest message sends that one word
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host) and `ChatReactionUITests` (simulator: the fake's Larry repeats *Yes*); half-typed words staying in the bar and a *Yes* with no network follow from the code, not exercised on any rung; a real Larry waking on the phone not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host) and `ChatReactionUITests` (simulator: the fake's Larry repeats *Yes*); `sim-smoke.sh` no longer relaunches the app to tap *Yes* through the hook, a copy of those two (test-ladder audit, 2026-11-10; COMMIT_D); half-typed words staying in the bar and a *Yes* with no network follow from the code, not exercised on any rung; a real Larry waking on the phone not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629), [#809](https://github.com/idvorkin/context-grabber/issues/809) (a sent message its thread never returns would make *Yes* go out quoted; the log's `chat` outbox_thread line is there to settle whether it happens)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
