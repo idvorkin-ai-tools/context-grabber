@@ -61,8 +61,8 @@ final class ChatModel: ObservableObject {
   private let database: AppDatabase
   let cockpit: String
   private var poll: Task<Void, Never>?
-  /// #809: the `sent_pending` each thread's `outbox_thread` line last said.
-  private var outboxLogged: [String: Int] = [:]
+  /// #809: which of each open thread's reads log an `outbox_thread` line.
+  private var outboxLogged: [String: ChatOutboxLook.ThreadLog] = [:]
 
   init(inbox: InboxModel, log: SessionLog, database: AppDatabase, cockpit: String) {
     self.inbox = inbox
@@ -339,12 +339,12 @@ final class ChatModel: ObservableObject {
     }
   }
 
-  /// #809: the thread's share of the outbox, once per open and again when the sent items it does not hold change.
+  /// #809: the thread's share of the outbox, once per open, again when the sent items it does not hold change, and
+  /// once when one has stayed unheld for minutes.
   private func logOutbox(_ key: String, _ rows: [ChatMessage]) {
     let look = ChatOutboxLook.thread(
       key, items: inbox.items, messages: rows, now: Int64(Date().timeIntervalSince1970 * 1000))
-    guard outboxLogged[key] != look.sentPending else { return }
-    outboxLogged[key] = look.sentPending
+    guard outboxLogged[key, default: .init()].logs(look) else { return }
     log.event("chat", look.logFields(thread: key))
   }
 

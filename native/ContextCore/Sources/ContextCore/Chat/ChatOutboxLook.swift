@@ -26,6 +26,30 @@ public enum ChatOutboxLook {
     }
   }
 
+  /// Which of an open thread's reads log a line: the first, any where `sentPending` changed, and once more when
+  /// what is sent and pending has stayed so long enough to be no race between a send and a poll.
+  public struct ThreadLog: Equatable, Sendable {
+    /// The age, as logged, from which a sent and pending item is stuck and not just landing: 0.1 h is three minutes
+    /// or more, an age being rounded to a tenth.
+    public static let stuckHours = 0.1
+    private var sentPending: Int?
+    private var saidStuck = false
+
+    public init() {}
+
+    public mutating func logs(_ look: Thread) -> Bool {
+      let stuck = (look.oldestSentPendingHours ?? 0) >= Self.stuckHours
+      if sentPending != look.sentPending {
+        sentPending = look.sentPending
+        saidStuck = stuck
+        return true
+      }
+      guard stuck, !saidStuck else { return false }
+      saidStuck = true
+      return true
+    }
+  }
+
   /// The whole outbox.
   public struct Whole: Equatable, Sendable {
     public var items = 0

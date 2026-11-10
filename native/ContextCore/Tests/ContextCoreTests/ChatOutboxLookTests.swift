@@ -53,6 +53,28 @@ final class ChatOutboxLookTests: XCTestCase {
     XCTAssertEqual(ChatOutboxLook.thread("k", items: items, messages: nil, now: 0).oldestSentPendingHours, 0)
   }
 
+  func testAnOpenThreadLogsItsFirstReadAChangeAndOnceWhenASentItemSticks() {
+    func look(_ sentPending: Int, hours: Double? = nil) -> ChatOutboxLook.Thread {
+      .init(
+        items: sentPending, sent: sentPending, pending: sentPending, sentPending: sentPending,
+        oldestSentPendingHours: hours)
+    }
+    var log = ChatOutboxLook.ThreadLog()
+    XCTAssertTrue(log.logs(look(0)), "the first read")
+    XCTAssertFalse(log.logs(look(0)), "a poll with nothing new")
+    XCTAssertTrue(log.logs(look(1, hours: 0)), "a send the thread does not hold yet")
+    XCTAssertFalse(log.logs(look(1, hours: 0)))
+    XCTAssertTrue(log.logs(look(1, hours: 0.1)), "still not held minutes later: stuck, said once")
+    XCTAssertFalse(log.logs(look(1, hours: 0.2)))
+    XCTAssertTrue(log.logs(look(0)), "the thread returned it")
+    XCTAssertTrue(log.logs(look(1, hours: 0)))
+    XCTAssertTrue(log.logs(look(1, hours: 0.3)), "each sticking is said")
+
+    var old = ChatOutboxLook.ThreadLog()
+    XCTAssertTrue(old.logs(look(2, hours: 50)), "already stuck at the open: the first read says so")
+    XCTAssertFalse(old.logs(look(2, hours: 50.1)), "and no second line for it")
+  }
+
   func testTheWholeOutboxCountsSentItemsAndTellsEarlierSharesFromChats() {
     let now = 200 * hour
     let items = [
