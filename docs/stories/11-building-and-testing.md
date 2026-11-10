@@ -162,7 +162,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 686:
 
 - **Summary:** A change to one screen runs that screen's own UI tests
-- **Status:** not implemented; asks: [#795](https://github.com/idvorkin/context-grabber/issues/795)
+- **Status:** implemented in 0712a24, 0e7e7b1; verified on the host rung (`scripts/native/test-ladder-map.sh`)
 - **Issues:** [#795](https://github.com/idvorkin/context-grabber/issues/795)
 
 #### Use Case:
@@ -181,7 +181,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 687:
 
 - **Summary:** A change to a screen no simulator test opens is named, not passed over
-- **Status:** not implemented; asks: [#795](https://github.com/idvorkin/context-grabber/issues/795)
+- **Status:** implemented in 0712a24, 0e7e7b1; verified on the host rung (`scripts/native/test-ladder-map.sh`)
 - **Issues:** [#795](https://github.com/idvorkin/context-grabber/issues/795)
 
 #### Use Case:

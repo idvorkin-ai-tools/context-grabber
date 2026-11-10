@@ -69,6 +69,9 @@ exec sleep 30
 F
 chmod +x "$fakes"/*
 dry() { PATH="$fakes:$PATH" "$ladder" --dry-run "$@" >"$out" 2>&1; }
+# Every class the ladder can discover, by the parser its --all uses: a mapped class missing from it would run nothing.
+dry --all --changed docs/TESTING.md
+known=" $(sed -n 's/^rung 2 UI tests[^:]*: //p' "$out" | tr '\n' ' ') "
 run() {  # <env assignments...> -- <ladder arguments...>
   local vars=()
   while [ "$1" != "--" ]; do vars+=("$1"); shift; done
@@ -119,7 +122,11 @@ feature() {  # <name> <app path> <ContextCore path, or ""> <the line's label> <c
   fi
   # A class renamed or deleted would leave the map naming nothing: xcodebuild runs no test for a name it can't find.
   for c in $5; do
-    if grep -qE "^final class $c: XCTestCase" "native/UITests/$c.swift" 2>/dev/null; then ok "$1: $c is a real class"; else : >"$out"; bad "$1: $c is a real class"; fi
+    case $known in *" $c "*) ok "$1: $c is a real class" ;; *) : >"$out"; bad "$1: $c is a real class" ;; esac
+  done
+  # A row for a file that moved would check nothing.
+  for f in "$2" ${3:+"$3"}; do
+    if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
   done
 }
 core=native/ContextCore/Sources/ContextCore
@@ -147,14 +154,12 @@ feature "the supermix link" $core/Links/WorkoutSupermix.swift "" "" "WorkoutSupe
 never "the supermix link: not the link screen" "LinksUITests"
 feature "a tile's choices" $core/Links/HoldChoices.swift "" "" "HoldPopoverUITests"
 never "a tile's choices: not the link screen" "LinksUITests"
+for f in $core/Links/WindowLedger.swift native/App/Windows/WindowViews.swift; do
+  if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
+done
 dry --changed $core/Links/WindowLedger.swift
 says "the window ledger: unmapped, as the windows are" "no UI test map for: $core/Links/WindowLedger.swift"
 never "the window ledger: not the link screen" "LinksUITests"
-# Every path the rows above name is a real file: a row for a file that moved would check nothing.
-for f in $(grep -oE '(native/App|\$core)/[A-Za-z]+/[A-Za-z+]+\.swift' "$0" | sed "s|^\$core|$core|" | sort -u); do
-  case $f in native/App/Chat/New.swift) continue ;; esac  # written into the throwaway repository below
-  if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
-done
 
 dry --changed native/App/Gym/GymTimerView.swift --changed native/App/Places/PlacesModel.swift --changed native/App/Chat/ChatViews.swift
 says "three features: places apart" "rung 2 UI tests (places, the real export in Documents): PlaceIconUITests PlacesRangeUITests PlacesUnnamedUITests"
