@@ -183,6 +183,19 @@ struct ChatListView: View {
         ChatThreadView(chat: chat, voice: voice, key: key, title: chat.title(of: key), logger: logger)
       }
     }
+    // Story 744: a wide row's Inbox chip opens its thread here too.
+    .environment(
+      \.openURL,
+      OpenURLAction { url in
+        switch ChatCockpitLink.jump(url, from: nil, known: Set(chat.threads.map(\.key))) {
+        case .thread(let key):
+          chat.linkThread = key
+          return .handled
+        case .web(let page): return .systemAction(page)
+        case .here, nil: return .systemAction
+        }
+      }
+    )
     .chatTextSize()
   }
 
@@ -325,7 +338,7 @@ private struct LinkChip: View {
     }
     .buttonStyle(.borderless)
     .accessibilityLabel(link.chipText)
-    .accessibilityHint(link.url.absoluteString)
+    .accessibilityHint(ChatLinks.address(link))
     .accessibilityIdentifier("chat-link-chip")
     .accessibilityValue(link.state?.rawValue ?? "")
   }
@@ -346,6 +359,7 @@ private struct LinkChip: View {
     case .pullRequest: return "arrow.triangle.pull"
     case .gist: return "doc.text"
     case .web: return "link"
+    case .inbox: return "tray"
     }
   }
 }
@@ -436,7 +450,7 @@ private struct AllLinksView: View {
         } label: {
           VStack(alignment: .leading, spacing: 2) {
             Text(link.chipText).font(.body)
-            Text(link.url.absoluteString).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            Text(ChatLinks.address(link)).font(.caption).foregroundStyle(.secondary).lineLimit(2)
           }
         }
       }
@@ -599,8 +613,6 @@ struct ChatThreadView: View {
               message: message, thread: key ?? "", answerFailed: answerFailed.contains(message.id), chat: chat,
               logger: logger, react: { react($0, to: message) }, quote: { quote(message) }, copy: { copy(message) })
           }
-          // Story 744: a Cockpit thread link in a bubble opens that thread here; the chips above open links as ever.
-          .environment(\.openURL, OpenURLAction(handler: openInApp))
           // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
           ForEach(pending, id: \.pendingKey) { item in
@@ -685,21 +697,27 @@ struct ChatThreadView: View {
     .navigationDestination(item: $jumpTo) { target in
       ChatThreadView(chat: chat, voice: voice, key: target, title: chat.title(of: target), logger: logger)
     }
+    // Story 744: an Inbox chip, in a bubble or the strip above, opens its thread here; any other link as ever.
+    .environment(\.openURL, OpenURLAction(handler: openInApp))
     .chatTextSize()
   }
 
-  /// Story 744: a Cockpit link to a thread the list knows opens it here; any other link goes where it went before.
+  /// Story 744: a Cockpit thread the list knows opens here, an unknown one on the Cockpit; any other link as before.
   private func openInApp(_ url: URL) -> OpenURLAction.Result {
-    let jump = ChatCockpitLink.jump(url, from: key, known: Set(chat.threads.map(\.key)))
-    if ChatCockpitLink.threadKey(url) != nil {
-      chat.logAction("cockpit_link", ["thread": key ?? "", "opened": jump == nil ? "browser" : "app"])
+    guard let jump = ChatCockpitLink.jump(url, from: key, known: Set(chat.threads.map(\.key))) else {
+      return .systemAction
     }
     switch jump {
-    case .here: return .handled
+    case .here:
+      chat.logAction("cockpit_link", ["thread": key ?? "", "opened": "here"])
+      return .handled
     case .thread(let target):
+      chat.logAction("cockpit_link", ["thread": key ?? "", "opened": "app"])
       jumpTo = target
       return .handled
-    case nil: return .systemAction
+    case .web(let page):
+      chat.logAction("cockpit_link", ["thread": key ?? "", "opened": "browser"])
+      return .systemAction(page)
     }
   }
 
@@ -804,7 +822,7 @@ private struct MessageBubble: View {
           }
         }
         if !message.text.isEmpty {
-          Text(ChatText.linked(message.text))
+          BubbleText(text: message.text, chat: chat, thread: thread)
             .padding(.horizontal, 12).padding(.vertical, 8)
             .background(
               message.fromIgor ? Color.accentColor : Color(.secondarySystemBackground),
@@ -1002,32 +1020,112 @@ private struct ChatImage: View {
   }
 }
 
-/// Links in a message are tappable; nothing else is interpreted (a message is never Markdown). A lone PR or a blog
-/// preview reads short, the word itself the link (story 743, `ChatBubbleLinks`).
+/// Links in a message are tappable; nothing else is interpreted (a message is never Markdown).
 enum ChatText {
   static func linked(_ text: String) -> AttributedString {
     var out = AttributedString(text)
     guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return out }
-    let short = ChatBubbleLinks.labels(in: text)
     let ns = text as NSString
-    // Last first, so a link read short leaves the earlier ones where they were.
-    for match in detector.matches(in: text, range: NSRange(location: 0, length: ns.length)).reversed() {
+    for match in detector.matches(in: text, range: NSRange(location: 0, length: ns.length)) {
       guard let url = match.url, let range = Range(match.range, in: text),
         let lower = AttributedString.Index(range.lowerBound, within: out),
         let upper = AttributedString.Index(range.upperBound, within: out)
       else { continue }
-      let written = String(text[range])
-      let link = ChatLinks.trimmed(written)
-      if let label = short[link], let target = URL(string: link) {
-        var piece = AttributedString(label)
-        piece.link = target
-        piece.append(AttributedString(String(written.dropFirst(link.count))))
-        out.replaceSubrange(lower..<upper, with: piece)
-      } else {
-        out[lower..<upper].link = url
-      }
+      out[lower..<upper].link = url
     }
     return out
+  }
+}
+
+/// A message's words with its links as the strip's chips (story 743, `ChatBubbleLinks`): a line with no chip is one
+/// text as before; a line with one flows word by word, so the chip sits where the link was written.
+private struct BubbleText: View {
+  let text: String
+  let chat: ChatModel
+  let thread: String
+  @Environment(\.openURL) private var openURL
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      ForEach(Array(ChatBubbleLinks.paragraphs(in: text).enumerated()), id: \.offset) { _, paragraph in
+        switch paragraph {
+        case .plain(let words):
+          Text(ChatText.linked(words.isEmpty ? " " : words))
+        case .flow(let tokens):
+          WordFlow {
+            ForEach(Array(tokens.enumerated()), id: \.offset) { _, token in
+              switch token {
+              case .word(let word):
+                Text(ChatText.linked(word))
+              case .chip(let link, let leading, let trailing):
+                HStack(spacing: 1) {
+                  if !leading.isEmpty { Text(leading) }
+                  LinkChip(link: chat.withStates([link]).first ?? link) { open(link) }
+                  if !trailing.isEmpty { Text(trailing) }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private func open(_ link: ChatLink) {
+    chat.logLinkOpened(link, thread: thread, from: "bubble")
+    openURL(link.url)
+  }
+}
+
+/// Words and chips left to right, wrapping as text does (story 743).
+/// ponytail: a single word wider than the bubble is not broken, it is squeezed to the bubble's width.
+private struct WordFlow: Layout {
+  var spacing: CGFloat = 4
+  var lineSpacing: CGFloat = 4
+
+  private struct Row {
+    var items: [Int] = []
+    var width: CGFloat = 0
+    var height: CGFloat = 0
+  }
+
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    let laidOut = rows(width: proposal.width ?? .infinity, subviews)
+    let height = laidOut.reduce(0) { $0 + $1.height } + lineSpacing * CGFloat(max(0, laidOut.count - 1))
+    return CGSize(width: laidOut.map(\.width).max() ?? 0, height: height)
+  }
+
+  func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    var y = bounds.minY
+    for row in rows(width: bounds.width, subviews) {
+      var x = bounds.minX
+      for index in row.items {
+        var size = subviews[index].sizeThatFits(.unspecified)
+        size.width = min(size.width, bounds.width)
+        subviews[index].place(
+          at: CGPoint(x: x, y: y + (row.height - size.height) / 2), proposal: ProposedViewSize(size))
+        x += size.width + spacing
+      }
+      y += row.height + lineSpacing
+    }
+  }
+
+  private func rows(width: CGFloat, _ subviews: Subviews) -> [Row] {
+    var rows: [Row] = []
+    var row = Row()
+    for index in subviews.indices {
+      var size = subviews[index].sizeThatFits(.unspecified)
+      size.width = min(size.width, width)
+      if !row.items.isEmpty, row.width + spacing + size.width > width {
+        rows.append(row)
+        row = Row()
+      }
+      row.width = row.items.isEmpty ? size.width : row.width + spacing + size.width
+      row.height = max(row.height, size.height)
+      row.items.append(index)
+    }
+    if !row.items.isEmpty { rows.append(row) }
+    return rows
   }
 }
 

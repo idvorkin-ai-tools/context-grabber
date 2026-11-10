@@ -2566,38 +2566,38 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 743:
 
-- **Summary:** A message's PR and blog links read short in its bubble
-- **Status:** native app only: implemented on branch `chat-short-link-labels`; `ChatBubbleLinksTests` (host) written but not run (no Swift toolchain on the Linux box that built it, no Mac); not yet seen on the simulator or the phone
+- **Summary:** A message's links are chips in its bubble: a PR reads *PR*, the blog *Preview*
+- **Status:** native app only: implemented on branch `chat-short-link-labels` (first as short underlined words, then as chips after Igor's review); `ChatBubbleLinksTests` (host) written but not run (no Swift toolchain on the Linux box that built it, no Mac); not yet seen on the simulator or the phone
 - **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Igor, reading Larry's reply that links the PR he opened and a blog preview
-- **I want to** see *PR* and *Preview* where the long addresses were
+- **I want to** see a *PR* chip and a *Preview* chip where the long addresses were, like the chips above the thread
 - **so that** the message reads as words, and the links are still one tap away
 
 #### Acceptance Criteria:
 - **Scenario:** One PR and one preview, then two PRs
 - **Given:** a message "Opened https://github.com/idvorkin/context-grabber/pull/734, preview at http://c-5004.squeaker-teeth.ts.net:8445/ai-journal." and another linking PRs #734 and #736
 - **When:** I open the thread
-- **Then:** the first bubble reads "Opened PR, preview at Preview." with *PR* and *Preview* tappable to their full addresses; the second reads *PR #734* and *PR #736*; the chips under the title are unchanged, and *Copy* on either bubble copies the full addresses
+- **Then:** the first bubble reads "Opened [PR], preview at [Preview]." with the two as chips, the comma and full stop beside them, each opening its full address; the second has two *PR* chips, each with its state once known; the chips under the title are unchanged, and *Copy* on either bubble copies the full addresses
 
 ---
 
 ### User Story 744:
 
-- **Summary:** An Inbox link in Larry's reply opens that thread in the app
-- **Status:** native app only: implemented on branch `chat-cockpit-thread-links`; `ChatCockpitLinkTests` and `ChatBubbleLinksTests` (host) written but not run (no Swift toolchain on the Linux box that built it, no Mac); not yet seen on the simulator or the phone
+- **Summary:** An Inbox chip in Larry's reply, and on the strip above, opens that thread in the app
+- **Status:** native app only: implemented on branch `chat-cockpit-thread-links`; `ChatCockpitLinkTests`, `ChatBubbleLinksTests` and `AppLinkTests` (host) written but not run (no Swift toolchain on the Linux box that built it, no Mac); the `larry` URL scheme is registered but not opened on a device; not yet seen on the simulator or the phone
 - **Spec:** [Chat with Larry in Grabber Native — Links in a thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Igor, reading Larry's reply that says a decision is waiting in the Inbox
-- **I want to** tap its link and land on that question's thread in the app
-- **so that** I answer it without Safari or the web Cockpit
+- **I want to** tap its *Inbox* chip, there or on the strip above the thread, and land on that question's thread in the app
+- **so that** I answer it without Safari, the web Cockpit or the long tailnet address
 
 #### Acceptance Criteria:
-- **Scenario:** A known thread, then an unknown one
-- **Given:** Larry's reply "It's in the Inbox: https://c-5004.squeaker-teeth.ts.net/#thread/igor2-88g.1411.2", a thread the chat list shows
-- **When:** I tap *Inbox* in the bubble
-- **Then:** that thread opens in the app over this one and Back returns here; a link to a thread the list does not show opens the Cockpit page as before, and the chips under the title open links as they always have
+- **Scenario:** Both spellings, a known thread, then an unknown one
+- **Given:** Larry's reply "It's in the Inbox: https://c-5004.squeaker-teeth.ts.net/#thread/igor2-88g.1411.2, same as larry://inbox/igor2-88g.1411.2", a thread the chat list shows
+- **When:** I open the thread and tap either *Inbox* chip in the bubble, or the one *Inbox* chip on the strip
+- **Then:** the bubble shows two *Inbox* chips and no address, the strip one; that thread opens in the app over this one and Back returns here; a thread the list does not show opens on the Cockpit page; *All links* lists it as larry://inbox/igor2-88g.1411.2; and larry://inbox/igor2-88g.1411.2 tapped in Notes opens the app on that thread
 
 ---
