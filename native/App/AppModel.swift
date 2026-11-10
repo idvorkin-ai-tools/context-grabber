@@ -79,7 +79,7 @@ final class AppModel: ObservableObject {
   lazy var eulogySong: EulogySongPlayer = {
     let song = EulogySongPlayer(log: log)
     // A live call holds the audio: the song waits for it (#197).
-    song.heldBy = { [weak self] in self?.call.snapshot.isActive == true ? "call" : nil }
+    song.heldBy = { [weak self] in self?.askAudio(.songPlays)?.rawValue }
     return song
   }()
   /// The usage strip on the home screen (story 203). `GRABBER_USAGE_URL` points it at another Cockpit.
@@ -181,9 +181,9 @@ final class AppModel: ObservableObject {
     startDelivery()
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in
-      self?.eulogySong.yield(to: "call")
-      // Before the call configures the session: chat dictation's restore must land first, or the call's mic is dead.
-      self?.chatVoice.yieldToCall()
+      // The song pauses (#197), then chat's dictation stops (#448). Before the call configures the session: chat
+      // dictation's restore must land first, or the call's mic is dead.
+      self?.askAudio(.callStarts)
       self?.locateForCall()
     }
     // Story 217: a Direct call starts knowing the day so far: the last grab and the strip as the home screen shows it.
@@ -451,12 +451,42 @@ final class AppModel: ObservableObject {
         sessionLog: { ("logs/" + log.url.lastPathComponent, Int(Date().timeIntervalSince(log.startedAt) * 1000)) },
         logger: bugLogger,
         // #559: two recognizers at once kill the first, so a chat recording holds the microphone like a call.
-        microphoneBusy: { [unowned self] in self.call.snapshot.isActive || self.chatVoice.recording },
+        microphoneBusy: { [unowned self] in self.askAudio(.reportDictation) != nil },
         flushLog: { log.flush() }),
       options: options, delivery: delivery)
     reporterStatus = reporter.$lastStatus.compactMap { $0 }.receive(on: RunLoop.main)
       .sink { [weak self] in self?.status = $0 }
     return reporter
+  }
+
+  /// #802: every "who gives way to whom" over the audio session is one row of `AudioFloor.rules` (ContextCore,
+  /// host-tested), asked here and carried out in the table's order. Returns the holder that refuses the asker, nil
+  /// when it may go ahead.
+  @discardableResult
+  private func askAudio(_ ask: AudioAsk) -> AudioUser? {
+    for decision in AudioFloor.decide(ask, isHolding: { self.holdsAudio($0) }) {
+      switch decision {
+      case .refuse(let holder): return holder
+      case .yield(let holder, let other):
+        // Each of these returns at once when it is not sounding.
+        switch holder {
+        case .timer: gymModel?.yield(to: other)
+        case .song: eulogySong.yield(to: other)
+        case .chatVoice: chatVoice.yieldToCall()
+        case .call, .breathe, .card, .reportDictation, .whiteboardMic, .cockpit: break  // no rule AppModel carries out
+        }
+      }
+    }
+    return nil
+  }
+
+  /// Whether a holder that refuses others (`AudioFloor.refusers`) has the session now.
+  private func holdsAudio(_ user: AudioUser) -> Bool {
+    switch user {
+    case .call: return call.snapshot.isActive
+    case .chatVoice: return chatVoice.recording
+    case .timer, .breathe, .song, .card, .reportDictation, .whiteboardMic, .cockpit: return false
+    }
   }
 
   /// #107: the call starts with where Igor is. Only with permission already given: a call never prompts for it.
@@ -500,7 +530,7 @@ final class AppModel: ObservableObject {
 
   func openBreathe(_ launch: BreatheLaunch = BreatheLaunch(), from source: String) {
     log.event("ui", ["action": "open_breathe", "from": source, "autostart": launch.begins])
-    gymModel?.yield(to: "breathe")
+    askAudio(.breatheOpens)
     screen = "breathe"
     breathe = launch
   }
@@ -563,9 +593,7 @@ final class AppModel: ObservableObject {
   /// Asked by the card screen at an ask and again at its reveal (#219): a live call keeps the audio, so the card is
   /// shown silently; the eulogy song pauses for it.
   func mayTheCardSpeak() -> Bool {
-    if call.snapshot.isActive { return false }
-    eulogySong.yield(to: "card")
-    return true
+    askAudio(.cardSpeaks) == nil
   }
 
   func closeCard() {
@@ -641,7 +669,7 @@ final class AppModel: ObservableObject {
   /// Story 137: the eulogy song, played in the app; the sheet shows where it is. Resumes rather than restarts.
   func playEulogySong(from source: String) {
     log.event("ui", ["action": "open_eulogy_song_player", "from": source])
-    gymModel?.yield(to: "eulogy_song")
+    askAudio(.songOpens)
     screen = "eulogy_song"
     showEulogySong = true
     eulogySong.play(from: source)
@@ -691,7 +719,7 @@ final class AppModel: ObservableObject {
 
   /// Story 149: lets go of the audio this app holds. Not while a call is live; ending the call is the reset then.
   func resetAudio() {
-    guard !call.snapshot.isActive else { return }
+    guard askAudio(.audioReset) == nil else { return }
     audioResetLine = "Resetting…"
     DispatchQueue.global(qos: .userInitiated).async { [log] in
       let before = AudioReset.state()
@@ -715,7 +743,7 @@ final class AppModel: ObservableObject {
   func openCockpit(from source: String) {
     log.event("ui", ["action": "open_cockpit", "from": source, "first": !cockpitOpened])
     cockpitOpened = true
-    gymModel?.yield(to: "cockpit")
+    askAudio(.cockpitOpens)
     if bringForward(.cockpit, from: source) { return }
     screen = "cockpit"
     showCockpit = true
@@ -764,7 +792,7 @@ final class AppModel: ObservableObject {
 
   func openCall(from source: String) {
     log.event("ui", ["action": "open_call", "from": source, "state": call.snapshot.state.rawValue])
-    gymModel?.yield(to: "call")
+    askAudio(.callScreenOpens)
     if gymTimer != nil { closeGymTimer() }
     screen = "call"
     callOpen = true

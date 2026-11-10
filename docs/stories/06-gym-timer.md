@@ -580,7 +580,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** Another session that needs the audio pauses a workout I left
 - **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897) (breathing and the call; the Cockpit and the eulogy song's player added in review); verified by `just test` (lint + host) and the simulator's `LinksUITests` (a breathing link pauses the workout, which is found paused, ready to RESUME); the Cockpit and the song still to be checked by Igor on the phone
-- **Issues:** #791
+- **Issues:** #791, #802
 
 #### Use Case:
 - **As a** lifter who left a workout running and then opened something with its own voice or microphone
