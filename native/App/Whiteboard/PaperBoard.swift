@@ -733,12 +733,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste`: those, 2 s apart from a second after the first ink, for the simulator: it
   /// can't work the lasso, and keys reach only a run's first test. Copy selects all the ink and copies, as the lasso's does.
   private func pressSoonForTests() {
-    guard !pressedForTests, let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_AFTER_INK"] else {
-      return
-    }
+    guard !pressedForTests, let presses = LaunchHooks.current.whiteboard.afterInk else { return }
     pressedForTests = true
     Task { @MainActor [weak self] in
-      for press in hook.split(separator: ",") {
+      for press in presses {
         try? await Task.sleep(for: .seconds(1))
         if press == "paste" {
           self?.paste(from: "hook")
@@ -753,9 +751,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// `GRABBER_WHITEBOARD_PAGE_AFTER_INK=<page>`: a second after the first ink, the view goes to that page's top (as far as
   /// the column lets it), for the simulator: a finger draws there and XCUITest has no two-finger drag (stories 433, 522).
   private func goToPageSoonForTests() {
-    guard !movedForTests, let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_PAGE_AFTER_INK"],
-      let page = Int(hook)
-    else { return }
+    guard !movedForTests, let page = LaunchHooks.current.whiteboard.pageAfterInk else { return }
     movedForTests = true
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))
@@ -965,17 +961,16 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...`: those presses after a keep, 3 s apart, for the simulator: a
   /// phone's tool picker has no Undo, and keys reach only a run's first test.
   private func undoSoonForTests() {
-    guard let hook = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_AFTER_KEEP"] else { return }
-    let parts = hook.split(separator: ",")
+    guard let hook = LaunchHooks.current.whiteboard.afterKeep else { return }
     Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(Double(parts.first ?? "") ?? 3))
-      for press in parts.dropFirst() {
+      try? await Task.sleep(for: .seconds(hook.delay))
+      for press in hook.presses {
         guard let self else { return }
         press == "undo" ? self.paper.undoManager?.undo() : self.paper.undoManager?.redo()
         self.log.event(
           "whiteboard",
           [
-            "action": "paper_press_hook", "press": String(press), "board": self.model.board.id,
+            "action": "paper_press_hook", "press": press, "board": self.model.board.id,
             "strokes": self.model.drawing.strokes.count, "pages": self.pages,
             "can_undo": self.paper.undoManager?.canUndo ?? false, "can_redo": self.paper.undoManager?.canRedo ?? false,
           ])

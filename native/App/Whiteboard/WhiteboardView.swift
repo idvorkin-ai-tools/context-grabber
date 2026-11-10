@@ -103,8 +103,7 @@ final class WhiteboardModel: ObservableObject {
   /// A pasted letter's height on screen, in points, at 100% and zoomed out.
   static let pasteLetters: CGFloat = 24
   /// How long Claude's ghosts stay when nothing replaces them.
-  static let ghostSeconds =
-    ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap(Double.init) ?? 30
+  static let ghostSeconds = LaunchHooks.current.whiteboard.ghostSeconds ?? 30
   /// How often an open board looks at its thread, how long one look waits, and how many failed looks before the bar
   /// says so.
   static let lookEvery: Duration = .seconds(3)
@@ -147,7 +146,7 @@ final class WhiteboardModel: ObservableObject {
         "action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": editable,
         "old_canvas": oldCanvas,
       ])
-    if ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_GRID"] == "on" { setGrid(true) }
+    if LaunchHooks.current.whiteboard.grid { setGrid(true) }
   }
 
   func changed(_ new: PKDrawing) {
@@ -514,7 +513,7 @@ final class WhiteboardModel: ObservableObject {
 
   /// Opens the board's mic, or closes it and sends what's still unsent.
   func tapMic() {
-    if let words = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_SAY"] {
+    if let words = LaunchHooks.current.whiteboard.say {
       speech.heard(words)
       spoke()
       return
@@ -669,7 +668,7 @@ final class WhiteboardModel: ObservableObject {
     turns.land(
       shapes.map { Ghost($0, who: who, frame: rect, scale: scale) }, who: who, first: first, now: .now)
     if who == .claude { fadeClaudesGhosts() }
-    if first, ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_KEEP"] == "first", let ghost = ghosts.first {
+    if first, LaunchHooks.current.whiteboard.keepFirst, let ghost = ghosts.first {
       keep(ghost)
     }
   }
@@ -1112,7 +1111,7 @@ struct WhiteboardView: View {
     .accessibilityIdentifier("whiteboard")
     .task {
       // XCUITest's taps never reach the system's paste button: the UI test pastes through this.
-      guard let text = ProcessInfo.processInfo.environment["GRABBER_WHITEBOARD_PASTE"] else { return }
+      guard let text = LaunchHooks.current.whiteboard.paste else { return }
       try? await Task.sleep(for: .seconds(1))
       model.paste(text)
     }

@@ -230,8 +230,7 @@ extension AppModel {
   /// (it comes forward, no second window) and closes it, as a hold and a Done would. docs/TESTING.md.
   private func runWindowHook() {
     guard !windowHookRan else { return }
-    let environment = ProcessInfo.processInfo.environment
-    if let choice = environment["GRABBER_WINDOW_CHOOSE"].flatMap(WindowScreen.init(rawValue:)) {
+    if let choice = LaunchHooks.current.windowChoose {
       windowHookRan = true
       windowHookChoice = choice
       Task {
@@ -240,14 +239,13 @@ extension AppModel {
       }
       return
     }
-    guard let spec = environment["GRABBER_WINDOW"] else { return }
+    guard let hook = LaunchHooks.current.window else { return }
     windowHookRan = true
-    let parts = spec.split(separator: ",").map(String.init)
-    guard let screen = parts.first.flatMap(WindowScreen.init(rawValue:)) else { return }
+    guard let screen = hook.screen else { return }
     Task {
       try? await Task.sleep(for: .seconds(1))
       openInNewWindow(screen, from: "hook")
-      for step in parts.dropFirst() {
+      for step in hook.steps {
         try? await Task.sleep(for: .seconds(3))
         if step == "again" { openInNewWindow(screen, from: "hook") }
         if step == "close" { closeWindow(screen) }

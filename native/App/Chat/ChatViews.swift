@@ -34,7 +34,7 @@ struct ChatListView: View {
   /// Select and Review (#599): what ticks, what *Archive (N)* takes, what shows meanwhile (`ChatListSelection`).
   @State private var selection = ChatListSelection()
   /// GRABBER_CHAT_SELECT=archive: once the list is read, *Review* and *Archive (N)* tap themselves, for the simulator.
-  @State private var selectHook = ProcessInfo.processInfo.environment["GRABBER_CHAT_SELECT"] == "archive"
+  @State private var selectHook = LaunchHooks.current.chat.selectArchive
 
   var body: some View {
     List {
@@ -357,7 +357,7 @@ private struct ThreadLinksStrip: View {
   let links: [ChatLink]
   @State private var allOpen = false
   /// GRABBER_CHAT_LINKS=fold / all: once the strip shows, *Links* or *All links* taps itself, for the simulator.
-  @State private var linksHook = ProcessInfo.processInfo.environment["GRABBER_CHAT_LINKS"]
+  @State private var linksHook = LaunchHooks.current.chat.links
   @Environment(\.openURL) private var openURL
 
   private var folded: Bool { chat.foldedLinks.contains(thread) }
@@ -542,7 +542,7 @@ struct ChatThreadView: View {
   /// A message whose Quote in reply was tapped: the bar takes it (#629).
   @State private var quoting: ChatMessage?
   /// GRABBER_CHAT_HOLD=yes / no / quote / copy: that choice taps itself on Larry's newest message, for the simulator.
-  @State private var holdHook = ProcessInfo.processInfo.environment["GRABBER_CHAT_HOLD"]
+  @State private var holdHook = LaunchHooks.current.chat.hold
   @Environment(\.dismiss) private var dismiss
 
   init(chat: ChatModel, voice: ChatVoiceModel, key: String, title: String, logger: @escaping BugLogger) {
@@ -880,7 +880,7 @@ private struct ChatImage: View {
   let chat: ChatModel
   let logger: BugLogger
   /// GRABBER_CHAT_IMAGE=open: the thread's picture opens full size by itself, for the simulator.
-  @State private var full = ProcessInfo.processInfo.environment["GRABBER_CHAT_IMAGE"] == "open"
+  @State private var full = LaunchHooks.current.chat.imageOpen
   @State private var looking = false
   @State private var jumpProblem: BugProblem?
   /// The cover is going down for a jump: the board opens once it has, so no cover is left stuck.

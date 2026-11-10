@@ -4,6 +4,7 @@
 
 import AVFoundation
 import BugKit
+import ContextCore
 import MediaPlayer
 import SwiftUI
 
@@ -179,7 +180,7 @@ final class EulogySongPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate 
   private func loaded() -> AVAudioPlayer? {
     if let player { return player }
     // GRABBER_SONG=missing: the simulator's way to see the failure on screen (#201).
-    let name = ProcessInfo.processInfo.environment["GRABBER_SONG"] == "missing" ? "no-such-song" : "eulogy-song"
+    let name = LaunchHooks.current.songMissing ? "no-such-song" : "eulogy-song"
     guard let url = Bundle.main.url(forResource: name, withExtension: "mp3") else {
       failure = problem("The song is missing from this build.", "EulogySong.load", ["file": "eulogy-song.mp3"])
       log.event("eulogy_song", ["action": "load", "ok": false, "message": "eulogy-song.mp3 not in the bundle"])
