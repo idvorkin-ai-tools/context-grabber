@@ -270,6 +270,11 @@ chat_classes() {
   disown
   sleep 1
   kill -0 "$bridge" 2>/dev/null || { echo "the fake bridge did not start" >&2; return 1; }
+  # #812: the hold-menu thread starts without the outbox's earlier answers, as test-chat-ui.sh does (#801).
+  xcrun simctl boot "$udid" 2>/dev/null || true
+  xcrun simctl terminate "$udid" com.idvorkin.grabbernative >/dev/null 2>&1 || true
+  scripts/native/forget-chat-thread.sh "$udid" com.idvorkin.grabbernative igor2-88g.629 >/dev/null \
+    || echo "the outbox's leftovers for igor2-88g.629 could not be removed: ChatReactionUITests may fail on them (#801)" >&2
   TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:${CHAT_PORT:-8798}" TEST_RUNNER_GRABBER_FAKE_BRIDGE="ws://localhost:${CHAT_BRIDGE_PORT:-8797}" \
     xcodebuild_sim chat "TEST EXECUTE SUCCEEDED" $(only_testing "${chat[@]}") test-without-building
 }
