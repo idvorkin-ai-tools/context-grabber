@@ -993,7 +993,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 751:
 
 - **Summary:** The call's problem line shows the worst thing still wrong, and the mic is restarted once
-- **Status:** implemented in COMMIT; verified on the Linux rung (host tests: `CallSessionProblemLineTests`, the rest of `CallSession*Tests` green); simulator/phone pending, needs the Mac
+- **Status:** implemented in [56c468f](https://github.com/idvorkin/context-grabber/commit/56c468f); verified on the Linux rung (host tests: `CallSessionProblemLineTests`, the rest of `CallSession*Tests` green); simulator/phone pending, needs the Mac
 - **Issues:** state-machine audit of 2026-11-10, finding 1
 - **Spec:** [Native call — The problem line](../superpowers/specs/2026-08-28-native-call-screen-design.md#the-problem-line)
 
