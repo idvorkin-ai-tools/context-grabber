@@ -3776,7 +3776,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 659:
 
 - **Summary:** I pick who answers a board's pause: Haiku, Sonnet or the real Larry
-- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardResponderTests`: the read and the write on the wire, the tick while they are on their way, a failed write taking it back, who answered from a stream or a whole answer, when a Larry board's pause goes to his thread) and the Linux cross-builds of ContextCore. The menu, the Cockpit's live knob and a Larry board's hand-off not yet seen on the Mac or the iPad
+- **Status:** implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests`: the read and the write on the wire, the tick while they are on their way, a failed write taking it back, who answered from a stream or a whole answer, when a Larry board's pause goes to his thread) and the Linux cross-builds of ContextCore. The menu, the Cockpit's live knob and a Larry board's hand-off not yet seen on the Mac or the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
@@ -3805,7 +3805,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 660:
 
 - **Summary:** Claude is asked half a second after I lift the Pencil, not a second
-- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
+- **Status:** implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Ghosts from Claude*
 
 #### Use Case:
@@ -3824,7 +3824,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 661:
 
 - **Summary:** Every ghost turn says how long the iPad's half took
-- **Status:** implemented in COMMIT_SHA; verified on the host (`WhiteboardResponderTests`: the milliseconds, what goes to the Cockpit and what only the log has, the request carrying the board and the timings). The upload time comes from URLSession's own report, seen only on a device
+- **Status:** implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests`: the milliseconds, what goes to the Cockpit and what only the log has, the request carrying the board and the timings). The upload time comes from URLSession's own report, seen only on a device
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
