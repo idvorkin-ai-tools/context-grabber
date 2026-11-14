@@ -4323,9 +4323,14 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** Sent, then with Larry
-- **Given:** a picture has just gone to Larry
+- **Given:** a picture has just gone to Larry and the Cockpit has marked it *received*
 - **When:** he picks it up four seconds later
-- **Then:** the note's state reads *Sent · 0:03* and then *Larry · 0:04*, the clock never restarting; had he not picked it up in thirty seconds it would read *Sent · 0:31 · not picked up yet*
+- **Then:** the note's state reads *Sent · 0:03* and then *Larry · 0:04*, the clock never restarting; had he not picked it up in twenty seconds it would read *Sent · 0:21 · not picked up yet*, VoiceOver saying *Sent 21 seconds ago, not picked up yet*, with *Interrupt* beside it (story 777)
+
+- **Scenario:** An older Cockpit
+- **Given:** a Cockpit that puts no marks on messages
+- **When:** a picture goes and he is slow
+- **Then:** the state reads *Larry · 0:42* throughout, never *Sent*
 
 
 ---
@@ -4347,7 +4352,17 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** twenty seconds pass
 - **Then:** the bar shows *Larry hasn't got the picture* as a problem I can copy, with *Retry* and *Dismiss* beside it, and the canvas is not covered
 - **When:** I tap *Retry*
-- **Then:** the same picture goes again under the same message, the clock goes back to 0:00, the problem goes, and the session log says I retried
+- **Then:** the same picture goes again under the same message, the clock goes back to 0:00, the problem goes, and the session log says I retried; if the first one did land, the thread still holds it once
+
+- **Scenario:** A Cockpit that marks nothing
+- **Given:** an older Cockpit, whose messages carry no marks
+- **When:** twenty seconds pass on any picture
+- **Then:** the board never says *Larry hasn't got the picture* and never offers *Retry*; it offers *Interrupt* (story 777)
+
+- **Scenario:** He was slow, not stuck
+- **Given:** *Larry hasn't got the picture* is showing
+- **When:** the Cockpit's mark on the picture arrives, or his answer does
+- **Then:** the problem goes on its own, and any other problem showing stays
 
 ---
 
@@ -4366,7 +4381,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** I dismiss it
 - **Given:** the bar shows *Larry hasn't got the picture*
 - **When:** I tap *Dismiss*
-- **Then:** the problem and Larry's clock go, words that went with the picture wait for the next one, nothing more is said about that picture, and the session log says it was dismissed
+- **Then:** the problem and Larry's clock go, words that went with the picture wait for the next one, nothing more is said about that picture, my next tap sends (never *Larry already has this*), and the session log says it was dismissed
 
 ---
 
@@ -4383,11 +4398,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** He has it and hasn't finished
-- **Given:** a picture the Cockpit marked received or seen, not done
+- **Given:** a picture the Cockpit marked received or seen, not done, or one on a Cockpit that marks nothing
 - **When:** twenty seconds pass
-- **Then:** the note's line offers a small *Interrupt* after the clock, and nothing else appears
+- **Then:** the note's line offers a small *Interrupt* after the clock (*Sent · 0:21 · not picked up yet* or *Larry · 0:21*), and nothing else appears
 - **When:** I tap *Interrupt*
-- **Then:** the clock goes, the next pause or tap sends a fresh picture, what Larry draws or says later still lands, and the session log says I interrupted
+- **Then:** the clock goes, the next pause or tap sends a fresh picture (never *Larry already has this*), what Larry draws or says later still lands, and the session log says I interrupted
 
 - **Scenario:** He finishes
 - **Given:** *Interrupt* is showing

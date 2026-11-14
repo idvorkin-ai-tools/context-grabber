@@ -64,36 +64,75 @@ say so himself.
 - **Every tap changes something on screen within a quarter of a second**: the clock appears or restarts, or the note
   says why nothing went.
 
-## After 20 seconds: Retry, Dismiss or Interrupt (Igor, 2026-11-14)
+## Where the picture is: sent, or with Larry (Larry, 2026-11-12; story 773)
+
+The Cockpit marks each of Igor's messages *received* when it lands, *seen* when Larry picks it up and *done* when he
+has answered. Chat shows those marks; the board now reads them for the picture it is waiting on, the message that
+carries that picture. Larry marks board pictures *seen* and *done* from 2026-11-14. One reading of the mark names the
+state here and decides the controls in *After 20 seconds*, below.
+
+- **While the Cockpit has the picture and Larry hasn't picked it up** (*received*), the state reads **Sent · 0:03**.
+  The clock is the same clock, counted from when the picture went.
+- **Once he has it** (*seen*), the state reads **Larry · 0:42**, as before.
+- **A picture that sits unpicked for 20 seconds** reads **Sent · 0:21 · not picked up yet**. That is the honest slow
+  signal: Larry is busy with something else, or isn't running. Twenty seconds is the same threshold as the controls'.
+- **A picture the Cockpit hasn't taken yet** (no mark on its message) reads **Larry · 0:07**, as before; from twenty
+  seconds it is stuck (below).
+- **His answer ends the wait** whatever the mark said: an answer with no *seen* before it is still an answer.
+- **The other states are unchanged and say more than the mark**: *Cockpit not answering* shows as before (the mark
+  can't be read then, so the state keeps what it last knew), *Larry already has this* still answers a repeat tap, and
+  *Larry didn't answer* still comes at three minutes. Its copied state now also says where the picture was.
+- **VoiceOver** says *Sent 3 seconds ago, not picked up yet* or *Larry has been looking for 42 seconds*.
+- **The panel's live row** says the same as the line.
+- **A Cockpit that sends no marks** (an older one): the state reads *Larry · 0:42* throughout, as before.
+
+## After 20 seconds: Retry, Dismiss or Interrupt (Igor, 2026-11-14; stories 775–777)
 
 Written on the board: "I think Larry got stuck. I need interrupt/retry button after 20s!" The clock says how long; it
 doesn't say whether the picture ever reached him, or offer anything to do about it.
 
-- **Twenty seconds after a picture goes** with no answer, the board looks at how far the Cockpit's mark on that
-  picture's message has got (received, seen, done, as the open note shows them) and offers one small control. Before
-  twenty seconds, nothing is offered.
+- **Twenty seconds after a picture goes** with no answer, the board looks at where the picture is (above: the same
+  reading that names the state) and offers one small control. Before twenty seconds, nothing is offered.
+
+| Where the picture is | Before 20 s | From 20 s |
+|---|---|---|
+| The Cockpit never took it: no mark on its message, or no such message, on a thread whose other pictures do carry marks | *Larry · 0:07* | *Larry hasn't got the picture*, with **Retry** and **Dismiss** |
+| *Received*: the Cockpit has it, Larry hasn't picked it up | *Sent · 0:03* | *Sent · 0:21 · not picked up yet*, and **Interrupt** |
+| *Seen*: Larry has it | *Larry · 0:12* | *Larry · 0:42*, and **Interrupt** |
+| Not known: the Cockpit marks nothing, or the board hasn't read the thread yet | *Larry · 0:07* | *Larry · 0:42*, and **Interrupt**; never *Retry* |
+| *Done*, or his answer | the state goes | nothing |
+
 - **No mark at all: stuck.** The Cockpit hasn't taken the picture: it is still on its way or its answer was lost. The
   bar shows **Larry hasn't got the picture** as a problem that can be copied (when the picture went, how long it has
-  waited, whether it is still going up, and whether the Cockpit is answering), with **Retry** and **Dismiss** beside
-  it, where *Larry didn't answer* sits.
+  waited, whether it is still going up, whether the Cockpit is answering, and where the picture is), with **Retry**
+  and **Dismiss** beside it, where *Larry didn't answer* sits. A picture whose sending the Cockpit answered is never
+  stuck: the Cockpit has it.
   - **Retry** sends the very same picture again: the same picture and the same message, so if the first did land the
     Cockpit keeps one and Larry is asked once. The clock goes back to 0:00 and the twenty seconds start again.
   - **Dismiss** stops waiting: the turn is free, words that went with the picture wait for the next one, and nothing
     more is said about that picture.
-- **Received or seen, not done: Larry has it.** The Cockpit took it and it is Larry's to answer. The note's line, after
-  the clock, carries a quiet **Interrupt**. It frees the turn, so the next pause or tap is a fresh ask instead of being
+- **Only a Cockpit that marks messages can say a picture is stuck.** An older one marks nothing, so there a missing
+  mark says nothing: its pictures are offered *Interrupt*, never *Retry*, and no turn on it looks stuck.
+- **Received or seen, not done: the Cockpit has it.** It is Larry's to pick up or to answer. The note's line, after the
+  clock, carries a quiet **Interrupt**. It frees the turn, so the next pause or tap is a fresh ask instead of being
   held for his answer. What Larry draws or says later still lands. Words waiting for the next picture still go with it.
+  Sending it again would not wake him, so there is no *Retry* here.
+- **After Interrupt or Dismiss the next tap always sends**: no turn is out, so *Larry already has this* can't answer
+  it.
 - **Done, or his answer: nothing is offered**, and the control goes with the clock.
 - **Small and out of the way.** Retry and Dismiss sit in the bar's problem row, Interrupt in the note's line. Neither
   covers the board, and the Pencil keeps drawing.
 - **Only *Larry's turn* and the pictures the board hands him itself.** A *Send to Larry* goes through the outbox, which
-  already keeps trying and shows its own state, so its turn is offered none of these controls.
-- **The 3-minute wait is unchanged.** If it runs out first, *Larry didn't answer* takes the problem row's place.
+  already keeps trying and shows its own state, so its turn is offered none of these controls. Its state still reads
+  *Sent* or *Larry* from its mark.
+- **One problem at a time, the newest wins.** The 3-minute wait is unchanged: if it runs out with the picture still
+  stuck, *Larry didn't answer* takes the problem row's place. A picture stuck later takes the place of *Larry didn't
+  answer*. *Larry hasn't got the picture* goes on its own when the mark comes, when he answers, and on *Retry* or
+  *Dismiss*; it never takes another problem away.
+- **A sending that Retry or Dismiss replaced** no longer speaks for the board: when it ends, it frees nothing and
+  shows nothing. One that a newer picture replaced still says it failed, and its words still wait.
 - **The session log says each change** (stuck, working, back to waiting or nothing) and each press, with the picture
-  and the mark it had.
-- **Received but not yet seen** is offered Interrupt too: a picture the Cockpit has is not stuck, and sending it again
-  would not wake Larry. Whether it deserves its own words (*Larry hasn't picked this up*) is still under discussion,
-  below.
+  and where it was.
 
 ## One line that opens (Igor, 2026-11-12: "some kind of collapse expand conversation")
 
@@ -134,26 +173,6 @@ A finger tap on the line opens a panel under it, over the top of the board.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
 
-## Where the picture is: sent, or with Larry (Larry, 2026-11-12; story 773)
-
-The Cockpit marks each of Igor's messages *received* when it lands, *seen* when Larry picks it up and *done* when he
-has answered. Chat shows those marks; the board now reads them for the picture it is waiting on. Larry marks board
-pictures *seen* and *done* from 2026-11-14.
-
-- **Until Larry has picked the picture up**, the state reads **Sent · 0:03**. The clock is the same clock, counted
-  from when the picture went.
-- **Once he has it**, the state reads **Larry · 0:42**, as before.
-- **A picture that sits unpicked for 30 seconds** reads **Sent · 0:31 · not picked up yet**. That is the honest slow
-  signal: Larry is busy with something else, or isn't running. It replaces any guess at how long is too long.
-- **His answer ends the wait** whatever the mark said: an answer with no *seen* before it is still an answer.
-- **The other states are unchanged and say more than the mark**: *Cockpit not answering* shows as before (the mark
-  can't be read then, so the state keeps what it last knew), *Larry already has this* still answers a repeat tap, and
-  *Larry didn't answer* still comes at three minutes. Its copied state now also says whether the picture was ever
-  picked up.
-- **VoiceOver** says *Sent 3 seconds ago, not picked up yet* or *Larry has been looking for 42 seconds*.
-- **The panel's live row** says the same as the line.
-- **A Cockpit that sends no marks** (an older one): the state reads *Larry · 0:42* throughout, as before.
-
 ## Under discussion (not built; on #879)
 
 - **Larry's side:** a progress note while he works (it would follow the clock: *Larry · 0:42 · reading the board*),
@@ -170,7 +189,10 @@ pictures *seen* and *done* from 2026-11-14.
 - The picture doesn't reach the Cockpit: at twenty seconds *Larry hasn't got the picture* shows with *Retry* and
   *Dismiss*. *Retry* sends the same picture and the clock starts again; *Dismiss* frees the turn.
 - The Cockpit has the picture and Larry hasn't finished: at twenty seconds the note's line offers *Interrupt*; a tap
-  frees the turn, and the next pause sends a fresh picture.
+  frees the turn, and the next pause or tap sends a fresh picture (never *Larry already has this*).
+- A Cockpit that marks nothing: no turn ever shows *Larry hasn't got the picture* or *Retry*; from twenty seconds the
+  note's line offers *Interrupt*.
+- *Retry* on a picture that did land the first time: the thread holds it once.
 - The Cockpit stops answering mid-wait: the state adds *Cockpit not answering* and keeps counting; it goes when the
   Cockpit is back.
 - Leave the app for twenty seconds mid-wait and come back: the clock is twenty seconds further on.
@@ -189,8 +211,8 @@ pictures *seen* and *done* from 2026-11-14.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
 - Close the board with the panel open and open another: the panel is open there.
 - On an iPhone, tap the line on a board with a thread: Chat opens on that thread.
-- Send Larry a picture and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
+- Send Larry a picture, the Cockpit takes it and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
 - He picks it up: the state changes to *Larry ·* and the clock doesn't restart.
-- Thirty seconds pass with the picture not picked up: the state adds *not picked up yet*.
+- Twenty seconds pass with the picture not picked up: the state adds *not picked up yet* and *Interrupt* shows.
 - He answers without ever marking it: the state goes and his line shows.
-- Three minutes pass and it was never picked up: the copied problem says it was never picked up.
+- Three minutes pass and it was never picked up: the copied problem says where the picture was.
