@@ -1,6 +1,9 @@
 //  Stories 637–650 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): what a page
 //  adds to a paste. The text's layout, caps and note are `WhiteboardPasteTests`, on the host, and ⌘V and ⌘Z on paper are
 //  `WhiteboardPasteUITests`' one keys test. XCUITest's taps never reach the system's paste button, so these go through hooks.
+//  A paste's strokes keeping their names through the file (story 643) goes through the same keep and save as a kept
+//  mark: `WhiteboardPaperGhostsUITests.testKeptInkKeepsItsNamesAndAGhostLeftShowingIsNotSaved`, and the names' rule is
+//  `WhiteboardStrokesTests`.
 
 import XCTest
 
@@ -109,56 +112,5 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     wait(many, label: "Page 1 of 1")
     wait(send(app), label: strokes(80))
     wait(many, label: brought)
-  }
-
-  /// Story 643: the letters reach Larry as strokes, with the same names after closing and opening the board.
-  func testAPastesStrokesKeepTheirNamesForLarry() throws {
-    let cockpit = try cockpit()
-    let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
-    wait(send(app), label: strokes(2))
-    let larry = app.buttons["whiteboard-larry"]
-    let before = try sends(cockpit).count
-    larry.tap()
-    let first = try strokeIDs(cockpit, after: before)
-    XCTAssertEqual(first.count, 2, "\(first)")
-
-    waitForTheSave(app)
-    app.terminate()
-    app.launchEnvironment["GRABBER_WHITEBOARD_PASTE"] = nil
-    app.launch()
-    let card = app.buttons.matching(identifier: "whiteboard-card")
-      .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch
-    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
-    card.tap()
-    wait(send(app), label: strokes(2))
-    expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: larry)
-    waitForExpectations(timeout: 10)
-    let middle = try sends(cockpit).count
-    larry.tap()
-    XCTAssertEqual(try strokeIDs(cockpit, after: middle), first, "the same names after coming back from the file")
-  }
-
-  private func sends(_ cockpit: String) throws -> [[String]] {
-    let url = try XCTUnwrap(URL(string: cockpit + "/fake/strokes"))
-    var got: Data?
-    let done = expectation(description: "the fake Cockpit answered")
-    URLSession.shared.dataTask(with: url) { body, _, _ in
-      got = body
-      done.fulfill()
-    }.resume()
-    wait(for: [done], timeout: 5)
-    let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any]
-    return try XCTUnwrap(json?["sends"] as? [[String]])
-  }
-
-  private func strokeIDs(_ cockpit: String, after count: Int) throws -> [String] {
-    let until = Date().addingTimeInterval(15)
-    while Date() < until {
-      let all = try sends(cockpit)
-      if all.count > count { return all[count] }
-      Thread.sleep(forTimeInterval: 0.5)
-    }
-    XCTFail("no strokes reached the fake Cockpit")
-    return []
   }
 }

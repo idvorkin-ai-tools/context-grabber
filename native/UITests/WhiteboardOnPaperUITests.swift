@@ -1,6 +1,7 @@
-//  Stories 590–612 and 658 on the simulator, its ghosts in `WhiteboardPaperGhostsUITests`: a new board is a real board on
-//  paper, and a board drawn on the old canvas opens look-only on paper. How the Pencil feels and what a finger does with one paired are the iPad's (`whiteboard` action: paper_touch).
-//  A finger draws on the simulator.
+//  Stories 590–612 on the simulator, its ghosts in `WhiteboardPaperGhostsUITests`: a new board is a real board on paper.
+//  A board drawn on the old canvas opening look-only (story 658) is `BoardIndexTests` and `BoardPagesTests` on the host
+//  and the smoke's `paper_open` check. How the Pencil feels and what a finger does with one paired are the iPad's
+//  (`whiteboard` action: paper_touch). A finger draws on the simulator.
 
 import XCTest
 
@@ -100,40 +101,6 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     sleep(1)
     stroke(app, atHeight: 0.4)
     waitFor(send, label: "Send to Larry, 2 strokes")
-  }
-
-  /// Story 658: a board drawn on the old canvas opens on paper to look at only: its ink on the first page, the bar saying
-  /// why, and no tools, no Board menu and no Send. A finger drag pans; nothing draws.
-  func testAnOldCanvasBoardOpensLookOnlyOnPaper() throws {
-    // A fresh id, so runs on one simulator don't meet each other's boards; opened by its link, as the list holds many.
-    let id = "old-canvas-\(UUID().uuidString.lowercased())"
-    let app = launch([
-      "GRABBER_BOARD_FIXTURE": id, "GRABBER_BOARD_FIXTURE_OLD_INK": "40",
-      "GRABBER_LINK": "grabbernative://whiteboard?board=\(id)",
-    ])
-    let page = pageNumber(app)
-    XCTAssertTrue(page.appears(within: 10), app.debugDescription)
-    let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Drawn on the old canvas: look only"))
-    XCTAssertTrue(note.firstMatch.appears(within: 5), app.debugDescription)
-    XCTAssertFalse(app.buttons["whiteboard-send"].exists, "nothing to send")
-    XCTAssertFalse(app.buttons["whiteboard-board"].exists, "no Board menu")
-    XCTAssertFalse(app.buttons["whiteboard-ghosts"].exists, "no ghosts")
-    sleep(2)
-    keep(app, "an old-canvas board, look only")
-    // The old ink is a row at the page's very top: search from just under the navigation bar (#845), left of the page
-    // number, whose black text would otherwise pass for ink.
-    let window = app.windows.firstMatch.frame
-    let top = app.navigationBars.firstMatch.frame.maxY / window.height + 0.01
-    let right = page.frame.minX / window.width
-    let ink = try XCTUnwrap(PaperScreen(app, top: top, right: right).ink, "the old ink on the first page")
-
-    // Right to left: since iOS 26 a swipe to the right anywhere is Back, and on an iPad the page fits the width, so
-    // nothing scrolls sideways to take it first (#845).
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.75))
-      .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.75)))
-    sleep(2)
-    let after = try XCTUnwrap(PaperScreen(app, top: top, right: right).ink, "the old ink still there")
-    XCTAssertEqual(after.maxY - after.minY, ink.maxY - ink.minY, accuracy: 0.02, "a drag below the ink drew nothing")
   }
 
   /// Story 609: in dark mode new ink can be seen. PaperKit left to itself draws it black on black. Read off the screenshot:

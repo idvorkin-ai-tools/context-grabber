@@ -394,7 +394,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 441:
 
 - **Summary:** A metric's detail fills a wide window
-- **Status:** implemented in `5b84dae0`; verified on the simulator (iPad Pro 11-inch, `MetricDetailUITests`, 1 of 1), not yet on the iPad itself or on the Mac
+- **Status:** implemented in `5b84dae0`; verified on the simulator (iPad Pro 11-inch, `MetricDetailUITests`, 1 of 1), not yet on the iPad itself or on the Mac; since story 770 one launch of `MetricDetailUITests` checks the detail's form, the shake's report over it and then the way it closes
 - **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
 - **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
 
@@ -414,7 +414,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 442:
 
 - **Summary:** A metric's detail stays a sheet on an iPhone
-- **Status:** implemented in `5b84dae0`; opening verified on the simulator (iPhone 17, `MetricDetailUITests`, 1 of 1), the drag is checked by that test but has not run yet
+- **Status:** implemented in `5b84dae0`; opening verified on the simulator (iPhone 17, `MetricDetailUITests`, 1 of 1), the drag is checked by that test but has not run yet; since story 770 one launch of `MetricDetailUITests` checks the detail's form, the shake's report over it and then the way it closes
 - **Issues:** [#672](https://github.com/idvorkin/context-grabber/issues/672)
 - **Spec:** [7-day metric detail](../superpowers/specs/2026-03-15-7-day-metric-detail-design.md)
 

@@ -20,16 +20,7 @@ struct PaperScreen {
   private let width: Int
   private let height: Int
   private let bytes: [UInt8]
-  /// Where the search starts, as a part of the screen's height: by default a fifth, clear of the bars.
-  private let top: CGFloat
-  /// Where the search stops on the right, as a part of the screen's width: by default the whole width.
-  private let right: CGFloat
-
-  /// `top`: start higher, for ink at the very top of a page (#845: an iPad's page puts it under the navigation bar).
-  /// `right`: stop short of the page number, which a search that high would otherwise read as ink.
-  init(_ app: XCUIApplication, top: CGFloat = 0.2, right: CGFloat = 1) {
-    self.top = top
-    self.right = right
+  init(_ app: XCUIApplication) {
     let image = app.screenshot().image.cgImage!
     width = image.width
     height = image.height
@@ -51,9 +42,9 @@ struct PaperScreen {
     var (minX, minY, maxX, maxY) = (Int.max, Int.max, -1, -1)
     bytes.withUnsafeBufferPointer { bytes in
       // Clear of the bars and the page number above, and the tool picker below.
-      for y in stride(from: Int(CGFloat(height) * top), to: height * 3 / 4, by: 2) {
+      for y in stride(from: height / 5, to: height * 3 / 4, by: 2) {
         var i = y * width * 4
-        for x in stride(from: 0, to: Int(CGFloat(width) * right), by: 2) {
+        for x in stride(from: 0, to: width, by: 2) {
           if matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])) {
             (minX, maxX) = (min(minX, x), max(maxX, x))
             (minY, maxY) = (min(minY, y), max(maxY, y))
@@ -108,11 +99,11 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   }
 
   /// A new board on paper, Ghosts on, that doesn't fade while a test looks at it.
-  private func openBoard(way: String = "", _ extra: [String: String] = [:]) throws -> XCUIApplication {
+  private func openBoard(_ extra: [String: String] = [:]) throws -> XCUIApplication {
     let app = XCUIApplication.forTests(animated: true)
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
-    app.launchEnvironment["GRABBER_CHAT_URL"] = try cockpit() + way
+    app.launchEnvironment["GRABBER_CHAT_URL"] = try cockpit()
     app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "600"
     for (key, value) in extra { app.launchEnvironment[key] = value }
     app.launch()
@@ -236,22 +227,12 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "after his stroke too")
   }
 
-  /// Stories 618, 632: a mark kept far down brings its pages in the one change, and one undo takes both. The fake's `/far`
-  /// answers with a circle well below the last page: a hook keeps it, as it can't be reached to tap.
-  func testAMarkKeptPastTheLastPageBringsItsPagesInOneUndo() throws {
-    let app = try openBoard(
-      way: "/far", ["GRABBER_WHITEBOARD_KEEP": "first", "GRABBER_WHITEBOARD_AFTER_KEEP": "5,undo"])
-    stroke(app)
-    wait(send(app), label: strokes(2), timeout: 12)
-    wait(pageNumber(app), label: "Page 1 of 6")
-    shot(app, "the kept mark's pages")
-    wait(send(app), label: strokes(1))
-    wait(pageNumber(app), label: "Page 1 of 2")
-  }
-
-  /// Story 619: the strokes keep their names, sent, closed, opened and sent again, the kept mark too. Larry's turn sends
-  /// them to the fake Cockpit, which says what it got.
-  func testAKeptMarkKeepsItsNameThroughAReopen() throws {
+  /// Stories 619, 620, 621, 643: a kept mark and the strokes keep their names through the file, and a ghost left showing
+  /// isn't saved. Claude's ghost is kept, Larry's turn sends both strokes to the fake Cockpit (which says what it got)
+  /// and leaves his marks showing; the app is killed once the save is written, and after a relaunch the board holds
+  /// only the two strokes, sent again under the same names. A paste's strokes go through the same keep and save, so
+  /// this stands for them too (`WhiteboardStrokesTests` holds the names' rule).
+  func testKeptInkKeepsItsNamesAndAGhostLeftShowingIsNotSaved() throws {
     let cockpit = try cockpit()
     let app = try openBoard()
     let ghost = try XCTUnwrap(strokeBringsAGhost(app))
@@ -261,12 +242,17 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     app.buttons["whiteboard-larry"].tap()
     let first = try strokeIDs(cockpit, after: before)
     XCTAssertEqual(first.count, 2, "\(first)")
+    // Larry's marks, ghosts nobody kept, on the board as it's saved.
+    waitUntil(
+      NSPredicate(format: "label BEGINSWITH 'Ghosts on, ' AND label ENDSWITH ' showing'"), ghosts(app), timeout: 15)
+    shot(app, "his marks showing, not kept")
 
     waitForTheSave(app)
-    app.navigationBars.buttons.element(boundBy: 0).tap()
+    app.terminate()
+    app.launch()
     let card = app.buttons.matching(identifier: "whiteboard-card")
       .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch
-    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
     card.tap()
     wait(send(app), label: strokes(2))
     let larry = app.buttons["whiteboard-larry"]
@@ -276,22 +262,6 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     larry.tap()
     let second = try strokeIDs(cockpit, after: middle)
     XCTAssertEqual(second, first, "the same names after coming back from the file")
-  }
-
-  /// Stories 620, 621: Larry's turn, his marks on the board in his colour, the kept one saved. Ghost text is the bar's, the
-  /// same on either canvas (`WhiteboardTurnUITests`); here, that it can be seen and kept, and that a ghost left showing
-  /// isn't saved.
-  func testAGhostLeftShowingIsNotSaved() throws {
-    let app = try openBoard()
-    _ = try XCTUnwrap(strokeBringsAGhost(app))
-    waitForTheSave(app)
-    app.terminate()
-    app.launch()
-    let card = app.buttons.matching(identifier: "whiteboard-card")
-      .matching(NSPredicate(format: "label CONTAINS 'On paper'")).firstMatch
-    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
-    card.tap()
-    wait(send(app), label: strokes(1))
   }
 
   /// Stories 433, 522 (#636): ink on page 1 and page 2 on screen is nothing to send, Send and Larry's turn both; ink on

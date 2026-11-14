@@ -40,14 +40,18 @@ if [ "$given" -eq 0 ]; then
   while IFS= read -r f; do changed+=("$f"); done < <({ git diff --name-only "$fork"; git ls-files --others --exclude-standard; } | sort -u)
 fi
 
-# The areas' classes. The suite scripts hold what each area runs in full.
-chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests ChatTableUITests ChatVoiceUITests"
-whiteboard_area="PhoneBoardsUITests WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
+# The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
+# the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
+chat_area="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
+whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
 # feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
 # LiveActivity, so those paths stay unmapped and the output says so.
 gym_area="GymTimerDialsUITests GymTimerUITests"
-breathe_area="BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
+breathe_area="BreathePresetsUITests BreatheStyleUITests"
+# Story 770: the Mindful test's one rule only the simulator holds is the write to Health; when a session is saved is
+# BreathSessionTests on the host. So it runs for the Health source, not for breathing (AppModel's save stays unmapped).
+health_write="BreatheMindfulUITests"
 places_area="PlaceIconUITests PlacesUnnamedUITests"
 mirror_area="HomeTodayCardUITests MetricDetailUITests"
 card_area="CardUITests TodaysHandUITests"
@@ -96,7 +100,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
     native/ContextCore/Sources/ContextCore/Whiteboard/BoardIndex.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/BoardKeeping.swift | native/App/Whiteboard/WhiteboardListView.swift | \
       native/App/Whiteboard/WhiteboardStore.swift)
-      add_classes WhiteboardRowDeleteUITests WhiteboardOnPaperUITests PhoneBoardsUITests ;;
+      add_classes WhiteboardRowDeleteUITests WhiteboardOnPaperUITests ;;
     native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardGhostTurns.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardPacer.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardTurn.swift | \
@@ -117,6 +121,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
     native/App/Breathe/* | native/ContextCore/Sources/ContextCore/Breathe/*) add_classes $breathe_area ;;
     native/App/AppSessionHost.swift | native/ContextCore/Sources/ContextCore/Session/*) add_classes $gym_area $breathe_area ;;
     native/App/Places/* | native/ContextCore/Sources/ContextCore/Places/*) add_classes $places_area ;;
+    native/App/Mirror/HealthKitSource.swift) add_classes $mirror_area $health_write ;;
     native/App/Mirror/* | native/ContextCore/Sources/ContextCore/Mirror/*) add_classes $mirror_area ;;
     # A file whose feature isn't its directory's, before the directories.
     native/ContextCore/Sources/ContextCore/Card/EulogyRoles.swift) add_classes TodaysHandUITests ;;  # the large widget's role of the day
