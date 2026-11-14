@@ -744,8 +744,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       guard let self else { return }
       let undo = self.paper.undoManager
       let could = undo?.canUndo ?? false
+      let before = self.paper.markup?.strokeFrames ?? [:]
       if could { undo?.undo() }
-      let gone = !dot.contains { self.inkFrames[$0] != nil }
+      let wanted = before.filter { !dot.contains($0.key) }
+      let gone = could && PaperProbe.inkChange(before: wanted, after: self.paper.markup?.strokeFrames ?? [:]).isEmpty
+      if !gone {
+        if could { undo?.redo() }
+        if let markup = self.paper.markup { self.model.changed(markup.inkDrawing) }
+      }
       self.log.event(
         "whiteboard",
         [
