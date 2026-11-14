@@ -15,7 +15,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 670:
 
 - **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
-- **Status:** not implemented; bead `context-grabber-3k6`. Moved to host tests so far, each with the UI or smoke checks that only repeated it cut: the whiteboard turn's rules (`WhiteboardGhostTurnsTests`, [3985337](https://github.com/idvorkin/context-grabber/commit/3985337)), the whiteboard's persistence policy (`BoardKeepingTests`, [f41be39](https://github.com/idvorkin/context-grabber/commit/f41be39)), the Inbox's send orchestration (`InboxOutboxTests`, [845a6f2](https://github.com/idvorkin/context-grabber/commit/845a6f2)) and the chat archive and new-thread rules (`ChatArchiverTests`, `ChatNewThreadScreenTests`, [23dd212](https://github.com/idvorkin/context-grabber/commit/23dd212)); verified together at [f83889f](https://github.com/idvorkin/context-grabber/commit/f83889f) on the Mac host (rung 1, 1,123 ContextCore tests) and the simulator (rung 2: the whiteboard and chat UI suites and the smoke)
+- **Status:** not implemented; bead `context-grabber-3k6`. Moved to host tests so far, each with the UI or smoke checks that only repeated it cut: the whiteboard turn's rules (`WhiteboardGhostTurnsTests`, [3985337](https://github.com/idvorkin/context-grabber/commit/3985337)), the whiteboard's persistence policy (`BoardKeepingTests`, [f41be39](https://github.com/idvorkin/context-grabber/commit/f41be39)), the Inbox's send orchestration (`InboxOutboxTests`, [845a6f2](https://github.com/idvorkin/context-grabber/commit/845a6f2)) and the chat archive and new-thread rules (`ChatArchiverTests`, `ChatNewThreadScreenTests`, [23dd212](https://github.com/idvorkin/context-grabber/commit/23dd212)); verified together at [f83889f](https://github.com/idvorkin/context-grabber/commit/f83889f) on the Mac host (rung 1, 1,123 ContextCore tests) and the simulator (rung 2: the whiteboard and chat UI suites and the smoke). The duplicates the 2026-11-12 assessment found: story 770
 
 #### Use Case:
 - **As Igor,** waiting for a fix to reach his phone
@@ -344,3 +344,27 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a branch that changes the Gym Timer's screen
 - **When:** I run `just test-ladder`
 - **Then:** rung 2 builds once, runs the timer's UI test classes, then the smoke's timer section on the same booted simulator, times each step, and stops at the first failure; `--dry-run` names the smoke's sections; `LADDER_SMOKE=0` leaves the smoke out
+
+---
+
+### User Story 770:
+
+- **Summary:** A UI test that only repeats a host test or another UI test is cut, after the host test is seen to fail
+- **Status:** implemented on branch `native/sim-test-trim`; verified on the host: before each delete the rule it held was broken by a one-line change and the host test that guards it was seen to fail, then the source restored (the mutations are in the branch's PR); the merged and shrunk UI tests not yet run on the simulator
+- **Issues:** the simulator assessment of 2026-11-12 (`~/tmp/agent/notes/2026-11-12-sim-tests-down-the-ladder.md`); story 670
+
+#### Use Case:
+- **As Igor,** waiting on a whiteboard or chat change to reach the iPad
+- **I want to** have the simulator run each rule once, where only a screen can show it
+- **so that** a whiteboard pass costs about a minute and a half less, without a rule losing its test
+
+#### Acceptance Criteria:
+- **Scenario:** A UI test that repeats a host test
+- **Given:** a UI test whose rule a host test already holds
+- **When:** the rule is broken in the source by one line
+- **Then:** the host test fails, and only then is the UI test deleted; when no host test fails, a host test is written first or the UI test stays
+
+- **Scenario:** Two UI tests that open the same screen
+- **Given:** two UI tests that each launch the app to check one thing on the same screen
+- **When:** they are merged
+- **Then:** one launch makes every check both made, in the order the screen allows

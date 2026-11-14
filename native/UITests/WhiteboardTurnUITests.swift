@@ -98,7 +98,8 @@ final class WhiteboardTurnUITests: XCTestCase {
   }
 
   /// Stories 382, 383, 386 and 388, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept ones with no
-  /// tap, the newest set comes back when the board opens again, and once dismissed it doesn't, on either count.
+  /// tap, and once dismissed they don't come back when the board opens again. That the newest set comes back on opening,
+  /// and that a seen set never comes back between looks, are `WhiteboardMarksTests`, on the host.
   func testLarrysMarksArriveOnTheirOwnAndADismissedSetStaysGone() throws {
     let cockpit = try XCTUnwrap(ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"])
     let (app, ghosts) = try openBoard()
@@ -116,18 +117,12 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(
       app.staticTexts.matching(marks(3)).firstMatch.appears(within: 10), app.debugDescription)
 
-    reopenBoard(app)
-    XCTAssertTrue(
-      app.staticTexts.matching(marks(3)).firstMatch.appears(within: 10), app.debugDescription)
-
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
     let none = app.staticTexts.matching(NSPredicate(format: "label ENDSWITH %@", " to keep")).firstMatch
     expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: none)
     waitForExpectations(timeout: 3)
-    sleep(4)  // A look at the thread has come and gone.
-    XCTAssertFalse(none.exists, app.debugDescription)
     reopenBoard(app)
-    sleep(4)
+    sleep(4)  // A look at the thread has come and gone.
     XCTAssertFalse(none.exists, app.debugDescription)
   }
 
