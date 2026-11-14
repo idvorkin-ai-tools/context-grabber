@@ -2,7 +2,8 @@
 //  Against the fake Cockpit (scripts/native/test-chat-ui.sh starts it), a typed first Send starts the thread under its
 //  first line, the bar holds the next back until it lands, the next goes into that thread, and the field empties with
 //  the keyboard still up. The voice button's mic is tapped as the new chat opens, and the + opens the ordinary bar with
-//  the keyboard up; a live call keeps the microphone from it. Where a Send goes, when Send is enabled, the bar's lines,
+//  the keyboard up, its mic ready beside Send and its microphone picker opening; a live call keeps the microphone from
+//  it. Where a Send goes, when Send is enabled, the bar's lines,
 //  the title, what waits on the phone and the focus rule are `ChatNewThreadScreenTests` and `ChatNewThreadTests`, on
 //  the host. Speaking and pasting are phone checks.
 
@@ -131,6 +132,21 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertFalse(app.buttons["Send and start another"].exists, "no sheet")
     XCTAssertFalse(app.buttons["Cancel"].exists, "no sheet")
     wait(for: [expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: bar)], timeout: 5)
+
+    // Story 303 (#448, #625; was ChatVoiceUITests): the bar is a thread's, so its mic is ready with no call live,
+    // immediately beside Send after the field, both a finger's size, and its microphone picker opens.
+    let mic = app.buttons["Speak a message"]
+    let send = app.buttons["Send"]
+    XCTAssertTrue(mic.isEnabled, "no call is live, so the mic is ready")
+    XCTAssertLessThanOrEqual(bar.frame.maxX, mic.frame.minX, "the field comes before the mic")
+    XCTAssertLessThanOrEqual(mic.frame.maxX, send.frame.minX, "the mic comes before Send")
+    XCTAssertLessThanOrEqual(send.frame.minX - mic.frame.maxX, 8, "the mic is right beside Send")
+    for button in [mic, send] {
+      XCTAssertGreaterThanOrEqual(button.frame.width, 44, button.label)
+      XCTAssertGreaterThanOrEqual(button.frame.height, 44, button.label)
+    }
+    app.buttons["Microphone: Automatic"].tap()
+    XCTAssertTrue(app.buttons["Find microphones"].appears(within: 5), app.debugDescription)
   }
 
   /// Recording, on its way there, or its copyable line saying why not.

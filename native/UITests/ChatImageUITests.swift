@@ -1,7 +1,8 @@
 //  Story 306 (#592) on the simulator: a white picture opened full size, against the fake Cockpit
 //  (scripts/native/test-chat-ui.sh starts it), shows Done on a dark badge and closes with Done or a swipe down.
 //  Stories 317–319, 228 (#603): a picture from a board also jumps to that board; a missing board says so and the
-//  picture stays; a link to a missing board stays on the boards and says so.
+//  picture stays. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
+//  `WhiteboardRowDeleteUITests` ends on it, and why a board can't open is `BoardIndexTests` (story 770).
 
 import XCTest
 
@@ -38,7 +39,9 @@ final class ChatImageUITests: XCTestCase {
     return pixel[0]
   }
 
-  func testDoneShowsOverAWhitePictureAndCloses() throws {
+  /// One launch for both ways out: a real swipe down closes it, a tap on the picture in the thread opens it again, and
+  /// Done closes it. Which drags close it (only down, past 80 points) is `ChatImageCloseTests`'.
+  func testDoneShowsOverAWhitePictureAndASwipeOrDoneCloses() throws {
     let app = try openPicture()
     let done = app.buttons["chat-image-done"]
     XCTAssertTrue(done.isHittable, app.debugDescription)
@@ -57,16 +60,16 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertGreaterThan(try brightness(at: beside, in: shot), 240, "the picture is white beside Done")
     XCTAssertLessThan(try brightness(at: inside, in: shot), 140, "Done has a dark badge over the white")
 
-    done.tap()
-    XCTAssertTrue(done.waitForNonExistence(timeout: 5), app.debugDescription)
-  }
-
-  /// Which drags close it (only down, past 80 points) is ChatImageCloseTests'; this is the real swipe.
-  func testASwipeDownCloses() throws {
-    let app = try openPicture()
-    let done = app.buttons["chat-image-done"]
     app.swipeDown()
-    XCTAssertTrue(done.waitForNonExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(done.waitForNonExistence(timeout: 5), "a swipe down closes it: \(app.debugDescription)")
+    // The thread's one message is Larry's picture alone, at his bubble's leading edge: the bubble's element can be the
+    // whole row (the picture is half as wide as tall), so the tap goes near its left, not its middle.
+    let bubble = app.descendants(matching: .any).matching(identifier: "chat-larry").firstMatch
+    XCTAssertTrue(bubble.appears(within: 5), app.debugDescription)
+    bubble.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5)).tap()
+    XCTAssertTrue(done.appears(within: 5), "a tap opens it again: \(app.debugDescription)")
+    done.tap()
+    XCTAssertTrue(done.waitForNonExistence(timeout: 5), "Done closes it: \(app.debugDescription)")
   }
 
   func testAPictureFromABoardJumpsToIt() throws {
@@ -99,16 +102,5 @@ final class ChatImageUITests: XCTestCase {
     add(shot)
     app.buttons["chat-image-done"].tap()
     XCTAssertTrue(app.buttons["chat-image-done"].waitForNonExistence(timeout: 5), app.debugDescription)
-  }
-
-  func testALinkToAMissingBoardOpensTheBoardsAndSaysSo() throws {
-    guard ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"]?.isEmpty == false else {
-      throw XCTSkip("needs the fake Cockpit: run scripts/native/test-chat-ui.sh")
-    }
-    let app = XCUIApplication.forTests()
-    app.launchEnvironment["GRABBER_LINK"] = "grabbernative://whiteboard?board=board-gone-603"
-    app.launch()
-    XCTAssertTrue(app.buttons["copy-error"].appears(within: 20), app.debugDescription)
-    XCTAssertTrue(app.buttons["whiteboard-done"].exists, app.debugDescription)
   }
 }

@@ -378,3 +378,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a branch that changes the breathing screen, and another that changes how the app writes to Health
 - **When:** the ladder climbs each
 - **Then:** the breathing change runs the breathing classes without the minute-long Health session, the Health change runs that session, and the session's wait for Health's sheet ends as soon as Today's cards show
+
+- **Scenario:** A chat change
+- **Given:** a branch that changes the chat screens
+- **When:** the ladder climbs
+- **Then:** the chat classes run without a check that is whiteboard code (a link to a missing board) or a host test's (what a table reads aloud), and the picture's two ways out and the bar's mic share one launch each with the tests that already open those screens
