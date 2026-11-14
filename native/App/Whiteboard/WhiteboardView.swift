@@ -448,35 +448,6 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// The picture of the board on screen for Larry, its strokes and its id; nil with nothing on screen to show him.
-  private func larryPicture(said: String?) -> LarryOut? {
-    guard let (rect, scale) = pictureFrame() else { return nil }
-    larryFrame = rect
-    // ponytail: rendered and encoded on the main thread, as the ghost turn is.
-    let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
-    let picture = WhiteboardPicture(
-      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
-    return LarryOut(
-      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry()), picture: picture, rect: rect, scale: scale,
-      said: said)
-  }
-
-  /// A picture handed to Larry, kept while his turn on it is out: *Retry* sends exactly this again (story 773).
-  struct LarryOut {
-    let jpeg: Data
-    let strokes: [[String: Any]]
-    let picture: WhiteboardPicture
-    let rect: CGRect
-    let scale: CGFloat
-    /// The words that went with it, back in the queue if it is dismissed.
-    let said: String?
-    /// The furthest the Cockpit's mark on its message has got.
-    var receipt = ChatMessage.Receipt.sent
-    /// The turn it went out under: its mark speaks only for that turn, never for a later one (a *Send to Larry* goes
-    /// through the Inbox's outbox, which retries on its own, so that turn is offered nothing).
-    var turn = WhiteboardLarryTurn.State.idle
-  }
-
   /// Story 419: the board's strokes to the Cockpit under the picture's id. Never a reason not to send the picture.
   private func sendStrokes(_ strokes: [[String: Any]], picture: WhiteboardPicture) async -> WhiteboardStrokes.Answer {
     do {
@@ -760,6 +731,35 @@ final class WhiteboardModel: ObservableObject {
     log.event("whiteboard", event)
     larryOut = nil
     checkLarryWait()
+  }
+
+  /// The picture of the board on screen for Larry, its strokes and its id; nil with nothing on screen to show him.
+  private func larryPicture(said: String?) -> LarryOut? {
+    guard let (rect, scale) = pictureFrame() else { return nil }
+    larryFrame = rect
+    // ponytail: rendered and encoded on the main thread, as the ghost turn is.
+    let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
+    let picture = WhiteboardPicture(
+      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
+    return LarryOut(
+      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry()), picture: picture, rect: rect, scale: scale,
+      said: said)
+  }
+
+  /// A picture handed to Larry, kept while his turn on it is out: *Retry* sends exactly this again (story 773).
+  struct LarryOut {
+    let jpeg: Data
+    let strokes: [[String: Any]]
+    let picture: WhiteboardPicture
+    let rect: CGRect
+    let scale: CGFloat
+    /// The words that went with it, back in the queue if it is dismissed.
+    let said: String?
+    /// The furthest the Cockpit's mark on its message has got.
+    var receipt = ChatMessage.Receipt.sent
+    /// The turn it went out under: its mark speaks only for that turn, never for a later one (a *Send to Larry* goes
+    /// through the Inbox's outbox, which retries on its own, so that turn is offered nothing).
+    var turn = WhiteboardLarryTurn.State.idle
   }
 
   /// His answer came, or the wait ran out: one fresh picture if the board moved on or words waited, else nothing.
