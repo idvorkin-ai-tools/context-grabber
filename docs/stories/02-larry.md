@@ -2672,7 +2672,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 780:
 
 - **Summary:** Send one of my messages to a new chat
-- **Status:** native app: implemented in [248fb1ce](https://github.com/idvorkin/context-grabber/commit/248fb1ce) and [5f97b1cd](https://github.com/idvorkin/context-grabber/commit/5f97b1cd), PR [#890](https://github.com/idvorkin/context-grabber/pull/890) (bead context-grabber-9yo); verified on Linux only (`just test-linux`: `ChatMoveTests` and `ChatReactionTests` on Linux Swift, ContextCore cross-built for macOS, iOS and the simulator, the app's sources compiled for iOS); the Mac host rung, SwiftLint, the Xcode build, the simulator and the phone not yet; the Cockpit's `POST /chat/move` (cockpit bead cockpit-x3s) built in parallel, so not yet seen against a real Cockpit
+- **Status:** native app: implemented in [248fb1ce](https://github.com/idvorkin/context-grabber/commit/248fb1ce) and [5f97b1cd](https://github.com/idvorkin/context-grabber/commit/5f97b1cd), PR [#890](https://github.com/idvorkin/context-grabber/pull/890) (bead context-grabber-9yo), the moved row read as the Cockpit ships it in [e7dcb40](https://github.com/idvorkin/context-grabber/commit/e7dcb40); verified on the host (`just native-test`: `ChatMoveTests`, `ChatReactionTests.testOnlyMyMessagesSendToANewChatAndTheMovedLineHasNoMenu` and the rest of `ChatReactionTests`) and the Mac build (`just native-build-mac`). The Cockpit's `POST /chat/move` is on its main (cockpit-x3s, 5af4fc8); the app has not yet been tried against it. Not yet seen on the simulator or a device
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:

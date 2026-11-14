@@ -3836,7 +3836,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 774:
 
 - **Summary:** Larry's marks are his own colour, and keeping one leaves my pen alone
-- **Status:** implemented in [4aee299](https://github.com/idvorkin/context-grabber/commit/4aee299); verified on the Linux rung (`just test-linux`: `WhiteboardTurnTests`, Larry's colour far in hue from every picker swatch and from Claude's orange). That a keep leaves the pen as it was is logged (`paper_keep` tool_before, tool_after) and put back if it ever changed, not yet seen on the simulator or the iPad
+- **Status:** implemented in [4aee299](https://github.com/idvorkin/context-grabber/commit/4aee299), PR [#891](https://github.com/idvorkin/context-grabber/pull/891), the paper colours held to his purple in [e4efeae](https://github.com/idvorkin/context-grabber/commit/e4efeae); verified on the host (`just native-test`: `WhiteboardTurnTests.testLarrysColourIsNoneOfThePickersOrClaudes`, `BoardPaperTests.testLarrysPurpleInkReadsOnEveryColour` and `testGhostsAreNearlyAsVisibleAsOnPlain` with his purple) and the Mac build (`just native-build-mac`). That a keep leaves the pen as it was lives in the paper view, with no host test: it is logged (`paper_keep` tool_before, tool_after, tool_restored) and put back if it ever changed. Not yet seen on the simulator or a device
 - **Issues:** bead context-grabber-a3w
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Larry's own colour*
 
