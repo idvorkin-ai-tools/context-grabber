@@ -83,6 +83,9 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     !onPhone && board.onPages == true && editable(board, on: device)
   }
 
+  /// A phone only looks at boards, so it starts none (story 746).
+  public static func startsBoards(onPhone: Bool) -> Bool { !onPhone }
+
   /// Drawn on the canvas that's gone: its ink sits where that canvas put it, so it's moved onto pages to be shown, and
   /// it's look-only even on the device that made it.
   public static func drawnOnTheOldCanvas(_ board: BoardEntry) -> Bool { board.onPages != true }
@@ -93,6 +96,16 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     if drawable(board, on: device) { return nil }
     if !editable(board, on: device) { return "Drawn on \(board.deviceName): look only" }
     return "Drawn on the old canvas: look only"
+  }
+
+  /// Why the board can't be opened as it is now (#603): not on this device, or its latest drawing not down from iCloud
+  /// yet; nil when it can. Asked once iCloud has been.
+  public func whyNotOpen(_ id: String) -> String? {
+    guard let board = board(id) else {
+      return "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
+    }
+    return board.current
+      ? nil : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now."
   }
 
   /// A new board's name: *Board, Nov 1*, then *Board, Nov 1 (2)* for the day's second.

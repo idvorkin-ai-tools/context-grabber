@@ -2,7 +2,8 @@
 //  read from the Send button's label (the strokes drawn). HI is two strokes, one a letter. The text's layout, its caps, a
 //  stroke a letter and what the bar says are `WhiteboardPasteTests`, on the host; these are the keys, the canvas and the
 //  bar. XCUITest's taps never reach the system's paste button, so the button is the iPad's check and these go through
-//  ⌘V or GRABBER_WHITEBOARD_PASTE. What a page adds to a paste is `WhiteboardPaperPasteUITests`.
+//  ⌘V or GRABBER_WHITEBOARD_PASTE. What a page adds to a paste is `WhiteboardPaperPasteUITests`. Story 393's note (an
+//  emoji-only paste draws nothing and says so) is `WhiteboardPasteTests` and, on the bar, `WhiteboardNoteTests`.
 
 import XCTest
 
@@ -33,12 +34,6 @@ final class WhiteboardPasteUITests: XCTestCase {
     waitUntil(
       NSPredicate(format: "label == %@", "Send to Larry, \(strokes) strokes"), app.buttons["whiteboard-send"],
       timeout: 8)
-  }
-
-  /// The board's note, which also says how many suggestions show.
-  private func waitForNote(_ app: XCUIApplication, saying words: String) {
-    let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", words)).firstMatch
-    XCTAssertTrue(note.appears(within: 8), app.debugDescription)
   }
 
   private func stroke(_ app: XCUIApplication) {
@@ -81,12 +76,5 @@ final class WhiteboardPasteUITests: XCTestCase {
     wait(app, strokes: 4)
     let ghosts = app.buttons["whiteboard-ghosts"]
     waitUntil(NSPredicate(format: "label == %@", "Ghosts on, 1 showing"), ghosts, timeout: 10)
-  }
-
-  /// Story 393: the bar shows the paste's note. Which note, and the 500-character cap, are `WhiteboardPasteTests`'.
-  func testOnlyEmojiLeavesTheBoardAloneAndSaysSo() throws {
-    let app = try openBoard(pasting: "🎉🎉")
-    waitForNote(app, saying: "Nothing in that text can be drawn")
-    XCTAssertEqual(app.buttons["whiteboard-send"].label, "Send to Larry, 0 strokes")
   }
 }

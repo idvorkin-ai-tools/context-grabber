@@ -48,7 +48,8 @@ final class WhiteboardStore: ObservableObject {
   /// Story 658: only a board made on paper, here, is drawn on; every other board opens look-only.
   func drawable(_ board: BoardEntry) -> Bool { BoardIndex.drawable(board, on: device, onPhone: onPhone) }
   func lookOnlyNote(_ board: BoardEntry) -> String? { BoardIndex.lookOnlyNote(board, on: device, onPhone: onPhone) }
-  /// Story 746: an iPhone only looks at boards, so it starts none.
+  /// Story 746: an iPhone only looks at boards, so it starts none. The list's New board and the log's `new_board`.
+  var startsBoards: Bool { BoardIndex.startsBoards(onPhone: onPhone) }
   let onPhone = UIDevice.current.userInterfaceIdiom == .phone
 
   /// A board closed with ink that couldn't be saved: the board's screen is gone, so the list says it until that board
@@ -79,7 +80,7 @@ final class WhiteboardStore: ObservableObject {
       "whiteboard",
       [
         "action": "list", "boards": index.boards.count, "own": index.boards.filter(editable).count,
-        "migrated": migrated,
+        "migrated": migrated, "new_board": startsBoards,
       ])
   }
 
@@ -165,15 +166,11 @@ final class WhiteboardStore: ObservableObject {
   /// path: it came from a link or the Cockpit.
   func find(_ id: String, context: String) async -> BugProblem? {
     await sync(reason: "find_board")
-    let board = index.board(id)
-    if board?.current == true { return nil }
+    guard let why = index.whyNotOpen(id) else { return nil }
     log.event(
-      "whiteboard", ["action": "board_missing", "board": id, "listed": board != nil, "sync": syncNote ?? "ok"])
-    return .grabber(
-      board == nil
-        ? "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
-        : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now.",
-      context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
+      "whiteboard",
+      ["action": "board_missing", "board": id, "listed": index.board(id) != nil, "sync": syncNote ?? "ok"])
+    return .grabber(why, context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
   }
 
   /// A board's drawing; one that cannot be read is moved aside before the error goes up (`BoardKeeping.drawing`).

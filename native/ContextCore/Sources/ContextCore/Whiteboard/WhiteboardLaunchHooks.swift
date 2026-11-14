@@ -41,8 +41,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
   public var grid: Bool
   /// `GRABBER_WHITEBOARD_SAY=<words>`: what the mic hears.
   public var say: String?
-  /// `GRABBER_WHITEBOARD_KEEP=first`: the first ghost keeps itself.
-  public var keepFirst: Bool
   /// `GRABBER_WHITEBOARD_PASTE=<text>`.
   public var paste: String?
   /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste`: those presses after the first ink; nil when unset.
@@ -57,7 +55,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
     ghostSeconds = env["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap { Double($0) }
     grid = env["GRABBER_WHITEBOARD_GRID"] == "on"
     say = env["GRABBER_WHITEBOARD_SAY"]
-    keepFirst = env["GRABBER_WHITEBOARD_KEEP"] == "first"
     paste = env["GRABBER_WHITEBOARD_PASTE"]
     afterInk = env["GRABBER_WHITEBOARD_AFTER_INK"].map { $0.split(separator: ",").map(String.init) }
     pageAfterInk = env["GRABBER_WHITEBOARD_PAGE_AFTER_INK"].flatMap { Int($0) }

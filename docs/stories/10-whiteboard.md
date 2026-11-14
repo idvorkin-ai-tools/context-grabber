@@ -993,7 +993,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 386:
 
 - **Summary:** Larry draws unprompted
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note. Since story 770 the simulator keeps the unprompted marks and the reopen after a dismissal; the newest set on opening and a seen set never coming back are `WhiteboardMarksTests` on the host
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -1130,7 +1130,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Text that cannot be drawn leaves the board alone
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook); which note, a host test since bead `context-grabber-y8r`
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); no outline means no ink verified by host tests (`WhiteboardPasteTests`); the note and the untouched board on the simulator (`WhiteboardPasteUITests`, through a launch hook); which note, a host test since bead `context-grabber-y8r`. Since story 770 the note's words are `WhiteboardPasteTests` and its place on the bar `WhiteboardNoteTests`, on the host; the simulator no longer pastes emoji
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -3029,7 +3029,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 618:
 
 - **Summary:** A kept mark past the last page brings its pages
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the fake's `/far`, *Page 1 of 6*, kept by a hook). A ghost that far down can't be seen until it's kept: the Cockpit has never been seen to answer that far from the ink
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the fake's `/far`, *Page 1 of 6*, kept by a hook). A ghost that far down can't be seen until it's kept: the Cockpit has never been seen to answer that far from the ink. Since story 770 the pages a far mark brings are `BoardPagesTests` on the host (`testPagesAddedAsInkReachesThemAndNeverTakenBack`), and the one undo that takes them back is `WhiteboardPaperPasteUITests.testATallPasteBringsItsPagesInOneUndo`, through the same keep
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3049,7 +3049,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 619:
 
 - **Summary:** A kept mark has one name for Larry
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the same two ids at the fake Cockpit before and after closing and opening the board). `paper_keep`'s `same_ids` was true on every keep in both simulators' logs, with `drift` 0: the mark's id is the same before and after PaperKit. A real Cockpit wasn't used
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the same two ids at the fake Cockpit before and after closing and opening the board). `paper_keep`'s `same_ids` was true on every keep in both simulators' logs, with `drift` 0: the mark's id is the same before and after PaperKit. A real Cockpit wasn't used. Since story 770, `WhiteboardPaperGhostsUITests.testKeptInkKeepsItsNamesAndAGhostLeftShowingIsNotSaved`: the same two ids before and after the app is killed and relaunched; the names' rule is `WhiteboardStrokesTests`
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3069,7 +3069,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 620:
 
 - **Summary:** A ghost is never saved on paper
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: killed with a ghost showing, and one stroke after the relaunch). The strokes sent to Larry hold only ink, as story 619's two ids show
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: killed with a ghost showing, and one stroke after the relaunch). The strokes sent to Larry hold only ink, as story 619's two ids show. Since story 770, one test with story 619's (`testKeptInkKeepsItsNamesAndAGhostLeftShowingIsNotSaved`): killed with Larry's marks showing, and two strokes after the relaunch
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3309,7 +3309,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 632:
 
 - **Summary:** One undo takes a kept mark and the pages it brought
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the fake's `/far`, *Page 1 of 6* then *Page 1 of 2*, by a hook)
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator and an iPad simulator (`WhiteboardPaperGhostsUITests`: the fake's `/far`, *Page 1 of 6* then *Page 1 of 2*, by a hook). Since story 770: `BoardPagesTests` for the pages, `WhiteboardPaperPasteUITests.testATallPasteBringsItsPagesInOneUndo` for the one undo, through the same keep (story 618)
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3329,7 +3329,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 633:
 
 - **Summary:** Larry's marks come back when a board on paper opens
-- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: the newest set on reopening, a dismissed set staying gone). Since bead `context-grabber-y8r`, `WhiteboardTurnUITests` on the old canvas (the same marks on either) and `WhiteboardMarksTests` on the host
+- **Status:** implemented in [24280a2](https://github.com/idvorkin/context-grabber/commit/24280a2); verified on an iPhone simulator (`WhiteboardTurnOnPaperUITests`: the newest set on reopening, a dismissed set staying gone). Since bead `context-grabber-y8r`, `WhiteboardTurnUITests` on the old canvas (the same marks on either) and `WhiteboardMarksTests` on the host; since story 770 the newest set coming back on reopening is `WhiteboardMarksTests` alone, and the UI test keeps a dismissed set staying gone
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3529,7 +3529,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 643:
 
 - **Summary:** Larry knows a paste by the same names
-- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`testAPastesStrokesKeepTheirNamesForLarry`: the same two ids at the fake Cockpit before and after a relaunch; `paper_keep`'s `same_ids` true and `drift` 0). That the letters are in the picture is the old canvas's code, on the same drawing, and wasn't looked at. A real Cockpit wasn't used
+- **Status:** implemented in [ce10bd6](https://github.com/idvorkin/context-grabber/commit/ce10bd6); verified on an iPhone simulator (`testAPastesStrokesKeepTheirNamesForLarry`: the same two ids at the fake Cockpit before and after a relaunch; `paper_keep`'s `same_ids` true and `drift` 0). That the letters are in the picture is the old canvas's code, on the same drawing, and wasn't looked at. A real Cockpit wasn't used. Since story 770 the names through a relaunch are `WhiteboardPaperGhostsUITests.testKeptInkKeepsItsNamesAndAGhostLeftShowingIsNotSaved`, through the keep and the save a paste shares, and the names' rule `WhiteboardStrokesTests`
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3669,7 +3669,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 650:
 
 - **Summary:** Ink the app adds always shows
-- **Status:** implemented in [869cb8d](https://github.com/idvorkin/context-grabber/commit/869cb8d); the simulator only, iPhone 17, iOS 27: pasted ink missing from the screen in 15 of 180 runs before the fix, 0 of 60 after it (`testAPasteLandsInTheMiddleOfThePaperOnScreen`, read from `paper_ink_look`). The wait for the view to come to rest came after those counts, in [a86ac93](https://github.com/idvorkin/context-grabber/commit/a86ac93). A centred page skipped the redraw in [97bbdbe](https://github.com/idvorkin/context-grabber/commit/97bbdbe), verified on an iPad Pro 11-inch simulator (`testAGhostLeftShowingIsNotSaved`: crashed before, passes after). Since [62c7672](https://github.com/idvorkin/context-grabber/commit/62c7672) a centred page redraws by moving a point down and back, never setting the zoom (`paper_redraw_nudge` says `how: frame`), verified on an iPad Pro 11-inch simulator: `testAPasteLandsInTheMiddleOfThePaperOnScreen` missed 1 of 8 before, drew 24 of 24 after, no crash. Whether it happens on a real iPad, and whether the small redraw can be felt there, is still to be seen.
+- **Status:** implemented in [869cb8d](https://github.com/idvorkin/context-grabber/commit/869cb8d); the simulator only, iPhone 17, iOS 27: pasted ink missing from the screen in 15 of 180 runs before the fix, 0 of 60 after it (`testAPasteLandsInTheMiddleOfThePaperOnScreen`, read from `paper_ink_look`). The wait for the view to come to rest came after those counts, in [a86ac93](https://github.com/idvorkin/context-grabber/commit/a86ac93). A centred page skipped the redraw in [97bbdbe](https://github.com/idvorkin/context-grabber/commit/97bbdbe), verified on an iPad Pro 11-inch simulator (`testAGhostLeftShowingIsNotSaved`: crashed before, passes after; since story 770 part of `testKeptInkKeepsItsNamesAndAGhostLeftShowingIsNotSaved`). Since [62c7672](https://github.com/idvorkin/context-grabber/commit/62c7672) a centred page redraws by moving a point down and back, never setting the zoom (`paper_redraw_nudge` says `how: frame`), verified on an iPad Pro 11-inch simulator: `testAPasteLandsInTheMiddleOfThePaperOnScreen` missed 1 of 8 before, drew 24 of 24 after, no crash. Whether it happens on a real iPad, and whether the small redraw can be felt there, is still to be seen.
 - **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636); [#829](https://github.com/idvorkin/context-grabber/issues/829): on an iPad, where the page is narrower than the screen and PaperKit centres it, the redraw's zoom recursed inside PaperKit until the app crashed; a centred page skipped it; [#833](https://github.com/idvorkin/context-grabber/issues/833): with the redraw skipped, a centred iPad page missed kept or pasted ink again (1 of 8 pastes, and 2 kept marks in a ladder run); a centred page now moves a point down and back instead, which never sets the zoom: 24 of 24 pastes drawn on an iPad Pro 11-inch simulator (`testAPasteLandsInTheMiddleOfThePaperOnScreen`, `paper_ink_look`), no crash.
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3761,7 +3761,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 655:
 
 - **Summary:** Lines and ghosts show on every colour
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk` for the grid on all five, `testAGhostShowsOnTheDarkestColours` for a ghost on Grey; `testABoardsColourShowsInBothModesAndStaysWithIt` for the colour, an old-canvas test dropped 2026-11-07; on paper `testRuledLinesStayWithTheBoardUnderTheInk` keeps a board's colour); since bead `context-grabber-y8r` the grid on Lilac, the darkest, and Plain stand for all five (the lines are one grey on every colour); since story 770 Lilac alone, the grid on Plain being `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3779,7 +3779,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 656:
 
 - **Summary:** Changing colour or lines leaves the ink
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testEveryColourShowsItsLinesAndKeepsTheInk`; `paper_ink_look` after each change); since bead `context-grabber-y8r` on Lilac and Plain; since story 770 on Lilac alone
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -3836,7 +3836,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 658:
 
 - **Summary:** A board drawn on the old canvas opens to look at, on paper
-- **Status:** implemented in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e); verified by host tests (`BoardIndexTests`: only a board made on paper, on its own device, is drawn on; the bar's words for each look-only board; `BoardKeepingTests`: through a relaunch; `BoardPagesTests`: the ink moved, never scaled) and on the simulator (`WhiteboardOnPaperUITests.testAnOldCanvasBoardOpensLookOnlyOnPaper`, on an iPad Pro 11-inch simulator too since [#845](https://github.com/idvorkin/context-grabber/issues/845): it searches for the old ink from under the navigation bar and drags right to left, as a swipe right is Back; `paper_ink_look` why `open` counted the ink drawn in 6 of 6 opens; the smoke's `paper_open`). Igor's own old boards on the iPad not yet seen
+- **Status:** implemented in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e); verified by host tests (`BoardIndexTests`: only a board made on paper, on its own device, is drawn on; the bar's words for each look-only board; `BoardKeepingTests`: through a relaunch; `BoardPagesTests`: the ink moved, never scaled) and on the simulator (`WhiteboardOnPaperUITests.testAnOldCanvasBoardOpensLookOnlyOnPaper`, on an iPad Pro 11-inch simulator too since [#845](https://github.com/idvorkin/context-grabber/issues/845): it searches for the old ink from under the navigation bar and drags right to left, as a swipe right is Back; `paper_ink_look` why `open` counted the ink drawn in 6 of 6 opens; the smoke's `paper_open`). Igor's own old boards on the iPad not yet seen. Since story 770 the simulator's check is the smoke's `paper_open` (look-only, 40 strokes at the first page's corner); the UI test was a duplicate of it and of `BoardIndexTests`
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Paper is the only canvas*
 
 #### Use Case:
@@ -3958,7 +3958,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 746:
 
 - **Summary:** On an iPhone, boards are for looking, not drawing
-- **Status:** implemented in [df438e6](https://github.com/idvorkin/context-grabber/commit/df438e6), [d053c9a](https://github.com/idvorkin/context-grabber/commit/d053c9a); verified by host tests (`BoardIndexTests`), `PhoneBoardsUITests` on the iPhone simulator, and the whiteboard classes on the iPad simulator (`just test-ladder`)
+- **Status:** implemented in [df438e6](https://github.com/idvorkin/context-grabber/commit/df438e6), [d053c9a](https://github.com/idvorkin/context-grabber/commit/d053c9a); verified by host tests (`BoardIndexTests`), `PhoneBoardsUITests` on the iPhone simulator, and the whiteboard classes on the iPad simulator (`just test-ladder`). Since story 770 the iPhone simulator's check is the smoke's whiteboard section, from the session log: the list's `new_board` false, and its own board on paper opening with `editable` false and `look_only` *Look only on iPhone: draw on the iPad*; *Send to Larry* still being there on a phone is no longer checked by a test
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *On an iPhone every board is look-only*
 
 #### Use Case:

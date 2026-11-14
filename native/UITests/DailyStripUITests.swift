@@ -22,25 +22,22 @@ final class DailyStripUITests: XCTestCase {
     balloons.tap()
     XCTAssertEqual(balloons.value as? String, "\(start + 1)", "a tap adds one")
 
-    // #342, story 254: press and hold opens the week; − today and + yesterday stay in the sheet until Confirm.
+    // #342, story 254: press and hold opens the week; − today stays in the sheet until Confirm. Another day's steps,
+    // and that only changed days are saved, are `CounterWeekTests`, on the host (story 770).
     balloons.press(forDuration: 1.0)
     let todayCount = app.staticTexts["strip-week-count-0"]
     XCTAssertTrue(todayCount.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.staticTexts["strip-week-count-6"].exists, "seven days")
     XCTAssertEqual(todayCount.label, "\(start + 1)")
-    let yesterday = app.staticTexts["strip-week-count-1"]
-    let yesterdayBefore = Int(yesterday.label) ?? 0
     app.buttons["strip-week-minus-0"].tap()
-    app.buttons["strip-week-plus-1"].tap()
     XCTAssertEqual(todayCount.label, "\(start)")
-    XCTAssertEqual(yesterday.label, "\(yesterdayBefore + 1)")
     XCTAssertEqual(balloons.value as? String, "\(start + 1)", "nothing saved before Confirm")
     app.buttons["strip-week-confirm"].tap()
     XCTAssertTrue(todayCount.waitForNonExistence(timeout: 5))
     if start > 0 {
       XCTAssertEqual(balloons.value as? String, "\(start)", "today's − saved")
     } else {
-      XCTAssertEqual(balloons.value as? String, "1 day since", "back to 0, read as days since yesterday's +")
+      XCTAssertNil(Int(balloons.value as? String ?? ""), "back to 0, read as days since, not a number")
     }
 
     let journal = app.buttons["strip-journal"]
@@ -60,7 +57,9 @@ final class DailyStripUITests: XCTestCase {
     XCTAssertNotNil(meditation.value as? String)
   }
 
-  /// #414, story 255: staging, Cancel, save and taking yesterday back, with today's mark untouched.
+  /// #414, story 255: one round: a staged change says so, Done saves it and leaves today's mark alone, then it's taken
+  /// back so the next run finds the day as it was. Staging, Cancel and an unmark being saved are `CheckFortnightTests`,
+  /// on the host (story 770).
   func testPressAndHoldEditsTwoWeeks() throws {
     let app = XCUIApplication.forTests()
     app.launch()
@@ -76,12 +75,6 @@ final class DailyStripUITests: XCTestCase {
     yesterday.tap()
     XCTAssertEqual(yesterday.isSelected, !initial)
     XCTAssertTrue(app.staticTexts["strip-grid-summary"].label.contains("1 change to save"))
-    app.buttons["strip-backdate-cancel"].tap()
-    XCTAssertTrue(yesterday.waitForNonExistence(timeout: 5))
-    journal.press(forDuration: 1.0)
-    XCTAssertTrue(yesterday.appears(within: 5))
-    XCTAssertEqual(yesterday.isSelected, initial, "Cancel discards edits")
-    yesterday.tap()
     app.buttons["strip-grid-done"].tap()
     XCTAssertTrue(yesterday.waitForNonExistence(timeout: 5))
     journal.press(forDuration: 1.0)
@@ -91,9 +84,5 @@ final class DailyStripUITests: XCTestCase {
     yesterday.tap()
     app.buttons["strip-grid-done"].tap()
     XCTAssertTrue(yesterday.waitForNonExistence(timeout: 5))
-    journal.press(forDuration: 1.0)
-    XCTAssertTrue(yesterday.appears(within: 5))
-    XCTAssertEqual(yesterday.isSelected, initial, "mark and unmark both persist")
-    app.buttons["strip-backdate-cancel"].tap()
   }
 }

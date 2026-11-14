@@ -164,7 +164,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard",
       [
         "action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": editable,
-        "old_canvas": oldCanvas,
+        "old_canvas": oldCanvas, "look_only": lookOnlyNote as Any? ?? NSNull(),
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()
@@ -875,9 +875,6 @@ final class WhiteboardModel: ObservableObject {
     turns.land(
       shapes.map { Ghost($0, who: who, frame: rect, scale: scale) }, who: who, first: first, now: .now)
     if who == .claude { fadeClaudesGhosts() }
-    if first, LaunchHooks.current.whiteboard.keepFirst, let ghost = ghosts.first {
-      keep(ghost)
-    }
   }
 
   private func fadeClaudesGhosts() {

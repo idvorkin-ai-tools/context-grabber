@@ -12,6 +12,17 @@ public enum ChatTables {
     public let alignments: [Alignment]
     /// Each as many cells as the heading: a short row filled with empty cells, a long one cut.
     public let rows: [[String]]
+
+    /// What VoiceOver reads, row by row, each cell after its heading: "Air, Weight 1.2 kg, Battery 18 h; Pro 14, …". A
+    /// grid in a scroll view is lost in the bubble's one label, so the table says its rows itself.
+    public var spoken: String {
+      if rows.isEmpty { return heading.filter { !$0.isEmpty }.joined(separator: ", ") }
+      return rows.map { row in
+        let pairs = zip(heading.dropFirst(), row.dropFirst()).map { "\($0) \($1)" }
+        return ([row.first ?? ""] + pairs).filter { !$0.isEmpty }.joined(separator: ", ")
+      }
+      .joined(separator: "; ")
+    }
   }
 
   /// A message's pieces in order: words as written, or a table.

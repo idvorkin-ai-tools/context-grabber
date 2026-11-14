@@ -55,7 +55,7 @@ struct WhiteboardListView: View {
           Button("Done", action: onDone).accessibilityIdentifier("whiteboard-done")
         }
         // Story 746: an iPhone only looks at boards.
-        if !store.onPhone {
+        if store.startsBoards {
           ToolbarItem(placement: .topBarTrailing) {
             Button {
               path.append(store.create())

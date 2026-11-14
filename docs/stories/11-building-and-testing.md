@@ -15,7 +15,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 670:
 
 - **Summary:** Most of what a change needs proved is proved on the Mac, in seconds
-- **Status:** not implemented; bead `context-grabber-3k6`. Moved to host tests so far, each with the UI or smoke checks that only repeated it cut: the whiteboard turn's rules (`WhiteboardGhostTurnsTests`, [3985337](https://github.com/idvorkin/context-grabber/commit/3985337)), the whiteboard's persistence policy (`BoardKeepingTests`, [f41be39](https://github.com/idvorkin/context-grabber/commit/f41be39)), the Inbox's send orchestration (`InboxOutboxTests`, [845a6f2](https://github.com/idvorkin/context-grabber/commit/845a6f2)) and the chat archive and new-thread rules (`ChatArchiverTests`, `ChatNewThreadScreenTests`, [23dd212](https://github.com/idvorkin/context-grabber/commit/23dd212)); verified together at [f83889f](https://github.com/idvorkin/context-grabber/commit/f83889f) on the Mac host (rung 1, 1,123 ContextCore tests) and the simulator (rung 2: the whiteboard and chat UI suites and the smoke)
+- **Status:** not implemented; bead `context-grabber-3k6`. Moved to host tests so far, each with the UI or smoke checks that only repeated it cut: the whiteboard turn's rules (`WhiteboardGhostTurnsTests`, [3985337](https://github.com/idvorkin/context-grabber/commit/3985337)), the whiteboard's persistence policy (`BoardKeepingTests`, [f41be39](https://github.com/idvorkin/context-grabber/commit/f41be39)), the Inbox's send orchestration (`InboxOutboxTests`, [845a6f2](https://github.com/idvorkin/context-grabber/commit/845a6f2)) and the chat archive and new-thread rules (`ChatArchiverTests`, `ChatNewThreadScreenTests`, [23dd212](https://github.com/idvorkin/context-grabber/commit/23dd212)); verified together at [f83889f](https://github.com/idvorkin/context-grabber/commit/f83889f) on the Mac host (rung 1, 1,123 ContextCore tests) and the simulator (rung 2: the whiteboard and chat UI suites and the smoke). The duplicates the 2026-11-12 assessment found: story 770
 
 #### Use Case:
 - **As Igor,** waiting for a fix to reach his phone
@@ -344,3 +344,117 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a branch that changes the Gym Timer's screen
 - **When:** I run `just test-ladder`
 - **Then:** rung 2 builds once, runs the timer's UI test classes, then the smoke's timer section on the same booted simulator, times each step, and stops at the first failure; `--dry-run` names the smoke's sections; `LADDER_SMOKE=0` leaves the smoke out
+
+---
+
+### User Story 770:
+
+- **Summary:** A UI test that only repeats a host test or another UI test is cut, after the host test is seen to fail
+- **Status:** implemented in [ebc153f](https://github.com/idvorkin/context-grabber/commit/ebc153f), [49d577c](https://github.com/idvorkin/context-grabber/commit/49d577c), [4abeb11](https://github.com/idvorkin/context-grabber/commit/4abeb11); verified on the host: before each delete the rule it held was broken by a one-line change and the host test that guards it was seen to fail, then the source restored (the mutations are in the PR). Where no host test held the rule it moved into `ContextCore` first (why a board can't open, what a table reads aloud), with host tests. The rest of the same trim is stories 757–759, 780 and 781
+- **Issues:** the simulator assessment of 2026-11-12 (`~/tmp/agent/notes/2026-11-12-sim-tests-down-the-ladder.md`); story 670
+
+#### Use Case:
+- **As Igor,** waiting on a whiteboard or chat change to reach the iPad
+- **I want to** have the simulator run each rule once, where only a screen can show it
+- **so that** a whiteboard pass costs about a minute and a half less, without a rule losing its test
+
+#### Acceptance Criteria:
+- **Scenario:** A UI test that repeats a host test
+- **Given:** a UI test whose rule a host test already holds
+- **When:** the rule is broken in the source by one line
+- **Then:** the host test fails, and only then is the UI test deleted; when no host test fails, a host test is written first or the UI test stays
+
+---
+
+### User Story 757:
+
+- **Summary:** Two UI tests that check one screen share a launch
+- **Status:** implemented in [ebc153f](https://github.com/idvorkin/context-grabber/commit/ebc153f) (the whiteboard's two ghost tests in one launch, the colours test checking one colour, Larry's marks without a reopen); verified on the host only (the UI tests typecheck); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code
+- **Issues:** the simulator assessment of 2026-11-12; story 770
+
+#### Use Case:
+- **As Igor,** waiting on a whiteboard change's simulator pass
+- **I want to** have checks of the same screen made in one launch of the app
+- **so that** a launch, the slowest step of a UI test, is paid once per screen and not once per check
+
+#### Acceptance Criteria:
+- **Scenario:** Two UI tests that open the same screen
+- **Given:** two UI tests that each launch the app to check one thing on the same screen
+- **When:** they are merged
+- **Then:** one launch makes every check both made, in the order the screen allows
+
+---
+
+### User Story 758:
+
+- **Summary:** What an iPhone does with boards is read from the smoke's log, not from a test class of its own
+- **Status:** implemented in [c9ec172](https://github.com/idvorkin/context-grabber/commit/c9ec172) and the review fix after it (the list's New board and the log's `new_board` read one rule); verified on the host (`BoardIndexTests`: a phone starts no board, draws on none, and the bar says to draw on the iPad; `scripts/native/test-ladder-map.sh`: a whiteboard change runs no iPhone class); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code. The Board menu, the ghosts button and Larry's turn are in the bar only on a board the log calls `editable`, so the smoke's `editable` false stands for them. No test looks at the phone's screen for the missing buttons any more, only at the rules they read, and *Send to Larry* still being there on a phone has no test
+- **Issues:** the simulator assessment of 2026-11-12; stories 746, 770
+
+#### Use Case:
+- **As Igor,** waiting on a whiteboard change, whose UI tests run on an iPad simulator
+- **I want to** have the iPhone's look at boards judged in the smoke's launch on the iPhone simulator
+- **so that** a whiteboard change doesn't boot a second simulator for one class (about 65 s)
+
+#### Acceptance Criteria:
+- **Scenario:** The iPhone's look at the boards
+- **Given:** a whiteboard change, whose UI test classes run on an iPad simulator
+- **When:** the ladder climbs
+- **Then:** what an iPhone does with boards (no New board, its own board look-only with the bar's reason) is read from the smoke's session log on the iPhone simulator it already booted, rather than from a class of its own in a second test session
+
+---
+
+### User Story 759:
+
+- **Summary:** The minute-long Health session runs for a Health change, not a breathing change, and stops waiting for a sheet that isn't coming
+- **Status:** implemented in [dc31beb](https://github.com/idvorkin/context-grabber/commit/dc31beb); verified on the host (`scripts/native/test-ladder-map.sh`: breathing code doesn't select `BreatheMindfulUITests`, the Health source does); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code
+- **Issues:** the simulator assessment of 2026-11-12; stories 242, 770
+
+#### Use Case:
+- **As Igor,** waiting on a change to the breathing screen
+- **I want to** have the session that writes to Health run only when the Health code changes
+- **so that** a breathing change is about 160 s shorter, and the write to Health is still checked when it can break
+
+#### Acceptance Criteria:
+- **Scenario:** A breathing change and a Health change
+- **Given:** a branch that changes the breathing screen, and another that changes how the app writes to Health
+- **When:** the ladder climbs each
+- **Then:** the breathing change runs the breathing classes without the minute-long Health session, the Health change runs that session, and the session's wait for Health's sheet ends as soon as Today's cards show
+
+---
+
+### User Story 780:
+
+- **Summary:** A chat change runs no check that belongs to the whiteboard or to a host test
+- **Status:** implemented in [49d577c](https://github.com/idvorkin/context-grabber/commit/49d577c), [4abeb11](https://github.com/idvorkin/context-grabber/commit/4abeb11); verified on the host (`BoardIndexTests`: why a board can't open; `ChatTablesTests`: what a table reads aloud; `scripts/native/test-ladder-map.sh`); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code. The table's label inside the bubble's combined label has no simulator check
+- **Issues:** the simulator assessment of 2026-11-12; story 770
+
+#### Use Case:
+- **As Igor,** waiting on a chat change's simulator pass
+- **I want to** have the chat classes hold only what a chat screen alone can show
+- **so that** a chat pass is about half a minute shorter
+
+#### Acceptance Criteria:
+- **Scenario:** A chat change
+- **Given:** a branch that changes the chat screens
+- **When:** the ladder climbs
+- **Then:** the chat classes run without a check that is whiteboard code (a link to a missing board) or a host test's (what a table reads aloud), and the picture's two ways out and the bar's mic share one launch each with the tests that already open those screens
+
+---
+
+### User Story 781:
+
+- **Summary:** A metric's detail, the blog's tiles and the strip's sheets are each checked in fewer launches
+- **Status:** implemented in [49d2901](https://github.com/idvorkin/context-grabber/commit/49d2901); verified on the host only (the strip's rules are `CounterWeekTests`; the UI tests typecheck); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code
+- **Issues:** the simulator assessment of 2026-11-12; story 770
+
+#### Use Case:
+- **As Igor,** waiting on a change to the mirror
+- **I want to** have each screen's checks made in as few launches as the screen allows
+- **so that** the mirror's UI tests stop paying a launch per check
+
+#### Acceptance Criteria:
+- **Scenario:** A screen's checks in one launch
+- **Given:** a metric's detail, the blog's three tiles and the daily strip's press-and-hold sheets, each with its rules on the host
+- **When:** their UI tests run
+- **Then:** the detail's form, the report over it and its close are one launch; the three tiles are one launch that comes back from Safari between them; and each strip sheet makes one round of edit and save

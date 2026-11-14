@@ -33,6 +33,29 @@ final class ChatTablesTests: XCTestCase {
       ])
   }
 
+  /// Story 747: VoiceOver reads the grid row by row, each cell after its heading, and no pipes or dashes. Was
+  /// `ChatTableUITests`' reading of the bubble's label (story 770).
+  func testTheTableReadsRowByRow() throws {
+    let message = """
+      | | Weight | Battery | Price |
+      |---|:---:|---:|---|
+      | Air | 1.2 kg | 18 h | $1,099 |
+      | Pro 14 | 1.6 kg | 22 h | $1,999 |
+      | XPS | 1.4 kg | 12 h | $1,299 |
+      """
+    guard case .table(let table) = try XCTUnwrap(T.blocks(in: message).first) else { return XCTFail("no table") }
+    XCTAssertEqual(
+      table.spoken,
+      "Air, Weight 1.2 kg, Battery 18 h, Price $1,099; Pro 14, Weight 1.6 kg, Battery 22 h, Price $1,999; "
+        + "XPS, Weight 1.4 kg, Battery 12 h, Price $1,299")
+    XCTAssertFalse(table.spoken.contains("|"))
+    XCTAssertFalse(table.spoken.contains("---"))
+    guard case .table(let heading) = try XCTUnwrap(T.blocks(in: "| A | | B |\n|---|---|---|").first) else {
+      return XCTFail("no table")
+    }
+    XCTAssertEqual(heading.spoken, "A, B", "a heading alone reads its cells")
+  }
+
   func testAMessageWithNoTableIsOneText() {
     let message = "Plain words\n\nwith a blank line and a | pipe"
     XCTAssertEqual(T.blocks(in: message), [.text(message)])

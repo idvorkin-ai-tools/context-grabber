@@ -174,26 +174,24 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
 
   /// Stories 655, 656: the colours show the page's end line and the grid, and changing either leaves pasted ink on screen.
   /// The lines are one grey at one strength on every colour, so they are hardest to see on the darkest paper: Lilac
-  /// (`BoardPaper`'s light shades by luminance: Plain 1.0, Cream 0.90, Sage 0.83, Grey 0.82, Lilac 0.81). Lilac and back
-  /// to Plain stand for all five; each colour's own shade against the ink is `BoardPaperTests`, on the host.
+  /// (`BoardPaper`'s light shades by luminance: Plain 1.0, Cream 0.90, Sage 0.83, Grey 0.82, Lilac 0.81). Lilac stands
+  /// for all five; the grid on Plain with the ink left where it was is `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`,
+  /// and each colour's own shade against the ink is `BoardPaperTests`, on the host.
   func testEveryColourShowsItsLinesAndKeepsTheInk() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
     wait(send(app), label: "Send to Larry, 2 strokes")
     let ink = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "dark letters on screen")
-    for colour in ["Lilac", "Plain"] {
-      menu(app, colour, expect: "Board, \(colour)")
-      let bare = Screen(app)
-      let seen = try XCTUnwrap(PaperScreen(app).ink, "the letters on \(colour)")
-      XCTAssertEqual(seen.center.x, ink.center.x, accuracy: 0.01, "\(colour): where they were")
-      XCTAssertEqual(seen.center.y, ink.center.y, accuracy: 0.01, "\(colour): where they were")
+    menu(app, "Lilac", expect: "Board, Lilac")
+    let bare = Screen(app)
+    let seen = try XCTUnwrap(PaperScreen(app).ink, "the letters on Lilac")
+    XCTAssertEqual(seen.center.x, ink.center.x, accuracy: 0.01, "Lilac: where they were")
+    XCTAssertEqual(seen.center.y, ink.center.y, accuracy: 0.01, "Lilac: where they were")
 
-      menu(app, "Grid lines", expect: "Board, \(colour), grid on")
-      keep("grid on \(colour)")
-      let grid = Screen(app).lines(against: bare)
-      XCTAssertGreaterThan(grid.across, 5, "\(colour): the grid shows")
-      XCTAssertNotNil(PaperScreen(app).ink, "\(colour): the letters with a grid")
-      menu(app, "Grid lines", expect: "Board, \(colour)")
-    }
+    menu(app, "Grid lines", expect: "Board, Lilac, grid on")
+    keep("grid on Lilac")
+    let grid = Screen(app).lines(against: bare)
+    XCTAssertGreaterThan(grid.across, 5, "Lilac: the grid shows")
+    XCTAssertNotNil(PaperScreen(app).ink, "Lilac: the letters with a grid")
     XCTAssertEqual(send(app).label, "Send to Larry, 2 strokes", "neither is ink")
   }
 
