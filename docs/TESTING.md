@@ -400,6 +400,14 @@ treehouse return "$slot"                                # when the branch is pus
   (`-clonedSourcePackagesDirPath`) would let a branch that moves a pin switch the checkout under another slot's
   running build, and a device build takes no `build.lock` to keep the two apart. A slot fetches them once.
 
+## How long a change takes: `just lead-times`
+
+`scripts/lead-times.py` (story 828) reads the last 120 merged PRs through `gh` (`--count` for more or fewer), the issues
+they name, the deploys ledger and the ladder logs, and writes `data.json` and a page, `index.html`, with each stage's
+minutes: asked, first commit, opened, merged, on a device. The ledger is `LEAD_TIMES_DEPLOYS` (default
+`~/tmp/agent/notes/lead-times/deploys.jsonl`), the ladder logs are `*ladder*.log` in `LEAD_TIMES_LADDER_LOGS` (default
+`~/tmp/agent/notes`), and the output goes to `LEAD_TIMES_OUT` (default `~/tmp/agent/notes/lead-times`), never the repo.
+
 ## The phone
 
 `just native-run-device` builds, installs and launches; `just pull-logs` brings back the session logs, reports and

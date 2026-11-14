@@ -158,6 +158,10 @@ native-run-mac: native-build-mac
 pull-logs:
     scripts/native/pull-logs.sh
 
+# Story 828: how long a change takes, asked to merged to on a device, from GitHub and the deploys ledger (docs/TESTING.md)
+lead-times *args:
+    scripts/lead-times.py {{args}}
+
 # The same from the simulator
 pull-logs-sim:
     mkdir -p {{native_logs}}/sim

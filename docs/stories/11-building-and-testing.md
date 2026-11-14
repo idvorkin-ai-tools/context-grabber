@@ -478,3 +478,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the simulator smoke reaches the timer, breathing and the real-audio call
 - **Then:** each prints *skipped: Mac screen locked* and doesn't run, the run's last lines count them as skipped and not passed, and unlocked they run as before
 
+---
+
+### User Story 828:
+
+- **Summary:** A report of how long a change takes, from the repo
+- **Status:** implemented on branch `native/batch-decided-1114`; run once by hand against GitHub and the deploys ledger, writing to a scratch folder; no automated check (it reads live GitHub)
+- **Issues:** the lead-time study of 2026-11-14
+
+#### Use Case:
+- **As Igor,** wanting to know where a change's time goes, week after week
+- **I want to** run one recipe that reads the merged PRs and the deploys and writes the lead-time page
+- **so that** the report outlives the scratch folder it was born in, and nothing private goes into the public repo
+
+#### Acceptance Criteria:
+- **Scenario:** Running the report
+- **Given:** `gh` is signed in and the deploys ledger is where `LEAD_TIMES_DEPLOYS` says, or its default
+- **When:** I run `just lead-times`
+- **Then:** it writes `data.json` and `index.html` to the output folder, each PR's minutes from asked to merged to on a device, and nothing in the repo changes
+
