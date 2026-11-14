@@ -43,6 +43,8 @@ class PaperHost: UIViewController {
     var visibleAtStart: CGRect
     var zoomAtStart: CGFloat
     var tool: String
+    /// The pen's colour and width with the kind (`toolText`): Igor's own ink, told from a mark he kept.
+    var ink: String = ""
     var facts = PaperProbe.TouchFacts()
     /// Every touch in it, so the Pencil is the Pencil whatever landed first (#825).
     var tally = PaperProbe.TouchTally()
@@ -216,7 +218,7 @@ class PaperHost: UIViewController {
     lastTouchBoardPoint = CGPoint(x: visible.minX + at.x * scale, y: visible.minY + at.y * scale)
     run = TouchRun(
       type: Self.name(touch.type), began: CACurrentMediaTime(), start: at, visibleAtStart: visible,
-      zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName)
+      zoomAtStart: paper.scrollConfiguration.zoomScale, tool: toolName, ink: toolText(paper.drawingTool))
   }
 
   /// The view closing: a touch still being watched goes in the log now.
@@ -254,6 +256,16 @@ class PaperHost: UIViewController {
     case is PKLassoTool: return "lasso"
     default: return String(describing: type(of: paper.drawingTool))
     }
+  }
+
+  /// The pen in hand as the log says it: its kind, `#rrggbb` as in light mode, and width (context-grabber-a3w).
+  func toolText(_ tool: any PKTool) -> String {
+    guard let ink = tool as? PKInkingTool else { return toolName }
+    var (red, green, blue): (CGFloat, CGFloat, CGFloat) = (0, 0, 0)
+    ink.color.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light)).getRed(
+      &red, green: &green, blue: &blue, alpha: nil)
+    let width = (ink.width * 100).rounded() / 100
+    return "\(ink.inkType.rawValue) \(WhiteboardStrokes.hex(red: red, green: green, blue: blue)) \(width)"
   }
 
   func name(_ mode: PaperMarkupViewController.TouchMode) -> String {
@@ -824,6 +836,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let undo = paper.undoManager
     let (couldUndo, couldRedo) = (undo?.canUndo ?? false, undo?.canRedo ?? false)
+    // context-grabber-a3w: a keep leaves the pen in hand as it was; if setting the markup ever changed it, it goes back.
+    let tool = paper.drawingTool
+    let toolBefore = toolText(tool)
     let wanted = board.pages(after: pages, inkMaxY: model.drawing.bounds.maxY, redoWaiting: false)
     let made = PKDrawing(strokes: strokes)
     registerStepBack(to: markup)
@@ -832,6 +847,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     quiet = true
     paper.markup = markup
     quiet = false
+    let toolAfter = toolText(paper.drawingTool)
+    if toolAfter != toolBefore { paper.drawingTool = tool }
     let pagesBefore = pages
     pages = wanted
     run?.pageAdded = wanted > pagesBefore
@@ -853,6 +870,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "action": "paper_keep", "board": model.board.id, "strokes": strokes.count, "total": whole.strokes.count,
         "pages_before": pagesBefore, "pages": wanted, "same_ids": idsMade == idsBack, "ids_made": idsMade.count,
         "ids_back": idsBack.count, "ink": rect(made.bounds), "visible": rect(paper.contentVisibleFrame),
+        "tool_before": toolBefore, "tool_after": toolAfter, "tool_restored": toolAfter != toolBefore,
         "sheet": rect(lines.bounds), "markup": rect(held.bounds),
         "drift": round(hypot(made.bounds.minX - back.bounds.minX, made.bounds.minY - back.bounds.minY)),
         "could_undo": couldUndo, "could_redo": couldRedo, "can_undo": undo?.canUndo ?? false,
@@ -1054,7 +1072,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "scroll_dx": round(dx), "scroll_dy": round(dy), "zoom_from": Double(run.zoomAtStart), "zoom_to": Double(zoom),
         "selected": run.selected, "selection_changes": run.facts.selectionChanges, "ink_added": run.facts.inkAdded,
         "ink_moved": run.facts.inkMoved, "ink_removed": run.facts.inkRemoved, "began_drawing": run.facts.beganDrawing,
-        "page_added_during": run.pageAdded, "tool": run.tool, "touch_mode": name(paper.directTouchMode),
+        "page_added_during": run.pageAdded, "tool": run.tool, "tool_ink": run.ink,
+        "touch_mode": name(paper.directTouchMode),
         "auto_draws": paper.directTouchAutomaticallyDraws, "pages": pages,
         "page": board.page(at: CGPoint(x: 0, y: visible.midY)), "ghosts": model.ghosts.count,
         "ghost_slip": round(seat.worst), "ghost_checks": seat.checks,
