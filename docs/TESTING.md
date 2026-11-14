@@ -157,9 +157,11 @@ sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim
 
 **A locked Mac seems to starve the simulator's audio** (#419: inferred from comparing locked and unlocked runs of the
 same code, not traced into CoreAudio). Timer cues come late or empty, the keepalive fails, breathing is silent and the
-real-audio call can hear only zeros, on code that passes unlocked. The smoke prints a line when the Mac is locked at its
-start or end, and still runs and fails those checks, so the evidence stays; judge the timer, breathing, voice and
-real-audio call checks only from an unlocked run.
+real-audio call can hear only zeros, on code that passes unlocked. Since story 827 the smoke skips those checks while the
+Mac's screen is locked (the timer and its voice, breathing, the real-audio call): each prints *skipped: Mac screen
+locked*, the run's last lines count them as skipped, not passed, and a rerun unlocked is what checks them. A screen
+that locks during one of them can still fail it; the line at the end says so. `scripts/native/test-smoke-lock.sh`
+checks the skip with the lock probe faked (`SMOKE_LOCK_PROBE`), in `just native-test`.
 
 **Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
 this branch changed since `origin/main`: cockpit, whiteboard, timer, breathe, places, call, mirror, drill or

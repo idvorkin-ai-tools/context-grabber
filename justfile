@@ -68,6 +68,8 @@ native-test-host:
     scripts/native/test-ui-timings.sh
     # Story 689: a UI test run gets a time limit per case and one retry of a failed case; a hang after it is stopped.
     scripts/native/test-xcodebuild-log.sh
+    # Story 827 (#419): the smoke's audio checks are skipped, and said to be, on a locked Mac.
+    scripts/native/test-smoke-lock.sh
 
 # Rung 1L, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on Linux,
 # the package and its tests cross-built for macOS, iOS and the simulator with a Darwin Swift SDK, the app's sources

@@ -32,14 +32,11 @@ listening() {  # listening <port>: waits up to 5 s for a fake server to take con
 want() { [[ -z "${SMOKE_ONLY:-}" || "$SMOKE_ONLY" == all || ",$SMOKE_ONLY," == *",$1,"* ]]; }
 echo "smoke: ${SMOKE_ONLY:-all}"
 
-# #419: a locked Mac seems to starve the simulator's audio (timer cues late or empty, keepalive ok:false, breathe
-# silent), inferred from comparing runs. Said at both ends because the screen can lock mid-run. The audio checks still
-# run and fail on purpose, to keep the evidence: an audio failure under this line isn't read as a regression.
-mac_locked_note() {
-  case "$(ioreg -n Root -d1)" in
-    *'"CGSSessionScreenIsLocked"=Yes'*) echo "smoke: the Mac is locked ($1); audio failures here don't count, rerun unlocked (#419)" ;;
-  esac
-}
+# #419, story 827: a locked Mac starves the simulator's audio, so while its screen is locked the audio checks (the
+# timer, breathing, the real-audio call) are skipped, each with a "skipped: Mac screen locked" line, and counted as
+# skipped, never passed. Said at both ends because the screen can lock mid-run.
+# shellcheck source=scripts/native/smoke-lock.sh
+source "$(dirname "$0")/smoke-lock.sh"
 mac_locked_note "at the start"
 
 # Igor, 2026-11-01: the app under test is muted, not the Mac (GRABBER_SILENT on every launch: its players at zero,
@@ -179,7 +176,7 @@ if [ "$opened" = "false true" ] && [ "$shown" = "40 false 40 40" ] && [ -z "$err
 else bad "whiteboard: old-canvas board open '$opened', shown '$shown', errors: $errors"; fi
 fi  # whiteboard
 
-if want timer; then
+if want timer && audio_ok timer; then
 # Stories 100, 104: a short workout (10 s of work, one round) started as a widget tile would, for the real sound:
 # every cue's file plays in the count voice and nothing about the audio session fails. When each cue falls, one duck
 # window per boundary, the keepalive and letting go at the end are host tests against a hand-moved clock
@@ -214,7 +211,7 @@ else bad "live activity: '$la'"; fi
 
 fi  # timer
 
-if want breathe; then
+if want breathe && audio_ok breathe; then
 # Stories 163, 165: one cycle of 2 s breaths with the voice, for the real sound: each phrase is a bundled file that
 # played (none fell back to the phone's voice). When each step falls, the lit screen, the keepalive and the tones'
 # order are host tests against a hand-moved clock (BreathSessionTests).
@@ -369,7 +366,7 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
   if [ -z "$failed" ]; then ok "call ($label): nothing failed"; else bad "call ($label): $failed"; fi
 }
 call_check synthetic synthetic
-call_check "real audio" ""
+if audio_ok "call (real audio)"; then call_check "real audio" ""; fi
 
 # Story 248: a call that goes wrong files one BugKit automatic report with the call's log; a clean call files none.
 # The second fake bridge cuts every connection.
@@ -532,4 +529,5 @@ fi  # chat
 
 xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
 mac_locked_note "at the end"
+audio_skips_said
 smoke_done
