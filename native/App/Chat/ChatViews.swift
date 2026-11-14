@@ -816,24 +816,29 @@ private struct MessageBubble: View {
   let openMoved: (String) -> Void
 
   var body: some View {
-    if message.isSystem { systemLine } else if message.isError { failure } else { bubble }
+    if let line = ChatMove.line(message) {
+      systemLine(line)
+    } else if message.isError {
+      failure
+    } else {
+      bubble
+    }
   }
 
   /// The Cockpit's own line (Send to new chat): quiet and centred, a link when it names the new chat.
-  @ViewBuilder private var systemLine: some View {
-    let words = message.text.isEmpty ? "Moved to a new chat" : message.text
+  private func systemLine(_ line: ChatMove.Line) -> some View {
     HStack {
       Spacer(minLength: 0)
-      if let moved = message.movedTo {
+      if let moved = line.opens {
         Button {
           openMoved(moved)
         } label: {
-          Label(words, systemImage: "arrowshape.turn.up.right")
+          Label(line.words, systemImage: "arrowshape.turn.up.right")
         }
         .buttonStyle(.borderless)
         .accessibilityIdentifier("chat-moved")
       } else {
-        Text(words).foregroundStyle(.secondary).accessibilityIdentifier("chat-system")
+        Text(line.words).foregroundStyle(.secondary).accessibilityIdentifier("chat-system")
       }
       Spacer(minLength: 0)
     }

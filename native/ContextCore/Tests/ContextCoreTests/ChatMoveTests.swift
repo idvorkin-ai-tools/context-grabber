@@ -55,6 +55,14 @@ final class ChatMoveTests: XCTestCase {
     XCTAssertEqual(outcome(404, #"{"error": "unknown message"}"#), .refused("unknown message (HTTP 404)"))
   }
 
+  /// Today's Cockpit takes /chat/move for a message to a chat called "move", with no words.
+  func testACockpitFromBeforeTheRouteSaysItCantMoveYet() {
+    XCTAssertEqual(
+      outcome(400, #"{"ok": false, "error": "chat message needs text"}"#),
+      .refused("the Cockpit can't move messages yet, or refused this one: chat message needs text (HTTP 400)"))
+    XCTAssertEqual(outcome(400), .refused("the Cockpit can't move messages yet, or refused this one (HTTP 400)"))
+  }
+
   func testA409IsAlreadyMovedOrNotMine() {
     XCTAssertEqual(outcome(409, ""), .refused("it was already moved, or it isn't yours (HTTP 409)"))
     XCTAssertEqual(outcome(409, #"{"error": "already moved"}"#), .refused("already moved (HTTP 409)"))
@@ -127,6 +135,18 @@ final class ChatMoveTests: XCTestCase {
       """#)
     XCTAssertEqual(thread.map(\.movedTo), ["chat:a", "chat:b", nil, nil])
     XCTAssertEqual(thread.map(\.isSystem), [true, true, true, false])
+  }
+
+  /// How the line reads: the Cockpit's words, a link when it names the new chat, plain otherwise; a message is no line.
+  func testTheMovedLineReadsAsALinkToTheNewChat() {
+    let moved = ChatMessage(id: "s", ts: "", who: "system", text: "Moved to a new chat", movedTo: "chat:new")
+    XCTAssertEqual(ChatMove.line(moved), .init(words: "Moved to a new chat", opens: "chat:new"))
+    let wordless = ChatMessage(id: "w", ts: "", who: "system", text: " ", movedTo: "chat:new")
+    XCTAssertEqual(ChatMove.line(wordless), .init(words: "Moved to a new chat", opens: "chat:new"))
+    let unnamed = ChatMessage(id: "u", ts: "", who: "system", text: "Moved to a new chat")
+    XCTAssertEqual(ChatMove.line(unnamed), .init(words: "Moved to a new chat", opens: nil))
+    XCTAssertNil(ChatMove.line(ChatMessage(id: "i", ts: "", who: "igor", text: "Moved to a new chat")))
+    XCTAssertNil(ChatMove.line(ChatMessage(id: "l", ts: "", who: "larry", text: "Hi")))
   }
 
   /// The moved line is no reply: Igor's message before it, with a failure before that, still shows no 🏆.
