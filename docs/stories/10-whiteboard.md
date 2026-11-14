@@ -3829,11 +3829,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread, and Larry answers with a box in green at a fine pen and a label in the hand face
 - **and Given:** another label of his that names no pen, colour or face
 - **When:** his marks arrive and I keep them
-- **Then:** the box is a green outline at the fine pen, the first label is in handwriting letters, the second is in his blue print at a thin pen, not bold (never thinner than the iPad draws, story 770, so small letters read bolder), and each kept mark is ink exactly as its ghost showed
+- **Then:** the box is a green outline at the fine pen, the first label is in handwriting letters, the second is in his blue print at a thin pen, not bold (never thinner than the iPad draws, story 772, so small letters read bolder), and each kept mark is ink exactly as its ghost showed
 
 ---
 
-### User Story 770:
+### User Story 772:
 
 - **Summary:** A kept label of small letters stays on the board
 - **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d); verified on the Linux rung (`just test-linux`: `WhiteboardTurnTests`, the thinnest pen for a small label, a thin asked-for pen and a ghost's pen alike). Not yet seen on the simulator or the iPad
