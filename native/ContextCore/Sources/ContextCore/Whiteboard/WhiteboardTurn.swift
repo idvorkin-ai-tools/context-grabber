@@ -61,9 +61,10 @@ public enum WhiteboardTurn {
   public static let widestPen: CGFloat = 24
   /// The thinnest pen a mark draws with, in board points: PencilKit draws nothing for a stroke much thinner, on the
   /// canvas and in the picture alike (#883). Measured in the pictures Igor's iPad sent: kept marks at 1.2–1.9 points
-  /// drew none of their ink, and every stroke from 2.87 points up drew all of it. ponytail: 3 is the nearest round
-  /// width proven on the device; lower it once a kept mark between 1.9 and 2.87 is seen to draw.
-  public static let thinnestPen: CGFloat = 3
+  /// drew none of their ink, and a kept mark of Larry's at 2.5 points drew all of it, as did every stroke above.
+  /// ponytail: small labels come out bolder than #698 wanted (2.5 on 13-point letters); a larger least letter height
+  /// is the other way out, and lowering this needs a kept mark between 1.9 and 2.5 seen to draw on the iPad.
+  public static let thinnestPen: CGFloat = 2.5
 
   /// The pen `shape` draws with, in board points. A label with no pen of its own gets one in proportion to its letters,
   /// about a ninth of their height, so it reads as writing rather than a marker (#698's bold fix); no pen is thinner

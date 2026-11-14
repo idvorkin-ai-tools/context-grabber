@@ -319,7 +319,7 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertNil(WhiteboardTurn.letters(shapes[3], scale: 2))
     // The floor is the width proven on the iPad, below the default pen, so an unasked line or box is unchanged.
     XCTAssertLessThan(WhiteboardTurn.thinnestPen, WhiteboardTurn.defaultPen)
-    XCTAssertGreaterThanOrEqual(WhiteboardTurn.thinnestPen, 2.87)
+    XCTAssertGreaterThanOrEqual(WhiteboardTurn.thinnestPen, 2.5)
   }
 
   func testABoxIsItsCornerWidthAndHeight() throws {
