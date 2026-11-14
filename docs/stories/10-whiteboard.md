@@ -3836,7 +3836,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 772:
 
 - **Summary:** A kept label of small letters stays on the board
-- **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d); verified on the Linux rung (`just test-linux`: `WhiteboardTurnTests`, the thinnest pen for a small label, a thin asked-for pen and a ghost's pen alike). Not yet seen on the simulator or the iPad
+- **Status:** implemented in [b54599d](https://github.com/idvorkin/context-grabber/commit/b54599d), the floor at 2.5 points in [b18aa04](https://github.com/idvorkin/context-grabber/commit/b18aa04); verified on the host (`just native-test`: `WhiteboardTurnTests.testNoMarkIsThinnerThanTheIPadDraws`, a small label's pen, a thin asked-for pen and an unasked line, and the rest of `WhiteboardTurnTests`) and by the Mac build (`just native-build-mac`). Not yet seen on the simulator or the iPad
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
 
@@ -3861,7 +3861,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 771:
 
 - **Summary:** Larry can read the board's log without my exporting it
-- **Status:** implemented in [dfc284d](https://github.com/idvorkin/context-grabber/commit/dfc284d); verified on the Linux rung (`just test-linux`: `WhiteboardLogArchiveTests`, which lines are the board's, batches oldest first, the newest kept when full, a record the archive takes once). Not yet seen on the simulator or the iPad
+- **Status:** implemented in [dfc284d](https://github.com/idvorkin/context-grabber/commit/dfc284d), the header record naming the build in [973d927](https://github.com/idvorkin/context-grabber/commit/973d927); verified on the host (`just native-test`: `WhiteboardLogArchiveTests`, which lines are the board's, batches oldest first, the newest kept when the ring is full, a header and one record a line the archive keeps once, within 8 KB) and by the Mac build (`just native-build-mac`). Not yet seen on the simulator or the iPad: no turn has yet landed rows in the Cockpit's archive
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Larry can read what the board did*
 
