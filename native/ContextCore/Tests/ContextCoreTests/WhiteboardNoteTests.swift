@@ -223,8 +223,36 @@ final class WhiteboardNoteTests: XCTestCase {
       ])
   }
 
+  /// Send to new chat leaves the Cockpit's own line where the message was: the panel never reads it as Larry's.
+  func testTheCockpitsOwnLineIsLeftOut() {
+    let moved = ChatMessage(id: "s", ts: "", who: "system", text: "Moved to a new chat", movedTo: "chat:new")
+    let rows = WhiteboardNote.recent([message("a", "igor", "a circle"), moved, message("b", "larry", "nice")])
+    XCTAssertEqual(rows.map(\.who), ["You", "Larry"])
+    XCTAssertEqual(rows.map(\.text), ["a circle", "nice"])
+  }
+
   func testASkillsRowIsNamedForIt() {
     let rows = WhiteboardNote.recent([ChatMessage(id: "s", ts: "", who: "larry", text: "hi", author: "idvorkin")])
     XCTAssertEqual(rows.first?.who, "idvorkin")
+  }
+
+  /// Story 773: until Larry has picked the picture up the line and the panel's live row both say *Sent*.
+  func testTheLineAndThePanelSayWhetherHeHasThePicture() throws {
+    var turn = sent()
+    _ = turn.paused(version: 2, words: nil, now: at(5))
+    let notYet = try XCTUnwrap(
+      WhiteboardNote.line(
+        larry: turn, now: at(21), cockpitAnswering: true, mark: .received, said: WhiteboardSaid(), micOn: false,
+        notice: nil, ghosts: 0))
+    XCTAssertEqual(notYet.state, "Sent · 0:21 · not picked up yet · next: ink")
+    XCTAssertEqual(notYet.spokenState, "Sent 21 seconds ago, not picked up yet, next: ink")
+    XCTAssertEqual(
+      WhiteboardNote.live(
+        larry: turn, now: at(21), cockpitAnswering: true, mark: .received, said: WhiteboardSaid(), micOn: false
+      ).first?.text, "Sent · 0:21 · not picked up yet")
+    XCTAssertEqual(
+      WhiteboardNote.line(
+        larry: turn, now: at(42), cockpitAnswering: true, mark: .seen, said: WhiteboardSaid(), micOn: false,
+        notice: nil, ghosts: 0)?.state, "Larry · 0:42 · next: ink")
   }
 }

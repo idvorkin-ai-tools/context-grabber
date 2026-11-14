@@ -129,4 +129,70 @@ final class WhiteboardLarryClockTests: XCTestCase {
     XCTAssertFalse(problem.inkWaiting)
     XCTAssertTrue(problem.wordsWaiting)
   }
+
+  // MARK: Story 773: sent, or with Larry
+
+  func testUntilHePicksItUpTheStateSaysSent() {
+    let turn = sent()
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(3), cockpitAnswering: true, mark: .received), "Sent · 0:03")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(19), cockpitAnswering: true, mark: .received), "Sent · 0:19")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(20), cockpitAnswering: true, mark: .received),
+      "Sent · 0:20 · not picked up yet", "twenty seconds unpicked is the slow signal, the controls' threshold")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, mark: .seen), "Larry · 0:42",
+      "once he has it, the clock carries on")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, mark: .unknown), "Larry · 0:42",
+      "a Cockpit that sends no marks reads as before")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, mark: .none), "Larry · 0:42",
+      "a picture the Cockpit hasn't taken reads as before; the problem row says it is stuck")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(31), cockpitAnswering: false, mark: .received),
+      "Sent · 0:31 · not picked up yet · Cockpit not answering")
+  }
+
+  func testARepeatTapStillSaysLarryAlreadyHasThis() {
+    var turn = sent()
+    _ = turn.tapped(version: 1, now: at(12))
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(12), cockpitAnswering: true, mark: .received),
+      "Larry already has this · 0:12")
+  }
+
+  func testVoiceOverSaysSentInWords() {
+    let turn = sent()
+    XCTAssertEqual(
+      WhiteboardLarryClock.spoken(turn, now: at(3), cockpitAnswering: true, mark: .received),
+      "Sent 3 seconds ago, not picked up yet")
+    XCTAssertEqual(
+      WhiteboardLarryClock.spoken(turn, now: at(72), cockpitAnswering: false, mark: .received),
+      "Sent 1 minute 12 seconds ago, not picked up yet, and the Cockpit isn't answering")
+    XCTAssertEqual(
+      WhiteboardLarryClock.spoken(turn, now: at(42), cockpitAnswering: true, mark: .seen),
+      "Larry has been looking for 42 seconds")
+  }
+
+  /// The copied problem's `mark`, in the words docs/DEBUGGING.md gives for each place the picture can be
+  /// (larry_turn_over: received, seen, none, unknown), read from the thread as the Cockpit sends it.
+  func testHisSilenceSaysWhereThePictureWas() throws {
+    let turn = sent()
+    let wall = Date(timeIntervalSince1970: 1_800_000_000)
+    let igor = { (id: String, receipt: ChatMessage.Receipt) in
+      ChatMessage(id: id, ts: "", who: "igor", text: "", attachments: ["a.jpg"], receipt: receipt)
+    }
+    let copied = { (thread: [ChatMessage]) throws -> String in
+      let mark = WhiteboardLarryWait.mark(turn, thread: thread, now: self.at(180), wallNow: wall, picture: "pic")
+      return try XCTUnwrap(
+        WhiteboardLarryClock.didntAnswer(turn, now: self.at(180), wallNow: wall, cockpitAnswering: true, mark: mark)
+      ).mark.rawValue
+    }
+    XCTAssertEqual(try copied([igor("old", .done), igor("pic", .received)]), "received", "the Cockpit had it")
+    XCTAssertEqual(try copied([igor("old", .done), igor("pic", .seen)]), "seen", "Larry had picked it up")
+    XCTAssertEqual(try copied([igor("old", .done)]), "none", "the Cockpit never took it, on a thread that marks")
+    XCTAssertEqual(try copied([igor("old", .sent), igor("pic", .sent)]), "unknown", "a Cockpit that marks nothing")
+  }
 }

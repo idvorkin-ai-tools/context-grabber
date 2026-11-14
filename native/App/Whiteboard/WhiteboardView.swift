@@ -50,6 +50,15 @@ final class WhiteboardModel: ObservableObject {
   var turnNote: String? { turns.note }
   /// The picture is on its way to Larry's thread.
   @Published private(set) var larrySending = false
+  /// Twenty seconds into his turn, what the board offers: Retry and Dismiss for a picture the Cockpit hasn't taken,
+  /// Interrupt for one he has (stories 775–777). Changed by the looks, every few seconds, and by the buttons.
+  @Published private(set) var larryWait = WhiteboardLarryWait.none
+  /// The picture out to Larry: what *Retry* sends again, and the furthest mark the Cockpit has put on its message.
+  private var larryOut: LarryOut?
+  /// Counts the hand-offs, so one that Retry, Dismiss or Interrupt has replaced never frees the turn or speaks for the
+  /// board.
+  private var larryHandOffs = WhiteboardLarryHandOffs()
+  private var larryWaitHook = LaunchHooks.current.whiteboard.larryWait
   /// On paper: ink on the board, none of it on screen, so Send and Larry's turn have nothing to show him (story 522).
   @Published private(set) var nothingOnScreen = false
   /// Looking at Larry's thread has failed for a while (story 383).
@@ -184,6 +193,17 @@ final class WhiteboardModel: ObservableObject {
           self?.notice = words.map { WhiteboardNote.Notice(text: $0.text, held: $0.held, since: .now) }
         }
       }
+  }
+
+  /// Story 773: where the picture Larry is looking at is, from its mark on the thread the board last read (with the
+  /// Cockpit not answering, the last it knew) and whether its sending was answered. The one reading the note's state
+  /// and the 20-second controls share. A picture the board handed over itself is found by its id; a *Send to Larry*'s
+  /// by Igor's newest message since it went.
+  func larryMark(now: ContinuousClock.Instant) -> WhiteboardLarryWait.Mark {
+    let out = larryOut.flatMap { $0.turn == larry.state ? $0 : nil }
+    return WhiteboardLarryWait.mark(
+      larry, thread: thread, now: now, wallNow: Date(), picture: out?.picture.pictureID,
+      delivered: out?.delivered ?? false, earlier: out?.receipt ?? .sent)
   }
 
   /// The board has a thread with Larry on this device.
@@ -359,6 +379,7 @@ final class WhiteboardModel: ObservableObject {
     }
     let turn = larry.state
     Task { await handToLarry(turn, said: words) }
+    checkLarryWait()
   }
 
   /// Story 765: a tap that sent nothing, because Larry is looking at this part of the board as it is and no words wait.
@@ -374,20 +395,22 @@ final class WhiteboardModel: ObservableObject {
   /// The turn `larry` has already counted as out: `said`, words spoken to a Larry board, go as the picture's message
   /// (story 659). `from`: the button, a pause on a Larry board, or the picture that follows his answer or a timeout
   /// (story 662). One that doesn't reach him frees the turn and keeps its words for the next.
-  private func handToLarry(_ turn: WhiteboardLarryTurn.State, said: String?, from: String = "button") async {
-    guard editable, let (rect, scale) = pictureFrame() else {
+  /// `again`: *Retry* (story 775), the very picture that went before, under the same message id.
+  private func handToLarry(
+    _ turn: WhiteboardLarryTurn.State, said: String?, from: String = "button", again: LarryOut? = nil
+  ) async {
+    guard editable, let out = again ?? larryPicture(said: said) else {
       larry.failed(turn, words: said)
       return
     }
-    larryFrame = rect
+    let attempt = larryHandOffs.begin()
+    larryOut = out
+    larryOut?.turn = turn
+    larryOut?.attempt = attempt
     larrySending = true
-    defer { larrySending = false }
-    // ponytail: rendered and encoded on the main thread, as the ghost turn is.
-    let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
-    let strokes = WhiteboardStrokes.wire(strokesForLarry())
+    defer { if larryHandOffs.isLatest(attempt) { larrySending = false } }
+    let (jpeg, strokes, picture, rect, scale) = (out.jpeg, out.strokes, out.picture, out.rect, out.scale)
     let thread = threads.thread(board: board.id)
-    let picture = WhiteboardPicture(
-      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
     let started = Date()
     var event: [String: Any] = [
       "who": "larry", "board": board.id, "bytes": jpeg.count, "picture": picture.pictureID, "new_thread": thread == nil,
@@ -400,28 +423,94 @@ final class WhiteboardModel: ObservableObject {
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, picture: picture))) { $1 }
     let outcome = await deliver(jpeg, picture: picture, thread: thread, note: said ?? "Your turn on the board")
+    shipLog(why: "larry_turn")
     switch outcome {
     case .sent(let key, _):
       event["ok"] = true
       event["thread"] = key
       threads.set(key, board: board.id)
+      // The Cockpit has the picture (story 775): it isn't stuck. Kept apart from the marks the thread shows, so a
+      // Cockpit that marks nothing never reads *Sent* (story 773).
+      if larryOut?.picture.pictureID == picture.pictureID { larryOut?.delivered = true }
       turns.larryReached()
       if problem?.context == "WhiteboardView.larry" { problem = nil }
     case .refused(let status, let reason):
       event["ok"] = false
       event["status"] = status
       event["reason"] = reason
-      larry.failed(turn, words: said)
       // A thread the Cockpit no longer has: the next turn starts a new one.
       if status == 404, let thread { threads.forget(thread, board: board.id) }
+      // Retry, Dismiss or Interrupt took this one over (stories 775–777): its words went with the retry or back in the
+      // queue.
+      guard larryHandOffs.speaks(attempt) else {
+        event["superseded"] = true
+        return
+      }
+      larry.failed(turn, words: said)
       failed(
         .larry, "The Cockpit refused the turn (\(status)): \(reason)", status: status,
         first: turns.failed(.larry, stale: false))
     case .retry(let reason):
       event["ok"] = false
       event["reason"] = reason
+      // Retry, Dismiss or Interrupt took over while this one hung (stories 775–777): its failure is no longer the board's. One a
+      // newer picture replaced still keeps its words, and its turn is freed only if it is still the one out.
+      guard larryHandOffs.speaks(attempt) else {
+        event["superseded"] = true
+        return
+      }
       larry.failed(turn, words: said)
       failed(.larry, "Larry couldn't be reached: \(reason)", status: nil, first: turns.failed(.larry, stale: false))
+    }
+  }
+
+  /// #883: the whiteboard's log lines since the last the archive took, to the Cockpit's archive (`whiteboard.log`), each
+  /// time a picture goes to Larry, so he reads what the board did without Igor pulling the log. One try; lines not
+  /// taken go with the next picture. Nothing goes from a simulator or a Mac without GRABBER_ARCHIVE_URL.
+  private func shipLog(why: String) {
+    let lines = log.whiteboardUnsent()
+    guard let last = lines.last else { return }
+    var event: [String: Any] = ["why": why, "board": board.id, "records": lines.count, "launch": log.launch]
+    guard let archive = ArchiveModel.destination(ProcessInfo.processInfo.environment) else {
+      event["ok"] = false
+      event["reason"] = "no archive URL"
+      log.event("whiteboard_log", event)
+      return
+    }
+    let device = UIDevice.current.identifierForVendor?.uuidString.lowercased() ?? "unknown-device"
+    let batch = ArchiveBatch(
+      stream: WhiteboardLogArchive.stream, deviceId: device,
+      records: WhiteboardLogArchive.records(
+        lines, launch: log.launch,
+        build: [
+          "app": BuildInfo.version, "sha": BuildInfo.sha, "branch": BuildInfo.branch,
+          "system": UIDevice.current.systemVersion, "device": UIDevice.current.model,
+        ]))
+    let log = log
+    Task { [event] in
+      var event = event
+      let outcome: ArchiveSend.Outcome
+      do {
+        let (body, response) = try await URLSession.shared.data(for: try ArchiveSend.request(batch, cockpit: archive))
+        outcome = ArchiveSend.outcome(status: (response as? HTTPURLResponse)?.statusCode, body: body)
+      } catch {
+        outcome = .retry(reason: error.localizedDescription)
+      }
+      switch outcome {
+      case .taken(let inserted, let duplicate):
+        log.whiteboardSent(through: last.seq)
+        event["ok"] = true
+        event["inserted"] = inserted
+        event["duplicate"] = duplicate
+      case .refused(let status, let reason):
+        event["ok"] = false
+        event["status"] = status
+        event["reason"] = reason
+      case .retry(let reason):
+        event["ok"] = false
+        event["reason"] = reason
+      }
+      log.event("whiteboard_log", event)
     }
   }
 
@@ -443,16 +532,8 @@ final class WhiteboardModel: ObservableObject {
   private func strokesForLarry() -> [WhiteboardStrokes.Stroke] { Self.strokesForLarry(drawing) }
 
   static func strokesForLarry(_ drawing: PKDrawing) -> [WhiteboardStrokes.Stroke] {
-    let light = UITraitCollection(userInterfaceStyle: .light)
-    return drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
-      var red: CGFloat = 0
-      var green: CGFloat = 0
-      var blue: CGFloat = 0
-      var alpha: CGFloat = 0
-      if !stroke.ink.color.resolvedColor(with: light).getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
-        (red, green, blue) = (0, 0, 0)
-      }
-      let color = WhiteboardStrokes.hex(red: red, green: green, blue: blue)
+    drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
+      let color = lightHex(stroke.ink.color)
       let width = WhiteboardStrokes.width(sizes: stroke.path.map(\.size.width), transform: stroke.transform)
       let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
       let tool = WhiteboardStrokes.tool(rawValue: stroke.ink.inkType.rawValue)
@@ -481,8 +562,9 @@ final class WhiteboardModel: ObservableObject {
       case .refused(let status, let reason): return .refused(status: status, reason: reason)
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
       case .ref(let ref):
+        // The message's id is the picture's, so *Retry* sending it again is the same message to the Cockpit (story 775).
         let item = InboxItem(
-          kind: .image, sharedAt: Int64(Date().timeIntervalSince1970 * 1000), note: note,
+          id: picture.pictureID, kind: .image, sharedAt: Int64(Date().timeIntervalSince1970 * 1000), note: note,
           thread: thread, whiteboard: picture)
         let (body, response) = try await URLSession.shared.data(
           for: try ChatSend.messageRequest(item, attachment: ref, cockpit: cockpit))
@@ -501,6 +583,7 @@ final class WhiteboardModel: ObservableObject {
       while !Task.isCancelled {
         await self?.lookAtThread()
         self?.larryTimedOut()
+        self?.checkLarryWait()
         try? await Task.sleep(for: Self.lookEvery)
       }
     }
@@ -521,7 +604,11 @@ final class WhiteboardModel: ObservableObject {
       if Task.isCancelled { return }
       let status = (response as? HTTPURLResponse)?.statusCode
       if status == 200, let rows = WhiteboardMarks.rows(body) {
-        let recent = Array((ChatWire.messages(body) ?? []).suffix(WhiteboardNote.panelMessages))
+        let messages = ChatWire.messages(body) ?? []
+        if let out = larryOut, let mark = WhiteboardLarryWait.receipt(of: out.picture.pictureID, in: messages) {
+          larryOut?.receipt = out.receipt.atLeast(mark)
+        }
+        let recent = Array(messages.suffix(WhiteboardNote.panelMessages))
         if recent != self.thread { self.thread = recent }
         lookWorked(rows)
         return
@@ -583,16 +670,17 @@ final class WhiteboardModel: ObservableObject {
   private func larryTimedOut() {
     let now = ContinuousClock.now
     let waiting = larry
+    let mark = larryMark(now: now)
     guard let next = larry.tick(version: boardVersion, now: now, timeout: Self.larryTimeout) else { return }
     var facts: [String: Any] = [:]
     if let silence = WhiteboardLarryClock.didntAnswer(
-      waiting, now: now, wallNow: Date(), cockpitAnswering: !larryAway)
+      waiting, now: now, wallNow: Date(), cockpitAnswering: !larryAway, mark: mark)
     {
       let sentAt = silence.sentAt.formatted(.iso8601)
       facts = [
         "problem": silence.context, "sent_at": sentAt, "waited_s": silence.waitedSeconds,
         "ink_waiting": silence.inkWaiting, "words_waiting": silence.wordsWaiting,
-        "cockpit_answering": silence.cockpitAnswering,
+        "cockpit_answering": silence.cockpitAnswering, "mark": silence.mark.rawValue,
       ]
       problem = .grabber(
         silence.message, context: silence.context,
@@ -600,6 +688,7 @@ final class WhiteboardModel: ObservableObject {
           "board": .string(board.id), "cockpit": .string(cockpit), "sent_at": .string(sentAt),
           "waited_s": .int(silence.waitedSeconds), "ink_waiting": .bool(silence.inkWaiting),
           "words_waiting": .bool(silence.wordsWaiting), "cockpit_answering": .bool(silence.cockpitAnswering),
+          "mark": .string(silence.mark.rawValue),
         ])
     }
     larryFollowUp(next, why: "timeout", facts: facts)
@@ -621,6 +710,148 @@ final class WhiteboardModel: ObservableObject {
   func dismissProblem() {
     log.event("whiteboard", ["action": "problem_dismissed", "board": board.id, "context": problem?.context ?? ""])
     problem = nil
+  }
+
+  /// Stories 775–777: twenty seconds into his turn, what where the picture is says to offer (the same reading as the
+  /// note's state, story 773). Logged, and the stuck picture's problem shown or taken away, only when it changes: the
+  /// problem slot holds one, the newest wins, and this takes away only its own.
+  private func checkLarryWait() {
+    let now = ContinuousClock.now
+    let out = larryOut.flatMap { $0.turn == larry.state ? $0 : nil }
+    let mark = larryMark(now: now)
+    let wait = out == nil ? .none : WhiteboardLarryWait.of(larry, mark: mark, now: now)
+    guard wait != larryWait else { return }
+    var event: [String: Any] = [
+      "action": "larry_wait", "board": board.id, "wait": wait.rawValue, "was": larryWait.rawValue,
+      "mark": mark.rawValue, "picture": out?.picture.pictureID ?? "", "sending": larrySending,
+      "cockpit_answering": !larryAway,
+    ]
+    if case .awaiting(let since, _) = larry.state { event["looking_s"] = Int((now - since).components.seconds) }
+    log.event("whiteboard", event)
+    larryWait = wait
+    if wait == .stuck, case .awaiting(let since, _) = larry.state {
+      let waited = Int((now - since).components.seconds)
+      problem = .grabber(
+        WhiteboardLarryWait.stuckMessage, context: WhiteboardLarryWait.stuckContext,
+        extra: [
+          "board": .string(board.id), "cockpit": .string(cockpit),
+          "picture": .string(out?.picture.pictureID ?? ""),
+          "sent_at": .string((Date() - TimeInterval(waited)).formatted(.iso8601)), "waited_s": .int(waited),
+          "sending": .bool(larrySending), "cockpit_answering": .bool(!larryAway), "mark": .string(mark.rawValue),
+        ])
+    } else if problem?.context == WhiteboardLarryWait.stuckContext {
+      problem = nil
+    }
+    pressSoonForTests()
+  }
+
+  /// `GRABBER_WHITEBOARD_LARRY_WAIT=retry` / `dismiss` / `interrupt`: that control taps itself, once, 3 s after the board
+  /// first offers it, for the simulator.
+  private func pressSoonForTests() {
+    guard let press = larryWaitHook, larryWait == (press == .interrupt ? .working : .stuck) else { return }
+    larryWaitHook = nil
+    Task { [weak self] in
+      try? await Task.sleep(for: .seconds(3))
+      switch press {
+      case .retry: self?.retryLarry()
+      case .dismiss: self?.dismissStuck()
+      case .interrupt: self?.interruptLarry()
+      }
+    }
+  }
+
+  /// *Retry* (story 775): the same picture again, under the same message id, so a first one that did land is kept once;
+  /// the clock and the twenty seconds start again. A hand-off still hanging is left to end on its own, and replaced.
+  func retryLarry() {
+    checkLarryWait()
+    guard larryWait == .stuck, let out = larryOut, larry.resent(now: .now) else { return }
+    log.event(
+      "whiteboard",
+      [
+        "action": "larry_retry", "board": board.id, "picture": out.picture.pictureID, "sending": larrySending,
+        "receipt": out.receipt.rawValue,
+      ])
+    larryHandOffs.replace(out.attempt)
+    let turn = larry.state
+    larryOut?.turn = turn
+    Task { await handToLarry(turn, said: out.said, from: "retry", again: out) }
+    checkLarryWait()
+  }
+
+  /// *Dismiss* on a stuck picture (story 776): the board stops waiting. The turn is free, the words that went with it
+  /// wait for the next picture, and a hand-off still hanging no longer speaks for the board.
+  func dismissStuck() {
+    checkLarryWait()
+    guard larryWait == .stuck else { return }
+    log.event(
+      "whiteboard",
+      [
+        "action": "larry_dismiss", "board": board.id, "picture": larryOut?.picture.pictureID ?? "",
+        "sending": larrySending,
+      ])
+    if let out = larryOut { larryHandOffs.replace(out.attempt) }
+    larrySending = false
+    larry.failed(larry.state, words: larryOut?.said)
+    larryOut = nil
+    checkLarryWait()
+  }
+
+  /// *Interrupt* (story 777): Larry has the picture and the board stops waiting for his answer, so the next pause or tap
+  /// is a fresh ask. What he draws or says later still lands. A picture whose sending hasn't been answered is let go of
+  /// as *Dismiss* lets go: its hand-off no longer speaks for the board, and its words wait for the next picture unless
+  /// the Cockpit's mark says it has them.
+  func interruptLarry() {
+    checkLarryWait()
+    guard larryWait == .working else { return }
+    var event: [String: Any] = [
+      "action": "larry_interrupt", "board": board.id, "picture": larryOut?.picture.pictureID ?? "",
+      "mark": larryMark(now: .now).rawValue, "sending": larrySending,
+    ]
+    if case .awaiting(let since, _) = larry.state {
+      event["looking_s"] = Int((ContinuousClock.now - since).components.seconds)
+    }
+    guard larry.interrupted() else { return }
+    log.event("whiteboard", event)
+    if let out = larryOut {
+      larryHandOffs.replace(out.attempt)
+      larrySending = false
+      if !out.delivered, out.receipt == .sent { larry.failed(larry.state, words: out.said) }
+    }
+    larryOut = nil
+    checkLarryWait()
+  }
+
+  /// The picture of the board on screen for Larry, its strokes and its id; nil with nothing on screen to show him.
+  private func larryPicture(said: String?) -> LarryOut? {
+    guard let (rect, scale) = pictureFrame() else { return nil }
+    larryFrame = rect
+    // ponytail: rendered and encoded on the main thread, as the ghost turn is.
+    let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
+    let picture = WhiteboardPicture(
+      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
+    return LarryOut(
+      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry()), picture: picture, rect: rect, scale: scale,
+      said: said)
+  }
+
+  /// A picture handed to Larry, kept while his turn on it is out: *Retry* sends exactly this again (story 775).
+  struct LarryOut {
+    let jpeg: Data
+    let strokes: [[String: Any]]
+    let picture: WhiteboardPicture
+    let rect: CGRect
+    let scale: CGFloat
+    /// The words that went with it, back in the queue if it is dismissed, or interrupted before the Cockpit has it.
+    let said: String?
+    /// The furthest the Cockpit's mark on its message has got, on the thread.
+    var receipt = ChatMessage.Receipt.sent
+    /// Its sending was answered: the Cockpit has it.
+    var delivered = false
+    /// The hand-off it last went under (`WhiteboardLarryHandOffs`).
+    var attempt = 0
+    /// The turn it went out under: its mark speaks only for that turn, never for a later one (a *Send to Larry* goes
+    /// through the Inbox's outbox, which retries on its own, so that turn is offered nothing).
+    var turn = WhiteboardLarryTurn.State.idle
   }
 
   /// His answer came, or the wait ran out: one fresh picture if the board moved on or words waited, else nothing.
@@ -916,8 +1147,32 @@ final class WhiteboardModel: ObservableObject {
   private func keep(_ ghost: Ghost) {
     let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4)
     if turns.keep(ghost) { settleLarrysRow() }
-    log.event("whiteboard", ["action": "keep", "board": board.id, "who": ghost.who.rawValue, "strokes": strokes.count])
+    // #883: what a kept mark that doesn't show needs said: its pen, letters and colour, the zoom, and whether the ink
+    // landed on screen. `paper_keep` and `paper_ink_look` follow with where it went and whether the view drew it.
+    let ink = PKDrawing(strokes: strokes).bounds
+    var event: [String: Any] = [
+      "action": "keep", "board": board.id, "who": ghost.who.rawValue, "strokes": strokes.count,
+      "kind": ghost.kind.rawValue, "width": Double(ghost.width),
+      "color": Self.lightHex(ghost.color), "zoom": Double(zoom?() ?? 1),
+    ]
+    if let letters = ghost.letters { event["letters"] = Double(letters) }
+    if let visible = visibleRect?(), !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
+    log.event("whiteboard", event)
     add(strokes)
+  }
+
+  /// A colour as `#rrggbb`, as it looks in light mode: the colour the Cockpit's strokes carry.
+  static func lightHex(_ color: UIColor) -> String {
+    var red: CGFloat = 0
+    var green: CGFloat = 0
+    var blue: CGFloat = 0
+    var alpha: CGFloat = 0
+    if !color.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light)).getRed(
+      &red, green: &green, blue: &blue, alpha: &alpha)
+    {
+      (red, green, blue) = (0, 0, 0)
+    }
+    return WhiteboardStrokes.hex(red: red, green: green, blue: blue)
   }
 
   private static func strokes(_ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat) -> [PKStroke] {
@@ -1115,6 +1370,7 @@ final class WhiteboardModel: ObservableObject {
     }
     larryFrame = rect
     let turn = larry.state
+    checkLarryWait()
     let ink = picture(rect: rect, scale: scale)
     let jpeg = ink.jpegData(compressionQuality: 0.85) ?? Data()
     var draft = InboxDraft()
@@ -1129,6 +1385,7 @@ final class WhiteboardModel: ObservableObject {
       if problem?.context == "WhiteboardView.send" { problem = nil }
       sent = "Sent to Larry: his reply shows in Chat"
       sentFrame = rect
+      shipLog(why: "send")
       log.event(
         "whiteboard",
         [
@@ -1154,6 +1411,9 @@ struct Ghost: Identifiable, WhiteboardGhost {
   /// The colour and pen it asked for, or its author's colour and the default pen (#698).
   let color: UIColor
   let width: CGFloat
+  /// What it is and, for a label, its letters' height in board points: for the keep's log line (#883).
+  let kind: WhiteboardTurn.Shape.Kind
+  let letters: CGFloat?
 
   init(_ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat) {
     id = UUID().uuidString
@@ -1161,6 +1421,8 @@ struct Ghost: Identifiable, WhiteboardGhost {
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
     width = WhiteboardTurn.width(shape, scale: scale)
+    kind = shape.kind
+    letters = WhiteboardTurn.letters(shape, scale: scale)
   }
 }
 
@@ -1250,8 +1512,9 @@ final class GhostLayers {
 }
 
 extension WhiteboardTurn.Who {
-  /// Claude orange, Larry blue (spec 2026-11-01-whiteboard-shapes-design.md).
-  var color: UIColor { self == .claude ? .systemOrange : .systemBlue }
+  /// Claude orange, Larry purple: a colour the picker doesn't offer (spec 2026-11-01-whiteboard-shapes-design.md,
+  /// context-grabber-a3w).
+  var color: UIColor { self == .claude ? .systemOrange : UIColor(rgb: WhiteboardTurn.larryColor) }
 }
 
 extension UIColor {
@@ -1317,6 +1580,14 @@ struct WhiteboardView: View {
             Spacer()
             Button("Dismiss") { model.dismissProblem() }.font(.footnote).buttonStyle(.borderless)
               .accessibilityIdentifier("whiteboard-dismiss-problem")
+          }
+          // Stories 775, 776: a picture the Cockpit hasn't taken in twenty seconds.
+          if problem.context == WhiteboardLarryWait.stuckContext {
+            Spacer()
+            Button("Retry") { model.retryLarry() }.font(.footnote).buttonStyle(.borderless)
+              .accessibilityIdentifier("whiteboard-larry-retry")
+            Button("Dismiss") { model.dismissStuck() }.font(.footnote).buttonStyle(.borderless)
+              .accessibilityIdentifier("whiteboard-larry-dismiss")
           }
         }
         .padding(.horizontal)
@@ -1489,7 +1760,8 @@ struct WhiteboardView: View {
   /// reads his state in words when it reaches the note, not on every tick.
   @ViewBuilder private func noteLine(now: ContinuousClock.Instant) -> some View {
     if let line = WhiteboardNote.line(
-      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, said: model.lastSaid, micOn: model.micOn,
+      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
+      said: model.lastSaid, micOn: model.micOn,
       notice: model.notice, ghosts: model.ghosts.count)
     {
       let tap = WhiteboardNote.tap(onPhone: onPhone, thread: model.threadKey)
@@ -1506,6 +1778,12 @@ struct WhiteboardView: View {
         }
         Spacer(minLength: 0)
         if let keep = line.keep { Text(keep).lineLimit(1).fixedSize() }
+        // Story 777: Larry has the picture and twenty seconds have passed: a quiet way to stop waiting for him.
+        if model.larryWait == .working {
+          Button("Interrupt") { model.interruptLarry() }.buttonStyle(.borderless).fixedSize()
+            .accessibilityHint("Stops waiting for Larry's answer, so the next picture is a fresh ask")
+            .accessibilityIdentifier("whiteboard-larry-interrupt")
+        }
         if tap != .nothing {
           Button {
             model.tapNote(onPhone: onPhone, openChat: openChat)
@@ -1557,7 +1835,8 @@ struct WhiteboardView: View {
   /// What is live under the thread: the turn that's out, what waits to go next, what the mic is hearing.
   private func liveRows(now: ContinuousClock.Instant) -> some View {
     let live = WhiteboardNote.live(
-      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, said: model.lastSaid, micOn: model.micOn)
+      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
+      said: model.lastSaid, micOn: model.micOn)
     // One column of its own: a TimelineView lays several children over each other (#882).
     return VStack(alignment: .leading, spacing: 4) {
       ForEach(live) { row in

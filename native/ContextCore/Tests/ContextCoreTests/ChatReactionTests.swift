@@ -50,17 +50,28 @@ final class ChatReactionTests: XCTestCase {
 
   // MARK: The hold menu (stories 518, 540-541)
 
-  func testLarrysWordsOfferAllFourAndMineOnlyQuoteAndCopy() {
+  func testLarrysWordsOfferAllFourAndMineQuoteCopyAndSendToNewChat() {
     XCTAssertEqual(ChatHold.choices(for: larry("Ship it?")), [.react(.yes), .react(.no), .quote, .copy])
     let mine = ChatMessage(id: "i", ts: "", who: "igor", text: "Yes")
-    XCTAssertEqual(ChatHold.choices(for: mine), [.quote, .copy], "no answer to myself")
+    XCTAssertEqual(ChatHold.choices(for: mine), [.quote, .copy, .sendToNewChat], "no answer to myself")
+  }
+
+  /// Send to new chat (context-grabber-9yo): only Igor's own messages move; the Cockpit's moved line has no menu.
+  func testOnlyMyMessagesSendToANewChatAndTheMovedLineHasNoMenu() {
+    XCTAssertFalse(ChatHold.choices(for: larry("Ship it?")).contains(.sendToNewChat))
+    let skill = ChatMessage(id: "s", ts: "", who: "larry", text: "Done", author: "Blog review")
+    XCTAssertFalse(ChatHold.choices(for: skill).contains(.sendToNewChat))
+    let moved = ChatMessage(id: "x", ts: "", who: "system", text: "Moved to a new chat", movedTo: "chat:new")
+    XCTAssertEqual(ChatHold.choices(for: moved), [])
+    let system = ChatMessage(id: "y", ts: "", who: "system", text: "Something the Cockpit says")
+    XCTAssertEqual(ChatHold.choices(for: system), [])
   }
 
   func testAPictureAloneHasNoWordsToQuoteOrCopy() {
     let picture = ChatMessage(id: "p", ts: "", who: "larry", text: " \n", attachments: ["2026-10-25/a.png"])
     XCTAssertEqual(ChatHold.choices(for: picture), [.react(.yes), .react(.no)])
     let myPicture = ChatMessage(id: "q", ts: "", who: "igor", text: "", attachments: ["2026-10-25/b.png"])
-    XCTAssertEqual(ChatHold.choices(for: myPicture), [])
+    XCTAssertEqual(ChatHold.choices(for: myPicture), [.sendToNewChat], "a picture still moves with its message")
   }
 
   func testTheMenuSaysWhatEachChoiceDoes() {
@@ -69,6 +80,8 @@ final class ChatReactionTests: XCTestCase {
     XCTAssertEqual(
       ChatHold.choices(for: larry("x")).map(\.systemImage),
       ["hand.thumbsup", "hand.thumbsdown", "text.quote", "doc.on.doc"])
+    XCTAssertEqual(ChatHold.sendToNewChat.label, "Send to new chat")
+    XCTAssertEqual(ChatHold.sendToNewChat.systemImage, "arrowshape.turn.up.right")
   }
 
   /// GRABBER_CHAT_HOLD on the simulator: each word is one choice, and nothing else is.
@@ -77,6 +90,7 @@ final class ChatReactionTests: XCTestCase {
     XCTAssertEqual(ChatHold(hook: "no"), .react(.no))
     XCTAssertEqual(ChatHold(hook: "quote"), .quote)
     XCTAssertEqual(ChatHold(hook: "copy"), .copy)
+    XCTAssertEqual(ChatHold(hook: "new-chat"), .sendToNewChat)
     XCTAssertNil(ChatHold(hook: "Yes"))
     XCTAssertNil(ChatHold(hook: ""))
   }

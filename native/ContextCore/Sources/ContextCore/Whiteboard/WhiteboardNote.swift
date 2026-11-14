@@ -75,12 +75,14 @@ public enum WhiteboardNote {
 
   /// The line, or nil with nothing to say.
   public static func line(
-    larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool, said: WhiteboardSaid,
-    micOn: Bool, notice: Notice?, ghosts: Int
+    larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
+    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool, notice: Notice?, ghosts: Int
   ) -> Line? {
     var line = Line()
-    if let clock = WhiteboardLarryClock.state(larry, now: now, cockpitAnswering: cockpitAnswering),
-      let spoken = WhiteboardLarryClock.spoken(larry, now: now, cockpitAnswering: cockpitAnswering)
+    if let clock = WhiteboardLarryClock.state(
+      larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark),
+      let spoken = WhiteboardLarryClock.spoken(
+        larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
     {
       let next = waiting(larry)
       line.state = next.map { "\(clock) · next: \($0)" } ?? clock
@@ -167,9 +169,9 @@ public enum WhiteboardNote {
   public static let panelMessages = 10
 
   /// The panel's thread: the recent end of the board's thread (`thread`, oldest first, as the Cockpit sends it), newest
-  /// at the bottom.
+  /// at the bottom. The Cockpit's own lines (*Moved to a new chat*) are neither Igor's nor Larry's, and are left out.
   public static func recent(_ thread: [ChatMessage]) -> [Row] {
-    thread.suffix(panelMessages).map { message in
+    thread.suffix(panelMessages).filter { !$0.isSystem }.map { message in
       message.fromIgor
         ? Row(
           id: message.id, kind: .you, who: "You",
@@ -183,10 +185,13 @@ public enum WhiteboardNote {
 
   /// The panel's live rows, under its thread: the turn that's out, what waits to go next, what the mic is hearing.
   public static func live(
-    larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool, said: WhiteboardSaid, micOn: Bool
+    larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
+    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool
   ) -> [Row] {
     var rows: [Row] = []
-    if let clock = WhiteboardLarryClock.state(larry, now: now, cockpitAnswering: cockpitAnswering) {
+    if let clock = WhiteboardLarryClock.state(
+      larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
+    {
       rows.append(Row(id: "live-turn", kind: .live, who: "Now", text: clock, mark: nil))
     }
     if let next = waiting(larry) {

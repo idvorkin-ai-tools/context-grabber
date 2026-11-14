@@ -21,19 +21,23 @@ public enum ChatHold: Hashable, Sendable {
   case react(ChatReaction)
   case quote
   case copy
+  /// Igor's own message, moved out to a chat of its own (context-grabber-9yo).
+  case sendToNewChat
 
-  /// The hold menu for `message`, in its order.
+  /// The hold menu for `message`, in its order. The Cockpit's own line has none.
   public static func choices(for message: ChatMessage) -> [ChatHold] {
+    guard !message.isSystem else { return [] }
     let answers = message.fromIgor ? [] : ChatReaction.allCases.map(ChatHold.react)
     let hasWords = !message.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    return answers + (hasWords ? [.quote, .copy] : [])
+    return answers + (hasWords ? [.quote, .copy] : []) + (message.fromIgor ? [.sendToNewChat] : [])
   }
 
-  /// GRABBER_CHAT_HOLD's value (yes, no, quote or copy): the choice that taps itself on the simulator.
+  /// GRABBER_CHAT_HOLD's value (yes, no, quote, copy or new-chat): the choice that taps itself on the simulator.
   public init?(hook: String) {
     switch hook {
     case "quote": self = .quote
     case "copy": self = .copy
+    case "new-chat": self = .sendToNewChat
     default:
       guard let reaction = ChatReaction(rawValue: hook) else { return nil }
       self = .react(reaction)
@@ -45,6 +49,7 @@ public enum ChatHold: Hashable, Sendable {
     case .react(let reaction): reaction.label
     case .quote: "Quote in reply"
     case .copy: "Copy"
+    case .sendToNewChat: "Send to new chat"
     }
   }
 
@@ -53,6 +58,7 @@ public enum ChatHold: Hashable, Sendable {
     case .react(let reaction): reaction == .yes ? "hand.thumbsup" : "hand.thumbsdown"
     case .quote: "text.quote"
     case .copy: "doc.on.doc"
+    case .sendToNewChat: "arrowshape.turn.up.right"
     }
   }
 }

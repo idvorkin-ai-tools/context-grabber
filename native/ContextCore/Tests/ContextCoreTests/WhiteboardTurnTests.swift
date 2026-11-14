@@ -273,7 +273,7 @@ final class WhiteboardTurnTests: XCTestCase {
       #"""
       {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9, "pen": 8, "color": "#12AB34"},
       {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 20, "font": "hand"},
-      {"kind": "circle", "cx": 50, "cy": 60, "r": 10, "pen": 2}
+      {"kind": "circle", "cx": 50, "cy": 60, "r": 10, "pen": 5}
       """#)
     XCTAssertEqual(shapes.map(\.kind), [.line, .text, .ellipse])
     XCTAssertEqual(shapes[0].color, 0x12AB34)
@@ -283,7 +283,7 @@ final class WhiteboardTurnTests: XCTestCase {
     #if canImport(CoreText)
       XCTAssertFalse(WhiteboardTurn.lines(shapes[1], frame: .zero, scale: 1).isEmpty, "the hand face draws letters")
     #endif
-    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), 2)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1), 5)
   }
 
   func testAMarkThatAsksForNothingLooksAsBeforeAndLabelsArentBold() throws {
@@ -295,8 +295,31 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertNil(shapes[0].color)
     XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), WhiteboardTurn.defaultPen)
     XCTAssertEqual(shapes[1].face, .print)
-    // A 40-pixel label on a picture at twice the board: 20-point letters, a pen of 2.2, not the old 3.7.
-    XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 2), 2.2, accuracy: 0.001)
+    // A 40-pixel label on a picture at board size: 40-point letters, a pen of 4.4, a ninth of them, not a marker.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 1), 4.4, accuracy: 0.001)
+  }
+
+  /// #883: Larry's labels at 13–14-point letters were kept at a pen of 1.4–1.5 points, and PencilKit drew none of it.
+  func testNoMarkIsThinnerThanTheIPadDraws() throws {
+    let shapes = try strokes(
+      #"""
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 24},
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 28},
+      {"kind": "rect", "x": 10, "y": 20, "w": 30, "h": 40, "pen": 2},
+      {"kind": "line", "x1": 0, "y1": 0, "x2": 9, "y2": 9}
+      """#)
+    // A 24-pixel label on a picture at twice the board: 12-point letters, whose ninth (1.3) PencilKit wouldn't draw.
+    XCTAssertEqual(WhiteboardTurn.letters(shapes[0], scale: 2), 12)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2), WhiteboardTurn.thinnestPen)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 2), WhiteboardTurn.thinnestPen)
+    // An asked-for pen too thin is held up to it too: a 2-pixel pen at twice the board would be 1 point.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 2), WhiteboardTurn.thinnestPen)
+    // Nothing that was already wide enough changes.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[3], scale: 2), WhiteboardTurn.defaultPen)
+    XCTAssertNil(WhiteboardTurn.letters(shapes[3], scale: 2))
+    // The floor is the width proven on the iPad, below the default pen, so an unasked line or box is unchanged.
+    XCTAssertLessThan(WhiteboardTurn.thinnestPen, WhiteboardTurn.defaultPen)
+    XCTAssertGreaterThanOrEqual(WhiteboardTurn.thinnestPen, 2.5)
   }
 
   func testABoxIsItsCornerWidthAndHeight() throws {
@@ -337,5 +360,53 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(shape?.color, 0)
     XCTAssertEqual(shape?.pen, 1.5)
     XCTAssertEqual(shape?.face, .hand)
+  }
+
+  /// context-grabber-a3w: Igor writes in the picker's blue, and Larry's marks were the system blue; no one could tell
+  /// them apart. His colour is now far round the hue circle from every swatch and from Claude's orange.
+  func testLarrysColourIsNoneOfThePickersOrClaudes() throws {
+    XCTAssertEqual(WhiteboardTurn.larryColor, 0xBA39E6, "the purple Igor's board asked for")
+    let larry = try XCTUnwrap(hue(WhiteboardTurn.larryColor))
+    XCTAssertFalse(pickerSwatches.contains(WhiteboardTurn.larryColor))
+    for swatch in pickerSwatches + [claudeColor] {
+      guard let other = hue(swatch) else { continue }  // black has no hue, and purple isn't black
+      XCTAssertGreaterThanOrEqual(hueApart(larry, other), 60, String(swatch, radix: 16))
+    }
+    // The blue his marks were, and Igor's blue, sit 6 degrees apart: what this replaces.
+    let systemBlue = try XCTUnwrap(hue(0x0088FF))
+    let pickerBlue = try XCTUnwrap(hue(0x157EFB))
+    XCTAssertLessThan(hueApart(systemBlue, pickerBlue), 10)
+    XCTAssertNil(hue(0x000000))
+    XCTAssertEqual(try XCTUnwrap(hue(0xFF0000)), 0, accuracy: 0.001)
+  }
+
+  /// Claude's orange as the strokes carry it (the system orange, light).
+  private let claudeColor: UInt32 = 0xFF8D28
+  /// The tool picker's colour swatches, as the strokes Igor draws with them carry them: what Larry's colour keeps clear of.
+  private let pickerSwatches: [UInt32] = [0x000000, 0x157EFB, 0x53D769, 0xFECB2E, 0xFC3D39]
+
+  /// A colour's hue in degrees, 0 up to 360; nil for a grey, which has none.
+  private func hue(_ rgb: UInt32) -> Double? {
+    let r = Double((rgb >> 16) & 0xFF) / 255
+    let g = Double((rgb >> 8) & 0xFF) / 255
+    let b = Double(rgb & 0xFF) / 255
+    let high = max(r, g, b)
+    let span = high - min(r, g, b)
+    guard span > 0 else { return nil }
+    let h: Double
+    if high == r {
+      h = ((g - b) / span).truncatingRemainder(dividingBy: 6)
+    } else if high == g {
+      h = (b - r) / span + 2
+    } else {
+      h = (r - g) / span + 4
+    }
+    return (h * 60 + 360).truncatingRemainder(dividingBy: 360)
+  }
+
+  /// How far apart two hues are around the circle, 0 up to 180 degrees.
+  private func hueApart(_ a: Double, _ b: Double) -> Double {
+    let d = abs(a - b).truncatingRemainder(dividingBy: 360)
+    return min(d, 360 - d)
   }
 }

@@ -150,8 +150,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     A colour that hasn't reached iCloud beats a delete from elsewhere, as new ink does.
   - **Each colour has a pale shade and a deep one**, so black ink, which turns white in dark mode, stays easy to read
     when the iPad changes mode. Plain is white in light mode and black in dark mode, as every board was before.
-  - **Ghosts stay visible on all of them.** No colour is orange or blue, and a faint orange or blue ghost on any colour
-    is at least nine-tenths as visible as it is on Plain.
+  - **Ghosts stay visible on all of them.** No colour is orange or a strong purple, and a faint orange or purple (Larry's) ghost on
+    any colour is at least nine-tenths as visible as it is on Plain; his kept purple ink reads at 3:1 or more on every one.
   - **A colour alone doesn't keep an empty board.** A new board left without a stroke still goes when it closes, whatever
     colour was chosen.
   - **Other devices show the same colour**, in the look-only view, shaded for that device's own mode. They can't change
@@ -291,6 +291,20 @@ only where a page needs saying.)
   saved, so one on the board would vanish on leaving. The board doesn't change.
 
 The log says what each ⌘V found on the clipboard and who took it, so the iPad can show what the simulator can't.
+
+### Larry can read what the board did (#883)
+
+Igor, 2026-11-14, after kept marks vanished: *make sure you have the logging to debug, and be able to request [logs]*.
+The board's log stayed on the iPad until it was pulled to the Mac, so Larry couldn't see what a tap or a turn did.
+
+- **Each picture that goes to Larry takes the board's log with it**: his turn, a pause on a Larry board, the picture
+  after his answer, and *Send to Larry*. What goes is everything the boards logged since the last that reached the
+  Cockpit (taps, keeps, ghosts, turns, errors), never the words said or written, only counts and places.
+- **It goes to the Cockpit's archive**, beside the call logs, where Larry reads it on his own machine. Igor exports
+  nothing and nothing changes on the board.
+- **A log that doesn't arrive goes with the next picture.** Sending it never holds up or fails the picture.
+- **A simulator or the Mac sends no log** unless it's pointed at an archive on purpose, as with every other archive
+  stream.
 
 ## Trial on paper (removed 2026-11-07)
 

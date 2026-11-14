@@ -131,15 +131,20 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
   public let author: String?
   /// The skill could not answer and `text` says why: drawn as an error, and not an answer.
   public let isError: Bool
+  /// The chat one of Igor's messages was sent on to (Send to new chat, context-grabber-9yo): the Cockpit's one-line
+  /// system row left where the message was. Nil on any other row.
+  public let movedTo: String?
 
   public var fromIgor: Bool { who == "igor" }
+  /// A line from the Cockpit itself, neither Igor's nor an answer: drawn as a quiet centred line, with no menu.
+  public var isSystem: Bool { who == "system" || movedTo != nil }
   public var at: Date? { ChatWire.date(ts) }
   /// The letter on the author's avatar.
   public var authorInitial: String? { author?.first.map { $0.uppercased() } }
 
   public init(
     id: String, ts: String, who: String, text: String, attachments: [String] = [], receipt: Receipt = .sent,
-    doneNote: String? = nil, board: String? = nil, author: String? = nil, isError: Bool = false
+    doneNote: String? = nil, board: String? = nil, author: String? = nil, isError: Bool = false, movedTo: String? = nil
   ) {
     self.id = id
     self.ts = ts
@@ -151,9 +156,14 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     self.board = board
     self.author = author
     self.isError = isError
+    self.movedTo = movedTo
   }
 
-  enum CodingKeys: String, CodingKey { case id, ts, who, text, attachments, receipt, board, author, error }
+  enum CodingKeys: String, CodingKey {
+    case id, ts, who, text, attachments, receipt, board, author, error
+    // The moved row's new chat, as cockpit-x3s ships it (chat_store._moved_row).
+    case movedTo = "moved_to"
+  }
   struct ReceiptBody: Decodable {
     let state: String?
     let note: String?
@@ -172,6 +182,7 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     board = (try? c.decode(String.self, forKey: .board)).flatMap { $0.isEmpty ? nil : $0 }
     author = (try? c.decode(String.self, forKey: .author)).flatMap { $0.isEmpty ? nil : $0 }
     isError = (try? c.decode(Bool.self, forKey: .error)) ?? false
+    movedTo = (try? c.decode(String.self, forKey: .movedTo)).flatMap { $0.isEmpty ? nil : $0 }
   }
 }
 
@@ -207,7 +218,7 @@ public enum ChatWire {
   public static func answerFailed(_ messages: [ChatMessage]) -> Set<String> {
     var failed: Set<String> = []
     var sawFailure = false
-    for message in messages.reversed() {
+    for message in messages.reversed() where !message.isSystem {
       if message.isError {
         sawFailure = true
       } else if !message.fromIgor {

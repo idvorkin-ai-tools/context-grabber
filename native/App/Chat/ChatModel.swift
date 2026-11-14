@@ -170,7 +170,9 @@ final class ChatModel: ObservableObject {
     log.event("chat", ["action": "pr_states_failed", "reason": why, "refs": refs, "from": place])
   }
 
-  func title(of key: String) -> String { threads.first { $0.key == key }?.title ?? "Chat" }
+  func title(of key: String) -> String {
+    threads.first { $0.key == key }?.title ?? movedTitles[key] ?? "Chat"
+  }
 
   /// Who a message on this thread goes to: a skill's name on its thread (#632), otherwise Larry.
   func answeredBy(_ key: String?) -> String { threads.first { $0.key == key }?.answeredBy ?? "Larry" }
@@ -328,7 +330,8 @@ final class ChatModel: ObservableObject {
       // What is on screen is shown: it never notifies later.
       if let last = rows.last, !last.ts.isEmpty { notified[key] = last.ts }
       // A new reply on screen is read here and on the laptop.
-      if markSeen || (before != nil && rows.last?.id != before && rows.last?.fromIgor == false) {
+      let reply = rows.last.map { $0.id != before && !$0.fromIgor && !$0.isSystem } ?? false
+      if markSeen || (before != nil && reply) {
         return await seen(key)
       }
       return true
@@ -383,6 +386,45 @@ final class ChatModel: ObservableObject {
   var pendingThreads: [InboxItem] { ChatWire.pendingThreads(inbox.items, listed: threads) }
 
   var earlierShares: [InboxItem] { inbox.items.filter(\.isEarlierShare) }
+
+  // MARK: Send to new chat (context-grabber-9yo)
+
+  /// A chat a message was just moved into, titled as the Cockpit answered until its list names it.
+  private var movedTitles: [String: String] = [:]
+  /// Messages whose move is on its way: a second tap meanwhile does nothing.
+  private var moving: Set<String> = []
+
+  /// Moves one of Igor's messages out of `thread` into a new chat. Nil when that message's move is already on its way.
+  func sendToNewChat(_ message: ChatMessage, from thread: String) async -> ChatMove.Outcome? {
+    guard moving.insert(message.id).inserted else { return nil }
+    defer { moving.remove(message.id) }
+    let outcome: ChatMove.Outcome
+    if inbox.offline {
+      outcome = .refused("the phone is offline")
+    } else if cockpit == ChatCockpit.nowhere {
+      outcome = .refused(ChatCockpit.noAddress)
+    } else {
+      outcome = await ChatMove.run(thread: thread, message: message.id, cockpit: cockpit) { request in
+        let (data, response) = try await URLSession.shared.data(for: request)
+        return (data, (response as? HTTPURLResponse)?.statusCode)
+      }
+    }
+    switch outcome {
+    case .moved(let key, let title):
+      movedTitles[key] = title
+      log.event(
+        "chat", ["action": "moved_to_new_chat", "thread": thread, "message": message.id, "ok": true, "to": key])
+      // The new chat opens at once; the old one's moved line and the list follow.
+      Task {
+        await load(thread, markSeen: false)
+        await refreshList(reason: "moved")
+      }
+    case .refused(let why):
+      log.event(
+        "chat", ["action": "moved_to_new_chat", "thread": thread, "message": message.id, "ok": false, "reason": why])
+    }
+    return outcome
+  }
 
   // MARK: Writing
 
