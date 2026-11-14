@@ -33,6 +33,23 @@ public enum ChatImageZoom {
     return CGSize(width: min(max(offset.width, -spareX), spareX), height: min(max(offset.height, -spareY), spareY))
   }
 
+  /// How far a drag's finger travelled since its last change: from one translation to the next, and nothing on the
+  /// drag's first change, whose translation counts from the touch and may hold a pinch's travel.
+  public static func travel(from last: CGSize?, to translation: CGSize) -> CGSize {
+    guard let last else { return .zero }
+    return CGSize(width: translation.width - last.width, height: translation.height - last.height)
+  }
+
+  /// The offset after a finger travelled `travel` since the drag's last change: a zoomed picture follows it as far as
+  /// its edge, a fitted one stays put.
+  public static func panned(
+    _ offset: CGSize, by travel: CGSize, scale: CGFloat, picture fitted: CGSize, in screen: CGSize
+  ) -> CGSize {
+    guard scale > 1 else { return offset }
+    let moved = CGSize(width: offset.width + travel.width, height: offset.height + travel.height)
+    return clamped(moved, scale: scale, picture: fitted, in: screen)
+  }
+
   /// The offset that keeps the point under the fingers (`anchor`, from the screen's centre) still as the scale changes.
   public static func anchored(_ offset: CGSize, around anchor: CGPoint, from old: CGFloat, to new: CGFloat) -> CGSize {
     guard old > 0 else { return offset }

@@ -1,6 +1,6 @@
 //  Story 306 (#592) on the simulator: a white picture opened full size, against the fake Cockpit
 //  (scripts/native/test-chat-ui.sh starts it), shows Done on a dark badge and closes with Done or a swipe down.
-//  Story 821 (#907): Share, and a double tap zooming so a swipe pans.
+//  Stories 821, 822 (#907): Share, and a double tap zooming so a swipe pans.
 //  Stories 317–319, 228 (#603): a picture from a board also jumps to that board; a missing board says so and the
 //  picture stays. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
 //  `WhiteboardRowDeleteUITests` ends on it, and why a board can't open is `BoardIndexTests` (story 770).
@@ -73,13 +73,13 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertTrue(done.waitForNonExistence(timeout: 5), "Done closes it: \(app.debugDescription)")
   }
 
-  /// Story 821 (#907): Share is there on its dark badge, and a double tap zooms, so a swipe down pans instead of closing;
+  /// Stories 821, 822 (#907): Share is there on its dark badge, and a double tap zooms, so a swipe down pans instead of closing;
   /// a second double tap goes back to fitted and the swipe closes again. The scale and pan rules are `ChatImageZoomTests`'.
   func testShareShowsAndADoubleTapZoomsSoASwipePans() throws {
     let app = try openPicture()
     let share = app.buttons["chat-image-share"]
     XCTAssertTrue(share.appears(within: 10), app.debugDescription)
-    // Share is live once the picture has come down, so the double tap lands on it.
+    // Share is live only while there is a picture to share, so the double tap lands on the picture.
     let loaded = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: share)
     wait(for: [loaded], timeout: 15)
     let done = app.buttons["chat-image-done"]

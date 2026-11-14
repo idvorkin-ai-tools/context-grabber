@@ -984,36 +984,41 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 821:
 
-- **Summary:** Zoom into a picture in a thread, and share or save it
-- **Status:** native app only: implemented in this branch (native/907-chat-image-zoom); verified by the host tests (`ChatImageZoomTests`: the scale clamp and settle, the double-tap toggle, the pan clamp, the fitted size, and the swipe closing only when fitted) and the Mac build; `ChatImageUITests.testShareShowsAndADoubleTapZoomsSoASwipePans` (simulator: Share shows, a double tap zooms so a swipe pans, a second one lets the swipe close) compiles but has not run; the simulator and the phone (the pinch's feel, Save Image asking for Photos access once) not yet
+- **Summary:** Zoom into a picture in a thread
+- **Status:** native app only: implemented in [01dc660](https://github.com/idvorkin/context-grabber/commit/01dc660) and [6d1003e](https://github.com/idvorkin/context-grabber/commit/6d1003e); verified by the host tests (`ChatImageZoomTests`: the scale clamp and settle, the double-tap toggle, a drag's travel since its last change, the pan step and its clamp, the fitted size, and the swipe closing only a fitted picture that was not pinched) and the Mac build; `ChatImageUITests.testShareShowsAndADoubleTapZoomsSoASwipePans` (simulator: a double tap zooms so a swipe pans, a second one lets the swipe close) compiles but has not run; the simulator and the phone (the pinch's feel, a pinch that drifts down not closing, a pan after a pinch not jumping, and a drag at fitted joined by a second finger's pinch leaving the next plain swipe down still closing) not yet
 - **Issues:** [#907](https://github.com/idvorkin/context-grabber/issues/907)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
 - **As** Larry's client reading a picture in a thread, such as a whiteboard he marked up or a screenshot
-- **I want to** pinch into it to read the small writing, and share or save the picture itself
-- **so that** I can read what he marked and keep the picture, rather than squint at it and lose it in the thread
+- **I want to** zoom into it and move around it
+- **so that** I can read the small writing he marked rather than squint at it
 
 #### Acceptance Criteria:
-- **Scenario:** Pinch and pan
-- **Given:** a picture is open full size
-- **When:** I pinch it open, drag it with one finger, then pinch it closed past its fitted size
-- **Then:** it zooms around my fingers up to five times, pans without leaving the screen, and settles back to fitted when I let go; a swipe down while zoomed pans and does not close it
+- **Scenario:** Zoom in and move around
+- **Given:** a picture is open full size, at its fitted size
+- **When:** I pinch it open or double tap it, then drag it with one finger
+- **Then:** it zooms around my fingers, up to five times for a pinch and to two and a half times for a double tap, and pans without its edge coming inside the screen's; while it is zoomed a swipe down pans rather than closes, a pinch never closes it, a second double tap or a pinch let go smaller than fitted brings it back to fitted, where a swipe down closes it again, and the next time I open it, it is fitted
 
-- **Scenario:** Double tap
-- **Given:** a picture is open full size, fitted
-- **When:** I double tap it, then double tap again
-- **Then:** it zooms to two and a half times, then back to fitted, and a swipe down closes it again
+---
 
+### User Story 822:
+
+- **Summary:** Share or save a picture from a thread
+- **Status:** native app only: implemented in [01dc660](https://github.com/idvorkin/context-grabber/commit/01dc660) and [6d1003e](https://github.com/idvorkin/context-grabber/commit/6d1003e); verified by the Mac build; `ChatImageUITests.testShareShowsAndADoubleTapZoomsSoASwipePans` (simulator: Share shows, and is live once the picture has loaded) compiles but has not run; the simulator and the phone (the share sheet holding the picture, Save Image asking for Photos access once, a picture that can't be fetched showing its problem with Share dimmed) not yet
+- **Issues:** [#907](https://github.com/idvorkin/context-grabber/issues/907)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client reading a picture in a thread, such as a whiteboard he marked up
+- **I want to** share or save the picture itself
+- **so that** I keep it, or hand it to someone, rather than lose it in the thread
+
+#### Acceptance Criteria:
 - **Scenario:** Share the picture
 - **Given:** a picture is open full size
 - **When:** I tap *Share*, at the top leading corner on the same dark badge as *Done*
-- **Then:** the share sheet offers the picture itself, so *Save Image* puts it in Photos and AirDrop sends the picture, not a link only my tailnet can open; a picture that can't be fetched says so in a copyable problem and stays open
-
-- **Scenario:** Opening again
-- **Given:** I zoomed a picture and tapped *Done*
-- **When:** I tap the picture in the thread again
-- **Then:** it opens fitted
+- **Then:** the share sheet offers the picture itself, so *Save Image* puts it in Photos and AirDrop sends the picture, not a link only my tailnet can open; a picture that could not be fetched shows a copyable problem in its place, with *Share* dimmed
 
 ---
 

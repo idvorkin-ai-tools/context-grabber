@@ -59,10 +59,39 @@ final class ChatImageZoomTests: XCTestCase {
       ChatImageZoom.anchored(CGSize(width: 5, height: 5), around: .zero, from: 0, to: 2), CGSize(width: 5, height: 5))
   }
 
-  func testASwipeClosesOnlyAFittedPicture() {
-    XCTAssertTrue(ChatImageClose.closes(dragHeight: 200, scale: 1))
-    XCTAssertFalse(ChatImageClose.closes(dragHeight: 200, scale: 1.5), "zoomed, a drag pans")
-    XCTAssertFalse(ChatImageClose.closes(dragHeight: 40, scale: 1), "a short one still leaves it")
+  func testAPanFollowsTheFingersTravelSinceItsLastChange() {
+    let screen = CGSize(width: 400, height: 800)
+    let picture = CGSize(width: 400, height: 200)
+    // At twice, 800 by 400: 200 points spare each side, none up or down.
+    let from = CGSize(width: 50, height: 0)
+    XCTAssertEqual(
+      ChatImageZoom.panned(from, by: CGSize(width: 30, height: 10), scale: 2, picture: picture, in: screen),
+      CGSize(width: 80, height: 0))
+    XCTAssertEqual(
+      ChatImageZoom.panned(from, by: CGSize(width: 500, height: 0), scale: 2, picture: picture, in: screen),
+      CGSize(width: 200, height: 0), "no further than the picture's edge")
+    XCTAssertEqual(
+      ChatImageZoom.panned(.zero, by: CGSize(width: 30, height: 90), scale: 1, picture: picture, in: screen), .zero,
+      "fitted, a drag does not pan")
+  }
+
+  func testADragsTravelCountsFromItsLastChangeNotFromTheTouch() {
+    // A finger that had travelled 120 points by the end of a pinch and is at 125 now moved 5, not 125.
+    XCTAssertEqual(
+      ChatImageZoom.travel(from: CGSize(width: 120, height: 40), to: CGSize(width: 125, height: 30)),
+      CGSize(width: 5, height: -10))
+    XCTAssertEqual(
+      ChatImageZoom.travel(from: nil, to: CGSize(width: 125, height: 30)), .zero,
+      "a drag's first change moves nothing: its translation counts from the touch")
+  }
+
+  func testASwipeClosesOnlyAFittedPictureThatWasNotPinched() {
+    XCTAssertTrue(ChatImageClose.closes(dragHeight: 200, scale: 1, pinched: false))
+    XCTAssertFalse(ChatImageClose.closes(dragHeight: 200, scale: 1.5, pinched: false), "zoomed, a drag pans")
+    XCTAssertFalse(ChatImageClose.closes(dragHeight: 40, scale: 1, pinched: false), "a short one still leaves it")
+    XCTAssertFalse(
+      ChatImageClose.closes(dragHeight: 200, scale: 1, pinched: true),
+      "a pinch back to fitted whose finger drifted down is not a swipe")
   }
 
   func testTheLoggedScaleIsRoundedToTwoPlaces() {

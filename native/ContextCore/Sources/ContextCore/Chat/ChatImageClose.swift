@@ -11,8 +11,9 @@ public enum ChatImageClose {
   /// swipe up, a short one or one that comes back leaves the picture open.
   public static func closes(dragHeight height: CGFloat) -> Bool { height > 80 }
 
-  /// The same, for a picture at `scale` times its fitted size: zoomed in, a drag pans and never closes.
-  public static func closes(dragHeight height: CGFloat, scale: CGFloat) -> Bool {
-    scale <= 1 && closes(dragHeight: height)
+  /// The same, for a picture at `scale` times its fitted size: zoomed in, a drag pans and never closes, and a drag
+  /// whose fingers `pinched` on the way was a pinch, not a swipe.
+  public static func closes(dragHeight height: CGFloat, scale: CGFloat, pinched: Bool) -> Bool {
+    scale <= 1 && !pinched && closes(dragHeight: height)
   }
 }

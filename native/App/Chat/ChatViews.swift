@@ -1044,7 +1044,7 @@ private struct ChatImage: View {
     .fullScreenCover(isPresented: $full, onDismiss: coverDismissed) {
       ZStack(alignment: .topTrailing) {
         Color.black.ignoresSafeArea()
-        // Story 821 (#907): pinches, double taps, pans and shares; a swipe down closes it only when fitted.
+        // Stories 821, 822 (#907): pinches, double taps, pans and shares; a swipe down closes it only when fitted.
         ChatImageFull(url: url, message: message, logger: logger) { close(how: "swipe") }
         if let board {
           VStack(spacing: 8) {
