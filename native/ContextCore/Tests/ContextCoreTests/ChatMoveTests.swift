@@ -122,19 +122,20 @@ final class ChatMoveTests: XCTestCase {
     XCTAssertFalse(thread[1].fromIgor)
   }
 
-  /// The contract names no field for the new chat: either spare spelling is read too.
-  func testTheMovedLineReadsTheSpareSpellings() throws {
+  /// The row exactly as the Cockpit's ledger reads it back (cockpit 5af4fc8, chat_store._moved_row): its other fields
+  /// are ignored, and an empty `moved_to` names no chat.
+  func testTheMovedLineReadsTheCockpitsOwnRow() throws {
     let thread = try rows(
       #"""
       {"ok": true, "messages": [
-        {"id": "a", "who": "system", "text": "Moved to a new chat", "new_thread": "chat:a"},
-        {"id": "b", "who": "system", "text": "Moved to a new chat", "moved_to_thread": "chat:b"},
+        {"id": "a1b2c3", "ts": "2026-11-14T10:00:00-08:00", "thread": "auto:note", "who": "system", "kind": "moved",
+         "text": "Moved to a new chat", "moved_to": "chat:a", "moved_id": "m1", "moved_ts": "2026-11-14T10:05:00-08:00"},
         {"id": "c", "who": "system", "text": "Moved to a new chat", "moved_to": ""},
         {"id": "d", "who": "igor", "text": "hi"}
       ]}
       """#)
-    XCTAssertEqual(thread.map(\.movedTo), ["chat:a", "chat:b", nil, nil])
-    XCTAssertEqual(thread.map(\.isSystem), [true, true, true, false])
+    XCTAssertEqual(thread.map(\.movedTo), ["chat:a", nil, nil])
+    XCTAssertEqual(thread.map(\.isSystem), [true, true, false])
   }
 
   /// How the line reads: the Cockpit's words, a link when it names the new chat, plain otherwise; a message is no line.

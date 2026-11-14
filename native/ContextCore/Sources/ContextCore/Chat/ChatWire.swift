@@ -161,11 +161,8 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
 
   enum CodingKeys: String, CodingKey {
     case id, ts, who, text, attachments, receipt, board, author, error
-    // ponytail: the contract names no field for the moved row's new chat; `moved_to` is the one coded to, the other two
-    // are read in case the Cockpit's lands as either. Drop the spares once cockpit-x3s ships its shape.
+    // The moved row's new chat, as cockpit-x3s ships it (chat_store._moved_row).
     case movedTo = "moved_to"
-    case newThread = "new_thread"
-    case movedToThread = "moved_to_thread"
   }
   struct ReceiptBody: Decodable {
     let state: String?
@@ -185,9 +182,7 @@ public struct ChatMessage: Decodable, Equatable, Sendable, Identifiable {
     board = (try? c.decode(String.self, forKey: .board)).flatMap { $0.isEmpty ? nil : $0 }
     author = (try? c.decode(String.self, forKey: .author)).flatMap { $0.isEmpty ? nil : $0 }
     isError = (try? c.decode(Bool.self, forKey: .error)) ?? false
-    movedTo =
-      [CodingKeys.movedTo, .newThread, .movedToThread].lazy
-      .compactMap { (try? c.decode(String.self, forKey: $0)).flatMap { $0.isEmpty ? nil : $0 } }.first
+    movedTo = (try? c.decode(String.self, forKey: .movedTo)).flatMap { $0.isEmpty ? nil : $0 }
   }
 }
 
