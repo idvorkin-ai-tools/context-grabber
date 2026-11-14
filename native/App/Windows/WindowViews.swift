@@ -107,7 +107,7 @@ private struct WindowChoice: View {
             }
           }
         } footer: {
-          Text("Home is open in another window. Timers, breathing and calls stay there.")
+          Text(WindowScreen.staysHome)
         }
       }
       .navigationTitle("New Window")
