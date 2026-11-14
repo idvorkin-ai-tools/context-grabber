@@ -79,7 +79,7 @@ final class WhiteboardStore: ObservableObject {
       "whiteboard",
       [
         "action": "list", "boards": index.boards.count, "own": index.boards.filter(editable).count,
-        "migrated": migrated,
+        "migrated": migrated, "new_board": !onPhone,
       ])
   }
 

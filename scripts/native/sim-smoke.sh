@@ -146,6 +146,8 @@ if [ "$opened" = "hook" ] && [[ "$boards" =~ ^[0-9]+$ ]] && [[ "$synced" == "tru
   ok "whiteboard: the boards opened from the hook, $boards board(s), iCloud: $synced, no error events"
 else bad "whiteboard: open_whiteboard from '$opened', boards '$boards', sync '$synced', errors: $errors"; fi
 # Story 407: a board's grid turned on from the hook, logged with its board. How it looks is WhiteboardTurnUITests'.
+# Story 746, on the same launch (story 770 moved it here from PhoneBoardsUITests): on an iPhone the list offers no New
+# board, and this phone's own board on paper opens look-only, saying to draw on the iPad; on an iPad it draws.
 SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-grid SIMCTL_CHILD_GRABBER_WHITEBOARD_GRID=on \
   SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-grid" relaunch
 wait_jq 'select(.type=="whiteboard" and .action=="grid_on")' 30 || echo "      (timed out waiting for grid_on)"
@@ -154,6 +156,15 @@ grid=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="grid_on")][0].boa
 errors=$(jq -c 'select(.type=="error")' "$f")
 if [ "$grid" = "smoke-grid" ] && [ -z "$errors" ]; then ok "whiteboard: the grid on from the hook, no error events"
 else bad "whiteboard: grid_on for board '$grid', errors: $errors"; fi
+device=$(jq -r 'select(.type=="session_start") | .device' "$f" | head -1)
+looks=$(jq -sr '([.[] | select(.type=="whiteboard" and .action=="list")][0].new_board | tostring) + " " +
+  ([.[] | select(.type=="whiteboard" and .action=="open" and .board=="smoke-grid")][0] | "\(.editable) \(.look_only)")' "$f")
+case $device in
+  iPhone) wanted="false false Look only on iPhone: draw on the iPad" ;;
+  *) wanted="true true null" ;;
+esac
+if [ "$looks" = "$wanted" ]; then ok "whiteboard: on an $device, New board $(cut -d' ' -f1 <<<"$looks"), its own board: $(cut -d' ' -f2- <<<"$looks")"
+else bad "whiteboard: on an $device, New board, editable and look-only were '$looks', wanted '$wanted'"; fi
 # Story 658: a board drawn on the old canvas opens on paper to look at only, its 40 strokes moved onto the first page
 # (the ink's box starts at the page's margin).
 SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-old-canvas SIMCTL_CHILD_GRABBER_BOARD_FIXTURE_OLD_INK=40 \

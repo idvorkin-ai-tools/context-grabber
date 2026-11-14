@@ -368,3 +368,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** two UI tests that each launch the app to check one thing on the same screen
 - **When:** they are merged
 - **Then:** one launch makes every check both made, in the order the screen allows
+
+- **Scenario:** The iPhone's look at the boards
+- **Given:** a whiteboard change, whose UI test classes run on an iPad simulator
+- **When:** the ladder climbs
+- **Then:** what an iPhone does with boards (no New board, its own board look-only with the bar's reason) is read from the smoke's session log on the iPhone simulator it already booted, rather than from a class of its own in a second test session

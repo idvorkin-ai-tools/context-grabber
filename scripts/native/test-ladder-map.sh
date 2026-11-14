@@ -117,7 +117,9 @@ never "chat code: no suite without --full" "rung 2 full"
 
 dry --changed native/App/Whiteboard/PaperBoard.swift
 says "whiteboard code: its classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
-says "whiteboard code: the iPhone's look-only class too (story 746)" "rung 2 UI tests: PhoneBoardsUITests"
+# Story 770: the iPhone's look at boards is the smoke's, so the whiteboard's classes are the only ones, and all on the iPad.
+never "whiteboard code: no iPhone class of its own" "rung 2 UI tests: "
+says "whiteboard code: the smoke's whiteboard section" "rung 2 smoke, on the same build and boot: whiteboard"
 never "whiteboard code: no chat" "Chat"
 
 # The whiteboard's rules run only the classes that show them; its views still run them all.
@@ -129,14 +131,13 @@ never "a ghost rule: not the lines" "WhiteboardPaperLinesUITests"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardFrame.swift
 says "the picture's frame: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 never "the picture's frame: not the lines" "WhiteboardPaperLinesUITests"
-never "the picture's frame: not the iPhone's class" "PhoneBoardsUITests"
 for f in WhiteboardLarryClock WhiteboardNote; do
   dry --changed "native/ContextCore/Sources/ContextCore/Whiteboard/$f.swift"
   says "$f: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 done
 dry --changed native/App/Whiteboard/WhiteboardStore.swift
 says "the board list: row delete and on paper" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardOnPaperUITests WhiteboardRowDeleteUITests"
-says "the board list: the iPhone's look-only class too" "rung 2 UI tests: PhoneBoardsUITests"
+never "the board list: no iPhone class of its own" "rung 2 UI tests: "
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardLaunchHooks.swift
 says "the hooks: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
 

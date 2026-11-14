@@ -164,7 +164,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard",
       [
         "action": "open", "board": board.id, "strokes": loaded.strokes.count, "editable": editable,
-        "old_canvas": oldCanvas,
+        "old_canvas": oldCanvas, "look_only": lookOnlyNote as Any? ?? NSNull(),
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()

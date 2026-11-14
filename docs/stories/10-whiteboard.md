@@ -3958,7 +3958,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 746:
 
 - **Summary:** On an iPhone, boards are for looking, not drawing
-- **Status:** implemented in [df438e6](https://github.com/idvorkin/context-grabber/commit/df438e6), [d053c9a](https://github.com/idvorkin/context-grabber/commit/d053c9a); verified by host tests (`BoardIndexTests`), `PhoneBoardsUITests` on the iPhone simulator, and the whiteboard classes on the iPad simulator (`just test-ladder`)
+- **Status:** implemented in [df438e6](https://github.com/idvorkin/context-grabber/commit/df438e6), [d053c9a](https://github.com/idvorkin/context-grabber/commit/d053c9a); verified by host tests (`BoardIndexTests`), `PhoneBoardsUITests` on the iPhone simulator, and the whiteboard classes on the iPad simulator (`just test-ladder`). Since story 770 the iPhone simulator's check is the smoke's whiteboard section, from the session log: the list's `new_board` false, and its own board on paper opening with `editable` false and `look_only` *Look only on iPhone: draw on the iPad*; *Send to Larry* still being there on a phone is no longer checked by a test
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *On an iPhone every board is look-only*
 
 #### Use Case:
