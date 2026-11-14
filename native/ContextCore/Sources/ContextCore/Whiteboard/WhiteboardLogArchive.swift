@@ -46,15 +46,21 @@ public enum WhiteboardLogArchive {
     }
   }
 
-  /// The batch's records: one a line, `guid` `<launch>:<seq>` so a line sent twice is one record, with the launch
-  /// and its place in it beside the line, cut to the archive's 8 KB.
-  public static func records(_ lines: [Line], launch: String) -> [[String: Any]] {
-    lines.map { line in
-      CallLogArchive.fitted(
-        ["guid": "\(launch):" + String(format: "%06d", line.seq), "launch": launch, "seq": line.seq, "t": line.t],
-        field: "line", text: line.line)
-    }
+  /// The batch's records: a header first, the launch's build (`guid` `<launch>:000000`, the same in every batch, so the
+  /// archive keeps it once), then one a line, `guid` `<launch>:<seq>` so a line sent twice is one record, with the
+  /// launch and its place in it beside the line, cut to the archive's 8 KB.
+  public static func records(_ lines: [Line], launch: String, build: [String: String] = [:]) -> [[String: Any]] {
+    var head: [String: Any] = ["guid": guid(launch, 0), "launch": launch, "seq": 0, "kind": "header"]
+    for (name, value) in build where !value.isEmpty { head = CallLogArchive.fitted(head, field: name, text: value) }
+    return [head]
+      + lines.map { line in
+        CallLogArchive.fitted(
+          ["guid": guid(launch, line.seq), "launch": launch, "seq": line.seq, "t": line.t], field: "line",
+          text: line.line)
+      }
   }
+
+  private static func guid(_ launch: String, _ seq: Int) -> String { "\(launch):" + String(format: "%06d", seq) }
 
   /// A launch's name in the archive: the session log's own stamp and the device, in the archive's guid characters.
   public static func launch(logFile: String, device: String) -> String {

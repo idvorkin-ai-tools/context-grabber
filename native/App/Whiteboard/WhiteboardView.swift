@@ -442,7 +442,12 @@ final class WhiteboardModel: ObservableObject {
     let device = UIDevice.current.identifierForVendor?.uuidString.lowercased() ?? "unknown-device"
     let batch = ArchiveBatch(
       stream: WhiteboardLogArchive.stream, deviceId: device,
-      records: WhiteboardLogArchive.records(lines, launch: log.launch))
+      records: WhiteboardLogArchive.records(
+        lines, launch: log.launch,
+        build: [
+          "app": BuildInfo.version, "sha": BuildInfo.sha, "branch": BuildInfo.branch,
+          "system": UIDevice.current.systemVersion, "device": UIDevice.current.model,
+        ]))
     let log = log
     Task { [event] in
       var event = event

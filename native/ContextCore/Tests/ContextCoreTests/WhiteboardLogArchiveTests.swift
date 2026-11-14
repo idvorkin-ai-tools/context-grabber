@@ -38,10 +38,17 @@ final class WhiteboardLogArchiveTests: XCTestCase {
     XCTAssertEqual(launch, "ABCDEF12.grabber-20261114-071800")
     let long = String(repeating: "é", count: 9000)
     let records = WhiteboardLogArchive.records(
-      [.init(seq: 7, t: 1200, line: #"{"type":"whiteboard"}"#), .init(seq: 8, t: 1300, line: long)], launch: launch)
-    XCTAssertEqual(records.first?["guid"] as? String, "ABCDEF12.grabber-20261114-071800:000007")
-    XCTAssertEqual(records.first?["line"] as? String, #"{"type":"whiteboard"}"#)
-    XCTAssertEqual(records.first?["t"] as? Int, 1200)
+      [.init(seq: 7, t: 1200, line: #"{"type":"whiteboard"}"#), .init(seq: 8, t: 1300, line: long)], launch: launch,
+      build: ["sha": "b54599d", "app": "2.0.0", "branch": ""])
+    // The header says which build logged the lines, the first thing to match before reading them.
+    XCTAssertEqual(records.count, 3)
+    XCTAssertEqual(records[0]["guid"] as? String, "ABCDEF12.grabber-20261114-071800:000000")
+    XCTAssertEqual(records[0]["kind"] as? String, "header")
+    XCTAssertEqual(records[0]["sha"] as? String, "b54599d")
+    XCTAssertNil(records[0]["branch"], "an empty field stays out")
+    XCTAssertEqual(records[1]["guid"] as? String, "ABCDEF12.grabber-20261114-071800:000007")
+    XCTAssertEqual(records[1]["line"] as? String, #"{"type":"whiteboard"}"#)
+    XCTAssertEqual(records[1]["t"] as? Int, 1200)
     // The archive's rule: 1-128 characters of [A-Za-z0-9_.:+-], and a record within 8 KB.
     let guid = try XCTUnwrap(records.last?["guid"] as? String)
     XCTAssertLessThanOrEqual(guid.count, 128)
