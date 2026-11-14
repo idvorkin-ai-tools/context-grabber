@@ -4327,3 +4327,69 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** he picks it up four seconds later
 - **Then:** the note's state reads *Sent · 0:03* and then *Larry · 0:04*, the clock never restarting; had he not picked it up in thirty seconds it would read *Sent · 0:31 · not picked up yet*
 
+
+---
+
+### User Story 775:
+
+- **Summary:** A picture that hasn't reached the Cockpit in 20 seconds offers Retry
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`); verified by host tests on Linux (`WhiteboardLarryWaitTests`: no mark at 20 s is stuck with Retry and Dismiss, Retry keeps the picture and restarts the 20 s, the mark only moves forward and is found by the message's id) and the app compiled for iOS (`just test-linux`); not yet seen on the simulator or the iPad, nor against a hung Cockpit
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers ("I think Larry got stuck. I need interrupt/retry button after 20s!")
+- **I want to** be told when a picture I sent hasn't reached the Cockpit, and send it again with one tap
+- **so that** I'm never left guessing whether Larry is slow or never got it
+
+#### Acceptance Criteria:
+- **Scenario:** The picture never lands
+- **Given:** a picture sent to Larry, with no mark from the Cockpit on its message
+- **When:** twenty seconds pass
+- **Then:** the bar shows *Larry hasn't got the picture* as a problem I can copy, with *Retry* and *Dismiss* beside it, and the canvas is not covered
+- **When:** I tap *Retry*
+- **Then:** the same picture goes again under the same message, the clock goes back to 0:00, the problem goes, and the session log says I retried
+
+---
+
+### User Story 776:
+
+- **Summary:** Dismiss a stuck picture and the board stops waiting
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`); verified by host tests on Linux (`WhiteboardLarryWaitTests.testDismissFreesTheTurnAndKeepsItsWords`) and the app compiled for iOS (`just test-linux`); the button not yet seen on the simulator or the iPad
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** stop waiting on a picture that hasn't reached him
+- **so that** my next pause or tap is a fresh ask instead of being held for an answer that won't come
+
+#### Acceptance Criteria:
+- **Scenario:** I dismiss it
+- **Given:** the bar shows *Larry hasn't got the picture*
+- **When:** I tap *Dismiss*
+- **Then:** the problem and Larry's clock go, words that went with the picture wait for the next one, nothing more is said about that picture, and the session log says it was dismissed
+
+---
+
+### User Story 777:
+
+- **Summary:** Interrupt Larry when he has the picture and is taking long
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`); verified by host tests on Linux (`WhiteboardLarryWaitTests`: received or seen at 20 s offers only Interrupt, done offers nothing, Interrupt frees the turn and his late answer sends nothing) and the app compiled for iOS (`just test-linux`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** free the board from waiting on him once the Cockpit has my picture
+- **so that** I can ask afresh without sending the same picture again, which wouldn't wake him
+
+#### Acceptance Criteria:
+- **Scenario:** He has it and hasn't finished
+- **Given:** a picture the Cockpit marked received or seen, not done
+- **When:** twenty seconds pass
+- **Then:** the note's line offers a small *Interrupt* after the clock, and nothing else appears
+- **When:** I tap *Interrupt*
+- **Then:** the clock goes, the next pause or tap sends a fresh picture, what Larry draws or says later still lands, and the session log says I interrupted
+
+- **Scenario:** He finishes
+- **Given:** *Interrupt* is showing
+- **When:** his answer arrives or the Cockpit marks the picture done
+- **Then:** *Interrupt* goes

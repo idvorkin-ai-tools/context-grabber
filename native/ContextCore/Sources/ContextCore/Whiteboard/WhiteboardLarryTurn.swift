@@ -100,6 +100,26 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
     if let words { queued = queued.map { "\(words) \($0)" } ?? words }
   }
 
+  /// *Retry* on a picture the Cockpit hasn't taken (story 775): the same picture goes again, so the turn stays on the
+  /// same version and its clock starts again from `now`. False with no turn out.
+  public mutating func resent(now: ContinuousClock.Instant) -> Bool {
+    guard case .awaiting(_, let sent) = state else { return false }
+    state = .awaiting(since: now, sent: sent)
+    alreadyHasAt = nil
+    return true
+  }
+
+  /// *Interrupt* (story 777): Larry has the picture and the board stops waiting for him, so the next pause or tap is a
+  /// fresh ask. What a pause saw is dropped, as the next picture takes the board as it is then; waiting words stay for
+  /// it. His answer, when it comes, finds no turn out. False with no turn out.
+  public mutating func interrupted() -> Bool {
+    guard case .awaiting = state else { return false }
+    state = .idle
+    latest = nil
+    alreadyHasAt = nil
+    return true
+  }
+
   /// Ghosts off: what pauses kept for the next picture is forgotten. A turn already out stays out.
   public mutating func dropped() {
     latest = nil

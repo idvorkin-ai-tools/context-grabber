@@ -22,7 +22,8 @@ the longest wait.
 ## Non-goals (for this step)
 
 - Changing what gets sent or when. The one-picture-at-a-time rule (story 662) stays as it is.
-- A cancel button. A picture that has gone can't be called back.
+- Calling a picture back. One that has gone can't be. The 20-second controls below (Igor, 2026-11-14) free the board's
+  turn or send the same picture again; none of them unsends anything.
 - A clock for the fast responders (Haiku, Sonnet). They answer in about two seconds. Larry's clock shows whenever a
   turn of his is out, which on a Haiku or Sonnet board means after *Larry's turn* or *Send to Larry*.
 
@@ -62,6 +63,37 @@ say so himself.
   *Send to Larry* keeps its own rule (off until the next stroke).
 - **Every tap changes something on screen within a quarter of a second**: the clock appears or restarts, or the note
   says why nothing went.
+
+## After 20 seconds: Retry, Dismiss or Interrupt (Igor, 2026-11-14)
+
+Written on the board: "I think Larry got stuck. I need interrupt/retry button after 20s!" The clock says how long; it
+doesn't say whether the picture ever reached him, or offer anything to do about it.
+
+- **Twenty seconds after a picture goes** with no answer, the board looks at how far the Cockpit's mark on that
+  picture's message has got (received, seen, done, as the open note shows them) and offers one small control. Before
+  twenty seconds, nothing is offered.
+- **No mark at all: stuck.** The Cockpit hasn't taken the picture: it is still on its way or its answer was lost. The
+  bar shows **Larry hasn't got the picture** as a problem that can be copied (when the picture went, how long it has
+  waited, whether it is still going up, and whether the Cockpit is answering), with **Retry** and **Dismiss** beside
+  it, where *Larry didn't answer* sits.
+  - **Retry** sends the very same picture again: the same picture and the same message, so if the first did land the
+    Cockpit keeps one and Larry is asked once. The clock goes back to 0:00 and the twenty seconds start again.
+  - **Dismiss** stops waiting: the turn is free, words that went with the picture wait for the next one, and nothing
+    more is said about that picture.
+- **Received or seen, not done: Larry has it.** The Cockpit took it and it is Larry's to answer. The note's line, after
+  the clock, carries a quiet **Interrupt**. It frees the turn, so the next pause or tap is a fresh ask instead of being
+  held for his answer. What Larry draws or says later still lands. Words waiting for the next picture still go with it.
+- **Done, or his answer: nothing is offered**, and the control goes with the clock.
+- **Small and out of the way.** Retry and Dismiss sit in the bar's problem row, Interrupt in the note's line. Neither
+  covers the board, and the Pencil keeps drawing.
+- **Only *Larry's turn* and the pictures the board hands him itself.** A *Send to Larry* goes through the outbox, which
+  already keeps trying and shows its own state, so its turn is offered none of these controls.
+- **The 3-minute wait is unchanged.** If it runs out first, *Larry didn't answer* takes the problem row's place.
+- **The session log says each change** (stuck, working, back to waiting or nothing) and each press, with the picture
+  and the mark it had.
+- **Received but not yet seen** is offered Interrupt too: a picture the Cockpit has is not stuck, and sending it again
+  would not wake Larry. Whether it deserves its own words (*Larry hasn't picked this up*) is still under discussion,
+  below.
 
 ## One line that opens (Igor, 2026-11-12: "some kind of collapse expand conversation")
 
@@ -135,6 +167,10 @@ pictures *seen* and *done* from 2026-11-14.
 - He never answers: at three minutes the note shows *Larry didn't answer*; copying it gives the board, the time the
   picture went, the wait, what was waiting and whether the Cockpit was answering.
 - Ink was waiting at the three-minute mark: a fresh picture goes and a new clock starts; the problem is still there.
+- The picture doesn't reach the Cockpit: at twenty seconds *Larry hasn't got the picture* shows with *Retry* and
+  *Dismiss*. *Retry* sends the same picture and the clock starts again; *Dismiss* frees the turn.
+- The Cockpit has the picture and Larry hasn't finished: at twenty seconds the note's line offers *Interrupt*; a tap
+  frees the turn, and the next pause sends a fresh picture.
 - The Cockpit stops answering mid-wait: the state adds *Cockpit not answering* and keeps counting; it goes when the
   Cockpit is back.
 - Leave the app for twenty seconds mid-wait and come back: the clock is twenty seconds further on.
