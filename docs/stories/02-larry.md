@@ -982,6 +982,41 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 821:
+
+- **Summary:** Zoom into a picture in a thread, and share or save it
+- **Status:** native app only: implemented in this branch (native/907-chat-image-zoom); verified by the host tests (`ChatImageZoomTests`: the scale clamp and settle, the double-tap toggle, the pan clamp, the fitted size, and the swipe closing only when fitted) and the Mac build; the simulator (`ChatImageUITests`) and the phone not yet
+- **Issues:** [#907](https://github.com/idvorkin/context-grabber/issues/907)
+- **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Larry's client reading a picture in a thread, such as a whiteboard he marked up or a screenshot
+- **I want to** pinch into it to read the small writing, and share or save the picture itself
+- **so that** I can read what he marked and keep the picture, rather than squint at it and lose it in the thread
+
+#### Acceptance Criteria:
+- **Scenario:** Pinch and pan
+- **Given:** a picture is open full size
+- **When:** I pinch it open, drag it with one finger, then pinch it closed past its fitted size
+- **Then:** it zooms around my fingers up to five times, pans without leaving the screen, and settles back to fitted when I let go; a swipe down while zoomed pans and does not close it
+
+- **Scenario:** Double tap
+- **Given:** a picture is open full size, fitted
+- **When:** I double tap it, then double tap again
+- **Then:** it zooms to two and a half times, then back to fitted, and a swipe down closes it again
+
+- **Scenario:** Share the picture
+- **Given:** a picture is open full size
+- **When:** I tap *Share*, at the top leading corner on the same dark badge as *Done*
+- **Then:** the share sheet offers the picture itself, so *Save Image* puts it in Photos and AirDrop sends the picture, not a link only my tailnet can open; a picture that can't be fetched says so in a copyable problem and stays open
+
+- **Scenario:** Opening again
+- **Given:** I zoomed a picture and tapped *Done*
+- **When:** I tap the picture in the thread again
+- **Then:** it opens fitted
+
+---
+
 ### User Story 307:
 
 - **Summary:** Archive a chat with a swipe, and undo it
