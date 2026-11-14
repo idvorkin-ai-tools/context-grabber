@@ -4232,3 +4232,69 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap the note's line
 - **Then:** Chat opens on the board's thread
 
+
+---
+
+### User Story 773:
+
+- **Summary:** A picture that hasn't reached the Cockpit in 20 seconds offers Retry
+- **Status:** implemented on this branch (bead `context-grabber-stl`); see the PR for the commit and where it was verified
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers ("I think Larry got stuck. I need interrupt/retry button after 20s!")
+- **I want to** be told when a picture I sent hasn't reached the Cockpit, and send it again with one tap
+- **so that** I'm never left guessing whether Larry is slow or never got it
+
+#### Acceptance Criteria:
+- **Scenario:** The picture never lands
+- **Given:** a picture sent to Larry, with no mark from the Cockpit on its message
+- **When:** twenty seconds pass
+- **Then:** the bar shows *Larry hasn't got the picture* as a problem I can copy, with *Retry* and *Dismiss* beside it, and the canvas is not covered
+- **When:** I tap *Retry*
+- **Then:** the same picture goes again under the same message, the clock goes back to 0:00, the problem goes, and the session log says I retried
+
+---
+
+### User Story 774:
+
+- **Summary:** Dismiss a stuck picture and the board stops waiting
+- **Status:** implemented on this branch (bead `context-grabber-stl`); see the PR for the commit and where it was verified
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** stop waiting on a picture that hasn't reached him
+- **so that** my next pause or tap is a fresh ask instead of being held for an answer that won't come
+
+#### Acceptance Criteria:
+- **Scenario:** I dismiss it
+- **Given:** the bar shows *Larry hasn't got the picture*
+- **When:** I tap *Dismiss*
+- **Then:** the problem and Larry's clock go, words that went with the picture wait for the next one, nothing more is said about that picture, and the session log says it was dismissed
+
+---
+
+### User Story 775:
+
+- **Summary:** Interrupt Larry when he has the picture and is taking long
+- **Status:** implemented on this branch (bead `context-grabber-stl`); see the PR for the commit and where it was verified
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** free the board from waiting on him once the Cockpit has my picture
+- **so that** I can ask afresh without sending the same picture again, which wouldn't wake him
+
+#### Acceptance Criteria:
+- **Scenario:** He has it and hasn't finished
+- **Given:** a picture the Cockpit marked received or seen, not done
+- **When:** twenty seconds pass
+- **Then:** the note's line offers a small *Interrupt* after the clock, and nothing else appears
+- **When:** I tap *Interrupt*
+- **Then:** the clock goes, the next pause or tap sends a fresh picture, what Larry draws or says later still lands, and the session log says I interrupted
+
+- **Scenario:** He finishes
+- **Given:** *Interrupt* is showing
+- **When:** his answer arrives or the Cockpit marks the picture done
+- **Then:** *Interrupt* goes
