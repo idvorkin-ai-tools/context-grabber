@@ -295,7 +295,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 354:
 
 - **Summary:** Ghosts on a device where a finger draws
-- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt` verified on the simulator by `WhiteboardTurnUITests` (an old-canvas test, dropped 2026-11-07; on paper `WhiteboardPaperGhostsUITests.testAGhostShowsOnThePaperAndATapKeepsIt` and `testATapOffDismissesLeavesNoDotAndAFingerDrawsAgain` hold it); an iPhone and an iPad with no Pencil not yet tried. Since [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38) a tap off them dismisses Claude's first and Larry's only once his are all that's left (stories 663, 664)
+- **Status:** app side implemented on this branch; `WhiteboardTurnUITests.testAFingerTapOffAGhostDismissesItAndOnOneKeepsIt` verified on the simulator by `WhiteboardTurnUITests` (an old-canvas test, dropped 2026-11-07; on paper `WhiteboardPaperGhostsUITests.testAGhostShowsOnThePaperAndATapKeepsIt` and `testATapOffDismissesLeavesNoDotAndAFingerDrawsAgain` hold it); an iPhone and an iPad with no Pencil not yet tried. Since [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38) a tap off them dismisses Claude's first and Larry's only once his are all that's left (stories 663, 664); on branch `native/batch-decided-1114` (#883, story 825) a tap on a ghost offers Keep and Dismiss and a tap off them does nothing, verified by host tests and the Mac build, simulator and device still to do
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -307,15 +307,15 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A finger tap while ghosts show
 - **Given:** a finger draws on this device and ghosts are showing
 - **When:** I tap a ghost
-- **Then:** it becomes ink and no dot is drawn; once no ghost is left, or after a tap off them that dismisses them, my finger draws again
+- **Then:** Keep and Dismiss show beside it and no dot is drawn (story 825); once no ghost is left, kept, dismissed or faded, my finger draws again
 
 ---
 
 ### User Story 663:
 
 - **Summary:** A stray tap leaves Larry's marks
-- **Status:** implemented in [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38); verified on the host (`WhiteboardGhostTurnsTests.testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad
-- **Issues:** [#823](https://github.com/idvorkin/context-grabber/issues/823) (one stray tap dismissed Larry's marks for good)
+- **Status:** implemented in [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38); verified on the host (`WhiteboardGhostTurnsTests.testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad; changed on branch `native/batch-decided-1114` (#883, story 825): a tap off the marks dismisses nothing, and a mark goes only by its own Dismiss; verified by host tests and the Mac build, simulator and device still to do
+- **Issues:** [#823](https://github.com/idvorkin/context-grabber/issues/823) (one stray tap dismissed Larry's marks for good), [#883](https://github.com/idvorkin/context-grabber/issues/883) (Keep and Dismiss beside the mark, story 825)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -327,15 +327,15 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A tap off the ghosts with both showing
 - **Given:** Claude's ghosts and Larry's marks are both showing
 - **When:** I tap off them
-- **Then:** Claude's are dismissed and Larry's stay
+- **Then:** nothing is dismissed: Claude's and Larry's all stay (story 825)
 
 ---
 
 ### User Story 664:
 
-- **Summary:** A deliberate tap clears Larry's marks
-- **Status:** implemented in [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38); verified on the host (`WhiteboardGhostTurnsTests.testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad
-- **Issues:** [#823](https://github.com/idvorkin/context-grabber/issues/823) (one stray tap dismissed Larry's marks for good)
+- **Summary:** A deliberate choice clears Larry's marks
+- **Status:** implemented in [a117e38](https://github.com/idvorkin/context-grabber/commit/a117e38); verified on the host (`WhiteboardGhostTurnsTests.testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone`) and the Mac build. The whiteboard UI tests are blocked by [#850](https://github.com/idvorkin/context-grabber/issues/850) (Board-menu taps swallowed on the iPad simulator) and weren't run; not yet tried on an iPad; changed on branch `native/batch-decided-1114` (#883, story 825): a tap off the marks dismisses nothing, and a mark goes only by its own Dismiss; verified by host tests and the Mac build, simulator and device still to do
+- **Issues:** [#823](https://github.com/idvorkin/context-grabber/issues/823) (one stray tap dismissed Larry's marks for good), [#883](https://github.com/idvorkin/context-grabber/issues/883) (Keep and Dismiss beside the mark, story 825)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -346,8 +346,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** A tap off the ghosts with only Larry's left
 - **Given:** only Larry's marks are showing
-- **When:** I tap off them
-- **Then:** his marks are dismissed
+- **When:** I tap Dismiss beside each of them (story 825)
+- **Then:** each goes as I dismiss it, and a tap off them dismisses nothing
 
 ---
 
@@ -388,6 +388,31 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper
 - **When:** my palm lands first and then the Pencil draws, before both lift
 - **Then:** the line says the Pencil drew, counts how many touches of each kind it held, and gives the largest finger contact's size
+
+---
+
+### User Story 825:
+
+- **Summary:** Keep and Dismiss beside a tapped mark
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** looking at a mark Larry or Claude drew on my board
+- **I want to** choose Keep or Dismiss for that one mark, from two buttons beside it
+- **so that** a tap never keeps or loses a mark without my saying which
+
+#### Acceptance Criteria:
+- **Scenario:** Choosing for one mark
+- **Given:** Larry's marks are showing on a board, one of them at the edge of the screen
+- **When:** I tap the one at the edge, then tap Dismiss; then tap another and tap Keep
+- **Then:** after the first tap nothing on the board has changed and Keep and Dismiss show beside it, wholly on screen; Dismiss removes only that mark, which doesn't come back when the board opens again; Keep makes the other one ink, which one undo takes back
+
+- **Scenario:** A stray tap or a stroke
+- **Given:** Keep and Dismiss are showing beside a mark
+- **When:** I tap off the marks, or start drawing with the Pencil
+- **Then:** the buttons go, every mark is still showing, nothing is kept, and the Pencil's stroke is drawn
 
 ---
 

@@ -24,21 +24,30 @@ suggest changes the board until Igor keeps it.
   a Cockpit answers all at once, they all arrive then and draw in one after another as before; the app asks in a way
   that gets either.
 - While ghosts show, the bar says how many and *tap one to keep it*.
-- **A tap on a ghost keeps it** (a finger tap; the Pencil draws). It becomes real ink in Claude's colour (or the one it asked for, below), and his eraser and undo treat it like his own
-  strokes.
+- **A tap on a mark offers Keep and Dismiss** (#883; Igor, 2026-11-14). A finger tap on one of Claude's or Larry's
+  marks (the Pencil draws) changes nothing on the board yet: two small buttons, **Keep** and **Dismiss**, appear beside
+  that mark, always wholly on screen, moved inward when the mark is at an edge of the view. They follow the mark when
+  the board moves. A tap on another mark moves them to that one.
+  - **Keep** does what a tap used to: the mark becomes real ink in Claude's colour (or the one it asked for, below),
+    and his eraser and undo treat it like his own strokes. One undo takes it back.
+  - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the
+    next time the board opens. The other marks stay, and the rest of an answer still on its way still lands.
+  - **A tap anywhere else puts the buttons away and changes nothing**: no mark is kept or dismissed by a stray tap.
+    Starting to draw puts them away too, and the Pencil keeps drawing while they show. If their mark goes (Claude's
+    fade, a new set replaces it, Ghosts off) they go with it.
 - **Ghosts stay while he draws** (Igor, 2026-11-02: drawing together, not taking turns). The Pencil touching down
   leaves them, and an answer that lands while he draws still shows. Each new answer from Claude replaces his unkept
   ghosts and leaves Larry's: the old set stays until the first new mark lands, so the board is never blank between
   them, and an answer with nothing to add clears them when it ends. Claude's fade by themselves **30 s** after the last
   of them appears; Larry's stay until kept or dismissed.
-- **A tap off the ghosts dismisses Claude's and leaves Larry's** (#823): one stray tap must not lose Larry's marks, which
-  don't come back. With only Larry's left, a tap off them dismisses his, so clearing them takes a tap of its own.
+- **A tap off the marks dismisses nothing** (#823, then #883): one stray tap must never lose a mark, least of all
+  Larry's, which don't come back. Clearing a mark takes its own Dismiss.
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
-  drawing while ghosts show: it taps and pans, so keeping a ghost leaves no dot. With no ghost left it draws again.
+  drawing while ghosts show: it taps and pans, so a tap on a mark leaves no dot. With no ghost left (kept, dismissed or faded) it draws again.
 - A ghost turn gives up **10 s** after it was asked, however much has arrived by then (the Cockpit's model takes about
   3 s, and an answer to an older drawing still lands where that drawing was). If no mark has arrived, none is shown and
   the bar says *Ghosts: the Cockpit isn't answering*. **An answer cut off after a mark has arrived is no failure**: the
-  marks already drawn stay, and the bar says nothing. A turn sent away (a dismissal, Ghosts off) stops showing marks at
+  marks already drawn stay, and the bar says nothing. A turn sent away (Ghosts off) stops showing marks at
   once, even with more on the way. A turn the Cockpit says came too soon (it
   takes one every 2 s) is quietly skipped: the bar says nothing and the ghosts on the board stay.
 - **Ghosts** is a switch in the board's bar, on by default and remembered. Off, nothing is asked after a pause: Claude's
@@ -135,7 +144,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   off while a turn is on its way. If the Cockpit says it no longer has the thread, the next picture starts a new one.
   Claude's ghost turns have no thread.
 - **Larry's marks arrive on their own.** While a board that has a thread is open, the app looks at the thread about
-  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (purple), kept by a tap like Claude's.
+  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (purple), kept or dismissed like Claude's.
   It makes no difference whether he is answering a turn, answering *Send to Larry*, or drawing unprompted.
 - **Marks land where the picture was.** Every picture goes with its place on the board, and his row brings it back, so
   his marks sit on what he saw even after Igor has drawn elsewhere, panned or zoomed. A row of marks that doesn't say
@@ -146,8 +155,8 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   something from that row on this device. Older rows never come back: they are in Chat. After that, every new row shows.
 - **Each new row of marks replaces his unkept ones** and leaves Claude's alone; Claude's ghosts never replace his. His
   marks stay until kept or dismissed: no timer, and the Ghosts switch doesn't touch them.
-- **A dismissed set doesn't come back**, on the next look or the next time the board opens. Keeping one mark settles
-  that row the same way the next time the board opens: the ones he left show until the board closes.
+- **A dismissed mark doesn't come back**, on the next look or the next time the board opens. Keeping or dismissing
+  one of his marks settles that row: the ones he left show until the board closes, and not when it opens again.
 - The looking stops when the board closes or the app goes to the background, and starts again when it comes back.
   While it can't reach the Cockpit the bar says so quietly after 10 to 15 s (*Larry's marks: the Cockpit isn't
   answering*; while a turn of his is out, his clock says it instead, *Cockpit not answering*, story 760), the log
@@ -188,7 +197,7 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - A **microphone** in the board's bar stays open while he draws, until he taps it again or leaves the board.
 - About a second after he stops talking, what he said goes with a picture of the board, without waiting for a stroke:
   "draw a box around this" brings faint orange ghosts about 4 s later, kept or dismissed like any others. They are
-  still suggestions: nothing becomes ink without a tap.
+  still suggestions: nothing becomes ink without a Keep.
 - It works on an empty board: "draw a circle" shows ghosts in the part of the board on screen.
 - If he speaks while Claude is answering, those words go with the next turn. Words whose turn didn't get through
   (skipped, refused or the Cockpit away) go with the next one.
@@ -231,21 +240,24 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Cut the Cockpit's strokes route (a 404 or no network): the picture still arrives, and the session log says the
   strokes did not.
 - Draw two circles on the iPad and lift the Pencil: within about 5 s faint orange shapes appear, solid like ink. Tap
-  one: it becomes orange ink, the same line only stronger, that the eraser removes and undo takes back.
+  one: Keep and Dismiss appear beside it and nothing else changes. Keep: it becomes orange ink, the same line only
+  stronger, that the eraser removes and undo takes back. Dismiss on another: it goes, and the rest stay.
+- Tap a mark at the very edge of the view: both buttons are wholly on screen. Tap off the marks, or start drawing:
+  the buttons go and every mark is still there.
 - With the Cockpit streaming, marks appear one at a time, and the session log says how long the first one took. With a
   Cockpit answering all at once, they appear together and everything else above holds.
 - Cut the connection after the first mark: it stays and the bar says nothing. Cut it before any: the bar says ghosts
   aren't answering.
 - Draw again before the ghosts come, or while they show: they stay, and the next pause brings a new set that replaces
   Claude's. Leave them alone: they fade after 30 s. Larry's purple marks stay through all of it.
-- On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
-  Claude's (Larry's once they're all that's left); then the finger draws again.
+- On a device where a finger draws: a tap on a ghost offers Keep and Dismiss with no dot drawn, a tap off the ghosts
+  changes nothing, and once none is left the finger draws again.
 - Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's purple ghosts stay showing.
 - Tap Larry's turn: the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) straight away and the Pencil keeps drawing. Chat has a thread
   named after the board holding the picture. Minutes later, with no tap, purple ghosts and his line appear on what he saw,
   even if the view has moved since.
 - He draws unprompted on the thread: the same, with no tap by Igor. His next marks replace the unkept ones.
-- Dismiss his marks: they don't return, not on the next look and not after closing and reopening the board. Leave them
+- Dismiss one of his marks: it doesn't return, not on the next look and not after closing and reopening the board. Leave them
   and reopen: only his newest set shows.
 - Cockpit unreachable: drawing works as before and the bar says ghosts aren't answering, and that his marks aren't;
   Larry's turn shows a copyable problem; when the Cockpit is back the bar clears by itself.
