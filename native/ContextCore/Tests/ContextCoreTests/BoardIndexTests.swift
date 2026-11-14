@@ -342,6 +342,21 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.board("b")?.current, true)
   }
 
+  /// #603, story 319: a link or a picture's Jump to a board this device doesn't have, or doesn't have as it is now, says
+  /// why; one it has opens.
+  func testABoardThatCantOpenSaysWhy() {
+    var phone = BoardIndex()
+    let board = BoardEntry(id: "a", title: "A", created: 1, updated: 10, strokes: 1, device: "ipad", deviceName: "iPad")
+    _ = phone.merge(cloud: [board], device: "phone")
+    XCTAssertEqual(
+      phone.whyNotOpen("gone"), "This board isn't on this device: it was deleted, or iCloud hasn't brought it here.")
+    XCTAssertEqual(
+      phone.whyNotOpen("a"),
+      "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now.")
+    phone.fetched("a", at: 10)
+    XCTAssertNil(phone.whyNotOpen("a"))
+  }
+
   func testOwnBoardsDrawnHereNeverNeedAFetch() {
     var ipad = BoardIndex()
     ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")

@@ -95,6 +95,16 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     return "Drawn on the old canvas: look only"
   }
 
+  /// Why the board can't be opened as it is now (#603): not on this device, or its latest drawing not down from iCloud
+  /// yet; nil when it can. Asked once iCloud has been.
+  public func whyNotOpen(_ id: String) -> String? {
+    guard let board = board(id) else {
+      return "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
+    }
+    return board.current
+      ? nil : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now."
+  }
+
   /// A new board's name: *Board, Nov 1*, then *Board, Nov 1 (2)* for the day's second.
   public func newTitle(at date: Date, timeZone: TimeZone = .current) -> String {
     let f = DateFormatter()

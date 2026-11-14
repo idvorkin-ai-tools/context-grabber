@@ -165,15 +165,11 @@ final class WhiteboardStore: ObservableObject {
   /// path: it came from a link or the Cockpit.
   func find(_ id: String, context: String) async -> BugProblem? {
     await sync(reason: "find_board")
-    let board = index.board(id)
-    if board?.current == true { return nil }
+    guard let why = index.whyNotOpen(id) else { return nil }
     log.event(
-      "whiteboard", ["action": "board_missing", "board": id, "listed": board != nil, "sync": syncNote ?? "ok"])
-    return .grabber(
-      board == nil
-        ? "This board isn't on this device: it was deleted, or iCloud hasn't brought it here."
-        : "This board's latest drawing hasn't come down from iCloud, so it can't be opened as it is now.",
-      context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
+      "whiteboard",
+      ["action": "board_missing", "board": id, "listed": index.board(id) != nil, "sync": syncNote ?? "ok"])
+    return .grabber(why, context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
   }
 
   /// A board's drawing; one that cannot be read is moved aside before the error goes up (`BoardKeeping.drawing`).
