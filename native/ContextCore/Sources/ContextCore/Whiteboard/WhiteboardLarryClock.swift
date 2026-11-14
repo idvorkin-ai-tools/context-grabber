@@ -1,26 +1,60 @@
 //  Larry's clock on a board (spec 2026-11-12-whiteboard-conversation-design.md, *Larry's clock*, story 667; #879: "This
 //  seems very slow, are we crashing/hung?"). While a turn is out the bar's note begins with how long he has been looking
 //  at the picture, counted from when it went, so the app being away costs nothing; at the timeout his silence is a
-//  copyable problem. The board's model hands in the turn, the clock and whether the Cockpit is answering its looks.
+//  copyable problem. The board's model hands in the turn, the clock and whether the Cockpit is answering its looks. Until
+//  Larry has picked the picture up the state says *Sent* (story 773), from the Cockpit's mark on the picture's message.
 
 import Foundation
 
 public enum WhiteboardLarryClock {
-  /// His state at the start of the bar's note, *Larry · 0:42*, with *Cockpit not answering* when the board's looks at
+  /// Whether Larry has picked up the picture he is looking at (story 773): `unknown` when the Cockpit sends no marks or
+  /// the board hasn't read the picture's message yet, which reads as before, *Larry*, never *Sent*.
+  public enum PickedUp: String, Equatable, Sendable {
+    case yes, no, unknown
+  }
+
+  /// How long a picture sits unpicked before the state says *not picked up yet*.
+  public static let notPickedUpAfter = 30
+
+  /// From the board's thread (oldest first): the mark on Igor's newest message since the picture went. *Seen* or *done*
+  /// is picked up, *received* is not; a message with no mark, or none yet, is unknown. Nil turn, unknown.
+  public static func pickedUp(
+    _ turn: WhiteboardLarryTurn, thread: [ChatMessage], now: ContinuousClock.Instant, wallNow: Date
+  ) -> PickedUp {
+    guard let seconds = seconds(turn, now: now) else { return .unknown }
+    // The Cockpit's timestamps may be whole seconds, and its message lands after the picture went: one second's grace.
+    let went = wallNow - TimeInterval(seconds) - 1
+    guard let message = thread.last(where: { $0.fromIgor && ($0.at.map { $0 >= went } ?? false) }) else {
+      return .unknown
+    }
+    switch message.receipt {
+    case .seen, .done: return .yes
+    case .received: return .no
+    case .sent: return .unknown
+    }
+  }
+
+  /// His state at the start of the bar's note, *Larry · 0:42*, or *Sent · 0:03* until he has picked the picture up
+  /// (*Sent · 0:31 · not picked up yet* after thirty seconds), with *Cockpit not answering* when the board's looks at
   /// his thread have been failing. For two seconds after a tap that sent nothing it reads *Larry already has this · 0:12*
   /// (story 765). Nil with no turn out.
-  public static func state(_ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool) -> String?
-  {
+  public static func state(
+    _ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool, pickedUp: PickedUp = .unknown
+  ) -> String? {
     guard let seconds = seconds(turn, now: now) else { return nil }
-    let who = alreadyHas(turn, now: now) ? "Larry already has this" : "Larry"
-    let clock = "\(who) · \(seconds / 60):\(String(format: "%02d", seconds % 60))"
+    let already = alreadyHas(turn, now: now)
+    let sent = !already && pickedUp == .no
+    let who = already ? "Larry already has this" : sent ? "Sent" : "Larry"
+    var clock = "\(who) · \(seconds / 60):\(String(format: "%02d", seconds % 60))"
+    if sent, seconds >= notPickedUpAfter { clock += " · not picked up yet" }
     return cockpitAnswering ? clock : "\(clock) · Cockpit not answering"
   }
 
-  /// The same for VoiceOver, in words: *Larry has been looking for 42 seconds*.
-  public static func spoken(_ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool)
-    -> String?
-  {
+  /// The same for VoiceOver, in words: *Larry has been looking for 42 seconds*, or *Sent 3 seconds ago, not picked up
+  /// yet*.
+  public static func spoken(
+    _ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool, pickedUp: PickedUp = .unknown
+  ) -> String? {
     guard let seconds = seconds(turn, now: now) else { return nil }
     let minutes = seconds / 60
     let rest = seconds % 60
@@ -28,9 +62,11 @@ public enum WhiteboardLarryClock {
       minutes == 0 ? nil : count(minutes, "minute"),
       minutes > 0 && rest == 0 ? nil : count(rest, "second"),
     ].compactMap { $0 }.joined(separator: " ")
+    let already = alreadyHas(turn, now: now)
     let looking =
-      alreadyHas(turn, now: now)
-      ? "Larry already has this, and has been looking for \(words)" : "Larry has been looking for \(words)"
+      already
+      ? "Larry already has this, and has been looking for \(words)"
+      : pickedUp == .no ? "Sent \(words) ago, not picked up yet" : "Larry has been looking for \(words)"
     return cockpitAnswering ? looking : "\(looking), and the Cockpit isn't answering"
   }
 
@@ -38,12 +74,13 @@ public enum WhiteboardLarryClock {
   /// copies. `turn` as it was before that tick, so what was waiting behind the picture is still in it. Nil with no
   /// turn out.
   public static func didntAnswer(
-    _ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, wallNow: Date, cockpitAnswering: Bool
+    _ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, wallNow: Date, cockpitAnswering: Bool,
+    pickedUp: PickedUp = .unknown
   ) -> DidntAnswer? {
     guard case .awaiting = turn.state, let waited = seconds(turn, now: now) else { return nil }
     return DidntAnswer(
       sentAt: wallNow - TimeInterval(waited), waitedSeconds: waited, inkWaiting: turn.inkWaiting,
-      wordsWaiting: turn.wordsWaiting, cockpitAnswering: cockpitAnswering)
+      wordsWaiting: turn.wordsWaiting, cockpitAnswering: cockpitAnswering, pickedUp: pickedUp)
   }
 
   /// His silence: the message and the state that explains it.
@@ -62,6 +99,8 @@ public enum WhiteboardLarryClock {
     public let wordsWaiting: Bool
     /// The board's looks at his thread were working.
     public let cockpitAnswering: Bool
+    /// Whether he ever picked the picture up (story 773).
+    public let pickedUp: PickedUp
   }
 
   /// Whole seconds since the picture he is looking at went; nil with no turn out.

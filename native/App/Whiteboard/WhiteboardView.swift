@@ -186,6 +186,12 @@ final class WhiteboardModel: ObservableObject {
       }
   }
 
+  /// Story 773: whether Larry has picked up the picture he is looking at, from its mark on the thread the board last
+  /// read; with the Cockpit not answering that is the last it knew.
+  func larryPickedUp(now: ContinuousClock.Instant) -> WhiteboardLarryClock.PickedUp {
+    WhiteboardLarryClock.pickedUp(larry, thread: thread, now: now, wallNow: Date())
+  }
+
   /// The board has a thread with Larry on this device.
   var threadKey: String? { threads.thread(board: board.id) }
 
@@ -629,13 +635,14 @@ final class WhiteboardModel: ObservableObject {
     guard let next = larry.tick(version: boardVersion, now: now, timeout: Self.larryTimeout) else { return }
     var facts: [String: Any] = [:]
     if let silence = WhiteboardLarryClock.didntAnswer(
-      waiting, now: now, wallNow: Date(), cockpitAnswering: !larryAway)
+      waiting, now: now, wallNow: Date(), cockpitAnswering: !larryAway,
+      pickedUp: WhiteboardLarryClock.pickedUp(waiting, thread: thread, now: now, wallNow: Date()))
     {
       let sentAt = silence.sentAt.formatted(.iso8601)
       facts = [
         "problem": silence.context, "sent_at": sentAt, "waited_s": silence.waitedSeconds,
         "ink_waiting": silence.inkWaiting, "words_waiting": silence.wordsWaiting,
-        "cockpit_answering": silence.cockpitAnswering,
+        "cockpit_answering": silence.cockpitAnswering, "picked_up": silence.pickedUp.rawValue,
       ]
       problem = .grabber(
         silence.message, context: silence.context,
@@ -643,6 +650,7 @@ final class WhiteboardModel: ObservableObject {
           "board": .string(board.id), "cockpit": .string(cockpit), "sent_at": .string(sentAt),
           "waited_s": .int(silence.waitedSeconds), "ink_waiting": .bool(silence.inkWaiting),
           "words_waiting": .bool(silence.wordsWaiting), "cockpit_answering": .bool(silence.cockpitAnswering),
+          "picked_up": .string(silence.pickedUp.rawValue),
         ])
     }
     larryFollowUp(next, why: "timeout", facts: facts)
@@ -1565,7 +1573,8 @@ struct WhiteboardView: View {
   /// reads his state in words when it reaches the note, not on every tick.
   @ViewBuilder private func noteLine(now: ContinuousClock.Instant) -> some View {
     if let line = WhiteboardNote.line(
-      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, said: model.lastSaid, micOn: model.micOn,
+      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, pickedUp: model.larryPickedUp(now: now),
+      said: model.lastSaid, micOn: model.micOn,
       notice: model.notice, ghosts: model.ghosts.count)
     {
       let tap = WhiteboardNote.tap(onPhone: onPhone, thread: model.threadKey)
@@ -1633,7 +1642,8 @@ struct WhiteboardView: View {
   /// What is live under the thread: the turn that's out, what waits to go next, what the mic is hearing.
   private func liveRows(now: ContinuousClock.Instant) -> some View {
     let live = WhiteboardNote.live(
-      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, said: model.lastSaid, micOn: model.micOn)
+      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, pickedUp: model.larryPickedUp(now: now),
+      said: model.lastSaid, micOn: model.micOn)
     // One column of its own: a TimelineView lays several children over each other (#882).
     return VStack(alignment: .leading, spacing: 4) {
       ForEach(live) { row in
