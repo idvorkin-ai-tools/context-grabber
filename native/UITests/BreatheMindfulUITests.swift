@@ -18,12 +18,12 @@ final class BreatheMindfulUITests: XCTestCase {
     // (it sat out all 90 s before story 770). Twice, a second apart, so a card drawn before the grab starts asking
     // doesn't count. The Meditation count below is what decides.
     let sheet = first.navigationBars["Health Access"]
-    let card = first.buttons["card-meditation"]
+    let meditationCard = first.buttons["card-meditation"]
     let asking = first.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Health access'")).firstMatch
     let deadline = Date().addingTimeInterval(90)
     var settled = 0
     while Date() < deadline, !sheet.exists, settled < 2 {
-      settled = card.exists && !asking.exists ? settled + 1 : 0
+      settled = meditationCard.exists && !asking.exists ? settled + 1 : 0
       if settled < 2 { RunLoop.current.run(until: Date().addingTimeInterval(1)) }
     }
     if sheet.exists {

@@ -240,7 +240,7 @@ final class LaunchHooksTests: XCTestCase {
   func testWhatABoardDoesByItself() {
     let board = WhiteboardHooks([
       "GRABBER_WHITEBOARD_SAVE_FAILS": "1", "GRABBER_WHITEBOARD_GHOST_SECONDS": "2.5", "GRABBER_WHITEBOARD_GRID": "on",
-      "GRABBER_WHITEBOARD_SAY": "draw a cat", "GRABBER_WHITEBOARD_KEEP": "first", "GRABBER_WHITEBOARD_PASTE": "hello",
+      "GRABBER_WHITEBOARD_SAY": "draw a cat", "GRABBER_WHITEBOARD_PASTE": "hello",
       "GRABBER_WHITEBOARD_AFTER_INK": "copy,paste", "GRABBER_WHITEBOARD_PAGE_AFTER_INK": "2",
       "GRABBER_WHITEBOARD_AFTER_KEEP": "1.5,undo,redo", "GRABBER_WHITEBOARD_LARRY_TIMEOUT": "5,dismiss",
     ])
@@ -248,7 +248,6 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertEqual(board.ghostSeconds, 2.5)
     XCTAssertTrue(board.grid)
     XCTAssertEqual(board.say, "draw a cat")
-    XCTAssertTrue(board.keepFirst)
     XCTAssertEqual(board.paste, "hello")
     XCTAssertEqual(board.afterInk, ["copy", "paste"])
     XCTAssertEqual(board.pageAfterInk, 2)
@@ -266,7 +265,6 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertNil(none.ghostSeconds)
     XCTAssertFalse(none.grid)
     XCTAssertNil(none.say)
-    XCTAssertFalse(none.keepFirst)
     XCTAssertNil(none.paste)
     XCTAssertNil(none.afterInk)
     XCTAssertNil(none.pageAfterInk)
@@ -275,7 +273,7 @@ final class LaunchHooksTests: XCTestCase {
 
     let odd = WhiteboardHooks([
       "GRABBER_WHITEBOARD_SAVE_FAILS": "", "GRABBER_WHITEBOARD_GHOST_SECONDS": "long", "GRABBER_WHITEBOARD_GRID": "1",
-      "GRABBER_WHITEBOARD_SAY": "", "GRABBER_WHITEBOARD_KEEP": "all", "GRABBER_WHITEBOARD_PASTE": "",
+      "GRABBER_WHITEBOARD_SAY": "", "GRABBER_WHITEBOARD_PASTE": "",
       "GRABBER_WHITEBOARD_AFTER_INK": "", "GRABBER_WHITEBOARD_PAGE_AFTER_INK": "two",
       "GRABBER_WHITEBOARD_AFTER_KEEP": "undo,redo", "GRABBER_WHITEBOARD_LARRY_TIMEOUT": "dismiss",
     ])
@@ -284,7 +282,6 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertNil(odd.ghostSeconds)
     XCTAssertFalse(odd.grid)
     XCTAssertEqual(odd.say, "", "the mic hears nothing, but it is the hook that answers")
-    XCTAssertFalse(odd.keepFirst)
     XCTAssertEqual(odd.paste, "")
     XCTAssertEqual(odd.afterInk, [], "set but empty: the hook has run, with nothing to press")
     XCTAssertNil(odd.pageAfterInk)

@@ -875,9 +875,6 @@ final class WhiteboardModel: ObservableObject {
     turns.land(
       shapes.map { Ghost($0, who: who, frame: rect, scale: scale) }, who: who, first: first, now: .now)
     if who == .claude { fadeClaudesGhosts() }
-    if first, LaunchHooks.current.whiteboard.keepFirst, let ghost = ghosts.first {
-      keep(ghost)
-    }
   }
 
   private func fadeClaudesGhosts() {

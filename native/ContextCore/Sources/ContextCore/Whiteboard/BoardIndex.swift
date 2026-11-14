@@ -83,6 +83,9 @@ public struct BoardIndex: Codable, Equatable, Sendable {
     !onPhone && board.onPages == true && editable(board, on: device)
   }
 
+  /// A phone only looks at boards, so it starts none (story 746).
+  public static func startsBoards(onPhone: Bool) -> Bool { !onPhone }
+
   /// Drawn on the canvas that's gone: its ink sits where that canvas put it, so it's moved onto pages to be shown, and
   /// it's look-only even on the device that made it.
   public static func drawnOnTheOldCanvas(_ board: BoardEntry) -> Bool { board.onPages != true }

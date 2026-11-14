@@ -413,6 +413,12 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(BoardIndex.lookOnlyNote(ipads, on: "iphone", onPhone: true), "Look only on iPhone: draw on the iPad")
   }
 
+  /// Story 746: a phone has no New board; an iPad and the Mac have.
+  func testAPhoneStartsNoBoard() {
+    XCTAssertFalse(BoardIndex.startsBoards(onPhone: true))
+    XCTAssertTrue(BoardIndex.startsBoards(onPhone: false))
+  }
+
   func testAListFromBeforePaperStillReadsAndNoBoardInItIsOnPaper() throws {
     let board = #"{"id":"a","title":"T","created":1,"updated":2,"strokes":1,"device":"ipad","deviceName":"iPad"}"#
     let old = #"{"boards":["# + board + #"],"deleted":[]}"#
