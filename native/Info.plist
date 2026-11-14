@@ -18,6 +18,9 @@
 	<string>Grabber Native reads your steps, heart rate, sleep, workouts, mindful minutes and weight to show your week and share it with your coach.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Box breathing sessions are saved to Health as Mindful Minutes. Nothing else is written (the simulator's test week aside).</string>
+	<!-- Story 821: Save Image in a chat picture's share sheet adds it to Photos; without this key the save crashes. -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save Image puts a picture from a chat into your photos.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

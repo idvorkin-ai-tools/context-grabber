@@ -88,7 +88,18 @@ them and why; a single thread reads as it always did. A failed *Undo* of several
 
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or
-dark, and a swipe down closes it too. A picture sent from a whiteboard also shows **Jump to board** in the full-size
+dark, and a swipe down closes it too. The full-size picture zooms (#907, Igor, 2026-11-14: *"Need to be able to pinch
+to zoom on images and download link"*): a pinch zooms it from its fitted size up to five times, around the fingers,
+and one let go smaller than fitted settles back to fitted; a double tap goes from fitted to two and a half times and
+back. Zoomed in, one finger pans it, never so far that the picture leaves the screen, and a swipe down pans rather
+than closes: the swipe closes only a picture at its fitted size, and Done always closes. A pinch is never a swipe:
+fingers that drift down while pinching don't close the picture, and a pan carries on from where a pinch left the
+picture, without a jump. Each opening starts fitted.
+A **Share** button at the top leading corner, on the same dark badge as Done so it shows on a white picture, opens
+the system share sheet with the picture itself, not its link (the Cockpit's address means nothing to another app or
+person), so Save Image, Copy and AirDrop are all there. A picture that can't be fetched says so, where the picture
+would be, in a copyable problem naming the picture's address and message; Share stays dimmed while there is no
+picture to share, and Done or a swipe down still closes the view, as they do while the picture is loading. A picture sent from a whiteboard also shows **Jump to board** in the full-size
 view (#603, Igor, 2026-11-02: *"we opened a Zoom in and we get a button that says jump to the thing"*): it opens that
 board as it is now, not the old picture, leaving the thread behind as any link does, with no full-size view left over
 it. iCloud is asked first on every jump, so newer ink from another device is there when the board opens; out of
@@ -588,6 +599,11 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - A pasted blog-review batch reads as one card: the page's title and note count, one chip per note (intent and
   comment) that opens to the quote in its context and the full comment; any other JSON, or a
   batch with words around it, reads as written.
+- A picture opened full size pinches up to five times and back, double taps between fitted and two and a half times,
+  pans when zoomed without leaving the screen, closes on a swipe down only when fitted, and opens fitted each time;
+  its Share button hands the picture itself to the share sheet, where Save Image saves it to Photos. A pinch whose
+  fingers drift down does not close it. A picture that can't be fetched shows a copyable problem in its place, with
+  Share dimmed, and a swipe down or Done closes that too.
 - 👀 appears under Igor's message once the Cockpit has it, 🫡 once it is with Larry, 🏆 once Larry marks it done.
 - With the app closed, a reply from Larry eventually raises one notification for its thread; tapping it opens the
   thread; a reply already read elsewhere, or in a Done thread, raises none; the first check after install raises
