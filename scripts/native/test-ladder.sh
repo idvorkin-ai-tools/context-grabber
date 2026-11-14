@@ -48,7 +48,10 @@ whiteboard_area="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests Whiteboar
 # feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
 # LiveActivity, so those paths stay unmapped and the output says so.
 gym_area="GymTimerDialsUITests GymTimerUITests"
-breathe_area="BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
+breathe_area="BreathePresetsUITests BreatheStyleUITests"
+# Story 770: the Mindful test's one rule only the simulator holds is the write to Health; when a session is saved is
+# BreathSessionTests on the host. So it runs for the Health source, not for breathing (AppModel's save stays unmapped).
+health_write="BreatheMindfulUITests"
 places_area="PlaceIconUITests PlacesUnnamedUITests"
 mirror_area="HomeTodayCardUITests MetricDetailUITests"
 card_area="CardUITests TodaysHandUITests"
@@ -118,6 +121,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
     native/App/Breathe/* | native/ContextCore/Sources/ContextCore/Breathe/*) add_classes $breathe_area ;;
     native/App/AppSessionHost.swift | native/ContextCore/Sources/ContextCore/Session/*) add_classes $gym_area $breathe_area ;;
     native/App/Places/* | native/ContextCore/Sources/ContextCore/Places/*) add_classes $places_area ;;
+    native/App/Mirror/HealthKitSource.swift) add_classes $mirror_area $health_write ;;
     native/App/Mirror/* | native/ContextCore/Sources/ContextCore/Mirror/*) add_classes $mirror_area ;;
     # A file whose feature isn't its directory's, before the directories.
     native/ContextCore/Sources/ContextCore/Card/EulogyRoles.swift) add_classes TodaysHandUITests ;;  # the large widget's role of the day

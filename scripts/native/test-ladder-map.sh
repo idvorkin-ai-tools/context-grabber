@@ -174,7 +174,9 @@ feature() {  # <name> <app path> <ContextCore path, or ""> <the line's label> <c
 }
 core=native/ContextCore/Sources/ContextCore
 feature gym native/App/Gym/GymTimerView.swift $core/Gym/TimerEngine.swift "" "GymTimerDialsUITests GymTimerUITests"
-feature breathe native/App/Breathe/BreatheView.swift $core/Breathe/BreathEngine.swift "" "BreatheMindfulUITests BreathePresetsUITests BreatheStyleUITests"
+feature breathe native/App/Breathe/BreatheView.swift $core/Breathe/BreathEngine.swift "" "BreathePresetsUITests BreatheStyleUITests"
+never "breathe code: not the Health write's 60 s session (story 770)" "BreatheMindfulUITests"
+feature "the Health source" native/App/Mirror/HealthKitSource.swift "" "" "BreatheMindfulUITests HomeTodayCardUITests MetricDetailUITests"
 feature places native/App/Places/PlacesView.swift $core/Places/StayClustering.swift " (places, the real export in Documents)" "PlaceIconUITests PlacesUnnamedUITests"
 feature mirror native/App/Mirror/MetricDetailView.swift $core/Mirror/MirrorGrab.swift "" "HomeTodayCardUITests MetricDetailUITests"
 feature card native/App/Card/CardView.swift $core/Card/CardDeal.swift "" "CardUITests TodaysHandUITests"

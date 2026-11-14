@@ -89,9 +89,9 @@ script's dry run:
 | The whiteboard, in the app or `ContextCore`; the whiteboard suite's script | a rule in `ContextCore` runs only the classes that show it (paste, lines and pages, the board list, the turn and ghosts — the picture's frame, Larry's clock and the note among them; stories 753, 756), the board's views, hooks and script run every class: the whiteboard's, on an iPad simulator (`WHITEBOARD_SIM`, default *iPad Pro 11-inch (M5)*; the iPhone's is shut first). An iPhone only looks at boards (story 746): that is the smoke's whiteboard section on the iPhone, from the session log (no New board, its own board look-only with the bar's reason), so no class runs on the iPhone and there's no second test session (story 770) |
 | The fake Cockpit | chat's and the whiteboard's |
 | The Gym Timer, in the app or `ContextCore` | `GymTimerDialsUITests`, `GymTimerUITests` |
-| Breathing, in the app or `ContextCore` | `BreatheMindfulUITests`, `BreathePresetsUITests`, `BreatheStyleUITests` |
+| Breathing, in the app or `ContextCore` | `BreathePresetsUITests`, `BreatheStyleUITests`; when a session is saved to Health is `BreathSessionTests`, on the host |
 | Places, in the app or `ContextCore` | `PlaceIconUITests`, `PlacesUnnamedUITests`, in a run of their own: the ladder first installs the build, copies the real export to the app's `Documents/import-fixture.db` and launches the app once to import it, failing the rung if the import's event doesn't come |
-| The mirror (Today, a metric's detail), in the app or `ContextCore` | `HomeTodayCardUITests`, `MetricDetailUITests` |
+| The mirror (Today, a metric's detail), in the app or `ContextCore` | `HomeTodayCardUITests`, `MetricDetailUITests`; the Health source's file, `BreatheMindfulUITests` too: its 60 s session is the one check that a sample reaches Health (story 770). `AppModel.swift`'s save stays unmapped, as that file is in a fifth of changes |
 | The card, in the app or `ContextCore` | `CardUITests`, `TodaysHandUITests`; the role of the day's file, `TodaysHandUITests` alone |
 | The Cockpit, in the app or `ContextCore` | `CockpitBackUITests`, `CockpitCallUITests` |
 | The usage strip's files (`Usage*`, `CockpitUsage.swift`), in the app or `ContextCore` | `UsageTileUITests`, which needs the real Cockpit reachable from this Mac: a Cockpit change off the tailnet doesn't run it |

@@ -1,5 +1,7 @@
 //  Story 242 (#156): Today asks to write Mindful Minutes; then a finished breathing session lands in Health and
-//  the mirror's Meditation card counts it. Cue off: no sound needed (this Mac's audio is broken anyway).
+//  the mirror's Meditation card counts it. Cue off: no sound needed (this Mac's audio is broken anyway). What this alone
+//  proves is the write to Health, so the ladder runs it for the Health source, not for a breathing change: when a
+//  session is saved is `BreathSessionTests`, on the host (story 770).
 
 import XCTest
 
@@ -12,9 +14,19 @@ final class BreatheMindfulUITests: XCTestCase {
     XCTAssertTrue(today.appears(within: 15), first.debugDescription)
     today.tap()
     // Measured 37 s on this Mac (2026-10-08) for Health's sheet to come up; give it 90. No sheet means access was
-    // granted on this simulator before; the Meditation count below is what decides.
+    // granted on this simulator before, and then the grab goes past asking and Today's cards show: that ends the wait
+    // (it sat out all 90 s before story 770). Twice, a second apart, so a card drawn before the grab starts asking
+    // doesn't count. The Meditation count below is what decides.
     let sheet = first.navigationBars["Health Access"]
-    if sheet.appears(within: 90) {
+    let card = first.buttons["card-meditation"]
+    let asking = first.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Health access'")).firstMatch
+    let deadline = Date().addingTimeInterval(90)
+    var settled = 0
+    while Date() < deadline, !sheet.exists, settled < 2 {
+      settled = card.exists && !asking.exists ? settled + 1 : 0
+      if settled < 2 { RunLoop.current.run(until: Date().addingTimeInterval(1)) }
+    }
+    if sheet.exists {
       XCTAssertTrue(HealthSheet.allow(in: first) { !sheet.exists }, "Health's sheet stayed: \(first.debugDescription)")
     }
     first.terminate()
