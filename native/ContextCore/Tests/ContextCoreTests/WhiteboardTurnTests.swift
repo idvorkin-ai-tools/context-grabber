@@ -361,4 +361,21 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(shape?.pen, 1.5)
     XCTAssertEqual(shape?.face, .hand)
   }
+
+  /// context-grabber-a3w: Igor writes in the picker's blue, and Larry's marks were the system blue; no one could tell
+  /// them apart. His colour is now far round the hue circle from every swatch and from Claude's orange.
+  func testLarrysColourIsNoneOfThePickersOrClaudes() throws {
+    let larry = try XCTUnwrap(WhiteboardTurn.hue(WhiteboardTurn.larryColor))
+    XCTAssertFalse(WhiteboardTurn.pickerSwatches.contains(WhiteboardTurn.larryColor))
+    for swatch in WhiteboardTurn.pickerSwatches + [WhiteboardTurn.claudeColor] {
+      guard let other = WhiteboardTurn.hue(swatch) else { continue }  // black has no hue, and purple isn't black
+      XCTAssertGreaterThanOrEqual(WhiteboardTurn.hueApart(larry, other), 60, String(swatch, radix: 16))
+    }
+    // The blue his marks were, and Igor's blue, sit 6 degrees apart: what this replaces.
+    let systemBlue = try XCTUnwrap(WhiteboardTurn.hue(0x0088FF))
+    let pickerBlue = try XCTUnwrap(WhiteboardTurn.hue(0x157EFB))
+    XCTAssertLessThan(WhiteboardTurn.hueApart(systemBlue, pickerBlue), 10)
+    XCTAssertNil(WhiteboardTurn.hue(0x000000))
+    XCTAssertEqual(try XCTUnwrap(WhiteboardTurn.hue(0xFF0000)), 0, accuracy: 0.001)
+  }
 }
