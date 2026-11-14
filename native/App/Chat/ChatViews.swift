@@ -1044,11 +1044,8 @@ private struct ChatImage: View {
     .fullScreenCover(isPresented: $full, onDismiss: coverDismissed) {
       ZStack(alignment: .topTrailing) {
         Color.black.ignoresSafeArea()
-        AsyncImage(url: url) {
-          $0.resizable().scaledToFit()
-        } placeholder: {
-          ProgressView()
-        }
+        // Story 821 (#907): pinches, double taps, pans and shares; a swipe down closes it only when fitted.
+        ChatImageFull(url: url, message: message, logger: logger) { close(how: "swipe") }
         if let board {
           VStack(spacing: 8) {
             Spacer()
@@ -1076,11 +1073,6 @@ private struct ChatImage: View {
         }
         .foregroundStyle(.white).padding().accessibilityIdentifier("chat-image-done")
       }
-      .gesture(
-        DragGesture(minimumDistance: ChatImageClose.minimumDrag).onEnded {
-          if ChatImageClose.closes(dragHeight: $0.translation.height) { close(how: "swipe") }
-        }
-      )
       .onAppear { logger("ui", ["action": "open_chat_image", "message": .string(message)]) }
     }
   }
