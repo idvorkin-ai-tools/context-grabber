@@ -1788,6 +1788,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 826:
+
+- **Summary:** A new window's menu offers only what can have a window
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WindowOfferTests`) and the Mac build; the simulator and the iPad still to do
+- **Issues:** [#870](https://github.com/idvorkin/context-grabber/issues/870) (Igor asked why the new-window menu didn't list everything; Igor, 2026-11-14: only the six that can have their own window)
+- **Spec:** [Windows on the iPad — Another window of the app](../superpowers/specs/2026-11-03-ipad-windows-design.md)
+
+#### Use Case:
+- **As** Igor, opening another window of the app on the iPad
+- **I want** its menu to list only the screens that can have a window of their own, and to say where the others are
+- **so that** nothing in it would fight the home window for the audio, and I know why the timer isn't there
+
+#### Acceptance Criteria:
+- **Scenario:** The menu of a new window
+- **Given:** home is open in one window and shows every tile
+- **When:** I open a new window of the app
+- **Then:** its menu lists Today, Chat, the Cockpit, Places, the Whiteboard and the card, in home's order, and not the Gym Timer, Box breathing, the call or the Workout Supermix; its footnote says those stay in the home window
+
+---
+
 ### User Story 732:
 
 - **Summary:** Tap the Live Activity to get back to a workout I left

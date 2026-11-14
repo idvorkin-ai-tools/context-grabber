@@ -18,7 +18,7 @@ log. A phone changes in no way at all.
 
 ## Non-goals
 
-- Windows for the Gym Timer, Box breathing or the call screen. Each holds the phone's audio, and the rule that they
+- Windows for the Gym Timer, Box breathing, the call screen or the Workout Supermix. Each holds the phone's audio, and the rule that they
   don't talk over each other lives in how one window shows one of them at a time.
 - Two windows of one screen. Two windows on the Chat list add nothing, the Cockpit's page can be in one place only,
   and one board drawn in two windows would overwrite itself.
@@ -65,8 +65,10 @@ home: the screens that can have a window of their own, as home's tiles with thei
 shows them (the Today card first when home shows it), and nothing home hides. Choosing one turns this window into that
 screen's window. If that screen is already in a window, that window comes forward instead and this one closes, so no
 screen shows twice; if the home window is showing it, it goes from home first, as a hold's *New window* does. The
-screens that hold the audio (the Gym Timer, Box breathing, a call), Settings and the rest of home aren't offered: they
-stay in the home window. Closing this window without choosing leaves everything as it was.
+screens that hold the audio (the Gym Timer, Box breathing, a call, the Workout Supermix), Settings and the rest of home
+aren't offered: they stay in the home window, and the list's footnote says so by name. Igor, 2026-11-14 (#870, after
+asking from the iPad why the menu didn't offer everything): the menu lists only the six that can have a window of
+their own, Chat, Today, Cockpit, Places, a board and the card. Closing this window without choosing leaves everything as it was.
 
 **A call.** A call starts, runs and ends as it does now, in the home window. Opening or closing other windows does
 nothing to it. A board's microphone stops when a call starts, in whichever window the board is. Chat's dictation gives
@@ -115,7 +117,8 @@ screen.
 - A window choosing what to show has no name from the app. Choosing Chat there makes it the Chat window, named Chat;
   choosing a screen already in a window brings that window forward and closes this one.
 - On the Mac, Command+N with home open opens a window offering the screens home shows that can have a window, in home's
-  order, and nothing else.
+  order, and nothing else: never the Gym Timer, Box breathing, a call or the Workout Supermix, whose names are in the
+  footnote as staying in the home window.
 - On an iPhone the app names no window.
 - A card or Places window that closes leaves nothing behind: the card's widgets are current, the map is down, and a
   drill asked for while the card was in a window doesn't start later.
