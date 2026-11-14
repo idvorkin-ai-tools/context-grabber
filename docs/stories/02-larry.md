@@ -2006,7 +2006,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 518:
 
 - **Summary:** Holding a message offers what I can do with it
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host, `ChatHold.choices`: all four on Larry's words, only Quote and Copy on mine, only Yes and No on a picture alone; mine gained *Send to new chat* with story 780) and `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, Quote on mine); the feel of the hold on the phone and iPad, and links staying tappable, not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host, `ChatHold.choices`: all four on Larry's words, only Quote and Copy on mine, only Yes and No on a picture alone; mine gained *Send to new chat* with story 820) and `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, Quote on mine); the feel of the hold on the phone and iPad, and links staying tappable, not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2019,7 +2019,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Holding each kind of message
 - **Given:** a thread with a message from Larry and one of mine
 - **When:** I press and hold each
-- **Then:** Larry's offers *Yes*, *No*, *Quote in reply* and *Copy*; mine offers *Quote in reply*, *Copy* and *Send to new chat* (story 780) but no *Yes* or *No*; a message that is only a picture offers neither *Quote in reply* nor *Copy*
+- **Then:** Larry's offers *Yes*, *No*, *Quote in reply* and *Copy*; mine offers *Quote in reply*, *Copy* and *Send to new chat* (story 820) but no *Yes* or *No*; a message that is only a picture offers neither *Quote in reply* nor *Copy*
 
 ---
 
@@ -2669,7 +2669,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
-### User Story 780:
+### User Story 820:
 
 - **Summary:** Send one of my messages to a new chat
 - **Status:** native app: implemented in [248fb1ce](https://github.com/idvorkin/context-grabber/commit/248fb1ce) and [5f97b1cd](https://github.com/idvorkin/context-grabber/commit/5f97b1cd), PR [#890](https://github.com/idvorkin/context-grabber/pull/890) (bead context-grabber-9yo), the moved row read as the Cockpit ships it in [e7dcb40](https://github.com/idvorkin/context-grabber/commit/e7dcb40); verified on the host (`just native-test`: `ChatMoveTests`, `ChatReactionTests.testOnlyMyMessagesSendToANewChatAndTheMovedLineHasNoMenu` and the rest of `ChatReactionTests`) and the Mac build (`just native-build-mac`). The Cockpit's `POST /chat/move` is on its main (cockpit-x3s, 5af4fc8); the app has not yet been tried against it. `GRABBER_CHAT_HOLD=new-chat` taps it on the simulator against the fake Cockpit, which now moves messages (docs/TESTING.md). Not yet seen on the simulator or a device
