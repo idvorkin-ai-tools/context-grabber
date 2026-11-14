@@ -4287,7 +4287,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 773:
 
 - **Summary:** The board says whether Larry has picked the picture up
-- **Status:** not yet implemented
+- **Status:** implemented in [d055f34](https://github.com/idvorkin/context-grabber/commit/d055f34); verified by host tests (`WhiteboardLarryClockTests`: `testUntilHePicksItUpTheStateSaysSent`, `testARepeatTapStillSaysLarryAlreadyHasThis`, `testVoiceOverSaysSentInWords`, `testHisSilenceSaysWhetherHeEverPickedItUp`, `testTheMarkOnThePicturesMessageSaysWhetherHeHasIt`, `testOnlyAMessageSinceThePictureCounts`, `testNoTurnOutIsUnknown`; `WhiteboardNoteTests.testTheLineAndThePanelSayWhetherHeHasThePicture`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("This seems very slow, are we crashing/hung?")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Where the picture is*
 
