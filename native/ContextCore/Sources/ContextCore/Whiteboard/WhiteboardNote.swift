@@ -169,9 +169,9 @@ public enum WhiteboardNote {
   public static let panelMessages = 10
 
   /// The panel's thread: the recent end of the board's thread (`thread`, oldest first, as the Cockpit sends it), newest
-  /// at the bottom.
+  /// at the bottom. The Cockpit's own lines (*Moved to a new chat*) are neither Igor's nor Larry's, and are left out.
   public static func recent(_ thread: [ChatMessage]) -> [Row] {
-    thread.suffix(panelMessages).map { message in
+    thread.suffix(panelMessages).filter { !$0.isSystem }.map { message in
       message.fromIgor
         ? Row(
           id: message.id, kind: .you, who: "You",

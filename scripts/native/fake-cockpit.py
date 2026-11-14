@@ -13,6 +13,13 @@ label as kind + points, with the picture's picture_id and frame echoed). POST /f
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
 POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
+POST /chat/move {"thread", "message_id"} moves one of Igor's messages to a new thread, leaving a system row with moved_to
+where it was (404 for no such message, 409 for one of Larry's), and Larry answers it there.
+FAKE_COCKPIT_LARRY_DELAY=<seconds> is how long Larry takes to answer a board's picture, 1 by default: past 20 the board
+offers Interrupt (story 777). FAKE_COCKPIT_BOARD_HOLD=<seconds> makes this a Cockpit that marks: Larry's answer marks the
+picture's message done, and a later picture on that thread is held that long, once, before the Cockpit takes it, so past
+20 the board says it is stuck and a resend of it lands at once (stories 775, 776; under 30, the app's own limit on the
+request).
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
@@ -32,6 +39,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT, REPORT = int(sys.argv[1]), sys.argv[2]
 NEW_DELAY = float(os.environ.get("FAKE_COCKPIT_NEW_DELAY") or 0)
+LARRY_DELAY = float(os.environ.get("FAKE_COCKPIT_LARRY_DELAY") or 1)
+BOARD_HOLD = float(os.environ.get("FAKE_COCKPIT_BOARD_HOLD") or 0)
+HELD = set()  # the ids of the board pictures FAKE_COCKPIT_BOARD_HOLD has held: each once, so a resend lands
 LOCK = threading.Lock()
 THREADS = {
     "igor2-88g.900": {"title": "Should the phone chat poll?", "messages": [], "seen": ""},
@@ -143,8 +153,10 @@ def marks(key, text, shapes):
 
 def answer_board_later(key):
     def go():
-        time.sleep(1)
+        time.sleep(LARRY_DELAY)
         with LOCK:
+            if BOARD_HOLD:
+                BOARD_MESSAGES[key]["receipt"] = {"state": "done"}
             frame = BOARD_MESSAGES[key]["frame"]
             w, h = frame["w"] * frame["scale"], frame["h"] * frame["scale"]
             marks(key, "this is where it goes", [
@@ -249,6 +261,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True})
         if path == "/chat" and NEW_DELAY:
             time.sleep(NEW_DELAY)
+        if BOARD_HOLD and data.get("board") and path[len("/chat/"):] in BOARD_MESSAGES and data.get("id") not in HELD:
+            HELD.add(data.get("id"))
+            time.sleep(BOARD_HOLD)
         self._report({"body": {k: v for k, v in data.items() if k != "text"}, "chars": len(data.get("text") or ""),
                       "origin": self.headers.get("Origin")})
         with LOCK:
@@ -263,6 +278,23 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(404, {"ok": False, "error": "no such thread"})
                 t["archived"] = way == "archive"
                 return self._json(200, {"ok": True, "archived": t["archived"]})
+            if path == "/chat/move":
+                t = THREADS.get(data.get("thread"))
+                m = next((m for m in t["messages"] if m["id"] == data.get("message_id")), None) if t else None
+                if not m:
+                    return self._json(404, {"ok": False, "error": "no such message"})
+                if m["who"] != "igor":
+                    return self._json(409, {"ok": False, "error": "only your own messages can be moved"})
+                key = "igor2-88g.%d" % (901 + len(CREATED))
+                CREATED["moved:" + m["id"]] = key
+                title = (m["text"] or "untitled").splitlines()[0]
+                line = row(data["thread"], "system", "Moved to a new chat")
+                line.update(kind="moved", moved_to=key)
+                t["messages"][t["messages"].index(m)] = line
+                m["thread"] = key
+                THREADS[key] = {"title": title, "messages": [m], "seen": ""}
+                reply_later(key, m["text"])
+                return self._json(200, {"ok": True, "thread": key, "title": title})
             if path == "/chat-seen":
                 t = THREADS.get(data.get("thread"))
                 if t and t["messages"]:

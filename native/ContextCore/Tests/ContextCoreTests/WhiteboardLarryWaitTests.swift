@@ -25,30 +25,21 @@ final class WhiteboardLarryWaitTests: XCTestCase {
   func testUnderTwentySecondsOffersNothingWhateverTheMark() {
     for mark in [WhiteboardLarryWait.Mark.none, .unknown, .received, .seen] {
       XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: mark, now: at(19)), .waiting)
-      XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: mark, now: at(19)).controls, [])
     }
   }
 
   func testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss() {
-    let wait = WhiteboardLarryWait.of(out(), mark: .none, now: at(20))
-    XCTAssertEqual(wait, .stuck)
-    XCTAssertEqual(wait.controls, [.retry, .dismiss])
+    XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: .none, now: at(20)), .stuck)
   }
 
   func testReceivedSeenOrUnknownAtTwentySecondsIsWorkingWithOnlyInterrupt() {
     for mark in [WhiteboardLarryWait.Mark.received, .seen, .unknown] {
-      let wait = WhiteboardLarryWait.of(out(), mark: mark, now: at(25))
-      XCTAssertEqual(wait, .working, "\(mark)")
-      XCTAssertEqual(wait.controls, [.interrupt])
+      XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: mark, now: at(25)), .working, "\(mark)")
     }
   }
 
   func testDoneOffersNothingEvenWithTheTurnStillOut() {
     XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: .done, now: at(90)), .none)
-  }
-
-  func testTheThresholdCanBeShortened() {
-    XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: .none, now: at(3), after: .seconds(3)), .stuck)
   }
 
   func testTheTwentySecondsCountFromTheNewestPicture() {
@@ -161,9 +152,9 @@ final class WhiteboardLarryWaitTests: XCTestCase {
     XCTAssertEqual(mark(unmarked, picture: "pic"), .unknown, "no message of Igor's carries a mark")
     XCTAssertEqual(mark([], picture: "pic"), .unknown, "the thread not read yet: a board's first picture")
     XCTAssertEqual(mark(unmarked, picture: "pic", delivered: true), .unknown, "a landed picture never reads Sent there")
-    let wait = WhiteboardLarryWait.of(out(), mark: mark(unmarked, picture: "pic"), now: at(25))
-    XCTAssertEqual(wait, .working, "Interrupt from twenty seconds")
-    XCTAssertEqual(wait.controls, [.interrupt], "never Retry")
+    XCTAssertEqual(
+      WhiteboardLarryWait.of(out(), mark: mark(unmarked, picture: "pic"), now: at(25)), .working,
+      "Interrupt from twenty seconds, never Retry")
   }
 
   func testAPictureTheCockpitAnsweredForIsNeverStuck() {

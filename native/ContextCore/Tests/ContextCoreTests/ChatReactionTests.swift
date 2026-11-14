@@ -90,6 +90,7 @@ final class ChatReactionTests: XCTestCase {
     XCTAssertEqual(ChatHold(hook: "no"), .react(.no))
     XCTAssertEqual(ChatHold(hook: "quote"), .quote)
     XCTAssertEqual(ChatHold(hook: "copy"), .copy)
+    XCTAssertEqual(ChatHold(hook: "new-chat"), .sendToNewChat)
     XCTAssertNil(ChatHold(hook: "Yes"))
     XCTAssertNil(ChatHold(hook: ""))
   }

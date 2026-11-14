@@ -557,7 +557,8 @@ struct ChatThreadView: View {
   @State private var quoting: ChatMessage?
   /// Why the last Send to new chat didn't take (context-grabber-9yo); the message stays where it was.
   @State private var moveProblem: BugProblem?
-  /// GRABBER_CHAT_HOLD=yes / no / quote / copy: that choice taps itself on Larry's newest message, for the simulator.
+  /// GRABBER_CHAT_HOLD=yes / no / quote / copy: that choice taps itself on Larry's newest message, for the simulator;
+  /// new-chat: *Send to new chat* on Igor's newest, the only ones that offer it.
   @State private var holdHook = LaunchHooks.current.chat.hold
   /// A Cockpit thread link tapped in a bubble (story 744): that thread, pushed over this one.
   @State private var jumpTo: String?
@@ -730,13 +731,15 @@ struct ChatThreadView: View {
   }
 
   private func runHoldHook() {
-    guard let hook = holdHook, let message = messages.last(where: { !$0.fromIgor && !$0.isSystem }) else { return }
+    guard let choice = holdHook.flatMap(ChatHold.init(hook:)) else { return }
+    let mine = choice == .sendToNewChat
+    guard let message = messages.last(where: { $0.fromIgor == mine && !$0.isSystem }) else { return }
     holdHook = nil
-    switch ChatHold(hook: hook) {
+    switch choice {
     case .quote: quote(message)
     case .copy: copy(message)
     case .react(let reaction): react(reaction, to: message)
-    case .sendToNewChat, nil: break
+    case .sendToNewChat: sendToNewChat(message)
     }
   }
 

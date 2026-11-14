@@ -32,11 +32,12 @@ public enum ChatHold: Hashable, Sendable {
     return answers + (hasWords ? [.quote, .copy] : []) + (message.fromIgor ? [.sendToNewChat] : [])
   }
 
-  /// GRABBER_CHAT_HOLD's value (yes, no, quote or copy): the choice that taps itself on the simulator.
+  /// GRABBER_CHAT_HOLD's value (yes, no, quote, copy or new-chat): the choice that taps itself on the simulator.
   public init?(hook: String) {
     switch hook {
     case "quote": self = .quote
     case "copy": self = .copy
+    case "new-chat": self = .sendToNewChat
     default:
       guard let reaction = ChatReaction(rawValue: hook) else { return nil }
       self = .react(reaction)

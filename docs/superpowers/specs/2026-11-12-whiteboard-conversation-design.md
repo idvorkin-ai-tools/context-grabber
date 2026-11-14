@@ -117,6 +117,10 @@ doesn't say whether the picture ever reached him, or offer anything to do about 
   clock, carries a quiet **Interrupt**. It frees the turn, so the next pause or tap is a fresh ask instead of being
   held for his answer. What Larry draws or says later still lands. Words waiting for the next picture still go with it.
   Sending it again would not wake him, so there is no *Retry* here.
+- **Interrupt on a picture still going up** (a board's first picture, or one on a Cockpit that marks nothing, whose
+  sending hasn't been answered) lets go of that sending too: the next tap sends at once and nothing more is said about
+  that picture, as with *Dismiss*. The words that went with it wait for the next one, unless the Cockpit's mark says
+  it already has the picture.
 - **After Interrupt or Dismiss the next tap always sends**: no turn is out, so *Larry already has this* can't answer
   it.
 - **Done, or his answer: nothing is offered**, and the control goes with the clock.
@@ -129,8 +133,8 @@ doesn't say whether the picture ever reached him, or offer anything to do about 
   stuck, *Larry didn't answer* takes the problem row's place. A picture stuck later takes the place of *Larry didn't
   answer*. *Larry hasn't got the picture* goes on its own when the mark comes, when he answers, and on *Retry* or
   *Dismiss*; it never takes another problem away.
-- **A sending that Retry or Dismiss replaced** no longer speaks for the board: when it ends, it frees nothing and
-  shows nothing. One that a newer picture replaced still says it failed, and its words still wait.
+- **A sending that Retry, Dismiss or Interrupt replaced** no longer speaks for the board: when it ends, it frees
+  nothing and shows nothing. One that a newer picture replaced still says it failed, and its words still wait.
 - **The session log says each change** (stuck, working, back to waiting or nothing) and each press, with the picture
   and where it was.
 
@@ -160,6 +164,8 @@ A finger tap on the line opens a panel under it, over the top of the board.
 - **It shows the recent end of the board's thread as it stands**: Larry's words in full, and for each picture of
   Igor's the words that went with it and its mark from the Cockpit (received, seen, done). Newest at the bottom, where
   it opens. Up to the last ten messages. *Open in Chat* opens the whole thread.
+- **The Cockpit's own lines are left out** (*Moved to a new chat*, where a message was sent on to a chat of its own):
+  they are neither Igor's nor Larry's, and Chat shows them.
 - **Under them, what is live**: the turn that's out with its clock, what is waiting to go next with the waiting words
   in full, and what the mic is hearing.
 - **A board with no thread yet** shows only what is live.

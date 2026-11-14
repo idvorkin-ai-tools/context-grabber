@@ -35,7 +35,7 @@ public struct ChatViewHooks: Equatable, Sendable {
   public var selectArchive: Bool
   /// `GRABBER_CHAT_LINKS=fold` / `all`, as written.
   public var links: String?
-  /// `GRABBER_CHAT_HOLD=yes` / `no` / `quote` / `copy`, as written (`ChatHold(hook:)` reads it).
+  /// `GRABBER_CHAT_HOLD=yes` / `no` / `quote` / `copy` / `new-chat`, as written (`ChatHold(hook:)` reads it).
   public var hold: String?
   /// `GRABBER_CHAT_IMAGE=open`: the thread's picture full size.
   public var imageOpen: Bool

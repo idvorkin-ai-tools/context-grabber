@@ -24,35 +24,6 @@ public enum WhiteboardTurn {
   /// the picker's blue and its red, so his kept ink is never Igor's. It was the system blue, which the picker's own blue
   /// matches to the eye.
   public static let larryColor: UInt32 = 0xBA39E6
-  /// Claude's orange as the strokes carry it (the system orange, light).
-  public static let claudeColor: UInt32 = 0xFF8D28
-  /// The tool picker's colour swatches, as the strokes Igor draws with them carry them: what Larry's colour keeps clear of.
-  public static let pickerSwatches: [UInt32] = [0x000000, 0x157EFB, 0x53D769, 0xFECB2E, 0xFC3D39]
-
-  /// A colour's hue in degrees, 0 up to 360; nil for a grey, which has none.
-  public static func hue(_ rgb: UInt32) -> Double? {
-    let r = Double((rgb >> 16) & 0xFF) / 255
-    let g = Double((rgb >> 8) & 0xFF) / 255
-    let b = Double(rgb & 0xFF) / 255
-    let high = max(r, g, b)
-    let span = high - min(r, g, b)
-    guard span > 0 else { return nil }
-    let h: Double
-    if high == r {
-      h = ((g - b) / span).truncatingRemainder(dividingBy: 6)
-    } else if high == g {
-      h = (b - r) / span + 2
-    } else {
-      h = (r - g) / span + 4
-    }
-    return (h * 60 + 360).truncatingRemainder(dividingBy: 360)
-  }
-
-  /// How far apart two hues are around the circle, 0 up to 180 degrees.
-  public static func hueApart(_ a: Double, _ b: Double) -> Double {
-    let d = abs(a - b).truncatingRemainder(dividingBy: 360)
-    return min(d, 360 - d)
-  }
 
   public struct Shape: Equatable, Sendable {
     public enum Kind: String, Sendable { case line, arrow, rect, ellipse, path, text }

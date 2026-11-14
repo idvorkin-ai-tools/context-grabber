@@ -176,12 +176,23 @@ final class WhiteboardLarryClockTests: XCTestCase {
       "Larry has been looking for 42 seconds")
   }
 
+  /// The copied problem's `mark`, in the words docs/DEBUGGING.md gives for each place the picture can be
+  /// (larry_turn_over: received, seen, none, unknown), read from the thread as the Cockpit sends it.
   func testHisSilenceSaysWhereThePictureWas() throws {
-    for mark in [WhiteboardLarryWait.Mark.none, .unknown, .received, .seen, .done] {
-      let problem = try XCTUnwrap(
-        WhiteboardLarryClock.didntAnswer(sent(), now: at(180), wallNow: Date(), cockpitAnswering: true, mark: mark))
-      XCTAssertEqual(problem.mark, mark)
+    let turn = sent()
+    let wall = Date(timeIntervalSince1970: 1_800_000_000)
+    let igor = { (id: String, receipt: ChatMessage.Receipt) in
+      ChatMessage(id: id, ts: "", who: "igor", text: "", attachments: ["a.jpg"], receipt: receipt)
     }
-    XCTAssertEqual(WhiteboardLarryWait.Mark.received.rawValue, "received")
+    let copied = { (thread: [ChatMessage]) throws -> String in
+      let mark = WhiteboardLarryWait.mark(turn, thread: thread, now: self.at(180), wallNow: wall, picture: "pic")
+      return try XCTUnwrap(
+        WhiteboardLarryClock.didntAnswer(turn, now: self.at(180), wallNow: wall, cockpitAnswering: true, mark: mark)
+      ).mark.rawValue
+    }
+    XCTAssertEqual(try copied([igor("old", .done), igor("pic", .received)]), "received", "the Cockpit had it")
+    XCTAssertEqual(try copied([igor("old", .done), igor("pic", .seen)]), "seen", "Larry had picked it up")
+    XCTAssertEqual(try copied([igor("old", .done)]), "none", "the Cockpit never took it, on a thread that marks")
+    XCTAssertEqual(try copied([igor("old", .sent), igor("pic", .sent)]), "unknown", "a Cockpit that marks nothing")
   }
 }

@@ -55,8 +55,10 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var larryWait = WhiteboardLarryWait.none
   /// The picture out to Larry: what *Retry* sends again, and the furthest mark the Cockpit has put on its message.
   private var larryOut: LarryOut?
-  /// Counts the hand-offs, so one that Retry or Dismiss has replaced never frees the turn or speaks for the board.
+  /// Counts the hand-offs, so one that Retry, Dismiss or Interrupt has replaced never frees the turn or speaks for the
+  /// board.
   private var larryHandOffs = WhiteboardLarryHandOffs()
+  private var larryWaitHook = LaunchHooks.current.whiteboard.larryWait
   /// On paper: ink on the board, none of it on screen, so Send and Larry's turn have nothing to show him (story 522).
   @Published private(set) var nothingOnScreen = false
   /// Looking at Larry's thread has failed for a while (story 383).
@@ -438,7 +440,8 @@ final class WhiteboardModel: ObservableObject {
       event["reason"] = reason
       // A thread the Cockpit no longer has: the next turn starts a new one.
       if status == 404, let thread { threads.forget(thread, board: board.id) }
-      // Retry or Dismiss took this one over (stories 775, 776): its words went with the retry or back in the queue.
+      // Retry, Dismiss or Interrupt took this one over (stories 775–777): its words went with the retry or back in the
+      // queue.
       guard larryHandOffs.speaks(attempt) else {
         event["superseded"] = true
         return
@@ -450,7 +453,7 @@ final class WhiteboardModel: ObservableObject {
     case .retry(let reason):
       event["ok"] = false
       event["reason"] = reason
-      // Retry or Dismiss took over while this one hung (stories 775, 776): its failure is no longer the board's. One a
+      // Retry, Dismiss or Interrupt took over while this one hung (stories 775–777): its failure is no longer the board's. One a
       // newer picture replaced still keeps its words, and its turn is freed only if it is still the one out.
       guard larryHandOffs.speaks(attempt) else {
         event["superseded"] = true
@@ -739,11 +742,28 @@ final class WhiteboardModel: ObservableObject {
     } else if problem?.context == WhiteboardLarryWait.stuckContext {
       problem = nil
     }
+    pressSoonForTests()
+  }
+
+  /// `GRABBER_WHITEBOARD_LARRY_WAIT=retry` / `dismiss` / `interrupt`: that control taps itself, once, 3 s after the board
+  /// first offers it, for the simulator.
+  private func pressSoonForTests() {
+    guard let press = larryWaitHook, larryWait == (press == .interrupt ? .working : .stuck) else { return }
+    larryWaitHook = nil
+    Task { [weak self] in
+      try? await Task.sleep(for: .seconds(3))
+      switch press {
+      case .retry: self?.retryLarry()
+      case .dismiss: self?.dismissStuck()
+      case .interrupt: self?.interruptLarry()
+      }
+    }
   }
 
   /// *Retry* (story 775): the same picture again, under the same message id, so a first one that did land is kept once;
   /// the clock and the twenty seconds start again. A hand-off still hanging is left to end on its own, and replaced.
   func retryLarry() {
+    checkLarryWait()
     guard larryWait == .stuck, let out = larryOut, larry.resent(now: .now) else { return }
     log.event(
       "whiteboard",
@@ -761,6 +781,7 @@ final class WhiteboardModel: ObservableObject {
   /// *Dismiss* on a stuck picture (story 776): the board stops waiting. The turn is free, the words that went with it
   /// wait for the next picture, and a hand-off still hanging no longer speaks for the board.
   func dismissStuck() {
+    checkLarryWait()
     guard larryWait == .stuck else { return }
     log.event(
       "whiteboard",
@@ -776,18 +797,26 @@ final class WhiteboardModel: ObservableObject {
   }
 
   /// *Interrupt* (story 777): Larry has the picture and the board stops waiting for his answer, so the next pause or tap
-  /// is a fresh ask. What he draws or says later still lands.
+  /// is a fresh ask. What he draws or says later still lands. A picture whose sending hasn't been answered is let go of
+  /// as *Dismiss* lets go: its hand-off no longer speaks for the board, and its words wait for the next picture unless
+  /// the Cockpit's mark says it has them.
   func interruptLarry() {
+    checkLarryWait()
     guard larryWait == .working else { return }
     var event: [String: Any] = [
       "action": "larry_interrupt", "board": board.id, "picture": larryOut?.picture.pictureID ?? "",
-      "mark": larryMark(now: .now).rawValue,
+      "mark": larryMark(now: .now).rawValue, "sending": larrySending,
     ]
     if case .awaiting(let since, _) = larry.state {
       event["looking_s"] = Int((ContinuousClock.now - since).components.seconds)
     }
     guard larry.interrupted() else { return }
     log.event("whiteboard", event)
+    if let out = larryOut {
+      larryHandOffs.replace(out.attempt)
+      larrySending = false
+      if !out.delivered, out.receipt == .sent { larry.failed(larry.state, words: out.said) }
+    }
     larryOut = nil
     checkLarryWait()
   }
@@ -812,7 +841,7 @@ final class WhiteboardModel: ObservableObject {
     let picture: WhiteboardPicture
     let rect: CGRect
     let scale: CGFloat
-    /// The words that went with it, back in the queue if it is dismissed.
+    /// The words that went with it, back in the queue if it is dismissed, or interrupted before the Cockpit has it.
     let said: String?
     /// The furthest the Cockpit's mark on its message has got, on the thread.
     var receipt = ChatMessage.Receipt.sent
@@ -1341,6 +1370,7 @@ final class WhiteboardModel: ObservableObject {
     }
     larryFrame = rect
     let turn = larry.state
+    checkLarryWait()
     let ink = picture(rect: rect, scale: scale)
     let jpeg = ink.jpegData(compressionQuality: 0.85) ?? Data()
     var draft = InboxDraft()

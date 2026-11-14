@@ -365,17 +365,48 @@ final class WhiteboardTurnTests: XCTestCase {
   /// context-grabber-a3w: Igor writes in the picker's blue, and Larry's marks were the system blue; no one could tell
   /// them apart. His colour is now far round the hue circle from every swatch and from Claude's orange.
   func testLarrysColourIsNoneOfThePickersOrClaudes() throws {
-    let larry = try XCTUnwrap(WhiteboardTurn.hue(WhiteboardTurn.larryColor))
-    XCTAssertFalse(WhiteboardTurn.pickerSwatches.contains(WhiteboardTurn.larryColor))
-    for swatch in WhiteboardTurn.pickerSwatches + [WhiteboardTurn.claudeColor] {
-      guard let other = WhiteboardTurn.hue(swatch) else { continue }  // black has no hue, and purple isn't black
-      XCTAssertGreaterThanOrEqual(WhiteboardTurn.hueApart(larry, other), 60, String(swatch, radix: 16))
+    XCTAssertEqual(WhiteboardTurn.larryColor, 0xBA39E6, "the purple Igor's board asked for")
+    let larry = try XCTUnwrap(hue(WhiteboardTurn.larryColor))
+    XCTAssertFalse(pickerSwatches.contains(WhiteboardTurn.larryColor))
+    for swatch in pickerSwatches + [claudeColor] {
+      guard let other = hue(swatch) else { continue }  // black has no hue, and purple isn't black
+      XCTAssertGreaterThanOrEqual(hueApart(larry, other), 60, String(swatch, radix: 16))
     }
     // The blue his marks were, and Igor's blue, sit 6 degrees apart: what this replaces.
-    let systemBlue = try XCTUnwrap(WhiteboardTurn.hue(0x0088FF))
-    let pickerBlue = try XCTUnwrap(WhiteboardTurn.hue(0x157EFB))
-    XCTAssertLessThan(WhiteboardTurn.hueApart(systemBlue, pickerBlue), 10)
-    XCTAssertNil(WhiteboardTurn.hue(0x000000))
-    XCTAssertEqual(try XCTUnwrap(WhiteboardTurn.hue(0xFF0000)), 0, accuracy: 0.001)
+    let systemBlue = try XCTUnwrap(hue(0x0088FF))
+    let pickerBlue = try XCTUnwrap(hue(0x157EFB))
+    XCTAssertLessThan(hueApart(systemBlue, pickerBlue), 10)
+    XCTAssertNil(hue(0x000000))
+    XCTAssertEqual(try XCTUnwrap(hue(0xFF0000)), 0, accuracy: 0.001)
+  }
+
+  /// Claude's orange as the strokes carry it (the system orange, light).
+  private let claudeColor: UInt32 = 0xFF8D28
+  /// The tool picker's colour swatches, as the strokes Igor draws with them carry them: what Larry's colour keeps clear of.
+  private let pickerSwatches: [UInt32] = [0x000000, 0x157EFB, 0x53D769, 0xFECB2E, 0xFC3D39]
+
+  /// A colour's hue in degrees, 0 up to 360; nil for a grey, which has none.
+  private func hue(_ rgb: UInt32) -> Double? {
+    let r = Double((rgb >> 16) & 0xFF) / 255
+    let g = Double((rgb >> 8) & 0xFF) / 255
+    let b = Double(rgb & 0xFF) / 255
+    let high = max(r, g, b)
+    let span = high - min(r, g, b)
+    guard span > 0 else { return nil }
+    let h: Double
+    if high == r {
+      h = ((g - b) / span).truncatingRemainder(dividingBy: 6)
+    } else if high == g {
+      h = (b - r) / span + 2
+    } else {
+      h = (r - g) / span + 4
+    }
+    return (h * 60 + 360).truncatingRemainder(dividingBy: 360)
+  }
+
+  /// How far apart two hues are around the circle, 0 up to 180 degrees.
+  private func hueApart(_ a: Double, _ b: Double) -> Double {
+    let d = abs(a - b).truncatingRemainder(dividingBy: 360)
+    return min(d, 360 - d)
   }
 }

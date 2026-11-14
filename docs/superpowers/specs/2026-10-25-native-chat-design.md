@@ -156,7 +156,8 @@ whole message and replaces selecting its text by a long press, which the same ge
   the phone by holding it and on the Mac by right-clicking it, it moves that message, its words and pictures, out of
   this chat into a brand-new one titled by its first line, and opens the new chat at once. Larry answers it there.
   Replies Larry already made stay where they were. Where the message was, the old chat keeps one quiet centred line,
-  *Moved to a new chat*, that opens the new chat when tapped; the same line shows on the laptop's page. A message still
+  *Moved to a new chat*, that opens the new chat when tapped; the same line shows on the laptop's page. That line is
+  the Cockpit's, not a reply of Larry's: its arriving never marks the chat read. A message still
   on its way to the Cockpit has no such choice, and neither has Larry's. Offline, or with no Cockpit address, nothing is
   asked and the problem says why. A Cockpit that refuses (an older one that can't move messages, a message already
   moved) leaves the message where it was and says why in a copyable problem at the top of the thread. A second tap

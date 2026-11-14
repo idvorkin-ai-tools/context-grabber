@@ -67,23 +67,10 @@ public enum WhiteboardLarryWait: String, Equatable, Sendable {
     }
   }
 
-  public static func of(
-    _ turn: WhiteboardLarryTurn, mark: Mark, now: ContinuousClock.Instant, after: Duration = after
-  ) -> Self {
+  public static func of(_ turn: WhiteboardLarryTurn, mark: Mark, now: ContinuousClock.Instant) -> Self {
     guard case .awaiting(let since, _) = turn.state, mark != .done else { return .none }
     if now - since < after { return .waiting }
     return mark == .none ? .stuck : .working
-  }
-
-  /// What the board offers in this state.
-  public enum Control: String, Equatable, Sendable { case retry, dismiss, interrupt }
-
-  public var controls: [Control] {
-    switch self {
-    case .stuck: return [.retry, .dismiss]
-    case .working: return [.interrupt]
-    case .none, .waiting: return []
-    }
   }
 
   /// The stuck picture's copyable problem: the message and its context. Its state (when it went, how long it waited,
@@ -111,8 +98,8 @@ extension ChatMessage.Receipt {
   public func atLeast(_ other: Self) -> Self { other.rank > rank ? other : self }
 }
 
-/// The board's hand-offs of pictures to Larry, counted (stories 775, 776): one that *Retry* or *Dismiss* replaced no
-/// longer speaks for the board (its words went with the retry, or back in the queue), while one a newer picture replaced
+/// The board's hand-offs of pictures to Larry, counted (stories 775–777): one that *Retry*, *Dismiss* or *Interrupt*
+/// replaced no longer speaks for the board (its words went with the retry, or back in the queue), while one a newer picture replaced
 /// still frees its own turn if that is still out, keeps its words and says it failed. Only the latest says whether a
 /// picture is on its way.
 public struct WhiteboardLarryHandOffs: Equatable, Sendable {
@@ -127,7 +114,7 @@ public struct WhiteboardLarryHandOffs: Equatable, Sendable {
     return latest
   }
 
-  /// *Retry* or *Dismiss* took over hand-off `attempt`.
+  /// *Retry*, *Dismiss* or *Interrupt* took over hand-off `attempt`.
   public mutating func replace(_ attempt: Int) { replaced.insert(attempt) }
 
   /// Its ending frees the turn, keeps its words and shows its failure.

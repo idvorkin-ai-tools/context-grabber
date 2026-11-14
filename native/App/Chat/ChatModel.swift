@@ -330,7 +330,8 @@ final class ChatModel: ObservableObject {
       // What is on screen is shown: it never notifies later.
       if let last = rows.last, !last.ts.isEmpty { notified[key] = last.ts }
       // A new reply on screen is read here and on the laptop.
-      if markSeen || (before != nil && rows.last?.id != before && rows.last?.fromIgor == false) {
+      let reply = rows.last.map { $0.id != before && !$0.fromIgor && !$0.isSystem } ?? false
+      if markSeen || (before != nil && reply) {
         return await seen(key)
       }
       return true
