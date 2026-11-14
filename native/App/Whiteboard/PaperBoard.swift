@@ -642,7 +642,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// The ghosts on the sheet, and a finger that taps while they show.
   func show(_ ghosts: [Ghost]) {
-    showChoice()
+    Task { @MainActor [weak self] in self?.showChoice() }
     guard lines.ghostLayers.show(ghosts) else { return }
     fingerTaps(!ghosts.isEmpty)
     let drawn = ghosts.flatMap(\.lines)

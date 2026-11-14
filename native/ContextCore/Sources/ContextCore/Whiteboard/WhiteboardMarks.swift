@@ -141,6 +141,16 @@ public struct WhiteboardMarks: Sendable {
     return update
   }
 
+  /// Story 808: one of Larry's marks, by its row and its place in the row. A kept or dismissed one is remembered by it,
+  /// so it alone stays gone when the board opens again.
+  public static func mark(_ index: Int, of row: String) -> String { "\(row)#\(index)" }
+
+  /// The marks remembered once `mark` of `row` is kept or dismissed: the ones already remembered from that row, and it.
+  /// Another row's are forgotten: only the newest row ever comes back.
+  public static func settling(_ mark: String, of row: String, after settled: [String]) -> [String] {
+    settled.filter { $0.hasPrefix("\(row)#") && $0 != mark } + [mark]
+  }
+
   /// Larry's rows from `GET /chat/<key>`, or nil for an answer that is not a thread.
   public static func rows(_ data: Data) -> [Row]? {
     guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["ok"] as? Bool == true,

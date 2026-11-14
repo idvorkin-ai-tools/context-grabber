@@ -51,7 +51,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   }
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts. Keep and Dismiss go
-  /// away (story 825): true when they were showing.
+  /// away (story 810): true when they were showing.
   @discardableResult
   public mutating func toolWentDown() -> Bool {
     pacer.toolWentDown()
@@ -246,32 +246,17 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return showing
   }
 
-  /// What Keep or Dismiss did: the mark, and whether it was Larry's, whose row is then settled and doesn't come back
-  /// when the board opens again.
-  public struct Chosen {
-    public let ghost: Ghost
-    public let settlesLarrysRow: Bool
-  }
-
   /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
-  public mutating func keepChosen() -> Chosen? {
-    guard let ghost = chosen else { return nil }
-    return Chosen(ghost: ghost, settlesLarrysRow: keep(ghost))
-  }
+  public mutating func keepChosen() -> Ghost? { removeChosen() }
 
   /// Dismiss: the chosen mark goes, and only it. The rest of an answer on its way still lands.
-  public mutating func dismissChosen() -> Chosen? {
+  public mutating func dismissChosen() -> Ghost? { removeChosen() }
+
+  private mutating func removeChosen() -> Ghost? {
     guard let ghost = chosen else { return nil }
     chosenID = nil
     ghosts.removeAll { $0.id == ghost.id }
-    return Chosen(ghost: ghost, settlesLarrysRow: ghost.who == .larry)
-  }
-
-  /// A ghost kept as ink leaves the ghosts. True when it was Larry's: his row is settled.
-  public mutating func keep(_ ghost: Ghost) -> Bool {
-    if ghost.id == chosenID { chosenID = nil }
-    ghosts.removeAll { $0.id == ghost.id }
-    return ghost.who == .larry
+    return ghost
   }
 }
 

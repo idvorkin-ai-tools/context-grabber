@@ -88,10 +88,10 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(for: [done], timeout: 5)
   }
 
-  /// Stories 382, 383, 386, 388 and 825, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept
-  /// ones with no tap, and a stray tap off them dismisses none of them (#883). That a dismissed or kept mark settles his
-  /// row is `WhiteboardMarkChoiceTests`; that the newest set comes back on opening, and that a seen set never comes back
-  /// between looks, are `WhiteboardMarksTests`, on the host.
+  /// Stories 382, 383, 386, 388 and 810, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept
+  /// ones with no tap, and a stray tap off them dismisses none of them (#883). That a dismissed or kept mark alone stays
+  /// gone, that the newest set comes back on opening, and that a seen set never comes back between looks, are
+  /// `WhiteboardMarksTests`, on the host.
   func testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem() throws {
     let cockpit = try XCTUnwrap(ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"])
     let (app, ghosts) = try openBoard()

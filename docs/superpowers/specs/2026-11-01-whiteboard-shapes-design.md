@@ -151,12 +151,13 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   where its picture was is not shown (the session log says so).
 - **His words show in the bar**: the text of each new row of his, as his line; his clock goes (story 667).
   A row of marks with no words clears it. The talk carries on in Chat.
-- **What shows when a board opens:** only his newest row of marks, and its line, unless Igor already kept or dismissed
-  something from that row on this device. Older rows never come back: they are in Chat. After that, every new row shows.
+- **What shows when a board opens:** only his newest row of marks, and its line, without the marks Igor already kept or
+  dismissed from it on this device; nothing, once he has kept or dismissed every mark in it. Older rows never come back:
+  they are in Chat. After that, every new row shows.
 - **Each new row of marks replaces his unkept ones** and leaves Claude's alone; Claude's ghosts never replace his. His
   marks stay until kept or dismissed: no timer, and the Ghosts switch doesn't touch them.
-- **A dismissed mark doesn't come back**, on the next look or the next time the board opens. Keeping or dismissing
-  one of his marks settles that row: the ones he left show until the board closes, and not when it opens again.
+- **A kept or dismissed mark doesn't come back**, on the next look or the next time the board opens. Only that mark:
+  the ones of his row Igor left alone show again when the board opens, until each is kept or dismissed (#883).
 - The looking stops when the board closes or the app goes to the background, and starts again when it comes back.
   While it can't reach the Cockpit the bar says so quietly after 10 to 15 s (*Larry's marks: the Cockpit isn't
   answering*; while a turn of his is out, his clock says it instead, *Cockpit not answering*, story 760), the log

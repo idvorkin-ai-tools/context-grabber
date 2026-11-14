@@ -394,21 +394,76 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 825:
 
 - **Summary:** Keep and Dismiss beside a tapped mark
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests`: the tap and where the buttons sit) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** looking at a mark Larry or Claude drew on my board
-- **I want to** choose Keep or Dismiss for that one mark, from two buttons beside it
+- **I want to** see Keep and Dismiss beside a mark I tap, wholly on screen
 - **so that** a tap never keeps or loses a mark without my saying which
 
 #### Acceptance Criteria:
-- **Scenario:** Choosing for one mark
+- **Scenario:** A tap on a mark at the edge
 - **Given:** Larry's marks are showing on a board, one of them at the edge of the screen
-- **When:** I tap the one at the edge, then tap Dismiss; then tap another and tap Keep
-- **Then:** after the first tap nothing on the board has changed and Keep and Dismiss show beside it, wholly on screen; Dismiss removes only that mark, which doesn't come back when the board opens again; Keep makes the other one ink, which one undo takes back
+- **When:** I tap the one at the edge
+- **Then:** nothing on the board has changed, and Keep and Dismiss show beside it, wholly on screen
 
+---
+
+### User Story 808:
+
+- **Summary:** Dismiss beside a mark removes only it
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests.testDismissRemovesOnlyThatMark`, `WhiteboardMarksTests.testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** looking at a mark Larry or Claude drew on my board
+- **I want to** dismiss one mark with the Dismiss beside it
+- **so that** I turn down that mark and keep thinking about the rest
+
+#### Acceptance Criteria:
+- **Scenario:** Dismissing one of his marks
+- **Given:** Keep and Dismiss show beside one of Larry's three marks
+- **When:** I tap Dismiss
+- **Then:** only that mark goes, and when the board opens again it stays gone while his other two show
+
+---
+
+### User Story 809:
+
+- **Summary:** Keep beside a mark makes it ink
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests.testKeepTakesTheChosenMarkOffTheGhosts`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** looking at a mark Larry or Claude drew on my board
+- **I want to** keep one mark with the Keep beside it
+- **so that** it joins my drawing only because I said so
+
+#### Acceptance Criteria:
+- **Scenario:** Keeping a mark
+- **Given:** Keep and Dismiss show beside a mark
+- **When:** I tap Keep
+- **Then:** it becomes ink in its colour, and one undo takes it back
+
+---
+
+### User Story 810:
+
+- **Summary:** A stray tap or a stroke puts Keep and Dismiss away
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests`: the stray tap and the stroke) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** looking at a mark Larry or Claude drew on my board
+- **I want to** have a tap off the marks, or a stroke, only put the buttons away
+- **so that** a stray touch never keeps or loses a mark
+
+#### Acceptance Criteria:
 - **Scenario:** A stray tap or a stroke
 - **Given:** Keep and Dismiss are showing beside a mark
 - **When:** I tap off the marks, or start drawing with the Pencil
@@ -1056,7 +1111,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 388:
 
 - **Summary:** A set I've dealt with stays gone
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: dismissed, not back on the next look or the next open); keeping one from a row then reopening is host-tested only
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by host tests (`WhiteboardMarksTests`) and the simulator (`WhiteboardTurnUITests`: dismissed, not back on the next look or the next open); keeping one from a row then reopening is host-tested only; on branch `native/batch-decided-1114` (#883, story 808) only the marks kept or dismissed stay gone, and the rest of the row shows again on opening, verified by host tests (`WhiteboardMarksTests`) and the Mac build
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:

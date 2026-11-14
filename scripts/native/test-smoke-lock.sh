@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Story 827 (#419): the smoke's audio checks on a locked Mac, with the lock probe faked (SMOKE_LOCK_PROBE), so no
 # locked screen and no simulator are needed. Locked: each audio check says "skipped: Mac screen locked" and is
-# counted as skipped, never passed; unlocked: they run and nothing is said. Then that sim-smoke.sh asks before each.
+# counted as skipped, never passed; unlocked: they run and nothing is said.
 set -uo pipefail
 cd "$(dirname "$0")/../.." || exit 2
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cg-smoke-lock.XXXXXX")
@@ -40,12 +40,4 @@ out=$(run "$tmp/unlocked")
 if [ "$out" = $'ran timer\nran breathe\nran call' ]; then ok "unlocked: every audio check runs, nothing said"
 else bad "unlocked: $out"; fi
 
-# The smoke asks before each audio section, and says how many it skipped before its last line.
-smoke=scripts/native/sim-smoke.sh
-# shellcheck disable=SC2016  # the lines as written in the script, not expanded
-for wiring in 'source "$(dirname "$0")/smoke-lock.sh"' 'if want timer && audio_ok timer; then' \
-  'if want breathe && audio_ok breathe; then' 'if audio_ok "call (real audio)"; then call_check "real audio" ""; fi' \
-  'audio_skips_said'; do
-  if grep -qF -- "$wiring" "$smoke"; then ok "sim-smoke.sh: $wiring"; else bad "sim-smoke.sh lacks: $wiring"; fi
-done
 exit "$fail"

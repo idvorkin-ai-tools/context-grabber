@@ -128,7 +128,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
 
   private func ghosts(_ app: XCUIApplication) -> XCUIElement { app.buttons["whiteboard-ghosts"] }
 
-  /// Story 825: Keep beside the mark just tapped.
+  /// Stories 825, 809: Keep beside the mark just tapped.
   private func keep(_ app: XCUIApplication) {
     let keep = app.buttons["whiteboard-mark-keep"]
     XCTAssertTrue(keep.appears(within: 5), app.debugDescription)
@@ -156,7 +156,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     return PaperScreen.settled(app) { $0.ghost }
   }
 
-  /// Stories 598, 613, 614, 615, 825: the bar, a ghost that can be seen, and a tap on it and Keep that make it ink of its
+  /// Stories 598, 613, 614, 615, 825, 809: the bar, a ghost that can be seen, and a tap on it and Keep that make it ink of its
   /// colour.
   func testAGhostShowsOnThePaperAndKeepMakesItInk() throws {
     let app = try openBoard()
@@ -185,7 +185,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.05, "where the ghost was")
   }
 
-  /// Stories 616, 825: a tap off the ghosts changes nothing and leaves no dot; Dismiss removes the mark, and then a finger
+  /// Stories 616, 808, 810: a tap off the ghosts changes nothing and leaves no dot; Dismiss removes the mark, and then a finger
   /// draws again.
   func testATapOffKeepsTheGhostDismissRemovesItAndAFingerDrawsAgain() throws {
     let app = try openBoard()

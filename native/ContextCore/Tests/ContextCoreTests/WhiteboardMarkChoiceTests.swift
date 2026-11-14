@@ -3,7 +3,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 825 (#883): a tap on a mark shows Keep and Dismiss beside it, a stray tap or a stroke puts them away and
+/// Stories 825, 808, 809, 810 (#883): a tap on a mark shows Keep and Dismiss beside it, a stray tap or a stroke puts them away and
 /// changes nothing, Keep is the old keep and Dismiss removes that one mark. The oracle is the shapes spec's "A tap on a
 /// mark offers Keep and Dismiss".
 final class WhiteboardMarkChoiceTests: XCTestCase {
@@ -86,26 +86,22 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
 
   // MARK: Keep and Dismiss
 
-  func testKeepMakesTheChosenMarkInkAndSettlesLarrysRow() {
+  func testKeepTakesTheChosenMarkOffTheGhosts() {
     var (turns, claudes, larrys) = board()
     _ = turns.tap(hitting: { $0 == larrys[1] })
-    let kept = turns.keepChosen()
-    XCTAssertEqual(kept?.ghost, larrys[1])
-    XCTAssertEqual(kept?.settlesLarrysRow, true)
+    XCTAssertEqual(turns.keepChosen(), larrys[1])
     XCTAssertNil(turns.chosen)
     XCTAssertEqual(turns.ghosts, claudes + [larrys[0]])
 
     _ = turns.tap(hitting: { $0 == claudes[0] })
-    XCTAssertEqual(turns.keepChosen()?.settlesLarrysRow, false, "Claude's settle nothing")
+    XCTAssertEqual(turns.keepChosen(), claudes[0])
     XCTAssertNil(turns.keepChosen(), "nothing chosen, nothing kept")
   }
 
   func testDismissRemovesOnlyThatMark() {
     var (turns, claudes, larrys) = board()
     _ = turns.tap(hitting: { $0 == larrys[0] })
-    let gone = turns.dismissChosen()
-    XCTAssertEqual(gone?.ghost, larrys[0])
-    XCTAssertEqual(gone?.settlesLarrysRow, true, "a dismissed mark of his doesn't come back on opening")
+    XCTAssertEqual(turns.dismissChosen(), larrys[0])
     XCTAssertNil(turns.chosen)
     XCTAssertEqual(turns.ghosts, claudes + [larrys[1]])
     XCTAssertNil(turns.dismissChosen())
@@ -117,7 +113,7 @@ final class WhiteboardMarkChoiceTests: XCTestCase {
     XCTAssertTrue(turns.pauseEnded())
     let asked = turns.asked(.claude)
     _ = turns.tap(hitting: { $0 == claudes[0] })
-    XCTAssertEqual(turns.dismissChosen()?.settlesLarrysRow, false)
+    XCTAssertEqual(turns.dismissChosen(), claudes[0])
     XCTAssertTrue(turns.current(asked), "one mark dismissed doesn't send the turn away")
     XCTAssertEqual(turns.ghosts, [claudes[1]])
   }

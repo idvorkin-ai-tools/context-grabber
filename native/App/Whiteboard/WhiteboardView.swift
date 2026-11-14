@@ -658,7 +658,11 @@ final class WhiteboardModel: ObservableObject {
     guard let row = update.marks, let frame = row.frame else { return }
     // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
     shownRow = row.id
-    turns.larrysMarks(row.shapes.map { Ghost($0, who: .larry, frame: frame, scale: row.scale) })
+    let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
+    turns.larrysMarks(
+      row.shapes.enumerated().map { index, shape in
+        Ghost(shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id))
+      }.filter { !settled.contains($0.id) })
     log.event(
       "whiteboard_marks",
       [
@@ -874,12 +878,17 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Igor kept or dismissed from his row: it doesn't come back when the board opens again.
-  private func settleLarrysRow() {
-    if let shownRow { UserDefaults.standard.set(shownRow, forKey: settledKey) }
+  /// Igor kept or dismissed one of Larry's marks: it doesn't come back when the board opens again, and once none of his
+  /// row is left, nor does the row.
+  private func settleLarrys(_ ghost: Ghost) {
+    guard ghost.who == .larry, let shownRow else { return }
+    let settled = UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? []
+    UserDefaults.standard.set(WhiteboardMarks.settling(ghost.id, of: shownRow, after: settled), forKey: settledMarksKey)
+    if !turns.ghosts.contains(where: { $0.who == .larry }) { UserDefaults.standard.set(shownRow, forKey: settledKey) }
   }
 
   private var settledKey: String { "whiteboard_marks_settled_\(board.id)" }
+  private var settledMarksKey: String { "whiteboard_marks_settled_marks_\(board.id)" }
 
   private func makeDictation() -> NoteDictation {
     let dictation = NoteDictation(
@@ -1134,8 +1143,8 @@ final class WhiteboardModel: ObservableObject {
   /// The mark whose Keep and Dismiss show (story 825).
   var chosen: Ghost? { turns.chosen }
 
-  /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (story 825,
-  /// #883): a stray tap never keeps or dismisses a mark.
+  /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (stories
+  /// 825, 810, #883): a stray tap never keeps or dismisses a mark.
   func tap(at point: CGPoint, zoom: CGFloat) {
     switch turns.tap(hitting: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) {
     case .nothing: return
@@ -1151,10 +1160,9 @@ final class WhiteboardModel: ObservableObject {
   /// Keep beside the chosen mark: the old tap's keep, one undo.
   func keepChosen() {
     guard let kept = turns.keepChosen() else { return }
-    log.event(
-      "whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.ghost.who.rawValue])
-    if kept.settlesLarrysRow { settleLarrysRow() }
-    ink(kept.ghost)
+    log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.who.rawValue])
+    settleLarrys(kept)
+    ink(kept)
   }
 
   /// Dismiss beside the chosen mark: that mark goes, and doesn't come back when the board opens again.
@@ -1163,10 +1171,10 @@ final class WhiteboardModel: ObservableObject {
     log.event(
       "whiteboard",
       [
-        "action": "mark_choice", "board": board.id, "choice": "dismiss", "who": gone.ghost.who.rawValue,
-        "kind": gone.ghost.kind.rawValue, "left": turns.ghosts.count,
+        "action": "mark_choice", "board": board.id, "choice": "dismiss", "who": gone.who.rawValue,
+        "kind": gone.kind.rawValue, "left": turns.ghosts.count,
       ])
-    if gone.settlesLarrysRow { settleLarrysRow() }
+    settleLarrys(gone)
   }
 
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
@@ -1440,8 +1448,11 @@ struct Ghost: Identifiable, WhiteboardGhost {
   let kind: WhiteboardTurn.Shape.Kind
   let letters: CGFloat?
 
-  init(_ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat) {
-    id = UUID().uuidString
+  init(
+    _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
+    id: String = UUID().uuidString
+  ) {
+    self.id = id
     self.who = who
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
