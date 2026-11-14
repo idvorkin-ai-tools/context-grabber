@@ -2006,7 +2006,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 518:
 
 - **Summary:** Holding a message offers what I can do with it
-- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host, `ChatHold.choices`: all four on Larry's words, only Quote and Copy on mine, only Yes and No on a picture alone) and `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, Quote on mine); the feel of the hold on the phone and iPad, and links staying tappable, not yet
+- **Status:** native app only: implemented in [1d5008e](https://github.com/idvorkin/context-grabber/commit/1d5008e); verified by `ChatReactionTests` (host, `ChatHold.choices`: all four on Larry's words, only Quote and Copy on mine, only Yes and No on a picture alone; mine gained *Send to new chat* with story 780) and `ChatReactionUITests` (simulator, fake Cockpit: all four on Larry's message, Quote on mine); the feel of the hold on the phone and iPad, and links staying tappable, not yet
 - **Issues:** [#629](https://github.com/idvorkin/context-grabber/issues/629)
 - **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -2019,7 +2019,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Holding each kind of message
 - **Given:** a thread with a message from Larry and one of mine
 - **When:** I press and hold each
-- **Then:** Larry's offers *Yes*, *No*, *Quote in reply* and *Copy*; mine offers only *Quote in reply* and *Copy*; a message that is only a picture offers neither *Quote in reply* nor *Copy*
+- **Then:** Larry's offers *Yes*, *No*, *Quote in reply* and *Copy*; mine offers *Quote in reply*, *Copy* and *Send to new chat* (story 780) but no *Yes* or *No*; a message that is only a picture offers neither *Quote in reply* nor *Copy*
 
 ---
 
@@ -2666,3 +2666,22 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** a message that is exactly the annotate tool's export for "An example post", with a *fix* note "Say it once." and a *question* note "Does this belong here?"
 - **When:** I open the thread on the iPhone
 - **Then:** the bubble shows a chip "An example post" that opens the post, beside "2 notes"; then the chips "fix · Say it once." and "question · Does this belong here?"; tapping the first shows the quoted passage with the words around it dimmed and the whole comment, and tapping it again folds it; *Copy* copies the message as pasted; a note with the quote "passion or addiction:" and an empty comment reads "note · “passion or addiction:”"; and the same JSON after the words "Here are my notes:", inside a code fence, broken, or other JSON reads exactly as written, with no card
+
+---
+
+### User Story 780:
+
+- **Summary:** Send one of my messages to a new chat
+- **Status:** native app: implemented on branch `native/send-to-new-chat` (bead context-grabber-9yo); verified on Linux only (`just test-linux`: `ChatMoveTests` and `ChatReactionTests` on Linux Swift, ContextCore cross-built for macOS, iOS and the simulator, the app's sources compiled for iOS); the Mac host rung, SwiftLint, the Xcode build, the simulator and the phone not yet; the Cockpit's `POST /chat/move` (cockpit bead cockpit-x3s) built in parallel, so not yet seen against a real Cockpit
+- **Spec:** [Chat with Larry in Grabber Native — Press and hold a message](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, who started something new in the middle of an unrelated chat
+- **I want to** send that message to a chat of its own and carry on there
+- **so that** each chat stays about one thing and Larry answers the new topic in its own place
+
+#### Acceptance Criteria:
+- **Scenario:** Moving my message out
+- **Given:** an open chat holding one of my messages that the Cockpit already has
+- **When:** I hold it (or right-click it on the Mac) and tap *Send to new chat*
+- **Then:** a new chat titled by the message's first line opens, holding that message with its pictures, and Larry answers there; going back, the old chat shows *Moved to a new chat* where the message was, which opens the new chat when tapped; Larry's messages and messages still on their way offer no such choice; a Cockpit that refuses or can't move it leaves the message where it was, with a copyable problem saying why
