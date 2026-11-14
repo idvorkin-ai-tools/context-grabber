@@ -55,7 +55,8 @@ final class ChatImageZoomTests: XCTestCase {
     XCTAssertEqual(
       ChatImageZoom.anchored(CGSize(width: -100, height: 20), around: CGPoint(x: 0, y: 40), from: 2, to: 4),
       CGSize(width: -200, height: 0))
-    XCTAssertEqual(ChatImageZoom.anchored(CGSize(width: 5, height: 5), around: .zero, from: 0, to: 2), CGSize(width: 5, height: 5))
+    XCTAssertEqual(
+      ChatImageZoom.anchored(CGSize(width: 5, height: 5), around: .zero, from: 0, to: 2), CGSize(width: 5, height: 5))
   }
 
   func testASwipeClosesOnlyAFittedPicture() {
