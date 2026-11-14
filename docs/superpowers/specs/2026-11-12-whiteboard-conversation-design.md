@@ -102,13 +102,30 @@ A finger tap on the line opens a panel under it, over the top of the board.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
 
+## Where the picture is: sent, or with Larry (Larry, 2026-11-12; story 773)
+
+The Cockpit marks each of Igor's messages *received* when it lands, *seen* when Larry picks it up and *done* when he
+has answered. Chat shows those marks; the board now reads them for the picture it is waiting on. Larry marks board
+pictures *seen* and *done* from 2026-11-14.
+
+- **Until Larry has picked the picture up**, the state reads **Sent · 0:03**. The clock is the same clock, counted
+  from when the picture went.
+- **Once he has it**, the state reads **Larry · 0:42**, as before.
+- **A picture that sits unpicked for 30 seconds** reads **Sent · 0:31 · not picked up yet**. That is the honest slow
+  signal: Larry is busy with something else, or isn't running. It replaces any guess at how long is too long.
+- **His answer ends the wait** whatever the mark said: an answer with no *seen* before it is still an answer.
+- **The other states are unchanged and say more than the mark**: *Cockpit not answering* shows as before (the mark
+  can't be read then, so the state keeps what it last knew), *Larry already has this* still answers a repeat tap, and
+  *Larry didn't answer* still comes at three minutes. Its copied state now also says whether the picture was ever
+  picked up.
+- **VoiceOver** says *Sent 3 seconds ago, not picked up yet* or *Larry has been looking for 42 seconds*.
+- **The panel's live row** says the same as the line.
+- **A Cockpit that sends no marks** (an older one): the state reads *Larry · 0:42* throughout, as before.
+
 ## Under discussion (not built; on #879)
 
-- **Where the picture is.** The state could say *Sent* until Larry has picked the picture up and *Larry has it*
-  after, with *Larry hasn't picked this up* as the honest slow signal. Waiting on Larry's answer about when the
-  Cockpit's marks are made.
-- **Larry's side:** a progress note while he works, words before marks, and timings on the Cockpit's thread page.
-  Asked of Larry.
+- **Larry's side:** a progress note while he works (it would follow the clock: *Larry · 0:42 · reading the board*),
+  words before marks, and timings on the Cockpit's thread page. Larry has taken these as `cockpit-dj8`.
 
 ## Acceptance
 
@@ -136,3 +153,8 @@ A finger tap on the line opens a panel under it, over the top of the board.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
 - Close the board with the panel open and open another: the panel is open there.
 - On an iPhone, tap the line on a board with a thread: Chat opens on that thread.
+- Send Larry a picture and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
+- He picks it up: the state changes to *Larry ·* and the clock doesn't restart.
+- Thirty seconds pass with the picture not picked up: the state adds *not picked up yet*.
+- He answers without ever marking it: the state goes and his line shows.
+- Three minutes pass and it was never picked up: the copied problem says it was never picked up.

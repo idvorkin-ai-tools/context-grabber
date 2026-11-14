@@ -4282,3 +4282,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap the note's line
 - **Then:** Chat opens on the board's thread
 
+---
+
+### User Story 773:
+
+- **Summary:** The board says whether Larry has picked the picture up
+- **Status:** not yet implemented
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("This seems very slow, are we crashing/hung?")
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Where the picture is*
+
+#### Use Case:
+- **As someone** waiting on Larry at the board
+- **I want to** see whether he has picked my picture up yet
+- **so that** I can tell "Larry is thinking" from "Larry never got it" without guessing from the clock
+
+#### Acceptance Criteria:
+- **Scenario:** Sent, then with Larry
+- **Given:** a picture has just gone to Larry
+- **When:** he picks it up four seconds later
+- **Then:** the note's state reads *Sent · 0:03* and then *Larry · 0:04*, the clock never restarting; had he not picked it up in thirty seconds it would read *Sent · 0:31 · not picked up yet*
+
