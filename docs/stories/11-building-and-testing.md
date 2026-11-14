@@ -383,3 +383,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a branch that changes the chat screens
 - **When:** the ladder climbs
 - **Then:** the chat classes run without a check that is whiteboard code (a link to a missing board) or a host test's (what a table reads aloud), and the picture's two ways out and the bar's mic share one launch each with the tests that already open those screens
+
+- **Scenario:** A screen's checks in one launch
+- **Given:** a metric's detail, the blog's three tiles and the daily strip's press-and-hold sheets, each with its rules on the host
+- **When:** their UI tests run
+- **Then:** the detail's form, the report over it and its close are one launch; the three tiles are one launch that comes back from Safari between them; and each strip sheet makes one round of edit and save

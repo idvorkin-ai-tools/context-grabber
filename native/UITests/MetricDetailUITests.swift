@@ -14,8 +14,10 @@ final class MetricDetailUITests: XCTestCase {
     return app
   }
 
-  func testTheDetailFillsAnIPadsWindowAndDragsAwayOnAnIPhone() throws {
-    let app = launchOnTheDetail()
+  /// One launch: the detail's form, a shake's report over it and back to it, then the way it closes. The shake is the
+  /// hook's, 20 s after launch, well after the detail is up (under 9 s in the timings), so the report opens over it.
+  func testTheDetailFillsAnIPadsWindowTakesAReportAndDragsAwayOnAnIPhone() throws {
+    let app = launchOnTheDetail(["GRABBER_SHAKE_AFTER": "20"])
     let close = app.buttons["Close"].firstMatch
     XCTAssertTrue(close.appears(within: 30), app.debugDescription)
     let bar = app.navigationBars.containing(.button, identifier: "Close").firstMatch
@@ -27,6 +29,15 @@ final class MetricDetailUITests: XCTestCase {
     if UIDevice.current.userInterfaceIdiom == .pad {
       XCTAssertEqual(bar.frame.width, app.windows.firstMatch.frame.width, accuracy: 1, "the whole window's width")
       XCTAssertEqual(bar.frame.minY, 0, accuracy: 60, "from the top of the window")
+    }
+
+    // Story 142: the shake's report opens over the detail, and Cancel leaves the detail there.
+    let report = app.navigationBars["Report a problem"]
+    XCTAssertTrue(report.appears(within: 30), app.debugDescription)
+    report.buttons["Cancel"].tap()
+    XCTAssertTrue(close.appears(within: 5), "the detail is still there underneath")
+
+    if UIDevice.current.userInterfaceIdiom == .pad {
       close.tap()
       XCTAssertTrue(close.waitForNonExistence(timeout: 5), "the X closes it")
     } else {
@@ -34,15 +45,5 @@ final class MetricDetailUITests: XCTestCase {
         .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
       XCTAssertTrue(close.waitForNonExistence(timeout: 5), "a drag closes the sheet")
     }
-  }
-
-  func testAShakeOpensAReportOverTheDetail() throws {
-    let app = launchOnTheDetail(["GRABBER_SHAKE_AFTER": "20"])
-    let close = app.buttons["Close"].firstMatch
-    XCTAssertTrue(close.appears(within: 30), app.debugDescription)
-    let report = app.navigationBars["Report a problem"]
-    XCTAssertTrue(report.appears(within: 30), app.debugDescription)
-    report.buttons["Cancel"].tap()
-    XCTAssertTrue(close.appears(within: 5), "the detail is still there underneath")
   }
 }

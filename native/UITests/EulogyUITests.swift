@@ -13,13 +13,16 @@ final class EulogyUITests: XCTestCase {
     return row
   }
 
+  /// One launch for the three: Safari is sent away and the app brought back between them (it was a launch each).
   func testBlogLaunchersLeaveTheApp() throws {
+    let app = XCUIApplication.forTests()
+    app.launch()
     for id in ["eulogy", "recent", "random"] {
-      let app = XCUIApplication.forTests()
-      app.launch()
       row(id, in: app).tap()
       XCTAssertTrue(safari.wait(for: .runningForeground, timeout: 20), "\(id) opened the browser")
       safari.terminate()
+      app.activate()
+      XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10), "back from \(id)")
     }
   }
 
