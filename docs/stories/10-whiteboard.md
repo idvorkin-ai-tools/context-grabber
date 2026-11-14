@@ -4312,7 +4312,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 773:
 
 - **Summary:** The board says whether Larry has picked the picture up
-- **Status:** implemented in [d055f34](https://github.com/idvorkin/context-grabber/commit/d055f34); verified by host tests (`WhiteboardLarryClockTests`: `testUntilHePicksItUpTheStateSaysSent`, `testARepeatTapStillSaysLarryAlreadyHasThis`, `testVoiceOverSaysSentInWords`, `testHisSilenceSaysWhetherHeEverPickedItUp`, `testTheMarkOnThePicturesMessageSaysWhetherHeHasIt`, `testOnlyAMessageSinceThePictureCounts`, `testNoTurnOutIsUnknown`; `WhiteboardNoteTests.testTheLineAndThePanelSayWhetherHeHasThePicture`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [d055f34](https://github.com/idvorkin/context-grabber/commit/d055f34), reconciled with stories 775–777 (one reading of the mark, 20 s) in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryClockTests`: `testUntilHePicksItUpTheStateSaysSent`, `testARepeatTapStillSaysLarryAlreadyHasThis`, `testVoiceOverSaysSentInWords`, `testHisSilenceSaysWhereThePictureWas`; `WhiteboardLarryWaitTests`: `testThePicturesOwnMarkSaysWhereItIs`, `testAnOlderCockpitIsNeverStuck`, `testASendToLarryIsReadByTheNewestMessageSinceThePicture`, `testNoTurnOutIsUnknown`; `WhiteboardNoteTests.testTheLineAndThePanelSayWhetherHeHasThePicture`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("This seems very slow, are we crashing/hung?")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Where the picture is*
 
@@ -4338,7 +4338,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 775:
 
 - **Summary:** A picture that hasn't reached the Cockpit in 20 seconds offers Retry
-- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`); verified by host tests on Linux (`WhiteboardLarryWaitTests`: no mark at 20 s is stuck with Retry and Dismiss, Retry keeps the picture and restarts the 20 s, the mark only moves forward and is found by the message's id) and the app compiled for iOS (`just test-linux`); not yet seen on the simulator or the iPad, nor against a hung Cockpit
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098), [4d8a67e](https://github.com/idvorkin/context-grabber/commit/4d8a67e) (bead `context-grabber-stl`), reconciled with story 773 in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss`, `testNoMarkIsStuckOnlyOnACockpitThatMarks`, `testAnOlderCockpitIsNeverStuck`, `testAPictureTheCockpitAnsweredForIsNeverStuck`, `testRetryStartsTheTwentySecondsAgainOnTheSamePicture`, `testAFailureOfThePictureBeforeRetryNeverFreesTheRetriedTurn`, `testAHandOffReplacedByRetryOrDismissSpeaksNoMore`, `testTheMarkIsFoundByTheMessagesId`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against a hung Cockpit
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
 
 #### Use Case:
@@ -4369,7 +4369,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 776:
 
 - **Summary:** Dismiss a stuck picture and the board stops waiting
-- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`); verified by host tests on Linux (`WhiteboardLarryWaitTests.testDismissFreesTheTurnAndKeepsItsWords`) and the app compiled for iOS (`just test-linux`); the button not yet seen on the simulator or the iPad
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`), reconciled in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testDismissFreesTheTurnAndKeepsItsWords`, `testAfterInterruptOrDismissTheNextTapSends`, `testAHandOffANewerPictureReplacedStillSpeaks`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
 
 #### Use Case:
@@ -4388,7 +4388,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 777:
 
 - **Summary:** Interrupt Larry when he has the picture and is taking long
-- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`); verified by host tests on Linux (`WhiteboardLarryWaitTests`: received or seen at 20 s offers only Interrupt, done offers nothing, Interrupt frees the turn and his late answer sends nothing) and the app compiled for iOS (`just test-linux`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Status:** implemented in [e695098](https://github.com/idvorkin/context-grabber/commit/e695098) (bead `context-grabber-stl`), reconciled in [32fa1e4](https://github.com/idvorkin/context-grabber/commit/32fa1e4); verified by host tests (`WhiteboardLarryWaitTests`: `testReceivedSeenOrUnknownAtTwentySecondsIsWorkingWithOnlyInterrupt`, `testDoneOffersNothingEvenWithTheTurnStillOut`, `testInterruptFreesTheTurnAndALateAnswerFindsNone`, `testAfterInterruptOrDismissTheNextTapSends`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *After 20 seconds*
 
 #### Use Case:
