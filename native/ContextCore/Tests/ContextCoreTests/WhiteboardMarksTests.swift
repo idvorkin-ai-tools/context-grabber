@@ -117,6 +117,21 @@ final class WhiteboardMarksTests: XCTestCase {
     XCTAssertEqual(marks.take([row("a"), row("b"), row("c")], settled: "b").marks?.id, "c")
   }
 
+  /// Story 808: a kept or dismissed mark is remembered alone, so the rest of its row still comes back on opening; a
+  /// newer row's first one forgets the older row's.
+  func testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks() {
+    let (a0, a2) = (WhiteboardMarks.mark(0, of: "a"), WhiteboardMarks.mark(2, of: "a"))
+    XCTAssertNotEqual(a0, WhiteboardMarks.mark(0, of: "b"))
+    XCTAssertNotEqual(WhiteboardMarks.mark(1, of: "a"), WhiteboardMarks.mark(0, of: "a1"))
+    var settled = WhiteboardMarks.settling(a0, of: "a", after: [])
+    XCTAssertEqual(settled, [a0])
+    settled = WhiteboardMarks.settling(a2, of: "a", after: settled)
+    XCTAssertEqual(settled, [a0, a2])
+    XCTAssertEqual(WhiteboardMarks.settling(a2, of: "a", after: settled), [a0, a2])
+    let b1 = WhiteboardMarks.mark(1, of: "b")
+    XCTAssertEqual(WhiteboardMarks.settling(b1, of: "b", after: settled), [b1])
+  }
+
   func testEachNewRowShowsAndASeenOneNeverComesBack() {
     var marks = WhiteboardMarks()
     XCTAssertEqual(marks.take([], settled: nil), .init())

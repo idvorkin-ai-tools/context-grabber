@@ -458,3 +458,42 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a metric's detail, the blog's three tiles and the daily strip's press-and-hold sheets, each with its rules on the host
 - **When:** their UI tests run
 - **Then:** the detail's form, the report over it and its close are one launch; the three tiles are one launch that comes back from Safari between them; and each strip sheet makes one round of edit and save
+
+---
+
+### User Story 827:
+
+- **Summary:** The smoke skips its audio checks on a locked Mac, and says so
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by the script check `scripts/native/test-smoke-lock.sh` in `just native-test` (the lock probe faked); a real smoke run on a locked Mac still to do
+- **Issues:** [#419](https://github.com/idvorkin/context-grabber/issues/419) (a locked Mac starves the simulator's audio); Igor, 2026-11-14: skip them rather than rerun for 5 to 12 minutes
+
+#### Use Case:
+- **As Igor,** waiting on a simulator run while the Mac's screen has locked
+- **I want to** have the audio checks skipped and named as skipped
+- **so that** a locked screen doesn't fail the run and cost a rerun, and a skipped check is never read as a pass
+
+#### Acceptance Criteria:
+- **Scenario:** A smoke run on a locked Mac
+- **Given:** the Mac's screen is locked
+- **When:** the simulator smoke reaches the timer, breathing and the real-audio call
+- **Then:** each prints *skipped: Mac screen locked* and doesn't run, the run's last lines count them as skipped and not passed, and unlocked they run as before
+
+---
+
+### User Story 828:
+
+- **Summary:** A report of how long a change takes, from the repo
+- **Status:** implemented on branch `native/batch-decided-1114`; run once by hand against GitHub and the deploys ledger, writing to a scratch folder; no automated check (it reads live GitHub)
+- **Issues:** the lead-time study of 2026-11-14
+
+#### Use Case:
+- **As Igor,** wanting to know where a change's time goes, week after week
+- **I want to** run one recipe that reads the merged PRs and the deploys and writes the lead-time page
+- **so that** the report outlives the scratch folder it was born in, and nothing private goes into the public repo
+
+#### Acceptance Criteria:
+- **Scenario:** Running the report
+- **Given:** `gh` is signed in and the deploys ledger is where `LEAD_TIMES_DEPLOYS` says, or its default
+- **When:** I run `just lead-times`
+- **Then:** it writes `data.json` and `index.html` to the output folder, each PR's minutes from asked to merged to on a device, and nothing in the repo changes
+

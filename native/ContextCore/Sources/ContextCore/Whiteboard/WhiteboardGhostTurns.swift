@@ -1,5 +1,5 @@
 //  The ghosts on an open board and the rules of Claude's turn (spec 2026-11-01-whiteboard-shapes-design.md, stories 344,
-//  345, 351, 354, 357, 358, 360, 367, 370, 373, 380–388): which marks show, whose a new set replaces, when Claude's fade,
+//  345, 351, 354, 357, 358, 360, 367, 370, 373, 380–388, 825): which marks show, whose a new set replaces, when Claude's fade,
 //  when an answer is stale, what Ghosts off stops, and when spoken words go. The board's model owns the timers, the
 //  requests, the picture, the canvas and the log; it hands the time in, so a host test can step it.
 
@@ -19,8 +19,11 @@ extension WhiteboardTurn {
 }
 
 public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
-  /// Faint on the board until a tap keeps one (stories 344, 349).
+  /// Faint on the board until one is kept or dismissed (stories 344, 349, 825).
   public private(set) var ghosts: [Ghost] = []
+  /// The mark whose Keep and Dismiss show (story 825). Gone with its mark, however that goes.
+  public var chosen: Ghost? { chosenID.flatMap { id in ghosts.first { $0.id == id } } }
+  private var chosenID: String?
   /// Story 351's switch.
   public private(set) var on: Bool
   /// Spoken and not yet in a turn that got through.
@@ -47,8 +50,13 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return true
   }
 
-  /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
-  public mutating func toolWentDown() { pacer.toolWentDown() }
+  /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts. Keep and Dismiss go
+  /// away (story 810): true when they were showing.
+  @discardableResult
+  public mutating func toolWentDown() -> Bool {
+    pacer.toolWentDown()
+    return putAway()
+  }
 
   /// True: start the pause again.
   public mutating func toolLifted() -> Bool { pacer.toolLifted() }
@@ -211,34 +219,83 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   }
 
   public enum Tap {
+    /// No buttons showing and none to show, or the tap was on the mark already chosen.
     case nothing
-    /// The caller turns it into ink and calls `keep`.
-    case keep(Ghost)
-    /// The caller calls `dismiss(larrys:)` with it; `larrys`: these are Larry's, whose row is then settled and doesn't
-    /// come back.
-    case dismiss(count: Int, larrys: Bool)
+    /// Keep and Dismiss now show beside this mark; nothing on the board has changed.
+    case chose(Ghost)
+    /// A tap off the marks put the buttons away; nothing is kept or dismissed (#823, #883).
+    case putAway
   }
 
-  /// A finger tap (story 354): on a ghost keeps it; anywhere else dismisses Claude's, and Larry's only when his are all
-  /// that's left, so one stray tap never loses his marks (#823).
-  public func tap(hitting: (Ghost) -> Bool) -> Tap {
-    guard !ghosts.isEmpty else { return .nothing }
-    if let ghost = ghosts.first(where: hitting) { return .keep(ghost) }
-    let claudes = ghosts.filter { $0.who != .larry }.count
-    return claudes > 0 ? .dismiss(count: claudes, larrys: false) : .dismiss(count: ghosts.count, larrys: true)
+  /// A finger tap (stories 354, 825): on a mark chooses it, so its Keep and Dismiss show; anywhere else only puts them
+  /// away. A stray tap never keeps or dismisses a mark.
+  public mutating func tap(hitting: (Ghost) -> Bool) -> Tap {
+    if let ghost = ghosts.first(where: hitting) {
+      guard ghost.id != chosenID else { return .nothing }
+      chosenID = ghost.id
+      return .chose(ghost)
+    }
+    return putAway() ? .putAway : .nothing
   }
 
-  /// Claude's ghosts go, or with `larrys` Larry's, and Claude's turn with them: a waiting pause is forgotten (the caller
-  /// cancels its timer) and an answer on its way lands stale.
-  public mutating func dismiss(larrys: Bool) {
-    pacer.dropped()
-    ghosts.removeAll { ($0.who == .larry) == larrys }
+  /// Keep and Dismiss go away. True when they were showing.
+  @discardableResult
+  public mutating func putAway() -> Bool {
+    let showing = chosen != nil
+    chosenID = nil
+    return showing
   }
 
-  /// A ghost kept as ink leaves the ghosts. True when it was Larry's: his row is settled.
-  public mutating func keep(_ ghost: Ghost) -> Bool {
+  /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
+  public mutating func keepChosen() -> Ghost? { removeChosen() }
+
+  /// Dismiss: the chosen mark goes, and only it. The rest of an answer on its way still lands.
+  public mutating func dismissChosen() -> Ghost? { removeChosen() }
+
+  private mutating func removeChosen() -> Ghost? {
+    guard let ghost = chosen else { return nil }
+    chosenID = nil
     ghosts.removeAll { $0.id == ghost.id }
-    return ghost.who == .larry
+    return ghost
+  }
+}
+
+/// Where Keep and Dismiss sit beside a chosen mark (story 825): to its right, else its left, else below, else above,
+/// and always wholly inside the view, moved inward at an edge. In the view's own points.
+public enum WhiteboardMarkChoice {
+  /// Between the mark and the buttons.
+  public static let gap: CGFloat = 8
+  /// Between the buttons and the view's edge.
+  public static let margin: CGFloat = 8
+
+  public static func place(mark: CGRect, buttons: CGSize, in view: CGRect) -> CGRect {
+    let inside = view.insetBy(dx: margin, dy: margin)
+    let (w, h) = (buttons.width, buttons.height)
+    let beside = mark.midY - h / 2
+    let candidates = [
+      CGRect(x: mark.maxX + gap, y: beside, width: w, height: h),
+      CGRect(x: mark.minX - gap - w, y: beside, width: w, height: h),
+      CGRect(x: mark.midX - w / 2, y: mark.maxY + gap, width: w, height: h),
+      CGRect(x: mark.midX - w / 2, y: mark.minY - gap - h, width: w, height: h),
+    ]
+    // The first side with room, judged across that side only; then held inside the view.
+    let fits = [
+      candidates[0].maxX <= inside.maxX, candidates[1].minX >= inside.minX,
+      candidates[2].maxY <= inside.maxY, candidates[3].minY >= inside.minY,
+    ]
+    let chosen = zip(candidates, fits).first { $0.1 }?.0 ?? candidates[0]
+    return CGRect(
+      x: min(max(chosen.minX, inside.minX), inside.maxX - w), y: min(max(chosen.minY, inside.minY), inside.maxY - h),
+      width: w, height: h)
+  }
+
+  /// A mark's box from its lines, in their own points; null for none.
+  public static func bounds(_ lines: [[CGPoint]]) -> CGRect {
+    let points = lines.joined()
+    guard let first = points.first else { return .null }
+    var box = CGRect(origin: first, size: .zero)
+    for point in points.dropFirst() { box = box.union(CGRect(origin: point, size: .zero)) }
+    return box
   }
 }
 

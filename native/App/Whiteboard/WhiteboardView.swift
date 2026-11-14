@@ -306,7 +306,9 @@ final class WhiteboardModel: ObservableObject {
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
   func beganDrawing() {
-    turns.toolWentDown()
+    if turns.toolWentDown() {
+      log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "drew"])
+    }
     pauseTask?.cancel()
     pauseTask = nil
   }
@@ -656,7 +658,11 @@ final class WhiteboardModel: ObservableObject {
     guard let row = update.marks, let frame = row.frame else { return }
     // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
     shownRow = row.id
-    turns.larrysMarks(row.shapes.map { Ghost($0, who: .larry, frame: frame, scale: row.scale) })
+    let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
+    turns.larrysMarks(
+      row.shapes.enumerated().map { index, shape in
+        Ghost(shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id))
+      }.filter { !settled.contains($0.id) })
     log.event(
       "whiteboard_marks",
       [
@@ -872,12 +878,17 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  /// Igor kept or dismissed from his row: it doesn't come back when the board opens again.
-  private func settleLarrysRow() {
-    if let shownRow { UserDefaults.standard.set(shownRow, forKey: settledKey) }
+  /// Igor kept or dismissed one of Larry's marks: it doesn't come back when the board opens again, and once none of his
+  /// row is left, nor does the row.
+  private func settleLarrys(_ ghost: Ghost) {
+    guard ghost.who == .larry, let shownRow else { return }
+    let settled = UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? []
+    UserDefaults.standard.set(WhiteboardMarks.settling(ghost.id, of: shownRow, after: settled), forKey: settledMarksKey)
+    if !turns.ghosts.contains(where: { $0.who == .larry }) { UserDefaults.standard.set(shownRow, forKey: settledKey) }
   }
 
   private var settledKey: String { "whiteboard_marks_settled_\(board.id)" }
+  private var settledMarksKey: String { "whiteboard_marks_settled_marks_\(board.id)" }
 
   private func makeDictation() -> NoteDictation {
     let dictation = NoteDictation(
@@ -1129,24 +1140,46 @@ final class WhiteboardModel: ObservableObject {
     problem = .grabber(message, context: "WhiteboardView.larry", extra: extra)
   }
 
-  /// A tap at `point` (board points) keeps the ghost under it; a tap anywhere else dismisses Claude's ghosts, or Larry's
-  /// when only his are left (#823).
+  /// The mark whose Keep and Dismiss show (story 825).
+  var chosen: Ghost? { turns.chosen }
+
+  /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (stories
+  /// 825, 810, #883): a stray tap never keeps or dismisses a mark.
   func tap(at point: CGPoint, zoom: CGFloat) {
     switch turns.tap(hitting: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) {
     case .nothing: return
-    case .keep(let ghost): keep(ghost)
-    case .dismiss(let count, let larrys):
-      log.event("whiteboard", ["action": "ghosts_dismissed", "board": board.id, "count": count, "larrys": larrys])
-      turns.dismiss(larrys: larrys)
-      cancelPause()
-      if larrys { settleLarrysRow() }
+    case .chose(let ghost):
+      log.event(
+        "whiteboard",
+        ["action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue])
+    case .putAway:
+      log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "tap_off"])
     }
   }
 
+  /// Keep beside the chosen mark: the old tap's keep, one undo.
+  func keepChosen() {
+    guard let kept = turns.keepChosen() else { return }
+    log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.who.rawValue])
+    settleLarrys(kept)
+    ink(kept)
+  }
+
+  /// Dismiss beside the chosen mark: that mark goes, and doesn't come back when the board opens again.
+  func dismissChosen() {
+    guard let gone = turns.dismissChosen() else { return }
+    log.event(
+      "whiteboard",
+      [
+        "action": "mark_choice", "board": board.id, "choice": "dismiss", "who": gone.who.rawValue,
+        "kind": gone.kind.rawValue, "left": turns.ghosts.count,
+      ])
+    settleLarrys(gone)
+  }
+
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
-  private func keep(_ ghost: Ghost) {
+  private func ink(_ ghost: Ghost) {
     let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4)
-    if turns.keep(ghost) { settleLarrysRow() }
     // #883: what a kept mark that doesn't show needs said: its pen, letters and colour, the zoom, and whether the ink
     // landed on screen. `paper_keep` and `paper_ink_look` follow with where it went and whether the view drew it.
     let ink = PKDrawing(strokes: strokes).bounds
@@ -1415,8 +1448,11 @@ struct Ghost: Identifiable, WhiteboardGhost {
   let kind: WhiteboardTurn.Shape.Kind
   let letters: CGFloat?
 
-  init(_ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat) {
-    id = UUID().uuidString
+  init(
+    _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
+    id: String = UUID().uuidString
+  ) {
+    self.id = id
     self.who = who
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
@@ -1729,7 +1765,6 @@ struct WhiteboardView: View {
         }
       }
     }
-    .accessibilityIdentifier("whiteboard")
     .task {
       // XCUITest's taps never reach the system's paste button: the UI test pastes through this.
       guard let text = LaunchHooks.current.whiteboard.paste else { return }

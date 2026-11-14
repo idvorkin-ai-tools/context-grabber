@@ -3,8 +3,8 @@
 
 import Foundation
 
-/// A screen that can have a window of its own. The Gym Timer, breathing and the call screen are not here: each holds
-/// the audio session, and only the home window keeps them from overlapping (story 476).
+/// A screen that can have a window of its own. The Gym Timer, breathing, the call screen and the Supermix are not here:
+/// each holds the audio session, and only the home window keeps them from overlapping (stories 476, 826).
 public enum WindowScreen: String, Codable, Hashable, CaseIterable, Sendable {
   case chat, today, cockpit, places, whiteboard, card
 
@@ -110,6 +110,10 @@ public struct AppPhaseLatch: Equatable, Sendable {
 extension WindowScreen {
   /// Story 731 (#782): what a new window offers while the home window is up: the screens that can have a window of their
   /// own, in the order home shows them (`todayCard` first when home shows it, then `tiles`, which are home's shown tiles).
+  /// Story 826 (#870): the new window's footnote, naming what isn't offered because it holds the audio.
+  public static let staysHome =
+    "Home is open in another window. The Gym Timer, Box breathing, calls and the Workout Supermix stay there."
+
   public static func offered(todayCard: Bool, tiles: [String]) -> [WindowScreen] {
     var seen = Set<WindowScreen>()
     return ((todayCard ? ["today"] : []) + tiles).compactMap(WindowScreen.init(tile:)).filter {

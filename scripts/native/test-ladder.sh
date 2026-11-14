@@ -75,6 +75,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
   # What has to compile. A test script runs the build it needs; a UI test isn't in the Mac build.
   case $f in
     *.md | docs/* | .beads/* | .lavish/* | native/ContextCore/Tests/*) ;;
+    scripts/lead-times.py) ;;  # a report read off GitHub, nothing the app builds (story 828)
     scripts/native/bundle-trainer.sh) sim_build=1 mac_build=1 ;;
     scripts/native/*) ;;
     native/UITests/*) sim_build=1 ;;
@@ -82,7 +83,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
   esac
   # Which UI test classes can see it.
   case $f in
-    *.md) ;;
+    *.md | scripts/lead-times.py) ;;
     native/App/Assets.xcassets/*) ;;  # the host rung's tile-art check
     native/App/Chat/* | native/App/Inbox/* | native/ContextCore/Sources/ContextCore/Chat/* | \
       native/ContextCore/Sources/ContextCore/Inbox/* | scripts/native/test-chat-ui.sh | scripts/native/fake-bridge.py)

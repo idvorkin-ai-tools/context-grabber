@@ -125,6 +125,9 @@ never "whiteboard code: no chat" "Chat"
 # The whiteboard's rules run only the classes that show them; its views still run them all.
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardPaste.swift
 says "a paste rule: the two paste classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperPasteUITests WhiteboardPasteUITests"
+dry --changed scripts/lead-times.py
+says "the lead-time report: no Mac build (story 828)" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
+says "the lead-time report: no simulator build" "rung 2 Simulator: skipped, nothing the simulator build compiles changed"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardGhostTurns.swift
 says "a ghost rule: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 never "a ghost rule: not the lines" "WhiteboardPaperLinesUITests"
@@ -308,6 +311,8 @@ says_smoke() {  # <label> <expected sections> <path...>
 says_smoke "the smoke: a Gym Timer file runs the timer section" timer native/App/Gym/GymTimerView.swift
 says_smoke "the smoke: a UI test file runs none of it" none native/UITests/CardUITests.swift
 says_smoke "the smoke: shared code runs all of it" all native/App/AppModel.swift
+says_smoke "the smoke: its audio-lock helper runs all of it (story 827)" all scripts/native/smoke-lock.sh
+says_smoke "the smoke: the lead-time report runs none of it (story 828)" none scripts/lead-times.py
 
 run -- --changed native/UITests/WhiteboardPasteUITests.swift
 status=$?

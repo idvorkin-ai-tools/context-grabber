@@ -88,19 +88,11 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(for: [done], timeout: 5)
   }
 
-  /// Back to the list and into the same board.
-  private func reopenBoard(_ app: XCUIApplication) {
-    app.navigationBars.buttons.element(boundBy: 0).tap()
-    let card = app.buttons["whiteboard-card"].firstMatch
-    XCTAssertTrue(card.appears(within: 5), app.debugDescription)
-    card.tap()
-    XCTAssertTrue(app.buttons["whiteboard-ghosts"].appears(within: 5), app.debugDescription)
-  }
-
-  /// Stories 382, 383, 386 and 388, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept ones with no
-  /// tap, and once dismissed they don't come back when the board opens again. That the newest set comes back on opening,
-  /// and that a seen set never comes back between looks, are `WhiteboardMarksTests`, on the host.
-  func testLarrysMarksArriveOnTheirOwnAndADismissedSetStaysGone() throws {
+  /// Stories 382, 383, 386, 388 and 810, with Ghosts off so only Larry's marks show. Unprompted marks replace his unkept
+  /// ones with no tap, and a stray tap off them dismisses none of them (#883). That a dismissed or kept mark alone stays
+  /// gone, that the newest set comes back on opening, and that a seen set never comes back between looks, are
+  /// `WhiteboardMarksTests`, on the host.
+  func testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem() throws {
     let cockpit = try XCTUnwrap(ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"])
     let (app, ghosts) = try openBoard()
     ghosts.tap()
@@ -118,12 +110,9 @@ final class WhiteboardTurnUITests: XCTestCase {
       app.staticTexts.matching(marks(3)).firstMatch.appears(within: 10), app.debugDescription)
 
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.8)).tap()
-    let none = app.staticTexts.matching(NSPredicate(format: "label ENDSWITH %@", " to keep")).firstMatch
-    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: none)
-    waitForExpectations(timeout: 3)
-    reopenBoard(app)
-    sleep(4)  // A look at the thread has come and gone.
-    XCTAssertFalse(none.exists, app.debugDescription)
+    sleep(2)
+    XCTAssertTrue(app.staticTexts.matching(marks(3)).firstMatch.exists, "a stray tap dismisses nothing")
+    XCTAssertFalse(app.buttons["whiteboard-mark-dismiss"].exists, "and shows no buttons")
   }
 
   /// Story 768: a tap on the note's chevron opens the conversation over the board, holding Larry's whole reply. What the

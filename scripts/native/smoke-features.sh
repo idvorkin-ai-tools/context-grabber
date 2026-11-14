@@ -17,6 +17,7 @@ add() { [[ " ${features[*]-} " == *" $1 "* ]] || features+=("$1"); }
 for f in $files; do
   case $f in
     *.md | docs/* | .beads/* | .lavish/*) ;;  # words, not code
+    scripts/lead-times.py) ;;                 # a report off GitHub (story 828)
     native/ContextCore/Tests/*) ;;            # host tests, the host rung's
     native/UITests/*) ;;                      # UI tests, which the ladder runs as their own classes (story 755)
     native/App/Gym/* | native/ContextCore/Sources/ContextCore/Gym/* | assets/audio/timer*) add timer ;;

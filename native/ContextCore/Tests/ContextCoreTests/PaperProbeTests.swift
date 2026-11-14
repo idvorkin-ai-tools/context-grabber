@@ -56,6 +56,28 @@ final class PaperProbeTests: XCTestCase {
     XCTAssertFalse(PaperProbe.isFingerTap(travel: 3, seconds: 0.1, fingers: 2), "the start of a pinch")
   }
 
+  /// Stories 616, 825 (#883): PaperKit draws a dot where a finger taps, even in selection mode with its drawing off, a
+  /// few tenths of a second after the lift; on the iPad simulator, 2026-11-14, the dot was 3 x 4 board points at the tap.
+  /// While marks show, that dot is the tap's and is taken back; a stroke, or ink anywhere else or later, isn't.
+  func testATapsDotIsTheSmallInkAtTheTapJustAfterIt() {
+    let tap = CGPoint(x: 523.6, y: 488.2)
+    let dot = CGRect(x: 522, y: 486, width: 3, height: 4)
+    XCTAssertTrue(PaperProbe.isTapDot(added: [dot], tap: tap, secondsSince: 0.17, zoom: 1.02))
+    XCTAssertTrue(
+      PaperProbe.isTapDot(
+        added: [CGRect(x: 515, y: 480, width: 12, height: 12)], tap: tap, secondsSince: 0.1, zoom: 0.5),
+      "zoomed out, the same dot covers more of the board")
+    XCTAssertFalse(PaperProbe.isTapDot(added: [], tap: tap, secondsSince: 0.1, zoom: 1), "nothing added")
+    XCTAssertFalse(
+      PaperProbe.isTapDot(added: [CGRect(x: 244, y: 486, width: 250, height: 4)], tap: tap, secondsSince: 0.1, zoom: 1),
+      "a stroke")
+    XCTAssertFalse(
+      PaperProbe.isTapDot(added: [CGRect(x: 73, y: 746, width: 4, height: 4)], tap: tap, secondsSince: 0.1, zoom: 1),
+      "a dot somewhere else")
+    XCTAssertFalse(PaperProbe.isTapDot(added: [dot], tap: tap, secondsSince: 1.5, zoom: 1), "long after the tap")
+    XCTAssertFalse(PaperProbe.isTapDot(added: [dot, dot], tap: tap, secondsSince: 0.1, zoom: 1), "more than a dot")
+  }
+
   func testALongStillTouchIsAPress() {
     var facts = PaperProbe.TouchFacts()
     facts.seconds = 1
