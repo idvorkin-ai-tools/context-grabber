@@ -133,8 +133,8 @@ with the same labels.
 
 **Press and hold a message** (Igor, 2026-11-03, #629: *"Maybe let me do press-and-hold reactions for yes, no, quote in
 reply"*). Holding one of Larry's messages opens a menu: *Yes*, *No*, *Quote in reply*, *Copy*. Holding one of Igor's own
-offers *Quote in reply* and *Copy*, since answering himself means nothing. A message that is only a picture has nothing
-to quote or copy, so Larry's offers *Yes* and *No* and Igor's opens no menu. Tapping a link or a picture works as ever. The menu's *Copy* takes the
+offers *Quote in reply*, *Copy* and *Send to new chat*, since answering himself means nothing. A message that is only a
+picture has nothing to quote or copy, so Larry's offers *Yes* and *No* and Igor's offers *Send to new chat* alone. Tapping a link or a picture works as ever. The menu's *Copy* takes the
 whole message and replaces selecting its text by a long press, which the same gesture can't also do.
 
 - **Yes and No** send at once, with no second tap: an ordinary message reading *Yes* or *No*, in the thread, under every
@@ -151,6 +151,16 @@ whole message and replaces selecting its text by a long press, which the same ge
   Larry read the same words.
 - **A failure.** A *Yes* or *No* that can't be kept on the phone says so in a copyable problem at the top of the thread,
   with the thread and the message it answered, and nothing is sent.
+- **Send to new chat** (Igor, 2026-11-14: *"Sometimes I'm starting a new thread in a chat. Can I right-click on it and
+  click 'Send to new chat' and then we ignore this chat and go into a new chat?"*). On one of Igor's own messages, on
+  the phone by holding it and on the Mac by right-clicking it, it moves that message, its words and pictures, out of
+  this chat into a brand-new one titled by its first line, and opens the new chat at once. Larry answers it there.
+  Replies Larry already made stay where they were. Where the message was, the old chat keeps one quiet centred line,
+  *Moved to a new chat*, that opens the new chat when tapped; the same line shows on the laptop's page. A message still
+  on its way to the Cockpit has no such choice, and neither has Larry's. Offline, or with no Cockpit address, nothing is
+  asked and the problem says why. A Cockpit that refuses (an older one that can't move messages, a message already
+  moved) leaves the message where it was and says why in a copyable problem at the top of the thread. A second tap
+  while the first is still on its way does nothing.
 
 **Links in a thread** (Igor, 2026-11-06, #736: *"If there's a PR or a blog link … It would be nice to get that extracted
 and ready to go so I can just quickly click on it"*; he picked option A of three, the wide thread list with it, and C
@@ -556,6 +566,8 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - `chat` events for the press-and-hold menu: reaction (yes or no, thread, message id, whether it was the newest), quote
   and copy (thread, message id). A Yes or No the phone could not keep logs an error with the same fields and the
   reason. Never the text.
+- `chat` moved_to_new_chat (thread, message id, whether it took, the new thread or why not) at each *Send to new chat*,
+  and moved_link (thread, the new thread) when a *Moved to a new chat* line is tapped. Never the text.
 - `chat` link_opened (thread, where it was tapped: the strip, *All links* or the list, and the chip's kind: pr, gist or
   web; never the link), links_folded (thread, folded or not), and links_read_failed (thread, why) once per thread when
   a wide list could not read a row's links.
@@ -583,6 +595,10 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
 - Holding Larry's newest message and tapping *Yes* sends *Yes*; on an older one it sends a quote of that message, then
   *Yes*; *No* the same. *Quote in reply* fills the bar, sends nothing and leaves what was typed in place. Igor's own
   messages offer no *Yes* or *No*.
+- Holding one of Igor's own messages, or right-clicking it on the Mac, offers *Send to new chat*; Larry's messages and
+  messages not yet on the Cockpit don't. Tapping it opens a new chat titled by the message's first line, holding that
+  message, and the old chat shows *Moved to a new chat* in its place, which opens the new chat when tapped. A Cockpit
+  that refuses or can't move it leaves the message where it was, with a copyable problem saying why.
 - The picker lists the phone's microphones and the next recording uses the one picked; *Automatic* follows the
   phone's route.
 - Tap the mic, speak, tap again: the words appear in the field as they are spoken, after what was typed, and nothing
@@ -653,6 +669,11 @@ Files (#633) need one more, not built yet; until then a file is refused and kept
 
 Showing a delivered file in the phone's thread, as a row that opens it, is built with that change; no Cockpit sends one
 back today.
+
+*Send to new chat* needs the Cockpit to move one of Igor's messages, given its chat and its id, into a new chat made the
+way any new chat is, and answer with the new chat and its title; to refuse a message that isn't Igor's or was already
+moved, and to answer an unknown chat or message as not found. The old chat keeps a line saying the message moved,
+naming the new chat, and Larry answers the moved message in the new chat. Replies he already made stay put.
 
 A pull request's state (#736, option C) needs nothing new: the Cockpit already tracks pull requests for its own
 summaries and answers, for any list of them the app names, each one's state and whether it is a draft; one it wasn't
