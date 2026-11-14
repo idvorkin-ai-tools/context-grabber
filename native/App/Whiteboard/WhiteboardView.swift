@@ -393,6 +393,7 @@ final class WhiteboardModel: ObservableObject {
     larryAttempt += 1
     let attempt = larryAttempt
     larryOut = out
+    larryOut?.turn = turn
     larrySending = true
     defer { if attempt == larryAttempt { larrySending = false } }
     let (jpeg, strokes, picture, rect, scale) = (out.jpeg, out.strokes, out.picture, out.rect, out.scale)
@@ -415,7 +416,9 @@ final class WhiteboardModel: ObservableObject {
       event["thread"] = key
       threads.set(key, board: board.id)
       // The Cockpit writes the message with its *received* mark (story 773): this picture isn't stuck.
-      if larryOut?.picture.pictureID == picture.pictureID { larryOut?.receipt = .received }
+      if let out = larryOut, out.picture.pictureID == picture.pictureID {
+        larryOut?.receipt = out.receipt.atLeast(.received)
+      }
       turns.larryReached()
       if problem?.context == "WhiteboardView.larry" { problem = nil }
     case .refused(let status, let reason):
@@ -469,6 +472,9 @@ final class WhiteboardModel: ObservableObject {
     let said: String?
     /// The furthest the Cockpit's mark on its message has got.
     var receipt = ChatMessage.Receipt.sent
+    /// The turn it went out under: its mark speaks only for that turn, never for a later one (a *Send to Larry* goes
+    /// through the Inbox's outbox, which retries on its own, so that turn is offered nothing).
+    var turn = WhiteboardLarryTurn.State.idle
   }
 
   /// Story 419: the board's strokes to the Cockpit under the picture's id. Never a reason not to send the picture.
@@ -679,12 +685,13 @@ final class WhiteboardModel: ObservableObject {
   /// the stuck picture's problem shown or taken away, only when it changes.
   private func checkLarryWait() {
     let now = ContinuousClock.now
-    let receipt = larryOut?.receipt ?? .sent
-    let wait = WhiteboardLarryWait.of(larry, receipt: receipt, now: now)
+    let out = larryOut.flatMap { $0.turn == larry.state ? $0 : nil }
+    let receipt = out?.receipt ?? .sent
+    let wait = out == nil ? .none : WhiteboardLarryWait.of(larry, receipt: receipt, now: now)
     guard wait != larryWait else { return }
     var event: [String: Any] = [
       "action": "larry_wait", "board": board.id, "wait": wait.rawValue, "was": larryWait.rawValue,
-      "receipt": receipt.rawValue, "picture": larryOut?.picture.pictureID ?? "", "sending": larrySending,
+      "receipt": receipt.rawValue, "picture": out?.picture.pictureID ?? "", "sending": larrySending,
       "cockpit_answering": !larryAway,
     ]
     if case .awaiting(let since, _) = larry.state { event["looking_s"] = Int((now - since).components.seconds) }
@@ -696,7 +703,7 @@ final class WhiteboardModel: ObservableObject {
         WhiteboardLarryWait.stuckMessage, context: WhiteboardLarryWait.stuckContext,
         extra: [
           "board": .string(board.id), "cockpit": .string(cockpit),
-          "picture": .string(larryOut?.picture.pictureID ?? ""),
+          "picture": .string(out?.picture.pictureID ?? ""),
           "sent_at": .string((Date() - TimeInterval(waited)).formatted(.iso8601)), "waited_s": .int(waited),
           "sending": .bool(larrySending), "cockpit_answering": .bool(!larryAway),
         ])
@@ -716,6 +723,7 @@ final class WhiteboardModel: ObservableObject {
         "receipt": out.receipt.rawValue,
       ])
     let turn = larry.state
+    larryOut?.turn = turn
     Task { await handToLarry(turn, said: out.said, from: "retry", again: out) }
     checkLarryWait()
   }

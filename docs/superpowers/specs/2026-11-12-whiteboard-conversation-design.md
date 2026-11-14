@@ -86,6 +86,8 @@ doesn't say whether the picture ever reached him, or offer anything to do about 
 - **Done, or his answer: nothing is offered**, and the control goes with the clock.
 - **Small and out of the way.** Retry and Dismiss sit in the bar's problem row, Interrupt in the note's line. Neither
   covers the board, and the Pencil keeps drawing.
+- **Only *Larry's turn* and the pictures the board hands him itself.** A *Send to Larry* goes through the outbox, which
+  already keeps trying and shows its own state, so its turn is offered none of these controls.
 - **The 3-minute wait is unchanged.** If it runs out first, *Larry didn't answer* takes the problem row's place.
 - **The session log says each change** (stuck, working, back to waiting or nothing) and each press, with the picture
   and the mark it had.
