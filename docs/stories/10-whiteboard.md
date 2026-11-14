@@ -212,7 +212,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Larry answers on the board
 - **Given:** the board has a drawing
 - **When:** I tap *Larry's turn* and carry on
-- **Then:** the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) until he answers (story 662), with no spinner, and the Pencil keeps drawing. When he answers, faint blue shapes and a line from him appear with no tap, nothing on the board changes until I keep one, Chat has a thread named after the board with the picture and his words, and the board's next turn goes to it
+- **Then:** the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) until he answers (story 662), with no spinner, and the Pencil keeps drawing. When he answers, faint purple shapes and a line from him appear with no tap, nothing on the board changes until I keep one, Chat has a thread named after the board with the picture and his words, and the board's next turn goes to it
 
 ---
 
@@ -403,10 +403,10 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **so that** his answer joins my drawing only where I want it
 
 #### Acceptance Criteria:
-- **Scenario:** A blue ghost, kept
-- **Given:** Larry's faint blue shapes are showing
+- **Scenario:** A purple ghost, kept
+- **Given:** Larry's faint purple shapes are showing
 - **When:** I tap one
-- **Then:** it becomes blue ink that my eraser and undo treat like mine
+- **Then:** it becomes purple ink that my eraser and undo treat like mine
 
 ---
 
@@ -423,7 +423,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** Ghosts off with Larry's marks showing
-- **Given:** Larry's faint blue shapes are showing
+- **Given:** Larry's faint purple shapes are showing
 - **When:** I turn Ghosts off in the board's bar
 - **Then:** his shapes stay and I can still keep them
 
@@ -718,7 +718,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** Solid, not dashed
-- **Given:** a ghost is showing, Claude's in orange or Larry's in blue
+- **Given:** a ghost is showing, Claude's in orange or Larry's in purple
 - **When:** I look at it
 - **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows the outlines of its letters
 
@@ -929,7 +929,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** He answers while I've moved on
 - **Given:** I handed Larry the board, then drew elsewhere and panned away
 - **When:** he posts a row of marks on the thread
-- **Then:** within a few seconds, with no tap, they show as blue ghosts on what the picture showed, not where I am now, and his text shows in the bar as his line
+- **Then:** within a few seconds, with no tap, they show as purple ghosts on what the picture showed, not where I am now, and his text shows in the bar as his line
 
 ---
 
@@ -3102,7 +3102,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** His turn
 - **Given:** a board on paper with ink
 - **When:** I tap *Larry's turn*
-- **Then:** his marks arrive by themselves in blue, kept by a tap like Claude's, and his words show in the bar
+- **Then:** his marks arrive by themselves in purple, kept by a tap like Claude's, and his words show in the bar
 
 ---
 
@@ -3822,7 +3822,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Use Case:
 - **As someone** drawing with Larry on the board
 - **I want to** see his marks at the width, colour and lettering he chose, with labels in a thin pen
-- **so that** what he writes reads like writing and his diagram says what he meant, not a bold blue marker
+- **so that** what he writes reads like writing and his diagram says what he meant, not a bold marker
 
 #### Acceptance Criteria:
 - **Scenario:** A mark that asks for its look

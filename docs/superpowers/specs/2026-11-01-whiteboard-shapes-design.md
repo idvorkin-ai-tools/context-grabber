@@ -135,7 +135,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   off while a turn is on its way. If the Cockpit says it no longer has the thread, the next picture starts a new one.
   Claude's ghost turns have no thread.
 - **Larry's marks arrive on their own.** While a board that has a thread is open, the app looks at the thread about
-  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (blue), kept by a tap like Claude's.
+  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (purple), kept by a tap like Claude's.
   It makes no difference whether he is answering a turn, answering *Send to Larry*, or drawing unprompted.
 - **Marks land where the picture was.** Every picture goes with its place on the board, and his row brings it back, so
   his marks sit on what he saw even after Igor has drawn elsewhere, panned or zoomed. A row of marks that doesn't say
@@ -242,7 +242,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
   Claude's (Larry's once they're all that's left); then the finger draws again.
 - Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's purple ghosts stay showing.
 - Tap Larry's turn: the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) straight away and the Pencil keeps drawing. Chat has a thread
-  named after the board holding the picture. Minutes later, with no tap, blue ghosts and his line appear on what he saw,
+  named after the board holding the picture. Minutes later, with no tap, purple ghosts and his line appear on what he saw,
   even if the view has moved since.
 - He draws unprompted on the thread: the same, with no tap by Igor. His next marks replace the unkept ones.
 - Dismiss his marks: they don't return, not on the next look and not after closing and reopening the board. Leave them
