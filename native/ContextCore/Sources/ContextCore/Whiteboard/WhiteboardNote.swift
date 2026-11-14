@@ -76,13 +76,13 @@ public enum WhiteboardNote {
   /// The line, or nil with nothing to say.
   public static func line(
     larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
-    pickedUp: WhiteboardLarryClock.PickedUp = .unknown, said: WhiteboardSaid, micOn: Bool, notice: Notice?, ghosts: Int
+    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool, notice: Notice?, ghosts: Int
   ) -> Line? {
     var line = Line()
     if let clock = WhiteboardLarryClock.state(
-      larry, now: now, cockpitAnswering: cockpitAnswering, pickedUp: pickedUp),
+      larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark),
       let spoken = WhiteboardLarryClock.spoken(
-        larry, now: now, cockpitAnswering: cockpitAnswering, pickedUp: pickedUp)
+        larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
     {
       let next = waiting(larry)
       line.state = next.map { "\(clock) · next: \($0)" } ?? clock
@@ -186,11 +186,11 @@ public enum WhiteboardNote {
   /// The panel's live rows, under its thread: the turn that's out, what waits to go next, what the mic is hearing.
   public static func live(
     larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
-    pickedUp: WhiteboardLarryClock.PickedUp = .unknown, said: WhiteboardSaid, micOn: Bool
+    mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool
   ) -> [Row] {
     var rows: [Row] = []
     if let clock = WhiteboardLarryClock.state(
-      larry, now: now, cockpitAnswering: cockpitAnswering, pickedUp: pickedUp)
+      larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
     {
       rows.append(Row(id: "live-turn", kind: .live, who: "Now", text: clock, mark: nil))
     }

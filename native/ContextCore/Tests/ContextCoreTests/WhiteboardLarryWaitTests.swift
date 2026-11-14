@@ -1,8 +1,10 @@
+import Foundation
 import XCTest
 
 @testable import ContextCore
 
-/// Stories 775–777: what the board offers twenty seconds into Larry's turn, from the Cockpit's mark on the picture.
+/// Stories 773, 775–777: where the picture is, from the Cockpit's mark on its message, and what the board offers
+/// twenty seconds into Larry's turn.
 final class WhiteboardLarryWaitTests: XCTestCase {
   private let t0 = ContinuousClock.now
 
@@ -15,54 +17,54 @@ final class WhiteboardLarryWaitTests: XCTestCase {
   }
 
   func testNoTurnOutOffersNothing() {
-    for receipt in [ChatMessage.Receipt.sent, .received, .seen, .done] {
-      XCTAssertEqual(WhiteboardLarryWait.of(WhiteboardLarryTurn(), receipt: receipt, now: at(60)), .none)
+    for mark in [WhiteboardLarryWait.Mark.none, .unknown, .received, .seen, .done] {
+      XCTAssertEqual(WhiteboardLarryWait.of(WhiteboardLarryTurn(), mark: mark, now: at(60)), .none)
     }
   }
 
   func testUnderTwentySecondsOffersNothingWhateverTheMark() {
-    for receipt in [ChatMessage.Receipt.sent, .received, .seen] {
-      XCTAssertEqual(WhiteboardLarryWait.of(out(), receipt: receipt, now: at(19)), .waiting)
-      XCTAssertEqual(WhiteboardLarryWait.of(out(), receipt: receipt, now: at(19)).controls, [])
+    for mark in [WhiteboardLarryWait.Mark.none, .unknown, .received, .seen] {
+      XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: mark, now: at(19)), .waiting)
+      XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: mark, now: at(19)).controls, [])
     }
   }
 
   func testNoMarkAtTwentySecondsIsStuckWithRetryAndDismiss() {
-    let wait = WhiteboardLarryWait.of(out(), receipt: .sent, now: at(20))
+    let wait = WhiteboardLarryWait.of(out(), mark: .none, now: at(20))
     XCTAssertEqual(wait, .stuck)
     XCTAssertEqual(wait.controls, [.retry, .dismiss])
   }
 
-  func testReceivedOrSeenAtTwentySecondsIsWorkingWithOnlyInterrupt() {
-    for receipt in [ChatMessage.Receipt.received, .seen] {
-      let wait = WhiteboardLarryWait.of(out(), receipt: receipt, now: at(25))
-      XCTAssertEqual(wait, .working, "\(receipt)")
+  func testReceivedSeenOrUnknownAtTwentySecondsIsWorkingWithOnlyInterrupt() {
+    for mark in [WhiteboardLarryWait.Mark.received, .seen, .unknown] {
+      let wait = WhiteboardLarryWait.of(out(), mark: mark, now: at(25))
+      XCTAssertEqual(wait, .working, "\(mark)")
       XCTAssertEqual(wait.controls, [.interrupt])
     }
   }
 
   func testDoneOffersNothingEvenWithTheTurnStillOut() {
-    XCTAssertEqual(WhiteboardLarryWait.of(out(), receipt: .done, now: at(90)), .none)
+    XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: .done, now: at(90)), .none)
   }
 
   func testTheThresholdCanBeShortened() {
-    XCTAssertEqual(WhiteboardLarryWait.of(out(), receipt: .sent, now: at(3), after: .seconds(3)), .stuck)
+    XCTAssertEqual(WhiteboardLarryWait.of(out(), mark: .none, now: at(3), after: .seconds(3)), .stuck)
   }
 
   func testTheTwentySecondsCountFromTheNewestPicture() {
     var turn = out(at: 0, version: 1)
     _ = turn.tapped(version: 2, now: at(15))
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .sent, now: at(25)), .waiting, "a newer picture restarts it")
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .sent, now: at(35)), .stuck)
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .none, now: at(25)), .waiting, "a newer picture restarts it")
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .none, now: at(35)), .stuck)
   }
 
   func testRetryStartsTheTwentySecondsAgainOnTheSamePicture() {
     var turn = out()
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .sent, now: at(21)), .stuck)
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .none, now: at(21)), .stuck)
     XCTAssertTrue(turn.resent(now: at(21)))
     XCTAssertEqual(turn.state, .awaiting(since: at(21), sent: 1), "same version, a new clock")
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .sent, now: at(30)), .waiting)
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .received, now: at(41)), .working, "it landed this time")
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .none, now: at(30)), .waiting)
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .received, now: at(41)), .working, "it landed this time")
   }
 
   func testDismissFreesTheTurnAndKeepsItsWords() {
@@ -72,7 +74,7 @@ final class WhiteboardLarryWaitTests: XCTestCase {
     }
     XCTAssertEqual(words, "a circle")
     turn.failed(turn.state, words: words)
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .sent, now: at(30)), .none)
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .none, now: at(30)), .none)
     XCTAssertFalse(turn.looking)
     XCTAssertEqual(turn.queued, "a circle", "the words wait for the next picture")
   }
@@ -80,9 +82,9 @@ final class WhiteboardLarryWaitTests: XCTestCase {
   func testInterruptFreesTheTurnAndALateAnswerFindsNone() {
     var turn = out()
     _ = turn.paused(version: 3, words: "and a square", now: at(10))
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .seen, now: at(30)), .working)
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .seen, now: at(30)), .working)
     XCTAssertTrue(turn.interrupted())
-    XCTAssertEqual(WhiteboardLarryWait.of(turn, receipt: .seen, now: at(31)), .none)
+    XCTAssertEqual(WhiteboardLarryWait.of(turn, mark: .seen, now: at(31)), .none)
     XCTAssertNil(turn.latest, "the next picture takes the board as it is then")
     XCTAssertEqual(turn.queued, "and a square", "waiting words go with the next picture")
     XCTAssertEqual(turn.replied(version: 3, now: at(70)), .done, "his late answer sends nothing")
@@ -113,5 +115,114 @@ final class WhiteboardLarryWaitTests: XCTestCase {
     XCTAssertEqual(WhiteboardLarryWait.receipt(of: "pic-b", in: messages), .seen)
     XCTAssertEqual(WhiteboardLarryWait.receipt(of: "pic-a", in: messages), .done)
     XCTAssertNil(WhiteboardLarryWait.receipt(of: "pic-c", in: messages), "not on the thread yet")
+  }
+
+  // MARK: Where the picture is: one reading for the state and the controls
+
+  private let wall = Date(timeIntervalSince1970: 1_800_000_000)
+
+  private func igor(_ id: String, _ secondsAfterPicture: Double, _ receipt: ChatMessage.Receipt) -> ChatMessage {
+    let format = ISO8601DateFormatter()
+    format.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let ts = format.string(from: wall + secondsAfterPicture)
+    return ChatMessage(id: id, ts: ts, who: "igor", text: "", attachments: ["a.jpg"], receipt: receipt)
+  }
+
+  /// The picture went at `wall`; the board reads the thread ten seconds later.
+  private func mark(
+    _ thread: [ChatMessage], picture: String? = nil, delivered: Bool = false,
+    earlier: ChatMessage.Receipt = .sent, turn: WhiteboardLarryTurn? = nil
+  ) -> WhiteboardLarryWait.Mark {
+    WhiteboardLarryWait.mark(
+      turn ?? out(), thread: thread, now: at(10), wallNow: wall + 10, picture: picture, delivered: delivered,
+      earlier: earlier)
+  }
+
+  func testThePicturesOwnMarkSaysWhereItIs() {
+    let older = igor("old", -60, .done)
+    XCTAssertEqual(mark([older, igor("pic", 1, .received)], picture: "pic"), .received)
+    XCTAssertEqual(mark([older, igor("pic", 1, .seen)], picture: "pic"), .seen)
+    XCTAssertEqual(mark([older, igor("pic", 1, .done)], picture: "pic"), .done)
+    XCTAssertEqual(
+      mark([igor("pic", 1, .seen)], picture: "pic", earlier: .done), .done, "a stale look never takes it back")
+  }
+
+  func testNoMarkIsStuckOnlyOnACockpitThatMarks() {
+    let marked = igor("old", -60, .done)
+    XCTAssertEqual(mark([marked, igor("pic", 1, .sent)], picture: "pic"), .none, "its message, unmarked")
+    XCTAssertEqual(mark([marked], picture: "pic"), .none, "no such message on a thread that marks")
+    XCTAssertEqual(
+      WhiteboardLarryWait.of(out(), mark: mark([marked], picture: "pic"), now: at(20)), .stuck,
+      "Retry and Dismiss at twenty seconds")
+  }
+
+  func testAnOlderCockpitIsNeverStuck() {
+    let unmarked = [igor("old", -60, .sent), igor("pic", 1, .sent)]
+    XCTAssertEqual(mark(unmarked, picture: "pic"), .unknown, "no message of Igor's carries a mark")
+    XCTAssertEqual(mark([], picture: "pic"), .unknown, "the thread not read yet: a board's first picture")
+    XCTAssertEqual(mark(unmarked, picture: "pic", delivered: true), .unknown, "a landed picture never reads Sent there")
+    let wait = WhiteboardLarryWait.of(out(), mark: mark(unmarked, picture: "pic"), now: at(25))
+    XCTAssertEqual(wait, .working, "Interrupt from twenty seconds")
+    XCTAssertEqual(wait.controls, [.interrupt], "never Retry")
+  }
+
+  func testAPictureTheCockpitAnsweredForIsNeverStuck() {
+    XCTAssertEqual(
+      mark([igor("old", -60, .done)], picture: "pic", delivered: true), .received,
+      "its sending answered, the thread not read since")
+  }
+
+  func testASendToLarryIsReadByTheNewestMessageSinceThePicture() {
+    XCTAssertEqual(mark([igor("1", 1, .received)]), .received)
+    XCTAssertEqual(mark([igor("1", 1, .seen)]), .seen)
+    XCTAssertEqual(mark([igor("0", -60, .done)]), .unknown, "an earlier picture's mark says nothing of this one")
+    XCTAssertEqual(mark([igor("0", -60, .done), igor("1", 1, .sent)]), .unknown, "no picture id: never stuck")
+    XCTAssertEqual(mark([igor("1", -0.5, .seen)]), .seen, "a whole-second timestamp a moment early is still it")
+    let larry = ChatMessage(id: "l", ts: igor("x", 5, .sent).ts, who: "larry", text: "hm")
+    XCTAssertEqual(mark([igor("1", 1, .received), larry]), .received, "Larry's own rows carry no mark")
+  }
+
+  func testNoTurnOutIsUnknown() {
+    XCTAssertEqual(mark([igor("pic", 1, .seen)], picture: "pic", turn: WhiteboardLarryTurn()), .unknown)
+  }
+
+  // MARK: After Interrupt or Dismiss, and the hand-offs Retry and Dismiss replace
+
+  func testAfterInterruptOrDismissTheNextTapSends() {
+    var interrupted = out()
+    XCTAssertTrue(interrupted.interrupted())
+    XCTAssertEqual(interrupted.tapped(version: 1, now: at(30)), .send(words: nil), "never Larry already has this")
+    var dismissed = out()
+    dismissed.failed(dismissed.state, words: nil)
+    XCTAssertEqual(dismissed.tapped(version: 1, now: at(30)), .send(words: nil))
+  }
+
+  func testAFailureOfThePictureBeforeRetryNeverFreesTheRetriedTurn() {
+    var turn = out()
+    let first = turn.state
+    XCTAssertTrue(turn.resent(now: at(21)))
+    turn.failed(first, words: "a circle")
+    XCTAssertTrue(turn.looking, "the retried turn stays out")
+    XCTAssertEqual(turn.queued, "a circle")
+  }
+
+  func testAHandOffReplacedByRetryOrDismissSpeaksNoMore() {
+    var handOffs = WhiteboardLarryHandOffs()
+    let first = handOffs.begin()
+    handOffs.replace(first)
+    let retried = handOffs.begin()
+    XCTAssertFalse(handOffs.speaks(first), "Retry took it over: its words go with the retry")
+    XCTAssertTrue(handOffs.speaks(retried))
+    XCTAssertTrue(handOffs.isLatest(retried))
+    XCTAssertFalse(handOffs.isLatest(first))
+  }
+
+  func testAHandOffANewerPictureReplacedStillSpeaks() {
+    var handOffs = WhiteboardLarryHandOffs()
+    let first = handOffs.begin()
+    let newer = handOffs.begin()
+    XCTAssertTrue(handOffs.speaks(first), "its failure still keeps its words and says so")
+    XCTAssertFalse(handOffs.isLatest(first), "but it no longer says whether a picture is on its way")
+    XCTAssertTrue(handOffs.isLatest(newer))
   }
 }

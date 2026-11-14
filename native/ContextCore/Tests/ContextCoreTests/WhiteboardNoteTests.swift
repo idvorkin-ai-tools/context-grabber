@@ -234,17 +234,17 @@ final class WhiteboardNoteTests: XCTestCase {
     _ = turn.paused(version: 2, words: nil, now: at(5))
     let notYet = try XCTUnwrap(
       WhiteboardNote.line(
-        larry: turn, now: at(31), cockpitAnswering: true, pickedUp: .no, said: WhiteboardSaid(), micOn: false,
+        larry: turn, now: at(21), cockpitAnswering: true, mark: .received, said: WhiteboardSaid(), micOn: false,
         notice: nil, ghosts: 0))
-    XCTAssertEqual(notYet.state, "Sent · 0:31 · not picked up yet · next: ink")
-    XCTAssertEqual(notYet.spokenState, "Sent 31 seconds ago, not picked up yet, next: ink")
+    XCTAssertEqual(notYet.state, "Sent · 0:21 · not picked up yet · next: ink")
+    XCTAssertEqual(notYet.spokenState, "Sent 21 seconds ago, not picked up yet, next: ink")
     XCTAssertEqual(
       WhiteboardNote.live(
-        larry: turn, now: at(31), cockpitAnswering: true, pickedUp: .no, said: WhiteboardSaid(), micOn: false
-      ).first?.text, "Sent · 0:31 · not picked up yet")
+        larry: turn, now: at(21), cockpitAnswering: true, mark: .received, said: WhiteboardSaid(), micOn: false
+      ).first?.text, "Sent · 0:21 · not picked up yet")
     XCTAssertEqual(
       WhiteboardNote.line(
-        larry: turn, now: at(42), cockpitAnswering: true, pickedUp: .yes, said: WhiteboardSaid(), micOn: false,
+        larry: turn, now: at(42), cockpitAnswering: true, mark: .seen, said: WhiteboardSaid(), micOn: false,
         notice: nil, ghosts: 0)?.state, "Larry · 0:42 · next: ink")
   }
 }

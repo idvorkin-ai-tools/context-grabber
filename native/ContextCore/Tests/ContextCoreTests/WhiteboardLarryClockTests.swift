@@ -134,19 +134,24 @@ final class WhiteboardLarryClockTests: XCTestCase {
 
   func testUntilHePicksItUpTheStateSaysSent() {
     let turn = sent()
-    XCTAssertEqual(WhiteboardLarryClock.state(turn, now: at(3), cockpitAnswering: true, pickedUp: .no), "Sent · 0:03")
-    XCTAssertEqual(WhiteboardLarryClock.state(turn, now: at(29), cockpitAnswering: true, pickedUp: .no), "Sent · 0:29")
     XCTAssertEqual(
-      WhiteboardLarryClock.state(turn, now: at(31), cockpitAnswering: true, pickedUp: .no),
-      "Sent · 0:31 · not picked up yet", "thirty seconds unpicked is the slow signal")
+      WhiteboardLarryClock.state(turn, now: at(3), cockpitAnswering: true, mark: .received), "Sent · 0:03")
     XCTAssertEqual(
-      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, pickedUp: .yes), "Larry · 0:42",
+      WhiteboardLarryClock.state(turn, now: at(19), cockpitAnswering: true, mark: .received), "Sent · 0:19")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(20), cockpitAnswering: true, mark: .received),
+      "Sent · 0:20 · not picked up yet", "twenty seconds unpicked is the slow signal, the controls' threshold")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, mark: .seen), "Larry · 0:42",
       "once he has it, the clock carries on")
     XCTAssertEqual(
-      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, pickedUp: .unknown), "Larry · 0:42",
+      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, mark: .unknown), "Larry · 0:42",
       "a Cockpit that sends no marks reads as before")
     XCTAssertEqual(
-      WhiteboardLarryClock.state(turn, now: at(31), cockpitAnswering: false, pickedUp: .no),
+      WhiteboardLarryClock.state(turn, now: at(42), cockpitAnswering: true, mark: .none), "Larry · 0:42",
+      "a picture the Cockpit hasn't taken reads as before; the problem row says it is stuck")
+    XCTAssertEqual(
+      WhiteboardLarryClock.state(turn, now: at(31), cockpitAnswering: false, mark: .received),
       "Sent · 0:31 · not picked up yet · Cockpit not answering")
   }
 
@@ -154,70 +159,29 @@ final class WhiteboardLarryClockTests: XCTestCase {
     var turn = sent()
     _ = turn.tapped(version: 1, now: at(12))
     XCTAssertEqual(
-      WhiteboardLarryClock.state(turn, now: at(12), cockpitAnswering: true, pickedUp: .no),
+      WhiteboardLarryClock.state(turn, now: at(12), cockpitAnswering: true, mark: .received),
       "Larry already has this · 0:12")
   }
 
   func testVoiceOverSaysSentInWords() {
     let turn = sent()
     XCTAssertEqual(
-      WhiteboardLarryClock.spoken(turn, now: at(3), cockpitAnswering: true, pickedUp: .no),
+      WhiteboardLarryClock.spoken(turn, now: at(3), cockpitAnswering: true, mark: .received),
       "Sent 3 seconds ago, not picked up yet")
     XCTAssertEqual(
-      WhiteboardLarryClock.spoken(turn, now: at(72), cockpitAnswering: false, pickedUp: .no),
+      WhiteboardLarryClock.spoken(turn, now: at(72), cockpitAnswering: false, mark: .received),
       "Sent 1 minute 12 seconds ago, not picked up yet, and the Cockpit isn't answering")
     XCTAssertEqual(
-      WhiteboardLarryClock.spoken(turn, now: at(42), cockpitAnswering: true, pickedUp: .yes),
+      WhiteboardLarryClock.spoken(turn, now: at(42), cockpitAnswering: true, mark: .seen),
       "Larry has been looking for 42 seconds")
   }
 
-  func testHisSilenceSaysWhetherHeEverPickedItUp() throws {
-    for pickedUp in [WhiteboardLarryClock.PickedUp.yes, .no, .unknown] {
+  func testHisSilenceSaysWhereThePictureWas() throws {
+    for mark in [WhiteboardLarryWait.Mark.none, .unknown, .received, .seen, .done] {
       let problem = try XCTUnwrap(
-        WhiteboardLarryClock.didntAnswer(
-          sent(), now: at(180), wallNow: Date(), cockpitAnswering: true, pickedUp: pickedUp))
-      XCTAssertEqual(problem.pickedUp, pickedUp)
+        WhiteboardLarryClock.didntAnswer(sent(), now: at(180), wallNow: Date(), cockpitAnswering: true, mark: mark))
+      XCTAssertEqual(problem.mark, mark)
     }
-    XCTAssertEqual(WhiteboardLarryClock.PickedUp.no.rawValue, "no")
-  }
-
-  // MARK: Story 773: has he picked it up? From the thread's marks
-
-  private let wall = Date(timeIntervalSince1970: 1_800_000_000)
-
-  private func igor(_ id: String, _ secondsAfterPicture: Double, _ receipt: ChatMessage.Receipt) -> ChatMessage {
-    let date = wall + secondsAfterPicture
-    let format = ISO8601DateFormatter()
-    format.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    let ts = format.string(from: date)
-    return ChatMessage(id: id, ts: ts, who: "igor", text: "", attachments: ["a.jpg"], receipt: receipt)
-  }
-
-  /// The picture went at `wall`, seen ten seconds later.
-  private func pickedUp(_ thread: [ChatMessage], turn: WhiteboardLarryTurn? = nil) -> WhiteboardLarryClock.PickedUp {
-    WhiteboardLarryClock.pickedUp(turn ?? sent(), thread: thread, now: at(10), wallNow: wall + 10)
-  }
-
-  func testTheMarkOnThePicturesMessageSaysWhetherHeHasIt() {
-    XCTAssertEqual(pickedUp([igor("1", 1, .received)]), .no)
-    XCTAssertEqual(pickedUp([igor("1", 1, .seen)]), .yes)
-    XCTAssertEqual(pickedUp([igor("1", 1, .done)]), .yes)
-    XCTAssertEqual(pickedUp([igor("1", 1, .sent)]), .unknown, "no mark at all: an older Cockpit")
-  }
-
-  func testOnlyAMessageSinceThePictureCounts() {
-    XCTAssertEqual(pickedUp([]), .unknown, "the thread not looked at yet")
-    XCTAssertEqual(pickedUp([igor("0", -60, .done)]), .unknown, "an earlier picture's mark says nothing of this one")
-    XCTAssertEqual(
-      pickedUp([igor("0", -60, .done), igor("1", 1, .received)]), .no, "the newest of Igor's since the picture")
-    XCTAssertEqual(pickedUp([igor("1", 1, .seen), igor("2", 2, .received)]), .no)
-    XCTAssertEqual(
-      pickedUp([igor("1", -0.5, .seen)]), .yes, "a whole-second timestamp a moment before the picture is still it")
-    let larry = ChatMessage(id: "l", ts: igor("x", 5, .sent).ts, who: "larry", text: "hm")
-    XCTAssertEqual(pickedUp([igor("1", 1, .received), larry]), .no, "Larry's own rows carry no mark")
-  }
-
-  func testNoTurnOutIsUnknown() {
-    XCTAssertEqual(pickedUp([igor("1", 1, .seen)], turn: WhiteboardLarryTurn()), .unknown)
+    XCTAssertEqual(WhiteboardLarryWait.Mark.received.rawValue, "received")
   }
 }
