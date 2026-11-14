@@ -29,14 +29,22 @@ final class BoardPaperTests: XCTestCase {
     return contrast((c.r / 2 + p.r / 2, c.g / 2 + p.g / 2, c.b / 2 + p.b / 2), p)
   }
 
-  // UIColor.systemOrange and .systemBlue in each mode.
-  private let ghostsLight: [UInt32] = [0xFF9500, 0x007AFF]
-  private let ghostsDark: [UInt32] = [0xFF9F0A, 0x0A84FF]
+  // UIColor.systemOrange in each mode, and Larry's purple, which is one colour in both (context-grabber-a3w).
+  private let ghostsLight: [UInt32] = [0xFF9500, WhiteboardTurn.larryColor]
+  private let ghostsDark: [UInt32] = [0xFF9F0A, WhiteboardTurn.larryColor]
 
   func testInkIsEasyToReadOnEveryColourInBothModes() {
     for paper in BoardPaper.allCases {
       XCTAssertGreaterThan(contrast((0, 0, 0), rgb(paper.light)), 7, "\(paper) light")
       XCTAssertGreaterThan(contrast((255, 255, 255), rgb(paper.dark)), 7, "\(paper) dark")
+    }
+  }
+
+  /// context-grabber-a3w: Larry's kept marks are ink in his purple, which reads on every colour (3:1, for strokes).
+  func testLarrysPurpleInkReadsOnEveryColour() {
+    for paper in BoardPaper.allCases {
+      XCTAssertGreaterThanOrEqual(contrast(rgb(WhiteboardTurn.larryColor), rgb(paper.light)), 3, "\(paper) light")
+      XCTAssertGreaterThanOrEqual(contrast(rgb(WhiteboardTurn.larryColor), rgb(paper.dark)), 3, "\(paper) dark")
     }
   }
 

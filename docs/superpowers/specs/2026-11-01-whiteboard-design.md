@@ -150,8 +150,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     A colour that hasn't reached iCloud beats a delete from elsewhere, as new ink does.
   - **Each colour has a pale shade and a deep one**, so black ink, which turns white in dark mode, stays easy to read
     when the iPad changes mode. Plain is white in light mode and black in dark mode, as every board was before.
-  - **Ghosts stay visible on all of them.** No colour is orange or blue, and a faint orange or blue ghost on any colour
-    is at least nine-tenths as visible as it is on Plain.
+  - **Ghosts stay visible on all of them.** No colour is orange or a strong purple, and a faint orange or purple (Larry's) ghost on
+    any colour is at least nine-tenths as visible as it is on Plain; his kept purple ink reads at 3:1 or more on every one.
   - **A colour alone doesn't keep an empty board.** A new board left without a stroke still goes when it closes, whatever
     colour was chosen.
   - **Other devices show the same colour**, in the look-only view, shaded for that device's own mode. They can't change

@@ -555,6 +555,8 @@ struct ChatThreadView: View {
   @State private var reactionProblem: BugProblem?
   /// A message whose Quote in reply was tapped: the bar takes it (#629).
   @State private var quoting: ChatMessage?
+  /// Why the last Send to new chat didn't take (context-grabber-9yo); the message stays where it was.
+  @State private var moveProblem: BugProblem?
   /// GRABBER_CHAT_HOLD=yes / no / quote / copy: that choice taps itself on Larry's newest message, for the simulator.
   @State private var holdHook = LaunchHooks.current.chat.hold
   /// A Cockpit thread link tapped in a bubble (story 744): that thread, pushed over this one.
@@ -611,7 +613,8 @@ struct ChatThreadView: View {
           ForEach(messages) { message in
             MessageBubble(
               message: message, thread: key ?? "", answerFailed: answerFailed.contains(message.id), chat: chat,
-              logger: logger, react: { react($0, to: message) }, quote: { quote(message) }, copy: { copy(message) })
+              logger: logger, react: { react($0, to: message) }, quote: { quote(message) }, copy: { copy(message) },
+              sendToNewChat: { sendToNewChat(message) }, openMoved: openMoved)
           }
           // Their own ids: a message that reaches the Cockpit keeps its id, and a shared one in this LazyVStack
           // left the outbox bubble on screen after the Cockpit's had replaced it (seen on the simulator).
@@ -650,6 +653,11 @@ struct ChatThreadView: View {
         }
         if let reactionProblem {
           BugProblemView(problem: reactionProblem, logger: logger)
+            .padding(.horizontal, 12)
+            .background(Color(.systemGroupedBackground))
+        }
+        if let moveProblem {
+          BugProblemView(problem: moveProblem, logger: logger)
             .padding(.horizontal, 12)
             .background(Color(.systemGroupedBackground))
         }
@@ -722,13 +730,13 @@ struct ChatThreadView: View {
   }
 
   private func runHoldHook() {
-    guard let hook = holdHook, let message = messages.last(where: { !$0.fromIgor }) else { return }
+    guard let hook = holdHook, let message = messages.last(where: { !$0.fromIgor && !$0.isSystem }) else { return }
     holdHook = nil
     switch ChatHold(hook: hook) {
     case .quote: quote(message)
     case .copy: copy(message)
     case .react(let reaction): react(reaction, to: message)
-    case nil: break
+    case .sendToNewChat, nil: break
     }
   }
 
@@ -747,11 +755,35 @@ struct ChatThreadView: View {
     chat.logAction(action, ["thread": key, "message": message.id])
   }
 
+  /// Send to new chat (context-grabber-9yo): the message moves to a chat of its own, which opens over this one. A
+  /// refusal leaves it here and says why.
+  private func sendToNewChat(_ message: ChatMessage) {
+    guard let key else { return }
+    Task {
+      switch await chat.sendToNewChat(message, from: key) {
+      case .moved(let thread, _):
+        moveProblem = nil
+        jumpTo = thread
+      case .refused(let why):
+        moveProblem = .grabber(
+          ChatMove.problem(why), context: "ChatThreadView.sendToNewChat",
+          extra: ["thread": .string(key), "message": .string(message.id), "cockpit": .string(chat.cockpit)])
+      case nil: break
+      }
+    }
+  }
+
+  /// The old chat's *Moved to a new chat* line: its new chat, over this one.
+  private func openMoved(_ thread: String) {
+    chat.logAction("moved_link", ["thread": key ?? "", "to": thread])
+    jumpTo = thread
+  }
+
   /// Yes or No, sent at once as an ordinary message (#629). The bar's draft is left alone.
   private func react(_ reaction: ChatReaction, to message: ChatMessage) {
     guard let key else { return }
     // Something still on its way is newer than anything the Cockpit shows.
-    let newest = pending.isEmpty && messages.last?.id == message.id
+    let newest = pending.isEmpty && messages.last(where: { !$0.isSystem })?.id == message.id
     var draft = InboxDraft()
     draft.text = reaction.text(answering: message, newest: newest)
     do {
@@ -779,9 +811,39 @@ private struct MessageBubble: View {
   let react: (ChatReaction) -> Void
   let quote: () -> Void
   let copy: () -> Void
+  let sendToNewChat: () -> Void
+  /// A *Moved to a new chat* line's tap: that chat.
+  let openMoved: (String) -> Void
 
   var body: some View {
-    if message.isError { failure } else { bubble }
+    if let line = ChatMove.line(message) {
+      systemLine(line)
+    } else if message.isError {
+      failure
+    } else {
+      bubble
+    }
+  }
+
+  /// The Cockpit's own line (Send to new chat): quiet and centred, a link when it names the new chat.
+  private func systemLine(_ line: ChatMove.Line) -> some View {
+    HStack {
+      Spacer(minLength: 0)
+      if let moved = line.opens {
+        Button {
+          openMoved(moved)
+        } label: {
+          Label(line.words, systemImage: "arrowshape.turn.up.right")
+        }
+        .buttonStyle(.borderless)
+        .accessibilityIdentifier("chat-moved")
+      } else {
+        Text(line.words).foregroundStyle(.secondary).accessibilityIdentifier("chat-system")
+      }
+      Spacer(minLength: 0)
+    }
+    .font(.caption)
+    .padding(.vertical, 2)
   }
 
   /// The skill's name and its letter, over what it wrote (#632).
@@ -850,6 +912,7 @@ private struct MessageBubble: View {
         case .react(let reaction): react(reaction)
         case .quote: quote()
         case .copy: copy()
+        case .sendToNewChat: sendToNewChat()
         }
       }
     }

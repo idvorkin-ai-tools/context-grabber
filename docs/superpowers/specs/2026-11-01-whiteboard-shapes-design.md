@@ -67,8 +67,14 @@ that labels are no longer bold.
   kept ink would not, so the ghost is held to the same pen and a kept mark still looks as its ghost did. Labels under
   about 23-point letters read bolder than a ninth would make them (2.5 points on 13-point letters): seen and kept
   beats thin and gone. Ink kept too thin before this stays as it was saved.
-- **Colour.** A mark can name its colour. One without a colour is in its author's: Claude's orange, Larry's blue.
+- **Colour.** A mark can name its colour. One without a colour is in its author's: Claude's orange, Larry's purple.
   A ghost in a named colour is as faint as any other ghost, and a kept mark is ink in that colour.
+- **Larry's own colour (context-grabber-a3w).** Larry's purple is a colour the tool picker's swatches don't offer
+  (black, blue, green, yellow, red) and far from Claude's orange, so his kept marks never look like Igor's ink, to Igor
+  or to Larry reading the strokes. It was a blue, and Igor writes in the picker's blue: the two could not be told
+  apart. Marks kept before this stay blue.
+- **A keep never touches the pen in hand.** Keeping a mark leaves the tool Igor is holding as it was: its kind,
+  colour and width.
 - **Lettering.** A label can ask for *print* (the default) or *hand*, a handwriting face. The hand face is the app's
   own, not Igor's writing.
 - **Boxes.** Besides the shapes above, a mark can be a box given by its top-left corner, width and height. It's an
@@ -95,7 +101,7 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
 - **Haiku and Sonnet** answer with orange ghosts, exactly as above: Haiku is the faster model, Sonnet the sharper one.
   Spoken words are answered by the board's responder too.
 - **Larry**: a pause brings no orange ghosts. The Cockpit says the board is Larry's, and the board goes to its chat
-  thread just as *Larry's turn* sends it, and his blue marks come when he has drawn them. Words spoken to the board go
+  thread just as *Larry's turn* sends it, and his purple marks come when he has drawn them. Words spoken to the board go
   with that picture as its message.
 - **One Larry turn at a time, the latest wins** (story 662; Igor, 2026-11-10: "can we avoid this, think about best
   design"). Real Larry takes a minute or more, so his thread never fills with pictures:
@@ -129,7 +135,7 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   off while a turn is on its way. If the Cockpit says it no longer has the thread, the next picture starts a new one.
   Claude's ghost turns have no thread.
 - **Larry's marks arrive on their own.** While a board that has a thread is open, the app looks at the thread about
-  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (blue), kept by a tap like Claude's.
+  every 3 s. A new row of Larry's with marks shows them as ghosts in Larry's colour (purple), kept by a tap like Claude's.
   It makes no difference whether he is answering a turn, answering *Send to Larry*, or drawing unprompted.
 - **Marks land where the picture was.** Every picture goes with its place on the board, and his row brings it back, so
   his marks sit on what he saw even after Igor has drawn elsewhere, panned or zoomed. A row of marks that doesn't say
@@ -212,7 +218,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Open the Board menu: the Responder row names the board's own; open it and it shows Haiku, Sonnet and Larry with that one ticked. Pick Haiku, close and reopen
   the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.
 - Pick Larry and draw: no orange ghosts come; the bar's note begins with Larry's clock (*Larry · 0:00*, story 667), the picture is in the board's chat
-  thread, and his blue marks arrive when he answers.
+  thread, and his purple marks arrive when he answers.
 - On a Larry board, draw and pause five times while he is looking: his thread gets no new picture until he answers,
   then exactly one, of the board as it is then. Pause again with nothing drawn since his answer: nothing more goes.
   Speak while he is looking: the words arrive with that next picture. Tap *Larry's turn* while he is looking, after a stroke: a picture
@@ -231,12 +237,12 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Cut the connection after the first mark: it stays and the bar says nothing. Cut it before any: the bar says ghosts
   aren't answering.
 - Draw again before the ghosts come, or while they show: they stay, and the next pause brings a new set that replaces
-  Claude's. Leave them alone: they fade after 30 s. Larry's blue marks stay through all of it.
+  Claude's. Leave them alone: they fade after 30 s. Larry's purple marks stay through all of it.
 - On a device where a finger draws: a tap on a ghost keeps it with no dot drawn, and a tap off the ghosts dismisses
   Claude's (Larry's once they're all that's left); then the finger draws again.
-- Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's blue ghosts stay showing.
+- Turn Ghosts off: lifting the Pencil asks nothing (the session log shows no turn). Larry's purple ghosts stay showing.
 - Tap Larry's turn: the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) straight away and the Pencil keeps drawing. Chat has a thread
-  named after the board holding the picture. Minutes later, with no tap, blue ghosts and his line appear on what he saw,
+  named after the board holding the picture. Minutes later, with no tap, purple ghosts and his line appear on what he saw,
   even if the view has moved since.
 - He draws unprompted on the thread: the same, with no tap by Igor. His next marks replace the unkept ones.
 - Dismiss his marks: they don't return, not on the next look and not after closing and reopening the board. Leave them

@@ -1334,8 +1334,9 @@ final class GhostLayers {
 }
 
 extension WhiteboardTurn.Who {
-  /// Claude orange, Larry blue (spec 2026-11-01-whiteboard-shapes-design.md).
-  var color: UIColor { self == .claude ? .systemOrange : .systemBlue }
+  /// Claude orange, Larry purple: a colour the picker doesn't offer (spec 2026-11-01-whiteboard-shapes-design.md,
+  /// context-grabber-a3w).
+  var color: UIColor { self == .claude ? .systemOrange : UIColor(rgb: WhiteboardTurn.larryColor) }
 }
 
 extension UIColor {
