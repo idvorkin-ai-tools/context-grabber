@@ -1765,7 +1765,6 @@ struct WhiteboardView: View {
         }
       }
     }
-    .accessibilityIdentifier("whiteboard")
     .task {
       // XCUITest's taps never reach the system's paste button: the UI test pastes through this.
       guard let text = LaunchHooks.current.whiteboard.paste else { return }

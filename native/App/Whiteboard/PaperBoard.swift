@@ -328,6 +328,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var fingerUsually: (mode: PaperMarkupViewController.TouchMode, autoDraws: Bool)?
   /// A tap's selection comes after the lift: until this time one is put straight back.
   private var noSelectionUntil: Double = 0
+  /// The last finger tap while marks showed, in board points, and when: the dot PaperKit draws there is taken back.
+  private var ghostTap: (at: CGPoint, time: Double)?
   /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
@@ -560,6 +562,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let frames = markup.strokeFrames
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
+    if takesBackTapDot(change, frames: frames) { return }
     run?.facts.inkAdded += change.added.count
     run?.facts.inkMoved += change.moved.count
     run?.facts.inkRemoved += change.removed.count
@@ -589,6 +592,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       [
         "action": "paper_ink", "board": model.board.id, "strokes": frames.count, "pages": pages, "wanted": wanted,
         "added": change.added.count, "moved": change.moved.count, "removed": change.removed.count,
+        "added_box": rect(change.added.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }),
         "can_undo": controller.undoManager?.canUndo ?? false, "can_redo": controller.undoManager?.canRedo ?? false,
         "ms": ms(CACurrentMediaTime() - started),
       ])
@@ -669,7 +673,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         frame = CGRect(x: min(a.x, b.x), y: min(a.y, b.y), width: abs(b.x - a.x), height: abs(b.y - a.y))
       }
     }
-    if frame != choiceFrame { choiceFrame = frame }
+    guard frame != choiceFrame else { return }
+    choiceFrame = frame
+    log.event(
+      "whiteboard",
+      [
+        "action": "mark_buttons", "board": model.board.id, "chosen": model.chosen != nil,
+        "frame": frame.map { rect($0) } ?? [], "view": rect(view.bounds),
+      ])
   }
 
   /// As the old canvas's `.pencilOnly`, which PaperKit doesn't have: a finger selects rather than draws, and a tap's
@@ -702,6 +713,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     guard count > 0 else { return }
     let at = lines.columnPoint(of: view.convert(spot, to: lines))
     noSelectionUntil = CACurrentMediaTime() + 0.8
+    ghostTap = (at, CACurrentMediaTime())
     let selected = paper.selection.count
     if selected > 0 { paper.selection = [] }
     model.tap(at: at, zoom: screenScale)
@@ -710,8 +722,39 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       [
         "action": "paper_tap", "board": model.board.id, "at": point(at), "ghosts_before": count,
         "ghosts_after": model.ghosts.count, "chosen": model.chosen != nil, "selected_at_tap": selected,
+        "touch_mode": name(paper.directTouchMode), "auto_draws": paper.directTouchAutomaticallyDraws,
         "screen_scale": Double(screenScale),
       ])
+  }
+
+  /// Stories 616, 825 (#883): a finger tap while marks show draws no dot. PaperKit draws one at the tap all the same, a
+  /// few tenths of a second after the lift, with a finger set not to draw; its own undo takes it back, so the stack holds
+  /// no step for it, and the board never sees it: no stroke for Claude to answer, whose new marks would put the chosen
+  /// one's Keep and Dismiss away.
+  /// ponytail: the dot is undone once it has landed, which leaves it as Redo until the next step; stopping PaperKit
+  /// drawing it is the upgrade, should a setting ever do that.
+  private func takesBackTapDot(_ change: PaperProbe.InkChange, frames: [String: CGRect]) -> Bool {
+    guard let tap = ghostTap, change.removed.isEmpty, change.moved.isEmpty else { return false }
+    let since = CACurrentMediaTime() - tap.time
+    let added = change.added.compactMap { frames[$0] }
+    guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale) else { return false }
+    ghostTap = nil
+    let dot = change.added
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let undo = self.paper.undoManager
+      let could = undo?.canUndo ?? false
+      if could { undo?.undo() }
+      let gone = !dot.contains { self.inkFrames[$0] != nil }
+      self.log.event(
+        "whiteboard",
+        [
+          "action": "paper_tap_dot", "board": self.model.board.id, "at": self.point(tap.at),
+          "dot": self.rect(added.first ?? .null), "ms": self.ms(since), "could_undo": could, "gone": gone,
+          "strokes": self.inkFrames.count,
+        ])
+    }
+    return true
   }
 
   // MARK: - Paste
@@ -1129,6 +1172,9 @@ struct PaperBoardCanvas: View {
       Text(controller.pageText).font(.footnote.monospacedDigit())
         // Story 673. On this text, not Send: a toolbar button drops its accessibility value (iOS 27 simulator).
         .accessibilityValue(model.dirty ? "unsaved" : "saved")
+        // The board's own name for a UI test, here rather than over the whole view: there it named every element on the
+        // board, Keep and Dismiss too, which their tests then never found (the iPad simulator, 2026-11-14).
+        .accessibilityIdentifier("whiteboard")
         .padding(.vertical, 4).padding(.horizontal, 10)
         .background(.thinMaterial, in: Capsule())
         .padding(10)

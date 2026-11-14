@@ -114,4 +114,16 @@ public enum PaperProbe {
   public static func isFingerTap(travel: CGFloat, seconds: Double, fingers: Int) -> Bool {
     fingers == 1 && travel < 10 && seconds < 0.5
   }
+
+  /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few
+  /// tenths of a second after the lift. One stroke, a few screen points across, at the tap (in board points, `zoom`
+  /// screen points to one), within `tapDotSeconds` of it; anything bigger, elsewhere or later is drawing.
+  public static func isTapDot(added: [CGRect], tap: CGPoint, secondsSince: Double, zoom: CGFloat) -> Bool {
+    guard added.count == 1, let dot = added.first, secondsSince < tapDotSeconds, zoom > 0 else { return false }
+    let near = 22 / zoom
+    return max(dot.width, dot.height) <= 16 / zoom && hypot(dot.midX - tap.x, dot.midY - tap.y) <= near
+  }
+
+  /// How long after a tap its dot can land: 0.11 to 0.18 s on the iPad simulator.
+  public static let tapDotSeconds = 0.6
 }
