@@ -302,6 +302,8 @@ class PaperHost: UIViewController {
 @MainActor
 final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewController.Delegate {
   @Published private(set) var pageText = BoardPages().pageText(visibleMidY: 0, pages: 1)
+  /// The chosen mark's box in this view's points, where Keep and Dismiss sit beside it (story 825); nil with none.
+  @Published private(set) var choiceFrame: CGRect?
 
   private let model: WhiteboardModel
   private let log: SessionLog
@@ -625,6 +627,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   func paperMarkupViewControllerDidChangeContentVisibleFrame(_ controller: PaperMarkupViewController) {
     showPageNumber()
+    showChoice()
     layRules()
     checkSeat()
     remembering?.cancel()
@@ -639,6 +642,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// The ghosts on the sheet, and a finger that taps while they show.
   func show(_ ghosts: [Ghost]) {
+    showChoice()
     guard lines.ghostLayers.show(ghosts) else { return }
     fingerTaps(!ghosts.isEmpty)
     let drawn = ghosts.flatMap(\.lines)
@@ -651,6 +655,21 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "screen_scale": Double(screenScale),
       ])
     checkSeat()
+  }
+
+  /// Where the chosen mark is on screen now, for its Keep and Dismiss. The board's points map to the view's by a scale and
+  /// a shift, so two corners place the whole box.
+  func showChoice() {
+    var frame: CGRect?
+    if let ghost = model.chosen {
+      let box = WhiteboardMarkChoice.bounds(ghost.lines)
+      if !box.isNull {
+        let a = lines.convert(lines.spot(of: CGPoint(x: box.minX, y: box.minY)), to: view)
+        let b = lines.convert(lines.spot(of: CGPoint(x: box.maxX, y: box.maxY)), to: view)
+        frame = CGRect(x: min(a.x, b.x), y: min(a.y, b.y), width: abs(b.x - a.x), height: abs(b.y - a.y))
+      }
+    }
+    if frame != choiceFrame { choiceFrame = frame }
   }
 
   /// As the old canvas's `.pencilOnly`, which PaperKit doesn't have: a finger selects rather than draws, and a tap's
@@ -690,7 +709,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       "whiteboard",
       [
         "action": "paper_tap", "board": model.board.id, "at": point(at), "ghosts_before": count,
-        "ghosts_after": model.ghosts.count, "selected_at_tap": selected, "screen_scale": Double(screenScale),
+        "ghosts_after": model.ghosts.count, "chosen": model.chosen != nil, "selected_at_tap": selected,
+        "screen_scale": Double(screenScale),
       ])
   }
 
@@ -1101,9 +1121,10 @@ struct PaperBoardCanvas: View {
 
   var body: some View {
     PaperBoardHost(
-      controller: controller, paper: model.paper, ghosts: model.ghosts,
+      controller: controller, paper: model.paper, ghosts: model.ghosts, chosen: model.chosen?.id,
       rules: model.gridOn ? .grid : model.ruledOn ? .ruled : .none
     )
+    .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())
         // Story 673. On this text, not Send: a toolbar button drops its accessibility value (iOS 27 simulator).
@@ -1120,6 +1141,8 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
   let controller: PaperBoardController
   let paper: BoardPaper
   let ghosts: [Ghost]
+  /// The chosen mark: a change places its Keep and Dismiss.
+  let chosen: String?
   let rules: PaperRules
 
   func makeUIViewController(context: Context) -> PaperBoardController { controller }
@@ -1132,6 +1155,35 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
 
   static func dismantleUIViewController(_ controller: PaperBoardController, coordinator: ()) {
     controller.boardClosed()
+  }
+}
+
+/// Story 825 (#883): Keep and Dismiss beside the chosen mark, wholly on screen. Over the board, not in it, so a tap on
+/// them never reaches the board as a tap off the marks.
+private struct MarkChoiceButtons: View {
+  @ObservedObject var model: WhiteboardModel
+  let mark: CGRect?
+  private static let size = CGSize(width: 184, height: 44)
+
+  var body: some View {
+    GeometryReader { geometry in
+      if let mark {
+        let place = WhiteboardMarkChoice.place(
+          mark: mark, buttons: Self.size, in: CGRect(origin: .zero, size: geometry.size))
+        HStack(spacing: 6) {
+          Button("Keep", systemImage: "checkmark") { model.keepChosen() }
+            .accessibilityIdentifier("whiteboard-mark-keep")
+          Button("Dismiss", systemImage: "xmark") { model.dismissChosen() }
+            .accessibilityIdentifier("whiteboard-mark-dismiss")
+        }
+        .font(.subheadline.weight(.semibold))
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .frame(width: Self.size.width, height: Self.size.height)
+        .background(.regularMaterial, in: Capsule())
+        .position(x: place.midX, y: place.midY)
+      }
+    }
   }
 }
 

@@ -5,8 +5,8 @@ import XCTest
 
 /// The oracle is the shapes spec (2026-11-01-whiteboard-shapes-design.md) and its stories: 351 and 367 (Ghosts off asks
 /// nothing, for strokes or for words), 357 (each new set replaces only its author's), 358 (Claude's fade, Larry's stay),
-/// 345 and 360 (spoken turns), 354 (a tap keeps or dismisses), 370 (marks arrive one at a time), 373 (a Cockpit that
-/// doesn't stream still brings its marks). These were `WhiteboardTurnUITests` cases on the simulator; the screen keeps
+/// 345 and 360 (spoken turns), 370 (marks arrive one at a time), 373 (a Cockpit that
+/// doesn't stream still brings its marks). A tap's Keep and Dismiss (stories 354, 825) are `WhiteboardMarkChoiceTests`. These were `WhiteboardTurnUITests` cases on the simulator; the screen keeps
 /// one stream-to-ghost path and the real gestures, pixels and undo.
 final class WhiteboardGhostTurnsTests: XCTestCase {
   private struct G: WhiteboardGhost, Equatable {
@@ -246,21 +246,6 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
 
   // MARK: Stale answers
 
-  func testAnAnswerAskedBeforeADismissalShowsNothing() {
-    var turns = turns()
-    turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
-    let asked = asking(&turns)
-    guard case .dismiss(let count, let larrys) = turns.tap(hitting: { _ in false }) else { return XCTFail() }
-    XCTAssertEqual(count, 1)
-    XCTAssertFalse(larrys)
-    turns.dismiss(larrys: larrys)
-    XCTAssertFalse(turns.current(asked), "a streamed mark of it is dropped")
-    let landing = turns.answered(.shapes(shapes(1)), who: .claude, asked: asked, streamed: false, said: nil)
-    XCTAssertTrue(landing.stale)
-    XCTAssertNil(landing.land)
-    XCTAssertTrue(turns.ghosts.isEmpty)
-  }
-
   func testAStaleFailureSaysNothingInTheNote() {
     var turns = turns()
     let asked = asking(&turns)
@@ -396,59 +381,5 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertTrue(T.framesScreen(said: "draw a circle", boardEmpty: true))
     XCTAssertFalse(T.framesScreen(said: nil, boardEmpty: true), "a pause on an empty board isn't asked")
     XCTAssertFalse(T.framesScreen(said: "draw a circle", boardEmpty: false))
-  }
-
-  // MARK: Story 354: a tap keeps one or dismisses them all
-
-  func testATapKeepsTheGhostUnderItAndOffThemDismissesAll() {
-    var turns = turns()
-    if case .nothing = turns.tap(hitting: { _ in true }) {} else { XCTFail("no ghosts: nothing to keep or dismiss") }
-    let claudes = ghosts(.claude, 1)
-    let larrys = ghosts(.larry, 2)
-    turns.land(claudes, who: .claude, first: true, now: t0)
-    turns.larrysMarks(larrys)
-
-    guard case .keep(let kept) = turns.tap(hitting: { $0 == larrys[1] }) else { return XCTFail() }
-    XCTAssertEqual(kept, larrys[1])
-    XCTAssertTrue(turns.keep(kept), "Larry's: his row is settled")
-    XCTAssertEqual(turns.ghosts, claudes + [larrys[0]])
-    XCTAssertFalse(turns.keep(claudes[0]))
-
-    guard case .dismiss(let count, let hadLarrys) = turns.tap(hitting: { _ in false }) else { return XCTFail() }
-    XCTAssertEqual(count, 1)
-    XCTAssertTrue(hadLarrys)
-    XCTAssertEqual(turns.ghosts.count, 1, "the tap only decides")
-    turns.dismiss(larrys: hadLarrys)
-    XCTAssertTrue(turns.ghosts.isEmpty)
-  }
-
-  /// #823: one stray tap never loses Larry's marks; with only his left, a tap off them is his to dismiss.
-  func testATapOffDismissesClaudesFirstAndLarrysOnlyWhenTheyAreAlone() {
-    var turns = turns()
-    let claudes = ghosts(.claude, 1)
-    let larrys = ghosts(.larry, 2)
-    turns.land(claudes, who: .claude, first: true, now: t0)
-    turns.larrysMarks(larrys)
-
-    guard case .dismiss(let count, let hisToo) = turns.tap(hitting: { _ in false }) else { return XCTFail() }
-    XCTAssertEqual(count, 1, "Claude's")
-    XCTAssertFalse(hisToo)
-    turns.dismiss(larrys: hisToo)
-    XCTAssertEqual(turns.ghosts, larrys, "Larry's stay")
-
-    guard case .dismiss(let again, let his) = turns.tap(hitting: { _ in false }) else { return XCTFail() }
-    XCTAssertEqual(again, 2)
-    XCTAssertTrue(his)
-    turns.dismiss(larrys: his)
-    XCTAssertTrue(turns.ghosts.isEmpty)
-  }
-
-  func testADismissalForgetsAPauseUnderWay() {
-    var turns = turns()
-    turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
-    XCTAssertTrue(turns.stroked())
-    turns.toolWentDown()
-    turns.dismiss(larrys: false)
-    XCTAssertFalse(turns.toolLifted(), "the dismissed turn's pause doesn't restart")
   }
 }

@@ -127,6 +127,13 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   }
 
   private func ghosts(_ app: XCUIApplication) -> XCUIElement { app.buttons["whiteboard-ghosts"] }
+
+  /// Story 825: Keep beside the mark just tapped.
+  private func keep(_ app: XCUIApplication) {
+    let keep = app.buttons["whiteboard-mark-keep"]
+    XCTAssertTrue(keep.appears(within: 5), app.debugDescription)
+    keep.tap()
+  }
   private func send(_ app: XCUIApplication) -> XCUIElement { app.buttons["whiteboard-send"] }
   private func strokes(_ count: Int) -> String { "Send to Larry, \(count) strokes" }
 
@@ -149,8 +156,9 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     return PaperScreen.settled(app) { $0.ghost }
   }
 
-  /// Stories 598, 613, 614, 615: the bar, a ghost that can be seen, and a tap on it that makes it ink of its colour.
-  func testAGhostShowsOnThePaperAndATapKeepsIt() throws {
+  /// Stories 598, 613, 614, 615, 825: the bar, a ghost that can be seen, and a tap on it and Keep that make it ink of its
+  /// colour.
+  func testAGhostShowsOnThePaperAndKeepMakesItInk() throws {
     let app = try openBoard()
     for id in ["whiteboard-ghosts", "whiteboard-mic", "whiteboard-larry", "whiteboard-send"] {
       XCTAssertTrue(app.buttons[id].exists, id)
@@ -161,8 +169,15 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(send(app).label, strokes(1), "a ghost isn't ink")
 
     PaperScreen.tap(app, ghost.center)
+    let keep = app.buttons["whiteboard-mark-keep"]
+    XCTAssertTrue(keep.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["whiteboard-mark-dismiss"].exists)
+    shot(app, "keep and dismiss")
+    XCTAssertEqual(send(app).label, strokes(1), "a tap alone keeps nothing")
+    keep.tap()
     wait(send(app), label: strokes(2))
     wait(ghosts(app), label: "Ghosts on")
+    XCTAssertFalse(keep.exists, "the buttons went with the mark")
     sleep(1)
     shot(app, "kept")
     let kept = try XCTUnwrap(PaperScreen(app).kept, "ink in Claude's orange")
@@ -170,14 +185,22 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.05, "where the ghost was")
   }
 
-  /// Story 616: a tap off the ghosts dismisses them and leaves no dot, and then a finger draws again.
-  func testATapOffDismissesLeavesNoDotAndAFingerDrawsAgain() throws {
+  /// Stories 616, 825: a tap off the ghosts changes nothing and leaves no dot; Dismiss removes the mark, and then a finger
+  /// draws again.
+  func testATapOffKeepsTheGhostDismissRemovesItAndAFingerDrawsAgain() throws {
     let app = try openBoard()
-    _ = try XCTUnwrap(strokeBringsAGhost(app))
+    let ghost = try XCTUnwrap(strokeBringsAGhost(app))
     PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
+    sleep(1)
+    XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing", "a stray tap dismisses nothing")
+    XCTAssertEqual(send(app).label, strokes(1), "no dot")
+    PaperScreen.tap(app, ghost.center)
+    let dismiss = app.buttons["whiteboard-mark-dismiss"]
+    XCTAssertTrue(dismiss.appears(within: 5), app.debugDescription)
+    dismiss.tap()
     wait(ghosts(app), label: "Ghosts on")
     sleep(1)
-    XCTAssertEqual(send(app).label, strokes(1), "no dot")
+    XCTAssertEqual(send(app).label, strokes(1), "nothing kept")
     stroke(app, atHeight: 0.4)
     wait(send(app), label: strokes(2))
   }
@@ -213,6 +236,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_KEEP": "4,undo,redo,undo,undo"])
     let ghost = try XCTUnwrap(strokeBringsAGhost(app))
     PaperScreen.tap(app, ghost.center)
+    keep(app)
     wait(send(app), label: strokes(2))
     shot(app, "kept")
     wait(send(app), label: strokes(1))
@@ -237,6 +261,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let app = try openBoard()
     let ghost = try XCTUnwrap(strokeBringsAGhost(app))
     PaperScreen.tap(app, ghost.center)
+    keep(app)
     wait(send(app), label: strokes(2))
     let before = try sends(cockpit).count
     app.buttons["whiteboard-larry"].tap()

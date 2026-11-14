@@ -306,7 +306,9 @@ final class WhiteboardModel: ObservableObject {
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
   func beganDrawing() {
-    turns.toolWentDown()
+    if turns.toolWentDown() {
+      log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "drew"])
+    }
     pauseTask?.cancel()
     pauseTask = nil
   }
@@ -1129,24 +1131,47 @@ final class WhiteboardModel: ObservableObject {
     problem = .grabber(message, context: "WhiteboardView.larry", extra: extra)
   }
 
-  /// A tap at `point` (board points) keeps the ghost under it; a tap anywhere else dismisses Claude's ghosts, or Larry's
-  /// when only his are left (#823).
+  /// The mark whose Keep and Dismiss show (story 825).
+  var chosen: Ghost? { turns.chosen }
+
+  /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (story 825,
+  /// #883): a stray tap never keeps or dismisses a mark.
   func tap(at point: CGPoint, zoom: CGFloat) {
     switch turns.tap(hitting: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) {
     case .nothing: return
-    case .keep(let ghost): keep(ghost)
-    case .dismiss(let count, let larrys):
-      log.event("whiteboard", ["action": "ghosts_dismissed", "board": board.id, "count": count, "larrys": larrys])
-      turns.dismiss(larrys: larrys)
-      cancelPause()
-      if larrys { settleLarrysRow() }
+    case .chose(let ghost):
+      log.event(
+        "whiteboard",
+        ["action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue])
+    case .putAway:
+      log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "tap_off"])
     }
   }
 
+  /// Keep beside the chosen mark: the old tap's keep, one undo.
+  func keepChosen() {
+    guard let kept = turns.keepChosen() else { return }
+    log.event(
+      "whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.ghost.who.rawValue])
+    if kept.settlesLarrysRow { settleLarrysRow() }
+    ink(kept.ghost)
+  }
+
+  /// Dismiss beside the chosen mark: that mark goes, and doesn't come back when the board opens again.
+  func dismissChosen() {
+    guard let gone = turns.dismissChosen() else { return }
+    log.event(
+      "whiteboard",
+      [
+        "action": "mark_choice", "board": board.id, "choice": "dismiss", "who": gone.ghost.who.rawValue,
+        "kind": gone.ghost.kind.rawValue, "left": turns.ghosts.count,
+      ])
+    if gone.settlesLarrysRow { settleLarrysRow() }
+  }
+
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
-  private func keep(_ ghost: Ghost) {
+  private func ink(_ ghost: Ghost) {
     let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4)
-    if turns.keep(ghost) { settleLarrysRow() }
     // #883: what a kept mark that doesn't show needs said: its pen, letters and colour, the zoom, and whether the ink
     // landed on screen. `paper_keep` and `paper_ink_look` follow with where it went and whether the view drew it.
     let ink = PKDrawing(strokes: strokes).bounds
