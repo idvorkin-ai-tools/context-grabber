@@ -985,7 +985,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 821:
 
 - **Summary:** Zoom into a picture in a thread, and share or save it
-- **Status:** native app only: implemented in this branch (native/907-chat-image-zoom); verified by the host tests (`ChatImageZoomTests`: the scale clamp and settle, the double-tap toggle, the pan clamp, the fitted size, and the swipe closing only when fitted) and the Mac build; the simulator (`ChatImageUITests`) and the phone not yet
+- **Status:** native app only: implemented in this branch (native/907-chat-image-zoom); verified by the host tests (`ChatImageZoomTests`: the scale clamp and settle, the double-tap toggle, the pan clamp, the fitted size, and the swipe closing only when fitted) and the Mac build; `ChatImageUITests.testShareShowsAndADoubleTapZoomsSoASwipePans` (simulator: Share shows, a double tap zooms so a swipe pans, a second one lets the swipe close) compiles but has not run; the simulator and the phone (the pinch's feel, Save Image asking for Photos access once) not yet
 - **Issues:** [#907](https://github.com/idvorkin/context-grabber/issues/907)
 - **Spec:** [Chat with Larry in Grabber Native — A thread](../superpowers/specs/2026-10-25-native-chat-design.md)
 
