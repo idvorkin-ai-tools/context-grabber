@@ -73,6 +73,7 @@ final class ChatModel: ObservableObject {
     self.cockpit = cockpit
     decisions = ChatDecisionsModel(log: log, inbox: inbox, cockpit: cockpit)
     inbox.didAdd = { [weak self] in self?.askForNotificationsOnce() }
+    decisions.readThread = { [weak self] key in await self?.readAgain(key) }
     foldedLinks =
       database.setting(Self.foldedLinksKey)
       .flatMap { try? JSONDecoder().decode(Set<String>.self, from: Data($0.utf8)) } ?? []
@@ -306,6 +307,12 @@ final class ChatModel: ObservableObject {
     poll?.cancel()
     poll = nil
     Task { await refreshList(reason: "thread_closed") }
+  }
+
+  /// #878: Igor's answer is now a row in the open thread; read it now rather than on the next poll.
+  func readAgain(_ key: String) async {
+    guard openThread == key else { return }
+    await load(key, markSeen: false)
   }
 
   /// True once the thread was read and, when asked, marked seen.

@@ -24,10 +24,14 @@ Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
 Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with what was answered) three open asks for GET /asks, the shape of the
-Cockpit's normalize_ask: igor2-88g.878 on a chat of its own bead, igor2-88g.879 on no chat, and igor2-88g.880 on a chat,
-whose answer is always refused (502, as bd failing); {"open": false} removes them and their chats, so no other test sees
-an extra row. POST /act answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale),
-POST /close closes or abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted.
+Cockpit's normalize_ask with its `thread` (cockpit-7fr): igor2-88g.881 filed from chat igor2-88g.878 (thread names its
+parent's chat), igor2-88g.879 on no chat (thread null), and igor2-88g.880 on a chat of its own bead, whose answer is always
+refused (502, as bd failing); {"open": false} removes them and their chats, so no other test sees an extra row. POST /act
+answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale), POST /close closes or
+abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted. With "post_to_chat": true, a decided
+/act or /close appends Igor's row to the ask's thread ("Decided: <label>", "Closed: <reason>", "Abandoned[: <reason>]",
+"Dismissed[: <reason>]") and the answer gains chat {posted, thread, message, duplicate}, or {posted: false, thread, error}
+for an ask with no chat, as serve.py's post_decision_to_chat.
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
 """
 
@@ -117,7 +121,7 @@ ANSWERS = []  # every POST /act, /close and /snooze, as posted
 ASK_CHATS = ("igor2-88g.878", "igor2-88g.880")
 
 
-def ask(aid, title, options, default="", expires_in=None):
+def ask(aid, title, options, default="", expires_in=None, thread=None):
     at = "2026-11-14T10:00:00Z"
     expires = (datetime.now().astimezone() + timedelta(seconds=expires_in)).isoformat(timespec="seconds") \
         if expires_in is not None else ""
@@ -126,7 +130,7 @@ def ask(aid, title, options, default="", expires_in=None):
             "recommendation_key": default, "recommendation_text": "", "priority": 2, "issue_type": "decision",
             "status": "open", "created_at": at, "updated_at": at, "default": default,
             "default_label": next((label for k, label, _ in options if k == default), ""), "expires_at": expires,
-            "seconds_left": expires_in, "expired": bool(expires_in is not None and expires_in < 0)}
+            "seconds_left": expires_in, "expired": bool(expires_in is not None and expires_in < 0), "thread": thread}
 
 
 def open_asks(on):
@@ -136,13 +140,14 @@ def open_asks(on):
         THREADS.pop(key, None)
     if not on:
         return
-    ASKS["igor2-88g.878"] = ask("igor2-88g.878", "Lunch on Friday: where?",
+    ASKS["igor2-88g.881"] = ask("igor2-88g.881", "Lunch on Friday: where?",
                                 [("tacos", "Tacos", "the place by the office"), ("ramen", "Ramen", "a short walk")],
-                                default="tacos", expires_in=5 * 3600)
+                                default="tacos", expires_in=5 * 3600, thread="igor2-88g.878")
     ASKS["igor2-88g.879"] = ask("igor2-88g.879", "Renew the gym for a year?",
                                 [("yes", "Renew", ""), ("no", "Let it lapse", "")])
     ASKS["igor2-88g.880"] = ask("igor2-88g.880", "Move the review to Monday?",
-                                [("move", "Move it", ""), ("keep", "Keep Friday", "")], expires_in=-3600)
+                                [("move", "Move it", ""), ("keep", "Keep Friday", "")], expires_in=-3600,
+                                thread="igor2-88g.880")
     THREADS["igor2-88g.878"] = {"title": "Lunch on Friday", "seen": "", "messages": [
         row("igor2-88g.878", "larry", "Where should we eat on Friday?")]}
     THREADS["igor2-88g.880"] = {"title": "The review", "seen": "", "messages": [
@@ -165,7 +170,33 @@ def decide(path, data):
     if path == "/close" and data.get("action") == "close" and not (data.get("reason") or "").strip():
         return 400, {"ok": False, "error": "closing a bead needs a one-line reason"}
     del ASKS[data["id"]]
-    return 200, {"ok": True, "id": data["id"], "action": data.get("action"), "title": a["title"]}
+    answer = {"ok": True, "id": data["id"], "action": data.get("action"), "title": a["title"]}
+    if data.get("post_to_chat") is True:
+        answer["chat"] = post_to_chat(a, data)
+    return 200, answer
+
+
+def post_to_chat(a, data):
+    """serve.py's post_decision_to_chat: Igor's row in the ask's thread, once per ask."""
+    thread = a.get("thread")
+    if not thread or thread not in THREADS:
+        return {"posted": False, "thread": None, "error": "the ask has no chat thread"}
+    action = data.get("action")
+    if action == "respond":
+        text = "Decided: " + (data.get("response") or "").removeprefix("DECISION:").strip()
+    else:
+        word = {"dismiss": "Dismissed", "close": "Closed", "abandon": "Abandoned"}[action]
+        reason = (data.get("reason") or "").strip()
+        text = "%s: %s" % (word, reason) if reason else word
+    mid = "act-" + a["id"]
+    messages = THREADS[thread]["messages"]
+    old = next((m for m in messages if m["id"] == mid), None)
+    if old:
+        return {"posted": True, "thread": thread, "message": old, "duplicate": True}
+    m = row(thread, "igor", text, mid)
+    m["source"] = data.get("source") or "cockpit"
+    messages.append(m)
+    return {"posted": True, "thread": thread, "message": m, "duplicate": False}
 
 
 def summary(key, t):

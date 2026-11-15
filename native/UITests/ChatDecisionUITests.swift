@@ -1,6 +1,7 @@
 //  Stories 830-832 (#878) on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh starts it): the
-//  card in the chat whose bead is an open ask, its row's *Decision waiting*, *Decisions (N)*, an answer the fake records,
-//  and a refused one that leaves the card with a copyable problem. What each answer means, the order, the marks and the
+//  card in the chat an open ask continues (filed from it: the ask's `thread` names that chat, not its own bead), its
+//  row's *Decision waiting*, *Decisions (N)*, an answer the fake records and writes into the chat as Igor's message, and
+//  a refused one that leaves the card with a copyable problem. What each answer means, the order, the marks and the
 //  lines are `ChatDecisionsTests` on the host. The fake Cockpit has no asks until a test asks for them, and each test
 //  takes them away again: an extra row moves the list under the other chat classes.
 
@@ -57,7 +58,8 @@ final class ChatDecisionUITests: XCTestCase {
     return app
   }
 
-  /// Stories 830-832: the row says so, Decisions counts them all, the card answers, the fake records it, the mark goes.
+  /// Stories 830-832: the row says so, Decisions counts them all, the card answers, the fake records it, the answer is
+  /// Igor's message in the thread, the mark goes.
   func testTheCardInItsChatAnswersAndTheRowsMarkGoes() throws {
     let cockpit = try fakeCockpit()
     let app = launch(cockpit, ["GRABBER_INBOX": "open"])
@@ -74,21 +76,25 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertFalse(app.buttons["chat-thread-igor2-88g.900"].label.contains("Decision waiting"), "only the ask's chat")
 
     row.tap()
-    XCTAssertTrue(app.otherElements["decision-card-igor2-88g.878"].appears(within: 10), app.debugDescription)
+    XCTAssertTrue(app.otherElements["decision-card-igor2-88g.881"].appears(within: 10), app.debugDescription)
     XCTAssertTrue(app.staticTexts["Lunch on Friday: where?"].exists)
     XCTAssertTrue(app.staticTexts["Default"].exists, "the default is marked")
     app.buttons["decision-option-ramen"].tap()
-    let decided = app.descendants(matching: .any).matching(
-      NSPredicate(format: "label CONTAINS %@", "You decided: Ramen")
+    let mine = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "chat-mine", "Decided: Ramen")
     ).firstMatch
-    XCTAssertTrue(decided.appears(within: 10), app.debugDescription)
-    XCTAssertFalse(app.otherElements["decision-card-igor2-88g.878"].exists, "the card gave way")
+    XCTAssertTrue(mine.appears(within: 10), "Igor's answer is his message: \(app.debugDescription)")
+    XCTAssertFalse(app.otherElements["decision-card-igor2-88g.881"].exists, "the card gave way")
+    let line = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "You decided"))
+    XCTAssertEqual(line.count, 0, "the message, not the line: \(app.debugDescription)")
 
     let posted = try answers(cockpit).filter { $0["path"] as? String == "/act" }
     XCTAssertEqual(posted.count, 1, "\(posted)")
-    XCTAssertEqual(posted.first?["id"] as? String, "igor2-88g.878")
+    XCTAssertEqual(posted.first?["id"] as? String, "igor2-88g.881")
     XCTAssertEqual(posted.first?["response"] as? String, "DECISION: Ramen")
     XCTAssertEqual(posted.first?["action"] as? String, "respond")
+    XCTAssertEqual(posted.first?["post_to_chat"] as? Bool, true)
+    XCTAssertEqual(posted.first?["source"] as? String, "app")
 
     app.navigationBars.buttons.element(boundBy: 0).tap()
     XCTAssertTrue(row.appears(within: 10), app.debugDescription)

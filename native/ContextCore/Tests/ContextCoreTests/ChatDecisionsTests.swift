@@ -17,9 +17,9 @@ final class ChatDecisionsTests: XCTestCase {
     return try XCTUnwrap(ChatDecisions.asks(try Data(contentsOf: url)))
   }
 
-  private func body(_ request: URLRequest) throws -> [String: String] {
+  private func body(_ request: URLRequest) throws -> NSDictionary {
     let data = try XCTUnwrap(request.httpBody)
-    return try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: String])
+    return try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? NSDictionary)
   }
 
   // MARK: Reading the asks
@@ -73,13 +73,44 @@ final class ChatDecisionsTests: XCTestCase {
     ChatSummary(key: key, title: key, lastTs: "", lastWho: "larry", lastText: "", pinned: pinned, skill: skill)
   }
 
-  func testAChatCarriesTheAskWhoseBeadItIs() throws {
+  func testAChatCarriesTheAskThatContinuesIt() throws {
     let asks = try fixture()
-    let threads = [thread("igor2-88g.1268", pinned: true), thread("igor2-88g.2001"), thread("igor2-88g.900")]
-    XCTAssertEqual(ChatDecisions.waiting(threads, asks: asks), ["igor2-88g.2001"])
-    XCTAssertEqual(ChatDecisions.ask(on: "igor2-88g.2001", in: asks)?.title, "Saturday: which walk?")
+    XCTAssertEqual(asks.map(\.chat), ["igor2-88g.1999", nil, "igor2-88g.2003"], "the Cockpit's thread, null as none")
+    let threads = [
+      thread("igor2-88g.1268", pinned: true), thread("igor2-88g.1999"), thread("igor2-88g.2001"),
+      thread("igor2-88g.2002"), thread("igor2-88g.2003"), thread("igor2-88g.900"),
+    ]
+    XCTAssertEqual(
+      ChatDecisions.waiting(threads, asks: asks), ["igor2-88g.1999", "igor2-88g.2003"],
+      "the parent's chat and the ask's own; a null thread is no chat, even with one on the ask's own bead")
+    XCTAssertEqual(ChatDecisions.ask(on: "igor2-88g.1999", in: asks)?.title, "Saturday: which walk?")
+    XCTAssertNil(ChatDecisions.ask(on: "igor2-88g.2001", in: asks), "named another chat: not its own")
+    XCTAssertNil(ChatDecisions.ask(on: "igor2-88g.2002", in: asks))
     XCTAssertNil(ChatDecisions.ask(on: "igor2-88g.900", in: asks))
     XCTAssertEqual(ChatDecisions.waiting(threads, asks: []), [])
+  }
+
+  func testAnOlderCockpitWithNoThreadJoinsAnAskToItsOwnBeadsChat() throws {
+    let asks = try XCTUnwrap(
+      ChatDecisions.asks(Data(#"{"ok": true, "asks": [{"id": "igor2-88g.2001", "title": "Old"}]}"#.utf8)))
+    XCTAssertNil(asks[0].thread)
+    XCTAssertEqual(asks[0].chat, "igor2-88g.2001", "no thread key at all: the ask's own bead, as before")
+    XCTAssertEqual(ChatDecisions.waiting([thread("igor2-88g.2001")], asks: asks), ["igor2-88g.2001"])
+  }
+
+  func testOpenChatOpensTheChatTheAskContinuesOrElseItsOwn() throws {
+    let asks = try fixture()
+    XCTAssertEqual(asks.map(\.chatToOpen), ["igor2-88g.1999", "igor2-88g.2002", "igor2-88g.2003"])
+  }
+
+  func testTwoAsksOnOneChatShowTheFirstInTheCockpitsOrder() throws {
+    let asks = try XCTUnwrap(
+      ChatDecisions.asks(
+        Data(
+          #"{"ok": true, "asks": [{"id": "b-2", "title": "Second", "thread": "chat-1"}, {"id": "b-3", "title": "Third", "thread": "chat-1"}]}"#
+            .utf8)))
+    XCTAssertEqual(ChatDecisions.ask(on: "chat-1", in: asks)?.id, "b-2")
+    XCTAssertEqual(ChatDecisions.ask(on: "chat-1", in: Array(asks.dropFirst()))?.id, "b-3", "then the next")
   }
 
   func testTheDecisionsRowSitsUnderLarrysPinnedThread() {
@@ -109,8 +140,10 @@ final class ChatDecisionsTests: XCTestCase {
       try body(request),
       [
         "id": "igor2-88g.2001", "action": "respond", "response": "DECISION: The hill",
-        "base_updated_at": "2026-11-13T02:00:25Z",
+        "base_updated_at": "2026-11-13T02:00:25Z", "post_to_chat": true, "source": "app",
       ])
+    let raw = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+    XCTAssertTrue(raw.contains(#""post_to_chat":true"#), "the literal true, not 1 or \"true\": \(raw)")
   }
 
   func testACloseNeedsItsReasonAndAnAbandonMayHaveNone() throws {
@@ -118,11 +151,17 @@ final class ChatDecisionsTests: XCTestCase {
     XCTAssertEqual(close.url?.path, "/close")
     XCTAssertEqual(
       try body(close),
-      ["id": "igor2-88g.2001", "action": "close", "reason": "Booked it", "base_updated_at": "2026-11-13T02:00:25Z"])
+      [
+        "id": "igor2-88g.2001", "action": "close", "reason": "Booked it", "base_updated_at": "2026-11-13T02:00:25Z",
+        "post_to_chat": true, "source": "app",
+      ])
     XCTAssertEqual(
       try body(try post(.abandon(reason: nil))),
-      ["id": "igor2-88g.2001", "action": "abandon", "reason": "", "base_updated_at": "2026-11-13T02:00:25Z"])
-    XCTAssertEqual(try body(try post(.abandon(reason: "Stale")))["reason"], "Stale")
+      [
+        "id": "igor2-88g.2001", "action": "abandon", "reason": "", "base_updated_at": "2026-11-13T02:00:25Z",
+        "post_to_chat": true, "source": "app",
+      ])
+    XCTAssertEqual(try body(try post(.abandon(reason: "Stale")))["reason"] as? String, "Stale")
     XCTAssertFalse(ChatDecisions.canClose(reason: "   "))
     XCTAssertTrue(ChatDecisions.canClose(reason: "done"))
   }
@@ -130,7 +169,7 @@ final class ChatDecisionsTests: XCTestCase {
   func testASnoozeNamesTheCockpitsPreset() throws {
     let request = try post(.snooze(.nextWeek))
     XCTAssertEqual(request.url?.path, "/snooze")
-    XCTAssertEqual(try body(request), ["id": "igor2-88g.2001", "preset": "next_week"])
+    XCTAssertEqual(try body(request), ["id": "igor2-88g.2001", "preset": "next_week"], "a snooze writes no chat row")
     XCTAssertEqual(ChatDecisions.Snooze.allCases.map(\.rawValue), ["later", "tomorrow", "next_week"])
     XCTAssertEqual(ChatDecisions.Snooze.allCases.map(\.label), ["Later today", "Tomorrow morning", "Next week"])
     XCTAssertEqual(
@@ -158,6 +197,51 @@ final class ChatDecisionsTests: XCTestCase {
       .done(snoozedUntil: "2026-11-16T16:00:00Z"))
     XCTAssertEqual(outcome(200, #"{"ok": false, "error": "busy"}"#), .refused("busy (HTTP 200)"))
     XCTAssertEqual(outcome(200, "<html>"), .refused("the Cockpit refused it (HTTP 200)"))
+  }
+
+  func testA200SaysWhetherTheAnswerWentIntoTheChat() {
+    XCTAssertEqual(
+      outcome(
+        200,
+        #"{"ok": true, "id": "b", "action": "respond", "chat": {"posted": true, "thread": "chat-1", "message": {"id": "act-1", "who": "igor", "text": "Decided: A"}, "duplicate": false}}"#
+      ),
+      .done(snoozedUntil: nil, chat: .init(posted: true, thread: "chat-1", error: nil)))
+    XCTAssertEqual(
+      outcome(
+        200,
+        #"{"ok": true, "id": "b", "action": "respond", "chat": {"posted": false, "thread": null, "error": "the ask has no chat thread"}}"#
+      ),
+      .done(snoozedUntil: nil, chat: .init(posted: false, thread: nil, error: "the ask has no chat thread")))
+    XCTAssertEqual(
+      outcome(200, #"{"ok": true, "id": "b", "action": "respond"}"#), .done(snoozedUntil: nil, chat: nil),
+      "an older Cockpit says nothing about the chat")
+  }
+
+  func testTheCardGivesWayToIgorsMessageOnlyInAThreadTheCockpitWroteTo() throws {
+    let option = try fixture()[0].options[0]
+    let posted = ChatDecisions.Posted(posted: true, thread: "chat-1", error: nil)
+    let failed = ChatDecisions.Posted(posted: false, thread: "chat-1", error: "disk full")
+    XCTAssertTrue(ChatDecisions.givesWayToMessage(.answer(option), chat: posted, inThread: true))
+    XCTAssertTrue(ChatDecisions.givesWayToMessage(.close(reason: "x"), chat: posted, inThread: true))
+    XCTAssertTrue(ChatDecisions.givesWayToMessage(.abandon(reason: nil), chat: posted, inThread: true))
+    XCTAssertFalse(ChatDecisions.givesWayToMessage(.answer(option), chat: posted, inThread: false), "on Decisions")
+    XCTAssertFalse(ChatDecisions.givesWayToMessage(.answer(option), chat: failed, inThread: true))
+    XCTAssertFalse(ChatDecisions.givesWayToMessage(.answer(option), chat: nil, inThread: true), "an older Cockpit")
+    XCTAssertFalse(ChatDecisions.givesWayToMessage(.snooze(.later), chat: posted, inThread: true))
+  }
+
+  func testTheLogSaysWhetherTheChatGotItAndWhyNot() throws {
+    let option = try fixture()[0].options[0]
+    let posted = ChatDecisions.Posted(posted: true, thread: "chat-1", error: nil)
+    let failed = ChatDecisions.Posted(posted: false, thread: nil, error: "the ask has no chat thread")
+    XCTAssertEqual(ChatDecisions.chatLogFields(.answer(option), chat: posted) as NSDictionary, ["chat_posted": true])
+    XCTAssertEqual(
+      ChatDecisions.chatLogFields(.close(reason: "x"), chat: failed) as NSDictionary,
+      ["chat_posted": false, "chat_error": "the ask has no chat thread"])
+    XCTAssertEqual(
+      ChatDecisions.chatLogFields(.answer(option), chat: nil) as NSDictionary,
+      ["chat_posted": false, "chat_error": "no chat field"])
+    XCTAssertEqual(ChatDecisions.chatLogFields(.snooze(.later), chat: nil) as NSDictionary, [:])
   }
 
   func testA409AlreadyClosedIsAnsweredElsewhere() {

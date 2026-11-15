@@ -1,7 +1,8 @@
 //  Decision cards in Chat (#878; spec 2026-11-14-chat-decision-cards-design.md, plan of the same date): Larry's open
 //  asks, as the Cockpit's `GET /asks` lists them, and the four ways to finish one — `POST /act` (answer), `/close`
-//  (close or abandon) and `/snooze` — with what each answer means. An ask is on a chat when it is that chat's bead:
-//  `ask.id == thread.key`, as the Cockpit's own thread page finds it. The model hands in the transport.
+//  (close or abandon) and `/snooze` — with what each answer means. An ask is on the chat its `thread` names (cockpit-7fr);
+//  from a Cockpit that sends no `thread`, on its own bead's chat, `ask.id == thread.key`. The model hands in the
+//  transport.
 
 import Foundation
 
@@ -40,6 +41,16 @@ public struct ChatAsk: Decodable, Equatable, Sendable, Identifiable {
   public let updatedAt: String
   public let expiresAt: Date?
   public let expired: Bool
+  /// The chat the ask continues, as the Cockpit names it: its bd parent's, or its own; nil for none or not sent.
+  public let thread: String?
+  /// False from a Cockpit older than the `thread` field: the join falls back to the ask's own bead.
+  let threadSent: Bool
+
+  /// The chat thread that carries this ask's card, or nil for none.
+  public var chat: String? { threadSent ? thread : id }
+
+  /// *Open chat*: the chat it continues, or else its own bead's thread, empty until someone writes there.
+  public var chatToOpen: String { chat ?? id }
 
   public var marked: Mark? {
     if options.contains(where: { $0.key == defaultKey }) { return Mark(key: defaultKey, word: "Default") }
@@ -50,7 +61,7 @@ public struct ChatAsk: Decodable, Equatable, Sendable, Identifiable {
   }
 
   enum CodingKeys: String, CodingKey {
-    case id, title, context, options, status, expired
+    case id, title, context, options, status, expired, thread
     case recommendationKey = "recommendation_key"
     case defaultKey = "default"
     case updatedAt = "updated_at"
@@ -81,6 +92,8 @@ public struct ChatAsk: Decodable, Equatable, Sendable, Identifiable {
     updatedAt = (try? c.decode(String.self, forKey: .updatedAt)) ?? ""
     expiresAt = (try? c.decode(String.self, forKey: .expiresAt)).flatMap(ChatWire.date)
     expired = (try? c.decode(Bool.self, forKey: .expired)) ?? false
+    threadSent = c.contains(.thread)
+    thread = (try? c.decodeIfPresent(String.self, forKey: .thread)).flatMap { $0?.isEmpty == false ? $0 : nil }
   }
 }
 
@@ -130,9 +143,22 @@ public enum ChatDecisions {
     }
   }
 
+  /// The Cockpit's `chat` on a 200 to `post_to_chat`: whether Igor's row went into the ask's thread, and why not.
+  public struct Posted: Equatable, Sendable {
+    public let posted: Bool
+    public let thread: String?
+    public let error: String?
+
+    public init(posted: Bool, thread: String?, error: String?) {
+      self.posted = posted
+      self.thread = thread
+      self.error = error
+    }
+  }
+
   public enum Outcome: Equatable, Sendable {
-    /// The Cockpit took it; a snooze says when it wakes.
-    case done(snoozedUntil: String?)
+    /// The Cockpit took it; a snooze says when it wakes; `chat` is nil when the Cockpit said nothing about the chat.
+    case done(snoozedUntil: String?, chat: Posted? = nil)
     /// The ask changed since it was read: as it now is, or nil when the answer didn't say (read the asks again).
     case changed(ChatAsk?)
     /// Answered, closed or abandoned elsewhere first.
@@ -170,7 +196,7 @@ public enum ChatDecisions {
 
   public static func request(_ verb: Verb, ask: ChatAsk, cockpit: String) throws -> URLRequest {
     let path: String
-    let body: [String: String]
+    let body: [String: Any]
     switch verb {
     case .answer(let option):
       // What the Cockpit's own card sends for an option with no note (`submit()` in its index.html).
@@ -178,6 +204,7 @@ public enum ChatDecisions {
       body = [
         "id": ask.id, "action": "respond", "response": "DECISION: \(option.label)", "base_updated_at": ask.updatedAt,
       ]
+      .merging(postToChat) { a, _ in a }
     case .snooze(let preset):
       path = "/snooze"
       body = ["id": ask.id, "preset": preset.rawValue]
@@ -187,9 +214,11 @@ public enum ChatDecisions {
         "id": ask.id, "action": "close", "reason": reason.trimmingCharacters(in: .whitespaces),
         "base_updated_at": ask.updatedAt,
       ]
+      .merging(postToChat) { a, _ in a }
     case .abandon(let reason):
       path = "/close"
       body = ["id": ask.id, "action": "abandon", "reason": reason ?? "", "base_updated_at": ask.updatedAt]
+        .merging(postToChat) { a, _ in a }
     }
     guard let base = URL(string: cockpit), base.host != nil, let url = URL(string: cockpit.trimmingSuffix("/") + path)
     else { throw URLError(.badURL) }
@@ -203,12 +232,20 @@ public enum ChatDecisions {
     return request
   }
 
+  /// Igor's row in the ask's chat once the decision lands (cockpit-7fr): only the literal true turns it on, and
+  /// `source` names the phone as on `/chat`. A snooze has none.
+  static let postToChat: [String: Any] = ["post_to_chat": true, "source": "app"]
+
   public static func outcome(status: Int?, body: Data?, error: String? = nil) -> Outcome {
     guard let status else { return .refused(error ?? "no answer from the Cockpit") }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     let said = (json?["error"] as? String).flatMap { $0.isEmpty ? nil : $0 }
     if status == 200, json?["ok"] as? Bool == true {
-      return .done(snoozedUntil: json?["snoozed_until"] as? String)
+      let chat = (json?["chat"] as? [String: Any]).map {
+        Posted(
+          posted: $0["posted"] as? Bool == true, thread: $0["thread"] as? String, error: $0["error"] as? String)
+      }
+      return .done(snoozedUntil: json?["snoozed_until"] as? String, chat: chat)
     }
     if status == 409 {
       let fresh = (json?["ask"] as? [String: Any]).flatMap { try? JSONSerialization.data(withJSONObject: $0) }
@@ -230,13 +267,30 @@ public enum ChatDecisions {
 
   // MARK: Which chats carry a card
 
-  /// The chats whose bead is an open ask: their rows say *Decision waiting*.
+  /// The chats an open ask continues: their rows say *Decision waiting*.
   public static func waiting(_ threads: [ChatSummary], asks: [ChatAsk]) -> Set<String> {
-    let open = Set(asks.map(\.id))
+    let open = Set(asks.compactMap(\.chat))
     return Set(threads.map(\.key).filter(open.contains))
   }
 
-  public static func ask(on key: String, in asks: [ChatAsk]) -> ChatAsk? { asks.first { $0.id == key } }
+  /// The card at the top of a thread: the first, in the Cockpit's order, of the asks that continue it.
+  public static func ask(on key: String, in asks: [ChatAsk]) -> ChatAsk? { asks.first { $0.chat == key } }
+
+  // MARK: Igor's row in the chat
+
+  /// In a thread, a card the Cockpit wrote into the chat gives way to that message, not to a line.
+  public static func givesWayToMessage(_ verb: Verb, chat: Posted?, inThread: Bool) -> Bool {
+    if case .snooze = verb { return false }
+    return inThread && chat?.posted == true
+  }
+
+  /// The `chat` event's word on the chat row: none for a snooze, which asks for none.
+  public static func chatLogFields(_ verb: Verb, chat: Posted?) -> [String: Any] {
+    if case .snooze = verb { return [:] }
+    guard let chat else { return ["chat_posted": false, "chat_error": "no chat field"] }
+    if chat.posted { return ["chat_posted": true] }
+    return ["chat_posted": false, "chat_error": chat.error ?? "no reason given"]
+  }
 
   /// The row *Decisions (N)* follows: Larry's pinned thread, or nil to lead the list.
   public static func rowAfter(_ live: [ChatSummary]) -> String? {

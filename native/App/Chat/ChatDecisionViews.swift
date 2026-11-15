@@ -17,7 +17,7 @@ struct ChatDecisionSlot: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color(.systemGroupedBackground))
-    } else if let line = decisions.card(key).line {
+    } else if let line = decisions.line(on: key) {
       ChatDecisionLine(text: line)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
@@ -184,7 +184,7 @@ struct ChatDecisionsView: View {
           VStack(alignment: .leading, spacing: 4) {
             ChatDecisionCard(decisions: decisions, ask: ask, place: "list", logger: logger)
             NavigationLink {
-              ChatThreadView(chat: chat, voice: voice, key: ask.id, title: ask.title, logger: logger)
+              ChatThreadView(chat: chat, voice: voice, key: ask.chatToOpen, title: ask.title, logger: logger)
                 .onAppear { decisions.openedChat(ask) }
             } label: {
               Label("Open chat", systemImage: "bubble.left.and.bubble.right").font(.footnote)
