@@ -93,6 +93,7 @@ struct CallView: View {
     case .live:
       liveLine
       devicesMenu
+      heldBanner
       problemBanner
       captions
     case .idle, .ended:
@@ -196,6 +197,21 @@ struct CallView: View {
     if item.checked { Label(item.name, systemImage: "checkmark") } else { Text(item.name) }
   }
 
+  /// #582, story 829: the call waits for the app before its mic can start.
+  @ViewBuilder private var heldBanner: some View {
+    if call.snapshot.held {
+      VStack(alignment: .leading, spacing: 2) {
+        Label(CallHold.waiting, systemImage: "mic.slash").font(.callout)
+        if call.holdNoticeRefused {
+          Text("Notifications are off for Grabber, so no notification was sent.").font(.caption)
+        }
+      }
+      .foregroundStyle(.secondary)
+      .padding(.horizontal, 12).padding(.vertical, 6)
+      .accessibilityIdentifier("call-held")
+    }
+  }
+
   @ViewBuilder private var problemBanner: some View {
     if let problem = call.snapshot.problem {
       HStack {
@@ -256,7 +272,8 @@ struct CallView: View {
   }
 
   @ViewBuilder private var ending: some View {
-    if call.snapshot.endedBadly {
+    // #582: a held call's five-minute ending is a hang-up's, yet its reason is copyable like a failure's.
+    if call.snapshot.endedBadly || call.snapshot.endedReason == CallHold.timedOut {
       VStack(alignment: .leading, spacing: 6) {
         Text(call.snapshot.endedReason ?? "the call failed").foregroundStyle(.red)
         Button(copied ? "Copied" : "Copy error") {

@@ -162,7 +162,13 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
           ])
         startWatchdog()
       } catch {
-        log("call_audio", ["action": "playback_open", "out_rate": outRate, "ok": false, "message": describe(error)])
+        // #582: the app's state rides every refusal, so a held call's are told from real failures.
+        log(
+          "call_audio",
+          [
+            "action": "playback_open", "out_rate": outRate, "ok": false, "message": describe(error),
+            "app_state": lock.withLock { appState },
+          ])
       }
     }
   }
@@ -176,7 +182,9 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
         try armTap()
         main { done(nil) }
       } catch {
-        log("call_audio", ["action": "mic_arm", "ok": false, "message": describe(error)])
+        log(
+          "call_audio",
+          ["action": "mic_arm", "ok": false, "message": describe(error), "app_state": lock.withLock { appState }])
         main { done(error) }
       }
     }

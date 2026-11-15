@@ -195,6 +195,11 @@ final class AppModel: ObservableObject {
     // Chat: a reply's notification opens its thread (set before the launch finishes, for a tap that launches us).
     chatNotifications.open = { [weak self] thread in self?.open(route: .chat(thread: thread), from: "notification") }
     chatNotifications.onScreen = { [weak self] in self?.chat.openThread }
+    // #582, story 829: a held call's notification brings the call screen forward.
+    chatNotifications.openCall = { [weak self] in
+      guard let self, !self.callOpen else { return }
+      self.openCall(from: "notification")
+    }
     UNUserNotificationCenter.current().delegate = chatNotifications
     inbox.didSend = { [weak self] in Task { await self?.chat.refreshList(reason: "sent") } }
     mirror = MirrorModel(app: self)
