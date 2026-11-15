@@ -2761,7 +2761,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **so that** I open those first instead of opening each chat to find out
 
 #### Acceptance Criteria:
-- **Scenario:** The list with an ask on one chat's bead
+- **Scenario:** The list with an ask that continues one chat
 - **Given:** a chat that an open ask continues, and others that none does
 - **When:** the Chat list opens or I pull it
 - **Then:** only that chat's row says *Decision waiting*; once the ask is answered, snoozed, closed or abandoned the mark goes, at once when I did it on this phone and on the next read of the list when it was done elsewhere; offline, no row is marked; a read that fails leaves the marks as they were and says nothing on the list, which is otherwise unchanged
