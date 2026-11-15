@@ -57,6 +57,8 @@ final class ChatModel: ObservableObject {
   static let backgroundInterval: TimeInterval = 15 * 60
 
   let inbox: InboxModel
+  /// Larry's open asks as decision cards (#878).
+  let decisions: ChatDecisionsModel
   private let log: SessionLog
   private let database: AppDatabase
   let cockpit: String
@@ -69,6 +71,7 @@ final class ChatModel: ObservableObject {
     self.log = log
     self.database = database
     self.cockpit = cockpit
+    decisions = ChatDecisionsModel(log: log, inbox: inbox, cockpit: cockpit)
     inbox.didAdd = { [weak self] in self?.askForNotificationsOnce() }
     foldedLinks =
       database.setting(Self.foldedLinksKey)
@@ -196,6 +199,8 @@ final class ChatModel: ObservableObject {
       threads = rows
       listProblem = nil
       if reason == "pull" { archiveProblem = nil }
+      // #878: the rows' *Decision waiting* and the Decisions row come from the open asks.
+      await decisions.refresh(reason: reason)
       // On screen is seen: a reply shown in the list never notifies later. A refresh behind Home does not count.
       if listOnScreen { recordShown(rows) }
       log.event(
@@ -280,6 +285,8 @@ final class ChatModel: ObservableObject {
         "archived": threads.first { $0.key == key }.map { $0.archived ? "yes" : "no" } ?? "not_listed",
         "skill": threads.first { $0.key == key }?.skill ?? "",
       ])
+    // #878: the card at the top comes from the open asks, read once per open, not on every poll.
+    Task { await decisions.refresh(reason: "thread") }
     poll?.cancel()
     poll = Task { [weak self] in
       var seenOnce = false

@@ -187,7 +187,8 @@ final class ChatDecisionsTests: XCTestCase {
     XCTAssertEqual(outcome(500, ""), .refused("the Cockpit refused it (HTTP 500)"))
     XCTAssertEqual(outcome(nil), .refused("no answer from the Cockpit"))
     XCTAssertEqual(
-      ChatDecisions.outcome(status: nil, body: nil, error: "The request timed out."), .refused("The request timed out."))
+      ChatDecisions.outcome(status: nil, body: nil, error: "The request timed out."), .refused("The request timed out.")
+    )
   }
 
   func testRunSendsTheVerbAndReadsItsAnswer() async throws {
@@ -251,7 +252,8 @@ final class ChatDecisionsTests: XCTestCase {
   func testTheLogNamesTheVerbAndOutcomeNeverTheWords() throws {
     let option = try fixture()[0].options[1]
     XCTAssertEqual(ChatDecisions.Verb.answer(option).logFields as NSDictionary, ["option": "hill"])
-    XCTAssertEqual(ChatDecisions.Verb.snooze(.tomorrow).logFields as NSDictionary, ["action": "snooze", "preset": "tomorrow"])
+    XCTAssertEqual(
+      ChatDecisions.Verb.snooze(.tomorrow).logFields as NSDictionary, ["action": "snooze", "preset": "tomorrow"])
     XCTAssertEqual(
       ChatDecisions.Verb.close(reason: "Booked it").logFields as NSDictionary, ["action": "close", "reason_chars": 9])
     XCTAssertEqual(

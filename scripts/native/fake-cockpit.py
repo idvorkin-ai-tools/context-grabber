@@ -23,6 +23,11 @@ request).
 Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
+Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with what was answered) three open asks for GET /asks, the shape of the
+Cockpit's normalize_ask: igor2-88g.878 on a chat of its own bead, igor2-88g.879 on no chat, and igor2-88g.880 on a chat,
+whose answer is always refused (502, as bd failing); {"open": false} removes them and their chats, so no other test sees
+an extra row. POST /act answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale),
+POST /close closes or abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted.
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
 """
 
@@ -34,7 +39,7 @@ import sys
 import threading
 import time
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT, REPORT = int(sys.argv[1]), sys.argv[2]
@@ -105,6 +110,62 @@ THREADS["igor2-88g.817"] = {"title": "Laptops", "seen": "", "messages": [  # sto
         "| Air | 1.2 kg | 18 h | $1,099 |\n| Pro 14 | 1.6 kg | 22 h | $1,999 |\n| XPS | 1.4 kg | 12 h | $1,299 |\n"
         "Want the cheapest?"),
 ]}
+
+
+ASKS = {}  # #878: id -> the open ask, as GET /asks lists it
+ANSWERS = []  # every POST /act, /close and /snooze, as posted
+ASK_CHATS = ("igor2-88g.878", "igor2-88g.880")
+
+
+def ask(aid, title, options, default="", expires_in=None):
+    at = "2026-11-14T10:00:00Z"
+    expires = (datetime.now().astimezone() + timedelta(seconds=expires_in)).isoformat(timespec="seconds") \
+        if expires_in is not None else ""
+    return {"id": aid, "title": title, "context": "Larry asks, for the simulator.",
+            "options": [{"key": k, "label": label, "detail": detail} for k, label, detail in options],
+            "recommendation_key": default, "recommendation_text": "", "priority": 2, "issue_type": "decision",
+            "status": "open", "created_at": at, "updated_at": at, "default": default,
+            "default_label": next((label for k, label, _ in options if k == default), ""), "expires_at": expires,
+            "seconds_left": expires_in, "expired": bool(expires_in is not None and expires_in < 0)}
+
+
+def open_asks(on):
+    ASKS.clear()
+    del ANSWERS[:]
+    for key in ASK_CHATS:
+        THREADS.pop(key, None)
+    if not on:
+        return
+    ASKS["igor2-88g.878"] = ask("igor2-88g.878", "Lunch on Friday: where?",
+                                [("tacos", "Tacos", "the place by the office"), ("ramen", "Ramen", "a short walk")],
+                                default="tacos", expires_in=5 * 3600)
+    ASKS["igor2-88g.879"] = ask("igor2-88g.879", "Renew the gym for a year?",
+                                [("yes", "Renew", ""), ("no", "Let it lapse", "")])
+    ASKS["igor2-88g.880"] = ask("igor2-88g.880", "Move the review to Monday?",
+                                [("move", "Move it", ""), ("keep", "Keep Friday", "")], expires_in=-3600)
+    THREADS["igor2-88g.878"] = {"title": "Lunch on Friday", "seen": "", "messages": [
+        row("igor2-88g.878", "larry", "Where should we eat on Friday?")]}
+    THREADS["igor2-88g.880"] = {"title": "The review", "seen": "", "messages": [
+        row("igor2-88g.880", "larry", "Can the review move?")]}
+
+
+def decide(path, data):
+    """POST /act, /close and /snooze as serve.py answers them; the ask leaves GET /asks once decided."""
+    ANSWERS.append({"path": path, **data})
+    a = ASKS.get(data.get("id"))
+    if not a:
+        return 409, {"ok": False, "error": "already closed", "id": data.get("id")}
+    if path == "/act" and data.get("id") == "igor2-88g.880":
+        return 502, {"ok": False, "error": "bd: database is locked"}
+    if path != "/snooze" and data.get("base_updated_at") and data["base_updated_at"] != a["updated_at"]:
+        return 409, {"ok": False, "error": "changed since you loaded it (server at %s)" % a["updated_at"], "ask": a}
+    if path == "/snooze":
+        del ASKS[data["id"]]
+        return 200, {"ok": True, "id": data["id"], "snoozed_until": "2026-11-16T16:00:00Z"}
+    if path == "/close" and data.get("action") == "close" and not (data.get("reason") or "").strip():
+        return 400, {"ok": False, "error": "closing a bead needs a one-line reason"}
+    del ASKS[data["id"]]
+    return 200, {"ok": True, "id": data["id"], "action": data.get("action"), "title": a["title"]}
 
 
 def summary(key, t):
@@ -198,6 +259,10 @@ class Handler(BaseHTTPRequestHandler):
         path = urllib.parse.unquote(self.path.split("?")[0])
         self._report({})
         with LOCK:
+            if path == "/asks":
+                return self._json(200, {"ok": True, "fetched_at": now(), "asks": list(ASKS.values())})
+            if path == "/fake/answers":
+                return self._json(200, {"ok": True, "answers": ANSWERS})
             if path == "/fake/strokes":
                 return self._json(200, {"ok": True, "sends": STROKE_SENDS})
             if path.endswith("/whiteboard/responder"):
@@ -252,6 +317,14 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     RESPONDERS[data["board"]] = data["responder"]
                 return self._json(200, responder_answer(data["board"]))
+        if path == "/fake/asks":
+            with LOCK:
+                open_asks(bool(data.get("open")))
+            return self._json(200, {"ok": True, "asks": len(ASKS)})
+        if path in ("/act", "/close", "/snooze"):
+            self._report({"body": data, "origin": self.headers.get("Origin")})
+            with LOCK:
+                return self._json(*decide(path, data))
         if path == "/fake/larry-draws":
             return self._draws(data)
         if path == "/fake/skill-thread":
