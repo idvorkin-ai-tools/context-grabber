@@ -11,6 +11,7 @@ import Network
 import Security
 import SwiftUI
 import UIKit
+import UserNotifications
 
 @MainActor
 final class CallModel: ObservableObject {
@@ -23,6 +24,11 @@ final class CallModel: ObservableObject {
   @Published private(set) var devices: AudioRouteSnapshot?
   @Published private(set) var chosenInput: String?
   @Published private(set) var chosenOutput: String?
+  /// #582, story 829: a held call's notification could not be sent (notifications are off for the app).
+  @Published private(set) var holdNoticeRefused = false
+  /// The held call's notification is wanted: a removal that lands while the post is in flight wins.
+  private var holdNoticeUp = false
+  private static let holdNoticeID = "call-held"
   /// Bumped on every call event, so an open Diagnostics fold redraws.
   @Published private(set) var logVersion = 0
   @Published var backend = CallBackend.default {
@@ -107,11 +113,20 @@ final class CallModel: ObservableObject {
       self?.refreshCallSettings()
       return self?.callSettings ?? CallSettings()
     }
+    deps.appState = { Self.appState() }
+    deps.holdNotice = { [weak self] notice in self?.holdNotice(notice) }
     session = CallSession(deps: deps, url: bridgeURL)
     session.onChange = { [weak self] snap in self?.onChange(snap) }
     session.onLevel = { [weak self] level in self?.level = level }
     refreshCallSettings()
     route = CallAudioEngine.describeRoute()
+    // #582: a call held for the app starts its mic once the app is in front; a hop, so the audio engine's own
+    // observer has its state first.
+    NotificationCenter.default.addObserver(
+      forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      DispatchQueue.main.async { MainActor.assumeIsolated { self?.session.appBecameActive() } }
+    }
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
     ) { [weak self] _ in
@@ -180,6 +195,7 @@ final class CallModel: ObservableObject {
     session.clearLocation()
     session.setToday(backend == .direct ? today?() : nil)
     willStart?()
+    askNotificationsIfUndecided()
     log.event(
       "ui",
       [
@@ -228,6 +244,80 @@ final class CallModel: ObservableObject {
       if snap.redialing { return archiveCallLog() }
       releaseDevices()
       onEnded()
+    }
+  }
+
+  // MARK: - held for the app (#582, story 829)
+
+  private static func appState() -> String {
+    switch UIApplication.shared.applicationState {
+    case .active: return "active"
+    case .background: return "background"
+    default: return "inactive"
+    }
+  }
+
+  /// A held call is always in the background, where iOS cannot ask: so the question comes as a call starts, once.
+  private func askNotificationsIfUndecided() {
+    Task { [weak self] in
+      let center = UNUserNotificationCenter.current()
+      guard await center.notificationSettings().authorizationStatus == .notDetermined else { return }
+      let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
+      self?.event("notify_allowed", ["allowed": granted, "status": "asked", "why": "call_start"])
+    }
+  }
+
+  private func holdNotice(_ notice: CallHoldNotice) {
+    switch notice {
+    case .post:
+      holdNoticeUp = true
+      Task { [weak self] in await self?.postHoldNotice() }
+    case .remove:
+      holdNoticeUp = false
+      holdNoticeRefused = false
+      Self.removeHoldNotice()
+    }
+  }
+
+  private static func removeHoldNotice() {
+    let center = UNUserNotificationCenter.current()
+    center.removePendingNotificationRequests(withIdentifiers: [holdNoticeID])
+    center.removeDeliveredNotifications(withIdentifiers: [holdNoticeID])
+  }
+
+  private func postHoldNotice() async {
+    let center = UNUserNotificationCenter.current()
+    let status = await center.notificationSettings().authorizationStatus
+    let allowed = [.authorized, .provisional, .ephemeral].contains(status)
+    event("notify_allowed", ["allowed": allowed, "status": Self.statusName(status), "why": "call_held"])
+    guard holdNoticeUp else { return }
+    guard allowed else {
+      holdNoticeRefused = true
+      return
+    }
+    let content = UNMutableNotificationContent()
+    content.title = CallHold.notificationTitle
+    content.body = CallHold.notificationBody
+    content.sound = .default
+    content.userInfo = ["call": "held"]
+    do {
+      try await center.add(UNNotificationRequest(identifier: Self.holdNoticeID, content: content, trigger: nil))
+      // The hold ended while the post was on its way: take it down again.
+      if !holdNoticeUp { Self.removeHoldNotice() }
+    } catch {
+      holdNoticeRefused = true
+      event("error", ["where": "call_hold_notice", "message": describe(error)])
+    }
+  }
+
+  private static func statusName(_ status: UNAuthorizationStatus) -> String {
+    switch status {
+    case .authorized: return "authorized"
+    case .denied: return "denied"
+    case .notDetermined: return "not_determined"
+    case .provisional: return "provisional"
+    case .ephemeral: return "ephemeral"
+    @unknown default: return "unknown"
     }
   }
 

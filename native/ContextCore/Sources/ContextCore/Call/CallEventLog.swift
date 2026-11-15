@@ -83,7 +83,11 @@ public final class CallEventLog {
     var rearmsUnanswered = 0
     var zeroRearmUnproven = false
     var missedProbe: Int?
+    let events = Array(events)
+    // #582, story 829: a call that held for the app answered its background refusals by waiting.
+    let held = events.contains { $0.type == "call_held" }
     let troubled = events.contains { e in
+      if held, CallHold.isBackgroundRefusal(e) { return false }
       // #417: the voices' recommendation failing to load is an expected fallback (cached, or the bridge's own
       // choice), never trouble with the call itself.
       if e.type == "call_settings" { return false }

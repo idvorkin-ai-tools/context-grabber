@@ -57,8 +57,13 @@ public struct CallSnapshot: Equatable, Sendable {
   public var muted = false
   /// Each problem that did not end the call, in its own slot.
   public var problems = CallProblems()
+  /// #582, story 829: the scheduler's clock when the call began waiting for the app to start its mic; nil when not.
+  public var heldSince: Double?
 
   public init() {}
+
+  /// Waiting for the app to come forward before the mic can start.
+  public var held: Bool { heldSince != nil }
 
   /// The problem line: the worst one still standing (the mic not reaching Larry, a bridge error, …). Computed.
   public var problem: String? { problems.line }
@@ -143,6 +148,10 @@ public struct CallSessionDeps {
   public var diagnostics: (() -> String)?
   /// The build, for the bridge's records (#78).
   public var build: String
+  /// #582: the app's state now — active, inactive or background. A refused mic start holds unless it is active.
+  public var appState: () -> String = { "active" }
+  /// #582: the held call's notification, posted once per call and removed when the hold ends.
+  public var holdNotice: (CallHoldNotice) -> Void = { _ in }
 
   public init(
     connect: @escaping (String) throws -> BridgeSocket, audio: CallAudio, scheduler: CallScheduler,
@@ -213,6 +222,11 @@ public final class CallSession {
   /// was live before.
   private var awaitingSoundAfterRearm = false
   private var firstFrameTimer: CallTimer?
+  /// #582: the ceiling on a hold, and whether this call has posted its one notification.
+  private var holdTimer: CallTimer?
+  private var holdNoticePosted = false
+  /// The rate `ready` named, for a held call's playback opening again.
+  private var outRate = 24000.0
   private var micOpenedAt = 0.0
   private var firstFrameDeadline = MicStartupDeadline()
   /// One automatic redial per dead burst; cleared by a call whose mic delivers.
@@ -534,9 +548,15 @@ public final class CallSession {
       $0.state = .live
       $0.startedAt = deps.scheduler.now
     }
+    self.outRate = outRate
     deps.audio.openPlayback(outRate: outRate)
     scheduleStats()
     send(CallProtocol.sttStartFrame(), frame: "stt_start")
+    openMic()
+  }
+
+  /// The call's mic, from `ready` and from a hold the app came forward for.
+  private func openMic() {
     let call = generation
     // the samples handler and the failure handler, kept apart.
     // swift-format-ignore: OnlyOneTrailingClosureArgument
@@ -546,6 +566,12 @@ public final class CallSession {
     }) { [weak self] error in
       guard let self, call == self.generation else { return }
       if let error {
+        // #582, story 829: refused with the app not in front is iOS's rule, not a broken mic: wait for the app.
+        let appState = self.deps.appState()
+        if CallHold.holds(appState: appState) {
+          self.hold(appState: appState, message: describe(error))
+          return
+        }
         // The call goes on — Larry may still be heard — but say so. #441, story 208: a mic that failed to open is
         // one that never delivers, so the same reset-then-redial watch runs from here.
         self.log("call_mic", ["action": "open", "ok": false, "message": describe(error)])
@@ -609,6 +635,12 @@ public final class CallSession {
         return
       }
     }
+    // #582: with the app not in front the reset and the redial would be refused too.
+    let appState = deps.appState()
+    if CallHold.holds(appState: appState) {
+      hold(appState: appState, message: "no mic buffer within \(firstFrameDeadline.ms / 1000) s of the mic opening")
+      return
+    }
     if !micRestarted {
       micRestarted = true
       log(
@@ -656,6 +688,10 @@ public final class CallSession {
       firstFrameTimer = nil
       redialed = false  // this burst delivered; the next dead call may redial again
       setProblems { $0.micOpenFailed = nil }
+    }
+    if let since = snapshot.heldSince {
+      endHold()
+      log("call_resumed", ["held_ms": (deps.scheduler.now - since).rounded(), "why": "mic_delivered"])
     }
     // Heard even while muted: "is my mic working" and "am I muted" are different questions.
     onLevel?(PCM.micLevel(samples))
@@ -799,6 +835,56 @@ public final class CallSession {
     probeTimer?.cancel()
     probeTimer = nil
     probeSent = true
+  }
+
+  // MARK: - held for the app (#582, story 829)
+
+  private func hold(appState: String, message: String) {
+    firstFrameTimer?.cancel()
+    firstFrameTimer = nil
+    let now = deps.scheduler.now
+    log("call_held", ["why": "background", "app_state": appState, "message": message])
+    update { $0.heldSince = now }
+    holdTimer?.cancel()
+    holdTimer = deps.scheduler.after(CallHold.ceilingMs) { [weak self] in self?.onHoldCeiling() }
+    if !holdNoticePosted {
+      holdNoticePosted = true
+      deps.holdNotice(.post)
+    }
+  }
+
+  /// The app is in front: a held call starts its mic the way `ready` does, or ends if the ceiling passed meanwhile.
+  public func appBecameActive() {
+    guard snapshot.state == .live, let since = snapshot.heldSince else { return }
+    switch CallHold.comeback(heldAt: since, now: deps.scheduler.now) {
+    case .timedOut:
+      onHoldCeiling()
+    case .startMic:
+      endHold()
+      log("call_resumed", ["held_ms": (deps.scheduler.now - since).rounded(), "why": "app_active"])
+      if deps.audio.stats() == nil { deps.audio.openPlayback(outRate: outRate) }
+      openMic()
+    }
+  }
+
+  /// Five minutes with no app: the call ends as a hang-up does, and nothing redials.
+  private func onHoldCeiling() {
+    guard snapshot.state == .live, let since = snapshot.heldSince else { return }
+    log("call_held_timeout", ["held_ms": (deps.scheduler.now - since).rounded()])
+    if socket != nil {
+      sendDiagnostics(why: "held timeout")
+      send(CallProtocol.sttStopFrame(), frame: "stt_stop")
+      send(CallProtocol.stopFrame(), frame: "stop")
+    }
+    finish(CallHold.timedOut, badly: false)
+  }
+
+  private func endHold() {
+    holdTimer?.cancel()
+    holdTimer = nil
+    guard snapshot.held else { return }
+    update { $0.heldSince = nil }
+    deps.holdNotice(.remove)
   }
 
   // MARK: - the audio layer's verdict
@@ -965,6 +1051,9 @@ public final class CallSession {
     micBuffers = 0
     firstFrameTimer?.cancel()
     firstFrameTimer = nil
+    holdTimer?.cancel()
+    holdTimer = nil
+    holdNoticePosted = false
   }
 
   private func finish(_ reason: String, badly: Bool, redialing: Bool = false) {
@@ -987,6 +1076,7 @@ public final class CallSession {
     clearProbe()
     firstFrameTimer?.cancel()
     firstFrameTimer = nil
+    endHold()
     socketOpen = false
     if let socket {
       self.socket = nil

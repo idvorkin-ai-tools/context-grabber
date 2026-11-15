@@ -560,6 +560,8 @@ extension ChatModel: ChatArchiveList {
 /// is already on screen.
 final class ChatNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
   var open: (@MainActor (String) -> Void)?
+  /// #582, story 829: a held call's notification opens the call screen.
+  var openCall: (@MainActor () -> Void)?
   var onScreen: (@MainActor () -> String?)?
 
   // The completion-handler forms, not the async ones: returning from an async one calls UIKit's completion off the main
@@ -569,8 +571,10 @@ final class ChatNotificationDelegate: NSObject, UNUserNotificationCenterDelegate
     withCompletionHandler completion: @escaping () -> Void
   ) {
     let thread = response.notification.request.content.userInfo["thread"] as? String
+    let call = response.notification.request.content.userInfo["call"] != nil
     Task { @MainActor in
       if let thread { open?(thread) }
+      if call { openCall?() }
       completion()
     }
   }
@@ -580,8 +584,10 @@ final class ChatNotificationDelegate: NSObject, UNUserNotificationCenterDelegate
     withCompletionHandler completion: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
     let thread = notification.request.content.userInfo["thread"] as? String
+    // A held call's notice with the app in front: the mic is already starting, so it never shows.
+    let call = notification.request.content.userInfo["call"] != nil
     Task { @MainActor in
-      completion(thread != nil && thread == onScreen?() ? [] : [.banner, .list, .sound])
+      completion(call || (thread != nil && thread == onScreen?()) ? [] : [.banner, .list, .sound])
     }
   }
 }
