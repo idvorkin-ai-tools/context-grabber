@@ -45,6 +45,8 @@ float ... to maximize my available space"*; this replaces the opaque bar of #637
 around them, and the end of the list scrolls up clear of them, so no row is ever stuck beneath. A swipe can't start on a
 button itself, only on the rest of the row. The **+** starts a new thread. Pull to refresh. With no network, the quiet offline line from the Inbox stays.
 
+**Decision cards** (Igor, 2026-11-14, #878). Larry's asks — the Cockpit's Inbox of decisions — show in Chat: the card at the top of the thread whose bead is the ask, *Decision waiting* on that thread's row, and *Decisions (N)* under Larry's pinned thread with every open ask as a card. A tap on an option answers it; the card's **⋯** snoozes, closes or abandons it. The whole behaviour is its own spec: [Decision cards in Chat](2026-11-14-chat-decision-cards-design.md).
+
 **Archiving** (Igor, 2026-11-01: "Let me archive threads both via swipe and via buttons in chat overflow"; #589, the
 Cockpit's archive shipped first). Swiping a thread left in the list offers *Archive*; it folds under *Done* at once,
 and the list shows *Archived "title"* with *Undo* for five seconds. An archived thread under *Done* swipes to
@@ -696,3 +698,7 @@ A pull request's state (#736, option C) needs nothing new: the Cockpit already t
 summaries and answers, for any list of them the app names, each one's state and whether it is a draft; one it wasn't
 tracking yet is looked up within seconds of being named. It can also push changes as they happen; the app asks again
 every half minute instead, for now.
+
+Decision cards (#878) need nothing new for answering, closing, snoozing and abandoning; what the Cockpit doesn't do
+(an answer as a chat message, an ask's link to a chat other than its own bead) is in
+[their spec](2026-11-14-chat-decision-cards-design.md#depends-on-the-cockpit).
