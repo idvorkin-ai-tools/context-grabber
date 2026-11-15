@@ -188,6 +188,38 @@ final class CallSessionHoldTests: XCTestCase {
     XCTAssertEqual(t.connects.count, 1)
   }
 
+  // #582: a car's Bluetooth route can settle after the deadline; sound arriving on its own ends the hold.
+  func testALateBufferWhileHeldEndsTheHoldAndTheCeilingNoLongerApplies() {
+    let t = CallHarness()
+    t.goLive()
+    t.appState = "background"
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertTrue(t.session.snapshot.held)
+    t.clock.advance(2000)
+    t.audio.mic(value: 0.1)
+    XCTAssertFalse(t.session.snapshot.held)
+    XCTAssertEqual(t.notices, [.post, .remove])
+    XCTAssertEqual(t.last("call_resumed")?["why"] as? String, "mic_delivered")
+    XCTAssertEqual(t.socket.binaries.count, 1)
+    t.clock.advance(CallHold.ceilingMs)
+    XCTAssertEqual(t.session.snapshot.state, .live, "a call whose mic delivers is not ended by the ceiling")
+    XCTAssertNil(t.last("call_held_timeout"))
+  }
+
+  func testComingForwardKeepsPlaybackThatWasAlreadyOpen() {
+    let t = CallHarness()
+    t.goLive()
+    t.audio.statsValue = PlaybackStats(scheduledS: 5, playedS: 1, clockRunning: true, pendingS: 4)
+    t.appState = "background"
+    t.clock.advance(CallSession.firstFrameMs)
+    XCTAssertTrue(t.session.snapshot.held)
+    t.appState = "active"
+    t.session.appBecameActive()
+    XCTAssertFalse(t.session.snapshot.held)
+    XCTAssertEqual(t.audio.openedAt, [24000], "Larry's queued audio is not cut by opening playback again")
+    XCTAssertEqual(t.audio.calls.filter { $0 == "startMic" }.count, 2)
+  }
+
   func testANewCallStartsUnheld() {
     let t = heldCall()
     t.session.stop()

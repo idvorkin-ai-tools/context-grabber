@@ -689,6 +689,10 @@ public final class CallSession {
       redialed = false  // this burst delivered; the next dead call may redial again
       setProblems { $0.micOpenFailed = nil }
     }
+    if let since = snapshot.heldSince {
+      endHold()
+      log("call_resumed", ["held_ms": (deps.scheduler.now - since).rounded(), "why": "mic_delivered"])
+    }
     // Heard even while muted: "is my mic working" and "am I muted" are different questions.
     onLevel?(PCM.micLevel(samples))
     let restartWasSpent = micRestarted
@@ -857,8 +861,8 @@ public final class CallSession {
       onHoldCeiling()
     case .startMic:
       endHold()
-      log("call_resumed", ["held_ms": (deps.scheduler.now - since).rounded()])
-      deps.audio.openPlayback(outRate: outRate)
+      log("call_resumed", ["held_ms": (deps.scheduler.now - since).rounded(), "why": "app_active"])
+      if deps.audio.stats() == nil { deps.audio.openPlayback(outRate: outRate) }
       openMic()
     }
   }

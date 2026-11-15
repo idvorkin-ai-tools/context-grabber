@@ -832,23 +832,18 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** no microphone buffer arrives within the startup deadline
 - **Then:** the call resets its audio once; if the reset fails or still brings no buffer, it redials once; a buffer after the reset clears *microphone failed*; and Diagnostics record the session, route, formats and the error's own code for every failed audio start, and the foreground state as the start was tried for every audio start, failed or not
 
-- **Scenario:** The microphone is refused while the app is not in front
-- **Given:** a live call whose microphone start was refused while the app was in the background or behind something
-- **When:** the startup deadline passes
-- **Then:** there is no reset and no redial: the call holds for the app instead (story 829)
-
 ---
 
 ### User Story 829:
 
-- **Summary:** A call started just before the phone locks waits for me to open Grabber, then starts the mic
-- **Status:** implemented on branch `native/582-held-call`; verified by `just native-test` (host: `CallHoldTests` — the decisions and the trouble rule — and `CallSessionHoldTests`) and the Mac build (`just native-build-mac`); the phone still to do — only a phone can lock between the tap and the mic opening
+- **Summary:** A call started just before the phone locks waits for me to open Grabber
+- **Status:** implemented in [3f45a4b](https://github.com/idvorkin/context-grabber/commit/3f45a4b) and [6dc765b](https://github.com/idvorkin/context-grabber/commit/6dc765b); verified by `just native-test` (host: `CallHoldTests` and `CallSessionHoldTests`) and the Mac build (`just native-build-mac`); the phone still to do — only a phone can lock between the tap and the mic opening
 - **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582)
 - **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
 
 #### Use Case:
 - **As a** Larry's client who taps Call and pockets the phone, or switches to another app, in the same breath
-- **I want to** have the call wait for me and tell me to open Grabber, then start my mic the moment I do
+- **I want to** have the call wait for me and tell me to open Grabber
 - **so that** the call is not torn down and redialled in the background where iOS refuses the mic every time
 
 #### Acceptance Criteria:
@@ -857,25 +852,85 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** iOS refuses to start the microphone because the app is not in front
 - **Then:** the call stays connected and holds: no reset, no redial, no trouble report; the screen says *Open Grabber to start the mic*; and one notification says *Larry's call is waiting — Open Grabber to start the mic.*
 
-- **Scenario:** I open Grabber
-- **Given:** a held call
-- **When:** I unlock and open Grabber, or tap the notification (which opens the call screen)
-- **Then:** the microphone starts at once, with echo cancellation as on any call, the call goes on, and the notification is gone
+---
 
+### User Story 327:
+
+- **Summary:** Opening Grabber starts a held call's mic
+- **Status:** implemented in [3f45a4b](https://github.com/idvorkin/context-grabber/commit/3f45a4b) and [6dc765b](https://github.com/idvorkin/context-grabber/commit/6dc765b); verified by `just native-test` (host: `CallHoldTests` and `CallSessionHoldTests`) and the Mac build (`just native-build-mac`); the phone still to do
+- **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client who taps Call and pockets the phone, or switches to another app, in the same breath
+- **I want to** have my mic start the moment I open Grabber
+- **so that** the call I started goes on without my tapping Call again
+
+#### Acceptance Criteria:
+- **Scenario:** I open Grabber
+- **Given:** a held call (story 829)
+- **When:** I unlock and open Grabber, or tap the notification (which opens the call screen)
+- **Then:** the microphone starts at once, with echo cancellation as on any call; Larry's voice, if it was playing, keeps playing; the call goes on; and the notification is gone
+
+---
+
+### User Story 328:
+
+- **Summary:** A held call I never come back to ends after five minutes
+- **Status:** implemented in [3f45a4b](https://github.com/idvorkin/context-grabber/commit/3f45a4b) and [6dc765b](https://github.com/idvorkin/context-grabber/commit/6dc765b); verified by `just native-test` (host: `CallHoldTests` and `CallSessionHoldTests`) and the Mac build (`just native-build-mac`); the phone still to do
+- **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client who taps Call and pockets the phone, or switches to another app, in the same breath
+- **I want to** have a call I forgot about end on its own
+- **so that** nothing sits connected or redials while the phone is in my pocket
+
+#### Acceptance Criteria:
 - **Scenario:** I never come back
-- **Given:** a held call
+- **Given:** a held call (story 829)
 - **When:** five minutes pass without the app coming forward
 - **Then:** the call ends as a hang-up does, saying *the mic never started: Grabber was not opened within 5 minutes* with *Copy error*, and nothing redials
 
+---
+
+### User Story 329:
+
+- **Summary:** A call still holds when notifications are off
+- **Status:** implemented in [3f45a4b](https://github.com/idvorkin/context-grabber/commit/3f45a4b) and [6dc765b](https://github.com/idvorkin/context-grabber/commit/6dc765b); verified by `just native-test` (host: `CallHoldTests` and `CallSessionHoldTests`) and the Mac build (`just native-build-mac`); the phone still to do
+- **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client who has not allowed Grabber's notifications
+- **I want to** have the call hold anyway and say the notification could not be sent
+- **so that** I know why nothing told me the call was waiting
+
+#### Acceptance Criteria:
 - **Scenario:** Notifications are off
 - **Given:** notifications are not allowed for Grabber
 - **When:** a call holds
 - **Then:** the call still holds, and the screen says the notification could not be sent
 
-- **Scenario:** A refusal with the app in front
-- **Given:** a live call with Grabber in front
-- **When:** iOS refuses to start the microphone
-- **Then:** the call says *microphone failed* and resets, then redials, as story 208 says
+---
+
+### User Story 330:
+
+- **Summary:** A held call whose mic starts on its own goes on
+- **Status:** implemented in the review fix on #582's branch (after [3f45a4b](https://github.com/idvorkin/context-grabber/commit/3f45a4b) and [6dc765b](https://github.com/idvorkin/context-grabber/commit/6dc765b)); verified by `just native-test` (host: `CallSessionHoldTests` — a late buffer ends the hold, the ceiling no longer applies, coming forward keeps open playback); the phone still to do
+- **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client in a car whose Bluetooth settles slowly
+- **I want to** have the call go on as soon as my mic delivers, even with the phone locked
+- **so that** a working call is not ended five minutes later for a mic that did start
+
+#### Acceptance Criteria:
+- **Scenario:** Sound arrives while held
+- **Given:** a call that held because the opened microphone sent nothing in time with the app not in front
+- **When:** the microphone delivers sound
+- **Then:** the hold ends: the call goes on, the notification is gone, and the five-minute ceiling no longer applies
 
 ---
 

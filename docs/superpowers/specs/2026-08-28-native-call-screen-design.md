@@ -419,7 +419,11 @@ The reset and the redial run in the background too, so they are refused as well.
   the notification could not be sent.
 - The moment the app is in front again, the microphone starts the way a call's microphone always starts (echo
   cancellation and all) and the call goes on; the notification is taken away. A start that is refused *with the app
-  in front* is a real audio failure and gets the reset and the redial above.
+  in front* is a real audio failure and gets the reset and the redial above. Coming forward never cuts Larry off:
+  if his voice was already playing, it keeps playing.
+- A call also holds when the microphone opened but no sound came from it in time and the app is not in front. If
+  sound then arrives on its own (a car's Bluetooth settling late), the hold ends there: the call goes on, the
+  notification is taken away, and the five-minute ceiling no longer applies.
 - The wait has a ceiling of **five minutes**. If the app has not come forward by then, the call ends as a hang-up
   does, saying *the mic never started: Grabber was not opened within 5 minutes*, with *Copy error* beside it; nothing
   redials. Coming forward after five minutes ends the call the same way rather than starting the mic. (The bridge's
