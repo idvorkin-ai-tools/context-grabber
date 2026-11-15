@@ -10,8 +10,8 @@ types are in the [plan](../plans/2026-11-14-chat-decision-cards-plan.md).
 ## Summary
 
 Igor answers Larry's decisions without leaving Chat. An ask is a decision waiting on him; a chat thread is a
-conversation on one of Larry's beads, and when that bead is the ask's own, the thread carries the ask's card at its
-top and its row in the list says *Decision waiting*. Every open ask, whether or not it has a chat, is one tap away in
+conversation on one of Larry's beads, and when the ask continues that chat (Larry asked it from there, or it is the
+chat's own bead), the thread carries the ask's card at its top and its row in the list says *Decision waiting*. Every open ask, whether or not it has a chat, is one tap away in
 *Decisions (N)*, under Larry's pinned thread. A tap on an option answers it exactly as the Cockpit's own card does.
 
 ## Goals
@@ -38,21 +38,25 @@ an expiry: *Expires in 5 h*, or *Expired 2 d ago* in orange. An expired ask is s
 happens by itself when it expires, as on the Cockpit. A **⋯** menu on the card holds the other ways to finish it.
 
 **Answering.** A tap on an option answers at once; there is no second step. While it goes, the buttons are dimmed and
-can't be tapped again. Once the Cockpit has it, the card gives way to one line, *You decided: \<label>*, which stays on
-that screen until Igor leaves it; the ask is gone from *Decisions* and the row's mark goes. Larry receives the answer
-exactly as one given on the Cockpit's card (the same words, recorded on the ask), and the Cockpit's Inbox no longer shows it.
-
-The Cockpit records an answer on the ask, not as a message in its chat: the thread's messages don't gain Igor's answer
-as a bubble. The *You decided* line is what the phone shows instead (a departure from the draft on #878, which said the
-thread would show the answer as Igor's message; see Depends on the Cockpit).
+can't be tapped again. Once the Cockpit has it, the ask is gone from *Decisions* and the row's mark goes. Larry receives
+the answer exactly as one given on the Cockpit's card (the same words, recorded on the ask), and the Cockpit's Inbox no
+longer shows it. The answer also goes into the ask's chat as Igor's own message, *Decided: \<label>*: in the thread the
+card gives way to that message, at the bottom of the conversation where Larry's reply will follow it, and it is there
+for good, on the laptop too. When the ask has no chat, or the Cockpit couldn't write the message, the card gives way to
+one line instead, *You decided: \<label>*, which stays on that screen until Igor leaves it. On *Decisions* an answered
+card always gives way to that line.
 
 **The menu.** **⋯** on the card offers:
 - *Snooze*: *Later today*, *Tomorrow morning* or *Next week*, the Cockpit's three. A snoozed ask leaves the card,
   the row's mark and *Decisions* until it wakes; the card gives way to *Snoozed until Mon 8:00 AM*.
 - *Close…*: asks for a one-line reason (*what finished it*), which the Cockpit requires; *Close* stays off until there is
-  one. The card gives way to *Closed*.
-- *Abandon*: *Doesn't matter anymore*, *Stale*, *Already handled*, *Not now*, or *No reason*, the Cockpit's presets. The
-  card gives way to *Abandoned*.
+  one. In its chat the card gives way to Igor's message *Closed: \<reason>*; on *Decisions*, or when the message couldn't
+  be written, to *Closed*.
+- *Abandon*: *Doesn't matter anymore*, *Stale*, *Already handled*, *Not now*, or *No reason*, the Cockpit's presets. In
+  its chat the card gives way to Igor's message *Abandoned* (with the reason, when there is one); on *Decisions*, or
+  when the message couldn't be written, to *Abandoned*.
+
+A snooze writes nothing in the chat: the ask will be back.
 
 **When it fails.** A refused or failed answer, snooze, close or abandon leaves the card as it was, buttons live again,
 with a copyable problem under it saying what was tried and what the Cockpit said (or that it couldn't be reached, or that
@@ -66,8 +70,10 @@ edited — the Cockpit refuses the answer, and the phone says so in place of the
 
 Either way the open asks are read again.
 
-**In a thread.** A thread whose bead is an open ask shows the card pinned at the top of the thread, above the links
-strip, where scrolling the messages doesn't move it. A thread with no open ask looks as it does today.
+**In a thread.** A thread that an open ask continues shows the card pinned at the top of the thread, above the links
+strip, where scrolling the messages doesn't move it. An ask continues a chat when Larry filed it from that chat, or when
+it is that chat's own bead. When two open asks continue the same chat, the card is the first in the Cockpit's order, and
+the next takes its place once it is answered. A thread with no open ask looks as it does today.
 
 **On the list.** That thread's row says *Decision waiting* under its last line, with a question-mark icon, until the
 ask is answered, snoozed, closed or abandoned — at once when it was done on this phone, on the next read of the list
@@ -76,7 +82,8 @@ when done elsewhere.
 **Decisions.** When any ask is open, a row *Decisions (N)* sits under Larry's pinned thread, above a skill's and the
 rest; with none open there is no row. It opens every open ask as cards, the soonest to expire first and the ones with no
 expiry after (the Cockpit's own order). Each card answers and has its menu as in a thread, and *Open chat* under it
-opens the ask's chat — the thread on that bead, empty if nobody has written there yet — to talk it over with Larry. Pull
+opens the ask's chat — the chat it continues, or else the thread on its own bead, empty if nobody has written there
+yet — to talk it over with Larry. Pull
 to refresh. A Decisions list that can't be read shows a copyable problem; *Select* mode in the list hides the row.
 
 **When the asks are read.** When the Chat list opens or is pulled, when a thread opens, when *Decisions* opens, and after
@@ -87,36 +94,31 @@ the list or in a thread (only *Decisions* says so), and is logged once until a r
 ## Explaining itself
 
 The session log says when a card was shown (which ask, where: thread or list), each answer and its outcome (answered,
-changed, already answered, refused, with the status and the Cockpit's reason), each menu action and its outcome, and a
-failed read of the asks. Never the option's words or the reason typed for a close beyond its length. Every problem is
+changed, already answered, refused, with the status and the Cockpit's reason), each menu action and its outcome,
+whether the answer went into the chat (and why not, when it didn't), and a failed read of the asks. Never the option's words or the reason typed for a close beyond its length. Every problem is
 copyable, naming the screen, the operation and the ask.
 
 ## Acceptance criteria
 
-- A thread whose bead is an open ask shows its card at the top: the question, the options as buttons, the default
-  marked, and the expiry.
-- Tapping an option answers it; the Cockpit records the answer as the Cockpit's card would; the card becomes *You
-  decided: \<label>*.
+- A thread that an open ask continues (filed from it, or its own bead) shows its card at the top: the question, the
+  options as buttons, the default marked, and the expiry.
+- Tapping an option answers it; the Cockpit records the answer as the Cockpit's card would; in the thread the card gives
+  way to Igor's message *Decided: \<label>*, and where no message could be written, to *You decided: \<label>*.
 - That thread's row says *Decision waiting* until the ask is answered, and not after.
 - *Decisions (N)* sits under Larry's thread with the count of open asks, opens them as cards, each answerable and each
   with *Open chat*; with no open ask there is no row.
-- *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves.
+- *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves; a close or
+  an abandon is also Igor's message in the ask's chat.
 - A refused answer leaves the card with a copyable problem, and the buttons work again.
 - An ask answered elsewhere says *Already answered elsewhere* and leaves; one changed says so and shows the new version.
 - Offline or with no address: no cards, no marks, no row, and nothing else in Chat changes.
 
 ## Depends on the Cockpit
 
-Nothing new for the three ways in and the five verbs: the Cockpit already lists the open asks (without the snoozed
-ones), answers one with an option's label, closes or abandons one with a reason, snoozes one to a preset, and refuses
-any of those for an ask that changed since it was read, sending the ask as it now is.
+The Cockpit lists the open asks (without the snoozed ones), each with the chat it continues, if any; answers one with an
+option's label, closes or abandons one with a reason, snoozes one to a preset, and refuses any of those for an ask that
+changed since it was read, sending the ask as it now is. Asked to, it also writes an answer, a close or an abandon into
+the ask's chat as Igor's message, once only however often it is asked, and says whether it did.
 
-Two things it doesn't do, which this spec works around:
-
-- **An answer in the chat.** An answer is recorded on the ask for Larry, not as Igor's message in that bead's chat, so
-  the thread can't show it as a bubble. Until the Cockpit also writes it there, the phone shows *You decided* on the
-  screen it was given on.
-- **Which chat an ask belongs to, beyond its own bead.** An ask is tied to a chat only when it is the chat's own bead
-  (an ask Larry made of a chat's bead, or one Igor has written to). An ask Larry files about a chat, as a new bead, is
-  not linked to that chat in anything the Cockpit lists, so it shows only in *Decisions*. Showing it in that chat needs
-  the Cockpit's list of asks to say which chat each one continues.
+A Cockpit from before those two (Larry, 2026-11-14) lists no chat for an ask and writes nothing into one. With it, an
+ask is on a chat only when it is that chat's own bead, and the card always gives way to its one line.

@@ -2736,15 +2736,15 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
 
 #### Use Case:
-- **As** Igor, reading a chat whose bead is a question Larry put to me
+- **As** Igor, reading a chat where Larry put a question to me
 - **I want to** see the question's card at the top and answer it with one tap
 - **so that** I decide where I'm already talking with Larry, without opening the Cockpit
 
 #### Acceptance Criteria:
 - **Scenario:** Tapping an option on the card in its thread
-- **Given:** an open chat whose bead is an open ask, its card pinned at the top with the question, Larry's context, one button per option, the default (or else the recommended) option marked and, when it has one, its expiry
+- **Given:** an open chat that an open ask continues (Larry filed it from that chat, or it is the chat's own bead), its card pinned at the top with the question, Larry's context, one button per option, the default (or else the recommended) option marked and, when it has one, its expiry
 - **When:** I tap an option
-- **Then:** the Cockpit records it exactly as an answer on its own card, and the card gives way to *You decided: \<label>*; a refused or failed answer leaves the card with its buttons live and a copyable problem; an ask answered elsewhere says *Already answered elsewhere* and leaves; one changed since it loaded says so and shows the new version; an expired ask is still answerable
+- **Then:** the Cockpit records it exactly as an answer on its own card, and the card gives way to my answer as my own message in the thread, *Decided: \<label>*, there on the laptop too; when the Cockpit couldn't write that message (or is one from before it could), the card gives way to *You decided: \<label>* instead; a refused or failed answer leaves the card with its buttons live and a copyable problem; an ask answered elsewhere says *Already answered elsewhere* and leaves; one changed since it loaded says so and shows the new version; an expired ask is still answerable
 
 ---
 
@@ -2762,7 +2762,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The list with an ask on one chat's bead
-- **Given:** a chat whose bead is an open ask, and others whose beads are not
+- **Given:** a chat that an open ask continues, and others that none does
 - **When:** the Chat list opens or I pull it
 - **Then:** only that chat's row says *Decision waiting*; once the ask is answered, snoozed, closed or abandoned the mark goes, at once when I did it on this phone and on the next read of the list when it was done elsewhere; offline, no row is marked; a read that fails leaves the marks as they were and says nothing on the list, which is otherwise unchanged
 
@@ -2782,9 +2782,9 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Opening *Decisions*
-- **Given:** open asks on the Cockpit, some on a chat's bead and some on no chat
+- **Given:** open asks on the Cockpit, some continuing a chat and some on no chat
 - **When:** I tap *Decisions (N)*, the row under Larry's pinned thread
-- **Then:** every open ask shows as a card, soonest to expire first and those with no expiry after, each answerable as in its chat and each with *Open chat*, which opens the ask's chat to talk it over; an answered card leaves the list and the count drops; with no open ask there is no row; a list that can't be read shows a copyable problem
+- **Then:** every open ask shows as a card, soonest to expire first and those with no expiry after, each answerable as in its chat and each with *Open chat*, which opens the chat the ask continues (or else its own, empty) to talk it over; an answer given here leaves the line *You decided: \<label>*; an answered card leaves the list and the count drops; with no open ask there is no row; a list that can't be read shows a copyable problem
 
 ---
 
@@ -2804,4 +2804,4 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** The card's ⋯ menu
 - **Given:** a decision card, in its chat or under *Decisions*
 - **When:** I pick *Snooze* (*Later today*, *Tomorrow morning*, *Next week*), *Close…* with a one-line reason, or *Abandon* with one of the Cockpit's reasons or none
-- **Then:** the Cockpit does what its own card does, and the card gives way to *Snoozed until \<when>*, *Closed* or *Abandoned*, leaving *Decisions* and its row's mark; *Close* can't be sent without a reason; a refusal leaves the card with a copyable problem, and an ask already finished elsewhere says *Already answered elsewhere*
+- **Then:** the Cockpit does what its own card does, leaving *Decisions* and its row's mark; in the ask's chat a close or an abandon becomes my message, *Closed: \<reason>* or *Abandoned[: \<reason>]*, and the card gives way to it; a snooze, a card on *Decisions*, or a message the Cockpit couldn't write gives way to *Snoozed until \<when>*, *Closed* or *Abandoned*; *Close* can't be sent without a reason; a refusal leaves the card with a copyable problem, and an ask already finished elsewhere says *Already answered elsewhere*
