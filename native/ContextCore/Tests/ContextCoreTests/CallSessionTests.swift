@@ -144,6 +144,9 @@ final class CallHarness {
   var states: [CallSnapshot] = []
   var levels: [Double] = []
   var settings = CallSettings()
+  /// #582: the app's state as the session reads it; a refused mic start holds unless it is "active".
+  var appState = "active"
+  var notices: [CallHoldNotice] = []
   var session: CallSession!
 
   init(build: String = "", diagnostics: Bool = false) {
@@ -163,6 +166,8 @@ final class CallHarness {
       diagnostics: diagnostics ? { [unowned self] in self.events.map { $0.0 }.joined(separator: "\n") } : nil,
       build: build)
     deps.callSettings = { [unowned self] in self.settings }
+    deps.appState = { [unowned self] in self.appState }
+    deps.holdNotice = { [unowned self] in self.notices.append($0) }
     let s = CallSession(deps: deps, url: "wss://h/bridge")
     s.onChange = { [unowned self] in self.states.append($0) }
     s.onLevel = { [unowned self] in self.levels.append($0) }

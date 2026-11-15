@@ -842,7 +842,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 829:
 
 - **Summary:** A call started just before the phone locks waits for me to open Grabber, then starts the mic
-- **Status:** implemented on branch `native/582-held-call`; verified by `just native-test` (host: `CallHoldTests`, `CallSessionHoldTests`, `CallTroubleTests` held cases) and the Mac build (`just native-build-mac`); the phone still to do — only a phone can lock between the tap and the mic opening
+- **Status:** implemented on branch `native/582-held-call`; verified by `just native-test` (host: `CallHoldTests` — the decisions and the trouble rule — and `CallSessionHoldTests`) and the Mac build (`just native-build-mac`); the phone still to do — only a phone can lock between the tap and the mic opening
 - **Issues:** [#582](https://github.com/idvorkin/context-grabber/issues/582)
 - **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
 
