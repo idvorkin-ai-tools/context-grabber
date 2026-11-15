@@ -2764,7 +2764,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** The list with an ask on one chat's bead
 - **Given:** a chat whose bead is an open ask, and others whose beads are not
 - **When:** the Chat list opens or I pull it
-- **Then:** only that chat's row says *Decision waiting*; once the ask is answered, snoozed, closed or abandoned the mark goes, at once when I did it on this phone and on the next read of the list when it was done elsewhere; offline or with the asks unreadable, no row is marked and the list is otherwise unchanged
+- **Then:** only that chat's row says *Decision waiting*; once the ask is answered, snoozed, closed or abandoned the mark goes, at once when I did it on this phone and on the next read of the list when it was done elsewhere; offline, no row is marked; a read that fails leaves the marks as they were and says nothing on the list, which is otherwise unchanged
 
 ---
 
