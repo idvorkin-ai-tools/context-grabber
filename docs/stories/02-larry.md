@@ -2725,3 +2725,83 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** an open chat holding one of my messages that the Cockpit already has
 - **When:** I hold it (or right-click it on the Mac) and tap *Send to new chat*
 - **Then:** a new chat titled by the message's first line opens, holding that message with its pictures, and Larry answers there; going back, the old chat shows *Moved to a new chat* where the message was, which opens the new chat when tapped; Larry's messages and messages still on their way offer no such choice; the moved line arriving doesn't by itself mark the old chat read; a Cockpit that refuses or can't move it leaves the message where it was, with a copyable problem saying why
+
+---
+
+### User Story 830:
+
+- **Summary:** Answer Larry's decision from its chat
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: the answer is Igor's message in the chat the ask continues); verified on the host (`just native-test`: `ChatDecisionsTests`), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`), the answer arriving as Igor's *Decided: Ramen* in the thread the ask was filed from; the real Cockpit's `post_to_chat` and the phone not yet; 41071987: a read that began before an answer is dropped, so the card can't come back, and offline a thread shows no card, verified on the host and the Mac build, the simulator not yet
+- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
+
+#### Use Case:
+- **As** Igor, reading a chat where Larry put a question to me
+- **I want to** see the question's card at the top and answer it with one tap
+- **so that** I decide where I'm already talking with Larry, without opening the Cockpit
+
+#### Acceptance Criteria:
+- **Scenario:** Tapping an option on the card in its thread
+- **Given:** an open chat that an open ask continues (Larry filed it from that chat, or it is the chat's own bead), its card pinned at the top with the question, Larry's context, one button per option, the default (or else the recommended) option marked and, when it has one, its expiry
+- **When:** I tap an option
+- **Then:** the Cockpit records it exactly as an answer on its own card, and the card gives way to my answer as my own message in the thread, *Decided: \<label>*, there on the laptop too; when the Cockpit couldn't write that message (or is one from before it could), the card gives way to *You decided: \<label>* instead; a refused or failed answer leaves the card with its buttons live and a copyable problem; an ask answered elsewhere says *Already answered elsewhere* and leaves; one changed since it loaded says so and shows the new version; an expired ask is still answerable
+
+---
+
+### User Story 831:
+
+- **Summary:** See on the list which chats have a decision waiting
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: marked by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, which threads are marked, with the fallback for a Cockpit that sends none), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); the phone not yet; 41071987: offline the marks and the row go even after an earlier read, and a read from before an answer can't bring a mark back, verified on the host and the Mac build, the simulator not yet
+- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
+
+#### Use Case:
+- **As** Igor, looking down the Chat list
+- **I want to** see which chats hold a decision Larry is waiting on
+- **so that** I open those first instead of opening each chat to find out
+
+#### Acceptance Criteria:
+- **Scenario:** The list with an ask that continues one chat
+- **Given:** a chat that an open ask continues, and others that none does
+- **When:** the Chat list opens or I pull it
+- **Then:** only that chat's row says *Decision waiting*; once the ask is answered, snoozed, closed or abandoned the mark goes, at once when I did it on this phone and on the next read of the list when it was done elsewhere; offline, no row is marked; a read that fails leaves the marks as they were and says nothing on the list, which is otherwise unchanged
+
+---
+
+### User Story 832:
+
+- **Summary:** Open every waiting decision from one row
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: *Open chat* by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, the order and the count), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); *Open chat* itself is not driven by a UI test; the phone not yet; 41071987: offline *Decisions* lists no asks, verified on the host and the Mac build, the simulator not yet
+- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
+
+#### Use Case:
+- **As** Igor, with a few minutes to clear what Larry is waiting on
+- **I want to** open all the open decisions at once as cards
+- **so that** I can answer them one after another, including the ones that have no chat
+
+#### Acceptance Criteria:
+- **Scenario:** Opening *Decisions*
+- **Given:** open asks on the Cockpit, some continuing a chat and some on no chat
+- **When:** I tap *Decisions (N)*, the row under Larry's pinned thread
+- **Then:** every open ask shows as a card, soonest to expire first and those with no expiry after, each answerable as in its chat and each with *Open chat*, which opens the chat the ask continues (or else its own, empty) to talk it over; an answer given here leaves the line *You decided: \<label>*; an answered card leaves the list and the count drops; with no open ask there is no row; a list that can't be read shows a copyable problem
+
+---
+
+### User Story 833:
+
+- **Summary:** Snooze, close or abandon a decision from its card
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: a close or an abandon writes Igor's message into the ask's chat); verified on the host (`just native-test`: `ChatDecisionsTests`, the requests, `post_to_chat` and what each answer means) and the Mac build (`just native-build-mac`); the menu is not driven on the simulator, against the real Cockpit or on the phone
+- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
+
+#### Use Case:
+- **As** Igor, facing a decision I can't or won't make now
+- **I want to** snooze it, close it with a reason, or abandon it from the card's menu
+- **so that** it stops waiting on me in the right way, as on the Cockpit's own card
+
+#### Acceptance Criteria:
+- **Scenario:** The card's ⋯ menu
+- **Given:** a decision card, in its chat or under *Decisions*
+- **When:** I pick *Snooze* (*Later today*, *Tomorrow morning*, *Next week*), *Close…* with a one-line reason, or *Abandon* with one of the Cockpit's reasons or none
+- **Then:** the Cockpit does what its own card does, leaving *Decisions* and its row's mark; in the ask's chat a close or an abandon becomes my message, *Closed: \<reason>* or *Abandoned[: \<reason>]*, and the card gives way to it; a snooze, a card on *Decisions*, or a message the Cockpit couldn't write gives way to *Snoozed until \<when>*, *Closed* or *Abandoned*; *Close* can't be sent without a reason; a refusal leaves the card with a copyable problem, and an ask already finished elsewhere says *Already answered elsewhere*

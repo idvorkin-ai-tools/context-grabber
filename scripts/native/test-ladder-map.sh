@@ -102,7 +102,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
     XCODEBUILD_IDLE_POLL=1 ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
-chat_all="ChatArchiveUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
+chat_all="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
 board_all="WhiteboardOnPaperUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 
 dry --changed native/App/Chat/ChatViews.swift

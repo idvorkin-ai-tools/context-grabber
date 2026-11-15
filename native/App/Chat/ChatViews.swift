@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 struct ChatListView: View {
   @ObservedObject var chat: ChatModel
   @ObservedObject var inbox: InboxModel
+  /// #878: the open asks, for the rows' *Decision waiting* and the Decisions row.
+  @ObservedObject var decisions: ChatDecisionsModel
   let voice: ChatVoiceModel
   let logger: BugLogger
   @State private var doneOpen = false
@@ -19,8 +21,24 @@ struct ChatListView: View {
   init(chat: ChatModel, voice: ChatVoiceModel, logger: @escaping BugLogger) {
     self.chat = chat
     self.inbox = chat.inbox
+    self.decisions = chat.decisions
     self.voice = voice
     self.logger = logger
+  }
+
+  /// The chats whose bead is an open ask (#878).
+  private var waiting: Set<String> { ChatDecisions.waiting(chat.threads, asks: decisions.shown) }
+
+  /// #878: *Decisions (N)*, under Larry's pinned thread; none with no open ask, or while ticking.
+  @ViewBuilder private var decisionsRow: some View {
+    if !decisions.shown.isEmpty && !selection.selecting {
+      NavigationLink {
+        ChatDecisionsView(chat: chat, voice: voice, logger: logger)
+      } label: {
+        ChatDecisionsRow(count: decisions.shown.count)
+      }
+      .accessibilityIdentifier("chat-decisions")
+    }
   }
 
   private var live: [ChatSummary] { ChatListSelection.live(chat.threads) }
@@ -91,12 +109,15 @@ struct ChatListView: View {
         }
       }
       Section {
+        let decisionsAfter = ChatDecisions.rowAfter(live)
+        if decisionsAfter == nil { decisionsRow }
         ForEach(live) { thread in
           if !selection.selecting {
             threadLink(thread)
           } else if selection.shows(thread) {
             tickRow(thread)
           }
+          if thread.key == decisionsAfter { decisionsRow }
         }
       }
       if selection.showsDone(chat.threads) {
@@ -217,7 +238,7 @@ struct ChatListView: View {
       HStack(alignment: .top, spacing: 10) {
         Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
           .foregroundStyle(ticked ? Color.accentColor : .secondary)
-        ThreadRow(thread: thread)
+        ThreadRow(thread: thread, decisionWaiting: waiting.contains(thread.key))
       }
     }
     .buttonStyle(.plain)
@@ -231,7 +252,7 @@ struct ChatListView: View {
       ChatThreadView(chat: chat, voice: voice, key: thread.key, title: thread.title, logger: logger)
     } label: {
       VStack(alignment: .leading, spacing: 6) {
-        ThreadRow(thread: thread)
+        ThreadRow(thread: thread, decisionWaiting: waiting.contains(thread.key))
         // Borderless chips take their own taps; the rest of the row still opens the thread.
         if widthClass == .regular, let links = chat.rowLinks[thread.key], !links.isEmpty {
           RowLinks(chat: chat, thread: thread.key, links: chat.withStates(links)).padding(.leading, 19)
@@ -289,6 +310,8 @@ private struct NewChatVoiceButton: View {
 
 private struct ThreadRow: View {
   let thread: ChatSummary
+  /// #878: the thread's bead is an open ask.
+  var decisionWaiting = false
 
   var body: some View {
     HStack(alignment: .top, spacing: 10) {
@@ -308,6 +331,9 @@ private struct ThreadRow: View {
         Text(thread.lastLine)
           .font(.subheadline)
           .foregroundStyle(.secondary).lineLimit(2)
+        if decisionWaiting {
+          Label("Decision waiting", systemImage: "questionmark.bubble").font(.caption).foregroundStyle(.orange)
+        }
         if thread.showsLooksDone {
           Label("Looks done", systemImage: "checkmark.seal").font(.caption).foregroundStyle(.secondary)
         }
@@ -642,6 +668,8 @@ struct ChatThreadView: View {
     .safeAreaInset(edge: .top) {
       VStack(spacing: 0) {
         if let key {
+          // #878: the ask whose bead this thread is, pinned above the links.
+          ChatDecisionSlot(decisions: chat.decisions, key: key, logger: logger)
           ThreadLinksStrip(chat: chat, thread: key, links: chat.withStates(chat.rowLinks[key] ?? []))
         }
         if let problem = chat.archiveProblem {
@@ -695,7 +723,8 @@ struct ChatThreadView: View {
         }
       }
     }
-    .accessibilityIdentifier(fixedKey == nil ? "chat-new-thread" : "chat-thread")
+    // No identifier on the whole screen: SwiftUI hands it down over a contained element's own, and the decision
+    // card's `decision-card-<id>` read as `chat-thread` (#878, on the simulator).
     .onAppear { if let key { chat.open(key) } }
     .onDisappear { if let key { chat.close(key) } }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
