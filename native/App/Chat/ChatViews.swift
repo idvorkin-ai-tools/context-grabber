@@ -27,15 +27,15 @@ struct ChatListView: View {
   }
 
   /// The chats whose bead is an open ask (#878).
-  private var waiting: Set<String> { ChatDecisions.waiting(chat.threads, asks: decisions.asks) }
+  private var waiting: Set<String> { ChatDecisions.waiting(chat.threads, asks: decisions.shown) }
 
   /// #878: *Decisions (N)*, under Larry's pinned thread; none with no open ask, or while ticking.
   @ViewBuilder private var decisionsRow: some View {
-    if !decisions.asks.isEmpty && !selection.selecting {
+    if !decisions.shown.isEmpty && !selection.selecting {
       NavigationLink {
         ChatDecisionsView(chat: chat, voice: voice, logger: logger)
       } label: {
-        ChatDecisionsRow(count: decisions.asks.count)
+        ChatDecisionsRow(count: decisions.shown.count)
       }
       .accessibilityIdentifier("chat-decisions")
     }

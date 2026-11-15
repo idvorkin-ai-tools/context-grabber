@@ -31,6 +31,9 @@ final class ChatDecisionsModel: ObservableObject {
   private let inbox: InboxModel
   let cockpit: String
   private var readFailing = false
+  /// Counts the verbs that changed the asks here; a read that began before one is dropped, so it can't bring back an
+  /// ask the verb has just taken away (#911 review).
+  private var changes = 0
   /// The Cockpit wrote Igor's row into this thread: read it again, so the message is there as the card leaves.
   var readThread: (String) async -> Void = { _ in }
   private let transport: ChatDecisions.Transport = { request in
@@ -46,7 +49,10 @@ final class ChatDecisionsModel: ObservableObject {
 
   private var reachable: Bool { !inbox.offline && cockpit != ChatCockpit.nowhere }
 
-  func ask(on key: String) -> ChatAsk? { ChatDecisions.ask(on: key, in: asks) }
+  /// The open asks the screens show: none offline or with no address, even when some were read earlier (#911 review).
+  var shown: [ChatAsk] { reachable ? asks : [] }
+
+  func ask(on key: String) -> ChatAsk? { ChatDecisions.ask(on: key, in: shown) }
 
   func card(_ id: String) -> Card { cards[id] ?? Card() }
 
@@ -61,8 +67,10 @@ final class ChatDecisionsModel: ObservableObject {
       readProblem = nil
       return
     }
+    let began = changes
     do {
       let (data, response) = try await URLSession.shared.data(for: try ChatDecisions.listRequest(cockpit: cockpit))
+      guard began == changes else { return }
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let read = ChatDecisions.asks(data) else {
         let said = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
@@ -143,6 +151,7 @@ final class ChatDecisionsModel: ObservableObject {
       leave(ask, line: ChatDecisions.alreadyAnswered, from: place)
       await refresh(reason: "already_answered")
     case .changed(let fresh):
+      changes += 1
       if let fresh, let i = asks.firstIndex(where: { $0.id == ask.id }) { asks[i] = fresh }
       cards[ask.id] = Card(note: ChatDecisions.changed, thread: ask.chat)
       await refresh(reason: "changed")
@@ -159,6 +168,7 @@ final class ChatDecisionsModel: ObservableObject {
   }
 
   private func leave(_ ask: ChatAsk, line: String?, from place: String) {
+    changes += 1
     cards[ask.id] = line.map { Card(line: $0, thread: ask.chat) }
     asks.removeAll { $0.id == ask.id }
     if place == "list" { finished.append((ask.id, ask.title)) }

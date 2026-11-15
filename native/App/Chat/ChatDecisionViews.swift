@@ -180,7 +180,7 @@ struct ChatDecisionsView: View {
             problem: .grabber(problem, context: "ChatDecisionsView.refresh", extra: ["cockpit": .string(chat.cockpit)]),
             logger: logger)
         }
-        ForEach(decisions.asks) { ask in
+        ForEach(decisions.shown) { ask in
           VStack(alignment: .leading, spacing: 4) {
             ChatDecisionCard(decisions: decisions, ask: ask, place: "list", logger: logger)
             NavigationLink {
@@ -200,7 +200,7 @@ struct ChatDecisionsView: View {
           }
           .padding(.horizontal, 12)
         }
-        if decisions.asks.isEmpty && decisions.finished.isEmpty && decisions.readProblem == nil {
+        if decisions.shown.isEmpty && decisions.finished.isEmpty && decisions.readProblem == nil {
           Text("No decisions waiting.").foregroundStyle(.secondary)
         }
       }
