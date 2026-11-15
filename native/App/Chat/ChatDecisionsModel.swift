@@ -46,9 +46,14 @@ final class ChatDecisionsModel: ObservableObject {
 
   func card(_ id: String) -> Card { cards[id] ?? Card() }
 
-  /// Offline or with no address nothing is read; a failed read keeps what was shown, logged once until one succeeds.
+  /// Offline or with no address nothing is read and nothing shows; a failed read keeps what was shown, logged once
+  /// until one succeeds.
   func refresh(reason: String) async {
-    guard reachable else { return }
+    guard reachable else {
+      asks = []
+      readProblem = nil
+      return
+    }
     do {
       let (data, response) = try await URLSession.shared.data(for: try ChatDecisions.listRequest(cockpit: cockpit))
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
@@ -87,8 +92,16 @@ final class ChatDecisionsModel: ObservableObject {
     log.event("chat", ["action": "decision_open_chat", "ask": ask.id])
   }
 
-  /// Decisions left the screen: the lines of what was finished there go with it.
-  func clearFinished() { finished = [] }
+  /// A thread opened: what its card said on an earlier visit goes, unless a verb is still on its way.
+  func threadOpened(_ key: String) {
+    if !card(key).sending { cards[key] = nil }
+  }
+
+  /// Decisions left the screen: the lines, notes and problems of its cards go with it.
+  func leftDecisions() {
+    finished = []
+    cards = cards.filter { $0.value.sending }
+  }
 
   /// One verb on one card. A second tap while it goes does nothing.
   func run(_ verb: ChatDecisions.Verb, on ask: ChatAsk, from place: String) async {
@@ -122,7 +135,7 @@ final class ChatDecisionsModel: ObservableObject {
         problem: .grabber(
           ChatDecisions.problem(verb, why), context: "ChatDecisionCard.\(place)",
           extra: [
-            "ask": .string(ask.id), "verb": .string(verb.logWord), "updated_at": .string(ask.updatedAt),
+            "ask": .string(ask.id), "verb": .string(verb.word), "updated_at": .string(ask.updatedAt),
             "cockpit": .string(cockpit),
           ]))
     }
@@ -132,17 +145,5 @@ final class ChatDecisionsModel: ObservableObject {
     cards[ask.id] = Card(line: line)
     asks.removeAll { $0.id == ask.id }
     if place == "list" { finished.append((ask.id, ask.title)) }
-  }
-}
-
-extension ChatDecisions.Verb {
-  /// The verb's name in a copied problem.
-  var logWord: String {
-    switch self {
-    case .answer: return "answer"
-    case .snooze: return "snooze"
-    case .close: return "close"
-    case .abandon: return "abandon"
-    }
   }
 }

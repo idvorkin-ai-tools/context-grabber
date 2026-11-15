@@ -213,7 +213,7 @@ struct ChatDecisionsView: View {
     .accessibilityIdentifier("chat-decisions-list")
     .refreshable { await decisions.refresh(reason: "pull") }
     .task { await decisions.refresh(reason: "decisions") }
-    .onDisappear { decisions.clearFinished() }
+    .onDisappear { decisions.leftDecisions() }
     .chatTextSize()
   }
 }

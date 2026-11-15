@@ -286,6 +286,7 @@ final class ChatModel: ObservableObject {
         "skill": threads.first { $0.key == key }?.skill ?? "",
       ])
     // #878: the card at the top comes from the open asks, read once per open, not on every poll.
+    decisions.threadOpened(key)
     Task { await decisions.refresh(reason: "thread") }
     poll?.cancel()
     poll = Task { [weak self] in

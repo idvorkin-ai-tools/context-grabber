@@ -120,7 +120,7 @@ public enum ChatDecisions {
       }
     }
 
-    var word: String {
+    public var word: String {
       switch self {
       case .answer: return "answer"
       case .snooze: return "snooze"
