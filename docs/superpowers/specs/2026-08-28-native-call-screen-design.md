@@ -14,6 +14,7 @@
 **Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 **Amended:** 2026-10-27, [#556](https://github.com/idvorkin/context-grabber/issues/556) — a Direct call picks its speech-to-text: Default, Nova-3 or Flux
 **Amended:** 2026-11-03, [#532](https://github.com/idvorkin/context-grabber/issues/532) — a half-said sentence stays in the live line when something else arrives
+**Amended:** 2026-11-14, [#582](https://github.com/idvorkin/context-grabber/issues/582) — a call whose microphone is refused because the app is not in front holds, asks Igor to open Grabber, and starts the mic when he does, instead of resetting and redialling
 
 ## Summary
 
@@ -403,6 +404,33 @@ microphone's and speaker's formats, and the error's own code and underlying erro
 refused. Every start, failed or not, records whether the app was in the foreground as it was tried
 ([#582](https://github.com/idvorkin/context-grabber/issues/582)), so a start from the background can be told apart
 from one in front.
+
+**A microphone refused because the app is not in front waits for it** ([#582](https://github.com/idvorkin/context-grabber/issues/582),
+Igor's decision of 2026-11-14). iOS will not start the call's microphone for an app that is not in front: when the
+phone locks, or another app comes forward, between the tap and the microphone opening, every start is refused (11
+refusals across two car calls, every one with the app in the background, every successful start with it in front).
+The reset and the redial run in the background too, so they are refused as well. So:
+
+- When starting the microphone is refused and the app is not in front, the call **holds**: it stays connected, it
+  does not count the refusal as a failure, and nothing resets, redials or files a trouble report for it. The screen
+  says *Open Grabber to start the mic*.
+- Once per call, a notification says **Larry's call is waiting** — *Open Grabber to start the mic.* Tapping it opens
+  the app on the call screen. If notifications are off for the app, the call still holds and the screen says that
+  the notification could not be sent.
+- The moment the app is in front again, the microphone starts the way a call's microphone always starts (echo
+  cancellation and all) and the call goes on; the notification is taken away. A start that is refused *with the app
+  in front* is a real audio failure and gets the reset and the redial above.
+- The wait has a ceiling of **five minutes**. If the app has not come forward by then, the call ends as a hang-up
+  does, saying *the mic never started: Grabber was not opened within 5 minutes*, with *Copy error* beside it; nothing
+  redials. Coming forward after five minutes ends the call the same way rather than starting the mic. (The bridge's
+  own two-minute idle hang-up may end a held call sooner; that ending is the bridge's, as today.)
+- A refusal while the app is in front keeps today's behaviour. Hanging up while held ends the call and takes the
+  notification away.
+- If the app has never asked whether it may send notifications, the call asks as it starts (while the app is in
+  front), so the question never has to wait for a held call.
+- Diagnostics record the hold (why, and the app's state), the resume (how long the call was held) and the timeout,
+  and whether the notification was allowed. A refused start with the app not in front is not trouble for the
+  automatic report; a heal, a problem line or a refused start with the app in front still is.
 
 **Let a Bluetooth microphone settle first** ([#423](https://github.com/idvorkin/context-grabber/issues/423)).
 A car's Bluetooth microphone can take seconds to become ready. When the current
