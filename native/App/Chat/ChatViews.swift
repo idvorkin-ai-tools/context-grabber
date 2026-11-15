@@ -723,7 +723,8 @@ struct ChatThreadView: View {
         }
       }
     }
-    .accessibilityIdentifier(fixedKey == nil ? "chat-new-thread" : "chat-thread")
+    // No identifier on the whole screen: SwiftUI hands it down over a contained element's own, and the decision
+    // card's `decision-card-<id>` read as `chat-thread` (#878, on the simulator).
     .onAppear { if let key { chat.open(key) } }
     .onDisappear { if let key { chat.close(key) } }
     // A new chat becomes its thread once the Cockpit has the first message: the same screen, now live.
