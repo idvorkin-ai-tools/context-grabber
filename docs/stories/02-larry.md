@@ -2731,7 +2731,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 830:
 
 - **Summary:** Answer Larry's decision from its chat
-- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: the answer is Igor's message in the chat the ask continues); verified on the host (`just native-test`: `ChatDecisionsTests`), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`), the answer arriving as Igor's *Decided: Ramen* in the thread the ask was filed from; the real Cockpit's `post_to_chat` and the phone not yet
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: the answer is Igor's message in the chat the ask continues); verified on the host (`just native-test`: `ChatDecisionsTests`), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`), the answer arriving as Igor's *Decided: Ramen* in the thread the ask was filed from; the real Cockpit's `post_to_chat` and the phone not yet; 41071987: a read that began before an answer is dropped, so the card can't come back, and offline a thread shows no card, verified on the host and the Mac build, the simulator not yet
 - **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
 
@@ -2751,7 +2751,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 831:
 
 - **Summary:** See on the list which chats have a decision waiting
-- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: marked by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, which threads are marked, with the fallback for a Cockpit that sends none), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); the phone not yet
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: marked by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, which threads are marked, with the fallback for a Cockpit that sends none), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); the phone not yet; 41071987: offline the marks and the row go even after an earlier read, and a read from before an answer can't bring a mark back, verified on the host and the Mac build, the simulator not yet
 - **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
 
@@ -2771,7 +2771,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 832:
 
 - **Summary:** Open every waiting decision from one row
-- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: *Open chat* by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, the order and the count), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); *Open chat* itself is not driven by a UI test; the phone not yet
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: *Open chat* by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, the order and the count), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); *Open chat* itself is not driven by a UI test; the phone not yet; 41071987: offline *Decisions* lists no asks, verified on the host and the Mac build, the simulator not yet
 - **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
 
