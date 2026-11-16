@@ -4841,3 +4841,137 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an answered card on the board, the eraser in hand, and fingers set not to draw
 - **When:** I drag a finger that starts on the card
 - **Then:** the board scrolls and the card stays
+
+---
+
+### User Story 814:
+
+- **Summary:** Larry makes room between my lines
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** who asked Larry on the board to open space between two parts of my notes
+- **I want to** see everything below the line slide down by the amount he chose, in one step I can undo
+- **so that** I get room to write without redrawing or squeezing anything
+
+#### Acceptance Criteria:
+- **Scenario:** A push in the middle of the board
+- **Given:** a board with ink above and below a line, and Larry answers my turn with "make room below that line"
+- **When:** his answer lands with the Pencil up
+- **Then:** every stroke, kept mark and pasted line whose top is at or below the line moves straight down exactly that far, the ink above doesn't move, a page is added at the bottom if the push needs one, and one tap on Undo puts the board back as it was, page count included; Redo pushes it down again
+
+- **Scenario:** A push below the last ink
+- **Given:** a board whose ink all sits above the line Larry names
+- **When:** his push lands
+- **Then:** nothing moves, and the board grows blank paper to reach the room he asked for
+
+---
+
+### User Story 815:
+
+- **Summary:** Larry moves the strokes he names
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** whose board Larry is tidying
+- **I want to** see the strokes he names, and only those, move where he says, together with anything else he changes in the same answer
+- **so that** a change of his is never half applied
+
+#### Acceptance Criteria:
+- **Scenario:** Named strokes and a push in one answer
+- **Given:** Larry answers with a push and a move of some strokes he names by the ids the board sent him
+- **When:** the answer lands with the Pencil up
+- **Then:** both happen, and one Undo takes both back
+
+---
+
+### User Story 816:
+
+- **Summary:** A push never moves ink under my Pencil or on a board that changed
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** still drawing when Larry answers
+- **I want to** have his push wait until I lift the Pencil, and be refused if I changed the board after he looked
+- **so that** ink never jumps under my pen and never lands in the wrong place
+
+#### Acceptance Criteria:
+- **Scenario:** The Pencil is down
+- **Given:** I am drawing, or lifted the Pencil less than a moment ago
+- **When:** Larry's push arrives
+- **Then:** it waits, and applies within a second of the Pencil lifting
+
+- **Scenario:** I drew after he looked
+- **Given:** the board changed after the picture Larry answered
+- **When:** his push arrives
+- **Then:** nothing moves, his next turn tells him it was stale, and a fresh push from him applies
+
+- **Scenario:** A change the board can't take
+- **Given:** an answer with more than 50 changes, a push of more than 4000 points, or a kind of change this build doesn't know
+- **When:** it arrives
+- **Then:** none of it applies, Larry is told why, the rest of his answer shows as it does today, and the session log has one line saying what was refused and why
+
+- **Scenario:** The same answer seen twice
+- **Given:** a push that already applied
+- **When:** the board reads the thread again or opens again
+- **Then:** it is not applied a second time
+
+---
+
+### User Story 817:
+
+- **Summary:** Larry writes plain, readable text on my board
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
+
+#### Use Case:
+- **As someone** reading Larry's small labels on the board
+- **I want to** see his text in a plain typeface, offered as a ghost I keep or dismiss like his other marks
+- **so that** it reads cleanly and stays mine to accept
+
+#### Acceptance Criteria:
+- **Scenario:** Keep his text
+- **Given:** Larry's answer puts a line of text on the board
+- **When:** it lands, and I tap it and Keep
+- **Then:** it shows as a ghost in a plain typeface at his size and colour, Keep makes it ink on the board (one Undo takes it back, Dismiss throws it away instead), the next picture and strokes Larry gets have it as one text with his id, and a later push from him moves it with the ink around it
+
+---
+
+### User Story 818:
+
+- **Summary:** Larry hears the Pencil and my taps
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the pen and taps*
+
+#### Use Case:
+- **As someone** drawing while Larry watches the board
+- **I want to** have Larry told when the Pencil went down and came up and where I tapped
+- **so that** he can wait for me to finish and offer things I tap on
+
+#### Acceptance Criteria:
+- **Scenario:** A turn after some drawing and a tap
+- **Given:** I drew two strokes and tapped one of his marks since his last turn
+- **When:** the next picture goes to Larry
+- **Then:** it carries the board's revision, what came of his last change, and the Pencil's downs and ups and my tap (where it was, and which of his marks it hit, if any), each with its time; a later turn carries only what happened after
+
+---
+
+### User Story 819:
+
+- **Summary:** The board takes changes from one place, whoever sends them
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Driven from the web or from the app*
+
+#### Use Case:
+- **As someone** whose board Larry will one day drive partly from inside the app
+- **I want to** see the same push, the same text and the same single undo whichever side sends them
+- **so that** moving a feature from the web into the app changes nothing I see
+
+#### Acceptance Criteria:
+- **Scenario:** Today's source
+- **Given:** Larry's changes arrive over the network on his board replies
+- **When:** they reach the board
+- **Then:** they go through the one place that checks, holds and applies changes, which would take a source inside the app the same way, and never applies one change twice
