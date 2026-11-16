@@ -1,6 +1,6 @@
 # Larry edits the board: making room and plain text (step 1)
 
-Status: draft for Igor, 2026-11-16. Not built.
+Status: draft for Igor, 2026-11-16. Step 1 built (stories 814–819).
 
 ## The idea in one line
 

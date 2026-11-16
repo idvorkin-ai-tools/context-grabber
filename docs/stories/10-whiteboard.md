@@ -4847,7 +4847,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 814:
 
 - **Summary:** Larry makes room between my lines
-- **Status:** not built yet
+- **Status:** implemented in [b704358](https://github.com/idvorkin/context-grabber/commit/b704358), [6287b5f](https://github.com/idvorkin/context-grabber/commit/6287b5f); verified by host tests (`BoardOpsTests`: `testAPushMovesOnlyWhatStartsAtOrBelowTheLine`, `testAPushThatNeedsAPageAddsOne`, `testAPushBelowTheLastInkMovesNothingAndAddsPaper`, `testATranslateBelowALine`; `just test`) and the Mac build (`just native-build-mac`). The one undo named for the change, page count included, is PaperKit's, in the board's view, with no host test; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -4871,7 +4871,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 815:
 
 - **Summary:** Larry moves the strokes he names
-- **Status:** not built yet
+- **Status:** implemented in [b704358](https://github.com/idvorkin/context-grabber/commit/b704358), [6287b5f](https://github.com/idvorkin/context-grabber/commit/6287b5f); verified by host tests (`BoardOpsTests`: `testNamedStrokesMoveAndOnlyThose`, `testOpsApplyInOrderOnTheBoardTheEarlierOnesLeft`, `testAStrokeWithSeveralStretchesAnswersToEachId`, `testATranslateOfNamedStrokes`; `just test`) and the Mac build (`just native-build-mac`). An id the board doesn't have is skipped and named back to Larry (`missing_ids`); the rest applies; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
 
 #### Use Case:
@@ -4890,7 +4890,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 816:
 
 - **Summary:** A push never moves ink under my Pencil or on a board that changed
-- **Status:** not built yet
+- **Status:** implemented in [b704358](https://github.com/idvorkin/context-grabber/commit/b704358), [6287b5f](https://github.com/idvorkin/context-grabber/commit/6287b5f); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
 
 #### Use Case:
@@ -4924,7 +4924,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 817:
 
 - **Summary:** Larry writes plain, readable text on my board
-- **Status:** not built yet
+- **Status:** implemented in [b704358](https://github.com/idvorkin/context-grabber/commit/b704358), [6287b5f](https://github.com/idvorkin/context-grabber/commit/6287b5f); verified by host tests (`BoardOpsTests`: `testAddTextWithItsLooks`, `testPlainTextIsAPrintGhostAtItsTopLeft`, `testAKeptTextGoesBackAsOneStrokeOfKindText`, `testAKeptTextMovesWholeByItsIdOrAPush`, `testAKeptTextsTimeMatchesItsGlyphsReadBack`; `WhiteboardGhostTurnsTests.testLarrysTextJoinsHisMarksAndReplacesOnlyItsOwnId`; `just test`) and the Mac build (`just native-build-mac`). The text's place is its top-left. A text ghost doesn't come back when the board opens again; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
 
 #### Use Case:
@@ -4943,7 +4943,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 818:
 
 - **Summary:** Larry hears the Pencil and my taps
-- **Status:** not built yet
+- **Status:** implemented in [b704358](https://github.com/idvorkin/context-grabber/commit/b704358), [6287b5f](https://github.com/idvorkin/context-grabber/commit/6287b5f); verified by host tests (`BoardOpsTests`: `testPenAndTapEventsAccumulateUntilTaken`, `testEventsKeepTheirNewestUnderTheCap`, `testEventsOnTheWire`, `testTheTurnMessageCarriesRevResultAndEventsButTheStrokesDont`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the pen and taps*
 
 #### Use Case:
@@ -4962,7 +4962,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 819:
 
 - **Summary:** The board takes changes from one place, whoever sends them
-- **Status:** not built yet
+- **Status:** implemented in [b704358](https://github.com/idvorkin/context-grabber/commit/b704358), [6287b5f](https://github.com/idvorkin/context-grabber/commit/6287b5f); verified by host tests (`BoardOpsTests`: `testTheWebSourceOffersTheNewestBatchFirstThenEachNewOne`, `testTheSameBatchNeverAppliesTwice`, `testTheLedgerKeepsRevHandledAndTexts`, `testAnotherBoardsBatchIsIgnored`; `just test`) and the Mac build (`just native-build-mac`). Only the web source exists; a source inside the app is the next step; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Driven from the web or from the app*
 
 #### Use Case:
