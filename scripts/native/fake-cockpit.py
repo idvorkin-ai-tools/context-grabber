@@ -10,7 +10,11 @@ GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answere
 accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far. GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
-unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
+unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
+is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
+below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
+on the message's own rev (one behind it with "stale"). GET /fake/ops says what each board message reported back: its
+rev and op_result. Every request is a JSON line in REPORT.
 POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 POST /chat/move {"thread", "message_id"} moves one of Igor's messages to a new thread, leaving a system row with moved_to
@@ -63,6 +67,8 @@ CREATED = {}
 BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's picture
 STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
+LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
+OP_REPORTS = []  # each board message's rev and op_result, oldest first (story 818)
 
 
 def responder_answer(board):
@@ -263,12 +269,30 @@ def marks(key, text, shapes):
     THREADS[key]["messages"].append(r)
 
 
+def ops_batch(source, armed):
+    """Larry's changes to the board he was sent (stories 814-817): room below the picture's middle, text in the gap."""
+    frame, rev = source["frame"], source.get("rev", 0)
+    below = frame["y"] + frame["h"] / 2
+    dy = armed.get("dy", 120)
+    return {"board": source["board"], "base_rev": rev - 1 if armed.get("stale") else rev, "label": "make room",
+            "list": [{"op": "translate", "below_y": below, "dy": dy},
+                     {"op": "add_text", "id": "fake-text-1", "x": frame["x"] + 40, "y": below + dy / 4,
+                      "text": "room here", "font": "plain", "size": 28}]}
+
+
 def answer_board_later(key):
     def go():
+        global LARRY_OPS
         time.sleep(LARRY_DELAY)
         with LOCK:
             if BOARD_HOLD:
                 BOARD_MESSAGES[key]["receipt"] = {"state": "done"}
+            if LARRY_OPS is not None:
+                source, armed, LARRY_OPS = BOARD_MESSAGES[key], LARRY_OPS, None
+                r = row(key, "larry", "made room")
+                r.update(ops=ops_batch(source, armed), picture_id=source["picture_id"], board=source["board"])
+                THREADS[key]["messages"].append(r)
+                return
             frame = BOARD_MESSAGES[key]["frame"]
             w, h = frame["w"] * frame["scale"], frame["h"] * frame["scale"]
             marks(key, "this is where it goes", [
@@ -321,6 +345,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True, "answers": ANSWERS})
             if path == "/fake/strokes":
                 return self._json(200, {"ok": True, "sends": STROKE_SENDS})
+            if path == "/fake/ops":
+                return self._json(200, {"ok": True, "armed": LARRY_OPS is not None, "reports": OP_REPORTS})
             if path.endswith("/whiteboard/responder"):
                 query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
                 return self._json(200, responder_answer((query.get("board") or [""])[0]))
@@ -391,6 +417,11 @@ class Handler(BaseHTTPRequestHandler):
                 key = list(BOARD_MESSAGES)[-1]
                 marks(key, "a question for you", [{"kind": "question", "ask": data.get("ask"), "x": 40, "y": 40}])
             return self._json(200, {"ok": True})
+        if path == "/fake/larry-ops":
+            global LARRY_OPS
+            with LOCK:
+                LARRY_OPS = data
+            return self._json(200, {"ok": True})
         if path == "/fake/skill-thread":
             with LOCK:
                 THREADS.setdefault("igor2-88g.632", {"title": "idvorkin", "seen": "", "pinned": True,
@@ -457,13 +488,15 @@ class Handler(BaseHTTPRequestHandler):
             if frame is not None and not all(isinstance(frame.get(k), (int, float)) for k in ("x", "y", "w", "h")):
                 return self._json(400, {"ok": False, "error": "frame needs x, y, w, h"})
             m = row(key, "igor", data.get("text") or "", data.get("id"), data.get("attachments"))
-            for name in ("board", "picture_id", "frame"):
+            for name in ("board", "picture_id", "frame", "rev"):
                 if name in data:
                     m[name] = data[name]
             t["messages"].append(m)
             t["archived"] = False
             if data.get("board"):
                 BOARD_MESSAGES[key] = m
+                OP_REPORTS.append({"rev": data.get("rev"), "op_result": data.get("op_result"),
+                                   "events": len(data.get("events") or [])})
         if t.get("skill"):
             skill_reply_later(key, data.get("text"))
             return self._json(200, {"ok": True, "thread": key, "message": m, "marker": None, "skill": t["skill"]})

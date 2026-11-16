@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Stories 814-818: the fake Cockpit's board ops, which WhiteboardPaperGhostsUITests relies on, checked without a
+simulator. Armed with POST /fake/larry-ops, Larry's next board answer is a batch of changes on the message's own rev
+(one behind it when stale), with room below the picture's middle and a line of text in the gap, and only once; GET
+/fake/ops says the rev and op_result each board message carried."""
+
+import json
+import os
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request
+
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+failed = False
+
+
+def check(ok, what):
+    global failed
+    print(("ok   " if ok else "FAIL ") + "fake ops: " + what)
+    failed |= not ok
+
+
+def free_port():
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+port = free_port()
+base = "http://127.0.0.1:%d" % port
+report = tempfile.NamedTemporaryFile(delete=False).name
+fake = subprocess.Popen(
+    [os.path.join(ROOT, "scripts/native/fake-cockpit.py"), str(port), report],
+    env={**os.environ, "FAKE_COCKPIT_LARRY_DELAY": "0.1"}, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def call(path, body=None):
+    request = urllib.request.Request(base + path, data=None if body is None else json.dumps(body).encode(),
+                                     headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=5) as answer:
+        return json.loads(answer.read())
+
+
+def larry_rows(key):
+    time.sleep(0.5)
+    return [m for m in call("/chat/" + key)["messages"] if m["who"] == "larry"]
+
+
+try:
+    for _ in range(50):
+        try:
+            call("/fake/ops")
+            break
+        except OSError:
+            time.sleep(0.1)
+    frame = {"x": 100, "y": 200, "w": 400, "h": 600, "scale": 2}
+    turn = {"id": "p1", "text": "turn", "board": "b1", "picture_id": "p1", "frame": frame, "title": "Plan", "rev": 7,
+            "op_result": None, "events": [{"type": "pen", "state": "down", "idle_ms": 0, "t": 1}]}
+    call("/fake/larry-ops", {})
+    key = call("/chat", turn)["thread"]
+    rows = larry_rows(key)
+    ops = rows[-1].get("ops") if rows else None
+    check(ops is not None and rows[-1]["text"] == "made room", "an armed answer is a batch: %s" % rows)
+    if ops:
+        check(ops["board"] == "b1" and ops["base_rev"] == 7 and ops["label"] == "make room", "on the message's rev")
+        push, text = ops["list"]
+        check(push == {"op": "translate", "below_y": 500, "dy": 120}, "room below the picture's middle: %s" % push)
+        check(text["op"] == "add_text" and text["id"] == "fake-text-1" and text["font"] == "plain"
+              and text["y"] == 530 and text["x"] == 140, "text in the gap: %s" % text)
+    check(not call("/fake/ops")["armed"], "once")
+
+    call("/fake/larry-ops", {"stale": True, "dy": 50})
+    second = dict(turn, id="p2", picture_id="p2", rev=8,
+                  op_result={"label": "make room", "ok": True, "rev": 8}, events=[])
+    call("/chat/" + key, second)
+    stale = larry_rows(key)[-1].get("ops") or {}
+    check(stale.get("base_rev") == 7 and stale.get("list", [{}])[0].get("dy") == 50, "stale is one behind: %s" % stale)
+
+    call("/chat/" + key, dict(turn, id="p3", picture_id="p3", rev=8, op_result=None, events=[]))
+    last = larry_rows(key)[-1]
+    check("ops" not in last and last.get("shapes"), "unarmed, he draws marks as before")
+    reports = call("/fake/ops")["reports"]
+    check([r["rev"] for r in reports] == [7, 8, 8], "each board message's rev: %s" % reports)
+    check(reports[0]["events"] == 1 and reports[1]["op_result"] == {"label": "make room", "ok": True, "rev": 8},
+          "and its events and op_result: %s" % reports)
+finally:
+    fake.kill()
+    os.unlink(report)
+
+sys.exit(1 if failed else 0)

@@ -968,7 +968,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "can_redo": undo?.canRedo ?? false, "undo_on_window": undo != nil && undo === view.window?.undoManager,
         "ms": ms(CACurrentMediaTime() - started),
       ])
-    undoSoonForTests()
+    undoSoonForTests(LaunchHooks.current.whiteboard.afterKeep)
     lookForInk(made.bounds, why: "kept")
   }
 
@@ -1026,6 +1026,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "pages": pages, "can_undo": paper.undoManager?.canUndo ?? false,
         "undo_name": paper.undoManager?.undoActionName ?? "", "ms": ms(CACurrentMediaTime() - started),
       ])
+    undoSoonForTests(LaunchHooks.current.whiteboard.afterOps)
     return plan
   }
 
@@ -1168,10 +1169,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     redrawSoon()
   }
 
-  /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...`: those presses after a keep, 3 s apart, for the simulator: a
-  /// phone's tool picker has no Undo, and keys reach only a run's first test.
-  private func undoSoonForTests() {
-    guard let hook = LaunchHooks.current.whiteboard.afterKeep else { return }
+  /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...` (after a keep) and `GRABBER_WHITEBOARD_AFTER_OPS=...` (after
+  /// a batch of Larry's moved the board, story 814): those presses, 3 s apart, for the simulator: a phone's tool picker
+  /// has no Undo, and keys reach only a run's first test.
+  private func undoSoonForTests(_ hook: WhiteboardHooks.AfterKeep?) {
+    guard let hook else { return }
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(hook.delay))
       for press in hook.presses {
