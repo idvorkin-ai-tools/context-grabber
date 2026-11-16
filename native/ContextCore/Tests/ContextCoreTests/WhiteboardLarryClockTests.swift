@@ -195,4 +195,15 @@ final class WhiteboardLarryClockTests: XCTestCase {
     XCTAssertEqual(try copied([igor("old", .done)]), "none", "the Cockpit never took it, on a thread that marks")
     XCTAssertEqual(try copied([igor("old", .sent), igor("pic", .sent)]), "unknown", "a Cockpit that marks nothing")
   }
+
+  // MARK: #913: nothing to add
+
+  func testDoneWithNoReplySaysNothingToAddUntilTheNextTurn() {
+    var turn = sent()
+    _ = turn.closed(version: 1, now: at(15))
+    XCTAssertEqual(WhiteboardLarryClock.state(turn, now: at(16), cockpitAnswering: true), "Larry: nothing to add yet")
+    XCTAssertEqual(WhiteboardLarryClock.spoken(turn, now: at(16), cockpitAnswering: true), "Larry: nothing to add yet")
+    _ = turn.tapped(version: 2, now: at(30))
+    XCTAssertEqual(WhiteboardLarryClock.state(turn, now: at(31), cockpitAnswering: true), "Larry · 0:01")
+  }
 }

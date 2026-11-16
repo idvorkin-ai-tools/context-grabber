@@ -44,6 +44,8 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   public private(set) var queued: String?
   /// When a tap last sent nothing because he already has the board; cleared when a picture goes (story 765).
   public private(set) var alreadyHasAt: ContinuousClock.Instant?
+  /// He closed the last turn with nothing to say, and no turn has started since (#913): the bar says so.
+  public private(set) var nothingToAdd = false
 
   public init() {}
 
@@ -70,8 +72,18 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
   /// A new row of his on the thread: his answer. One fresh picture of the board as it is now (`version`) if a pause saw
   /// it move on since the last, or words wait.
   public mutating func replied(version: Int, now: ContinuousClock.Instant) -> Next {
+    nothingToAdd = false
     guard case .awaiting(_, let sent) = state else { return .done }
     return followUp(sent: sent, version: version, now: now)
+  }
+
+  /// He marked the picture of the turn out done and wrote nothing after it (#913, Larry's option (a)): the turn ends as
+  /// an answer with no shapes would. With nothing waiting the bar says he had nothing to add, until the next turn.
+  public mutating func closed(version: Int, now: ContinuousClock.Instant) -> Next {
+    guard case .awaiting(_, let sent) = state else { return .done }
+    let next = followUp(sent: sent, version: version, now: now)
+    if next == .done { nothingToAdd = true }
+    return next
   }
 
   /// The clock: once a turn has been out `timeout`, the board stops waiting, as if he had answered. Nil while it's
@@ -139,6 +151,7 @@ public struct WhiteboardLarryTurn: Equatable, Sendable {
     state = .awaiting(since: now, sent: version)
     latest = nil
     alreadyHasAt = nil
+    nothingToAdd = false
     defer { queued = nil }
     return queued
   }

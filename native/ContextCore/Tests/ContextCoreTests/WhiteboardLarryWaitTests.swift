@@ -216,4 +216,34 @@ final class WhiteboardLarryWaitTests: XCTestCase {
     XCTAssertFalse(handOffs.isLatest(first), "but it no longer says whether a picture is on its way")
     XCTAssertTrue(handOffs.isLatest(newer))
   }
+
+  // MARK: #913: done with no reply
+
+  func testDoneWithNoReplyAfterItClosesTheTurn() {
+    let thread = [
+      ChatMessage(id: "larry-0", ts: "", who: "larry", text: "earlier"),
+      ChatMessage(id: "pic", ts: "", who: "igor", text: "", receipt: .done),
+    ]
+    XCTAssertTrue(WhiteboardLarryWait.doneWithoutReply("pic", in: thread))
+  }
+
+  func testDoneWithAReplyAfterItIsTheReplysToEnd() {
+    let thread = [
+      ChatMessage(id: "pic", ts: "", who: "igor", text: "", receipt: .done),
+      ChatMessage(id: "larry-1", ts: "", who: "larry", text: "nice"),
+    ]
+    XCTAssertFalse(WhiteboardLarryWait.doneWithoutReply("pic", in: thread))
+  }
+
+  func testReceivedOrSeenDoesNotCloseTheTurn() {
+    for receipt in [ChatMessage.Receipt.sent, .received, .seen] {
+      let thread = [ChatMessage(id: "pic", ts: "", who: "igor", text: "", receipt: receipt)]
+      XCTAssertFalse(WhiteboardLarryWait.doneWithoutReply("pic", in: thread), "\(receipt)")
+    }
+  }
+
+  func testAPictureNotOnTheThreadDoesNotCloseTheTurn() {
+    let thread = [ChatMessage(id: "other", ts: "", who: "igor", text: "", receipt: .done)]
+    XCTAssertFalse(WhiteboardLarryWait.doneWithoutReply("pic", in: thread))
+  }
 }
