@@ -209,6 +209,12 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     ghosts = ghosts.filter { $0.who != .larry } + new
   }
 
+  /// Larry's text from a batch of his changes (story 817): it joins his marks, replacing only a ghost with the same id.
+  public mutating func larrysText(_ new: [Ghost]) {
+    let ids = Set(new.map(\.id))
+    ghosts = ghosts.filter { !ids.contains($0.id) } + new
+  }
+
   /// What Larry's newest row said, in the note; marks with no words clear it.
   public mutating func larrySaid(_ say: String?, marks: Bool) {
     if let say {

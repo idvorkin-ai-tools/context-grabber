@@ -352,6 +352,18 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(WhiteboardStrokes.wire([ink], texts: []).count, 1)
   }
 
+  func testAKeptTextsTimeMatchesItsGlyphsReadBack() {
+    let (date, t) = BoardText.time(Date(timeIntervalSince1970: 1_763_300_000.123_456))
+    XCTAssertEqual(t, 1_763_300_000_123)
+    XCTAssertEqual(Int64(date.timeIntervalSince1970 * 1000), t, accuracy: 1)
+    let text = BoardText(id: "label", t: t, text: "x", font: .plain, size: 18, color: "#000000")
+    let byTime = BoardText.byTime([text])
+    XCTAssertEqual(BoardText.owning(t - 1, in: byTime), text)
+    XCTAssertEqual(BoardText.owning(t + 1, in: byTime), text)
+    XCTAssertNil(BoardText.owning(t + 2, in: byTime))
+    XCTAssertNil(BoardText.owning(nil, in: byTime))
+  }
+
   // MARK: What Larry hears (story 818)
 
   func testPenAndTapEventsAccumulateUntilTaken() {

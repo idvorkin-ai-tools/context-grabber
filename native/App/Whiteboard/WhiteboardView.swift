@@ -44,8 +44,23 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var responder = WhiteboardResponderKnob()
   /// Larry's turn, one at a time, latest wins (story 662): while one is out the bar says he is looking.
   @Published private(set) var larry = WhiteboardLarryTurn()
-  /// Bumped on every change of the ink: what a held pause remembers, and what a picture to Larry was of.
-  private var boardVersion = 0
+  /// Larry's changes to the board, whoever sends them (stories 814–819): the board's revision (bumped on every change
+  /// of the ink: what a held pause remembers, what a picture to Larry was of, and what his `base_rev` is checked against),
+  /// the batches handled and the one held for the Pencil. Kept per board on this device.
+  private var ops: BoardOpApplier {
+    didSet { if ops != oldValue { opLedger.save(ops, board: board.id) } }
+  }
+  private let opLedger = BoardOpLedger()
+  /// Where his changes come from: today his board replies; later his own rules inside the app (story 819).
+  private var opSources: [any BoardOpSource] = [WebBoardOpSource()]
+  /// The Pencil and taps since the last turn, for Larry (story 818).
+  private var events = BoardEvents()
+  /// His texts Igor kept, known by their glyphs' time (story 817).
+  private var texts: [BoardText]
+  /// The Pencil (or a drawing finger) is down, and when it last lifted: a change of Larry's waits for it (story 816).
+  private var penDown = false
+  private var liftedAt: ContinuousClock.Instant?
+  private var heldTask: Task<Void, Never>?
   /// The last turn in a line: Larry's words or ghosts not answering.
   var turnNote: String? { turns.note }
   /// The picture is on its way to Larry's thread.
@@ -101,6 +116,9 @@ final class WhiteboardModel: ObservableObject {
   /// Puts a kept ghost or a paste on the canvas (undoably), given the whole drawing and what's new in it; the canvas sets
   /// it.
   var draw: ((PKDrawing, [PKStroke]) -> Void)?
+  /// Plans a batch of Larry's changes on the canvas and applies it as one undo named for it; nil with no canvas yet.
+  /// The canvas sets it.
+  var applyOps: ((BoardOps.Batch, [BoardText]) -> BoardOps.Plan?)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
   private let callLive: @MainActor () -> Bool
@@ -160,6 +178,8 @@ final class WhiteboardModel: ObservableObject {
     editable = store.drawable(board)
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
     lookOnlyNote = store.lookOnlyNote(board)
+    ops = opLedger.applier(board: board.id)
+    texts = opLedger.texts(board: board.id)
     var loaded = PKDrawing()
     do {
       loaded = try store.drawing(board.id)
@@ -268,7 +288,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func drawingMoved() {
-    boardVersion += 1
+    ops.changed()
     isEmpty = drawing.strokes.isEmpty
     sent = nil
     sentFrame = nil
@@ -309,6 +329,7 @@ final class WhiteboardModel: ObservableObject {
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
   func beganDrawing() {
+    penWent(down: true)
     if turns.toolWentDown() {
       log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "drew"])
     }
@@ -317,6 +338,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   func endedDrawing() {
+    penWent(down: false)
     if turns.toolLifted() { startPause() }
   }
 
@@ -379,7 +401,7 @@ final class WhiteboardModel: ObservableObject {
   func larryTurn() {
     guard !larrySending else { return }
     let moved = pictureFrame().map { $0.rect != larryFrame } ?? false
-    guard case .send(let words) = larry.tapped(version: boardVersion, moved: moved, now: .now) else {
+    guard case .send(let words) = larry.tapped(version: ops.rev, moved: moved, now: .now) else {
       return alreadyHas(from: "button")
     }
     let turn = larry.state
@@ -420,6 +442,8 @@ final class WhiteboardModel: ObservableObject {
     var event: [String: Any] = [
       "who": "larry", "board": board.id, "bytes": jpeg.count, "picture": picture.pictureID, "new_thread": thread == nil,
       "pixels": "\(Int(rect.width * scale))x\(Int(rect.height * scale))", "from": from, "said_chars": said?.count ?? 0,
+      "rev": picture.report?.rev ?? -1, "events": picture.report?.events.count ?? 0,
+      "op_result": picture.report?.opResult?.label ?? "",
     ]
     defer {
       event["ms"] = Int(Date().timeIntervalSince(started) * 1000)
@@ -660,7 +684,10 @@ final class WhiteboardModel: ObservableObject {
     // Story 762: his silence is said until he next answers.
     if update.replied, problem?.context == WhiteboardLarryClock.DidntAnswer.context { problem = nil }
     // A row landing while a picture is still going up answers an earlier one: the turn on its way stays out.
-    if update.replied, !larrySending { larryFollowUp(larry.replied(version: boardVersion, now: .now), why: "reply") }
+    if update.replied, !larrySending { larryFollowUp(larry.replied(version: ops.rev, now: .now), why: "reply") }
+    // After the follow-up is decided (his own change to the board is never Igor moving on) and after the row's marks
+    // show (his text joins them rather than being replaced by them).
+    defer { takeOps(.rows(rows)) }
     guard let row = update.marks, let frame = row.frame else { return }
     // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
     shownRow = row.id
@@ -686,7 +713,7 @@ final class WhiteboardModel: ObservableObject {
     else { return }
     let looking = Int((ContinuousClock.now - since).components.seconds)
     larryFollowUp(
-      larry.closed(version: boardVersion, now: .now), why: "done_no_reply",
+      larry.closed(version: ops.rev, now: .now), why: "done_no_reply",
       facts: ["picture": out.picture.pictureID, "looking_s": looking])
     checkLarryWait()
   }
@@ -697,7 +724,7 @@ final class WhiteboardModel: ObservableObject {
     let now = ContinuousClock.now
     let waiting = larry
     let mark = larryMark(now: now)
-    guard let next = larry.tick(version: boardVersion, now: now, timeout: Self.larryTimeout) else { return }
+    guard let next = larry.tick(version: ops.rev, now: now, timeout: Self.larryTimeout) else { return }
     var facts: [String: Any] = [:]
     if let silence = WhiteboardLarryClock.didntAnswer(
       waiting, now: now, wallNow: Date(), cockpitAnswering: !larryAway, mark: mark)
@@ -854,10 +881,11 @@ final class WhiteboardModel: ObservableObject {
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
     let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
     let picture = WhiteboardPicture(
-      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale)
+      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale,
+      report: turnReport())
     return LarryOut(
-      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry()), picture: picture, rect: rect, scale: scale,
-      said: said)
+      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts), picture: picture, rect: rect,
+      scale: scale, said: said)
   }
 
   /// A picture handed to Larry, kept while his turn on it is out: *Retry* sends exactly this again (story 775).
@@ -901,7 +929,7 @@ final class WhiteboardModel: ObservableObject {
   /// Igor kept or dismissed one of Larry's marks: it doesn't come back when the board opens again, and once none of his
   /// row is left, nor does the row.
   private func settleLarrys(_ ghost: Ghost) {
-    guard ghost.who == .larry, let shownRow else { return }
+    guard ghost.who == .larry, ghost.text == nil, let shownRow else { return }
     let settled = UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? []
     UserDefaults.standard.set(WhiteboardMarks.settling(ghost.id, of: shownRow, after: settled), forKey: settledMarksKey)
     if !turns.ghosts.contains(where: { $0.who == .larry }) { UserDefaults.standard.set(shownRow, forKey: settledKey) }
@@ -1086,7 +1114,7 @@ final class WhiteboardModel: ObservableObject {
     case .nothing: break
     case .skipped(let why): event["larry"] = why
     case .hand:
-      switch larry.paused(version: boardVersion, words: said, now: .now) {
+      switch larry.paused(version: ops.rev, words: said, now: .now) {
       case .send(let words):
         event["larry"] = "hand"
         toLarry = .some(words)
@@ -1199,7 +1227,16 @@ final class WhiteboardModel: ObservableObject {
 
   /// The ghost as ink in its colour. Its point spacing is what makes PencilKit's spline follow the shape.
   private func ink(_ ghost: Ghost) {
-    let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4)
+    // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
+    let made = BoardText.time(Date())
+    let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+    if let text = ghost.text {
+      texts.append(
+        BoardText(
+          id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
+          color: Self.lightHex(ghost.color)))
+      opLedger.setTexts(texts, board: board.id)
+    }
     // #883: what a kept mark that doesn't show needs said: its pen, letters and colour, the zoom, and whether the ink
     // landed on screen. `paper_keep` and `paper_ink_look` follow with where it went and whether the view drew it.
     let ink = PKDrawing(strokes: strokes).bounds
@@ -1209,6 +1246,7 @@ final class WhiteboardModel: ObservableObject {
       "color": Self.lightHex(ghost.color), "zoom": Double(zoom?() ?? 1),
     ]
     if let letters = ghost.letters { event["letters"] = Double(letters) }
+    if let text = ghost.text { event["text_id"] = text.id }
     if let visible = visibleRect?(), !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
     log.event("whiteboard", event)
     add(strokes)
@@ -1228,7 +1266,9 @@ final class WhiteboardModel: ObservableObject {
     return WhiteboardStrokes.hex(red: red, green: green, blue: blue)
   }
 
-  private static func strokes(_ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat) -> [PKStroke] {
+  private static func strokes(
+    _ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat, made: Date = Date()
+  ) -> [PKStroke] {
     let ink = PKInk(.pen, color: color)
     return lines.map { line in
       PKStroke(
@@ -1238,7 +1278,7 @@ final class WhiteboardModel: ObservableObject {
             PKStrokePoint(
               location: p, timeOffset: Double(i) * 0.01, size: CGSize(width: width, height: width), opacity: 1,
               force: 1, azimuth: 0, altitude: .pi / 2)
-          }, creationDate: Date()))
+          }, creationDate: made))
     }
   }
 
@@ -1378,6 +1418,11 @@ final class WhiteboardModel: ObservableObject {
   func close() {
     stopWatchingLarry()
     saveTask?.cancel()
+    heldTask?.cancel()
+    if let dropped = ops.dropHeld(reason: "board_closed") {
+      log.event(
+        "board_ops", ["action": "refused", "board": board.id, "label": dropped.label, "reason": "board_closed"])
+    }
     guard editable else { return }
     if dirty {
       save()
@@ -1418,7 +1463,7 @@ final class WhiteboardModel: ObservableObject {
     guard sent == nil, !larrySending, let (rect, scale) = pictureFrame() else { return }
     // Story 662: a Send is Larry's turn too, out now whatever was held; words that waited go with it. Story 765: not
     // while he is looking at the board as it is.
-    guard case .send(let words) = larry.tapped(version: boardVersion, moved: rect != larryFrame, now: .now) else {
+    guard case .send(let words) = larry.tapped(version: ops.rev, moved: rect != larryFrame, now: .now) else {
       return alreadyHas(from: "send")
     }
     larryFrame = rect
@@ -1430,9 +1475,10 @@ final class WhiteboardModel: ObservableObject {
     draft.image = jpeg
     let title = store.index.board(board.id)?.title ?? board.title
     draft.text = words.map { "\(title): \($0)" } ?? title
-    draft.whiteboard = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale)
+    draft.whiteboard = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale, report: turnReport())
     // Story 424: the strokes wait beside the picture and go first when it goes.
-    draft.strokes = try? JSONSerialization.data(withJSONObject: WhiteboardStrokes.wire(strokesForLarry()))
+    draft.strokes = try? JSONSerialization.data(
+      withJSONObject: WhiteboardStrokes.wire(strokesForLarry(), texts: texts))
     do {
       try inbox.add(&draft, thread: threads.thread(board: board.id))
       if problem?.context == "WhiteboardView.send" { problem = nil }
@@ -1456,6 +1502,153 @@ final class WhiteboardModel: ObservableObject {
   }
 }
 
+// MARK: - Larry's changes to the board (stories 814–819)
+
+extension WhiteboardModel {
+  /// Unix ms, the time the wire carries.
+  private static var nowMs: Int64 { Int64((Date().timeIntervalSince1970 * 1000).rounded()) }
+
+  /// The Pencil went down or up: Larry hears it on his next turn, and a change of his waits for the lift.
+  fileprivate func penWent(down: Bool) {
+    guard down != penDown else { return }
+    penDown = down
+    if !down { liftedAt = .now }
+    let before = events.list.count
+    events.pen(down: down, t: Self.nowMs)
+    if events.list.count != before, let event = events.list.last { takeOps(.event(event)) }
+    if down {
+      heldTask?.cancel()
+      heldTask = nil
+    } else {
+      releaseHeldSoon()
+    }
+  }
+
+  /// A finger tap on the board, in board points: Larry hears where, and which of his marks it hit (a ghost, or a text
+  /// he wrote and Igor kept), if any.
+  func tapped(at point: CGPoint, zoom: CGFloat) {
+    let tolerance = 22 / zoom
+    let ghost = ghosts.first { WhiteboardTurn.hit($0.lines, at: point, tolerance: tolerance) }
+    let target = ghost.map { $0.text?.id ?? $0.id } ?? keptText(at: point, tolerance: tolerance)
+    events.tap(at: point, target: target, t: Self.nowMs)
+    if let event = events.list.last { takeOps(.event(event)) }
+  }
+
+  /// The kept text of Larry's under `point`, by its glyphs' box.
+  private func keptText(at point: CGPoint, tolerance: CGFloat) -> String? {
+    guard !texts.isEmpty else { return nil }
+    let byTime = BoardText.byTime(texts)
+    var boxes: [String: CGRect] = [:]
+    for stroke in drawing.strokes {
+      let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+      guard let text = BoardText.owning(t, in: byTime) else { continue }
+      boxes[text.id] = (boxes[text.id] ?? .null).union(stroke.renderBounds)
+    }
+    return boxes.first { $0.value.insetBy(dx: -tolerance, dy: -tolerance).contains(point) }?.key
+  }
+
+  /// The board's half of Larry's next turn: the events since the last are taken.
+  fileprivate func turnReport() -> BoardTurnReport {
+    let taken = events.take()
+    return BoardTurnReport(rev: ops.rev, opResult: ops.lastResult, events: taken.events, eventsDropped: taken.dropped)
+  }
+
+  /// Whatever a source hears goes to every source; each batch they make goes to the one applier.
+  fileprivate func takeOps(_ input: BoardOpInput) {
+    for i in opSources.indices {
+      let name = opSources[i].name
+      for batch in opSources[i].batches(from: input) { receive(batch, from: name) }
+    }
+  }
+
+  private var opsReady: BoardOps.Readiness {
+    BoardOps.readiness(penDown: penDown, liftedAt: liftedAt, now: .now)
+  }
+
+  private func receive(_ batch: BoardOps.Batch, from source: String) {
+    var event = BoardOps.logFields(batch)
+    event["board"] = board.id
+    event["source"] = source
+    event["rev"] = ops.rev
+    switch ops.receive(batch, board: board.id, editable: editable, ready: opsReady == .now) {
+    case .ignored(let why):
+      event["action"] = "ignored"
+      event["why"] = why
+      event["for_board"] = batch.board ?? ""
+      log.event("board_ops", event)
+    case .refused(let result):
+      event["action"] = "refused"
+      event["reason"] = result.reason ?? ""
+      log.event("board_ops", event)
+    case .held(let replaced):
+      event["action"] = "held"
+      event["pen_down"] = penDown
+      if let replaced { event["replaced"] = replaced }
+      log.event("board_ops", event)
+      releaseHeldSoon()
+    case .apply(let batch):
+      apply(batch, held: false)
+    }
+  }
+
+  /// A batch held for the Pencil goes once it is up and the board's pause has passed; a touch down in the meantime waits
+  /// for the next lift.
+  private func releaseHeldSoon() {
+    guard ops.held != nil else { return }
+    switch opsReady {
+    case .onLift:
+      return
+    case .now:
+      if let batch = ops.release(ready: true) { apply(batch, held: true) }
+    case .after(let wait):
+      heldTask?.cancel()
+      heldTask = Task { [weak self] in
+        try? await Task.sleep(for: wait)
+        guard !Task.isCancelled else { return }
+        self?.releaseHeldSoon()
+      }
+    }
+  }
+
+  private func apply(_ batch: BoardOps.Batch, held: Bool) {
+    let started = ContinuousClock.now
+    var event = BoardOps.logFields(batch)
+    event["board"] = board.id
+    event["held"] = held
+    guard let plan = applyOps?(batch, texts) else {
+      // No canvas laid out yet, or PaperKit didn't take the move (`paper_ops_failed`).
+      let result = ops.refusal(batch, "not_applied")
+      event["action"] = "refused"
+      event["reason"] = result.reason ?? ""
+      log.event("board_ops", event)
+      return
+    }
+    if !plan.texts.isEmpty {
+      turns.larrysText(
+        plan.texts.map {
+          Ghost($0.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\($0.id)", text: $0)
+        })
+    }
+    let result = ops.applied(batch, plan: plan)
+    var moves = plan.offsets.values.map(\.dy)
+    moves.sort()
+    event.merge([
+      "action": "applied", "rev": result.rev, "moved": plan.moved, "strokes_moved": plan.offsets.count,
+      "dy_min": Double(moves.first ?? 0), "dy_max": Double(moves.last ?? 0), "texts": plan.texts.count,
+      "pages_before": plan.pagesBefore, "pages": plan.pagesAfter, "missing_ids": plan.missingIDs.count,
+      "changed": plan.changesBoard, "ms": Int(started.duration(to: .now) / .milliseconds(1)),
+    ]) { $1 }
+    log.event("board_ops", event)
+  }
+
+  /// The canvas applied a batch of Larry's: saved and a new revision like any change, and no stroke for Claude to answer.
+  func opsApplied(_ new: PKDrawing) {
+    guard editable else { return }
+    drawing = new
+    drawingMoved()
+  }
+}
+
 /// A shape Claude or Larry offered, in board points, not yet kept.
 struct Ghost: Identifiable, WhiteboardGhost {
   let id: String
@@ -1467,12 +1660,15 @@ struct Ghost: Identifiable, WhiteboardGhost {
   /// What it is and, for a label, its letters' height in board points: for the keep's log line (#883).
   let kind: WhiteboardTurn.Shape.Kind
   let letters: CGFloat?
+  /// A text of Larry's from a batch of his changes (story 817): kept, it becomes one text under its id.
+  let text: BoardOps.Text?
 
   init(
     _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
-    id: String = UUID().uuidString
+    id: String = UUID().uuidString, text: BoardOps.Text? = nil
   ) {
     self.id = id
+    self.text = text
     self.who = who
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color

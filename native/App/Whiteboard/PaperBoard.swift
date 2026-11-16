@@ -366,6 +366,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
+    model.applyOps = { [weak self] batch, texts in self?.applyOps(batch, texts: texts) }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -721,9 +722,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func fingerTapped(at spot: CGPoint) {
+    let at = lines.columnPoint(of: view.convert(spot, to: lines))
+    // Story 818: Larry hears every tap, marks showing or not.
+    model.tapped(at: at, zoom: screenScale)
     let count = model.ghosts.count
     guard count > 0 else { return }
-    let at = lines.columnPoint(of: view.convert(spot, to: lines))
     noSelectionUntil = CACurrentMediaTime() + 0.8
     ghostTap = (at, CACurrentMediaTime())
     let selected = paper.selection.count
@@ -969,6 +972,63 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     lookForInk(made.bounds, why: "kept")
   }
 
+  /// Stories 814–816: a batch of Larry's changes on the markup. Every stroke it moves moves whole, by a transform on its
+  /// own element (its id kept, so PaperKit's own steps go on working), the column grows to the pages it needs, and the
+  /// lot is one undo named for the batch, the page count included. Text only shows ghosts, so leaves the markup alone.
+  /// Nil before the markup is laid out.
+  private func applyOps(_ batch: BoardOps.Batch, texts: [BoardText]) -> BoardOps.Plan? {
+    guard var markup = paper.markup else { return nil }
+    let started = CACurrentMediaTime()
+    let elements = markup.subelements.strokes
+    let ink = markup.inkDrawing.strokes
+    let strokes = ink.map { stroke in
+      BoardOps.Stroke(
+        ids: WhiteboardModel.strokesForLarry(PKDrawing(strokes: [stroke])).map(\.id),
+        t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000), bounds: stroke.renderBounds)
+    }
+    let plan = BoardOps.plan(
+      batch.ops, items: BoardOps.items(strokes: strokes, texts: texts), pages: pages, board: board)
+    guard plan.changesBoard else { return plan }
+    let before = markup
+    let countBefore = markup.subelements.count
+    for (index, shift) in plan.offsets where elements.indices.contains(index) {
+      var moved = elements[index]
+      moved.applyTransform(CGAffineTransform(translationX: shift.dx, y: shift.dy))
+      _ = markup.subelements.updateOrAppend(moved)
+    }
+    // A moved stroke that came back as a new element would leave its old self behind: nothing is set, and the log says so.
+    guard markup.subelements.count == countBefore else {
+      log.event(
+        "whiteboard",
+        [
+          "action": "paper_ops_failed", "board": model.board.id, "label": batch.label, "elements_before": countBefore,
+          "elements": markup.subelements.count,
+        ])
+      return nil
+    }
+    registerStepBack(to: before, named: batch.label)
+    if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    pages = plan.pagesAfter
+    let held = paper.markup ?? markup
+    inkFrames = held.strokeFrames
+    showLines()
+    showPageNumber()
+    redrawSoon()
+    model.opsApplied(held.inkDrawing)
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_ops", "board": model.board.id, "label": batch.label, "moved": plan.offsets.count,
+        "elements": held.subelements.count, "pages_before": plan.pagesBefore,
+        "pages": pages, "can_undo": paper.undoManager?.canUndo ?? false,
+        "undo_name": paper.undoManager?.undoActionName ?? "", "ms": ms(CACurrentMediaTime() - started),
+      ])
+    return plan
+  }
+
   /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,
   /// whatever is set or scrolled after. A change of zoom draws it. On the simulator, iOS 27: 15 of 180 pastes without this, 0 of
   /// 60 with it, and a zoom brought back each of the 7 in the run that tried one. A set that opens a board is followed by a
@@ -1065,13 +1125,15 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }.count
   }
 
-  /// Undo or redo of a kept mark: back to the markup as it was, and the way forward again the same way.
-  private func registerStepBack(to markup: PaperMarkup) {
+  /// Undo or redo of a kept mark or a batch of Larry's changes: back to the markup as it was, and the way forward again
+  /// the same way. `named`: what Undo and Redo say (a batch's label).
+  private func registerStepBack(to markup: PaperMarkup, named name: String? = nil) {
     guard let undo = paper.undoManager else { return }
     stepsOn = undo
     undo.registerUndo(withTarget: self) { controller in
-      MainActor.assumeIsolated { controller.step(to: markup) }
+      MainActor.assumeIsolated { controller.step(to: markup, named: name) }
     }
+    if let name, !name.isEmpty { undo.setActionName(name) }
   }
 
   /// The board really closed, which a cancelled swipe back isn't: the stack can be the window's, and the next board's Undo
@@ -1087,8 +1149,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
   }
 
-  private func step(to markup: PaperMarkup) {
-    if let now = paper.markup { registerStepBack(to: now) }
+  private func step(to markup: PaperMarkup, named name: String? = nil) {
+    if let now = paper.markup { registerStepBack(to: now, named: name) }
     quiet = true
     paper.markup = markup
     quiet = false

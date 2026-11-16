@@ -227,11 +227,11 @@ public enum BoardOps {
 
   /// The canvas's strokes as items: a kept text's glyphs (made at its time) are one item answering to its id too.
   public static func items(strokes: [Stroke], texts: [BoardText] = []) -> [Item] {
-    let byTime = Dictionary(texts.map { ($0.t, $0.id) }, uniquingKeysWith: { _, new in new })
+    let byTime = BoardText.byTime(texts)
     var out: [Item] = []
     var textItem: [String: Int] = [:]
     for (index, stroke) in strokes.enumerated() {
-      if let t = stroke.t, let text = byTime[t] {
+      if let text = BoardText.owning(stroke.t, in: byTime)?.id {
         if let at = textItem[text] {
           out[at].ids.formUnion(stroke.ids)
           out[at].members.append(index)

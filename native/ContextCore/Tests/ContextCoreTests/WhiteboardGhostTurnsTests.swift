@@ -36,6 +36,18 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     return body.utf8.compactMap { reader.take($0) }
   }
 
+  /// Story 817: Larry's text joins his row's marks and Claude's, replacing only a ghost of the same text.
+  func testLarrysTextJoinsHisMarksAndReplacesOnlyItsOwnId() {
+    var turns = turns()
+    turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
+    turns.larrysMarks(ghosts(.larry, 2))
+    turns.larrysText([G(id: "op-text:t1", who: .larry)])
+    XCTAssertEqual(turns.ghosts.count, 4)
+    turns.larrysText([G(id: "op-text:t1", who: .larry), G(id: "op-text:t2", who: .larry)])
+    XCTAssertEqual(turns.ghosts.count, 5)
+    XCTAssertEqual(turns.ghosts.suffix(2).map(\.id), ["op-text:t1", "op-text:t2"])
+  }
+
   /// Claude's turn under way, asked from a stroke's pause.
   private func asking(_ turns: inout WhiteboardGhostTurns<G>) -> Int {
     XCTAssertTrue(turns.stroked())

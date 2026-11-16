@@ -80,7 +80,9 @@ public struct BoardOpApplier: Equatable, Sendable {
     .refused(refusal(batch, reason))
   }
 
-  private mutating func refusal(_ batch: BoardOps.Batch, _ reason: String) -> BoardOps.Result {
+  /// `batch` could not be applied after all (the canvas wasn't there): recorded as refused for `reason`.
+  @discardableResult
+  public mutating func refusal(_ batch: BoardOps.Batch, _ reason: String) -> BoardOps.Result {
     let result = BoardOps.Result(label: batch.label, ok: false, rev: rev, reason: reason)
     lastResult = result
     return result

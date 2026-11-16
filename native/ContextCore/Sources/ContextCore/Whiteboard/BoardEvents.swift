@@ -110,6 +110,24 @@ public struct BoardText: Equatable, Codable, Sendable {
     self.size = size
     self.color = color
   }
+
+  /// A creation time in ms exactly as a kept text's glyphs go out: whole milliseconds, so the time read back from the
+  /// strokes is the one recorded.
+  public static func time(_ date: Date) -> (date: Date, t: Int64) {
+    let t = Int64((date.timeIntervalSince1970 * 1000).rounded())
+    return (Date(timeIntervalSince1970: Double(t) / 1000), t)
+  }
+
+  /// The kept text a stroke made at `t` belongs to. A millisecond either way still matches: the time is read back from
+  /// a saved drawing as a double and truncated.
+  public static func owning(_ t: Int64?, in byTime: [Int64: BoardText]) -> BoardText? {
+    guard let t else { return nil }
+    return byTime[t] ?? byTime[t - 1] ?? byTime[t + 1]
+  }
+
+  public static func byTime(_ texts: [BoardText]) -> [Int64: BoardText] {
+    Dictionary(texts.map { ($0.t, $0) }, uniquingKeysWith: { _, new in new })
+  }
 }
 
 extension WhiteboardStrokes {
@@ -117,15 +135,15 @@ extension WhiteboardStrokes {
   /// first glyph was: `kind: "text"`, its id, words, lettering and box, so a later move can name it.
   public static func wire(_ strokes: [Stroke], texts: [BoardText]) -> [[String: Any]] {
     guard !texts.isEmpty else { return wire(strokes) }
-    let byTime = Dictionary(texts.map { ($0.t, $0) }, uniquingKeysWith: { _, new in new })
+    let byTime = BoardText.byTime(texts)
     var glyphs: [String: [Stroke]] = [:]
     for stroke in strokes {
-      if let t = stroke.t, let text = byTime[t] { glyphs[text.id, default: []].append(stroke) }
+      if let text = BoardText.owning(stroke.t, in: byTime) { glyphs[text.id, default: []].append(stroke) }
     }
     var out: [[String: Any]] = []
     var folded = Set<String>()
     for stroke in strokes {
-      guard let t = stroke.t, let text = byTime[t] else {
+      guard let text = BoardText.owning(stroke.t, in: byTime) else {
         out += wire([stroke])
         continue
       }
