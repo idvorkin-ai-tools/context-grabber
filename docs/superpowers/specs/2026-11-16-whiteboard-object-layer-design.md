@@ -76,12 +76,15 @@ look-only phone exactly as ink is today, with no extra work.
 
 ### Select, move, edit, delete
 
+What a finger does on paper is still unsettled in the main spec (a finger tap already keeps ghosts; a drag pans). So
+the finger parts below are a proposal to try on the iPad, as *Igor's room, by hand* is.
+
 - **A finger tap on an object selects it**: a thin outline round it and a small row of buttons beside it, placed like
   Keep and Dismiss are today (wholly on screen, following the object as the board moves). The Pencil never selects; it
   draws, through an object as through anything.
 - **The buttons:** **Edit** (objects with words), **Delete**, and a grip to drag. A tap elsewhere, or starting to draw,
   puts them away and changes nothing.
-- **Move:** dragging the selected object with a finger moves it. It lands where it is dropped, even on ink: Igor put it
+- **Move:** dragging the selected object by its grip moves it; a drag anywhere else still pans the board. It lands where it is dropped, even on ink: Igor put it
   there. One undo puts it back.
 - **Edit:** the words open in a small text field over the board with the keyboard. Done redraws the object in place
   with the same look, growing down and to the right from its top-left corner. If the new words need more height than
@@ -304,7 +307,7 @@ In a reply's `shapes`, beside the others:
 | Older side | Newer side | What happens |
 |---|---|---|
 | Older app | Newer Cockpit and Larry | The picture has no `can`, so Larry never sends `insert-space` and answers as today. If one arrives anyway, the app drops a kind it doesn't know, as it always has, and draws the other marks where they say. |
-| Newer app | Older Cockpit | The Cockpit drops fields it doesn't know from messages and strokes, so `can` never reaches Larry and he answers as today. Pushed strokes read as erased and new, which is wrong but harmless, and is the reason the Cockpit goes first. A Cockpit that doesn't know `insert-space` drops that mark and keeps the rest. |
+| Newer app | Older Cockpit | The Cockpit drops fields it doesn't know from messages and strokes, so `can` never reaches Larry and he answers as today. Pushed strokes read as erased and new, which is wrong but harmless. A Cockpit that doesn't know `insert-space` refuses the whole reply that carries one, as it refuses any mark it can't check, so nothing half-lands; `can` not reaching Larry is what keeps him from sending one. Both are why the Cockpit goes first. |
 | Newer app and Cockpit | Older skill | Nothing asks for room. Objects, clear-paper paste, room by hand and room for a late reply all work: none needs Larry. |
 
 Build order: Cockpit (accept and store the new kind, pass `can`, `objects`, `was`, `pushes`; allow a room's marks to
@@ -359,10 +362,32 @@ the ink and one undo restores it; Keep before Make room does both; a paste on a 
 selected; Delete removes it; a finger tap selects a kept label and Edit rewords it; pages are added by a push and
 taken back by its undo; the session log says each cut, sum and push in numbers.
 
-**iPad only**: whether a finger hold in the margin can be told from a scroll; how a large push looks (a jump or a
+**iPad only**: whether a finger tap selects an object cleanly and a drag on its grip moves it without panning the
+board; whether a finger hold in the margin can be told from a scroll; how a large push looks (a jump or a
 slide) and whether the paper under the Pencil redraws at once; the lasso and both erasers on an object; that kept ink
 shows after a push (the "saved and counted but not shown" bug has happened before on paper); a real late reply from
 Larry while Igor keeps writing.
+
+## Acceptance
+
+For the first slice (below). Each later slice adds its own when it is specified for building.
+
+- Fill a screen with writing, copy two lines of text and tap Paste: the text lands on blank paper, covering no stroke.
+  If the screen had a clear patch big enough, nothing else moved.
+- The same with no clear patch: the writing below the nearest clear line has slid down by whole lines, every stroke
+  the same size and shape as before, and the text sits in the room. No line of writing was cut in two.
+- Undo once: the text is gone, the writing is back where it was, and any page the push added is gone with it. Redo
+  brings all of it back.
+- Send Larry the board, write two more lines under what he saw, and Keep his mark when it lands on them: those two
+  lines move down and the kept mark sits clear of them. One undo takes back both the keep and the move.
+- Keep a mark of his that circles a word that was in his picture: nothing moves.
+- A push that carries writing past the last page: the board has the pages it needs and a blank one below.
+- A ghost showing below the cut when a push happens is still beside the same ink afterwards.
+- Send the board to Larry after a push: the Cockpit's count of new strokes is only what was added, not everything
+  that moved.
+- A look-only board: no paste, no push, nothing moves.
+- The session log says, for each push: where the cut was asked and where it landed, what was needed, what was already
+  blank, how far the ink moved and how many strokes moved.
 
 ## Open questions for Igor
 
