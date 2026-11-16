@@ -119,7 +119,7 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
   - When he answers, or after **3 minutes** with no answer, **one** fresh picture of the board as it is then goes, with
     the words that waited, if the board moved on or words waited. Otherwise nothing goes and the bar stops saying he
     is looking.
-  - **Larry closing the turn with nothing to say counts as his answer** (#913; Igor, 2026-11-16, Larry's option (a)).
+  - **Larry closing the turn with nothing to say counts as his answer** (stories 811–813, #913; Igor, 2026-11-16, Larry's option (a)).
     Larry sometimes marks the picture done on the thread and writes nothing back. Done with no reply after it ends the
     turn exactly as an answer with no shapes would: the clock stops, and one fresh picture goes if the board moved on
     or words waited, else nothing. In place of the clock the bar's note says *Larry: nothing to add yet* until the

@@ -4124,8 +4124,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 662:
 
 - **Summary:** A Larry board sends him one picture at a time, the newest
-- **Status:** implemented in [41b83fb](https://github.com/idvorkin/context-grabber/commit/41b83fb); verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over what was waiting, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry; a tap while he is looking with nothing new sending nothing (story 765) in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8), verified by host tests (`WhiteboardLarryTurnTests`); the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`); Larry marking the picture done with no reply ending the turn (#913) in [462676e](https://github.com/idvorkin/context-grabber/commit/462676e), verified by host tests (`WhiteboardLarryTurnTests`, `WhiteboardLarryWaitTests`, `WhiteboardLarryClockTests`: done with nothing new sends nothing and says *Larry: nothing to add yet*, done with the board moved on sends one picture, a late reply sends nothing more, received and seen keep the turn out); not yet seen on the simulator or the iPad
-- **Issues:** [#913](https://github.com/idvorkin/context-grabber/issues/913) (Larry marked the picture done with no reply, and the bar sat at *Larry · 0:54*)
+- **Status:** implemented in [41b83fb](https://github.com/idvorkin/context-grabber/commit/41b83fb); verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over what was waiting, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry; a tap while he is looking with nothing new sending nothing (story 765) in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8), verified by host tests (`WhiteboardLarryTurnTests`); the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`); Larry closing a turn with nothing to say (#913) is stories 811–813
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
@@ -4154,16 +4153,61 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap *Larry's turn*
 - **Then:** a picture of the board goes at once with any words that waited, and his answer to the earlier one sends nothing more; with nothing new since his picture went, the tap sends nothing (story 765)
 
+---
+
+### User Story 811:
+
+- **Summary:** Larry closing the turn with nothing to add ends it
+- **Status:** implemented in [462676e](https://github.com/idvorkin/context-grabber/commit/462676e); verified by host tests (`WhiteboardLarryTurnTests`, `WhiteboardLarryWaitTests`, `WhiteboardLarryClockTests`: done with nothing new sends nothing and says *Larry: nothing to add yet*, done with the board moved on sends one picture); not yet seen on the simulator or the iPad
+- **Issues:** [#913](https://github.com/idvorkin/context-grabber/issues/913) (Larry marked the picture done with no reply, and the bar sat at *Larry · 0:54*)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** see his turn end when he marks my picture done and has nothing to say
+- **so that** the board never sits on his clock waiting for an answer that isn't coming
+
+#### Acceptance Criteria:
 - **Scenario:** He closes the turn with nothing to add
 - **Given:** a Larry board, a picture sent and the bar showing Larry's clock
 - **When:** Larry marks the picture done on the thread and writes no reply after it
 - **Then:** the clock stops and the bar's note says *Larry: nothing to add yet* until the next turn starts; if I drew or spoke since the picture went, exactly one fresh picture goes, else nothing; the session log says the turn ended as done with no reply
 
+---
+
+### User Story 812:
+
+- **Summary:** A reply after Larry closed the turn sends nothing more
+- **Status:** implemented in [462676e](https://github.com/idvorkin/context-grabber/commit/462676e); verified by host tests (`WhiteboardLarryTurnTests`: a late reply sends nothing more); not yet seen on the simulator or the iPad
+- **Issues:** [#913](https://github.com/idvorkin/context-grabber/issues/913) (Larry marked the picture done with no reply, and the bar sat at *Larry · 0:54*)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** have a reply he writes after closing the turn not send the board again
+- **so that** his thread never gets the same board twice
+
+#### Acceptance Criteria:
 - **Scenario:** His reply comes after he closed the turn
 - **Given:** Larry marked the picture done with no reply, and the turn ended
 - **When:** a reply of his lands on the thread afterwards
 - **Then:** no further picture goes for a board that hasn't moved on since
 
+---
+
+### User Story 813:
+
+- **Summary:** Larry having the picture keeps his turn out
+- **Status:** implemented in [462676e](https://github.com/idvorkin/context-grabber/commit/462676e); verified by host tests (`WhiteboardLarryWaitTests`: received and seen keep the turn out); not yet seen on the simulator or the iPad
+- **Issues:** [#913](https://github.com/idvorkin/context-grabber/issues/913) (Larry marked the picture done with no reply, and the bar sat at *Larry · 0:54*)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing on a board the real Larry answers
+- **I want to** have his turn stay out while he has the picture but hasn't finished
+- **so that** a picture he is still working on isn't treated as answered
+
+#### Acceptance Criteria:
 - **Scenario:** He has the picture but hasn't finished
 - **Given:** a Larry board and a picture sent
 - **When:** the thread says the Cockpit received it, or Larry has picked it up, and nothing more
