@@ -29,6 +29,48 @@ That is the thesis, and everything below is one of its operations:
 It stays ink throughout: nothing is recognised, retyped or snapped to a grid, and a lost note leaves a complete
 board.
 
+## Features to build
+
+Igor, 2026-11-16: "I think we have a bunch of features we want to figure out that we can prioritize into features and
+get building." Everything raised that morning, one row per feature, each small enough for one PR, in the order
+proposed. *Now*, *Next* and *Later* are a recommendation for Igor to change on the review page. The first three and
+the press-and-hold menu are their own small fixes with their own beads and specs; they are listed so the whole
+morning is in one place.
+
+| # | Feature | What it is | Needs | Proposed | Bead |
+|---|---|---|---|---|---|
+| 1 | Grid on by default | A new board opens with grid lines. | none | Now | `context-grabber-73u` |
+| 2 | Rename boards | Change a board's name from the list or the board. | none | Now | `context-grabber-77a` |
+| 3 | Chat scrolls, not grows | The open conversation panel keeps its size and scrolls inside. | none | Now | `context-grabber-97s` |
+| 4 | The push | The arithmetic under everything else: find a clear line, slide the ink below it down by whole lines, one undo. Nothing visible on its own. | none | Now | `context-grabber-2q4` |
+| 5 | Moved ink keeps its name (`was`) | A pushed stroke tells the Cockpit what it was called, so Larry isn't told the whole page is new. App and Cockpit. | 4 | Now | `context-grabber-2q4` |
+| 6 | Paste lands in clear space | A paste goes to clear paper on screen, or makes room. Never on ink. | 4 | Now | `context-grabber-2q4` |
+| 7 | A late reply makes room | Keep on a mark of Larry's that sits on writing newer than his picture moves that writing down. | 4 | Now | `context-grabber-2q4` |
+| 8 | Press-and-hold menu | A finger hold on the paper brings up a small menu. First items: Paste, Insert space. | none | Now | `context-grabber-y4y` |
+| 9 | Ask for room: left-margin handle | Hold in the left margin, drag down to open room, up to close blank paper. | 4 | Now | `context-grabber-2q4` |
+| 10 | Ask for room: hold, Insert space, drag | The same drag, started from the press-and-hold menu anywhere on the page. | 4, 8 | Next | `context-grabber-2q4` |
+| 11 | Ask for room: draw a box | Scribe-style: drag a rectangle and that much room opens. The fallback if a finger hold can't be told from a pan. | 4 | Later | `context-grabber-2q4` |
+| 12 | Objects from kept marks and pastes | A kept mark or a paste is one thing: tap to select, drag to move, Delete. A paste lands selected. | none | Next | `context-grabber-2q4` |
+| 13 | Larry's shapes land as objects | Every label, box, circle and arrow he sends is its own object when kept, and he reads each back with its words. | 12 | Next | `context-grabber-2q4` |
+| 14 | Partial erase dissolves an object | Rub out part of an object and what is left is plain ink. Also the Ungroup button. | 12 | Next | `context-grabber-2q4` |
+| 15 | Reword an object; group your own ink | Edit redraws a label or paste from new words. Group makes a lasso selection one object. | 12, 4 | Later | `context-grabber-2q4` |
+| 16 | Cockpit: the insert-space mark | The Cockpit accepts and stores the new mark kind and passes what the app can do to Larry. Must ship before Larry uses it. | 5 | Next | `context-grabber-2q4` |
+| 17 | Larry's Make room, on your tap | His reply asks for room; a dashed line and a tag show; your tap opens it. Then his skill learns to ask. | 4, 16 | Next | `context-grabber-2q4` |
+| 18 | Blank paper absorbs a push | Blank bands below give up their extra lines, so room opened at the top moves a few lines, not every page. | 4 | Later | `context-grabber-2q4` |
+| 19 | Headers and collapse / expand | Mark a row as a header; − folds its section, + opens it; Fold all. | 4, 12 | Later | `context-grabber-2q4` |
+| 20 | Audio-synced ink replay | Notability-style: play a board back stroke by stroke with what was said. Every stroke already records when it was drawn, so replay without sound is the cheap half. Prior art to come. | none | Later | none yet |
+
+- **The push (4) is the root.** Six rows need it and it shows nothing by itself, so it ships inside the first feature
+  that uses it (paste lands in clear space) rather than alone.
+- **Rows 1 to 3 and 8 need nothing here** and can go in any order, today.
+- **The Cockpit goes before Larry** (16 before 17), and `was` (5) before either, for the reasons under *Backward
+  compatibility*.
+- **Audio-synced ink replay (20)** is not designed in this document.
+
+### Prior art: ink replay
+
+*Placeholder. A prior-art section (Notability and others) is being written separately and lands here.*
+
 ## What is wrong today
 
 - **Everything is flat ink.** A kept label is a few dozen letter outlines. It can't be moved as one thing, reworded or
