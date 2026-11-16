@@ -115,7 +115,10 @@ public enum ChatSend {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var body: [String: Any] = ["id": item.id, "text": text(for: item), "source": source]
     if let attachment { body["attachments"] = [attachment] }
-    if let whiteboard = item.whiteboard { body.merge(whiteboard.wire) { $1 } }
+    if let whiteboard = item.whiteboard {
+      body.merge(whiteboard.wire) { $1 }
+      if let report = whiteboard.report { body.merge(report.wire) { $1 } }
+    }
     let url: URL?
     if let thread = item.thread {
       url = URL(string: base.absoluteString.trimmingSuffix("/") + "/chat/" + ChatWire.encode(thread))

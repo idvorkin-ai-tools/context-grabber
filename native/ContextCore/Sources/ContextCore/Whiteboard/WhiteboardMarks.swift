@@ -25,11 +25,16 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   public let frame: Frame
   /// The thread's title when this picture starts it.
   public let title: String
+  /// The board's half of the turn (story 818): its revision, what came of Larry's last change, the Pencil and taps. On
+  /// the chat message only, never on the strokes.
+  public var report: BoardTurnReport?
 
   public init(
-    board: String, title: String, rect: CGRect, scale: CGFloat, pictureID: String = UUID().uuidString.lowercased()
+    board: String, title: String, rect: CGRect, scale: CGFloat, pictureID: String = UUID().uuidString.lowercased(),
+    report: BoardTurnReport? = nil
   ) {
     self.board = board
+    self.report = report
     self.title = title
     self.pictureID = pictureID
     frame = Frame(
@@ -37,7 +42,7 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   }
 
   enum CodingKeys: String, CodingKey {
-    case board, frame, title
+    case board, frame, title, report
     case pictureID = "picture_id"
   }
 
@@ -86,14 +91,17 @@ public struct WhiteboardMarks: Sendable {
     /// that can't be right: its shapes can't be placed.
     public let frame: CGRect?
     public let scale: CGFloat
+    /// Larry's changes to the board on this row (stories 814–817), for `WebBoardOpSource`.
+    public let ops: BoardOps.Batch?
 
     public var drawable: Bool { frame != nil && !shapes.isEmpty }
 
     public init(
       id: String, text: String = "", shapes: [WhiteboardTurn.Shape] = [], pictureID: String? = nil,
-      frame: CGRect? = nil, scale: CGFloat = 1
+      frame: CGRect? = nil, scale: CGFloat = 1, ops: BoardOps.Batch? = nil
     ) {
       self.id = id
+      self.ops = ops
       self.text = text
       self.shapes = shapes
       self.pictureID = pictureID
@@ -162,7 +170,8 @@ public struct WhiteboardMarks: Sendable {
       return Row(
         id: id, text: (message["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
         shapes: (message["shapes"] as? [Any] ?? []).compactMap { WhiteboardTurn.anyShape($0) },
-        pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1)
+        pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1,
+        ops: BoardOps.batch(message["ops"], key: id, source: "web"))
     }
   }
 
