@@ -4125,6 +4125,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A Larry board sends him one picture at a time, the newest
 - **Status:** implemented in [41b83fb](https://github.com/idvorkin/context-grabber/commit/41b83fb); verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over what was waiting, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry; a tap while he is looking with nothing new sending nothing (story 765) in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8), verified by host tests (`WhiteboardLarryTurnTests`); the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`)
+- **Issues:** [#913](https://github.com/idvorkin/context-grabber/issues/913) (Larry marked the picture done with no reply, and the bar sat at *Larry · 0:54*)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
@@ -4152,6 +4153,21 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** he is looking and the board has moved on
 - **When:** I tap *Larry's turn*
 - **Then:** a picture of the board goes at once with any words that waited, and his answer to the earlier one sends nothing more; with nothing new since his picture went, the tap sends nothing (story 765)
+
+- **Scenario:** He closes the turn with nothing to add
+- **Given:** a Larry board, a picture sent and the bar showing Larry's clock
+- **When:** Larry marks the picture done on the thread and writes no reply after it
+- **Then:** the clock stops and the bar's note says *Larry: nothing to add yet* until the next turn starts; if I drew or spoke since the picture went, exactly one fresh picture goes, else nothing; the session log says the turn ended as done with no reply
+
+- **Scenario:** His reply comes after he closed the turn
+- **Given:** Larry marked the picture done with no reply, and the turn ended
+- **When:** a reply of his lands on the thread afterwards
+- **Then:** no further picture goes for a board that hasn't moved on since
+
+- **Scenario:** He has the picture but hasn't finished
+- **Given:** a Larry board and a picture sent
+- **When:** the thread says the Cockpit received it, or Larry has picked it up, and nothing more
+- **Then:** the clock keeps running and no picture goes
 
 ---
 
