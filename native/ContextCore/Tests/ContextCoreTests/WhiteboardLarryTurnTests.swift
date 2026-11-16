@@ -203,4 +203,50 @@ final class WhiteboardLarryTurnTests: XCTestCase {
     XCTAssertFalse(marks.take([old], settled: nil).replied)
     XCTAssertTrue(marks.take([old, .init(id: "b", text: "ok")], settled: nil).replied)
   }
+
+  // MARK: #913: he closes the turn with nothing to say
+
+  func testDoneWithNothingNewEndsTheTurnAndSendsNothing() {
+    var turn = WhiteboardLarryTurn()
+    _ = turn.paused(version: 1, words: nil, now: at(0))
+    XCTAssertEqual(turn.closed(version: 1, now: at(15)), .done)
+    XCTAssertFalse(turn.looking)
+    XCTAssertTrue(turn.nothingToAdd)
+    XCTAssertEqual(turn.paused(version: 2, words: nil, now: at(20)), .send(words: nil), "the next pause goes at once")
+    XCTAssertFalse(turn.nothingToAdd, "a new turn takes the note back")
+  }
+
+  func testDoneWithTheBoardMovedOnSendsExactlyOnePicture() {
+    var turn = WhiteboardLarryTurn()
+    _ = turn.paused(version: 1, words: nil, now: at(0))
+    _ = turn.paused(version: 2, words: "and label it", now: at(5))
+    _ = turn.paused(version: 3, words: nil, now: at(8))
+    XCTAssertEqual(turn.closed(version: 3, now: at(15)), .send(words: "and label it"))
+    XCTAssertEqual(turn.state, .awaiting(since: at(15), sent: 3))
+    XCTAssertFalse(turn.nothingToAdd, "a fresh picture went: his clock, not the note")
+    XCTAssertEqual(turn.closed(version: 3, now: at(16)), .done, "the same mark read again sends nothing more")
+  }
+
+  func testALateReplyAfterDoneDoesNotSendAgain() {
+    var turn = WhiteboardLarryTurn()
+    _ = turn.paused(version: 1, words: nil, now: at(0))
+    XCTAssertEqual(turn.closed(version: 1, now: at(15)), .done)
+    XCTAssertEqual(turn.replied(version: 1, now: at(20)), .done)
+    XCTAssertFalse(turn.looking)
+    XCTAssertFalse(turn.nothingToAdd, "he did say something after all")
+  }
+
+  func testALateReplyAfterDoneThatSentOnceDoesNotSendAgain() {
+    var turn = WhiteboardLarryTurn()
+    _ = turn.paused(version: 1, words: nil, now: at(0))
+    _ = turn.paused(version: 2, words: nil, now: at(5))
+    XCTAssertEqual(turn.closed(version: 2, now: at(15)), .send(words: nil))
+    XCTAssertEqual(turn.replied(version: 2, now: at(20)), .done, "the board hasn't moved since: no second picture")
+  }
+
+  func testDoneWithNoTurnOutIsNothing() {
+    var turn = WhiteboardLarryTurn()
+    XCTAssertEqual(turn.closed(version: 1, now: at(0)), .done)
+    XCTAssertFalse(turn.nothingToAdd)
+  }
 }

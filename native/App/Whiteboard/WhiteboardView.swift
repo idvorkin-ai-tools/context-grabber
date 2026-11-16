@@ -613,6 +613,7 @@ final class WhiteboardModel: ObservableObject {
         let recent = Array(messages.suffix(WhiteboardNote.panelMessages))
         if recent != self.thread { self.thread = recent }
         lookWorked(rows)
+        larryClosed(messages)
         return
       }
       if status == 404 {
@@ -669,6 +670,20 @@ final class WhiteboardModel: ObservableObject {
         "action": "shown", "board": board.id, "row": row.id, "shapes": row.shapes.count,
         "picture": row.pictureID ?? "",
       ])
+  }
+
+  /// #913 (story 662): Larry marked the picture he is looking at done and wrote nothing after it. The turn ends as an
+  /// answer with no shapes would. Runs after the look's rows, so a reply landing in the same look has already ended the
+  /// turn and this finds no turn out.
+  private func larryClosed(_ messages: [ChatMessage]) {
+    guard case .awaiting(let since, _) = larry.state, let out = larryOut, out.turn == larry.state,
+      WhiteboardLarryWait.doneWithoutReply(out.picture.pictureID, in: messages)
+    else { return }
+    let looking = Int((ContinuousClock.now - since).components.seconds)
+    larryFollowUp(
+      larry.closed(version: boardVersion, now: .now), why: "done_no_reply",
+      facts: ["picture": out.picture.pictureID, "looking_s": looking])
+    checkLarryWait()
   }
 
   /// Story 662: his turn has been out too long; the board stops waiting, as if he had answered. Story 669: and says so,

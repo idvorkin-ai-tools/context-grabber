@@ -8,15 +8,19 @@
 import Foundation
 
 public enum WhiteboardLarryClock {
+  /// What the bar says once he closed a turn with nothing to say, until the next one starts (#913).
+  public static let nothingToAdd = "Larry: nothing to add yet"
+
   /// His state at the start of the bar's note, *Larry · 0:42*, or *Sent · 0:03* while the Cockpit has the picture and
   /// he hasn't picked it up (*Sent · 0:21 · not picked up yet* from `WhiteboardLarryWait.after`, twenty seconds), with
   /// *Cockpit not answering* when the board's looks at his thread have been failing. For two seconds after a tap that sent nothing it reads *Larry already has this · 0:12*
-  /// (story 765). Nil with no turn out.
+  /// (story 765). With no turn out, *Larry: nothing to add yet* after he closed the last with nothing to say (#913),
+  /// else nil.
   public static func state(
     _ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
     mark: WhiteboardLarryWait.Mark = .unknown
   ) -> String? {
-    guard let seconds = seconds(turn, now: now) else { return nil }
+    guard let seconds = seconds(turn, now: now) else { return turn.nothingToAdd ? nothingToAdd : nil }
     let already = alreadyHas(turn, now: now)
     let sent = !already && mark == .received
     let who = already ? "Larry already has this" : sent ? "Sent" : "Larry"
@@ -31,7 +35,7 @@ public enum WhiteboardLarryClock {
     _ turn: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
     mark: WhiteboardLarryWait.Mark = .unknown
   ) -> String? {
-    guard let seconds = seconds(turn, now: now) else { return nil }
+    guard let seconds = seconds(turn, now: now) else { return turn.nothingToAdd ? nothingToAdd : nil }
     let minutes = seconds / 60
     let rest = seconds % 60
     let words = [

@@ -78,6 +78,13 @@ public enum WhiteboardLarryWait: String, Equatable, Sendable {
   public static let stuckMessage = "Larry hasn't got the picture"
   public static let stuckContext = "WhiteboardView.larryStuck"
 
+  /// Larry closed the turn with nothing to say (#913): the message `id` is marked done and no message of his comes after
+  /// it in the thread (oldest first). False when the thread doesn't hold it.
+  public static func doneWithoutReply(_ id: String, in messages: [ChatMessage]) -> Bool {
+    guard let index = messages.lastIndex(where: { $0.id == id }), messages[index].receipt == .done else { return false }
+    return !messages[(index + 1)...].contains { !$0.fromIgor && !$0.isSystem }
+  }
+
   /// The mark of the message `id` in a thread's messages, nil when the thread doesn't hold it.
   public static func receipt(of id: String, in messages: [ChatMessage]) -> ChatMessage.Receipt? {
     messages.last { $0.id == id }?.receipt
