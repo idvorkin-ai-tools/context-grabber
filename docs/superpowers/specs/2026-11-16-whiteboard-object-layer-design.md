@@ -201,14 +201,46 @@ Larry answers a picture minutes old. Two things may have happened since.
 
 ### Igor's room, by hand
 
-What a finger does on paper is still unsettled in the main spec, so this is a proposal to try on the iPad, not a
-claim.
+Igor, on this design's review page, 2026-11-16: "I should be able to request a room as well. Press and hold Insert +
+Space. Or maybe insert a box, and it lets me draw a box, kind of like we can do on the Kindle [Scribe]." So asking for
+room is his as much as Larry's, and it is in the first slice: it needs nothing from Larry or the Cockpit.
 
-- **Proposed:** a finger pressed and held in the page's left margin shows a line across the page at the nearest clear
-  line, with a grip. Dragging the grip **down** opens room as it goes, a line at a time; dragging **up** closes blank
-  paper and stops at the first ink. Lifting ends it. The whole drag is one undo.
-- **Fallback if the margin hold fights with scrolling:** *Insert space* in the Board menu, then a tap where.
-- By hand there is no sum: the room is as tall as the drag. Step 5 still applies (blank bands below take it up).
+Two ways in. Both end the same way: room opens at a clear line, everything below slides down, one undo.
+
+**A. Press and hold, then *Insert space* (proposed).** The same morning he asked that press-and-hold "bring up a menu
+that does something useful" (bead `context-grabber-y4y`); this is its first useful item.
+
+- A finger pressed and held on the paper brings up a small menu at that spot. *Insert space* is in it. (What else the
+  menu holds is that bead's to say; *Paste* is the obvious second.)
+- Choosing it shows a line across the page at the clear line nearest the press, with a grip under the finger.
+- Dragging the grip **down** opens room as it goes, a line at a time, the ink below sliding with the finger. Dragging
+  back **up** gives it back, and past where it started closes blank paper that was already there, stopping at the
+  first ink. Lifting ends it.
+- A tap on *Insert space* with no drag opens three lines, so it is useful with one hand.
+- The Pencil's own press and hold is left alone: it draws.
+
+**B. Draw a box, as on the Scribe.** *Insert space* arms a one-shot tool; he drags a rectangle with the Pencil or a
+finger, and room as tall as the box opens at the box's top edge (moved to the nearest clear line). The box is not
+kept as ink. The tool is offered from the same press-and-hold menu and from the Board menu.
+
+| | A. Hold, pick, drag down | B. Draw a box |
+|---|---|---|
+| Says exactly what it does | Yes: a line and a height | Not quite: a box has a width, and room is always the full page width. A narrow box beside a diagram would still move the whole row. |
+| Sees the result while sizing | Yes, the ink moves under the finger | Only on lifting |
+| Close room again | The same drag, upward | Needs a separate way |
+| Works with the Pencil in hand | Finger holds, finger drags; the Pencil never leaves ink mode | Needs a tool mode, so the next Pencil stroke isn't ink. A mode he forgets he is in eats a stroke. |
+| Familiar | Like a text cursor's menu | Like the Scribe, which he already uses |
+| Depends on | A finger hold being told from a pan (unsettled on paper) | The Board menu alone is enough |
+
+**Proposed: A, with B's entry point as the fallback.** A does one thing the box can't (close room, and show the push
+live) and never puts the Pencil in a mode. If the iPad shows a finger hold can't be told from a pan on paper, B from
+the Board menu is what ships instead, since it needs no hold at all. Building both is the third choice: one more
+thing in the bar for the same result.
+
+- By hand there is no sum: the room is as tall as the drag or the box, in whole lines.
+- The cut still snaps to a clear line, so his hand can't split a line of writing either.
+- Blank bands below take up the push once that step is built (step 5); in the first slice the push is rigid.
+- The whole gesture is one undo.
 
 ## Reflow rules
 
@@ -348,6 +380,7 @@ By the test ladder; each slice says which rung it used.
 - "Ink Larry couldn't see": a ghost over older ink keeps in place; over newer ink it makes room.
 - Objects: all strokes moved together stay one object; any stroke lost or parted dissolves it; undo restores it; an
   unreadable or stale note gives a board of plain ink and no error.
+- Room by hand: as tall as the drag in whole lines; dragging up closes only blank paper and stops at ink.
 - The mark: with `h`, without `h`, with no room marks, two in one reply, numbers a board can't have.
 - The strokes send: `was` on every moved stroke and none other; `objects` matches the board; `can` on the message.
 - Paste: clear patch chosen nearest the middle; none on screen makes room; the caps still hold.
@@ -360,10 +393,11 @@ new and erased, a render lines up across a push.
 **Simulator (launch hooks and UI tests against the fake Cockpit)**: a reply with room shows the tag; Make room moves
 the ink and one undo restores it; Keep before Make room does both; a paste on a full screen lands on blank paper and
 selected; Delete removes it; a finger tap selects a kept label and Edit rewords it; pages are added by a push and
-taken back by its undo; the session log says each cut, sum and push in numbers.
+taken back by its undo; *Insert space* by hand opens the room dragged and one undo closes it; the session log says each cut, sum and push in numbers.
 
 **iPad only**: whether a finger tap selects an object cleanly and a drag on its grip moves it without panning the
-board; whether a finger hold in the margin can be told from a scroll; how a large push looks (a jump or a
+board; whether a finger press and hold can be told from a pan, and whether
+the ink keeps up with the finger while room is dragged open; how a large push looks (a jump or a
 slide) and whether the paper under the Pencil redraws at once; the lasso and both erasers on an object; that kept ink
 shows after a push (the "saved and counted but not shown" bug has happened before on paper); a real late reply from
 Larry while Igor keeps writing.
@@ -385,16 +419,20 @@ For the first slice (below). Each later slice adds its own when it is specified 
 - A ghost showing below the cut when a push happens is still beside the same ink afterwards.
 - Send the board to Larry after a push: the Cockpit's count of new strokes is only what was added, not everything
   that moved.
-- A look-only board: no paste, no push, nothing moves.
+- Press and hold between two lines of writing, choose *Insert space* and drag down three lines: the writing below is
+  three lines lower, the writing above hasn't moved, and one undo puts it back. Drag back up past the start: blank
+  paper closes and stops at the first ink.
+- Press and hold in the middle of a word and choose *Insert space*: the line appears between lines of writing, not
+  through the word.
+- A look-only board: no paste, no *Insert space*, no push, nothing moves.
 - The session log says, for each push: where the cut was asked and where it landed, what was needed, what was already
   blank, how far the ink moved and how many strokes moved.
 
 ## Open questions for Igor
 
-1. **"The space existing @ margin time."** What did you mean? This design read it two ways and used both: the blank
-   paper already there *at the moment room is opened* (spent before any ink moves), and the page's *margin* (where
-   your finger opens room by hand). If you meant Larry should write in the side margin instead of pushing, that is a
-   different design.
+1. **"The space existing @ margin time."** What did you mean? This design reads it as the blank paper already there *at
+   the moment room is opened*, spent before any ink moves. If you meant the page's side margin, with Larry writing
+   there instead of pushing, that is a different design.
 2. **Should Larry's room need your tap, or open on its own?** Proposed: a tap (*Make room*), because nothing of his
    changes the board until you say so. The other way is faster and moves your writing while you may be mid-thought.
 3. **Should a paste move ink without asking** when the screen is full, or arrive as a ghost you Keep? Proposed: it
@@ -403,17 +441,23 @@ For the first slice (below). Each later slice adds its own when it is specified 
    whole object, or leaves objects alone.
 5. **Should your own writing push Larry's objects out of the way** when you write into one? The bead says "content
    reflows when Igor writes above them". Proposed: not in the first build. Moving things while you write is the
-   easiest way to make the board feel haunted; room by hand covers it until we see how often it comes up.
+   easiest way to make the board feel haunted, and now that you can ask for room yourself in the first slice, that
+   covers it until we see how often it comes up.
+6. **How do you ask for room: hold and drag (A), draw a box like the Scribe (B), or both?** Proposed: A, with B as
+   the fallback if a finger hold can't be told from a pan on the iPad. See *Igor's room, by hand*.
 
 ## Smallest first slice
 
-Fixes the stated pain (things landing on ink) and needs no object note, no gesture and no new mark:
+Fixes the stated pain (things landing on ink) and lets Igor ask for room himself. It needs no object note, no new mark
+and nothing from Larry or the Cockpit beyond item 5:
 
 1. **The sum and the push**, as host-tested arithmetic: clear lines, needed against already there, whole-line push,
    one undo. No taking-up by blank bands below yet: a rigid push.
 2. **Paste lands in clear paper or makes room.** Still plain ink, not yet selected.
 3. **Keep makes room when Larry's ghost covers ink newer than his picture.**
-4. **`was` on moved strokes, and the Cockpit honouring it**, so the first push doesn't tell Larry the whole page is new.
+4. **Room by hand**: press and hold, *Insert space*, drag down to size it (or the box tool from the Board menu, if
+   the iPad says the hold can't work).
+5. **`was` on moved strokes, and the Cockpit honouring it**, so the first push doesn't tell Larry the whole page is new.
 
-Then, each its own slice: objects (the note, select, Delete, move, Edit); Larry's `insert-space` with `can`; room by
-hand; blank bands taking up the push.
+Then, each its own slice: objects (the note, select, Delete, move, Edit); Larry's `insert-space` with `can`; blank
+bands taking up the push.
