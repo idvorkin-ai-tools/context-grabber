@@ -50,6 +50,29 @@ headers with collapse and expand. Each is one of the operations text already has
 It stays ink throughout: nothing is recognised, retyped or snapped to a grid, and a lost note leaves a complete
 board.
 
+### Core ideas
+
+Igor, 2026-11-16, in his words:
+
+- "The best thing is collaborative whiteboarding to get everything out of your head and get feedback."
+- "Ink is better than typing because it slows you down and engages more of your mind."
+- "A lot of the inking apps are great."
+- "Non-features for now are cross-page linking. This isn't a Wikipedia or a knowledge base. These are whiteboarding sessions to sharpen my thinking on a specific topic."
+
+### Non-goals (for now)
+
+From the last of those. A board is a session, not a page in a knowledge base, so these stay out until he says
+otherwise:
+
+- **Cross-page linking.** No links from one board to another, or from a mark to a board.
+- **A knowledge base or wiki.** A board is one session on one topic. Nothing here organises boards into a body of notes: no folders, tags, backlinks or index pages.
+- **Search across boards.** Finding a board by what is written on it is what a knowledge base needs and a session doesn't. It was floated under handwriting recognition and is withdrawn.
+- **Recognising handwriting to build an index.** The only use of reading his ink that survives is the one inside a session: *Make text* on a header, later, by his tap.
+- **Long typed documents on a board.** Text objects stay short and drawn as ink. A real text box for long notes would pull the board toward being a document store.
+
+Nothing in *Features to build* serves only cross-board or knowledge-base use, so no row is dropped for this. Renaming
+a board names a session; it is not a step toward a wiki.
+
 ## Features to build
 
 Igor, 2026-11-16: "I think we have a bunch of features we want to figure out that we can prioritize into features and
@@ -89,8 +112,8 @@ morning is in one place.
 - **The Cockpit goes before Larry** (16 before 17), and `was` (5) before either, for the reasons under *Backward
   compatibility*.
 - **Audio-synced ink replay (20)** is not designed in this document.
-- **Reading his handwriting** (search, *Make text*) is discussed under *Technical: object types* and is not a row
-  yet.
+- **Reading his handwriting** is discussed under *Technical: object types* and is not a row: search across boards
+  is a non-goal (*Non-goals (for now)*), and *Make text* waits for him to ask.
 
 ### Prior art: ink that behaves like text
 
@@ -166,6 +189,7 @@ stay the whole drawing interface; objects come only from a paste or a Keep.
 - Reshaping: no resize handles, no rotating, no dragging an arrow's end. Move, reword, delete.
 - Arrows that stay attached to what they point at when one end moves.
 - Sideways reflow or columns. Room opens across the whole page width, downward only.
+- Cross-page linking, a knowledge base, and search across boards: see *Non-goals (for now)* under the vision.
 - The board reading his handwriting to find headings by itself. He marks a header, or Larry suggests one.
 - Larry moving, editing or deleting objects. He proposes marks and room; Igor's tap decides. (His protocol leaves the
   door open; see *Protocol*.)
@@ -298,8 +322,8 @@ Both, on purpose. **The words are real text; the ink is how they are drawn.**
 
 **Proposed: words kept, drawn as ink.** It gives the two things asked for, text that can be edited and that reflows
 by word, without a second kind of content on the page. What it gives up is editing in place with a cursor, and long
-documents; a board is not where those belong. If long typed notes ever matter, a real text box is the upgrade, and
-the words are already stored as text to make it from.
+documents; a board is not where those belong. A real text box for long typed notes would be the upgrade, but it
+pulls the board toward a document store, which is a non-goal for now.
 
 ### Could the board read his handwriting?
 
@@ -310,15 +334,15 @@ Probably, on the device, and it would be an addition beside the ink, never a rep
   as text in Notes) are, as far as this design knows, not offered to other apps; that wants checking before anything
   is promised. Larry already reads the handwriting from the strokes, so his reading is a second source that costs
   nothing new.
-- **Searchable.** Recognised words kept as an index beside the board would let boards be found by what is written on
-  them. This matters once there are more boards than fit in memory; "no search" is a non-goal of the whiteboard
-  today, and this is what would lift it.
+- **Searchable: now a non-goal.** Recognised words kept as an index would let boards be found by what is written on
+  them. Igor has since said these are sessions on one topic, not a knowledge base (*Core ideas*), so search across
+  boards is out, and with it the main reason to read his ink at all.
 - **Convertible.** *Make text* on a group or a row would turn handwriting into a text object, which can then be
   reworded and re-wrapped. This matters most for headers (an outline with typed titles, a list of sections) and for
   handing a board's words to something else. It is lossy: his cursive is often misread, so it must be his tap, shown
   before it replaces anything, and one undo.
-- **Not proposed now.** Nothing in grouping, room, reflow or folding needs the board to know what the ink says. It
-  goes in *Features to build* as a later row if he wants it.
+- **Not proposed now.** Nothing in grouping, room, reflow or folding needs the board to know what the ink says.
+  *Make text* on a header is the one use left, inside a single board, and only if he asks for it.
 
 ## Making room (insert-space)
 
