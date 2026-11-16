@@ -58,7 +58,7 @@ morning is in one place.
 | 17 | Larry's Make room, on your tap | His reply asks for room; a dashed line and a tag show; your tap opens it. Then his skill learns to ask. | 4, 16 | Next | `context-grabber-2q4` |
 | 18 | Blank paper absorbs a push | Blank bands below give up their extra lines, so room opened at the top moves a few lines, not every page. | 4 | Later | `context-grabber-2q4` |
 | 19 | Headers and collapse / expand | Mark a row as a header; − folds its section, + opens it; Fold all. | 4, 12 | Later | `context-grabber-2q4` |
-| 20 | Audio-synced ink replay | Notability-style: play a board back stroke by stroke with what was said. Every stroke already records when it was drawn, so replay without sound is the cheap half. Prior art to come. | none | Later | none yet |
+| 20 | Audio-synced ink replay | Notability-style: play a board back stroke by stroke with what was said. Two readings, to be settled: the ink redraws in time with the sound, or a transcript is written out. Every stroke already records when it was drawn, so redrawing without sound is the cheap half. | none | Later | none yet |
 
 - **The push (4) is the root.** Six rows need it and it shows nothing by itself, so it ships inside the first feature
   that uses it (paste lands in clear space) rather than alone.
@@ -69,9 +69,44 @@ morning is in one place.
 - **Reading his handwriting** (search, *Make text*) is discussed under *Technical: object types* and is not a row
   yet.
 
-### Prior art: ink replay
+### Prior art: ink that behaves like text
 
-*Placeholder. A prior-art section (Notability and others) is being written separately and lands here.*
+From a separate survey, 2026-11-16. **✓** the linked source says it does; **✗** the source says it doesn't; **?** not
+found or not verified; **–** doesn't apply. A **?** is not a no.
+
+| App | Group | Reflow | Insert space | Headers / collapse | Audio sync | Note |
+|---|---|---|---|---|---|---|
+| [MyScript Notes (was Nebo)](https://help.myscript.com/raw/notes/create-content/adjust-zoom-and-space.md) | ✓ | ✓ | ✓ | heading ✓ (2016), collapse ? | ? | Handwriting reflows in its Document mode; a two-finger long-press adjusts space; underline makes a heading (a 2016 review only). |
+| [OneNote](https://support.microsoft.com/en-us/OneNote/onenote-help-and-learning/create-an-outline-to-structure-notes) | ✓ | ? | ✓ | collapse ✓, typed outlines | ✓ | Insert Space, lasso, Ink to Text; collapses typed outlines; playback highlights the notes taken at that moment. |
+| [Microsoft Journal](https://support.microsoft.com/en-US/journal/selecting-ink-and-actions) | ✓ | ? | ? | heading ✓, collapse ? | ? | Repeated taps widen a selection from word to line to paragraph to page; a recognised heading gets a Cue that selects its section. |
+| [Apple Notes (iPadOS)](https://support.apple.com/en-asia/guide/ipad/draw-or-write-ipada87a6078/16.0/ipados) | ✓ | ? | ✓ | ? for ink | ? | Smart Selection, Insert Space Above, scratch to delete; its collapsible headers are for typed text only. |
+| [Notability](https://intercom.help/notability/en-us/articles/16300122-recording-and-playing-audio) | ? | ? | ? | none | ✓ | Tap a word or sketch during playback to hear that moment. No outlining. |
+| [Goodnotes 6](https://goodnotes.com/features/audio-recording) | ? | ? | ? | ? | ✓ | Tap ink to jump the audio; Real-time reveal redraws the ink in time with it (from a search snippet; the help page would not load). |
+| [Kindle Scribe](https://androidauthority.com/kindle-scribe-note-taking-3330757) | ✓ | ? | ✗ (2023) | ? | ? | Lasso move, cut, copy, resize. The 2023 review found no insert space; Igor uses one on his today, so this cell is out of date. |
+| [reMarkable](https://support.remarkable.com/articles/Knowledge/Release-notes-overview) | ✓ | ? | ? | ? | ? | Selection handles, handwriting conversion. |
+| [Samsung Notes](https://samsung.com/us/support/answer/ANS00087287/) | ? | ? | ? | ? | ✓ | Highlights the writing as the audio plays; tap handwriting to play from there. |
+| [Livescribe pen](https://livescribe.helpscoutdocs.com/article/837-83252) | – | – | – | – | ✓ | Tap ink on paper to play from that moment. |
+| [Tivoli (PARC, 1997)](https://chunk.cc.gatech.edu/AY2013/cs4470_fall/readings/moran-tivoli.pdf) | ✓ | ✓ | ✓ | ✓ | – | A wedge gesture opens space in a handwritten list; structural grouping; collapsible annotations. Outline structure was built, then switched off: users only made lists. |
+| [Flatland (PARC, 1999)](https://faculty.cc.gatech.edu/~keith/pubs/flatland-chi99.pdf) | ✓ | ? | – | – | time slider | Strokes fall into segments on their own; behaviours attach to a segment; history replays. |
+| [Dynomite (FXPAL, 1997)](https://chi1997.acm.org/proceedings/paper/ldw.html) | ✓ | – | – | – | ✓ | An ink and audio notebook that keeps the audio around highlighted passages. |
+
+InkSeine (2007) is ink-driven search, not layout, and is left out.
+
+**What is new here**
+
+- **The combination, on raw ink, on an open page.** No shipping app found puts grouping, reflow, insert space and collapsible headers together on handwriting that stays handwriting. MyScript Notes needs its Document mode; OneNote collapses typed outlines only.
+- **Collapsing under a handwritten header.** Journal recognises headings and no collapse was found; Tivoli had it and switched it off.
+- **Room that pushes ink without converting it.** Tivoli did it on a 1990s wall board; no current iPad app was found doing it.
+
+**Worth stealing**
+
+- **Tivoli's wedge and pigtail.** A drawn wedge opens space where it points and a pigtail deletes, and lists rearrange by bumping an item into place. A Pencil gesture for room that needs no menu and no finger.
+- **Journal's widening tap and heading Cue.** Tap again to widen a selection from word to line to paragraph; a mark beside a heading selects its whole section. The Cue maps straight onto the − in the margin.
+- **Goodnotes' real-time reveal.** Dim the strokes not yet played and reveal them in time with the sound. With Flatland's idea of strokes falling into segments on their own, it also hints at grouping without a lasso.
+
+**Two things Igor said that the survey could not pin down**, both now open questions: which "Outlining" he meant
+(classic OneNote's + and − outlining, or the iPad app named Outline), and whether replay means the ink redrawing in
+time with the sound or a written transcript.
 
 ## What is wrong today
 
@@ -687,6 +722,10 @@ as objects (*How things become objects*; that note arrived cut off, so the readi
    handwriting.
 4. **What does Larry get of a folded section?** Proposed: all of it, flagged as folded. The other choices are only
    its header, or the board exactly as it shows on your screen.
+5. **Which "Outlining" did you mean?** Classic OneNote's + and − outlining, the iPad app named Outline, or something
+   else. It decides what the folding should feel like.
+6. **What is "replay"?** The ink redrawing itself in time with the recording, or a transcript of what was said written
+   back out. They are different features; row 20 covers whichever you meant.
 
 ## Smallest first slice
 
