@@ -66,6 +66,8 @@ morning is in one place.
 - **The Cockpit goes before Larry** (16 before 17), and `was` (5) before either, for the reasons under *Backward
   compatibility*.
 - **Audio-synced ink replay (20)** is not designed in this document.
+- **Reading his handwriting** (search, *Make text*) is discussed under *Technical: object types* and is not a row
+  yet.
 
 ### Prior art: ink replay
 
@@ -193,6 +195,72 @@ object is simply ink again.
 
 The note travels with the board to other devices. A device that doesn't understand it shows ink, and since only the
 device that made a board draws on it, a stale note can't be written back over a newer drawing.
+
+## Technical: object types
+
+Igor, 2026-11-16: "Maybe there's a technical section. What are the object types? Do we have object types for text as
+well as ink that we can sort of treat interactively?"
+
+Yes: there are two families. **Ink things** hold only strokes. **Text things** hold words as real text and are drawn
+on the board as ink. Both are picked up, moved and deleted the same way; only text things can be reworded. (This
+section is about what exists and what each can do, not how it is coded.)
+
+| Type | Holds | Stored as | Igor can | Larry sends / reads | Reflow |
+|---|---|---|---|---|---|
+| **Plain ink** | One stroke of his handwriting or drawing. | A stroke in the drawing. Nothing else. | Draw, erase, lasso. | Reads it, with when it was drawn. Never sends it. | Slides down or up with its row. Never split, never scaled. |
+| **Ink group** | Strokes of his own that he grouped: a diagram, a formula. | The same strokes, plus a note listing them. | Select, move, delete, ungroup. | Reads it as a group with its box. Doesn't send one. | Moves whole. A cut never passes through it. |
+| **Kept shape: box, circle, arrow, line, arc, curve** | One mark of Larry's or Claude's, kept. The strokes that draw it and the shape's own numbers (corners, centre, ends). | Strokes, plus a note with the kind, the numbers, the look, who made it and which reply. | Select, move, delete, ungroup. Not reshape. | Sends each as a mark. Reads back which were kept, and where they are now. | Moves whole. |
+| **Kept label** | A kept mark with words: the words, and the strokes that draw them. | The words as real text in the note, with the look; strokes on the board drawn from them. | Select, move, **reword**, delete, ungroup. | Sends the words and where. Reads the words back as text. | Moves whole. Rewording redraws it and makes room if it grew. |
+| **Pasted text** | A block of text from the clipboard: the words, the width it wraps at, the strokes that draw them. | The words as real text in the note, with wrap width and look; strokes drawn from them. | Select, move, **reword**, delete, ungroup. Lands selected. | Doesn't send one. Reads the words as text, not as a picture of letters. | Moves whole. Rewording re-wraps by word at its width and makes room if it grew. |
+| **Header** | A flag on one row of his own ink, and whether its section is folded. | A note naming the row's strokes. The strokes are plain ink. | Mark, un-mark, fold with −, unfold with +. | Reads the sections and which are folded. Later, suggests one. | Its section moves as one block; folded, it is a solid block. |
+| **Room** | Not a thing on the board: an act. Where a cut was, how far the ink moved, when. | A short history of pushes in the note. Room Larry has asked for and Igor hasn't opened is a ghost, stored nowhere. | Open by hand, close blank paper, undo. Tap *Make room* on Larry's. | Sends `insert-space`. Reads the pushes since his last look. | It *is* the reflow. |
+| **Audio-anchored stroke (future)** | Any stroke, plus where in a recording it was drawn. | Not designed. Each stroke already records when it was drawn; the recording would be new, kept beside the board. | Play the board back; tap ink to hear what was said then. | Not designed. | Unaffected: the anchor is a time, not a place. |
+
+A ghost is none of these: it is nothing until kept.
+
+### Is a text object real text, or ink?
+
+Both, on purpose. **The words are real text; the ink is how they are drawn.**
+
+- The words are kept as text. Editing is typing. Re-wrapping is by word: change the words, or later the block's
+  width, and the lines break again where words end and the block redraws.
+- On the board it is strokes, the letters' outlines, as a paste is today. So it is in every picture, in the strokes
+  Larry gets, in the saved board, on the phone and in an older build with no extra work, and the eraser, the lasso
+  and zoom treat it like everything else on the page.
+
+| | Words kept, drawn as ink (proposed) | A real text box on the board | Ink only (today) |
+|---|---|---|---|
+| Edit the words | Yes: type, and it redraws | Yes, with the system's cursor and selection | No |
+| Re-wrap by word | Yes, on edit or a width change | Yes, live | No |
+| In Larry's picture and strokes, the phone, older builds | Yes, as ink, unchanged | No: each needs to learn a second kind of thing, and older builds can't show it | Yes |
+| Eraser and lasso | Work on it; a partial erase ungroups it | Don't touch it | Work on it |
+| Looks like the rest of the board | Yes: ink | No: type among handwriting | Yes |
+| Select a word, put a cursor mid-line on the board | No: editing is in a small field over the board | Yes | No |
+| Long text | Capped (500 characters today): every letter is strokes | No real limit | Capped |
+
+**Proposed: words kept, drawn as ink.** It gives the two things asked for, text that can be edited and that reflows
+by word, without a second kind of content on the page. What it gives up is editing in place with a cursor, and long
+documents; a board is not where those belong. If long typed notes ever matter, a real text box is the upgrade, and
+the words are already stored as text to make it from.
+
+### Could the board read his handwriting?
+
+Probably, on the device, and it would be an addition beside the ink, never a replacement for it.
+
+- **What exists.** Apple's Vision text recognition reads handwriting from a picture, on the device, and the board
+  can already draw any region as a picture. PencilKit's own handwriting features (searching and copying handwriting
+  as text in Notes) are, as far as this design knows, not offered to other apps; that wants checking before anything
+  is promised. Larry already reads the handwriting from the strokes, so his reading is a second source that costs
+  nothing new.
+- **Searchable.** Recognised words kept as an index beside the board would let boards be found by what is written on
+  them. This matters once there are more boards than fit in memory; "no search" is a non-goal of the whiteboard
+  today, and this is what would lift it.
+- **Convertible.** *Make text* on a group or a row would turn handwriting into a text object, which can then be
+  reworded and re-wrapped. This matters most for headers (an outline with typed titles, a list of sections) and for
+  handing a board's words to something else. It is lossy: his cursive is often misread, so it must be his tap, shown
+  before it replaces anything, and one undo.
+- **Not proposed now.** Nothing in grouping, room, reflow or folding needs the board to know what the ink says. It
+  goes in *Features to build* as a later row if he wants it.
 
 ## Making room (insert-space)
 
