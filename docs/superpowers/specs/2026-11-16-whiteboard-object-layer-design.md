@@ -11,10 +11,23 @@ Builds on [the whiteboard](2026-11-01-whiteboard-design.md), [ghosts and shapes]
 **This is a design for Igor to mark up. Nothing here is built.** Stories go in
 [10-whiteboard.md](../../stories/10-whiteboard.md) with each slice that is.
 
-## The idea in one line
+## The idea
 
-A kept mark or a paste stays **one thing** Igor can pick up, change or remove, and anything that needs room **finds
-clear paper or pushes the ink below it down**, so nothing ever lands on his writing.
+Igor, 2026-11-16, after reading the first draft: "I think the core idea here is really that ink is a bit like text, and it can kind of reflow if grouped, selected, ungrouped, and collapsed. It's this interesting hybrid."
+
+That is the thesis, and everything below is one of its operations:
+
+| What text can do | On the board | Where |
+|---|---|---|
+| Group | Strokes that belong together become one object: on Keep, on paste, or when he groups a lasso selection | *The object model* |
+| Select | A finger tap picks up an object whole | *Select, move, edit, delete* |
+| Ungroup | An object goes back to plain ink, by choice or when the eraser parts it | *Objects and the Pencil's own tools* |
+| Move | A selected object is dragged; ink below a line slides as a block | *Select, move…*, *Reflow rules* |
+| Make room | A line break: room opens and everything below moves down | *Making room* |
+| Collapse and expand | A section tucks under its header and comes back | *Outlining with ink* |
+
+It stays ink throughout: nothing is recognised, retyped or snapped to a grid, and a lost note leaves a complete
+board.
 
 ## What is wrong today
 
@@ -36,7 +49,7 @@ stay the whole drawing interface; objects come only from a paste or a Keep.
 
 ## Goals
 
-- A kept mark and a paste are each one object: select, move, edit its words, delete.
+- A kept mark and a paste are each one object: select, move, edit its words, ungroup, delete. He can group his own ink.
 - Nothing Larry, Claude or a paste adds covers ink that was there first, unless Larry meant it to (a circle round a word).
 - Larry can ask for room, and the board works out how much to open from what the reply needs and what is already blank.
 - Igor can open and close room by hand.
@@ -45,11 +58,13 @@ stay the whole drawing interface; objects come only from a paste or a Keep.
 
 ## Non-goals
 
-- Igor's own handwriting as objects (recognising his lines, paragraphs or diagrams). His ink is ink. Reflow moves it
-  by where it sits, never by what it means.
+- The board deciding which of Igor's strokes belong together (recognising his lines, paragraphs or diagrams). His ink
+  is ink until he groups it. Reflow moves it
+  by where it sits, never by what it means. A header (below) is a flag on a row of his ink, not an object.
 - Reshaping: no resize handles, no rotating, no dragging an arrow's end. Move, reword, delete.
 - Arrows that stay attached to what they point at when one end moves.
 - Sideways reflow or columns. Room opens across the whole page width, downward only.
+- The board reading his handwriting to find headings by itself. He marks a header, or Larry suggests one.
 - Larry moving, editing or deleting objects. He proposes marks and room; Igor's tap decides. (His protocol leaves the
   door open; see *Protocol*.)
 - Two devices drawing one board. Unchanged.
@@ -69,9 +84,17 @@ look-only phone exactly as ink is today, with no extra work.
 ### How things become objects
 
 - **Keep** on a ghost makes the ink it makes today, and that ink is one object. One undo still takes it back whole.
+- **That is every kind of mark Larry or Claude can send**: a label, a box, a circle, an arrow, a line, an arc, a
+  freehand curve. Each lands as its own object when kept, never as loose ink. A label is an object with words (Edit
+  rewords it); a box, a circle and the rest are objects without words (select, move, delete). Igor, 2026-11-16:
+  "Larry should be able to also send circles and boxes and text shapes that land…" (his note was cut off there; this
+  is how it was read).
 - **A paste** makes one object for the whole block of text, not one per line.
 - **Copied strokes pasted with ⌘V** stay plain ink, as they were ink when copied.
-- **Igor's own strokes are never objects.**
+- **Igor's own strokes are never objects by themselves.** He can make them one: with strokes selected by the lasso,
+  **Group** makes the selection a single object without words, so it moves and deletes as one and no cut ever passes
+  through it. This is how a diagram of his stays whole. (Where *Group* is offered depends on whether the lasso's own
+  menu can take an item; if not, it sits in the press-and-hold menu while a selection is up. For the iPad to say.)
 - A ghost is not an object. It is still nothing until kept.
 
 ### Select, move, edit, delete
@@ -82,7 +105,8 @@ the finger parts below are a proposal to try on the iPad, as *Igor's room, by ha
 - **A finger tap on an object selects it**: a thin outline round it and a small row of buttons beside it, placed like
   Keep and Dismiss are today (wholly on screen, following the object as the board moves). The Pencil never selects; it
   draws, through an object as through anything.
-- **The buttons:** **Edit** (objects with words), **Delete**, and a grip to drag. A tap elsewhere, or starting to draw,
+- **The buttons:** **Edit** (objects with words), **Ungroup**, **Delete**, and a grip to drag. *Ungroup* turns the
+  object back into plain ink where it sits; nothing on the board changes but what a tap picks up. One undo regroups it. A tap elsewhere, or starting to draw,
   puts them away and changes nothing.
 - **Move:** dragging the selected object by its grip moves it; a drag anywhere else still pans the board. It lands where it is dropped, even on ink: Igor put it
   there. One undo puts it back.
@@ -219,6 +243,12 @@ that does something useful" (bead `context-grabber-y4y`); this is its first usef
 - A tap on *Insert space* with no drag opens three lines, so it is useful with one hand.
 - The Pencil's own press and hold is left alone: it draws.
 
+**The left margin is a handle too** (Igor's pick, 2026-11-16: "use the left margin as my handle"). A finger pressed
+and held in the page's left margin skips the menu: the line and its grip appear at the nearest clear line at once,
+and the same drag opens or closes room. It is the quick way when he already knows he wants room; the menu is the way
+that can be found without being told. Both are in the first slice and both are the same gesture after the first
+touch.
+
 **B. Draw a box, as on the Scribe.** *Insert space* arms a one-shot tool; he drags a rectangle with the Pencil or a
 finger, and room as tall as the box opens at the box's top edge (moved to the nearest clear line). The box is not
 kept as ink. The tool is offered from the same press-and-hold menu and from the Board menu.
@@ -232,7 +262,7 @@ kept as ink. The tool is offered from the same press-and-hold menu and from the 
 | Familiar | Like a text cursor's menu | Like the Scribe, which he already uses |
 | Depends on | A finger hold being told from a pan (unsettled on paper) | The Board menu alone is enough |
 
-**Proposed: A, with B's entry point as the fallback.** A does one thing the box can't (close room, and show the push
+**Proposed: A (with the margin handle, which is decided), and B's entry point as the fallback.** A does one thing the box can't (close room, and show the push
 live) and never puts the Pencil in a mode. If the iPad shows a finger hold can't be told from a pan on paper, B from
 the Board menu is what ships instead, since it needs no hold at all. Building both is the third choice: one more
 thing in the bar for the same result.
@@ -280,6 +310,92 @@ thing in the bar for the same result.
 
 One push, with everything it carried (the pages, the keep or paste that caused it), is one undo and one redo. Undo
 doesn't outlive the board, as today.
+
+## Outlining with ink: headers and collapse
+
+Igor, 2026-11-16: "In fact, I should probably be able to do collapsing as well. We could have headers and collapse
+stuff, so I could use + and -. How could that work so that we have a combined outlining sort of setup with Ink?"
+
+It works because of two things already above: the board can find **rows** (the ink between two clear lines), and it
+can slide everything below a line up or down. A header is a row with a flag on it. Collapsing is closing the room
+its section takes; expanding is opening it again.
+
+### Marking a header
+
+A header is one of his own rows of handwriting, flagged. It is not an object: it stays his ink, drawn and erased like
+any other. Three ways to flag one:
+
+- **A finger tap in the left margin beside a row** (proposed). A faint **−** appears there and the row is a header.
+  The margin already belongs to the finger: a hold there opens room, a tap there marks a header. A tap on a
+  header's own − folds it (below); to un-mark a header, press and hold its − or + and choose *Not a header*.
+- **Press and hold on a row, then *Make header*** in the same menu as *Insert space*. The way that can be found.
+- **Larry suggests one.** A later step: a mark that says *this row reads like a heading*, shown as a faint − in his
+  colour, kept or dismissed like any ghost. He reads the words; the board never tries to.
+
+Not proposed: the board guessing headers from underlines, size or a symbol he writes. It would be wrong often enough
+that he would stop trusting the margin.
+
+### What a section is
+
+- A section is its header row and **everything below it down to the clear line above the next header**, or to the end
+  of the ink. Ink belongs to a section by where it sits, so writing added under a header joins it with no step.
+- Whatever is above the first header belongs to no section and never folds.
+- **One level to begin with.** Every header is a sibling. Nesting is an open question below.
+- Erase a header's ink and the flag goes with it: its section joins the one above. No ink is lost.
+
+### + and −
+
+- An open header shows **−** in the left margin; a folded one shows **+** and, after its row, a faint tag saying what
+  is tucked away: *14 lines*. Neither is ink, like the page number.
+- **A finger tap on − folds the section.** Its body disappears, and everything below slides up to sit one line under
+  the header, exactly as closing room does. **A tap on + unfolds it**: the ink below slides down and the body is back
+  where it was, stroke for stroke.
+- *Fold all* and *Unfold all* sit in the Board menu: an outline of the whole board in one tap.
+- Folding is not on the undo stack. Undo takes back ink, never a fold, so an undo can't spring a section open.
+- A board opens folded as he left it on this device.
+
+### Folding and the rest of this design
+
+- **Nothing folded is ever removed from the board.** The saved board is always the whole board, unfolded. Folding is
+  how this device shows it, remembered in the note beside the ink. An older build, the look-only phone and a lost
+  note all show everything, unfolded.
+- **A folded section is a solid block for reflow.** It moves with its header in a push. Room can't be opened inside
+  it, and a cut never lands in it.
+- **Ink can't land in a folded section.** A paste goes to clear paper that is showing. A ghost of Larry's that belongs
+  inside a folded section shows on the header's + as a count (*2 marks inside*), and a tap unfolds the section so the
+  marks can be seen and kept.
+- **Writing directly under a folded header** is on the paper that is showing, so it lands after the folded body, in
+  the same section, and is there when he unfolds.
+- **Trade-off, named:** page numbers and page lines count the paper as it shows. Fold a long section and *Page 3 of 5*
+  becomes *Page 2 of 3*, and writing that was on one page shows on another. The alternative, pages fixed to the
+  unfolded board, leaves page-sized holes where folded sections were. The half-line drift on ruled paper applies to a
+  fold as to a push.
+- **Cost, named:** this is the first place the board shows something other than exactly what is saved. Every stroke
+  drawn on a folded board has to be put back at its unfolded place before it is saved or sent. That is the same
+  carrying that late replies need, running the other way, and it is why outlining comes after the push is proven.
+
+### What Larry, the strokes and the export see
+
+**Everything that leaves the board is the whole board, unfolded.** One rule:
+
+- **The strokes** are every stroke, at its unfolded place, as today. With them goes a `sections` list: for each, its
+  header's strokes, the span it covers, and whether it is folded. Larry's reply lands by the same frame as today
+  whatever is folded.
+- **Larry's picture** of the pages on screen shows their sections unfolded. A folded section in it is drawn in full,
+  and the `sections` list tells him it was folded, which is a real signal: it is what Igor has set aside. Larry is
+  asked to answer what is open unless a question points into a fold.
+- **The list's picture, a shared picture and iCloud** carry the whole board. A folded section is never missing from
+  anything he exports.
+
+Trade-off: Larry and Chat see more than Igor's screen does. The other way, sending the board as folded, gives Larry
+a shorter picture focused on what is open, at the price of marks that must be carried back through every fold and a
+Chat picture that silently lacks ink. Proposed: whole board, with folds flagged.
+
+### Slice
+
+Its own slice, after the first slice (the push) and after objects (which brings the note the flags live in): headers
+by margin tap and menu, fold and unfold, `sections` with the strokes. Larry suggesting headers, and nesting if wanted,
+follow.
 
 ## Paste, after this
 
@@ -378,9 +494,13 @@ By the test ladder; each slice says which rung it used.
 - A push is a pure slide: every moved stroke keeps its size, and its place relative to its band's others.
 - Carrying a mark from an old picture through one, two and overlapping pushes; a mark above every cut doesn't move.
 - "Ink Larry couldn't see": a ghost over older ink keeps in place; over newer ink it makes room.
-- Objects: all strokes moved together stay one object; any stroke lost or parted dissolves it; undo restores it; an
+- Objects: grouping a selection makes one object and ungrouping leaves the same strokes as plain ink, each one undo;
+  all strokes moved together stay one object; any stroke lost or parted dissolves it; undo restores it; an
   unreadable or stale note gives a board of plain ink and no error.
 - Room by hand: as tall as the drag in whole lines; dragging up closes only blank paper and stops at ink.
+- Sections: a section runs from its header to the clear line above the next; folding slides what is below up to one
+  line under the header and unfolding puts every stroke back exactly; a stroke drawn on a folded board is saved at its
+  unfolded place; a push carries a folded section whole; erasing a header's ink removes the flag and no ink.
 - The mark: with `h`, without `h`, with no room marks, two in one reply, numbers a board can't have.
 - The strokes send: `was` on every moved stroke and none other; `objects` matches the board; `can` on the message.
 - Paste: clear patch chosen nearest the middle; none on screen makes room; the caps still hold.
@@ -396,7 +516,8 @@ selected; Delete removes it; a finger tap selects a kept label and Edit rewords 
 taken back by its undo; *Insert space* by hand opens the room dragged and one undo closes it; the session log says each cut, sum and push in numbers.
 
 **iPad only**: whether a finger tap selects an object cleanly and a drag on its grip moves it without panning the
-board; whether a finger press and hold can be told from a pan, and whether
+board; whether a finger press and hold, on the paper and in the margin, can be told from a pan, and a margin tap from
+both; how a fold looks as it closes; and whether
 the ink keeps up with the finger while room is dragged open; how a large push looks (a jump or a
 slide) and whether the paper under the Pencil redraws at once; the lasso and both erasers on an object; that kept ink
 shows after a push (the "saved and counted but not shown" bug has happened before on paper); a real late reply from
@@ -424,27 +545,38 @@ For the first slice (below). Each later slice adds its own when it is specified 
   paper closes and stops at the first ink.
 - Press and hold in the middle of a word and choose *Insert space*: the line appears between lines of writing, not
   through the word.
-- A look-only board: no paste, no *Insert space*, no push, nothing moves.
+- Press and hold in the left margin and drag down: the same room opens, with no menu.
+- A look-only board: no paste, no *Insert space*, no margin handle, no push, nothing moves.
 - The session log says, for each push: where the cut was asked and where it landed, what was needed, what was already
   blank, how far the ink moved and how many strokes moved.
 
+## Decisions (Igor, 2026-11-16)
+
+Picked on this design's review page. Where the text above says *proposed* for one of these, it is now decided.
+
+1. **"The space existing @ margin time" meant both readings.** Blank paper already there when room opens is spent
+   before any ink moves, and the left margin is his handle for opening room by hand.
+2. **Larry's room waits for his tap** on *Make room*. It never opens on its own.
+3. **A paste on a full screen makes room and lands selected**, with Delete beside it. It is not a ghost to keep.
+4. **Erasing part of an object dissolves it**: what is left becomes plain ink.
+5. **His own writing does not push Larry's objects**, not in the first build. He opens room by hand.
+
+Also his, the same day: he can ask for room himself (*Igor's room, by hand*), and Larry's circles, boxes and text land
+as objects (*How things become objects*; that note arrived cut off, so the reading wants his nod).
+
 ## Open questions for Igor
 
-1. **"The space existing @ margin time."** What did you mean? This design reads it as the blank paper already there *at
-   the moment room is opened*, spent before any ink moves. If you meant the page's side margin, with Larry writing
-   there instead of pushing, that is a different design.
-2. **Should Larry's room need your tap, or open on its own?** Proposed: a tap (*Make room*), because nothing of his
-   changes the board until you say so. The other way is faster and moves your writing while you may be mid-thought.
-3. **Should a paste move ink without asking** when the screen is full, or arrive as a ghost you Keep? Proposed: it
-   lands in clear paper or makes room, selected, with Delete beside it.
-4. **Is "cross out part of an object and it becomes plain ink" right?** The other choice is an eraser that takes the
-   whole object, or leaves objects alone.
-5. **Should your own writing push Larry's objects out of the way** when you write into one? The bead says "content
-   reflows when Igor writes above them". Proposed: not in the first build. Moving things while you write is the
-   easiest way to make the board feel haunted, and now that you can ask for room yourself in the first slice, that
-   covers it until we see how often it comes up.
-6. **How do you ask for room: hold and drag (A), draw a box like the Scribe (B), or both?** Proposed: A, with B as
-   the fallback if a finger hold can't be told from a pan on the iPad. See *Igor's room, by hand*.
+1. **How do you ask for room, besides the margin handle: hold and drag (A), draw a box like the Scribe (B), or both?**
+   Proposed: A, with B as the fallback if a finger hold can't be told from a pan on the iPad. See *Igor's room, by
+   hand*.
+2. **What marks a header?** Proposed: a finger tap in the left margin beside the row, with *Make header* in the
+   press-and-hold menu as the way that can be found, and Larry suggesting headers later. The other choices are the
+   menu alone, or a symbol you write that the board recognises (not proposed: it will guess wrong).
+3. **One level of headers, or nested?** Proposed: one level first. Nesting would go by indentation (a header that
+   starts further right folds inside the one above), which asks the board to judge how far right is "indented" in
+   handwriting.
+4. **What does Larry get of a folded section?** Proposed: all of it, flagged as folded. The other choices are only
+   its header, or the board exactly as it shows on your screen.
 
 ## Smallest first slice
 
@@ -455,9 +587,9 @@ and nothing from Larry or the Cockpit beyond item 5:
    one undo. No taking-up by blank bands below yet: a rigid push.
 2. **Paste lands in clear paper or makes room.** Still plain ink, not yet selected.
 3. **Keep makes room when Larry's ghost covers ink newer than his picture.**
-4. **Room by hand**: press and hold, *Insert space*, drag down to size it (or the box tool from the Board menu, if
-   the iPad says the hold can't work).
+4. **Room by hand**: the left-margin handle, and press and hold, *Insert space*, drag down to size it (or the box
+   tool from the Board menu, if the iPad says the hold can't work).
 5. **`was` on moved strokes, and the Cockpit honouring it**, so the first push doesn't tell Larry the whole page is new.
 
 Then, each its own slice: objects (the note, select, Delete, move, Edit); Larry's `insert-space` with `can`; blank
-bands taking up the push.
+bands taking up the push; outlining (headers and collapse).
