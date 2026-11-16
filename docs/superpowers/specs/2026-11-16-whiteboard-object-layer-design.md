@@ -103,6 +103,7 @@ morning is in one place.
 | 18 | 1 | Blank paper absorbs a push | Blank bands below give up their extra lines, so room opened at the top moves a few lines, not every page. | 4 | Later | `context-grabber-2q4` |
 | 19 | 3 | Headers and collapse / expand | Mark a row as a header; − folds its section, + opens it; Fold all. | 4, 12 | Later | `context-grabber-2q4` |
 | 20 | 1 | Audio-synced ink replay | Notability-style: play a board back stroke by stroke with what was said. Two readings, to be settled: the ink redraws in time with the sound, or a transcript is written out. Every stroke already records when it was drawn, so redrawing without sound is the cheap half. | none | Later | none yet |
+| 21 | 3 | Smart arrows (connectors) | An arrow whose ends stay attached to objects and re-routes when they move, reflow or fold. *Connect* on a drawn or kept arrow; Larry's `connector` mark follows. | 4, 12 | Next | `context-grabber-2q4` |
 
 - **Pillar** is which part of the *Vision* a row serves: 1 thinking environment, 2 with Larry, 3 hierarchy and
   selection.
@@ -187,7 +188,8 @@ stay the whole drawing interface; objects come only from a paste or a Keep.
   is ink until he groups it. Reflow moves it
   by where it sits, never by what it means. A header (below) is a flag on a row of his ink, not an object.
 - Reshaping: no resize handles, no rotating, no dragging an arrow's end. Move, reword, delete.
-- Arrows that stay attached to what they point at when one end moves.
+- Words on a connector, fixed ports on a shape, automatic layout of a diagram. (Arrows that stay attached were a
+  non-goal in the first draft and are now in: *Connectors*.)
 - Sideways reflow or columns. Room opens across the whole page width, downward only.
 - Cross-page linking, a knowledge base, and search across boards: see *Non-goals (for now)* under the vision.
 - The board reading his handwriting to find headings by itself. He marks a header, or Larry suggests one.
@@ -283,6 +285,31 @@ device that made a board draws on it, a stale note can't be written back over a 
 Igor, 2026-11-16: "Maybe there's a technical section. What are the object types? Do we have object types for text as
 well as ink that we can sort of treat interactively?"
 
+### What the object model must support
+
+Igor, 2026-11-16: "Maybe this is a good question for our object model. Things we need to be able to support". The
+list the web prototype and the native build are both held to. *Rows* are the numbers in *Features to build*.
+
+| # | Must support | What that means | Why | Rows |
+|---|---|---|---|---|
+| 1 | **Stable ids across move, reflow and fold** | An object's id is given once and never changes, whatever happens to its strokes. A stroke's own name still follows its points, so a moved stroke says what it was called. | Larry, connectors and undo all point at things by id; an id that changes on a push breaks all three. | 5, 12, 13, 21 |
+| 2 | **Groups, one level deep** | A group holds strokes, not other groups. A section holds whatever sits in it, by position, so a header over groups is the one kind of nesting there is. The format lets a group list members by id so depth can grow later. | One level covers a diagram, a label and a paste; deeper nesting needs a way to step into a group, which nobody has asked for. | 12, 15, 19 |
+| 3 | **Anchors and connectors** | An arrow's end can be tied to an object's id and a side of it, or left as a free point on the page. | Without it an arrow is just a line that happens to touch things, and the first push leaves it pointing at nothing. | 21 |
+| 4 | **Whole-stroke reflow and room** | Ink moves only as whole strokes, straight up or down, by whole lines; a cut never splits a stroke or a group; connectors stretch instead of blocking. | It is what makes the page behave like a document without converting the ink. | 4, 6, 7, 9, 10, 11, 17, 18 |
+| 5 | **Headers and folds** | A row can be flagged a header; a section can be folded; the folded state is view state, never a change to the ink. | Hierarchy, the third pillar. | 19 |
+| 6 | **Selection** | A finger tap selects an object; the lasso selects loose ink; repeated taps widen: object, then its row, then its section. | Every operation starts from a selection, and widening on tap reaches a section without a lasso. | 12, 14, 15, 19 |
+| 7 | **Z-order and overlap** | Things may overlap. Ink is drawn in the order it was made and an object sits where its strokes sit in that order; ghosts lie under the ink. There is no bring-to-front. | Objects get dragged onto ink and his strokes cross objects; the model has to say what is on top without a layers panel. | 12 |
+| 8 | **Undo, one step per act** | A push with what caused it, a keep, a paste, a move, a group, an ungroup, a connect are each one undo. A fold is not on the undo stack. | He undoes what he did, not the strokes it was made of. | 4, 6, 7, 12, 15, 21 |
+| 9 | **Provenance** | Every object records who made it (Igor, Larry, Claude, a paste) and, for a mark, which reply and which mark in it. | Larry needs to know which of his marks were kept; colour is a guess. | 7, 13 |
+| 10 | **Kept and ghost** | A ghost is never in the board: not in the ink, the note, a picture or the strokes. Keeping one is what creates the object. | Nothing Larry or Claude suggests changes the board until Igor's tap. | 13, 17 |
+| 11 | **Ink content and text content** | An object either holds only strokes or holds words as text plus the strokes drawn from them. | Text can be reworded and re-wrapped; ink cannot, and the model must know which it has. | 12, 15 |
+| 12 | **A time on every stroke** | When each stroke was drawn, kept through moves, grouping and re-drawing. | Replay later, and what is new since Larry's last turn today. | 5, 20 |
+| 13 | **One board format for web and native, with a version** | A board is described one way as JSON: its strokes as they already go to the Cockpit, and the note (objects, connectors, headers, pushes, folds). The web prototype and the native app read and write the same thing. It carries a version; a reader keeps fields it doesn't know and shows a board from a newer version as ink. | Two builds of one model drift apart unless a board made in one opens in the other. | all; first 5, 12, 16 |
+| 14 | **Export** | Larry's picture, the strokes and anything shared are always the whole board, unfolded, with objects, connectors and sections listed beside the strokes. | What leaves the board must not depend on how it happened to be folded or scrolled. | 5, 13, 16, 19 |
+| 15 | **Non-goals, restated** | No links between boards, no index across boards, no knowledge base. Ids are unique within a board and mean nothing outside it. | A board is one session; the model should not grow hooks for a wiki. | none |
+
+### The types
+
 Yes: there are two families. **Ink things** hold only strokes. **Text things** hold words as real text and are drawn
 on the board as ink. Both are picked up, moved and deleted the same way; only text things can be reworded. (This
 section is about what exists and what each can do, not how it is coded.)
@@ -294,11 +321,65 @@ section is about what exists and what each can do, not how it is coded.)
 | **Kept shape: box, circle, arrow, line, arc, curve** | One mark of Larry's or Claude's, kept. The strokes that draw it and the shape's own numbers (corners, centre, ends). | Strokes, plus a note with the kind, the numbers, the look, who made it and which reply. | Select, move, delete, ungroup. Not reshape. | Sends each as a mark. Reads back which were kept, and where they are now. | Moves whole. |
 | **Kept label** | A kept mark with words: the words, and the strokes that draw them. | The words as real text in the note, with the look; strokes on the board drawn from them. | Select, move, **reword**, delete, ungroup. | Sends the words and where. Reads the words back as text. | Moves whole. Rewording redraws it and makes room if it grew. |
 | **Pasted text** | A block of text from the clipboard: the words, the width it wraps at, the strokes that draw them. | The words as real text in the note, with wrap width and look; strokes drawn from them. | Select, move, **reword**, delete, ungroup. Lands selected. | Doesn't send one. Reads the words as text, not as a picture of letters. | Moves whole. Rewording re-wraps by word at its width and makes room if it grew. |
+| **Connector (smart arrow)** | An arrow or line whose ends are tied to things: for each end, an object's id and a side of it, or a free point on the page. Plus its route, its head and its look. | The strokes that draw it, plus a note with the two ends. The strokes are redrawn when an end moves. | Select, delete, ungroup (back to a plain arrow). **Connect** to make one from a drawn arrow. | Sends `connector` between objects he can see or marks in the same reply. Reads each with what it joins. | Never moves on its own: it re-routes when either end moves, and never blocks a cut. |
 | **Header** | A flag on one row of his own ink, and whether its section is folded. | A note naming the row's strokes. The strokes are plain ink. | Mark, un-mark, fold with −, unfold with +. | Reads the sections and which are folded. Later, suggests one. | Its section moves as one block; folded, it is a solid block. |
 | **Room** | Not a thing on the board: an act. Where a cut was, how far the ink moved, when. | A short history of pushes in the note. Room Larry has asked for and Igor hasn't opened is a ghost, stored nowhere. | Open by hand, close blank paper, undo. Tap *Make room* on Larry's. | Sends `insert-space`. Reads the pushes since his last look. | It *is* the reflow. |
 | **Audio-anchored stroke (future)** | Any stroke, plus where in a recording it was drawn. | Not designed. Each stroke already records when it was drawn; the recording would be new, kept beside the board. | Play the board back; tap ink to hear what was said then. | Not designed. | Unaffected: the anchor is a time, not a place. |
 
 A ghost is none of these: it is nothing until kept.
+
+### Connectors: arrows that stay attached
+
+Igor, 2026-11-16: "we can have some notion of anchoring, kind of like we would in [Visio], where we have object
+groups that can have arrows and links between them. We can turn arrows into real smart arrows. That should probably
+be supported in our object model."
+
+- **What it is.** An arrow or a line with each end either **anchored** to an object (a group, a kept mark, a pasted
+  text, a header) or **free** (a point on the page). An anchored end names the object and a side of it; by default
+  the side is chosen for it, the one facing the other end.
+- **It follows.** When an anchored object is moved, pushed or reworded to a new size, the connector is redrawn from
+  end to end. A free end rides with the row of ink under it in a push, so an arrow from Larry's label to a word of
+  handwriting still points at the word.
+- **It never blocks room.** A connector doesn't count as ink when the board looks for a clear line, or one tall arrow
+  would stop room opening anywhere along its length. A cut passes through it and it stretches.
+- **It is still ink.** Its strokes are in the drawing like any object's, so it is in every picture and on the phone.
+  A re-routed connector's strokes say what they were called, like any moved ink, so Larry isn't told it is new.
+
+**Making one**
+
+- **Connect, on a kept arrow.** Select an arrow or line object whose ends land on objects, or within a finger's width
+  of them: its buttons offer **Connect**. One end on an object is enough; the other stays free.
+- **Connect, on an arrow he drew.** Lasso his arrow; when the stroke's two ends land on objects, the selection's menu
+  offers **Connect**, where *Group* is. The board looks only at where the stroke starts and stops; it doesn't judge
+  whether it looks like an arrow. Connecting redraws it as a clean line in his colour and width, because a
+  hand-drawn stroke can't follow two moving ends without being stretched or warped, and strokes are never scaled.
+  One undo gives his own stroke back.
+- **An end on loose ink** can't anchor: there is nothing with an id there. He groups the ink first, or leaves that end
+  free.
+- **Larry suggests it.** A faint *Connect?* on an arrow already on the board, kept or dismissed like any ghost.
+- **Larry sends one** (below, *Protocol*). It arrives as a ghost; Keep makes the connector.
+
+**When things change under it**
+
+- **A fold.** An end inside a folded section anchors to that section's header for as long as it is folded, and goes
+  back when it opens. A connector with both ends in the same folded section folds away with it.
+- **An end's object is deleted, ungrouped or erased apart.** The connector dissolves into plain ink where it is: an
+  ordinary arrow that no longer follows anything. Nothing is deleted on his behalf. Undo restores both.
+- **Ungroup on the connector itself** does the same by choice.
+
+**Routing: the one real choice**
+
+| | Straight (proposed) | Elbow (right angles) | Curved |
+|---|---|---|---|
+| Looks like | An arrow drawn on a whiteboard | A Visio diagram | A mind map |
+| Dense diagrams | Lines cross boxes that sit between the ends | Routes round them, mostly | Fewer crossings than straight |
+| After a push stretches it | Still reads as the same arrow | Corners jump as the route is recomputed | Bends more; fine |
+| Cost to build | Lowest | Highest: needs to know what is in the way | Middle |
+
+Proposed: straight, in the first build. The board is handwriting; elbow routes are the first thing on it that would
+look machine-made. Larry's mark can ask for a route so elbow can be added without changing the protocol.
+
+Not proposed: words on a connector, fixed ports on a shape, automatic layout. This is not Visio.
 
 ### Is a text object real text, or ink?
 
@@ -360,7 +441,7 @@ Probably, on the device, and it would be an addition beside the ink, never a rep
 For any of the three, at the moment the room is opened (never at the moment the picture was taken):
 
 1. **The cut.** Start from the asked-for height on the page. Move it to the nearest **clear line**: a horizontal line
-   that crosses no ink and no object. Look up and down within two lines of writing (80 points); if there is none, go
+   that crosses no ink and no object (a connector doesn't count: it stretches). Look up and down within two lines of writing (80 points); if there is none, go
    down to the first clear line below. Nothing is ever split: by construction no stroke crosses the cut.
 2. **What is needed.** The height of what is going in, measured by the board from the real thing: the marks' own
    outlines as the board draws them (its letters, not an estimate of them), or the pasted block as laid out. Plus half
@@ -656,6 +737,24 @@ leave-a-line-clear rule once the app makes room for late replies).
 
 Claude's fast ghosts don't ask for room in this design. They last 30 seconds and are meant to be small.
 
+### Connectors
+
+```json
+{"kind": "connector", "from": {"object": "o_7f3a"}, "to": {"mark": 2}, "route": "straight"}
+```
+
+- Each end is one of: `{"object": id}`, an object on the board, from the `objects` list he was sent;
+  `{"mark": n}`, the nth mark in this same reply (so he can send two boxes and the arrow between them at once);
+  or `{"x": …, "y": …}`, a free point in the picture's pixels.
+- An end may add `"side"`: `top`, `right`, `bottom`, `left`. Without it the board picks.
+- `route` is optional and `straight` is all the first build draws; an unknown route is drawn straight.
+- It takes `pen`, `color` and `head` (`end`, `both`, `none`; `end` by default) like other marks.
+- An end naming an object that has gone, or a mark that wasn't kept, is drawn as a free end where that thing was.
+- **Backward compatible the same way as `insert-space`.** The app lists `connectors` in `can`; without it Larry sends
+  a plain `arrow`, which is what he sends today. An older app drops the kind; an older Cockpit refuses the reply, so
+  the Cockpit learns it first. The strokes send gains a `connectors` list beside `objects`: each connector's id, its
+  two ends and its strokes.
+
 ### Left open on purpose
 
 Objects have ids Larry can see. Marks that act on them (move this, reword that, delete mine) fit the same pattern as
@@ -690,6 +789,10 @@ By the test ladder; each slice says which rung it used.
   all strokes moved together stay one object; any stroke lost or parted dissolves it; undo restores it; an
   unreadable or stale note gives a board of plain ink and no error.
 - Room by hand: as tall as the drag in whole lines; dragging up closes only blank paper and stops at ink.
+- Connectors: moving, pushing or rewording an anchored object redraws the connector to it; a free end rides its row;
+  a connector never stops a clear line being found; a fold re-anchors an end to the header and unfolding restores it;
+  deleting or ungrouping an end's object leaves a plain arrow and undo restores both; an end naming a missing object
+  is free.
 - Sections: a section runs from its header to the clear line above the next; folding slides what is below up to one
   line under the header and unfolding puts every stroke back exactly; a stroke drawn on a folded board is saved at its
   unfolded place; a push carries a folded section whole; erasing a header's ink removes the flag and no ink.
@@ -773,6 +876,7 @@ as objects (*How things become objects*; that note arrived cut off, so the readi
    else. It decides what the folding should feel like.
 6. **What is "replay"?** The ink redrawing itself in time with the recording, or a transcript of what was said written
    back out. They are different features; row 20 covers whichever you meant.
+7. **Straight, elbow or curved arrows?** Proposed: straight first. See *Connectors*.
 
 ## Smallest first slice
 
