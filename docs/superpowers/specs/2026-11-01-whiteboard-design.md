@@ -106,8 +106,11 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     the grid holds for ruled lines too. Every page is ruled the same: the first line sits one line down from the page's
     top, and the lines are as far apart as the grid's squares (40 points; provisional until Igor has seen them), so
     they restart at each page and a line never lands on the page's end.
-  - Off until asked, and remembered per board on this device: a board opened with its grid on opens that way again, and
-    a new board starts without one.
+  - **A new board opens with the grid on** (Igor, 2026-11-16, #915: "default new boards have grid lines"; until then a
+    new board started without one). It's remembered per board on this device: a board opened with its grid on, or off,
+    or with ruled lines, opens that way again. A board made before the change keeps what it had, so one never given a
+    grid stays without. The grid comes on only where the board is drawn: another device looking at it shows its own
+    choice, off until asked.
   - The lines belong to the board: they pan and pinch with the drawing. They're so faint that ink crossing one reads
     as unbroken, though they lie over the ink, not under it. Pinching out thins them
     to every second line, then every fourth and so on, so they never crowd together; the lines that stay are lines
@@ -211,7 +214,7 @@ so." New boards are on paper from now on, on every device, though the rest of th
   seen. This differs from *Each colour has a pale shade and a deep one* above until PaperKit's ink follows the mode, and it's
   Igor's to overrule. What's saved is the same either way.
 - **Grid and ruled lines.** The **Board** menu offers *Grid lines* and *Ruled lines*, as *Grid lines* above describes: a grid,
-  ruled lines or neither, choosing one takes away the other, off until asked, and remembered per board on this device. They lie
+  ruled lines or neither, choosing one takes away the other, the grid on for a new board, and remembered per board on this device. They lie
   under the ink and the ghosts, on every page. The grid's squares run on unbroken from page to page; ruled lines start again at
   each page's top. Pinching out thins them as it does on the old canvas, so a phone showing a whole page's width shows every
   second line. Neither is ink: they can't be erased, lassoed or undone, and they're not in the saved drawing, the card or any
@@ -341,7 +344,7 @@ that ghosts need the tailnet.
 - Ruled lines from the Board menu show like notebook paper, the same on every page, are in no picture, and are remembered
   like the grid.
 - On a board on paper, the grid and ruled lines lie under the ink. Choosing one takes the other away, each is remembered by that
-  board on this device, and a new board starts with neither.
+  board on this device, and a new board starts with the grid.
 - On each colour of a board on paper, page lines, grid and ghosts show; changing colour or lines leaves the ink on screen, the
   stroke count the same and no new undo step.
 - Send to Larry with a drawing: the board's thread appears in Chat with the picture, its ink dark on white even when the
@@ -364,6 +367,7 @@ that ghosts need the tailnet.
 - *Jump to board* on a chat picture of a deleted board shows the copyable problem, and the picture stays.
 - The single board from before the list is the first row after the update.
 - With a drawing on the board, Grid on shows faint lines that pan and pinch with it; Grid off removes
-  them and leaves the ink as it was. Closing and reopening that board keeps the choice; a new board has no grid.
+  them and leaves the ink as it was. Closing and reopening that board keeps the choice; a new board opens with the grid
+  on, and a board made before that change opens as it did.
 - Pinched all the way out and all the way in, the lines stay faint and evenly spaced, never a grey wash.
 - Send to Larry and a ghost turn with the grid on: the picture has no lines.

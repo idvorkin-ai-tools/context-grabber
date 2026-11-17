@@ -1544,21 +1544,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 410:
 
-- **Summary:** A new board has no grid
-- **Status:** implemented in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); verified by the simulator (`WhiteboardTurnUITests`: the Board menu's label on a new board, with another board's grid on)
+- **Summary:** A new board opens with the grid on
+- **Status:** first implemented as *A new board has no grid* in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); reversed to the grid on (Igor, 2026-11-16, #915) in COMMIT_915; verified by host tests (`BoardLinesTests`: a new board's grid on, a board with no saved choice off, a saved choice kept, ruled lines taking the grid's place; `just test`); on the simulator `WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid` is written and not yet run
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
-- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915) ("Log bug: default new boards have grid lines")
 
 #### Use Case:
 - **As someone** sketching on the iPad
-- **I want to** start each new board without a grid
-- **so that** a grid is something I ask for on the board I want it on
+- **I want to** start each new board with faint grid lines
+- **so that** I can line things up from the first stroke without going to the Board menu
 
 #### Acceptance Criteria:
 - **Scenario:** New board
-- **Given:** another board has its grid on
+- **Given:** another board has its grid off
 - **When:** I make a new board
-- **Then:** its grid is off
+- **Then:** its grid is on, and the Board menu shows *Grid lines* chosen
+
+- **Scenario:** A board made before
+- **Given:** a board made before new boards had the grid, never given one
+- **When:** I open it
+- **Then:** it has no grid, as before; turning the grid on or off on any board is remembered for that board
 
 ---
 
@@ -3807,7 +3812,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Lines stay with their board on paper
 - **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07)
-- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
@@ -3819,7 +3824,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Reopening
 - **Given:** a board on paper with ruled lines on
 - **When:** I leave it and open it again
-- **Then:** the lines are on. A new board starts with none
+- **Then:** the lines are on. A new board starts with the grid, not ruled lines (story 410)
 
 ### User Story 654:
 
