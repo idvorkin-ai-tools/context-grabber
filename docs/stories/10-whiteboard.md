@@ -6497,3 +6497,143 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
   *sent*, as the report is saved and queued for iCloud and the app is not told when it arrives
 
 ---
+
+### User Story 970:
+
+- **Summary:** A refused change of Larry's says so on the board
+- **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry: "show a chip so I'm not guessing" when Larry's push is refused
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
+
+#### Use Case:
+- **As someone** writing while Larry edits the board
+- **I want to** see when one of his changes couldn't be applied
+- **so that** I'm not left wondering why nothing moved
+
+#### Acceptance Criteria:
+- **Scenario:** Refused
+- **Given:** I wrote after Larry looked
+- **When:** his change comes back refused
+- **Then:** a chip in his purple says *Larry's edit blocked · Retry*, with × beside it, and nothing on the board moved
+
+- **Scenario:** One chip
+- **Given:** the chip shows
+- **When:** another change of his is refused
+- **Then:** the one chip stays, for the newer change
+
+- **Scenario:** Leaving the board
+- **Given:** a change of his waiting for my Pencil
+- **When:** I leave the board
+- **Then:** no chip shows anywhere
+
+---
+
+### User Story 971:
+
+- **Summary:** Retry hands Larry the board again
+- **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
+
+#### Use Case:
+- **As someone** whose board moved on before Larry's change arrived
+- **I want to** tap Retry
+- **so that** Larry looks at the board as it is and sends a fresh change
+
+#### Acceptance Criteria:
+- **Scenario:** Retry
+- **Given:** the chip shows
+- **When:** I tap Retry
+- **Then:** the chip goes and it is Larry's turn, with the board as it is now and what happened to his last change; his refused change is never replayed
+
+---
+
+### User Story 972:
+
+- **Summary:** The chip goes by × or by a change that applies
+- **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
+
+#### Use Case:
+- **As someone** who doesn't need Larry to try again
+- **I want to** put the chip away, and have it go by itself once his next change lands
+- **so that** it never lingers after it stops being true
+
+#### Acceptance Criteria:
+- **Scenario:** Dismiss
+- **Given:** the chip shows
+- **When:** I tap ×
+- **Then:** the chip goes and nothing is sent to Larry
+
+- **Scenario:** Applied
+- **Given:** the chip shows
+- **When:** a later change of his applies
+- **Then:** the chip goes
+
+---
+
+### User Story 973:
+
+- **Summary:** A selection dropped onto writing pushes the writing down
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** rearranging my notes
+- **I want to** lasso a few lines and drag them down between others
+- **so that** they slot in and the lines below make room, instead of landing on top of them
+
+#### Acceptance Criteria:
+- **Scenario:** Dropped on writing
+- **Given:** lines of writing down the page
+- **When:** I lasso one, drag it and let go over a line further down
+- **Then:** what I dragged stays where I let go, and from the clear line nearest its top everything below slides down by whole lines, half a line of air under what I dropped; ink above that line doesn't move
+
+---
+
+### User Story 974:
+
+- **Summary:** The drag and the push are one Undo
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** who dropped a selection in the wrong place
+- **I want to** tap Undo once
+- **so that** both the selection and the ink it pushed go back where they were
+
+#### Acceptance Criteria:
+- **Scenario:** One Undo
+- **Given:** a drop that pushed the ink below
+- **When:** I tap Undo once
+- **Then:** the dragged ink is back where it started and the ink below is back up; the Undo is named *Move*
+
+- **Scenario:** Undo never pushes
+- **Given:** a move undone
+- **When:** I tap Redo, or Undo again
+- **Then:** nothing else opens room
+
+---
+
+### User Story 975:
+
+- **Summary:** A drop on clear paper moves only what I dragged
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry
+- **Status:** in progress
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** moving a note into blank space
+- **I want to** drop it there
+- **so that** nothing else on the board shifts
+
+#### Acceptance Criteria:
+- **Scenario:** Clear paper
+- **Given:** blank paper between two lines
+- **When:** I drop a selection there, or so it only touches a line at its edge
+- **Then:** only what I dragged moves
+
+---
