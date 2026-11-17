@@ -43,7 +43,7 @@ fi
 # The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
 # the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
 chat_area="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-whiteboard_area="WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
 # feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
 # LiveActivity, so those paths stay unmapped and the output says so.
@@ -117,6 +117,9 @@ for f in ${changed[@]+"${changed[@]}"}; do
       add_classes WhiteboardTurnUITests WhiteboardPaperGhostsUITests ;;
     # Story 784: the app's board fixture hook adds a board at launch; only the classes that launch with one see it.
     native/App/Whiteboard/WhiteboardHooks.swift) add_classes WhiteboardRowDeleteUITests ChatImageUITests ;;
+    # Larry's question cards (stories 880-886): the cards, their model, and the rules in ContextCore.
+    native/App/Whiteboard/WhiteboardQuestion* | native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardQuestions.swift)
+      add_classes WhiteboardQuestionUITests ;;
     # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
     # big views draw every board, so they and anything unnamed run every class.
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)

@@ -314,7 +314,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 784:
 
 - **Summary:** A change to one of the board's own view files runs only the UI test classes that open it
-- **Status:** implemented on branch `native/fast-sim-tests` for the one such file on main, the board fixture hook (`WhiteboardRowDeleteUITests` and `ChatImageUITests`, where it ran all seven whiteboard classes and missed the chat one); verified on the host by `scripts/native/test-ladder-map.sh`. The board's two big views (the board and its paper) draw every board and still run every class. The view files on branches tonight get their rows as they land: the name in the bar (`WhiteboardRowDeleteUITests`), the panel's newest line (`WhiteboardTurnUITests`), the question cards (their own class)
+- **Status:** implemented on branch `native/fast-sim-tests` for the one such file on main, the board fixture hook (`WhiteboardRowDeleteUITests` and `ChatImageUITests`, where it ran all seven whiteboard classes and missed the chat one); verified on the host by `scripts/native/test-ladder-map.sh`. The board's two big views (the board and its paper) draw every board and still run every class. The view files on branches tonight get their rows as they land: the name in the bar (`WhiteboardRowDeleteUITests`), the panel's newest line (`WhiteboardTurnUITests`). The question cards (#919) have theirs: their two view files and their rules in `ContextCore` run `WhiteboardQuestionUITests` alone, and that class joined the whiteboard's list, which the map's check now holds to every `Whiteboard*UITests` class in the tree
 - **Issues:** the fast-sim-tests study of 2026-11-16 (any view file ran all seven whiteboard classes, 11 to 14 minutes)
 
 #### Use Case:

@@ -113,7 +113,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
 }
 
 chat_all="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-board_all="WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
+board_all="WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 
 dry --changed native/App/Chat/ChatViews.swift
 says "chat code: lint names the file" "rung 0 Lint: swift-format over 1 touched Swift file(s), SwiftLint over the tree"
@@ -159,6 +159,18 @@ for c in WhiteboardRowDeleteUITests ChatImageUITests; do
   case $known in *" $c "*) ok "the fixture hook: $c is a real class" ;; *) : >"$out"; bad "the fixture hook: $c is a real class" ;; esac
   if grep -q '"GRABBER_BOARD_FIXTURE"' "native/UITests/$c.swift"; then ok "the fixture hook: $c launches with a fixture"
   else : >"$out"; bad "the fixture hook: $c launches with a fixture"; fi
+done
+# Larry's question cards: their own class, and every whiteboard class's list has it.
+for f in native/App/Whiteboard/WhiteboardQuestionsModel.swift native/App/Whiteboard/WhiteboardQuestionViews.swift \
+  native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardQuestions.swift; do
+  dry --changed "$f"
+  says "question cards, $(basename "$f"): their class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardQuestionUITests"
+  if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
+done
+case $known in *" WhiteboardQuestionUITests "*) ok "question cards: a real class" ;; *) : >"$out"; bad "question cards: a real class" ;; esac
+# Every Whiteboard*UITests class the tree declares is in the whiteboard's list, so a new one isn't left out of a view change.
+for c in $(sed -nE 's/^(final )?class (Whiteboard[A-Za-z0-9_]*UITests):.*/\2/p' native/UITests/*.swift); do
+  case " $board_all " in *" $c "*) ok "the whiteboard's list has $c" ;; *) : >"$out"; bad "the whiteboard's list has $c" ;; esac
 done
 dry --changed native/App/Whiteboard/WhiteboardView.swift
 says "the board's view: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
