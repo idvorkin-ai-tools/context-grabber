@@ -6415,3 +6415,85 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the header, everything folded under it and the zigzag go, the ink below closes up to where the header was, and one Undo brings the section back still folded with the ink below where it was
 
 ---
+
+### User Story 950:
+
+- **Summary:** The board's cheat sheet is one tap away
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the ? opened *How this board works* listing every gesture the test names; its close and the fixed test's full pass not yet seen (the Mac's screen was locked for the rerun); not yet seen on the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
+
+#### Use Case:
+- **As someone** drawing on a board whose gestures I don't all remember
+- **I want to** open a list of them with one tap on the board, as on Larry's web board
+- **so that** I find the margin, hold and Pencil gestures without asking anyone
+
+#### Acceptance Criteria:
+- **Scenario:** Open the cheat sheet
+- **Given:** a board drawn on this iPad
+- **When:** I tap **?** at the board's top right
+- **Then:** *How this board works* opens and lists the margin tap, the margin hold with a finger or the Pencil, the hold
+  on the page, the Pencil on a word, scratch-out, the lasso's *To text*, the shape snap, *Keep all*, *Fold all* and the
+  levels, and Feedback; *Done* closes it and the board is as it was
+
+---
+
+### User Story 951:
+
+- **Summary:** The cheat sheet's buttons leave the top bar alone
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the Board menu, Paste, the mic, Ghosts, Larry's turn and Send stayed in the top bar with ? and Feedback on the board; at the lower right the Pencil's tool palette took their taps, so they moved to the top right in 2a01b5c; not yet seen on the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
+- **Issues:** [#848](https://github.com/idvorkin/context-grabber/issues/848) (the Board menu must stay in the iPad's bar and close on a pick)
+
+#### Use Case:
+- **As someone** who reaches for the Board menu, Larry's turn and Send many times a board
+- **I want to** have **?** and Feedback added beside the paper, not to the top bar or the Board menu
+- **so that** nothing I already use moves under *More* or makes the menu too tall to close
+
+#### Acceptance Criteria:
+- **Scenario:** The bar after the change
+- **Given:** a board drawn on this iPad
+- **When:** it opens
+- **Then:** the Board menu, Paste, the mic, Ghosts, Larry's turn and Send are in the top bar as before, and **?** and
+  Feedback float at the board's top right; a look-only board shows Feedback only
+
+---
+
+### User Story 952:
+
+- **Summary:** Feedback from the board is one tap
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) a tap on Feedback opened *Report a problem* over the board; not yet seen on the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
+
+#### Use Case:
+- **As someone** who reports the board's bugs to Larry from the board itself
+- **I want to** tap Feedback on the board and get the report sheet with the board's picture and the log
+- **so that** I don't have to shake the iPad or leave the board to report
+
+#### Acceptance Criteria:
+- **Scenario:** Report from the board
+- **Given:** a board open
+- **When:** I tap Feedback at the board's top right
+- **Then:** the *Report a problem* sheet opens over the board with a picture of the board as it was and the session
+  log, as a shake would open it
+
+---
+
+### User Story 953:
+
+- **Summary:** The board says the feedback was logged
+- **Status:** implemented in [e839408](https://github.com/idvorkin/context-grabber/commit/e839408), [2a01b5c](https://github.com/idvorkin/context-grabber/commit/2a01b5c); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) not yet seen: the run that would log a note and see *Feedback logged ✓* was the rerun the locked screen stopped; not yet seen on the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
+
+#### Use Case:
+- **As someone** who just sent feedback from the board
+- **I want to** see on the board that it was taken
+- **so that** I know it landed without going to look for it
+
+#### Acceptance Criteria:
+- **Scenario:** Log it
+- **Given:** the report sheet opened from the board, with a note written
+- **When:** I tap *Log it*
+- **Then:** the sheet closes and *Feedback logged ✓* shows beside the board's buttons for a few seconds; *logged*, not
+  *sent*, as the report is saved and queued for iCloud and the app is not told when it arrives
+
+---

@@ -341,6 +341,38 @@ The board's log stayed on the iPad until it was pulled to the Mac, so Larry coul
 - **A simulator or the Mac sends no log** unless it's pointed at an archive on purpose, as with every other archive
   stream.
 
+### How this board works, and Feedback (stories 950–953; Larry, 2026-11-17: "surface them, since that's how he reports bugs to us")
+
+On Larry's web board (*/ink*) the cheat sheet (**?**) and **Feedback** are each one tap, at the board's lower right. The
+board's gestures had no list anywhere on the iPad, and the only way to report from a board was to shake the iPad. Both
+are now one tap on the board, as on */ink*, at the board's top right instead: on the iPad the Pencil's tool palette
+docks along the bottom and takes every tap there.
+
+- **Two small buttons float at the board's top right corner**, just under the page number, over the paper and clear of
+  the left margin and of the tool palette: **?** and **Feedback**. An open conversation lies over them, as over the paper. They stay put while the board scrolls, are in no picture, and never move the
+  paper. They are not in the top bar, which keeps its buttons (the Board menu included) where they are on every width.
+- **?** opens *How this board works*, a short list of the board's gestures as they are now:
+  - *In the left margin:* a tap beside a line makes it a header (▾); a tap on the ▾ folds its section (▸ and the number
+    of lines) and another unfolds it; a faint H marks a line that looks like a header, which a margin tap makes one.
+    A finger, or the Pencil held still for half a second, held and dragged makes room in whole lines (dragged up, it
+    closes blank paper). Held still without dragging, the menu: *Make room here*, *Paste*, *Make header*. Held on a
+    header's mark: *Fold all*, *1*, *2*, *3*, *Unfold all*.
+  - *On the page:* a finger held still brings the same menu. The Pencil held still on a word picks it up: drag and lift
+    to move it, or lift without moving to select it. A fast zigzag over ink scratches it out. The lasso, then *To text*,
+    turns handwriting into typed text. The Pencil held still at a stroke's end snaps it to a straight line, a rectangle
+    or an ellipse.
+  - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink, in order; *Tidy overlaps* in the Board
+    menu moves kept labels off writing.
+  - *Feedback:* a note, a picture of the screen and the recent log; shaking the iPad does the same.
+  It closes with *Done*, or a tap outside it on the iPad. A look-only board (an iPhone, or another device drawing it)
+  shows no **?**: its gestures don't apply there.
+- **Feedback** opens the app's own *Report a problem* sheet at once, with the board as it was as its picture and the
+  session log, exactly as a shake does. Nothing about the sheet changes; it is the same report the Mac's listener files.
+- **When the report is saved, the board says so**: *Feedback logged ✓* beside the buttons for a few seconds. *Logged*,
+  not *Sent*: the report is saved on the device and queued for iCloud, and the app is not told when it arrives. If the
+  report could only be noted in the log, the board says that instead. It shows to the left of the buttons.
+- A tap on **?** or **Feedback** is in the session log.
+
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.
