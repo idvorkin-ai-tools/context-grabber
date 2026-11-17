@@ -4206,7 +4206,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 662:
 
 - **Summary:** A Larry board sends him one picture at a time, the newest
-- **Issues:** the stale-push UI test, 2026-11-17: on a board's first turn, which opens its thread, an answer that landed before the board first looked was taken as already there, so the note kept *Larry has been looking* and never said it. Every row on a thread the turn opened is his answer
+- **Issues:** the stale-push UI test, 2026-11-17: on a board's first turn, which opens its thread, an answer that landed before the board first looked was taken as already there, so the note kept *Larry has been looking* and never said it. Every row on a thread the turn opened is his answer; fixed in [f7a17e5](https://github.com/idvorkin/context-grabber/commit/f7a17e5), verified by host tests (`WhiteboardMarksTests`) and on the simulator (`testAStalePushMovesNothingAndLarryIsTold`, rung 2)
 - **Status:** implemented in [41b83fb](https://github.com/idvorkin/context-grabber/commit/41b83fb); verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over what was waiting, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry; a tap while he is looking with nothing new sending nothing (story 765) in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8), verified by host tests (`WhiteboardLarryTurnTests`); the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`); Larry closing a turn with nothing to say (#913) is stories 811–813
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
@@ -6503,7 +6503,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A refused change of Larry's says so on the board
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry: "show a chip so I'm not guessing" when Larry's push is refused
-- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); the UI test `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` is written, not yet run: the Mac screen was locked for rung 2
+- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6533,7 +6533,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Retry hands Larry the board again
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
-- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); the UI test `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` is written, not yet run: the Mac screen was locked for rung 2
+- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6553,7 +6553,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** The chip goes by × or by a change that applies
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
-- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); the UI test `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` is written, not yet run: the Mac screen was locked for rung 2
+- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
