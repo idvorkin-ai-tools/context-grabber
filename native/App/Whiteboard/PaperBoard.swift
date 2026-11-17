@@ -198,6 +198,11 @@ class PaperHost: UIViewController {
       if phase == .ended, touch.type == .direct, fingersTogether == 1, let start = touchStarts[id] {
         fingerLifted(from: start.at, to: at, seconds: CACurrentMediaTime() - start.began)
       }
+      if let start = touchStarts[id] {
+        touchEnded(
+          touch, cancelled: phase == .cancelled, seconds: CACurrentMediaTime() - start.began,
+          travel: max(start.farthest, hypot(at.x - start.at.x, at.y - start.at.y)))
+      }
       touchStarts[id] = nil
       if touch.type == .pencil { pencilDown = false }
       if touch.type == .direct {
@@ -248,6 +253,8 @@ class PaperHost: UIViewController {
   func touchWentDown(_ touch: UITouch) {}
   func touchMoved(_ touch: UITouch) {}
   func touchLifted(_ touch: UITouch, down: Int) {}
+  /// One touch came up (or was called off): how long it was down, and the farthest it went, in this view's points.
+  func touchEnded(_ touch: UITouch, cancelled: Bool, seconds: Double, travel: CGFloat) {}
   /// The tool picker's tool changed; `paper.drawingTool` has it on the next turn.
   func toolChanged() {}
   /// One finger, short and staying put, at this spot in `view`, Pencil or no Pencil. PaperKit may do its own thing with the
@@ -328,6 +335,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   @Published private(set) var holdMenu: HoldMenu?
   /// A finger held in the margin: where it went down, board `y`, and in this view.
   private var grip: (y: CGFloat, spot: CGPoint)?
+  /// Story 933: the touch that went down in the margin, for its log line when it lifts, and whether the finger's hold
+  /// recogniser fired for it.
+  private var marginTry: (touch: ObjectIdentifier, tool: BoardMarginHold.Tool, y: CGFloat, held: Bool)?
+  /// What the last touch to go down was: a stroke the Pencil drew is the one the margin's Pencil hold judges.
+  private var lastDown: UITouch.TouchType?
   private lazy var holding: UILongPressGestureRecognizer = {
     let hold = UILongPressGestureRecognizer(target: self, action: #selector(held(_:)))
     hold.minimumPressDuration = BoardMargin.holdAfter
@@ -620,6 +632,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
     if takesBackTapDot(change, frames: frames) { return }
+    if marginHeld(change, markup: markup) { return }
     if pickedUp(change, markup: markup, before: previous) { return }
     if scratchesOut(change, markup) { return }
     if !change.isEmpty {
@@ -1053,6 +1066,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     switch hold.state {
     case .began:
       holdMenu = nil
+      if marginTry?.tool == .finger { marginTry?.held = true }
       if at.x < BoardMargin.width,
         model.outline(of: paper.markup.map { opStrokes($0).strokes } ?? []).header(at: at.y) == nil
       {
@@ -1172,6 +1186,47 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
   }
 
+  /// Stories 930–932: a Pencil stroke that went down in the margin and held still for half a second is the hold, not
+  /// ink: dragged, it opens or closes room when it lifts; lifted in place, the menu. Its own stroke goes. A Pencil that
+  /// moved or lifted sooner draws. Each verdict is in the log (story 933). True when it was a hold.
+  private func marginHeld(_ change: PaperProbe.InkChange, markup: PaperMarkup) -> Bool {
+    guard model.editable, lastDown == .pencil, change.added.count == 1, change.removed.isEmpty,
+      change.moved.isEmpty, paper.drawingTool is PKInkingTool,
+      let element = markup.subelements.strokes.first(where: { Self.key($0.elementID) == change.added[0] }),
+      let drawn = markup.subelements[element.elementID] as? PKStroke
+    else { return false }
+    let path = drawn.path.map { (point: $0.location.applying(drawn.transform), time: $0.timeOffset) }
+    let verdict = BoardMarginHold.pencil(path)
+    guard verdict != .notInMargin, let start = path.first?.point else { return false }
+    var event: [String: Any] = [
+      "action": "hold_stroke", "board": model.board.id, "tool": "pencil", "verdict": verdict.reason,
+      "y": Double(start.y), "ms": Int(((path.last?.time ?? 0) - (path.first?.time ?? 0)) * 1000),
+      "points": path.count,
+    ]
+    switch verdict {
+    case .moved(let after, let by):
+      event["moved_after_ms"] = Int(after * 1000)
+      event["moved_by"] = Double(by.rounded())
+    case .hold(let dy): event["dy"] = Double(dy.rounded())
+    case .tooShort, .notInMargin: break
+    }
+    log.event("board_margin", event)
+    guard case .hold(let dy) = verdict else { return false }
+    // ponytail: PaperKit's own undo step for the stroke stays beneath, with nothing to take back, as the pick-up's does.
+    var without = markup
+    _ = without.subelements.removeElement(for: element.elementID)
+    quiet = true
+    paper.markup = without
+    quiet = false
+    inkFrames = without.strokeFrames
+    if verdict.opensRoom, model.outline(of: opStrokes(without).strokes).header(at: start.y) == nil {
+      room(at: start.y, dy: dy, why: "pencil_margin_drag")
+    } else {
+      showHoldMenu(at: CGPoint(x: 0, y: start.y), spot: lines.convert(lines.spot(of: start), to: view))
+    }
+    return true
+  }
+
   /// Story 859, as the web board: the Pencil held still on ink for 400 ms picks up the word, and the same stroke drags
   /// it. On paper the word lands when the Pencil lifts, and the Pencil's own stroke goes. True when it did.
   private func pickedUp(_ change: PaperProbe.InkChange, markup: PaperMarkup, before: [String: CGRect]) -> Bool {
@@ -1180,7 +1235,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       let drawn = markup.subelements[element.elementID] as? PKStroke
     else { return false }
     let path = drawn.path.map { (point: $0.location.applying(drawn.transform), time: $0.timeOffset) }
-    guard BoardOutline.isHold(path) else { return false }
+    guard BoardOutline.isHold(path), BoardMarginHold.pencil(path) == .notInMargin else { return false }
     var without = markup
     _ = without.subelements.removeElement(for: element.elementID)
     let (strokes, hashes) = opStrokes(without)
@@ -1749,8 +1804,41 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   override func touchWentDown(_ touch: UITouch) {
     if touch.type == .pencil { toolWentDown() }
+    lastDown = pencilDown ? .pencil : touch.type
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
+    // Story 933: every try at a hold in the margin is in the log, from here to its verdict.
+    let at = lines.columnPoint(of: touch.location(in: lines))
+    guard model.editable, marginTry == nil || touchesDown == 0, at.x >= 0, at.x < BoardMargin.width,
+      touch.type == .pencil || touch.type == .direct
+    else {
+      return
+    }
+    let tool: BoardMarginHold.Tool = touch.type == .pencil ? .pencil : .finger
+    marginTry = (ObjectIdentifier(touch), tool, at.y, false)
+    log.event(
+      "board_margin",
+      [
+        "action": "hold_began", "board": model.board.id, "tool": tool.rawValue, "x": Double(at.x), "y": Double(at.y),
+        "drawing_tool": toolName,
+      ])
+  }
+
+  override func touchEnded(_ touch: UITouch, cancelled: Bool, seconds: Double, travel: CGFloat) {
+    guard let attempt = marginTry, attempt.touch == ObjectIdentifier(touch) else { return }
+    marginTry = nil
+    var event: [String: Any] = [
+      "action": "hold_ended", "board": model.board.id, "tool": attempt.tool.rawValue, "y": Double(attempt.y),
+      "ms": Int(seconds * 1000), "travel": Double(travel.rounded()), "cancelled": cancelled,
+    ]
+    switch attempt.tool {
+    case .finger:
+      event["verdict"] = BoardMarginHold.finger(seconds: seconds, travel: travel, recognized: attempt.held)
+    case .pencil:
+      // The Pencil's verdict comes from its stroke, as `hold_stroke`; none means PaperKit drew nothing for it.
+      event["verdict"] = "stroke"
+    }
+    log.event("board_margin", event)
   }
 
   /// Story 886: the eraser over an answered question card takes it, from a touch that would erase ink: the Pencil, or a

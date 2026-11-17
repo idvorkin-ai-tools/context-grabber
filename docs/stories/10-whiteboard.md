@@ -5656,7 +5656,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 858:
 
 - **Summary:** Press and hold: room in the margin, a menu on the page
-- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); verified by host tests (`BoardRoomTests.testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper`); a simulator UI test, `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f), the Pencil in [ef7be79](https://github.com/idvorkin/context-grabber/commit/ef7be79), [c09a192](https://github.com/idvorkin/context-grabber/commit/c09a192); verified by host tests (`BoardRoomTests.testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper`); a simulator UI test, `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
 
 #### Use Case:
@@ -5667,8 +5667,88 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Drag in the margin
 - **Given:** writing above and below
-- **When:** I hold a finger in the margin, drag down two lines and lift
+- **When:** I hold a finger or the Pencil in the margin, drag down two lines and lift
 - **Then:** the ink below that clear line moves down two lines, one Undo
+
+---
+
+### User Story 930:
+
+- **Summary:** The Pencil held in the margin opens room
+- **Issues:** Igor on the iPad, build 6e2ee969, 2026-11-16: "push down doesn't seem to fire at all"
+- **Status:** implemented in [ef7be79](https://github.com/idvorkin/context-grabber/commit/ef7be79), [c09a192](https://github.com/idvorkin/context-grabber/commit/c09a192); verified by host tests (`BoardMarginHoldTests`), `just test` and the Mac build (`just native-build-mac`); the Pencil hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** writing with the Pencil and needing room
+- **I want to** hold the Pencil still in the margin and drag it down
+- **so that** I make room without putting the Pencil down
+
+#### Acceptance Criteria:
+- **Scenario:** Hold and drag
+- **Given:** writing above and below a clear line
+- **When:** I hold the Pencil still in the margin beside it for half a second, drifting a little as a hand does, drag down two lines and lift
+- **Then:** the ink below moves down two lines, one Undo, and no stroke of the Pencil's is left in the margin
+
+---
+
+### User Story 931:
+
+- **Summary:** The Pencil held still in the margin brings the menu
+- **Issues:** Igor on the iPad, build 6e2ee969, 2026-11-16: "push down doesn't seem to fire at all"
+- **Status:** implemented in [ef7be79](https://github.com/idvorkin/context-grabber/commit/ef7be79), [c09a192](https://github.com/idvorkin/context-grabber/commit/c09a192); verified by host tests (`BoardMarginHoldTests`), `just test` and the Mac build (`just native-build-mac`); the Pencil hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** writing with the Pencil
+- **I want to** hold it still in the margin and lift
+- **so that** I get Make room here, Paste and the header choices without a finger
+
+#### Acceptance Criteria:
+- **Scenario:** Hold and lift
+- **Given:** a line of writing
+- **When:** I hold the Pencil still in the margin beside it for half a second, within about 12 points, and lift
+- **Then:** the menu shows there, and the Pencil left no dot
+
+---
+
+### User Story 932:
+
+- **Summary:** The Pencil that moves at once still draws in the margin
+- **Issues:** Igor on the iPad, build 6e2ee969, 2026-11-16: "push down doesn't seem to fire at all"
+- **Status:** implemented in [ef7be79](https://github.com/idvorkin/context-grabber/commit/ef7be79), [c09a192](https://github.com/idvorkin/context-grabber/commit/c09a192); verified by host tests (`BoardMarginHoldTests`), `just test` and the Mac build (`just native-build-mac`); the Pencil hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** writing or marking in the margin
+- **I want to** have a quick Pencil stroke there stay ink
+- **so that** margin notes and quick marks still work
+
+#### Acceptance Criteria:
+- **Scenario:** A quick stroke
+- **Given:** the margin
+- **When:** I draw a quick bullet or dash in it, moving further than about 12 points within the first half second
+- **Then:** the stroke stays as ink and nothing moves
+
+---
+
+### User Story 933:
+
+- **Summary:** Every margin hold says in the log what became of it
+- **Issues:** Igor on the iPad, build 6e2ee969, 2026-11-16: "push down doesn't seem to fire at all"
+- **Status:** implemented in [ef7be79](https://github.com/idvorkin/context-grabber/commit/ef7be79), [c09a192](https://github.com/idvorkin/context-grabber/commit/c09a192); verified by host tests (`BoardMarginHoldTests`), `just test` and the Mac build (`just native-build-mac`); the Pencil hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** debugging a hold that didn't fire on the iPad
+- **I want to** read each margin hold in the session log
+- **so that** the next report settles whether it was the finger, the Pencil, the timing or PaperKit
+
+#### Acceptance Criteria:
+- **Scenario:** A hold that fails
+- **Given:** the board open
+- **When:** I hold in the margin with a finger or the Pencil
+- **Then:** the log has its start (which, where) and whether it became a hold or why not: moved first, lifted too soon, or never seen held
 
 ---
 
@@ -5694,7 +5774,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 859:
 
 - **Summary:** The Pencil held on a word picks it up
-- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f) (the word lands when the Pencil lifts, not live); verified by host tests (`BoardOutlineTests.testAHeldPencilPicksUpTheWordUnderIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad: the simulator can't hold a Pencil, so the iPad is where it is seen
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f) (the word lands when the Pencil lifts, not live; in the margin a held Pencil is the hold, not the pick-up, since [ef7be79](https://github.com/idvorkin/context-grabber/commit/ef7be79), [c09a192](https://github.com/idvorkin/context-grabber/commit/c09a192)); verified by host tests (`BoardOutlineTests.testAHeldPencilPicksUpTheWordUnderIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad: the simulator can't hold a Pencil, so the iPad is where it is seen
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
 
 #### Use Case:
