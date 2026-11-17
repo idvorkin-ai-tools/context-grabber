@@ -92,6 +92,39 @@ public enum BoardShapeSnap {
     }
   }
 
+  /// Stories 943–944: the stroke as the Pencil draws it, and the clean shape to show while it is held still, before the
+  /// lift (the web board's `snapHold`). Moving `stillWithin` or more takes the shape away and starts the wait again.
+  public struct Live: Equatable, Sendable {
+    /// The touch's points so far, board points.
+    public private(set) var points: [CGPoint] = []
+    /// The clean shape showing, if any.
+    public private(set) var shown: Shape?
+    private var anchor: CGPoint?
+    private var since: Double = 0
+
+    public init() {}
+
+    /// The Pencil at `point` at `time`. True when it moved off where it was still: any shape showing goes, and the wait
+    /// for the hold starts again from `time`.
+    @discardableResult
+    public mutating func moved(to point: CGPoint, at time: Double) -> Bool {
+      points.append(point)
+      if let anchor, hypot(point.x - anchor.x, point.y - anchor.y) < stillWithin { return false }
+      anchor = point
+      since = time
+      shown = nil
+      return true
+    }
+
+    /// At `time`, the Pencil not having moved since: the clean shape of the stroke so far once it has been still for
+    /// `hold`, or nil (too soon, or no shape).
+    public mutating func still(at time: Double) -> Shape? {
+      guard anchor != nil, time - since >= hold else { return nil }
+      if shown == nil { shown = clean(points) }
+      return shown
+    }
+  }
+
   /// What Undo says for a snap, and the note's word for it.
   public static func name(_ kind: Shape.Kind) -> String {
     switch kind {
