@@ -196,8 +196,9 @@ final class WhiteboardModel: ObservableObject {
     questions = WhiteboardQuestionsModel(board: board.id, log: log, inbox: inbox, cockpit: cockpit)
     turns = WhiteboardGhostTurns(
       on: UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true, ghostLife: .seconds(Self.ghostSeconds))
-    gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
-    ruledOn = UserDefaults.standard.bool(forKey: "whiteboard_ruled_\(board.id)")
+    let lines = BoardLines().choice(board.id)
+    gridOn = lines == .grid
+    ruledOn = lines == .ruled
     editable = store.drawable(board)
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
     lookOnlyNote = store.lookOnlyNote(board)
@@ -402,14 +403,14 @@ final class WhiteboardModel: ObservableObject {
 
   func setRuled(_ on: Bool) {
     ruledOn = on
-    UserDefaults.standard.set(on, forKey: "whiteboard_ruled_\(board.id)")
+    UserDefaults.standard.set(on, forKey: BoardLines.ruledKey(board.id))
     log.event("whiteboard", ["action": on ? "ruled_on" : "ruled_off", "board": board.id])
     if on, gridOn { setGrid(false) }
   }
 
   func setGrid(_ on: Bool) {
     gridOn = on
-    UserDefaults.standard.set(on, forKey: "whiteboard_grid_\(board.id)")
+    UserDefaults.standard.set(on, forKey: BoardLines.gridKey(board.id))
     log.event("whiteboard", ["action": on ? "grid_on" : "grid_off", "board": board.id])
     if on, ruledOn { setRuled(false) }
   }
