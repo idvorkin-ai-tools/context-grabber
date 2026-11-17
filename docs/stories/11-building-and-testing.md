@@ -257,7 +257,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 689:
 
 - **Summary:** A stuck or flaky UI test costs a minute or two, not a whole rerun
-- **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named)
+- **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named); the hang wait cut from 30 s to 10 s in e427499 (retries run before the one closing suite line, so the cut skips only xcodebuild's idle tail), verified on the host by the same check
 - **Issues:** the pipeline timing study of 2026-11-10 (Igor: "I don't want to be spending 20 minutes in the simulator"; "fix all the issues")
 
 #### Use Case:
@@ -269,7 +269,64 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A UI test run on the simulator
 - **Given:** a run where one case fails once and passes on a second try, one case runs past two minutes, and xcodebuild sits idle after the last suite closes
 - **When:** the run ends
-- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 30 s after the suite closed with the log's result kept
+- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed with the log's result kept
+
+---
+
+### User Story 782:
+
+- **Summary:** The simulator rung keeps the Mac's display on, and refuses a locked screen at once
+- **Status:** implemented in c58dba5; verified on the host by `scripts/native/test-ladder-map.sh` (fake `caffeinate` and lock probe: rung 2 runs under `caffeinate -d -i` after a `caffeinate -u`, the Mac rung under `-i` alone, and a locked screen stops rung 2 with exit 75 before anything builds); not yet seen on a real dark Mac
+- **Issues:** the fast-sim-tests study of 2026-11-16 (the 915 run's whiteboard step: 29 minutes, 17 of them waiting for a dark, locked screen; a run that morning, two hours)
+
+#### Use Case:
+- **As Igor,** away from the Mac while a change climbs the ladder
+- **I want to** have the simulator rung keep the display lit, and refuse straight away when the screen is already locked
+- **so that** a run that takes 11 to 14 minutes doesn't take 30 minutes or two hours, and a locked Mac costs seconds and says why, not an hour of the build lock
+
+#### Acceptance Criteria:
+- **Scenario:** Starting the simulator rung
+- **Given:** the Mac's display may be asleep, and its screen may be locked
+- **When:** the ladder starts rung 2
+- **Then:** it wakes the display and holds it on for the whole rung, and if the screen is locked it stops with exit 75 and *the Mac's screen is locked: UI tests don't start on a locked screen*, building nothing
+
+---
+
+### User Story 783:
+
+- **Summary:** A UI test run that never starts is stopped in three minutes, naming the likely cause
+- **Status:** implemented in c58dba5; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild that never starts a suite is stopped and exits 75 with the message; one that compiles first, a build, and a run that starts in time are left alone)
+- **Issues:** the fast-sim-tests study of 2026-11-16 (the only bound on a run that never started was the rung's 60-minute limit)
+
+#### Use Case:
+- **As Igor,** waiting on a UI test run
+- **I want to** have a run whose first test hasn't started within three minutes stopped and blamed on the likely cause
+- **so that** a dark or locked screen costs three minutes and a clear line, not a quarter of an hour or the whole time limit
+
+#### Acceptance Criteria:
+- **Scenario:** A run of built tests that doesn't start
+- **Given:** a test run of an existing build, with no test suite started 180 s after xcodebuild began
+- **When:** the 180 s pass
+- **Then:** xcodebuild is stopped and the run fails with exit 75, saying no test started, that UI tests don't start with the display asleep or the screen locked, and whether the screen is locked now; a run that compiles first, or starts in time, runs on
+
+---
+
+### User Story 784:
+
+- **Summary:** A change to one of the board's own view files runs only the UI test classes that open it
+- **Status:** implemented in 1f27906 and 9d8c81c for the one such file on main, the board fixture hook (`WhiteboardRowDeleteUITests` and `ChatImageUITests`, where it ran all eight whiteboard classes and missed the chat one); verified on the host by `scripts/native/test-ladder-map.sh`. The board's two big views (the board and its paper) draw every board and still run every class. The view files on branches tonight get their rows as they land: the name in the bar (`WhiteboardRowDeleteUITests`), the panel's newest line (`WhiteboardTurnUITests`). The question cards (#919) have theirs: their two view files and their rules in `ContextCore` run `WhiteboardQuestionUITests` alone, and that class joined the whiteboard's list, which the map's check now holds to every `Whiteboard*UITests` class in the tree
+- **Issues:** the fast-sim-tests study of 2026-11-16 (any view file ran all eight whiteboard classes, 11 to 14 minutes)
+
+#### Use Case:
+- **As Igor,** waiting on a fix to one small part of the board
+- **I want to** have the simulator run the classes that open that part, not every whiteboard class
+- **so that** a one-file view fix costs a minute or two of UI tests, not the whole whiteboard step
+
+#### Acceptance Criteria:
+- **Scenario:** A change to the board fixture hook
+- **Given:** a branch that changes only the app's board fixture hook
+- **When:** the test ladder climbs
+- **Then:** the simulator runs the row-delete class and chat's picture-from-a-board class and no other whiteboard class, while a change to the board's own view still runs every whiteboard class, and `--full` still runs the whole suite
 
 ---
 

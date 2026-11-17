@@ -43,7 +43,7 @@ fi
 # The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
 # the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
 chat_area="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-whiteboard_area="WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRowDeleteUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
 # feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
 # LiveActivity, so those paths stay unmapped and the output says so.
@@ -115,6 +115,13 @@ for f in ${changed[@]+"${changed[@]}"}; do
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardSpeech.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardFrame.swift)
       add_classes WhiteboardTurnUITests WhiteboardPaperGhostsUITests ;;
+    # Story 784: the app's board fixture hook adds a board at launch; only the classes that launch with one see it.
+    native/App/Whiteboard/WhiteboardHooks.swift) add_classes WhiteboardRowDeleteUITests ChatImageUITests ;;
+    # Larry's question cards (stories 880-886): the cards, their model, and the rules in ContextCore.
+    native/App/Whiteboard/WhiteboardQuestion* | native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardQuestions.swift)
+      add_classes WhiteboardQuestionUITests ;;
+    # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
+    # big views draw every board, so they and anything unnamed run every class.
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
       add_classes $whiteboard_area ;;
     scripts/native/fake-cockpit.py) add_classes $chat_area $whiteboard_area ;;
@@ -401,6 +408,16 @@ simulator_steps() {
 rung_simulator() {
   [ "$in_lane" -eq 1 ] || { lane 2 $(($full == 1 ? 130 : 60)); return; }
   trap leave_simulator EXIT
+  # Story 782: UI tests don't start while the Mac's display is off or its screen is locked, and running ones stall (the
+  # 915 run of 2026-11-16 sat 17 minutes before its first test). Light the display (the rung holds it on from here,
+  # `caffeinate -d` below), then refuse a locked screen now rather than hold the build lock for an hour of nothing.
+  caffeinate -u -t 5 >/dev/null 2>&1 &
+  # shellcheck source=scripts/native/smoke-lock.sh
+  . scripts/native/smoke-lock.sh
+  if mac_locked; then
+    echo "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun" >&2
+    return 75
+  fi
   udid=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
   # Our own xcodebuild is one; a second is someone else's, and device builds don't take the build lock.
   contended=$(mktemp -u)
@@ -440,7 +457,11 @@ if [ "$in_lane" -eq 1 ]; then
     else
       echo "no $tl: rung $only runs with no time limit, and a hang holds the build lock" >&2
     fi
-    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} caffeinate -i "$self" "${orig[@]}"
+    # Story 782: the simulator rung holds the display on too (-d), as UI tests stall on a dark screen; -i alone keeps
+    # the Mac awake but lets the display sleep, and with the lock set to "immediately" that locks it.
+    keep=(-i)
+    [ "$only" = 2 ] && keep=(-d -i)
+    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} caffeinate "${keep[@]}" "$self" "${orig[@]}"
   fi
   case $only in
     1.5) rung_mac ;;
@@ -473,7 +494,7 @@ climb() {  # <rung> <name> <function>
   report+=("rung $1 $2: FAILED, $took")
   finish
   case $status in
-    75) echo "stopped on rung $1 $2: it could not start, the build lock or another xcodebuild was still busy (exit 75)" ;;
+    75) echo "stopped on rung $1 $2: it could not start: the build lock or another xcodebuild was still busy, the screen was locked, or no test started; the lines above say which (exit 75)" ;;
     124) echo "stopped on rung $1 $2: it ran past its time limit (exit 124)" ;;
     *) echo "stopped on rung $1 $2 (exit $status)" ;;
   esac
