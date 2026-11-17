@@ -2048,6 +2048,16 @@ extension WhiteboardModel {
     takeOps(.event(event))
   }
 
+  // Stories 920–922 (BoardToTextFlow.swift): what To text needs of the board.
+  var cockpitURL: String { cockpit }
+  var sessionLog: SessionLog { log }
+  func show(problem new: BugProblem?) { problem = new }
+  func say(_ note: String) { pasteNote = note }
+  func keep(text: BoardText) {
+    texts.append(text)
+    opLedger.setTexts(texts, board: board.id)
+  }
+
   /// The canvas applied a batch of Larry's: saved and a new revision like any change, and no stroke for Claude to answer.
   /// `renamed`: for each moved stroke, the hashes of its stretches before and after, so it keeps its names.
   /// `drawn`: each stroke Larry drew, its hashes and his name for it.

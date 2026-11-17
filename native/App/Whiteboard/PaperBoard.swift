@@ -350,8 +350,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     return hold
   }()
 
-  private let model: WhiteboardModel
-  private let log: SessionLog
+  let model: WhiteboardModel
+  let log: SessionLog
+  /// Stories 920–922: To text beside the lasso's ink (BoardToTextFlow.swift).
+  let toText = BoardToTextState()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private var board = BoardPages()
   private var pages = 1
@@ -682,6 +684,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
     showLines()
     showPageNumber()
+    showToText()
     // Not from inside PaperKit's own callback.
     if wanted > pages { Task { @MainActor [weak self] in self?.grow(to: wanted) } }
   }
@@ -709,6 +712,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let keys = Set(controller.selection.map(Self.key))
     if !pasted.isEmpty, keys != pasted { forgetPaste() }
     model.selectionChanged(keys)
+    showToText()
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
@@ -722,6 +726,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showChoice()
     placeCards()
     showPasted()
+    showToText()
     layRules()
     checkSeat()
     remembering?.cancel()
@@ -1313,6 +1318,32 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     log.event("whiteboard", ["action": "paper_paste_deleted", "board": model.board.id, "strokes": gone.count])
   }
 
+  /// The strokes with these element keys swapped for `strokes`, as one undo named `name` (stories 920, 923): saved, and
+  /// told to Larry as ink added and erased, never a stroke for Claude to answer. Nil before the markup is laid out.
+  @discardableResult
+  func replaceInk(removing keys: Set<String>, adding strokes: [PKStroke], named name: String) -> PaperMarkup? {
+    guard var markup = paper.markup else { return nil }
+    let before = markup
+    for id in markup.subelements.strokes.map(\.elementID) where keys.contains(Self.key(id)) {
+      _ = markup.subelements.removeElement(for: id)
+    }
+    if !strokes.isEmpty { markup.append(contentsOf: PKDrawing(strokes: strokes)) }
+    forgetPaste()
+    registerStepBack(to: before, named: name)
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    let framesBefore = inkFrames
+    let held = paper.markup ?? markup
+    inkFrames = held.strokeFrames
+    model.stepped(held.inkDrawing)
+    noteInk(held, since: framesBefore, report: true)
+    showLines()
+    redrawSoon()
+    showMarksSoon()
+    return held
+  }
+
   private func copiedStrokes(_ clipboard: UIPasteboard) -> [PKStroke]? {
     if let data = clipboard.data(forPasteboardType: UTType.paperkit.identifier),
       let markup = try? PaperMarkup(dataRepresentation: data), !markup.subelements.strokes.isEmpty
@@ -1337,8 +1368,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
   }
 
-  /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste`: those, 2 s apart from a second after the first ink, for the simulator: it
-  /// can't work the lasso, and keys reach only a run's first test. Copy selects all the ink and copies, as the lasso's does.
+  /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste` (or `select`, story 920): those, 2 s apart from a second after the first
+  /// ink, for the simulator: it can't work the lasso, and keys reach only a run's first test. Copy selects all the ink and copies, as the lasso's does.
   private func pressSoonForTests() {
     guard !pressedForTests, let presses = LaunchHooks.current.whiteboard.afterInk else { return }
     pressedForTests = true
@@ -1347,6 +1378,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         try? await Task.sleep(for: .seconds(1))
         if press == "paste" {
           self?.paste(from: "hook")
+        } else if press == "select" {
+          self?.selectAllForTests()
         } else {
           await self?.copyAllForTests()
         }
@@ -1915,6 +1948,7 @@ struct PaperBoardCanvas: View {
     }
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
+    .overlay { ToTextButton(controller: controller, state: controller.toText) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

@@ -4,7 +4,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 [2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md),
 [2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
 [2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
-[2026-11-16-whiteboard-question-cards-design.md](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md).
+[2026-11-16-whiteboard-question-cards-design.md](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md),
+[2026-11-16-whiteboard-to-text-and-snap-design.md](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md).
 
 ---
 
@@ -6051,3 +6052,63 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded section whose hidden ink sits under the lines below its header, and a word on one of those lines
 - **When:** I scratch the word out
 - **Then:** only the word goes; unfolding the header shows all of its ink where it was
+
+---
+
+### User Story 920:
+
+- **Summary:** Selected handwriting becomes typed text
+- **Status:** implemented on branch `native/board-totext-snap` (commit named below once it lands); verified by host tests (`BoardToTextTests`: `testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem`, `testTheCropIsTheInkWithAirRoundItNeverOffTheBoard`, `testTheWordsAreTheAnswer`, `testOneTypedLinePerLineReadAtTheInksTopLeftSizedToIt`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace`, is written and not yet run; not yet seen on the iPad, nor against the real Cockpit
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
+
+#### Use Case:
+- **As someone** writing on the board with the Pencil
+- **I want to** lasso some of my handwriting and tap To text
+- **so that** the words are typed where I wrote them, for me and for Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Two written lines
+- **Given:** I lasso two lines of my handwriting on a board drawn on here
+- **When:** I tap To text beside the selection and the Cockpit reads it
+- **Then:** the ink goes and its words show in its place as two typed lines in the print lettering and the ink's colour, one kept text that Larry gets back as text; one undo brings the ink back
+
+---
+
+### User Story 921:
+
+- **Summary:** A To text that fails leaves the ink and says why
+- **Status:** implemented on branch `native/board-totext-snap` (commit named below once it lands); verified by host tests (`BoardToTextTests.testAFailureSaysTheCockpitsReason`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardToTextUITests.testAFailureLeavesTheInkWithACopyableProblem`, is written and not yet run; not yet seen on the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
+
+#### Use Case:
+- **As someone** turning handwriting into text
+- **I want to** be told why when the Cockpit can't read it
+- **so that** I know whether to try again, and my ink is never lost
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit fails
+- **Given:** some ink lassoed, and a Cockpit that is away or answers with an error
+- **When:** I tap To text
+- **Then:** the ink stays exactly as it was and a copyable problem says "To text failed:" with the Cockpit's reason, naming the board, the Cockpit and its status
+
+---
+
+### User Story 922:
+
+- **Summary:** No writing, or too much, leaves the ink and says so
+- **Status:** implemented on branch `native/board-totext-snap` (commit named below once it lands); verified by host tests (`BoardToTextTests.testNoWritingOrTooMuchLeavesTheInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
+
+#### Use Case:
+- **As someone** lassoing a drawing or a whole page
+- **I want to** hear that there was no writing, or too much for one text
+- **so that** I can select something else instead of losing what I drew
+
+#### Acceptance Criteria:
+- **Scenario:** A drawing with no words
+- **Given:** I lasso a doodle with no writing in it, or more than 500 characters of writing
+- **When:** I tap To text
+- **Then:** the ink stays and the board's note says "No writing found there", or "Too much writing for one text (500 characters): select less"
+
+---
+

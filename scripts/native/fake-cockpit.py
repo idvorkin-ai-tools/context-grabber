@@ -44,9 +44,14 @@ the asks as /fake/asks does and has Larry put a question card for that ask on th
 ask, x, y} in the picture's pixels, with its frame); GET /ink/answers?ids=a,b answers with the question and answer of the
 asks decided here, as ink_store.decision_answer reads them, and lists the rest as unknown.
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
+POST /ink/to-text {name, png} reads handwriting as the Cockpit's ink_text.py answers (stories 920-922): a PNG in base64
+or a 400 with its reason, then {ok, text, too_long, advice, model, via} with the text "hello"; POST /fake/to-text
+{"text": ..., "status": ..., "error": ...} sets what every later one answers ({} back to "hello"). GET /fake/to-text
+lists the pictures' sizes so far.
 """
 
 import base64
+import binascii
 import json
 import os
 import re
@@ -73,6 +78,8 @@ STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 FOLD_SENDS = []  # the folds beside each (story 857)
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
 LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
+TO_TEXT = {}  # what POST /ink/to-text answers, as POST /fake/to-text set it (stories 920-922)
+TO_TEXT_SENDS = []  # each picture's name and bytes
 TEXT_FIELDS = {"kind", "id", "text", "font", "x", "y", "w", "h", "color", "t"}  # a kept text in POST /whiteboard/strokes
 EVENT_POSTS = []  # each POST /whiteboard/events body, with whether it woke Larry (story 846)
 EVENT_TYPE = re.compile(r"[a-z][a-z0-9_]{0,31}")
@@ -383,6 +390,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True, "answers": ANSWERS})
             if path == "/fake/strokes":
                 return self._json(200, {"ok": True, "sends": STROKE_SENDS, "folds": FOLD_SENDS})
+            if path == "/fake/to-text":
+                return self._json(200, {"ok": True, "sends": TO_TEXT_SENDS})
             if path == "/fake/ops":
                 return self._json(200, {"ok": True, "armed": LARRY_OPS is not None, "reports": OP_REPORTS,
                                         "event_posts": EVENT_POSTS})
@@ -416,6 +425,13 @@ class Handler(BaseHTTPRequestHandler):
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})
         data = json.loads(raw or b"{}")
+        if path == "/ink/to-text":
+            return self._to_text(data)
+        if path == "/fake/to-text":
+            global TO_TEXT
+            with LOCK:
+                TO_TEXT = data
+            return self._json(200, {"ok": True})
         if path in ("/whiteboard/suggest", "/plain/whiteboard/suggest", "/many/whiteboard/suggest"):
             return self._suggest(data, path.split("/")[1])
         if path == "/whiteboard/strokes":
@@ -587,6 +603,27 @@ class Handler(BaseHTTPRequestHandler):
                       {"kind": "polyline", "points": [[0, h + 140], [w / 3, h + 180], [w, h + 140]]},
                       {"kind": "arc", "cx": w / 2, "cy": h + 260, "r": 50, "start": 0, "end": 270},
                       {"kind": "label", "x": 0, "y": h + 380, "text": "here", "size": 48}], 0.4)
+
+    def _to_text(self, data):
+        # As ink_text.parse and post: the same checks and reasons, then the armed answer.
+        self._report({"to_text": data.get("name"), "png_chars": len(data.get("png") or ""),
+                      "origin": self.headers.get("Origin")})
+        if not isinstance(data.get("png"), str):
+            return self._json(400, {"ok": False, "error": "send {png: <base64>}"})
+        try:
+            png = base64.b64decode(data["png"], validate=True)
+        except (binascii.Error, ValueError):
+            return self._json(400, {"ok": False, "error": "png is not base64"})
+        if not png.startswith(b"\x89PNG"):
+            return self._json(400, {"ok": False, "error": "png is not a PNG"})
+        with LOCK:
+            TO_TEXT_SENDS.append({"name": data.get("name"), "bytes": len(png)})
+            armed = dict(TO_TEXT)
+        if armed.get("status", 200) != 200:
+            return self._json(armed["status"], {"ok": False, "error": armed.get("error") or "the model failed"})
+        text = armed.get("text", "hello")
+        return self._json(200, {"ok": True, "text": text[:500], "too_long": len(text) > 500, "advice": [],
+                                "model": "fake", "via": "fake"})
 
     def _draws(self, data):
         self._report({"unprompted": data.get("count")})

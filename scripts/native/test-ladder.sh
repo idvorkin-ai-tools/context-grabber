@@ -120,6 +120,8 @@ for f in ${changed[@]+"${changed[@]}"}; do
     # Larry's question cards (stories 880-886): the cards, their model, and the rules in ContextCore.
     native/App/Whiteboard/WhiteboardQuestion* | native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardQuestions.swift)
       add_classes WhiteboardQuestionUITests ;;
+    native/ContextCore/Sources/ContextCore/Whiteboard/BoardToText.swift | native/App/Whiteboard/BoardToTextFlow.swift)
+      add_classes WhiteboardToTextUITests ;;  # stories 920-922
     # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
     # big views draw every board, so they and anything unnamed run every class.
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
