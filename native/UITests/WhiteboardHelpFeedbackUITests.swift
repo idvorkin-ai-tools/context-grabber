@@ -40,8 +40,9 @@ final class WhiteboardHelpFeedbackUITests: XCTestCase {
       XCTAssertTrue(row.appears(within: 3), "\(gesture) is listed: \(app.debugDescription)")
     }
     app.buttons["whiteboard-help-done"].tap()
-    let gone = NSPredicate(format: "exists == false")
-    waitUntil(gone, app.navigationBars["How this board works"], timeout: 5)
+    // `waitUntil` reads a missing element as "not yet", so the close is waited on with an expectation.
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.navigationBars["How this board works"])
+    waitForExpectations(timeout: 5)
     XCTAssertTrue(app.buttons["whiteboard-board"].isHittable, "back on the board")
   }
 
@@ -53,12 +54,16 @@ final class WhiteboardHelpFeedbackUITests: XCTestCase {
     feedback.tap()
     let sheet = app.navigationBars["Report a problem"]
     XCTAssertTrue(sheet.appears(within: 10), app.debugDescription)
-    let field = app.textViews.firstMatch.exists ? app.textViews.firstMatch : app.textFields.firstMatch
+    // The board's own paper is a text view too, so the note is found by its identifier.
+    let field = app.descendants(matching: .any)["report-note"].firstMatch
+    XCTAssertTrue(field.appears(within: 5), app.debugDescription)
+    field.tap()
     field.typeText("from the board's Feedback button")
     app.buttons["report-log-it"].tap()
     let logged = app.staticTexts["whiteboard-feedback-logged"]
     XCTAssertTrue(logged.appears(within: 10), app.debugDescription)
     XCTAssertEqual(logged.label, "Feedback logged ✓")
-    XCTAssertFalse(sheet.exists, "the sheet closed")
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: sheet)
+    waitForExpectations(timeout: 5)
   }
 }
