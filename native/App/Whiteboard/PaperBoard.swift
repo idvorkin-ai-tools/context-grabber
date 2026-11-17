@@ -1138,10 +1138,18 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if touch.type == .pencil { toolWentDown() }
   }
 
-  /// Story 886: the eraser over an answered question card takes it.
+  /// Story 886: the eraser over an answered question card takes it, from a touch that would erase ink: the Pencil, or a
+  /// finger only while fingers draw. A finger that pans the board takes nothing.
   override func touchMoved(_ touch: UITouch) {
-    guard place.erasing, model.questions.board.cards.contains(where: { $0.answered != nil }) else { return }
+    guard place.erasing, touch.type == .pencil || fingersDraw,
+      model.questions.board.cards.contains(where: { $0.answered != nil })
+    else { return }
     model.questions.erase(crossing: [lines.columnPoint(of: touch.location(in: lines))])
+  }
+
+  private var fingersDraw: Bool {
+    paper.directTouchAutomaticallyDraws
+      ? !UIPencilInteraction.prefersPencilOnlyDrawing : paper.directTouchMode == .drawing
   }
 
   override func toolChanged() {

@@ -62,7 +62,8 @@ with *Collapse* and *Close*. *Collapse* folds the card to a one-line chip, *✓ 
 A tap on a chip opens it out again.
 
 **The eraser.** With the eraser in hand, a stroke across an answered card or chip takes it off the board, as it would
-ink. An open card is still live: the eraser leaves it.
+ink. Only a touch that would erase ink takes it: the Pencil, or a finger while fingers draw; a finger that pans the
+board takes nothing. An open card is still live: the eraser leaves it.
 
 **When the asks are read.** When the board opens or comes back on screen, when a question of Larry's lands, and when a
 card is opened. Offline, or with no Cockpit address, nothing is read: the cards on the board stay as they are, and an

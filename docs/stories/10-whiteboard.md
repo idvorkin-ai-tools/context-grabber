@@ -4709,7 +4709,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 880:
 
 - **Summary:** Larry's question about a board lands on it as a card
-- **Status:** implemented in this branch (`native/board-question-cards`). Verified by host tests (`WhiteboardQuestionsTests`: `testLarrysQuestionMarkLandsAtHisPlaceByTheRowsFrame`, `testACardIsOncePerAskAndInsideThePage`, `testAnErasedCardsMarkNeverLandsAgain`; `just test`); the simulator's check is `WhiteboardQuestionUITests` (`scripts/native/test-whiteboard-ui.sh`), not yet run; not yet seen on the iPad or against the real Larry
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests`: `testLarrysQuestionMarkLandsAtHisPlaceByTheRowsFrame`, `testACardIsOncePerAskAndInsideThePage`, `testAnErasedCardsMarkNeverLandsAgain`; `just test`); and on the simulator (`WhiteboardQuestionUITests` 1/1, `scripts/native/test-whiteboard-ui.sh`); not yet seen on the iPad or against the real Larry
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Where a card comes from*
 
 #### Use Case:
@@ -4728,7 +4728,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 881:
 
 - **Summary:** An open ask about a board shows on it when it opens
-- **Status:** implemented in this branch (`native/board-question-cards`). Verified by host tests (`WhiteboardQuestionsTests`: `testAnOpenAskNamesTheBoardByItsThreadOrInItsContext`, `testOpenAsksLandAtTheTopOfTheScreenOneUnderAnother`; `just test`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests`: `testAnOpenAskNamesTheBoardByItsThreadOrInItsContext`, `testOpenAsksLandAtTheTopOfTheScreenOneUnderAnother`; `just test`); not yet seen on the simulator or the iPad
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Where a card comes from*
 
 #### Use Case:
@@ -4747,7 +4747,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 882:
 
 - **Summary:** Answer a question card from the board
-- **Status:** implemented in this branch (`native/board-question-cards`), with Chat's decision card in the popup and an answer in my own words added to its verbs. Verified by host tests (`WhiteboardQuestionsTests`: `testAnAnswerLeavesTheQuestionOverTheAnswer`, `testOwnWordsAreTheInboxsFreeTextAnswer`; `ChatDecisionsTests` for the option's answer; `just test`); the simulator's check is `WhiteboardQuestionUITests.testLarrysQuestionLandsAnswersAndFolds`, not yet run; not yet seen on the iPad
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e), with Chat's decision card in the popup and an answer in my own words added to its verbs. Verified by host tests (`WhiteboardQuestionsTests`: `testAnAnswerLeavesTheQuestionOverTheAnswer`, `testOwnWordsAreTheInboxsFreeTextAnswer`; `ChatDecisionsTests` for the option's answer; `just test`); and on the simulator (`WhiteboardQuestionUITests.testLarrysQuestionLandsAnswersAndFolds`, 1/1); not yet seen on the iPad
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answering*, *When it fails*
 
 #### Use Case:
@@ -4766,7 +4766,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 883:
 
 - **Summary:** An answered card keeps the question over the answer
-- **Status:** implemented in this branch (`native/board-question-cards`). Verified by host tests (`WhiteboardQuestionsTests`: `testWhatACardSays`, `testTheCardsKeepWithTheBoard`; `just test`); the simulator's check is `WhiteboardQuestionUITests`, not yet run
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests`: `testWhatACardSays`, `testTheCardsKeepWithTheBoard`; `just test`); and on the simulator (`WhiteboardQuestionUITests` 1/1)
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *An answered card*
 
 #### Use Case:
@@ -4785,7 +4785,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 884:
 
 - **Summary:** A card answered elsewhere shows that answer
-- **Status:** implemented in this branch (`native/board-question-cards`). Verified by host tests (`WhiteboardQuestionsTests.testClosedAsksFetchTheirAnswerAndAMissingOneIsAskedAgain`, `testTheWireAsksForSnoozedAsksAndEncodesTheIDs`; `just test`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests.testClosedAsksFetchTheirAnswerAndAMissingOneIsAskedAgain`, `testTheWireAsksForSnoozedAsksAndEncodesTheIDs`; `just test`); not yet seen on the simulator or the iPad
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answered elsewhere*
 
 #### Use Case:
@@ -4804,7 +4804,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 885:
 
 - **Summary:** An answered card opens read-only and folds to a chip
-- **Status:** implemented in this branch (`native/board-question-cards`). Verified by host tests (`WhiteboardQuestionsTests.testOnlyAnAnsweredCardFoldsToAChipAsWideAsItsWords`; `just test`); the simulator's check is `WhiteboardQuestionUITests`, not yet run
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests.testOnlyAnAnsweredCardFoldsToAChipAsWideAsItsWords`; `just test`); and on the simulator (`WhiteboardQuestionUITests` 1/1)
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Reading and folding*
 
 #### Use Case:
@@ -4823,7 +4823,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 886:
 
 - **Summary:** The eraser takes an answered card
-- **Status:** implemented in this branch (`native/board-question-cards`). Verified by host tests (`WhiteboardQuestionsTests.testTheEraserTakesAnAnsweredCardAndLeavesAnOpenOne`; `just test`); the eraser's touches live in the board's view, with no host test; not yet seen on the iPad
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests.testTheEraserTakesAnAnsweredCardAndLeavesAnOpenOne`; `just test`); the eraser's touches live in the board's view, with no host test, and take a card only from a touch that would erase ink — the Pencil, or a finger while fingers draw, never a finger panning the board (review fix); not yet seen on the iPad
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *The eraser*
 
 #### Use Case:
@@ -4836,3 +4836,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an answered card and an open card on the board, and the eraser in hand
 - **When:** I stroke the eraser across both
 - **Then:** the answered card goes, the open card stays, and the session log says a card was erased
+
+- **Scenario:** I pan the board with the eraser in hand
+- **Given:** an answered card on the board, the eraser in hand, and fingers set not to draw
+- **When:** I drag a finger that starts on the card
+- **Then:** the board scrolls and the card stays
