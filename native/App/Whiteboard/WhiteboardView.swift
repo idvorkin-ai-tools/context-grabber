@@ -2053,9 +2053,15 @@ extension WhiteboardModel {
     let change = ink.changed(updated: updated, removed: removed, ids: &strokeIDs)
     if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     guard report, !change.isEmpty else { return }
+    let changed = change.moved + change.erased
+    let owners =
+      changed.isEmpty
+      ? []
+      : BoardOps.owners(
+        of: changed, live: opStrokes(drawing.strokes).strokes, groups: strokeMeta.groups, texts: texts)
     let dissolved = dissolve(erased: change.erased)
     // Story 961: what a batch from an older look must not name.
-    ops.touched(change.moved + change.erased + dissolved)
+    ops.touched(changed + dissolved + owners + (reworded ?? []))
     let event = BoardEvent.strokesChanged(
       added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs,
       dissolved: dissolved.isEmpty ? nil : dissolved, reworded: reworded)

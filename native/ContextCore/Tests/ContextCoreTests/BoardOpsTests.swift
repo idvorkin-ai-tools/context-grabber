@@ -176,6 +176,19 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(applier.lastResult?.wire["conflict_ids"] as? [String], ["s4"])
   }
 
+  func testABatchNamingTheGroupOrTextOfAMovedStrokeIsStale() {
+    let live = [stroke("s4", y: 100), stroke("s5", y: 130), stroke("w1", y: 300, t: 5000), stroke("s9", y: 600)]
+    let text = BoardText(id: "t1", t: 5000, text: "hi", font: .plain, size: 20, color: "#000000")
+    let owners = BoardOps.owners(of: ["s4", "w1"], live: live, groups: ["s4": "g1", "s5": "g1"], texts: [text])
+    XCTAssertEqual(owners, ["g1", "t1"])
+    var applier = boardSinceLarryLooked([["s4", "w1"] + Array(owners)])
+    let b = batch(
+      [["op": "translate", "ids": ["g1"], "dy": 40], ["op": "delete", "ids": ["t1"]]], rev: 10)
+    XCTAssertEqual(
+      applier.receive(b, board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale", conflictIDs: ["g1", "t1"])))
+  }
+
   func testOnlyChangesAfterTheLookCount() {
     var applier = boardSinceLarryLooked([["s4"], nil])
     // Larry looked at rev 11, after s4 moved: it is no conflict for him.

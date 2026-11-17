@@ -4170,7 +4170,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Larry answers every board I haven't set otherwise
 - **Issues:** Igor on his board, 2026-11-17: "Let's make Larry default responder"
-- **Status:** implemented in [99f8b3a](https://github.com/idvorkin/context-grabber/commit/99f8b3a); verified on the host (`WhiteboardResponderTests`: Larry ticked until the Cockpit says, a never-set board given to Larry, a set one kept, a Cockpit that doesn't say `set` counts as set) and the Mac build. The write on open not yet seen against the live Cockpit or on the iPad
+- **Status:** implemented in [436837c](https://github.com/idvorkin/context-grabber/commit/436837c); verified on the host (`WhiteboardResponderTests`: Larry ticked until the Cockpit says) and the Mac build. A new board's Responder on the live Cockpit not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
@@ -4184,11 +4184,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** it opens
 - **Then:** its Responder is Larry, here and on my other devices
 
+---
+
+### User Story 962:
+
+- **Summary:** An old board nobody set is given to Larry when I open it
+- **Issues:** Igor on his board, 2026-11-17: "Let's make Larry default responder"
+- **Status:** implemented in [436837c](https://github.com/idvorkin/context-grabber/commit/436837c); verified on the host (`WhiteboardResponderTests`: a never-set board given to Larry) and the Mac build. The write on open not yet seen against the live Cockpit or on the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing to talk with Larry
+- **I want to** have Larry answer my boards without picking him on each one
+- **so that** the board is a conversation with him from the first stroke, and Sonnet answers only where I chose it
+
+#### Acceptance Criteria:
 - **Scenario:** An old board nobody set
 - **Given:** a board from before, whose responder was never set
 - **When:** I open it
 - **Then:** its Responder becomes Larry, and the session log says it was the default
 
+---
+
+### User Story 963:
+
+- **Summary:** A board I set keeps the responder I chose
+- **Issues:** Igor on his board, 2026-11-17: "Let's make Larry default responder"
+- **Status:** implemented in [436837c](https://github.com/idvorkin/context-grabber/commit/436837c); verified on the host (`WhiteboardResponderTests`: a set board kept, a Cockpit that doesn't say `set` counts as set) and the Mac build
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing to talk with Larry
+- **I want to** have Larry answer my boards without picking him on each one
+- **so that** the board is a conversation with him from the first stroke, and Sonnet answers only where I chose it
+
+#### Acceptance Criteria:
 - **Scenario:** A board I set
 - **Given:** a board I set to Sonnet
 - **When:** I open it
@@ -4198,9 +4228,9 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 961:
 
-- **Summary:** Larry's change applies though I wrote on, unless it names what I moved or erased
+- **Summary:** Larry's change applies though I wrote on since he looked
 - **Issues:** Larry, 2026-11-17: his make-room ops came back stale (rev 257 on 11/16, rev 111 today) because Igor wrote a stroke or two before they arrived
-- **Status:** implemented in [cecc8f4](https://github.com/idvorkin/context-grabber/commit/cecc8f4); verified on the host (`BoardOpsTests`: new strokes since don't stop a push and it says `rebased_from`, a named stroke Igor moved is stale with `conflict_ids`, only changes after the look count, every name an op uses is checked, too old or after Larry's own change is stale, the memory's limit, a rebased push moves the strokes below now) and the Mac build; on the iPad simulator, merged with main at 2510b8c6 (`WhiteboardPaperGhostsUITests` rung 2: `testAPushFromAnOlderLookStillApplies` and `testAStalePushMovesNothingAndLarryIsTold` pass)
+- **Status:** implemented in [905337c](https://github.com/idvorkin/context-grabber/commit/905337c); verified on the host (`BoardOpsTests`: new strokes since don't stop a push and it says `rebased_from`, only changes after the look count, a rebased push moves the strokes below now) and the Mac build; on the iPad simulator, merged with main at 2510b8c6 (`WhiteboardPaperGhostsUITests` rung 2: `testAPushFromAnOlderLookStillApplies` passes)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
@@ -4214,11 +4244,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** his make room arrives
 - **Then:** everything below its line now moves down, my new strokes included, one Undo, and his next turn says it applied on a newer board than the one he saw
 
+---
+
+### User Story 964:
+
+- **Summary:** Larry's change from an older look is refused when it names what I moved or erased
+- **Issues:** Larry, 2026-11-17: his make-room ops came back stale (rev 257 on 11/16, rev 111 today) because Igor wrote a stroke or two before they arrived
+- **Status:** implemented in [905337c](https://github.com/idvorkin/context-grabber/commit/905337c); verified on the host (`BoardOpsTests`: a named stroke Igor moved is stale with `conflict_ids`, a named group or kept text whose stroke Igor moved is stale too, every name an op uses is checked) and the Mac build; on the iPad simulator, merged with main at 2510b8c6 (`WhiteboardPaperGhostsUITests` rung 2: `testAStalePushMovesNothingAndLarryIsTold` passes)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** writing on while Larry thinks
+- **I want to** have his make-room still happen when my new strokes don't get in its way
+- **so that** I don't have to stop writing for his changes to land
+
+#### Acceptance Criteria:
 - **Scenario:** I moved what he names
-- **Given:** Larry looked, and I since moved one of the strokes his change names
+- **Given:** Larry looked, and I since moved one of the strokes his change names, or a stroke of a group or kept text it names
 - **When:** it arrives
 - **Then:** nothing moves, and his next turn says it was stale and which of his names I had moved or erased
 
+---
+
+### User Story 965:
+
+- **Summary:** Larry's change from too far back is refused as stale
+- **Issues:** Larry, 2026-11-17: his make-room ops came back stale (rev 257 on 11/16, rev 111 today) because Igor wrote a stroke or two before they arrived
+- **Status:** implemented in [905337c](https://github.com/idvorkin/context-grabber/commit/905337c); verified on the host (`BoardOpsTests`: too old or after Larry's own change is stale, the memory's limit) and the Mac build
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** writing on while Larry thinks
+- **I want to** have his make-room still happen when my new strokes don't get in its way
+- **so that** I don't have to stop writing for his changes to land
+
+#### Acceptance Criteria:
 - **Scenario:** He is too far behind
 - **Given:** Larry's change was made on a board older than the board remembers, or before the app restarted
 - **When:** it arrives

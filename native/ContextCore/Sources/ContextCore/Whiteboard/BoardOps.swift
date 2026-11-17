@@ -161,6 +161,20 @@ public enum BoardOps {
     return out
   }
 
+  /// Story 961: the groups and kept texts the strokes named `names` belong to, so a change to a stroke is a change to
+  /// what a batch could name it by. `live`: the strokes on the board, which say when each was made.
+  public static func owners(
+    of names: [String], live: [Stroke], groups: [String: String], texts: [BoardText]
+  ) -> Set<String> {
+    let names = Set(names)
+    var out = Set(names.compactMap { groups[$0] })
+    let byTime = BoardText.byTime(texts)
+    for stroke in live where stroke.ids.contains(where: names.contains) {
+      if let text = BoardText.owning(stroke.t, in: byTime) { out.insert(text.id) }
+    }
+    return out
+  }
+
   public struct Batch: Equatable, Sendable {
     /// What makes it the same batch when seen again: its message's id, or `label@base_rev` without one.
     public var key: String
