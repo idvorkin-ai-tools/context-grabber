@@ -2013,8 +2013,8 @@ extension WhiteboardModel {
   }
 
   /// Story 843: elements came or changed (`updated`, their hashes now) or went. `report`: Igor did it, so Larry hears
-  /// it; else the board only takes it in.
-  func inkElements(updated: [String: [String]], removed: [String], report: Bool) {
+  /// it; else the board only takes it in. `reworded`: the kept texts this change rewords (story 942).
+  func inkElements(updated: [String: [String]], removed: [String], report: Bool, reworded: [String]? = nil) {
     let before = strokeIDs
     let change = ink.changed(updated: updated, removed: removed, ids: &strokeIDs)
     if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
@@ -2022,7 +2022,7 @@ extension WhiteboardModel {
     let dissolved = dissolve(erased: change.erased)
     let event = BoardEvent.strokesChanged(
       added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs,
-      dissolved: dissolved.isEmpty ? nil : dissolved)
+      dissolved: dissolved.isEmpty ? nil : dissolved, reworded: reworded)
     events.record(event)
     takeOps(.event(event))
   }

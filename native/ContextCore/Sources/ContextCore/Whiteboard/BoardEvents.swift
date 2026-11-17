@@ -16,8 +16,11 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   case tap(x: CGFloat, y: CGFloat, target: String?, t: Int64)
   /// Igor changed the ink (story 843): strokes added, erased and moved, by name, and the board's revision after.
   /// `dissolved`: groups and kept texts the erase left only part of, now plain ink (story 854).
+  /// `reworded`: the kept texts whose words Igor changed in place (story 942), by the id Larry knows them by; their glyphs
+  /// are among `erased` and `added`.
   case strokesChanged(
-    added: [String], erased: [String], moved: [String], rev: Int, t: Int64, dissolved: [String]? = nil)
+    added: [String], erased: [String], moved: [String], rev: Int, t: Int64, dissolved: [String]? = nil,
+    reworded: [String]? = nil)
   /// The lasso's selection, by name (story 844); empty when it was let go.
   case selection(ids: [String], t: Int64)
   /// A finger in the left margin (story 849): where it went down on the board, and how far a drag went.
@@ -36,11 +39,12 @@ public enum BoardEvent: Equatable, Codable, Sendable {
     case .tap(let x, let y, let target, let t):
       let tenth = { (v: CGFloat) in Double((v * 10).rounded() / 10) }
       return ["type": "tap", "x": tenth(x), "y": tenth(y), "target_id": target as Any? ?? NSNull(), "t": t]
-    case .strokesChanged(let added, let erased, let moved, let rev, let t, let dissolved):
+    case .strokesChanged(let added, let erased, let moved, let rev, let t, let dissolved, let reworded):
       var out: [String: Any] = [
         "type": "strokes_changed", "added": added, "erased": erased, "moved": moved, "rev": rev, "t": t,
       ]
       if let dissolved, !dissolved.isEmpty { out["dissolved"] = dissolved }
+      if let reworded, !reworded.isEmpty { out["reworded"] = reworded }
       return out
     case .selection(let ids, let t):
       return ["type": "selection", "ids": ids, "t": t]
