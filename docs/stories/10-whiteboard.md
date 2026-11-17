@@ -6419,7 +6419,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 950:
 
 - **Summary:** The board's cheat sheet is one tap away
-- **Status:** implemented; verification pending
+- **Status:** implemented in [8566caf](https://github.com/idvorkin/context-grabber/commit/8566caf), [1c1b462](https://github.com/idvorkin/context-grabber/commit/1c1b462); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the ? opened *How this board works* listing every gesture the test names; its close and the fixed test's full pass not yet seen (the Mac's screen was locked for the rerun); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:
@@ -6440,7 +6440,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 951:
 
 - **Summary:** The cheat sheet's buttons leave the top bar alone
-- **Status:** implemented; verification pending
+- **Status:** implemented in [8566caf](https://github.com/idvorkin/context-grabber/commit/8566caf), [1c1b462](https://github.com/idvorkin/context-grabber/commit/1c1b462); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) the Board menu, Paste, the mic, Ghosts, Larry's turn and Send stayed in the top bar with ? and Feedback on the board; at the lower right the Pencil's tool palette took their taps, so they moved to the top right in 1c1b462; not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 - **Issues:** [#848](https://github.com/idvorkin/context-grabber/issues/848) (the Board menu must stay in the iPad's bar and close on a pick)
 
@@ -6461,7 +6461,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 952:
 
 - **Summary:** Feedback from the board is one tap
-- **Status:** implemented; verification pending
+- **Status:** implemented in [8566caf](https://github.com/idvorkin/context-grabber/commit/8566caf), [1c1b462](https://github.com/idvorkin/context-grabber/commit/1c1b462); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) a tap on Feedback opened *Report a problem* over the board; not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:
@@ -6481,7 +6481,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 953:
 
 - **Summary:** The board says the feedback was logged
-- **Status:** implemented; verification pending
+- **Status:** implemented in [8566caf](https://github.com/idvorkin/context-grabber/commit/8566caf), [1c1b462](https://github.com/idvorkin/context-grabber/commit/1c1b462); `just test` and the Mac build (`just native-build-mac`) green. On the iPad simulator (rung 2, `WhiteboardHelpFeedbackUITests`, 2026-11-17) not yet seen: the run that would log a note and see *Feedback logged ✓* was the rerun the locked screen stopped; not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *How this board works, and Feedback*
 
 #### Use Case:
