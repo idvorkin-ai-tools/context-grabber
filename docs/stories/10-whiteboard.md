@@ -6174,7 +6174,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 910:
 
 - **Summary:** I join two things with an arrow I drew
-- **Status:** implemented in [c39ea97](https://github.com/idvorkin/context-grabber/commit/c39ea97) and [c93c4bb](https://github.com/idvorkin/context-grabber/commit/c93c4bb), and [f1042da](https://github.com/idvorkin/context-grabber/commit/f1042da) (Connect sits clear of To text, which covered it); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build; on the simulator, `WhiteboardConnectUITests` (`testALassoedArrowBetweenTwoWordsConnectsThem`, passing after f1042da); not yet seen on the iPad
+- **Status:** implemented in [c39ea97](https://github.com/idvorkin/context-grabber/commit/c39ea97) and [c93c4bb](https://github.com/idvorkin/context-grabber/commit/c93c4bb), and [7097c4e](https://github.com/idvorkin/context-grabber/commit/7097c4e) (Connect sits clear of To text, which covered it); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build; on the simulator, `WhiteboardConnectUITests` (`testALassoedArrowBetweenTwoWordsConnectsThem`, passing after 7097c4e); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6818,7 +6818,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 917:
 
 - **Summary:** Larry's connector mark shows as the arrow it would be
-- **Status:** implemented in [819c35b](https://github.com/idvorkin/context-grabber/commit/819c35b) and [17a547b](https://github.com/idvorkin/context-grabber/commit/17a547b); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
+- **Status:** implemented in [4749f2a](https://github.com/idvorkin/context-grabber/commit/4749f2a) and [1ade3f5](https://github.com/idvorkin/context-grabber/commit/1ade3f5); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry's connector marks*
 
 #### Use Case:
@@ -6837,7 +6837,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 918:
 
 - **Summary:** Keeping Larry's connector mark makes a real connector
-- **Status:** implemented in [819c35b](https://github.com/idvorkin/context-grabber/commit/819c35b) and [17a547b](https://github.com/idvorkin/context-grabber/commit/17a547b); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
+- **Status:** implemented in [4749f2a](https://github.com/idvorkin/context-grabber/commit/4749f2a) and [1ade3f5](https://github.com/idvorkin/context-grabber/commit/1ade3f5); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry's connector marks*
 
 #### Use Case:
@@ -6856,7 +6856,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 919:
 
 - **Summary:** A connector mark that can't land is plain or nothing
-- **Status:** implemented in [819c35b](https://github.com/idvorkin/context-grabber/commit/819c35b) and [17a547b](https://github.com/idvorkin/context-grabber/commit/17a547b); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
+- **Status:** implemented in [4749f2a](https://github.com/idvorkin/context-grabber/commit/4749f2a) and [1ade3f5](https://github.com/idvorkin/context-grabber/commit/1ade3f5); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry's connector marks*
 
 #### Use Case:

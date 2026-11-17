@@ -801,8 +801,8 @@ final class WhiteboardModel: ObservableObject {
         Ghost(shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id))
       }.filter { !settled.contains($0.id) })
     // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
-    nowhere.forEach(settleLarrys)
     turns.larrysMarks(marks)
+    nowhere.forEach(settleLarrys)
     log.event(
       "whiteboard_marks",
       [
