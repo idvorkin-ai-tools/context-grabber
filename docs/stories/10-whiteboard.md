@@ -198,6 +198,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I long-press it and rename it, then long-press it again, tap Delete and confirm
 - **Then:** the row takes the new name, then goes, and the board leaves every device and doesn't come back; a row drawn on another device offers Delete (story 396) but not Rename
 
+### User Story 836:
+
+- **Summary:** Rename a board from its bar or its row
+- **Status:** spec only; not yet implemented
+- **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916) ("Log bug: Rename boards")
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
+
+#### Use Case:
+- **As someone** with several boards named for the day they were started
+- **I want to** rename a board where I can find the way to, on the board or in the list
+- **so that** I can tell my boards apart by what's on them
+
+#### Acceptance Criteria:
+- **Scenario:** From the board
+- **Given:** a board drawn on this device is open, named *Board, Nov 16*
+- **When:** I tap its name in the bar, choose *Rename*, type *Energy week* and confirm
+- **Then:** the bar says *Energy week*, and back in the list its row says *Energy week*, at the top
+
+- **Scenario:** From the list
+- **Given:** the list, with a row for a board this device drew
+- **When:** I swipe the row left
+- **Then:** *Rename* shows beside *Delete*, and renaming there changes the row's name
+
+- **Scenario:** Nothing changes
+- **Given:** the rename box is open
+- **When:** I clear the name and confirm, or tap *Cancel*
+- **Then:** the board keeps its name
+
+- **Scenario:** Another device's board
+- **Given:** a board drawn on another device
+- **When:** I open it, or swipe or long-press its row
+- **Then:** neither its name in the bar nor its row offers *Rename*
+
+---
+
 ### User Story 349:
 
 - **Summary:** Larry takes a turn on the board

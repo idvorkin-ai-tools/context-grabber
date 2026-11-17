@@ -38,9 +38,16 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   where it was drawn ("Drawn on iPad").
 - **+ New board** (not on an iPhone, which only looks) opens a fresh, empty board named for the day (*Board, Nov 1*; a second that day is *Board, Nov 1
   (2)*). A new board that's left without a stroke is gone when it closes, so empty boards never pile up.
-- A **swipe left** on a row offers *Delete*, as Chat's rows offer their actions; a **long press** offers it too, and
-  *Rename* on a board drawn on this device. (Igor, 2026-11-02, #613: "I need to be able to delete boards", from the
+- A **swipe left** on a row offers *Delete*, as Chat's rows offer their actions, and *Rename* on a board drawn on this
+  device; a **long press** offers both too. (Igor, 2026-11-02, #613: "I need to be able to delete boards", from the
   iPhone, where a long press on an iPad board only opened it.)
+- **Rename** (Igor, 2026-11-16, #916: "Rename boards"; the long press alone wasn't found). Besides the row's swipe and
+  long press, the board's own name in the bar opens a small menu with *Rename* on a board drawn on this device. Either
+  way a box asks for the name, filled with the current one. The new name shows at once in the bar and the list, is the
+  name the board's chat thread takes from the next *Send to Larry* or turn, and reaches the other devices when they
+  next sync. A blank name, or *Cancel*, leaves the name as it was. A renamed board counts as changed: it moves to the
+  top of the list and isn't dropped as an empty new board. A board drawn on another device offers no *Rename*, on its
+  row or in its bar.
 - **Any device can delete any board.** Delete asks first, there's no undo, and the board leaves every device: this one
   at once, the others the next time they sync, even one that was off when the delete happened. Only the device that
   drew a board can rename it.
@@ -354,6 +361,8 @@ that ghosts need the tailnet.
 - Draw on the iPad and close the board: within a minute, the iPhone's list shows it with the same picture. Opening
   it there shows the drawing with no tool picker, and a finger only pans.
 - Rename and delete a board on the iPad: the iPhone follows on its next refresh.
+- On the iPad, tap a board's name in the bar, choose Rename, type a name: the bar shows it, and going back, its row shows it
+  at the top of the list. Swipe left on that row: Rename is there beside Delete.
 - Choose Cream on a board, draw, close and reopen it: it's still Cream, deep in dark mode and pale in light mode, and the
   ink is readable in both. The iPhone shows it Cream too, and its row in the list is cream on both devices.
 - Choose a colour on a new board and close it without a stroke: no row is left behind.
