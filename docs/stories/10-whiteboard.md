@@ -200,26 +200,21 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 836:
 
-- **Summary:** Rename a board from its bar or its row
-- **Status:** implemented in [50446c4](https://github.com/idvorkin/context-grabber/commit/50446c4); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`), the Mac build (`just native-build-mac`) and a build of the UI tests; verified on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndFromItsBar`: the swipe's Rename beside Delete, the bar's title menu, the bar and the row taking each name); the real iPad not yet tried
+- **Summary:** Rename a board from its row's swipe
+- **Status:** implemented in [50446c4](https://github.com/idvorkin/context-grabber/commit/50446c4), the rename menu on the board's bar taken out again in COMMIT_BAR (it kept the iPad's Board menu up after a pick); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
 - **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916) ("Log bug: Rename boards")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
 
 #### Use Case:
 - **As someone** with several boards named for the day they were started
-- **I want to** rename a board where I can find the way to, on the board or in the list
+- **I want to** rename a board where I'd look for it, a swipe on its row as in Mail or Chat
 - **so that** I can tell my boards apart by what's on them
 
 #### Acceptance Criteria:
-- **Scenario:** From the board
-- **Given:** a board drawn on this device is open, named *Board, Nov 16*
-- **When:** I tap its name in the bar, choose *Rename*, type *Energy week* and confirm
-- **Then:** the bar says *Energy week*, and back in the list its row says *Energy week*, at the top
-
 - **Scenario:** From the list
-- **Given:** the list, with a row for a board this device drew
-- **When:** I swipe the row left
-- **Then:** *Rename* shows beside *Delete*, and renaming there changes the row's name
+- **Given:** the list, with a row for a board this device drew, named *Board, Nov 16*
+- **When:** I swipe the row left, tap *Rename*, type *Energy week* and confirm
+- **Then:** the row says *Energy week*, at the top, and opening the board its bar says *Energy week*
 
 - **Scenario:** Nothing changes
 - **Given:** the rename box is open
@@ -228,8 +223,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Scenario:** Another device's board
 - **Given:** a board drawn on another device
-- **When:** I open it, or swipe or long-press its row
-- **Then:** neither its name in the bar nor its row offers *Rename*
+- **When:** I swipe or long-press its row
+- **Then:** it offers *Delete* and no *Rename*
 
 ---
 

@@ -2129,7 +2129,7 @@ struct WhiteboardView: View {
       .ignoresSafeArea(edges: .bottom)
     }
     .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
-    .modifier(BoardNameInBar(board: model.board, store: store))  // Story 836: its name as it is now, renamed here.
+    .modifier(BoardNameInBar(board: model.board, store: store))  // Story 836: its name as it is now.
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {

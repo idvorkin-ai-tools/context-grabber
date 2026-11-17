@@ -1,6 +1,6 @@
 //  Stories 396, 399 (#613) on the simulator: a swipe deletes a board another device drew, after asking; it stays gone,
-//  and a link to it says so. Story 836 (#916): a board drawn here is renamed from its row's swipe and from its name in
-//  the bar. The delete and the rename crossing iCloud need two real devices: the simulator has no account.
+//  and a link to it says so. Story 836 (#916): a board drawn here is renamed from its row's swipe or long press, and its
+//  bar shows the new name. The delete and the rename crossing iCloud need two real devices: the simulator has no account.
 
 import XCTest
 
@@ -77,7 +77,7 @@ final class WhiteboardRowDeleteUITests: XCTestCase {
     app.alerts.buttons["Rename"].tap()
   }
 
-  func testABoardDrawnHereIsRenamedFromItsRowAndFromItsBar() {
+  func testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar() {
     let id = "board-916-\(UUID().uuidString.lowercased())"
     let app = XCUIApplication.forTests(animated: true)
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
@@ -98,27 +98,24 @@ final class WhiteboardRowDeleteUITests: XCTestCase {
     let row = cards.matching(NSPredicate(format: "label CONTAINS %@", fromRow)).firstMatch
     XCTAssertTrue(row.appears(within: 5), app.debugDescription)
 
-    // The name in the bar opens a menu with Rename, and the bar and the row follow.
+    // The board's bar shows the new name; back in the list, a long press renames it again.
     row.tap()
     let title = app.navigationBars.descendants(matching: .any)
       .matching(NSPredicate(format: "label == %@", fromRow)).firstMatch
     XCTAssertTrue(title.appears(within: 10), app.debugDescription)
-    title.tap()
-    // The title menu is the system's: an identifier doesn't reach it, so its Rename is found by its label.
-    let barRename = app.buttons["Rename"].firstMatch
-    XCTAssertTrue(barRename.appears(within: 5), app.debugDescription)
-    barRename.tap()
-    let fromBar = "Bar \(id.suffix(6))"
-    rename(app, to: fromBar)
-    let renamed = app.navigationBars.descendants(matching: .any)
-      .matching(NSPredicate(format: "label == %@", fromBar)).firstMatch
-    XCTAssertTrue(renamed.appears(within: 5), app.debugDescription)
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    XCTAssertTrue(row.appears(within: 10), app.debugDescription)
+    row.press(forDuration: 1.2)
+    let pressRename = app.buttons["Rename"].firstMatch
+    XCTAssertTrue(pressRename.appears(within: 5), app.debugDescription)
+    pressRename.tap()
+    let fromPress = "Press \(id.suffix(6))"
+    rename(app, to: fromPress)
+    XCTAssertTrue(
+      cards.matching(NSPredicate(format: "label CONTAINS %@", fromPress)).firstMatch.appears(within: 10),
+      app.debugDescription)
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.lifetime = .keepAlways
     add(shot)
-    app.navigationBars.buttons.element(boundBy: 0).tap()
-    XCTAssertTrue(
-      cards.matching(NSPredicate(format: "label CONTAINS %@", fromBar)).firstMatch.appears(within: 10),
-      app.debugDescription)
   }
 }

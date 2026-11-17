@@ -1,36 +1,20 @@
-//  Story 836 (#916): a board's name in its bar, as it is now, and on a board drawn on this device a menu on it with
-//  *Rename* (spec 2026-11-01-whiteboard-design.md, *Rename*). The list's row offers the same box.
+//  Story 836 (#916): a board's name in its bar as it is now, so a rename shows there at once. Not a title menu with
+//  *Rename*: on the iPad that made the Board menu open as a full-height list that stayed up after a pick (#848's
+//  symptom; `WhiteboardPaperLinesUITests`, 2026-11-16). Renaming is the list's swipe and long press.
 
+import Combine
 import ContextCore
 import SwiftUI
 
 struct BoardNameInBar: ViewModifier {
   let board: BoardEntry
-  @ObservedObject var store: WhiteboardStore
-  @State private var renaming = false
-  @State private var newName = ""
-
-  private var name: String { store.index.board(board.id)?.title ?? board.title }
+  let store: WhiteboardStore
+  @State private var name: String?
 
   func body(content: Content) -> some View {
-    if store.editable(board) {
-      content
-        .navigationTitle(name)
-        .toolbarTitleMenu {
-          Button {
-            newName = name
-            renaming = true
-          } label: {
-            Label("Rename", systemImage: "pencil")
-          }
-        }
-        .alert("Rename board", isPresented: $renaming) {
-          TextField("Name", text: $newName)
-          Button("Rename") { store.rename(board.id, to: newName) }.macDefaultAction()
-          Button("Cancel", role: .cancel) {}
-        }
-    } else {
-      content.navigationTitle(name)
-    }
+    content
+      .navigationTitle(name ?? board.title)
+      // Only the name: the board's screen doesn't redraw for the store's other changes (a sync, a picture).
+      .onReceive(store.$index.map { $0.board(board.id)?.title }.removeDuplicates()) { name = $0 }
   }
 }
