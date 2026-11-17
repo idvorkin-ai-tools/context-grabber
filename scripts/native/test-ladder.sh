@@ -412,6 +412,11 @@ phone_needed() {
 }
 # Story 746: the whiteboard's drawing classes, and its suite, on the iPad's simulator.
 ipad_steps() {
+  # ponytail: keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), so the
+  # ⌘V class still gets a fresh boot. Story 982 is to find the real fix; until then only that class pays a boot.
+  case " ${whiteboard[*]-} " in
+    *" WhiteboardPasteUITests "*) xcrun simctl shutdown "$ipad" 2>/dev/null ;;
+  esac
   step "iPad simulator" use_device "$ipad" || return
   if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
   if [ "$full" -eq 1 ]; then step "whiteboard suite" env SUITE_PREBUILT=1 scripts/native/test-whiteboard-ui.sh "$udid" || return; fi

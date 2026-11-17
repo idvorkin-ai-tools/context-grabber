@@ -560,7 +560,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 980:
 
 - **Summary:** One booted simulator, left booted between runs
-- **Status:** STATUS_980
+- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (258 checks: the phone and the iPad booted with `bootstatus -b`, nothing shut down at the end, another booted simulator shut first). Not yet measured on the simulator: the before and after boot counts were stopped by the 2026-11-17 heat stop and a stalled screen
 - **Issues:** the boot-less brief of 2026-11-15 (Igor: "sure do it"); 31 boots on 2026-11-14, and the disk full of wallpaper snapshots on 2026-11-17
 
 #### Use Case:
@@ -584,7 +584,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 981:
 
 - **Summary:** A climb on both the iPhone and the iPad switches device at most once
-- **Status:** STATUS_981
+- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (none booted: the phone, then the iPad; the iPad booted: the iPad, then the phone, the iPad shut first). Not yet run on the simulator
 
 #### Use Case:
 - **As Igor,** waiting on a whiteboard change, which runs its drawing classes on the iPad and the smoke on the iPhone
@@ -602,7 +602,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 982:
 
 - **Summary:** The whiteboard's ⌘V test runs on a simulator that is already up
-- **Status:** STATUS_982
+- **Status:** not implemented. The ladder still fresh-boots the iPad when `WhiteboardPasteUITests` runs, and only then, and `test-whiteboard-ui.sh` still reboots once per suite run. The one experiment (the ⌘V test three times on one boot, 2026-11-17) failed before any key was pressed, on a tap, at load 300 on a stalled screen, so it says nothing about keys yet
 
 #### Use Case:
 - **As Igor,** running the whiteboard's paste tests again and again
@@ -620,7 +620,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 983:
 
 - **Summary:** A hot Mac gets its simulator shut down at the end of a run
-- **Status:** STATUS_983
+- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (a thermal warning from `pmset` shuts the simulator down and says why). The heat watch's own messages are not read: they live off the repo
 - **Issues:** Larry's heat stop of 2026-11-17 (heavy thermal at load 84 during a ladder run)
 
 #### Use Case:

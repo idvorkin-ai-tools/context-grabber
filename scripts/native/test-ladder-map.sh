@@ -373,7 +373,9 @@ status=$?
 if [ "$status" -eq 0 ]; then ok "paste: climbs"; else bad "paste: climbs, exit $status"; fi
 if grep -q "only-testing:GrabberNativeUITests/WhiteboardPasteUITests test-without-building" "$MARKS/xcodebuild"; then ok "paste: its class, keys test and all"; else bad "paste: its class, keys test and all"; fi
 if grep -q "skip-testing" "$MARKS/xcodebuild"; then bad "paste: nothing held back"; else ok "paste: nothing held back"; fi
-if grep -q "simctl boot \|simctl shutdown" "$MARKS/xcrun"; then bad "paste: no reboot (story 982)"; else ok "paste: no reboot (story 982)"; fi
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "paste: the iPad fresh-booted for its keys (until story 982)"; else bad "paste: the iPad fresh-booted for its keys (until story 982)"; fi
+run -- --changed native/UITests/WhiteboardTurnUITests.swift
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then bad "the turn class: no reboot of the iPad"; else ok "the turn class: no reboot of the iPad"; fi
 if grep -q "simctl bootstatus 00000000-0000-0000-0000-000000000001 -b" "$MARKS/xcrun"; then ok "paste: on the iPad, booted if it isn't up"; else bad "paste: on the iPad, booted if it isn't up"; fi
 
 # Story 981: a climb on both devices switches once, starting with the one already booted.

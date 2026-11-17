@@ -130,7 +130,8 @@ Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 
 (`PRBPosterExtensionDataStore`) that are never evicted, and spikes the CPU. On 2026-11-14 that was 31 boots, and on
 2026-11-17 the snapshots filled the disk. The rung's iPhone steps (chat, places, the other classes, the smoke, the chat
 suite) and its iPad steps (the whiteboard's classes and suite) run as two groups, the device already booted first, so a
-climb switches device at most once. The one exception is a hot Mac: when macOS records a thermal or performance warning,
+climb switches device at most once. Until story 982 finds why keys reach the app only in the first test after a boot,
+the iPad is still fresh-booted when `WhiteboardPasteUITests` runs, and only then. The one exception is a hot Mac: when macOS records a thermal or performance warning,
 or the one-minute load is over 60 (`LADDER_HOT_LOAD`), the rung shuts its simulator down at the end and says so (story
 983). Don't `xcrun simctl shutdown all` after a run; that is a heat stop's, not a habit.
 
