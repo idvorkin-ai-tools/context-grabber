@@ -6504,6 +6504,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A refused change of Larry's says so on the board
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry: "show a chip so I'm not guessing" when Larry's push is refused
+- **Issues:** `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` on main 2510b8c6, 2026-11-17: the chip moved under ? and Feedback (#929), and a tap on its bare × glyph went through to the paper and drew a dot (`ui_touch_begin` on `PKTiledGestureView` at 797, 202.5; no `board_blocked dismissed`)
 - **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
