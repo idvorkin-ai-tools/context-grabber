@@ -635,11 +635,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let previous = inkFrames
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
-    if takesBackTapDot(change, frames: frames) { return }
-    if marginHeld(change, markup: markup) { return }
-    if pickedUp(change, markup: markup, before: previous) { return }
-    if scratchesOut(change, markup) { return }
-    snapNoticed(change)
+    let consumed =
+      takesBackTapDot(change, frames: frames) || marginHeld(change, markup: markup)
+      || pickedUp(change, markup: markup, before: previous) || scratchesOut(change, markup)
+    snapNoticed(change, consumed: consumed)
+    if consumed { return }
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()

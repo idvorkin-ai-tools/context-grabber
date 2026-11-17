@@ -6058,7 +6058,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 920:
 
 - **Summary:** Selected handwriting becomes typed text
-- **Status:** implemented in [288adc9](https://github.com/idvorkin/context-grabber/commit/288adc9); verified by host tests (`BoardToTextTests`: `testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem`, `testTheCropIsTheInkWithAirRoundItNeverOffTheBoard`, `testTheWordsAreTheAnswer`, `testOneTypedLinePerLineReadAtTheInksTopLeftSizedToIt`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace`, is written and not yet run; not yet seen on the iPad, nor against the real Cockpit
+- **Status:** implemented in [288adc9](https://github.com/idvorkin/context-grabber/commit/288adc9); verified by host tests (`BoardToTextTests`: `testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem`, `testTheCropIsTheInkWithAirRoundItNeverOffTheBoard`, `testTheWordsAreTheAnswer`, `testOneTypedLinePerLineReadAtTheInksTopLeftSizedToIt`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace`, rung 2); not yet seen on the iPad, nor against the real Cockpit
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
 
 #### Use Case:
@@ -6077,7 +6077,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 921:
 
 - **Summary:** A To text that fails leaves the ink and says why
-- **Status:** implemented in [288adc9](https://github.com/idvorkin/context-grabber/commit/288adc9); verified by host tests (`BoardToTextTests.testAFailureSaysTheCockpitsReason`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardToTextUITests.testAFailureLeavesTheInkWithACopyableProblem`, is written and not yet run; not yet seen on the iPad
+- **Status:** implemented in [288adc9](https://github.com/idvorkin/context-grabber/commit/288adc9); verified by host tests (`BoardToTextTests.testAFailureSaysTheCockpitsReason`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testAFailureLeavesTheInkWithACopyableProblem`, rung 2); not yet seen on the iPad
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
 
 #### Use Case:

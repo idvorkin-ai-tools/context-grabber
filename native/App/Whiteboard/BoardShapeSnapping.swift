@@ -17,8 +17,8 @@ final class BoardSnapWatch {
   fileprivate var touch: ObjectIdentifier?
   /// A held lift, until this time: the next single stroke PaperKit adds is its stroke.
   fileprivate var waitingUntil: Double = 0
-  /// The last lone stroke PaperKit added, and when: its lift may come after it.
-  fileprivate var lastAdded: (key: String, time: Double)?
+  /// The last lone stroke PaperKit added, and when: its lift may come after it. No key when another gesture took it.
+  fileprivate var lastAdded: (key: String?, time: Double)?
 }
 
 extension PaperBoardController {
@@ -45,7 +45,7 @@ extension PaperBoardController {
       let now = CACurrentMediaTime()
       if let added = snaps.lastAdded, now - added.time < 0.5 {
         snaps.lastAdded = nil
-        snapSoon(added.key)
+        if let key = added.key { snapSoon(key) }
       } else {
         snaps.waitingUntil = now + 1
       }
@@ -53,12 +53,15 @@ extension PaperBoardController {
   }
 
   /// PaperKit's change to the ink: a lone stroke added is the one a held lift waits for, or may be, when it comes first.
-  func snapNoticed(_ change: PaperProbe.InkChange) {
-    guard change.added.count == 1, change.removed.isEmpty, let key = change.added.first else { return }
+  /// A change another gesture `consumed` (a margin hold, a pick-up, a scratch-out, a tap dot) is that lift's too, and
+  /// snaps nothing.
+  func snapNoticed(_ change: PaperProbe.InkChange, consumed: Bool) {
+    guard consumed || (change.added.count == 1 && change.removed.isEmpty) else { return }
+    let key = consumed ? nil : change.added.first
     let now = CACurrentMediaTime()
     if now <= snaps.waitingUntil {
       snaps.waitingUntil = 0
-      snapSoon(key)
+      if let key { snapSoon(key) }
     } else {
       snaps.lastAdded = (key, now)
     }

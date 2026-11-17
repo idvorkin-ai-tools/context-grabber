@@ -99,6 +99,9 @@ extension PaperBoardController {
       event["action"] = "to_text_failed"
       event["reason"] = reason
       if let status { event["status"] = status }
+      var error: [String: Any] = ["where": "whiteboard_to_text", "message": reason, "board": model.board.id]
+      if let status { error["status"] = status }
+      log.event("error", error)
       var extra: [String: JSONValue] = [
         "board": .string(model.board.id), "cockpit": .string(model.cockpitURL), "strokes": .int(keys.count),
       ]
