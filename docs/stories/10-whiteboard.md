@@ -4986,7 +4986,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 840:
 
 - **Summary:** Larry draws ink straight onto my board
-- **Status:** not built yet
+- **Status:** implemented in [f285ab4](https://github.com/idvorkin/context-grabber/commit/f285ab4); verified by host tests (`BoardOpsInkTests`: `testAddStrokesWithTheirLooksAndNotes`, `testAPenTooThinOrTooWideDrawsWithinReach`, `testLarrysInkJoinsTheBoardWhereLaterOpsLeaveIt`, `testLarrysStrokesGoBackUnderHisNamesWithHisNotes`, `testInkTheCockpitWouldRefuseIsRefusedHere`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit is written, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, not yet run; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry draws, erases and replaces ink*
 
 #### Use Case:
@@ -5005,7 +5005,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 841:
 
 - **Summary:** Larry erases and replaces ink by name
-- **Status:** not built yet
+- **Status:** implemented in [f285ab4](https://github.com/idvorkin/context-grabber/commit/f285ab4); verified by host tests (`BoardOpsInkTests`: `testDeleteSetMetaAndReplace`, `testDeleteByNameAndReplace`, `testAStrokeDrawnAgainUnderItsNameReplacesIt`, `testLarrysOwnInkCanBeErasedInTheSameBatch`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry draws, erases and replaces ink*
 
 #### Use Case:
@@ -5024,7 +5024,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 842:
 
 - **Summary:** Larry's groups move as one
-- **Status:** not built yet
+- **Status:** implemented in [f285ab4](https://github.com/idvorkin/context-grabber/commit/f285ab4); verified by host tests (`BoardOpsInkTests`: `testAGroupMovesWholeAndAnswersToItsName`, `testNotesAreKeptAsWritten`, `testNotesSetByNameAndForgottenWithTheirStrokes`, `testTheNotesAreKeptPerBoard`, `testLarrysStrokesGoBackUnderHisNamesWithHisNotes`; `just test`) and the Mac build (`just native-build-mac`). The Cockpit's strokes endpoint ignores `meta` today, so the notes reach Larry only once it keeps them; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry groups ink*
 
 #### Use Case:
@@ -5043,7 +5043,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 843:
 
 - **Summary:** Larry hears my ink change
-- **Status:** not built yet
+- **Status:** implemented in [f285ab4](https://github.com/idvorkin/context-grabber/commit/f285ab4); verified by host tests (`BoardOpsInkTests`: `testIgorsInkChangeIsToldByName`, `testInkEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`). A rub with the pixel eraser that leaves a stroke's box as it was isn't seen as a change; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears my ink change and my selection*
 
 #### Use Case:
@@ -5062,7 +5062,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 844:
 
 - **Summary:** Larry hears my lasso selection
-- **Status:** not built yet
+- **Status:** implemented in [f285ab4](https://github.com/idvorkin/context-grabber/commit/f285ab4); verified by host tests (`BoardOpsInkTests.testInkEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears my ink change and my selection*
 
 #### Use Case:
@@ -5081,7 +5081,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 845:
 
 - **Summary:** Larry lays bands, chips, buttons and hints on the board
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests`: `testAnOverlayWithItsLooksAndItsEvent`, `testAnOverlayThatCantShowIsRefused`, `testControlsAreLaidReplacedTakenAwayAndHit`, `testSelectingAndControlsLeaveTheInkAsItIs`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit is written, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, not yet run; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
 
 #### Use Case:
@@ -5100,7 +5100,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 846:
 
 - **Summary:** A tap on Larry's control reaches him at once
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests`: `testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt`, `testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit is written, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, not yet run; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
 
 #### Use Case:
@@ -5119,7 +5119,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 847:
 
 - **Summary:** Larry folds ink away and back
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests`: `testHiddenInkMovesWithAPushAndHidingIsAChange`, `testInkHeDrawsHiddenIsDrawnHidden`, `testAHiddenStrokeIsSaidToBe`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry folds and selects*
 
 #### Use Case:
@@ -5138,7 +5138,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 848:
 
 - **Summary:** Larry selects ink for me
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests`: `testHideAndSelect`, `testSelectingAndControlsLeaveTheInkAsItIs`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry folds and selects*
 
 #### Use Case:
@@ -5157,7 +5157,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 849:
 
 - **Summary:** Larry hears the margin
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests`: `testTheMarginsGestures`, `testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`). A finger that draws on paper still draws in the margin too; not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
 
 #### Use Case:
@@ -5176,7 +5176,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 850:
 
 - **Summary:** Larry hears where I'm looking
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests.testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
 
 #### Use Case:
@@ -5195,7 +5195,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 851:
 
 - **Summary:** Larry hears me undo his change
-- **Status:** not built yet
+- **Status:** implemented in [3314332](https://github.com/idvorkin/context-grabber/commit/3314332); verified by host tests (`BoardOpsControlsTests.testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
 
 #### Use Case:
