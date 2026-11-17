@@ -2056,6 +2056,8 @@ struct WhiteboardView: View {
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  /// Story 766: the note's one line, kept whether it says anything or not, so the paper never moves for it.
+  @ScaledMetric(relativeTo: .footnote) private var noteHeight: CGFloat = 28
   private let logger: BugLogger
   private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
@@ -2316,10 +2318,14 @@ struct WhiteboardView: View {
       }
       .font(.footnote).foregroundStyle(.secondary)
       .padding(.vertical, 4).padding(.horizontal)
+      .frame(minHeight: noteHeight)
       .contentShape(Rectangle())
       .onTapGesture { model.tapNote(onPhone: onPhone, openChat: openChat) }
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("whiteboard-note")
+    } else {
+      // Nothing to say yet: the line's room stays, so the paper doesn't jump when it first speaks.
+      Color.clear.frame(height: noteHeight).accessibilityHidden(true)
     }
   }
 

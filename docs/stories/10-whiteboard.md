@@ -4418,7 +4418,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 766:
 
 - **Summary:** The board's note is one line that opens into the conversation
-- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); verified by host tests (`WhiteboardNoteTests`: the line's state with *next:*, the middle and which end it keeps, a message giving the middle back after five seconds and one about the Cockpit not answering keeping it, *3 to keep*; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder` at 98878ae: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` with the whiteboard's other UI classes). The Cockpit-not-answering messages keeping the middle was added after that run and is verified on the host only. Not yet seen on the iPad
+- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea), its line kept while empty in the commit after `feea63d` on `native/board-ops-step1` (the iPad simulator: `WhiteboardPaperGhostsUITests`' push and stale-push tests measured the ink 24 points lower once his state showed, and pass with it); verified by host tests (`WhiteboardNoteTests`: the line's state with *next:*, the middle and which end it keeps, a message giving the middle back after five seconds and one about the Cockpit not answering keeping it, *3 to keep*; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder` at 98878ae: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` with the whiteboard's other UI classes). The Cockpit-not-answering messages keeping the middle was added after that run and is verified on the host only. Not yet seen on the iPad
 - **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#882](https://github.com/idvorkin/context-grabber/issues/882) (the panel's live rows were drawn over each other)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
@@ -4432,6 +4432,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** Larry's long reply and a long line from the mic
 - **When:** I look at the note
 - **Then:** it is one line: his state first, the newest words after it, and the paper hasn't moved
+
+- **Scenario:** The note first speaks
+- **Given:** a board just opened, its note saying nothing yet, with ink on it
+- **When:** I ask Larry and his state shows in the note
+- **Then:** the ink stays exactly where it was on screen
 
 ---
 
