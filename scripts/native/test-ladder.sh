@@ -115,6 +115,10 @@ for f in ${changed[@]+"${changed[@]}"}; do
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardSpeech.swift | \
       native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardFrame.swift)
       add_classes WhiteboardTurnUITests WhiteboardPaperGhostsUITests ;;
+    # Story 784: the app's board fixture hook adds a board at launch; only the classes that launch with one see it.
+    native/App/Whiteboard/WhiteboardHooks.swift) add_classes WhiteboardRowDeleteUITests ChatImageUITests ;;
+    # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
+    # big views draw every board, so they and anything unnamed run every class.
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
       add_classes $whiteboard_area ;;
     scripts/native/fake-cockpit.py) add_classes $chat_area $whiteboard_area ;;

@@ -311,6 +311,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 784:
+
+- **Summary:** A change to one of the board's own view files runs only the UI test classes that open it
+- **Status:** implemented on branch `native/fast-sim-tests` for the one such file on main, the board fixture hook (`WhiteboardRowDeleteUITests` and `ChatImageUITests`, where it ran all seven whiteboard classes and missed the chat one); verified on the host by `scripts/native/test-ladder-map.sh`. The board's two big views (the board and its paper) draw every board and still run every class. The view files on branches tonight get their rows as they land: the name in the bar (`WhiteboardRowDeleteUITests`), the panel's newest line (`WhiteboardTurnUITests`), the question cards (their own class)
+- **Issues:** the fast-sim-tests study of 2026-11-16 (any view file ran all seven whiteboard classes, 11 to 14 minutes)
+
+#### Use Case:
+- **As Igor,** waiting on a fix to one small part of the board
+- **I want to** have the simulator run the classes that open that part, not every whiteboard class
+- **so that** a one-file view fix costs a minute or two of UI tests, not the whole whiteboard step
+
+#### Acceptance Criteria:
+- **Scenario:** A change to the board fixture hook
+- **Given:** a branch that changes only the app's board fixture hook
+- **When:** the test ladder climbs
+- **Then:** the simulator runs the row-delete class and chat's picture-from-a-board class and no other whiteboard class, while a change to the board's own view still runs every whiteboard class, and `--full` still runs the whole suite
+
+---
+
 ### User Story 753:
 
 - **Summary:** A change to one whiteboard rule runs only the whiteboard tests that show it

@@ -151,6 +151,17 @@ done
 dry --changed native/App/Whiteboard/WhiteboardStore.swift
 says "the board list: row delete and on paper" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardOnPaperUITests WhiteboardRowDeleteUITests"
 never "the board list: no iPhone class of its own" "rung 2 UI tests: "
+# Story 784: the board fixture hook runs only the classes that launch with a fixture board, chat's picture one among them.
+dry --changed native/App/Whiteboard/WhiteboardHooks.swift
+says "the fixture hook: row delete" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardRowDeleteUITests"
+says "the fixture hook: and the chat picture from a board" "rung 2 UI tests (chat, fake Cockpit and bridge): ChatImageUITests"
+for c in WhiteboardRowDeleteUITests ChatImageUITests; do
+  case $known in *" $c "*) ok "the fixture hook: $c is a real class" ;; *) : >"$out"; bad "the fixture hook: $c is a real class" ;; esac
+  if grep -q '"GRABBER_BOARD_FIXTURE"' "native/UITests/$c.swift"; then ok "the fixture hook: $c launches with a fixture"
+  else : >"$out"; bad "the fixture hook: $c launches with a fixture"; fi
+done
+dry --changed native/App/Whiteboard/WhiteboardView.swift
+says "the board's view: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardLaunchHooks.swift
 says "the hooks: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
 
