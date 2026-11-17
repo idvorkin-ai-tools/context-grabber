@@ -43,6 +43,9 @@ public struct BoardStrokeMeta: Equatable, Codable, Sendable {
 
   public var isEmpty: Bool { metas.isEmpty }
 
+  /// Some stroke's notes are like this.
+  public func contains(where wanted: (BoardMeta) -> Bool) -> Bool { metas.values.contains(where: wanted) }
+
   /// name → group, for grouping strokes into what moves as one.
   public var groups: [String: String] { metas.compactMapValues(\.group) }
 

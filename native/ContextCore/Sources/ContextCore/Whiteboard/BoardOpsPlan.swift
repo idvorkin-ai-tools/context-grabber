@@ -114,6 +114,10 @@ extension BoardOps {
     /// Items that moved.
     public var moved = 0
     public var missingIDs: [String] = []
+    /// Connectors drawn by the batch, drawn again on a new route, and turned plain ink as an end went (stories 910–916).
+    public var connected: [String] = []
+    public var rerouted: [String] = []
+    public var loosened: [String] = []
 
     public init(pagesBefore: Int, pagesAfter: Int) {
       self.pagesBefore = pagesBefore
@@ -137,6 +141,7 @@ extension BoardOps {
       strokes: strokes, items: items(strokes: strokes, texts: texts, groups: metas.groups, folds: folds))
     var plan = Plan(pagesBefore: pages, pagesAfter: pages)
     var reach: CGFloat?
+    var connectors: [NewConnector] = []
     for op in ops {
       switch op {
       case .translateBelow(let y, let dy):
@@ -182,9 +187,14 @@ extension BoardOps {
         plan.overlays.append(.set(overlay))
       case .removeOverlay(let id):
         plan.overlays.append(.remove(id))
+      case .connector(let new):
+        connectors.append(new)
       }
     }
     work.finish(into: &plan)
+    // Connectors last, on the board the batch leaves; then every connector follows its ends (stories 910–916).
+    BoardConnectors.draw(connectors, into: &plan, strokes: strokes, texts: texts, metas: metas, folds: folds)
+    BoardConnectors.follow(&plan, strokes: strokes, texts: texts, metas: metas, folds: folds)
     let inkMaxY = (work.liveBounds.map(\.maxY) + (reach.map { [$0] } ?? [])).max()
     plan.pagesAfter = board.pages(after: pages, inkMaxY: inkMaxY, redoWaiting: false)
     return plan

@@ -330,6 +330,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   @Published private(set) var pastedFrame: CGRect?
   /// The landed paste's elements, by key.
   private var pasted: Set<String> = []
+  /// Story 910: the lassoed arrow Connect would join, in this view's points, and its elements by key; nil with none.
+  @Published var connectFrame: CGRect?
+  var connectKeys: Set<String> = []
+  var following: Task<Void, Never>?
+  var selectedNewestForTests = false
   private var marking: Task<Void, Never>?
   /// Story 858: the menu a held finger brought up, in this view's points; nil with none.
   @Published private(set) var holdMenu: HoldMenu?
@@ -357,12 +362,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
-  private var board = BoardPages()
-  private var pages = 1
+  private(set) var board = BoardPages()
+  private(set) var pages = 1
   private var laidWidth: CGFloat = 0
   /// What the column's own changes shouldn't report as a person's.
   private var quiet = false
-  private var inkFrames: [String: CGRect] = [:]
+  private(set) var inkFrames: [String: CGRect] = [:]
   private var saidNotInk = false
   private var remembering: Task<Void, Never>?
   private var redrawing: Task<Void, Never>?
@@ -643,6 +648,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()
+      followSoon()
     }
     defer {
       // Story 843: after the model's revision has moved on.
@@ -716,6 +722,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if !pasted.isEmpty, keys != pasted { forgetPaste() }
     model.selectionChanged(keys)
     showToText()
+    offerConnect(keys)
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
@@ -730,6 +737,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     placeCards()
     showPasted()
     showToText()
+    showConnect()
     layRules()
     checkSeat()
     remembering?.cancel()
@@ -1015,7 +1023,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let (strokes, hashes) = opStrokes(markup)
     var outline = model.outline(of: strokes)
     guard change(&outline) else { return false }
-    let plan = outline.plan(from: strokes, pages: pages, board: board)
+    var plan = outline.plan(from: strokes, pages: pages, board: board)
+    // Stories 911, 915: a fold moves ink, and the connectors follow it.
+    BoardConnectors.follow(
+      &plan, strokes: strokes, texts: model.texts, metas: model.strokeMeta, folds: outline.tags)
     if plan.changesBoard {
       guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label) else { return false }
       model.opsApplied(held.inkDrawing, renamed: renamed)
@@ -1530,14 +1541,15 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     return plan
   }
 
-  private func opStrokes(_ markup: PaperMarkup) -> (strokes: [BoardOps.Stroke], hashes: [[String]]) {
+  func opStrokes(_ markup: PaperMarkup) -> (strokes: [BoardOps.Stroke], hashes: [[String]]) {
     model.opStrokes(markup.inkDrawing.strokes)
   }
 
   /// A plan on the markup, with `extra` ink added in the same change, as one undo named `name`: moves, hides, erases,
   /// Larry's ink, the pages. Nil when PaperKit didn't take the moves as moves (the log says so); nothing is set then.
-  private func put(
-    _ plan: BoardOps.Plan, on start: PaperMarkup, hashes: [[String]], adding extra: [PKStroke] = [], named name: String
+  func put(
+    _ plan: BoardOps.Plan, on start: PaperMarkup, hashes: [[String]], adding extra: [PKStroke] = [], named name: String,
+    stepBack: Bool = true
   ) -> (held: PaperMarkup, renamed: [(from: [String], to: [String])], drawn: [(hash: [String], name: String)])? {
     var markup = start
     let elements = markup.subelements.strokes
@@ -1582,7 +1594,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       }
     }
     if !extra.isEmpty { markup.append(contentsOf: PKDrawing(strokes: extra)) }
-    registerStepBack(to: before, named: name)
+    if stepBack { registerStepBack(to: before, named: name) }
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
     quiet = true
     paper.markup = markup
@@ -1594,6 +1606,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showPageNumber()
     redrawSoon()
     showMarksSoon()
+    model.planPut(plan, drawn: drawn)
     return (held, renamed, drawn)
   }
 
@@ -1628,7 +1641,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// Story 843: what changed in the ink since `frames`, told to Larry as added, erased and moved (`report`), or only
   /// taken in.
-  private func noteInk(_ markup: PaperMarkup, since frames: [String: CGRect], report: Bool) {
+  func noteInk(_ markup: PaperMarkup, since frames: [String: CGRect], report: Bool) {
     let change = PaperProbe.inkChange(before: frames, after: markup.strokeFrames)
     guard !change.isEmpty else { return }
     let updated = Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup)
@@ -1955,6 +1968,7 @@ struct PaperBoardCanvas: View {
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
     .overlay { ToTextButton(controller: controller, state: controller.toText) }
+    .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

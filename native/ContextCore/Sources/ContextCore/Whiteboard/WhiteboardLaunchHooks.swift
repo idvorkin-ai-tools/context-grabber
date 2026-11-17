@@ -61,6 +61,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   public var afterOps: AfterKeep?
   public var larryTimeout: LarryTimeout?
   public var larryWait: LarryWaitPress?
+  /// `GRABBER_WHITEBOARD_SELECT_NEWEST=<n>`: once the board holds `n` strokes, the newest is selected as the lasso would
+  /// leave it, for the simulator, whose UI tests can't draw a lasso (story 910).
+  public var selectNewest: Int?
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -82,5 +85,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
       larryTimeout = LarryTimeout(seconds: seconds, dismiss: timeout.dropFirst().contains("dismiss"))
     }
     larryWait = env["GRABBER_WHITEBOARD_LARRY_WAIT"].flatMap(LarryWaitPress.init(rawValue:))
+    selectNewest = env["GRABBER_WHITEBOARD_SELECT_NEWEST"].flatMap { Int($0) }
   }
 }
