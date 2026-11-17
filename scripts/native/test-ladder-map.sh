@@ -94,7 +94,6 @@ cat >"$fakes/pmset" <<'F'
 #!/usr/bin/env bash
 if [ -n "${FAKE_HOT:-}" ]; then echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2"; else echo "Note: No thermal warning level has been recorded"; fi
 F
-printf '#!/usr/bin/env bash\necho "{ 3.00 2.00 1.00 }"\n' >"$fakes/sysctl"
 # machine-doctor (story 984): notes what it was asked, so no run of this test calls the real one.
 printf '#!/usr/bin/env bash\necho "doctor $*" >>"$MARKS/doctor"\n' >"$fakes/doctor"
 cat >"$fakes/uv" <<'F'
@@ -136,7 +135,7 @@ never "chat code: no whiteboard" "Whiteboard"
 never "chat code: no suite without --full" "rung 2 full"
 
 dry --changed native/App/Whiteboard/PaperBoard.swift
-says "whiteboard code: its classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
+says "whiteboard code: its classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 # Story 770: the iPhone's look at boards is the smoke's, so the whiteboard's classes are the only ones, and all on the iPad.
 never "whiteboard code: no iPhone class of its own" "rung 2 UI tests: "
 says "whiteboard code: the smoke's whiteboard section" "rung 2 smoke, on the same build and boot: whiteboard"
@@ -144,26 +143,26 @@ never "whiteboard code: no chat" "Chat"
 
 # The whiteboard's rules run only the classes that show them; its views still run them all.
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardPaste.swift
-says "a paste rule: the two paste classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperPasteUITests WhiteboardPasteUITests"
+says "a paste rule: the two paste classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperPasteUITests WhiteboardPasteUITests"
 dry --changed scripts/lead-times.py
 says "the lead-time report: no Mac build (story 828)" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
 says "the lead-time report: no simulator build" "rung 2 Simulator: skipped, nothing the simulator build compiles changed"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardGhostTurns.swift
-says "a ghost rule: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
+says "a ghost rule: the turn and ghosts classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 never "a ghost rule: not the lines" "WhiteboardPaperLinesUITests"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardFrame.swift
-says "the picture's frame: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
+says "the picture's frame: the turn and ghosts classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 never "the picture's frame: not the lines" "WhiteboardPaperLinesUITests"
 for f in WhiteboardLarryClock WhiteboardNote; do
   dry --changed "native/ContextCore/Sources/ContextCore/Whiteboard/$f.swift"
-  says "$f: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
+  says "$f: the turn and ghosts classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 done
 dry --changed native/App/Whiteboard/WhiteboardStore.swift
-says "the board list: row delete and on paper" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardOnPaperUITests WhiteboardRowDeleteUITests"
+says "the board list: row delete and on paper" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardOnPaperUITests WhiteboardRowDeleteUITests"
 never "the board list: no iPhone class of its own" "rung 2 UI tests: "
 # Story 784: the board fixture hook runs only the classes that launch with a fixture board, chat's picture one among them.
 dry --changed native/App/Whiteboard/WhiteboardHooks.swift
-says "the fixture hook: row delete" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardRowDeleteUITests"
+says "the fixture hook: row delete" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardRowDeleteUITests"
 says "the fixture hook: and the chat picture from a board" "rung 2 UI tests (chat, fake Cockpit and bridge): ChatImageUITests"
 for c in WhiteboardRowDeleteUITests ChatImageUITests; do
   case $known in *" $c "*) ok "the fixture hook: $c is a real class" ;; *) : >"$out"; bad "the fixture hook: $c is a real class" ;; esac
@@ -174,7 +173,7 @@ done
 for f in native/App/Whiteboard/WhiteboardQuestionsModel.swift native/App/Whiteboard/WhiteboardQuestionViews.swift \
   native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardQuestions.swift; do
   dry --changed "$f"
-  says "question cards, $(basename "$f"): their class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardQuestionUITests"
+  says "question cards, $(basename "$f"): their class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardQuestionUITests"
   if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
 done
 case $known in *" WhiteboardQuestionUITests "*) ok "question cards: a real class" ;; *) : >"$out"; bad "question cards: a real class" ;; esac
@@ -183,9 +182,9 @@ for c in $(sed -nE 's/^(final )?class (Whiteboard[A-Za-z0-9_]*UITests):.*/\2/p' 
   case " $board_all " in *" $c "*) ok "the whiteboard's list has $c" ;; *) : >"$out"; bad "the whiteboard's list has $c" ;; esac
 done
 dry --changed native/App/Whiteboard/WhiteboardView.swift
-says "the board's view: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
+says "the board's view: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardLaunchHooks.swift
-says "the hooks: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
+says "the hooks: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 
 dry --changed docs/TESTING.md --changed README.md
 says "docs: nothing to format" "rung 0 Lint: swift-format over 0 touched Swift file(s), SwiftLint over the tree"

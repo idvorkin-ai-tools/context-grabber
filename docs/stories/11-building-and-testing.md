@@ -630,7 +630,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 #### Acceptance Criteria:
 - **Scenario:** A run ends on a hot Mac
-- **Given:** macOS has recorded a thermal or performance warning, or the one-minute load is over 60
+- **Given:** macOS has recorded a thermal or performance warning (the load alone doesn't count: on this Mac it counts hung processes, and shut a cool run's simulator down at load 71 on 2026-11-17)
 - **When:** the ladder's simulator rung ends, pass or fail
 - **Then:** it shuts its simulator down and prints why; on a cool Mac it leaves it booted
 

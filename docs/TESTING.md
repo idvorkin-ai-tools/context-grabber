@@ -131,8 +131,8 @@ Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 
 2026-11-17 the snapshots filled the disk. The rung's iPhone steps (chat, places, the other classes, the smoke, the chat
 suite) and its iPad steps (the whiteboard's classes and suite) run as two groups, the device already booted first, so a
 climb switches device at most once. Until story 982 finds why keys reach the app only in the first test after a boot,
-the iPad is still fresh-booted when `WhiteboardPasteUITests` runs, and only then. The one exception is a hot Mac: when macOS records a thermal or performance warning,
-or the one-minute load is over 60 (`LADDER_HOT_LOAD`), the rung shuts its simulator down at the end and says so (story
+the iPad is still fresh-booted when `WhiteboardPasteUITests` runs, and only then. The one exception is a hot Mac: when macOS records a thermal or performance warning
+(`pmset -g therm`; not the load, which here counts hung processes), the rung shuts its simulator down at the end and says so (story
 983). Before a boot, `sim-boot.sh` has machine-doctor prune the shut-down simulators' wallpaper snapshots when the
 disk has under 20 GB free (`machine_doctor.py sims --prune --below-free-gb 20`, story 984; skipped with a line until its
 `sims` command lands). Don't `xcrun simctl shutdown all` after a run; that is a heat stop's, not a habit.

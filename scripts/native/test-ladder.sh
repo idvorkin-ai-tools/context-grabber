@@ -173,7 +173,7 @@ if [ "$all" -eq 1 ]; then
   unknown=()
 fi
 
-# One run per kind of class: chat's fakes differ from the whiteboard's, the whiteboard's needs a fresh boot, and
+# One run per kind of class: chat's fakes differ from the whiteboard's, the whiteboard's runs on the iPad, and
 # Places' need Context Grabber's real export in the app's Documents.
 chat=() whiteboard=() places=() other=()
 if [ "${#classes[@]}" -gt 0 ]; then
@@ -216,7 +216,7 @@ plan() {
       echo "rung 2 Simulator: skipped, nothing the simulator build compiles changed"
     fi
     [ "$run_chat_classes" -gt 0 ] && echo "rung 2 UI tests (chat, fake Cockpit and bridge): ${chat[*]}"
-    [ "$run_whiteboard_classes" -gt 0 ] && echo "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): ${whiteboard[*]}"
+    [ "$run_whiteboard_classes" -gt 0 ] && echo "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): ${whiteboard[*]}"
     [ "$n_places" -gt 0 ] && echo "rung 2 UI tests (places, the real export in Documents): ${places[*]}"
     [ "$n_other" -gt 0 ] && echo "rung 2 UI tests: ${other[*]}"
     if [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && [ "$n_places" -eq 0 ] && [ "$n_other" -eq 0 ] && [ "${#unknown[@]}" -eq 0 ]; then
@@ -284,15 +284,11 @@ leave_simulator() {
   fi
   rm -f "${contended:-/nonexistent}"
 }
-# A thermal or performance warning recorded by macOS, or a one-minute load over LADDER_HOT_LOAD (60, the build gate's).
+# A thermal or performance warning recorded by macOS. Not the load: on this Mac it counts hung processes, not heat.
 hot_why=
 mac_hot() {
-  local load
   hot_why=$(pmset -g therm 2>/dev/null | grep -iE 'warning level|performance warning' | grep -v 'No ' | head -1)
-  [ -n "$hot_why" ] && return 0
-  load=$(sysctl -n vm.loadavg 2>/dev/null | awk '{print int($2)}')
-  [ -n "$load" ] && [ "$load" -gt "${LADDER_HOT_LOAD:-60}" ] && { hot_why="load $load"; return 0; }
-  return 1
+  [ -n "$hot_why" ]
 }
 # Story 980: the step's device becomes the one booted simulator; it boots only if it isn't up already.
 use_device() {  # <udid>
