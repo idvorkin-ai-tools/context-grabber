@@ -350,8 +350,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     return hold
   }()
 
-  private let model: WhiteboardModel
-  private let log: SessionLog
+  let model: WhiteboardModel
+  let log: SessionLog
+  /// Stories 920–922: To text beside the lasso's ink (BoardToTextFlow.swift).
+  let toText = BoardToTextState()
+  /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
+  let snaps = BoardSnapWatch()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private var board = BoardPages()
   private var pages = 1
@@ -631,10 +635,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let previous = inkFrames
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
-    if takesBackTapDot(change, frames: frames) { return }
-    if marginHeld(change, markup: markup) { return }
-    if pickedUp(change, markup: markup, before: previous) { return }
-    if scratchesOut(change, markup) { return }
+    let consumed =
+      takesBackTapDot(change, frames: frames) || marginHeld(change, markup: markup)
+      || pickedUp(change, markup: markup, before: previous) || scratchesOut(change, markup)
+    snapNoticed(change, consumed: consumed)
+    if consumed { return }
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()
@@ -682,6 +687,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
     showLines()
     showPageNumber()
+    showToText()
     // Not from inside PaperKit's own callback.
     if wanted > pages { Task { @MainActor [weak self] in self?.grow(to: wanted) } }
   }
@@ -709,6 +715,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let keys = Set(controller.selection.map(Self.key))
     if !pasted.isEmpty, keys != pasted { forgetPaste() }
     model.selectionChanged(keys)
+    showToText()
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
@@ -722,6 +729,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showChoice()
     placeCards()
     showPasted()
+    showToText()
     layRules()
     checkSeat()
     remembering?.cancel()
@@ -1313,6 +1321,32 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     log.event("whiteboard", ["action": "paper_paste_deleted", "board": model.board.id, "strokes": gone.count])
   }
 
+  /// The strokes with these element keys swapped for `strokes`, as one undo named `name` (stories 920, 923): saved, and
+  /// told to Larry as ink added and erased, never a stroke for Claude to answer. Nil before the markup is laid out.
+  @discardableResult
+  func replaceInk(removing keys: Set<String>, adding strokes: [PKStroke], named name: String) -> PaperMarkup? {
+    guard var markup = paper.markup else { return nil }
+    let before = markup
+    for id in markup.subelements.strokes.map(\.elementID) where keys.contains(Self.key(id)) {
+      _ = markup.subelements.removeElement(for: id)
+    }
+    if !strokes.isEmpty { markup.append(contentsOf: PKDrawing(strokes: strokes)) }
+    forgetPaste()
+    registerStepBack(to: before, named: name)
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    let framesBefore = inkFrames
+    let held = paper.markup ?? markup
+    inkFrames = held.strokeFrames
+    model.stepped(held.inkDrawing)
+    noteInk(held, since: framesBefore, report: true)
+    showLines()
+    redrawSoon()
+    showMarksSoon()
+    return held
+  }
+
   private func copiedStrokes(_ clipboard: UIPasteboard) -> [PKStroke]? {
     if let data = clipboard.data(forPasteboardType: UTType.paperkit.identifier),
       let markup = try? PaperMarkup(dataRepresentation: data), !markup.subelements.strokes.isEmpty
@@ -1337,8 +1371,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
   }
 
-  /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste`: those, 2 s apart from a second after the first ink, for the simulator: it
-  /// can't work the lasso, and keys reach only a run's first test. Copy selects all the ink and copies, as the lasso's does.
+  /// `GRABBER_WHITEBOARD_AFTER_INK=copy,paste` (or `select`, story 920): those, 2 s apart from a second after the first
+  /// ink, for the simulator: it can't work the lasso, and keys reach only a run's first test. Copy selects all the ink and copies, as the lasso's does.
   private func pressSoonForTests() {
     guard !pressedForTests, let presses = LaunchHooks.current.whiteboard.afterInk else { return }
     pressedForTests = true
@@ -1347,6 +1381,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         try? await Task.sleep(for: .seconds(1))
         if press == "paste" {
           self?.paste(from: "hook")
+        } else if press == "select" {
+          self?.selectAllForTests()
         } else {
           await self?.copyAllForTests()
         }
@@ -1805,6 +1841,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func touchWentDown(_ touch: UITouch) {
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
+    snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
     // Story 933: every try at a hold in the margin is in the log, from here to its verdict.
@@ -1844,6 +1881,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Story 886: the eraser over an answered question card takes it, from a touch that would erase ink: the Pencil, or a
   /// finger only while fingers draw. A finger that pans the board takes nothing.
   override func touchMoved(_ touch: UITouch) {
+    snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     guard place.erasing, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
@@ -1865,6 +1903,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
   override func touchLifted(_ touch: UITouch, down: Int) {
+    snapTouch(touch, .lifted, draws: touch.type == .pencil || fingersDraw)
     guard toolDown, touch.type == .pencil || down == 0 else { return }
     toolDown = false
     model.endedDrawing()
@@ -1915,6 +1954,7 @@ struct PaperBoardCanvas: View {
     }
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
+    .overlay { ToTextButton(controller: controller, state: controller.toText) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

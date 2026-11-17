@@ -4,7 +4,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 [2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md),
 [2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
 [2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
-[2026-11-16-whiteboard-question-cards-design.md](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md).
+[2026-11-16-whiteboard-question-cards-design.md](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md),
+[2026-11-16-whiteboard-to-text-and-snap-design.md](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md).
 
 ---
 
@@ -6051,3 +6052,119 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded section whose hidden ink sits under the lines below its header, and a word on one of those lines
 - **When:** I scratch the word out
 - **Then:** only the word goes; unfolding the header shows all of its ink where it was
+
+---
+
+### User Story 920:
+
+- **Summary:** Selected handwriting becomes typed text
+- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests`: `testTheRequestIsThePictureAndTheBoardAsTheWebBoardSendsThem`, `testTheCropIsTheInkWithAirRoundItNeverOffTheBoard`, `testTheWordsAreTheAnswer`, `testOneTypedLinePerLineReadAtTheInksTopLeftSizedToIt`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace`, rung 2); not yet seen on the iPad, nor against the real Cockpit
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
+
+#### Use Case:
+- **As someone** writing on the board with the Pencil
+- **I want to** lasso some of my handwriting and tap To text
+- **so that** the words are typed where I wrote them, for me and for Larry
+
+#### Acceptance Criteria:
+- **Scenario:** Two written lines
+- **Given:** I lasso two lines of my handwriting on a board drawn on here
+- **When:** I tap To text beside the selection and the Cockpit reads it
+- **Then:** the ink goes and its words show in its place as two typed lines in the print lettering and the ink's colour, one kept text that Larry gets back as text; one undo brings the ink back
+
+---
+
+### User Story 921:
+
+- **Summary:** A To text that fails leaves the ink and says why
+- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests.testAFailureSaysTheCockpitsReason`; `just test`) and the Mac build (`just native-build-mac`), and on the simulator against the fake Cockpit (`WhiteboardToTextUITests.testAFailureLeavesTheInkWithACopyableProblem`, rung 2); not yet seen on the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
+
+#### Use Case:
+- **As someone** turning handwriting into text
+- **I want to** be told why when the Cockpit can't read it
+- **so that** I know whether to try again, and my ink is never lost
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit fails
+- **Given:** some ink lassoed, and a Cockpit that is away or answers with an error
+- **When:** I tap To text
+- **Then:** the ink stays exactly as it was and a copyable problem says "To text failed:" with the Cockpit's reason, naming the board, the Cockpit and its status
+
+---
+
+### User Story 922:
+
+- **Summary:** No writing, or too much, leaves the ink and says so
+- **Status:** implemented in [6a1894d](https://github.com/idvorkin/context-grabber/commit/6a1894d); verified by host tests (`BoardToTextTests.testNoWritingOrTooMuchLeavesTheInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *To text*
+
+#### Use Case:
+- **As someone** lassoing a drawing or a whole page
+- **I want to** hear that there was no writing, or too much for one text
+- **so that** I can select something else instead of losing what I drew
+
+#### Acceptance Criteria:
+- **Scenario:** A drawing with no words
+- **Given:** I lasso a doodle with no writing in it, or more than 500 characters of writing
+- **When:** I tap To text
+- **Then:** the ink stays and the board's note says "No writing found there", or "Too much writing for one text (500 characters): select less"
+
+---
+
+### User Story 923:
+
+- **Summary:** A line held at its end snaps straight
+- **Status:** implemented in [f2d3e1d](https://github.com/idvorkin/context-grabber/commit/f2d3e1d); verified by host tests (`BoardShapeSnapTests`: `testANearlyStraightStrokeSnapsToTheLineFromItsStartToItsEnd`, `testAWobblyOrShortStrokeStaysInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator (no Pencil to hold) or the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *Shapes that snap*
+
+#### Use Case:
+- **As someone** drawing a line with the Pencil
+- **I want to** hold the Pencil still at its end to make it straight
+- **so that** my diagrams look clean without a ruler or a shape tool
+
+#### Acceptance Criteria:
+- **Scenario:** A nearly straight line
+- **Given:** I draw a slightly wobbly line on a board drawn on here
+- **When:** I hold the Pencil still at its end for about half a second, then lift
+- **Then:** the line is replaced by a straight one from where I started to where I stopped, in my pen's ink, colour and width; one undo gives my raw line back
+
+---
+
+### User Story 924:
+
+- **Summary:** A box or a loop held at its end snaps to a rectangle or an ellipse
+- **Status:** implemented in [f2d3e1d](https://github.com/idvorkin/context-grabber/commit/f2d3e1d); verified by host tests (`BoardShapeSnapTests`: `testANearlySquareBoxSnapsToItsBox`, `testATiltedBoxStaysInk`, `testANearlyRoundLoopSnapsToTheEllipseInItsBoxFromWhereItStarted`, `testAnOpenLoopStaysInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *Shapes that snap*
+
+#### Use Case:
+- **As someone** boxing or circling things on the board
+- **I want to** hold the Pencil at the end of a box or a loop to clean it up
+- **so that** the board reads as tidy as the web board's
+
+#### Acceptance Criteria:
+- **Scenario:** A box and a loop
+- **Given:** I draw a nearly square box, and a closed loop, each ending where it started
+- **When:** I hold the Pencil still at the end of each for about half a second, then lift
+- **Then:** the box becomes a rectangle square to the page and the loop an ellipse in its box; a tilted box or an open loop stays as I drew it; one undo gives each raw stroke back
+
+---
+
+### User Story 925:
+
+- **Summary:** Nothing snaps without the hold
+- **Status:** implemented in [f2d3e1d](https://github.com/idvorkin/context-grabber/commit/f2d3e1d); verified by host tests (`BoardShapeSnapTests`: `testOnlyAPencilHeldStillHalfASecondAtTheEndAsks`, `testWritingNeverSnaps`; `just test`) and the Mac build (`just native-build-mac`); a held lift whose stroke a margin hold, a pick-up or a scratch-out took no longer arms the next stroke, in [acb476c](https://github.com/idvorkin/context-grabber/commit/acb476c); not yet seen on the iPad
+- **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *Shapes that snap*
+
+#### Use Case:
+- **As someone** writing and drawing freely
+- **I want to** have my strokes left exactly as drawn unless I hold the Pencil at their end
+- **so that** my handwriting and sketches never change under me
+
+#### Acceptance Criteria:
+- **Scenario:** A line lifted at once
+- **Given:** I draw a nearly straight line, and a word of writing
+- **When:** I lift the Pencil at the end of each without holding it still
+- **Then:** both stay exactly as I drew them
+
+---
