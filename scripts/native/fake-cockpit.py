@@ -7,10 +7,17 @@ GET /chat, GET /chat/<key>, POST /chat (a new thread), POST /chat/<key>, POST /c
 POST /chat/<key>/archive and /unarchive (#589; a new message brings a thread back; 415 unless application/json, as on
 the Cockpit's write boundary),
 GET /attachments/<ref>, POST /whiteboard/strokes (story 419: counted and answered, never kept), POST /whiteboard/suggest (a ghost circle at the picture's right edge, streamed as NDJSON when the request
-accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far. GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
+accepts it, as one JSON when not). A chat URL ending /plain gets a Cockpit that doesn't stream whatever is asked; one ending /many gets six marks of every kind, 400 ms apart. GET /fake/strokes says the ids of each POST /whiteboard/strokes so far, and the folds beside each (story 857). GET and POST /whiteboard/responder keep each board's knob (story 659), Sonnet by default. A message resent with an id the thread has is a duplicate, as on the Cockpit. Larry
 answers every message of Igor's a second later ("Larry heard: <text>"), and a message with a board's picture with marks (cockpit#85: an arrow and a
 label as kind + points, with the picture's picture_id and frame echoed). POST /fake/larry-draws {"count": n} is a test's way to have him draw
-unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). Every request is a JSON line in REPORT.
+unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
+is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
+below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
+on the message's own rev (one behind it with "stale"); with "kind": "ink_and_button", instead a purple line of his
+across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}. POST
+/whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
+what each board message reported back (its rev and op_result) and every events post. Every request is a JSON line in
+REPORT.
 POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 POST /chat/move {"thread", "message_id"} moves one of Igor's messages to a new thread, leaving a system row with moved_to
@@ -42,6 +49,7 @@ Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu 
 import base64
 import json
 import os
+import re
 import secrets
 import sys
 import threading
@@ -62,7 +70,34 @@ THREADS = {
 CREATED = {}
 BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's picture
 STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
+FOLD_SENDS = []  # the folds beside each (story 857)
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
+LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
+TEXT_FIELDS = {"kind", "id", "text", "font", "x", "y", "w", "h", "color", "t"}  # a kept text in POST /whiteboard/strokes
+EVENT_POSTS = []  # each POST /whiteboard/events body, with whether it woke Larry (story 846)
+EVENT_TYPE = re.compile(r"[a-z][a-z0-9_]{0,31}")
+WAKING = ("overlay_tap", "ghost_tap")  # a tap on his ghosts or controls wakes him; a plain tap never does
+
+
+def take_events(data, size):
+    """POST /whiteboard/events as the Cockpit takes it: its caps, its event types, and whether it wakes Larry."""
+    events = data.get("events")
+    if not data.get("board") or not isinstance(events, list):
+        return 400, {"ok": False, "error": "board and events required"}
+    if size > 256 * 1024 or len(events) > 200:
+        return 413, {"ok": False, "error": "over the caps: 200 events, 256 KB"}
+    for event in events:
+        if not isinstance(event, dict) or not EVENT_TYPE.fullmatch(str(event.get("type", ""))):
+            return 400, {"ok": False, "error": "every event needs a type like [a-z][a-z0-9_]{0,31}: %r" % event}
+        if len(json.dumps(event)) > 8 * 1024:
+            return 413, {"ok": False, "error": "an event over 8 KB"}
+    woke = any(e["type"] in WAKING and e.get("target_id") for e in events)
+    now = time.time()
+    with LOCK:
+        EVENT_POSTS.append(dict(data, woke=woke))
+    return 200, {"ok": True, "board": data["board"], "rev": data.get("rev"), "events": len(events),
+                 "ts": now, "ts_ms": int(now * 1000), "woke": woke}
+OP_REPORTS = []  # each board message's rev and op_result, oldest first (story 818)
 
 
 def responder_answer(board):
@@ -263,12 +298,39 @@ def marks(key, text, shapes):
     THREADS[key]["messages"].append(r)
 
 
+def ops_batch(source, armed):
+    """Larry's changes to the board he was sent (stories 814-817): room below the picture's middle, text in the gap."""
+    frame, rev = source["frame"], source.get("rev", 0)
+    if armed.get("kind") == "ink_and_button":
+        bottom = frame["y"] + frame["h"]
+        return {"board": source["board"], "base_rev": rev, "label": "ink and a button",
+                "list": [{"op": "add_strokes", "strokes": [
+                            {"id": "fake-line-1", "points": [[frame["x"] + 40, bottom + 30], [frame["x"] + 240, bottom + 30]],
+                             "width": 6, "meta": {"group": "g1", "kind": "underline"}}]},
+                         {"op": "overlay", "id": "fake-button-1", "kind": "button", "label": "Make room",
+                          "rect": {"x": frame["x"] + 40, "y": bottom + 70, "w": 200, "h": 60},
+                          "style": {"fill": "#00aa00", "color": "#ffffff"}, "tap_event": {"type": "make_room"}}]}
+    below = frame["y"] + frame["h"] / 2
+    dy = armed.get("dy", 120)
+    return {"board": source["board"], "base_rev": rev - 1 if armed.get("stale") else rev, "label": "make room",
+            "list": [{"op": "translate", "below_y": below, "dy": dy},
+                     {"op": "add_text", "id": "fake-text-1", "x": frame["x"] + 40, "y": below + dy / 4,
+                      "text": "room here", "font": "plain", "size": 28}]}
+
+
 def answer_board_later(key):
     def go():
+        global LARRY_OPS
         time.sleep(LARRY_DELAY)
         with LOCK:
             if BOARD_HOLD:
                 BOARD_MESSAGES[key]["receipt"] = {"state": "done"}
+            if LARRY_OPS is not None:
+                source, armed, LARRY_OPS = BOARD_MESSAGES[key], LARRY_OPS, None
+                r = row(key, "larry", "made room")
+                r.update(ops=ops_batch(source, armed), picture_id=source["picture_id"], board=source["board"])
+                THREADS[key]["messages"].append(r)
+                return
             frame = BOARD_MESSAGES[key]["frame"]
             w, h = frame["w"] * frame["scale"], frame["h"] * frame["scale"]
             marks(key, "this is where it goes", [
@@ -320,7 +382,10 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/fake/answers":
                 return self._json(200, {"ok": True, "answers": ANSWERS})
             if path == "/fake/strokes":
-                return self._json(200, {"ok": True, "sends": STROKE_SENDS})
+                return self._json(200, {"ok": True, "sends": STROKE_SENDS, "folds": FOLD_SENDS})
+            if path == "/fake/ops":
+                return self._json(200, {"ok": True, "armed": LARRY_OPS is not None, "reports": OP_REPORTS,
+                                        "event_posts": EVENT_POSTS})
             if path.endswith("/whiteboard/responder"):
                 query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
                 return self._json(200, responder_answer((query.get("board") or [""])[0]))
@@ -356,8 +421,27 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/whiteboard/strokes":
             # Story 419: the board's strokes before its picture; answered as the Cockpit does, never kept.
             strokes = data.get("strokes") or []
+            # As whiteboard_strokes.py: a text is exactly these fields; any other entry needs its points.
+            for s in strokes:
+                if s.get("kind") == "text":
+                    if not {"kind", "id", "text", "x", "y", "w", "h"} <= set(s) <= TEXT_FIELDS:
+                        return self._json(400, {"ok": False, "error": "a text entry has %s" % sorted(s)})
+                    if s.get("font", "print") not in ("print", "hand"):
+                        return self._json(400, {"ok": False, "error": "text font must be print or hand"})
+                elif s.get("kind") is not None or not s.get("points"):
+                    return self._json(400, {"ok": False, "error": "a stroke needs points"})
+            # Story 857: folded sections beside the strokes, as whiteboard_strokes.py's _folds takes them.
+            folds = data.get("folds")
+            if folds is not None:
+                ok = isinstance(folds, list) and all(
+                    isinstance(f, dict) and isinstance(f.get("header"), str) and isinstance(f.get("lines"), int)
+                    and isinstance(f.get("strokes"), list) and isinstance(f.get("header_strokes", []), list)
+                    for f in folds)
+                if not ok:
+                    return self._json(400, {"ok": False, "error": "folds must be [{header, header_strokes, lines, strokes}]"})
             with LOCK:
                 STROKE_SENDS.append([s.get("id") for s in strokes])
+                FOLD_SENDS.append(folds or [])
             self._report({"strokes": len(strokes), "board": data.get("board"), "picture_id": data.get("picture_id"),
                           "frame": data.get("frame"), "origin": self.headers.get("Origin")})
             return self._json(200, {"ok": True, "board": data["board"], "picture_id": data["picture_id"],
@@ -390,6 +474,15 @@ class Handler(BaseHTTPRequestHandler):
                 open_asks(True)
                 key = list(BOARD_MESSAGES)[-1]
                 marks(key, "a question for you", [{"kind": "question", "ask": data.get("ask"), "x": 40, "y": 40}])
+            return self._json(200, {"ok": True})
+        if path == "/whiteboard/events":
+            self._report({"body": data})
+            status, answer = take_events(data, len(raw))
+            return self._json(status, answer)
+        if path == "/fake/larry-ops":
+            global LARRY_OPS
+            with LOCK:
+                LARRY_OPS = data
             return self._json(200, {"ok": True})
         if path == "/fake/skill-thread":
             with LOCK:
@@ -457,13 +550,16 @@ class Handler(BaseHTTPRequestHandler):
             if frame is not None and not all(isinstance(frame.get(k), (int, float)) for k in ("x", "y", "w", "h")):
                 return self._json(400, {"ok": False, "error": "frame needs x, y, w, h"})
             m = row(key, "igor", data.get("text") or "", data.get("id"), data.get("attachments"))
-            for name in ("board", "picture_id", "frame"):
+            for name in ("board", "picture_id", "frame", "rev"):
                 if name in data:
                     m[name] = data[name]
             t["messages"].append(m)
             t["archived"] = False
             if data.get("board"):
                 BOARD_MESSAGES[key] = m
+                OP_REPORTS.append({"rev": data.get("rev"), "op_result": data.get("op_result"),
+                                   "events": len(data.get("events") or []),
+                                   "event_types": [e.get("type") for e in data.get("events") or []]})
         if t.get("skill"):
             skill_reply_later(key, data.get("text"))
             return self._json(200, {"ok": True, "thread": key, "message": m, "marker": None, "skill": t["skill"]})

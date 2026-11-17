@@ -1,0 +1,511 @@
+//  Headers that fold their sections, the outline's levels, the lines that look like headers, and the word a held
+//  Pencil picks up (spec 2026-11-16-whiteboard-board-ops-design.md, *Headers fold their sections* and *Press and
+//  hold*, stories 855–861; the Cockpit's assets/ink/board.mjs: `rowAt`, `markHeader`, `section`, `fold`, `unfold`,
+//  `unfoldAll`, `foldAll`, `headerLevels`, `collapseToLevel`, `headerCandidates`, `wordAt`). Pure: the outline works on
+//  the strokes' boxes and paths, and `plan` says what the board does to the canvas.
+
+import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
+
+/// A row of Igor's ink made a header, by its strokes' names, and what it folds away when folded.
+public struct BoardHeader: Codable, Equatable, Sendable {
+  public struct Fold: Codable, Equatable, Sendable {
+    /// Every stroke tucked under it, a folded inner header's included.
+    public var ids: [String]
+    /// Those this fold hid: an inner fold's stay its own.
+    public var own: [String]
+    /// How far what was below slid up.
+    public var shift: CGFloat
+    /// Lines folded, for the margin mark and for Larry.
+    public var lines: Int
+    /// How far the section reached below the header: unfolding never draws over it.
+    public var bottom: CGFloat
+  }
+
+  public var id: String
+  public var ids: [String]
+  public var fold: Fold?
+
+  public init(id: String, ids: [String], fold: Fold? = nil) {
+    self.id = id
+    self.ids = ids
+    self.fold = fold
+  }
+}
+
+public struct BoardOutline: Sendable {
+  public static let line = BoardRoom.line
+  /// A section ends at a line starting this close to the header's left edge, or further left.
+  public static let indentTolerance = line / 2
+  /// A margin tap this far above or below a header's row is on it.
+  public static let tapReach: CGFloat = 16
+  /// A Pencil held still this long on ink picks up the word, and this still.
+  public static let holdMs: Double = 400
+  public static let holdStill: CGFloat = 5
+  /// A gap between strokes on a line wider than this is a word gap.
+  public static let wordGap: CGFloat = 16
+
+  public var strokes: [BoardOps.Stroke]
+  public private(set) var headers: [BoardHeader]
+  let texts: [BoardText]
+  let groups: [String: String]
+
+  public init(
+    strokes: [BoardOps.Stroke], headers: [BoardHeader], texts: [BoardText] = [], groups: [String: String] = [:]
+  ) {
+    self.strokes = strokes
+    self.texts = texts
+    self.groups = groups
+    let names = Set(strokes.flatMap(\.ids))
+    // A header whose ink is gone is no header.
+    self.headers = headers.filter { $0.ids.contains(where: names.contains) }
+  }
+
+  // MARK: - What moves whole
+
+  struct Unit {
+    var members: [Int]
+    var bounds: CGRect
+    var tag: String?
+    var header: String? { tag.flatMap { $0.hasPrefix("h:") ? String($0.dropFirst(2)) : nil } }
+  }
+
+  private var index: [String: Int] {
+    var out: [String: Int] = [:]
+    for (i, stroke) in strokes.enumerated() { for name in stroke.ids { out[name] = i } }
+    return out
+  }
+
+  /// Stroke name to its header's tag (`h:<id>`): a header's own row, and what each holding fold tucked under it, the
+  /// outer fold winning.
+  public var tags: [String: String] {
+    var out: [String: String] = [:]
+    for header in headers { for name in header.ids { out[name] = "h:" + header.id } }
+    let folded = headers.filter(isFolded).sorted { ($0.fold?.ids.count ?? 0) < ($1.fold?.ids.count ?? 0) }
+    for header in folded { for name in header.fold?.ids ?? [] { out[name] = "h:" + header.id } }
+    return out
+  }
+
+  /// What shows, as the things that move whole.
+  func units() -> [Unit] {
+    BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: tags).filter { !$0.hidden }.map {
+      Unit(members: $0.members, bounds: $0.bounds, tag: $0.tag)
+    }
+  }
+
+  private func names(_ members: [Int]) -> [String] { members.flatMap { strokes[$0].ids } }
+
+  private mutating func shift(_ unit: Unit, by dy: CGFloat) {
+    for m in unit.members { shift(m, dx: 0, dy: dy) }
+  }
+
+  private mutating func shift(_ m: Int, dx: CGFloat, dy: CGFloat) {
+    strokes[m].bounds = strokes[m].bounds.offsetBy(dx: dx, dy: dy)
+    strokes[m].points = strokes[m].points.map { CGPoint(x: $0.x + dx, y: $0.y + dy) }
+  }
+
+  private func isText(_ tag: String?) -> Bool { tag.map { id in texts.contains { $0.id == id } } ?? false }
+
+  // MARK: - Headers
+
+  /// A fold that still holds: what it hid is still hidden. An Undo that shows it again opens the fold.
+  public func isFolded(_ header: BoardHeader) -> Bool {
+    guard let fold = header.fold else { return false }
+    let at = index
+    let own = fold.own.compactMap { at[$0] }
+    return !own.isEmpty && own.allSatisfy { strokes[$0].hidden }
+  }
+
+  public func header(_ id: String) -> BoardHeader? { headers.first { $0.id == id } }
+
+  /// Its own strokes show: it isn't folded away inside another's section.
+  public func shows(_ header: BoardHeader) -> Bool {
+    let at = index
+    let own = header.ids.compactMap { at[$0] }
+    return !own.isEmpty && !own.contains { strokes[$0].hidden }
+  }
+
+  /// The header's own row.
+  public func box(_ header: BoardHeader) -> CGRect? {
+    let at = index
+    let box = header.ids.compactMap { at[$0] }.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
+    return box.isNull ? nil : box
+  }
+
+  public struct Row: Equatable, Sendable {
+    public var header: String?
+    /// Its strokes' names when it is no header: a group or a kept text is no header's ink.
+    public var names: [String]
+    public var top: CGFloat
+    public var bottom: CGFloat
+  }
+
+  /// The row of ink at `y`, within half a line.
+  public func row(at y: CGFloat) -> Row? {
+    let us = units()
+    guard
+      let r = BoardRoom.rows(us.map(\.bounds)).first(where: {
+        y >= $0.lowerBound - Self.line / 2 && y <= $0.upperBound + Self.line / 2
+      })
+    else { return nil }
+    let inside = us.filter { $0.bounds.minY >= r.lowerBound && $0.bounds.maxY <= r.upperBound }
+    if let header = inside.compactMap(\.header).first {
+      return Row(header: header, names: [], top: r.lowerBound, bottom: r.upperBound)
+    }
+    return Row(
+      header: nil, names: names(inside.filter { $0.tag == nil }.flatMap(\.members)), top: r.lowerBound,
+      bottom: r.upperBound)
+  }
+
+  /// The header showing whose row a margin tap at `y` is on.
+  public func header(at y: CGFloat) -> BoardHeader? {
+    headers.first { header in
+      guard shows(header), let box = box(header) else { return false }
+      return y >= box.minY - Self.tapReach && y <= box.maxY + Self.tapReach
+    }
+  }
+
+  /// The row at `y` made a header named `id`; false when it is blank paper, already one, or not Igor's ink.
+  @discardableResult
+  public mutating func markHeader(at y: CGFloat, id: String) -> Bool {
+    guard let row = row(at: y), row.header == nil, !row.names.isEmpty else { return false }
+    headers.append(BoardHeader(id: id, ids: row.names))
+    return true
+  }
+
+  /// No longer a header; folded, it opens first.
+  public mutating func unmark(_ id: String) {
+    unfold(id)
+    headers.removeAll { $0.id == id }
+  }
+
+  struct Section {
+    var header: CGRect
+    var body: [Unit]
+    var after: [Unit]
+  }
+
+  /// A section, by indent: the header's row down to the first line whose ink starts at or left of the header's own
+  /// left edge (within half a line), or to the next header at the same indent or shallower, whichever comes first.
+  /// Blank paper never ends one. A header whose next line isn't indented runs to the next header at its indent.
+  func section(_ id: String) -> Section? {
+    guard let header = header(id), let hb = box(header) else { return nil }
+    let us = units()
+    let all = us.filter { $0.header != id && $0.bounds.minY >= hb.maxY }
+    // The indent is the header's writing, not an underline that overshoots it.
+    let at = index
+    let words = header.ids.compactMap { at[$0] }.filter { !Self.isUnderline(strokes[$0]) }
+    let left = words.isEmpty ? hb.minX : words.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }.minX
+    let edge = left + Self.indentTolerance
+    let lines = BoardRoom.rows(us.map(\.bounds)).filter { $0.lowerBound >= hb.maxY }.map { r in
+      (top: r.lowerBound, us: all.filter { $0.bounds.minY >= r.lowerBound && $0.bounds.maxY <= r.upperBound })
+    }.filter { !$0.us.isEmpty }
+    let leftOf = { (us: [Unit]) in us.map(\.bounds.minX).min() ?? 0 }
+    let indented = lines.first.map { leftOf($0.us) > edge } ?? false
+    var nextTop = CGFloat.infinity
+    for line in lines {
+      let shallowHeader = line.us.contains { $0.header != nil && $0.bounds.minX <= edge }
+      if shallowHeader || (indented && leftOf(line.us) <= edge) {
+        nextTop = line.top
+        break
+      }
+    }
+    return Section(
+      header: hb, body: all.filter { $0.bounds.minY < nextTop }, after: all.filter { $0.bounds.minY >= nextTop })
+  }
+
+  /// Fold: the body hides and stays with the header, and what is below slides up to sit a line or two under the
+  /// header, in whole lines. False when there is nothing to fold.
+  @discardableResult
+  public mutating func fold(_ id: String) -> Bool {
+    guard let at = headers.firstIndex(where: { $0.id == id }), !isFolded(headers[at]), shows(headers[at]),
+      let section = section(id), !section.body.isEmpty
+    else { return false }
+    let top = section.header.maxY
+    let nextTop = section.after.map(\.bounds.minY).min()
+    let shift = nextTop.map { max(0, (($0 - top) / Self.line).rounded(.down) * Self.line - Self.line) } ?? 0
+    for unit in section.after where shift > 0 { self.shift(unit, by: -shift) }
+    let members = section.body.flatMap(\.members)
+    let own = members.filter { !strokes[$0].hidden }
+    for m in own { strokes[m].hidden = true }
+    let bodyBottom = section.body.map(\.bounds.maxY).max() ?? top
+    headers[at].fold = BoardHeader.Fold(
+      ids: names(members), own: names(own), shift: shift,
+      lines: max(1, Int(((bodyBottom - top) / Self.line).rounded())), bottom: bodyBottom - top)
+    return true
+  }
+
+  /// Unfold: what is below slides back down and the body shows again. Anything written under the folded header lands
+  /// after the body: the slide grows by whole lines so nothing is drawn over.
+  @discardableResult
+  public mutating func unfold(_ id: String) -> Bool {
+    guard let at = headers.firstIndex(where: { $0.id == id }), isFolded(headers[at]), let fold = headers[at].fold,
+      let hb = box(headers[at])
+    else { return false }
+    let top = hb.maxY
+    let below = units().filter { $0.header != id && $0.bounds.minY >= top }
+    let extra =
+      below.map(\.bounds.minY).min().map {
+        max(0, ((top + fold.bottom - ($0 + fold.shift)) / Self.line).rounded(.up)) * Self.line
+      } ?? 0
+    for unit in below where fold.shift + extra != 0 { shift(unit, by: fold.shift + extra) }
+    let positions = index
+    for name in fold.own { if let m = positions[name] { strokes[m].hidden = false } }
+    headers[at].fold = nil
+    return true
+  }
+
+  /// Folded, unfolded.
+  @discardableResult
+  public mutating func toggle(_ id: String) -> Bool {
+    guard let header = header(id) else { return false }
+    return isFolded(header) ? unfold(id) : fold(id)
+  }
+
+  private func bottomUp() -> [String] {
+    headers.compactMap { header in box(header).map { (header.id, $0.minY) } }.sorted { $0.1 > $1.1 }.map(\.0)
+  }
+
+  /// Every fold open: the lowest showing one each time, so a fold inside another opens once the outer one has.
+  public mutating func unfoldAll() {
+    while let id = bottomUp().first(where: { id in header(id).map { isFolded($0) && shows($0) } ?? false }) {
+      guard unfold(id) else { break }
+    }
+  }
+
+  /// Every header folded, the lowest first.
+  public mutating func foldAll() {
+    for id in bottomUp() { fold(id) }
+  }
+
+  /// Each header's level with everything open: 1 inside no other's section, 2 inside a level-1 one, and so on.
+  public func levels() -> [String: Int] {
+    var open = self
+    open.unfoldAll()
+    var parent: [String: String] = [:]
+    // Top down: the innermost section holding a header is its parent.
+    for id in open.bottomUp().reversed() {
+      for unit in open.section(id)?.body ?? [] { if let inner = unit.header { parent[inner] = id } }
+    }
+    func level(_ id: String, _ seen: Set<String> = []) -> Int {
+      guard let up = parent[id], !seen.contains(id) else { return 1 }
+      return 1 + level(up, seen.union([id]))
+    }
+    return Dictionary(uniqueKeysWithValues: open.headers.map { ($0.id, level($0.id)) })
+  }
+
+  /// Outline-style: headers down to level `n` show and nothing deeper. Every header at level `n` folds, and so does
+  /// a shallower one with no headers under it; a shallower one with headers under it stays open.
+  public mutating func collapse(to n: Int) {
+    let levels = levels()
+    unfoldAll()
+    let parents = Set(headers.filter { section($0.id)?.body.contains { $0.header != nil } ?? false }.map(\.id))
+    for id in bottomUp() {
+      guard let level = levels[id] else { continue }
+      if level == n || (level < n && !parents.contains(id)) { fold(id) }
+    }
+  }
+
+  // MARK: - What the board does, and what Larry is told
+
+  /// The changes from `start` (the strokes this outline began from) as a plan for the canvas: each stroke's move and
+  /// whether it hides or shows, and the pages the ink needs after.
+  public func plan(from start: [BoardOps.Stroke], pages: Int, board: BoardPages = BoardPages()) -> BoardOps.Plan {
+    var plan = BoardOps.Plan(pagesBefore: pages, pagesAfter: pages)
+    for (i, (was, now)) in zip(start, strokes).enumerated() {
+      let dx = now.bounds.minX - was.bounds.minX
+      let dy = now.bounds.minY - was.bounds.minY
+      if dx != 0 || dy != 0 { plan.offsets[i] = CGVector(dx: dx, dy: dy) }
+      if was.hidden != now.hidden { plan.hidden[i] = now.hidden }
+    }
+    plan.moved = plan.offsets.count
+    plan.pagesAfter = board.pages(after: pages, inkMaxY: strokes.map(\.bounds.maxY).max(), redoWaiting: false)
+    return plan
+  }
+
+  /// The strokes folds hide, by name: never sent as strokes, as the Cockpit has them under `folds`.
+  public var foldedNames: Set<String> { Set(headers.filter(isFolded).flatMap { $0.fold?.own ?? [] }) }
+
+  /// The folds as the Cockpit's strokes snapshot takes them: `[{header, header_strokes, lines, strokes}]`.
+  public var wire: [[String: Any]] {
+    let live = Set(strokes.flatMap(\.ids))
+    return headers.filter(isFolded).map { header in
+      [
+        "header": header.id, "header_strokes": header.ids.filter(live.contains), "lines": header.fold?.lines ?? 0,
+        "strokes": (header.fold?.own ?? []).filter(live.contains),
+      ]
+    }
+  }
+
+  // MARK: - Lines that look like headers
+
+  public static let bigLine: CGFloat = 1.5
+  public static let bigLetter: CGFloat = 1.6
+  public static let fewestStrokes = 3
+  public static let fewestLines = 4
+
+  public struct Candidate: Equatable, Sendable {
+    public enum Why: String, Sendable { case big, underline }
+    public var y: CGFloat
+    public var box: CGRect
+    public var why: Why
+  }
+
+  struct WritingLine {
+    var box: CGRect
+    var members: [Int]
+    var heights: [CGFloat]
+    var header = false
+    var letter: CGFloat = 0
+  }
+
+  /// A long, flat, straight stroke: an underline.
+  static func isUnderline(_ s: BoardOps.Stroke) -> Bool {
+    let b = s.bounds
+    let pen = s.pen > 0 ? s.pen : 4
+    guard b.width >= 60, b.height - pen <= b.width * 0.12, let a = s.points.first, let z = s.points.last else {
+      return false
+    }
+    let path = zip(s.points, s.points.dropFirst()).reduce(CGFloat(0)) { $0 + hypot($1.1.x - $1.0.x, $1.1.y - $1.0.y) }
+    return path <= 1.1 * hypot(z.x - a.x, z.y - a.y)
+  }
+
+  /// An underline's box `u` under the line `l`, across most of it.
+  static func underlines(_ u: CGRect, _ l: CGRect) -> Bool {
+    let mid = u.midY
+    let span = min(u.maxX, l.maxX) - max(u.minX, l.minX)
+    return mid >= l.maxY - l.height * 0.35 && mid <= l.maxY + line * 0.6 && span >= l.width * 0.7
+  }
+
+  private static func median(_ xs: [CGFloat]) -> CGFloat? {
+    guard !xs.isEmpty else { return nil }
+    let a = xs.sorted()
+    let m = a.count / 2
+    return a.count % 2 == 1 ? a[m] : (a[m - 1] + a[m]) / 2
+  }
+
+  /// His lines of writing, top down: his own strokes showing (not Larry's groups or texts), underlines left out.
+  func writingLines() -> [WritingLine] {
+    let inHeader = Set(headers.flatMap(\.ids))
+    let tagged = Set(units().filter { $0.tag != nil && $0.header == nil }.flatMap(\.members))
+    let boxes = strokes.indices.filter {
+      !strokes[$0].hidden && !strokes[$0].points.isEmpty && !tagged.contains($0) && !Self.isUnderline(strokes[$0])
+    }.map { ($0, strokes[$0].bounds, strokes[$0].bounds.height - (strokes[$0].pen > 0 ? strokes[$0].pen : 4)) }
+      .sorted { $0.1.minY < $1.1.minY }
+    var out: [WritingLine] = []
+    for (m, box, h) in boxes {
+      // One line while the stroke overlaps it by a good part of its own height: a descender grazing the next line
+      // doesn't chain the two.
+      let overlap = { (l: WritingLine) in min(l.box.maxY, box.maxY) - max(l.box.minY, box.minY) }
+      var best: Int?
+      for (i, l) in out.enumerated() where overlap(l) >= 0.4 * min(h, l.box.height) {
+        if best.map({ overlap(l) > overlap(out[$0]) }) ?? true { best = i }
+      }
+      if let best {
+        out[best].box = out[best].box.union(box)
+        out[best].members.append(m)
+        out[best].heights.append(h)
+      } else {
+        out.append(WritingLine(box: box, members: [m], heights: [h]))
+      }
+    }
+    for i in out.indices {
+      out[i].header = out[i].members.contains { strokes[$0].ids.contains(where: inHeader.contains) }
+      out[i].letter = Self.median(out[i].heights.filter { $0 >= 6 }) ?? 0
+    }
+    return out
+  }
+
+  /// Lines that look like headers and aren't yet: written well bigger than his usual lines (once there are four to
+  /// judge by), or underlined across most of their width. Derived, never kept.
+  public func candidates() -> [Candidate] {
+    let lines = writingLines()
+    let mine = lines.filter { !$0.header && $0.letter > 0 }
+    let usual = mine.count >= Self.fewestLines ? Self.median(mine.map(\.letter)) : nil
+    let usualLine = mine.count >= Self.fewestLines ? Self.median(mine.map(\.box.height)) : nil
+    let unders = strokes.filter { !$0.hidden && Self.isUnderline($0) }.map(\.bounds)
+    var out: [Candidate] = []
+    for l in lines where !l.header {
+      let h = l.box.height
+      let why: Candidate.Why?
+      if let usual, let usualLine, h >= Self.bigLine * usualLine, l.letter >= Self.bigLetter * usual,
+        l.members.count >= Self.fewestStrokes, l.box.width >= 2 * h
+      {
+        why = .big
+      } else if unders.contains(where: { Self.underlines($0, l.box) }) {
+        why = .underline
+      } else {
+        why = nil
+      }
+      guard let why, let row = row(at: l.box.midY), row.header == nil, !row.names.isEmpty else { continue }
+      out.append(Candidate(y: l.box.midY, box: l.box, why: why))
+    }
+    return out
+  }
+
+  // MARK: - The word under a held Pencil
+
+  private static func distance(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
+    let dx = b.x - a.x
+    let dy = b.y - a.y
+    let l = dx * dx + dy * dy
+    let t = l > 0 ? max(0, min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l)) : 0
+    return hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy))
+  }
+
+  /// What a Pencil held still at `point` picks up, by its strokes' names: a kept text, a group or a header row whole;
+  /// a stroke with its neighbours on its line, chained while the gap between them is under a word gap. Nil off ink.
+  public func word(at point: CGPoint, slop: CGFloat = 10) -> [String]? {
+    let us = units()
+    let near = { (u: Unit) -> Bool in
+      if self.isText(u.tag) { return u.bounds.insetBy(dx: -slop, dy: -slop).contains(point) }
+      return u.members.contains { m in
+        let s = self.strokes[m]
+        guard !s.hidden, let first = s.points.first else { return false }
+        if s.points.count == 1 { return hypot(point.x - first.x, point.y - first.y) <= slop }
+        return zip(s.points, s.points.dropFirst()).contains { Self.distance(point, $0.0, $0.1) <= slop }
+      }
+    }
+    // Ink drawn over a text is what the Pencil is on: strokes first.
+    guard let hit = us.first(where: { !isText($0.tag) && near($0) }) ?? us.first(where: { isText($0.tag) && near($0) })
+    else { return nil }
+    if isText(hit.tag) || hit.header != nil { return names(hit.members) }
+    let mid = hit.bounds.midY
+    let line = us.filter { $0.header == nil && !isText($0.tag) }
+      .filter { $0.bounds.minY <= mid + Self.line / 4 && $0.bounds.maxY >= mid - Self.line / 4 }
+      .sorted { $0.bounds.minX < $1.bounds.minX }
+    var (left, right) = (hit.bounds.minX, hit.bounds.maxX)
+    var grew = true
+    while grew {
+      grew = false
+      for u in line where !(u.bounds.minX >= left && u.bounds.maxX <= right) {
+        if u.bounds.minX - right < Self.wordGap, left - u.bounds.maxX < Self.wordGap {
+          left = min(left, u.bounds.minX)
+          right = max(right, u.bounds.maxX)
+          grew = true
+        }
+      }
+    }
+    return names(line.filter { $0.bounds.minX >= left && $0.bounds.maxX <= right }.flatMap(\.members))
+  }
+
+  /// A Pencil stroke that is a hold and drag: still within `holdStill` of where it went down for `holdMs`, on a word.
+  /// Its points in board points with their time since the stroke began, seconds. The word and how far it is dragged.
+  public func pickUp(_ path: [(point: CGPoint, time: Double)]) -> (names: [String], by: CGVector)? {
+    guard Self.isHold(path), let start = path.first, let end = path.last, let word = word(at: start.point) else {
+      return nil
+    }
+    return (word, CGVector(dx: end.point.x - start.point.x, dy: end.point.y - start.point.y))
+  }
+
+  /// The stroke began still within `holdStill` of where it went down for `holdMs`, wherever it lies on the board.
+  public static func isHold(_ path: [(point: CGPoint, time: Double)]) -> Bool {
+    guard let start = path.first else { return false }
+    let held = path.prefix { hypot($0.point.x - start.point.x, $0.point.y - start.point.y) <= holdStill }
+    guard let last = held.last else { return false }
+    return (last.time - start.time) * 1000 >= holdMs
+  }
+}

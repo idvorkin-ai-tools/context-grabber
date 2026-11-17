@@ -4418,7 +4418,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 766:
 
 - **Summary:** The board's note is one line that opens into the conversation
-- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); verified by host tests (`WhiteboardNoteTests`: the line's state with *next:*, the middle and which end it keeps, a message giving the middle back after five seconds and one about the Cockpit not answering keeping it, *3 to keep*; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder` at 98878ae: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` with the whiteboard's other UI classes). The Cockpit-not-answering messages keeping the middle was added after that run and is verified on the host only. Not yet seen on the iPad
+- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea), its line kept while empty in [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6) (the iPad simulator: `WhiteboardPaperGhostsUITests`' push and stale-push tests measured the ink 24 points lower once his state showed, and pass with it); verified by host tests (`WhiteboardNoteTests`: the line's state with *next:*, the middle and which end it keeps, a message giving the middle back after five seconds and one about the Cockpit not answering keeping it, *3 to keep*; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder` at 98878ae: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` with the whiteboard's other UI classes). The Cockpit-not-answering messages keeping the middle was added after that run and is verified on the host only. Not yet seen on the iPad
 - **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#882](https://github.com/idvorkin/context-grabber/issues/882) (the panel's live rows were drawn over each other)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
@@ -4432,6 +4432,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** Larry's long reply and a long line from the mic
 - **When:** I look at the note
 - **Then:** it is one line: his state first, the newest words after it, and the paper hasn't moved
+
+- **Scenario:** The note first speaks
+- **Given:** a board just opened, its note saying nothing yet, with ink on it
+- **When:** I ask Larry and his state shows in the note
+- **Then:** the ink stays exactly where it was on screen
 
 ---
 
@@ -4841,3 +4846,840 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an answered card on the board, the eraser in hand, and fingers set not to draw
 - **When:** I drag a finger that starts on the card
 - **Then:** the board scrolls and the card stays
+
+---
+
+### User Story 814:
+
+- **Summary:** Larry makes room between my lines
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testAPushMovesOnlyWhatStartsAtOrBelowTheLine`, `testAPushThatNeedsAPageAddsOne`, `testAPushBelowTheLastInkMovesNothingAndAddsPaper`, `testATranslateBelowALine`; `just test`) and the Mac build (`just native-build-mac`). The one undo named for the change, page count included, is PaperKit's, in the board's view, with no host test; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysPushMovesTheInkBelowAndOneUndoPutsItBack`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** who asked Larry on the board to open space between two parts of my notes
+- **I want to** see everything below the line slide down by the amount he chose, in one step I can undo
+- **so that** I get room to write without redrawing or squeezing anything
+
+#### Acceptance Criteria:
+- **Scenario:** A push in the middle of the board
+- **Given:** a board with ink above and below a line, and Larry answers my turn with "make room below that line"
+- **When:** his answer lands with the Pencil up
+- **Then:** every stroke, kept mark and pasted line whose top is at or below the line moves straight down exactly that far, the ink above doesn't move, a page is added at the bottom if the push needs one, and one tap on Undo puts the board back as it was, page count included; Redo pushes it down again
+
+---
+
+### User Story 862:
+
+- **Summary:** A push below the last ink adds paper
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testAPushMovesOnlyWhatStartsAtOrBelowTheLine`, `testAPushThatNeedsAPageAddsOne`, `testAPushBelowTheLastInkMovesNothingAndAddsPaper`, `testATranslateBelowALine`; `just test`) and the Mac build (`just native-build-mac`). The one undo named for the change, page count included, is PaperKit's, in the board's view, with no host test; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysPushMovesTheInkBelowAndOneUndoPutsItBack`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** whose ink all sits above the line Larry names
+- **I want to** have his push grow blank paper rather than move anything
+- **so that** the room he asked for is there to write in
+
+#### Acceptance Criteria:
+- **Scenario:** A push below the last ink
+- **Given:** a board whose ink all sits above the line Larry names
+- **When:** his push lands
+- **Then:** nothing moves, and the board grows blank paper to reach the room he asked for
+
+---
+
+### User Story 815:
+
+- **Summary:** Larry moves the strokes he names
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testNamedStrokesMoveAndOnlyThose`, `testOpsApplyInOrderOnTheBoardTheEarlierOnesLeft`, `testAStrokeWithSeveralStretchesAnswersToEachId`, `testATranslateOfNamedStrokes`, `testAMovedStrokeGoesBackUnderTheIdItHad`, `testAStrokeWhoseInkChangedIsNotRenamed`, `testTheNamesAreKeptPerBoard`; `just test`) and the Mac build (`just native-build-mac`). An id the board doesn't have is skipped and named back to Larry (`missing_ids`); the rest applies; not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** whose board Larry is tidying
+- **I want to** see the strokes he names, and only those, move where he says, together with anything else he changes in the same answer
+- **so that** a change of his is never half applied
+
+#### Acceptance Criteria:
+- **Scenario:** Named strokes and a push in one answer
+- **Given:** Larry answers with a push and a move of some strokes he names by the ids the board sent him
+- **When:** the answer lands with the Pencil up
+- **Then:** both happen, and one Undo takes both back
+
+---
+
+### User Story 863:
+
+- **Summary:** A stroke Larry moved keeps its name
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testNamedStrokesMoveAndOnlyThose`, `testOpsApplyInOrderOnTheBoardTheEarlierOnesLeft`, `testAStrokeWithSeveralStretchesAnswersToEachId`, `testATranslateOfNamedStrokes`, `testAMovedStrokeGoesBackUnderTheIdItHad`, `testAStrokeWhoseInkChangedIsNotRenamed`, `testTheNamesAreKeptPerBoard`; `just test`) and the Mac build (`just native-build-mac`). An id the board doesn't have is skipped and named back to Larry (`missing_ids`); the rest applies; not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** whose strokes Larry moves and talks about later
+- **I want to** have a moved stroke keep the id he knew it by
+- **so that** his connectors and diffs still find it
+
+#### Acceptance Criteria:
+- **Scenario:** A moved stroke keeps its name
+- **Given:** a stroke Larry has moved
+- **When:** the board next sends him its strokes
+- **Then:** the stroke has the id he knew it by; only ink I draw, erase or rub part of gets a new one
+
+---
+
+### User Story 816:
+
+- **Summary:** A push never moves ink under my Pencil or on a board that changed
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** still drawing when Larry answers
+- **I want to** have his push wait until I lift the Pencil, and be refused if I changed the board after he looked
+- **so that** ink never jumps under my pen and never lands in the wrong place
+
+#### Acceptance Criteria:
+- **Scenario:** The Pencil is down
+- **Given:** I am drawing, or lifted the Pencil less than a moment ago
+- **When:** Larry's push arrives
+- **Then:** it waits, and applies within a second of the Pencil lifting
+
+---
+
+### User Story 864:
+
+- **Summary:** A push on a board that changed since he looked is refused
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** who drew after Larry looked at the board
+- **I want to** have his push refused rather than land on ink that moved
+- **so that** his change never lands in the wrong place
+
+#### Acceptance Criteria:
+- **Scenario:** I drew after he looked
+- **Given:** the board changed after the picture Larry answered
+- **When:** his push arrives
+- **Then:** nothing moves, his next turn tells him it was stale, and a fresh push from him applies
+
+---
+
+### User Story 865:
+
+- **Summary:** A change the board can't take applies none of it
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** whose board gets an answer it can't carry out
+- **I want to** have none of that answer's changes apply, and Larry told why
+- **so that** a board is never half changed
+
+#### Acceptance Criteria:
+- **Scenario:** A change the board can't take
+- **Given:** an answer with more than 50 changes, a push of more than 4000 points, or a kind of change this build doesn't know
+- **When:** it arrives
+- **Then:** none of it applies, Larry is told why, the rest of his answer shows as it does today, and the session log has one line saying what was refused and why
+
+---
+
+### User Story 866:
+
+- **Summary:** An answer of Larry's applies once
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testWithThePencilDownTheBatchWaitsThenApplies`, `testThePencilsHold`, `testAStaleBatchAppliesNothingAndSaysSo`, `testMoreThanFiftyOpsAreRefused`, `testAPushPastFourThousandPointsIsRefused`, `testAnUnknownOpRefusesTheWholeBatch`, `testTheSameBatchNeverAppliesTwice`, `testANewerHeldBatchReplacesTheOlder`; `just test`) and the Mac build (`just native-build-mac`). The revision is checked when the change arrives, so a change held for the Pencil applies to the board as the lift leaves it; the hold after a lift is the board's half-second pause; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testAStalePushMovesNothingAndLarryIsTold`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*, *Edge cases*
+
+#### Use Case:
+- **As someone** whose board reads Larry's thread again or opens again
+- **I want to** have a push that already applied not apply again
+- **so that** nothing moves twice
+
+#### Acceptance Criteria:
+- **Scenario:** The same answer seen twice
+- **Given:** a push that already applied
+- **When:** the board reads the thread again or opens again
+- **Then:** it is not applied a second time
+
+---
+
+### User Story 817:
+
+- **Summary:** Larry writes plain, readable text on my board
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testAddTextWithItsLooks`, `testPlainTextIsAPrintGhostAtItsTopLeft`, `testAKeptTextGoesBackAsOneStrokeOfKindText`, `testAKeptTextMovesWholeByItsIdOrAPush`, `testAKeptTextsTimeMatchesItsGlyphsReadBack`; `WhiteboardGhostTurnsTests.testLarrysTextJoinsHisMarksAndReplacesOnlyItsOwnId`; `just test`) and the Mac build (`just native-build-mac`). The text's place is its top-left. A text ghost doesn't come back when the board opens again; a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysTextArrivesAsAGhostAndKeepsAsOneText`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
+
+#### Use Case:
+- **As someone** reading Larry's small labels on the board
+- **I want to** see his text in a plain typeface, offered as a ghost I keep or dismiss like his other marks
+- **so that** it reads cleanly and stays mine to accept
+
+#### Acceptance Criteria:
+- **Scenario:** Keep his text
+- **Given:** Larry's answer puts a line of text on the board
+- **When:** it lands, and I tap it and Keep
+- **Then:** it shows as a ghost in a plain typeface at his size and colour, Keep makes it ink on the board (one Undo takes it back, Dismiss throws it away instead), the next picture and strokes Larry gets have it as one text with his id, and a later push from him moves it with the ink around it
+
+---
+
+### User Story 818:
+
+- **Summary:** Larry hears the Pencil and my taps
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testPenAndTapEventsAccumulateUntilTaken`, `testEventsKeepTheirNewestUnderTheCap`, `testEventsOnTheWire`, `testTheTurnMessageCarriesRevResultAndEventsButTheStrokesDont`; `just test`) and the Mac build (`just native-build-mac`); simulator UI tests against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysTextArrivesAsAGhostAndKeepsAsOneText` (the op_result) and `testAStalePushMovesNothingAndLarryIsTold`, pass on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the pen and taps*
+
+#### Use Case:
+- **As someone** drawing while Larry watches the board
+- **I want to** have Larry told when the Pencil went down and came up and where I tapped
+- **so that** he can wait for me to finish and offer things I tap on
+
+#### Acceptance Criteria:
+- **Scenario:** A turn after some drawing and a tap
+- **Given:** I drew two strokes and tapped one of his marks since his last turn
+- **When:** the next picture goes to Larry
+- **Then:** it carries the board's revision, what came of his last change, and the Pencil's downs and ups and my tap (where it was, and which of his marks it hit, if any), each with its time; a later turn carries only what happened after
+
+---
+
+### User Story 819:
+
+- **Summary:** The board takes changes from one place, whoever sends them
+- **Status:** implemented in [69f96a0](https://github.com/idvorkin/context-grabber/commit/69f96a0), [dd71ae1](https://github.com/idvorkin/context-grabber/commit/dd71ae1); verified by host tests (`BoardOpsTests`: `testTheWebSourceOffersTheNewestBatchFirstThenEachNewOne`, `testTheSameBatchNeverAppliesTwice`, `testTheLedgerKeepsRevHandledAndTexts`, `testAnotherBoardsBatchIsIgnored`; `just test`) and the Mac build (`just native-build-mac`). Only the web source exists; a source inside the app is the next step; not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Driven from the web or from the app*
+
+#### Use Case:
+- **As someone** whose board Larry will one day drive partly from inside the app
+- **I want to** see the same push, the same text and the same single undo whichever side sends them
+- **so that** moving a feature from the web into the app changes nothing I see
+
+#### Acceptance Criteria:
+- **Scenario:** Today's source
+- **Given:** Larry's changes arrive over the network on his board replies
+- **When:** they reach the board
+- **Then:** they go through the one place that checks, holds and applies changes, which would take a source inside the app the same way, and never applies one change twice
+
+---
+
+### User Story 840:
+
+- **Summary:** Larry draws ink straight onto my board
+- **Status:** implemented in [7d3981a](https://github.com/idvorkin/context-grabber/commit/7d3981a); verified by host tests (`BoardOpsInkTests`: `testAddStrokesWithTheirLooksAndNotes`, `testAPenTooThinOrTooWideDrawsWithinReach`, `testLarrysInkJoinsTheBoardWhereLaterOpsLeaveIt`, `testLarrysStrokesGoBackUnderHisNamesWithHisNotes`, `testInkTheCockpitWouldRefuseIsRefusedHere`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry draws, erases and replaces ink*
+
+#### Use Case:
+- **As someone** whose board Larry is helping lay out
+- **I want to** have Larry draw real strokes on the board, at his width and colour
+- **so that** his drawing is part of the page, not a ghost I have to keep
+
+#### Acceptance Criteria:
+- **Scenario:** He draws
+- **Given:** Larry's answer adds two strokes with names of his own
+- **When:** it lands with the Pencil up
+- **Then:** both strokes are ink on the page at once, the board's next strokes give them back under his names, and one Undo takes them away
+
+---
+
+### User Story 841:
+
+- **Summary:** Larry erases and replaces ink by name
+- **Status:** implemented in [7d3981a](https://github.com/idvorkin/context-grabber/commit/7d3981a); verified by host tests (`BoardOpsInkTests`: `testDeleteSetMetaAndReplace`, `testDeleteByNameAndReplace`, `testAStrokeDrawnAgainUnderItsNameReplacesIt`, `testLarrysOwnInkCanBeErasedInTheSameBatch`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry draws, erases and replaces ink*
+
+#### Use Case:
+- **As someone** whose scrawl Larry is tidying
+- **I want to** have Larry erase strokes, or swap some for clean ones, in one step
+- **so that** a tidy never leaves the old and the new ink both on the page
+
+#### Acceptance Criteria:
+- **Scenario:** A replace and an erase in one answer
+- **Given:** Larry's answer erases one stroke and replaces two others with one clean line
+- **When:** it lands
+- **Then:** the three strokes go, the clean line is there, one Undo brings back exactly what was, and a name the board doesn't have is told back to him and nothing else of the answer is lost
+
+---
+
+### User Story 842:
+
+- **Summary:** Larry's groups move as one
+- **Status:** implemented in [7d3981a](https://github.com/idvorkin/context-grabber/commit/7d3981a); verified by host tests (`BoardOpsInkTests`: `testAGroupMovesWholeAndAnswersToItsName`, `testNotesAreKeptAsWritten`, `testNotesSetByNameAndForgottenWithTheirStrokes`, `testTheNotesAreKeptPerBoard`, `testLarrysStrokesGoBackUnderHisNamesWithHisNotes`; `just test`) and the Mac build (`just native-build-mac`). The Cockpit's strokes endpoint ignores `meta` today, so the notes reach Larry only once it keeps them; not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry groups ink*
+
+#### Use Case:
+- **As someone** with a label Larry underlined
+- **I want to** have the strokes Larry groups move together
+- **so that** a push never splits a label from its underline
+
+#### Acceptance Criteria:
+- **Scenario:** A group across the line
+- **Given:** a group of Larry's whose top is above the line he pushes below, and another stroke of it below
+- **When:** the push lands
+- **Then:** the whole group moves together or stays together by its top, and his notes on the strokes come back to him exactly as he wrote them
+
+---
+
+### User Story 843:
+
+- **Summary:** Larry hears my ink change
+- **Status:** implemented in [7d3981a](https://github.com/idvorkin/context-grabber/commit/7d3981a); verified by host tests (`BoardOpsInkTests`: `testIgorsInkChangeIsToldByName`, `testInkEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`). A rub with the pixel eraser that leaves a stroke's box as it was isn't seen as a change; not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears my ink change and my selection*
+
+#### Use Case:
+- **As someone** drawing, erasing and moving ink while Larry follows
+- **I want to** have Larry told what I added, erased and moved, by name
+- **so that** he can say "new since my last reply" without guessing
+
+#### Acceptance Criteria:
+- **Scenario:** A few changes
+- **Given:** since his last turn I drew a stroke, erased one and moved one with the lasso
+- **When:** his next turn goes
+- **Then:** it names the added, erased and moved strokes and the board's revision after each change, and the moved stroke keeps the name it had
+
+---
+
+### User Story 844:
+
+- **Summary:** Larry hears my lasso selection
+- **Status:** implemented in [7d3981a](https://github.com/idvorkin/context-grabber/commit/7d3981a); verified by host tests (`BoardOpsInkTests.testInkEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears my ink change and my selection*
+
+#### Use Case:
+- **As someone** circling ink to talk about it
+- **I want to** have Larry told which strokes I selected
+- **so that** "this" means what I circled
+
+#### Acceptance Criteria:
+- **Scenario:** I circle some ink
+- **Given:** I lasso three strokes
+- **When:** his next turn goes
+- **Then:** it names those three strokes as my selection
+
+---
+
+### User Story 845:
+
+- **Summary:** Larry lays bands, chips, buttons and hints on the board
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6); verified by host tests (`BoardOpsControlsTests`: `testAnOverlayWithItsLooksAndItsEvent`, `testAnOverlayThatCantShowIsRefused`, `testControlsAreLaidReplacedTakenAwayAndHit`, `testSelectingAndControlsLeaveTheInkAsItIs`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
+
+#### Use Case:
+- **As someone** talking with Larry on the board
+- **I want to** see Larry's few controls at their places, scrolling with the board
+- **so that** I can answer him with a tap instead of words
+
+#### Acceptance Criteria:
+- **Scenario:** A band and a button
+- **Given:** Larry lays a band across the page and a button beside it
+- **When:** they land
+- **Then:** they show at their places with their labels, scroll and zoom with the board, are in no picture and no strokes, are never undone, and go when he takes them away
+
+---
+
+### User Story 846:
+
+- **Summary:** A tap on Larry's control reaches him at once
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6), the wake and the caps in [782b1ad](https://github.com/idvorkin/context-grabber/commit/782b1ad) (`BoardOpsControlsTests.testAReportKeepsToTheCockpitsCaps`; the fake Cockpit mirrors the live endpoint); verified by host tests (`BoardOpsControlsTests`: `testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt`, `testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
+
+#### Use Case:
+- **As someone** tapping one of Larry's buttons
+- **I want to** have the tap reach him straight away
+- **so that** he answers what I chose without waiting for my next turn
+
+#### Acceptance Criteria:
+- **Scenario:** I tap his button
+- **Given:** a button of Larry's on the board
+- **When:** I tap it with a finger
+- **Then:** its event goes to the Cockpit at once with the board's revision; if the Cockpit can't take it, it goes with my next turn, and the session log says which
+
+---
+
+### User Story 867:
+
+- **Summary:** A tap on Larry's button wakes him with what he asked to hear
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6), the wake and the caps in [782b1ad](https://github.com/idvorkin/context-grabber/commit/782b1ad) (`BoardOpsControlsTests.testAReportKeepsToTheCockpitsCaps`; the fake Cockpit mirrors the live endpoint); verified by host tests (`BoardOpsControlsTests`: `testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt`, `testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
+
+#### Use Case:
+- **As someone** tapping one of Larry's buttons
+- **I want to** have the Cockpit wake him with what the button was for
+- **so that** he answers the choice he offered
+
+#### Acceptance Criteria:
+- **Scenario:** The tap wakes him
+- **Given:** a button of Larry's that asks to hear "make room"
+- **When:** I tap it
+- **Then:** the Cockpit gets a tap on his control naming the button, with his "make room" as he wrote it, and wakes him; a plain tap elsewhere on the board is never sent as one
+
+---
+
+### User Story 868:
+
+- **Summary:** Events since the last turn keep to the Cockpit's caps
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6), the wake and the caps in [782b1ad](https://github.com/idvorkin/context-grabber/commit/782b1ad) (`BoardOpsControlsTests.testAReportKeepsToTheCockpitsCaps`; the fake Cockpit mirrors the live endpoint); verified by host tests (`BoardOpsControlsTests`: `testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt`, `testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); a simulator UI test against the fake Cockpit, `WhiteboardPaperGhostsUITests.testLarrysInkAndButtonLandAndATapOnItReachesHim`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); not yet seen on the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
+
+#### Use Case:
+- **As someone** who did a lot on the board since Larry's last turn
+- **I want to** have the newest events reach him within the Cockpit's limits
+- **so that** he is never refused for too much, and knows what he missed
+
+#### Acceptance Criteria:
+- **Scenario:** A lot happened since the last turn
+- **Given:** more events than the Cockpit takes at once, or one too big
+- **When:** they are sent
+- **Then:** at most 200 go, none over 8 KB, the whole under 256 KB, the newest kept, and Larry is told how many he missed
+
+---
+
+### User Story 847:
+
+- **Summary:** Larry folds ink away and back
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6); verified by host tests (`BoardOpsControlsTests`: `testHiddenInkMovesWithAPushAndHidingIsAChange`, `testInkHeDrawsHiddenIsDrawnHidden`, `testAHiddenStrokeIsSaidToBe`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry folds and selects*
+
+#### Use Case:
+- **As someone** whose long board Larry is folding into sections
+- **I want to** have Larry hide strokes and show them again
+- **so that** a section can be out of the way without being gone
+
+#### Acceptance Criteria:
+- **Scenario:** He hides a section
+- **Given:** Larry's answer hides five strokes
+- **When:** it lands, and a push of his later moves them, and then he shows them
+- **Then:** they vanish at once, keep their place and move with the push while hidden, come back where the push left them, and one Undo undoes the hiding as part of his answer
+
+---
+
+### User Story 848:
+
+- **Summary:** Larry selects ink for me
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6); verified by host tests (`BoardOpsControlsTests`: `testHideAndSelect`, `testSelectingAndControlsLeaveTheInkAsItIs`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry folds and selects*
+
+#### Use Case:
+- **As someone** Larry is pointing at ink for
+- **I want to** have Larry select strokes as if I had circled them
+- **so that** I can move or delete what he means in one gesture
+
+#### Acceptance Criteria:
+- **Scenario:** He selects
+- **Given:** Larry's answer selects two strokes
+- **When:** it lands
+- **Then:** those two are selected on the board, and nothing else changes
+
+---
+
+### User Story 849:
+
+- **Summary:** Larry hears the margin
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6); verified by host tests (`BoardOpsControlsTests`: `testTheMarginsGestures`, `testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`). A finger that draws on paper still draws in the margin too; not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
+
+#### Use Case:
+- **As someone** asking for room by hand
+- **I want to** have a finger tap, hold or drag in the board's left margin reach Larry
+- **so that** he can open room where I asked
+
+#### Acceptance Criteria:
+- **Scenario:** A drag in the margin
+- **Given:** the board open
+- **When:** I drag a finger down the left margin
+- **Then:** Larry's next turn has a margin drag with where it started on the board and how far it went; a tap and a hold there are told the same way
+
+---
+
+### User Story 850:
+
+- **Summary:** Larry hears where I'm looking
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6); verified by host tests (`BoardOpsControlsTests.testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
+
+#### Use Case:
+- **As someone** scrolling a long board
+- **I want to** have Larry told what part of the board is on screen when I stop
+- **so that** he can answer about what I see
+
+#### Acceptance Criteria:
+- **Scenario:** I scroll and stop
+- **Given:** the board open
+- **When:** I scroll down and let it rest
+- **Then:** Larry's next turn has the part of the board on screen and the zoom, once per rest, not on every frame
+
+---
+
+### User Story 851:
+
+- **Summary:** Larry hears me undo his change
+- **Status:** implemented in [d5af5a6](https://github.com/idvorkin/context-grabber/commit/d5af5a6); verified by host tests (`BoardOpsControlsTests.testControlsAndViewEventsOnTheWire`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Larry
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
+
+#### Use Case:
+- **As someone** undoing a change of Larry's
+- **I want to** have Larry told which of his changes I undid
+- **so that** he doesn't build on a change I took back
+
+#### Acceptance Criteria:
+- **Scenario:** I undo his push
+- **Given:** a push of Larry's on the board
+- **When:** I tap Undo
+- **Then:** his next turn has an undo naming that change
+
+---
+
+### User Story 852:
+
+- **Summary:** A paste never lands on my ink: it finds clear paper or opens room
+- **Status:** implemented in [ef701ea](https://github.com/idvorkin/context-grabber/commit/ef701ea); verified by host tests (`BoardRoomTests`: the middle of an empty view, the clear patch nearest the middle never touching ink, room at the clear line nearest the middle by whole lines beyond the blank already there, hidden ink no obstacle); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Paste makes room*
+
+#### Use Case:
+- **As someone** pasting text onto a full board
+- **I want to** have the paste go to clear paper on screen, or have room open for it
+- **so that** nothing I wrote is ever covered
+
+#### Acceptance Criteria:
+- **Scenario:** Clear paper on screen
+- **Given:** a screen with ink at its middle and clear paper above it
+- **When:** I paste two lines
+- **Then:** they land in the clear paper nearest the middle and nothing moves
+
+---
+
+### User Story 869:
+
+- **Summary:** A paste on a full screen opens room for itself
+- **Status:** implemented in [ef701ea](https://github.com/idvorkin/context-grabber/commit/ef701ea); verified by host tests (`BoardRoomTests`: the middle of an empty view, the clear patch nearest the middle never touching ink, room at the clear line nearest the middle by whole lines beyond the blank already there, hidden ink no obstacle); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Paste makes room*
+
+#### Use Case:
+- **As someone** pasting onto a screen written on every line
+- **I want to** have room open for the paste in one undo
+- **so that** nothing I wrote is covered
+
+#### Acceptance Criteria:
+- **Scenario:** A full screen
+- **Given:** writing on every line of the screen
+- **When:** I paste
+- **Then:** the ink from the middle down moves down whole lines, the paste sits in the room against the margin, and one Undo named Paste puts the board back exactly
+
+---
+
+### User Story 853:
+
+- **Summary:** A paste lands selected with Delete beside it
+- **Status:** implemented in [ef701ea](https://github.com/idvorkin/context-grabber/commit/ef701ea), the Delete's test in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); a simulator UI test, `WhiteboardOutlineUITests.testAPasteLandsSelectedAndDeleteTakesItAway`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Paste makes room*
+
+#### Use Case:
+- **As someone** who pasted the wrong thing
+- **I want to** take the paste straight back off the board
+- **so that** an accidental paste costs one tap
+
+#### Acceptance Criteria:
+- **Scenario:** Delete it
+- **Given:** a paste that just landed
+- **When:** I tap Delete beside it
+- **Then:** the paste goes, the room it opened stays, and Undo brings the paste back
+
+---
+
+### User Story 870:
+
+- **Summary:** Delete goes once I move on from a paste
+- **Status:** implemented in [ef701ea](https://github.com/idvorkin/context-grabber/commit/ef701ea), the Delete's test in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); a simulator UI test, `WhiteboardOutlineUITests.testAPasteLandsSelectedAndDeleteTakesItAway`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Paste makes room*
+
+#### Use Case:
+- **As someone** who pasted and carried on working
+- **I want to** have the paste's Delete go away when I draw or select something else
+- **so that** Delete is only offered for what just landed
+
+#### Acceptance Criteria:
+- **Scenario:** Move on
+- **Given:** a paste that just landed, selected
+- **When:** I draw or select something else
+- **Then:** Delete goes away
+
+---
+
+### User Story 854:
+
+- **Summary:** Erasing part of a group leaves plain ink
+- **Status:** implemented in [ef701ea](https://github.com/idvorkin/context-grabber/commit/ef701ea); verified by host tests (`BoardDissolveTests`: part of a group leaves plain ink with his other notes, a whole group is an ordinary erase, a kept text missing a letter is forgotten and `dissolved` goes on the wire); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Erasing part of a group dissolves it*
+
+#### Use Case:
+- **As someone** rubbing out part of something Larry drew as one
+- **I want to** have what's left be plain ink
+- **so that** it no longer moves or answers as a thing that is gone
+
+#### Acceptance Criteria:
+- **Scenario:** Part of his group
+- **Given:** a group of Larry's three strokes
+- **When:** I erase one of them
+- **Then:** the other two stay where they are as plain ink, a push moves them one by one, and Larry's next turn names the group as dissolved
+
+---
+
+### User Story 871:
+
+- **Summary:** Erasing a letter of Larry's kept text leaves plain ink
+- **Status:** implemented in [ef701ea](https://github.com/idvorkin/context-grabber/commit/ef701ea); verified by host tests (`BoardDissolveTests`: part of a group leaves plain ink with his other notes, a whole group is an ordinary erase, a kept text missing a letter is forgotten and `dissolved` goes on the wire); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Erasing part of a group dissolves it*
+
+#### Use Case:
+- **As someone** rubbing out part of a text of Larry's I kept
+- **I want to** have what's left be plain ink
+- **so that** Larry no longer reads it as his text
+
+#### Acceptance Criteria:
+- **Scenario:** Part of a kept text
+- **Given:** a text of Larry's I kept
+- **When:** I erase one letter
+- **Then:** the other letters stay as plain ink, and Larry no longer gets it as his text
+
+---
+
+### User Story 855:
+
+- **Summary:** A margin tap makes a header, and another folds it
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: a margin tap makes a header once, a fold hides the indented lines and closes up whole lines and unfold puts everything back, a push never splits a fold from its header, unfold makes room for what was written under it, an undo that shows the ink opens the fold); a simulator UI test, `WhiteboardOutlineUITests.testAMarginTapMakesAHeaderAndAnotherFoldsIt`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing an outline on the board
+- **I want to** turn a line into a header with one tap and fold what is under it
+- **so that** a long board reads like an outline
+
+#### Acceptance Criteria:
+- **Scenario:** Make a header
+- **Given:** a line of writing with indented lines under it
+- **When:** I tap the margin beside it
+- **Then:** a ▾ shows beside it in the margin
+
+---
+
+### User Story 872:
+
+- **Summary:** A tap on a header's mark folds its section and another unfolds it
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: a margin tap makes a header once, a fold hides the indented lines and closes up whole lines and unfold puts everything back, a push never splits a fold from its header, unfold makes room for what was written under it, an undo that shows the ink opens the fold); a simulator UI test, `WhiteboardOutlineUITests.testAMarginTapMakesAHeaderAndAnotherFoldsIt`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing an outline on the board
+- **I want to** fold the lines under a header and open them again
+- **so that** a long board reads like an outline
+
+#### Acceptance Criteria:
+- **Scenario:** Fold and unfold
+- **Given:** a header with three indented lines and a line at its indent below them
+- **When:** I tap its mark
+- **Then:** the three lines hide, the line below slides up under the header, the mark says ▸ 3; tapping again puts everything back where it was, and each is one Undo
+
+---
+
+### User Story 856:
+
+- **Summary:** Folds nest, and a section ends where the ink returns to the header's indent
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: folds nest and the inner stays folded through the outer's unfold, blank paper never ends a section, a header whose next line isn't indented runs to the next at its indent); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing a deeper outline
+- **I want to** fold a section with its sub-sections inside it
+- **so that** folding behaves as in an outliner
+
+#### Acceptance Criteria:
+- **Scenario:** A folded section inside another
+- **Given:** a header with an indented header under it, itself folded
+- **When:** I fold the outer one and unfold it again
+- **Then:** the inner one is still folded
+
+---
+
+### User Story 873:
+
+- **Summary:** Blank paper never ends a section
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: folds nest and the inner stays folded through the outer's unfold, blank paper never ends a section, a header whose next line isn't indented runs to the next at its indent); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing an outline with gaps in it
+- **I want to** have a section run on past blank paper to the next line at its header's indent
+- **so that** folding takes the whole section
+
+#### Acceptance Criteria:
+- **Scenario:** Blank paper
+- **Given:** a header whose indented lines run on after a gap of blank paper
+- **When:** I fold it
+- **Then:** the lines after the gap fold too, up to the first line back at the header's indent
+
+---
+
+### User Story 857:
+
+- **Summary:** Larry knows folded ink is folded, not erased
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: the fold's wire and folded names, `testFoldsGoBesideTheStrokesToTheCockpit`) and the fake Cockpit's check (`test-fake-cockpit-ops.py`: folds taken, a fold without lines refused); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad, nor against the real Cockpit
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** talking with Larry about a folded board
+- **I want to** have Larry told which strokes are folded under which header
+- **so that** he doesn't think I erased them, or wrote them again when I unfold
+
+#### Acceptance Criteria:
+- **Scenario:** A folded section
+- **Given:** a header folded over three lines
+- **When:** Larry's turn comes
+- **Then:** the strokes he gets leave the folded ones out and list them under the header's strokes, with the number of lines folded
+
+---
+
+### User Story 858:
+
+- **Summary:** Press and hold: room in the margin, a menu on the page
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); verified by host tests (`BoardRoomTests.testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper`); a simulator UI test, `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** needing room in the middle of my writing
+- **I want to** hold and drag in the margin, or hold for a menu
+- **so that** I make room, paste or mark a header without leaving the board
+
+#### Acceptance Criteria:
+- **Scenario:** Drag in the margin
+- **Given:** writing above and below
+- **When:** I hold a finger in the margin, drag down two lines and lift
+- **Then:** the ink below that clear line moves down two lines, one Undo
+
+---
+
+### User Story 874:
+
+- **Summary:** A hold on the page brings a menu
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f); verified by host tests (`BoardRoomTests.testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper`); a simulator UI test, `WhiteboardOutlineUITests.testAHoldBringsTheMenuAndAMarginDragMakesRoom`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** needing room, a paste or a header in the middle of my writing
+- **I want to** hold a finger still for a menu
+- **so that** I do them without leaving the board
+
+#### Acceptance Criteria:
+- **Scenario:** Hold for the menu
+- **Given:** a finger held still on the page, or in the margin without dragging
+- **When:** the hold is long enough
+- **Then:** a menu offers Make room here, Paste, and Make header (or Not a header) beside a line
+
+---
+
+### User Story 859:
+
+- **Summary:** The Pencil held on a word picks it up
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f) (the word lands when the Pencil lifts, not live); verified by host tests (`BoardOutlineTests.testAHeldPencilPicksUpTheWordUnderIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad: the simulator can't hold a Pencil, so the iPad is where it is seen
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** rearranging what I wrote
+- **I want to** hold the Pencil still on a word and drag it somewhere else
+- **so that** I move a word without the lasso
+
+#### Acceptance Criteria:
+- **Scenario:** Move a word
+- **Given:** a line of words
+- **When:** I hold the Pencil still on one word for under half a second, drag and lift
+- **Then:** that word, and only it, lands where I lifted, my Pencil's stroke isn't kept, and one Undo puts it back
+
+---
+
+### User Story 875:
+
+- **Summary:** The Pencil held on a word and lifted selects it
+- **Status:** implemented in [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f) (the word lands when the Pencil lifts, not live); verified by host tests (`BoardOutlineTests.testAHeldPencilPicksUpTheWordUnderIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad: the simulator can't hold a Pencil, so the iPad is where it is seen
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** choosing a word I wrote
+- **I want to** hold the Pencil on it and lift
+- **so that** it is selected without the lasso
+
+#### Acceptance Criteria:
+- **Scenario:** Hold and lift
+- **Given:** a word
+- **When:** I hold the Pencil on it and lift without moving
+- **Then:** the word is selected
+
+---
+
+### User Story 860:
+
+- **Summary:** Fold all, Unfold all, and collapse to a level
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b) (levels, collapse) and [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f) (the menu on a header's mark); verified by host tests (`BoardOutlineTests.testLevelsAndCollapsingToOne`, `testUnfoldAllOpensFoldsInsideFolds`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** reading a long outline
+- **I want to** fold everything, open everything, or show the outline to a depth
+- **so that** I see the shape of the board at a glance
+
+#### Acceptance Criteria:
+- **Scenario:** Collapse to level 1
+- **Given:** an outline two levels deep
+- **When:** I hold a header's mark and choose 1
+- **Then:** only the top headers show, each folded
+
+---
+
+### User Story 876:
+
+- **Summary:** Collapse to level 2 shows the sub-headers folded
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b) (levels, collapse) and [997ce4f](https://github.com/idvorkin/context-grabber/commit/997ce4f) (the menu on a header's mark); verified by host tests (`BoardOutlineTests.testLevelsAndCollapsingToOne`, `testUnfoldAllOpensFoldsInsideFolds`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** reading a long outline
+- **I want to** show it to two levels
+- **so that** I see its shape a level deeper
+
+#### Acceptance Criteria:
+- **Scenario:** Collapse to level 2
+- **Given:** the same outline
+- **When:** I choose 2
+- **Then:** the top headers stay open, their sub-headers show folded, and a top header with no sub-headers folds
+
+---
+
+### User Story 861:
+
+- **Summary:** A line that looks like a header is offered as one
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests.testABigOrUnderlinedLineIsOffered`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing titles bigger or underlining them
+- **I want to** see such a line offered as a header
+- **so that** making headers is one tap where I already marked them
+
+#### Acceptance Criteria:
+- **Scenario:** A big line
+- **Given:** a board with four ordinary lines and one written much bigger
+- **When:** it is drawn
+- **Then:** a faint H shows in the margin beside the big line; nothing folds until I tap the margin there, which makes it a header
+
+### User Story 877:
+
+- **Summary:** An underlined line is offered as a header
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests.testABigOrUnderlinedLineIsOffered`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** underlining my titles
+- **I want to** see an underlined line offered as a header
+- **so that** making headers is one tap where I already marked them
+
+#### Acceptance Criteria:
+- **Scenario:** An underlined line
+- **Given:** a line with a straight stroke under most of it
+- **When:** it is drawn
+- **Then:** the faint H shows beside it
+
+---
+

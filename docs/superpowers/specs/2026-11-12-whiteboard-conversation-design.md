@@ -142,7 +142,8 @@ doesn't say whether the picture ever reached him, or offer anything to do about 
 
 ### Closed: one line
 
-The note is one line and never two. It doesn't change height, so it never moves the paper.
+The note is one line and never two. It doesn't change height, so it never moves the paper: with nothing to say yet,
+on a board just opened, its line is kept empty, so the paper doesn't jump when Larry's state or a message first shows.
 
 - **First: Larry's state**, when a turn is out: the clock, then what is waiting to go when he answers, as
   **next: ink**, **next: words** or **next: ink + words**.

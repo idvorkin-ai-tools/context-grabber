@@ -68,6 +68,12 @@ struct PaperScreen {
   var red: Box? { box { r, g, b in r > 240 && g < 40 && b < 40 } }
   /// Black ink.
   var ink: Box? { box { r, g, b in r < 70 && g < 70 && b < 70 } }
+  /// A faint ghost of Larry's on white paper: his purple (#ba39e6) at half strength.
+  var larryGhost: Box? { box { r, g, b in r > 200 && r < 240 && g > 130 && g < 185 && b > 225 } }
+  /// One of Larry's controls in the tests' green (the fake Cockpit's button).
+  var green: Box? { box { r, g, b in r < 60 && g > 140 && b < 60 } }
+  /// A kept mark of Larry's, at full strength.
+  var larryKept: Box? { box { r, g, b in r > 150 && r < 215 && g < 110 && b > 190 } }
 
   static func tap(_ app: XCUIApplication, _ at: CGPoint) {
     app.coordinate(withNormalizedOffset: CGVector(dx: at.x, dy: at.y)).tap()
@@ -287,6 +293,226 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     larry.tap()
     let second = try strokeIDs(cockpit, after: middle)
     XCTAssertEqual(second, first, "the same names after coming back from the file")
+  }
+
+  // MARK: Larry's changes to the board (stories 814–818)
+
+  /// The fake Cockpit's next board answer is a batch of Larry's changes: room below the middle of the picture he got,
+  /// and a line of plain text in the gap; with `stale`, on the revision before the one the picture was of.
+  private func larryOps(_ cockpit: String, stale: Bool = false) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"stale": \#(stale)}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  /// What each board message reported back to the fake Cockpit: its rev and op_result (story 818).
+  private func opReports(_ cockpit: String) throws -> [[String: Any]] {
+    let url = try XCTUnwrap(URL(string: cockpit + "/fake/ops"))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any]
+    return try XCTUnwrap(json?["reports"] as? [[String: Any]])
+  }
+
+  /// The op_result on the board message after the first `count`, when it comes.
+  private func opResult(_ cockpit: String, after count: Int) throws -> [String: Any]? {
+    let until = Date().addingTimeInterval(15)
+    while Date() < until {
+      let all = try opReports(cockpit)
+      if all.count > count { return all[count]["op_result"] as? [String: Any] }
+      Thread.sleep(forTimeInterval: 0.5)
+    }
+    XCTFail("no board message reached the fake Cockpit")
+    return nil
+  }
+
+  /// Ink above the picture's middle and ink below it, with Ghosts off so only Larry's text can show.
+  private func inkAboveAndBelow(_ app: XCUIApplication) throws -> PaperScreen.Box {
+    ghosts(app).tap()
+    wait(ghosts(app), label: "Ghosts off")
+    stroke(app, atHeight: 0.3)
+    wait(send(app), label: strokes(1))
+    stroke(app, atHeight: 0.55)
+    wait(send(app), label: strokes(2))
+    return try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "black ink on screen")
+  }
+
+  /// Every `POST /whiteboard/events` the fake Cockpit took (story 846).
+  private func eventPosts(_ cockpit: String) throws -> [[String: Any]] {
+    let url = try XCTUnwrap(URL(string: cockpit + "/fake/ops"))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any]
+    return try XCTUnwrap(json?["event_posts"] as? [[String: Any]])
+  }
+
+  /// Arms the fake Cockpit's next board answer as Larry's ink and a button (stories 840, 845).
+  private func larryInkAndButton(_ cockpit: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"kind": "ink_and_button"}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  private func toKeep(_ app: XCUIApplication, _ count: Int) -> XCUIElement {
+    app.staticTexts.matching(NSPredicate(format: "label == %@", "\(count) to keep")).firstMatch
+  }
+
+  /// The ink's box once `holds` is true of it, or nil when it isn't within `timeout`.
+  private func ink(_ app: XCUIApplication, within timeout: TimeInterval, _ holds: (PaperScreen.Box) -> Bool)
+    -> PaperScreen.Box?
+  {
+    let until = Date().addingTimeInterval(timeout)
+    while Date() < until {
+      if let box = PaperScreen(app).ink, holds(box) { return box }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+    }
+    return nil
+  }
+
+  /// Stories 814, 816: Larry's push moves the ink below the line straight down, leaves the ink above, adds no stroke,
+  /// and one undo puts it back; redo pushes it again. A hook presses them, as a phone's tool picker has no Undo. Which
+  /// strokes move and the page growth are `BoardOpsTests`, on the host.
+  func testLarrysPushMovesTheInkBelowAndOneUndoPutsItBack() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_OPS": "6,undo,redo"])
+    let before = try inkAboveAndBelow(app)
+    shot(app, "ink above and below")
+    try larryOps(cockpit)
+    app.buttons["whiteboard-larry"].tap()
+    // His text lands as the push does.
+    XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
+    let pushed = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "the ink, settled after the push")
+    shot(app, "pushed")
+    XCTAssertEqual(pushed.minY, before.minY, accuracy: 0.01, "the ink above stayed")
+    XCTAssertGreaterThan(pushed.maxY, before.maxY + 0.03, "the ink below moved down: \(before) to \(pushed)")
+    XCTAssertEqual(pushed.center.x, before.center.x, accuracy: 0.01, "straight down")
+    XCTAssertEqual(send(app).label, strokes(2), "moved, not added")
+
+    let undone = ink(app, within: 12) { abs($0.maxY - before.maxY) < 0.01 }
+    XCTAssertNotNil(undone, "one undo put it back")
+    shot(app, "after one undo")
+    let redone = ink(app, within: 8) { $0.maxY > before.maxY + 0.03 }
+    XCTAssertNotNil(redone, "redo pushed it down again")
+    XCTAssertEqual(send(app).label, strokes(2))
+  }
+
+  /// Stories 817, 818: Larry's text arrives as a ghost in his purple, keeps on a tap and Keep where it showed, goes back to
+  /// him as one text under his id, and his next turn says the change applied. The text's typeface is for the eye, in
+  /// the screenshots; folding its glyphs into one text is `BoardOpsTests`, on the host.
+  func testLarrysTextArrivesAsAGhostAndKeepsAsOneText() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    _ = try inkAboveAndBelow(app)
+    try larryOps(cockpit)
+    let reported = try opReports(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
+    let ghost = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his text, faint, in his purple")
+    shot(app, "his text as a ghost")
+    XCTAssertNil(PaperScreen(app).larryKept, "a ghost isn't ink")
+
+    PaperScreen.tap(app, ghost.center)
+    keep(app)
+    waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
+    XCTAssertFalse(toKeep(app, 1).exists, "kept, it's no longer a ghost")
+    let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "ink in his purple")
+    shot(app, "his text kept")
+    XCTAssertEqual(kept.center.x, ghost.center.x, accuracy: 0.03, "where the ghost was")
+    XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.03, "where the ghost was")
+
+    let sent = try sends(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    let ids = try strokeIDs(cockpit, after: sent)
+    XCTAssertTrue(ids.contains("fake-text-1"), "his text goes back under his id: \(ids)")
+    XCTAssertEqual(ids.count, 3, "his text is one, beside the two strokes: \(ids)")
+    let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
+    XCTAssertEqual(result["ok"] as? Bool, true, "\(result)")
+    XCTAssertEqual(result["label"] as? String, "make room")
+  }
+
+  /// Stories 840, 842, 845, 846: Larry's ink lands as ink, not a ghost, and goes back to him under his name; his button
+  /// shows at its place and is no stroke, and a tap on it reaches the Cockpit at once with its event. What the plan
+  /// does and the fallback when the Cockpit has no events route are `BoardOpsInkTests` and `BoardOpsControlsTests`.
+  func testLarrysInkAndButtonLandAndATapOnItReachesHim() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    _ = try inkAboveAndBelow(app)
+    try larryInkAndButton(cockpit)
+    let posted = try eventPosts(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    wait(send(app), label: strokes(3), timeout: 15)
+    let line = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his line, as ink in his purple")
+    let button = try XCTUnwrap(PaperScreen.settled(app) { $0.green }, "his button, in its green")
+    shot(app, "his ink and his button")
+    XCTAssertLessThan(line.center.y, button.center.y, "the button sits under his line")
+
+    PaperScreen.tap(app, button.center)
+    let until = Date().addingTimeInterval(10)
+    var posts = try eventPosts(cockpit)
+    while posts.count <= posted, Date() < until {
+      Thread.sleep(forTimeInterval: 0.5)
+      posts = try eventPosts(cockpit)
+    }
+    let tap = try XCTUnwrap((posts.last?["events"] as? [[String: Any]])?.last, "the tap reached the Cockpit: \(posts)")
+    XCTAssertEqual(tap["type"] as? String, "overlay_tap", "the type the Cockpit wakes him for")
+    XCTAssertEqual(tap["target_id"] as? String, "fake-button-1")
+    XCTAssertEqual((tap["event"] as? [String: Any])?["type"] as? String, "make_room", "his event as he wrote it")
+    XCTAssertEqual(posts.last?["woke"] as? Bool, true, "and the fake Cockpit woke him")
+    XCTAssertEqual(send(app).label, strokes(3), "a tap on his button draws nothing")
+
+    let sent = try sends(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    let ids = try strokeIDs(cockpit, after: sent)
+    XCTAssertTrue(ids.contains("fake-line-1"), "his line goes back under his name: \(ids)")
+    XCTAssertEqual(ids.count, 3, "and his button is no stroke: \(ids)")
+  }
+
+  /// Story 816: a push on a revision the board has moved past moves nothing and shows nothing, and his next turn tells
+  /// him it was stale. The rule is `BoardOpsTests`, on the host.
+  func testAStalePushMovesNothingAndLarryIsTold() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    let before = try inkAboveAndBelow(app)
+    try larryOps(cockpit, stale: true)
+    let reported = try opReports(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(
+      app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Larry: made room")).firstMatch
+        .appears(within: 15), app.debugDescription)
+    sleep(2)
+    let after = try XCTUnwrap(PaperScreen.settled(app) { $0.ink })
+    shot(app, "a stale push")
+    XCTAssertEqual(after.maxY, before.maxY, accuracy: 0.01, "nothing moved")
+    XCTAssertFalse(toKeep(app, 1).exists, "nor did his text show: the whole batch was refused")
+
+    stroke(app, atHeight: 0.42)
+    wait(send(app), label: strokes(3))
+    app.buttons["whiteboard-larry"].tap()
+    let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
+    XCTAssertEqual(result["ok"] as? Bool, false, "\(result)")
+    XCTAssertEqual(result["reason"] as? String, "stale")
   }
 
   /// Stories 433, 522 (#636): ink on page 1 and page 2 on screen is nothing to send, Send and Larry's turn both; ink on

@@ -19,7 +19,8 @@ public struct BoardFixtureHook: Equatable, Sendable {
 }
 
 public struct WhiteboardHooks: Equatable, Sendable {
-  /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...`: those presses after a keep.
+  /// `GRABBER_WHITEBOARD_AFTER_KEEP=<seconds>,undo,redo,...`: those presses after a keep; and
+  /// `GRABBER_WHITEBOARD_AFTER_OPS=...` the same after a batch of Larry's changes moved the board (story 814).
   public struct AfterKeep: Equatable, Sendable {
     /// The wait before the first press: 3 unless the first field is a number.
     public var delay: Double
@@ -54,6 +55,7 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// `GRABBER_WHITEBOARD_PAGE_AFTER_INK=<page>`.
   public var pageAfterInk: Int?
   public var afterKeep: AfterKeep?
+  public var afterOps: AfterKeep?
   public var larryTimeout: LarryTimeout?
   public var larryWait: LarryWaitPress?
 
@@ -65,10 +67,12 @@ public struct WhiteboardHooks: Equatable, Sendable {
     paste = env["GRABBER_WHITEBOARD_PASTE"]
     afterInk = env["GRABBER_WHITEBOARD_AFTER_INK"].map { $0.split(separator: ",").map(String.init) }
     pageAfterInk = env["GRABBER_WHITEBOARD_PAGE_AFTER_INK"].flatMap { Int($0) }
-    if let hook = env["GRABBER_WHITEBOARD_AFTER_KEEP"] {
+    let presses = { (hook: String) -> AfterKeep in
       let parts = hook.split(separator: ",").map(String.init)
-      afterKeep = AfterKeep(delay: Double(parts.first ?? "") ?? 3, presses: Array(parts.dropFirst()))
+      return AfterKeep(delay: Double(parts.first ?? "") ?? 3, presses: Array(parts.dropFirst()))
     }
+    afterKeep = env["GRABBER_WHITEBOARD_AFTER_KEEP"].map(presses)
+    afterOps = env["GRABBER_WHITEBOARD_AFTER_OPS"].map(presses)
     let timeout = (env["GRABBER_WHITEBOARD_LARRY_TIMEOUT"] ?? "").split(separator: ",").map(String.init)
     if let seconds = timeout.first.flatMap({ Double($0) }) {
       larryTimeout = LarryTimeout(seconds: seconds, dismiss: timeout.dropFirst().contains("dismiss"))

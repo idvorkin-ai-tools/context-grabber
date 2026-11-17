@@ -28,11 +28,14 @@ public enum WhiteboardStrokes {
     /// pen, pencil, marker, ... (`WhiteboardStrokes.tool`).
     public var tool: String
     public var points: [CGPoint]
+    /// Folded away by Larry (story 847): still on the board, not drawn.
+    public var hidden: Bool
 
     public init(
       id: String, t: Int64? = nil, color: String = "#000000", width: CGFloat = 3, tool: String = "pen",
-      points: [CGPoint]
+      points: [CGPoint], hidden: Bool = false
     ) {
+      self.hidden = hidden
       self.id = id
       self.t = t
       self.color = color
@@ -116,14 +119,16 @@ public enum WhiteboardStrokes {
         "points": thin(s.points).map { [Double($0.x), Double($0.y)] },
       ]
       if let t = s.t { out["t"] = t }
+      if s.hidden { out["hidden"] = true }
       return out
     }
   }
 
   /// `POST /whiteboard/strokes`: the board's strokes under this picture's id and frame.
-  public static func request(picture: WhiteboardPicture, strokes: [[String: Any]], cockpit: String) throws
-    -> URLRequest
-  {
+  /// `folds`: the folded sections (`BoardOutline.wire`), whose strokes are not in `strokes` (story 857).
+  public static func request(
+    picture: WhiteboardPicture, strokes: [[String: Any]], folds: [[String: Any]] = [], cockpit: String
+  ) throws -> URLRequest {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("strokes"))
     request.httpMethod = "POST"
@@ -132,6 +137,7 @@ public enum WhiteboardStrokes {
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
     var body = picture.wire
     body["strokes"] = strokes
+    if !folds.isEmpty { body["folds"] = folds }
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
     return request
   }
