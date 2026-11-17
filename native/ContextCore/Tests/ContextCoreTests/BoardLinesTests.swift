@@ -1,4 +1,4 @@
-//  Story 410 (#915): a new board opens with the grid on; a board with a saved choice, or none saved, keeps it.
+//  Story 410 (#915): a new board opens with the grid on; a saved choice, or none saved (story 888), is kept.
 
 import ContextCore
 import XCTest
@@ -45,5 +45,15 @@ final class BoardLinesTests: XCTestCase {
     let (lines, _) = fresh()
     lines.startNew("bare", bare: true)
     XCTAssertEqual(lines.choice("bare"), .none)
+  }
+
+  func testAForgottenBoardLeavesNothingSaved() {
+    let (lines, defaults) = fresh()
+    lines.startNew("gone")
+    lines.startNew("kept")
+    lines.forget("gone")
+    XCTAssertNil(defaults.object(forKey: BoardLines.gridKey("gone")))
+    XCTAssertNil(defaults.object(forKey: BoardLines.ruledKey("gone")))
+    XCTAssertEqual(lines.choice("kept"), .grid, "only that board's choice goes")
   }
 }

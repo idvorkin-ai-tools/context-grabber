@@ -201,7 +201,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 836:
 
 - **Summary:** Rename a board from its row's swipe
-- **Status:** implemented in [50446c4](https://github.com/idvorkin/context-grabber/commit/50446c4), the rename menu on the board's bar taken out again in [0cd30f9](https://github.com/idvorkin/context-grabber/commit/0cd30f9) (it kept the iPad's Board menu up after a pick); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
+- **Status:** implemented in [d9fd5cf](https://github.com/idvorkin/context-grabber/commit/d9fd5cf), the rename menu on the board's bar taken out again in [d33c7d0](https://github.com/idvorkin/context-grabber/commit/d33c7d0) (it kept the iPad's Board menu up after a pick); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
 - **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916) ("Log bug: Rename boards")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
 
@@ -216,11 +216,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I swipe the row left, tap *Rename*, type *Energy week* and confirm
 - **Then:** the row says *Energy week*, at the top, and opening the board its bar says *Energy week*
 
-- **Scenario:** Nothing changes
-- **Given:** the rename box is open
-- **When:** I clear the name and confirm, or tap *Cancel*
-- **Then:** the board keeps its name
+---
 
+### User Story 878:
+
+- **Summary:** A rename with no name changes nothing
+- **Status:** implemented in [d9fd5cf](https://github.com/idvorkin/context-grabber/commit/d9fd5cf) (story 836); verified by host tests (`BoardIndexTests.testRenameIsTrimmedAndCountsAsAChange`: a blank name ignored; `just test`); *Cancel* on the simulator not yet tried
+- **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
+
+#### Use Case:
+- **As someone** renaming a board from its row (story 836)
+- **I want to** back out of a rename without losing the name it had
+- **so that** a slip of the finger never leaves a board nameless
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing changes
+- **Given:** the rename box is open for a board named *Board, Nov 16*
+- **When:** I clear the name and confirm, or tap *Cancel*
+- **Then:** the board keeps the name *Board, Nov 16*
+
+---
+
+### User Story 879:
+
+- **Summary:** Another device's board offers no Rename
+- **Status:** implemented in [d9fd5cf](https://github.com/idvorkin/context-grabber/commit/d9fd5cf) (story 836: the swipe's Rename only for a board this device drew, as the long press already was); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the phone offers no Rename; `just test`)
+- **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
+
+#### Use Case:
+- **As someone** with boards drawn on the iPad and seen on the phone
+- **I want to** rename a board only on the device that drew it
+- **so that** two devices never fight over a board's name
+
+#### Acceptance Criteria:
 - **Scenario:** Another device's board
 - **Given:** a board drawn on another device
 - **When:** I swipe or long-press its row
@@ -1575,7 +1605,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 410:
 
 - **Summary:** A new board opens with the grid on
-- **Status:** first implemented as *A new board has no grid* in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); reversed to the grid on (Igor, 2026-11-16, #915) in [af3758c](https://github.com/idvorkin/context-grabber/commit/af3758c); verified by host tests (`BoardLinesTests`: a new board's grid on, a board with no saved choice off, a saved choice kept, ruled lines taking the grid's place; `just test`); verified on an iPad simulator (`WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid`, and the class's other tests with new boards started bare by `GRABBER_WHITEBOARD_GRID=off`)
+- **Status:** first implemented as *A new board has no grid* in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); reversed to the grid on (Igor, 2026-11-16, #915) in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba); verified by host tests (`BoardLinesTests`: a new board's grid on, a board with no saved choice off, a saved choice kept, ruled lines taking the grid's place; `just test`); verified on an iPad simulator (`WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid`, and the class's other tests with new boards started bare by `GRABBER_WHITEBOARD_GRID=off`)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915) ("Log bug: default new boards have grid lines")
 
@@ -1590,10 +1620,25 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I make a new board
 - **Then:** its grid is on, and the Board menu shows *Grid lines* chosen
 
+---
+
+### User Story 888:
+
+- **Summary:** A board made before new boards had the grid keeps no grid
+- **Status:** implemented in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba) (story 410, #915); verified by host tests (`BoardLinesTests`: a board with no saved choice off, a saved choice kept; `just test`)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+- **Issues:** [#915](https://github.com/idvorkin/context-grabber/issues/915)
+
+#### Use Case:
+- **As someone** with boards from before new boards opened with the grid (story 410)
+- **I want to** find those boards as I left them
+- **so that** a change to the default never redraws a page I already made
+
+#### Acceptance Criteria:
 - **Scenario:** A board made before
 - **Given:** a board made before new boards had the grid, never given one
 - **When:** I open it
-- **Then:** it has no grid, as before; turning the grid on or off on any board is remembered for that board
+- **Then:** it has no grid, as before
 
 ---
 
@@ -3841,7 +3886,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 653:
 
 - **Summary:** Lines stay with their board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [af3758c](https://github.com/idvorkin/context-grabber/commit/af3758c) (story 410, #915), verified by host tests (`BoardLinesTests`)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [c0e22ba](https://github.com/idvorkin/context-grabber/commit/c0e22ba) (story 410, #915), verified by host tests (`BoardLinesTests`)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -4518,7 +4563,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 837:
 
 - **Summary:** The conversation panel keeps its size and scrolls, newest in view
-- **Status:** implemented in [0f6bf36](https://github.com/idvorkin/context-grabber/commit/0f6bf36); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`), the Mac build (`just native-build-mac`) and a build of the UI tests; `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` checks the height and is not yet run on the simulator; scrolling to the newest line with a long thread is for the iPad's eye
+- **Status:** implemented in [e403844](https://github.com/idvorkin/context-grabber/commit/e403844); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`), the Mac build (`just native-build-mac`) and an iPad simulator (`WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply`: the panel's height, with the class's other tests); scrolling to the newest line with a long thread is for the iPad's eye
 - **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917) ("when chat expands it needs to scroll not grow"), seen in [#913](https://github.com/idvorkin/context-grabber/issues/913)'s screenshot, the panel over nearly half the page
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
 
@@ -4533,6 +4578,21 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap the note's line to open the panel
 - **Then:** the panel is no taller than a fifth of the board, its newest line is in view at the bottom, and a finger scrolls up to the older ones
 
+---
+
+### User Story 887:
+
+- **Summary:** Another reply scrolls the full panel, not grows it
+- **Status:** implemented in [e403844](https://github.com/idvorkin/context-grabber/commit/e403844) (story 837, #917); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`); a reply landing in a full panel is for the iPad's eye
+- **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** with the conversation panel open while Larry talks (story 837)
+- **I want to** see each new answer without the panel growing
+- **so that** the page I'm drawing on stays where it was
+
+#### Acceptance Criteria:
 - **Scenario:** Another reply
 - **Given:** the panel is open and full
 - **When:** Larry answers again

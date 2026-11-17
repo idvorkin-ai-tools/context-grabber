@@ -403,16 +403,20 @@ final class WhiteboardModel: ObservableObject {
 
   func setRuled(_ on: Bool) {
     ruledOn = on
-    UserDefaults.standard.set(on, forKey: BoardLines.ruledKey(board.id))
     log.event("whiteboard", ["action": on ? "ruled_on" : "ruled_off", "board": board.id])
     if on, gridOn { setGrid(false) }
+    saveLines()
   }
 
   func setGrid(_ on: Bool) {
     gridOn = on
-    UserDefaults.standard.set(on, forKey: BoardLines.gridKey(board.id))
     log.event("whiteboard", ["action": on ? "grid_on" : "grid_off", "board": board.id])
     if on, ruledOn { setRuled(false) }
+    saveLines()
+  }
+
+  private func saveLines() {
+    BoardLines().set(gridOn ? .grid : ruledOn ? .ruled : .none, board: board.id)
   }
 
   func setPaper(_ new: BoardPaper) {
@@ -2066,10 +2070,8 @@ struct WhiteboardView: View {
   private let onPhone: Bool
   private let openChat: (String) -> Void
   private let decisions: ChatDecisionsModel
-  private let store: WhiteboardStore
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
-    self.store = store
     _model = StateObject(
       wrappedValue: WhiteboardModel(
         board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
@@ -2129,7 +2131,7 @@ struct WhiteboardView: View {
       .ignoresSafeArea(edges: .bottom)
     }
     .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
-    .modifier(BoardNameInBar(board: model.board, store: store))  // Story 836: its name as it is now.
+    .navigationTitle(model.board.title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {

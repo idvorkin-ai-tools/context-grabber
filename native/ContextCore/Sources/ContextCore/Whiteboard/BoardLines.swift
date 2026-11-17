@@ -1,6 +1,6 @@
 //  A board's lines on this device (spec 2026-11-01-whiteboard-design.md, *Grid lines*; stories 407–410, 652, 653): the
 //  grid, ruled lines or neither, remembered per board. A new board opens with the grid (story 410, #915); a board with
-//  nothing saved has none, as every board made before that did.
+//  nothing saved has none, as every board made before that did (story 888).
 
 import Foundation
 
@@ -32,5 +32,11 @@ public struct BoardLines: @unchecked Sendable {
   /// against plain paper).
   public func startNew(_ board: String, bare: Bool = false) {
     set(bare ? .none : .grid, board: board)
+  }
+
+  /// A board deleted or dropped here: its choice goes with it.
+  public func forget(_ board: String) {
+    defaults.removeObject(forKey: Self.gridKey(board))
+    defaults.removeObject(forKey: Self.ruledKey(board))
   }
 }
