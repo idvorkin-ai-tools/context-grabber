@@ -317,11 +317,12 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   // MARK: Larry's changes to the board (stories 814–818)
 
   /// The fake Cockpit's next board answer is a batch of Larry's changes: room below the middle of the picture he got,
-  /// and a line of plain text in the gap; with `stale`, on the revision before the one the picture was of.
-  private func larryOps(_ cockpit: String, stale: Bool = false) throws {
+  /// and a line of plain text in the gap; with `behind`, on the revision before the one the picture was of (story 961),
+  /// with `stale`, on one before anything the board remembers.
+  private func larryOps(_ cockpit: String, stale: Bool = false, behind: Bool = false) throws {
     var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
     request.httpMethod = "POST"
-    request.httpBody = Data(#"{"stale": \#(stale)}"#.utf8)
+    request.httpBody = Data(#"{"stale": \#(stale), "behind": \#(behind)}"#.utf8)
     let done = expectation(description: "the fake Cockpit took it")
     URLSession.shared.dataTask(with: request) { _, response, _ in
       XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
@@ -508,8 +509,33 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(ids.count, 3, "and his button is no stroke: \(ids)")
   }
 
-  /// Story 816: a push on a revision the board has moved past moves nothing, and his next turn tells him it was stale.
-  /// The rule is `BoardOpsTests`, on the host; the chip it brings is the test below.
+  /// Story 961: a push made on the revision before the picture's, naming nothing Igor moved since, still pushes, and
+  /// his next turn says it applied on a newer board than he saw. The rule is `BoardOpsTests`, on the host.
+  func testAPushFromAnOlderLookStillApplies() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    let before = try inkAboveAndBelow(app)
+    try larryOps(cockpit, behind: true)
+    let reported = try opReports(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(toKeep(app, 1).appears(within: 15), app.debugDescription)
+    let pushed = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "the ink, settled after the push")
+    shot(app, "a push from an older look")
+    XCTAssertGreaterThan(pushed.maxY, before.maxY + 0.03, "the ink below moved down: \(before) to \(pushed)")
+
+    let ghost = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his text, faint, in his purple")
+    PaperScreen.tap(app, ghost.center)
+    keep(app)
+    waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
+    app.buttons["whiteboard-larry"].tap()
+    let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
+    XCTAssertEqual(result["ok"] as? Bool, true, "\(result)")
+    XCTAssertNotNil(result["rebased_from"] as? Int, "applied on a newer board than he saw: \(result)")
+  }
+
+  /// Story 816: a push on a revision the board no longer remembers moves nothing, and his next turn tells him it was
+  /// stale. A conflict on a stroke Igor moved is `BoardOpsTests`, on the host (story 961); the chip it brings is the
+  /// test below.
   func testAStalePushMovesNothingAndLarryIsTold() throws {
     let cockpit = try cockpit()
     let app = try openBoard()

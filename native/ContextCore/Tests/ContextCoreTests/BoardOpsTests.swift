@@ -142,6 +142,103 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(applier.receive(fresh, board: "b1", editable: true, ready: true), .apply(fresh))
   }
 
+  // MARK: A batch from an older look (story 961)
+
+  /// A board at rev 10 that Larry looked at, then Igor's changes: `touched` per change, nil for a new stroke.
+  private func boardSinceLarryLooked(_ changes: [[String]?]) -> BoardOpApplier {
+    var applier = BoardOpApplier(rev: 10)
+    for touched in changes {
+      applier.changed()
+      if let touched { applier.touched(touched) }
+    }
+    return applier
+  }
+
+  func testNewStrokesSinceDontStopAPush() {
+    var applier = boardSinceLarryLooked([nil, nil])
+    let b = batch([["op": "translate", "below_y": 300, "dy": 120]], rev: 10)
+    guard case .apply(let letThrough) = applier.receive(b, board: "b1", editable: true, ready: true) else {
+      return XCTFail("two new strokes are no conflict")
+    }
+    XCTAssertEqual(letThrough.rebasedFrom, 10)
+    applier.changed()
+    let result = applier.applied(letThrough, plan: BoardOps.Plan(pagesBefore: 1, pagesAfter: 1))
+    XCTAssertEqual(result, BoardOps.Result(label: "room", ok: true, rev: 13, rebasedFrom: 10))
+    XCTAssertEqual(result.wire["rebased_from"] as? Int, 10)
+  }
+
+  func testABatchNamingAStrokeIgorMovedIsStale() {
+    var applier = boardSinceLarryLooked([nil, ["s4"], ["s9"]])
+    let b = batch([["op": "translate", "ids": ["s4", "s5"], "dy": 40]], rev: 10)
+    XCTAssertEqual(
+      applier.receive(b, board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 13, reason: "stale", conflictIDs: ["s4"])))
+    XCTAssertEqual(applier.lastResult?.wire["conflict_ids"] as? [String], ["s4"])
+  }
+
+  func testOnlyChangesAfterTheLookCount() {
+    var applier = boardSinceLarryLooked([["s4"], nil])
+    // Larry looked at rev 11, after s4 moved: it is no conflict for him.
+    let b = batch([["op": "delete", "ids": ["s4"]]], rev: 11)
+    guard case .apply = applier.receive(b, board: "b1", editable: true, ready: true) else {
+      return XCTFail("s4 moved before he looked")
+    }
+  }
+
+  func testEveryNameABatchUsesIsChecked() {
+    let ops: [BoardOps.Op] = [
+      .delete(["d"]), .setMeta(["m"], BoardMeta(["group": "g"])!), .setHidden(["h"], true), .select(["s"]),
+      .replace(["r"], with: []), .translateIDs(["t"], dx: 0, dy: 1), .translateBelow(y: 1, dy: 1),
+      .connector(BoardOps.NewConnector(id: "c", from: .id("a"), to: .point(.zero))),
+    ]
+    XCTAssertEqual(BoardOps.namesUsed(ops), ["d", "m", "h", "s", "r", "t", "a"])
+  }
+
+  func testTooOldOrAfterLarrysOwnChangeIsStale() {
+    var applier = BoardOpApplier(rev: 10)
+    let b = batch([["op": "translate", "below_y": 1, "dy": 1]], rev: 9)
+    XCTAssertEqual(
+      applier.receive(b, board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 10, reason: "stale")),
+      "made before this run started remembering")
+    applier.changed()
+    applier.touched([], all: true)
+    let second = batch([["op": "translate", "below_y": 1, "dy": 1]], rev: 10, key: "m2")
+    XCTAssertEqual(
+      applier.receive(second, board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")),
+      "a look from before Larry's own push never pushes twice")
+    let ahead = batch([["op": "translate", "below_y": 1, "dy": 1]], rev: 12, key: "m3")
+    XCTAssertEqual(
+      applier.receive(ahead, board: "b1", editable: true, ready: true),
+      .refused(BoardOps.Result(label: "room", ok: false, rev: 11, reason: "stale")))
+  }
+
+  func testTheMemoryKeepsTheLatestChanges() {
+    var applier = BoardOpApplier(rev: 0)
+    for i in 0..<(BoardOpApplier.rememberedChanges + 3) {
+      applier.changed()
+      applier.touched(["s\(i)"])
+    }
+    XCTAssertEqual(applier.touches.count, BoardOpApplier.rememberedChanges)
+    XCTAssertEqual(applier.since, 3, "changes 1 to 3 are forgotten, so a look before rev 3 is stale")
+    let old = batch([["op": "translate", "below_y": 1, "dy": 1]], rev: 2)
+    guard case .refused = applier.receive(old, board: "b1", editable: true, ready: true) else {
+      return XCTFail("older than the memory")
+    }
+    let recent = batch([["op": "translate", "below_y": 1, "dy": 1]], rev: 3, key: "m2")
+    guard case .apply = applier.receive(recent, board: "b1", editable: true, ready: true) else {
+      return XCTFail("within the memory, naming nothing")
+    }
+  }
+
+  func testAPushFromAnOlderLookMovesTheStrokesBelowNow() {
+    // The rebased push plans against the board as it is: Igor's stroke drawn since, below the line, moves too.
+    let strokes = [stroke("old", y: 100), stroke("older-below", y: 400), stroke("igor-new", y: 520)]
+    let plan = BoardOps.plan([.translateBelow(y: 300, dy: 120)], strokes: strokes, pages: 2)
+    XCTAssertEqual(plan.offsets, [1: CGVector(dx: 0, dy: 120), 2: CGVector(dx: 0, dy: 120)])
+  }
+
   func testARefusedWireIsReportedWithItsReason() {
     var applier = BoardOpApplier()
     let b = batch([["op": "spin"]])

@@ -13,7 +13,8 @@ label as kind + points, with the picture's picture_id and frame echoed). POST /f
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
-on the message's own rev (one behind it with "stale"); with "kind": "connector_marks", marks instead: a
+on the message's own rev (one behind it with "behind", which the board still applies, story 961; before anything the
+board remembers with "stale", which it refuses); with "kind": "connector_marks", marks instead: a
 connector by points from the end of the first stroke sent to the start of the second (story 917); with "kind": "ink_and_button", instead a purple line of his
 across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}. POST
 /whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
@@ -321,7 +322,10 @@ def ops_batch(source, armed):
                           "style": {"fill": "#00aa00", "color": "#ffffff"}, "tap_event": {"type": "make_room"}}]}
     below = frame["y"] + frame["h"] / 2
     dy = armed.get("dy", 120)
-    return {"board": source["board"], "base_rev": rev - 1 if armed.get("stale") else rev, "label": "make room",
+    # Story 961: "behind" is one revision before the picture, which the board still applies (it names nothing Igor
+    # moved); "stale" is before anything the board remembers, which it refuses.
+    base = -1 if armed.get("stale") else rev - 1 if armed.get("behind") else rev
+    return {"board": source["board"], "base_rev": base, "label": "make room",
             "list": [{"op": "translate", "below_y": below, "dy": dy},
                      {"op": "add_text", "id": "fake-text-1", "x": frame["x"] + 40, "y": below + dy / 4,
                       "text": "room here", "font": "plain", "size": 28}]}

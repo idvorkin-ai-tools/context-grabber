@@ -144,6 +144,23 @@ public enum BoardOps {
     case connector(NewConnector)
   }
 
+  /// Story 961: every stroke, group or kept-text name the ops use; a batch from an older look conflicts only on these.
+  static func namesUsed(_ ops: [Op]) -> Set<String> {
+    var out = Set<String>()
+    for op in ops {
+      switch op {
+      case .translateIDs(let ids, _, _), .delete(let ids), .setMeta(let ids, _), .replace(let ids, _),
+        .setHidden(let ids, _), .select(let ids):
+        out.formUnion(ids)
+      case .connector(let connector):
+        for end in [connector.from, connector.to] { if case .id(let id) = end { out.insert(id) } }
+      case .translateBelow, .addText, .addStrokes, .overlay, .removeOverlay:
+        break
+      }
+    }
+    return out
+  }
+
   public struct Batch: Equatable, Sendable {
     /// What makes it the same batch when seen again: its message's id, or `label@base_rev` without one.
     public var key: String
@@ -155,6 +172,8 @@ public enum BoardOps {
     public var ops: [Op]
     /// Set when the wire couldn't be taken: the batch is refused for this reason and nothing of it applies.
     public var refusal: String?
+    /// Story 961: let through on a newer revision than its `baseRev`, which this is.
+    public var rebasedFrom: Int?
 
     public init(
       key: String, source: String, board: String?, label: String, baseRev: Int?, ops: [Op], refusal: String? = nil
@@ -178,19 +197,30 @@ public enum BoardOps {
     public var reason: String?
     /// Ids a translate named that the board doesn't have; the rest of the batch applied.
     public var missingIDs: [String]?
+    /// Story 961: the batch was made on this older revision and applied to a newer one, Igor's later strokes included.
+    public var rebasedFrom: Int?
+    /// Story 961: a stale batch's names that Igor moved or erased since it was made.
+    public var conflictIDs: [String]?
 
-    public init(label: String, ok: Bool, rev: Int, reason: String? = nil, missingIDs: [String]? = nil) {
+    public init(
+      label: String, ok: Bool, rev: Int, reason: String? = nil, missingIDs: [String]? = nil, rebasedFrom: Int? = nil,
+      conflictIDs: [String]? = nil
+    ) {
       self.label = label
       self.ok = ok
       self.rev = rev
       self.reason = reason
       self.missingIDs = missingIDs
+      self.rebasedFrom = rebasedFrom
+      self.conflictIDs = conflictIDs
     }
 
     public var wire: [String: Any] {
       var out: [String: Any] = ["label": label, "ok": ok, "rev": rev]
       if let reason { out["reason"] = reason }
       if let missingIDs, !missingIDs.isEmpty { out["missing_ids"] = missingIDs }
+      if let rebasedFrom { out["rebased_from"] = rebasedFrom }
+      if let conflictIDs, !conflictIDs.isEmpty { out["conflict_ids"] = conflictIDs }
       return out
     }
   }

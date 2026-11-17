@@ -4196,6 +4196,36 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 961:
+
+- **Summary:** Larry's change applies though I wrote on, unless it names what I moved or erased
+- **Issues:** Larry, 2026-11-17: his make-room ops came back stale (rev 257 on 11/16, rev 111 today) because Igor wrote a stroke or two before they arrived
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
+
+#### Use Case:
+- **As someone** writing on while Larry thinks
+- **I want to** have his make-room still happen when my new strokes don't get in its way
+- **so that** I don't have to stop writing for his changes to land
+
+#### Acceptance Criteria:
+- **Scenario:** I wrote a stroke after he looked
+- **Given:** Larry looked at the board, and I drew two new strokes since
+- **When:** his make room arrives
+- **Then:** everything below its line now moves down, my new strokes included, one Undo, and his next turn says it applied on a newer board than the one he saw
+
+- **Scenario:** I moved what he names
+- **Given:** Larry looked, and I since moved one of the strokes his change names
+- **When:** it arrives
+- **Then:** nothing moves, and his next turn says it was stale and which of his names I had moved or erased
+
+- **Scenario:** He is too far behind
+- **Given:** Larry's change was made on a board older than the board remembers, or before the app restarted
+- **When:** it arrives
+- **Then:** it is refused as stale, as before
+
+---
+
 ### User Story 660:
 
 - **Summary:** Claude is asked half a second after I lift the Pencil, not a second

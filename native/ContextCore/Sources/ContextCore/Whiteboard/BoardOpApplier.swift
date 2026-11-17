@@ -17,10 +17,29 @@ public struct BoardOpApplier: Equatable, Sendable {
   /// What came of the last batch handled, for Larry's next turn.
   public private(set) var lastResult: BoardOps.Result?
 
+  /// Story 961: what each change since `since` moved or erased, oldest first, so a batch from an older look can still
+  /// apply when it names none of it. Only on this run: a relaunch starts remembering afresh.
+  public private(set) var touches: [Touch] = []
+  /// The oldest revision `touches` covers every change after; a batch based before it is stale.
+  public private(set) var since: Int
+
+  /// The most changes remembered: far more than Igor writes while Larry thinks.
+  public static let rememberedChanges = 200
+
+  public struct Touch: Equatable, Sendable {
+    /// The revision the change made.
+    public var rev: Int
+    /// The names it moved, erased or dissolved.
+    public var ids: Set<String>
+    /// A batch of Larry's own applied: everything counts as touched, so one look is never applied twice.
+    public var all: Bool
+  }
+
   public init(rev: Int = 0, handled: [String] = [], lastResult: BoardOps.Result? = nil) {
     self.rev = rev
     self.handled = handled
     self.lastResult = lastResult
+    since = rev
   }
 
   public enum Decision: Equatable, Sendable {
@@ -37,6 +56,36 @@ public struct BoardOpApplier: Equatable, Sendable {
   /// The board's ink changed.
   public mutating func changed() { rev += 1 }
 
+  /// The change that made the current revision moved, erased or dissolved `ids` (Igor's), or was a batch of Larry's
+  /// (`all`). New strokes alone need no record: they never conflict.
+  public mutating func touched(_ ids: some Sequence<String>, all: Bool = false) {
+    let ids = Set(ids)
+    guard all || !ids.isEmpty else { return }
+    if let last = touches.last, last.rev == rev {
+      touches[touches.count - 1].ids.formUnion(ids)
+      touches[touches.count - 1].all = last.all || all
+    } else {
+      touches.append(Touch(rev: rev, ids: ids, all: all))
+    }
+    if touches.count > Self.rememberedChanges {
+      since = touches.removeFirst().rev
+    }
+  }
+
+  /// Why a batch based on `base` can't apply to the board as it is now: nil when it can. The names it uses that a
+  /// change since moved or erased are `conflicts`.
+  func conflict(_ batch: BoardOps.Batch) -> (reason: String, conflicts: [String])? {
+    guard let base = batch.baseRev else { return (BoardOps.Reason.stale, []) }
+    if base == rev { return nil }
+    guard base >= since, base < rev else { return (BoardOps.Reason.stale, []) }
+    let after = touches.filter { $0.rev > base }
+    if after.contains(where: \.all) { return (BoardOps.Reason.stale, []) }
+    let touched = after.reduce(into: Set<String>()) { $0.formUnion($1.ids) }
+    let named = BoardOps.namesUsed(batch.ops)
+    let conflicts = named.filter(touched.contains)
+    return conflicts.isEmpty ? nil : (BoardOps.Reason.stale, conflicts.sorted())
+  }
+
   /// A batch arrived. `ready`: the Pencil lets ink move now (`BoardOps.readiness`). The revision is checked here, on
   /// arrival: a batch held for the Pencil applies on the lift to the board as it is then, the stroke just drawn included.
   public mutating func receive(_ batch: BoardOps.Batch, board: String, editable: Bool, ready: Bool) -> Decision {
@@ -45,7 +94,16 @@ public struct BoardOpApplier: Equatable, Sendable {
     if let refusal = batch.refusal { return refuse(batch, refusal) }
     guard batch.board == board else { return .ignored(why: "other_board") }
     guard editable else { return refuse(batch, BoardOps.Reason.lookOnly) }
-    guard batch.baseRev == rev else { return refuse(batch, BoardOps.Reason.stale) }
+    if let (reason, conflicts) = conflict(batch) {
+      var result = refusal(batch, reason)
+      if !conflicts.isEmpty {
+        result.conflictIDs = conflicts
+        lastResult = result
+      }
+      return .refused(result)
+    }
+    var batch = batch
+    if batch.baseRev != rev { batch.rebasedFrom = batch.baseRev }
     if ready { return .apply(batch) }
     let replaced = held?.label
     if let older = held { _ = refusal(older, BoardOps.Reason.superseded) }
@@ -70,8 +128,9 @@ public struct BoardOpApplier: Equatable, Sendable {
   /// `batch` was applied as planned; the board's own change (if any) has already bumped `rev`.
   @discardableResult
   public mutating func applied(_ batch: BoardOps.Batch, plan: BoardOps.Plan) -> BoardOps.Result {
-    let result = BoardOps.Result(
+    var result = BoardOps.Result(
       label: batch.label, ok: true, rev: rev, missingIDs: plan.missingIDs.isEmpty ? nil : plan.missingIDs)
+    result.rebasedFrom = batch.rebasedFrom
     lastResult = result
     return result
   }

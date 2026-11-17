@@ -1961,6 +1961,7 @@ extension WhiteboardModel {
     case .refused(let result):
       event["action"] = "refused"
       event["reason"] = result.reason ?? ""
+      if let conflicts = result.conflictIDs { event["conflict_ids"] = conflicts }
       log.event("board_ops", event)
       showBlocked(batch.label, result.reason ?? "")
     case .held(let replaced):
@@ -2024,6 +2025,8 @@ extension WhiteboardModel {
         })
     }
     let result = ops.applied(batch, plan: plan)
+    if plan.changesBoard { ops.touched([], all: true) }
+    if let from = batch.rebasedFrom { event["rebased_from"] = from }
     var moves = plan.offsets.values.map(\.dy)
     moves.sort()
     let hiding = plan.hidden.values.filter { $0 }.count
@@ -2051,6 +2054,8 @@ extension WhiteboardModel {
     if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     guard report, !change.isEmpty else { return }
     let dissolved = dissolve(erased: change.erased)
+    // Story 961: what a batch from an older look must not name.
+    ops.touched(change.moved + change.erased + dissolved)
     let event = BoardEvent.strokesChanged(
       added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs,
       dissolved: dissolved.isEmpty ? nil : dissolved, reworded: reworded)
