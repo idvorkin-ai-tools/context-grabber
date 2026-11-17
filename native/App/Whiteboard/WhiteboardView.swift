@@ -1874,6 +1874,7 @@ extension WhiteboardModel {
 
   private func showBlocked(_ label: String, _ reason: String) {
     guard blocked.refused(label: label, reason: reason) else { return }
+    blockedFrame = nil
     log.event("board_blocked", ["action": "shown", "board": board.id, "label": label, "reason": reason])
   }
 
