@@ -155,3 +155,46 @@ parentheses below are theirs.
   (`whiteboard-hold-<item>`), `pickedUp` in `didChangeMarkup`.
 - Wire: `POST /whiteboard/strokes` gains `folds: [{header, header_strokes, lines, strokes}]`; folded strokes leave
   `strokes`. The Inbox's saved strokes (story 424) don't carry folds yet.
+
+## Step 5: connectors (stories 910–916)
+
+The web board's model is `assets/ink/board.mjs` (`routeConnector`, `arrowEnds`, `connect`, `connectorEnds`,
+`withConnectorInk`); its gesture is `ink.html`'s lasso → Connect.
+
+Wire, additive to `ops.list`:
+
+- `{op:"connector", id, from, to, color?, width?}`: `id` a stroke name; each end a name (stroke, `meta.group`, kept
+  text) or a point `[x, y]` / `{x, y}`; or `x1, y1, x2, y2` for two points, as the web board's connector mark.
+
+A connector is one stroke (shaft, then the head's two wings) under its `id`, whose notes say what it is:
+`meta.connector = {from, to, from_side, to_side, route: [[x, y], ...], color?, by}` (`by` `larry` or `igor`). Notes
+already persist per board (`BoardStrokeMeta`), go back to Larry on the stroke (the Cockpit keeps `meta` verbatim), and
+come back through undo with the stroke's name, so nothing new is stored. `whiteboard_strokes.py` takes the stroke as
+it is; a first-class `kind: "connector"` would be the Cockpit's change, not ours.
+
+`Whiteboard/BoardConnectors.swift` (ContextCore):
+
+- `BoardConnector` (`from`, `to`, sides, `route`, `color`, `by`) read from and written into a stroke's `BoardMeta`.
+- `BoardConnectors.route(from:to:fromSide:toSide:obstacles:)`: board.mjs's `routeConnector` (Liang–Barsky `hits`).
+  `polyline(_:)`: the shaft and a 12-point head at ±0.45 rad, as `connectorLines`.
+- `BoardConnectors.draw(_:into:...)`: a batch's connector ops, after its other ops: ends resolved on the board as the
+  batch leaves it (`thing(at:)`: the smallest text or group within 16 points, else `BoardOutline.word(at:)`, grouped
+  as `<id>-from` / `<id>-to`), sides facing, the route; a loose point end is a plain arrow, a missing name is
+  `missing_ids`.
+- `BoardConnectors.follow(_:strokes:texts:metas:folds:)`: on any plan, the board after it; each shown connector is
+  routed again from its ends' boxes (an end hidden in a fold anchors to the item that shows, its header's row); a route
+  that changed redraws the stroke (erase + add, same name) in the plan, an unchanged one only moves its notes; an end
+  that is gone takes the connector notes off (plain ink). `Plan.rerouted` and `Plan.loosened` say which.
+  `BoardOps.plan` ends with it, so batches, pastes, rooms and the Pencil's word move all follow.
+- `BoardConnectors.arrow(_:)`: board.mjs's `arrowEnds` (longest stroke the shaft, the head the end nearest the
+  others' points). `connect(selected:...)`: `[.delete(selection), .connector(...)]`, or nil unless both ends land.
+
+App:
+
+- `PaperBoardController.put` takes the plan's notes into the model (`model.metasChanged`), whoever made the plan.
+- `changeOutline` runs `follow` on the fold's plan. Igor's own changes (PaperKit's lasso move, the eraser) run
+  `follow` on an empty plan a moment after the change, applied quietly with no Undo step of its own: PaperKit's undo
+  of the move is another change, which follows again.
+- Connect: on a selection change, `connect(...)`; when it isn't nil, a Connect button beside the selection
+  (`whiteboard-connect`), which runs the ops as one Undo named *Connect* and tells Larry the ink change.
+- Session log: `board_connectors` with `action` connected / followed / loosened.

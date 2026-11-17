@@ -6168,3 +6168,136 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** both stay exactly as I drew them
 
 ---
+
+### User Story 910:
+
+- **Summary:** I join two things with an arrow I drew
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As someone** sketching how ideas connect
+- **I want to** lasso an arrow I drew between two things and tap Connect
+- **so that** the arrow stays joined to them, as on the web board
+
+#### Acceptance Criteria:
+- **Scenario:** Connect a drawn arrow
+- **Given:** two words of mine on the board and an arrow I drew from one to the other, circled with the lasso
+- **When:** I tap Connect beside the selection
+- **Then:** my arrow's ink is replaced by a clean arrow from the first word's facing side to the second's, and one Undo named Connect gives my arrow back
+
+---
+
+### User Story 911:
+
+- **Summary:** A connector follows what it joins
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As someone** rearranging a diagram
+- **I want to** move one end of a connector
+- **so that** the arrow goes with it without my redrawing it
+
+#### Acceptance Criteria:
+- **Scenario:** Move an end
+- **Given:** a connector between two things
+- **When:** I lasso-move one of them, or a push, a paste or a fold moves it
+- **Then:** the arrow is drawn again from where they are now, and the Undo of that move puts the arrow back too
+
+---
+
+### User Story 912:
+
+- **Summary:** A connector bends once around something in its way
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As someone** reading a diagram
+- **I want to** see an arrow go around a box rather than through it
+- **so that** the arrows stay readable
+
+#### Acceptance Criteria:
+- **Scenario:** A group in the way
+- **Given:** a connector between two things, and a kept text or one of Larry's groups put on the straight line between them
+- **When:** the board redraws the connector
+- **Then:** it bends once, an L with a level leg and an upright one, that crosses nothing; when the thing in the way moves off, it is straight again
+
+---
+
+### User Story 913:
+
+- **Summary:** Larry joins two things by name
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As Larry,** Igor's coach, drawing on the board
+- **I want to** draw a connector between two things by their names
+- **so that** my diagram on Igor's board stays joined when he rearranges it
+
+#### Acceptance Criteria:
+- **Scenario:** Connector by names
+- **Given:** a group of mine and a kept text on the board
+- **When:** my answer asks for a connector from the group's name to the text's
+- **Then:** an arrow joins them, part of my answer's one Undo; a name the board lacks draws nothing and my next turn lists it missing
+
+---
+
+### User Story 914:
+
+- **Summary:** Larry joins two things by pointing at them
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As Larry,** drawing on the board from its picture
+- **I want to** give a connector's ends as points
+- **so that** I can join what I see without knowing its names
+
+#### Acceptance Criteria:
+- **Scenario:** Connector by points
+- **Given:** two things on the board
+- **When:** my connector's ends are points on each
+- **Then:** it joins the smallest thing under each point (a word of Igor's becomes one thing); with an end on bare paper it is a plain arrow
+
+---
+
+### User Story 915:
+
+- **Summary:** A connector whose end is gone stays as plain ink
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As someone** erasing part of a diagram
+- **I want to** rub out one thing an arrow points at
+- **so that** I don't lose the arrow I still see
+
+#### Acceptance Criteria:
+- **Scenario:** Erase an end
+- **Given:** a connector between two things
+- **When:** I erase one of them
+- **Then:** the arrow stays where it was, as plain ink that no longer follows anything
+
+---
+
+### User Story 916:
+
+- **Summary:** Larry gets connectors back with the board's strokes
+- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
+
+#### Use Case:
+- **As Larry,** reading Igor's board
+- **I want to** know which strokes are connectors and what they join
+- **so that** I can reason about the diagram, not only its picture
+
+#### Acceptance Criteria:
+- **Scenario:** The strokes snapshot
+- **Given:** a connector on the board
+- **When:** the board sends Larry its strokes
+- **Then:** the connector is a stroke under its name, drawn in every picture I render, whose notes say it is a connector, what it joins, its sides and its route
+
+---
