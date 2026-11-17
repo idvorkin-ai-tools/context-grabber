@@ -2240,6 +2240,9 @@ struct WhiteboardView: View {
   private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
   private let reportOpen: AnyPublisher<Bool, Never>
+  /// Stories 952, 953: Feedback opens BugKit's report; its status after each save.
+  private let report: () -> Void
+  private let reportSaved: AnyPublisher<String, Never>
   /// Story 769: an iPhone has no conversation panel; a tap on the note opens the board's thread in Chat.
   private let onPhone: Bool
   private let openChat: (String) -> Void
@@ -2253,6 +2256,8 @@ struct WhiteboardView: View {
     inbox = app.inbox
     callLive = app.call.$snapshot.map(\.isActive).removeDuplicates().eraseToAnyPublisher()
     reportOpen = app.reporter.$flow.map(\.isPresented).removeDuplicates().eraseToAnyPublisher()
+    report = { [weak app] in app?.startBugReport(from: "whiteboard") }
+    reportSaved = app.reporter.$lastStatus.dropFirst().compactMap { $0 }.receive(on: RunLoop.main).eraseToAnyPublisher()
     logger = app.bugLogger
     log = app.log
     onPhone = store.onPhone
@@ -2303,6 +2308,11 @@ struct WhiteboardView: View {
         }
       }
       .ignoresSafeArea(edges: .bottom)
+    }
+    // Stories 950–953: ? and Feedback at the board's lower right, as on /ink; off the top bar (#848).
+    .overlay(alignment: .bottomTrailing) {
+      BoardHelpButtons(
+        editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
     }
     .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
     .navigationTitle(model.board.title)
