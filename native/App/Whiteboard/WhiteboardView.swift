@@ -97,6 +97,9 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var larryAway = false
   /// What the last paste left off or couldn't draw, shown until the board next changes (stories 392, 393).
   @Published private(set) var pasteNote: String?
+  /// Stories 970–972: a change of Larry's that was refused, as a chip on the board until Retry, × or a change that
+  /// applies.
+  @Published private(set) var blocked = BoardBlockedEdit()
   /// The board's mic (story 345): open, on its way up and finishing its last words.
   @Published private(set) var micOn = false
   @Published private(set) var micStarting = false
@@ -541,6 +544,8 @@ final class WhiteboardModel: ObservableObject {
     case .sent(let key, _):
       event["ok"] = true
       event["thread"] = key
+      // A reply that lands before the first look at a new thread is still his answer.
+      if thread == nil { marks.threadStarted() }
       threads.set(key, board: board.id)
       // The Cockpit has the picture (story 775): it isn't stuck. Kept apart from the marks the thread shows, so a
       // Cockpit that marks nothing never reads *Sent* (story 773).
@@ -1858,6 +1863,28 @@ extension WhiteboardModel {
     }
   }
 
+  // MARK: Larry's edit blocked (stories 970–972)
+
+  private func showBlocked(_ label: String, _ reason: String) {
+    guard blocked.refused(label: label, reason: reason) else { return }
+    log.event("board_blocked", ["action": "shown", "board": board.id, "label": label, "reason": reason])
+  }
+
+  /// Retry: Larry gets the board again, as *Larry's turn* sends it, with what happened to his change in the turn.
+  func retryBlocked() {
+    let label = blocked.label ?? ""
+    guard blocked.retry() else { return }
+    log.event("board_blocked", ["action": "retry", "board": board.id, "label": label])
+    larryTurn()
+  }
+
+  /// ×: the chip goes and nothing is asked.
+  func dismissBlocked() {
+    let label = blocked.label ?? ""
+    guard blocked.dismissed() else { return }
+    log.event("board_blocked", ["action": "dismissed", "board": board.id, "label": label])
+  }
+
   /// The kept text of Larry's under `point`, by its glyphs' box.
   private func keptText(at point: CGPoint, tolerance: CGFloat) -> String? {
     guard !texts.isEmpty else { return nil }
@@ -1904,6 +1931,7 @@ extension WhiteboardModel {
       event["action"] = "refused"
       event["reason"] = result.reason ?? ""
       log.event("board_ops", event)
+      showBlocked(batch.label, result.reason ?? "")
     case .held(let replaced):
       event["action"] = "held"
       event["pen_down"] = penDown
@@ -1945,8 +1973,10 @@ extension WhiteboardModel {
       event["action"] = "refused"
       event["reason"] = result.reason ?? ""
       log.event("board_ops", event)
+      showBlocked(batch.label, result.reason ?? "")
       return
     }
+    if blocked.applied() { log.event("board_blocked", ["action": "cleared", "board": board.id, "why": "applied"]) }
     if !plan.overlays.isEmpty {
       overlays.apply(plan.overlays)
       showOverlays?(overlays.list)
@@ -2298,9 +2328,13 @@ struct WhiteboardView: View {
         PaperBoardCanvas(model: model, log: log)
       }
       // Stories 950–953: ? and Feedback under the page number; off the top bar (#848) and the tool palette's bottom.
+      // Stories 970–972: Larry's change was refused; a chip below them, over the board, so the paper never moves.
       .overlay(alignment: .topTrailing) {
-        BoardHelpButtons(
-          editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
+        VStack(alignment: .trailing, spacing: 8) {
+          BoardHelpButtons(
+            editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
+          if model.blocked.showing { blockedChip.padding(.trailing, 20) }
+        }
       }
       // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.
       .overlay(alignment: .top) {
@@ -2469,6 +2503,29 @@ struct WhiteboardView: View {
     }
     .onReceive(callLive) { live in if live { model.stopMic(why: "call") } }
     .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
+  }
+
+  /// Stories 970–972: Larry's refused change, with Retry and ×.
+  private var blockedChip: some View {
+    let larry = Color(UIColor(rgb: WhiteboardTurn.larryColor))
+    return HStack(spacing: 6) {
+      Button("\(BoardBlockedEdit.text) · Retry") { model.retryBlocked() }
+        .accessibilityHint("Hands Larry the board again, so he looks and sends a fresh change")
+        .accessibilityIdentifier("whiteboard-blocked-retry")
+      Button {
+        model.dismissBlocked()
+      } label: {
+        Image(systemName: "xmark")
+      }
+      .accessibilityLabel("Dismiss")
+      .accessibilityIdentifier("whiteboard-blocked-dismiss")
+    }
+    .font(.footnote.weight(.semibold))
+    .buttonStyle(.borderless)
+    .foregroundStyle(larry)
+    .padding(.horizontal, 10)
+    .padding(.vertical, 6)
+    .background(larry.opacity(0.15), in: Capsule())
   }
 
   /// The bar's note, one line (story 766): Larry's state first so it is never what gets cut off (story 667), the newest

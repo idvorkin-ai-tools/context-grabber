@@ -508,8 +508,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertEqual(ids.count, 3, "and his button is no stroke: \(ids)")
   }
 
-  /// Story 816: a push on a revision the board has moved past moves nothing and shows nothing, and his next turn tells
-  /// him it was stale. The rule is `BoardOpsTests`, on the host.
+  /// Story 816: a push on a revision the board has moved past moves nothing, and his next turn tells him it was stale.
+  /// The rule is `BoardOpsTests`, on the host; the chip it brings is the test below.
   func testAStalePushMovesNothingAndLarryIsTold() throws {
     let cockpit = try cockpit()
     let app = try openBoard()
@@ -532,6 +532,35 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
     XCTAssertEqual(result["ok"] as? Bool, false, "\(result)")
     XCTAssertEqual(result["reason"] as? String, "stale")
+  }
+
+  /// Stories 970–972: a refused push brings the chip; × puts it away asking nothing, and Retry hands Larry the board,
+  /// his turn saying what came of his change. The chip's rules are `BoardBlockedEditTests`, on the host.
+  func testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    _ = try inkAboveAndBelow(app)
+    let retry = app.buttons["whiteboard-blocked-retry"]
+    XCTAssertFalse(retry.exists, "no chip before anything is refused")
+    try larryOps(cockpit, stale: true)
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(retry.waitForExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(retry.label.contains("Larry's edit blocked"), retry.label)
+    shot(app, "the blocked chip")
+    let dismissed = try opReports(cockpit).count
+    app.buttons["whiteboard-blocked-dismiss"].tap()
+    XCTAssertTrue(retry.waitForNonExistence(timeout: 5), "× puts it away")
+    sleep(2)
+    XCTAssertEqual(try opReports(cockpit).count, dismissed, "and asks Larry nothing")
+
+    try larryOps(cockpit, stale: true)
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(retry.waitForExistence(timeout: 15), "a second refusal brings it back")
+    let reported = try opReports(cockpit).count
+    retry.tap()
+    XCTAssertTrue(retry.waitForNonExistence(timeout: 5), "Retry puts it away")
+    let result = try XCTUnwrap(opResult(cockpit, after: reported), "Retry is Larry's turn")
+    XCTAssertEqual(result["ok"] as? Bool, false, "\(result)")
   }
 
   /// Stories 433, 522 (#636): ink on page 1 and page 2 on screen is nothing to send, Send and Larry's turn both; ink on
