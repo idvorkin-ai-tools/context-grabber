@@ -4170,7 +4170,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Larry answers every board I haven't set otherwise
 - **Issues:** Igor on his board, 2026-11-17: "Let's make Larry default responder"
-- **Status:** not yet built
+- **Status:** implemented in [99f8b3a](https://github.com/idvorkin/context-grabber/commit/99f8b3a); verified on the host (`WhiteboardResponderTests`: Larry ticked until the Cockpit says, a never-set board given to Larry, a set one kept, a Cockpit that doesn't say `set` counts as set) and the Mac build. The write on open not yet seen against the live Cockpit or on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
 #### Use Case:
@@ -4200,7 +4200,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Larry's change applies though I wrote on, unless it names what I moved or erased
 - **Issues:** Larry, 2026-11-17: his make-room ops came back stale (rev 257 on 11/16, rev 111 today) because Igor wrote a stroke or two before they arrived
-- **Status:** not yet built
+- **Status:** implemented in [cecc8f4](https://github.com/idvorkin/context-grabber/commit/cecc8f4); verified on the host (`BoardOpsTests`: new strokes since don't stop a push and it says `rebased_from`, a named stroke Igor moved is stale with `conflict_ids`, only changes after the look count, every name an op uses is checked, too old or after Larry's own change is stale, the memory's limit, a rebased push moves the strokes below now) and the Mac build. `WhiteboardPaperGhostsUITests.testAPushFromAnOlderLookStillApplies` written, not yet run on the simulator
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry makes room*
 
 #### Use Case:
