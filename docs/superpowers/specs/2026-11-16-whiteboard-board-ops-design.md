@@ -34,8 +34,8 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 ### When Larry's edit is blocked (stories 970–972, 976–978; Igor, 2026-11-17, via Larry: "show a chip so I'm not guessing")
 
 - When a change of Larry's can't be applied (the board moved on since he looked, or anything else refuses it), a small
-  chip shows over the board's top corner, under its ? and Feedback buttons, so the paper never moves, in Larry's purple: *Larry's edit blocked · Retry*, with a × beside it. Nothing
-  on the board has moved; the chip only says so.
+  chip shows over the board's top corner, under its ? and Feedback buttons, so the paper never moves, in Larry's
+  purple: *Larry's edit blocked · Retry*, with a × beside it. Nothing on the board has moved; the chip only says so.
 - **Retry hands Larry the board again**: it is *Larry's turn* at once, the picture of the board as it is now with what
   happened to his last change, so he looks again and sends a fresh one. It is never a replay of the refused change.
   The chip goes when Retry is tapped.
