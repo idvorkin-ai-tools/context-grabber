@@ -72,11 +72,21 @@ cat >"$fakes/sim-smoke" <<'F'
 echo "smoke ${SMOKE_ONLY:-} $1 $3" >>"$MARKS/smoke"
 F
 export SIM_SMOKE="$fakes/sim-smoke"
+# macOS's caffeinate [-d] [-i] [-u] [-t <s>] [command]: it notes its flags and runs the command, if any (story 782).
 cat >"$fakes/caffeinate" <<'F'
 #!/usr/bin/env bash
-[ "$1" = -i ] && shift
-exec "$@"
+flags=()
+while [ $# -gt 0 ] && [ "${1#-}" != "$1" ]; do
+  [ "$1" = -t ] && { flags+=("$1"); shift; }
+  flags+=("$1")
+  shift
+done
+echo "caffeinate ${flags[*]}" >>"$MARKS/caffeinate"
+[ $# -eq 0 ] || exec "$@"
 F
+# The screen lock's probe (smoke-lock.sh): unlocked, unless a run says otherwise, so this Mac's own lock can't fail it.
+printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionOnConsoleKey\\"=Yes"\n' >"$fakes/unlocked"
+printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionScreenIsLocked\\"=Yes"\n' >"$fakes/locked"
 cat >"$fakes/uv" <<'F'
 #!/usr/bin/env bash
 exec sleep 30
@@ -99,7 +109,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   shift
   rm -f "$MARKS"/*
   env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
-    XCODEBUILD_IDLE_POLL=1 ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
+    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
 chat_all="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
@@ -313,6 +323,18 @@ says_smoke "the smoke: a UI test file runs none of it" none native/UITests/CardU
 says_smoke "the smoke: shared code runs all of it" all native/App/AppModel.swift
 says_smoke "the smoke: its audio-lock helper runs all of it (story 827)" all scripts/native/smoke-lock.sh
 says_smoke "the smoke: the lead-time report runs none of it (story 828)" none scripts/lead-times.py
+
+# Story 782: the simulator rung holds the display on and wakes it first; the Mac rung only keeps the Mac awake.
+if grep -qxF "caffeinate -d -i" "$MARKS/caffeinate"; then ok "rung 2 holds the display on"; else bad "rung 2 holds the display on: $(cat "$MARKS/caffeinate")"; fi
+if grep -qxF "caffeinate -u -t 5" "$MARKS/caffeinate"; then ok "rung 2 wakes the display first"; else bad "rung 2 wakes the display first: $(cat "$MARKS/caffeinate")"; fi
+run -- --rung 1.5 --changed native/App/Chat/ChatViews.swift
+if grep -qxF "caffeinate -i" "$MARKS/caffeinate" && ! grep -q -- "-d" "$MARKS/caffeinate"; then ok "the Mac rung keeps the Mac awake, not the display"
+else bad "the Mac rung's caffeinate: $(cat "$MARKS/caffeinate")"; fi
+run SMOKE_LOCK_PROBE="$fakes/locked" -- --changed native/UITests/CardUITests.swift
+status=$?
+if [ "$status" -eq 75 ]; then ok "a locked screen: rung 2 refuses"; else bad "a locked screen: refuses, exit $status"; fi
+says "a locked screen: says why" "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun"
+if [ -e "$MARKS/xcodebuild" ]; then bad "a locked screen: nothing built"; else ok "a locked screen: nothing built"; fi
 
 run -- --changed native/UITests/WhiteboardPasteUITests.swift
 status=$?

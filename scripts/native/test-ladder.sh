@@ -401,6 +401,16 @@ simulator_steps() {
 rung_simulator() {
   [ "$in_lane" -eq 1 ] || { lane 2 $(($full == 1 ? 130 : 60)); return; }
   trap leave_simulator EXIT
+  # Story 782: UI tests don't start while the Mac's display is off or its screen is locked, and running ones stall (the
+  # 915 run of 2026-11-16 sat 17 minutes before its first test). Light the display (the rung holds it on from here,
+  # `caffeinate -d` below), then refuse a locked screen now rather than hold the build lock for an hour of nothing.
+  caffeinate -u -t 5 >/dev/null 2>&1 &
+  # shellcheck source=scripts/native/smoke-lock.sh
+  . scripts/native/smoke-lock.sh
+  if mac_locked; then
+    echo "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun" >&2
+    return 75
+  fi
   udid=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
   # Our own xcodebuild is one; a second is someone else's, and device builds don't take the build lock.
   contended=$(mktemp -u)
@@ -440,7 +450,11 @@ if [ "$in_lane" -eq 1 ]; then
     else
       echo "no $tl: rung $only runs with no time limit, and a hang holds the build lock" >&2
     fi
-    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} caffeinate -i "$self" "${orig[@]}"
+    # Story 782: the simulator rung holds the display on too (-d), as UI tests stall on a dark screen; -i alone keeps
+    # the Mac awake but lets the display sleep, and with the lock set to "immediately" that locks it.
+    keep=(-i)
+    [ "$only" = 2 ] && keep=(-d -i)
+    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} caffeinate "${keep[@]}" "$self" "${orig[@]}"
   fi
   case $only in
     1.5) rung_mac ;;
@@ -473,7 +487,7 @@ climb() {  # <rung> <name> <function>
   report+=("rung $1 $2: FAILED, $took")
   finish
   case $status in
-    75) echo "stopped on rung $1 $2: it could not start, the build lock or another xcodebuild was still busy (exit 75)" ;;
+    75) echo "stopped on rung $1 $2: it could not start: the build lock or another xcodebuild was still busy, the screen was locked, or no test started; the lines above say which (exit 75)" ;;
     124) echo "stopped on rung $1 $2: it ran past its time limit (exit 124)" ;;
     *) echo "stopped on rung $1 $2 (exit $status)" ;;
   esac

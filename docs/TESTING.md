@@ -10,7 +10,7 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 |---|---|---|---|---|
 | 0 Lint | swift-format's lint over the Swift files the branch touched, then SwiftLint over the tree (no force unwrap, cast or try, no implicitly unwrapped optional, unless a `swiftlint:disable:next` line gives the reason) | `just native-lint-touched` (`just native-format` fixes the layout) | ~2 s | the layout (`native/.swift-format`) of what changed; a new `!` or `try!` |
 | 1L Linux | off the Mac, the first rung: `ContextCore`'s XCTest under Linux Swift; the package and its tests cross-built for macOS, iOS and the simulator; the app's own sources (App and Shared, the widgets, the share extension, the UI tests) compiled for iOS against the real BugKit and ThinkACard pins; the ladder's map, the breath clips and the UI timing digest | `just test-linux` | tests ~10 s once built; ~4 min with the cross-builds | everything rung 1 answers but the asset catalog and the signing guard; a type, concurrency or API slip anywhere in the app's Swift, which before this only the Mac's build could find. Never what runs: no app is linked, signed or launched, and Catalyst-only code isn't compiled |
-| 1 Host | `ContextCore` XCTest (`native/ContextCore`, the platform-free package), then the device build's signing path with fakes (`scripts/native/test-signing-guard.sh`), the breathing clips, the asset catalog compiled with actool with every home tile's art present and square (`scripts/native/test-tile-art.sh`), the ladder's own map (`scripts/native/test-ladder-map.sh`), the UI test timing digest against a real run's log (`scripts/native/test-ui-timings.sh`), and the UI test run wrapper's time limit, retry and hang stop against a fake xcodebuild (`scripts/native/test-xcodebuild-log.sh`). `just native-test`, or `just test`, is rungs 0 and 1 with swift-format over the whole tree: what the gate runs | `just native-test-host` | ~25 s once built | everything pure: what a log line can carry, log retention; each ported module's logic |
+| 1 Host | `ContextCore` XCTest (`native/ContextCore`, the platform-free package), then the device build's signing path with fakes (`scripts/native/test-signing-guard.sh`), the breathing clips, the asset catalog compiled with actool with every home tile's art present and square (`scripts/native/test-tile-art.sh`), the ladder's own map (`scripts/native/test-ladder-map.sh`), the UI test timing digest against a real run's log (`scripts/native/test-ui-timings.sh`), and the UI test run wrapper's time limit, retry, hang stop and start watchdog against a fake xcodebuild (`scripts/native/test-xcodebuild-log.sh`). `just native-test`, or `just test`, is rungs 0 and 1 with swift-format over the whole tree: what the gate runs | `just native-test-host` | ~25 s once built | everything pure: what a log line can carry, log retention; each ported module's logic |
 | 1.5 Mac | the Catalyst build, ad hoc; once open, driven by the same launch hooks (`open --env`), judged from the session log in its sandbox folder; `GRABBER_BUG=<note>` saves a report whose picture is the screen. It reaches Igor's real Cockpit unless named, so a test launch must name the stand-in or nowhere (`https://no-address.invalid`) on every route: `COCKPIT=` sets all three, and a hook-driven `open --env` launch sets `GRABBER_CHAT_URL`, `GRABBER_COCKPIT_URL` and `GRABBER_USAGE_URL` itself. Naming only the chat address leaves the page and the usage strip on the real Cockpit. A launch named anywhere but the real Cockpit has its own outbox (`Inbox-test`, beside `Inbox`), so what it leaves waiting stays among test launches | `just native-build-mac`; `just native-run-mac` opens it, `COCKPIT=<url>` to name a Cockpit | ~5 min | code under `#if targetEnvironment(macCatalyst)`, which the host cannot compile; with `native-run-mac`, it opens and every screen comes up. What a mouse can draw, what iCloud does and the keys (Enter sends, #683) on a Mac still take a person: `MacKeysUITests` presses them but waits for a signed run, as the ad hoc test runner refuses to load it |
 | 2 Simulator | the build with its UI tests; the UI test classes the change touches; `just native-test-sim`'s smoke, the app driven by launch hooks and judged from its session log; the areas' whole suites (`scripts/native/test-chat-ui.sh`, `test-whiteboard-ui.sh`) | `just test-ladder` for the build, the touched classes and then the smoke's touched sections on the same build and boot (story 755; `LADDER_SMOKE=0` leaves the smoke out), `--full` for the suites; `just native-test-sim` for the smoke alone | build ~5 min; a class ~30 s a test; smoke ~1 min; the whiteboard's suite ~18 min on one boot (an estimate from the 7 Nov per-class times, until the Mac times it; ~28 min with two boots before) | a real view, gesture or system service: it installs and launches, the log's first line names the build, a report is stored with its screenshot, no `error` event; the timer's and breathing's cues and Live Activity events, the card's deal and count |
 | 3 Phone | Grabber Native on the iPhone | `just native-run-device`, then `just pull-logs` | minutes + a person | the shake, and everything the phone-only rows below list |
@@ -120,8 +120,17 @@ costs about the suite's time; a change to one test file costs that file. `--full
 change touched, in place of that area's classes.
 
 The Mac and simulator rungs run in the build lane, one job at a time: `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`,
-then, inside the lock, the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i`, so the time limit
-counts only the rung's own run. The simulator is shut down after, pass or fail.
+then, inside the lock, the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i` (the simulator
+rung `caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. The simulator is shut down
+after, pass or fail.
+
+**UI tests need the Mac's display on and its screen unlocked** (story 782). With the display off they don't start, and
+running ones stall: on 2026-11-16 the whiteboard step sat 17 minutes before its first test on a dark Mac, against about
+30 s once the display came on, and a run that morning spent two hours in tests that pass in ten minutes. `caffeinate -i`
+keeps the Mac awake but lets the display sleep, and with the lock set to "immediately" a sleeping display is a locked
+screen. So the simulator rung holds the display on (`caffeinate -d`), lights it first (`caffeinate -u`), and refuses a
+locked screen at once with exit 75 and a line saying so, rather than hold the build lock for an hour. Unlock the Mac and
+rerun. A screen locked by hand during the run is caught by the start watchdog below, or by the per-test time limit.
 
 **Never run a simulator rung while another xcodebuild is running.** Startup waits fail under contention, and a run
 under contention counts as failed and is rerun, not debugged. The lock doesn't cover this, since a device build skips
@@ -133,7 +142,11 @@ because contention makes a test fail when it shouldn't, not pass.
 **Every UI test run has a time limit, one retry and a short hang wait** (story 689). The wrapper all test runs go
 through gives each case two minutes, runs a failed case once more on its own rather than the whole list again
 (`UI_TEST_RETRY=0` turns that off), and stops an xcodebuild that prints nothing for 30 s once a suite has closed
-(`XCODEBUILD_IDLE_SECONDS`), taking the result from the log's last closing suite line. The timing summary counts a
+(`XCODEBUILD_IDLE_SECONDS`), taking the result from the log's last closing suite line. A run of built tests
+(`test-without-building`) whose first suite hasn't started within 180 s (`XCODEBUILD_START_SECONDS`; a healthy start,
+the simulator's boot included, is under a minute) is stopped and fails with exit 75, naming the dark or locked screen
+as the likely cause and saying whether the screen is locked now (story 783). A plain `test` compiles first, so it isn't
+watched for its start. The timing summary counts a
 retried case once and names every case that passed only on its retry: that is a flake to fix, not a pass to forget.
 
 The host rung has no report suites to skip: nothing in `native/ContextCore/Tests` prints (checked 2026-11-05, 985
@@ -155,7 +168,8 @@ The simulator cannot be shaken or tapped from a script, so the app reads **launc
 (pass them through `simctl` as `SIMCTL_CHILD_<name>`); checks wait for an event in a *new* launch's log instead of
 sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim-smoke.sh`](../scripts/native/sim-smoke.sh)).
 
-**A locked Mac seems to starve the simulator's audio** (#419: inferred from comparing locked and unlocked runs of the
+**A locked Mac seems to starve the simulator's audio** (and with the display off, the UI tests don't start at all:
+story 782 above) (#419: inferred from comparing locked and unlocked runs of the
 same code, not traced into CoreAudio). Timer cues come late or empty, the keepalive fails, breathing is silent and the
 real-audio call can hear only zeros, on code that passes unlocked. Since story 827 the smoke skips those checks while the
 Mac's screen is locked (the timer and its voice, breathing, the real-audio call): each prints *skipped: Mac screen
