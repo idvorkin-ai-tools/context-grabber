@@ -387,7 +387,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// A tap's selection comes after the lift: until this time one is put straight back.
   private var noSelectionUntil: Double = 0
   /// The last finger tap while marks showed, in board points, and when: the dot PaperKit draws there is taken back.
-  private var ghostTap: (at: CGPoint, time: Double)?
+  private var ghostTap: (at: CGPoint, time: Double, within: Double)?
   /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
@@ -905,20 +905,20 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let count = model.ghosts.count
     // Story 855: a margin tap is the outline's; a dot a drawing finger leaves there is taken back.
     if at.x < BoardMargin.width {
-      ghostTap = (at, CACurrentMediaTime())
+      ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
       noSelectionUntil = CACurrentMediaTime() + 0.8
       return
     }
     // Story 940: with no marks to choose, a tap on a kept text opens its words (or, with them open, is done).
     if count == 0, rewordTapped(at: at) {
       noSelectionUntil = CACurrentMediaTime() + 0.8
-      ghostTap = (at, CACurrentMediaTime())
+      ghostTap = (at, CACurrentMediaTime(), PaperProbe.rewordDotSeconds)
       return
     }
     // With his controls showing a finger taps too (story 846): no dot, no selection.
     guard count > 0 || !model.overlays.list.isEmpty else { return }
     noSelectionUntil = CACurrentMediaTime() + 0.8
-    ghostTap = (at, CACurrentMediaTime())
+    ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
     let selected = paper.selection.count
     if selected > 0 { paper.selection = [] }
     guard count > 0 else { return }
@@ -943,7 +943,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     guard let tap = ghostTap, change.removed.isEmpty, change.moved.isEmpty else { return false }
     let since = CACurrentMediaTime() - tap.time
     let added = change.added.compactMap { frames[$0] }
-    guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale) else { return false }
+    guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale, within: tap.within)
+    else { return false }
     ghostTap = nil
     let dot = change.added
     Task { @MainActor [weak self] in
