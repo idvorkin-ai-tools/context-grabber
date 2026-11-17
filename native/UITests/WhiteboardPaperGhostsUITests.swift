@@ -476,8 +476,10 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
       posts = try eventPosts(cockpit)
     }
     let tap = try XCTUnwrap((posts.last?["events"] as? [[String: Any]])?.last, "the tap reached the Cockpit: \(posts)")
-    XCTAssertEqual(tap["type"] as? String, "make_room")
-    XCTAssertEqual(tap["overlay_id"] as? String, "fake-button-1")
+    XCTAssertEqual(tap["type"] as? String, "overlay_tap", "the type the Cockpit wakes him for")
+    XCTAssertEqual(tap["target_id"] as? String, "fake-button-1")
+    XCTAssertEqual((tap["event"] as? [String: Any])?["type"] as? String, "make_room", "his event as he wrote it")
+    XCTAssertEqual(posts.last?["woke"] as? Bool, true, "and the fake Cockpit woke him")
     XCTAssertEqual(send(app).label, strokes(3), "a tap on his button draws nothing")
 
     let sent = try sends(cockpit).count

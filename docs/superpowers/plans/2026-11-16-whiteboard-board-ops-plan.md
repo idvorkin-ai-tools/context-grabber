@@ -131,6 +131,6 @@ Wire, additive:
 - `BoardOverlays`: the overlays on a board, applying ops and hit-testing a tap.
 - Events: `margin {gesture:"tap"|"hold"|"drag_end", y, dy}` (a finger starting in the column's left 64 points:
   `BoardMargin.gesture`), `viewport {y, h, scale}` half a second after the view stops, `undo {label}` when Igor undoes
-  one of Larry's batches, and an overlay's `tap_event` (as written, with `t` and `overlay_id` added).
+  one of Larry's batches, and an overlay tap: `{type:"overlay_tap", target_id, overlay_id, t, event?}` with his `tap_event` as written under `event` (the Cockpit wakes Larry only for `overlay_tap`/`ghost_tap` with `target_id`). `BoardTurnReport.wire` keeps the Cockpit's caps: 200 events, 8 KB each, 256 KB a body; what it leaves out is added to `events_dropped`.
 - A tap on an overlay posts `POST /whiteboard/events {board, rev, op_result?, events}` at once; taken, those events
   leave the queue; a 404 or no answer leaves them for the next turn, logged as `board_events`.

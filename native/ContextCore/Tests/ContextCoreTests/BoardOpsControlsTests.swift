@@ -146,10 +146,34 @@ final class BoardOpsControlsTests: XCTestCase {
       BoardEvent.undo(label: "make room", t: 3).wire as NSDictionary, ["type": "undo", "label": "make room", "t": 3])
     XCTAssertEqual(
       BoardEvent.overlayTap(id: "band1", event: BoardMeta(["type": "make_room", "y": 400]), t: 4).wire as NSDictionary,
-      ["type": "make_room", "y": 400, "overlay_id": "band1", "t": 4], "his event as written, with which and when")
+      [
+        "type": "overlay_tap", "target_id": "band1", "overlay_id": "band1", "t": 4,
+        "event": ["type": "make_room", "y": 400],
+      ], "a tap the Cockpit wakes him for, naming which, with his event as written")
     XCTAssertEqual(
       BoardEvent.overlayTap(id: "chip", event: nil, t: 5).wire as NSDictionary,
-      ["type": "overlay_tap", "overlay_id": "chip", "t": 5])
+      ["type": "overlay_tap", "target_id": "chip", "overlay_id": "chip", "t": 5])
+  }
+
+  func testAReportKeepsToTheCockpitsCaps() {
+    let huge = BoardEvent.undo(label: String(repeating: "x", count: BoardTurnReport.maxEventBytes), t: 1)
+    let small = BoardEvent.undo(label: "a", t: 2)
+    var wire = BoardTurnReport(rev: 1, events: [small, huge, small], eventsDropped: 2).wire
+    XCTAssertEqual((wire["events"] as? [Any])?.count, 2, "an event over 8 KB is dropped")
+    XCTAssertEqual(wire["events_dropped"] as? Int, 3, "and counted with those dropped before")
+
+    let many = (0..<250).map { BoardEvent.undo(label: "u", t: Int64($0)) }
+    wire = BoardTurnReport(rev: 1, events: many).wire
+    let kept = wire["events"] as? [[String: Any]]
+    XCTAssertEqual(kept?.count, BoardTurnReport.maxEvents, "at most 200 to a post")
+    XCTAssertEqual(kept?.first?["t"] as? Int64, 50, "the newest kept")
+    XCTAssertEqual(wire["events_dropped"] as? Int, 50)
+
+    let big = BoardEvent.undo(label: String(repeating: "y", count: 7000), t: 1)
+    wire = BoardTurnReport(rev: 1, events: Array(repeating: big, count: 60)).wire
+    let body = (try? JSONSerialization.data(withJSONObject: wire))?.count ?? .max
+    XCTAssertLessThan(body, BoardTurnReport.maxBodyBytes, "the body stays under 256 KB")
+    XCTAssertGreaterThan(wire["events_dropped"] as? Int ?? 0, 0)
   }
 
   func testATapOnAControlGoesAtOnceAndWaitsIfTheCockpitCantTakeIt() throws {
@@ -163,7 +187,7 @@ final class BoardOpsControlsTests: XCTestCase {
     XCTAssertEqual(body["board"] as? String, "b1")
     XCTAssertEqual(body["rev"] as? Int, 9)
     XCTAssertEqual((body["op_result"] as? [String: Any])?["label"] as? String, "fold")
-    XCTAssertEqual((body["events"] as? [[String: Any]])?.first?["overlay_id"] as? String, "b")
+    XCTAssertEqual((body["events"] as? [[String: Any]])?.first?["target_id"] as? String, "b")
 
     XCTAssertEqual(BoardEventsSend.answer(status: 200), .taken)
     XCTAssertEqual(BoardEventsSend.answer(status: 404), .notThere)

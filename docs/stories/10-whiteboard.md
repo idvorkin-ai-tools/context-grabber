@@ -5114,6 +5114,16 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap it with a finger
 - **Then:** its event goes to the Cockpit at once with the board's revision; if the Cockpit can't take it, it goes with my next turn, and the session log says which
 
+- **Scenario:** The tap wakes him
+- **Given:** a button of Larry's that asks to hear "make room"
+- **When:** I tap it
+- **Then:** the Cockpit gets a tap on his control naming the button, with his "make room" as he wrote it, and wakes him; a plain tap elsewhere on the board is never sent as one
+
+- **Scenario:** A lot happened since the last turn
+- **Given:** more events than the Cockpit takes at once, or one too big
+- **When:** they are sent
+- **Then:** at most 200 go, none over 8 KB, the whole under 256 KB, the newest kept, and Larry is told how many he missed
+
 ---
 
 ### User Story 847:

@@ -49,6 +49,7 @@ Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu 
 import base64
 import json
 import os
+import re
 import secrets
 import sys
 import threading
@@ -72,7 +73,29 @@ STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
 LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
 TEXT_FIELDS = {"kind", "id", "text", "font", "x", "y", "w", "h", "color", "t"}  # a kept text in POST /whiteboard/strokes
-EVENT_POSTS = []  # each POST /whiteboard/events body (story 846)
+EVENT_POSTS = []  # each POST /whiteboard/events body, with whether it woke Larry (story 846)
+EVENT_TYPE = re.compile(r"[a-z][a-z0-9_]{0,31}")
+WAKING = ("overlay_tap", "ghost_tap")  # a tap on his ghosts or controls wakes him; a plain tap never does
+
+
+def take_events(data, size):
+    """POST /whiteboard/events as the Cockpit takes it: its caps, its event types, and whether it wakes Larry."""
+    events = data.get("events")
+    if not data.get("board") or not isinstance(events, list):
+        return 400, {"ok": False, "error": "board and events required"}
+    if size > 256 * 1024 or len(events) > 200:
+        return 413, {"ok": False, "error": "over the caps: 200 events, 256 KB"}
+    for event in events:
+        if not isinstance(event, dict) or not EVENT_TYPE.fullmatch(str(event.get("type", ""))):
+            return 400, {"ok": False, "error": "every event needs a type like [a-z][a-z0-9_]{0,31}: %r" % event}
+        if len(json.dumps(event)) > 8 * 1024:
+            return 413, {"ok": False, "error": "an event over 8 KB"}
+    woke = any(e["type"] in WAKING and e.get("target_id") for e in events)
+    now = time.time()
+    with LOCK:
+        EVENT_POSTS.append(dict(data, woke=woke))
+    return 200, {"ok": True, "board": data["board"], "rev": data.get("rev"), "events": len(events),
+                 "ts": now, "ts_ms": int(now * 1000), "woke": woke}
 OP_REPORTS = []  # each board message's rev and op_result, oldest first (story 818)
 
 
@@ -443,11 +466,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True})
         if path == "/whiteboard/events":
             self._report({"body": data})
-            if not data.get("board") or not isinstance(data.get("events"), list):
-                return self._json(400, {"ok": False, "error": "board and events required"})
-            with LOCK:
-                EVENT_POSTS.append(data)
-            return self._json(200, {"ok": True, "events": len(data["events"])})
+            status, answer = take_events(data, len(raw))
+            return self._json(status, answer)
         if path == "/fake/larry-ops":
             global LARRY_OPS
             with LOCK:

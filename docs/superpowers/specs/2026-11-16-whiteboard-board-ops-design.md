@@ -96,8 +96,12 @@ The web board (the Cockpit's `/ink`) is where these behaviours are worked out fi
 - Larry can lay a few controls on the board: a band (a strip across the page, such as "room opens here"), a chip, a
   button, or a hint. Each sits at a place on the board, scrolls with it, and carries a short label. They are not ink:
   they are never in the picture, never in the strokes, and never undone. He takes them away when he is done with them.
-- A tap on one reaches Larry at once, without waiting for Igor's next turn. If the Cockpit can't take it straight away,
-  it goes with the next turn instead, and the session log says so.
+- A tap on one reaches Larry at once, without waiting for Igor's next turn, and wakes him: it is a tap on his control,
+  naming which, with the event he asked to hear carried as he wrote it. (A plain tap on the board never wakes him.)
+  If the Cockpit can't take it straight away, it goes with the next turn instead, and the session log says so.
+- What the board sends Larry keeps to the Cockpit's limits: at most 200 events at once, none bigger than 8 KB, and the
+  whole under 256 KB. An event too big is left out, and when there are too many the oldest go; either way he is told
+  how many he missed.
 
 ### Larry folds and selects
 

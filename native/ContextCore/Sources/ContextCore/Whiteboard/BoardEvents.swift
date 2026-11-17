@@ -49,11 +49,9 @@ public enum BoardEvent: Equatable, Codable, Sendable {
     case .undo(let label, let t):
       return ["type": "undo", "label": label, "t": t]
     case .overlayTap(let id, let event, let t):
-      // His event as written; the board adds only what it lacks: a type, which control, and when.
-      var out = (event?.object as? [String: Any]) ?? [:]
-      if out["type"] == nil { out["type"] = "overlay_tap" }
-      if out["overlay_id"] == nil { out["overlay_id"] = id }
-      if out["t"] == nil { out["t"] = t }
+      // The Cockpit wakes Larry for an `overlay_tap` naming its `target_id`; his own event rides along as written.
+      var out: [String: Any] = ["type": "overlay_tap", "target_id": id, "overlay_id": id, "t": t]
+      if let his = event?.object { out["event"] = his }
       return out
     }
   }
@@ -129,11 +127,31 @@ public struct BoardTurnReport: Equatable, Codable, Sendable {
     self.eventsDropped = eventsDropped
   }
 
+  /// The Cockpit's caps on `POST /whiteboard/events`: events per post, bytes per event, bytes per body.
+  public static let maxEvents = 200
+  public static let maxEventBytes = 8 * 1024
+  public static let maxBodyBytes = 256 * 1024
+  /// What the events may take of a body, leaving room for the rest of the message (its picture goes separately).
+  static let eventBudget = maxBodyBytes - 16 * 1024
+
+  /// Within the Cockpit's caps: an event over its size is dropped, and the oldest go until the rest fit. Every one
+  /// dropped is counted in `events_dropped`.
   public var wire: [String: Any] {
-    var out: [String: Any] = ["rev": rev, "events": events.map(\.wire)]
+    let sized = events.map(\.wire).map { ($0, Self.bytes($0)) }
+    var kept = sized.filter { $0.1 <= Self.maxEventBytes }
+    var total = kept.reduce(0) { $0 + $1.1 + 1 }
+    while !kept.isEmpty, kept.count > Self.maxEvents || total > Self.eventBudget {
+      total -= kept.removeFirst().1 + 1
+    }
+    var out: [String: Any] = ["rev": rev, "events": kept.map(\.0)]
     if let opResult { out["op_result"] = opResult.wire }
-    if eventsDropped > 0 { out["events_dropped"] = eventsDropped }
+    let dropped = eventsDropped + sized.count - kept.count
+    if dropped > 0 { out["events_dropped"] = dropped }
     return out
+  }
+
+  private static func bytes(_ event: [String: Any]) -> Int {
+    (try? JSONSerialization.data(withJSONObject: event, options: [.sortedKeys]).count) ?? Int.max
   }
 }
 

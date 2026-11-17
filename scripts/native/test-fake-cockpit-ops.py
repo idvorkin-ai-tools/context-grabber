@@ -94,9 +94,20 @@ try:
     check(ink.get("base_rev") == 9 and kinds == ["add_strokes", "overlay"], "his ink and a button: %s" % ink)
     check(ink["list"][1]["tap_event"] == {"type": "make_room"} and ink["list"][0]["strokes"][0]["points"][0] == [140, 830],
           "the line and the button sit below the picture")
-    answer = call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [{"type": "make_room", "overlay_id": "x"}]})
+    answer = call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [{"type": "tap", "target_id": "x"}]})
+    check(answer["ok"] and answer["woke"] is False and answer["rev"] == 9 and "ts_ms" in answer,
+          "a plain tap is taken but wakes nobody: %s" % answer)
+    tap = {"type": "overlay_tap", "target_id": "x", "event": {"type": "make_room"}}
+    answer = call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [tap]})
     posts = call("/fake/ops")["event_posts"]
-    check(answer["ok"] and posts[-1]["events"][0]["type"] == "make_room", "a tap's events are taken: %s" % posts)
+    check(answer["woke"] and posts[-1]["woke"] and posts[-1]["events"][0]["target_id"] == "x",
+          "a tap on his control wakes him: %s" % posts)
+    for bad, why in (({"type": "Make-Room"}, "a type out of pattern"), ({"type": "x", "pad": "y" * 9000}, "over 8 KB")):
+        try:
+            call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [bad]})
+            check(False, "%s is refused" % why)
+        except urllib.error.HTTPError as error:
+            check(error.code in (400, 413), "%s is refused: %s" % (why, error.code))
     picture = {"board": "b1", "picture_id": "p9", "frame": frame}
     text = {"kind": "text", "id": "t1", "text": "hi", "font": "print", "x": 1, "y": 2, "w": 3, "h": 4, "color": "#000000",
             "t": 5}
