@@ -20,7 +20,7 @@ extension PaperMarkup {
     var before: PaperMarkup
     /// Without the zigzag and the ink it covered; nil when it isn't a scratch-out.
     var after: PaperMarkup?
-    /// The zigzag, board points, and how long it took (ms; nil when not known): what a fold's erase reads (story 903).
+    /// The zigzag, board points, and how long it took (ms; nil when not known): what a fold's erase reads (story 905).
     var points: [CGPoint] = []
     var ms: Double?
   }

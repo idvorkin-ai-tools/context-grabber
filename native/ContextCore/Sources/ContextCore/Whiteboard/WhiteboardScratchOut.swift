@@ -107,19 +107,23 @@ public enum WhiteboardScratchOut {
   /// goes all the same (story 903).
   public static func isZigzag(_ points: [CGPoint], ms: Double?) -> Bool {
     guard shape(points).ok else { return false }
-    guard let ms, ms > 0 else { return true }
+    guard let speed = Self.speed(of: points, ms: ms) else { return true }
+    return speed >= Self.speed
+  }
+
+  /// Board points per millisecond along `points`, to two places; nil when the time wasn't known.
+  static func speed(of points: [CGPoint], ms: Double?) -> Double? {
+    guard let ms, ms > 0 else { return nil }
     var travel = 0.0
     for (a, b) in zip(points, points.dropFirst()) { travel += Double(hypot(b.x - a.x, b.y - a.y)) }
-    return (travel / ms * 100).rounded() / 100 >= speed
+    return (travel / ms * 100).rounded() / 100
   }
 
   /// The zigzag `points`, drawn in `ms` (nil: not known, so not held to the speed), over `ink`: what goes, or why it
   /// stays ink. The zigzag itself is not among `ink`.
   public static func check(_ points: [CGPoint], ms: Double?, over ink: [Ink]) -> Outcome {
     let shape = shape(points)
-    var travel = 0.0
-    for (a, b) in zip(points, points.dropFirst()) { travel += Double(hypot(b.x - a.x, b.y - a.y)) }
-    let speed = ms.flatMap { $0 > 0 ? (travel / $0 * 100).rounded() / 100 : nil }
+    let speed = Self.speed(of: points, ms: ms)
     func no(_ why: String?) -> Outcome {
       Outcome(ok: false, gone: [], reversals: shape.reversals, speed: speed, why: why)
     }

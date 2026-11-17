@@ -901,7 +901,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     ]
     if let speed = outcome.speed { event["speed"] = speed }
     if let why = outcome.why { event["why"] = why }
-    // Story 903: over a fold's marker or its folded header line, the whole section goes with what else it covered.
+    // Story 905: over a fold's marker or its folded header line, the whole section goes with what else it covered.
     if scratchTakesFolds(scratch, zigzag: key) { return true }
     guard let after = scratch.after else {
       log.event("whiteboard", event)

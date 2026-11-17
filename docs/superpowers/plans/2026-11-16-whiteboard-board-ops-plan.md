@@ -201,7 +201,7 @@ App:
 - Session log: `board_connectors` with `action` connected (id, from, to, elbow, erased, rerouted, ms) / followed
   (rerouted, loosened, ms) / select_newest_hook (the `GRABBER_WHITEBOARD_SELECT_NEWEST` launch hook).
 
-## Step 6: a fold's marker and its erase (stories 900–903)
+## Step 6: a fold's marker and its erase (stories 900–905)
 
 - `BoardOutline.markers` (ContextCore, `BoardFoldMarker.swift`; board.mjs `foldMarkerText`, `foldMarkerBox`): each
   shown fold's words, their baseline origin (`hb.maxX + 14`, `midY + 5`) and the box the eraser crosses. The model's

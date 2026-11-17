@@ -1,4 +1,4 @@
-//  Stories 902, 903: the eraser across a folded header's "▸ N lines folded", or across the folded header's own ink,
+//  Stories 902–905: the eraser across a folded header's "▸ N lines folded", or across the folded header's own ink,
 //  erases the whole section and closes up, one Undo named *Erase* (spec 2026-11-16-whiteboard-board-ops-design.md,
 //  *Headers fold their sections*; the Cockpit's `erase` with `foldHits`). PaperKit's eraser takes the ink it touches as
 //  ever; the fold goes when the touch lifts, worked out on the board as it was when the touch went down. A scratch-out
@@ -9,8 +9,9 @@ import PaperKit
 import PencilKit
 import UIKit
 
-/// An eraser touch on a board with a fold: the outline when it went down, and its path in board points.
+/// An eraser touch on a board with a fold: which touch, the outline when it went down, and its path in board points.
 struct FoldErasing {
+  var touch: ObjectIdentifier
   var outline: BoardOutline
   var path: [CGPoint]
 }
@@ -18,23 +19,23 @@ struct FoldErasing {
 extension PaperBoardController {
   /// A touch that erases (the Pencil, or a finger while fingers draw) going down with the eraser on a folded board.
   func foldEraserDown(_ touch: UITouch) {
+    guard paper.drawingTool is PKEraserTool, touch.type == .pencil || fingersDraw else { return }
     foldErasing = nil
-    guard paper.drawingTool is PKEraserTool, touch.type == .pencil || fingersDraw, model.editable,
-      model.headers.contains(where: { $0.fold != nil }), let markup = paper.markup
-    else { return }
+    guard model.editable, model.headers.contains(where: { $0.fold != nil }), let markup = paper.markup else { return }
     let outline = model.outline(of: model.opStrokes(markup.inkDrawing.strokes).strokes)
     guard !outline.markers.isEmpty else { return }
-    foldErasing = FoldErasing(outline: outline, path: [lines.columnPoint(of: touch.location(in: lines))])
+    foldErasing = FoldErasing(
+      touch: ObjectIdentifier(touch), outline: outline, path: [lines.columnPoint(of: touch.location(in: lines))])
   }
 
   func foldEraserMoved(_ touch: UITouch) {
-    guard foldErasing != nil else { return }
+    guard foldErasing?.touch == ObjectIdentifier(touch) else { return }
     foldErasing?.path.append(lines.columnPoint(of: touch.location(in: lines)))
   }
 
   func foldEraserLifted(_ touch: UITouch) {
     foldEraserMoved(touch)
-    guard let erasing = foldErasing else { return }
+    guard let erasing = foldErasing, erasing.touch == ObjectIdentifier(touch) else { return }
     foldErasing = nil
     let hits = erasing.outline.foldHits(along: erasing.path, onHeader: true)
     guard !hits.isEmpty else { return }
@@ -42,7 +43,7 @@ extension PaperBoardController {
     Task { @MainActor [weak self] in self?.eraseFolds(hits, via: "eraser", path: erasing.path.count) }
   }
 
-  /// Story 903: a scratch-out over a fold's marker or its folded header line takes the whole fold, and the other ink it
+  /// Story 905: a scratch-out over a fold's marker or its folded header line takes the whole fold, and the other ink it
   /// covered goes with it, one Undo back to before the zigzag (the web board's `scratchOut` with `foldHits`). False,
   /// and scratch-out goes on as ever, when the zigzag crosses no fold.
   func scratchTakesFolds(_ scratch: PaperMarkup.Scratch, zigzag key: String) -> Bool {
