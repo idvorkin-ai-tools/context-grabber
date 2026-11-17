@@ -1219,7 +1219,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     paper.markup = without
     quiet = false
     inkFrames = without.strokeFrames
-    if verdict.opensRoom {
+    if verdict.opensRoom, model.outline(of: opStrokes(without).strokes).header(at: start.y) == nil {
       room(at: start.y, dy: dy, why: "pencil_margin_drag")
     } else {
       showHoldMenu(at: CGPoint(x: 0, y: start.y), spot: lines.convert(lines.spot(of: start), to: view))
@@ -1235,7 +1235,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       let drawn = markup.subelements[element.elementID] as? PKStroke
     else { return false }
     let path = drawn.path.map { (point: $0.location.applying(drawn.transform), time: $0.timeOffset) }
-    guard BoardOutline.isHold(path) else { return false }
+    guard BoardOutline.isHold(path), BoardMarginHold.pencil(path) == .notInMargin else { return false }
     var without = markup
     _ = without.subelements.removeElement(for: element.elementID)
     let (strokes, hashes) = opStrokes(without)
@@ -1804,12 +1804,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   override func touchWentDown(_ touch: UITouch) {
     if touch.type == .pencil { toolWentDown() }
-    lastDown = touch.type
+    lastDown = pencilDown ? .pencil : touch.type
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
     // Story 933: every try at a hold in the margin is in the log, from here to its verdict.
     let at = lines.columnPoint(of: touch.location(in: lines))
-    guard model.editable, at.x >= 0, at.x < BoardMargin.width, touch.type == .pencil || touch.type == .direct else {
+    guard model.editable, marginTry == nil || touchesDown == 0, at.x >= 0, at.x < BoardMargin.width,
+      touch.type == .pencil || touch.type == .direct
+    else {
       return
     }
     let tool: BoardMarginHold.Tool = touch.type == .pencil ? .pencil : .finger

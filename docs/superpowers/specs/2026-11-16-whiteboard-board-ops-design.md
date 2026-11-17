@@ -179,7 +179,8 @@ board differs, this says why.
   within about 12 points of there for half a second (a hand on a Pencil drifts; Igor's two long holds drifted past
   10). Once it has held, any drift is part of the drag. A Pencil that moves further sooner, or lifts sooner, draws as
   ever, so quick bullets and dashes in the margin stay ink. A hold leaves no ink behind: the stroke the Pencil drew
-  while holding and dragging is taken away.
+  while holding and dragging is taken away. Held on a header's mark, the Pencil brings up the outline menu whatever the drag, as a
+  finger does.
 - **A finger or the Pencil held still in the margin, not dragged**, or **a finger held still anywhere on the page**,
   brings up a small menu:
   *Make room here* (three lines, at the clear line nearest the finger), *Paste*, and *Make header* beside a line of
@@ -188,7 +189,8 @@ board differs, this says why.
 - **The Pencil held still on ink for 400 ms picks up the word under it**: the strokes on that line chained while the
   gap between them is under 16 points (a group of Larry's, a kept text or a header row whole). The same stroke drags
   it, and where the Pencil lifts it lands; the Pencil's own stroke is not kept. One Undo, named *Move*. Held still
-  and lifted without moving, the word is left selected. Off ink, a held Pencil draws as ever.
+  and lifted without moving, the word is left selected. Off ink, a held Pencil draws as ever. In the margin a
+  held Pencil is the hold above, never the pick-up, as a finger's is.
 - On paper the word lands, and the room opens, when the Pencil lifts rather than following it live; PaperKit owns
   the stroke while it is drawn.
 - Every hold tried in the margin is in the session log: when it began, with the finger or the Pencil and where, and
