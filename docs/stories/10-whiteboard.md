@@ -5803,3 +5803,39 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 890:
+
+- **Summary:** A fast zigzag over ink scratches it out
+- **Status:** implemented on `native/board-scratch-vad-tidy` (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** writing on a board with the Pencil
+- **I want to** scribble over a word to delete it, without picking up the eraser
+- **so that** fixing a mistake doesn't break my flow, as on Larry's web board
+
+#### Acceptance Criteria:
+- **Scenario:** Scratching out a word
+- **Given:** a board on paper with a word written on it and another word beside it
+- **When:** I draw a quick zigzag, turning back at least three times, over the first word
+- **Then:** the strokes the zigzag touched and the zigzag itself are gone, the word beside it stays, and one undo brings the scratched-out word back without the zigzag
+
+---
+
+### User Story 891:
+
+- **Summary:** Writing that only looks like a zigzag stays ink
+- **Status:** implemented on `native/board-scratch-vad-tidy`; verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** writing words like *mmm*, *www* or *minimum*
+- **I want to** never lose ink to a scratch-out I didn't mean
+- **so that** I can trust the board with my handwriting
+
+#### Acceptance Criteria:
+- **Scenario:** Near misses
+- **Given:** a board with writing on it
+- **When:** I write *mmm* over a word, draw a slow zigzag over it, draw a zigzag on bare paper, or one that only clips the end of a long word
+- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*, *no ink*, *beside ink*)
+

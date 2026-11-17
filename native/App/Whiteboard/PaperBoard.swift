@@ -612,6 +612,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     inkFrames = frames
     if takesBackTapDot(change, frames: frames) { return }
     if pickedUp(change, markup: markup, before: previous) { return }
+    if scratchesOut(change, markup) { return }
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()
@@ -843,6 +844,43 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
           "dot": self.rect(added.first ?? .null), "ms": self.ms(since), "could_undo": could, "gone": gone,
           "strokes": self.inkFrames.count,
         ])
+    }
+    return true
+  }
+
+  /// Stories 890, 891: a fast zigzag over ink takes it and itself away, one undo bringing the ink back. PaperKit's own
+  /// step for the zigzag is undone first, as for the tap's dot, so the stack holds only the scratch-out's.
+  private func scratchesOut(_ change: PaperProbe.InkChange, _ markup: PaperMarkup) -> Bool {
+    guard drawsHere, change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty,
+      let key = change.added.first, let scratch = markup.scratch(key)
+    else { return false }
+    let outcome = scratch.outcome
+    var event: [String: Any] = [
+      "action": "scratch", "board": model.board.id, "fired": outcome.ok, "reversals": outcome.reversals,
+      "strokes": outcome.gone.count,
+    ]
+    if let speed = outcome.speed { event["speed"] = speed }
+    if let why = outcome.why { event["why"] = why }
+    guard let after = scratch.after else {
+      log.event("whiteboard", event)
+      return false
+    }
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let undo = self.paper.undoManager
+      if undo?.canUndo ?? false { undo?.undo() }
+      // The zigzag's own step may not have been the one undone: the markup before it is set either way.
+      event["undid_zigzag"] = self.paper.markup?.strokeFrames[key] == nil
+      self.registerStepBack(to: scratch.before)
+      self.quiet = true
+      self.paper.markup = after
+      self.quiet = false
+      let framesBefore = self.inkFrames
+      self.inkFrames = after.strokeFrames
+      self.model.stepped(after.inkDrawing)
+      self.noteInk(after, since: framesBefore, report: true)
+      self.log.event("whiteboard", event)
+      self.redrawSoon()
     }
     return true
   }
