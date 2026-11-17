@@ -66,7 +66,8 @@ public struct BoardConnector: Equatable, Sendable {
     ]
     if let color { c["color"] = String(format: "#%06x", color) }
     object["connector"] = c
-    // A note of strings, numbers and lists is always valid JSON.
+    // A note of strings, numbers and lists over one that was already valid JSON is always valid JSON.
+    // swiftlint:disable:next force_unwrapping
     return BoardMeta(object)!
   }
 
@@ -284,7 +285,10 @@ public enum BoardConnectors {
   /// The board as a plan leaves it: its strokes (the canvas's kept, moved, hidden as the plan says, then the ones it
   /// draws), their notes, and what moves whole.
   struct After {
-    enum Source { case canvas(Int), added(Int) }
+    enum Source {
+      case canvas(Int)
+      case added(Int)
+    }
 
     var strokes: [BoardOps.Stroke] = []
     var source: [Source] = []
