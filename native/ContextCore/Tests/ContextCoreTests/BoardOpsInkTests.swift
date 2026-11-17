@@ -159,7 +159,12 @@ final class BoardOpsInkTests: XCTestCase {
     XCTAssertEqual(byStroke.offsets.keys.sorted(), [0, 1])
     // Erasing a stroke of it erases that stroke; erasing the group erases all of it.
     XCTAssertEqual(BoardOps.plan([.delete(["word"])], strokes: strokes, metas: metas, pages: 1).erase, [0])
-    XCTAssertEqual(BoardOps.plan([.delete(["g7"])], strokes: strokes, metas: metas, pages: 1).erase, [0, 1])
+    let gone = BoardOps.plan([.delete(["g7"])], strokes: strokes, metas: metas, pages: 1)
+    XCTAssertEqual(gone.erase, [0, 1])
+    XCTAssertEqual(gone.forgetMetas, ["word", "underline"], "the notes they had before the batch go with them")
+    let redrawn = BoardOps.NewStroke(id: "word", points: [CGPoint(x: 0, y: 280)])
+    let back = BoardOps.plan([.delete(["g7"]), .addStrokes([redrawn])], strokes: strokes, metas: metas, pages: 1)
+    XCTAssertEqual(back.forgetMetas, ["underline"], "a name drawn again in the batch keeps its place")
     // His new stroke with the group's note joins it.
     let dot = BoardOps.NewStroke(id: "dot", points: [CGPoint(x: 0, y: 340)], meta: group)
     let joined = BoardOps.plan(

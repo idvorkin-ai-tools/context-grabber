@@ -138,7 +138,7 @@ final class WhiteboardModel: ObservableObject {
   var applyOps: ((BoardOps.Batch) -> BoardOps.Plan?)?
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
-  var landPaste: (([PKStroke]) -> PKDrawing?)?
+  var landPaste: (([PKStroke]) -> Bool)?
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
   /// as one undo named for it; false when nothing changed. The canvas sets it.
   var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
@@ -1360,9 +1360,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func land(_ strokes: [PKStroke]) {
-    guard let landed = landPaste?(strokes) else { return add(strokes) }
-    drawing = landed
-    drawingMoved()
+    if landPaste?(strokes) != true { add(strokes) }
   }
 
   /// Copied strokes the canvas didn't place itself: one undo, and a change like a drawn stroke, as a paste of text is.
@@ -1798,7 +1796,8 @@ extension WhiteboardModel {
       overlays.apply(plan.overlays)
       showOverlays?(overlays.list)
     }
-    if !plan.metas.isEmpty {
+    if !plan.metas.isEmpty || !plan.forgetMetas.isEmpty {
+      plan.forgetMetas.forEach { strokeMeta.remove($0) }
       strokeMeta.merge(plan.metas)
       opLedger.setStrokeMeta(strokeMeta, board: board.id)
     }

@@ -135,7 +135,10 @@ Wire, additive:
 - A tap on an overlay posts `POST /whiteboard/events {board, rev, op_result?, events}` at once; taken, those events
   leave the queue; a 404 or no answer leaves them for the next turn, logged as `board_events`.
 
-## Step 4: the board behaves like /ink (stories 852–861)
+## Step 4: the board behaves like /ink (stories 852–861, 869–877)
+
+The web board's model is the Cockpit's `assets/ink/board.mjs` and its gestures `assets/ink/ink.html`; the names in
+parentheses below are theirs.
 
 - `BoardRoom` (ContextCore): `rows`, `cut`, `band`, `place` (board.mjs `placeBlock`), `closable`, `byHand` (`room`).
 - `BoardOps.items` takes `folds` (stroke name → `h:<id>`, first), then kept texts, then groups; an item's `bounds` is

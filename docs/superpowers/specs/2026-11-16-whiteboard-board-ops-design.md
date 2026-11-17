@@ -118,8 +118,8 @@ The web board (the Cockpit's `/ink`) is where these behaviours are worked out fi
 
 ## Step 4: the board behaves like Larry's web board
 
-Igor, 2026-11-16: the web board at /ink is the behaviour to match. Its model is the Cockpit's `assets/ink/board.mjs`
-and its gestures `assets/ink/ink.html`; where the iPad board differs, this says why.
+Igor, 2026-11-16: the web board at /ink is the behaviour to match, its model and its gestures alike; where the iPad
+board differs, this says why.
 
 ### Paste makes room
 

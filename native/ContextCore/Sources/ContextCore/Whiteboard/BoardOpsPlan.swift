@@ -99,6 +99,8 @@ extension BoardOps {
     public var added: [NewStroke] = []
     /// Notes set, by stroke name (his drawn strokes' included).
     public var metas: [String: BoardMeta] = [:]
+    /// Names erased and not drawn again: their notes go.
+    public var forgetMetas: Set<String> = []
     /// Canvas strokes hidden (true) or shown (false), by place. A stroke he draws carries its own.
     public var hidden: [Int: Bool] = [:]
     /// Names to select once the batch is on the board (story 848).
@@ -297,7 +299,8 @@ extension BoardOps {
       // Notes on strokes that went are forgotten with them.
       let gone = Set(entries.filter(\.gone).flatMap(\.names))
       let live = Set(entries.filter { !$0.gone }.flatMap(\.names))
-      for name in gone.subtracting(live) { plan.metas[name] = nil }
+      plan.forgetMetas = gone.subtracting(live)
+      for name in plan.forgetMetas { plan.metas[name] = nil }
     }
   }
 }

@@ -391,7 +391,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
-    model.landPaste = { [weak self] strokes in self?.land(paste: strokes) }
+    model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
     model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
     model.showOverlays = { [weak self] list in
       guard let self else { return }
@@ -896,8 +896,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Story 852, as the web board's paste: in the clear patch of the view nearest its middle; else room opens at the
   /// clear line nearest the middle, the ink below pushed down whole lines, and the paste lands in it. The push and the
   /// paste are one undo. It lands selected, with Delete beside it.
-  private func land(paste strokes: [PKStroke]) -> PKDrawing? {
-    guard let markup = paper.markup, !strokes.isEmpty else { return nil }
+  private func land(paste strokes: [PKStroke]) -> Bool {
+    guard let markup = paper.markup, !strokes.isEmpty else { return false }
     let started = CACurrentMediaTime()
     let (ink, hashes) = opStrokes(markup)
     let block = PKDrawing(strokes: strokes).bounds
@@ -919,7 +919,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let landedBox = PKDrawing(strokes: placed).bounds
     plan.pagesAfter = board.pages(after: plan.pagesAfter, inkMaxY: landedBox.maxY, redoWaiting: false)
     let framesBefore = inkFrames
-    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: placed, named: "Paste") else { return nil }
+    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: placed, named: "Paste") else { return false }
+    model.stepped(held.inkDrawing)
     noteInk(held, since: framesBefore, report: true)
     let ids = Array(held.subelements.strokes.map(\.elementID).suffix(placed.count))
     pasted = Set(ids.map(Self.key))
@@ -935,7 +936,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterKeep)
     lookForInk(landedBox, why: "pasted")
-    return held.inkDrawing
+    return true
   }
 
   /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
@@ -1132,6 +1133,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       let drawn = markup.subelements[element.elementID] as? PKStroke
     else { return false }
     let path = drawn.path.map { (point: $0.location.applying(drawn.transform), time: $0.timeOffset) }
+    guard BoardOutline.isHold(path) else { return false }
     var without = markup
     _ = without.subelements.removeElement(for: element.elementID)
     let (strokes, hashes) = opStrokes(without)

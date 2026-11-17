@@ -495,11 +495,17 @@ public struct BoardOutline: Sendable {
   /// A Pencil stroke that is a hold and drag: still within `holdStill` of where it went down for `holdMs`, on a word.
   /// Its points in board points with their time since the stroke began, seconds. The word and how far it is dragged.
   public func pickUp(_ path: [(point: CGPoint, time: Double)]) -> (names: [String], by: CGVector)? {
-    guard let start = path.first, let end = path.last else { return nil }
-    let held = path.prefix { hypot($0.point.x - start.point.x, $0.point.y - start.point.y) <= Self.holdStill }
-    guard let last = held.last, (last.time - start.time) * 1000 >= Self.holdMs, let word = word(at: start.point) else {
+    guard Self.isHold(path), let start = path.first, let end = path.last, let word = word(at: start.point) else {
       return nil
     }
     return (word, CGVector(dx: end.point.x - start.point.x, dy: end.point.y - start.point.y))
+  }
+
+  /// The stroke began still within `holdStill` of where it went down for `holdMs`, wherever it lies on the board.
+  public static func isHold(_ path: [(point: CGPoint, time: Double)]) -> Bool {
+    guard let start = path.first else { return false }
+    let held = path.prefix { hypot($0.point.x - start.point.x, $0.point.y - start.point.y) <= holdStill }
+    guard let last = held.last else { return false }
+    return (last.time - start.time) * 1000 >= holdMs
   }
 }
