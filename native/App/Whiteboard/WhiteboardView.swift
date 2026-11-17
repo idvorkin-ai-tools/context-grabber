@@ -125,8 +125,6 @@ final class WhiteboardModel: ObservableObject {
   let questions: WhiteboardQuestionsModel
   private let store: WhiteboardStore
   private let log: SessionLog
-  /// The session log, for the board's extensions (stories 917–919).
-  var sessionLog: SessionLog { log }
   private let inbox: InboxModel
   private let cockpit: String
   private let threads = WhiteboardThreads()
