@@ -160,6 +160,16 @@ board differs, this says why.
   picture. Larry is told which strokes are folded under which header and how many lines, so folded ink is never taken
   for erased, nor for new when it unfolds.
 - Headers are kept with the board on this device, by the names of their strokes.
+- **A folded header says what it holds, on the board and in Larry's picture.** Beside the folded header's row, a
+  little right of its last stroke, a small grey "▸ N lines folded" ("▸ 1 line folded" for one) shows on the board
+  and is drawn into every picture of the board (Larry's turn, Send, Claude's turn), in the same words and the same
+  place as the web board's, so Larry can read a folded board as a folded one.
+- **Erasing a fold takes the whole section.** The eraser across a folded header's "▸ N lines folded", or across the
+  folded header's own ink, erases the header and everything folded under it (folds folded inside it included), and
+  what was below closes up to where the header was, in whole lines. One Undo brings the section back, still folded,
+  and what was below back where it was. (Across the header's ink the eraser takes those strokes itself first, so
+  there it is two Undos.) A scratch-out over the marker or the folded header line will do the same once scratch-out
+  lands.
 - **Fold all and Unfold all**, and **collapse to a level**: from the hold menu on a header's mark, Fold all, 1, 2, 3
   and Unfold all. A header's level is how deep it nests with everything open. Collapsing to level *n* shows the
   headers down to level *n* and nothing deeper: every header at level *n* folds, and so does a shallower one with no
@@ -256,8 +266,6 @@ stays joined when they move.
 - A connector made by dragging from one thing to another (the web board's way is the lasso and Connect), and a
   connector between two plain strokes that aren't a word.
 - Question cards, the writing pause learned from his rhythm, tidying overlaps (other builds).
-- The picture showing "▸ N lines folded" under a folded header, as the web board's does: the margin mark shows it
-  on the board, and Larry gets the count with the strokes.
 - Running Larry's board logic inside the app for offline use.
 - Controls that survive the board closing: they are Larry's live conversation, and he lays them again.
 
@@ -288,6 +296,9 @@ stays joined when they move.
   another tap brings them back where they were. Folding a section holding a folded header and unfolding it leaves the
   inner one folded. Larry's next turn lists the folded strokes under their header, and none of them as erased.
 - Fold all, 1, 2 and Unfold all on a two-level outline show what the outline would.
+- A folded header shows "▸ N lines folded" beside it, and Larry's next picture has the same words beside the header.
+- The eraser drawn across that marker erases the header and its folded lines, the ink below closes up to where the
+  header was, and one Undo brings the section back folded with the ink below where it was.
 - A line written big or underlined shows a faint H; a margin tap there makes it a header.
 - A finger held in the margin and dragged down two lines opens two lines; held and lifted, or held on the page, it
   shows the menu. The Pencil held on a word for under half a second and dragged moves that word, and nothing else.

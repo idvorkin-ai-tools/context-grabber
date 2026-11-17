@@ -1069,6 +1069,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         PaperLines.Mark(
           id: "header-\(header.id)", y: box.midY, text: folded ? "▸ \(header.fold?.lines ?? 0)" : "▾", faint: false))
     }
+    // Story 901: "▸ N lines folded" beside a folded header, where the eraser takes the fold.
+    for marker in outline.markers {
+      marks.append(
+        PaperLines.Mark(
+          id: "fold-\(marker.header)", y: marker.box.midY, text: marker.text, faint: false, x: marker.origin.x))
+    }
     for (n, candidate) in outline.candidates().enumerated() {
       marks.append(PaperLines.Mark(id: "candidate-\(n)", y: candidate.y, text: "H", faint: true))
     }
@@ -2166,6 +2172,8 @@ final class PaperLines: UIView {
     var y: CGFloat
     var text: String
     var faint: Bool
+    /// Where the words start, board points, for a mark beside the ink rather than in the margin (story 901).
+    var x: CGFloat?
   }
   private var marks: [Mark] = []
   private var markViews: [String: UILabel] = [:]
@@ -2221,6 +2229,20 @@ final class PaperLines: UIView {
 
   private func lay(_ mark: Mark, _ label: UILabel) {
     let scale = spot(of: CGPoint(x: 1, y: 0)).x - spot(of: .zero).x
+    if let x = mark.x {
+      // Story 901: the web board's grey 14-point words beside the folded header, read as the picture has them.
+      let origin = spot(of: CGPoint(x: x, y: mark.y - 12))
+      label.font = .systemFont(ofSize: BoardOutline.markerPoints * scale)
+      label.textColor = UIColor(rgb: 0x999999)
+      label.textAlignment = .left
+      label.text = mark.text
+      label.sizeToFit()
+      label.frame.origin = origin
+      label.frame.size.height = 24 * scale
+      label.accessibilityLabel = "Lines folded"
+      label.accessibilityValue = mark.text
+      return
+    }
     let size = CGSize(width: 44 * scale, height: 28 * scale)
     let center = spot(of: CGPoint(x: BoardMargin.width / 2, y: mark.y))
     label.frame = CGRect(

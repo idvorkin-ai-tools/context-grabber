@@ -1534,6 +1534,7 @@ final class WhiteboardModel: ObservableObject {
       UIColor.white.setFill()
       ctx.fill(CGRect(origin: .zero, size: ink.size))
       ink.draw(at: .zero)
+      drawFoldMarkers(in: rect)
     }
   }
 

@@ -6301,3 +6301,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the connector is a stroke under its name, drawn in every picture I render, whose notes say it is a connector, what it joins, its sides and its route
 
 ---
+
+### User Story 900:
+
+- **Summary:** Larry's picture shows a folded section as its header and "▸ N lines folded"
+- **Status:** implemented in PENDING-900; verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** folding sections of a board I talk over with Larry
+- **I want to** have the picture Larry gets show "▸ N lines folded" beside a folded header, as the web board's does
+- **so that** he reads a folded board as a folded one, not as a header with nothing under it
+
+#### Acceptance Criteria:
+- **Scenario:** A folded header in Larry's picture
+- **Given:** a header folded over two lines
+- **When:** Larry's turn takes a picture of the board (or I Send it, or Claude takes its turn)
+- **Then:** the picture shows the header and, beside it in small grey letters, "▸ 2 lines folded"; one line folded reads "▸ 1 line folded", and a fold folded away inside another shows none
+
+---
+
+### User Story 901:
+
+- **Summary:** A folded header says on the board how many lines it holds
+- **Status:** implemented in PENDING-900; verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); a UI test, `WhiteboardOutlineUITests.testAFoldShowsItsLinesBesideTheHeader`, written and not yet run; not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** folding sections on the board
+- **I want to** see "▸ N lines folded" beside a folded header, where Larry's picture has it
+- **so that** I know what the fold holds and have something to erase to take it
+
+#### Acceptance Criteria:
+- **Scenario:** Folding a header
+- **Given:** a header with two indented lines under it
+- **When:** I tap the margin beside it to fold it
+- **Then:** "▸ 2 lines folded" shows in small grey letters just right of the header's row, moves with it, and goes when I unfold
+
+---
