@@ -69,9 +69,11 @@ final class WhiteboardRowDeleteUITests: XCTestCase {
   private func rename(_ app: XCUIApplication, to name: String) {
     let field = app.alerts.textFields.firstMatch
     XCTAssertTrue(field.appears(within: 5), app.debugDescription)
-    field.tap()
+    // At the field's end, so every delete takes a letter of the old name (a plain tap left the cursor mid-name).
+    field.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5)).tap()
     let old = field.value as? String ?? ""
     field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count + 2) + name)
+    XCTAssertEqual(field.value as? String, name, "the old name cleared")
     app.alerts.buttons["Rename"].tap()
   }
 
@@ -102,7 +104,8 @@ final class WhiteboardRowDeleteUITests: XCTestCase {
       .matching(NSPredicate(format: "label == %@", fromRow)).firstMatch
     XCTAssertTrue(title.appears(within: 10), app.debugDescription)
     title.tap()
-    let barRename = app.buttons["whiteboard-rename"].firstMatch
+    // The title menu is the system's: an identifier doesn't reach it, so its Rename is found by its label.
+    let barRename = app.buttons["Rename"].firstMatch
     XCTAssertTrue(barRename.appears(within: 5), app.debugDescription)
     barRename.tap()
     let fromBar = "Bar \(id.suffix(6))"

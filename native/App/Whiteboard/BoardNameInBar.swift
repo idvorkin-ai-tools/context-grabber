@@ -23,7 +23,6 @@ struct BoardNameInBar: ViewModifier {
           } label: {
             Label("Rename", systemImage: "pencil")
           }
-          .accessibilityIdentifier("whiteboard-rename")
         }
         .alert("Rename board", isPresented: $renaming) {
           TextField("Name", text: $newName)
