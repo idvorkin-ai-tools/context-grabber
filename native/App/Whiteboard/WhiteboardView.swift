@@ -1356,7 +1356,7 @@ final class WhiteboardModel: ObservableObject {
     var labels: [String: [[CGPoint]]] = [:]
     var members: [String: [Int]] = [:]
     var ink: [[CGPoint]] = []
-    for (i, stroke) in drawing.strokes.enumerated() {
+    for (i, stroke) in drawing.strokes.enumerated() where !stroke.isFolded {
       let points = Self.points(stroke)
       let made = Self.moment(stroke)
       if known.contains(made) {
@@ -1395,7 +1395,9 @@ final class WhiteboardModel: ObservableObject {
     stroke.path.interpolatedPoints(by: .distance(4)).map { $0.location.applying(stroke.transform) }
   }
 
-  private static func inkPoints(_ drawing: PKDrawing) -> [[CGPoint]] { drawing.strokes.map(points) }
+  private static func inkPoints(_ drawing: PKDrawing) -> [[CGPoint]] {
+    drawing.strokes.filter { !$0.isFolded }.map(points)
+  }
 
   /// Keep beside the chosen mark: the old tap's keep, one undo.
   func keepChosen() {

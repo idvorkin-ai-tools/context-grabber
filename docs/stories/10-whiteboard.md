@@ -5806,7 +5806,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 890:
 
 - **Summary:** A fast zigzag over ink scratches it out
-- **Status:** implemented on `native/board-scratch-vad-tidy` (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4) (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -5825,7 +5825,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 891:
 
 - **Summary:** Writing that only looks like a zigzag stays ink
-- **Status:** implemented on `native/board-scratch-vad-tidy`; verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4); verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -5844,7 +5844,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 892:
 
 - **Summary:** Claude and Larry wait until I've stopped writing, by my own rhythm
-- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `WritingVad`, ported; replaces story 660's fixed half second); verified on the host (`WhiteboardWritingVadTests`; `just native-test`). How it feels is the iPad's to show
+- **Status:** implemented in [c9219b9](https://github.com/idvorkin/context-grabber/commit/c9219b9) (the web board's `WritingVad`, ported; replaces story 660's fixed half second); verified on the host (`WhiteboardWritingVadTests`; `just native-test`). How it feels is the iPad's to show
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
 
 #### Use Case:
@@ -5863,7 +5863,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 893:
 
 - **Summary:** An end-of-thought cue asks sooner
-- **Status:** implemented on `native/board-scratch-vad-tidy`; verified on the host (`WhiteboardWritingVadTests.testAQuestionMarkEndsTheThoughtAtOnce`, `testThePencilHoveringAtANewLineCutsThePauseToTheFloor`, `testTheHandLeavingIsSeenOnlyWhereTheHoverIs`). The Pencil's hover exists only on the iPad
+- **Status:** implemented in [c9219b9](https://github.com/idvorkin/context-grabber/commit/c9219b9); verified on the host (`WhiteboardWritingVadTests.testAQuestionMarkEndsTheThoughtAtOnce`, `testThePencilHoveringAtANewLineCutsThePauseToTheFloor`, `testTheHandLeavingIsSeenOnlyWhereTheHoverIs`). The Pencil's hover exists only on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
 
 #### Use Case:
@@ -5882,7 +5882,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 894:
 
 - **Summary:** Putting the Pencil down cancels a turn that hasn't landed
-- **Status:** implemented on `native/board-scratch-vad-tidy`; verified on the host (`WhiteboardGhostTurnsTests.testThePencilGoingDownCancelsATurnNotYetLanded` and its neighbours). The request being dropped on the wire is the iPad's to show
+- **Status:** implemented in [c9219b9](https://github.com/idvorkin/context-grabber/commit/c9219b9); verified on the host (`WhiteboardGhostTurnsTests.testThePencilGoingDownCancelsATurnNotYetLanded` and its neighbours). The request being dropped on the wire is the iPad's to show
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
 
 #### Use Case:
@@ -5901,7 +5901,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 895:
 
 - **Summary:** Keep all of Larry's marks at once, in the order he drew them
-- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`). and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
@@ -5920,7 +5920,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 896:
 
 - **Summary:** Tidy overlaps moves kept labels off my writing
-- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`). and on the simulator (`WhiteboardPaperGhostsUITests.testTidyOverlapsOnATidyBoardSaysNothingOverlaps`, rung 2)
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`); `just native-test`. Not yet seen on the simulator or the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
@@ -5933,7 +5933,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a label I kept sits on a line I wrote, and another sits on bare paper
 - **When:** I choose Board → Tidy overlaps
 - **Then:** the label on my words moves down to the first clear space under them, the other stays, my ink doesn't move, and one undo puts it back
+
+---
+
+### User Story 897:
+
+- **Summary:** Tidy overlaps on a tidy board says so
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4); verified on the host (`WhiteboardTidyTests.testTidyTwiceChangesNothing`) and on the simulator (`WhiteboardPaperGhostsUITests.testTidyOverlapsOnATidyBoardSaysNothingOverlaps`, rung 2)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+
+#### Use Case:
+- **As someone** who chose Tidy overlaps on a board with nothing to tidy
+- **I want to** be told nothing overlaps
+- **so that** I know the tidy ran and the board is already clear
+
+#### Acceptance Criteria:
 - **Scenario:** Nothing to tidy
 - **Given:** no kept label sits on other ink
 - **When:** I choose Board → Tidy overlaps
 - **Then:** nothing moves and the bar says *Nothing overlaps*
+
+---
+
+### User Story 898:
+
+- **Summary:** Folded ink is never scratched out, kept around or tidied
+- **Status:** implemented in the review round after [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4); verified by the lint rung and the Mac build (`just native-build-mac`) only. Folding and the Pencil's zigzag are the iPad's to show
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*; [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+
+#### Use Case:
+- **As someone** who folds sections of a board away under their headers
+- **I want to** have what is folded left alone by a scratch-out, a Keep all or a tidy
+- **so that** unfolding brings back exactly what I folded, where I left it
+
+#### Acceptance Criteria:
+- **Scenario:** A zigzag over a word just under a folded header
+- **Given:** a folded section whose hidden ink sits under the lines below its header, and a word on one of those lines
+- **When:** I scratch the word out
+- **Then:** only the word goes; unfolding the header shows all of its ink where it was

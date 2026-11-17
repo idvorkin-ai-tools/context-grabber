@@ -7,6 +7,11 @@ import Foundation
 import PaperKit
 import PencilKit
 
+extension PKStroke {
+  /// Folded ink (story 847): still on the board, with no colour to see. Scratch out, Keep all and Tidy never touch it.
+  var isFolded: Bool { ink.color.cgColor.alpha == 0 }
+}
+
 extension PaperMarkup {
   /// A scratch-out's verdict on a stroke just drawn, and the markup without it and the ink it took.
   struct Scratch {
@@ -28,7 +33,9 @@ extension PaperMarkup {
     // The Pencil's time along the stroke, in seconds from its start.
     let ms = zigzag.path.last.map { $0.timeOffset * 1000 }
     let near = zigzag.renderFrame.insetBy(dx: -12, dy: -12)
-    let ink = strokes.filter { $0.elementID != zigzag.elementID && $0.renderFrame.intersects(near) }.map { stroke in
+    let ink = strokes.filter {
+      $0.elementID != zigzag.elementID && !$0.isFolded && $0.renderFrame.intersects(near)
+    }.map { stroke in
       WhiteboardScratchOut.Ink(
         id: PaperHost.key(stroke.elementID), points: stroke.path.map { $0.location.applying(stroke.transform) },
         width: WhiteboardStrokes.width(sizes: stroke.path.map(\.size.width), transform: stroke.transform))

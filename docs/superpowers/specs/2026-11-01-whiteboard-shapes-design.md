@@ -84,7 +84,7 @@ and the iPad now waits the same way.
 - The session log says, for each pause, how long it waited, why (*rhythm*, *mid-line*, *+quick*, *question*, *new line*,
   *hand away*) and his usual gap, so the iPad can show whether it feels right.
 
-### Keep all and Tidy overlaps (stories 895, 896; Igor, 2026-11-16: "match Larry's web board")
+### Keep all and Tidy overlaps (stories 895, 896, 897; Igor, 2026-11-16: "match Larry's web board")
 
 Larry often answers with several labels down the page. Kept one by one they land exactly where he drew them, and on a
 board that moved on since his picture a label can land on Igor's writing. The Cockpit's web board (*/ink*) keeps them
@@ -104,6 +104,8 @@ pushes the writing below down to make room, the iPad moves the label down to the
 - Labels are known by how they were made: the strokes of one kept label or one paste are made in the same moment, and the
   board remembers those moments, on this device. A label kept on another device, or before this build, is ink like
   any other and is never moved.
+- Folded ink (hidden under a folded header) is neither moved nor in the way: a kept label never moves for ink you can't
+  see, and a folded label stays where it is until it is unfolded.
 - A tidy or a keep that moves ink past the last page brings the pages it needs, as any keep does.
 - The session log says what each did: how many marks were kept and how many moved, how many labels the tidy found and
   moved.

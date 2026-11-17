@@ -303,7 +303,7 @@ only where a page needs saying.)
 
 The log says what each ⌘V found on the clipboard and who took it, so the iPad can show what the simulator can't.
 
-### Scratch out (stories 890, 891; Igor, 2026-11-16: "match Larry's web board")
+### Scratch out (stories 890, 891, 898; Igor, 2026-11-16: "match Larry's web board")
 
 As in Goodnotes and Notability, and as the Cockpit's web board (*/ink*) does it: a fast zigzag drawn over ink deletes the
 ink it covers, without picking up the eraser.
@@ -319,6 +319,8 @@ ink it covers, without picking up the eraser.
 - It's a change like any erase: the board saves, and Larry's next picture and strokes no longer have that ink. It doesn't
   ask Claude about the board, as nothing new was written.
 - A look-only board can't be scratched out, as it can't be drawn on.
+- **Folded ink is never scratched** (story 898): ink hidden under a folded header stays, even where the lines below it
+  now sit on top of it, and it doesn't count toward whether the zigzag lies over ink.
 - The log says, for every zigzag with three or more turns, whether it fired, its turns and speed, why it didn't (*slow*,
   *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels.
 

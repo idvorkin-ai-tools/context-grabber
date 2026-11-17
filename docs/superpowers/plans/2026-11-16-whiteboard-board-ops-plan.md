@@ -33,7 +33,7 @@ batch the same way, whoever sent it.
 - `BoardOps.plan(_ ops:items:pages:board:)` → `Plan`: per-stroke offsets, ghosts to show, pages before and after,
   items moved, ids not found. Ops apply in order; each sees the board as the ops before it left it.
 - `BoardOps.Readiness` and `BoardOps.readiness(penDown:liftedAt:now:)`: now, after a wait, or on the lift. The hold
-  after a lift is `WhiteboardPacer.pause`.
+  after a lift is `BoardOps.hold`, 500 ms.
 - `BoardOps.Result`: `label, ok, rev, reason?, missing_ids?` → `wire`.
 
 `Whiteboard/BoardOpApplier.swift`
