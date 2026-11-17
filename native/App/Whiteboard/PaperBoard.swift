@@ -366,7 +366,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
-    model.applyOps = { [weak self] batch, texts in self?.applyOps(batch, texts: texts) }
+    model.applyOps = { [weak self] batch in self?.applyOps(batch) }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -976,25 +976,32 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// own element (its id kept, so PaperKit's own steps go on working), the column grows to the pages it needs, and the
   /// lot is one undo named for the batch, the page count included. Text only shows ghosts, so leaves the markup alone.
   /// Nil before the markup is laid out.
-  private func applyOps(_ batch: BoardOps.Batch, texts: [BoardText]) -> BoardOps.Plan? {
+  private func applyOps(_ batch: BoardOps.Batch) -> BoardOps.Plan? {
     guard var markup = paper.markup else { return nil }
     let started = CACurrentMediaTime()
     let elements = markup.subelements.strokes
     let ink = markup.inkDrawing.strokes
-    let strokes = ink.map { stroke in
+    let hashes = ink.map { WhiteboardModel.strokesForLarry(PKDrawing(strokes: [$0])).map(\.id) }
+    // Larry names strokes as the board sent them: one moved before keeps its first name.
+    let strokes = zip(ink, hashes).map { stroke, hashes in
       BoardOps.Stroke(
-        ids: WhiteboardModel.strokesForLarry(PKDrawing(strokes: [stroke])).map(\.id),
-        t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000), bounds: stroke.renderBounds)
+        ids: hashes.map(model.strokeIDs.stable), t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000),
+        bounds: stroke.renderBounds)
     }
     let plan = BoardOps.plan(
-      batch.ops, items: BoardOps.items(strokes: strokes, texts: texts), pages: pages, board: board)
+      batch.ops, items: BoardOps.items(strokes: strokes, texts: model.texts), pages: pages, board: board)
     guard plan.changesBoard else { return plan }
     let before = markup
     let countBefore = markup.subelements.count
+    var renamed: [(from: [String], to: [String])] = []
     for (index, shift) in plan.offsets where elements.indices.contains(index) {
       var moved = elements[index]
       moved.applyTransform(CGAffineTransform(translationX: shift.dx, y: shift.dy))
       _ = markup.subelements.updateOrAppend(moved)
+      // Remade as `inkDrawing` remakes strokes: its new hashes, which keep the names it had.
+      let after = PKStroke(
+        ink: moved.ink, path: moved.path, transform: moved.transform, mask: moved.mask, randomSeed: moved.randomSeed)
+      renamed.append((hashes[index], WhiteboardModel.strokesForLarry(PKDrawing(strokes: [after])).map(\.id)))
     }
     // A moved stroke that came back as a new element would leave its old self behind: nothing is set, and the log says so.
     guard markup.subelements.count == countBefore else {
@@ -1017,7 +1024,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showLines()
     showPageNumber()
     redrawSoon()
-    model.opsApplied(held.inkDrawing)
+    model.opsApplied(held.inkDrawing, renamed: renamed)
     log.event(
       "whiteboard",
       [

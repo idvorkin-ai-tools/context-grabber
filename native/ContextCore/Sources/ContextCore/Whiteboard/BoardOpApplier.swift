@@ -126,6 +126,18 @@ public struct BoardOpLedger: @unchecked Sendable {
     if let data = try? JSONEncoder().encode(saved) { defaults.set(data, forKey: key(board)) }
   }
 
+  private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
+
+  /// The names moved strokes keep (`BoardStrokeIDs`).
+  public func strokeIDs(board: String) -> BoardStrokeIDs {
+    defaults.data(forKey: idsKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeIDs.self, from: $0) }
+      ?? BoardStrokeIDs()
+  }
+
+  public func setStrokeIDs(_ ids: BoardStrokeIDs, board: String) {
+    if let data = try? JSONEncoder().encode(ids) { defaults.set(data, forKey: idsKey(board)) }
+  }
+
   public func texts(board: String) -> [BoardText] {
     defaults.data(forKey: textsKey(board)).flatMap { try? JSONDecoder().decode([BoardText].self, from: $0) } ?? []
   }

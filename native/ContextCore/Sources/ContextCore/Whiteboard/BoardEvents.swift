@@ -130,42 +130,65 @@ public struct BoardText: Equatable, Codable, Sendable {
   }
 }
 
+/// A kept text where its glyphs are, for Larry: its id, words, lettering and box.
+struct PlacedText: Equatable, Sendable {
+  var text: BoardText
+  var x: Double
+  var y: Double
+  var w: Double
+  var h: Double
+
+  /// As the Cockpit's strokes endpoint takes a text (whiteboard_strokes.py): exactly these fields, the box's top-left
+  /// and size in board points; any other field, or any other kind without points, is a 400 for the whole snapshot.
+  var wire: [String: Any] {
+    [
+      "kind": "text", "id": text.id, "text": text.text, "font": text.font.rawValue, "x": x, "y": y, "w": w, "h": h,
+      "color": text.color, "t": text.t,
+    ]
+  }
+}
+
 extension WhiteboardStrokes {
-  /// The strokes as the Cockpit reads them, at most `maxStrokes`, a kept text's glyphs folded into one entry where its
-  /// first glyph was: `kind: "text"`, its id, words, lettering and box, so a later move can name it.
+  /// The strokes as the Cockpit reads them, at most `maxStrokes`, each kept text of Larry's folded into one
+  /// `kind: "text"` entry under its id where its first glyph was, so a later move can name it.
   public static func wire(_ strokes: [Stroke], texts: [BoardText]) -> [[String: Any]] {
     guard !texts.isEmpty else { return wire(strokes) }
     let byTime = BoardText.byTime(texts)
-    var glyphs: [String: [Stroke]] = [:]
-    for stroke in strokes {
-      if let text = BoardText.owning(stroke.t, in: byTime) { glyphs[text.id, default: []].append(stroke) }
-    }
+    let placed = Dictionary(
+      placedTexts(strokes, texts: texts).map { ($0.text.id, $0) }, uniquingKeysWith: { a, _ in a })
     var out: [[String: Any]] = []
-    var folded = Set<String>()
+    var done = Set<String>()
     for stroke in strokes {
       guard let text = BoardText.owning(stroke.t, in: byTime) else {
         out += wire([stroke])
         continue
       }
-      guard folded.insert(text.id).inserted, let members = glyphs[text.id] else { continue }
-      out.append(textEntry(text, members))
+      guard done.insert(text.id).inserted, let entry = placed[text.id] else { continue }
+      out.append(entry.wire)
       if out.count >= maxStrokes { break }
     }
     return Array(out.prefix(maxStrokes))
   }
 
-  static func textEntry(_ text: BoardText, _ glyphs: [Stroke]) -> [String: Any] {
-    let points = glyphs.flatMap(\.points)
-    let xs = points.map(\.x)
-    let ys = points.map(\.y)
-    let (minX, maxX, minY, maxY) = (xs.min() ?? 0, xs.max() ?? 0, ys.min() ?? 0, ys.max() ?? 0)
+  /// Each kept text whose glyphs are on the board, in the order of its first glyph.
+  static func placedTexts(_ strokes: [Stroke], texts: [BoardText]) -> [PlacedText] {
+    guard !texts.isEmpty else { return [] }
+    let byTime = BoardText.byTime(texts)
+    var glyphs: [String: [Stroke]] = [:]
+    var order: [BoardText] = []
+    for stroke in strokes {
+      guard let text = BoardText.owning(stroke.t, in: byTime) else { continue }
+      if glyphs[text.id] == nil { order.append(text) }
+      glyphs[text.id, default: []].append(stroke)
+    }
     let tenth = { (v: CGFloat) in Double((v * 10).rounded() / 10) }
-    let width = glyphs.isEmpty ? 0 : glyphs.map(\.width).reduce(0, +) / CGFloat(glyphs.count)
-    return [
-      "id": text.id, "kind": "text", "text": text.text, "font": text.font.rawValue, "size": text.size,
-      "color": text.color, "width": Double(width), "tool": "text", "t": text.t,
-      "x": tenth(minX), "y": tenth(minY), "w": tenth(maxX - minX), "h": tenth(maxY - minY),
-      "points": [[tenth(minX), tenth(minY)], [tenth(maxX), tenth(maxY)]],
-    ]
+    return order.map { text in
+      let members = glyphs[text.id] ?? []
+      let points = members.flatMap(\.points)
+      let xs = points.map(\.x)
+      let ys = points.map(\.y)
+      let (minX, maxX, minY, maxY) = (xs.min() ?? 0, xs.max() ?? 0, ys.min() ?? 0, ys.max() ?? 0)
+      return PlacedText(text: text, x: tenth(minX), y: tenth(minY), w: tenth(maxX - minX), h: tenth(maxY - minY))
+    }
   }
 }

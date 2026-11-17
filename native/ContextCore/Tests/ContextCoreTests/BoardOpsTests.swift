@@ -339,17 +339,61 @@ final class BoardOpsTests: XCTestCase {
     let wire = WhiteboardStrokes.wire([ink, glyph("g1", 40), glyph("g2", 50)], texts: [text])
     XCTAssertEqual(wire.count, 2)
     XCTAssertEqual(wire[0]["id"] as? String, "ink")
-    XCTAssertEqual(wire[1]["id"] as? String, "label")
-    XCTAssertEqual(wire[1]["kind"] as? String, "text")
-    XCTAssertEqual(wire[1]["text"] as? String, "Hi")
-    XCTAssertEqual(wire[1]["font"] as? String, "plain")
-    XCTAssertEqual(wire[1]["x"] as? Double, 40)
-    XCTAssertEqual(wire[1]["y"] as? Double, 60)
-    XCTAssertEqual(wire[1]["w"] as? Double, 18)
-    XCTAssertEqual(wire[1]["h"] as? Double, 20)
-    XCTAssertEqual(wire[1]["points"] as? [[Double]], [[40, 60], [58, 80]])
+    // Exactly what the Cockpit's strokes endpoint takes for a text: anything else 400s the whole snapshot.
+    XCTAssertEqual(
+      wire[1] as NSDictionary,
+      [
+        "kind": "text", "id": "label", "text": "Hi", "font": "plain", "x": 40.0, "y": 60.0, "w": 18.0, "h": 20.0,
+        "color": "#ba39e6", "t": 500,
+      ] as NSDictionary)
     // With no kept text, the strokes go as they always have.
     XCTAssertEqual(WhiteboardStrokes.wire([ink], texts: []).count, 1)
+  }
+
+  // MARK: A moved stroke keeps its name (stories 814, 815)
+
+  private func named(_ points: [CGPoint], t: Int64 = 7) -> WhiteboardStrokes.Stroke {
+    WhiteboardStrokes.Stroke(
+      id: WhiteboardStrokes.id(points: points, color: "#000000", t: t), t: t, points: points)
+  }
+
+  func testAMovedStrokeGoesBackUnderTheIdItHad() {
+    let points = [CGPoint(x: 10, y: 400), CGPoint(x: 60, y: 420)]
+    let before = named(points)
+    let after = named(points.map { CGPoint(x: $0.x, y: $0.y + 120) })
+    XCTAssertNotEqual(before.id, after.id, "its ink hashes anew")
+    var ids = BoardStrokeIDs()
+    ids.moved(from: [before.id], to: [after.id])
+    XCTAssertEqual(WhiteboardStrokes.wire(ids.named([after]), texts: []).first?["id"] as? String, before.id)
+    // Moved again, it still has its first name.
+    let again = named(points.map { CGPoint(x: $0.x + 5, y: $0.y + 200) })
+    ids.moved(from: [after.id], to: [again.id])
+    XCTAssertEqual(ids.stable(again.id), before.id)
+    // Undone, the ink hashes as it first did: the same name.
+    XCTAssertEqual(ids.stable(before.id), before.id)
+    // Moved back where it started, the name is its own hash, remembered nowhere.
+    ids.moved(from: [again.id], to: [before.id])
+    XCTAssertEqual(ids.stable(before.id), before.id)
+  }
+
+  func testAStrokeWhoseInkChangedIsNotRenamed() {
+    var ids = BoardStrokeIDs()
+    // A stroke rubbed into two stretches is new ink: new names.
+    ids.moved(from: ["a"], to: ["b", "c"])
+    XCTAssertEqual(ids.stable("b"), "b")
+    XCTAssertEqual(ids, BoardStrokeIDs())
+    let ink = named([.zero, CGPoint(x: 3, y: 3)])
+    XCTAssertEqual(ids.named([ink]), [ink], "nothing moved, nothing renamed")
+  }
+
+  func testTheNamesAreKeptPerBoard() throws {
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: "BoardOpsTests-ids-\(UUID().uuidString)"))
+    let ledger = BoardOpLedger(defaults: defaults)
+    var ids = BoardStrokeIDs()
+    ids.moved(from: ["old1", "old2"], to: ["new1", "new2"])
+    ledger.setStrokeIDs(ids, board: "b1")
+    XCTAssertEqual(ledger.strokeIDs(board: "b1").stable("new2"), "old2")
+    XCTAssertEqual(ledger.strokeIDs(board: "b2"), BoardStrokeIDs())
   }
 
   func testAKeptTextsTimeMatchesItsGlyphsReadBack() {

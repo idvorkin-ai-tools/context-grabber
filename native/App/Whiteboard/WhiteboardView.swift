@@ -56,7 +56,9 @@ final class WhiteboardModel: ObservableObject {
   /// The Pencil and taps since the last turn, for Larry (story 818).
   private var events = BoardEvents()
   /// His texts Igor kept, known by their glyphs' time (story 817).
-  private var texts: [BoardText]
+  private(set) var texts: [BoardText]
+  /// The names Larry knows moved strokes by: a move never renames a stroke (stories 814, 815).
+  private(set) var strokeIDs: BoardStrokeIDs
   /// The Pencil (or a drawing finger) is down, and when it last lifted: a change of Larry's waits for it (story 816).
   private var penDown = false
   private var liftedAt: ContinuousClock.Instant?
@@ -118,7 +120,7 @@ final class WhiteboardModel: ObservableObject {
   var draw: ((PKDrawing, [PKStroke]) -> Void)?
   /// Plans a batch of Larry's changes on the canvas and applies it as one undo named for it; nil with no canvas yet.
   /// The canvas sets it.
-  var applyOps: ((BoardOps.Batch, [BoardText]) -> BoardOps.Plan?)?
+  var applyOps: ((BoardOps.Batch) -> BoardOps.Plan?)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
   private let callLive: @MainActor () -> Bool
@@ -180,6 +182,7 @@ final class WhiteboardModel: ObservableObject {
     lookOnlyNote = store.lookOnlyNote(board)
     ops = opLedger.applier(board: board.id)
     texts = opLedger.texts(board: board.id)
+    strokeIDs = opLedger.strokeIDs(board: board.id)
     var loaded = PKDrawing()
     do {
       loaded = try store.drawing(board.id)
@@ -558,7 +561,8 @@ final class WhiteboardModel: ObservableObject {
   /// (the stroke's transform applied), the ink's colour as it looks in light mode (black, not white), the width as
   /// the mean of the stroke's own point sizes (the transform's scale applied), and an id that is the same for the same
   /// ink on every send. Story 423: only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
-  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] { Self.strokesForLarry(drawing) }
+  /// By the names Larry knows them: a stroke Larry's changes moved keeps the one it had.
+  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] { strokeIDs.named(Self.strokesForLarry(drawing)) }
 
   static func strokesForLarry(_ drawing: PKDrawing) -> [WhiteboardStrokes.Stroke] {
     drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
@@ -1615,7 +1619,7 @@ extension WhiteboardModel {
     var event = BoardOps.logFields(batch)
     event["board"] = board.id
     event["held"] = held
-    guard let plan = applyOps?(batch, texts) else {
+    guard let plan = applyOps?(batch) else {
       // No canvas laid out yet, or PaperKit didn't take the move (`paper_ops_failed`).
       let result = ops.refusal(batch, "not_applied")
       event["action"] = "refused"
@@ -1642,8 +1646,11 @@ extension WhiteboardModel {
   }
 
   /// The canvas applied a batch of Larry's: saved and a new revision like any change, and no stroke for Claude to answer.
-  func opsApplied(_ new: PKDrawing) {
+  /// `renamed`: for each moved stroke, the hashes of its stretches before and after, so it keeps its names.
+  func opsApplied(_ new: PKDrawing, renamed: [(from: [String], to: [String])]) {
     guard editable else { return }
+    for pair in renamed { strokeIDs.moved(from: pair.from, to: pair.to) }
+    if !renamed.isEmpty { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     drawing = new
     drawingMoved()
   }

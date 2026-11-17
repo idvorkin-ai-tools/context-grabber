@@ -61,9 +61,16 @@ batch the same way, whoever sent it.
 - `BoardTurnReport`: `rev, op_result, events` → `wire`, merged into the turn's chat message by
   `ChatSend.messageRequest` (never into `POST /whiteboard/strokes`). Rides on `WhiteboardPicture.report`, optional, so
   outbox items written before it still decode.
-- `BoardText`: a kept text (`id, t, text, font, size, color`). `BoardText.wire(_ strokes:texts:)` folds a kept text's
-  glyph strokes into one `strokes` entry `{id, kind:"text", text, font, size, color, x, y, w, h, points: [top-left,
-  bottom-right], t, width, tool:"text"}`.
+- `BoardText`: a kept text (`id, t, text, font, size, color`). `WhiteboardStrokes.wire(_:texts:)` folds a kept text's
+  glyph strokes into one `strokes` entry, exactly the fields the Cockpit takes: `{kind:"text", id, text, font, x, y, w,
+  h, color, t}`, the box's top-left and size. Its glyphs' creation time matches a millisecond either way.
+
+`Whiteboard/BoardStrokeIDs.swift`
+
+- A stroke's id is the hash of its ink, so a move would rename it; Larry's connectors and his "new since my last
+  reply" key on ids. `BoardStrokeIDs` maps each moved stroke's new hash to the name it had (`moved(from:to:)`,
+  `stable`, `named`), kept per board by the ledger. Only a change of the ink itself names a stroke anew; undo and redo
+  land on known hashes.
 
 ### App
 

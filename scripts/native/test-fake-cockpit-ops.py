@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -86,6 +87,18 @@ try:
     check([r["rev"] for r in reports] == [7, 8, 8], "each board message's rev: %s" % reports)
     check(reports[0]["events"] == 1 and reports[1]["op_result"] == {"label": "make room", "ok": True, "rev": 8},
           "and its events and op_result: %s" % reports)
+    picture = {"board": "b1", "picture_id": "p9", "frame": frame}
+    text = {"kind": "text", "id": "t1", "text": "hi", "font": "plain", "x": 1, "y": 2, "w": 3, "h": 4, "color": "#000000",
+            "t": 5}
+    ink = {"id": "s1", "color": "#000000", "width": 3, "tool": "pen", "points": [[0, 0], [1, 1]]}
+    check(call("/whiteboard/strokes", dict(picture, strokes=[ink, text]))["count"] == 2, "a text the Cockpit takes")
+    for bad, why in ((dict(text, points=[[0, 0]]), "a text with more"), ({"id": "s2", "points": []}, "a stroke with none"),
+                     (dict(ink, kind="label"), "another kind")):
+        try:
+            call("/whiteboard/strokes", dict(picture, strokes=[bad]))
+            check(False, why + " is refused")
+        except urllib.error.HTTPError as e:
+            check(e.code == 400, why + " is refused")
 finally:
     fake.kill()
     os.unlink(report)

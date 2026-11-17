@@ -68,6 +68,7 @@ BOARD_MESSAGES = {}  # thread -> the newest message of Igor's carrying a board's
 STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
 LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
+TEXT_FIELDS = {"kind", "id", "text", "font", "x", "y", "w", "h", "color", "t"}  # a kept text in POST /whiteboard/strokes
 OP_REPORTS = []  # each board message's rev and op_result, oldest first (story 818)
 
 
@@ -382,6 +383,13 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/whiteboard/strokes":
             # Story 419: the board's strokes before its picture; answered as the Cockpit does, never kept.
             strokes = data.get("strokes") or []
+            # As whiteboard_strokes.py: a text is exactly these fields; any other entry needs its points.
+            for s in strokes:
+                if s.get("kind") == "text":
+                    if not {"kind", "id", "text", "font", "x", "y", "w", "h"} <= set(s) <= TEXT_FIELDS:
+                        return self._json(400, {"ok": False, "error": "a text entry has %s" % sorted(s)})
+                elif s.get("kind") is not None or not s.get("points"):
+                    return self._json(400, {"ok": False, "error": "a stroke needs points"})
             with LOCK:
                 STROKE_SENDS.append([s.get("id") for s in strokes])
             self._report({"strokes": len(strokes), "board": data.get("board"), "picture_id": data.get("picture_id"),
