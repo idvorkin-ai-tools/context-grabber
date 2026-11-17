@@ -13,8 +13,11 @@ label as kind + points, with the picture's picture_id and frame echoed). POST /f
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
-on the message's own rev (one behind it with "stale"). GET /fake/ops says what each board message reported back: its
-rev and op_result. Every request is a JSON line in REPORT.
+on the message's own rev (one behind it with "stale"); with "kind": "ink_and_button", instead a purple line of his
+across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}. POST
+/whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
+what each board message reported back (its rev and op_result) and every events post. Every request is a JSON line in
+REPORT.
 POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 POST /chat/move {"thread", "message_id"} moves one of Igor's messages to a new thread, leaving a system row with moved_to
@@ -69,6 +72,7 @@ STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
 LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
 TEXT_FIELDS = {"kind", "id", "text", "font", "x", "y", "w", "h", "color", "t"}  # a kept text in POST /whiteboard/strokes
+EVENT_POSTS = []  # each POST /whiteboard/events body (story 846)
 OP_REPORTS = []  # each board message's rev and op_result, oldest first (story 818)
 
 
@@ -273,6 +277,15 @@ def marks(key, text, shapes):
 def ops_batch(source, armed):
     """Larry's changes to the board he was sent (stories 814-817): room below the picture's middle, text in the gap."""
     frame, rev = source["frame"], source.get("rev", 0)
+    if armed.get("kind") == "ink_and_button":
+        bottom = frame["y"] + frame["h"]
+        return {"board": source["board"], "base_rev": rev, "label": "ink and a button",
+                "list": [{"op": "add_strokes", "strokes": [
+                            {"id": "fake-line-1", "points": [[frame["x"] + 40, bottom + 30], [frame["x"] + 240, bottom + 30]],
+                             "width": 6, "meta": {"group": "g1", "kind": "underline"}}]},
+                         {"op": "overlay", "id": "fake-button-1", "kind": "button", "label": "Make room",
+                          "rect": {"x": frame["x"] + 40, "y": bottom + 70, "w": 200, "h": 60},
+                          "style": {"fill": "#00aa00", "color": "#ffffff"}, "tap_event": {"type": "make_room"}}]}
     below = frame["y"] + frame["h"] / 2
     dy = armed.get("dy", 120)
     return {"board": source["board"], "base_rev": rev - 1 if armed.get("stale") else rev, "label": "make room",
@@ -347,7 +360,8 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/fake/strokes":
                 return self._json(200, {"ok": True, "sends": STROKE_SENDS})
             if path == "/fake/ops":
-                return self._json(200, {"ok": True, "armed": LARRY_OPS is not None, "reports": OP_REPORTS})
+                return self._json(200, {"ok": True, "armed": LARRY_OPS is not None, "reports": OP_REPORTS,
+                                        "event_posts": EVENT_POSTS})
             if path.endswith("/whiteboard/responder"):
                 query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
                 return self._json(200, responder_answer((query.get("board") or [""])[0]))
@@ -427,6 +441,13 @@ class Handler(BaseHTTPRequestHandler):
                 key = list(BOARD_MESSAGES)[-1]
                 marks(key, "a question for you", [{"kind": "question", "ask": data.get("ask"), "x": 40, "y": 40}])
             return self._json(200, {"ok": True})
+        if path == "/whiteboard/events":
+            self._report({"body": data})
+            if not data.get("board") or not isinstance(data.get("events"), list):
+                return self._json(400, {"ok": False, "error": "board and events required"})
+            with LOCK:
+                EVENT_POSTS.append(data)
+            return self._json(200, {"ok": True, "events": len(data["events"])})
         if path == "/fake/larry-ops":
             global LARRY_OPS
             with LOCK:
@@ -506,7 +527,8 @@ class Handler(BaseHTTPRequestHandler):
             if data.get("board"):
                 BOARD_MESSAGES[key] = m
                 OP_REPORTS.append({"rev": data.get("rev"), "op_result": data.get("op_result"),
-                                   "events": len(data.get("events") or [])})
+                                   "events": len(data.get("events") or []),
+                                   "event_types": [e.get("type") for e in data.get("events") or []]})
         if t.get("skill"):
             skill_reply_later(key, data.get("text"))
             return self._json(200, {"ok": True, "thread": key, "message": m, "marker": None, "skill": t["skill"]})

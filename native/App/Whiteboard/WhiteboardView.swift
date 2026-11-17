@@ -66,6 +66,12 @@ final class WhiteboardModel: ObservableObject {
   private var ink = BoardInk()
   /// The lasso's selection as last told (story 844).
   private var selection: Set<String> = []
+  /// Larry's controls on the board (story 845): live only while it is open.
+  private(set) var overlays = BoardOverlays()
+  /// Shows Larry's controls; the canvas sets it.
+  var showOverlays: (([BoardOverlay]) -> Void)?
+  /// The part of the board on screen as last told (story 850).
+  private var lastViewport: (rect: CGRect, scale: CGFloat)?
   /// The Pencil (or a drawing finger) is down, and when it last lifted: a change of Larry's waits for it (story 816).
   private var penDown = false
   private var liftedAt: ContinuousClock.Instant?
@@ -585,9 +591,10 @@ final class WhiteboardModel: ObservableObject {
         if points.isEmpty {
           points = [stroke.path.interpolatedPoint(at: range.lowerBound).location.applying(stroke.transform)]
         }
+        // Story 847: Larry's fold leaves the ink on the board with no colour to see.
         return WhiteboardStrokes.Stroke(
           id: WhiteboardStrokes.id(points: points, color: color, t: t), t: t, color: color, width: width, tool: tool,
-          points: points)
+          points: points, hidden: stroke.ink.color.cgColor.alpha == 0)
       }
     }
   }
@@ -1541,10 +1548,94 @@ extension WhiteboardModel {
   /// he wrote and Igor kept), if any.
   func tapped(at point: CGPoint, zoom: CGFloat) {
     let tolerance = 22 / zoom
+    // Story 846: a tap on one of his controls goes to him at once.
+    if let overlay = overlays.hit(point, tolerance: 4 / zoom) {
+      events.record(.overlayTap(id: overlay.id, event: overlay.tapEvent, t: Self.nowMs))
+      log.event("board_events", ["action": "overlay_tap", "board": board.id, "overlay": overlay.id])
+      sendEventsNow(why: "overlay_tap")
+      return
+    }
+    // A finger in the margin is the margin's (story 849).
+    guard point.x >= BoardMargin.width else { return }
     let ghost = ghosts.first { WhiteboardTurn.hit($0.lines, at: point, tolerance: tolerance) }
     let target = ghost.map { $0.text?.id ?? $0.id } ?? keptText(at: point, tolerance: tolerance)
     events.tap(at: point, target: target, t: Self.nowMs)
     if let event = events.list.last { takeOps(.event(event)) }
+  }
+
+  /// Story 849: a lone finger lifted after starting in the margin, in board points.
+  func fingerLifted(from start: CGPoint, to end: CGPoint, seconds: Double) {
+    guard let (gesture, y, dy) = BoardMargin.gesture(from: start, to: end, seconds: seconds) else { return }
+    record(.margin(gesture: gesture, y: y, dy: dy, t: Self.nowMs))
+  }
+
+  /// Story 850: the view came to rest showing `rect` (board points) at `scale`.
+  func viewRested(_ rect: CGRect, scale: CGFloat) {
+    guard !rect.isNull, !rect.isEmpty else { return }
+    if let last = lastViewport, abs(last.rect.minY - rect.minY) < 1, abs(last.rect.height - rect.height) < 1,
+      abs(last.scale - scale) < 0.001
+    {
+      return
+    }
+    lastViewport = (rect, scale)
+    record(.viewport(y: rect.minY, h: rect.height, scale: scale, t: Self.nowMs))
+  }
+
+  /// Story 851: Igor undid a batch of Larry's.
+  func undid(_ label: String) {
+    record(.undo(label: label, t: Self.nowMs))
+    log.event("board_ops", ["action": "undone", "board": board.id, "label": label])
+  }
+
+  private func record(_ event: BoardEvent) {
+    events.record(event)
+    takeOps(.event(event))
+  }
+
+  /// Story 846: the events so far go to the Cockpit now, not with the next turn. Taken, they're gone; not taken (no
+  /// route yet, or no answer), they wait for the next turn, and the log says which.
+  private func sendEventsNow(why: String) {
+    let taken = events.take()
+    let report = BoardTurnReport(
+      rev: ops.rev, opResult: ops.lastResult, events: taken.events, eventsDropped: taken.dropped)
+    let request: URLRequest
+    do {
+      request = try BoardEventsSend.request(board: board.id, report: report, cockpit: cockpit)
+    } catch {
+      events.restore(taken)
+      log.event("board_events", ["action": "held", "board": board.id, "why": why, "reason": "\(error)"])
+      return
+    }
+    let started = Date()
+    Task { [weak self] in
+      let answer: BoardEventsSend.Answer
+      do {
+        let (_, response) = try await URLSession.shared.data(for: request)
+        answer = BoardEventsSend.answer(status: (response as? HTTPURLResponse)?.statusCode)
+      } catch {
+        answer = BoardEventsSend.answer(status: nil, error: error.localizedDescription)
+      }
+      guard let self else { return }
+      var event: [String: Any] = [
+        "board": self.board.id, "why": why, "events": taken.events.count,
+        "ms": Int(Date().timeIntervalSince(started) * 1000),
+      ]
+      switch answer {
+      case .taken:
+        event["action"] = "sent"
+      case .notThere:
+        // ponytail: the Cockpit's POST /whiteboard/events is Larry's to build; until it answers, a tap waits for the
+        // next turn. Drop this branch's log once every Cockpit has it.
+        self.events.restore(taken)
+        event["action"] = "held"
+        event["reason"] = "no events route"
+      case .away(let reason):
+        self.events.restore(taken)
+        event["action"] = "held"
+        event["reason"] = reason
+      }
+      self.log.event("board_events", event)
+    }
   }
 
   /// The kept text of Larry's under `point`, by its glyphs' box.
@@ -1636,6 +1727,10 @@ extension WhiteboardModel {
       log.event("board_ops", event)
       return
     }
+    if !plan.overlays.isEmpty {
+      overlays.apply(plan.overlays)
+      showOverlays?(overlays.list)
+    }
     if !plan.metas.isEmpty {
       strokeMeta.merge(plan.metas)
       opLedger.setStrokeMeta(strokeMeta, board: board.id)
@@ -1649,13 +1744,20 @@ extension WhiteboardModel {
     let result = ops.applied(batch, plan: plan)
     var moves = plan.offsets.values.map(\.dy)
     moves.sort()
-    event.merge([
+    let hiding = plan.hidden.values.filter { $0 }.count
+    let moving: [String: Any] = [
       "action": "applied", "rev": result.rev, "moved": plan.moved, "strokes_moved": plan.offsets.count,
-      "erased": plan.erase.count, "drawn": plan.added.count, "metas": plan.metas.count,
-      "dy_min": Double(moves.first ?? 0), "dy_max": Double(moves.last ?? 0), "texts": plan.texts.count,
-      "pages_before": plan.pagesBefore, "pages": plan.pagesAfter, "missing_ids": plan.missingIDs.count,
-      "changed": plan.changesBoard, "ms": Int(started.duration(to: .now) / .milliseconds(1)),
-    ]) { $1 }
+      "dy_min": Double(moves.first ?? 0), "dy_max": Double(moves.last ?? 0),
+      "pages_before": plan.pagesBefore, "pages": plan.pagesAfter,
+    ]
+    let editing: [String: Any] = [
+      "erased": plan.erase.count, "drawn": plan.added.count, "metas": plan.metas.count, "hidden": hiding,
+      "shown": plan.hidden.count - hiding, "selected": plan.select.count, "overlays": overlays.list.count,
+      "texts": plan.texts.count, "missing_ids": plan.missingIDs.count, "changed": plan.changesBoard,
+      "ms": Int(started.duration(to: .now) / .milliseconds(1)),
+    ]
+    event.merge(moving) { $1 }
+    event.merge(editing) { $1 }
     log.event("board_ops", event)
   }
 
@@ -1674,6 +1776,12 @@ extension WhiteboardModel {
 
   /// The ink as it is, Larry told nothing: on opening, and after a change of his own.
   func inkReset(_ hashes: [String: [String]]) { ink.reset(hashes) }
+
+  /// Story 848: the element keys of the strokes Larry names.
+  func elementKeys(named names: [String]) -> Set<String> {
+    let wanted = Set(names)
+    return Set(ink.hashes.filter { $0.value.contains { wanted.contains(strokeIDs.stable($0)) } }.keys)
+  }
 
   /// Story 844: the lasso's selection, by element key; Larry hears it by name when it changes.
   func selectionChanged(_ keys: Set<String>) {

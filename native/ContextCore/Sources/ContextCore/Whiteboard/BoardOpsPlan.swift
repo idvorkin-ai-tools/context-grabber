@@ -62,8 +62,12 @@ extension BoardOps {
     public var added: [NewStroke] = []
     /// Notes set, by stroke name (his drawn strokes' included).
     public var metas: [String: BoardMeta] = [:]
-    /// Canvas strokes hidden (true) or shown (false), by place.
+    /// Canvas strokes hidden (true) or shown (false), by place. A stroke he draws carries its own.
     public var hidden: [Int: Bool] = [:]
+    /// Names to select once the batch is on the board (story 848).
+    public var select: [String] = []
+    /// Larry's controls laid and taken away, in order (story 845): never ink, never undone.
+    public var overlays: [BoardOverlays.Change] = []
     /// Ghosts of Larry's text to show.
     public var texts: [Text] = []
     public var pagesBefore: Int
@@ -122,6 +126,22 @@ extension BoardOps {
       case .replace(let ids, let new):
         for id in ids where !work.erase(named: id) { plan.missingIDs.append(id) }
         work.add(new, plan: &plan)
+      case .setHidden(let ids, let hidden):
+        for id in ids {
+          let found = work.entries(named: id)
+          if found.isEmpty { plan.missingIDs.append(id) }
+          for e in found { work.entries[e].hidden = hidden }
+        }
+      case .select(let ids):
+        for id in ids {
+          let names = work.names(of: id)
+          if names.isEmpty { plan.missingIDs.append(id) }
+          plan.select += names.filter { !plan.select.contains($0) }
+        }
+      case .overlay(let overlay):
+        plan.overlays.append(.set(overlay))
+      case .removeOverlay(let id):
+        plan.overlays.append(.remove(id))
       }
     }
     work.finish(into: &plan)
@@ -140,6 +160,8 @@ extension BoardOps {
       var bounds: CGRect
       var shift = CGVector.zero
       var gone = false
+      /// Set by the batch: hidden or shown.
+      var hidden: Bool?
     }
 
     var entries: [Entry]
@@ -216,12 +238,14 @@ extension BoardOps {
         if let canvas = entry.canvas {
           if entry.gone {
             plan.erase.insert(canvas)
-          } else if entry.shift.dx != 0 || entry.shift.dy != 0 {
-            plan.offsets[canvas] = entry.shift
+          } else {
+            if entry.shift.dx != 0 || entry.shift.dy != 0 { plan.offsets[canvas] = entry.shift }
+            if let hidden = entry.hidden { plan.hidden[canvas] = hidden }
           }
         } else if let index = entry.drawn, !entry.gone {
           var stroke = drawn[index]
           stroke.points = stroke.points.map { CGPoint(x: $0.x + entry.shift.dx, y: $0.y + entry.shift.dy) }
+          if let hidden = entry.hidden { stroke.hidden = hidden }
           plan.added.append(stroke)
         }
       }

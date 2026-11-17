@@ -87,6 +87,16 @@ try:
     check([r["rev"] for r in reports] == [7, 8, 8], "each board message's rev: %s" % reports)
     check(reports[0]["events"] == 1 and reports[1]["op_result"] == {"label": "make room", "ok": True, "rev": 8},
           "and its events and op_result: %s" % reports)
+    call("/fake/larry-ops", {"kind": "ink_and_button"})
+    call("/chat/" + key, dict(turn, id="p4", picture_id="p4", rev=9, op_result=None, events=[]))
+    ink = larry_rows(key)[-1].get("ops") or {}
+    kinds = [op["op"] for op in ink.get("list", [])]
+    check(ink.get("base_rev") == 9 and kinds == ["add_strokes", "overlay"], "his ink and a button: %s" % ink)
+    check(ink["list"][1]["tap_event"] == {"type": "make_room"} and ink["list"][0]["strokes"][0]["points"][0] == [140, 830],
+          "the line and the button sit below the picture")
+    answer = call("/whiteboard/events", {"board": "b1", "rev": 9, "events": [{"type": "make_room", "overlay_id": "x"}]})
+    posts = call("/fake/ops")["event_posts"]
+    check(answer["ok"] and posts[-1]["events"][0]["type"] == "make_room", "a tap's events are taken: %s" % posts)
     picture = {"board": "b1", "picture_id": "p9", "frame": frame}
     text = {"kind": "text", "id": "t1", "text": "hi", "font": "print", "x": 1, "y": 2, "w": 3, "h": 4, "color": "#000000",
             "t": 5}

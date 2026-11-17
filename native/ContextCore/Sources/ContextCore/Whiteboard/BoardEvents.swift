@@ -18,6 +18,14 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   case strokesChanged(added: [String], erased: [String], moved: [String], rev: Int, t: Int64)
   /// The lasso's selection, by name (story 844); empty when it was let go.
   case selection(ids: [String], t: Int64)
+  /// A finger in the left margin (story 849): where it went down on the board, and how far a drag went.
+  case margin(gesture: BoardMargin.Gesture, y: CGFloat, dy: CGFloat, t: Int64)
+  /// The part of the board on screen once the view rests (story 850), in board points, and the zoom.
+  case viewport(y: CGFloat, h: CGFloat, scale: CGFloat, t: Int64)
+  /// Igor undid a batch of Larry's, by its label (story 851).
+  case undo(label: String, t: Int64)
+  /// A tap on one of Larry's controls (story 846): its tap_event as he wrote it.
+  case overlayTap(id: String, event: BoardMeta?, t: Int64)
 
   public var wire: [String: Any] {
     switch self {
@@ -30,6 +38,23 @@ public enum BoardEvent: Equatable, Codable, Sendable {
       return ["type": "strokes_changed", "added": added, "erased": erased, "moved": moved, "rev": rev, "t": t]
     case .selection(let ids, let t):
       return ["type": "selection", "ids": ids, "t": t]
+    case .margin(let gesture, let y, let dy, let t):
+      let tenth = { (v: CGFloat) in Double((v * 10).rounded() / 10) }
+      return ["type": "margin", "gesture": gesture.rawValue, "y": tenth(y), "dy": tenth(dy), "t": t]
+    case .viewport(let y, let h, let scale, let t):
+      let tenth = { (v: CGFloat) in Double((v * 10).rounded() / 10) }
+      return [
+        "type": "viewport", "y": tenth(y), "h": tenth(h), "scale": Double((scale * 1000).rounded() / 1000), "t": t,
+      ]
+    case .undo(let label, let t):
+      return ["type": "undo", "label": label, "t": t]
+    case .overlayTap(let id, let event, let t):
+      // His event as written; the board adds only what it lacks: a type, which control, and when.
+      var out = (event?.object as? [String: Any]) ?? [:]
+      if out["type"] == nil { out["type"] = "overlay_tap" }
+      if out["overlay_id"] == nil { out["overlay_id"] = id }
+      if out["t"] == nil { out["t"] = t }
+      return out
     }
   }
 }
@@ -61,6 +86,16 @@ public struct BoardEvents: Equatable, Sendable {
 
   /// Any other event, as it happened.
   public mutating func record(_ event: BoardEvent) { add(event) }
+
+  /// Events taken for a send that didn't get through: back in front of any since, under the cap.
+  public mutating func restore(_ taken: (events: [BoardEvent], dropped: Int)) {
+    list = taken.events + list
+    dropped += taken.dropped
+    if list.count > Self.cap {
+      dropped += list.count - Self.cap
+      list.removeFirst(list.count - Self.cap)
+    }
+  }
 
   /// The events for a turn; the next turn gets only what happens after.
   public mutating func take() -> (events: [BoardEvent], dropped: Int) {

@@ -70,6 +70,8 @@ struct PaperScreen {
   var ink: Box? { box { r, g, b in r < 70 && g < 70 && b < 70 } }
   /// A faint ghost of Larry's on white paper: his purple (#ba39e6) at half strength.
   var larryGhost: Box? { box { r, g, b in r > 200 && r < 240 && g > 130 && g < 185 && b > 225 } }
+  /// One of Larry's controls in the tests' green (the fake Cockpit's button).
+  var green: Box? { box { r, g, b in r < 60 && g > 140 && b < 60 } }
   /// A kept mark of Larry's, at full strength.
   var larryKept: Box? { box { r, g, b in r > 150 && r < 215 && g < 110 && b > 190 } }
 
@@ -346,6 +348,33 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     return try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "black ink on screen")
   }
 
+  /// Every `POST /whiteboard/events` the fake Cockpit took (story 846).
+  private func eventPosts(_ cockpit: String) throws -> [[String: Any]] {
+    let url = try XCTUnwrap(URL(string: cockpit + "/fake/ops"))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any]
+    return try XCTUnwrap(json?["event_posts"] as? [[String: Any]])
+  }
+
+  /// Arms the fake Cockpit's next board answer as Larry's ink and a button (stories 840, 845).
+  private func larryInkAndButton(_ cockpit: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"kind": "ink_and_button"}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
   private func toKeep(_ app: XCUIApplication, _ count: Int) -> XCUIElement {
     app.staticTexts.matching(NSPredicate(format: "label == %@", "\(count) to keep")).firstMatch
   }
@@ -421,6 +450,41 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let result = try XCTUnwrap(opResult(cockpit, after: reported + 1), "the next turn says what came of it")
     XCTAssertEqual(result["ok"] as? Bool, true, "\(result)")
     XCTAssertEqual(result["label"] as? String, "make room")
+  }
+
+  /// Stories 840, 842, 845, 846: Larry's ink lands as ink, not a ghost, and goes back to him under his name; his button
+  /// shows at its place and is no stroke, and a tap on it reaches the Cockpit at once with its event. What the plan
+  /// does and the fallback when the Cockpit has no events route are `BoardOpsInkTests` and `BoardOpsControlsTests`.
+  func testLarrysInkAndButtonLandAndATapOnItReachesHim() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    _ = try inkAboveAndBelow(app)
+    try larryInkAndButton(cockpit)
+    let posted = try eventPosts(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    wait(send(app), label: strokes(3), timeout: 15)
+    let line = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his line, as ink in his purple")
+    let button = try XCTUnwrap(PaperScreen.settled(app) { $0.green }, "his button, in its green")
+    shot(app, "his ink and his button")
+    XCTAssertLessThan(line.center.y, button.center.y, "the button sits under his line")
+
+    PaperScreen.tap(app, button.center)
+    let until = Date().addingTimeInterval(10)
+    var posts = try eventPosts(cockpit)
+    while posts.count <= posted, Date() < until {
+      Thread.sleep(forTimeInterval: 0.5)
+      posts = try eventPosts(cockpit)
+    }
+    let tap = try XCTUnwrap((posts.last?["events"] as? [[String: Any]])?.last, "the tap reached the Cockpit: \(posts)")
+    XCTAssertEqual(tap["type"] as? String, "make_room")
+    XCTAssertEqual(tap["overlay_id"] as? String, "fake-button-1")
+    XCTAssertEqual(send(app).label, strokes(3), "a tap on his button draws nothing")
+
+    let sent = try sends(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    let ids = try strokeIDs(cockpit, after: sent)
+    XCTAssertTrue(ids.contains("fake-line-1"), "his line goes back under his name: \(ids)")
+    XCTAssertEqual(ids.count, 3, "and his button is no stroke: \(ids)")
   }
 
   /// Story 816: a push on a revision the board has moved past moves nothing and shows nothing, and his next turn tells

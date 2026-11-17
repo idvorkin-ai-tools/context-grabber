@@ -195,6 +195,9 @@ class PaperHost: UIViewController {
       {
         fingerTapped(at: start.at)
       }
+      if phase == .ended, touch.type == .direct, fingersTogether == 1, let start = touchStarts[id] {
+        fingerLifted(from: start.at, to: at, seconds: CACurrentMediaTime() - start.began)
+      }
       touchStarts[id] = nil
       if touch.type == .pencil { pencilDown = false }
       if touch.type == .direct {
@@ -250,6 +253,8 @@ class PaperHost: UIViewController {
   /// One finger, short and staying put, at this spot in `view`, Pencil or no Pencil. PaperKit may do its own thing with the
   /// same touch.
   func fingerTapped(at spot: CGPoint) {}
+  /// A lone finger came up, from where it went down, in this view's points (story 849).
+  func fingerLifted(from start: CGPoint, to end: CGPoint, seconds: Double) {}
 
   /// What a touch came to, for the log.
   func touchEnded(_ run: TouchRun, visible: CGRect, zoom: CGFloat, dx: CGFloat, dy: CGFloat) {}
@@ -367,6 +372,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
+    model.showOverlays = { [weak self] list in
+      guard let self else { return }
+      self.lines.showOverlays(list)
+      // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
+      self.fingerTaps(!self.model.ghosts.isEmpty || !list.isEmpty)
+    }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -661,8 +672,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     remembering?.cancel()
     remembering = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(0.5))
-      guard !Task.isCancelled else { return }
-      self?.rememberPlace()
+      guard !Task.isCancelled, let self else { return }
+      self.rememberPlace()
+      // Story 850: where the view came to rest, for Larry.
+      self.model.viewRested(self.paper.contentVisibleFrame, scale: self.screenScale)
     }
   }
 
@@ -672,7 +685,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   func show(_ ghosts: [Ghost]) {
     Task { @MainActor [weak self] in self?.showChoice() }
     guard lines.ghostLayers.show(ghosts) else { return }
-    fingerTaps(!ghosts.isEmpty)
+    fingerTaps(!ghosts.isEmpty || !model.overlays.list.isEmpty)
     let drawn = ghosts.flatMap(\.lines)
     log.event(
       "whiteboard",
@@ -732,16 +745,23 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     seat.checks += 1
   }
 
+  override func fingerLifted(from start: CGPoint, to end: CGPoint, seconds: Double) {
+    let column = { (spot: CGPoint) in self.lines.columnPoint(of: self.view.convert(spot, to: self.lines)) }
+    model.fingerLifted(from: column(start), to: column(end), seconds: seconds)
+  }
+
   override func fingerTapped(at spot: CGPoint) {
     let at = lines.columnPoint(of: view.convert(spot, to: lines))
     // Story 818: Larry hears every tap, marks showing or not.
     model.tapped(at: at, zoom: screenScale)
     let count = model.ghosts.count
-    guard count > 0 else { return }
+    // With his controls showing a finger taps too (story 846): no dot, no selection.
+    guard count > 0 || !model.overlays.list.isEmpty else { return }
     noSelectionUntil = CACurrentMediaTime() + 0.8
     ghostTap = (at, CACurrentMediaTime())
     let selected = paper.selection.count
     if selected > 0 { paper.selection = [] }
+    guard count > 0 else { return }
     model.tap(at: at, zoom: screenScale)
     log.event(
       "whiteboard",
@@ -1003,7 +1023,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let plan = BoardOps.plan(
       batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta, pages: pages, board: board)
-    guard plan.changesBoard else { return plan }
+    guard plan.changesBoard else {
+      select(plan.select)
+      return plan
+    }
     let before = markup
     let countBefore = markup.subelements.count
     var renamed: [(from: [String], to: [String])] = []
@@ -1012,6 +1035,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       moved.applyTransform(CGAffineTransform(translationX: shift.dx, y: shift.dy))
       _ = markup.subelements.updateOrAppend(moved)
       renamed.append((hashes[index], Self.hashes(moved)))
+    }
+    // Story 847: hidden ink stays where it is with no colour to see; its names don't change, as the hash ignores alpha.
+    for (index, hidden) in plan.hidden where elements.indices.contains(index) {
+      guard var stroke = markup.subelements[elements[index].elementID] as? PKStroke else { continue }
+      // ponytail: shown again at full strength, whatever alpha the ink had; the Pencil's inks draw opaque colours.
+      stroke.ink = PKInk(stroke.ink.inkType, color: stroke.ink.color.withAlphaComponent(hidden ? 0 : 1))
+      _ = markup.subelements.updateOrAppend(stroke)
     }
     // A moved stroke that came back as a new element would leave its old self behind: nothing is set, and the log says so.
     guard markup.subelements.count == countBefore else {
@@ -1029,7 +1059,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     // His ink, in his colour unless he names one, under his names.
     var drawn: [(hash: [String], name: String)] = []
     for stroke in plan.added {
-      let color = stroke.color.map { UIColor(rgb: $0) } ?? WhiteboardTurn.Who.larry.color
+      let shown = stroke.color.map { UIColor(rgb: $0) } ?? WhiteboardTurn.Who.larry.color
+      let color = stroke.hidden ? shown.withAlphaComponent(0) : shown
       let made = WhiteboardModel.strokes([stroke.points], color: color, width: stroke.width, spacing: 4)
       for one in made {
         markup.append(contentsOf: PKDrawing(strokes: [one]))
@@ -1058,7 +1089,15 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "undo_name": paper.undoManager?.undoActionName ?? "", "ms": ms(CACurrentMediaTime() - started),
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterOps)
+    select(plan.select)
     return plan
+  }
+
+  /// Story 848: the strokes Larry names, selected as a lasso would leave them; nothing when he names none.
+  private func select(_ names: [String]) {
+    guard !names.isEmpty, let markup = paper.markup else { return }
+    let keys = model.elementKeys(named: names)
+    paper.selection = Set(markup.subelements.strokes.map(\.elementID).filter { keys.contains(Self.key($0)) })
   }
 
   /// A stroke's names as the board sends them, one per visible stretch: remade as `inkDrawing` remakes strokes, since
@@ -1213,6 +1252,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   private func step(to markup: PaperMarkup, named name: String? = nil) {
+    // Story 851: an undo of one of Larry's batches, by its label.
+    if let name, !name.isEmpty, paper.undoManager?.isUndoing == true { model.undid(name) }
     if let now = paper.markup { registerStepBack(to: now, named: name) }
     quiet = true
     paper.markup = markup
@@ -1428,6 +1469,9 @@ final class PaperLines: UIView {
   private var width: CGFloat = 0
   private var ends: [CGFloat] = []
   let ghostLayers = GhostLayers()
+  /// Larry's controls (story 845), over the lines and under the ink, at their places on the board.
+  private var overlays: [BoardOverlay] = []
+  private var overlayViews: [String: UILabel] = [:]
 
   init(paper: UIColor) {
     super.init(frame: .zero)
@@ -1458,6 +1502,48 @@ final class PaperLines: UIView {
     setNeedsLayout()
   }
 
+  /// Story 845: Larry's controls as they are now.
+  func showOverlays(_ list: [BoardOverlay]) {
+    overlays = list
+    let ids = Set(list.map(\.id))
+    for (id, view) in overlayViews where !ids.contains(id) {
+      view.removeFromSuperview()
+      overlayViews[id] = nil
+    }
+    for overlay in list where overlayViews[overlay.id] == nil {
+      let label = UILabel()
+      label.textAlignment = .center
+      label.numberOfLines = 1
+      label.clipsToBounds = true
+      label.accessibilityIdentifier = "whiteboard-overlay-\(overlay.id)"
+      addSubview(label)
+      overlayViews[overlay.id] = label
+    }
+    setNeedsLayout()
+  }
+
+  /// A control's look: Larry's `fill` and `color` when he names them, else its kind's.
+  private func lay(_ overlay: BoardOverlay, _ label: UILabel) {
+    let origin = spot(of: overlay.rect.origin)
+    let far = spot(of: CGPoint(x: overlay.rect.maxX, y: overlay.rect.maxY))
+    label.frame = CGRect(x: origin.x, y: origin.y, width: far.x - origin.x, height: far.y - origin.y)
+    let scale = width > 0 ? bounds.width / width : 1
+    let larry = UIColor(rgb: WhiteboardTurn.larryColor)
+    let (fill, text): (UIColor, UIColor) =
+      switch overlay.kind {
+      case .band: (larry.withAlphaComponent(0.12), larry)
+      case .chip: (larry.withAlphaComponent(0.2), larry)
+      case .button: (larry, .white)
+      case .hint: (.clear, .secondaryLabel)
+      }
+    label.backgroundColor = overlay.styleColor("fill").map { UIColor(rgb: $0) } ?? fill
+    label.textColor = overlay.styleColor("color").map { UIColor(rgb: $0) } ?? text
+    label.font = .systemFont(ofSize: 15 * scale, weight: overlay.kind == .button ? .semibold : .regular)
+    label.layer.cornerRadius = overlay.kind == .band ? 0 : min(label.frame.height / 2, 10 * scale)
+    label.text = overlay.label
+    label.accessibilityLabel = overlay.label
+  }
+
   /// Column points to this view's own: PaperKit sizes it.
   func spot(of point: CGPoint) -> CGPoint {
     let scale = width > 0 ? bounds.width / width : 1
@@ -1473,6 +1559,7 @@ final class PaperLines: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     guard width > 0, bounds.width > 0 else { return }
+    for overlay in overlays { if let label = overlayViews[overlay.id] { lay(overlay, label) } }
     let path = CGMutablePath()
     for end in ends {
       let edge = spot(of: CGPoint(x: 0, y: end))

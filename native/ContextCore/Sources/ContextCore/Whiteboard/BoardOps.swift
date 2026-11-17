@@ -133,6 +133,13 @@ public enum BoardOps {
     case setMeta([String], BoardMeta)
     /// A delete and an add in one (story 841).
     case replace([String], with: [NewStroke])
+    /// One of Larry's controls laid on the board, replacing one with its id (story 845).
+    case overlay(BoardOverlay)
+    case removeOverlay(String)
+    /// These strokes hidden or shown again, as a fold (story 847).
+    case setHidden([String], Bool)
+    /// These strokes selected, as if lassoed (story 848).
+    case select([String])
   }
 
   public struct Batch: Equatable, Sendable {
@@ -263,6 +270,20 @@ public enum BoardOps {
     case "replace":
       guard let ids = names(json["ids"]) else { return .failure(Refusal(reason: Reason.badOp)) }
       return newStrokes(json["strokes"]).map { .replace(ids, with: $0) }
+    case "overlay":
+      guard let overlay = BoardOverlay(json) else { return .failure(Refusal(reason: Reason.badOp)) }
+      return .success(.overlay(overlay))
+    case "remove_overlay":
+      guard let id = json["id"] as? String, !id.isEmpty else { return .failure(Refusal(reason: Reason.badOp)) }
+      return .success(.removeOverlay(id))
+    case "set_hidden":
+      guard let ids = names(json["ids"]), let hidden = json["hidden"] as? Bool else {
+        return .failure(Refusal(reason: Reason.badOp))
+      }
+      return .success(.setHidden(ids, hidden))
+    case "select":
+      guard let ids = names(json["ids"]) else { return .failure(Refusal(reason: Reason.badOp)) }
+      return .success(.select(ids))
     default:
       return .failure(Refusal(reason: Reason.unknownOp))
     }
@@ -342,6 +363,10 @@ public enum BoardOps {
       case .delete: kinds["delete", default: 0] += 1
       case .setMeta: kinds["set_meta", default: 0] += 1
       case .replace: kinds["replace", default: 0] += 1
+      case .overlay: kinds["overlay", default: 0] += 1
+      case .removeOverlay: kinds["remove_overlay", default: 0] += 1
+      case .setHidden: kinds["set_hidden", default: 0] += 1
+      case .select: kinds["select", default: 0] += 1
       }
     }
     if !kinds.isEmpty { out["kinds"] = kinds }
