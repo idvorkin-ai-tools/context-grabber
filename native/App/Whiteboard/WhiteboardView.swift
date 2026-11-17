@@ -86,6 +86,8 @@ final class WhiteboardModel: ObservableObject {
   /// Why it's only looked at, for the bar; nil on a board drawn on here.
   let lookOnlyNote: String?
   @Published private(set) var drawing: PKDrawing
+  /// Larry's open asks as cards on the board (stories 880–886).
+  let questions: WhiteboardQuestionsModel
   private let store: WhiteboardStore
   private let log: SessionLog
   private let inbox: InboxModel
@@ -150,6 +152,7 @@ final class WhiteboardModel: ObservableObject {
     self.log = log
     self.inbox = inbox
     self.cockpit = cockpit
+    questions = WhiteboardQuestionsModel(board: board.id, log: log, inbox: inbox, cockpit: cockpit)
     turns = WhiteboardGhostTurns(
       on: UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true, ghostLife: .seconds(Self.ghostSeconds))
     gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
@@ -581,6 +584,7 @@ final class WhiteboardModel: ObservableObject {
   /// Story 382.
   func startWatchingLarry() {
     guard editable, watchTask == nil else { return }
+    Task { [questions] in await questions.sync(reason: "open") }
     watchTask = Task { [weak self] in
       while !Task.isCancelled {
         await self?.lookAtThread()
@@ -613,6 +617,7 @@ final class WhiteboardModel: ObservableObject {
         let recent = Array(messages.suffix(WhiteboardNote.panelMessages))
         if recent != self.thread { self.thread = recent }
         lookWorked(rows)
+        questions.looked(body)
         larryClosed(messages)
         return
       }
@@ -1599,6 +1604,7 @@ struct WhiteboardView: View {
   /// Story 769: an iPhone has no conversation panel; a tap on the note opens the board's thread in Chat.
   private let onPhone: Bool
   private let openChat: (String) -> Void
+  private let decisions: ChatDecisionsModel
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
     _model = StateObject(
@@ -1612,6 +1618,7 @@ struct WhiteboardView: View {
     log = app.log
     onPhone = store.onPhone
     openChat = { [weak app] key in app?.open(route: .chat(thread: key), from: "whiteboard") }
+    decisions = app.chat.decisions
   }
 
   var body: some View {
@@ -1656,6 +1663,7 @@ struct WhiteboardView: View {
       }
       .ignoresSafeArea(edges: .bottom)
     }
+    .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
     .navigationTitle(model.board.title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {

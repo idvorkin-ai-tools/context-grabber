@@ -119,6 +119,8 @@ public enum ChatDecisions {
 
   public enum Verb: Equatable, Sendable {
     case answer(ChatAsk.Option)
+    /// An answer in Igor's own words, as the Inbox's free-text answer (the board's question cards, story 882).
+    case ownWords(String)
     case snooze(Snooze)
     case close(reason: String)
     case abandon(reason: String?)
@@ -127,6 +129,7 @@ public enum ChatDecisions {
     public var logFields: [String: Any] {
       switch self {
       case .answer(let option): return ["option": option.key]
+      case .ownWords(let words): return ["option": "own", "answer_chars": words.count]
       case .snooze(let preset): return ["action": "snooze", "preset": preset.rawValue]
       case .close(let reason): return ["action": "close", "reason_chars": reason.count]
       case .abandon(let reason): return ["action": "abandon", "reason_chars": reason?.count ?? 0]
@@ -135,7 +138,7 @@ public enum ChatDecisions {
 
     public var word: String {
       switch self {
-      case .answer: return "answer"
+      case .answer, .ownWords: return "answer"
       case .snooze: return "snooze"
       case .close: return "close"
       case .abandon: return "abandon"
@@ -194,6 +197,9 @@ public enum ChatDecisions {
 
   public static func canClose(reason: String) -> Bool { !reason.trimmingCharacters(in: .whitespaces).isEmpty }
 
+  /// Igor's own words answer only once there are some.
+  public static func canSend(words: String) -> Bool { !words.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
   public static func request(_ verb: Verb, ask: ChatAsk, cockpit: String) throws -> URLRequest {
     let path: String
     let body: [String: Any]
@@ -205,6 +211,12 @@ public enum ChatDecisions {
         "id": ask.id, "action": "respond", "response": "DECISION: \(option.label)", "base_updated_at": ask.updatedAt,
       ]
       .merging(postToChat) { a, _ in a }
+    case .ownWords(let words):
+      // The Inbox's free-text answer (`submit()` in its index.html): DECISION: and the words.
+      path = "/act"
+      let words = words.trimmingCharacters(in: .whitespacesAndNewlines)
+      body = ["id": ask.id, "action": "respond", "response": "DECISION: \(words)", "base_updated_at": ask.updatedAt]
+        .merging(postToChat) { a, _ in a }
     case .snooze(let preset):
       path = "/snooze"
       body = ["id": ask.id, "preset": preset.rawValue]
@@ -333,6 +345,7 @@ public enum ChatDecisions {
   public static func doneLine(_ verb: Verb, snoozedUntil: String?, timeZone: TimeZone = .current) -> String {
     switch verb {
     case .answer(let option): return "You decided: \(option.label)"
+    case .ownWords(let words): return "You decided: \(words.trimmingCharacters(in: .whitespacesAndNewlines))"
     case .close: return "Closed"
     case .abandon: return "Abandoned"
     case .snooze:

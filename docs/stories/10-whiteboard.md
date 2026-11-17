@@ -3,7 +3,8 @@
 Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larry drawing back. Specs:
 [2026-11-01-whiteboard-design.md](../superpowers/specs/2026-11-01-whiteboard-design.md),
 [2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
-[2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md).
+[2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
+[2026-11-16-whiteboard-question-cards-design.md](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md).
 
 ---
 
@@ -4702,3 +4703,141 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board whose thread holds *Moved to a new chat* where a message of mine was
 - **When:** I open the note's panel
 - **Then:** it shows my messages and Larry's, and the moved line is not among them
+
+---
+
+### User Story 880:
+
+- **Summary:** Larry's question about a board lands on it as a card
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests`: `testLarrysQuestionMarkLandsAtHisPlaceByTheRowsFrame`, `testACardIsOncePerAskAndInsideThePage`, `testAnErasedCardsMarkNeverLandsAgain`; `just test`); and on the simulator (`WhiteboardQuestionUITests` 1/1, `scripts/native/test-whiteboard-ui.sh`); not yet seen on the iPad or against the real Larry
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Where a card comes from*
+
+#### Use Case:
+- **As someone** drawing with Larry who has a question about the drawing
+- **I want to** see his question on the board, where he put it
+- **so that** I answer it looking at what it is about, not in another screen
+
+#### Acceptance Criteria:
+- **Scenario:** Larry asks on the board
+- **Given:** a board I draw on, with its thread to Larry
+- **When:** his reply on the thread holds a question for one of his asks
+- **Then:** a card *? \<question> ···* lands where he put it, inside the page, once for that ask, and the session log says a card landed from Larry
+
+---
+
+### User Story 881:
+
+- **Summary:** An open ask about a board shows on it when it opens
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests`: `testAnOpenAskNamesTheBoardByItsThreadOrInItsContext`, `testOpenAsksLandAtTheTopOfTheScreenOneUnderAnother`; `just test`); not yet seen on the simulator or the iPad
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Where a card comes from*
+
+#### Use Case:
+- **As someone** coming back to a board Larry has a question about
+- **I want to** find the question on the board
+- **so that** a decision about the drawing isn't only in the Inbox
+
+#### Acceptance Criteria:
+- **Scenario:** The board opens with an ask naming it
+- **Given:** an open ask whose thread is the board's thread, or whose context names the thread or the board, and no card for it
+- **When:** I open the board
+- **Then:** its card lands at the top of what is on screen, by the left margin, and several land one under another
+
+---
+
+### User Story 882:
+
+- **Summary:** Answer a question card from the board
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e), with Chat's decision card in the popup and an answer in my own words added to its verbs. Verified by host tests (`WhiteboardQuestionsTests`: `testAnAnswerLeavesTheQuestionOverTheAnswer`, `testOwnWordsAreTheInboxsFreeTextAnswer`; `ChatDecisionsTests` for the option's answer; `just test`); and on the simulator (`WhiteboardQuestionUITests.testLarrysQuestionLandsAnswersAndFolds`, 1/1); not yet seen on the iPad
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answering*, *When it fails*
+
+#### Use Case:
+- **As someone** with Larry's question on my board
+- **I want to** tap it and answer, with an option or in my own words
+- **so that** Larry has my decision exactly as if I had answered in the Inbox
+
+#### Acceptance Criteria:
+- **Scenario:** I answer a card
+- **Given:** an open card on the board
+- **When:** I tap it and tap an option, or write my own answer and tap *Send*
+- **Then:** the Cockpit takes *DECISION: \<label>* or *DECISION: \<my words>* as the Inbox's answer, the popup closes, and a refused answer instead leaves the popup with a copyable problem and its buttons live again
+
+---
+
+### User Story 883:
+
+- **Summary:** An answered card keeps the question over the answer
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests`: `testWhatACardSays`, `testTheCardsKeepWithTheBoard`; `just test`); and on the simulator (`WhiteboardQuestionUITests` 1/1)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *An answered card*
+
+#### Use Case:
+- **As someone** who answered a question on a board
+- **I want to** still see what was asked and what I said
+- **so that** the drawing keeps the decision it led to
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit takes my answer
+- **Given:** a card I just answered
+- **When:** the popup closes
+- **Then:** the card is grey, *✓ \<question>* over the answer (and the note), and it is still there when the board opens again, with no network
+
+---
+
+### User Story 884:
+
+- **Summary:** A card answered elsewhere shows that answer
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests.testClosedAsksFetchTheirAnswerAndAMissingOneIsAskedAgain`, `testTheWireAsksForSnoozedAsksAndEncodesTheIDs`; `just test`); not yet seen on the simulator or the iPad
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answered elsewhere*
+
+#### Use Case:
+- **As someone** who answered a board's question in the Inbox or in Chat
+- **I want to** see that answer on the board's card
+- **so that** the board never shows a question as open that I have already decided
+
+#### Acceptance Criteria:
+- **Scenario:** The ask closed while the board was shut
+- **Given:** a card whose ask is no longer open in the Cockpit
+- **When:** I open the board
+- **Then:** the card shows *✓ \<question>* over the answer the Cockpit gives, or *✓ answered* when it has none yet, asked again the next time the board opens
+
+---
+
+### User Story 885:
+
+- **Summary:** An answered card opens read-only and folds to a chip
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests.testOnlyAnAnsweredCardFoldsToAChipAsWideAsItsWords`; `just test`); and on the simulator (`WhiteboardQuestionUITests` 1/1)
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Reading and folding*
+
+#### Use Case:
+- **As someone** with answered questions on a board
+- **I want to** read one in full, or fold it out of the way
+- **so that** old decisions stay on the board without crowding the drawing
+
+#### Acceptance Criteria:
+- **Scenario:** I fold an answered card
+- **Given:** an answered card on the board
+- **When:** I tap it and tap *Collapse*
+- **Then:** the popup showed the question and the answer in full, the card is now a one-line chip *✓ \<question>* as wide as its words, and a tap on the chip opens it out again
+
+---
+
+### User Story 886:
+
+- **Summary:** The eraser takes an answered card
+- **Status:** implemented in [fa5381e](https://github.com/idvorkin/context-grabber/commit/fa5381e). Verified by host tests (`WhiteboardQuestionsTests.testTheEraserTakesAnAnsweredCardAndLeavesAnOpenOne`; `just test`); the eraser's touches live in the board's view, with no host test, and take a card only from a touch that would erase ink — the Pencil, or a finger while fingers draw, never a finger panning the board (review fix); not yet seen on the iPad
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *The eraser*
+
+#### Use Case:
+- **As someone** done with an answered question on a board
+- **I want to** erase it as I would ink
+- **so that** clearing the board is one gesture whatever is on it
+
+#### Acceptance Criteria:
+- **Scenario:** I erase across cards
+- **Given:** an answered card and an open card on the board, and the eraser in hand
+- **When:** I stroke the eraser across both
+- **Then:** the answered card goes, the open card stays, and the session log says a card was erased
+
+- **Scenario:** I pan the board with the eraser in hand
+- **Given:** an answered card on the board, the eraser in hand, and fingers set not to draw
+- **When:** I drag a finger that starts on the card
+- **Then:** the board scrolls and the card stays

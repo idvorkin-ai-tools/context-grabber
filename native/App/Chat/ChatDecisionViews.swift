@@ -45,11 +45,24 @@ struct ChatDecisionCard: View {
   /// thread or list, for the log and the problem's context.
   let place: String
   let logger: BugLogger
+  /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
+  let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
   @State private var contextOpen = false
   @State private var closing = false
   @State private var closeReason = ""
 
   private var state: ChatDecisionsModel.Card { decisions.card(ask.id) }
+
+  init(
+    decisions: ChatDecisionsModel, ask: ChatAsk, place: String, logger: @escaping BugLogger,
+    done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
+  ) {
+    self.decisions = decisions
+    self.ask = ask
+    self.place = place
+    self.logger = logger
+    self.done = done
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -142,7 +155,9 @@ struct ChatDecisionCard: View {
   }
 
   private func go(_ verb: ChatDecisions.Verb) {
-    Task { await decisions.run(verb, on: ask, from: place) }
+    Task {
+      if let outcome = await decisions.run(verb, on: ask, from: place) { done(verb, outcome) }
+    }
   }
 }
 
