@@ -6343,7 +6343,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 902:
 
 - **Summary:** The eraser across a fold's marker erases the whole section
-- **Status:** implemented in PENDING-902; verified by host tests (`BoardFoldEraseTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [abd408f](https://github.com/idvorkin/context-grabber/commit/abd408f); verified by host tests (`BoardFoldEraseTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
@@ -6367,7 +6367,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 903:
 
 - **Summary:** The eraser across a folded header's ink erases the whole section
-- **Status:** implemented in PENDING-902; verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad. Scratch-out's way in is written and not yet called: it lands with scratch-out
+- **Status:** implemented in [abd408f](https://github.com/idvorkin/context-grabber/commit/abd408f); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad. Scratch-out's way in is written and not yet called: it lands with scratch-out
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
