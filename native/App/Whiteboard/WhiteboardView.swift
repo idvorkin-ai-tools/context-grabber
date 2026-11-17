@@ -1616,7 +1616,8 @@ extension WhiteboardModel {
         what = "header"
         return outline.markHeader(at: y, id: Self.newHeaderID())
       } ?? false
-    log.event("board_outline", ["action": "margin_tap", "board": board.id, "y": Double(y), "did": what, "changed": changed])
+    log.event(
+      "board_outline", ["action": "margin_tap", "board": board.id, "y": Double(y), "did": what, "changed": changed])
   }
 
   /// A header's id, as the Cockpit takes a stroke's.
@@ -1847,7 +1848,8 @@ extension WhiteboardModel {
     guard !erased.isEmpty, !strokeMeta.isEmpty || !texts.isEmpty else { return [] }
     var metas = strokeMeta
     var kept = texts
-    let gone = BoardDissolve.dissolve(erased: erased, live: opStrokes(drawing.strokes).strokes, metas: &metas, texts: &kept)
+    let gone = BoardDissolve.dissolve(
+      erased: erased, live: opStrokes(drawing.strokes).strokes, metas: &metas, texts: &kept)
     guard !gone.isEmpty else { return [] }
     if metas != strokeMeta {
       strokeMeta = metas

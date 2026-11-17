@@ -48,6 +48,22 @@ public enum BoardRoom {
     return (above, below)
   }
 
+  /// How much blank paper can close at a clear line, in whole lines: never past the lowest ink above.
+  public static func closable(_ ink: [CGRect], at cut: CGFloat) -> CGFloat {
+    let (above, below) = band(ink, at: cut)
+    guard let below else { return 0 }
+    return max(0, ((below - max(above, 0)) / line).rounded(.down)) * line
+  }
+
+  /// Room by hand (story 858): `dy` rounded to whole lines at the clear line nearest `y`; up closes blank paper only.
+  /// Nil when nothing would move.
+  public static func byHand(_ ink: [CGRect], at y: CGFloat, dy: CGFloat) -> Push? {
+    let at = cut(ink, at: y)
+    var d = (dy / line).rounded() * line
+    if d < 0 { d = -min(-d, closable(ink, at: at)) }
+    return d == 0 ? nil : Push(cut: at, dy: d)
+  }
+
   /// Room that opens at a clear line: everything at or below `cut` goes down `dy`.
   public struct Push: Equatable, Sendable {
     public var cut: CGFloat

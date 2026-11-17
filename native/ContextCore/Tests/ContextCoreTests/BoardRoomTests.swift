@@ -51,7 +51,8 @@ final class BoardRoomTests: XCTestCase {
     XCTAssertEqual(push?.dy, 120)
     let (above, _) = BoardRoom.band(ink, at: push?.cut ?? 0)
     XCTAssertEqual(landing.origin, CGPoint(x: BoardMargin.width + BoardRoom.air, y: above + BoardRoom.air))
-    XCTAssertLessThanOrEqual(landing.origin.y + size.height, (push?.cut ?? 0) + (push?.dy ?? 0), "clear of the ink pushed")
+    XCTAssertLessThanOrEqual(
+      landing.origin.y + size.height, (push?.cut ?? 0) + (push?.dy ?? 0), "clear of the ink pushed")
   }
 
   func testHiddenInkIsNoObstacle() {
@@ -60,5 +61,16 @@ final class BoardRoomTests: XCTestCase {
       BoardOps.Stroke(ids: ["b"], t: 2, bounds: line(200), hidden: true),
     ]
     XCTAssertEqual(BoardOps.shownBoxes(strokes: strokes), [line(100)])
+  }
+
+  /// Story 858: room by hand, in whole lines; up closes blank paper only.
+  func testRoomByHandOpensWholeLinesAndClosesOnlyBlankPaper() {
+    let ink = [line(100), line(300)]
+    XCTAssertEqual(BoardRoom.byHand(ink, at: 200, dy: 95), BoardRoom.Push(cut: 200, dy: 80))
+    XCTAssertEqual(BoardRoom.byHand(ink, at: 110, dy: 40)?.cut, 100, "at the clear line nearest")
+    XCTAssertEqual(BoardRoom.closable(ink, at: 200), 160, "the blank band between, whole lines")
+    XCTAssertEqual(BoardRoom.byHand(ink, at: 200, dy: -400), BoardRoom.Push(cut: 200, dy: -160), "never past the ink")
+    XCTAssertNil(BoardRoom.byHand(ink, at: 200, dy: 10), "under half a line moves nothing")
+    XCTAssertNil(BoardRoom.byHand(ink, at: 400, dy: -80), "nothing below to close up")
   }
 }

@@ -41,7 +41,9 @@ final class BoardDissolveTests: XCTestCase {
       BoardText(id: "ok", t: 200, text: "ok", font: .plain, size: 24, color: "#000000", glyphs: 2),
       BoardText(id: "old", t: 300, text: "old", font: .plain, size: 24, color: "#000000"),
     ]
-    let live = [stroke("h1", t: 100), stroke("h2", t: 101), stroke("o1", t: 200), stroke("o2", t: 200), stroke("x", t: 300)]
+    let live = [
+      stroke("h1", t: 100), stroke("h2", t: 101), stroke("o1", t: 200), stroke("o2", t: 200), stroke("x", t: 300),
+    ]
     let gone = BoardDissolve.dissolve(erased: ["h3"], live: live, metas: &metas, texts: &texts)
     XCTAssertEqual(gone, ["hi"])
     XCTAssertEqual(texts.map(\.id), ["ok", "old"], "whole texts stay, and one kept before the board counted")

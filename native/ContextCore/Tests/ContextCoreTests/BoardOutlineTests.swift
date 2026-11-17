@@ -90,7 +90,8 @@ final class BoardOutlineTests: XCTestCase {
   }
 
   func testASectionEndsWhereTheInkReturnsToTheIndentNotAtBlankPaper() {
-    let strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("b", x: 140, y: 400)
+    let strokes =
+      word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("b", x: 140, y: 400)
       + word("c", x: 100, y: 440)
     var o = BoardOutline(strokes: strokes, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
     o.fold("h")
