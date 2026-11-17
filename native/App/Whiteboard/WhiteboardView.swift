@@ -100,6 +100,7 @@ final class WhiteboardModel: ObservableObject {
   /// Stories 970–972: a change of Larry's that was refused, as a chip on the board until Retry, × or a change that
   /// applies.
   @Published private(set) var blocked = BoardBlockedEdit()
+  private var blockedFrame: CGRect?
   /// The board's mic (story 345): open, on its way up and finishing its last words.
   @Published private(set) var micOn = false
   @Published private(set) var micStarting = false
@@ -1873,6 +1874,7 @@ extension WhiteboardModel {
 
   private func showBlocked(_ label: String, _ reason: String) {
     guard blocked.refused(label: label, reason: reason) else { return }
+    blockedFrame = nil
     log.event("board_blocked", ["action": "shown", "board": board.id, "label": label, "reason": reason])
   }
 
@@ -1882,6 +1884,18 @@ extension WhiteboardModel {
     guard blocked.retry() else { return }
     log.event("board_blocked", ["action": "retry", "board": board.id, "label": label])
     larryTurn()
+  }
+
+  /// Where the chip is on screen, window points, once per place it takes: what says whether a tap on it can land.
+  func blockedLaid(_ frame: CGRect) {
+    guard blocked.showing, frame != blockedFrame else { return }
+    blockedFrame = frame
+    log.event(
+      "board_blocked",
+      [
+        "action": "laid", "board": board.id,
+        "frame": [frame.minX, frame.minY, frame.width, frame.height].map { Double($0) },
+      ])
   }
 
   /// ×: the chip goes and nothing is asked.
@@ -2515,17 +2529,23 @@ struct WhiteboardView: View {
     .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
   }
 
-  /// Stories 970–972: Larry's refused change, with Retry and ×.
+  /// Stories 970–972: Larry's refused change, with Retry and ×. Each takes a finger's worth of the chip, all of it its
+  /// own: on main the bare glyphs let a tap through to the paper, which drew a dot (story 970's Issues).
   private var blockedChip: some View {
     let larry = Color(UIColor(rgb: WhiteboardTurn.larryColor))
-    return HStack(spacing: 6) {
-      Button("\(BoardBlockedEdit.text) · Retry") { model.retryBlocked() }
-        .accessibilityHint("Hands Larry the board again, so he looks and sends a fresh change")
-        .accessibilityIdentifier("whiteboard-blocked-retry")
+    return HStack(spacing: 0) {
+      Button {
+        model.retryBlocked()
+      } label: {
+        Text("\(BoardBlockedEdit.text) · Retry").padding(.leading, 12).padding(.trailing, 4)
+          .frame(minHeight: 36).contentShape(Rectangle())
+      }
+      .accessibilityHint("Hands Larry the board again, so he looks and sends a fresh change")
+      .accessibilityIdentifier("whiteboard-blocked-retry")
       Button {
         model.dismissBlocked()
       } label: {
-        Image(systemName: "xmark")
+        Image(systemName: "xmark").frame(width: 36, height: 36).contentShape(Rectangle())
       }
       .accessibilityLabel("Dismiss")
       .accessibilityIdentifier("whiteboard-blocked-dismiss")
@@ -2533,9 +2553,13 @@ struct WhiteboardView: View {
     .font(.footnote.weight(.semibold))
     .buttonStyle(.borderless)
     .foregroundStyle(larry)
-    .padding(.horizontal, 10)
-    .padding(.vertical, 6)
     .background(larry.opacity(0.15), in: Capsule())
+    .contentShape(Capsule())
+    .onGeometryChange(for: CGRect.self) {
+      $0.frame(in: .global)
+    } action: {
+      model.blockedLaid($0)
+    }
   }
 
   /// The bar's note, one line (story 766): Larry's state first so it is never what gets cut off (story 667), the newest
