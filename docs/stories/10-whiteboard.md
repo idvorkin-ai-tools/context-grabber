@@ -5901,7 +5901,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 895:
 
 - **Summary:** Keep all of Larry's marks at once, in the order he drew them
-- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`). UI test written, not yet run: `WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`
+- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`). and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
@@ -5912,7 +5912,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Larry's labels, one landing on my writing
 - **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote
-- **When:** I choose Board → Marks → Keep Larry's marks
+- **When:** I tap Keep all beside the count of marks to keep
 - **Then:** every one of his marks becomes ink in his colour, the label on my writing moves just under it and the marks below it move down with it, my own ink doesn't move, and one undo takes all of them back
 
 ---
@@ -5920,7 +5920,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 896:
 
 - **Summary:** Tidy overlaps moves kept labels off my writing
-- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`). UI test written, not yet run: `WhiteboardPaperGhostsUITests.testTidyOverlapsOnATidyBoardSaysNothingOverlaps`
+- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`). and on the simulator (`WhiteboardPaperGhostsUITests.testTidyOverlapsOnATidyBoardSaysNothingOverlaps`, rung 2)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
 
 #### Use Case:
@@ -5931,9 +5931,9 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** A kept label over my words
 - **Given:** a label I kept sits on a line I wrote, and another sits on bare paper
-- **When:** I choose Board → Marks → Tidy overlaps
+- **When:** I choose Board → Tidy overlaps
 - **Then:** the label on my words moves down to the first clear space under them, the other stays, my ink doesn't move, and one undo puts it back
 - **Scenario:** Nothing to tidy
 - **Given:** no kept label sits on other ink
-- **When:** I choose Board → Marks → Tidy overlaps
+- **When:** I choose Board → Tidy overlaps
 - **Then:** nothing moves and the bar says *Nothing overlaps*

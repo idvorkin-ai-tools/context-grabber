@@ -115,7 +115,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertFalse(app.buttons["whiteboard-mark-dismiss"].exists, "and shows no buttons")
   }
 
-  /// Story 895: Board → Marks → Keep Larry's marks makes every mark of his ink at once, and one undo would take them all
+  /// Story 895: Keep all, beside the count of marks to keep, makes every mark of his ink at once, and one undo would take them all
   /// back (the keep is one step, as a single Keep is in `WhiteboardPaperGhostsUITests.testOneUndoTakesAKeptMarkBack`).
   /// Where each lands, in order and off his ink, is `WhiteboardTidyTests`, on the host.
   func testKeepingAllOfLarrysMarksMakesThemInkInOneStep() throws {
@@ -127,11 +127,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertTrue(
       app.staticTexts.matching(NSPredicate(format: "label == %@", "2 to keep")).firstMatch.appears(within: 15),
       app.debugDescription)
-    app.buttons["whiteboard-board"].tap()
-    let marks = app.descendants(matching: .any)["whiteboard-marks"].firstMatch
-    XCTAssertTrue(marks.appears(within: 5), app.debugDescription)
-    marks.tapWhenSettled()
-    let keepAll = app.descendants(matching: .any)["whiteboard-keep-all"].firstMatch
+    let keepAll = app.buttons["whiteboard-keep-all"]
     XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
     keepAll.tapWhenSettled()
     waitUntil(

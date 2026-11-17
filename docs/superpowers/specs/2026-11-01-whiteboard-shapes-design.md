@@ -91,13 +91,13 @@ board that moved on since his picture a label can land on Igor's writing. The Co
 in order and can tidy overlaps; the iPad does the same, except that **his own ink never moves**: where the web board
 pushes the writing below down to make room, the iPad moves the label down to the first clear space instead.
 
-- **Board menu → Marks → Keep Larry's marks** keeps every mark of Larry's showing at once, as one keep: **one undo takes them
-  all back**. It is there only while his marks show. They are kept top to bottom: a label (words) that would sit on ink
+- **Keep all**, in the note's line beside the count of marks to keep (as on the web board's ghost bar), keeps every mark
+  of Larry's showing at once, as one keep: **one undo takes them all back**. It is there only while his marks show. They are kept top to bottom: a label (words) that would sit on ink
   moves down under that ink, half a line clear of it, and every mark after it moves down with it, so they stay in the
   order he drew them. A line, arrow, box or circle is meant to sit on what it points at, so it never moves for ink of its
   own; it moves only with a label above it that moved. Each mark kept is ink for the next. Nothing of his comes back on
   the next look or open, as for a mark kept on its own.
-- **Board menu → Marks → Tidy overlaps** (a submenu, so the Board menu stays short enough to close after a pick, #848) lays out again, top to bottom, every kept label (and pasted text) that sits on other
+- **Board menu → Tidy overlaps** (one row: the menu has no room for more and still closes after a pick, #848) lays out again, top to bottom, every kept label (and pasted text) that sits on other
   ink, his or another label above it: each moves down under what it sits on, as above. Ink that only touches a label's
   edge isn't under it. His own strokes and kept shapes stay where they are. **One undo takes the tidy back.** With
   nothing to move the bar says *Nothing overlaps* until the board next changes, and tidying a tidy board changes nothing.

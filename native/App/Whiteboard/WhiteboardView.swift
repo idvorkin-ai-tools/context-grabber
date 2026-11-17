@@ -1311,7 +1311,7 @@ final class WhiteboardModel: ObservableObject {
 
   // MARK: Keep all and Tidy overlaps (stories 895, 896)
 
-  /// Larry's marks showing, for the Board menu's Keep Larry's marks.
+  /// Larry's marks showing, for Keep all in the note's line.
   var larrysMarks: Int { turns.ghosts.filter { $0.who == .larry }.count }
 
   /// Story 895: every mark of Larry's kept at once, top to bottom, a label on ink moved under it and the marks after it
@@ -2314,25 +2314,13 @@ struct WhiteboardView: View {
                     model.menuChose?()
                   }))
             }
-            // Stories 895, 896: kept marks laid out in order, and kept labels moved off ink. A submenu, as the
-            // Responder's is, so the Board menu stays short enough to close after a pick (#848).
-            Menu {
-              if model.larrysMarks > 0 {
-                Button("Keep Larry's marks") {
-                  model.keepLarrysMarks()
-                  model.menuChose?()
-                }
-                .accessibilityIdentifier("whiteboard-keep-all")
-              }
-              Button("Tidy overlaps") {
-                model.tidyOverlaps()
-                model.menuChose?()
-              }
-              .accessibilityIdentifier("whiteboard-tidy")
-            } label: {
-              Label("Marks", systemImage: "text.badge.checkmark")
+            // Story 896: kept labels moved off ink. One row, as the Board menu has room for no more (#848); Keep all is in
+            // the note's line, beside the count of marks to keep (story 895).
+            Button("Tidy overlaps") {
+              model.tidyOverlaps()
+              model.menuChose?()
             }
-            .accessibilityIdentifier("whiteboard-marks")
+            .accessibilityIdentifier("whiteboard-tidy")
             // Story 659: who answers a pause, the board's own on the Cockpit. A submenu, not a section: three more rows
             // make the iPad show the menu as a full-height list that stays up after a pick (#848).
             Menu {
@@ -2467,6 +2455,12 @@ struct WhiteboardView: View {
         }
         Spacer(minLength: 0)
         if let keep = line.keep { Text(keep).lineLimit(1).fixedSize() }
+        // Story 895: every mark of Larry's kept at once, in order, as the web board's Keep all.
+        if model.editable, model.larrysMarks > 0 {
+          Button("Keep all") { model.keepLarrysMarks() }.buttonStyle(.borderless).fixedSize()
+            .accessibilityHint("Keeps every mark of Larry's, top to bottom, clear of your writing")
+            .accessibilityIdentifier("whiteboard-keep-all")
+        }
         // Story 777: Larry has the picture and twenty seconds have passed: a quiet way to stop waiting for him.
         if model.larryWait == .working {
           Button("Interrupt") { model.interruptLarry() }.buttonStyle(.borderless).fixedSize()
