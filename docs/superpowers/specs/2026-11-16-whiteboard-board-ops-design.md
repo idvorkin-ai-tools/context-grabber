@@ -274,6 +274,22 @@ stays joined when they move.
   point on bare paper, the arrow is drawn as plain ink between the two points, as the web board keeps such an arrow.
 - It is part of his answer's one Undo, like his ink. He can erase it by its name.
 
+### Larry's connector marks (in his reply)
+
+Larry, 2026-11-17: "On /ink my arrows are live connectors that follow moves and folds; on the iPad they're dead strokes
+that drift when he makes room."
+
+- Larry's reply can carry a connector among its marks, as the web board takes it: its two ends either name two things
+  on the board, or are two points on his picture, each landing on the thing under it (within 16 points, else the word
+  there).
+- It shows as a ghost like his other marks, drawn as the arrow it would be: from one thing's facing side to the
+  other's, around anything in its way, as a connector routes.
+- Keep, or Keep all, makes it a real connector, joined to its two things and following them from then on. With Keep
+  all it is part of the one Undo.
+- An end on bare paper keeps as a plain arrow where he drew it, as the web board keeps it. A mark naming something the
+  board doesn't have shows nothing, and is set aside as if dismissed.
+- Dismiss throws it away, like any mark.
+
 ### What Larry gets back
 
 - A connector goes back to Larry with the board's strokes, as a stroke under its name, so it shows in every picture he
@@ -342,3 +358,5 @@ stays joined when they move.
 - Larry's connector by names and by points both land; one naming nothing draws nothing and is reported missing; one
   with an end on bare paper is plain ink.
 - Erasing one end leaves the arrow as plain ink; his next strokes carry it without its connector notes.
+- Larry's reply with a connector mark between two of his groups shows a ghost arrow between them; Keep makes it a
+  connector, and a push between the groups then redraws it to where they are.
