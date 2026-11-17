@@ -1,12 +1,9 @@
 //  When Claude is asked about the board (spec 2026-11-01-whiteboard-shapes-design.md, stories 345, 359): a pause after a
 //  stroke or spoken words, one turn at a time, and strokes or words during a turn asking again after the next pause,
-//  which waits for the tool to lift. The caller owns the timer and the request; a `true` from a method means start the
-//  pause.
+//  which waits for the tool to lift. How long the pause is, is `WhiteboardWritingVad`'s (story 892). The caller owns the
+//  timer and the request; a `true` from a method means start the pause.
 
 public struct WhiteboardPacer: Sendable {
-  /// How long the Pencil rests before Claude is asked: half a second since 2026-11-10 (story 660; 1 s before).
-  public static let pause: Duration = .milliseconds(500)
-
   /// Bumped when Igor sends Claude's turn away (a dismissal, Ghosts off): an answer asked under an older one is stale.
   public private(set) var generation = 0
   private var pausing = false
@@ -41,6 +38,9 @@ public struct WhiteboardPacer: Sendable {
     if asking { askAgain = true }
     return !asking
   }
+
+  /// A turn is out and hasn't landed.
+  public var isAsking: Bool { asking }
 
   public mutating func turnStarted() {
     asking = true

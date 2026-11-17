@@ -142,6 +142,8 @@ final class WhiteboardModel: ObservableObject {
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
   /// as one undo named for it; false when nothing changed. The canvas sets it.
   var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
+  /// Story 896: the strokes at these places in the drawing moved down so far, one undo.
+  var move: (([Int: CGFloat]) -> Void)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
   private let callLive: @MainActor () -> Bool
@@ -151,6 +153,11 @@ final class WhiteboardModel: ObservableObject {
   private var speech = WhiteboardSpeech()
   private var silenceTask: Task<Void, Never>?
   private var pauseTask: Task<Void, Never>?
+  /// Stories 892, 893: how long the pause waits, learned from his rhythm, and the look for his hand having left.
+  private var vad = WhiteboardWritingVad()
+  private var awayTask: Task<Void, Never>?
+  /// Claude's answer being read, which the Pencil going down stops (story 894).
+  private var claudeReading: Task<WhiteboardStream.Read, Never>?
   private var fadeTask: Task<Void, Never>?
   private var saveTask: Task<Void, Never>?
   /// Ink not saved yet; a board on paper's page number says so (story 673: what a UI test waits on, not a fixed second).
@@ -282,6 +289,7 @@ final class WhiteboardModel: ObservableObject {
     let added = new.strokes.count > drawing.strokes.count
     logStrokesMoved(to: new)
     drawing = new
+    if added, let last = new.strokes.last { vad.stroke(last.renderBounds) }
     if added, turns.stroked() { startPause() }
     drawingMoved()
   }
@@ -357,15 +365,21 @@ final class WhiteboardModel: ObservableObject {
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
   func beganDrawing() {
     penWent(down: true)
+    vad.down(at: .now)
+    // Story 894: writing again makes the picture of a turn still out stale.
+    if turns.penCancelsTurn() {
+      claudeReading?.cancel()
+      log.event("whiteboard", ["action": "turn_cancelled", "board": board.id, "why": "pen_down"])
+    }
     if turns.toolWentDown() {
       log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "drew"])
     }
-    pauseTask?.cancel()
-    pauseTask = nil
+    cancelPause()
   }
 
   func endedDrawing() {
     penWent(down: false)
+    vad.lifted(at: .now)
     if turns.toolLifted() { startPause() }
   }
 
@@ -373,17 +387,54 @@ final class WhiteboardModel: ObservableObject {
   private func cancelPause() {
     pauseTask?.cancel()
     pauseTask = nil
+    awayTask?.cancel()
+    vad.pauseOver()
   }
 
+  /// Story 892: the pause waits as long as his rhythm says, from 1.5 to 5 s.
   private func startPause() {
-    pauseTask?.cancel()
     let started = ContinuousClock.now
+    let pause = vad.pauseStarted(at: started)
+    log.event(
+      "whiteboard", ["action": "vad", "board": board.id, "ms": pause.ms, "cue": pause.cue, "median": pause.median])
+    waitPause(pause.duration, from: started)
+    if vad.hoverSeen { lookForTheHand() }
+  }
+
+  private func waitPause(_ span: Duration, from started: ContinuousClock.Instant) {
+    pauseTask?.cancel()
     pauseTask = Task { [weak self] in
-      try? await Task.sleep(for: WhiteboardPacer.pause)
+      try? await Task.sleep(for: span)
       guard !Task.isCancelled, let self else { return }
       self.pauseTask = nil
+      self.awayTask?.cancel()
+      self.vad.pauseOver()
       // Story 661: how long the pause really waited, the timer's own lateness included.
       if self.turns.pauseEnded() { await self.turn(.claude, paused: started.duration(to: .now)) }
+    }
+  }
+
+  /// Story 893: an end-of-thought cue cuts the pause to the floor, counted from the lift.
+  private func cue(_ name: String, left: Duration) {
+    guard pauseTask != nil else { return }
+    log.event(
+      "whiteboard", ["action": "vad", "board": board.id, "cue": name, "left_ms": WhiteboardTimings.ms(left) ?? 0])
+    waitPause(left, from: .now - (WhiteboardWritingVad.floor - left))
+  }
+
+  /// The hovering Pencil, in board points: seen, and maybe back at the start of a new line (story 893).
+  func hovered(at point: CGPoint) {
+    if let left = vad.hovered(at: point, now: .now) { cue("new line", left: left) }
+    if pauseTask != nil { lookForTheHand() }
+  }
+
+  /// A second with no Pencil near the paper, on an iPad whose hover shows it: his hand has left.
+  private func lookForTheHand() {
+    awayTask?.cancel()
+    awayTask = Task { [weak self] in
+      try? await Task.sleep(for: WhiteboardWritingVad.awayAfter)
+      guard !Task.isCancelled, let self, let left = self.vad.lookedForTheHand(now: .now) else { return }
+      self.cue("hand away", left: left)
     }
   }
 
@@ -1135,6 +1186,7 @@ final class WhiteboardModel: ObservableObject {
       responder.heard(answered, asked: knobAsked)
     }
     if let broken = read.broken { event["broken"] = broken }
+    if landing.cancelled { event["cancelled"] = "pen_down" }
     switch answer {
     case .shapes(let shapes):
       event["ok"] = true
@@ -1201,6 +1253,7 @@ final class WhiteboardModel: ObservableObject {
       }
       return reading.read(failure: failure)
     }
+    claudeReading = reading
     let deadline = Task {
       try? await Task.sleep(for: .seconds(WhiteboardTurn.suggestTimeout))
       if !Task.isCancelled { reading.cancel() }
@@ -1256,6 +1309,96 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
+  // MARK: Keep all and Tidy overlaps (stories 895, 896)
+
+  /// Larry's marks showing, for Keep all in the note's line.
+  var larrysMarks: Int { turns.ghosts.filter { $0.who == .larry }.count }
+
+  /// Story 895: every mark of Larry's kept at once, top to bottom, a label on ink moved under it and the marks after it
+  /// with it. One keep, so one undo.
+  func keepLarrysMarks() {
+    let marks = turns.keepAll(.larry)
+    guard editable, !marks.isEmpty else { return }
+    let moves = WhiteboardTidy.keepAll(
+      marks.map { .init(id: $0.id, lines: $0.lines, label: $0.kind == .text) }, over: Self.inkPoints(drawing))
+    let started = Date()
+    var strokes: [PKStroke] = []
+    for (i, ghost) in marks.enumerated() {
+      let dy = moves[ghost.id] ?? 0
+      // A moment of its own for each, a few milliseconds apart, so each label is known as one (and story 817's text).
+      let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
+      let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + dy) } }
+      let mine = Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      strokes += mine
+      if ghost.kind == .text { rememberLabel(made.date) }
+      if let text = ghost.text {
+        texts.append(
+          BoardText(
+            id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
+            color: Self.lightHex(ghost.color), glyphs: mine.count))
+      }
+      settleLarrys(ghost)
+    }
+    if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }
+    log.event(
+      "whiteboard",
+      [
+        "action": "keep_all", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+        "moved": moves.values.filter { $0 > 0 }.count,
+      ])
+    add(strokes)
+  }
+
+  /// Story 896: kept labels and pastes that sit on other ink laid out again, top to bottom; his ink stays. One undo.
+  func tidyOverlaps() {
+    guard editable else { return }
+    let known = Set(UserDefaults.standard.array(forKey: labelsKey) as? [Int64] ?? [])
+    var labels: [String: [[CGPoint]]] = [:]
+    var members: [String: [Int]] = [:]
+    var ink: [[CGPoint]] = []
+    for (i, stroke) in drawing.strokes.enumerated() where !stroke.isFolded {
+      let points = Self.points(stroke)
+      let made = Self.moment(stroke)
+      if known.contains(made) {
+        labels["\(made)", default: []].append(points)
+        members["\(made)", default: []].append(i)
+      } else {
+        ink.append(points)
+      }
+    }
+    let moves = WhiteboardTidy.tidy(labels, among: ink)
+    log.event("whiteboard", ["action": "tidy", "board": board.id, "labels": labels.count, "moved": moves.count])
+    guard !moves.isEmpty else {
+      pasteNote = "Nothing overlaps"
+      return
+    }
+    var strokes: [Int: CGFloat] = [:]
+    for (label, dy) in moves { for i in members[label] ?? [] { strokes[i] = dy } }
+    move?(strokes)
+  }
+
+  private var labelsKey: String { "whiteboard_labels_\(board.id)" }
+
+  /// A label's moment, kept on this device. ponytail: not synced, so another device's labels never tidy; the moments go
+  /// with the board's file if that is ever wanted.
+  private func rememberLabel(_ made: Date) {
+    var known = UserDefaults.standard.array(forKey: labelsKey) as? [Int64] ?? []
+    known.append(Int64(made.timeIntervalSince1970 * 1000))
+    UserDefaults.standard.set(Array(known.suffix(2000)), forKey: labelsKey)
+  }
+
+  private static func moment(_ stroke: PKStroke) -> Int64 {
+    Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+  }
+
+  private static func points(_ stroke: PKStroke) -> [CGPoint] {
+    stroke.path.interpolatedPoints(by: .distance(4)).map { $0.location.applying(stroke.transform) }
+  }
+
+  private static func inkPoints(_ drawing: PKDrawing) -> [[CGPoint]] {
+    drawing.strokes.filter { !$0.isFolded }.map(points)
+  }
+
   /// Keep beside the chosen mark: the old tap's keep, one undo.
   func keepChosen() {
     guard let kept = turns.keepChosen() else { return }
@@ -1281,6 +1424,7 @@ final class WhiteboardModel: ObservableObject {
     // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
     let made = BoardText.time(Date())
     let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+    if ghost.kind == .text { rememberLabel(made.date) }
     if let text = ghost.text {
       texts.append(
         BoardText(
@@ -1317,6 +1461,7 @@ final class WhiteboardModel: ObservableObject {
     return WhiteboardStrokes.hex(red: red, green: green, blue: blue)
   }
 
+  /// `made`: one moment for every stroke of one mark or paste, which is how a kept label is known again (story 896).
   static func strokes(
     _ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat, made: Date = Date()
   ) -> [PKStroke] {
@@ -1349,7 +1494,9 @@ final class WhiteboardModel: ObservableObject {
     guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
     let height = Self.pasteLetters / min(zoom, 1)
     let layout = WhiteboardPaste.layout(text, visible: visible, height: height, board: pasteReach)
-    let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8)
+    let made = Date()
+    let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8, made: made)
+    if !strokes.isEmpty { rememberLabel(made) }
     log.event(
       "whiteboard",
       [
@@ -2169,6 +2316,13 @@ struct WhiteboardView: View {
                     model.menuChose?()
                   }))
             }
+            // Story 896: kept labels moved off ink. One row, as the Board menu has room for no more (#848); Keep all is in
+            // the note's line, beside the count of marks to keep (story 895).
+            Button("Tidy overlaps") {
+              model.tidyOverlaps()
+              model.menuChose?()
+            }
+            .accessibilityIdentifier("whiteboard-tidy")
             // Story 659: who answers a pause, the board's own on the Cockpit. A submenu, not a section: three more rows
             // make the iPad show the menu as a full-height list that stays up after a pick (#848).
             Menu {
@@ -2303,6 +2457,12 @@ struct WhiteboardView: View {
         }
         Spacer(minLength: 0)
         if let keep = line.keep { Text(keep).lineLimit(1).fixedSize() }
+        // Story 895: every mark of Larry's kept at once, in order, as the web board's Keep all.
+        if model.editable, model.larrysMarks > 0 {
+          Button("Keep all") { model.keepLarrysMarks() }.buttonStyle(.borderless).fixedSize()
+            .accessibilityHint("Keeps every mark of Larry's, top to bottom, clear of your writing")
+            .accessibilityIdentifier("whiteboard-keep-all")
+        }
         // Story 777: Larry has the picture and twenty seconds have passed: a quiet way to stop waiting for him.
         if model.larryWait == .working {
           Button("Interrupt") { model.interruptLarry() }.buttonStyle(.borderless).fixedSize()

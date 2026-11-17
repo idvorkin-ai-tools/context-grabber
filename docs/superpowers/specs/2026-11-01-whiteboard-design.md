@@ -303,6 +303,27 @@ only where a page needs saying.)
 
 The log says what each ⌘V found on the clipboard and who took it, so the iPad can show what the simulator can't.
 
+### Scratch out (stories 890, 891, 898; Igor, 2026-11-16: "match Larry's web board")
+
+As in Goodnotes and Notability, and as the Cockpit's web board (*/ink*) does it: a fast zigzag drawn over ink deletes the
+ink it covers, without picking up the eraser.
+
+- **What counts as a scratch-out.** One stroke that turns back on itself at least **three times** along its main direction,
+  each sweep crossing most of the zigzag's length; no wider across than it is long; at least 30 points long; drawn fast (at
+  least half a board point per millisecond); and lying mostly over the ink it touches (at least 60% of that ink's points
+  inside the zigzag's box). Handwriting never qualifies: an *mmm* or *www* marches along instead of turning back, and a slow
+  zigzag, a zigzag on bare paper, or one beside a word rather than over it stays as ink.
+- **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
+  it doesn't touch stay, however close.
+- **One undo brings it all back**: the ink it removed, without the zigzag. One redo removes it again.
+- It's a change like any erase: the board saves, and Larry's next picture and strokes no longer have that ink. It doesn't
+  ask Claude about the board, as nothing new was written.
+- A look-only board can't be scratched out, as it can't be drawn on.
+- **Folded ink is never scratched** (story 898): ink hidden under a folded header stays, even where the lines below it
+  now sit on top of it, and it doesn't count toward whether the zigzag lies over ink.
+- The log says, for every zigzag with three or more turns, whether it fired, its turns and speed, why it didn't (*slow*,
+  *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels.
+
 ### Larry can read what the board did (#883)
 
 Igor, 2026-11-14, after kept marks vanished: *make sure you have the logging to debug, and be able to request [logs]*.

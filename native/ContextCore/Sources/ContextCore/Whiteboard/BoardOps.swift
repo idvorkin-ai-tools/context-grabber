@@ -336,10 +336,13 @@ public enum BoardOps {
     case onLift
   }
 
-  /// Whether a change may move ink now: never under a live pen, nor within `hold` of its lift (the board's pause).
+  /// How long after the Pencil lifts a change waits before it moves ink: half a second, the board's old fixed pause.
+  public static let hold: Duration = .milliseconds(500)
+
+  /// Whether a change may move ink now: never under a live pen, nor within `hold` of its lift.
   public static func readiness(
     penDown: Bool, liftedAt: ContinuousClock.Instant?, now: ContinuousClock.Instant,
-    hold: Duration = WhiteboardPacer.pause
+    hold: Duration = BoardOps.hold
   ) -> Readiness {
     if penDown { return .onLift }
     guard let liftedAt else { return .now }

@@ -4167,7 +4167,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 660:
 
 - **Summary:** Claude is asked half a second after I lift the Pencil, not a second
-- **Status:** implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
+- **Status:** superseded by story 892 (the wait follows my rhythm, 1.5 to 5 s); was implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Ghosts from Claude*
 
 #### Use Case:
@@ -5803,3 +5803,171 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 890:
+
+- **Summary:** A fast zigzag over ink scratches it out
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4) (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** writing on a board with the Pencil
+- **I want to** scribble over a word to delete it, without picking up the eraser
+- **so that** fixing a mistake doesn't break my flow, as on Larry's web board
+
+#### Acceptance Criteria:
+- **Scenario:** Scratching out a word
+- **Given:** a board on paper with a word written on it and another word beside it
+- **When:** I draw a quick zigzag, turning back at least three times, over the first word
+- **Then:** the strokes the zigzag touched and the zigzag itself are gone, the word beside it stays, and one undo brings the scratched-out word back without the zigzag
+
+---
+
+### User Story 891:
+
+- **Summary:** Writing that only looks like a zigzag stays ink
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4); verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** writing words like *mmm*, *www* or *minimum*
+- **I want to** never lose ink to a scratch-out I didn't mean
+- **so that** I can trust the board with my handwriting
+
+#### Acceptance Criteria:
+- **Scenario:** Near misses
+- **Given:** a board with writing on it
+- **When:** I write *mmm* over a word, draw a slow zigzag over it, draw a zigzag on bare paper, or one that only clips the end of a long word
+- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*, *no ink*, *beside ink*)
+
+---
+
+### User Story 892:
+
+- **Summary:** Claude and Larry wait until I've stopped writing, by my own rhythm
+- **Status:** implemented in [c9219b9](https://github.com/idvorkin/context-grabber/commit/c9219b9) (the web board's `WritingVad`, ported; replaces story 660's fixed half second); verified on the host (`WhiteboardWritingVadTests`; `just native-test`). How it feels is the iPad's to show
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
+
+#### Use Case:
+- **As someone** writing a sentence on the board
+- **I want to** be answered when I've finished a thought, not between two words
+- **so that** ghosts and Larry's turns follow what I mean, not a timer
+
+#### Acceptance Criteria:
+- **Scenario:** A pause mid-sentence and one at the end of a line
+- **Given:** Ghosts are on and I write a few words at my usual pace
+- **When:** I pause for a second in the middle of the line, then later stop at the end of the line
+- **Then:** the mid-line pause asks nothing, and the pause at the end asks after about four times my usual gap between strokes, never less than 1.5 s nor more than 5 s; the session log's `vad` line says the wait, its cue and my usual gap
+
+---
+
+### User Story 893:
+
+- **Summary:** An end-of-thought cue asks sooner
+- **Status:** implemented in [c9219b9](https://github.com/idvorkin/context-grabber/commit/c9219b9); verified on the host (`WhiteboardWritingVadTests.testAQuestionMarkEndsTheThoughtAtOnce`, `testThePencilHoveringAtANewLineCutsThePauseToTheFloor`, `testTheHandLeavingIsSeenOnlyWhereTheHoverIs`). The Pencil's hover exists only on the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
+
+#### Use Case:
+- **As someone** asking the board a question in ink
+- **I want to** be answered as soon as the question is finished
+- **so that** a longer wait for my rhythm doesn't hold up a thought that is plainly over
+
+#### Acceptance Criteria:
+- **Scenario:** A question mark, a new line, the hand gone
+- **Given:** Ghosts are on and I have written a line
+- **When:** I end it with a question mark, or move the hovering Pencil to the start of the next line, or lift my hand away from the screen
+- **Then:** the turn is asked 1.5 s after my last lift (at once if that has passed), and the session log's `vad` line names the cue
+
+---
+
+### User Story 894:
+
+- **Summary:** Putting the Pencil down cancels a turn that hasn't landed
+- **Status:** implemented in [c9219b9](https://github.com/idvorkin/context-grabber/commit/c9219b9); verified on the host (`WhiteboardGhostTurnsTests.testThePencilGoingDownCancelsATurnNotYetLanded` and its neighbours). The request being dropped on the wire is the iPad's to show
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
+
+#### Use Case:
+- **As someone** who starts writing again just after a pause
+- **I want to** have the stale turn dropped
+- **so that** Claude answers the board as it is when I next stop, not a picture I've already moved past
+
+#### Acceptance Criteria:
+- **Scenario:** Writing again while Claude is being asked
+- **Given:** a pause has asked Claude and no answer has landed yet, and I spoke some words with it
+- **When:** I put the Pencil down to write again
+- **Then:** that request is dropped, any of its marks already shown go, the bar says nothing went wrong, and my words go with the next turn after my next pause
+
+---
+
+### User Story 895:
+
+- **Summary:** Keep all of Larry's marks at once, in the order he drew them
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `keepAll`, without moving my ink); verified on the host (`WhiteboardTidyTests`; `just native-test`) and on the simulator (`WhiteboardTurnUITests.testKeepingAllOfLarrysMarksMakesThemInkInOneStep`, rung 2)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+
+#### Use Case:
+- **As someone** whose board Larry answered with several labels
+- **I want to** keep them all in one go, each clear of my writing and still in order
+- **so that** his answer reads as he wrote it without my tapping every mark
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's labels, one landing on my writing
+- **Given:** Larry's marks show on my board and the first of his labels sits on a line I wrote
+- **When:** I tap Keep all beside the count of marks to keep
+- **Then:** every one of his marks becomes ink in his colour, the label on my writing moves just under it and the marks below it move down with it, my own ink doesn't move, and one undo takes all of them back
+
+---
+
+### User Story 896:
+
+- **Summary:** Tidy overlaps moves kept labels off my writing
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4) (the web board's `tidy`, without moving my ink); verified on the host (`WhiteboardTidyTests.testTidyMovesOnlyTheLabelsThatSitOnInk`, `testTidySeparatesTwoLabelsOnEachOther`, `testTidyTwiceChangesNothing`); `just native-test`. Not yet seen on the simulator or the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+
+#### Use Case:
+- **As someone** who kept labels that landed on my own writing
+- **I want to** tidy them off it in one step
+- **so that** the board stays readable without moving anything by hand
+
+#### Acceptance Criteria:
+- **Scenario:** A kept label over my words
+- **Given:** a label I kept sits on a line I wrote, and another sits on bare paper
+- **When:** I choose Board → Tidy overlaps
+- **Then:** the label on my words moves down to the first clear space under them, the other stays, my ink doesn't move, and one undo puts it back
+
+---
+
+### User Story 897:
+
+- **Summary:** Tidy overlaps on a tidy board says so
+- **Status:** implemented in [b40e8bf](https://github.com/idvorkin/context-grabber/commit/b40e8bf) and [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4); verified on the host (`WhiteboardTidyTests.testTidyTwiceChangesNothing`) and on the simulator (`WhiteboardPaperGhostsUITests.testTidyOverlapsOnATidyBoardSaysNothingOverlaps`, rung 2)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+
+#### Use Case:
+- **As someone** who chose Tidy overlaps on a board with nothing to tidy
+- **I want to** be told nothing overlaps
+- **so that** I know the tidy ran and the board is already clear
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing to tidy
+- **Given:** no kept label sits on other ink
+- **When:** I choose Board → Tidy overlaps
+- **Then:** nothing moves and the bar says *Nothing overlaps*
+
+---
+
+### User Story 898:
+
+- **Summary:** Folded ink is never scratched out, kept around or tidied
+- **Status:** implemented in the review round after [ee847e4](https://github.com/idvorkin/context-grabber/commit/ee847e4); verified by the lint rung and the Mac build (`just native-build-mac`) only. Folding and the Pencil's zigzag are the iPad's to show
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*; [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Keep all and Tidy overlaps*
+
+#### Use Case:
+- **As someone** who folds sections of a board away under their headers
+- **I want to** have what is folded left alone by a scratch-out, a Keep all or a tidy
+- **so that** unfolding brings back exactly what I folded, where I left it
+
+#### Acceptance Criteria:
+- **Scenario:** A zigzag over a word just under a folded header
+- **Given:** a folded section whose hidden ink sits under the lines below its header, and a word on one of those lines
+- **When:** I scratch the word out
+- **Then:** only the word goes; unfolding the header shows all of its ink where it was

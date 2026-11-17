@@ -16,7 +16,7 @@ suggest changes the board until Igor keeps it.
 
 ### Ghosts from Claude (stories 344, 350–352, 354, 357–359, 370–377)
 
-- He draws, then lifts the Pencil. After **half a second** with nothing new Claude is asked (1 s until 2026-11-10, story 660), and within a few seconds faint
+- He draws, then lifts the Pencil. **Once he has stopped writing** (see *When he has stopped writing*, below: 1.5 to 5 s by his rhythm from 2026-11-16, story 892; half a second before that, story 660, and 1 s before 2026-11-10) Claude is asked, and within a few seconds faint
   shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
   third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next
   pause, which waits for the tool to lift.
@@ -58,6 +58,57 @@ suggest changes the board until Igor keeps it.
 - A point in an answer that lies past anywhere the board could reach is ignored, and a shape left with too few points
   isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
   isn't shown or counted either.
+
+### When he has stopped writing (stories 892–894; Igor, 2026-11-16: "match Larry's web board")
+
+A pause after the last stroke asks Claude for ghosts, or hands Larry the picture on a Larry board. A fixed half second
+asked in the middle of a sentence; the Cockpit's web board (*/ink*) waits the way voice detection waits for a speaker,
+and the iPad now waits the same way.
+
+- **The wait follows his rhythm.** The board learns the gaps between his strokes (the median of the last forty, a gap
+  over 3 s being a pause, not his rhythm) and waits about **four times** his usual gap, never less than **1.5 s** and
+  never more than **5 s**. Until it has seen three gaps it takes a usual gap of 0.35 s, so the first wait is 1.5 s.
+- **Mid-line waits longer.** A last stroke in the middle of the page, away from the start and the end of a line, makes
+  the wait half as long again, within the same 1.5 to 5 s; strokes still coming faster than his usual make it a quarter
+  longer again.
+- **End-of-thought cues cut it to 1.5 s**, counted from the lift: a question mark (a small dot just under the stroke
+  before it); the hovering Pencil going back to the start of a line below the last stroke; and the hand leaving the
+  paper (no Pencil hover for a second, on an iPad whose Pencil hovers). A cue after 1.5 s has passed asks at once. A
+  pause is cut short once.
+- **The Pencil going down cancels a turn that hasn't landed.** Writing again means the picture Claude is looking at is
+  already stale: the request is dropped, any of its marks that had arrived go, and words spoken with it wait for the
+  next turn. The bar says nothing about it, as nothing failed. The next pause asks about the board as it is then. A
+  Larry turn already handed to him stays out, as before.
+- **Larry's turns wait the same way.** On a Larry board the picture goes after the same learned pause; one Larry turn at
+  a time, as below.
+- The session log says, for each pause, how long it waited, why (*rhythm*, *mid-line*, *+quick*, *question*, *new line*,
+  *hand away*) and his usual gap, so the iPad can show whether it feels right.
+
+### Keep all and Tidy overlaps (stories 895, 896, 897; Igor, 2026-11-16: "match Larry's web board")
+
+Larry often answers with several labels down the page. Kept one by one they land exactly where he drew them, and on a
+board that moved on since his picture a label can land on Igor's writing. The Cockpit's web board (*/ink*) keeps them
+in order and can tidy overlaps; the iPad does the same, except that **his own ink never moves**: where the web board
+pushes the writing below down to make room, the iPad moves the label down to the first clear space instead.
+
+- **Keep all**, in the note's line beside the count of marks to keep (as on the web board's ghost bar), keeps every mark
+  of Larry's showing at once, as one keep: **one undo takes them all back**. It is there only while his marks show. They are kept top to bottom: a label (words) that would sit on ink
+  moves down under that ink, half a line clear of it, and every mark after it moves down with it, so they stay in the
+  order he drew them. A line, arrow, box or circle is meant to sit on what it points at, so it never moves for ink of its
+  own; it moves only with a label above it that moved. Each mark kept is ink for the next. Nothing of his comes back on
+  the next look or open, as for a mark kept on its own.
+- **Board menu → Tidy overlaps** (one row: the menu has no room for more and still closes after a pick, #848) lays out again, top to bottom, every kept label (and pasted text) that sits on other
+  ink, his or another label above it: each moves down under what it sits on, as above. Ink that only touches a label's
+  edge isn't under it. His own strokes and kept shapes stay where they are. **One undo takes the tidy back.** With
+  nothing to move the bar says *Nothing overlaps* until the board next changes, and tidying a tidy board changes nothing.
+- Labels are known by how they were made: the strokes of one kept label or one paste are made in the same moment, and the
+  board remembers those moments, on this device. A label kept on another device, or before this build, is ink like
+  any other and is never moved.
+- Folded ink (hidden under a folded header) is neither moved nor in the way: a kept label never moves for ink you can't
+  see, and a folded label stays where it is until it is unfolded.
+- A tidy or a keep that moves ink past the last page brings the pages it needs, as any keep does.
+- The session log says what each did: how many marks were kept and how many moved, how many labels the tidy found and
+  moved.
 
 ### How a mark looks: pen, colour, lettering (#698)
 
@@ -231,7 +282,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 
 ## Acceptance
 
-- Draw a circle and lift the Pencil: the turn goes half a second later (the session log's pause), not a second.
+- Draw a circle and lift the Pencil: the turn goes once he has stopped writing, 1.5 to 5 s later by his rhythm (the session log's pause and its cue); the Pencil going down first cancels a turn not yet landed.
 - Open the Board menu: the Responder row names the board's own; open it and it shows Haiku, Sonnet and Larry with that one ticked. Pick Haiku, close and reopen
   the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.
 - Pick Larry and draw: no orange ghosts come; the bar's note begins with Larry's clock (*Larry · 0:00*, story 667), the picture is in the board's chat

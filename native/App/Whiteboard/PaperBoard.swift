@@ -399,10 +399,19 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
       self.fingerTaps(!self.model.ghosts.isEmpty || !list.isEmpty)
     }
+    model.move = { [weak self] moves in self?.move(moves) }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
     if model.editable { view.addGestureRecognizer(holding) }
+    if drawsHere { view.addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(hovering(_:)))) }
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+  }
+
+  /// Stories 892, 893: the Pencil hovering over the paper, in board points. A pointer's hover has no height above the
+  /// glass and isn't the Pencil.
+  @objc private func hovering(_ hover: UIHoverGestureRecognizer) {
+    guard hover.state == .began || hover.state == .changed, hover.zOffset > 0 else { return }
+    model.hovered(at: lines.columnPoint(of: hover.location(in: lines)))
   }
 
   /// #850: whether a board raises the on-screen keyboard. On the iPad simulator one rose over an open Board menu and its
@@ -612,6 +621,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     inkFrames = frames
     if takesBackTapDot(change, frames: frames) { return }
     if pickedUp(change, markup: markup, before: previous) { return }
+    if scratchesOut(change, markup) { return }
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()
@@ -843,6 +853,43 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
           "dot": self.rect(added.first ?? .null), "ms": self.ms(since), "could_undo": could, "gone": gone,
           "strokes": self.inkFrames.count,
         ])
+    }
+    return true
+  }
+
+  /// Stories 890, 891: a fast zigzag over ink takes it and itself away, one undo bringing the ink back. PaperKit's own
+  /// step for the zigzag is undone first, as for the tap's dot, so the stack holds only the scratch-out's.
+  private func scratchesOut(_ change: PaperProbe.InkChange, _ markup: PaperMarkup) -> Bool {
+    guard drawsHere, change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty,
+      let key = change.added.first, let scratch = markup.scratch(key)
+    else { return false }
+    let outcome = scratch.outcome
+    var event: [String: Any] = [
+      "action": "scratch", "board": model.board.id, "fired": outcome.ok, "reversals": outcome.reversals,
+      "strokes": outcome.gone.count,
+    ]
+    if let speed = outcome.speed { event["speed"] = speed }
+    if let why = outcome.why { event["why"] = why }
+    guard let after = scratch.after else {
+      log.event("whiteboard", event)
+      return false
+    }
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let undo = self.paper.undoManager
+      if undo?.canUndo ?? false { undo?.undo() }
+      // The zigzag's own step may not have been the one undone: the markup before it is set either way.
+      event["undid_zigzag"] = self.paper.markup?.strokeFrames[key] == nil
+      self.registerStepBack(to: scratch.before)
+      self.quiet = true
+      self.paper.markup = after
+      self.quiet = false
+      let framesBefore = self.inkFrames
+      self.inkFrames = after.strokeFrames
+      self.model.stepped(after.inkDrawing)
+      self.noteInk(after, since: framesBefore, report: true)
+      self.log.event("whiteboard", event)
+      self.redrawSoon()
     }
     return true
   }
@@ -1495,6 +1542,35 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     guard !change.isEmpty else { return }
     let updated = Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup)
     model.inkElements(updated: updated, removed: change.removed, report: report)
+  }
+
+  /// Story 896: kept labels moved down off ink, by their places in the markup's strokes, with any pages that needs, in
+  /// one undo step. Moved in place, so every stroke keeps its id.
+  private func move(_ moves: [Int: CGFloat]) {
+    guard var markup = paper.markup else { return }
+    let strokes = markup.subelements.strokes
+    registerStepBack(to: markup)
+    for (i, dy) in moves where strokes.indices.contains(i) {
+      var stroke = strokes[i]
+      stroke.transform = stroke.transform.concatenating(CGAffineTransform(translationX: 0, y: dy))
+      markup.subelements.updateOrAppend(stroke)
+    }
+    let wanted = board.pages(after: pages, inkMaxY: markup.inkDrawing.bounds.maxY, redoWaiting: false)
+    if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    pages = wanted
+    let framesBefore = inkFrames
+    inkFrames = markup.strokeFrames
+    model.stepped(markup.inkDrawing)
+    noteInk(markup, since: framesBefore, report: true)
+    showLines()
+    showPageNumber()
+    log.event(
+      "whiteboard",
+      ["action": "paper_move", "board": model.board.id, "strokes": moves.count, "pages": pages])
+    redrawSoon()
   }
 
   /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,
