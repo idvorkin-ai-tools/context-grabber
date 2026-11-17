@@ -560,7 +560,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 980:
 
 - **Summary:** One booted simulator, left booted between runs
-- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (258 checks: the phone and the iPad booted with `bootstatus -b`, nothing shut down at the end, another booted simulator shut first). Not yet measured on the simulator: the before and after boot counts were stopped by the 2026-11-17 heat stop and a stalled screen
+- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (258 checks: the phone and the iPad booted with `bootstatus -b`, nothing shut down at the end, another booted simulator shut first). and on the simulator 2026-11-17 (rung 2, `--changed` WhiteboardTurnUITests and GymTimerUITests, twice in a row): the old scripts booted 3 times each run (236 s, 273 s), these 2 then 1 (240 s, 178 s); the second run found the iPad booted and used it with no boot (CoreSimulator.log, boots inside each rung's own window)
 - **Issues:** the boot-less brief of 2026-11-15 (Igor: "sure do it"); 31 boots on 2026-11-14, and the disk full of wallpaper snapshots on 2026-11-17
 
 #### Use Case:
@@ -584,7 +584,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 981:
 
 - **Summary:** A climb on both the iPhone and the iPad switches device at most once
-- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (none booted: the phone, then the iPad; the iPad booted: the iPad, then the phone, the iPad shut first). Not yet run on the simulator
+- **Status:** implemented on branch `native/sim-boot-less`; verified on the host by the ladder's map self-test (none booted: the phone, then the iPad; the iPad booted: the iPad, then the phone, the iPad shut first). verified on the simulator 2026-11-17: a second climb started on the iPad the first left booted (`rung 2 iPad simulator: 0 s`), then switched once to the iPhone
 
 #### Use Case:
 - **As Igor,** waiting on a whiteboard change, which runs its drawing classes on the iPad and the smoke on the iPhone
