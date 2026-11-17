@@ -345,10 +345,11 @@ The board's log stayed on the iPad until it was pulled to the Mac, so Larry coul
 
 On Larry's web board (*/ink*) the cheat sheet (**?**) and **Feedback** are each one tap, at the board's lower right. The
 board's gestures had no list anywhere on the iPad, and the only way to report from a board was to shake the iPad. Both
-are now one tap on the board, as on */ink*.
+are now one tap on the board, as on */ink*, at the board's top right instead: on the iPad the Pencil's tool palette
+docks along the bottom and takes every tap there.
 
-- **Two small buttons float at the board's lower right corner**, over the paper and clear of the left margin and of the
-  page number: **?** and **Feedback**. They stay put while the board scrolls, are in no picture, and never move the
+- **Two small buttons float at the board's top right corner**, just under the page number, over the paper and clear of
+  the left margin and of the tool palette: **?** and **Feedback**. An open conversation lies over them, as over the paper. They stay put while the board scrolls, are in no picture, and never move the
   paper. They are not in the top bar, which keeps its buttons (the Board menu included) where they are on every width.
 - **?** opens *How this board works*, a short list of the board's gestures as they are now:
   - *In the left margin:* a tap beside a line makes it a header (▾); a tap on the ▾ folds its section (▸ and the number
@@ -369,7 +370,7 @@ are now one tap on the board, as on */ink*.
   session log, exactly as a shake does. Nothing about the sheet changes; it is the same report the Mac's listener files.
 - **When the report is saved, the board says so**: *Feedback logged ✓* beside the buttons for a few seconds. *Logged*,
   not *Sent*: the report is saved on the device and queued for iCloud, and the app is not told when it arrives. If the
-  report could only be noted in the log, the board says that instead.
+  report could only be noted in the log, the board says that instead. It shows to the left of the buttons.
 - A tap on **?** or **Feedback** is in the session log.
 
 ## Trial on paper (removed 2026-11-07)

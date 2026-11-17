@@ -2297,6 +2297,11 @@ struct WhiteboardView: View {
       Group {
         PaperBoardCanvas(model: model, log: log)
       }
+      // Stories 950–953: ? and Feedback under the page number; off the top bar (#848) and the tool palette's bottom.
+      .overlay(alignment: .topTrailing) {
+        BoardHelpButtons(
+          editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
+      }
       // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.
       .overlay(alignment: .top) {
         if model.conversationOpen, !onPhone {
@@ -2308,11 +2313,6 @@ struct WhiteboardView: View {
         }
       }
       .ignoresSafeArea(edges: .bottom)
-    }
-    // Stories 950–953: ? and Feedback at the board's lower right, as on /ink; off the top bar (#848).
-    .overlay(alignment: .bottomTrailing) {
-      BoardHelpButtons(
-        editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
     }
     .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
     .navigationTitle(model.board.title)

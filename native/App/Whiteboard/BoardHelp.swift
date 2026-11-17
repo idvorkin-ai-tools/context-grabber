@@ -1,5 +1,5 @@
-//  Stories 950–953: the board's cheat sheet (?) and Feedback, one tap each at the board's lower right, as on Larry's web
-//  board (/ink). Off the top bar, so the Board menu keeps its place (#848). Feedback is BugKit's own report sheet, the
+//  Stories 950–953: the board's cheat sheet (?) and Feedback, one tap each at the board's top right (Larry's web board,
+//  /ink, has them at the lower right, where the iPad's tool palette docks and takes the taps). Off the top bar, so the Board menu keeps its place (#848). Feedback is BugKit's own report sheet, the
 //  one a shake opens; the board only says when it was saved.
 
 import Combine
@@ -46,7 +46,8 @@ struct BoardHelpButtons: View {
     }
     .buttonStyle(.bordered)
     .controlSize(.small)
-    .padding(12)
+    .padding(.top, 36)
+    .padding(.trailing, 20)
     .onReceive(saved) { status in
       // BugKit says "Problem logged. Thanks." once the report is saved and queued for iCloud; it never hears it arrive.
       confirmation = status.hasPrefix("Problem logged") ? "Feedback logged ✓" : status

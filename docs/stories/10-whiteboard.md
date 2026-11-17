@@ -6430,7 +6430,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Open the cheat sheet
 - **Given:** a board drawn on this iPad
-- **When:** I tap **?** at the board's lower right
+- **When:** I tap **?** at the board's top right
 - **Then:** *How this board works* opens and lists the margin tap, the margin hold with a finger or the Pencil, the hold
   on the page, the Pencil on a word, scratch-out, the lasso's *To text*, the shape snap, *Keep all*, *Fold all* and the
   levels, and Feedback; *Done* closes it and the board is as it was
@@ -6454,7 +6454,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board drawn on this iPad
 - **When:** it opens
 - **Then:** the Board menu, Paste, the mic, Ghosts, Larry's turn and Send are in the top bar as before, and **?** and
-  Feedback float at the board's lower right; a look-only board shows Feedback only
+  Feedback float at the board's top right; a look-only board shows Feedback only
 
 ---
 
@@ -6472,7 +6472,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Report from the board
 - **Given:** a board open
-- **When:** I tap Feedback at the board's lower right
+- **When:** I tap Feedback at the board's top right
 - **Then:** the *Report a problem* sheet opens over the board with a picture of the board as it was and the session
   log, as a shake would open it
 

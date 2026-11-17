@@ -1,4 +1,4 @@
-//  Stories 950–953 on the iPad simulator: ? and Feedback, one tap each at the board's lower right, as on Larry's /ink.
+//  Stories 950–953 on the iPad simulator: ? and Feedback, one tap each at the board's top right, as on Larry's /ink.
 //  The cheat sheet lists the board's gestures and closes; Feedback opens BugKit's report sheet over the board, and once
 //  it is logged the board says *Feedback logged ✓*. The top bar keeps the Board menu (#848).
 
