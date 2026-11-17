@@ -6723,7 +6723,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 940:
 
 - **Summary:** A finger tap on a kept text rewords it in place
-- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); not yet seen on the iPad
+- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
@@ -6742,7 +6742,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 941:
 
 - **Summary:** Emptied words delete the text; unchanged words change nothing
-- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests.testNewWordsAreTrimmedAndCappedEmptyDeletesSameChangesNothing`; `just test`) and the Mac build (`just native-build-mac`); the opening tap's dot taken back in [d1c5856](https://github.com/idvorkin/context-grabber/commit/d1c5856); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testEmptyWordsDeleteTheText`, rung 2); not yet seen on the iPad
+- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests.testNewWordsAreTrimmedAndCappedEmptyDeletesSameChangesNothing`; `just test`) and the Mac build (`just native-build-mac`); the opening tap's dot taken back in [9191a96](https://github.com/idvorkin/context-grabber/commit/9191a96); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testEmptyWordsDeleteTheText`, rung 2); not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
@@ -6761,7 +6761,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 942:
 
 - **Summary:** Larry knows a reworded text as the same text
-- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests`: `testAnUndoneWordingsVersionDoesntDissolveTheText`, `testLarryHearsWhichTextWasReworded`; `just test`) and the Mac build (`just native-build-mac`); not yet seen against the real Cockpit or on the iPad
+- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testAnUndoneWordingsVersionDoesntDissolveTheText`, `testLarryHearsWhichTextWasReworded`; `just test`) and the Mac build (`just native-build-mac`); not yet seen against the real Cockpit or on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
@@ -6780,7 +6780,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 943:
 
 - **Summary:** A held shape shows clean before the Pencil lifts
-- **Status:** implemented in [7c9a1b7](https://github.com/idvorkin/context-grabber/commit/7c9a1b7); verified by host tests (`BoardShapeSnapTests`: `testHeldStillTheCleanShapeShowsBeforeTheLift`, `testWritingHeldStillShowsNothing`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad (the simulator has no Pencil to hold)
+- **Status:** implemented in [2640a36](https://github.com/idvorkin/context-grabber/commit/2640a36); verified by host tests (`BoardShapeSnapTests`: `testHeldStillTheCleanShapeShowsBeforeTheLift`, `testWritingHeldStillShowsNothing`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad (the simulator has no Pencil to hold)
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A snap you see before you lift*
 
 #### Use Case:
@@ -6799,7 +6799,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 944:
 
 - **Summary:** Moving on after the clean shape shows brings the raw stroke back
-- **Status:** implemented in [7c9a1b7](https://github.com/idvorkin/context-grabber/commit/7c9a1b7); verified by host tests (`BoardShapeSnapTests.testMovingOnTakesTheShapeAwayUntilHeldAgain`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [2640a36](https://github.com/idvorkin/context-grabber/commit/2640a36); verified by host tests (`BoardShapeSnapTests.testMovingOnTakesTheShapeAwayUntilHeldAgain`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A snap you see before you lift*
 
 #### Use Case:

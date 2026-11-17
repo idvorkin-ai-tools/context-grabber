@@ -27,6 +27,8 @@ final class BoardSnapWatch {
   fileprivate var cover: CAShapeLayer?
   fileprivate var clean: CAShapeLayer?
   fileprivate var shownKind: String?
+  /// A held lift's clean shape and cover, kept up until its snap lands; the next stroke's preview is no part of them.
+  fileprivate var landing: [CAShapeLayer] = []
 }
 
 extension PaperBoardController {
@@ -63,9 +65,15 @@ extension PaperBoardController {
       }
       // The clean shape stays up until the snap lands, so the raw stroke doesn't flash back in between.
       if snaps.cover != nil {
+        let layers = [snaps.cover, snaps.clean].compactMap { $0 }
+        snaps.cover = nil
+        snaps.clean = nil
+        snaps.shownKind = nil
+        snaps.landing += layers
         Task { @MainActor [weak self] in
           try? await Task.sleep(for: .seconds(1))
-          self?.hidePreview(why: nil)
+          layers.forEach { $0.removeFromSuperlayer() }
+          self?.snaps.landing.removeAll { layers.contains($0) }
         }
       }
       let now = CACurrentMediaTime()
@@ -104,7 +112,10 @@ extension PaperBoardController {
       let raw = markup.subelements.strokes.first(where: { Self.key($0.elementID) == key })
     else { return }
     let points = raw.path.map { $0.location.applying(raw.transform) }
-    defer { hidePreview(why: nil) }
+    defer {
+      snaps.landing.forEach { $0.removeFromSuperlayer() }
+      snaps.landing = []
+    }
     guard let shape = BoardShapeSnap.clean(points) else {
       log.event("whiteboard", ["action": "shape_snap_none", "board": model.board.id, "points": points.count])
       return
