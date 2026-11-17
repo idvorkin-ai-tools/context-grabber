@@ -34,6 +34,13 @@ public struct BoardStrokeIDs: Equatable, Codable, Sendable {
     }
   }
 
+  /// A stroke Larry drew (story 840): known by the name he gave it.
+  public mutating func name(_ hash: String, as name: String) {
+    guard hash != name else { return }
+    if names[hash] == nil { order.append(hash) }
+    names[hash] = name
+  }
+
   /// `strokes` named as Larry knows them.
   public func named(_ strokes: [WhiteboardStrokes.Stroke]) -> [WhiteboardStrokes.Stroke] {
     guard !names.isEmpty else { return strokes }

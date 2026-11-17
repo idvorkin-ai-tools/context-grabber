@@ -458,6 +458,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     paper.markup = markup
     quiet = false
     inkFrames = paper.markup?.strokeFrames ?? [:]
+    model.inkReset(paper.markup.map(Self.allHashes) ?? [:])
     showLines()
     log.event(
       "whiteboard",
@@ -575,6 +576,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
     if takesBackTapDot(change, frames: frames) { return }
+    defer {
+      // Story 843: after the model's revision has moved on.
+      if !change.isEmpty {
+        model.inkElements(
+          updated: Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup), removed: change.removed,
+          report: true)
+      }
+    }
     run?.facts.inkAdded += change.added.count
     run?.facts.inkMoved += change.moved.count
     run?.facts.inkRemoved += change.removed.count
@@ -633,6 +642,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     run?.facts.selectionChanges += 1
     run?.selected = controller.selection.count
     if !controller.selection.isEmpty, CACurrentMediaTime() < noSelectionUntil { controller.selection = [] }
+    // Story 844: what the lasso holds, for Larry.
+    model.selectionChanged(Set(controller.selection.map(Self.key)))
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
@@ -940,9 +951,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showPageNumber()
     redrawSoon()
     let held = paper.markup ?? markup
+    let framesBefore = inkFrames
     inkFrames = held.strokeFrames
     let whole = held.inkDrawing
     model.settled(whole)
+    noteInk(held, since: framesBefore, report: true)
     // The names Larry knows them by, from the mark as made and as PaperKit gives it back: the spec's "Larry knows a kept
     // mark as one stroke".
     let back = PKDrawing(strokes: Array(whole.strokes.suffix(strokes.count)))
@@ -972,10 +985,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     lookForInk(made.bounds, why: "kept")
   }
 
-  /// Stories 814–816: a batch of Larry's changes on the markup. Every stroke it moves moves whole, by a transform on its
-  /// own element (its id kept, so PaperKit's own steps go on working), the column grows to the pages it needs, and the
-  /// lot is one undo named for the batch, the page count included. Text only shows ghosts, so leaves the markup alone.
-  /// Nil before the markup is laid out.
+  /// Stories 814–816, 840–842: a batch of Larry's changes on the markup. Every stroke it moves moves whole, by a transform
+  /// on its own element (its id kept, so PaperKit's own steps go on working); strokes it erases go, the ink he draws is
+  /// added, the column grows to the pages it needs, and the lot is one undo named for the batch, the page count
+  /// included. Text and notes alone leave the markup as it is. Nil before the markup is laid out.
   private func applyOps(_ batch: BoardOps.Batch) -> BoardOps.Plan? {
     guard var markup = paper.markup else { return nil }
     let started = CACurrentMediaTime()
@@ -989,7 +1002,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         bounds: stroke.renderBounds)
     }
     let plan = BoardOps.plan(
-      batch.ops, items: BoardOps.items(strokes: strokes, texts: model.texts), pages: pages, board: board)
+      batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta, pages: pages, board: board)
     guard plan.changesBoard else { return plan }
     let before = markup
     let countBefore = markup.subelements.count
@@ -998,10 +1011,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       var moved = elements[index]
       moved.applyTransform(CGAffineTransform(translationX: shift.dx, y: shift.dy))
       _ = markup.subelements.updateOrAppend(moved)
-      // Remade as `inkDrawing` remakes strokes: its new hashes, which keep the names it had.
-      let after = PKStroke(
-        ink: moved.ink, path: moved.path, transform: moved.transform, mask: moved.mask, randomSeed: moved.randomSeed)
-      renamed.append((hashes[index], WhiteboardModel.strokesForLarry(PKDrawing(strokes: [after])).map(\.id)))
+      renamed.append((hashes[index], Self.hashes(moved)))
     }
     // A moved stroke that came back as a new element would leave its old self behind: nothing is set, and the log says so.
     guard markup.subelements.count == countBefore else {
@@ -1012,6 +1022,19 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
           "elements": markup.subelements.count,
         ])
       return nil
+    }
+    for index in plan.erase where elements.indices.contains(index) {
+      _ = markup.subelements.removeElement(for: elements[index].elementID)
+    }
+    // His ink, in his colour unless he names one, under his names.
+    var drawn: [(hash: [String], name: String)] = []
+    for stroke in plan.added {
+      let color = stroke.color.map { UIColor(rgb: $0) } ?? WhiteboardTurn.Who.larry.color
+      let made = WhiteboardModel.strokes([stroke.points], color: color, width: stroke.width, spacing: 4)
+      for one in made {
+        markup.append(contentsOf: PKDrawing(strokes: [one]))
+        drawn.append((Self.hashes(one), stroke.id))
+      }
     }
     registerStepBack(to: before, named: batch.label)
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
@@ -1024,17 +1047,49 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showLines()
     showPageNumber()
     redrawSoon()
-    model.opsApplied(held.inkDrawing, renamed: renamed)
+    model.opsApplied(held.inkDrawing, renamed: renamed, drawn: drawn)
+    model.inkReset(Self.allHashes(held))
     log.event(
       "whiteboard",
       [
         "action": "paper_ops", "board": model.board.id, "label": batch.label, "moved": plan.offsets.count,
-        "elements": held.subelements.count, "pages_before": plan.pagesBefore,
-        "pages": pages, "can_undo": paper.undoManager?.canUndo ?? false,
+        "erased": plan.erase.count, "drawn": plan.added.count, "elements": held.subelements.count,
+        "pages_before": plan.pagesBefore, "pages": pages, "can_undo": paper.undoManager?.canUndo ?? false,
         "undo_name": paper.undoManager?.undoActionName ?? "", "ms": ms(CACurrentMediaTime() - started),
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterOps)
     return plan
+  }
+
+  /// A stroke's names as the board sends them, one per visible stretch: remade as `inkDrawing` remakes strokes, since
+  /// PencilKit throws on the markup's own.
+  static func hashes(_ stroke: PKStroke) -> [String] {
+    let remade = PKStroke(
+      ink: stroke.ink, path: stroke.path, transform: stroke.transform, mask: stroke.mask, randomSeed: stroke.randomSeed)
+    return WhiteboardModel.strokesForLarry(PKDrawing(strokes: [remade])).map(\.id)
+  }
+
+  /// Each of `keys`' strokes' names, by element key (story 843): every stroke's with `keys` nil.
+  static func hashes(of keys: Set<String>?, in markup: PaperMarkup) -> [String: [String]] {
+    if let keys, keys.isEmpty { return [:] }
+    var out: [String: [String]] = [:]
+    for stroke in markup.subelements.strokes {
+      let key = PaperHost.key(stroke.elementID)
+      if let keys, !keys.contains(key) { continue }
+      out[key] = hashes(stroke)
+    }
+    return out
+  }
+
+  static func allHashes(_ markup: PaperMarkup) -> [String: [String]] { hashes(of: nil, in: markup) }
+
+  /// Story 843: what changed in the ink since `frames`, told to Larry as added, erased and moved (`report`), or only
+  /// taken in.
+  private func noteInk(_ markup: PaperMarkup, since frames: [String: CGRect], report: Bool) {
+    let change = PaperProbe.inkChange(before: frames, after: markup.strokeFrames)
+    guard !change.isEmpty else { return }
+    let updated = Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup)
+    model.inkElements(updated: updated, removed: change.removed, report: report)
   }
 
   /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,
@@ -1163,8 +1218,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     paper.markup = markup
     quiet = false
     pages = board.pages(in: markup.bounds)
+    let framesBefore = inkFrames
     inkFrames = markup.strokeFrames
     model.stepped(markup.inkDrawing)
+    noteInk(markup, since: framesBefore, report: true)
     showLines()
     showPageNumber()
     log.event(

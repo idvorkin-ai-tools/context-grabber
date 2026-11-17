@@ -248,10 +248,10 @@ final class BoardOpsTests: XCTestCase {
   // MARK: What moves (stories 814, 815)
 
   func testAPushMovesOnlyWhatStartsAtOrBelowTheLine() {
-    let items = BoardOps.items(strokes: [
+    let strokes: [BoardOps.Stroke] = [
       stroke("above", y: 100), stroke("across", y: 290), stroke("on", y: 300), stroke("below", y: 600),
-    ])
-    let plan = BoardOps.plan([.translateBelow(y: 300, dy: 120)], items: items, pages: 2)
+    ]
+    let plan = BoardOps.plan([.translateBelow(y: 300, dy: 120)], strokes: strokes, pages: 2)
     XCTAssertEqual(plan.offsets, [2: CGVector(dx: 0, dy: 120), 3: CGVector(dx: 0, dy: 120)])
     XCTAssertEqual(plan.moved, 2)
     XCTAssertEqual(plan.pagesAfter, 2)
@@ -259,16 +259,16 @@ final class BoardOpsTests: XCTestCase {
   }
 
   func testAPushThatNeedsAPageAddsOne() {
-    let items = BoardOps.items(strokes: [stroke("a", y: 100), stroke("b", y: 900, height: 40)])
-    let plan = BoardOps.plan([.translateBelow(y: 500, dy: 300)], items: items, pages: 2)
+    let strokes: [BoardOps.Stroke] = [stroke("a", y: 100), stroke("b", y: 900, height: 40)]
+    let plan = BoardOps.plan([.translateBelow(y: 500, dy: 300)], strokes: strokes, pages: 2)
     // The ink now reaches 1240, onto page 2, and a blank page follows it.
     XCTAssertEqual(plan.pagesBefore, 2)
     XCTAssertEqual(plan.pagesAfter, 3)
   }
 
   func testAPushBelowTheLastInkMovesNothingAndAddsPaper() {
-    let items = BoardOps.items(strokes: [stroke("a", y: 100)])
-    let plan = BoardOps.plan([.translateBelow(y: 900, dy: 400)], items: items, pages: 2)
+    let strokes: [BoardOps.Stroke] = [stroke("a", y: 100)]
+    let plan = BoardOps.plan([.translateBelow(y: 900, dy: 400)], strokes: strokes, pages: 2)
     XCTAssertEqual(plan.offsets, [:])
     XCTAssertEqual(plan.moved, 0)
     XCTAssertEqual(plan.pagesAfter, 3)
@@ -276,28 +276,28 @@ final class BoardOpsTests: XCTestCase {
   }
 
   func testNamedStrokesMoveAndOnlyThose() {
-    let items = BoardOps.items(strokes: [stroke("a", y: 100), stroke("b", y: 200), stroke("c", y: 300)])
-    let plan = BoardOps.plan([.translateIDs(["c", "a", "zzz"], dx: 10, dy: 5)], items: items, pages: 1)
+    let strokes: [BoardOps.Stroke] = [stroke("a", y: 100), stroke("b", y: 200), stroke("c", y: 300)]
+    let plan = BoardOps.plan([.translateIDs(["c", "a", "zzz"], dx: 10, dy: 5)], strokes: strokes, pages: 1)
     XCTAssertEqual(plan.offsets, [0: CGVector(dx: 10, dy: 5), 2: CGVector(dx: 10, dy: 5)])
     XCTAssertEqual(plan.missingIDs, ["zzz"])
   }
 
   func testOpsApplyInOrderOnTheBoardTheEarlierOnesLeft() {
     // The push moves b below 400; the second push then catches it again, and the named move adds to it.
-    let items = BoardOps.items(strokes: [stroke("a", y: 100), stroke("b", y: 300)])
+    let strokes: [BoardOps.Stroke] = [stroke("a", y: 100), stroke("b", y: 300)]
     let plan = BoardOps.plan(
       [.translateBelow(y: 250, dy: 200), .translateBelow(y: 450, dy: 50), .translateIDs(["b"], dx: 0, dy: 1)],
-      items: items, pages: 1)
+      strokes: strokes, pages: 1)
     XCTAssertEqual(plan.offsets, [1: CGVector(dx: 0, dy: 251)])
     XCTAssertEqual(plan.moved, 1)
   }
 
   func testAStrokeWithSeveralStretchesAnswersToEachId() {
-    let items = BoardOps.items(strokes: [
+    let strokes: [BoardOps.Stroke] = [
       BoardOps.Stroke(ids: ["left", "right"], t: 1, bounds: CGRect(x: 0, y: 0, width: 10, height: 10))
-    ])
+    ]
     XCTAssertEqual(
-      BoardOps.plan([.translateIDs(["right"], dx: 1, dy: 0)], items: items, pages: 1).offsets,
+      BoardOps.plan([.translateIDs(["right"], dx: 1, dy: 0)], strokes: strokes, pages: 1).offsets,
       [0: CGVector(dx: 1, dy: 0)])
   }
 
@@ -311,17 +311,17 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(items.count, 3)
     XCTAssertEqual(items[1].members, [1, 2])
     XCTAssertTrue(items[1].ids.contains("label"))
-    let byID = BoardOps.plan([.translateIDs(["label"], dx: 0, dy: 40)], items: items, pages: 1)
+    let byID = BoardOps.plan([.translateIDs(["label"], dx: 0, dy: 40)], strokes: strokes, texts: [text], pages: 1)
     XCTAssertEqual(byID.offsets, [1: CGVector(dx: 0, dy: 40), 2: CGVector(dx: 0, dy: 40)])
-    let push = BoardOps.plan([.translateBelow(y: 295, dy: 60)], items: items, pages: 1)
+    let push = BoardOps.plan([.translateBelow(y: 295, dy: 60)], strokes: strokes, texts: [text], pages: 1)
     XCTAssertEqual(push.offsets.keys.sorted(), [3])
-    let pushAbove = BoardOps.plan([.translateBelow(y: 280, dy: 60)], items: items, pages: 1)
+    let pushAbove = BoardOps.plan([.translateBelow(y: 280, dy: 60)], strokes: strokes, texts: [text], pages: 1)
     XCTAssertEqual(pushAbove.offsets.keys.sorted(), [1, 2, 3])
   }
 
   func testTextAloneLeavesTheBoardAsItIs() {
     let text = BoardOps.Text(id: "t1", x: 1, y: 2, text: "hi")
-    let plan = BoardOps.plan([.addText(text), .addText(text)], items: [], pages: 1)
+    let plan = BoardOps.plan([.addText(text), .addText(text)], strokes: [], pages: 1)
     XCTAssertEqual(plan.texts, [text])
     XCTAssertFalse(plan.changesBoard)
   }

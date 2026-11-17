@@ -127,6 +127,17 @@ public struct BoardOpLedger: @unchecked Sendable {
   }
 
   private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
+  private func metaKey(_ board: String) -> String { "whiteboard_stroke_meta_\(board)" }
+
+  /// Larry's notes on the board's strokes (`BoardStrokeMeta`).
+  public func strokeMeta(board: String) -> BoardStrokeMeta {
+    defaults.data(forKey: metaKey(board)).flatMap { try? JSONDecoder().decode(BoardStrokeMeta.self, from: $0) }
+      ?? BoardStrokeMeta()
+  }
+
+  public func setStrokeMeta(_ meta: BoardStrokeMeta, board: String) {
+    if let data = try? JSONEncoder().encode(meta) { defaults.set(data, forKey: metaKey(board)) }
+  }
 
   /// The names moved strokes keep (`BoardStrokeIDs`).
   public func strokeIDs(board: String) -> BoardStrokeIDs {

@@ -57,8 +57,15 @@ final class WhiteboardModel: ObservableObject {
   private var events = BoardEvents()
   /// His texts Igor kept, known by their glyphs' time (story 817).
   private(set) var texts: [BoardText]
-  /// The names Larry knows moved strokes by: a move never renames a stroke (stories 814, 815).
+  /// The names Larry knows moved strokes by: a move never renames a stroke (stories 814, 815); his drawn strokes go by
+  /// his names (story 840).
   private(set) var strokeIDs: BoardStrokeIDs
+  /// Larry's notes on strokes, kept as he wrote them (story 842).
+  private(set) var strokeMeta: BoardStrokeMeta
+  /// Each element's ink hashes, to tell Larry what Igor added, erased and moved (story 843).
+  private var ink = BoardInk()
+  /// The lasso's selection as last told (story 844).
+  private var selection: Set<String> = []
   /// The Pencil (or a drawing finger) is down, and when it last lifted: a change of Larry's waits for it (story 816).
   private var penDown = false
   private var liftedAt: ContinuousClock.Instant?
@@ -183,6 +190,7 @@ final class WhiteboardModel: ObservableObject {
     ops = opLedger.applier(board: board.id)
     texts = opLedger.texts(board: board.id)
     strokeIDs = opLedger.strokeIDs(board: board.id)
+    strokeMeta = opLedger.strokeMeta(board: board.id)
     var loaded = PKDrawing()
     do {
       loaded = try store.drawing(board.id)
@@ -888,7 +896,8 @@ final class WhiteboardModel: ObservableObject {
       board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale,
       report: turnReport())
     return LarryOut(
-      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts), picture: picture, rect: rect,
+      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta), picture: picture,
+      rect: rect,
       scale: scale, said: said)
   }
 
@@ -1270,7 +1279,7 @@ final class WhiteboardModel: ObservableObject {
     return WhiteboardStrokes.hex(red: red, green: green, blue: blue)
   }
 
-  private static func strokes(
+  static func strokes(
     _ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat, made: Date = Date()
   ) -> [PKStroke] {
     let ink = PKInk(.pen, color: color)
@@ -1482,7 +1491,7 @@ final class WhiteboardModel: ObservableObject {
     draft.whiteboard = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale, report: turnReport())
     // Story 424: the strokes wait beside the picture and go first when it goes.
     draft.strokes = try? JSONSerialization.data(
-      withJSONObject: WhiteboardStrokes.wire(strokesForLarry(), texts: texts))
+      withJSONObject: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta))
     do {
       try inbox.add(&draft, thread: threads.thread(board: board.id))
       if problem?.context == "WhiteboardView.send" { problem = nil }
@@ -1627,6 +1636,10 @@ extension WhiteboardModel {
       log.event("board_ops", event)
       return
     }
+    if !plan.metas.isEmpty {
+      strokeMeta.merge(plan.metas)
+      opLedger.setStrokeMeta(strokeMeta, board: board.id)
+    }
     if !plan.texts.isEmpty {
       turns.larrysText(
         plan.texts.map {
@@ -1638,6 +1651,7 @@ extension WhiteboardModel {
     moves.sort()
     event.merge([
       "action": "applied", "rev": result.rev, "moved": plan.moved, "strokes_moved": plan.offsets.count,
+      "erased": plan.erase.count, "drawn": plan.added.count, "metas": plan.metas.count,
       "dy_min": Double(moves.first ?? 0), "dy_max": Double(moves.last ?? 0), "texts": plan.texts.count,
       "pages_before": plan.pagesBefore, "pages": plan.pagesAfter, "missing_ids": plan.missingIDs.count,
       "changed": plan.changesBoard, "ms": Int(started.duration(to: .now) / .milliseconds(1)),
@@ -1645,12 +1659,42 @@ extension WhiteboardModel {
     log.event("board_ops", event)
   }
 
+  /// Story 843: elements came or changed (`updated`, their hashes now) or went. `report`: Igor did it, so Larry hears
+  /// it; else the board only takes it in.
+  func inkElements(updated: [String: [String]], removed: [String], report: Bool) {
+    let before = strokeIDs
+    let change = ink.changed(updated: updated, removed: removed, ids: &strokeIDs)
+    if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
+    guard report, !change.isEmpty else { return }
+    let event = BoardEvent.strokesChanged(
+      added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs)
+    events.record(event)
+    takeOps(.event(event))
+  }
+
+  /// The ink as it is, Larry told nothing: on opening, and after a change of his own.
+  func inkReset(_ hashes: [String: [String]]) { ink.reset(hashes) }
+
+  /// Story 844: the lasso's selection, by element key; Larry hears it by name when it changes.
+  func selectionChanged(_ keys: Set<String>) {
+    guard keys != selection else { return }
+    selection = keys
+    let names = keys.sorted().flatMap { ink.hashes[$0] ?? [] }.map(strokeIDs.stable)
+    let event = BoardEvent.selection(ids: names, t: Self.nowMs)
+    events.record(event)
+    takeOps(.event(event))
+  }
+
   /// The canvas applied a batch of Larry's: saved and a new revision like any change, and no stroke for Claude to answer.
   /// `renamed`: for each moved stroke, the hashes of its stretches before and after, so it keeps its names.
-  func opsApplied(_ new: PKDrawing, renamed: [(from: [String], to: [String])]) {
+  /// `drawn`: each stroke Larry drew, its hashes and his name for it.
+  func opsApplied(
+    _ new: PKDrawing, renamed: [(from: [String], to: [String])], drawn: [(hash: [String], name: String)] = []
+  ) {
     guard editable else { return }
     for pair in renamed { strokeIDs.moved(from: pair.from, to: pair.to) }
-    if !renamed.isEmpty { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
+    for stroke in drawn { stroke.hash.forEach { strokeIDs.name($0, as: stroke.name) } }
+    if !renamed.isEmpty || !drawn.isEmpty { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     drawing = new
     drawingMoved()
   }

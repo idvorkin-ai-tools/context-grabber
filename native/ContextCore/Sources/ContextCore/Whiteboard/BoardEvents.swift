@@ -14,6 +14,10 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   case pen(down: Bool, idleMs: Int, t: Int64)
   /// A finger tap at a board point; `target` is the mark it landed on (a ghost's id, a kept text's id), or nil.
   case tap(x: CGFloat, y: CGFloat, target: String?, t: Int64)
+  /// Igor changed the ink (story 843): strokes added, erased and moved, by name, and the board's revision after.
+  case strokesChanged(added: [String], erased: [String], moved: [String], rev: Int, t: Int64)
+  /// The lasso's selection, by name (story 844); empty when it was let go.
+  case selection(ids: [String], t: Int64)
 
   public var wire: [String: Any] {
     switch self {
@@ -22,6 +26,10 @@ public enum BoardEvent: Equatable, Codable, Sendable {
     case .tap(let x, let y, let target, let t):
       let tenth = { (v: CGFloat) in Double((v * 10).rounded() / 10) }
       return ["type": "tap", "x": tenth(x), "y": tenth(y), "target_id": target as Any? ?? NSNull(), "t": t]
+    case .strokesChanged(let added, let erased, let moved, let rev, let t):
+      return ["type": "strokes_changed", "added": added, "erased": erased, "moved": moved, "rev": rev, "t": t]
+    case .selection(let ids, let t):
+      return ["type": "selection", "ids": ids, "t": t]
     }
   }
 }
@@ -50,6 +58,9 @@ public struct BoardEvents: Equatable, Sendable {
   public mutating func tap(at point: CGPoint, target: String?, t: Int64) {
     add(.tap(x: point.x, y: point.y, target: target, t: t))
   }
+
+  /// Any other event, as it happened.
+  public mutating func record(_ event: BoardEvent) { add(event) }
 
   /// The events for a turn; the next turn gets only what happens after.
   public mutating func take() -> (events: [BoardEvent], dropped: Int) {
@@ -151,8 +162,19 @@ struct PlacedText: Equatable, Sendable {
 extension WhiteboardStrokes {
   /// The strokes as the Cockpit reads them, at most `maxStrokes`, each kept text of Larry's folded into one
   /// `kind: "text"` entry under its id where its first glyph was, so a later move can name it.
-  public static func wire(_ strokes: [Stroke], texts: [BoardText]) -> [[String: Any]] {
-    guard !texts.isEmpty else { return wire(strokes) }
+  public static func wire(_ strokes: [Stroke], texts: [BoardText], metas: BoardStrokeMeta = BoardStrokeMeta())
+    -> [[String: Any]]
+  {
+    let plain = { (some: [Stroke]) -> [[String: Any]] in
+      // Larry's notes ride on the strokes they belong to, as he wrote them (story 842).
+      guard !metas.isEmpty else { return wire(some) }
+      return zip(some, wire(some)).map { stroke, entry in
+        var entry = entry
+        if let meta = metas[stroke.id] { entry["meta"] = meta.object }
+        return entry
+      }
+    }
+    guard !texts.isEmpty else { return plain(strokes) }
     let byTime = BoardText.byTime(texts)
     let placed = Dictionary(
       placedTexts(strokes, texts: texts).map { ($0.text.id, $0) }, uniquingKeysWith: { a, _ in a })
@@ -160,7 +182,7 @@ extension WhiteboardStrokes {
     var done = Set<String>()
     for stroke in strokes {
       guard let text = BoardText.owning(stroke.t, in: byTime) else {
-        out += wire([stroke])
+        out += plain([stroke])
         continue
       }
       guard done.insert(text.id).inserted, let entry = placed[text.id] else { continue }

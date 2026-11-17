@@ -32,6 +32,50 @@ public enum BoardOps {
     public static let lookOnly = "look_only"
     /// Held for the Pencil and replaced by a newer batch before it applied.
     public static let superseded = "superseded"
+    /// More strokes in one op than `maxNewStrokes`, or a stroke with more points than the Cockpit takes.
+    public static let tooManyStrokes = "too_many_strokes"
+    public static let tooManyPoints = "too_many_points"
+  }
+
+  /// The most strokes one `add_strokes` or `replace` may draw.
+  public static let maxNewStrokes = 500
+
+  /// A name the Cockpit's strokes endpoint takes (`[A-Za-z0-9_-]{1,64}`, whiteboard_strokes.py): anything Larry names
+  /// goes back to it in the strokes.
+  public static func isName(_ id: String) -> Bool {
+    (1...64).contains(id.utf8.count)
+      && id.utf8.allSatisfy {
+        ($0 >= 48 && $0 <= 57) || ($0 >= 65 && $0 <= 90) || ($0 >= 97 && $0 <= 122) || $0 == 45 || $0 == 95
+      }
+  }
+
+  /// A stroke Larry draws, as `add_strokes` and `replace` give it.
+  public struct NewStroke: Equatable, Sendable {
+    public var id: String
+    public var points: [CGPoint]
+    /// In board points, within what a kept mark draws at (`WhiteboardTurn.thinnestPen`...`widestPen`).
+    public var width: CGFloat
+    /// `0xRRGGBB`; nil is Larry's colour.
+    public var color: UInt32?
+    public var meta: BoardMeta?
+    public var hidden = false
+
+    public init(
+      id: String, points: [CGPoint], width: CGFloat = WhiteboardTurn.defaultPen, color: UInt32? = nil,
+      meta: BoardMeta? = nil, hidden: Bool = false
+    ) {
+      self.id = id
+      self.points = points
+      self.width = width
+      self.color = color
+      self.meta = meta
+      self.hidden = hidden
+    }
+
+    public var bounds: CGRect {
+      guard let first = points.first else { return .null }
+      return points.dropFirst().reduce(CGRect(origin: first, size: .zero)) { $0.union(CGRect(origin: $1, size: .zero)) }
+    }
   }
 
   public enum Font: String, Codable, Sendable {
@@ -81,6 +125,14 @@ public enum BoardOps {
     case translateIDs([String], dx: CGFloat, dy: CGFloat)
     /// A ghost of Larry's text.
     case addText(Text)
+    /// Ink of Larry's, straight onto the board (story 840).
+    case addStrokes([NewStroke])
+    /// These strokes, texts or groups erased (story 841).
+    case delete([String])
+    /// Larry's notes on these strokes, kept as written; only `group` is read (story 842).
+    case setMeta([String], BoardMeta)
+    /// A delete and an add in one (story 841).
+    case replace([String], with: [NewStroke])
   }
 
   public struct Batch: Equatable, Sendable {
@@ -190,7 +242,7 @@ public enum BoardOps {
       return .success(.translateBelow(y: y, dy: dy))
     case "add_text":
       let text = (json["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-      guard let id = json["id"] as? String, !id.isEmpty, let x = place("x"), let y = place("y"), !text.isEmpty else {
+      guard let id = json["id"] as? String, isName(id), let x = place("x"), let y = place("y"), !text.isEmpty else {
         return .failure(Refusal(reason: Reason.badOp))
       }
       let size = place("size").flatMap { $0 > 0 ? $0 : nil } ?? 18
@@ -198,109 +250,59 @@ public enum BoardOps {
       return .success(
         .addText(
           Text(id: id, x: x, y: y, text: text, font: font, size: size, color: WhiteboardTurn.hexColor(json["color"]))))
+    case "add_strokes":
+      return newStrokes(json["strokes"]).map { .addStrokes($0) }
+    case "delete":
+      guard let ids = names(json["ids"]) else { return .failure(Refusal(reason: Reason.badOp)) }
+      return .success(.delete(ids))
+    case "set_meta":
+      guard let ids = names(json["ids"]), let meta = BoardMeta(json["meta"]) else {
+        return .failure(Refusal(reason: Reason.badOp))
+      }
+      return .success(.setMeta(ids, meta))
+    case "replace":
+      guard let ids = names(json["ids"]) else { return .failure(Refusal(reason: Reason.badOp)) }
+      return newStrokes(json["strokes"]).map { .replace(ids, with: $0) }
     default:
       return .failure(Refusal(reason: Reason.unknownOp))
     }
   }
 
-  // MARK: What moves
-
-  /// One stroke on the canvas as the plan sees it: the ids Larry knows it by (one per visible stretch) and when it was
-  /// made, unix ms.
-  public struct Stroke: Equatable, Sendable {
-    public var ids: [String]
-    public var t: Int64?
-    public var bounds: CGRect
-
-    public init(ids: [String], t: Int64?, bounds: CGRect) {
-      self.ids = ids
-      self.t = t
-      self.bounds = bounds
-    }
+  /// A list of names; nil for anything else.
+  static func names(_ any: Any?) -> [String]? {
+    guard let ids = any as? [String] else { return nil }
+    return ids
   }
 
-  /// What moves as a whole: a stroke, or every glyph of a kept text.
-  public struct Item: Equatable, Sendable {
-    public var ids: Set<String>
-    /// The strokes' places on the canvas.
-    public var members: [Int]
-    public var bounds: CGRect
-  }
-
-  /// The canvas's strokes as items: a kept text's glyphs (made at its time) are one item answering to its id too.
-  public static func items(strokes: [Stroke], texts: [BoardText] = []) -> [Item] {
-    let byTime = BoardText.byTime(texts)
-    var out: [Item] = []
-    var textItem: [String: Int] = [:]
-    for (index, stroke) in strokes.enumerated() {
-      if let text = BoardText.owning(stroke.t, in: byTime)?.id {
-        if let at = textItem[text] {
-          out[at].ids.formUnion(stroke.ids)
-          out[at].members.append(index)
-          out[at].bounds = out[at].bounds.union(stroke.bounds)
-          continue
-        }
-        textItem[text] = out.count
-        out.append(Item(ids: Set(stroke.ids + [text]), members: [index], bounds: stroke.bounds))
-      } else {
-        out.append(Item(ids: Set(stroke.ids), members: [index], bounds: stroke.bounds))
+  static func newStrokes(_ any: Any?) -> Swift.Result<[NewStroke], Refusal> {
+    guard let list = any as? [Any] else { return .failure(Refusal(reason: Reason.badOp)) }
+    guard list.count <= maxNewStrokes else { return .failure(Refusal(reason: Reason.tooManyStrokes)) }
+    var out: [NewStroke] = []
+    for item in list {
+      guard let json = item as? [String: Any], let id = json["id"] as? String, isName(id),
+        let raw = json["points"] as? [Any], !raw.isEmpty
+      else { return .failure(Refusal(reason: Reason.badOp)) }
+      guard raw.count <= WhiteboardStrokes.maxPoints else { return .failure(Refusal(reason: Reason.tooManyPoints)) }
+      var points: [CGPoint] = []
+      for pair in raw {
+        guard let pair = pair as? [Any], pair.count == 2, let x = WhiteboardTurn.number(pair[0]),
+          let y = WhiteboardTurn.number(pair[1])
+        else { return .failure(Refusal(reason: Reason.badOp)) }
+        points.append(CGPoint(x: x, y: y))
       }
-    }
-    return out
-  }
-
-  public struct Plan: Equatable, Sendable {
-    /// How far each stroke moves, by its place on the canvas; strokes that stay are absent.
-    public var offsets: [Int: CGVector] = [:]
-    /// Ghosts of Larry's text to show.
-    public var texts: [Text] = []
-    public var pagesBefore: Int
-    public var pagesAfter: Int
-    /// Items that moved.
-    public var moved = 0
-    public var missingIDs: [String] = []
-
-    /// The board itself changes: something moves or a page is added. Text alone only shows ghosts.
-    public var changesBoard: Bool { !offsets.isEmpty || pagesAfter != pagesBefore }
-  }
-
-  /// The batch's changes on `items`, in order, each seeing the board as the ones before it left it. `pages` is the
-  /// column's page count now; it grows to hold the ink after, and the room a push opens below the last ink.
-  public static func plan(_ ops: [Op], items: [Item], pages: Int, board: BoardPages = BoardPages()) -> Plan {
-    var bounds = items.map(\.bounds)
-    var shifts = [CGVector](repeating: .zero, count: items.count)
-    var plan = Plan(pagesBefore: pages, pagesAfter: pages)
-    var reach: CGFloat?
-    func move(_ i: Int, _ dx: CGFloat, _ dy: CGFloat) {
-      bounds[i] = bounds[i].offsetBy(dx: dx, dy: dy)
-      shifts[i].dx += dx
-      shifts[i].dy += dy
-    }
-    for op in ops {
-      switch op {
-      case .translateBelow(let y, let dy):
-        for i in bounds.indices where bounds[i].minY >= y { move(i, 0, dy) }
-        if dy > 0 { reach = max(reach ?? y + dy, y + dy) }
-      case .translateIDs(let ids, let dx, let dy):
-        var hit = Set<Int>()
-        for id in ids {
-          let found = items.indices.filter { items[$0].ids.contains(id) }
-          if found.isEmpty { plan.missingIDs.append(id) }
-          hit.formUnion(found)
-        }
-        for i in hit.sorted() { move(i, dx, dy) }
-      case .addText(let text):
-        plan.texts.removeAll { $0.id == text.id }
-        plan.texts.append(text)
+      let width = (json["width"] as? NSNumber).map { CGFloat($0.doubleValue) }.flatMap { $0.isFinite ? $0 : nil }
+      var meta: BoardMeta?
+      if let raw = json["meta"] {
+        guard let parsed = BoardMeta(raw) else { return .failure(Refusal(reason: Reason.badOp)) }
+        meta = parsed
       }
+      out.append(
+        NewStroke(
+          id: id, points: points,
+          width: min(WhiteboardTurn.widestPen, max(WhiteboardTurn.thinnestPen, width ?? WhiteboardTurn.defaultPen)),
+          color: WhiteboardTurn.hexColor(json["color"]), meta: meta))
     }
-    for (i, shift) in shifts.enumerated() where shift.dx != 0 || shift.dy != 0 {
-      plan.moved += 1
-      for member in items[i].members { plan.offsets[member] = shift }
-    }
-    let inkMaxY = (bounds.map(\.maxY) + (reach.map { [$0] } ?? [])).max()
-    plan.pagesAfter = board.pages(after: pages, inkMaxY: inkMaxY, redoWaiting: false)
-    return plan
+    return .success(out)
   }
 
   // MARK: The Pencil
@@ -336,6 +338,10 @@ public enum BoardOps {
       case .translateBelow: kinds["translate_below", default: 0] += 1
       case .translateIDs: kinds["translate_ids", default: 0] += 1
       case .addText: kinds["add_text", default: 0] += 1
+      case .addStrokes: kinds["add_strokes", default: 0] += 1
+      case .delete: kinds["delete", default: 0] += 1
+      case .setMeta: kinds["set_meta", default: 0] += 1
+      case .replace: kinds["replace", default: 0] += 1
       }
     }
     if !kinds.isEmpty { out["kinds"] = kinds }
