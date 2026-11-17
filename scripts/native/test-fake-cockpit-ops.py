@@ -89,7 +89,7 @@ try:
     last = larry_rows(key)[-1]
     check("ops" not in last and last.get("shapes"), "unarmed, he draws marks as before")
     reports = call("/fake/ops")["reports"]
-    check([r["rev"] for r in reports] == [7, 8, 8], "each board message's rev: %s" % reports)
+    check([r["rev"] for r in reports] == [7, 8, 8, 8], "each board message's rev: %s" % reports)
     check(reports[0]["events"] == 1 and reports[1]["op_result"] == {"label": "make room", "ok": True, "rev": 8},
           "and its events and op_result: %s" % reports)
     call("/fake/larry-ops", {"kind": "ink_and_button"})
