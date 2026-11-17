@@ -22,14 +22,18 @@ public enum BoardDissolve {
         if let rest = metas[name]?.withoutGroup { metas.set(rest, for: name) } else { metas.remove(name) }
       }
     }
+    // By the glyphs' time, not the id: a reworded text (story 942) is one id with a version for each wording, and the
+    // version whose glyphs an undo took away is no part of the one on the board.
     let byTime = BoardText.byTime(texts)
-    var glyphsLeft: [String: Int] = [:]
-    for stroke in live { if let text = BoardText.owning(stroke.t, in: byTime) { glyphsLeft[text.id, default: 0] += 1 } }
+    var glyphsLeft: [Int64: Int] = [:]
+    for stroke in live { if let text = BoardText.owning(stroke.t, in: byTime) { glyphsLeft[text.t, default: 0] += 1 } }
     let parted = texts.filter { text in
-      guard let glyphs = text.glyphs, let now = glyphsLeft[text.id] else { return false }
+      guard let glyphs = text.glyphs, let now = glyphsLeft[text.t] else { return false }
       return now < glyphs
-    }.map(\.id)
-    texts.removeAll { parted.contains($0.id) }
-    return out + parted
+    }
+    let gone = Set(parted.map(\.id))
+    texts.removeAll { gone.contains($0.id) }
+    var named = Set<String>()
+    return out + parted.map(\.id).filter { named.insert($0).inserted }
   }
 }

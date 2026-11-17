@@ -57,8 +57,7 @@ ellipse and hold the Pencil still at its end: it snaps clean.
 
 ## Not in this step
 
-- Editing the words of a kept text in place: the board on paper has no text editor yet (the web board's *Edit*). To
-  change it, erase it or undo.
-- The snapped shape showing clean while the Pencil is still down (the web board previews it): here it lands on lift.
+- Editing the words of a kept text in place, and the snapped shape showing clean while the Pencil is still down: both
+  came next, in [Rewording a kept text, and a snap you see before you lift](2026-11-17-whiteboard-reword-and-live-snap-design.md).
 - Making room below when the text is taller than the ink it replaced: the text is sized to the ink's lines, so it
   fits in nearly every case.

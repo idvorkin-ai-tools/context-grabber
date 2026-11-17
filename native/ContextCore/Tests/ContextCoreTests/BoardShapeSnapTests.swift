@@ -134,6 +134,50 @@ final class BoardShapeSnapTests: XCTestCase {
     XCTAssertFalse(hold.held(liftedAt: CGPoint(x: 410, y: 100), time: 1.1))
   }
 
+  // MARK: Stories 943, 944: the shape shown while the Pencil is held, before the lift
+
+  /// `points` drawn 10 ms apart from `start`; the time after the last.
+  private func draw(_ points: [CGPoint], into live: inout BoardShapeSnap.Live, from start: Double = 0) -> Double {
+    var time = start
+    for point in points {
+      live.moved(to: point, at: time)
+      time += 0.01
+    }
+    return time - 0.01
+  }
+
+  func testHeldStillTheCleanShapeShowsBeforeTheLift() throws {
+    var live = BoardShapeSnap.Live()
+    let end = draw(walk([CGPoint(x: 100, y: 100), CGPoint(x: 300, y: 104)], wobble: 2), into: &live)
+    XCTAssertNil(live.still(at: end + 0.3), "not yet: under half a second")
+    let shape = try XCTUnwrap(live.still(at: end + 0.5))
+    XCTAssertEqual(shape.kind, .line)
+    XCTAssertEqual(live.shown, shape)
+    // A tremble under 5 points keeps it showing.
+    XCTAssertFalse(live.moved(to: CGPoint(x: 302, y: 105), at: end + 0.6))
+    XCTAssertEqual(live.shown, shape)
+  }
+
+  func testMovingOnTakesTheShapeAwayUntilHeldAgain() throws {
+    var live = BoardShapeSnap.Live()
+    let end = draw(walk([CGPoint(x: 100, y: 100), CGPoint(x: 300, y: 100)]), into: &live)
+    XCTAssertNotNil(live.still(at: end + 0.5))
+    // On into a curl: the raw stroke is back, and the longer stroke is no shape when held again.
+    XCTAssertTrue(live.moved(to: CGPoint(x: 320, y: 140), at: end + 0.7))
+    XCTAssertNil(live.shown)
+    let curl = draw(
+      ellipse(center: CGPoint(x: 330, y: 180), rx: 30, ry: 30, sweep: 1.4 * .pi), into: &live, from: end + 0.71)
+    XCTAssertNil(live.still(at: curl + 0.2), "too soon after moving")
+    XCTAssertNil(live.still(at: curl + 0.6), "a line with a curl is no shape")
+  }
+
+  func testWritingHeldStillShowsNothing() {
+    var live = BoardShapeSnap.Live()
+    let squiggle = (0..<60).map { i in CGPoint(x: 100 + CGFloat(i) * 2, y: 100 + (i % 6 < 3 ? 0 : 14)) }
+    let end = draw(squiggle, into: &live)
+    XCTAssertNil(live.still(at: end + 1))
+  }
+
   func testNamesForUndo() {
     XCTAssertEqual(BoardShapeSnap.name(.rect), "rectangle")
     XCTAssertEqual(BoardShapeSnap.name(.line), "line")

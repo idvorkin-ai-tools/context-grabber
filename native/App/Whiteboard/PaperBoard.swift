@@ -363,6 +363,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let toText = BoardToTextState()
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()
+  /// Stories 940–942: a kept text's words open in place (BoardRewordFlow.swift).
+  let reword = BoardRewordState()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private(set) var board = BoardPages()
   private(set) var pages = 1
@@ -385,7 +387,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// A tap's selection comes after the lift: until this time one is put straight back.
   private var noSelectionUntil: Double = 0
   /// The last finger tap while marks showed, in board points, and when: the dot PaperKit draws there is taken back.
-  private var ghostTap: (at: CGPoint, time: Double)?
+  private var ghostTap: (at: CGPoint, time: Double, within: Double)?
   /// How far a ghost's place on the sheet was from where the visible frame says, over this touch, and how many looks
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
@@ -458,7 +460,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   /// Screen points to a board point, whatever PaperKit's zoom scale means.
-  private var screenScale: CGFloat {
+  var screenScale: CGFloat {
     view.bounds.width / max(paper.contentVisibleFrame.width, 1)
   }
 
@@ -903,14 +905,20 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let count = model.ghosts.count
     // Story 855: a margin tap is the outline's; a dot a drawing finger leaves there is taken back.
     if at.x < BoardMargin.width {
-      ghostTap = (at, CACurrentMediaTime())
+      ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
       noSelectionUntil = CACurrentMediaTime() + 0.8
+      return
+    }
+    // Story 940: with no marks to choose, a tap on a kept text opens its words (or, with them open, is done).
+    if count == 0, rewordTapped(at: at) {
+      noSelectionUntil = CACurrentMediaTime() + 0.8
+      ghostTap = (at, CACurrentMediaTime(), PaperProbe.rewordDotSeconds)
       return
     }
     // With his controls showing a finger taps too (story 846): no dot, no selection.
     guard count > 0 || !model.overlays.list.isEmpty else { return }
     noSelectionUntil = CACurrentMediaTime() + 0.8
-    ghostTap = (at, CACurrentMediaTime())
+    ghostTap = (at, CACurrentMediaTime(), PaperProbe.tapDotSeconds)
     let selected = paper.selection.count
     if selected > 0 { paper.selection = [] }
     guard count > 0 else { return }
@@ -935,7 +943,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     guard let tap = ghostTap, change.removed.isEmpty, change.moved.isEmpty else { return false }
     let since = CACurrentMediaTime() - tap.time
     let added = change.added.compactMap { frames[$0] }
-    guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale) else { return false }
+    guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale, within: tap.within)
+    else { return false }
     ghostTap = nil
     let dot = change.added
     Task { @MainActor [weak self] in
@@ -1421,10 +1430,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     log.event("whiteboard", ["action": "paper_paste_deleted", "board": model.board.id, "strokes": gone.count])
   }
 
-  /// The strokes with these element keys swapped for `strokes`, as one undo named `name` (stories 920, 923): saved, and
-  /// told to Larry as ink added and erased, never a stroke for Claude to answer. Nil before the markup is laid out.
+  /// The strokes with these element keys swapped for `strokes`, as one undo named `name` (stories 920, 923, 940): saved,
+  /// and told to Larry as ink added and erased (naming the texts it `reworded`), never a stroke for Claude to answer. Nil
+  /// before the markup is laid out.
   @discardableResult
-  func replaceInk(removing keys: Set<String>, adding strokes: [PKStroke], named name: String) -> PaperMarkup? {
+  func replaceInk(
+    removing keys: Set<String>, adding strokes: [PKStroke], named name: String, reworded: [String]? = nil
+  ) -> PaperMarkup? {
     guard var markup = paper.markup else { return nil }
     let before = markup
     for id in markup.subelements.strokes.map(\.elementID) where keys.contains(Self.key(id)) {
@@ -1440,7 +1452,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let held = paper.markup ?? markup
     inkFrames = held.strokeFrames
     model.stepped(held.inkDrawing)
-    noteInk(held, since: framesBefore, report: true)
+    noteInk(held, since: framesBefore, report: true, reworded: reworded)
     showLines()
     redrawSoon()
     showMarksSoon()
@@ -1730,11 +1742,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// Story 843: what changed in the ink since `frames`, told to Larry as added, erased and moved (`report`), or only
   /// taken in.
-  func noteInk(_ markup: PaperMarkup, since frames: [String: CGRect], report: Bool) {
+  func noteInk(
+    _ markup: PaperMarkup, since frames: [String: CGRect], report: Bool, reworded: [String]? = nil
+  ) {
     let change = PaperProbe.inkChange(before: frames, after: markup.strokeFrames)
     guard !change.isEmpty else { return }
     let updated = Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup)
-    model.inkElements(updated: updated, removed: change.removed, report: report)
+    model.inkElements(updated: updated, removed: change.removed, report: report, reworded: reworded)
   }
 
   /// Story 896: kept labels moved down off ink, by their places in the markup's strokes, with any pages that needs, in
@@ -2061,6 +2075,7 @@ struct PaperBoardCanvas: View {
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
     .overlay { ToTextButton(controller: controller, state: controller.toText) }
     .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame) }
+    .overlay { RewordField(controller: controller, state: controller.reword) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

@@ -68,6 +68,11 @@ final class PaperProbeTests: XCTestCase {
         added: [CGRect(x: 515, y: 480, width: 12, height: 12)], tap: tap, secondsSince: 0.1, zoom: 0.5),
       "zoomed out, the same dot covers more of the board")
     XCTAssertFalse(PaperProbe.isTapDot(added: [], tap: tap, secondsSince: 0.1, zoom: 1), "nothing added")
+    // Story 941: a tap that opened a kept text's field held the dot back 0.68 s and 1.3 s; it is still the tap's.
+    XCTAssertFalse(PaperProbe.isTapDot(added: [dot], tap: tap, secondsSince: 0.68, zoom: 1))
+    XCTAssertTrue(
+      PaperProbe.isTapDot(
+        added: [dot], tap: tap, secondsSince: 1.3, zoom: 1, within: PaperProbe.rewordDotSeconds))
     XCTAssertFalse(
       PaperProbe.isTapDot(added: [CGRect(x: 244, y: 486, width: 250, height: 4)], tap: tap, secondsSince: 0.1, zoom: 1),
       "a stroke")

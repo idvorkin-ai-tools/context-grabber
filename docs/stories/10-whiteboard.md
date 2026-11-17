@@ -5,7 +5,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 [2026-11-01-whiteboard-shapes-design.md](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md),
 [2026-11-02-whiteboard-paste-design.md](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
 [2026-11-16-whiteboard-question-cards-design.md](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md),
-[2026-11-16-whiteboard-to-text-and-snap-design.md](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md).
+[2026-11-16-whiteboard-to-text-and-snap-design.md](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md),
+[2026-11-17-whiteboard-reword-and-live-snap-design.md](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md).
 
 ---
 
@@ -6718,3 +6719,96 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** only what I dragged moves
 
 ---
+
+### User Story 940:
+
+- **Summary:** A finger tap on a kept text rewords it in place
+- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); not yet seen on the iPad
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
+
+#### Use Case:
+- **As someone** with one of Larry's texts, a To text result or my own typed text on the board
+- **I want to** tap it and change its words where it is
+- **so that** fixing a word doesn't mean erasing the whole text and starting again
+
+#### Acceptance Criteria:
+- **Scenario:** A word changed
+- **Given:** a kept text reading "hello" on a board drawn on here, and no marks of Larry's showing
+- **When:** I tap it with a finger, change the words to "hello world" and press Return
+- **Then:** the text shows "hello world" from the same top-left in its own lettering, size and colour, wrapped by word to its width; one undo brings "hello" back
+
+---
+
+### User Story 941:
+
+- **Summary:** Emptied words delete the text; unchanged words change nothing
+- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests.testNewWordsAreTrimmedAndCappedEmptyDeletesSameChangesNothing`; `just test`) and the Mac build (`just native-build-mac`); the opening tap's dot taken back in [9191a96](https://github.com/idvorkin/context-grabber/commit/9191a96); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testEmptyWordsDeleteTheText`, rung 2); not yet seen on the iPad
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
+
+#### Use Case:
+- **As someone** editing a kept text
+- **I want to** empty it to delete it, and leave it untouched to change nothing
+- **so that** the editor is also the quickest way to remove a text, and opening it by mistake costs nothing
+
+#### Acceptance Criteria:
+- **Scenario:** Emptied, and left alone
+- **Given:** a kept text open for editing
+- **When:** I delete all its words and press Return, or open another and tap off it without typing
+- **Then:** the first text goes, one undo bringing it back; the second stays exactly as it was, with no undo step for it
+
+---
+
+### User Story 942:
+
+- **Summary:** Larry knows a reworded text as the same text
+- **Status:** implemented in [ea93cbb](https://github.com/idvorkin/context-grabber/commit/ea93cbb); verified by host tests (`BoardRewordTests`: `testAnUndoneWordingsVersionDoesntDissolveTheText`, `testLarryHearsWhichTextWasReworded`; `just test`) and the Mac build (`just native-build-mac`); not yet seen against the real Cockpit or on the iPad
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
+
+#### Use Case:
+- **As** Larry, reading Igor's board
+- **I want to** see a reworded text under the id I knew it by, with its new words
+- **so that** a later move or answer can still name it
+
+#### Acceptance Criteria:
+- **Scenario:** Reworded
+- **Given:** a kept text Larry knows as `text-1`
+- **When:** Igor rewords it
+- **Then:** Larry hears a strokes change that names `text-1` as reworded, and the board he reads has `text-1` with the new words; an undo gives him the old words under `text-1` again
+
+---
+
+### User Story 943:
+
+- **Summary:** A held shape shows clean before the Pencil lifts
+- **Status:** implemented in [2640a36](https://github.com/idvorkin/context-grabber/commit/2640a36); verified by host tests (`BoardShapeSnapTests`: `testHeldStillTheCleanShapeShowsBeforeTheLift`, `testWritingHeldStillShowsNothing`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad (the simulator has no Pencil to hold)
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A snap you see before you lift*
+
+#### Use Case:
+- **As someone** drawing a box or a line with the Pencil
+- **I want to** see the clean shape as soon as I hold still, before I lift
+- **so that** I know it will snap, and to what, while I can still change my mind
+
+#### Acceptance Criteria:
+- **Scenario:** Held, then lifted
+- **Given:** I draw a nearly square box on a board drawn on here
+- **When:** I hold the Pencil still at its end for about half a second, with it still down
+- **Then:** the box shows as a clean rectangle in my pen's colour and width at once; lifting keeps it, one undo giving my raw box back
+
+---
+
+### User Story 944:
+
+- **Summary:** Moving on after the clean shape shows brings the raw stroke back
+- **Status:** implemented in [2640a36](https://github.com/idvorkin/context-grabber/commit/2640a36); verified by host tests (`BoardShapeSnapTests.testMovingOnTakesTheShapeAwayUntilHeldAgain`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *A snap you see before you lift*
+
+#### Use Case:
+- **As someone** who held still by accident in the middle of a drawing
+- **I want to** keep drawing and have my stroke stay mine
+- **so that** a pause never turns a sketch into a shape I didn't ask for
+
+#### Acceptance Criteria:
+- **Scenario:** Held, then moved on
+- **Given:** a line I drew whose clean shape is showing, the Pencil still down
+- **When:** I move the Pencil on to draw a curl, and lift without holding still again
+- **Then:** the clean line goes as I move, the raw stroke shows again, and it lands exactly as I drew it

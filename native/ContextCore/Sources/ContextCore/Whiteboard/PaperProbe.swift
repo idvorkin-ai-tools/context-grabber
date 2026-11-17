@@ -118,12 +118,18 @@ public enum PaperProbe {
   /// Stories 616, 825 (#883): the dot PaperKit draws where a finger tapped, even with a finger set not to draw, a few
   /// tenths of a second after the lift. One stroke, a few screen points across, at the tap (in board points, `zoom`
   /// screen points to one), within `tapDotSeconds` of it; anything bigger, elsewhere or later is drawing.
-  public static func isTapDot(added: [CGRect], tap: CGPoint, secondsSince: Double, zoom: CGFloat) -> Bool {
-    guard added.count == 1, let dot = added.first, secondsSince < tapDotSeconds, zoom > 0 else { return false }
+  /// `within`: how long it may take to land (`tapDotSeconds`, or `rewordDotSeconds` for a tap that opened a text).
+  public static func isTapDot(
+    added: [CGRect], tap: CGPoint, secondsSince: Double, zoom: CGFloat, within: Double = tapDotSeconds
+  ) -> Bool {
+    guard added.count == 1, let dot = added.first, secondsSince < within, zoom > 0 else { return false }
     let near = 22 / zoom
     return max(dot.width, dot.height) <= 16 / zoom && hypot(dot.midX - tap.x, dot.midY - tap.y) <= near
   }
 
   /// How long after a tap its dot can land: 0.11 to 0.18 s on the iPad simulator.
   public static let tapDotSeconds = 0.6
+  /// Story 941: a tap that opens a kept text's field, and the keyboard with it, holds PaperKit's dot back: 0.68 and 1.3 s on
+  /// the iPad simulator (2026-11-17), where the plain window let it stay as a stroke.
+  public static let rewordDotSeconds = 2.0
 }
