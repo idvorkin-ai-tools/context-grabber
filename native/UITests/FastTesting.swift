@@ -51,9 +51,12 @@ extension XCUIApplication {
   /// ponytail: the whiteboard's classes keep their animations. Without the Board menu's closing animation a stroke
   /// after it counted 2 where 1 was drawn (PaperLines, iPad simulator, 2026-11-10), so the menu's closing tap may reach
   /// the canvas. Turn them off there once #850's responder fight is settled, and measure again.
+  /// A new board starts bare, as before #915, so a board's pixels are read against plain paper; the grid a new board
+  /// really opens with is `WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid`, which drops this (story 410).
   static func forTests(animated: Bool = false) -> XCUIApplication {
     let app = XCUIApplication()
     if !animated { app.launchEnvironment["GRABBER_NO_ANIMATIONS"] = "1" }
+    app.launchEnvironment["GRABBER_WHITEBOARD_GRID"] = "off"
     return app
   }
 }

@@ -264,6 +264,10 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "dismiss"]).larryWait, .dismiss)
     XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "interrupt"]).larryWait, .interrupt)
     XCTAssertEqual(LaunchHooks(["GRABBER_WHITEBOARD_GRID": "on"]).whiteboard.grid, true)
+    XCTAssertFalse(board.newBoardsBare)
+    let bare = WhiteboardHooks(["GRABBER_WHITEBOARD_GRID": "off"])
+    XCTAssertTrue(bare.newBoardsBare, "story 410: new boards without the grid, for the UI tests")
+    XCTAssertFalse(bare.grid)
   }
 
   func testWhatABoardDoesNotDo() {
@@ -271,6 +275,7 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertFalse(none.saveFails)
     XCTAssertNil(none.ghostSeconds)
     XCTAssertFalse(none.grid)
+    XCTAssertFalse(none.newBoardsBare)
     XCTAssertNil(none.say)
     XCTAssertNil(none.paste)
     XCTAssertNil(none.afterInk)

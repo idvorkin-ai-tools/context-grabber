@@ -255,4 +255,12 @@ final class WhiteboardNoteTests: XCTestCase {
         larry: turn, now: at(42), cockpitAnswering: true, mark: .seen, said: WhiteboardSaid(), micOn: false,
         notice: nil, ghosts: 0)?.state, "Larry · 0:42 · next: ink")
   }
+
+  /// Story 837 (#917): a fifth of the board, however long the conversation; never cramped on a short board, never past it.
+  func testThePanelIsAFifthOfTheBoardAtMost() {
+    XCTAssertEqual(WhiteboardNote.panelHeight(board: 1100), 220, "an iPad's board: a fifth, not a third")
+    XCTAssertEqual(WhiteboardNote.panelHeight(board: 400), WhiteboardNote.panelFloor, "a short board still has room")
+    XCTAssertEqual(WhiteboardNote.panelHeight(board: 80), 80, "never taller than the board")
+    XCTAssertEqual(WhiteboardNote.panelHeight(board: -1), 0)
+  }
 }

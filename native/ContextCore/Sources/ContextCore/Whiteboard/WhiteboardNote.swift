@@ -43,6 +43,15 @@ public enum WhiteboardNote {
   /// How long one of the note's other messages takes the middle before giving it back to what was said.
   public static let noticeFor: Duration = .seconds(5)
 
+  /// Story 837 (#917): the least room the open panel has, about four lines of the thread and its foot.
+  public static let panelFloor: Double = 120
+
+  /// Story 837 (#917): how tall the open panel may be over a board `board` points tall: a fifth of it, never less than
+  /// `panelFloor` nor more than the board. Past this its messages scroll; it doesn't grow.
+  public static func panelHeight(board: Double) -> Double {
+    min(max(board, 0), max(board / 5, panelFloor))
+  }
+
   /// The note's other messages (a paste cut short, *Sent to Larry*, a look-only reason, a Cockpit not answering), and
   /// when they appeared.
   public struct Notice: Equatable, Sendable {

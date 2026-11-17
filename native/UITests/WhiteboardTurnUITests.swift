@@ -115,8 +115,8 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertFalse(app.buttons["whiteboard-mark-dismiss"].exists, "and shows no buttons")
   }
 
-  /// Story 768: a tap on the note's chevron opens the conversation over the board, holding Larry's whole reply. What the
-  /// line and the panel say is `WhiteboardNoteTests`, on the host.
+  /// Stories 768, 837: a tap on the note's chevron opens the conversation over the board, holding Larry's whole reply, in a
+  /// panel held to a fifth of the board. What the line and the panel say is `WhiteboardNoteTests`, on the host.
   func testTheNoteOpensOnLarrysReply() throws {
     let (app, ghosts) = try openBoard()
     ghosts.tap()
@@ -137,5 +137,8 @@ final class WhiteboardTurnUITests: XCTestCase {
     }
     XCTAssertTrue(panel.appears(within: 5), app.debugDescription)
     waitUntil(NSPredicate(format: "value CONTAINS %@", "Larry: this is where it goes"), panel, timeout: 8)
+    // Story 837 (#917): the thread's text is held to a fifth of the board, under the window's fifth, however long.
+    let window = app.windows.firstMatch.frame.height
+    XCTAssertLessThanOrEqual(panel.frame.height, max(window / 5, 120) + 1, "the panel scrolls, it doesn't grow")
   }
 }

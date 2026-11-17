@@ -123,6 +123,8 @@ final class WhiteboardStore: ObservableObject {
   func create() -> String {
     let id = UUID().uuidString.lowercased()
     index.add(id: id, at: Date(), device: device, deviceName: deviceName, onPages: true)
+    // Story 410 (#915): a new board opens with the grid on.
+    BoardLines().startNew(id, bare: LaunchHooks.current.whiteboard.newBoardsBare)
     saveIndex()
     log.event("whiteboard", ["action": "new", "board": id, "on_paper": true])
     return id
@@ -218,6 +220,7 @@ final class WhiteboardStore: ObservableObject {
     index.remove(id, device: device)
     saveIndex()
     keeping.removeFiles(id)
+    BoardLines().forget(id)
     pictures += 1
     log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own])
     if !index.deleted.isEmpty { Task { await sync(reason: "delete") } }

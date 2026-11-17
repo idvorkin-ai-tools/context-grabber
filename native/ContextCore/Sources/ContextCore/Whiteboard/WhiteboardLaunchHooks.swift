@@ -44,8 +44,11 @@ public struct WhiteboardHooks: Equatable, Sendable {
   public var saveFails: Bool
   /// `GRABBER_WHITEBOARD_GHOST_SECONDS=<seconds>`: how long Claude's ghosts stay.
   public var ghostSeconds: Double?
-  /// `GRABBER_WHITEBOARD_GRID=on`.
+  /// `GRABBER_WHITEBOARD_GRID=on`: the board turns its grid on as it opens.
   public var grid: Bool
+  /// `GRABBER_WHITEBOARD_GRID=off`: a new board starts without the grid it has since #915 (story 410), for UI tests that
+  /// read the screen's pixels against plain paper.
+  public var newBoardsBare: Bool
   /// `GRABBER_WHITEBOARD_SAY=<words>`: what the mic hears.
   public var say: String?
   /// `GRABBER_WHITEBOARD_PASTE=<text>`.
@@ -63,6 +66,7 @@ public struct WhiteboardHooks: Equatable, Sendable {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
     ghostSeconds = env["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap { Double($0) }
     grid = env["GRABBER_WHITEBOARD_GRID"] == "on"
+    newBoardsBare = env["GRABBER_WHITEBOARD_GRID"] == "off"
     say = env["GRABBER_WHITEBOARD_SAY"]
     paste = env["GRABBER_WHITEBOARD_PASTE"]
     afterInk = env["GRABBER_WHITEBOARD_AFTER_INK"].map { $0.split(separator: ",").map(String.init) }

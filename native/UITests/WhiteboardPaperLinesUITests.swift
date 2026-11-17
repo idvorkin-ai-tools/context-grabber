@@ -8,8 +8,11 @@ import XCTest
 final class WhiteboardPaperLinesUITests: XCTestCase {
   override func setUp() { continueAfterFailure = false }
 
-  private func openBoard(ghostsOn: Bool = false, _ extra: [String: String] = [:]) throws -> XCUIApplication {
+  private func openBoard(
+    ghostsOn: Bool = false, bareNewBoards: Bool = true, _ extra: [String: String] = [:]
+  ) throws -> XCUIApplication {
     let app = XCUIApplication.forTests(animated: true)
+    if !bareNewBoards { app.launchEnvironment.removeValue(forKey: "GRABBER_WHITEBOARD_GRID") }
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
     app.launchEnvironment["GRABBER_CHAT_URL"] = try XCTUnwrap(
@@ -149,7 +152,8 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     XCTAssertEqual(send(app).label, "Send to Larry, 1 strokes", "lines aren't ink")
   }
 
-  /// Stories 403, 653: a board on paper keeps its colour and ruled lines, and a new board starts without.
+  /// Stories 403, 653: a board on paper keeps its colour and ruled lines, and a new board starts without them (bare, under
+  /// the UI tests' hook; the grid a new board really has is `testANewBoardOpensWithTheGrid`).
   func testRuledLinesStayWithTheBoardUnderTheInk() throws {
     let app = try openBoard()
     stroke(app)
@@ -168,6 +172,22 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     let new = app.buttons["whiteboard-new"]
     XCTAssertTrue(new.appears(within: 10), app.debugDescription)
     new.tap()
+    XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
+    wait(board(app), label: "Board, Plain")
+  }
+
+  /// Story 410 (#915): a new board opens with the grid on, and turning it off is remembered for that board. A board with
+  /// nothing saved opening without one is `BoardLinesTests`, on the host.
+  func testANewBoardOpensWithTheGrid() throws {
+    let app = try openBoard(bareNewBoards: false)
+    wait(board(app), label: "Board, Plain, grid on")
+    stroke(app)
+    wait(send(app), label: "Send to Larry, 1 strokes")
+    menu(app, "Grid lines", expect: "Board, Plain")
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    card.tap()  // Newest first: the board just drawn on.
     XCTAssertTrue(board(app).appears(within: 10), app.debugDescription)
     wait(board(app), label: "Board, Plain")
   }

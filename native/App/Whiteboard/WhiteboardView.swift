@@ -196,8 +196,9 @@ final class WhiteboardModel: ObservableObject {
     questions = WhiteboardQuestionsModel(board: board.id, log: log, inbox: inbox, cockpit: cockpit)
     turns = WhiteboardGhostTurns(
       on: UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true, ghostLife: .seconds(Self.ghostSeconds))
-    gridOn = UserDefaults.standard.bool(forKey: "whiteboard_grid_\(board.id)")
-    ruledOn = UserDefaults.standard.bool(forKey: "whiteboard_ruled_\(board.id)")
+    let lines = BoardLines().choice(board.id)
+    gridOn = lines == .grid
+    ruledOn = lines == .ruled
     editable = store.drawable(board)
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
     lookOnlyNote = store.lookOnlyNote(board)
@@ -402,16 +403,20 @@ final class WhiteboardModel: ObservableObject {
 
   func setRuled(_ on: Bool) {
     ruledOn = on
-    UserDefaults.standard.set(on, forKey: "whiteboard_ruled_\(board.id)")
     log.event("whiteboard", ["action": on ? "ruled_on" : "ruled_off", "board": board.id])
     if on, gridOn { setGrid(false) }
+    saveLines()
   }
 
   func setGrid(_ on: Bool) {
     gridOn = on
-    UserDefaults.standard.set(on, forKey: "whiteboard_grid_\(board.id)")
     log.event("whiteboard", ["action": on ? "grid_on" : "grid_off", "board": board.id])
     if on, ruledOn { setRuled(false) }
+    saveLines()
+  }
+
+  private func saveLines() {
+    BoardLines().set(gridOn ? .grid : ruledOn ? .ruled : .none, board: board.id)
   }
 
   func setPaper(_ new: BoardPaper) {
@@ -2116,8 +2121,10 @@ struct WhiteboardView: View {
       // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.
       .overlay(alignment: .top) {
         if model.conversationOpen, !onPhone {
+          // Story 837 (#917): a fifth of the board at most; past that it scrolls rather than grows.
           GeometryReader { space in
-            conversation.frame(maxHeight: space.size.height / 3, alignment: .top)
+            conversation.frame(
+              maxHeight: CGFloat(WhiteboardNote.panelHeight(board: Double(space.size.height))), alignment: .top)
           }
         }
       }
@@ -2381,8 +2388,8 @@ struct WhiteboardView: View {
 private struct WhiteboardConversationText: UIViewRepresentable {
   let rows: [WhiteboardNote.Row]
 
-  func makeUIView(context: Context) -> UITextView {
-    let view = UITextView()
+  func makeUIView(context: Context) -> NewestInView {
+    let view = NewestInView()
     view.isEditable = false
     view.isSelectable = true
     view.backgroundColor = .clear
@@ -2393,15 +2400,15 @@ private struct WhiteboardConversationText: UIViewRepresentable {
     return view
   }
 
-  func updateUIView(_ view: UITextView, context: Context) {
+  func updateUIView(_ view: NewestInView, context: Context) {
     let text = Self.text(rows)
     fingersOnly(view)
     guard view.attributedText != text else { return }
     view.attributedText = text
-    view.scrollRangeToVisible(NSRange(location: text.length, length: 0))
+    view.showNewest()
   }
 
-  func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
+  func sizeThatFits(_ proposal: ProposedViewSize, uiView: NewestInView, context: Context) -> CGSize? {
     let width = proposal.width ?? 320
     let fit = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
     return CGSize(width: width, height: min(fit.height, proposal.height ?? fit.height))

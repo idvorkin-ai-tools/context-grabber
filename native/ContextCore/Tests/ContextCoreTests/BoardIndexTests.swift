@@ -284,6 +284,30 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(index.board("a")?.title, "Energy week", "a blank name is ignored")
   }
 
+  /// Story 836 (#916): a new name is kept through the list's save, waits to go up, isn't undone by iCloud's older copy,
+  /// and is what another device shows once it syncs.
+  func testARenameIsKeptAndReachesTheOtherDevices() throws {
+    var ipad = BoardIndex()
+    ipad.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
+    let before = try XCTUnwrap(ipad.board("a"))
+    ipad.uploaded("a", at: before.updated)
+    ipad.rename("a", to: "Energy week", at: before.updated + 1000)
+    var saved = try JSONDecoder().decode(BoardIndex.self, from: JSONEncoder().encode(ipad))
+    XCTAssertEqual(saved.board("a")?.title, "Energy week", "kept through the save")
+    XCTAssertNotEqual(saved.board("a")?.uploaded, saved.board("a")?.updated, "and waits to go up")
+    _ = saved.merge(cloud: [before], device: "ipad")
+    XCTAssertEqual(saved.board("a")?.title, "Energy week", "iCloud's older copy doesn't undo it")
+
+    var phone = BoardIndex()
+    _ = phone.merge(cloud: [before], device: "phone")
+    XCTAssertEqual(phone.board("a")?.title, before.title)
+    let renamed = try XCTUnwrap(saved.board("a"))
+    _ = phone.merge(cloud: [renamed], device: "phone")
+    let seen = try XCTUnwrap(phone.board("a"))
+    XCTAssertEqual(seen.title, "Energy week", "the phone shows the new name")
+    XCTAssertFalse(BoardIndex.editable(seen, on: "phone"), "and offers no Rename")
+  }
+
   func testTheIndexRoundTripsThroughJSON() throws {
     var index = BoardIndex()
     index.add(id: "a", at: nov1, device: "ipad", deviceName: "iPad")
