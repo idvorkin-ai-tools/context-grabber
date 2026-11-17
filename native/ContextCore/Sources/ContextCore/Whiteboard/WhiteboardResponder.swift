@@ -12,8 +12,16 @@ import Foundation
 public enum WhiteboardResponder: String, CaseIterable, Sendable {
   case haiku, sonnet, larry
 
-  /// The Cockpit's default: who answers a board nobody has set, and what the menu ticks until the Cockpit says.
-  public static let fallback: WhiteboardResponder = .sonnet
+  /// Who answers a board nobody has set (story 960, Igor 2026-11-17: "make Larry default responder"), and what the
+  /// menu ticks until the Cockpit says. The Cockpit's own default for such a board is still Sonnet
+  /// (`DEFAULT_RESPONDER` in its whiteboard.py), so the board gives itself to Larry (`defaulting`).
+  public static let fallback: WhiteboardResponder = .larry
+
+  /// What a board the Cockpit says has `responder`, `set` or never set, is given on opening: Larry when nobody ever set
+  /// it and it isn't his already; nil when Igor chose (a choice is never changed back) or there is nothing to change.
+  public static func defaulting(_ responder: WhiteboardResponder, set: Bool) -> WhiteboardResponder? {
+    set || responder == fallback ? nil : fallback
+  }
 
   /// The menu's word for it.
   public var name: String {
@@ -54,7 +62,9 @@ public enum WhiteboardResponder: String, CaseIterable, Sendable {
   }
 
   public enum Reply: Equatable, Sendable {
-    case responder(WhiteboardResponder)
+    /// `set`: someone chose it for this board; false when it is the Cockpit's default. A Cockpit that doesn't say
+    /// counts as set, so nothing is written over a choice.
+    case responder(WhiteboardResponder, set: Bool)
     /// What went wrong, for the log and the copyable problem; `status` nil when no answer came.
     case failed(reason: String, status: Int?)
   }
@@ -64,7 +74,7 @@ public enum WhiteboardResponder: String, CaseIterable, Sendable {
     guard let status else { return .failed(reason: error ?? "no answer", status: nil) }
     let json = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
     if status == 200, json?["ok"] as? Bool == true, let responder = of(json?["responder"]) {
-      return .responder(responder)
+      return .responder(responder, set: json?["set"] as? Bool ?? true)
     }
     let reason = (json?["error"] as? String) ?? (status == 200 ? "no responder in the answer" : "HTTP \(status)")
     return .failed(reason: reason, status: status)

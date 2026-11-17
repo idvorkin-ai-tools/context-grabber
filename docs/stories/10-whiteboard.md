@@ -4152,7 +4152,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The board's own choice
 - **Given:** a board I draw on, which nobody has set
 - **When:** I open its Board menu
-- **Then:** its Responder row says Sonnet and opens on Haiku, Sonnet and Larry with Sonnet ticked, and when I pick Haiku the tick moves at once and the board has Haiku when I reopen it, here and on my other devices
+- **Then:** its Responder row says Larry (story 960) and opens on Haiku, Sonnet and Larry with Larry ticked, and when I pick Haiku the tick moves at once and the board has Haiku when I reopen it, here and on my other devices
 
 - **Scenario:** A Larry board
 - **Given:** a board whose responder is Larry, with Ghosts on
@@ -4163,6 +4163,36 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** the Cockpit can't be reached
 - **When:** I pick another responder
 - **Then:** the tick goes back to the one the Cockpit last said and a copyable problem says why
+
+---
+
+### User Story 960:
+
+- **Summary:** Larry answers every board I haven't set otherwise
+- **Issues:** Igor on his board, 2026-11-17: "Let's make Larry default responder"
+- **Status:** not yet built
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
+
+#### Use Case:
+- **As someone** drawing to talk with Larry
+- **I want to** have Larry answer my boards without picking him on each one
+- **so that** the board is a conversation with him from the first stroke, and Sonnet answers only where I chose it
+
+#### Acceptance Criteria:
+- **Scenario:** A new board
+- **Given:** a board I just made
+- **When:** it opens
+- **Then:** its Responder is Larry, here and on my other devices
+
+- **Scenario:** An old board nobody set
+- **Given:** a board from before, whose responder was never set
+- **When:** I open it
+- **Then:** its Responder becomes Larry, and the session log says it was the default
+
+- **Scenario:** A board I set
+- **Given:** a board I set to Sonnet
+- **When:** I open it
+- **Then:** it stays Sonnet
 
 ---
 
