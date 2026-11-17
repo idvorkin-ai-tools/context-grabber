@@ -1,7 +1,7 @@
-//  Stories 853, 855, 858 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it): a
-//  paste's Delete, a margin tap that makes a header and folds it, and the hold menu. Where things land, how a section
-//  ends and what a fold moves are `BoardRoomTests` and `BoardOutlineTests` on the host; these check the gestures reach
-//  them on paper.
+//  Stories 853, 855, 858, 901 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
+//  it): a paste's Delete, a margin tap that makes a header and folds it, a fold's lines beside it, and the hold menu.
+//  Where things land, how a section ends and what a fold moves are `BoardRoomTests` and `BoardOutlineTests` on the
+//  host; these check the gestures reach them on paper.
 
 import XCTest
 
@@ -90,6 +90,28 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertTrue(folded.hasPrefix("▸ "), "its lines folded: \(folded)")
     point(app, margin, 0.305).tap()
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
+  }
+
+  /// Story 901: a folded header says beside its row how many lines it holds, and the words go when it unfolds.
+  func testAFoldShowsItsLinesBesideTheHeader() throws {
+    let app = try openBoard()
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.2, to: 0.5, y: 0.36)
+    write(app, x: 0.12, to: 0.4, y: 0.44)
+    wait(send(app), label: strokes(3))
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), app.debugDescription)
+    point(app, margin, 0.305).tap()
+    let folded = marks(app, "Lines folded").firstMatch
+    XCTAssertTrue(folded.appears(within: 5), "the words beside the folded header: \(app.debugDescription)")
+    let words = folded.value as? String ?? ""
+    XCTAssertTrue(words.hasPrefix("▸ ") && words.hasSuffix("folded"), "▸ N lines folded: \(words)")
+    XCTAssertGreaterThan(folded.frame.minX, app.frame.width * 0.3, "beside the header's row, not in the margin")
+    shot(app, "folded, its lines beside it")
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
+    XCTAssertFalse(marks(app, "Lines folded").firstMatch.exists, "the words go with the fold")
   }
 
   /// Story 858: a finger held on the page brings up the menu; held in the margin and dragged it opens room.

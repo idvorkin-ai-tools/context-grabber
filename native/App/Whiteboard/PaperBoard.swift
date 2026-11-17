@@ -336,6 +336,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   var following: Task<Void, Never>?
   var selectedNewestForTests = false
   private var marking: Task<Void, Never>?
+  /// Stories 902, 903: an eraser touch on a board with a fold, from where it went down (PaperBoard+FoldErase.swift).
+  var foldErasing: FoldErasing?
   /// Story 858: the menu a held finger brought up, in this view's points; nil with none.
   @Published private(set) var holdMenu: HoldMenu?
   /// A finger held in the margin: where it went down, board `y`, and in this view.
@@ -899,6 +901,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     ]
     if let speed = outcome.speed { event["speed"] = speed }
     if let why = outcome.why { event["why"] = why }
+    // Story 905: over a fold's marker or its folded header line, the whole section goes with what else it covered.
+    if scratchTakesFolds(scratch, zigzag: key) { return true }
     guard let after = scratch.after else {
       log.event("whiteboard", event)
       return false
@@ -1017,8 +1021,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
   /// and the headers are kept. A header made or unmade alone changes only the marks.
-  private func changeOutline(_ label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
-    guard let markup = paper.markup else { return false }
+  /// `base` is the markup the change starts from (the board's own by default) and `undoTo` where its Undo goes back to
+  /// (`base`, by default): a scratch-out's fold erase starts without the zigzag's other ink and undoes to before it.
+  func changeOutline(
+    _ label: String, on base: PaperMarkup? = nil, undoTo: PaperMarkup? = nil, _ change: (inout BoardOutline) -> Bool
+  ) -> Bool {
+    guard let markup = base ?? paper.markup else { return false }
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     var outline = model.outline(of: strokes)
@@ -1028,7 +1036,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     BoardConnectors.follow(
       &plan, strokes: strokes, texts: model.texts, metas: model.strokeMeta, folds: outline.tags)
     if plan.changesBoard {
-      guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label) else { return false }
+      guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label, undoTo: undoTo) else {
+        return false
+      }
       model.opsApplied(held.inkDrawing, renamed: renamed)
       model.inkReset(Self.allHashes(held))
     }
@@ -1068,6 +1078,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       marks.append(
         PaperLines.Mark(
           id: "header-\(header.id)", y: box.midY, text: folded ? "▸ \(header.fold?.lines ?? 0)" : "▾", faint: false))
+    }
+    // Story 901: "▸ N lines folded" beside a folded header, where the eraser takes the fold.
+    for marker in outline.markers {
+      marks.append(
+        PaperLines.Mark(
+          id: "fold-\(marker.header)", y: marker.box.midY, text: marker.text, faint: false, x: marker.origin.x))
     }
     for (n, candidate) in outline.candidates().enumerated() {
       marks.append(PaperLines.Mark(id: "candidate-\(n)", y: candidate.y, text: "H", faint: true))
@@ -1549,7 +1565,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Larry's ink, the pages. Nil when PaperKit didn't take the moves as moves (the log says so); nothing is set then.
   func put(
     _ plan: BoardOps.Plan, on start: PaperMarkup, hashes: [[String]], adding extra: [PKStroke] = [], named name: String,
-    stepBack: Bool = true
+    stepBack: Bool = true, undoTo: PaperMarkup? = nil
   ) -> (held: PaperMarkup, renamed: [(from: [String], to: [String])], drawn: [(hash: [String], name: String)])? {
     var markup = start
     let elements = markup.subelements.strokes
@@ -1594,7 +1610,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       }
     }
     if !extra.isEmpty { markup.append(contentsOf: PKDrawing(strokes: extra)) }
-    if stepBack { registerStepBack(to: before, named: name) }
+    if stepBack { registerStepBack(to: undoTo ?? before, named: name) }
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
     quiet = true
     paper.markup = markup
@@ -1855,6 +1871,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
     snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
+    foldEraserDown(touch)
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
     // Story 933: every try at a hold in the margin is in the log, from here to its verdict.
@@ -1895,13 +1912,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// finger only while fingers draw. A finger that pans the board takes nothing.
   override func touchMoved(_ touch: UITouch) {
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
+    foldEraserMoved(touch)
     guard place.erasing, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
     model.questions.erase(crossing: [lines.columnPoint(of: touch.location(in: lines))])
   }
 
-  private var fingersDraw: Bool {
+  var fingersDraw: Bool {
     paper.directTouchAutomaticallyDraws
       ? !UIPencilInteraction.prefersPencilOnlyDrawing : paper.directTouchMode == .drawing
   }
@@ -1917,6 +1935,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
   override func touchLifted(_ touch: UITouch, down: Int) {
     snapTouch(touch, .lifted, draws: touch.type == .pencil || fingersDraw)
+    foldEraserLifted(touch)
     guard toolDown, touch.type == .pencil || down == 0 else { return }
     toolDown = false
     model.endedDrawing()
@@ -2166,6 +2185,8 @@ final class PaperLines: UIView {
     var y: CGFloat
     var text: String
     var faint: Bool
+    /// Where the words start, board points, for a mark beside the ink rather than in the margin (story 901).
+    var x: CGFloat?
   }
   private var marks: [Mark] = []
   private var markViews: [String: UILabel] = [:]
@@ -2221,6 +2242,20 @@ final class PaperLines: UIView {
 
   private func lay(_ mark: Mark, _ label: UILabel) {
     let scale = spot(of: CGPoint(x: 1, y: 0)).x - spot(of: .zero).x
+    if let x = mark.x {
+      // Story 901: the web board's grey 14-point words beside the folded header, read as the picture has them.
+      let origin = spot(of: CGPoint(x: x, y: mark.y - 12))
+      label.font = .systemFont(ofSize: BoardOutline.markerPoints * scale)
+      label.textColor = UIColor(rgb: 0x999999)
+      label.textAlignment = .left
+      label.text = mark.text
+      label.sizeToFit()
+      label.frame.origin = origin
+      label.frame.size.height = 24 * scale
+      label.accessibilityLabel = "Lines folded"
+      label.accessibilityValue = mark.text
+      return
+    }
     let size = CGSize(width: 44 * scale, height: 28 * scale)
     let center = spot(of: CGPoint(x: BoardMargin.width / 2, y: mark.y))
     label.frame = CGRect(

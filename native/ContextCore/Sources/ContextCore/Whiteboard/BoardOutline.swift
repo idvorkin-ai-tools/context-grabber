@@ -49,7 +49,10 @@ public struct BoardOutline: Sendable {
   public static let wordGap: CGFloat = 16
 
   public var strokes: [BoardOps.Stroke]
-  public private(set) var headers: [BoardHeader]
+  public internal(set) var headers: [BoardHeader]
+  /// Strokes a fold's erase took (stories 902, 903), by place: still in `strokes`, so `plan` can name them, and in no
+  /// unit.
+  public internal(set) var erased: Set<Int> = []
   let texts: [BoardText]
   let groups: [String: String]
 
@@ -73,7 +76,7 @@ public struct BoardOutline: Sendable {
     var header: String? { tag.flatMap { $0.hasPrefix("h:") ? String($0.dropFirst(2)) : nil } }
   }
 
-  private var index: [String: Int] {
+  var index: [String: Int] {
     var out: [String: Int] = [:]
     for (i, stroke) in strokes.enumerated() { for name in stroke.ids { out[name] = i } }
     return out
@@ -91,14 +94,17 @@ public struct BoardOutline: Sendable {
 
   /// What shows, as the things that move whole.
   func units() -> [Unit] {
-    BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: tags).filter { !$0.hidden }.map {
-      Unit(members: $0.members, bounds: $0.bounds, tag: $0.tag)
+    BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: tags).filter { !$0.hidden }.compactMap {
+      guard !erased.isEmpty else { return Unit(members: $0.members, bounds: $0.bounds, tag: $0.tag) }
+      let live = $0.members.filter { !erased.contains($0) }
+      let shown = live.filter { !strokes[$0].hidden }.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
+      return shown.isNull ? nil : Unit(members: live, bounds: shown, tag: $0.tag)
     }
   }
 
-  private func names(_ members: [Int]) -> [String] { members.flatMap { strokes[$0].ids } }
+  func names(_ members: [Int]) -> [String] { members.flatMap { strokes[$0].ids } }
 
-  private mutating func shift(_ unit: Unit, by dy: CGFloat) {
+  mutating func shift(_ unit: Unit, by dy: CGFloat) {
     for m in unit.members { shift(m, dx: 0, dy: dy) }
   }
 
@@ -265,7 +271,7 @@ public struct BoardOutline: Sendable {
     return isFolded(header) ? unfold(id) : fold(id)
   }
 
-  private func bottomUp() -> [String] {
+  func bottomUp() -> [String] {
     headers.compactMap { header in box(header).map { (header.id, $0.minY) } }.sorted { $0.1 > $1.1 }.map(\.0)
   }
 
@@ -315,14 +321,16 @@ public struct BoardOutline: Sendable {
   /// whether it hides or shows, and the pages the ink needs after.
   public func plan(from start: [BoardOps.Stroke], pages: Int, board: BoardPages = BoardPages()) -> BoardOps.Plan {
     var plan = BoardOps.Plan(pagesBefore: pages, pagesAfter: pages)
-    for (i, (was, now)) in zip(start, strokes).enumerated() {
+    plan.erase = erased
+    for (i, (was, now)) in zip(start, strokes).enumerated() where !erased.contains(i) {
       let dx = now.bounds.minX - was.bounds.minX
       let dy = now.bounds.minY - was.bounds.minY
       if dx != 0 || dy != 0 { plan.offsets[i] = CGVector(dx: dx, dy: dy) }
       if was.hidden != now.hidden { plan.hidden[i] = now.hidden }
     }
     plan.moved = plan.offsets.count
-    plan.pagesAfter = board.pages(after: pages, inkMaxY: strokes.map(\.bounds.maxY).max(), redoWaiting: false)
+    let kept = strokes.indices.filter { !erased.contains($0) }.map { strokes[$0].bounds.maxY }
+    plan.pagesAfter = board.pages(after: pages, inkMaxY: kept.max(), redoWaiting: false)
     return plan
   }
 
@@ -448,7 +456,7 @@ public struct BoardOutline: Sendable {
 
   // MARK: - The word under a held Pencil
 
-  private static func distance(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
+  static func distance(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
     let dx = b.x - a.x
     let dy = b.y - a.y
     let l = dx * dx + dy * dy

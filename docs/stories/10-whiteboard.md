@@ -6301,3 +6301,117 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the connector is a stroke under its name, drawn in every picture I render, whose notes say it is a connector, what it joins, its sides and its route
 
 ---
+
+### User Story 900:
+
+- **Summary:** Larry's picture shows a folded section as its header and "▸ N lines folded"
+- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); the picture not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** folding sections of a board I talk over with Larry
+- **I want to** have the picture Larry gets show "▸ N lines folded" beside a folded header, as the web board's does
+- **so that** he reads a folded board as a folded one, not as a header with nothing under it
+
+#### Acceptance Criteria:
+- **Scenario:** A folded header in Larry's picture
+- **Given:** a header folded over two lines
+- **When:** Larry's turn takes a picture of the board (or I Send it, or Claude takes its turn)
+- **Then:** the picture shows the header and, beside it in small grey letters, "▸ 2 lines folded"; one line folded reads "▸ 1 line folded", and a fold folded away inside another shows none
+
+---
+
+### User Story 901:
+
+- **Summary:** A folded header says on the board how many lines it holds
+- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); the simulator (`WhiteboardOutlineUITests`, 197 s), `testAFoldShowsItsLinesBesideTheHeader`; not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** folding sections on the board
+- **I want to** see "▸ N lines folded" beside a folded header, where Larry's picture has it
+- **so that** I know what the fold holds and have something to erase to take it
+
+#### Acceptance Criteria:
+- **Scenario:** Folding a header
+- **Given:** a header with two indented lines under it
+- **When:** I tap the margin beside it to fold it
+- **Then:** "▸ 2 lines folded" shows in small grey letters just right of the header's row, moves with it, and goes when I unfold
+
+---
+
+### User Story 902:
+
+- **Summary:** The eraser across a fold's marker erases the whole section
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheEraserAcrossTheMarkerErasesTheWholeFoldAndClosesUp`, `testErasingAFoldTakesTheFoldsFoldedInsideIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** done with a folded section
+- **I want to** rub the eraser across its "▸ N lines folded" and have the header and everything folded under it go
+- **so that** a section I folded away is erased in one stroke, without unfolding it first
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing a fold by its marker
+- **Given:** a folded header with a line of ink below the fold
+- **When:** I draw the eraser across "▸ N lines folded"
+- **Then:** the header, its folded lines and any folds folded inside it are erased, and the ink below closes up to where the header was, in whole lines
+
+---
+
+### User Story 904:
+
+- **Summary:** One Undo brings a fold erased by its marker back, still folded
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8); verified by host tests (`BoardFoldEraseTests.testAnUndoBringsTheFoldBackStillFolded`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** who erased a folded section by mistake
+- **I want to** have one Undo bring it all back as it was
+- **so that** erasing a whole section in one stroke is never a loss
+
+#### Acceptance Criteria:
+- **Scenario:** Undo brings it back folded
+- **Given:** a fold I just erased by its marker
+- **When:** I tap Undo once
+- **Then:** the header comes back still folded, with "▸ N lines folded" beside it, and the ink below is back where it was
+
+---
+
+### User Story 903:
+
+- **Summary:** The eraser across a folded header erases the whole section
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** erasing a folded header
+- **I want to** have its folded lines go with it
+- **so that** no folded ink is left hidden on the board with no header to unfold it
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing a folded header's ink
+- **Given:** a folded header
+- **When:** I draw the eraser across the header's own ink
+- **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's)
+
+---
+
+### User Story 905:
+
+- **Summary:** A scratch-out over a fold's marker or its header line erases the whole section
+- **Status:** implemented in [1cee727](https://github.com/idvorkin/context-grabber/commit/1cee727), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testAScratchOutOverTheMarkerTakesTheFold`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*; [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+
+#### Use Case:
+- **As someone** who scratches out what I'm done with
+- **I want to** scratch out a folded section by its marker or its header line and have it all go
+- **so that** scratch-out takes a fold the way the eraser does, with no folded ink left hidden
+
+#### Acceptance Criteria:
+- **Scenario:** Scratching out a fold
+- **Given:** a folded header with a line of ink below the fold
+- **When:** I scratch out its "▸ N lines folded" or its header line with a fast zigzag
+- **Then:** the header, everything folded under it and the zigzag go, the ink below closes up to where the header was, and one Undo brings the section back still folded with the ink below where it was
+
+---

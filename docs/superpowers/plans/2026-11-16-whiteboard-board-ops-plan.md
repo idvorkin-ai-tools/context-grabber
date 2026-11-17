@@ -200,3 +200,22 @@ App:
   (`whiteboard-connect`), which runs the ops as one Undo named *Connect* and tells Larry the ink change.
 - Session log: `board_connectors` with `action` connected (id, from, to, elbow, erased, rerouted, ms) / followed
   (rerouted, loosened, ms) / select_newest_hook (the `GRABBER_WHITEBOARD_SELECT_NEWEST` launch hook).
+
+## Step 6: a fold's marker and its erase (stories 900–905)
+
+- `BoardOutline.markers` (ContextCore, `BoardFoldMarker.swift`; board.mjs `foldMarkerText`, `foldMarkerBox`): each
+  shown fold's words, their baseline origin (`hb.maxX + 14`, `midY + 5`) and the box the eraser crosses. The model's
+  `picture(rect:scale:)` draws them (`drawFoldMarkers`, 14 pt, #999), so Larry's turn, Send and Claude's turn all
+  carry them. On paper `showMarks` adds a `PaperLines.Mark` with an `x` (`whiteboard-margin-fold-<id>`, label *Lines
+  folded*).
+- `BoardOutline.foldHits(along:reach:onHeader:)` and `eraseFolds(_:)` (`BoardFoldErase.swift`; `foldHits`,
+  `eraseFold`): a hit carries the headers that go (nested folds included), the stroke names and the header's top;
+  erased strokes stay in `strokes` under `erased` so `plan(from:)` names them in `plan.erase`, and leave every unit.
+  `BoardOutline.keeping` keeps a header whose ink is all gone (the model's `outlineChanged`), so an Undo brings it
+  back folded.
+- Paper (`PaperBoard+FoldErase.swift`): an eraser touch on a folded board snapshots the outline as it goes down,
+  gathers the path, and on lift erases what it crossed through `changeOutline("Erase")`; `board_outline` /
+  `erase_fold` logs it. Scratch-out's `scratchesOut` asks `scratchTakesFolds` first: a zigzag
+  (`WhiteboardScratchOut.isZigzag`, shape and speed, no ink needed) that `foldHits` with `onHeader` erases the fold
+  through `changeOutline(on:undoTo:)`, starting from the markup without the zigzag's other ink and undoing to before
+  the zigzag, PaperKit's zigzag step undone first: one Undo, named *Scratch out*.
