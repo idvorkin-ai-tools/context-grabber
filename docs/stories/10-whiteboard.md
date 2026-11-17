@@ -201,7 +201,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 836:
 
 - **Summary:** Rename a board from its row's swipe
-- **Status:** implemented in [50446c4](https://github.com/idvorkin/context-grabber/commit/50446c4), the rename menu on the board's bar taken out again in COMMIT_BAR (it kept the iPad's Board menu up after a pick); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
+- **Status:** implemented in [50446c4](https://github.com/idvorkin/context-grabber/commit/50446c4), the rename menu on the board's bar taken out again in [0cd30f9](https://github.com/idvorkin/context-grabber/commit/0cd30f9) (it kept the iPad's Board menu up after a pick); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`) and on an iPad simulator (`WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndShowsItInItsBar`: the swipe's Rename beside Delete, the long press's, the row and the bar taking the name); the real iPad not yet tried
 - **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916) ("Log bug: Rename boards")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
 
