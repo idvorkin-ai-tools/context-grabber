@@ -201,7 +201,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 836:
 
 - **Summary:** Rename a board from its bar or its row
-- **Status:** spec only; not yet implemented
+- **Status:** implemented in [50446c4](https://github.com/idvorkin/context-grabber/commit/50446c4); verified by host tests (`BoardIndexTests.testARenameIsKeptAndReachesTheOtherDevices`: the name kept through the list's save, not undone by iCloud's older copy, shown on the phone, which offers no Rename; `just test`), the Mac build (`just native-build-mac`) and a build of the UI tests; `WhiteboardRowDeleteUITests.testABoardDrawnHereIsRenamedFromItsRowAndFromItsBar` is written and not yet run on the simulator; the iPad not yet tried
 - **Issues:** [#916](https://github.com/idvorkin/context-grabber/issues/916) ("Log bug: Rename boards")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The boards*
 
@@ -1580,7 +1580,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 410:
 
 - **Summary:** A new board opens with the grid on
-- **Status:** first implemented as *A new board has no grid* in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); reversed to the grid on (Igor, 2026-11-16, #915) in COMMIT_915; verified by host tests (`BoardLinesTests`: a new board's grid on, a board with no saved choice off, a saved choice kept, ruled lines taking the grid's place; `just test`); on the simulator `WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid` is written and not yet run
+- **Status:** first implemented as *A new board has no grid* in [9fbed41](https://github.com/idvorkin/context-grabber/commit/9fbed41), in the Board menu in [1f0f009](https://github.com/idvorkin/context-grabber/commit/1f0f009); reversed to the grid on (Igor, 2026-11-16, #915) in [af3758c](https://github.com/idvorkin/context-grabber/commit/af3758c); verified by host tests (`BoardLinesTests`: a new board's grid on, a board with no saved choice off, a saved choice kept, ruled lines taking the grid's place; `just test`); on the simulator `WhiteboardPaperLinesUITests.testANewBoardOpensWithTheGrid` is written and not yet run
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Issues:** [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915) ("Log bug: default new boards have grid lines")
 
@@ -3846,7 +3846,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 653:
 
 - **Summary:** Lines stay with their board on paper
-- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07)
+- **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testRuledLinesStayWithTheBoardUnderTheInk`, `testTheGridShowsWhenAskedAndStaysWithItsBoard`, the latter an old-canvas test dropped 2026-11-07); a new board starting with the grid, not none, in [af3758c](https://github.com/idvorkin/context-grabber/commit/af3758c) (story 410, #915), verified by host tests (`BoardLinesTests`)
 - **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#915](https://github.com/idvorkin/context-grabber/issues/915)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
@@ -4523,7 +4523,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 837:
 
 - **Summary:** The conversation panel keeps its size and scrolls, newest in view
-- **Status:** spec only; not yet implemented
+- **Status:** implemented in [0f6bf36](https://github.com/idvorkin/context-grabber/commit/0f6bf36); verified by host tests (`WhiteboardNoteTests.testThePanelIsAFifthOfTheBoardAtMost`; `just test`), the Mac build (`just native-build-mac`) and a build of the UI tests; `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` checks the height and is not yet run on the simulator; scrolling to the newest line with a long thread is for the iPad's eye
 - **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917) ("when chat expands it needs to scroll not grow"), seen in [#913](https://github.com/idvorkin/context-grabber/issues/913)'s screenshot, the panel over nearly half the page
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
 
