@@ -61,9 +61,11 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 - **Sanity-check geometry thresholds against the real fixtures** (`__tests__/fixtures/locations.json`,
   `context-grabber.db`) before shipping clustering, place-matching or distance rules; synthetic tests miss what real
   data exposes.
-- **Only one simulator on this Mac at a time.** Before booting one, check `xcrun simctl list devices booted` and
-  wait until it is empty; shut yours down when done (`xcrun simctl shutdown <udid>`). Other agents and other repos'
-  pipelines share this Mac, and two simulators at once starve both.
+- **One booted simulator on this Mac, left booted between runs** (story 980). Boot one only inside the build lane,
+  through `scripts/native/sim-boot.sh <name|udid>`: it shuts down every *other* booted simulator and boots yours only
+  if it isn't up. Don't shut it down when done: the next run reuses it. Switch device only when the device changes.
+  Every iOS 27 boot writes about 300 MB of wallpaper snapshots that are never evicted (the disk filled on 2026-11-17)
+  and spikes the CPU, and two booted simulators starve each other (about 10 GB of RAM each).
 - **Build in a pool slot, not a new worktree.** `slot=$(treehouse get --lease -b <branch>)`, work and build there,
   `treehouse return "$slot"` once the branch is pushed. A slot keeps its `native/Build` across returns, so disk stays
   bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Four slots (`treehouse.toml`);

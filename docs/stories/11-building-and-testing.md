@@ -554,3 +554,82 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I run `just lead-times`
 - **Then:** it writes `data.json` and `index.html` to the output folder, each PR's minutes from asked to merged to on a device, and nothing in the repo changes
 
+
+---
+
+### User Story 980:
+
+- **Summary:** One booted simulator, left booted between runs
+- **Status:** STATUS_980
+- **Issues:** the boot-less brief of 2026-11-15 (Igor: "sure do it"); 31 boots on 2026-11-14, and the disk full of wallpaper snapshots on 2026-11-17
+
+#### Use Case:
+- **As Igor,** running simulator checks many times a day on a 16 GB Air
+- **I want to** have the simulator a run used left booted for the next run, and only one booted at a time
+- **so that** each run doesn't pay a boot's 300 MB of wallpaper snapshots that are never removed, its heat and its wait, and two booted simulators never starve each other
+
+#### Acceptance Criteria:
+- **Scenario:** Two runs on one device
+- **Given:** a simulator run that just passed or failed on the iPhone simulator
+- **When:** the next run needs the iPhone simulator too
+- **Then:** it finds it booted and uses it without a boot, and the simulator log shows no new boot
+
+- **Scenario:** Another simulator is up
+- **Given:** a different simulator is booted, by any earlier run
+- **When:** a run needs its own device
+- **Then:** the other is shut down before its device boots, so only one is ever booted
+
+---
+
+### User Story 981:
+
+- **Summary:** A climb on both the iPhone and the iPad switches device at most once
+- **Status:** STATUS_981
+
+#### Use Case:
+- **As Igor,** waiting on a whiteboard change, which runs its drawing classes on the iPad and the smoke on the iPhone
+- **I want to** have the ladder run all of one device's steps, then all of the other's, starting with the one already booted
+- **so that** a climb costs one boot at most, and a second climb right after costs no more than the first
+
+#### Acceptance Criteria:
+- **Scenario:** The iPad left booted by the last climb
+- **Given:** the iPad simulator is booted and a branch that changes the whiteboard and the Gym Timer
+- **When:** I run `just test-ladder`
+- **Then:** the whiteboard's classes run first on the iPad as it is, then the iPad is shut down and the iPhone booted once for the timer's classes and the smoke, and the iPhone is left booted
+
+---
+
+### User Story 982:
+
+- **Summary:** The whiteboard's ⌘V test runs on a simulator that is already up
+- **Status:** STATUS_982
+
+#### Use Case:
+- **As Igor,** running the whiteboard's paste tests again and again
+- **I want to** have ⌘V and ⌘Z reach the app on a simulator that earlier runs used
+- **so that** the whiteboard suite doesn't reboot the iPad on every run to get its keys through
+
+#### Acceptance Criteria:
+- **Scenario:** The keys test, twice on one boot
+- **Given:** the iPad simulator booted, with the keys test already run on it
+- **When:** the whiteboard suite or the ladder runs `WhiteboardPasteUITests` again
+- **Then:** ⌘V pastes and ⌘Z takes it back, with no reboot in between
+
+---
+
+### User Story 983:
+
+- **Summary:** A hot Mac gets its simulator shut down at the end of a run
+- **Status:** STATUS_983
+- **Issues:** Larry's heat stop of 2026-11-17 (heavy thermal at load 84 during a ladder run)
+
+#### Use Case:
+- **As Igor,** whose Air throttles when it runs hot
+- **I want to** have the ladder shut its simulator down rather than leave it booted when the Mac is hot
+- **so that** a simulator left up for the next run never adds to the heat that stopped this one
+
+#### Acceptance Criteria:
+- **Scenario:** A run ends on a hot Mac
+- **Given:** macOS has recorded a thermal or performance warning, or the one-minute load is over 60
+- **When:** the ladder's simulator rung ends, pass or fail
+- **Then:** it shuts its simulator down and prints why; on a cool Mac it leaves it booted

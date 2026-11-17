@@ -3,7 +3,7 @@
 # Usage: sim-smoke.sh <simulator name or udid> <bundle id> <app path>
 set -euo pipefail
 SIM=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
-xcrun simctl boot "$SIM" 2>/dev/null || true
+"$(dirname "$0")/sim-boot.sh" "$SIM"  # the one booted simulator, left booted after (story 980)
 xcrun simctl install "$SIM" "$APP"
 # BugKit's smoke-lib: launch freshness (wait only for a log newer than the launch), a timeout that fails the run,
 # error events, the stash; this script keeps CG's checks, fixtures and hooks. From the checkout SwiftPM pinned, else

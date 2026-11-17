@@ -468,8 +468,11 @@ skipped, and the output says why.
 Only one job uses the simulator at a time. The simulator rung waits its turn in the build lane. It also waits while
 any other Xcode build is running, because startup waits fail under that load, and it says so. If the other build is
 still running after half an hour, the rung refuses to start. A test that fails while another build ran is reported as
-contention: it counts as failed and is rerun, not debugged. The simulator is shut down afterwards. A dry run prints the
-rungs and classes without running any of them.
+contention: it counts as failed and is rerun, not debugged. One simulator is booted on the Mac at a time, and it is
+left booted afterwards for the next run: every boot writes wallpaper snapshots the system never removes (about 300 MB on
+iOS 27) and heats the Mac. Before a step uses a device, any other booted simulator is shut down, and the device is booted
+only if it isn't already up. A climb that needs both the iPhone and the iPad switches between them at most once, starting
+with whichever is already booted. A dry run prints the rungs and classes without running any of them.
 
 ## Acceptance criteria
 

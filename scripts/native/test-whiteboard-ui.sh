@@ -11,7 +11,8 @@ port=${CHAT_PORT:-8799}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
 cockpit=
-trap 'kill $cockpit 2>/dev/null || true; xcrun simctl shutdown "$udid" 2>/dev/null || true' EXIT
+# Story 980: the simulator is left booted for the next run.
+trap 'kill $cockpit 2>/dev/null || true' EXIT
 # Keys reach the app only in the first test after a boot that presses any, so the suite boots a fresh simulator once and
 # has one test that presses keys (WhiteboardPasteUITests' ⌘V and ⌘Z, on both canvases).
 xcrun simctl shutdown "$udid" 2>/dev/null
@@ -20,11 +21,14 @@ scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
 cockpit=$!
 sleep 1
 kill -0 "$cockpit" 2>/dev/null || { echo "the fake Cockpit did not start on port $port" >&2; exit 1; }
-TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebuild-log.sh whiteboard-ui "TEST SUCCEEDED" \
+# SUITE_PREBUILT=1 (the ladder's --full, after its own build-for-testing): run what was built rather than build again.
+action=test done="TEST SUCCEEDED"
+[ "${SUITE_PREBUILT:-}" = 1 ] && action=test-without-building done="TEST EXECUTE SUCCEEDED"
+TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" scripts/native/xcodebuild-log.sh whiteboard-ui "$done" \
   xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative -derivedDataPath native/Build \
   -destination "platform=iOS Simulator,id=$udid" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
   GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" \
-  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests -only-testing:GrabberNativeUITests/WhiteboardQuestionUITests -only-testing:GrabberNativeUITests/WhiteboardOutlineUITests -only-testing:GrabberNativeUITests/WhiteboardToTextUITests -only-testing:GrabberNativeUITests/WhiteboardConnectUITests -only-testing:GrabberNativeUITests/WhiteboardHelpFeedbackUITests -only-testing:GrabberNativeUITests/WhiteboardRewordUITests test
+  -only-testing:GrabberNativeUITests/WhiteboardTurnUITests -only-testing:GrabberNativeUITests/WhiteboardPasteUITests -only-testing:GrabberNativeUITests/WhiteboardRowDeleteUITests -only-testing:GrabberNativeUITests/WhiteboardOnPaperUITests -only-testing:GrabberNativeUITests/WhiteboardPaperGhostsUITests -only-testing:GrabberNativeUITests/WhiteboardPaperLinesUITests -only-testing:GrabberNativeUITests/WhiteboardPaperPasteUITests -only-testing:GrabberNativeUITests/WhiteboardQuestionUITests -only-testing:GrabberNativeUITests/WhiteboardOutlineUITests -only-testing:GrabberNativeUITests/WhiteboardToTextUITests -only-testing:GrabberNativeUITests/WhiteboardConnectUITests -only-testing:GrabberNativeUITests/WhiteboardHelpFeedbackUITests -only-testing:GrabberNativeUITests/WhiteboardRewordUITests "$action"
 status=$?
 grep -q 'Igor just said: draw a circle' "$report" || { echo "the spoken words never reached the fake Cockpit"; status=1; }
 echo "fake Cockpit: $(grep -c "\"turn\": \"claude\"" "$report") ghost turns, $(grep "\"body\"" "$report" | grep -c "\"picture_id\"") board pictures to Larry"

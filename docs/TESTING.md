@@ -86,7 +86,7 @@ script's dry run:
 |---|---|
 | A test file | the classes it declares, and any that inherit them |
 | Chat or the Inbox, in the app or `ContextCore`; the chat suite's script; the fake bridge | chat's |
-| The whiteboard, in the app or `ContextCore`; the whiteboard suite's script | a rule in `ContextCore` runs only the classes that show it (paste, lines and pages, the board list, the turn and ghosts — the picture's frame, Larry's clock and the note among them; stories 753, 756), Larry's question cards, in the app or `ContextCore`, run `WhiteboardQuestionUITests`; the app's board fixture hook runs `WhiteboardRowDeleteUITests` and chat's `ChatImageUITests`, the two that launch with a fixture board (story 784); the board's views, its hooks in `ContextCore` and the suite's script run every class: the whiteboard's, on an iPad simulator (`WHITEBOARD_SIM`, default *iPad Pro 11-inch (M5)*; the iPhone's is shut first). An iPhone only looks at boards (story 746): that is the smoke's whiteboard section on the iPhone, from the session log (no New board, its own board look-only with the bar's reason), so no class runs on the iPhone and there's no second test session (story 770) |
+| The whiteboard, in the app or `ContextCore`; the whiteboard suite's script | a rule in `ContextCore` runs only the classes that show it (paste, lines and pages, the board list, the turn and ghosts — the picture's frame, Larry's clock and the note among them; stories 753, 756), Larry's question cards, in the app or `ContextCore`, run `WhiteboardQuestionUITests`; the app's board fixture hook runs `WhiteboardRowDeleteUITests` and chat's `ChatImageUITests`, the two that launch with a fixture board (story 784); the board's views, its hooks in `ContextCore` and the suite's script run every class: the whiteboard's, on an iPad simulator (`WHITEBOARD_SIM`, default *iPad Pro 11-inch (M5)*; the iPhone's is shut first, and the iPad's stays up for the next climb). An iPhone only looks at boards (story 746): that is the smoke's whiteboard section on the iPhone, from the session log (no New board, its own board look-only with the bar's reason), so no class runs on the iPhone and there's no second test session (story 770) |
 | The fake Cockpit | chat's and the whiteboard's |
 | The Gym Timer, in the app or `ContextCore` | `GymTimerDialsUITests`, `GymTimerUITests` |
 | Breathing, in the app or `ContextCore` | `BreathePresetsUITests`, `BreatheStyleUITests`; when a session is saved to Health is `BreathSessionTests`, on the host |
@@ -121,8 +121,18 @@ change touched, in place of that area's classes.
 
 The Mac and simulator rungs run in the build lane, one job at a time: `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`,
 then, inside the lock, the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i` (the simulator
-rung `caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. The simulator is shut down
-after, pass or fail.
+rung `caffeinate -d -i`, story 782), so the time limit counts only the rung's own run.
+
+**One booted simulator, left booted between runs; switched only when the device changes** (stories 980–983). Every
+script that needs a simulator goes through `scripts/native/sim-boot.sh <name|udid>`, which shuts down any *other*
+booted simulator (one takes about 10 GB of the Mac's 16) and boots its own only if it isn't up (`simctl bootstatus -b`).
+Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 300 MB of wallpaper snapshots
+(`PRBPosterExtensionDataStore`) that are never evicted, and spikes the CPU. On 2026-11-14 that was 31 boots, and on
+2026-11-17 the snapshots filled the disk. The rung's iPhone steps (chat, places, the other classes, the smoke, the chat
+suite) and its iPad steps (the whiteboard's classes and suite) run as two groups, the device already booted first, so a
+climb switches device at most once. The one exception is a hot Mac: when macOS records a thermal or performance warning,
+or the one-minute load is over 60 (`LADDER_HOT_LOAD`), the rung shuts its simulator down at the end and says so (story
+983). Don't `xcrun simctl shutdown all` after a run; that is a heat stop's, not a habit.
 
 **UI tests need the Mac's display on and its screen unlocked** (story 782). With the display off they don't start, and
 running ones stall: on 2026-11-16 the whiteboard step sat 17 minutes before its first test on a dark Mac, against about

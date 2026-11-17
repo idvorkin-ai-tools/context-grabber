@@ -48,6 +48,8 @@ case "$*" in
   "simctl list devices available")
     printf '    iPhone 17 (00000000-0000-0000-0000-000000000000) (Shutdown)\n'
     printf '    iPad Pro 11-inch (M5) (00000000-0000-0000-0000-000000000001) (Shutdown)\n' ;;  # the whiteboard's (story 746)
+  "simctl list devices booted")  # story 981: FAKE_BOOTED names the one already up
+    [ -z "${FAKE_BOOTED:-}" ] || printf '    Booted One (%s) (Booted) \n' "$FAKE_BOOTED" ;;
   "simctl get_app_container "*) echo "${FAKE_CONTAINER:-}" ;;
   "simctl launch "*)
     # The app, importing as its launch hook says: the session log's import event.
@@ -87,6 +89,12 @@ F
 # The screen lock's probe (smoke-lock.sh): unlocked, unless a run says otherwise, so this Mac's own lock can't fail it.
 printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionOnConsoleKey\\"=Yes"\n' >"$fakes/unlocked"
 printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionScreenIsLocked\\"=Yes"\n' >"$fakes/locked"
+# The heat check (story 983): a cool Mac, unless FAKE_HOT says otherwise, so this Mac's own heat can't fail it.
+cat >"$fakes/pmset" <<'F'
+#!/usr/bin/env bash
+if [ -n "${FAKE_HOT:-}" ]; then echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2"; else echo "Note: No thermal warning level has been recorded"; fi
+F
+printf '#!/usr/bin/env bash\necho "{ 3.00 2.00 1.00 }"\n' >"$fakes/sysctl"
 cat >"$fakes/uv" <<'F'
 #!/usr/bin/env bash
 exec sleep 30
@@ -332,7 +340,8 @@ if [ "$status" -eq 0 ]; then ok "a test file: climbs"; else bad "a test file: cl
 if grep -qF "build.lock" "$MARKS/lockf"; then ok "the simulator rung takes the build lock"; else bad "the simulator rung takes the build lock"; fi
 if head -1 "$MARKS/xcodebuild" | grep -q " build-for-testing"; then ok "the build comes first"; else bad "the build comes first"; fi
 if grep -q "only-testing:GrabberNativeUITests/CardUITests test-without-building" "$MARKS/xcodebuild"; then ok "then its class alone"; else bad "then its class alone"; fi
-if grep -q "simctl shutdown" "$MARKS/xcrun"; then ok "the simulator is shut down after"; else bad "the simulator is shut down after"; fi
+if grep -q "simctl shutdown" "$MARKS/xcrun"; then bad "the simulator is left booted after (story 980)"; else ok "the simulator is left booted after (story 980)"; fi
+if grep -q "simctl bootstatus 00000000-0000-0000-0000-000000000000 -b" "$MARKS/xcrun"; then ok "the phone boots only if it isn't up"; else bad "the phone boots only if it isn't up"; fi
 if grep -q "^smoke none 00000000-0000-0000-0000-000000000000 native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app$" "$MARKS/smoke" 2>/dev/null; then
   ok "then the smoke's sections on that build and simulator (story 755)"
 else bad "then the smoke's sections on that build and simulator (story 755): $(cat "$MARKS/smoke" 2>/dev/null)"; fi
@@ -364,7 +373,20 @@ status=$?
 if [ "$status" -eq 0 ]; then ok "paste: climbs"; else bad "paste: climbs, exit $status"; fi
 if grep -q "only-testing:GrabberNativeUITests/WhiteboardPasteUITests test-without-building" "$MARKS/xcodebuild"; then ok "paste: its class, keys test and all"; else bad "paste: its class, keys test and all"; fi
 if grep -q "skip-testing" "$MARKS/xcodebuild"; then bad "paste: nothing held back"; else ok "paste: nothing held back"; fi
-if [ "$(grep -c "simctl boot " "$MARKS/xcrun")" -eq 1 ]; then ok "paste: one boot"; else bad "paste: one boot"; fi
+if grep -q "simctl boot \|simctl shutdown" "$MARKS/xcrun"; then bad "paste: no reboot (story 982)"; else ok "paste: no reboot (story 982)"; fi
+if grep -q "simctl bootstatus 00000000-0000-0000-0000-000000000001 -b" "$MARKS/xcrun"; then ok "paste: on the iPad, booted if it isn't up"; else bad "paste: on the iPad, booted if it isn't up"; fi
+
+# Story 981: a climb on both devices switches once, starting with the one already booted.
+order() { sed -nE 's/.*simctl bootstatus 0{8}-0{4}-0{4}-0{4}-0{11}([0-9]) -b.*/\1/p' "$MARKS/xcrun" | tr -d '\n'; }
+run -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
+if [ "$(order)" = "01" ]; then ok "both devices, none up: the phone, then the iPad"; else bad "both devices, none up: $(order)"; fi
+run FAKE_BOOTED=00000000-0000-0000-0000-000000000001 -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
+if [ "$(order)" = "10" ]; then ok "both devices, the iPad up: the iPad, then the phone"; else bad "both devices, the iPad up: $(order)"; fi
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "both devices: the iPad is shut before the phone boots"; else bad "both devices: the iPad is shut before the phone boots"; fi
+# Story 983: a hot Mac gets its simulator shut down at the end.
+run FAKE_HOT=1 -- --changed native/UITests/CardUITests.swift
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000000" "$MARKS/xcrun"; then ok "a hot Mac: the simulator is shut down"; else bad "a hot Mac: the simulator is shut down"; fi
+says "a hot Mac: says why" "the Mac is hot (Thermal warning level set to 2): the simulator is shut down rather than left booted"
 
 run -- --changed native/App/Chat/ChatViews.swift
 status=$?

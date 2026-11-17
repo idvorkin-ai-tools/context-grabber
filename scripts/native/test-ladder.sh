@@ -266,22 +266,38 @@ rung_mac() {
   just native-build-mac
 }
 
-# Set while rung 2 holds the simulator.
-udid= cockpit= bridge= sampler= contended=
+# Set while rung 2 holds the simulator: udid is the device the current step runs on, the phone's or the iPad's.
+udid= phone= ipad= cockpit= bridge= sampler= contended=
 stop_fakes() {
   [ -z "$cockpit" ] || kill "$cockpit" 2>/dev/null
   [ -z "$bridge" ] || kill "$bridge" 2>/dev/null
   cockpit= bridge=
 }
+# Story 980: the simulator stays booted for the next run, as each boot writes about 300 MB of wallpaper snapshots the
+# system never removes, and heats the Mac. Story 983: unless the Mac is hot, when a booted simulator only adds heat.
 leave_simulator() {
   stop_fakes
   [ -z "$sampler" ] || { pkill -P "$sampler" 2>/dev/null; kill "$sampler" 2>/dev/null; }
-  [ -z "$udid" ] || xcrun simctl shutdown "$udid" 2>/dev/null
+  if [ -n "$udid" ] && mac_hot; then
+    echo "the Mac is hot ($hot_why): the simulator is shut down rather than left booted"
+    xcrun simctl shutdown "$udid" 2>/dev/null
+  fi
   rm -f "${contended:-/nonexistent}"
 }
-fresh_boot() {
-  xcrun simctl shutdown "$udid" 2>/dev/null
-  xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot" >&2; return 1; }
+# A thermal or performance warning recorded by macOS, or a one-minute load over LADDER_HOT_LOAD (60, the build gate's).
+hot_why=
+mac_hot() {
+  local load
+  hot_why=$(pmset -g therm 2>/dev/null | grep -iE 'warning level|performance warning' | grep -v 'No ' | head -1)
+  [ -n "$hot_why" ] && return 0
+  load=$(sysctl -n vm.loadavg 2>/dev/null | awk '{print int($2)}')
+  [ -n "$load" ] && [ "$load" -gt "${LADDER_HOT_LOAD:-60}" ] && { hot_why="load $load"; return 0; }
+  return 1
+}
+# Story 980: the step's device becomes the one booted simulator; it boots only if it isn't up already.
+use_device() {  # <udid>
+  udid=$1
+  scripts/native/sim-boot.sh "$udid"
 }
 start_cockpit() {  # <port> <seconds POST /chat is held>
   FAKE_COCKPIT_NEW_DELAY=$2 scripts/native/fake-cockpit.py "$1" "$(mktemp "${TMPDIR:-/tmp}/fake-cockpit.XXXXXX")" >/dev/null 2>&1 &
@@ -323,7 +339,6 @@ chat_classes() {
   sleep 1
   kill -0 "$bridge" 2>/dev/null || { echo "the fake bridge did not start" >&2; return 1; }
   # #812: the hold-menu thread starts without the outbox's earlier answers, as test-chat-ui.sh does (#801).
-  xcrun simctl boot "$udid" 2>/dev/null || true
   xcrun simctl terminate "$udid" com.idvorkin.grabbernative >/dev/null 2>&1 || true
   scripts/native/forget-chat-thread.sh "$udid" com.idvorkin.grabbernative igor2-88g.629 >/dev/null \
     || echo "the outbox's leftovers for igor2-88g.629 could not be removed: ChatReactionUITests may fail on them (#801)" >&2
@@ -331,20 +346,12 @@ chat_classes() {
     xcodebuild_sim chat "TEST EXECUTE SUCCEEDED" $(only_testing "${chat[@]}") test-without-building
 }
 
+# Story 746: an iPhone only looks at boards, so the drawing classes run on an iPad simulator (ipad_steps).
 whiteboard_classes() {
-  local port=${WHITEBOARD_PORT:-8799} phone=$udid status
-  # Story 746: an iPhone only looks at boards, so the drawing classes run on an iPad simulator. One simulator at a time:
-  # the phone's goes down first, and comes back by itself for the next step's xcodebuild.
-  xcrun simctl shutdown "$phone" 2>/dev/null
-  udid=$(scripts/native/sim-udid.sh "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}") || { udid=$phone; return 1; }
-  # Keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), and one test does.
-  fresh_boot && start_cockpit "$port" 0 \
+  local port=${WHITEBOARD_PORT:-8799}
+  start_cockpit "$port" 0 \
     && TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" \
       xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") test-without-building
-  status=$?
-  xcrun simctl shutdown "$udid" 2>/dev/null
-  udid=$phone
-  return $status
 }
 
 places_classes() {
@@ -355,8 +362,6 @@ places_classes() {
   # The justfile's native_sim_app and native_bundle.
   local app=native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app bundle=com.idvorkin.grabbernative
   local container since waited=0
-  # -b boots it if it isn't booted: a bare bootstatus after a boot that failed waits, holding the build lock.
-  xcrun simctl bootstatus "$udid" -b >/dev/null || { echo "the simulator did not boot" >&2; return 1; }
   xcrun simctl install "$udid" "$app" || return
   container=$(xcrun simctl get_app_container "$udid" "$bundle" data)
   [ -n "$container" ] || { echo "no data container for the app on the simulator" >&2; return 1; }
@@ -383,12 +388,10 @@ places_classes() {
 
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }
 
-simulator_steps() {
-  # A fresh worktree has no project until it is generated, and a new test file needs it regenerated.
-  step project just native-project || return
-  step compile xcodebuild_sim build-for-testing "TEST BUILD SUCCEEDED" build-for-testing || return
+# The steps on the iPhone's simulator: everything but the whiteboard's drawing.
+phone_steps() {
+  step "iPhone simulator" use_device "$phone" || return
   if [ "$run_chat_classes" -gt 0 ]; then step "chat classes" chat_classes || return; fi
-  if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
   if [ "$n_places" -gt 0 ]; then step "places classes" places_classes || return; fi
   if [ "$n_other" -gt 0 ]; then step "other classes" other_classes || return; fi
   # Story 755: the smoke's touched sections on this build and this boot, rather than a second build and boot from
@@ -398,15 +401,37 @@ simulator_steps() {
       bash "${SIM_SMOKE:-scripts/native/sim-smoke.sh}" "$udid" com.idvorkin.grabbernative \
       native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app || return
   fi
-  [ "$full" -eq 1 ] || return 0
-  # The build above is the suites' too (SUITE_PREBUILT; the whiteboard's script doesn't read it yet).
-  if [ "$n_chat" -gt 0 ]; then step "chat suite" env SUITE_PREBUILT=1 scripts/native/test-chat-ui.sh "$udid" || return; fi
-  # Story 746: the whiteboard draws on an iPad simulator; the phone's is shut first, one simulator at a time.
-  if [ "$n_whiteboard" -gt 0 ]; then
-    xcrun simctl shutdown "$udid" 2>/dev/null
-    step "whiteboard suite" scripts/native/test-whiteboard-ui.sh \
-      "$(scripts/native/sim-udid.sh "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}")" || return
+  if [ "$full" -eq 1 ] && [ "$n_chat" -gt 0 ]; then
+    step "chat suite" env SUITE_PREBUILT=1 scripts/native/test-chat-ui.sh "$udid" || return
   fi
+  return 0
+}
+phone_needed() {
+  [ "$run_chat_classes" -gt 0 ] || [ "$n_places" -gt 0 ] || [ "$n_other" -gt 0 ] || [ "${LADDER_SMOKE:-1}" = 1 ] ||
+    { [ "$full" -eq 1 ] && [ "$n_chat" -gt 0 ]; }
+}
+# Story 746: the whiteboard's drawing classes, and its suite, on the iPad's simulator.
+ipad_steps() {
+  step "iPad simulator" use_device "$ipad" || return
+  if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
+  if [ "$full" -eq 1 ]; then step "whiteboard suite" env SUITE_PREBUILT=1 scripts/native/test-whiteboard-ui.sh "$udid" || return; fi
+  return 0
+}
+ipad_needed() { [ "$n_whiteboard" -gt 0 ]; }
+
+simulator_steps() {
+  # A fresh worktree has no project until it is generated, and a new test file needs it regenerated.
+  step project just native-project || return
+  step compile xcodebuild_sim build-for-testing "TEST BUILD SUCCEEDED" build-for-testing || return
+  # Story 981: a climb switches device at most once. The device already booted goes first, so a run after a whiteboard
+  # run starts on the iPad it left booted, and one after any other on the phone.
+  local groups=()
+  phone_needed && groups+=(phone)
+  if ipad_needed; then
+    ipad=$(scripts/native/sim-udid.sh "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}") || return
+    if xcrun simctl list devices booted | grep -qF "($ipad)"; then groups=(ipad ${groups[@]+"${groups[@]}"}); else groups+=(ipad); fi
+  fi
+  for g in ${groups[@]+"${groups[@]}"}; do "${g}_steps" || return; done
 }
 
 rung_simulator() {
@@ -422,7 +447,8 @@ rung_simulator() {
     echo "the Mac's screen is locked: UI tests don't start on a locked screen, so rung 2 didn't start; unlock it and rerun" >&2
     return 75
   fi
-  udid=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
+  phone=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
+  udid=$phone  # the build's destination
   # Our own xcodebuild is one; a second is someone else's, and device builds don't take the build lock.
   contended=$(mktemp -u)
   (
