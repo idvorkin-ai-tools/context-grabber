@@ -5687,7 +5687,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Hold and drag
 - **Given:** writing above and below a clear line
-- **When:** I hold the Pencil still in the margin beside it for half a second, drag down two lines and lift
+- **When:** I hold the Pencil still in the margin beside it for half a second, drifting a little as a hand does, drag down two lines and lift
 - **Then:** the ink below moves down two lines, one Undo, and no stroke of the Pencil's is left in the margin
 
 ---
@@ -5707,7 +5707,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Hold and lift
 - **Given:** a line of writing
-- **When:** I hold the Pencil still in the margin beside it for half a second and lift
+- **When:** I hold the Pencil still in the margin beside it for half a second, within about 12 points, and lift
 - **Then:** the menu shows there, and the Pencil left no dot
 
 ---
@@ -5727,7 +5727,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** A quick stroke
 - **Given:** the margin
-- **When:** I draw in it without holding still first
+- **When:** I draw a quick bullet or dash in it, moving further than about 12 points within the first half second
 - **Then:** the stroke stays as ink and nothing moves
 
 ---

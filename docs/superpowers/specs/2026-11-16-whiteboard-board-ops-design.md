@@ -176,8 +176,10 @@ board differs, this says why.
   above. One Undo. (Igor, 2026-11-16, on the iPad: "push down doesn't seem to fire at all" — he reached for the
   margin with the Pencil, and the Pencil only drew.)
 - **The Pencil in the margin is the handle only once it has held still**: it went down in the margin and stayed
-  within a few points for half a second. A Pencil that moves sooner, or lifts sooner, draws as ever. A hold leaves no
-  ink behind: the stroke the Pencil drew while holding and dragging is taken away.
+  within about 12 points of there for half a second (a hand on a Pencil drifts; Igor's two long holds drifted past
+  10). Once it has held, any drift is part of the drag. A Pencil that moves further sooner, or lifts sooner, draws as
+  ever, so quick bullets and dashes in the margin stay ink. A hold leaves no ink behind: the stroke the Pencil drew
+  while holding and dragging is taken away.
 - **A finger or the Pencil held still in the margin, not dragged**, or **a finger held still anywhere on the page**,
   brings up a small menu:
   *Make room here* (three lines, at the clear line nearest the finger), *Paste*, and *Make header* beside a line of

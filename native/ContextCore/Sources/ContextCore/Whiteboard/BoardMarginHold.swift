@@ -12,6 +12,10 @@ import Foundation
 public enum BoardMarginHold {
   public enum Tool: String, Sendable { case finger, pencil }
 
+  /// How far a Pencil may drift, board points, before half a second has passed and it is still a hold: his two long
+  /// holds on the iPad drifted past 10 (Larry, 2026-11-17). Once the hold has fired, any drift is the drag.
+  public static let pencilStill: CGFloat = 12
+
   public enum Verdict: Equatable, Sendable {
     /// Held still long enough: the handle, dragged `dy` board points by the time it lifted (about none: the menu).
     case hold(dy: CGFloat)
@@ -42,14 +46,12 @@ public enum BoardMarginHold {
   /// A Pencil stroke's path in board points, each point's time in seconds since the stroke began: a hold when it went
   /// down in the margin and stayed within `still` of there for `holdAfter`.
   public static func pencil(
-    _ path: [(point: CGPoint, time: Double)], holdAfter: Double = BoardMargin.holdAfter,
-    still: CGFloat = BoardMargin.dragAfter
+    _ path: [(point: CGPoint, time: Double)], holdAfter: Double = BoardMargin.holdAfter, still: CGFloat = pencilStill
   ) -> Verdict {
     guard let start = path.first, let end = path.last else { return .notInMargin }
     guard start.point.x >= 0, start.point.x < BoardMargin.width else { return .notInMargin }
-    if let away = path.first(where: { distance($0.point, start.point) > still }),
-      away.time - start.time < holdAfter
-    {
+    // Only the first half second counts: after it, the Pencil is the handle and moving it is the drag.
+    if let away = path.first(where: { $0.time - start.time < holdAfter && distance($0.point, start.point) > still }) {
       return .moved(after: away.time - start.time, by: distance(away.point, start.point))
     }
     let seconds = end.time - start.time

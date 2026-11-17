@@ -29,6 +29,20 @@ final class BoardMarginHoldTests: XCTestCase {
     XCTAssertFalse(BoardMarginHold.pencil(quick).opensRoom)
   }
 
+  /// His two long holds on the iPad (build 6e2ee969): 566 ms ending 18 points right, and 669 ms ending 38 right and
+  /// 10.5 down, each drifting about 11 points while it held. Under the old 10-point slop both drew.
+  func testHisTwoLongHoldsAreHoldsAndTheirDriftIsTheDrag() {
+    let first = path([(41.5, 462.5, 0), (46, 465, 0.2), (52, 461.5, 0.45), (59.5, 461, 0.566)])
+    XCTAssertEqual(BoardMarginHold.pencil(first), .hold(dy: -1.5))
+    XCTAssertEqual(BoardMarginHold.pencil(first, still: 10).reason, "moved", "what the old slop made of it")
+    let second = path([(46.5, 263.5, 0), (52, 268, 0.25), (55.5, 270.5, 0.48), (84.5, 274, 0.669)])
+    XCTAssertEqual(BoardMarginHold.pencil(second), .hold(dy: 10.5), "drift after the half second is the drag")
+    XCTAssertFalse(BoardMarginHold.pencil(second).opensRoom, "10.5 down is under half a line: the menu")
+    let drifting = path([(30, 200, 0), (36, 210, 0.3), (40, 330, 0.9)])
+    XCTAssertEqual(BoardMarginHold.pencil(drifting), .hold(dy: 130))
+    XCTAssertEqual(BoardMarginHold.pencil(path([(30, 200, 0), (30, 213, 0.3), (30, 300, 0.9)])).reason, "moved")
+  }
+
   func testAPencilLiftedTooSoonOrOutsideTheMarginIsNoHold() {
     XCTAssertEqual(BoardMarginHold.pencil(path([(30, 200, 0), (31, 200, 0.3)])), .tooShort(seconds: 0.3))
     XCTAssertEqual(BoardMarginHold.pencil(path([(80, 200, 0), (80, 200, 0.8)])), .notInMargin)
