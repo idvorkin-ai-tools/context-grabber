@@ -336,6 +336,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   var following: Task<Void, Never>?
   var selectedNewestForTests = false
   private var marking: Task<Void, Never>?
+  /// Stories 902, 903: an eraser touch on a board with a fold, from where it went down (PaperBoard+FoldErase.swift).
+  var foldErasing: FoldErasing?
   /// Story 858: the menu a held finger brought up, in this view's points; nil with none.
   @Published private(set) var holdMenu: HoldMenu?
   /// A finger held in the margin: where it went down, board `y`, and in this view.
@@ -1017,7 +1019,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
   /// and the headers are kept. A header made or unmade alone changes only the marks.
-  private func changeOutline(_ label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
+  func changeOutline(_ label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
     guard let markup = paper.markup else { return false }
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
@@ -1861,6 +1863,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
     snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
+    foldEraserDown(touch)
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
     // Story 933: every try at a hold in the margin is in the log, from here to its verdict.
@@ -1901,13 +1904,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// finger only while fingers draw. A finger that pans the board takes nothing.
   override func touchMoved(_ touch: UITouch) {
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
+    foldEraserMoved(touch)
     guard place.erasing, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
     model.questions.erase(crossing: [lines.columnPoint(of: touch.location(in: lines))])
   }
 
-  private var fingersDraw: Bool {
+  var fingersDraw: Bool {
     paper.directTouchAutomaticallyDraws
       ? !UIPencilInteraction.prefersPencilOnlyDrawing : paper.directTouchMode == .drawing
   }
@@ -1923,6 +1927,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
   override func touchLifted(_ touch: UITouch, down: Int) {
     snapTouch(touch, .lifted, draws: touch.type == .pencil || fingersDraw)
+    foldEraserLifted(touch)
     guard toolDown, touch.type == .pencil || down == 0 else { return }
     toolDown = false
     model.endedDrawing()

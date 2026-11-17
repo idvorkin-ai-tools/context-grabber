@@ -6305,7 +6305,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 900:
 
 - **Summary:** Larry's picture shows a folded section as its header and "▸ N lines folded"
-- **Status:** implemented in PENDING-900; verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [a3bdb6b](https://github.com/idvorkin/context-grabber/commit/a3bdb6b); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
@@ -6324,7 +6324,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 901:
 
 - **Summary:** A folded header says on the board how many lines it holds
-- **Status:** implemented in PENDING-900; verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); a UI test, `WhiteboardOutlineUITests.testAFoldShowsItsLinesBesideTheHeader`, written and not yet run; not yet seen on the simulator or the iPad
+- **Status:** implemented in [a3bdb6b](https://github.com/idvorkin/context-grabber/commit/a3bdb6b); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); a UI test, `WhiteboardOutlineUITests.testAFoldShowsItsLinesBesideTheHeader`, written and not yet run; not yet seen on the simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
@@ -6337,5 +6337,48 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a header with two indented lines under it
 - **When:** I tap the margin beside it to fold it
 - **Then:** "▸ 2 lines folded" shows in small grey letters just right of the header's row, moves with it, and goes when I unfold
+
+---
+
+### User Story 902:
+
+- **Summary:** The eraser across a fold's marker erases the whole section
+- **Status:** implemented in PENDING-902; verified by host tests (`BoardFoldEraseTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** done with a folded section
+- **I want to** rub the eraser across its "▸ N lines folded" and have the header and everything folded under it go
+- **so that** a section I folded away is erased in one stroke, without unfolding it first
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing a fold by its marker
+- **Given:** a folded header with a line of ink below the fold
+- **When:** I draw the eraser across "▸ N lines folded"
+- **Then:** the header, its folded lines and any folds folded inside it are erased, and the ink below closes up to where the header was, in whole lines
+
+- **Scenario:** Undo brings it back folded
+- **Given:** a fold I just erased by its marker
+- **When:** I tap Undo once
+- **Then:** the header comes back still folded, with "▸ N lines folded" beside it, and the ink below is back where it was
+
+---
+
+### User Story 903:
+
+- **Summary:** The eraser across a folded header's ink erases the whole section
+- **Status:** implemented in PENDING-902; verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad. Scratch-out's way in is written and not yet called: it lands with scratch-out
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** erasing a folded header
+- **I want to** have its folded lines go with it
+- **so that** no folded ink is left hidden on the board with no header to unfold it
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing a folded header's ink
+- **Given:** a folded header
+- **When:** I draw the eraser across the header's own ink
+- **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's)
 
 ---

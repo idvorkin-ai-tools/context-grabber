@@ -1782,8 +1782,10 @@ extension WhiteboardModel {
 
   /// The canvas applied an outline change.
   func outlineChanged(_ outline: BoardOutline) {
-    guard outline.headers != headers else { return }
-    headers = outline.headers
+    // Stories 902, 903: a header whose ink is gone stays, so the Undo that brings the ink back brings it back folded.
+    let kept = BoardOutline.keeping(outline.headers, previous: headers, live: outline.liveNames)
+    guard kept != headers else { return }
+    headers = kept
     opLedger.setHeaders(headers, board: board.id)
   }
 

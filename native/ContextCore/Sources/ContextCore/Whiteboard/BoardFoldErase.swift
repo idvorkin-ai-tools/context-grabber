@@ -1,0 +1,111 @@
+//  Erasing a fold whole (spec 2026-11-16-whiteboard-board-ops-design.md, *Headers fold their sections*, stories 902,
+//  903; the Cockpit's assets/ink/board.mjs: `foldHits`, `eraseFold`). Pure: which folds a path takes, by their marker
+//  (BoardFoldMarker.swift) or their header's ink, and the outline with those folds erased and the ink below closed up.
+
+import Foundation
+
+#if canImport(CoreGraphics)
+  import CoreGraphics
+#endif
+
+extension BoardOutline {
+  /// How near an eraser has to come to the marker or the header's ink to take the fold, board points.
+  public static let eraseReach: CGFloat = 8
+
+  /// A fold a path took: the headers that go (it and every fold folded inside it), the strokes that go by name (their
+  /// rows and all they hide), and the header's top, where what was below closes up to.
+  public struct FoldHit: Equatable, Sendable {
+    public var headers: Set<String>
+    public var names: Set<String>
+    public var top: CGFloat
+  }
+
+  /// The shown folds `path` (board points) crosses: by their marker, and with `onHeader` by the header's own ink too.
+  /// Worked out on the board as it was when the path began, so ink the eraser took on its way still counts.
+  public func foldHits(along path: [CGPoint], reach r: CGFloat = eraseReach, onHeader: Bool) -> [FoldHit] {
+    guard let first = path.first else { return [] }
+    let p = path.count > 1 ? path : [first, first]
+    // Every 4 points along the path, as the web board walks it.
+    var dots: [CGPoint] = []
+    for (a, b) in zip(p, p.dropFirst()) {
+      let n = max(1, Int((hypot(b.x - a.x, b.y - a.y) / 4).rounded(.up)))
+      for i in 0...n {
+        let t = CGFloat(i) / CGFloat(n)
+        dots.append(CGPoint(x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t))
+      }
+    }
+    let at = index
+    let crossed = { (box: CGRect) in dots.contains { box.insetBy(dx: -r, dy: -r).contains($0) } }
+    let inked = { (header: BoardHeader) in
+      header.ids.compactMap { at[$0] }.contains { m in
+        let s = self.strokes[m]
+        let pad = r + (s.pen > 0 ? s.pen : 3) / 2
+        guard !s.hidden, s.bounds.insetBy(dx: -pad, dy: -pad).intersects(Self.bounds(of: dots)) else { return false }
+        let line = s.points.count > 1 ? s.points : s.points + s.points
+        return dots.contains { d in zip(line, line.dropFirst()).contains { Self.distance(d, $0.0, $0.1) <= pad } }
+      }
+    }
+    let markers = Dictionary(uniqueKeysWithValues: self.markers.map { ($0.header, $0.box) })
+    return bottomUp().compactMap { id in
+      guard let header = header(id), let box = markers[id], let hb = self.box(header),
+        crossed(box) || (onHeader && inked(header))
+      else { return nil }
+      return hit(header, top: hb.minY)
+    }
+  }
+
+  private static func bounds(of points: [CGPoint]) -> CGRect {
+    points.reduce(CGRect.null) { $0.union(CGRect(origin: $1, size: .zero)) }
+  }
+
+  /// The fold `header` heads, with every header whose row it folded away.
+  private func hit(_ header: BoardHeader, top: CGFloat) -> FoldHit {
+    var gone: Set<String> = [header.id]
+    var names = Set(header.ids + (header.fold?.ids ?? []))
+    var grew = true
+    while grew {
+      grew = false
+      for inner in headers where !gone.contains(inner.id) && inner.ids.contains(where: names.contains) {
+        gone.insert(inner.id)
+        names.formUnion(inner.ids + (inner.fold?.ids ?? []))
+        grew = true
+      }
+    }
+    return FoldHit(headers: gone, names: names, top: top)
+  }
+
+  /// The folds erased: their strokes go, their headers go, and what was below each closes up to where its header was,
+  /// in whole lines, the lowest first so each leaves the ones above where they were. False when nothing went.
+  @discardableResult
+  public mutating func eraseFolds(_ hits: [FoldHit]) -> Bool {
+    let gone = hits.reduce(into: Set<Int>()) { out, hit in
+      for (i, s) in strokes.enumerated() where s.ids.contains(where: hit.names.contains) { out.insert(i) }
+    }
+    let headersGone = hits.reduce(into: Set<String>()) { $0.formUnion($1.headers) }
+    guard !gone.isEmpty || headers.contains(where: { headersGone.contains($0.id) }) else { return false }
+    erased.formUnion(gone)
+    headers.removeAll { headersGone.contains($0.id) }
+    for top in hits.map(\.top).sorted(by: >) {
+      let below = units().filter { $0.bounds.minY >= top }
+      guard let next = below.map(\.bounds.minY).min() else { continue }
+      let d = ((next - top) / Self.line).rounded(.down) * Self.line
+      for unit in below where d > 0 { shift(unit, by: -d) }
+    }
+    return true
+  }
+
+  /// The strokes on the board now: none a fold's erase took.
+  public var liveNames: Set<String> {
+    Set(strokes.indices.filter { !erased.contains($0) }.flatMap { strokes[$0].ids })
+  }
+
+  /// The headers to keep after an outline change: the outline's own, and those of `previous` whose ink is all gone from
+  /// the board (erased with their fold, or by the eraser), so an Undo that brings the ink back brings the header back,
+  /// still folded. Unmarking a header, whose ink is still there, drops it.
+  /// ponytail: a header whose ink is gone for good stays in the list, a few bytes each; prune ones no Undo can reach
+  /// (older than the board's open) if a board ever carries many.
+  public static func keeping(_ headers: [BoardHeader], previous: [BoardHeader], live: Set<String>) -> [BoardHeader] {
+    let ids = Set(headers.map(\.id))
+    return headers + previous.filter { !ids.contains($0.id) && !$0.ids.contains(where: live.contains) }
+  }
+}
