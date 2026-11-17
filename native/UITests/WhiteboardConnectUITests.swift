@@ -50,8 +50,13 @@ final class WhiteboardConnectUITests: XCTestCase {
     add(picture)
     connect.tap()
     // The drawn arrow goes and the connector takes its place: still three strokes, and Connect goes with the selection.
+    waitUntil(NSPredicate(format: "exists == false"), connect, timeout: 5)
     wait(send, label: "Send to Larry, 3 strokes")
-    XCTAssertFalse(connect.waitForExistence(timeout: 2), "Connect goes once it is used")
+    let cockpit = try cockpit()
+    let sent = try sends(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    let ids = try newSend(cockpit, after: sent)
+    XCTAssertTrue(ids.contains { $0.hasPrefix("c-") }, "the connector goes to Larry under its name: \(ids)")
   }
 
   /// Story 918: Larry's reply carries a connector mark between two words: it shows as a ghost, and Keep all makes it a
@@ -87,13 +92,7 @@ final class WhiteboardConnectUITests: XCTestCase {
     wait(send, label: "Send to Larry, 3 strokes")
     let sent = try sends(cockpit).count
     app.buttons["whiteboard-larry"].tap()
-    let until = Date().addingTimeInterval(15)
-    var ids: [String] = []
-    while Date() < until, ids.isEmpty {
-      let all = try sends(cockpit)
-      if all.count > sent { ids = all[sent] }
-      Thread.sleep(forTimeInterval: 0.5)
-    }
+    let ids = try newSend(cockpit, after: sent)
     XCTAssertTrue(ids.contains { $0.hasPrefix("m-") }, "the connector goes back under its mark's name: \(ids)")
   }
 
@@ -107,6 +106,18 @@ final class WhiteboardConnectUITests: XCTestCase {
       done.fulfill()
     }.resume()
     wait(for: [done], timeout: 5)
+  }
+
+  /// The ids of the send after the first `count`, when it comes.
+  private func newSend(_ cockpit: String, after count: Int) throws -> [String] {
+    let until = Date().addingTimeInterval(15)
+    while Date() < until {
+      let all = try sends(cockpit)
+      if all.count > count { return all[count] }
+      Thread.sleep(forTimeInterval: 0.5)
+    }
+    XCTFail("no strokes reached the fake Cockpit")
+    return []
   }
 
   /// The stroke ids of each POST /whiteboard/strokes so far.
