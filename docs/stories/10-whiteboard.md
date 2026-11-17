@@ -4520,6 +4520,31 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 837:
+
+- **Summary:** The conversation panel keeps its size and scrolls, newest in view
+- **Status:** spec only; not yet implemented
+- **Issues:** [#917](https://github.com/idvorkin/context-grabber/issues/917) ("when chat expands it needs to scroll not grow"), seen in [#913](https://github.com/idvorkin/context-grabber/issues/913)'s screenshot, the panel over nearly half the page
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** talking with Larry on a board while I draw
+- **I want to** keep the conversation panel small however long the conversation gets, with the newest words showing
+- **so that** reading what he said never covers the page I'm drawing on
+
+#### Acceptance Criteria:
+- **Scenario:** A long conversation
+- **Given:** a board whose thread has more messages than the panel holds, on an iPad
+- **When:** I tap the note's line to open the panel
+- **Then:** the panel is no taller than a fifth of the board, its newest line is in view at the bottom, and a finger scrolls up to the older ones
+
+- **Scenario:** Another reply
+- **Given:** the panel is open and full
+- **When:** Larry answers again
+- **Then:** the panel stays the same height and scrolls to show his answer
+
+---
+
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat

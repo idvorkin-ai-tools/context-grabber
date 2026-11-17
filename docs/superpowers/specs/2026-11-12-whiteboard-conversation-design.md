@@ -161,7 +161,12 @@ on a board just opened, its line is kept empty, so the paper doesn't jump when L
 
 A finger tap on the line opens a panel under it, over the top of the board.
 
-- **It lies over the board and doesn't move it.** At most a third of the screen tall; more scrolls inside it.
+- **It lies over the board and doesn't move it.** At most a fifth of the board tall, and never less room than about
+  four lines; past that it doesn't grow, its messages scroll inside it (Igor, 2026-11-16, #917: "when chat expands it
+  needs to scroll not grow"; at a third it covered nearly half the page). What is live and *Open in Chat* stay at its
+  foot, under the messages, while the messages scroll.
+- **It shows the newest.** It opens scrolled to the bottom, the newest line in view, and a new line scrolls it back
+  there. A finger can scroll up to read older messages.
 - **It shows the recent end of the board's thread as it stands**: Larry's words in full, and for each picture of
   Igor's the words that went with it and its mark from the Cockpit (received, seen, done). Newest at the bottom, where
   it opens. Up to the last ten messages. *Open in Chat* opens the whole thread.
@@ -215,6 +220,8 @@ A finger tap on the line opens a panel under it, over the top of the board.
 - Larry's long reply and a long *Heard:* are showing: the note is one line, the clock whole at its start.
 - Draw while he is looking: the state gains *next: ink*.
 - Tap the line: the panel opens over the board, the ink below hasn't moved, and Larry's whole reply can be read.
+- With more messages than fit, the panel is a fifth of the board tall, shows the newest message at its bottom, and
+  scrolls with a finger to the older ones; another reply arrives and the panel stays the same height, the reply in view.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
 - Close the board with the panel open and open another: the panel is open there.
 - On an iPhone, tap the line on a board with a thread: Chat opens on that thread.
