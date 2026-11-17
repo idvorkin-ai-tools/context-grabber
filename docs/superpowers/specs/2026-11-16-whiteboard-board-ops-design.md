@@ -171,9 +171,15 @@ board differs, this says why.
 
 ### Press and hold (#918)
 
-- **A finger held still in the margin, then dragged**, opens room at the clear line nearest where it went down, by
-  the drag in whole lines when he lifts; dragged up it closes blank paper only, never past the ink above. One Undo.
-- **A finger held still in the margin, not dragged**, or **held still anywhere on the page**, brings up a small menu:
+- **A finger or the Pencil held still in the margin, then dragged**, opens room at the clear line nearest where it
+  went down, by the drag in whole lines when he lifts; dragged up it closes blank paper only, never past the ink
+  above. One Undo. (Igor, 2026-11-16, on the iPad: "push down doesn't seem to fire at all" — he reached for the
+  margin with the Pencil, and the Pencil only drew.)
+- **The Pencil in the margin is the handle only once it has held still**: it went down in the margin and stayed
+  within a few points for half a second. A Pencil that moves sooner, or lifts sooner, draws as ever. A hold leaves no
+  ink behind: the stroke the Pencil drew while holding and dragging is taken away.
+- **A finger or the Pencil held still in the margin, not dragged**, or **a finger held still anywhere on the page**,
+  brings up a small menu:
   *Make room here* (three lines, at the clear line nearest the finger), *Paste*, and *Make header* beside a line of
   ink (*Not a header* beside a header). Held on a header's mark, the menu is the outline: *Fold all*, *1*, *2*, *3*,
   *Unfold all*.
@@ -181,8 +187,11 @@ board differs, this says why.
   gap between them is under 16 points (a group of Larry's, a kept text or a header row whole). The same stroke drags
   it, and where the Pencil lifts it lands; the Pencil's own stroke is not kept. One Undo, named *Move*. Held still
   and lifted without moving, the word is left selected. Off ink, a held Pencil draws as ever.
-- On paper the word lands when the Pencil lifts rather than following it live; PaperKit owns the stroke while it is
-  drawn.
+- On paper the word lands, and the room opens, when the Pencil lifts rather than following it live; PaperKit owns
+  the stroke while it is drawn.
+- Every hold tried in the margin is in the session log: when it began, with the finger or the Pencil and where, and
+  whether it became a hold or why not (it moved first, it lifted too soon, or the board never saw it held), so a
+  phone's log says what happened to a hold that didn't fire.
 
 ## Non-goals
 
