@@ -6723,7 +6723,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 940:
 
 - **Summary:** A finger tap on a kept text rewords it in place
-- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); `WhiteboardRewordUITests` is written but not yet run on the simulator (the ladder refused rung 2: the Mac's screen was locked); not yet seen on the iPad
+- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests`: `testItWrapsAtTheWiderOfItsOwnWidthAndTheWebBoardsWithinThePage`, `testWordsWrapByWordKeepTheirOwnBreaksAndALongWordBreaks`, `testTheNewWordsStartWhereTheOldOnesDid`; `just test`) and the Mac build (`just native-build-mac`); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testATapOnAKeptTextRewordsItInPlace`, rung 2); not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
@@ -6742,7 +6742,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 941:
 
 - **Summary:** Emptied words delete the text; unchanged words change nothing
-- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests.testNewWordsAreTrimmedAndCappedEmptyDeletesSameChangesNothing`; `just test`) and the Mac build (`just native-build-mac`); `WhiteboardRewordUITests` is written but not yet run on the simulator (the ladder refused rung 2: the Mac's screen was locked); not yet seen on the iPad
+- **Status:** implemented in [471ffee](https://github.com/idvorkin/context-grabber/commit/471ffee); verified by host tests (`BoardRewordTests.testNewWordsAreTrimmedAndCappedEmptyDeletesSameChangesNothing`; `just test`) and the Mac build (`just native-build-mac`); the opening tap's dot taken back in [d1c5856](https://github.com/idvorkin/context-grabber/commit/d1c5856); on the simulator against the fake Cockpit (`WhiteboardRewordUITests.testEmptyWordsDeleteTheText`, rung 2); not yet seen on the iPad
 - **Spec:** [Rewording a kept text, and a snap you see before you lift](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md), *Rewording a kept text*
 
 #### Use Case:
