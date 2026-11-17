@@ -38,6 +38,8 @@ public enum BoardOps {
     case plain, hand
     /// The lettering a ghost draws it in.
     public var face: WhiteboardTurn.Face { self == .plain ? .print : .hand }
+    /// As the Cockpit's strokes endpoint names it: `print` or `hand` (whiteboard_strokes.py).
+    public var strokesFont: String { face.rawValue }
   }
 
   /// A line of Larry's text, as `add_text` asks for it.

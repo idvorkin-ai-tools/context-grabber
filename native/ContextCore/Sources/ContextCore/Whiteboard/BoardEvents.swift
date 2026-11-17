@@ -142,7 +142,7 @@ struct PlacedText: Equatable, Sendable {
   /// and size in board points; any other field, or any other kind without points, is a 400 for the whole snapshot.
   var wire: [String: Any] {
     [
-      "kind": "text", "id": text.id, "text": text.text, "font": text.font.rawValue, "x": x, "y": y, "w": w, "h": h,
+      "kind": "text", "id": text.id, "text": text.text, "font": text.font.strokesFont, "x": x, "y": y, "w": w, "h": h,
       "color": text.color, "t": text.t,
     ]
   }

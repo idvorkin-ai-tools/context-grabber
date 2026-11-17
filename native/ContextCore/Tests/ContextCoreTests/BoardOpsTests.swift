@@ -343,7 +343,7 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertEqual(
       wire[1] as NSDictionary,
       [
-        "kind": "text", "id": "label", "text": "Hi", "font": "plain", "x": 40.0, "y": 60.0, "w": 18.0, "h": 20.0,
+        "kind": "text", "id": "label", "text": "Hi", "font": "print", "x": 40.0, "y": 60.0, "w": 18.0, "h": 20.0,
         "color": "#ba39e6", "t": 500,
       ] as NSDictionary)
     // With no kept text, the strokes go as they always have.

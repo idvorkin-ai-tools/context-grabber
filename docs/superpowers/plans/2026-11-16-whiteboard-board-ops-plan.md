@@ -63,7 +63,7 @@ batch the same way, whoever sent it.
   outbox items written before it still decode.
 - `BoardText`: a kept text (`id, t, text, font, size, color`). `WhiteboardStrokes.wire(_:texts:)` folds a kept text's
   glyph strokes into one `strokes` entry, exactly the fields the Cockpit takes: `{kind:"text", id, text, font, x, y, w,
-  h, color, t}`, the box's top-left and size. Its glyphs' creation time matches a millisecond either way.
+  h, color, t}`, the box's top-left and size, `font` as the endpoint names it (`print` or `hand`). Its glyphs' creation time matches a millisecond either way.
 
 `Whiteboard/BoardStrokeIDs.swift`
 

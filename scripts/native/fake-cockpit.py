@@ -386,8 +386,10 @@ class Handler(BaseHTTPRequestHandler):
             # As whiteboard_strokes.py: a text is exactly these fields; any other entry needs its points.
             for s in strokes:
                 if s.get("kind") == "text":
-                    if not {"kind", "id", "text", "font", "x", "y", "w", "h"} <= set(s) <= TEXT_FIELDS:
+                    if not {"kind", "id", "text", "x", "y", "w", "h"} <= set(s) <= TEXT_FIELDS:
                         return self._json(400, {"ok": False, "error": "a text entry has %s" % sorted(s)})
+                    if s.get("font", "print") not in ("print", "hand"):
+                        return self._json(400, {"ok": False, "error": "text font must be print or hand"})
                 elif s.get("kind") is not None or not s.get("points"):
                     return self._json(400, {"ok": False, "error": "a stroke needs points"})
             with LOCK:
