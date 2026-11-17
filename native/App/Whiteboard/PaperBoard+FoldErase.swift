@@ -5,6 +5,7 @@
 //  over the marker or the folded header line takes the fold the same way, one Undo.
 
 import ContextCore
+import PaperKit
 import PencilKit
 import UIKit
 
