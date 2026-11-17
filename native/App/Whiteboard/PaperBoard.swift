@@ -712,6 +712,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     guard movedKeys.isSubset(of: selected) else { return }
     let frames = markup.strokeFrames
     let block = movedKeys.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    let back = Dictionary(uniqueKeysWithValues: change.moved.map { ($0.id, $0) })
     let (strokes, hashes) = opStrokes(markup)
     let elements = markup.subelements.strokes
     let dragged = Set(elements.indices.filter { movedKeys.contains(Self.key(elements[$0].elementID)) })
@@ -721,7 +722,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     var event: [String: Any] = [
       "action": "paper_drop", "board": model.board.id, "strokes": movedKeys.count, "at": rect(block),
     ]
-    guard let push = BoardRoom.drop(block, among: ink) else {
+    let from = movedKeys.compactMap { key in
+      frames[key].flatMap { box in back[key].map { box.offsetBy(dx: -$0.dx, dy: -$0.dy) } }
+    }.reduce(CGRect.null) { $0.union($1) }
+    event["from"] = rect(from)
+    guard let push = BoardRoom.drop(block, from: from, among: ink) else {
       event["room"] = false
       log.event("whiteboard", event)
       return
@@ -733,7 +738,6 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     for index in dragged { plan.offsets[index] = nil }
     // The board before the drag: the dragged strokes back where they were.
     var before = markup
-    let back = Dictionary(uniqueKeysWithValues: change.moved.map { ($0.id, $0) })
     for element in elements {
       guard let move = back[Self.key(element.elementID)] else { continue }
       var stroke = element

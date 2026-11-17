@@ -4206,7 +4206,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 662:
 
 - **Summary:** A Larry board sends him one picture at a time, the newest
-- **Issues:** the stale-push UI test, 2026-11-17: on a board's first turn, which opens its thread, an answer that landed before the board first looked was taken as already there, so the note kept *Larry has been looking* and never said it. Every row on a thread the turn opened is his answer; fixed in [f7a17e5](https://github.com/idvorkin/context-grabber/commit/f7a17e5), verified by host tests (`WhiteboardMarksTests`) and on the simulator (`testAStalePushMovesNothingAndLarryIsTold`, rung 2)
+- **Issues:** the stale-push UI test, 2026-11-17: on a board's first turn, which opens its thread, an answer that landed before the board first looked was taken as already there, so the note kept *Larry has been looking* and never said it. Every row on a thread the turn opened is his answer; fixed in [3d91a5d](https://github.com/idvorkin/context-grabber/commit/3d91a5d), verified by host tests (`WhiteboardMarksTests`) and on the simulator (`testAStalePushMovesNothingAndLarryIsTold`, rung 2)
 - **Status:** implemented in [41b83fb](https://github.com/idvorkin/context-grabber/commit/41b83fb); verified on the host (`WhiteboardLarryTurnTests`: a pause while idle sends, a pause while he is looking doesn't, his answer with the board moved on sends once and with nothing new sends nothing, the 3-minute timeout, a tap taking over what was waiting, words carried, a failed picture freeing the turn). Not yet seen on the iPad or against the real Larry; a tap while he is looking with nothing new sending nothing (story 765) in [61761b8](https://github.com/idvorkin/context-grabber/commit/61761b8), verified by host tests (`WhiteboardLarryTurnTests`); the bar's note beginning with Larry's clock where it said *Larry is looking…* in [4f92205](https://github.com/idvorkin/context-grabber/commit/4f92205) (story 667), verified by host tests (`WhiteboardLarryClockTests`); Larry closing a turn with nothing to say (#913) is stories 811–813
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Who answers the pause*
 
@@ -6503,7 +6503,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A refused change of Larry's says so on the board
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry: "show a chip so I'm not guessing" when Larry's push is refused
-- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
+- **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6517,23 +6517,13 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** his change comes back refused
 - **Then:** a chip in his purple says *Larry's edit blocked · Retry*, with × beside it, and nothing on the board moved
 
-- **Scenario:** One chip
-- **Given:** the chip shows
-- **When:** another change of his is refused
-- **Then:** the one chip stays, for the newer change
-
-- **Scenario:** Leaving the board
-- **Given:** a change of his waiting for my Pencil
-- **When:** I leave the board
-- **Then:** no chip shows anywhere
-
 ---
 
 ### User Story 971:
 
 - **Summary:** Retry hands Larry the board again
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
-- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
+- **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6551,15 +6541,15 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 972:
 
-- **Summary:** The chip goes by × or by a change that applies
+- **Summary:** × puts the chip away
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
-- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
+- **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); and on the simulator (`WhiteboardPaperGhostsUITests.testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard`, rung 2)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
 - **As someone** who doesn't need Larry to try again
-- **I want to** put the chip away, and have it go by itself once his next change lands
-- **so that** it never lingers after it stops being true
+- **I want to** put the chip away
+- **so that** it doesn't sit on the board once I've seen it
 
 #### Acceptance Criteria:
 - **Scenario:** Dismiss
@@ -6567,18 +6557,13 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap ×
 - **Then:** the chip goes and nothing is sent to Larry
 
-- **Scenario:** Applied
-- **Given:** the chip shows
-- **When:** a later change of his applies
-- **Then:** the chip goes
-
 ---
 
 ### User Story 973:
 
 - **Summary:** A selection dropped onto writing pushes the writing down
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"
-- **Status:** implemented in [f62e422](https://github.com/idvorkin/context-grabber/commit/f62e422); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
@@ -6598,7 +6583,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** The drag and the push are one Undo
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry
-- **Status:** implemented in [f62e422](https://github.com/idvorkin/context-grabber/commit/f62e422); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
@@ -6612,18 +6597,13 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap Undo once
 - **Then:** the dragged ink is back where it started and the ink below is back up; the Undo is named *Move*
 
-- **Scenario:** Undo never pushes
-- **Given:** a move undone
-- **When:** I tap Redo, or Undo again
-- **Then:** nothing else opens room
-
 ---
 
 ### User Story 975:
 
 - **Summary:** A drop on clear paper moves only what I dragged
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry
-- **Status:** implemented in [f62e422](https://github.com/idvorkin/context-grabber/commit/f62e422); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
@@ -6635,6 +6615,106 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Clear paper
 - **Given:** blank paper between two lines
 - **When:** I drop a selection there, or so it only touches a line at its edge
+- **Then:** only what I dragged moves
+
+---
+
+### User Story 976:
+
+- **Summary:** A newer refusal replaces the chip
+- **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
+
+#### Use Case:
+- **As someone** writing while Larry edits the board
+- **I want to** see only his latest blocked change
+- **so that** the board never fills with chips
+
+#### Acceptance Criteria:
+- **Scenario:** One chip
+- **Given:** the chip shows
+- **When:** another change of his is refused
+- **Then:** the one chip stays, for the newer change
+
+---
+
+### User Story 977:
+
+- **Summary:** Leaving the board forgets the chip
+- **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
+
+#### Use Case:
+- **As someone** who leaves a board mid-change
+- **I want to** find no chip for a board I've left
+- **so that** nothing speaks for a board nobody is looking at
+
+#### Acceptance Criteria:
+- **Scenario:** Leaving the board
+- **Given:** a change of his waiting for my Pencil
+- **When:** I leave the board
+- **Then:** no chip shows anywhere
+
+---
+
+### User Story 978:
+
+- **Summary:** A change that applies clears the chip
+- **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
+- **Status:** implemented in [56e7f09](https://github.com/idvorkin/context-grabber/commit/56e7f09); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`)
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
+
+#### Use Case:
+- **As someone** whose board Larry has caught up with
+- **I want to** have the chip go once his next change lands
+- **so that** it never lingers after it stops being true
+
+#### Acceptance Criteria:
+- **Scenario:** Applied
+- **Given:** the chip shows
+- **When:** a later change of his applies
+- **Then:** the chip goes
+
+---
+
+### User Story 979:
+
+- **Summary:** Undo and Redo of a move never push
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry
+- **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** stepping back and forth through a move
+- **I want to** have Undo and Redo put ink only where it was
+- **so that** stepping through history never opens room again
+
+#### Acceptance Criteria:
+- **Scenario:** Undo never pushes
+- **Given:** a move undone
+- **When:** I tap Redo, or Undo again
+- **Then:** nothing else opens room
+
+---
+
+### User Story 980:
+
+- **Summary:** A word slid along its own line moves nothing else
+- **Issues:** review of stories 973–975, 2026-11-17: a word slid sideways onto its neighbour pushed its own line down
+- **Status:** implemented in the review fix that follows [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a) on this branch; verified by host tests (`BoardRoomDropTests`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
+
+#### Use Case:
+- **As someone** rearranging words within a line
+- **I want to** slide one along its line, even over its neighbour
+- **so that** the line stays put and only the word moves
+
+#### Acceptance Criteria:
+- **Scenario:** Along its own line
+- **Given:** a line of words
+- **When:** I lasso one and drop it further along the same line, over the word beside it
 - **Then:** only what I dragged moves
 
 ---

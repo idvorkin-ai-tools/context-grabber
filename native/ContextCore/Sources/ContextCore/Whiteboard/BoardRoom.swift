@@ -64,12 +64,14 @@ public enum BoardRoom {
     return d == 0 ? nil : Push(cut: at, dy: d)
   }
 
-  /// Room for ink dropped by hand at `block` (stories 973–975): none when it sits on none of `ink` (touching an edge
-  /// isn't sitting on it); else, from the clear line nearest its top, what is below goes down by whole lines until the
-  /// first of it is `air` under the block. `ink` is everything but what was dropped.
-  public static func drop(_ block: CGRect, among ink: [CGRect]) -> Push? {
+  /// Room for ink dropped by hand at `block`, lifted from `from` (stories 973–975, 980): none when it sits on none of
+  /// `ink` (touching an edge isn't sitting on it, nor is ink on the line it was lifted from); else, from the clear line
+  /// nearest its top, what is below goes down by whole lines until the first of it is `air` under the block. `ink` is
+  /// everything but what was dropped.
+  public static func drop(_ block: CGRect, from: CGRect, among ink: [CGRect]) -> Push? {
     let others = ink.filter { !$0.isNull }
     let sitsOn = others.contains { box in
+      guard box.maxY <= from.minY || box.minY >= from.maxY else { return false }
       let overlap = box.intersection(block)
       return !overlap.isNull && overlap.width > 0 && overlap.height > 0
     }

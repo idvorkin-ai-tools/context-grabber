@@ -31,10 +31,10 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - If Igor changed the board after Larry looked, the push is not applied, and Larry is told so. Larry looks again and
   sends a fresh one. Igor never sees a half-applied change or a push in the wrong place.
 
-### When Larry's edit is blocked (stories 970–972; Igor, 2026-11-17, via Larry: "show a chip so I'm not guessing")
+### When Larry's edit is blocked (stories 970–972, 976–978; Igor, 2026-11-17, via Larry: "show a chip so I'm not guessing")
 
 - When a change of Larry's can't be applied (the board moved on since he looked, or anything else refuses it), a small
-  chip shows in the board's note line, in Larry's purple: *Larry's edit blocked · Retry*, with a × beside it. Nothing
+  chip shows over the board's top corner, under its ? and Feedback buttons, so the paper never moves, in Larry's purple: *Larry's edit blocked · Retry*, with a × beside it. Nothing
   on the board has moved; the chip only says so.
 - **Retry hands Larry the board again**: it is *Larry's turn* at once, the picture of the board as it is now with what
   happened to his last change, so he looks again and sends a fresh one. It is never a replay of the refused change.
@@ -147,13 +147,15 @@ board differs, this says why.
   stays, as on the web board. Selecting anything else, or any change to the ink, puts Delete away.
 - Ink folded away (below) is no obstacle: a paste may land where a folded section's hidden lines are.
 
-### A dragged selection makes room (stories 973–975; Igor, 2026-11-17: "same as reflowing stuff below, as opposed to drop on top")
+### A dragged selection makes room (stories 973–975, 979, 980; Igor, 2026-11-17: "same as reflowing stuff below, as opposed to drop on top")
 
 - When Igor lasso-drags ink and drops it onto other ink, the ink there moves down to make room, as a paste does: the
   dropped ink stays exactly where he let go, and from the clear line nearest its top everything below slides down,
   whole things whole, by as many whole lines as it takes to leave half a line of air under what he dropped. Ink above
   that line doesn't move.
 - Dropped on clear paper, or only touching other ink at an edge, nothing else moves: the drop is an ordinary move.
+- Ink on the line the selection was lifted from is never pushed by it: a word slid along its own line, even over the
+  word beside it, moves nothing else.
 - The drag and the room it opened are **one Undo**, named *Move*: one tap puts the dragged ink back where it came from
   and the ink below back up. A push that needs another page adds it, and Undo takes it away.
 - An Undo or Redo of a move never opens room again; only a drag by hand does. Folded ink is no obstacle, as for a

@@ -2505,9 +2505,7 @@ struct WhiteboardView: View {
     .onReceive(reportOpen) { open in if open { model.stopMic(why: "report") } }
   }
 
-  /// The bar's note, one line (story 766): Larry's state first so it is never what gets cut off (story 667), the newest
-  /// thing said, how many suggestions show, and a chevron. A finger tap opens the conversation over the board. VoiceOver
-  /// reads his state in words when it reaches the note, not on every tick.
+  /// Stories 970–972: Larry's refused change, with Retry and ×.
   private var blockedChip: some View {
     let larry = Color(UIColor(rgb: WhiteboardTurn.larryColor))
     return HStack(spacing: 6) {
@@ -2530,6 +2528,9 @@ struct WhiteboardView: View {
     .background(larry.opacity(0.15), in: Capsule())
   }
 
+  /// The bar's note, one line (story 766): Larry's state first so it is never what gets cut off (story 667), the newest
+  /// thing said, how many suggestions show, and a chevron. A finger tap opens the conversation over the board. VoiceOver
+  /// reads his state in words when it reaches the note, not on every tick.
   @ViewBuilder private func noteLine(now: ContinuousClock.Instant) -> some View {
     if let line = WhiteboardNote.line(
       larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
