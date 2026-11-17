@@ -125,6 +125,8 @@ final class WhiteboardModel: ObservableObject {
   let questions: WhiteboardQuestionsModel
   private let store: WhiteboardStore
   private let log: SessionLog
+  /// The session log, for the board's extensions (stories 917–919).
+  var sessionLog: SessionLog { log }
   private let inbox: InboxModel
   private let cockpit: String
   private let threads = WhiteboardThreads()
@@ -796,10 +798,13 @@ final class WhiteboardModel: ObservableObject {
     // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
     shownRow = row.id
     let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
-    turns.larrysMarks(
+    let (marks, nowhere) = connectorGhosts(
       row.shapes.enumerated().map { index, shape in
         Ghost(shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id))
       }.filter { !settled.contains($0.id) })
+    // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
+    nowhere.forEach(settleLarrys)
+    turns.larrysMarks(marks)
     log.event(
       "whiteboard_marks",
       [
@@ -1333,7 +1338,8 @@ final class WhiteboardModel: ObservableObject {
       // A moment of its own for each, a few milliseconds apart, so each label is known as one (and story 817's text).
       let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
       let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + dy) } }
-      let mine = Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      let mine =
+        connectorInk(ghost) ?? Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
       strokes += mine
       if ghost.kind == .text { rememberLabel(made.date) }
       if let text = ghost.text {
@@ -1428,7 +1434,9 @@ final class WhiteboardModel: ObservableObject {
   private func ink(_ ghost: Ghost) {
     // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
     let made = BoardText.time(Date())
-    let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+    let strokes =
+      connectorInk(ghost)
+      ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
     if ghost.kind == .text { rememberLabel(made.date) }
     if let text = ghost.text {
       texts.append(
@@ -2124,7 +2132,8 @@ extension WhiteboardModel {
 struct Ghost: Identifiable, WhiteboardGhost {
   let id: String
   let who: WhiteboardTurn.Who
-  let lines: [[CGPoint]]
+  /// What it draws; a connector mark's are drawn against the board (story 917).
+  var lines: [[CGPoint]]
   /// The colour and pen it asked for, or its author's colour and the default pen (#698).
   let color: UIColor
   let width: CGFloat
@@ -2133,6 +2142,8 @@ struct Ghost: Identifiable, WhiteboardGhost {
   let letters: CGFloat?
   /// A text of Larry's from a batch of his changes (story 817): kept, it becomes one text under its id.
   let text: BoardOps.Text?
+  /// A connector mark (story 917): kept, it becomes a connector joining its ends.
+  let connector: BoardOps.NewConnector?
 
   init(
     _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
@@ -2141,6 +2152,7 @@ struct Ghost: Identifiable, WhiteboardGhost {
     self.id = id
     self.text = text
     self.who = who
+    connector = BoardConnectors.mark(shape, frame: frame, scale: scale, id: id)
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
     width = WhiteboardTurn.width(shape, scale: scale)

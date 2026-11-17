@@ -232,6 +232,58 @@ public enum BoardConnectors {
     points.map { CGPoint(x: ($0.x * 10).rounded() / 10, y: ($0.y * 10).rounded() / 10) }
   }
 
+  // MARK: Larry's connector marks (stories 917–919)
+
+  /// A connector mark of a reply as the op it keeps as: its ends by name, or its points on the board (the picture's
+  /// `frame` and `scale` place them), its pen in board points, and a name made from the mark's `id`. Nil for any other
+  /// mark.
+  public static func mark(_ shape: WhiteboardTurn.Shape, frame: CGRect, scale: CGFloat, id: String)
+    -> BoardOps.NewConnector?
+  {
+    guard shape.kind == .connector, scale > 0 else { return nil }
+    let ends: (BoardOps.NewConnector.End, BoardOps.NewConnector.End)
+    if let from = shape.from, let to = shape.to {
+      ends = (.id(from), .id(to))
+    } else if shape.points.count >= 2 {
+      let board = { (p: CGPoint) in CGPoint(x: frame.minX + p.x / scale, y: frame.minY + p.y / scale) }
+      ends = (.point(board(shape.points[0])), .point(board(shape.points[1])))
+    } else {
+      return nil
+    }
+    let pen = shape.pen.map { $0 / scale } ?? Self.pen
+    return BoardOps.NewConnector(
+      id: name(mark: id), from: ends.0, to: ends.1, color: shape.color,
+      width: min(WhiteboardTurn.widestPen, max(WhiteboardTurn.thinnestPen, pen)))
+  }
+
+  /// A mark's id as a stroke name the Cockpit takes: `m-` and its letters, anything else a dash.
+  static func name(mark id: String) -> String {
+    let letters = id.map { c -> Character in c.isASCII && (c.isLetter || c.isNumber || c == "_") ? c : "-" }
+    return String(("m-" + String(letters)).prefix(64))
+  }
+
+  /// What keeping a connector mark puts on the board as it is now: its stroke (a connector, or a plain arrow with an end
+  /// on bare paper), and the notes it brings (its own, and the group a word it lands on becomes). No stroke when an end
+  /// names nothing; those names are `missing`.
+  public struct Kept: Equatable, Sendable {
+    public var stroke: BoardOps.NewStroke?
+    public var metas: [String: BoardMeta]
+    public var missing: [String]
+    /// It joins two things; false for a plain arrow or nothing.
+    public var joins: Bool { BoardConnector(stroke?.meta) != nil }
+  }
+
+  public static func keep(
+    _ new: BoardOps.NewConnector, strokes: [BoardOps.Stroke], texts: [BoardText] = [],
+    metas: BoardStrokeMeta = BoardStrokeMeta(), folds: [String: String] = [:]
+  ) -> Kept {
+    let plan = BoardOps.plan([.connector(new)], strokes: strokes, texts: texts, metas: metas, folds: folds, pages: 1)
+    let groups = ["\(new.id.prefix(58))-from", "\(new.id.prefix(58))-to"]
+    // Only what this mark brings: the plan's following of other connectors is the next change's business.
+    let brought = plan.metas.filter { $0.key == new.id || groups.contains($0.value.group ?? "") }
+    return Kept(stroke: plan.added.first { $0.id == new.id }, metas: brought, missing: plan.missingIDs)
+  }
+
   // MARK: Igor's arrow
 
   /// A lassoed hand-drawn arrow's tail and head: the longest stroke is the shaft; its end nearest the other strokes'

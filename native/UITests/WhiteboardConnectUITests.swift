@@ -53,4 +53,73 @@ final class WhiteboardConnectUITests: XCTestCase {
     wait(send, label: "Send to Larry, 3 strokes")
     XCTAssertFalse(connect.waitForExistence(timeout: 2), "Connect goes once it is used")
   }
+
+  /// Story 918: Larry's reply carries a connector mark between two words: it shows as a ghost, and Keep all makes it a
+  /// connector that goes back to him under its mark's name. How it routes and follows is `BoardConnectorsTests`.
+  func testLarrysConnectorMarkKeepsAsAConnector() throws {
+    let cockpit = try cockpit()
+    let app = XCUIApplication.forTests(animated: true)
+    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
+    app.launchEnvironment["GRABBER_SILENT"] = "1"
+    app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
+    app.launchEnvironment["GRABBER_WHITEBOARD_GHOST_SECONDS"] = "600"
+    app.launch()
+    let new = app.buttons["whiteboard-new"]
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
+    new.tap()
+    let ghosts = app.buttons["whiteboard-ghosts"]
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
+    if ghosts.label.hasPrefix("Ghosts off") { ghosts.tap() }
+    sleep(2)
+    point(app, 0.12, 0.30).press(forDuration: 0.05, thenDragTo: point(app, 0.25, 0.31))
+    point(app, 0.60, 0.50).press(forDuration: 0.05, thenDragTo: point(app, 0.75, 0.51))
+    let send = app.buttons["whiteboard-send"]
+    wait(send, label: "Send to Larry, 2 strokes")
+    try post(cockpit + "/fake/larry-ops", #"{"kind": "connector_marks"}"#)
+    app.buttons["whiteboard-larry"].tap()
+    let keepAll = app.buttons["whiteboard-keep-all"]
+    XCTAssertTrue(keepAll.appears(within: 15), "his connector shows as a ghost to keep: \(app.debugDescription)")
+    let picture = XCTAttachment(screenshot: app.screenshot())
+    picture.name = "his connector as a ghost"
+    picture.lifetime = .keepAlways
+    add(picture)
+    keepAll.tap()
+    wait(send, label: "Send to Larry, 3 strokes")
+    let sent = try sends(cockpit).count
+    app.buttons["whiteboard-larry"].tap()
+    let until = Date().addingTimeInterval(15)
+    var ids: [String] = []
+    while Date() < until, ids.isEmpty {
+      let all = try sends(cockpit)
+      if all.count > sent { ids = all[sent] }
+      Thread.sleep(forTimeInterval: 0.5)
+    }
+    XCTAssertTrue(ids.contains { $0.hasPrefix("m-") }, "the connector goes back under its mark's name: \(ids)")
+  }
+
+  private func post(_ url: String, _ body: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: url)))
+    request.httpMethod = "POST"
+    request.httpBody = Data(body.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  /// The stroke ids of each POST /whiteboard/strokes so far.
+  private func sends(_ cockpit: String) throws -> [[String]] {
+    let url = try XCTUnwrap(URL(string: cockpit + "/fake/strokes"))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    let json = try JSONSerialization.jsonObject(with: try XCTUnwrap(got)) as? [String: Any]
+    return try XCTUnwrap(json?["sends"] as? [[String]])
+  }
 }
