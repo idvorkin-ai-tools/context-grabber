@@ -95,6 +95,8 @@ cat >"$fakes/pmset" <<'F'
 if [ -n "${FAKE_HOT:-}" ]; then echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2"; else echo "Note: No thermal warning level has been recorded"; fi
 F
 printf '#!/usr/bin/env bash\necho "{ 3.00 2.00 1.00 }"\n' >"$fakes/sysctl"
+# machine-doctor (story 984): notes what it was asked, so no run of this test calls the real one.
+printf '#!/usr/bin/env bash\necho "doctor $*" >>"$MARKS/doctor"\n' >"$fakes/doctor"
 cat >"$fakes/uv" <<'F'
 #!/usr/bin/env bash
 exec sleep 30
@@ -117,7 +119,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   shift
   rm -f "$MARKS"/*
   env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
-    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
+    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" MACHINE_DOCTOR="$fakes/doctor" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
 chat_all="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
@@ -385,6 +387,13 @@ if [ "$(order)" = "01" ]; then ok "both devices, none up: the phone, then the iP
 run FAKE_BOOTED=00000000-0000-0000-0000-000000000001 -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
 if [ "$(order)" = "10" ]; then ok "both devices, the iPad up: the iPad, then the phone"; else bad "both devices, the iPad up: $(order)"; fi
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "both devices: the iPad is shut before the phone boots"; else bad "both devices: the iPad is shut before the phone boots"; fi
+# Story 984: the snapshots are pruned before a boot, by machine-doctor's sims command, and skipped without it.
+run -- --changed native/UITests/CardUITests.swift
+if grep -qxF "doctor sims --prune --below-free-gb 20" "$MARKS/doctor" 2>/dev/null; then ok "a boot prunes the snapshots first (story 984)"; else bad "a boot prunes the snapshots first (story 984)"; fi
+run MACHINE_DOCTOR="$tmp/no-such-doctor" -- --changed native/UITests/CardUITests.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "no machine-doctor: the boot goes on"; else bad "no machine-doctor: the boot goes on, exit $status"; fi
+says "no machine-doctor: one line says so" "no machine-doctor sims command ($tmp/no-such-doctor): the wallpaper snapshots are not pruned before this boot"
 # Story 983: a hot Mac gets its simulator shut down at the end.
 run FAKE_HOT=1 -- --changed native/UITests/CardUITests.swift
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000000" "$MARKS/xcrun"; then ok "a hot Mac: the simulator is shut down"; else bad "a hot Mac: the simulator is shut down"; fi

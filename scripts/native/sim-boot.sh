@@ -10,5 +10,16 @@ xcrun simctl list devices booted | grep -oE '\(([0-9A-F-]{36})\) \(Booted\)' | g
   while IFS= read -r other; do
     [ "$other" = "$udid" ] || xcrun simctl shutdown "$other" 2>/dev/null
   done
+# Story 984: a boot grows the wallpaper snapshots by about 300 MB and nothing evicts them, so they are pruned before a
+# boot (a booted simulator's are skipped). machine-doctor prunes only shut-down simulators, and only below 20 GB free.
+# ponytail: machine-doctor's `sims` command is chop-conventions PR #251, not merged yet; until then this skips with a line.
+if ! xcrun simctl list devices booted | grep -qF "($udid)"; then
+  doctor=${MACHINE_DOCTOR:-$HOME/.claude/skills/machine-doctor/tools/machine_doctor.py}
+  if [ -x "$doctor" ] && "$doctor" sims --help >/dev/null 2>&1; then
+    "$doctor" sims --prune --below-free-gb 20 || echo "machine-doctor's prune of the wallpaper snapshots failed; booting anyway" >&2
+  else
+    echo "no machine-doctor sims command ($doctor): the wallpaper snapshots are not pruned before this boot"
+  fi
+fi
 # -b boots it only if it isn't booted, and returns at once if it is; a bare bootstatus after a failed boot waits forever.
 xcrun simctl bootstatus "$udid" -b >/dev/null || { echo "the simulator $udid did not boot" >&2; exit 1; }

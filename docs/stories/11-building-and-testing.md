@@ -633,3 +633,27 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** macOS has recorded a thermal or performance warning, or the one-minute load is over 60
 - **When:** the ladder's simulator rung ends, pass or fail
 - **Then:** it shuts its simulator down and prints why; on a cool Mac it leaves it booted
+
+---
+
+### User Story 984:
+
+- **Summary:** The wallpaper snapshots are pruned before a simulator boots, when the disk is short
+- **Status:** implemented on branch `native/sim-boot-less`; the prune waits on machine-doctor's `sims` command (chop-conventions PR #251, not merged), so today every boot skips it with one line saying so; verified on the host by the ladder's map self-test (a fake doctor is called before the boot; a missing one is skipped)
+- **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free
+
+#### Use Case:
+- **As Igor,** whose Air's disk fills with wallpaper snapshots no one evicts
+- **I want to** have them pruned on the shut-down simulators just before a boot, when free space is under 20 GB
+- **so that** the boots that are left can't push the disk under the line that stops every build
+
+#### Acceptance Criteria:
+- **Scenario:** A boot on a short disk
+- **Given:** the target simulator is shut down and the disk has under 20 GB free
+- **When:** a run boots it
+- **Then:** machine-doctor prunes the shut-down simulators' snapshots first, then the simulator boots; with machine-doctor or its `sims` command missing, one line says the prune was skipped and the boot goes on
+
+- **Scenario:** The target is already booted
+- **Given:** the target simulator is booted
+- **When:** a run uses it
+- **Then:** nothing is pruned and nothing boots
