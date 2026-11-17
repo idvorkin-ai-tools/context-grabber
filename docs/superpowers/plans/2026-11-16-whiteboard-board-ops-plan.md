@@ -134,3 +134,21 @@ Wire, additive:
   one of Larry's batches, and an overlay tap: `{type:"overlay_tap", target_id, overlay_id, t, event?}` with his `tap_event` as written under `event` (the Cockpit wakes Larry only for `overlay_tap`/`ghost_tap` with `target_id`). `BoardTurnReport.wire` keeps the Cockpit's caps: 200 events, 8 KB each, 256 KB a body; what it leaves out is added to `events_dropped`.
 - A tap on an overlay posts `POST /whiteboard/events {board, rev, op_result?, events}` at once; taken, those events
   leave the queue; a 404 or no answer leaves them for the next turn, logged as `board_events`.
+
+## Step 4: the board behaves like /ink (stories 852–861)
+
+- `BoardRoom` (ContextCore): `rows`, `cut`, `band`, `place` (board.mjs `placeBlock`), `closable`, `byHand` (`room`).
+- `BoardOps.items` takes `folds` (stroke name → `h:<id>`, first), then kept texts, then groups; an item's `bounds` is
+  what shows; `Item.tag`, `Stroke.hidden/points/pen`. `BoardOps.plan` and `shownBoxes` take `folds`.
+- `BoardDissolve.dissolve` after Igor's erase (model `inkElements`): group notes cleared on what is left, a
+  `BoardText` with fewer glyphs than its `glyphs` forgotten; `strokes_changed.dissolved`.
+- `BoardOutline` (ContextCore): `BoardHeader {id, ids, fold{ids, own, shift, lines, bottom}}`, `row(at:)`,
+  `markHeader`, `section`, `fold`, `unfold`, `unfoldAll`, `foldAll`, `levels`, `collapse(to:)`, `candidates`,
+  `word(at:)`, `pickUp`, `plan(from:)`, `tags`, `wire`. Folded = a fold whose `own` strokes are all hidden, so an
+  undo that shows them opens it. Headers persist in `BoardOpLedger.headers(board:)`.
+- Paper: `put(plan, on:, hashes:, adding:, named:)` is the one way a plan reaches the markup (Larry's batches, a
+  paste, a room, a fold, a move). `land(paste:)`, `deletePasted`, `changeOutline`, `showMarks` (PaperLines marks,
+  `whiteboard-margin-header-<id>` / `-candidate-<n>`), a `UILongPressGestureRecognizer` (`held`) with `HoldMenu`
+  (`whiteboard-hold-<item>`), `pickedUp` in `didChangeMarkup`.
+- Wire: `POST /whiteboard/strokes` gains `folds: [{header, header_strokes, lines, strokes}]`; folded strokes leave
+  `strokes`. The Inbox's saved strokes (story 424) don't carry folds yet.
