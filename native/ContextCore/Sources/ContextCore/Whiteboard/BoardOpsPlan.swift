@@ -16,40 +16,77 @@ extension BoardOps {
     public var ids: [String]
     public var t: Int64?
     public var bounds: CGRect
+    /// Folded away or hidden by Larry: still on the board, but nothing lands around it or reads it as a line.
+    public var hidden: Bool
+    /// Its path in board points (its stretches end to end) and its pen's width: what tells an underline, and what a
+    /// held Pencil is on. Empty where only boxes matter.
+    public var points: [CGPoint]
+    public var pen: CGFloat
 
-    public init(ids: [String], t: Int64?, bounds: CGRect) {
+    public init(
+      ids: [String], t: Int64?, bounds: CGRect, hidden: Bool = false, points: [CGPoint] = [], pen: CGFloat = 0
+    ) {
       self.ids = ids
       self.t = t
       self.bounds = bounds
+      self.hidden = hidden
+      self.points = points
+      self.pen = pen
     }
   }
 
-  /// What moves as a whole: a stroke, every glyph of a kept text, or a group of Larry's.
+  /// What moves as a whole: a stroke, every glyph of a kept text, a group of Larry's, or a header with what is folded
+  /// under it.
   public struct Item: Equatable, Sendable {
     /// Every name it answers to: its strokes', and its text's or group's.
     public var ids: Set<String>
     /// The strokes' places on the canvas.
     public var members: [Int]
+    /// What shows of it: a folded header's is its own row. All of it when none shows.
     public var bounds: CGRect
+    /// Every stroke of it is hidden.
+    public var hidden: Bool
+    /// The text, group or header (`h:<id>`) that makes it one; nil for a lone stroke.
+    public var tag: String?
   }
 
-  /// The canvas's strokes as items: a kept text's glyphs (made at its time) are one item answering to its id, and
+  /// The boxes of what shows and moves whole: what a paste lands clear of and a cut never splits.
+  public static func shownBoxes(
+    strokes: [Stroke], texts: [BoardText] = [], groups: [String: String] = [:], folds: [String: String] = [:]
+  ) -> [CGRect] {
+    items(strokes: strokes, texts: texts, groups: groups, folds: folds).filter { !$0.hidden }.map(\.bounds)
+  }
+
+  /// The canvas's strokes as items: a header's row with what is folded under it is one item (`folds`, stroke name to
+  /// `h:<id>`, from `BoardOutline`), a kept text's glyphs (made at its time) are one item answering to its id, and
   /// strokes whose notes name one group are one item answering to the group.
-  public static func items(strokes: [Stroke], texts: [BoardText] = [], groups: [String: String] = [:]) -> [Item] {
+  public static func items(
+    strokes: [Stroke], texts: [BoardText] = [], groups: [String: String] = [:], folds: [String: String] = [:]
+  ) -> [Item] {
     let byTime = BoardText.byTime(texts)
     var out: [Item] = []
     var byTag: [String: Int] = [:]
+    var all: [CGRect] = []
     for (index, stroke) in strokes.enumerated() {
-      let tag = BoardText.owning(stroke.t, in: byTime)?.id ?? stroke.ids.lazy.compactMap { groups[$0] }.first
+      let tag =
+        stroke.ids.lazy.compactMap { folds[$0] }.first ?? BoardText.owning(stroke.t, in: byTime)?.id
+        ?? stroke.ids.lazy.compactMap { groups[$0] }.first
       if let tag, let at = byTag[tag] {
         out[at].ids.formUnion(stroke.ids)
         out[at].members.append(index)
-        out[at].bounds = out[at].bounds.union(stroke.bounds)
+        all[at] = all[at].union(stroke.bounds)
+        if !stroke.hidden { out[at].bounds = out[at].hidden ? stroke.bounds : out[at].bounds.union(stroke.bounds) }
+        out[at].hidden = out[at].hidden && stroke.hidden
         continue
       }
       if let tag { byTag[tag] = out.count }
-      out.append(Item(ids: Set(stroke.ids + (tag.map { [$0] } ?? [])), members: [index], bounds: stroke.bounds))
+      all.append(stroke.bounds)
+      out.append(
+        Item(
+          ids: Set(stroke.ids + (tag.map { [$0] } ?? [])), members: [index], bounds: stroke.bounds,
+          hidden: stroke.hidden, tag: tag))
     }
+    for at in out.indices where out[at].hidden { out[at].bounds = all[at] }
     return out
   }
 
@@ -91,10 +128,11 @@ extension BoardOps {
   /// The batch's changes on the canvas's `strokes`, in order. `pages` is the column's page count now; it grows to hold
   /// the ink after, and the room a push opens below the last ink.
   public static func plan(
-    _ ops: [Op], strokes: [Stroke], texts: [BoardText] = [], metas: BoardStrokeMeta = BoardStrokeMeta(), pages: Int,
-    board: BoardPages = BoardPages()
+    _ ops: [Op], strokes: [Stroke], texts: [BoardText] = [], metas: BoardStrokeMeta = BoardStrokeMeta(),
+    folds: [String: String] = [:], pages: Int, board: BoardPages = BoardPages()
   ) -> Plan {
-    var work = Working(strokes: strokes, items: items(strokes: strokes, texts: texts, groups: metas.groups))
+    var work = Working(
+      strokes: strokes, items: items(strokes: strokes, texts: texts, groups: metas.groups, folds: folds))
     var plan = Plan(pagesBefore: pages, pagesAfter: pages)
     var reach: CGFloat?
     for op in ops {

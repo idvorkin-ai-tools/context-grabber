@@ -21,6 +21,13 @@ public struct BoardMeta: Equatable, Codable, Sendable {
 
   /// As it goes back to Larry.
   public var object: Any { (try? JSONSerialization.jsonObject(with: json)) ?? [String: Any]() }
+
+  /// The same note without its group (story 854); nil when the group was all it said.
+  public var withoutGroup: BoardMeta? {
+    guard var object = object as? [String: Any] else { return nil }
+    object["group"] = nil
+    return object.isEmpty ? nil : BoardMeta(object)
+  }
 }
 
 /// Each stroke's notes on a board, by the name Larry knows it by, at most `most` (the oldest go first).
@@ -49,6 +56,11 @@ public struct BoardStrokeMeta: Equatable, Codable, Sendable {
   }
 
   /// A batch's notes, by stroke name.
+  public mutating func remove(_ name: String) {
+    guard metas.removeValue(forKey: name) != nil else { return }
+    order.removeAll { $0 == name }
+  }
+
   public mutating func merge(_ other: [String: BoardMeta]) {
     for (name, meta) in other { set(meta, for: name) }
   }

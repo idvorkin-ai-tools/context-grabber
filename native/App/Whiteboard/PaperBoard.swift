@@ -318,6 +318,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   @Published private(set) var choiceFrame: CGRect?
   /// Where the board is on screen, for its question cards (stories 880–886).
   let place = WhiteboardBoardPlace()
+  /// Story 852: the paste just landed, selected, in this view's points, where its Delete sits; nil once anything else
+  /// is selected or the ink changes.
+  @Published private(set) var pastedFrame: CGRect?
+  /// The landed paste's elements, by key.
+  private var pasted: Set<String> = []
 
   private let model: WhiteboardModel
   private let log: SessionLog
@@ -372,6 +377,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
+    model.landPaste = { [weak self] strokes in self?.land(paste: strokes) }
     model.showOverlays = { [weak self] list in
       guard let self else { return }
       self.lines.showOverlays(list)
@@ -587,6 +593,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
     if takesBackTapDot(change, frames: frames) { return }
+    if !change.isEmpty { forgetPaste() }
     defer {
       // Story 843: after the model's revision has moved on.
       if !change.isEmpty {
@@ -654,7 +661,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     run?.selected = controller.selection.count
     if !controller.selection.isEmpty, CACurrentMediaTime() < noSelectionUntil { controller.selection = [] }
     // Story 844: what the lasso holds, for Larry.
-    model.selectionChanged(Set(controller.selection.map(Self.key)))
+    let keys = Set(controller.selection.map(Self.key))
+    if !pasted.isEmpty, keys != pasted { forgetPaste() }
+    model.selectionChanged(keys)
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
@@ -667,6 +676,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showPageNumber()
     showChoice()
     placeCards()
+    showPasted()
     layRules()
     checkSeat()
     remembering?.cancel()
@@ -855,6 +865,89 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
   }
 
+  /// Story 852, as the web board's paste: in the clear patch of the view nearest its middle; else room opens at the
+  /// clear line nearest the middle, the ink below pushed down whole lines, and the paste lands in it. The push and the
+  /// paste are one undo. It lands selected, with Delete beside it.
+  private func land(paste strokes: [PKStroke]) -> PKDrawing? {
+    guard let markup = paper.markup, !strokes.isEmpty else { return nil }
+    let started = CACurrentMediaTime()
+    let (ink, hashes) = opStrokes(markup)
+    let block = PKDrawing(strokes: strokes).bounds
+    let view = paperOnScreen
+    let landing = BoardRoom.place(
+      block.size, view: view,
+      ink: BoardOps.shownBoxes(strokes: ink, texts: model.texts, groups: model.strokeMeta.groups),
+      pageWidth: board.width)
+    let by = CGAffineTransform(translationX: landing.origin.x - block.minX, y: landing.origin.y - block.minY)
+    let placed = strokes.map {
+      PKStroke(
+        ink: $0.ink, path: $0.path, transform: $0.transform.concatenating(by), mask: $0.mask,
+        randomSeed: $0.randomSeed)
+    }
+    let ops = landing.push.map { [BoardOps.Op.translateBelow(y: $0.cut, dy: $0.dy)] } ?? []
+    var plan = BoardOps.plan(
+      ops, strokes: ink, texts: model.texts, metas: model.strokeMeta, pages: pages, board: board)
+    let landedBox = PKDrawing(strokes: placed).bounds
+    plan.pagesAfter = board.pages(after: plan.pagesAfter, inkMaxY: landedBox.maxY, redoWaiting: false)
+    let framesBefore = inkFrames
+    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: placed, named: "Paste") else { return nil }
+    noteInk(held, since: framesBefore, report: true)
+    let ids = Array(held.subelements.strokes.map(\.elementID).suffix(placed.count))
+    pasted = Set(ids.map(Self.key))
+    paper.selection = Set(ids)
+    showPasted()
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_paste_landed", "board": model.board.id, "strokes": placed.count, "at": rect(landedBox),
+        "view": rect(view), "clear": landing.push == nil, "cut": landing.push.map { Double($0.cut) } ?? NSNull(),
+        "dy": Double(landing.push?.dy ?? 0), "moved": plan.moved, "pages_before": plan.pagesBefore, "pages": pages,
+        "selected": paper.selection.count, "ms": ms(CACurrentMediaTime() - started),
+      ])
+    lookForInk(landedBox, why: "pasted")
+    return held.inkDrawing
+  }
+
+  /// Where the landed paste is on screen now, for its Delete.
+  private func showPasted() {
+    var frame: CGRect?
+    if !pasted.isEmpty, let markup = paper.markup {
+      let box = markup.subelements.strokes.filter { pasted.contains(Self.key($0.elementID)) }
+        .compactMap { markup.subelements[$0.elementID] as? PKStroke }.reduce(CGRect.null) { $0.union($1.renderBounds) }
+      if !box.isNull {
+        let a = lines.convert(lines.spot(of: CGPoint(x: box.minX, y: box.minY)), to: view)
+        let b = lines.convert(lines.spot(of: CGPoint(x: box.maxX, y: box.maxY)), to: view)
+        frame = CGRect(x: min(a.x, b.x), y: min(a.y, b.y), width: abs(b.x - a.x), height: abs(b.y - a.y))
+      }
+    }
+    if frame != pastedFrame { pastedFrame = frame }
+  }
+
+  private func forgetPaste() {
+    guard !pasted.isEmpty else { return }
+    pasted = []
+    pastedFrame = nil
+  }
+
+  /// Story 852: the landed paste's Delete: its strokes go, one undo; the room it opened stays, as on the web board.
+  func deletePasted() {
+    guard var markup = paper.markup, !pasted.isEmpty else { return }
+    let before = markup
+    let gone = markup.subelements.strokes.map(\.elementID).filter { pasted.contains(Self.key($0)) }
+    for id in gone { _ = markup.subelements.removeElement(for: id) }
+    forgetPaste()
+    registerStepBack(to: before, named: "Delete")
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    let framesBefore = inkFrames
+    let held = paper.markup ?? markup
+    inkFrames = held.strokeFrames
+    model.changed(held.inkDrawing)
+    noteInk(held, since: framesBefore, report: true)
+    log.event("whiteboard", ["action": "paper_paste_deleted", "board": model.board.id, "strokes": gone.count])
+  }
+
   private func copiedStrokes(_ clipboard: UIPasteboard) -> [PKStroke]? {
     if let data = clipboard.data(forPasteboardType: UTType.paperkit.identifier),
       let markup = try? PaperMarkup(dataRepresentation: data), !markup.subelements.strokes.isEmpty
@@ -1010,23 +1103,42 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// added, the column grows to the pages it needs, and the lot is one undo named for the batch, the page count
   /// included. Text and notes alone leave the markup as it is. Nil before the markup is laid out.
   private func applyOps(_ batch: BoardOps.Batch) -> BoardOps.Plan? {
-    guard var markup = paper.markup else { return nil }
+    guard let markup = paper.markup else { return nil }
     let started = CACurrentMediaTime()
-    let elements = markup.subelements.strokes
-    let ink = markup.inkDrawing.strokes
-    let hashes = ink.map { WhiteboardModel.strokesForLarry(PKDrawing(strokes: [$0])).map(\.id) }
-    // Larry names strokes as the board sent them: one moved before keeps its first name.
-    let strokes = zip(ink, hashes).map { stroke, hashes in
-      BoardOps.Stroke(
-        ids: hashes.map(model.strokeIDs.stable), t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000),
-        bounds: stroke.renderBounds)
-    }
+    let (strokes, hashes) = opStrokes(markup)
     let plan = BoardOps.plan(
       batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta, pages: pages, board: board)
     guard plan.changesBoard else {
       select(plan.select)
       return plan
     }
+    guard let (held, renamed, drawn) = put(plan, on: markup, hashes: hashes, named: batch.label) else { return nil }
+    model.opsApplied(held.inkDrawing, renamed: renamed, drawn: drawn)
+    model.inkReset(Self.allHashes(held))
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_ops", "board": model.board.id, "label": batch.label, "moved": plan.offsets.count,
+        "erased": plan.erase.count, "drawn": plan.added.count, "elements": held.subelements.count,
+        "pages_before": plan.pagesBefore, "pages": pages, "can_undo": paper.undoManager?.canUndo ?? false,
+        "undo_name": paper.undoManager?.undoActionName ?? "", "ms": ms(CACurrentMediaTime() - started),
+      ])
+    undoSoonForTests(LaunchHooks.current.whiteboard.afterOps)
+    select(plan.select)
+    return plan
+  }
+
+  private func opStrokes(_ markup: PaperMarkup) -> (strokes: [BoardOps.Stroke], hashes: [[String]]) {
+    model.opStrokes(markup.inkDrawing.strokes)
+  }
+
+  /// A plan on the markup, with `extra` ink added in the same change, as one undo named `name`: moves, hides, erases,
+  /// Larry's ink, the pages. Nil when PaperKit didn't take the moves as moves (the log says so); nothing is set then.
+  private func put(
+    _ plan: BoardOps.Plan, on start: PaperMarkup, hashes: [[String]], adding extra: [PKStroke] = [], named name: String
+  ) -> (held: PaperMarkup, renamed: [(from: [String], to: [String])], drawn: [(hash: [String], name: String)])? {
+    var markup = start
+    let elements = markup.subelements.strokes
     let before = markup
     let countBefore = markup.subelements.count
     var renamed: [(from: [String], to: [String])] = []
@@ -1048,7 +1160,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       log.event(
         "whiteboard",
         [
-          "action": "paper_ops_failed", "board": model.board.id, "label": batch.label, "elements_before": countBefore,
+          "action": "paper_ops_failed", "board": model.board.id, "label": name, "elements_before": countBefore,
           "elements": markup.subelements.count,
         ])
       return nil
@@ -1067,7 +1179,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         drawn.append((Self.hashes(one), stroke.id))
       }
     }
-    registerStepBack(to: before, named: batch.label)
+    if !extra.isEmpty { markup.append(contentsOf: PKDrawing(strokes: extra)) }
+    registerStepBack(to: before, named: name)
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
     quiet = true
     paper.markup = markup
@@ -1078,19 +1191,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showLines()
     showPageNumber()
     redrawSoon()
-    model.opsApplied(held.inkDrawing, renamed: renamed, drawn: drawn)
-    model.inkReset(Self.allHashes(held))
-    log.event(
-      "whiteboard",
-      [
-        "action": "paper_ops", "board": model.board.id, "label": batch.label, "moved": plan.offsets.count,
-        "erased": plan.erase.count, "drawn": plan.added.count, "elements": held.subelements.count,
-        "pages_before": plan.pagesBefore, "pages": pages, "can_undo": paper.undoManager?.canUndo ?? false,
-        "undo_name": paper.undoManager?.undoActionName ?? "", "ms": ms(CACurrentMediaTime() - started),
-      ])
-    undoSoonForTests(LaunchHooks.current.whiteboard.afterOps)
-    select(plan.select)
-    return plan
+    return (held, renamed, drawn)
   }
 
   /// Story 848: the strokes Larry names, selected as a lasso would leave them; nothing when he names none.
@@ -1380,6 +1481,7 @@ struct PaperBoardCanvas: View {
       if model.editable { WhiteboardQuestionCards(questions: model.questions, place: controller.place) }
     }
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
+    .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())
         // Story 673. On this text, not Send: a toolbar button drops its accessibility value (iOS 27 simulator).
@@ -1440,6 +1542,30 @@ private struct MarkChoiceButtons: View {
         .frame(width: Self.size.width, height: Self.size.height)
         .background(.regularMaterial, in: Capsule())
         .position(x: place.midX, y: place.midY)
+      }
+    }
+  }
+}
+
+/// Story 852: Delete beside a paste that just landed, selected.
+private struct PastedButtons: View {
+  let controller: PaperBoardController
+  let pasted: CGRect?
+  private static let size = CGSize(width: 104, height: 44)
+
+  var body: some View {
+    GeometryReader { geometry in
+      if let pasted {
+        let place = WhiteboardMarkChoice.place(
+          mark: pasted, buttons: Self.size, in: CGRect(origin: .zero, size: geometry.size))
+        Button("Delete", systemImage: "trash", role: .destructive) { controller.deletePasted() }
+          .accessibilityIdentifier("whiteboard-paste-delete")
+          .font(.subheadline.weight(.semibold))
+          .buttonStyle(.bordered)
+          .controlSize(.small)
+          .frame(width: Self.size.width, height: Self.size.height)
+          .background(.regularMaterial, in: Capsule())
+          .position(x: place.midX, y: place.midY)
       }
     }
   }

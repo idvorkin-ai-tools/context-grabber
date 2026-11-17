@@ -15,7 +15,9 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   /// A finger tap at a board point; `target` is the mark it landed on (a ghost's id, a kept text's id), or nil.
   case tap(x: CGFloat, y: CGFloat, target: String?, t: Int64)
   /// Igor changed the ink (story 843): strokes added, erased and moved, by name, and the board's revision after.
-  case strokesChanged(added: [String], erased: [String], moved: [String], rev: Int, t: Int64)
+  /// `dissolved`: groups and kept texts the erase left only part of, now plain ink (story 854).
+  case strokesChanged(
+    added: [String], erased: [String], moved: [String], rev: Int, t: Int64, dissolved: [String]? = nil)
   /// The lasso's selection, by name (story 844); empty when it was let go.
   case selection(ids: [String], t: Int64)
   /// A finger in the left margin (story 849): where it went down on the board, and how far a drag went.
@@ -34,8 +36,12 @@ public enum BoardEvent: Equatable, Codable, Sendable {
     case .tap(let x, let y, let target, let t):
       let tenth = { (v: CGFloat) in Double((v * 10).rounded() / 10) }
       return ["type": "tap", "x": tenth(x), "y": tenth(y), "target_id": target as Any? ?? NSNull(), "t": t]
-    case .strokesChanged(let added, let erased, let moved, let rev, let t):
-      return ["type": "strokes_changed", "added": added, "erased": erased, "moved": moved, "rev": rev, "t": t]
+    case .strokesChanged(let added, let erased, let moved, let rev, let t, let dissolved):
+      var out: [String: Any] = [
+        "type": "strokes_changed", "added": added, "erased": erased, "moved": moved, "rev": rev, "t": t,
+      ]
+      if let dissolved, !dissolved.isEmpty { out["dissolved"] = dissolved }
+      return out
     case .selection(let ids, let t):
       return ["type": "selection", "ids": ids, "t": t]
     case .margin(let gesture, let y, let dy, let t):
@@ -165,14 +171,20 @@ public struct BoardText: Equatable, Codable, Sendable {
   public var size: Double
   /// `#rrggbb`.
   public var color: String
+  /// How many glyph strokes it was kept as: fewer left means part of it was erased (story 854). Nil for a text kept
+  /// before the board counted.
+  public var glyphs: Int?
 
-  public init(id: String, t: Int64, text: String, font: BoardOps.Font, size: Double, color: String) {
+  public init(
+    id: String, t: Int64, text: String, font: BoardOps.Font, size: Double, color: String, glyphs: Int? = nil
+  ) {
     self.id = id
     self.t = t
     self.text = text
     self.font = font
     self.size = size
     self.color = color
+    self.glyphs = glyphs
   }
 
   /// A creation time in ms exactly as a kept text's glyphs go out: whole milliseconds, so the time read back from the

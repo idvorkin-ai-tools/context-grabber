@@ -134,6 +134,9 @@ final class WhiteboardModel: ObservableObject {
   /// Plans a batch of Larry's changes on the canvas and applies it as one undo named for it; nil with no canvas yet.
   /// The canvas sets it.
   var applyOps: ((BoardOps.Batch) -> BoardOps.Plan?)?
+  /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
+  /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
+  var landPaste: (([PKStroke]) -> PKDrawing?)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
   private let callLive: @MainActor () -> Bool
@@ -1254,7 +1257,7 @@ final class WhiteboardModel: ObservableObject {
       texts.append(
         BoardText(
           id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
-          color: Self.lightHex(ghost.color)))
+          color: Self.lightHex(ghost.color), glyphs: strokes.count))
       opLedger.setTexts(texts, board: board.id)
     }
     // #883: what a kept mark that doesn't show needs said: its pen, letters and colour, the zoom, and whether the ink
@@ -1328,16 +1331,22 @@ final class WhiteboardModel: ObservableObject {
       pasteNote = layout.note
       return
     }
-    add(strokes)
+    land(strokes)
     if turns.stroked() { startPause() }
     if let note = layout.note { pasteNote = note }
+  }
+
+  private func land(_ strokes: [PKStroke]) {
+    guard let landed = landPaste?(strokes) else { return add(strokes) }
+    drawing = landed
+    drawingMoved()
   }
 
   /// Copied strokes the canvas didn't place itself: one undo, and a change like a drawn stroke, as a paste of text is.
   func paste(strokes: [PKStroke]) {
     guard editable, !strokes.isEmpty else { return }
     log.event("whiteboard", ["action": "paste_strokes", "board": board.id, "strokes": strokes.count])
-    add(strokes)
+    land(strokes)
     if turns.stroked() { startPause() }
   }
 
@@ -1768,10 +1777,43 @@ extension WhiteboardModel {
     let change = ink.changed(updated: updated, removed: removed, ids: &strokeIDs)
     if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     guard report, !change.isEmpty else { return }
+    let dissolved = dissolve(erased: change.erased)
     let event = BoardEvent.strokesChanged(
-      added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs)
+      added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs,
+      dissolved: dissolved.isEmpty ? nil : dissolved)
     events.record(event)
     takeOps(.event(event))
+  }
+
+  /// Story 854: a group or kept text Igor erased part of is plain ink from now on. The ids that dissolved.
+  private func dissolve(erased: [String]) -> [String] {
+    guard !erased.isEmpty, !strokeMeta.isEmpty || !texts.isEmpty else { return [] }
+    var metas = strokeMeta
+    var kept = texts
+    let gone = BoardDissolve.dissolve(erased: erased, live: opStrokes(drawing.strokes).strokes, metas: &metas, texts: &kept)
+    guard !gone.isEmpty else { return [] }
+    if metas != strokeMeta {
+      strokeMeta = metas
+      opLedger.setStrokeMeta(metas, board: board.id)
+    }
+    if kept != texts {
+      texts = kept
+      opLedger.setTexts(kept, board: board.id)
+    }
+    log.event("board_ops", ["action": "dissolved", "board": board.id, "ids": gone, "erased": erased.count])
+    return gone
+  }
+
+  /// The strokes as a plan of the board sees them, by the names Larry knows them (one moved before keeps its first
+  /// name), with each one's hashes now. Ink with no colour to see is hidden.
+  func opStrokes(_ ink: [PKStroke]) -> (strokes: [BoardOps.Stroke], hashes: [[String]]) {
+    let hashes = ink.map { Self.strokesForLarry(PKDrawing(strokes: [$0])).map(\.id) }
+    let strokes = zip(ink, hashes).map { stroke, hashes in
+      BoardOps.Stroke(
+        ids: hashes.map(strokeIDs.stable), t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000),
+        bounds: stroke.renderBounds, hidden: stroke.ink.color.cgColor.alpha == 0)
+    }
+    return (strokes, hashes)
   }
 
   /// The ink as it is, Larry told nothing: on opening, and after a change of his own.

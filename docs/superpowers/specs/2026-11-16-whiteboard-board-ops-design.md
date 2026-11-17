@@ -116,10 +116,81 @@ The web board (the Cockpit's `/ink`) is where these behaviours are worked out fi
 - When Igor stops scrolling or zooming, Larry learns what part of the board is on screen and at what zoom.
 - When Igor undoes one of Larry's changes, Larry learns which one, by its name.
 
+## Step 4: the board behaves like Larry's web board
+
+Igor, 2026-11-16: the web board at /ink is the behaviour to match. Its model is the Cockpit's `assets/ink/board.mjs`
+and its gestures `assets/ink/ink.html`; where the iPad board differs, this says why.
+
+### Paste makes room
+
+- A paste never lands on ink. It goes to the clear patch of the screen nearest its middle that holds it whole with
+  half a line of air round it, right of the margin and on the page.
+- When no clear patch holds it, room opens at the clear line nearest the middle of the screen: the ink below moves
+  down, whole things whole, by as many whole lines as the paste needs beyond the blank paper already there, and the
+  paste lands at the top of that room against the margin. It is the same push as Larry's *make room*.
+- The push and the paste are one Undo, named *Paste*. A push that needs another page adds it, and Undo takes it away.
+- The paste lands selected, with **Delete** beside it. Delete takes the paste away (one Undo); the room it opened
+  stays, as on the web board. Selecting anything else, or any change to the ink, puts Delete away.
+- Ink folded away (below) is no obstacle: a paste may land where a folded section's hidden lines are.
+
+### Erasing part of a group dissolves it
+
+- When Igor's eraser takes some, not all, of the strokes of a group (one of Larry's groups, or the letters of a
+  text of his that Igor kept), what is left is plain ink: it no longer moves as one thing, and Larry's next turn no
+  longer calls it his group or his text. The strokes that are left keep their names.
+- Larry is told, with the strokes that went, which groups dissolved.
+- Erasing a whole group, or a stroke in no group, is an ordinary erase.
+
+### Headers fold their sections
+
+- **A finger tap in the left margin beside a line makes that line a header.** A small ▾ shows in the margin beside it.
+  A tap beside a header folds it (the mark turns ▸ with the number of lines folded) and a tap again unfolds it.
+  A tap beside blank paper does nothing.
+- **A section ends where the ink comes back to the header's indent.** It runs from the line below the header to the
+  first line that starts at or left of the header's own left edge (within half a line), or to the next header at the
+  same indent or shallower. Blank paper never ends a section. When the line under a header isn't indented at all, the
+  section runs to the next header at its indent or shallower. A deeper header inside a section is its own header, and
+  folds on its own: folds nest.
+- **Folded lines hide and the board closes up.** What is below the section slides up to sit a line or two under the
+  header, in whole lines. Unfolding puts it back; anything written under the folded header meanwhile moves down below
+  the section rather than being drawn over.
+- A fold is one Undo, named *Fold* or *Unfold*. (The web board's folds are not undo steps; on paper every change is,
+  and an Undo of an earlier step would otherwise spring a fold open.)
+- Folded ink is still on the board: it moves with its header, a push never splits it from its header, and it is in no
+  picture. Larry is told which strokes are folded under which header and how many lines, so folded ink is never taken
+  for erased, nor for new when it unfolds.
+- Headers are kept with the board on this device, by the names of their strokes.
+- **Fold all and Unfold all**, and **collapse to a level**: from the hold menu on a header's mark, Fold all, 1, 2, 3
+  and Unfold all. A header's level is how deep it nests with everything open. Collapsing to level *n* shows the
+  headers down to level *n* and nothing deeper: every header at level *n* folds, and so does a shallower one with no
+  headers under it; a shallower one with headers under it stays open.
+- **A line that looks like a header shows a faint H in the margin**: one written well bigger than his usual lines
+  (1.5 times his usual line height and 1.6 times his usual letters, once the board has four lines of his to judge by,
+  three strokes or more, wider than tall), or one underlined across most of its width. It is only a suggestion: it
+  doesn't fold and isn't kept until his margin tap there makes it a header.
+
+### Press and hold (#918)
+
+- **A finger held still in the margin, then dragged**, opens room at the clear line nearest where it went down, by
+  the drag in whole lines when he lifts; dragged up it closes blank paper only, never past the ink above. One Undo.
+- **A finger held still in the margin, not dragged**, or **held still anywhere on the page**, brings up a small menu:
+  *Make room here* (three lines, at the clear line nearest the finger), *Paste*, and *Make header* beside a line of
+  ink (*Not a header* beside a header). Held on a header's mark, the menu is the outline: *Fold all*, *1*, *2*, *3*,
+  *Unfold all*.
+- **The Pencil held still on ink for 400 ms picks up the word under it**: the strokes on that line chained while the
+  gap between them is under 16 points (a group of Larry's, a kept text or a header row whole). The same stroke drags
+  it, and where the Pencil lifts it lands; the Pencil's own stroke is not kept. One Undo, named *Move*. Held still
+  and lifted without moving, the word is left selected. Off ink, a held Pencil draws as ever.
+- On paper the word lands when the Pencil lifts rather than following it live; PaperKit owns the stroke while it is
+  drawn.
+
 ## Non-goals
 
 - Editing a kept label's words (#912).
-- Scratch-out to delete, and smart arrows.
+- Scratch-out to delete, and smart arrows (other builds).
+- Question cards, the writing pause learned from his rhythm, tidying overlaps (other builds).
+- The picture showing "▸ N lines folded" under a folded header, as the web board's does: the margin mark shows it
+  on the board, and Larry gets the count with the strokes.
 - Running Larry's board logic inside the app for offline use.
 - Controls that survive the board closing: they are Larry's live conversation, and he lays them again.
 
@@ -142,3 +213,14 @@ The web board (the Cockpit's `/ink`) is where these behaviours are worked out fi
 - A band Larry lays shows at its place and scrolls with the board; a tap on it reaches him within a second.
 - Hidden ink vanishes and returns on his word, and moves with a push while hidden.
 - A margin tap, hold and drag, the end of a scroll, and an undo of his change each reach him on the next turn.
+- A paste over a full screen opens room at the middle: the ink below moves down whole lines, the paste sits in the
+  room, selected with Delete beside it, and one Undo takes both the paste and the room away. On a screen with a clear
+  patch the paste lands there and nothing moves.
+- Rubbing out one stroke of Larry's group leaves the rest as plain ink; his next turn says the group dissolved.
+- A margin tap beside a line makes it a header; a tap beside it folds its indented lines and the ink below closes up;
+  another tap brings them back where they were. Folding a section holding a folded header and unfolding it leaves the
+  inner one folded. Larry's next turn lists the folded strokes under their header, and none of them as erased.
+- Fold all, 1, 2 and Unfold all on a two-level outline show what the outline would.
+- A line written big or underlined shows a faint H; a margin tap there makes it a header.
+- A finger held in the margin and dragged down two lines opens two lines; held and lifted, or held on the page, it
+  shows the menu. The Pencil held on a word for under half a second and dragged moves that word, and nothing else.

@@ -5218,3 +5218,238 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a push of Larry's on the board
 - **When:** I tap Undo
 - **Then:** his next turn has an undo naming that change
+
+---
+
+### User Story 852:
+
+- **Summary:** A paste never lands on my ink: it finds clear paper or opens room
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Paste makes room*
+
+#### Use Case:
+- **As someone** pasting text onto a full board
+- **I want to** have the paste go to clear paper on screen, or have room open for it
+- **so that** nothing I wrote is ever covered
+
+#### Acceptance Criteria:
+- **Scenario:** Clear paper on screen
+- **Given:** a screen with ink at its middle and clear paper above it
+- **When:** I paste two lines
+- **Then:** they land in the clear paper nearest the middle and nothing moves
+
+- **Scenario:** A full screen
+- **Given:** writing on every line of the screen
+- **When:** I paste
+- **Then:** the ink from the middle down moves down whole lines, the paste sits in the room against the margin, and one Undo named Paste puts the board back exactly
+
+---
+
+### User Story 853:
+
+- **Summary:** A paste lands selected with Delete beside it
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Paste makes room*
+
+#### Use Case:
+- **As someone** who pasted the wrong thing
+- **I want to** take the paste straight back off the board
+- **so that** an accidental paste costs one tap
+
+#### Acceptance Criteria:
+- **Scenario:** Delete it
+- **Given:** a paste that just landed
+- **When:** I tap Delete beside it
+- **Then:** the paste goes, the room it opened stays, and Undo brings the paste back
+
+- **Scenario:** Move on
+- **Given:** a paste that just landed, selected
+- **When:** I draw or select something else
+- **Then:** Delete goes away
+
+---
+
+### User Story 854:
+
+- **Summary:** Erasing part of a group leaves plain ink
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Erasing part of a group dissolves it*
+
+#### Use Case:
+- **As someone** rubbing out part of something Larry drew as one
+- **I want to** have what's left be plain ink
+- **so that** it no longer moves or answers as a thing that is gone
+
+#### Acceptance Criteria:
+- **Scenario:** Part of his group
+- **Given:** a group of Larry's three strokes
+- **When:** I erase one of them
+- **Then:** the other two stay where they are as plain ink, a push moves them one by one, and Larry's next turn names the group as dissolved
+
+- **Scenario:** Part of a kept text
+- **Given:** a text of Larry's I kept
+- **When:** I erase one letter
+- **Then:** the other letters stay as plain ink, and Larry no longer gets it as his text
+
+---
+
+### User Story 855:
+
+- **Summary:** A margin tap makes a header, and another folds it
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing an outline on the board
+- **I want to** turn a line into a header with one tap and fold what is under it
+- **so that** a long board reads like an outline
+
+#### Acceptance Criteria:
+- **Scenario:** Make a header
+- **Given:** a line of writing with indented lines under it
+- **When:** I tap the margin beside it
+- **Then:** a ▾ shows beside it in the margin
+
+- **Scenario:** Fold and unfold
+- **Given:** a header with three indented lines and a line at its indent below them
+- **When:** I tap its mark
+- **Then:** the three lines hide, the line below slides up under the header, the mark says ▸ 3; tapping again puts everything back where it was, and each is one Undo
+
+---
+
+### User Story 856:
+
+- **Summary:** Folds nest, and a section ends where the ink returns to the header's indent
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing a deeper outline
+- **I want to** fold a section with its sub-sections inside it
+- **so that** folding behaves as in an outliner
+
+#### Acceptance Criteria:
+- **Scenario:** A folded section inside another
+- **Given:** a header with an indented header under it, itself folded
+- **When:** I fold the outer one and unfold it again
+- **Then:** the inner one is still folded
+
+- **Scenario:** Blank paper
+- **Given:** a header whose indented lines run on after a gap of blank paper
+- **When:** I fold it
+- **Then:** the lines after the gap fold too, up to the first line back at the header's indent
+
+---
+
+### User Story 857:
+
+- **Summary:** Larry knows folded ink is folded, not erased
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** talking with Larry about a folded board
+- **I want to** have Larry told which strokes are folded under which header
+- **so that** he doesn't think I erased them, or wrote them again when I unfold
+
+#### Acceptance Criteria:
+- **Scenario:** A folded section
+- **Given:** a header folded over three lines
+- **When:** Larry's turn comes
+- **Then:** the strokes he gets leave the folded ones out and list them under the header's strokes, with the number of lines folded
+
+---
+
+### User Story 858:
+
+- **Summary:** Press and hold: room in the margin, a menu on the page
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** needing room in the middle of my writing
+- **I want to** hold and drag in the margin, or hold for a menu
+- **so that** I make room, paste or mark a header without leaving the board
+
+#### Acceptance Criteria:
+- **Scenario:** Drag in the margin
+- **Given:** writing above and below
+- **When:** I hold a finger in the margin, drag down two lines and lift
+- **Then:** the ink below that clear line moves down two lines, one Undo
+
+- **Scenario:** Hold for the menu
+- **Given:** a finger held still on the page, or in the margin without dragging
+- **When:** the hold is long enough
+- **Then:** a menu offers Make room here, Paste, and Make header (or Not a header) beside a line
+
+---
+
+### User Story 859:
+
+- **Summary:** The Pencil held on a word picks it up
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Press and hold (#918)*
+
+#### Use Case:
+- **As someone** rearranging what I wrote
+- **I want to** hold the Pencil still on a word and drag it somewhere else
+- **so that** I move a word without the lasso
+
+#### Acceptance Criteria:
+- **Scenario:** Move a word
+- **Given:** a line of words
+- **When:** I hold the Pencil still on one word for under half a second, drag and lift
+- **Then:** that word, and only it, lands where I lifted, my Pencil's stroke isn't kept, and one Undo puts it back
+
+- **Scenario:** Hold and lift
+- **Given:** a word
+- **When:** I hold the Pencil on it and lift without moving
+- **Then:** the word is selected
+
+---
+
+### User Story 860:
+
+- **Summary:** Fold all, Unfold all, and collapse to a level
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** reading a long outline
+- **I want to** fold everything, open everything, or show the outline to a depth
+- **so that** I see the shape of the board at a glance
+
+#### Acceptance Criteria:
+- **Scenario:** Collapse to level 1
+- **Given:** an outline two levels deep
+- **When:** I hold a header's mark and choose 1
+- **Then:** only the top headers show, each folded
+
+- **Scenario:** Collapse to level 2
+- **Given:** the same outline
+- **When:** I choose 2
+- **Then:** the top headers stay open, their sub-headers show folded, and a top header with no sub-headers folds
+
+---
+
+### User Story 861:
+
+- **Summary:** A line that looks like a header is offered as one
+- **Status:** not yet built
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** writing titles bigger or underlining them
+- **I want to** see such a line offered as a header
+- **so that** making headers is one tap where I already marked them
+
+#### Acceptance Criteria:
+- **Scenario:** A big line
+- **Given:** a board with four ordinary lines and one written much bigger
+- **When:** it is drawn
+- **Then:** a faint H shows in the margin beside the big line; nothing folds until I tap the margin there, which makes it a header
+
+- **Scenario:** An underlined line
+- **Given:** a line with a straight stroke under most of it
+- **When:** it is drawn
+- **Then:** the faint H shows beside it
