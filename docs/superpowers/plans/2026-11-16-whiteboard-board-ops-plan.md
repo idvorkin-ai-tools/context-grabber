@@ -164,7 +164,7 @@ The web board's model is `assets/ink/board.mjs` (`routeConnector`, `arrowEnds`, 
 Wire, additive to `ops.list`:
 
 - `{op:"connector", id, from, to, color?, width?}`: `id` a stroke name; each end a name (stroke, `meta.group`, kept
-  text) or a point `[x, y]` / `{x, y}`; or `x1, y1, x2, y2` for two points, as the web board's connector mark.
+  text) or a point `[x, y]`.
 
 A connector is one stroke (shaft, then the head's two wings) under its `id`, whose notes say what it is:
 `meta.connector = {from, to, from_side, to_side, route: [[x, y], ...], color?, by}` (`by` `larry` or `igor`). Notes
@@ -191,10 +191,12 @@ it is; a first-class `kind: "connector"` would be the Cockpit's change, not ours
 
 App:
 
-- `PaperBoardController.put` takes the plan's notes into the model (`model.metasChanged`), whoever made the plan.
+- `PaperBoardController.put` takes the plan's notes into the model (`model.planPut(_:drawn:)`), whoever made the
+  plan.
 - `changeOutline` runs `follow` on the fold's plan. Igor's own changes (PaperKit's lasso move, the eraser) run
   `follow` on an empty plan a moment after the change, applied quietly with no Undo step of its own: PaperKit's undo
   of the move is another change, which follows again.
 - Connect: on a selection change, `connect(...)`; when it isn't nil, a Connect button beside the selection
   (`whiteboard-connect`), which runs the ops as one Undo named *Connect* and tells Larry the ink change.
-- Session log: `board_connectors` with `action` connected / followed / loosened.
+- Session log: `board_connectors` with `action` connected (id, from, to, elbow, erased, rerouted, ms) / followed
+  (rerouted, loosened, ms) / select_newest_hook (the `GRABBER_WHITEBOARD_SELECT_NEWEST` launch hook).

@@ -102,28 +102,27 @@ final class BoardConnectorsTests: XCTestCase {
 
   // MARK: Larry's op
 
-  func testTheWireTakesNamesPointsAndTheMarksX1Y1() throws {
+  func testTheWireTakesNamesAndPoints() throws {
     guard case .connector(let byName) = try XCTUnwrap(op(["op": "connector", "id": "k1", "from": "gA", "to": "gB"]))
     else { return XCTFail() }
     XCTAssertEqual(byName.from, .id("gA"))
     XCTAssertEqual(byName.to, .id("gB"))
     guard
       case .connector(let byPoint) = try XCTUnwrap(
-        op(["op": "connector", "id": "k2", "from": [130, 120], "to": ["x": 430, "y": 320], "color": "#ff0000"]))
+        op(["op": "connector", "id": "k2", "from": [130, 120], "to": [430, 320], "color": "#ff0000"]))
     else { return XCTFail() }
     XCTAssertEqual(byPoint.from, .point(CGPoint(x: 130, y: 120)))
     XCTAssertEqual(byPoint.to, .point(CGPoint(x: 430, y: 320)))
     XCTAssertEqual(byPoint.color, 0xFF0000)
-    guard
-      case .connector(let mark) = try XCTUnwrap(
-        op(["op": "connector", "id": "k3", "x1": 1, "y1": 2, "x2": 3, "y2": 4]))
-    else { return XCTFail() }
-    XCTAssertEqual(mark.to, .point(CGPoint(x: 3, y: 4)))
     let refused = { (json: [String: Any]) in
       BoardOps.batch(["board": "b1", "base_rev": 0, "list": [json]], key: "m", source: "web")?.refusal
     }
     XCTAssertEqual(refused(["op": "connector", "from": "a", "to": "b"]), BoardOps.Reason.badOp, "no name")
     XCTAssertEqual(refused(["op": "connector", "id": "k", "from": "a"]), BoardOps.Reason.badOp, "one end")
+    XCTAssertEqual(
+      refused(["op": "connector", "id": "k", "from": ["x": 1, "y": 2], "to": "b"]), BoardOps.Reason.badOp, "{x, y}")
+    XCTAssertEqual(
+      refused(["op": "connector", "id": "k", "x1": 1, "y1": 2, "x2": 3, "y2": 4]), BoardOps.Reason.badOp, "x1..y2")
   }
 
   func testLarrysConnectorByNamesLeavesAndLandsOnTheFacingSides() throws {
@@ -176,6 +175,22 @@ final class BoardConnectorsTests: XCTestCase {
     XCTAssertEqual(c.from, "k1-from")
     XCTAssertEqual(["h1", "h2", "i1"].map { plan.metas[$0]?.group }, ["k1-from", "k1-from", "k1-from"])
     XCTAssertEqual(c.route.first, CGPoint(x: 130, y: 110), "it leaves the whole word's right side")
+  }
+
+  func testAWordStaysPlainInkWhenNoConnectorIsDrawn() {
+    let word = [box("h1", 100, 100, w: 8, h: 20), box("h2", 112, 100, w: 8, h: 20), box("i1", 126, 100, w: 4, h: 20)]
+    let onTheWord = CGPoint(x: 118, y: 125)
+    for (other, why) in [
+      (BoardOps.NewConnector.End.point(CGPoint(x: 700, y: 700)), "the other end on bare paper"),
+      (.point(CGPoint(x: 120, y: 120)), "both ends on the same word"),
+      (.id("nope"), "the other end names nothing"),
+    ] {
+      let plan = BoardOps.plan(
+        [.connector(.init(id: "k1", from: .point(onTheWord), to: other))], strokes: word, metas: BoardStrokeMeta(),
+        pages: 1)
+      XCTAssertEqual(plan.connected, [], why)
+      XCTAssertEqual(["h1", "h2", "i1"].map { plan.metas[$0]?.group }, [nil, nil, nil], why)
+    }
   }
 
   // MARK: Following

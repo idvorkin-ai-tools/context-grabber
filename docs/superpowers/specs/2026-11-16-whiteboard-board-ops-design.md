@@ -243,6 +243,12 @@ stays joined when they move.
   the points of its route.
 - Larry hears Igor make one as he hears any ink change: his arrow's strokes erased and the connector added.
 
+### Known limits
+
+- Undoing a Connect gives Igor's own arrow back, but a word that Connect made one thing stays one thing.
+- Connectors in Larry's chat-reply shapes are not handled yet: only his board changes draw them.
+- Larry's connectors are drawn after the rest of his changes in the same answer, on the board those changes leave.
+
 ## Non-goals
 
 - Editing a kept label's words (#912).

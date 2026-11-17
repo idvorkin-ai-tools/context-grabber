@@ -120,26 +120,16 @@ extension BoardOps {
 
   static func connector(_ json: [String: Any]) -> Swift.Result<Op, Refusal> {
     guard let id = json["id"] as? String, isName(id) else { return .failure(Refusal(reason: Reason.badOp)) }
-    func end(_ key: String, _ x: String, _ y: String) -> NewConnector.End? {
+    func end(_ key: String) -> NewConnector.End? {
       if let name = json[key] as? String { return name.isEmpty ? nil : .id(name) }
       if let pair = json[key] as? [Any], pair.count == 2, let px = WhiteboardTurn.number(pair[0]),
         let py = WhiteboardTurn.number(pair[1])
       {
         return .point(CGPoint(x: px, y: py))
       }
-      if let place = json[key] as? [String: Any], let px = place["x"].flatMap(WhiteboardTurn.number),
-        let py = place["y"].flatMap(WhiteboardTurn.number)
-      {
-        return .point(CGPoint(x: px, y: py))
-      }
-      if json[key] == nil, let px = json[x].flatMap(WhiteboardTurn.number),
-        let py = json[y].flatMap(WhiteboardTurn.number)
-      {
-        return .point(CGPoint(x: px, y: py))
-      }
       return nil
     }
-    guard let from = end("from", "x1", "y1"), let to = end("to", "x2", "y2") else {
+    guard let from = end("from"), let to = end("to") else {
       return .failure(Refusal(reason: Reason.badOp))
     }
     let width = (json["width"] as? NSNumber).map { CGFloat($0.doubleValue) }.flatMap { $0.isFinite ? $0 : nil }
@@ -410,6 +400,7 @@ public enum BoardConnectors {
         plan.offsets[i] = nil
         plan.hidden[i] = nil
       }
+      let before = (metas: plan.metas, forget: plan.forgetMetas)
       var board = After(plan, strokes: strokes, texts: texts, metas: metas, folds: folds)
       var ends: [(id: String, members: [Int])] = []
       for (end, suffix) in [(new.from, "from"), (new.to, "to")] {
@@ -451,6 +442,8 @@ public enum BoardConnectors {
         plan.connected.append(new.id)
         continue
       }
+      plan.metas = before.metas
+      plan.forgetMetas = before.forget
       // Ends on bare paper: a plain arrow where it was asked for, as the web board keeps one.
       if case .point(let p) = new.from, case .point(let q) = new.to, p != q {
         plan.added.append(
@@ -466,6 +459,7 @@ public enum BoardConnectors {
     _ plan: inout BoardOps.Plan, strokes: [BoardOps.Stroke], texts: [BoardText] = [],
     metas: BoardStrokeMeta = BoardStrokeMeta(), folds: [String: String] = [:]
   ) {
+    guard metas.hasConnectors || plan.metas.values.contains(where: \.mayBeConnector) else { return }
     let board = After(plan, strokes: strokes, texts: texts, metas: metas, folds: folds)
     for k in board.connectors.keys.sorted() where !board.strokes[k].hidden {
       guard let (name, c) = board.connectors[k] else { continue }
