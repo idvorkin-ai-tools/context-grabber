@@ -354,6 +354,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let log: SessionLog
   /// Stories 920–922: To text beside the lasso's ink (BoardToTextFlow.swift).
   let toText = BoardToTextState()
+  /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
+  let snaps = BoardSnapWatch()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
   private var board = BoardPages()
   private var pages = 1
@@ -637,6 +639,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if marginHeld(change, markup: markup) { return }
     if pickedUp(change, markup: markup, before: previous) { return }
     if scratchesOut(change, markup) { return }
+    snapNoticed(change)
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()
@@ -1838,6 +1841,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func touchWentDown(_ touch: UITouch) {
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
+    snapTouch(touch, .down, draws: touch.type == .pencil || fingersDraw)
     // Story 858: any touch but the hold's own puts the menu away.
     if holdMenu != nil, grip == nil { holdMenu = nil }
     // Story 933: every try at a hold in the margin is in the log, from here to its verdict.
@@ -1877,6 +1881,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Story 886: the eraser over an answered question card takes it, from a touch that would erase ink: the Pencil, or a
   /// finger only while fingers draw. A finger that pans the board takes nothing.
   override func touchMoved(_ touch: UITouch) {
+    snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     guard place.erasing, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
@@ -1898,6 +1903,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
   override func touchLifted(_ touch: UITouch, down: Int) {
+    snapTouch(touch, .lifted, draws: touch.type == .pencil || fingersDraw)
     guard toolDown, touch.type == .pencil || down == 0 else { return }
     toolDown = false
     model.endedDrawing()
