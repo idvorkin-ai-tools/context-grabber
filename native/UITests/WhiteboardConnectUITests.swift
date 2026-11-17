@@ -48,9 +48,13 @@ final class WhiteboardConnectUITests: XCTestCase {
     picture.name = "arrow selected, with Connect"
     picture.lifetime = .keepAlways
     add(picture)
+    XCTContext.runActivity(named: "Connect: hittable \(connect.isHittable), frame \(connect.frame)") { _ in }
     connect.tap()
     // The drawn arrow goes and the connector takes its place: still three strokes, and Connect goes with the selection.
-    waitUntil(NSPredicate(format: "exists == false"), connect, timeout: 5)
+    // `waitUntil` reads a missing element as not yet, so going away is waited for here.
+    let gone = Date().addingTimeInterval(5)
+    while connect.exists, Date() < gone { RunLoop.current.run(until: Date().addingTimeInterval(0.1)) }
+    XCTAssertFalse(connect.exists, "Connect goes once it is used")
     wait(send, label: "Send to Larry, 3 strokes")
     let cockpit = try cockpit()
     let sent = try sends(cockpit).count
