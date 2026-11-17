@@ -62,6 +62,8 @@ final class WhiteboardModel: ObservableObject {
   private(set) var strokeIDs: BoardStrokeIDs
   /// Larry's notes on strokes, kept as he wrote them (story 842).
   private(set) var strokeMeta: BoardStrokeMeta
+  /// Story 855: the board's headers and their folds, kept on this device by their strokes' names.
+  private(set) var headers: [BoardHeader]
   /// Each element's ink hashes, to tell Larry what Igor added, erased and moved (story 843).
   private var ink = BoardInk()
   /// The lasso's selection as last told (story 844).
@@ -137,6 +139,9 @@ final class WhiteboardModel: ObservableObject {
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
   var landPaste: (([PKStroke]) -> PKDrawing?)?
+  /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
+  /// as one undo named for it; false when nothing changed. The canvas sets it.
+  var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
   private let callLive: @MainActor () -> Bool
@@ -200,6 +205,7 @@ final class WhiteboardModel: ObservableObject {
     texts = opLedger.texts(board: board.id)
     strokeIDs = opLedger.strokeIDs(board: board.id)
     strokeMeta = opLedger.strokeMeta(board: board.id)
+    headers = opLedger.headers(board: board.id)
     var loaded = PKDrawing()
     do {
       loaded = try store.drawing(board.id)
@@ -457,6 +463,7 @@ final class WhiteboardModel: ObservableObject {
     larrySending = true
     defer { if larryHandOffs.isLatest(attempt) { larrySending = false } }
     let (jpeg, strokes, picture, rect, scale) = (out.jpeg, out.strokes, out.picture, out.rect, out.scale)
+    let folds = out.folds
     let thread = threads.thread(board: board.id)
     let started = Date()
     var event: [String: Any] = [
@@ -470,7 +477,8 @@ final class WhiteboardModel: ObservableObject {
       log.event("whiteboard_turn", event)
     }
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
-    event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, picture: picture))) { $1 }
+    event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, folds: folds, picture: picture))) { $1 }
+    if !folds.isEmpty { event["folds"] = folds.count }
     let outcome = await deliver(jpeg, picture: picture, thread: thread, note: said ?? "Your turn on the board")
     shipLog(why: "larry_turn")
     switch outcome {
@@ -564,9 +572,11 @@ final class WhiteboardModel: ObservableObject {
   }
 
   /// Story 419: the board's strokes to the Cockpit under the picture's id. Never a reason not to send the picture.
-  private func sendStrokes(_ strokes: [[String: Any]], picture: WhiteboardPicture) async -> WhiteboardStrokes.Answer {
+  private func sendStrokes(_ strokes: [[String: Any]], folds: [[String: Any]] = [], picture: WhiteboardPicture) async
+    -> WhiteboardStrokes.Answer
+  {
     do {
-      let request = try WhiteboardStrokes.request(picture: picture, strokes: strokes, cockpit: cockpit)
+      let request = try WhiteboardStrokes.request(picture: picture, strokes: strokes, folds: folds, cockpit: cockpit)
       let (body, response) = try await URLSession.shared.data(for: request)
       return WhiteboardStrokes.answer(status: (response as? HTTPURLResponse)?.statusCode, body: body)
     } catch {
@@ -579,7 +589,18 @@ final class WhiteboardModel: ObservableObject {
   /// the mean of the stroke's own point sizes (the transform's scale applied), and an id that is the same for the same
   /// ink on every send. Story 423: only the ink still visible goes, one stroke per visible stretch, so a pixel eraser's rub changes the ids.
   /// By the names Larry knows them: a stroke Larry's changes moved keeps the one it had.
-  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] { strokeIDs.named(Self.strokesForLarry(drawing)) }
+  /// Story 857: what is folded goes under its header in `folds`, never as strokes, so it is neither erased nor new.
+  private func strokesForLarry() -> [WhiteboardStrokes.Stroke] {
+    let all = strokeIDs.named(Self.strokesForLarry(drawing))
+    guard headers.contains(where: { $0.fold != nil }) else { return all }
+    let folded = outline().foldedNames
+    return all.filter { !folded.contains($0.id) }
+  }
+
+  /// The folds as Larry gets them with the strokes.
+  private func foldsForLarry() -> [[String: Any]] {
+    headers.contains { $0.fold != nil } ? outline().wire : []
+  }
 
   static func strokesForLarry(_ drawing: PKDrawing) -> [WhiteboardStrokes.Stroke] {
     drawing.strokes.flatMap { stroke -> [WhiteboardStrokes.Stroke] in
@@ -906,8 +927,8 @@ final class WhiteboardModel: ObservableObject {
       board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale,
       report: turnReport())
     return LarryOut(
-      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta), picture: picture,
-      rect: rect,
+      jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta),
+      folds: foldsForLarry(), picture: picture, rect: rect,
       scale: scale, said: said)
   }
 
@@ -915,6 +936,8 @@ final class WhiteboardModel: ObservableObject {
   struct LarryOut {
     let jpeg: Data
     let strokes: [[String: Any]]
+    /// The folded sections, beside the strokes (story 857).
+    var folds: [[String: Any]] = []
     let picture: WhiteboardPicture
     let rect: CGRect
     let scale: CGFloat
@@ -1576,6 +1599,40 @@ extension WhiteboardModel {
   func fingerLifted(from start: CGPoint, to end: CGPoint, seconds: Double) {
     guard let (gesture, y, dy) = BoardMargin.gesture(from: start, to: end, seconds: seconds) else { return }
     record(.margin(gesture: gesture, y: y, dy: dy, t: Self.nowMs))
+    if gesture == .tap { marginTapped(at: y) }
+  }
+
+  /// Story 855, as the web board's margin tap: beside a header it folds or unfolds it; beside a line of ink it makes it
+  /// a header; beside blank paper nothing.
+  func marginTapped(at y: CGFloat) {
+    guard editable else { return }
+    var what = "nothing"
+    let changed =
+      changeOutline?("Fold") { outline in
+        if let header = outline.header(at: y) {
+          what = outline.isFolded(header) ? "unfold" : "fold"
+          return outline.toggle(header.id)
+        }
+        what = "header"
+        return outline.markHeader(at: y, id: Self.newHeaderID())
+      } ?? false
+    log.event("board_outline", ["action": "margin_tap", "board": board.id, "y": Double(y), "did": what, "changed": changed])
+  }
+
+  /// A header's id, as the Cockpit takes a stroke's.
+  static func newHeaderID() -> String { "h-" + UUID().uuidString.prefix(8).lowercased() }
+
+  /// The outline over `strokes` (the canvas's, by default the drawing's), with the board's headers.
+  func outline(of strokes: [BoardOps.Stroke]? = nil) -> BoardOutline {
+    BoardOutline(
+      strokes: strokes ?? opStrokes(drawing.strokes).strokes, headers: headers, texts: texts, groups: strokeMeta.groups)
+  }
+
+  /// The canvas applied an outline change.
+  func outlineChanged(_ outline: BoardOutline) {
+    guard outline.headers != headers else { return }
+    headers = outline.headers
+    opLedger.setHeaders(headers, board: board.id)
   }
 
   /// Story 850: the view came to rest showing `rect` (board points) at `scale`.
@@ -1807,11 +1864,14 @@ extension WhiteboardModel {
   /// The strokes as a plan of the board sees them, by the names Larry knows them (one moved before keeps its first
   /// name), with each one's hashes now. Ink with no colour to see is hidden.
   func opStrokes(_ ink: [PKStroke]) -> (strokes: [BoardOps.Stroke], hashes: [[String]]) {
-    let hashes = ink.map { Self.strokesForLarry(PKDrawing(strokes: [$0])).map(\.id) }
-    let strokes = zip(ink, hashes).map { stroke, hashes in
+    let sent = ink.map { Self.strokesForLarry(PKDrawing(strokes: [$0])) }
+    let hashes = sent.map { $0.map(\.id) }
+    let strokes = zip(ink, sent).map { stroke, stretches in
       BoardOps.Stroke(
-        ids: hashes.map(strokeIDs.stable), t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000),
-        bounds: stroke.renderBounds, hidden: stroke.ink.color.cgColor.alpha == 0)
+        ids: stretches.map { strokeIDs.stable($0.id) },
+        t: Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000), bounds: stroke.renderBounds,
+        hidden: stroke.ink.color.cgColor.alpha == 0, points: stretches.flatMap(\.points),
+        pen: CGFloat(stretches.first?.width ?? 0))
     }
     return (strokes, hashes)
   }

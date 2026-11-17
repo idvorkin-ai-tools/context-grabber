@@ -120,6 +120,14 @@ try:
             check(False, why + " is refused")
         except urllib.error.HTTPError as e:
             check(e.code == 400, why + " is refused")
+    fold = {"header": "h-1", "header_strokes": ["s1"], "lines": 3, "strokes": ["s2", "s3"]}
+    call("/whiteboard/strokes", dict(picture, strokes=[ink], folds=[fold]))
+    check(call("/fake/strokes")["folds"][-1] == [fold], "folds beside the strokes are taken and kept")
+    try:
+        call("/whiteboard/strokes", dict(picture, strokes=[ink], folds=[{"header": "h-1"}]))
+        check(False, "a fold without its lines and strokes is refused")
+    except urllib.error.HTTPError as e:
+        check(e.code == 400, "a fold without its lines and strokes is refused")
 finally:
     fake.kill()
     os.unlink(report)

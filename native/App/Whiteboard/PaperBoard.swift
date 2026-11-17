@@ -323,6 +323,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   @Published private(set) var pastedFrame: CGRect?
   /// The landed paste's elements, by key.
   private var pasted: Set<String> = []
+  private var marking: Task<Void, Never>?
 
   private let model: WhiteboardModel
   private let log: SessionLog
@@ -378,6 +379,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.draw = { [weak self] _, added in self?.keep(added) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
     model.landPaste = { [weak self] strokes in self?.land(paste: strokes) }
+    model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
     model.showOverlays = { [weak self] list in
       guard let self else { return }
       self.lines.showOverlays(list)
@@ -476,6 +478,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     quiet = false
     inkFrames = paper.markup?.strokeFrames ?? [:]
     model.inkReset(paper.markup.map(Self.allHashes) ?? [:])
+    showMarks()
     showLines()
     log.event(
       "whiteboard",
@@ -593,7 +596,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let change = PaperProbe.inkChange(before: inkFrames, after: frames)
     inkFrames = frames
     if takesBackTapDot(change, frames: frames) { return }
-    if !change.isEmpty { forgetPaste() }
+    if !change.isEmpty {
+      forgetPaste()
+      showMarksSoon()
+    }
     defer {
       // Story 843: after the model's revision has moved on.
       if !change.isEmpty {
@@ -874,9 +880,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let (ink, hashes) = opStrokes(markup)
     let block = PKDrawing(strokes: strokes).bounds
     let view = paperOnScreen
+    let tags = model.outline(of: ink).tags
     let landing = BoardRoom.place(
       block.size, view: view,
-      ink: BoardOps.shownBoxes(strokes: ink, texts: model.texts, groups: model.strokeMeta.groups),
+      ink: BoardOps.shownBoxes(strokes: ink, texts: model.texts, groups: model.strokeMeta.groups, folds: tags),
       pageWidth: board.width)
     let by = CGAffineTransform(translationX: landing.origin.x - block.minX, y: landing.origin.y - block.minY)
     let placed = strokes.map {
@@ -886,7 +893,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let ops = landing.push.map { [BoardOps.Op.translateBelow(y: $0.cut, dy: $0.dy)] } ?? []
     var plan = BoardOps.plan(
-      ops, strokes: ink, texts: model.texts, metas: model.strokeMeta, pages: pages, board: board)
+      ops, strokes: ink, texts: model.texts, metas: model.strokeMeta, folds: tags, pages: pages, board: board)
     let landedBox = PKDrawing(strokes: placed).bounds
     plan.pagesAfter = board.pages(after: plan.pagesAfter, inkMaxY: landedBox.maxY, redoWaiting: false)
     let framesBefore = inkFrames
@@ -906,6 +913,63 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
     lookForInk(landedBox, why: "pasted")
     return held.inkDrawing
+  }
+
+  /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
+  /// and the headers are kept. A header made or unmade alone changes only the marks.
+  private func changeOutline(_ label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
+    guard let markup = paper.markup else { return false }
+    let started = CACurrentMediaTime()
+    let (strokes, hashes) = opStrokes(markup)
+    var outline = model.outline(of: strokes)
+    guard change(&outline) else { return false }
+    let plan = outline.plan(from: strokes, pages: pages, board: board)
+    if plan.changesBoard {
+      guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label) else { return false }
+      model.opsApplied(held.inkDrawing, renamed: renamed)
+      model.inkReset(Self.allHashes(held))
+    }
+    model.outlineChanged(outline)
+    showMarks()
+    log.event(
+      "board_outline",
+      [
+        "action": "changed", "board": model.board.id, "label": label, "moved": plan.offsets.count,
+        "hidden": plan.hidden.values.filter { $0 }.count, "shown": plan.hidden.values.filter { !$0 }.count,
+        "headers": outline.headers.count, "folded": outline.headers.filter(outline.isFolded).count,
+        "pages": pages, "ms": ms(CACurrentMediaTime() - started),
+      ])
+    return true
+  }
+
+  /// The margin's marks: ▾ beside a header, ▸ and its lines beside a folded one, a faint H beside a line that looks
+  /// like one (stories 855, 861). Soon after a change, not on every stroke's every point.
+  private func showMarksSoon() {
+    marking?.cancel()
+    marking = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(0.4))
+      guard !Task.isCancelled else { return }
+      self?.showMarks()
+    }
+  }
+
+  private func showMarks() {
+    guard let markup = paper.markup else { return }
+    // ponytail: the whole board's outline on each change, ~ms per hundred strokes; incremental by changed line if
+    // a long board feels it.
+    let outline = model.outline(of: opStrokes(markup).strokes)
+    var marks: [PaperLines.Mark] = []
+    for header in outline.headers where outline.shows(header) {
+      guard let box = outline.box(header) else { continue }
+      let folded = outline.isFolded(header)
+      marks.append(
+        PaperLines.Mark(
+          id: "header-\(header.id)", y: box.midY, text: folded ? "▸ \(header.fold?.lines ?? 0)" : "▾", faint: false))
+    }
+    for (n, candidate) in outline.candidates().enumerated() {
+      marks.append(PaperLines.Mark(id: "candidate-\(n)", y: candidate.y, text: "H", faint: true))
+    }
+    lines.showMarks(marks)
   }
 
   /// Where the landed paste is on screen now, for its Delete.
@@ -1107,7 +1171,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     let plan = BoardOps.plan(
-      batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta, pages: pages, board: board)
+      batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta,
+      folds: model.outline(of: strokes).tags, pages: pages, board: board)
     guard plan.changesBoard else {
       select(plan.select)
       return plan
@@ -1191,6 +1256,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     showLines()
     showPageNumber()
     redrawSoon()
+    showMarksSoon()
     return (held, renamed, drawn)
   }
 
@@ -1364,6 +1430,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     inkFrames = markup.strokeFrames
     model.stepped(markup.inkDrawing)
     noteInk(markup, since: framesBefore, report: true)
+    // An undo can open a fold or close it again: the marks follow the ink.
+    showMarks()
     showLines()
     showPageNumber()
     log.event(
@@ -1598,6 +1666,16 @@ final class PaperLines: UIView {
   /// Larry's controls (story 845), over the lines and under the ink, at their places on the board.
   private var overlays: [BoardOverlay] = []
   private var overlayViews: [String: UILabel] = [:]
+  /// The margin's marks (stories 855, 861): the board's own, never Larry's, in no picture.
+  struct Mark: Equatable {
+    var id: String
+    /// The row's middle, board points.
+    var y: CGFloat
+    var text: String
+    var faint: Bool
+  }
+  private var marks: [Mark] = []
+  private var markViews: [String: UILabel] = [:]
 
   init(paper: UIColor) {
     super.init(frame: .zero)
@@ -1629,6 +1707,38 @@ final class PaperLines: UIView {
   }
 
   /// Story 845: Larry's controls as they are now.
+  func showMarks(_ list: [Mark]) {
+    guard list != marks else { return }
+    marks = list
+    let ids = Set(list.map(\.id))
+    for (id, view) in markViews where !ids.contains(id) {
+      view.removeFromSuperview()
+      markViews[id] = nil
+    }
+    for mark in list where markViews[mark.id] == nil {
+      let label = UILabel()
+      label.textAlignment = .center
+      label.isAccessibilityElement = true
+      label.accessibilityIdentifier = "whiteboard-margin-\(mark.id)"
+      addSubview(label)
+      markViews[mark.id] = label
+    }
+    for mark in list { if let label = markViews[mark.id] { lay(mark, label) } }
+  }
+
+  private func lay(_ mark: Mark, _ label: UILabel) {
+    let scale = spot(of: CGPoint(x: 1, y: 0)).x - spot(of: .zero).x
+    let size = CGSize(width: 44 * scale, height: 28 * scale)
+    let center = spot(of: CGPoint(x: BoardMargin.width / 2, y: mark.y))
+    label.frame = CGRect(
+      x: center.x - size.width / 2, y: center.y - size.height / 2, width: size.width, height: size.height)
+    label.font = .systemFont(ofSize: 17 * scale, weight: mark.faint ? .regular : .semibold)
+    label.textColor = mark.faint ? .tertiaryLabel : .secondaryLabel
+    label.text = mark.text
+    label.accessibilityLabel = mark.faint ? "Looks like a header" : mark.text.hasPrefix("▸") ? "Folded header" : "Header"
+    label.accessibilityValue = mark.text
+  }
+
   func showOverlays(_ list: [BoardOverlay]) {
     overlays = list
     let ids = Set(list.map(\.id))
@@ -1686,6 +1796,7 @@ final class PaperLines: UIView {
     super.layoutSubviews()
     guard width > 0, bounds.width > 0 else { return }
     for overlay in overlays { if let label = overlayViews[overlay.id] { lay(overlay, label) } }
+    for mark in marks { if let label = markViews[mark.id] { lay(mark, label) } }
     let path = CGMutablePath()
     for end in ends {
       let edge = spot(of: CGPoint(x: 0, y: end))

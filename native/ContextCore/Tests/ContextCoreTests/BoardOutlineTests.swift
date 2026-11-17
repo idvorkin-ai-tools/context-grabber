@@ -1,0 +1,225 @@
+import XCTest
+
+@testable import ContextCore
+
+/// Stories 855–861: headers fold their sections by indent, folds nest, the outline collapses to a level, lines that
+/// look like headers are offered, and a held Pencil picks up a word, all as on the web board.
+final class BoardOutlineTests: XCTestCase {
+  /// A letter-sized stroke: a caret, never an underline.
+  private func letter(_ id: String, x: CGFloat, y: CGFloat, w: CGFloat = 20, h: CGFloat = 24) -> BoardOps.Stroke {
+    let points = [CGPoint(x: x, y: y + h), CGPoint(x: x + w / 2, y: y), CGPoint(x: x + w, y: y + h)]
+    return BoardOps.Stroke(
+      ids: [id], t: nil, bounds: CGRect(x: x, y: y, width: w, height: h), points: points, pen: 3)
+  }
+
+  /// A word of three letters, 4 points apart: `<id>0`, `<id>1`, `<id>2`.
+  private func word(_ id: String, x: CGFloat, y: CGFloat, h: CGFloat = 24) -> [BoardOps.Stroke] {
+    (0..<3).map { letter("\(id)\($0)", x: x + CGFloat($0) * 24, y: y, h: h) }
+  }
+
+  /// A header at the margin's edge, two indented lines, and a line back at its indent.
+  private var outline: [BoardOps.Stroke] {
+    word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("b", x: 140, y: 180) + word("c", x: 100, y: 220)
+  }
+
+  private func top(_ outline: BoardOutline, _ id: String) -> CGFloat? {
+    outline.strokes.first { $0.ids.contains(id) }?.bounds.minY
+  }
+
+  private func hidden(_ outline: BoardOutline, _ id: String) -> Bool {
+    outline.strokes.first { $0.ids.contains(id) }?.hidden ?? false
+  }
+
+  func testAMarginTapMakesARowAHeaderOnlyOnce() {
+    var o = BoardOutline(strokes: outline, headers: [])
+    XCTAssertFalse(o.markHeader(at: 60, id: "x"), "blank paper is no header")
+    XCTAssertTrue(o.markHeader(at: 112, id: "h"))
+    XCTAssertEqual(o.headers.first?.ids.sorted(), ["h0", "h1", "h2"])
+    XCTAssertFalse(o.markHeader(at: 112, id: "again"), "already one")
+    XCTAssertEqual(o.header(at: 112 + 24)?.id, "h", "a tap a little below is on it")
+    XCTAssertNil(o.header(at: 160))
+  }
+
+  func testAFoldHidesTheIndentedLinesAndClosesUpAndUnfoldPutsThemBack() throws {
+    var o = BoardOutline(strokes: outline, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
+    XCTAssertTrue(o.fold("h"))
+    XCTAssertTrue(hidden(o, "a0") && hidden(o, "b2"), "the indented lines hide")
+    XCTAssertFalse(hidden(o, "c0"), "the line back at the header's indent doesn't")
+    XCTAssertEqual(top(o, "c0"), 180, "and slides up to a line under the header, whole lines")
+    XCTAssertEqual(top(o, "a0"), 140, "hidden ink stays where it was")
+    let fold = try XCTUnwrap(o.headers.first?.fold)
+    XCTAssertEqual(fold.lines, 2)
+    XCTAssertEqual(o.foldedNames, Set(["a0", "a1", "a2", "b0", "b1", "b2"]))
+    let wire = try XCTUnwrap(o.wire.first)
+    XCTAssertEqual(wire["header"] as? String, "h")
+    XCTAssertEqual((wire["header_strokes"] as? [String])?.sorted(), ["h0", "h1", "h2"])
+    XCTAssertEqual(wire["lines"] as? Int, 2)
+    XCTAssertEqual((wire["strokes"] as? [String])?.count, 6)
+
+    let plan = o.plan(from: outline, pages: 1)
+    XCTAssertEqual(plan.hidden.count, 6)
+    XCTAssertEqual(plan.offsets.values.map(\.dy), [-40, -40, -40])
+
+    XCTAssertTrue(o.unfold("h"))
+    XCTAssertEqual(o.strokes, outline, "everything back where it was")
+    XCTAssertTrue(o.wire.isEmpty)
+  }
+
+  func testAFoldMovesWithItsHeaderAndAPushNeverSplitsIt() {
+    var o = BoardOutline(strokes: outline, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
+    o.fold("h")
+    // A push at the line just under the header moves the line below, not the hidden body away from its header.
+    let plan = BoardOps.plan([.translateBelow(y: 130, dy: 80)], strokes: o.strokes, folds: o.tags, pages: 1)
+    let moved = Set(plan.offsets.keys.flatMap { o.strokes[$0].ids })
+    XCTAssertEqual(moved, ["c0", "c1", "c2"])
+    let push = BoardOps.plan([.translateBelow(y: 90, dy: 80)], strokes: o.strokes, folds: o.tags, pages: 1)
+    XCTAssertEqual(push.offsets.count, 12, "a push above the header takes the header and its fold together")
+    XCTAssertEqual(
+      BoardOps.shownBoxes(strokes: o.strokes, folds: o.tags).count, 4, "the folded header's box is its own row")
+  }
+
+  func testUnfoldMakesRoomForWhatWasWrittenUnderTheFoldedHeader() {
+    var o = BoardOutline(strokes: outline, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
+    o.fold("h")
+    o.strokes += word("n", x: 100, y: 140)  // written in the gap the fold closed up
+    o.unfold("h")
+    XCTAssertEqual(top(o, "a0"), 140, "the body shows where it was")
+    let newTop = top(o, "n0") ?? 0
+    XCTAssertGreaterThanOrEqual(newTop, 204, "what was written meanwhile lands after the body: \(newTop)")
+    XCTAssertGreaterThan(top(o, "c0") ?? 0, newTop)
+  }
+
+  func testASectionEndsWhereTheInkReturnsToTheIndentNotAtBlankPaper() {
+    let strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("b", x: 140, y: 400)
+      + word("c", x: 100, y: 440)
+    var o = BoardOutline(strokes: strokes, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
+    o.fold("h")
+    XCTAssertTrue(hidden(o, "b0"), "blank paper never ends a section")
+    XCTAssertFalse(hidden(o, "c0"))
+    XCTAssertEqual(top(o, "c0"), 200, "a line or two under the header, in whole lines")
+  }
+
+  func testAHeaderWhoseNextLineIsNotIndentedRunsToTheNextHeaderAtItsIndent() {
+    let strokes = word("h", x: 100, y: 100) + word("a", x: 100, y: 140) + word("g", x: 100, y: 180)
+    var o = BoardOutline(
+      strokes: strokes,
+      headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"]), BoardHeader(id: "g", ids: ["g0", "g1", "g2"])])
+    o.fold("h")
+    XCTAssertTrue(hidden(o, "a0"))
+    XCTAssertFalse(hidden(o, "g0"), "the next header at its indent ends it")
+  }
+
+  /// Outer header, an indented inner header with its own deeper lines, a line back under the outer, and the next top
+  /// header.
+  private var nested: BoardOutline {
+    let strokes =
+      word("o", x: 100, y: 100) + word("i", x: 140, y: 140) + word("d", x: 180, y: 180) + word("e", x: 140, y: 220)
+      + word("p", x: 100, y: 260) + word("q", x: 140, y: 300)
+    return BoardOutline(
+      strokes: strokes,
+      headers: [
+        BoardHeader(id: "o", ids: ["o0", "o1", "o2"]), BoardHeader(id: "i", ids: ["i0", "i1", "i2"]),
+        BoardHeader(id: "p", ids: ["p0", "p1", "p2"]),
+      ])
+  }
+
+  func testFoldsNest() {
+    var o = nested
+    XCTAssertTrue(o.fold("i"))
+    XCTAssertTrue(hidden(o, "d0"))
+    XCTAssertFalse(hidden(o, "e0"), "the inner section ends back at its indent")
+    XCTAssertTrue(o.fold("o"))
+    XCTAssertTrue(hidden(o, "i0") && hidden(o, "e0"))
+    XCTAssertEqual(top(o, "p0"), 180)
+    XCTAssertFalse(o.shows(o.header("i")!), "the inner header is folded away")
+    XCTAssertNil(o.header(at: 152), "and a tap there is on the line slid up, not on it")
+    XCTAssertTrue(o.unfold("o"))
+    XCTAssertTrue(o.isFolded(o.header("i")!), "the inner one is still folded")
+    XCTAssertTrue(hidden(o, "d0"))
+    XCTAssertFalse(hidden(o, "i0"))
+    o.unfoldAll()
+    XCTAssertEqual(o.strokes, nested.strokes)
+  }
+
+  func testUnfoldAllOpensFoldsInsideFolds() {
+    var o = nested
+    o.fold("i")
+    o.fold("o")
+    o.unfoldAll()
+    XCTAssertEqual(o.strokes, nested.strokes)
+    XCTAssertTrue(o.headers.allSatisfy { $0.fold == nil })
+  }
+
+  func testLevelsAndCollapsingToOne() {
+    var o = nested
+    XCTAssertEqual(o.levels(), ["o": 1, "i": 2, "p": 1])
+    o.collapse(to: 1)
+    XCTAssertTrue(o.isFolded(o.header("o")!) && o.isFolded(o.header("p")!))
+    XCTAssertTrue(hidden(o, "q0") && hidden(o, "i0"))
+    o.collapse(to: 2)
+    XCTAssertFalse(o.isFolded(o.header("o")!), "a top header with headers under it stays open")
+    XCTAssertTrue(o.isFolded(o.header("i")!), "its sub-header folds")
+    XCTAssertTrue(o.isFolded(o.header("p")!), "a top header with none under it folds")
+    XCTAssertFalse(hidden(o, "e0"), "text between a header and its sub-header stays in view")
+    o.foldAll()
+    XCTAssertTrue(o.headers.allSatisfy { o.isFolded($0) || !o.shows($0) })
+  }
+
+  func testAnUndoThatShowsTheInkAgainOpensTheFold() {
+    var o = BoardOutline(strokes: outline, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
+    o.fold("h")
+    // The canvas as it was before the fold, with the fold still remembered.
+    let back = BoardOutline(strokes: outline, headers: o.headers)
+    XCTAssertFalse(back.isFolded(back.headers[0]))
+    XCTAssertTrue(back.wire.isEmpty)
+  }
+
+  func testABigOrUnderlinedLineIsOffered() {
+    var strokes: [BoardOps.Stroke] = []
+    for i in 0..<4 { strokes += word("l\(i)", x: 100, y: 100 + CGFloat(i) * 40) }
+    strokes += (0..<3).map { letter("big\($0)", x: 100 + CGFloat($0) * 44, y: 300, w: 40, h: 60) }
+    strokes += word("u", x: 100, y: 420)
+    strokes.append(
+      BoardOps.Stroke(
+        ids: ["line"], t: nil, bounds: CGRect(x: 98, y: 448, width: 70, height: 4),
+        points: [CGPoint(x: 98, y: 450), CGPoint(x: 168, y: 450)], pen: 3))
+    let o = BoardOutline(strokes: strokes, headers: [])
+    let found = o.candidates()
+    XCTAssertEqual(found.map(\.why), [.big, .underline])
+    XCTAssertEqual(found.first?.y ?? 0, 330, accuracy: 1)
+    let few = BoardOutline(strokes: Array(strokes.suffix(4)), headers: [])
+    XCTAssertEqual(few.candidates().map(\.why), [.underline], "big needs four lines of his to judge by")
+    var marked = o
+    marked.markHeader(at: 330, id: "big")
+    XCTAssertEqual(marked.candidates().map(\.why), [.underline], "a header is offered no more")
+  }
+
+  func testAHeldPencilPicksUpTheWordUnderIt() {
+    // Two words on a line, 24 points apart within each, 40 between.
+    let strokes = word("a", x: 100, y: 100) + word("b", x: 212, y: 100)
+    let o = BoardOutline(strokes: strokes, headers: [])
+    XCTAssertEqual(o.word(at: CGPoint(x: 110, y: 112))?.sorted(), ["a0", "a1", "a2"])
+    XCTAssertEqual(o.word(at: CGPoint(x: 230, y: 112))?.sorted(), ["b0", "b1", "b2"])
+    XCTAssertNil(o.word(at: CGPoint(x: 400, y: 400)), "off ink")
+    let still = (0...5).map { (point: CGPoint(x: 110, y: 112), time: Double($0) * 0.1) }
+    let drag = still + [(point: CGPoint(x: 160, y: 300), time: 0.7)]
+    let picked = o.pickUp(drag)
+    XCTAssertEqual(picked?.names.sorted(), ["a0", "a1", "a2"])
+    XCTAssertEqual(picked?.by, CGVector(dx: 50, dy: 188))
+    let quick = [(point: CGPoint(x: 110, y: 112), time: 0.0), (point: CGPoint(x: 160, y: 300), time: 0.2)]
+    XCTAssertNil(o.pickUp(quick), "a stroke that never held draws")
+    XCTAssertNil(o.pickUp(still.map { (point: CGPoint(x: 400, y: 400), time: $0.time) }), "held off ink draws")
+  }
+
+  func testFoldsGoBesideTheStrokesToTheCockpit() throws {
+    let picture = WhiteboardPicture(board: "b1", title: "t", rect: CGRect(x: 0, y: 0, width: 10, height: 10), scale: 1)
+    let fold: [String: Any] = ["header": "h-1", "header_strokes": ["a"], "lines": 2, "strokes": ["b"]]
+    let request = try WhiteboardStrokes.request(
+      picture: picture, strokes: [], folds: [fold], cockpit: "https://c.example")
+    let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+    XCTAssertEqual((body["folds"] as? [[String: Any]])?.first?["header"] as? String, "h-1")
+    let none = try WhiteboardStrokes.request(picture: picture, strokes: [], cockpit: "https://c.example")
+    let plain = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(none.httpBody)) as? [String: Any])
+    XCTAssertNil(plain["folds"], "no folds, no field")
+  }
+}

@@ -128,6 +128,16 @@ public struct BoardOpLedger: @unchecked Sendable {
 
   private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
   private func metaKey(_ board: String) -> String { "whiteboard_stroke_meta_\(board)" }
+  private func headersKey(_ board: String) -> String { "whiteboard_headers_\(board)" }
+
+  /// The board's headers and their folds (`BoardOutline`, story 855).
+  public func headers(board: String) -> [BoardHeader] {
+    defaults.data(forKey: headersKey(board)).flatMap { try? JSONDecoder().decode([BoardHeader].self, from: $0) } ?? []
+  }
+
+  public func setHeaders(_ headers: [BoardHeader], board: String) {
+    if let data = try? JSONEncoder().encode(headers) { defaults.set(data, forKey: headersKey(board)) }
+  }
 
   /// Larry's notes on the board's strokes (`BoardStrokeMeta`).
   public func strokeMeta(board: String) -> BoardStrokeMeta {

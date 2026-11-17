@@ -125,9 +125,10 @@ public enum WhiteboardStrokes {
   }
 
   /// `POST /whiteboard/strokes`: the board's strokes under this picture's id and frame.
-  public static func request(picture: WhiteboardPicture, strokes: [[String: Any]], cockpit: String) throws
-    -> URLRequest
-  {
+  /// `folds`: the folded sections (`BoardOutline.wire`), whose strokes are not in `strokes` (story 857).
+  public static func request(
+    picture: WhiteboardPicture, strokes: [[String: Any]], folds: [[String: Any]] = [], cockpit: String
+  ) throws -> URLRequest {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("strokes"))
     request.httpMethod = "POST"
@@ -136,6 +137,7 @@ public enum WhiteboardStrokes {
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
     var body = picture.wire
     body["strokes"] = strokes
+    if !folds.isEmpty { body["folds"] = folds }
     request.httpBody = try JSONSerialization.data(withJSONObject: body)
     return request
   }
