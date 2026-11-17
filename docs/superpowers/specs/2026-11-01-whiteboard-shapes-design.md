@@ -16,7 +16,7 @@ suggest changes the board until Igor keeps it.
 
 ### Ghosts from Claude (stories 344, 350–352, 354, 357–359, 370–377)
 
-- He draws, then lifts the Pencil. **Once he has stopped writing** (see *When he has stopped writing*, below; half a second from 2026-11-10, story 660, and 1 s before that) Claude is asked, and within a few seconds faint
+- He draws, then lifts the Pencil. **Once he has stopped writing** (see *When he has stopped writing*, below: 1.5 to 5 s by his rhythm from 2026-11-16, story 892; half a second before that, story 660, and 1 s before 2026-11-10) Claude is asked, and within a few seconds faint
   shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
   third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next
   pause, which waits for the tool to lift.
