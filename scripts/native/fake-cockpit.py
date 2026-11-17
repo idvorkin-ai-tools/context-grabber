@@ -32,6 +32,10 @@ abandons, POST /snooze snoozes; GET /fake/answers lists every one of those poste
 /act or /close appends Igor's row to the ask's thread ("Decided: <label>", "Closed: <reason>", "Abandoned[: <reason>]",
 "Dismissed[: <reason>]") and the answer gains chat {posted, thread, message, duplicate}, or {posted: false, thread, error}
 for an ask with no chat, as serve.py's post_decision_to_chat.
+Question cards on a board (stories 880-886): GET /asks?snoozed=1 is GET /asks; POST /fake/larry-asks {"ask": id} opens
+the asks as /fake/asks does and has Larry put a question card for that ask on the newest board thread ({kind: question,
+ask, x, y} in the picture's pixels, with its frame); GET /ink/answers?ids=a,b answers with the question and answer of the
+asks decided here, as ink_store.decision_answer reads them, and lists the rest as unknown.
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
 """
 
@@ -118,6 +122,7 @@ THREADS["igor2-88g.817"] = {"title": "Laptops", "seen": "", "messages": [  # sto
 
 ASKS = {}  # #878: id -> the open ask, as GET /asks lists it
 ANSWERS = []  # every POST /act, /close and /snooze, as posted
+DECIDED = {}  # id -> {title, label, note, action}: what GET /ink/answers gives for an ask decided here
 ASK_CHATS = ("igor2-88g.878", "igor2-88g.880")
 
 
@@ -136,6 +141,7 @@ def ask(aid, title, options, default="", expires_in=None, thread=None):
 def open_asks(on):
     ASKS.clear()
     del ANSWERS[:]
+    DECIDED.clear()
     for key in ASK_CHATS:
         THREADS.pop(key, None)
     if not on:
@@ -170,10 +176,24 @@ def decide(path, data):
     if path == "/close" and data.get("action") == "close" and not (data.get("reason") or "").strip():
         return 400, {"ok": False, "error": "closing a bead needs a one-line reason"}
     del ASKS[data["id"]]
+    DECIDED[data["id"]] = decision_answer(a["title"], data)
     answer = {"ok": True, "id": data["id"], "action": data.get("action"), "title": a["title"]}
     if data.get("post_to_chat") is True:
         answer["chat"] = post_to_chat(a, data)
     return 200, answer
+
+
+def decision_answer(title, data):
+    """ink_store.decision_answer: DECISION: <label>[\\nNote: <text>], or a close word and its reason as the note."""
+    action = data.get("action")
+    if action in ("dismiss", "close", "abandon"):
+        label = {"dismiss": "Dismissed", "close": "Closed", "abandon": "Abandoned"}[action]
+        note = (data.get("reason") or "").strip()
+    else:
+        text = (data.get("response") or "").strip().removeprefix("DECISION:").strip()
+        label, _, note = text.partition("\nNote:")
+        label, note = label.strip(), note.strip()
+    return {"title": title, "label": label, "note": note, "action": action}
 
 
 def post_to_chat(a, data):
@@ -292,6 +312,11 @@ class Handler(BaseHTTPRequestHandler):
         with LOCK:
             if path == "/asks":
                 return self._json(200, {"ok": True, "fetched_at": now(), "asks": list(ASKS.values())})
+            if path == "/ink/answers":
+                query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+                ids = [i for i in (query.get("ids") or [""])[0].split(",") if i]
+                return self._json(200, {"ok": True, "answers": {i: DECIDED[i] for i in ids if i in DECIDED},
+                                        "unknown": [i for i in ids if i not in DECIDED]})
             if path == "/fake/answers":
                 return self._json(200, {"ok": True, "answers": ANSWERS})
             if path == "/fake/strokes":
@@ -358,6 +383,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(*decide(path, data))
         if path == "/fake/larry-draws":
             return self._draws(data)
+        if path == "/fake/larry-asks":
+            with LOCK:
+                if not BOARD_MESSAGES:
+                    return self._json(404, {"ok": False, "error": "no board thread"})
+                open_asks(True)
+                key = list(BOARD_MESSAGES)[-1]
+                marks(key, "a question for you", [{"kind": "question", "ask": data.get("ask"), "x": 40, "y": 40}])
+            return self._json(200, {"ok": True})
         if path == "/fake/skill-thread":
             with LOCK:
                 THREADS.setdefault("igor2-88g.632", {"title": "idvorkin", "seen": "", "pinned": True,

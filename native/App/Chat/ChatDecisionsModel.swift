@@ -118,9 +118,10 @@ final class ChatDecisionsModel: ObservableObject {
     cards = cards.filter { $0.value.sending }
   }
 
-  /// One verb on one card. A second tap while it goes does nothing.
-  func run(_ verb: ChatDecisions.Verb, on ask: ChatAsk, from place: String) async {
-    guard !card(ask.id).sending else { return }
+  /// One verb on one card, and what it came to. A second tap while it goes does nothing, and comes to nil.
+  @discardableResult
+  func run(_ verb: ChatDecisions.Verb, on ask: ChatAsk, from place: String) async -> ChatDecisions.Outcome? {
+    guard !card(ask.id).sending else { return nil }
     cards[ask.id] = Card(sending: true, thread: ask.chat)
     let outcome: ChatDecisions.Outcome =
       inbox.offline
@@ -129,7 +130,12 @@ final class ChatDecisionsModel: ObservableObject {
         ? .refused(ChatCockpit.noAddress)
         : await ChatDecisions.run(verb, ask: ask, cockpit: cockpit, transport: transport)
     var fields: [String: Any] = ["ask": ask.id, "from": place, "outcome": outcome.logName]
-    fields["action"] = { if case .answer = verb { return "decision_answer" } else { return "decision_menu" } }()
+    fields["action"] = {
+      switch verb {
+      case .answer, .ownWords: return "decision_answer"
+      default: return "decision_menu"
+      }
+    }()
     if case .refused(let why) = outcome { fields["reason"] = why }
     if case .done(_, let chat) = outcome {
       for (key, value) in ChatDecisions.chatLogFields(verb, chat: chat) { fields[key] = value }
@@ -165,6 +171,7 @@ final class ChatDecisionsModel: ObservableObject {
           ]),
         thread: ask.chat)
     }
+    return outcome
   }
 
   private func leave(_ ask: ChatAsk, line: String?, from place: String) {

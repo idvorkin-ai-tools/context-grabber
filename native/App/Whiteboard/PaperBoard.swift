@@ -114,6 +114,8 @@ class PaperHost: UIViewController {
     super.viewWillAppear(animated)
     guard drawsHere else { return }
     picker.addObserver(paper)
+    picker.addObserver(self)
+    toolChanged()
     paper.pencilKitResponderState.activeToolPicker = picker
     paper.pencilKitResponderState.toolPickerVisibility = .visible
   }
@@ -123,6 +125,7 @@ class PaperHost: UIViewController {
     guard drawsHere else { return }
     paper.pencilKitResponderState.toolPickerVisibility = .hidden
     picker.removeObserver(paper)
+    picker.removeObserver(self)
   }
 
   func setBoardPaper(_ new: BoardPaper) {
@@ -175,6 +178,7 @@ class PaperHost: UIViewController {
       }
       touchWentDown(touch)
     case .moved:
+      touchMoved(touch)
       if let start = touchStarts[id] {
         let went = hypot(at.x - start.at.x, at.y - start.at.y)
         touchStarts[id]?.farthest = max(start.farthest, went)
@@ -239,7 +243,10 @@ class PaperHost: UIViewController {
   }
 
   func touchWentDown(_ touch: UITouch) {}
+  func touchMoved(_ touch: UITouch) {}
   func touchLifted(_ touch: UITouch, down: Int) {}
+  /// The tool picker's tool changed; `paper.drawingTool` has it on the next turn.
+  func toolChanged() {}
   /// One finger, short and staying put, at this spot in `view`, Pencil or no Pencil. PaperKit may do its own thing with the
   /// same touch.
   func fingerTapped(at spot: CGPoint) {}
@@ -304,6 +311,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   @Published private(set) var pageText = BoardPages().pageText(visibleMidY: 0, pages: 1)
   /// The chosen mark's box in this view's points, where Keep and Dismiss sit beside it (story 825); nil with none.
   @Published private(set) var choiceFrame: CGRect?
+  /// Where the board is on screen, for its question cards (stories 880–886).
+  let place = WhiteboardBoardPlace()
 
   private let model: WhiteboardModel
   private let log: SessionLog
@@ -353,6 +362,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     super.viewDidLoad()
     paper.delegate = self
     model.visibleRect = { [weak self] in self?.paperOnScreen ?? .null }
+    model.questions.visibleRect = { [weak self] in self?.paperOnScreen ?? .null }
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added in self?.keep(added) }
@@ -397,6 +407,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       guard let self else { return }
       if first { self.load() }
       self.fitToPage(first: first)
+      self.placeCards()
       // #845: whether an opened board's ink is drawn, on every device's geometry.
       if first, let ink = self.paper.markup?.inkDrawing, !ink.strokes.isEmpty {
         self.lookForInk(ink.bounds, why: "open")
@@ -632,6 +643,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   func paperMarkupViewControllerDidChangeContentVisibleFrame(_ controller: PaperMarkupViewController) {
     showPageNumber()
     showChoice()
+    placeCards()
     layRules()
     checkSeat()
     remembering?.cancel()
@@ -1126,6 +1138,20 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if touch.type == .pencil { toolWentDown() }
   }
 
+  /// Story 886: the eraser over an answered question card takes it.
+  override func touchMoved(_ touch: UITouch) {
+    guard place.erasing, model.questions.board.cards.contains(where: { $0.answered != nil }) else { return }
+    model.questions.erase(crossing: [lines.columnPoint(of: touch.location(in: lines))])
+  }
+
+  override func toolChanged() {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let erasing = self.paper.drawingTool is PKEraserTool
+      if self.place.erasing != erasing { self.place.erasing = erasing }
+    }
+  }
+
   /// PaperKit says when drawing begins and not when it ends: this is the touch going. A palm left down doesn't hold it.
   override func touchLifted(_ touch: UITouch, down: Int) {
     guard toolDown, touch.type == .pencil || down == 0 else { return }
@@ -1173,6 +1199,9 @@ struct PaperBoardCanvas: View {
       controller: controller, paper: model.paper, ghosts: model.ghosts, chosen: model.chosen?.id,
       rules: model.gridOn ? .grid : model.ruledOn ? .ruled : .none
     )
+    .overlay {
+      if model.editable { WhiteboardQuestionCards(questions: model.questions, place: controller.place) }
+    }
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())
