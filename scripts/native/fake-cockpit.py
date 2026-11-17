@@ -13,7 +13,8 @@ label as kind + points, with the picture's picture_id and frame echoed). POST /f
 unprompted on the newest board thread (n circles, as /whiteboard/suggest strokes). POST /fake/larry-ops {"stale": false, "dy": 120}
 is a test's way to have his next board answer be a batch of changes instead of marks (stories 814-817): room opened
 below the middle of the picture he was sent (its frame, in board points) by dy, and a line of plain text in the gap,
-on the message's own rev (one behind it with "stale"); with "kind": "ink_and_button", instead a purple line of his
+on the message's own rev (one behind it with "stale"); with "kind": "connector_marks", marks instead: a
+connector by points from the end of the first stroke sent to the start of the second (story 917); with "kind": "ink_and_button", instead a purple line of his
 across the gap below the picture and a green button under it whose tap_event is {"type": "make_room"}. POST
 /whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
 what each board message reported back (its rev and op_result) and every events post. Every request is a JSON line in
@@ -78,6 +79,7 @@ STROKE_SENDS = []  # the ids in each POST /whiteboard/strokes
 FOLD_SENDS = []  # the folds beside each (story 857)
 RESPONDERS = {}  # board -> haiku | sonnet | larry, as POST /whiteboard/responder set it (story 659)
 LARRY_OPS = None  # the next board answer's batch, as POST /fake/larry-ops armed it: once
+LAST_STROKES = []  # the newest POST /whiteboard/strokes, for a connector mark between its first two (story 917)
 TO_TEXT = {}  # what POST /ink/to-text answers, as POST /fake/to-text set it (stories 920-922)
 TO_TEXT_SENDS = []  # each picture's name and bytes
 TEXT_FIELDS = {"kind", "id", "text", "font", "x", "y", "w", "h", "color", "t"}  # a kept text in POST /whiteboard/strokes
@@ -332,6 +334,16 @@ def answer_board_later(key):
         with LOCK:
             if BOARD_HOLD:
                 BOARD_MESSAGES[key]["receipt"] = {"state": "done"}
+            if LARRY_OPS is not None and LARRY_OPS.get("kind") == "connector_marks":
+                # Story 917: a connector mark from the end of the first stroke to the start of the second, by points.
+                LARRY_OPS = None
+                frame = BOARD_MESSAGES[key]["frame"]
+                ink = [s["points"] for s in LAST_STROKES if s.get("points")]
+                if len(ink) >= 2:
+                    px = lambda p: [(p[0] - frame["x"]) * frame["scale"], (p[1] - frame["y"]) * frame["scale"]]
+                    (x1, y1), (x2, y2) = px(ink[0][-1]), px(ink[1][0])
+                    marks(key, "these two go together", [{"kind": "connector", "x1": x1, "y1": y1, "x2": x2, "y2": y2}])
+                    return
             if LARRY_OPS is not None:
                 source, armed, LARRY_OPS = BOARD_MESSAGES[key], LARRY_OPS, None
                 r = row(key, "larry", "made room")
@@ -448,6 +460,9 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(400, {"ok": False, "error": "a stroke needs points"})
             # Story 857: folded sections beside the strokes, as whiteboard_strokes.py's _folds takes them.
             folds = data.get("folds")
+            global LAST_STROKES
+            with LOCK:
+                LAST_STROKES = strokes
             if folds is not None:
                 ok = isinstance(folds, list) and all(
                     isinstance(f, dict) and isinstance(f.get("header"), str) and isinstance(f.get("lines"), int)

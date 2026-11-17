@@ -219,3 +219,16 @@ App:
   (`WhiteboardScratchOut.isZigzag`, shape and speed, no ink needed) that `foldHits` with `onHeader` erases the fold
   through `changeOutline(on:undoTo:)`, starting from the markup without the zigzag's other ink and undoing to before
   the zigzag, PaperKit's zigzag step undone first: one Undo, named *Scratch out*.
+
+### Connector marks in Larry's replies (stories 917–919)
+
+The chat row's `shapes` take the Cockpit's `chat_store._clean_connector`: `{kind:"connector", from, to, pen?, color?}`
+(object ids) or `{kind:"connector", x1, y1, x2, y2, ...}` (picture pixels).
+
+- `WhiteboardTurn.Shape.Kind.connector`, with `from`/`to`; a by-points shape draws as an arrow between its points.
+- `BoardConnectors.mark(_:frame:scale:id:)`: the shape as a `NewConnector` (points to board points, the pen in board
+  points, an id made a name from the mark's id). `BoardConnectors.keep(_:strokes:...)`: the plan of that one op, whose
+  `added` is what the ghost draws and what Keep inks.
+- App: `Ghost.connector`; Larry's row ghosts get their lines from `keep` against the board as it is (a mark naming
+  nothing is dropped and settled). Keep and Keep all ink the plan's strokes in the same `add` as the other marks (one
+  Undo), naming them and taking the plan's notes into the model first.

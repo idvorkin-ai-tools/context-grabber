@@ -6174,7 +6174,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 910:
 
 - **Summary:** I join two things with an arrow I drew
-- **Status:** implemented in [c39ea97](https://github.com/idvorkin/context-grabber/commit/c39ea97) and [c93c4bb](https://github.com/idvorkin/context-grabber/commit/c93c4bb); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build; on the simulator, `WhiteboardConnectUITests` (`testALassoedArrowBetweenTwoWordsConnectsThem`); not yet seen on the iPad
+- **Status:** implemented in [c39ea97](https://github.com/idvorkin/context-grabber/commit/c39ea97) and [c93c4bb](https://github.com/idvorkin/context-grabber/commit/c93c4bb), and [7097c4e](https://github.com/idvorkin/context-grabber/commit/7097c4e) (Connect sits clear of To text, which covered it); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build; on the simulator, `WhiteboardConnectUITests` (`testALassoedArrowBetweenTwoWordsConnectsThem`, passing after 7097c4e); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6812,3 +6812,62 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a line I drew whose clean shape is showing, the Pencil still down
 - **When:** I move the Pencil on to draw a curl, and lift without holding still again
 - **Then:** the clean line goes as I move, the raw stroke shows again, and it lands exactly as I drew it
+
+---
+
+### User Story 917:
+
+- **Summary:** Larry's connector mark shows as the arrow it would be
+- **Status:** implemented in [4749f2a](https://github.com/idvorkin/context-grabber/commit/4749f2a) and [1ade3f5](https://github.com/idvorkin/context-grabber/commit/1ade3f5); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry's connector marks*
+
+#### Use Case:
+- **As Larry,** answering Igor on the board
+- **I want to** put a connector among my reply's marks, by names or by points on my picture
+- **so that** Igor sees the live arrow I mean, routed as it will be, before he keeps it
+
+#### Acceptance Criteria:
+- **Scenario:** A connector mark
+- **Given:** a reply of mine with a connector mark between two things on Igor's board
+- **When:** it lands on the board
+- **Then:** a ghost arrow runs from one thing's facing side to the other's, around anything in its way, beside my other marks
+
+---
+
+### User Story 918:
+
+- **Summary:** Keeping Larry's connector mark makes a real connector
+- **Status:** implemented in [4749f2a](https://github.com/idvorkin/context-grabber/commit/4749f2a) and [1ade3f5](https://github.com/idvorkin/context-grabber/commit/1ade3f5); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry's connector marks*
+
+#### Use Case:
+- **As someone** keeping Larry's diagram
+- **I want to** keep his arrows as connectors
+- **so that** they stay joined when I make room or fold, as on the web board
+
+#### Acceptance Criteria:
+- **Scenario:** Keep a connector mark
+- **Given:** Larry's connector mark between two things, showing as a ghost
+- **When:** I tap Keep, or Keep all
+- **Then:** it becomes a connector joining them (with Keep all, in the one Undo), and a push between them redraws it to where they are
+
+---
+
+### User Story 919:
+
+- **Summary:** A connector mark that can't land is plain or nothing
+- **Status:** implemented in [4749f2a](https://github.com/idvorkin/context-grabber/commit/4749f2a) and [1ade3f5](https://github.com/idvorkin/context-grabber/commit/1ade3f5); verified by host tests (`BoardConnectorsTests`), `just test` and the Mac build (`just native-build-mac`), and on the simulator (`WhiteboardConnectUITests.testLarrysConnectorMarkKeepsAsAConnector`, rung 2); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry's connector marks*
+
+#### Use Case:
+- **As someone** keeping Larry's marks
+- **I want to** see nothing broken when his connector can't join
+- **so that** his marks stay readable
+
+#### Acceptance Criteria:
+- **Scenario:** A mark with an end nowhere
+- **Given:** Larry's connector mark with an end on bare paper, or one naming something the board doesn't have
+- **When:** it lands
+- **Then:** the one on bare paper shows and keeps as a plain arrow where he drew it; the one naming nothing shows nothing and is set aside as if dismissed
+
+---

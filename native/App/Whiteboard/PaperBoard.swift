@@ -2074,7 +2074,7 @@ struct PaperBoardCanvas: View {
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
     .overlay { ToTextButton(controller: controller, state: controller.toText) }
-    .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame) }
+    .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame, toText: controller.toText) }
     .overlay { RewordField(controller: controller, state: controller.reword) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {

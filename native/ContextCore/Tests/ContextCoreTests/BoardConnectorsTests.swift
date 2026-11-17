@@ -323,4 +323,79 @@ final class BoardConnectorsTests: XCTestCase {
     XCTAssertNil(BoardConnector(BoardConnector.without(meta)))
     XCTAssertNil(BoardConnector.without(c.meta(over: nil)))
   }
+
+  // MARK: Larry's connector marks (stories 917–919)
+
+  func testAReplysConnectorMarkIsReadByNamesOrByPoints() throws {
+    let byName = try XCTUnwrap(
+      WhiteboardTurn.anyShape(["kind": "connector", "from": "gA", "to": "gB", "color": "#ff0000", "pen": 4]))
+    XCTAssertEqual(byName.kind, .connector)
+    XCTAssertEqual([byName.from, byName.to], ["gA", "gB"])
+    XCTAssertEqual(byName.color, 0xFF0000)
+    XCTAssertTrue(WhiteboardTurn.lines(byName, frame: .zero, scale: 1).isEmpty, "by name it needs the board to draw")
+    let byPoints = try XCTUnwrap(
+      WhiteboardTurn.anyShape(["kind": "connector", "x1": 10.0, "y1": 20.0, "x2": 110.0, "y2": 20.0]))
+    XCTAssertNil(byPoints.from)
+    XCTAssertEqual(byPoints.points, [CGPoint(x: 10, y: 20), CGPoint(x: 110, y: 20)])
+    let arrow = WhiteboardTurn.lines(byPoints, frame: CGRect(x: 100, y: 0, width: 1, height: 1), scale: 2)
+    XCTAssertEqual(arrow.first?.first, CGPoint(x: 105, y: 10), "an arrow between its points on the board")
+    XCTAssertNil(WhiteboardTurn.anyShape(["kind": "connector", "from": "gA", "to": "gA"]), "one thing is no join")
+    XCTAssertNil(WhiteboardTurn.anyShape(["kind": "connector", "from": "gA"]), "one end")
+    XCTAssertNil(WhiteboardTurn.anyShape(["kind": "connector", "from": "has space", "to": "gB"]))
+  }
+
+  func testAMarkBecomesAConnectorOpInBoardPoints() throws {
+    let shape = WhiteboardTurn.Shape(
+      kind: .connector, points: [CGPoint(x: 60, y: 140), CGPoint(x: 860, y: 540)], pen: 8, color: 0x00FF00)
+    let new = try XCTUnwrap(
+      BoardConnectors.mark(shape, frame: CGRect(x: 100, y: 50, width: 400, height: 300), scale: 2, id: "row 1#0"))
+    XCTAssertEqual(new.id, "m-row-1-0", "a name the strokes endpoint takes")
+    XCTAssertEqual(new.from, .point(CGPoint(x: 130, y: 120)))
+    XCTAssertEqual(new.to, .point(CGPoint(x: 530, y: 320)))
+    XCTAssertEqual(new.width, 4)
+    XCTAssertEqual(new.color, 0x00FF00)
+    XCTAssertNil(
+      BoardConnectors.mark(.init(kind: .arrow, points: shape.points), frame: .zero, scale: 1, id: "r#1"),
+      "an arrow mark stays an arrow")
+  }
+
+  func testKeepingAMarkJoinsItsEndsOrDrawsAPlainArrowOrNothing() throws {
+    let (strokes, metas) = two
+    let joined = BoardConnectors.keep(
+      .init(id: "m-r-0", from: .id("gA"), to: .id("gB")), strokes: strokes, metas: metas)
+    XCTAssertTrue(joined.joins)
+    XCTAssertEqual(joined.stroke?.points.first, CGPoint(x: 160, y: 112))
+    XCTAssertEqual(Set(joined.metas.keys), ["m-r-0"])
+
+    let byPoints = BoardConnectors.keep(
+      .init(id: "m-r-1", from: .point(CGPoint(x: 130, y: 120)), to: .point(CGPoint(x: 530, y: 320))),
+      strokes: strokes, metas: metas)
+    XCTAssertEqual(BoardConnector(byPoints.stroke?.meta).map { [$0.from, $0.to] }, ["gA", "gB"])
+
+    let loose = BoardConnectors.keep(
+      .init(id: "m-r-2", from: .point(CGPoint(x: 130, y: 120)), to: .point(CGPoint(x: 700, y: 700))),
+      strokes: strokes, metas: metas)
+    XCTAssertFalse(loose.joins, "an end on bare paper: a plain arrow")
+    XCTAssertNotNil(loose.stroke)
+
+    let nowhere = BoardConnectors.keep(
+      .init(id: "m-r-3", from: .id("gA"), to: .id("gone")), strokes: strokes, metas: metas)
+    XCTAssertNil(nowhere.stroke)
+    XCTAssertEqual(nowhere.missing, ["gone"])
+  }
+
+  func testKeepingBringsOnlyItsOwnNotesAndTheWordItGroups() throws {
+    // gA and gB already joined by k1, whose stored route is stale: the keep doesn't touch k1's notes.
+    var (strokes, metas) = two
+    let stale = BoardConnector(
+      from: "gA", to: "gB", fromSide: .right, toSide: .left, route: [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 1)])
+    strokes.append(line("k1", [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 1)]))
+    metas.set(stale.meta(over: nil), for: "k1")
+    let word = [box("h1", 100, 400, w: 8, h: 20), box("h2", 112, 400, w: 8, h: 20)]
+    let kept = BoardConnectors.keep(
+      .init(id: "m-r-0", from: .point(CGPoint(x: 116, y: 425)), to: .id("gB")), strokes: strokes + word, metas: metas)
+    XCTAssertTrue(kept.joins)
+    XCTAssertEqual(Set(kept.metas.keys), ["m-r-0", "h1", "h2"])
+    XCTAssertEqual(kept.metas["h1"]?.group, "m-r-0-from")
+  }
 }

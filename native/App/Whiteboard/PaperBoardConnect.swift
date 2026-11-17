@@ -94,10 +94,19 @@ extension PaperBoardController {
   /// change as any other.
   func connect() {
     let keys = connectKeys
+    log.event(
+      "board_connectors",
+      [
+        "action": "connect_pressed", "board": model.board.id, "keys": keys.count,
+        "selected": paper.selection.count,
+      ])
     let id = "c-" + UUID().uuidString.prefix(8).lowercased()
     connectKeys = []
     connectFrame = nil
-    guard let ops = connectOps(keys, id: id), let markup = paper.markup else { return }
+    guard let ops = connectOps(keys, id: id), let markup = paper.markup else {
+      log.event("board_connectors", ["action": "connect_refused", "board": model.board.id, "keys": keys.count])
+      return
+    }
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     let plan = BoardOps.plan(
@@ -129,17 +138,31 @@ extension PaperBoardController {
   }
 }
 
-/// Story 910: Connect beside a lassoed arrow that joins two things.
+/// Story 910: Connect beside a lassoed arrow that joins two things; under To text when that shows for the same lasso
+/// (story 920), which would otherwise sit over it.
 struct ConnectButton: View {
   let controller: PaperBoardController
   let arrow: CGRect?
+  @ObservedObject var toText: BoardToTextState
   private static let size = CGSize(width: 116, height: 44)
+  /// To text's own size (`ToTextButton`).
+  private static let toTextSize = CGSize(width: 128, height: 44)
+
+  /// Where Connect goes: beside the arrow, or clear of To text's place when both show.
+  static func place(arrow: CGRect, toText: CGRect?, in view: CGRect) -> CGRect {
+    let mine = WhiteboardMarkChoice.place(mark: arrow, buttons: size, in: view)
+    guard let toText else { return mine }
+    let theirs = WhiteboardMarkChoice.place(mark: toText, buttons: toTextSize, in: view)
+    guard mine.intersects(theirs.insetBy(dx: -4, dy: -4)) else { return mine }
+    let below = CGRect(x: theirs.midX - size.width / 2, y: theirs.maxY + 6, width: size.width, height: size.height)
+    let above = below.offsetBy(dx: 0, dy: -(theirs.height + size.height + 12))
+    return below.maxY <= view.maxY ? below : above
+  }
 
   var body: some View {
     GeometryReader { geometry in
       if let arrow {
-        let place = WhiteboardMarkChoice.place(
-          mark: arrow, buttons: Self.size, in: CGRect(origin: .zero, size: geometry.size))
+        let place = Self.place(arrow: arrow, toText: toText.frame, in: CGRect(origin: .zero, size: geometry.size))
         Button("Connect", systemImage: "arrow.right.circle") { controller.connect() }
           .accessibilityIdentifier("whiteboard-connect")
           .font(.subheadline.weight(.semibold))

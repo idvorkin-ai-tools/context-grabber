@@ -26,7 +26,7 @@ public enum WhiteboardTurn {
   public static let larryColor: UInt32 = 0xBA39E6
 
   public struct Shape: Equatable, Sendable {
-    public enum Kind: String, Sendable { case line, arrow, rect, ellipse, path, text }
+    public enum Kind: String, Sendable { case line, arrow, rect, ellipse, path, text, connector }
     public var kind: Kind
     /// In the picture's pixels, origin top-left.
     public var points: [CGPoint]
@@ -39,11 +39,16 @@ public enum WhiteboardTurn {
     public var color: UInt32?
     /// A label's lettering (#698).
     public var face: Face
+    /// A connector's ends by name (story 917); nil when its ends are its two points.
+    public var from: String?
+    public var to: String?
 
     public init(
       kind: Kind, points: [CGPoint], text: String? = nil, size: CGFloat? = nil, pen: CGFloat? = nil,
-      color: UInt32? = nil, face: Face = .print
+      color: UInt32? = nil, face: Face = .print, from: String? = nil, to: String? = nil
     ) {
+      self.from = from
+      self.to = to
       self.kind = kind
       self.points = points
       self.text = text
@@ -176,6 +181,13 @@ public enum WhiteboardTurn {
       return ["kind": kind, "points": [[x1, y1], [x2, y2]]]
     case "polyline":
       return ["kind": "path", "points": s["points"] ?? []]
+    case "connector":
+      // Story 917, the Cockpit's chat_store `_clean_connector`: two objects by id, or two points on the picture.
+      if let from = s["from"] as? String, let to = s["to"] as? String {
+        return ["kind": "connector", "from": from, "to": to]
+      }
+      guard let x1 = n("x1"), let y1 = n("y1"), let x2 = n("x2"), let y2 = n("y2") else { return nil }
+      return ["kind": "connector", "points": [[x1, y1], [x2, y2]]]
     case "circle":
       guard let cx = n("cx"), let cy = n("cy"), let r = n("r") else { return nil }
       return ["kind": "ellipse", "points": [[cx - r, cy - r], [cx + r, cy + r]]]
@@ -214,8 +226,11 @@ public enum WhiteboardTurn {
     }
     let text = (json["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
     let face = (json["font"] as? String).flatMap(Face.init(rawValue:)) ?? .print
+    let ends = (json["from"] as? String, json["to"] as? String)
     if kind == .text {
       guard !points.isEmpty, let text, lettering(text, face) else { return nil }
+    } else if kind == .connector, let from = ends.0, let to = ends.1 {
+      guard BoardOps.isName(from), BoardOps.isName(to), from != to else { return nil }
     } else {
       guard points.count >= 2 else { return nil }
     }
@@ -223,7 +238,8 @@ public enum WhiteboardTurn {
     let pen = json["pen"].flatMap(number).flatMap { $0 > 0 ? $0 : nil }
     return Shape(
       kind: kind, points: points, text: text, size: json["size"].flatMap(number), pen: pen,
-      color: hexColor(json["color"]), face: face)
+      color: hexColor(json["color"]), face: face, from: kind == .connector ? ends.0 : nil,
+      to: kind == .connector ? ends.1 : nil)
   }
 
   /// A number within reach of a picture: no point on the board is further out in pixels than its side at the finest
@@ -241,6 +257,8 @@ public enum WhiteboardTurn {
     let p = shape.points.map(board)
     switch shape.kind {
     case .line: return [[p[0], p[1]]]
+    // A connector by name has nothing to draw without the board (story 917): the board draws its ghost.
+    case .connector: return p.count >= 2 ? [BoardConnectors.polyline([p[0], p[1]])] : []
     case .path: return [p]
     case .rect:
       let r = CGRect(
