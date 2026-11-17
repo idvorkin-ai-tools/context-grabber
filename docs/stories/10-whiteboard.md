@@ -6172,7 +6172,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 910:
 
 - **Summary:** I join two things with an arrow I drew
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6191,7 +6191,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 911:
 
 - **Summary:** A connector follows what it joins
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6210,7 +6210,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 912:
 
 - **Summary:** A connector bends once around something in its way
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6229,7 +6229,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 913:
 
 - **Summary:** Larry joins two things by name
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6248,7 +6248,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 914:
 
 - **Summary:** Larry joins two things by pointing at them
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6267,7 +6267,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 915:
 
 - **Summary:** A connector whose end is gone stays as plain ink
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
@@ -6286,7 +6286,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 916:
 
 - **Summary:** Larry gets connectors back with the board's strokes
-- **Status:** not implemented: built on branch `native/board-connectors`, awaiting the commit; host tests (`BoardConnectorsTests`)
+- **Status:** implemented in [9d50b75](https://github.com/idvorkin/context-grabber/commit/9d50b75) and [9a96dde](https://github.com/idvorkin/context-grabber/commit/9a96dde); verified by host tests (`BoardConnectorsTests`) and `just test`; not yet built for the Mac or seen on the simulator or the iPad (held for the heat, 2026-11-16)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Step 5: connectors*
 
 #### Use Case:
