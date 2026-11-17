@@ -321,6 +321,9 @@ ink it covers, without picking up the eraser.
 - A look-only board can't be scratched out, as it can't be drawn on.
 - **Folded ink is never scratched** (story 898): ink hidden under a folded header stays, even where the lines below it
   now sit on top of it, and it doesn't count toward whether the zigzag lies over ink.
+- **A zigzag over a folded header takes the whole fold** (story 903): over its "▸ N lines folded", where there is no ink,
+  or over the folded header's own line, the header and everything folded under it go with whatever else the zigzag
+  covered, and the ink below closes up to where the header was. One undo brings it all back, the section still folded.
 - The log says, for every zigzag with three or more turns, whether it fired, its turns and speed, why it didn't (*slow*,
   *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels.
 

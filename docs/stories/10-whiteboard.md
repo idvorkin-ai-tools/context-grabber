@@ -6366,13 +6366,13 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 903:
 
-- **Summary:** The eraser across a folded header's ink erases the whole section
-- **Status:** implemented in [abd408f](https://github.com/idvorkin/context-grabber/commit/abd408f); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad. Scratch-out's way in is written and not yet called: it lands with scratch-out
-- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+- **Summary:** The eraser or a scratch-out across a folded header erases the whole section
+- **Status:** implemented in [abd408f](https://github.com/idvorkin/context-grabber/commit/abd408f) (the eraser), the scratch-out in PENDING-903; verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`, `testAScratchOutOverTheMarkerTakesTheFold`); `just test`; the Mac build and the simulator wait for the heat order to lift; not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*; [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
 - **As someone** erasing a folded header
-- **I want to** have its folded lines go with it
+- **I want to** have its folded lines go with it, by the eraser or a scratch-out
 - **so that** no folded ink is left hidden on the board with no header to unfold it
 
 #### Acceptance Criteria:
@@ -6380,5 +6380,10 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a folded header
 - **When:** I draw the eraser across the header's own ink
 - **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's)
+
+- **Scenario:** Scratching out a fold
+- **Given:** a folded header with a line of ink below the fold
+- **When:** I scratch out its "▸ N lines folded" or its header line with a fast zigzag
+- **Then:** the header, everything folded under it and the zigzag go, the ink below closes up to where the header was, and one Undo brings the section back still folded with the ink below where it was
 
 ---

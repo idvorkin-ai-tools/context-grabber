@@ -89,4 +89,18 @@ final class BoardFoldEraseTests: XCTestCase {
     XCTAssertEqual(top(o, "c0"), 100)
     XCTAssertEqual(top(o, "z0"), 180, "the lower fold closed up too, and the upper one's close-up took it along")
   }
+
+  /// Story 903: a fast zigzag over the marker, where there is no ink, is still a scratch-out, and it takes the fold.
+  func testAScratchOutOverTheMarkerTakesTheFold() {
+    let o = folded()
+    // Back and forth along the marker, five sweeps.
+    let zigzag = (0..<10).map { CGPoint(x: $0 % 2 == 0 ? 190 : 300, y: 104 + CGFloat($0)) }
+    XCTAssertTrue(WhiteboardScratchOut.isZigzag(zigzag, ms: 200))
+    XCTAssertFalse(WhiteboardScratchOut.isZigzag(zigzag, ms: 100_000), "slow is writing")
+    XCTAssertFalse(WhiteboardScratchOut.isZigzag(Array(zigzag.prefix(3)), ms: 50), "a line is no zigzag")
+    XCTAssertEqual(o.foldHits(along: zigzag, reach: 4, onHeader: true).map(\.headers), [["h"]])
+    let overHeader = (0..<10).map { CGPoint(x: $0 % 2 == 0 ? 100 : 168, y: 106 + CGFloat($0)) }
+    XCTAssertEqual(
+      o.foldHits(along: overHeader, reach: 4, onHeader: true).map(\.headers), [["h"]], "or its header line")
+  }
 }

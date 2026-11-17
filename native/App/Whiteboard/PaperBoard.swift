@@ -901,6 +901,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     ]
     if let speed = outcome.speed { event["speed"] = speed }
     if let why = outcome.why { event["why"] = why }
+    // Story 903: over a fold's marker or its folded header line, the whole section goes with what else it covered.
+    if scratchTakesFolds(scratch, zigzag: key) { return true }
     guard let after = scratch.after else {
       log.event("whiteboard", event)
       return false
@@ -1019,8 +1021,12 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
   /// and the headers are kept. A header made or unmade alone changes only the marks.
-  func changeOutline(_ label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
-    guard let markup = paper.markup else { return false }
+  /// `base` is the markup the change starts from (the board's own by default) and `undoTo` where its Undo goes back to
+  /// (`base`, by default): a scratch-out's fold erase starts without the zigzag's other ink and undoes to before it.
+  func changeOutline(
+    _ label: String, on base: PaperMarkup? = nil, undoTo: PaperMarkup? = nil, _ change: (inout BoardOutline) -> Bool
+  ) -> Bool {
+    guard let markup = base ?? paper.markup else { return false }
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     var outline = model.outline(of: strokes)
@@ -1030,7 +1036,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     BoardConnectors.follow(
       &plan, strokes: strokes, texts: model.texts, metas: model.strokeMeta, folds: outline.tags)
     if plan.changesBoard {
-      guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label) else { return false }
+      guard let (held, renamed, _) = put(plan, on: markup, hashes: hashes, named: label, undoTo: undoTo) else {
+        return false
+      }
       model.opsApplied(held.inkDrawing, renamed: renamed)
       model.inkReset(Self.allHashes(held))
     }
@@ -1557,7 +1565,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Larry's ink, the pages. Nil when PaperKit didn't take the moves as moves (the log says so); nothing is set then.
   func put(
     _ plan: BoardOps.Plan, on start: PaperMarkup, hashes: [[String]], adding extra: [PKStroke] = [], named name: String,
-    stepBack: Bool = true
+    stepBack: Bool = true, undoTo: PaperMarkup? = nil
   ) -> (held: PaperMarkup, renamed: [(from: [String], to: [String])], drawn: [(hash: [String], name: String)])? {
     var markup = start
     let elements = markup.subelements.strokes
@@ -1602,7 +1610,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       }
     }
     if !extra.isEmpty { markup.append(contentsOf: PKDrawing(strokes: extra)) }
-    if stepBack { registerStepBack(to: before, named: name) }
+    if stepBack { registerStepBack(to: undoTo ?? before, named: name) }
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
     quiet = true
     paper.markup = markup

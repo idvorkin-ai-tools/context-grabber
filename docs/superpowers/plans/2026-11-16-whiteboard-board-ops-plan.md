@@ -215,4 +215,7 @@ App:
   back folded.
 - Paper (`PaperBoard+FoldErase.swift`): an eraser touch on a folded board snapshots the outline as it goes down,
   gathers the path, and on lift erases what it crossed through `changeOutline("Erase")`; `board_outline` /
-  `erase_fold` logs it. `eraseFolds(crossing:via:)` is scratch-out's way in, uncalled until scratch-out merges.
+  `erase_fold` logs it. Scratch-out's `scratchesOut` asks `scratchTakesFolds` first: a zigzag
+  (`WhiteboardScratchOut.isZigzag`, shape and speed, no ink needed) that `foldHits` with `onHeader` erases the fold
+  through `changeOutline(on:undoTo:)`, starting from the markup without the zigzag's other ink and undoing to before
+  the zigzag, PaperKit's zigzag step undone first: one Undo, named *Scratch out*.

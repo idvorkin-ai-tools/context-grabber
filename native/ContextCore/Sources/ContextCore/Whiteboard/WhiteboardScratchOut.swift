@@ -103,6 +103,16 @@ public enum WhiteboardScratchOut {
     public var why: String?
   }
 
+  /// A zigzag fast enough to be a scratch-out, whatever is under it: over a fold's marker there is no ink, and the fold
+  /// goes all the same (story 903).
+  public static func isZigzag(_ points: [CGPoint], ms: Double?) -> Bool {
+    guard shape(points).ok else { return false }
+    guard let ms, ms > 0 else { return true }
+    var travel = 0.0
+    for (a, b) in zip(points, points.dropFirst()) { travel += Double(hypot(b.x - a.x, b.y - a.y)) }
+    return (travel / ms * 100).rounded() / 100 >= speed
+  }
+
   /// The zigzag `points`, drawn in `ms` (nil: not known, so not held to the speed), over `ink`: what goes, or why it
   /// stays ink. The zigzag itself is not among `ink`.
   public static func check(_ points: [CGPoint], ms: Double?, over ink: [Ink]) -> Outcome {
