@@ -6115,7 +6115,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 923:
 
 - **Summary:** A line held at its end snaps straight
-- **Status:** implemented on branch `native/board-totext-snap` (commit named below once it lands); verified by host tests (`BoardShapeSnapTests`: `testANearlyStraightStrokeSnapsToTheLineFromItsStartToItsEnd`, `testAWobblyOrShortStrokeStaysInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator (no Pencil to hold) or the iPad
+- **Status:** implemented in [531dd75](https://github.com/idvorkin/context-grabber/commit/531dd75); verified by host tests (`BoardShapeSnapTests`: `testANearlyStraightStrokeSnapsToTheLineFromItsStartToItsEnd`, `testAWobblyOrShortStrokeStaysInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator (no Pencil to hold) or the iPad
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *Shapes that snap*
 
 #### Use Case:
@@ -6134,7 +6134,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 924:
 
 - **Summary:** A box or a loop held at its end snaps to a rectangle or an ellipse
-- **Status:** implemented on branch `native/board-totext-snap` (commit named below once it lands); verified by host tests (`BoardShapeSnapTests`: `testANearlySquareBoxSnapsToItsBox`, `testATiltedBoxStaysInk`, `testANearlyRoundLoopSnapsToTheEllipseInItsBoxFromWhereItStarted`, `testAnOpenLoopStaysInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [531dd75](https://github.com/idvorkin/context-grabber/commit/531dd75); verified by host tests (`BoardShapeSnapTests`: `testANearlySquareBoxSnapsToItsBox`, `testATiltedBoxStaysInk`, `testANearlyRoundLoopSnapsToTheEllipseInItsBoxFromWhereItStarted`, `testAnOpenLoopStaysInk`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *Shapes that snap*
 
 #### Use Case:
@@ -6153,7 +6153,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 925:
 
 - **Summary:** Nothing snaps without the hold
-- **Status:** implemented on branch `native/board-totext-snap` (commit named below once it lands); verified by host tests (`BoardShapeSnapTests`: `testOnlyAPencilHeldStillHalfASecondAtTheEndAsks`, `testWritingNeverSnaps`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [531dd75](https://github.com/idvorkin/context-grabber/commit/531dd75); verified by host tests (`BoardShapeSnapTests`: `testOnlyAPencilHeldStillHalfASecondAtTheEndAsks`, `testWritingNeverSnaps`; `just test`) and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Handwriting to text, and shapes that snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md), *Shapes that snap*
 
 #### Use Case:
