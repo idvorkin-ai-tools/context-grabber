@@ -93,3 +93,44 @@ batch the same way, whoever sent it.
 - Text ghosts don't come back when the board reopens (their batch is handled).
 - A stroke Igor moves with the lasso after keeping a text breaks the text's grouping only if its creation time changes,
   which PaperKit's transform doesn't do.
+
+## Step 2 (stories 840–844)
+
+Wire, additive to `ops.list`:
+
+- `{op:"add_strokes", strokes:[{id, points:[[x,y],...], width?, color?, meta?}]}`
+- `{op:"delete", ids:[...]}`
+- `{op:"set_meta", ids:[...], meta:{...}}`: kept verbatim per stroke; only `meta.group` is read.
+- `{op:"replace", ids:[...], strokes:[...]}`: a delete and an add in one op.
+
+Caps: 500 strokes in one op, 4000 points a stroke (the Cockpit's), coordinates within the board's reach; past them the
+batch is refused (`too_many_strokes`, `too_many_points`, `bad_op`).
+
+- `BoardOps.Op` gains `.addStrokes`, `.delete`, `.setMeta`, `.replace`; `BoardOps.NewStroke {id, points, width, color,
+  meta}`; `BoardMeta` holds the JSON as written (`Data`) and its `group`.
+- `BoardOps.plan` works on a list of items that holds the canvas's strokes and the strokes the batch adds, so a later op
+  can move or erase what an earlier one drew. The plan says: offsets for the canvas's strokes, the canvas strokes to
+  erase, the strokes to add (their points after the batch's later moves), the metas to set (by stroke name), and ids
+  not found. Items group by kept text and by `meta.group`; a group answers to its group id.
+- `BoardStrokeIDs.name(_:as:)`: a stroke Larry draws is known by his name. `BoardStrokeMeta` keeps each name's meta,
+  per board in the ledger. The strokes wire adds `meta` to a stroke that has one (the Cockpit ignores fields it doesn't
+  know; storing them is Larry's side).
+- Events: `strokes_changed {added, erased, moved, rev}` from PaperKit's own element changes (the controller keeps
+  each element's hashes, so a lasso move keeps names through `BoardStrokeIDs.moved` too), and `selection {ids}` when
+  the lasso's selection changes.
+
+## Step 3 (stories 845–851)
+
+Wire, additive:
+
+- `{op:"overlay", id, kind:"band"|"chip"|"button"|"hint", rect:{x,y,w,h}, label, style?, tap_event?}`; `{op:
+  "remove_overlay", id}`. An overlay replaces one with its id. Not ink, not undone, not saved.
+- `{op:"set_hidden", ids, hidden}`: the strokes' ink goes to alpha 0 and back (the hash ignores alpha, so names hold);
+  the strokes wire marks a hidden stroke `hidden: true`. Part of the batch's undo.
+- `{op:"select", ids}`: the lasso's selection set to those strokes.
+- `BoardOverlays`: the overlays on a board, applying ops and hit-testing a tap.
+- Events: `margin {gesture:"tap"|"hold"|"drag_end", y, dy}` (a finger starting in the column's left 64 points:
+  `BoardMargin.gesture`), `viewport {y, h, scale}` half a second after the view stops, `undo {label}` when Igor undoes
+  one of Larry's batches, and an overlay's `tap_event` (as written, with `t` and `overlay_id` added).
+- A tap on an overlay posts `POST /whiteboard/events {board, rev, op_result?, events}` at once; taken, those events
+  leave the queue; a 404 or no answer leaves them for the next turn, logged as `board_events`.

@@ -1,6 +1,6 @@
 # Larry edits the board: making room and plain text (step 1)
 
-Status: draft for Igor, 2026-11-16. Step 1 built (stories 814–819).
+Status: draft for Igor, 2026-11-16. Step 1 built (stories 814–819); steps 2 and 3 below (Igor via Larry, 2026-11-16: build them all in one round, one simulator pass at the end).
 
 ## The idea in one line
 
@@ -64,12 +64,60 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - With no network, Igor's ink works as it does today. Larry's changes simply don't arrive until he can answer.
 - Older builds that don't understand a change ignore it and show Larry's answer as they do today. Nothing breaks.
 
-## Non-goals (this step)
+## Step 2: Larry edits the ink itself
 
-- Objects that move as one, lasso to group, and editing a kept label's words (step 2, #912).
-- Larry drawing buttons, bands or chips on the board (step 3).
-- Folding sections, scratch-out to delete, and smart arrows.
+The web board (the Cockpit's `/ink`) is where these behaviours are worked out first; the iPad board follows it.
+
+### Larry draws, erases and replaces ink
+
+- Larry can put ink straight onto the board: real strokes, not ghosts, at the width and colour he chooses. They are
+  part of the page from that moment, show in the next picture, and come back to him under the names he gave them.
+- He can erase strokes by name, and replace some strokes with others (tidying a scrawl into a clean line, say) in a
+  single step.
+- Each answer of his is still one undo: Undo takes back everything that answer did, the strokes he drew, the ones he
+  erased and the ones he moved, page count included.
+
+### Larry groups ink
+
+- Larry can tag strokes with notes of his own. The board never reads them, except one: a group. Strokes in one
+  group move as one when he pushes or moves them, so a label and its underline never split.
+- His notes go back to him exactly as he wrote them, with the strokes they belong to.
+
+### Larry hears my ink change and my selection
+
+- After each change Igor makes, Larry learns which strokes were added, which were erased and which Igor moved, by
+  name, and the board's revision after it. A stroke Igor moves keeps its name, as one Larry moves does.
+- When Igor circles ink with the lasso, Larry learns which strokes are selected.
+
+## Step 3: Larry's controls on the board
+
+### Bands, chips, buttons and hints
+
+- Larry can lay a few controls on the board: a band (a strip across the page, such as "room opens here"), a chip, a
+  button, or a hint. Each sits at a place on the board, scrolls with it, and carries a short label. They are not ink:
+  they are never in the picture, never in the strokes, and never undone. He takes them away when he is done with them.
+- A tap on one reaches Larry at once, without waiting for Igor's next turn. If the Cockpit can't take it straight away,
+  it goes with the next turn instead, and the session log says so.
+
+### Larry folds and selects
+
+- Larry can hide strokes and show them again, as a folded section would. Hidden ink is still on the board: it keeps
+  its place, moves with a push, and comes back when he shows it. Hiding is part of his answer's one undo.
+- Larry can select strokes for Igor, as if Igor had circled them with the lasso, ready for Igor to move or delete.
+
+### Larry hears the margin, the view and Undo
+
+- A finger in the board's left margin tells Larry what it did there: a tap, a hold, or a drag and how far, with where
+  on the board it was. That is how Igor will ask for room by hand.
+- When Igor stops scrolling or zooming, Larry learns what part of the board is on screen and at what zoom.
+- When Igor undoes one of Larry's changes, Larry learns which one, by its name.
+
+## Non-goals
+
+- Editing a kept label's words (#912).
+- Scratch-out to delete, and smart arrows.
 - Running Larry's board logic inside the app for offline use.
+- Controls that survive the board closing: they are Larry's live conversation, and he lays them again.
 
 ## Acceptance
 
@@ -82,3 +130,11 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - Larry's plain text arrives as a ghost, keeps on a tap, reads in a plain typeface, shows in the next picture Larry
   gets, and moves with a later push.
 - The session log has one line per applied or refused change, with what moved and why, for a phone check.
+- Larry draws two strokes, erases one of Igor's and replaces another: all of it shows at once, one Undo takes all of
+  it back, and his strokes come back to him under his names.
+- A push moves a group whole, even when only some of it is below the line. His notes come back with the strokes.
+- Igor draws, erases and lasso-moves: Larry's next turn names what was added, erased and moved, and the moved
+  strokes keep their names. A lasso selection is named too.
+- A band Larry lays shows at its place and scrolls with the board; a tap on it reaches him within a second.
+- Hidden ink vanishes and returns on his word, and moves with a push while hidden.
+- A margin tap, hold and drag, the end of a scroll, and an undo of his change each reach him on the next turn.

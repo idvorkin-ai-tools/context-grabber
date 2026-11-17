@@ -4980,3 +4980,231 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** Larry's changes arrive over the network on his board replies
 - **When:** they reach the board
 - **Then:** they go through the one place that checks, holds and applies changes, which would take a source inside the app the same way, and never applies one change twice
+
+---
+
+### User Story 840:
+
+- **Summary:** Larry draws ink straight onto my board
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry draws, erases and replaces ink*
+
+#### Use Case:
+- **As someone** whose board Larry is helping lay out
+- **I want to** have Larry draw real strokes on the board, at his width and colour
+- **so that** his drawing is part of the page, not a ghost I have to keep
+
+#### Acceptance Criteria:
+- **Scenario:** He draws
+- **Given:** Larry's answer adds two strokes with names of his own
+- **When:** it lands with the Pencil up
+- **Then:** both strokes are ink on the page at once, the board's next strokes give them back under his names, and one Undo takes them away
+
+---
+
+### User Story 841:
+
+- **Summary:** Larry erases and replaces ink by name
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry draws, erases and replaces ink*
+
+#### Use Case:
+- **As someone** whose scrawl Larry is tidying
+- **I want to** have Larry erase strokes, or swap some for clean ones, in one step
+- **so that** a tidy never leaves the old and the new ink both on the page
+
+#### Acceptance Criteria:
+- **Scenario:** A replace and an erase in one answer
+- **Given:** Larry's answer erases one stroke and replaces two others with one clean line
+- **When:** it lands
+- **Then:** the three strokes go, the clean line is there, one Undo brings back exactly what was, and a name the board doesn't have is told back to him and nothing else of the answer is lost
+
+---
+
+### User Story 842:
+
+- **Summary:** Larry's groups move as one
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry groups ink*
+
+#### Use Case:
+- **As someone** with a label Larry underlined
+- **I want to** have the strokes Larry groups move together
+- **so that** a push never splits a label from its underline
+
+#### Acceptance Criteria:
+- **Scenario:** A group across the line
+- **Given:** a group of Larry's whose top is above the line he pushes below, and another stroke of it below
+- **When:** the push lands
+- **Then:** the whole group moves together or stays together by its top, and his notes on the strokes come back to him exactly as he wrote them
+
+---
+
+### User Story 843:
+
+- **Summary:** Larry hears my ink change
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears my ink change and my selection*
+
+#### Use Case:
+- **As someone** drawing, erasing and moving ink while Larry follows
+- **I want to** have Larry told what I added, erased and moved, by name
+- **so that** he can say "new since my last reply" without guessing
+
+#### Acceptance Criteria:
+- **Scenario:** A few changes
+- **Given:** since his last turn I drew a stroke, erased one and moved one with the lasso
+- **When:** his next turn goes
+- **Then:** it names the added, erased and moved strokes and the board's revision after each change, and the moved stroke keeps the name it had
+
+---
+
+### User Story 844:
+
+- **Summary:** Larry hears my lasso selection
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears my ink change and my selection*
+
+#### Use Case:
+- **As someone** circling ink to talk about it
+- **I want to** have Larry told which strokes I selected
+- **so that** "this" means what I circled
+
+#### Acceptance Criteria:
+- **Scenario:** I circle some ink
+- **Given:** I lasso three strokes
+- **When:** his next turn goes
+- **Then:** it names those three strokes as my selection
+
+---
+
+### User Story 845:
+
+- **Summary:** Larry lays bands, chips, buttons and hints on the board
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
+
+#### Use Case:
+- **As someone** talking with Larry on the board
+- **I want to** see Larry's few controls at their places, scrolling with the board
+- **so that** I can answer him with a tap instead of words
+
+#### Acceptance Criteria:
+- **Scenario:** A band and a button
+- **Given:** Larry lays a band across the page and a button beside it
+- **When:** they land
+- **Then:** they show at their places with their labels, scroll and zoom with the board, are in no picture and no strokes, are never undone, and go when he takes them away
+
+---
+
+### User Story 846:
+
+- **Summary:** A tap on Larry's control reaches him at once
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Bands, chips, buttons and hints*
+
+#### Use Case:
+- **As someone** tapping one of Larry's buttons
+- **I want to** have the tap reach him straight away
+- **so that** he answers what I chose without waiting for my next turn
+
+#### Acceptance Criteria:
+- **Scenario:** I tap his button
+- **Given:** a button of Larry's on the board
+- **When:** I tap it with a finger
+- **Then:** its event goes to the Cockpit at once with the board's revision; if the Cockpit can't take it, it goes with my next turn, and the session log says which
+
+---
+
+### User Story 847:
+
+- **Summary:** Larry folds ink away and back
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry folds and selects*
+
+#### Use Case:
+- **As someone** whose long board Larry is folding into sections
+- **I want to** have Larry hide strokes and show them again
+- **so that** a section can be out of the way without being gone
+
+#### Acceptance Criteria:
+- **Scenario:** He hides a section
+- **Given:** Larry's answer hides five strokes
+- **When:** it lands, and a push of his later moves them, and then he shows them
+- **Then:** they vanish at once, keep their place and move with the push while hidden, come back where the push left them, and one Undo undoes the hiding as part of his answer
+
+---
+
+### User Story 848:
+
+- **Summary:** Larry selects ink for me
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry folds and selects*
+
+#### Use Case:
+- **As someone** Larry is pointing at ink for
+- **I want to** have Larry select strokes as if I had circled them
+- **so that** I can move or delete what he means in one gesture
+
+#### Acceptance Criteria:
+- **Scenario:** He selects
+- **Given:** Larry's answer selects two strokes
+- **When:** it lands
+- **Then:** those two are selected on the board, and nothing else changes
+
+---
+
+### User Story 849:
+
+- **Summary:** Larry hears the margin
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
+
+#### Use Case:
+- **As someone** asking for room by hand
+- **I want to** have a finger tap, hold or drag in the board's left margin reach Larry
+- **so that** he can open room where I asked
+
+#### Acceptance Criteria:
+- **Scenario:** A drag in the margin
+- **Given:** the board open
+- **When:** I drag a finger down the left margin
+- **Then:** Larry's next turn has a margin drag with where it started on the board and how far it went; a tap and a hold there are told the same way
+
+---
+
+### User Story 850:
+
+- **Summary:** Larry hears where I'm looking
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
+
+#### Use Case:
+- **As someone** scrolling a long board
+- **I want to** have Larry told what part of the board is on screen when I stop
+- **so that** he can answer about what I see
+
+#### Acceptance Criteria:
+- **Scenario:** I scroll and stop
+- **Given:** the board open
+- **When:** I scroll down and let it rest
+- **Then:** Larry's next turn has the part of the board on screen and the zoom, once per rest, not on every frame
+
+---
+
+### User Story 851:
+
+- **Summary:** Larry hears me undo his change
+- **Status:** not built yet
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry hears the margin, the view and Undo*
+
+#### Use Case:
+- **As someone** undoing a change of Larry's
+- **I want to** have Larry told which of his changes I undid
+- **so that** he doesn't build on a change I took back
+
+#### Acceptance Criteria:
+- **Scenario:** I undo his push
+- **Given:** a push of Larry's on the board
+- **When:** I tap Undo
+- **Then:** his next turn has an undo naming that change
