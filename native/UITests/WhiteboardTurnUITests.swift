@@ -115,6 +115,32 @@ final class WhiteboardTurnUITests: XCTestCase {
     XCTAssertFalse(app.buttons["whiteboard-mark-dismiss"].exists, "and shows no buttons")
   }
 
+  /// Story 895: Board → Marks → Keep Larry's marks makes every mark of his ink at once, and one undo would take them all
+  /// back (the keep is one step, as a single Keep is in `WhiteboardPaperGhostsUITests.testOneUndoTakesAKeptMarkBack`).
+  /// Where each lands, in order and off his ink, is `WhiteboardTidyTests`, on the host.
+  func testKeepingAllOfLarrysMarksMakesThemInkInOneStep() throws {
+    let (app, ghosts) = try openBoard()
+    ghosts.tap()
+    stroke(app)
+    wait(app, strokes: 1)
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(
+      app.staticTexts.matching(NSPredicate(format: "label == %@", "2 to keep")).firstMatch.appears(within: 15),
+      app.debugDescription)
+    app.buttons["whiteboard-board"].tap()
+    let marks = app.descendants(matching: .any)["whiteboard-marks"].firstMatch
+    XCTAssertTrue(marks.appears(within: 5), app.debugDescription)
+    marks.tapWhenSettled()
+    let keepAll = app.descendants(matching: .any)["whiteboard-keep-all"].firstMatch
+    XCTAssertTrue(keepAll.appears(within: 5), app.debugDescription)
+    keepAll.tapWhenSettled()
+    waitUntil(
+      NSPredicate(format: "label BEGINSWITH 'Send to Larry, ' AND NOT (label == 'Send to Larry, 1 strokes')"),
+      app.buttons["whiteboard-send"], timeout: 8)
+    XCTAssertFalse(
+      app.staticTexts.matching(NSPredicate(format: "label ENDSWITH ' to keep'")).firstMatch.exists, "none left to keep")
+  }
+
   /// Stories 768, 837: a tap on the note's chevron opens the conversation over the board, holding Larry's whole reply, in a
   /// panel held to a fifth of the board. What the line and the panel say is `WhiteboardNoteTests`, on the host.
   func testTheNoteOpensOnLarrysReply() throws {

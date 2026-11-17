@@ -449,4 +449,20 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertNotNil(landing.failure)
     XCTAssertEqual(turns.note, WhiteboardTurn.ghostsAway)
   }
+
+  // MARK: Story 895: keep all of Larry's
+
+  func testKeepingAllOfLarrysTakesHisMarksInOrderAndLeavesClaudes() {
+    var turns = turns()
+    let his = ghosts(.larry, 3)
+    turns.larrysMarks(his)
+    turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
+    _ = turns.tap { $0.id == his[1].id }
+    XCTAssertEqual(turns.chosen, his[1])
+    XCTAssertEqual(turns.keepAll(.larry), his)
+    XCTAssertEqual(count(turns, .larry), 0)
+    XCTAssertEqual(count(turns, .claude), 1, "Claude's stay")
+    XCTAssertNil(turns.chosen, "Keep and Dismiss went with the chosen mark")
+    XCTAssertEqual(turns.keepAll(.larry), [], "nothing left to keep")
+  }
 }

@@ -399,6 +399,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
       self.fingerTaps(!self.model.ghosts.isEmpty || !list.isEmpty)
     }
+    model.move = { [weak self] moves in self?.move(moves) }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
     if model.editable { view.addGestureRecognizer(holding) }
     if drawsHere { view.addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(hovering(_:)))) }
@@ -1541,6 +1542,35 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     guard !change.isEmpty else { return }
     let updated = Self.hashes(of: Set(change.added + change.moved.map(\.id)), in: markup)
     model.inkElements(updated: updated, removed: change.removed, report: report)
+  }
+
+  /// Story 896: kept labels moved down off ink, by their places in the markup's strokes, with any pages that needs, in
+  /// one undo step. Moved in place, so every stroke keeps its id.
+  private func move(_ moves: [Int: CGFloat]) {
+    guard var markup = paper.markup else { return }
+    let strokes = markup.subelements.strokes
+    registerStepBack(to: markup)
+    for (i, dy) in moves where strokes.indices.contains(i) {
+      var stroke = strokes[i]
+      stroke.transform = stroke.transform.concatenating(CGAffineTransform(translationX: 0, y: dy))
+      markup.subelements.updateOrAppend(stroke)
+    }
+    let wanted = board.pages(after: pages, inkMaxY: markup.inkDrawing.bounds.maxY, redoWaiting: false)
+    if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
+    quiet = true
+    paper.markup = markup
+    quiet = false
+    pages = wanted
+    let framesBefore = inkFrames
+    inkFrames = markup.strokeFrames
+    model.stepped(markup.inkDrawing)
+    noteInk(markup, since: framesBefore, report: true)
+    showLines()
+    showPageNumber()
+    log.event(
+      "whiteboard",
+      ["action": "paper_move", "board": model.board.id, "strokes": moves.count, "pages": pages])
+    redrawSoon()
   }
 
   /// PaperKit sometimes never draws a markup that's set: the ink is held and counted, and the tile it falls on stays empty,

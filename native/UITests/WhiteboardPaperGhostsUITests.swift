@@ -237,6 +237,28 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
 
   /// Stories 617, 630, 631: a kept ghost goes with one undo and comes back with one redo, and the undo after that takes his stroke,
   /// which is PaperKit's own step. A hook presses them, as a phone's tool picker has no Undo and keys reach only a run's
+  /// Story 896: Board → Marks → Tidy overlaps on a board with only his own ink moves nothing and says so. That a kept
+  /// label on his ink moves under it, and only it, is `WhiteboardTidyTests`, on the host.
+  func testTidyOverlapsOnATidyBoardSaysNothingOverlaps() throws {
+    let app = try openBoard()
+    ghosts(app).tap()
+    stroke(app)
+    wait(send(app), label: strokes(1))
+    let before = PaperScreen.settled(app) { $0.ink }
+    app.buttons["whiteboard-board"].tap()
+    let marks = app.descendants(matching: .any)["whiteboard-marks"].firstMatch
+    XCTAssertTrue(marks.appears(within: 5), app.debugDescription)
+    marks.tapWhenSettled()
+    let tidy = app.descendants(matching: .any)["whiteboard-tidy"].firstMatch
+    XCTAssertTrue(tidy.appears(within: 5), app.debugDescription)
+    tidy.tapWhenSettled()
+    XCTAssertTrue(
+      app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Nothing overlaps")).firstMatch
+        .appears(within: 5), app.debugDescription)
+    wait(send(app), label: strokes(1))
+    XCTAssertEqual(PaperScreen.settled(app) { $0.ink }, before, "his ink didn't move")
+  }
+
   /// first test.
   func testOneUndoTakesAKeptMarkBack() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_KEEP": "4,undo,redo,undo,undo"])

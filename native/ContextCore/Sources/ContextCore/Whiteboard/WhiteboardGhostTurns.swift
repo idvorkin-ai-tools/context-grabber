@@ -280,6 +280,15 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return showing
   }
 
+  /// Keep all of `who`'s marks (story 895): they leave the ghosts, in the order they came, and Keep and Dismiss go with
+  /// them if one was chosen. The caller turns them into ink.
+  public mutating func keepAll(_ who: WhiteboardTurn.Who) -> [Ghost] {
+    let kept = ghosts.filter { $0.who == who }
+    if let chosen, chosen.who == who { chosenID = nil }
+    ghosts.removeAll { $0.who == who }
+    return kept
+  }
+
   /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
   public mutating func keepChosen() -> Ghost? { removeChosen() }
 

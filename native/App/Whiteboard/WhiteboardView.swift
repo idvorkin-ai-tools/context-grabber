@@ -142,6 +142,8 @@ final class WhiteboardModel: ObservableObject {
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
   /// as one undo named for it; false when nothing changed. The canvas sets it.
   var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
+  /// Story 896: the strokes at these places in the drawing moved down so far, one undo.
+  var move: (([Int: CGFloat]) -> Void)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
   private let callLive: @MainActor () -> Bool
@@ -1307,6 +1309,94 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
+  // MARK: Keep all and Tidy overlaps (stories 895, 896)
+
+  /// Larry's marks showing, for the Board menu's Keep Larry's marks.
+  var larrysMarks: Int { turns.ghosts.filter { $0.who == .larry }.count }
+
+  /// Story 895: every mark of Larry's kept at once, top to bottom, a label on ink moved under it and the marks after it
+  /// with it. One keep, so one undo.
+  func keepLarrysMarks() {
+    let marks = turns.keepAll(.larry)
+    guard editable, !marks.isEmpty else { return }
+    let moves = WhiteboardTidy.keepAll(
+      marks.map { .init(id: $0.id, lines: $0.lines, label: $0.kind == .text) }, over: Self.inkPoints(drawing))
+    let started = Date()
+    var strokes: [PKStroke] = []
+    for (i, ghost) in marks.enumerated() {
+      let dy = moves[ghost.id] ?? 0
+      // A moment of its own for each, a few milliseconds apart, so each label is known as one (and story 817's text).
+      let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
+      let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + dy) } }
+      let mine = Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      strokes += mine
+      if ghost.kind == .text { rememberLabel(made.date) }
+      if let text = ghost.text {
+        texts.append(
+          BoardText(
+            id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
+            color: Self.lightHex(ghost.color), glyphs: mine.count))
+      }
+      settleLarrys(ghost)
+    }
+    if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }
+    log.event(
+      "whiteboard",
+      [
+        "action": "keep_all", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+        "moved": moves.values.filter { $0 > 0 }.count,
+      ])
+    add(strokes)
+  }
+
+  /// Story 896: kept labels and pastes that sit on other ink laid out again, top to bottom; his ink stays. One undo.
+  func tidyOverlaps() {
+    guard editable else { return }
+    let known = Set(UserDefaults.standard.array(forKey: labelsKey) as? [Int64] ?? [])
+    var labels: [String: [[CGPoint]]] = [:]
+    var members: [String: [Int]] = [:]
+    var ink: [[CGPoint]] = []
+    for (i, stroke) in drawing.strokes.enumerated() {
+      let points = Self.points(stroke)
+      let made = Self.moment(stroke)
+      if known.contains(made) {
+        labels["\(made)", default: []].append(points)
+        members["\(made)", default: []].append(i)
+      } else {
+        ink.append(points)
+      }
+    }
+    let moves = WhiteboardTidy.tidy(labels, among: ink)
+    log.event("whiteboard", ["action": "tidy", "board": board.id, "labels": labels.count, "moved": moves.count])
+    guard !moves.isEmpty else {
+      pasteNote = "Nothing overlaps"
+      return
+    }
+    var strokes: [Int: CGFloat] = [:]
+    for (label, dy) in moves { for i in members[label] ?? [] { strokes[i] = dy } }
+    move?(strokes)
+  }
+
+  private var labelsKey: String { "whiteboard_labels_\(board.id)" }
+
+  /// A label's moment, kept on this device. ponytail: not synced, so another device's labels never tidy; the moments go
+  /// with the board's file if that is ever wanted.
+  private func rememberLabel(_ made: Date) {
+    var known = UserDefaults.standard.array(forKey: labelsKey) as? [Int64] ?? []
+    known.append(Int64(made.timeIntervalSince1970 * 1000))
+    UserDefaults.standard.set(Array(known.suffix(2000)), forKey: labelsKey)
+  }
+
+  private static func moment(_ stroke: PKStroke) -> Int64 {
+    Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
+  }
+
+  private static func points(_ stroke: PKStroke) -> [CGPoint] {
+    stroke.path.interpolatedPoints(by: .distance(4)).map { $0.location.applying(stroke.transform) }
+  }
+
+  private static func inkPoints(_ drawing: PKDrawing) -> [[CGPoint]] { drawing.strokes.map(points) }
+
   /// Keep beside the chosen mark: the old tap's keep, one undo.
   func keepChosen() {
     guard let kept = turns.keepChosen() else { return }
@@ -1332,6 +1422,7 @@ final class WhiteboardModel: ObservableObject {
     // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
     let made = BoardText.time(Date())
     let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+    if ghost.kind == .text { rememberLabel(made.date) }
     if let text = ghost.text {
       texts.append(
         BoardText(
@@ -1368,6 +1459,7 @@ final class WhiteboardModel: ObservableObject {
     return WhiteboardStrokes.hex(red: red, green: green, blue: blue)
   }
 
+  /// `made`: one moment for every stroke of one mark or paste, which is how a kept label is known again (story 896).
   static func strokes(
     _ lines: [[CGPoint]], color: UIColor, width: CGFloat, spacing: CGFloat, made: Date = Date()
   ) -> [PKStroke] {
@@ -1400,7 +1492,9 @@ final class WhiteboardModel: ObservableObject {
     guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
     let height = Self.pasteLetters / min(zoom, 1)
     let layout = WhiteboardPaste.layout(text, visible: visible, height: height, board: pasteReach)
-    let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8)
+    let made = Date()
+    let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8, made: made)
+    if !strokes.isEmpty { rememberLabel(made) }
     log.event(
       "whiteboard",
       [
@@ -2220,6 +2314,25 @@ struct WhiteboardView: View {
                     model.menuChose?()
                   }))
             }
+            // Stories 895, 896: kept marks laid out in order, and kept labels moved off ink. A submenu, as the
+            // Responder's is, so the Board menu stays short enough to close after a pick (#848).
+            Menu {
+              if model.larrysMarks > 0 {
+                Button("Keep Larry's marks") {
+                  model.keepLarrysMarks()
+                  model.menuChose?()
+                }
+                .accessibilityIdentifier("whiteboard-keep-all")
+              }
+              Button("Tidy overlaps") {
+                model.tidyOverlaps()
+                model.menuChose?()
+              }
+              .accessibilityIdentifier("whiteboard-tidy")
+            } label: {
+              Label("Marks", systemImage: "text.badge.checkmark")
+            }
+            .accessibilityIdentifier("whiteboard-marks")
             // Story 659: who answers a pause, the board's own on the Cockpit. A submenu, not a section: three more rows
             // make the iPad show the menu as a full-height list that stays up after a pick (#848).
             Menu {
