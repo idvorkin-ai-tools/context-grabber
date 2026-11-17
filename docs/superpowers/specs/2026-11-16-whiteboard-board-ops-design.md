@@ -197,10 +197,64 @@ board differs, this says why.
   whether it became a hold or why not (it moved first, it lifted too soon, or the board never saw it held), so a
   phone's log says what happened to a hold that didn't fire.
 
+## Step 5: connectors (smart arrows)
+
+Igor, 2026-11-16: the board's arrows should be smart, as on the web board (/ink): an arrow that joins two things and
+stays joined when they move.
+
+### What a connector is
+
+- A connector is an arrow from one thing on the board to another: a kept text, a group of Larry's, or a word of Igor's.
+  Its tail leaves the first thing's side that faces the second, and its head lands on the second's side that faces
+  the first.
+- It runs straight, unless a straight line would cross another thing (a kept text or a group). Then it bends once, an
+  L made of a level and an upright leg, if either L crosses nothing. If neither does, it runs straight anyway.
+- It follows its ends. When either one moves, whoever moved it (Igor's lasso, a word picked up with the Pencil, a
+  push, a paste making room, a fold closing up, or Larry), the arrow is drawn again from where they are now. The
+  redraw is part of that move's own Undo. When an end is folded away, the arrow points at the header that hides it.
+- The eraser takes a connector whole, as any stroke, and nothing else of it is left.
+- When one of its ends goes (erased, or a group or a kept text that came apart), the arrow stays where it was, as plain
+  ink, as on the web board.
+
+### Igor makes one
+
+- Igor draws an arrow, by hand, from one thing to another, and circles it with the lasso. When both of its ends land on
+  something (within 16 points), a **Connect** button shows beside the selection.
+- Connect takes his drawn arrow away and puts a clean connector in its place, joining the two things. One Undo,
+  named *Connect*, gives his own arrow back.
+- The head is the end nearest the rest of the strokes he circled (the arrowhead). With only one stroke circled, the
+  head is where the stroke ended.
+- An end on a word of his makes that word one thing: from then on it moves whole, as one of Larry's groups does, and
+  rubbing out part of it makes it plain ink again (and the connector plain ink with it).
+
+### Larry makes one
+
+- Larry can draw a connector as one of his changes: its name and its two ends, each the name of a stroke, group or
+  kept text on the board, or a point on the board. A point takes the smallest thing under it (within 16 points), or
+  else the word there.
+- An end that names nothing on the board draws nothing, and Larry is told which name was missing. With an end at a
+  point on bare paper, the arrow is drawn as plain ink between the two points, as the web board keeps such an arrow.
+- It is part of his answer's one Undo, like his ink. He can erase it by its name.
+
+### What Larry gets back
+
+- A connector goes back to Larry with the board's strokes, as a stroke under its name, so it shows in every picture he
+  renders. Its notes say what it is: a connector, what it joins (by name), the sides its ends leave and land on, and
+  the points of its route.
+- Larry hears Igor make one as he hears any ink change: his arrow's strokes erased and the connector added.
+
+### Known limits
+
+- Undoing a Connect gives Igor's own arrow back, but a word that Connect made one thing stays one thing.
+- Connectors in Larry's chat-reply shapes are not handled yet: only his board changes draw them.
+- Larry's connectors are drawn after the rest of his changes in the same answer, on the board those changes leave.
+
 ## Non-goals
 
 - Editing a kept label's words (#912).
-- Scratch-out to delete, and smart arrows (other builds).
+- Scratch-out to delete (another build).
+- A connector made by dragging from one thing to another (the web board's way is the lasso and Connect), and a
+  connector between two plain strokes that aren't a word.
 - Question cards, the writing pause learned from his rhythm, tidying overlaps (other builds).
 - The picture showing "▸ N lines folded" under a folded header, as the web board's does: the margin mark shows it
   on the board, and Larry gets the count with the strokes.
@@ -237,3 +291,11 @@ board differs, this says why.
 - A line written big or underlined shows a faint H; a margin tap there makes it a header.
 - A finger held in the margin and dragged down two lines opens two lines; held and lifted, or held on the page, it
   shows the menu. The Pencil held on a word for under half a second and dragged moves that word, and nothing else.
+- A connector from one group to another is drawn straight; a group put between them makes it bend once around it;
+  moving that group away straightens it again. Lasso-moving an end redraws the arrow to it, and one Undo puts both
+  back.
+- Igor lassos an arrow he drew from a word to a kept text: Connect shows, and a tap leaves a clean arrow between them
+  that follows either one when it moves. One Undo gives his arrow back.
+- Larry's connector by names and by points both land; one naming nothing draws nothing and is reported missing; one
+  with an end on bare paper is plain ink.
+- Erasing one end leaves the arrow as plain ink; his next strokes carry it without its connector notes.

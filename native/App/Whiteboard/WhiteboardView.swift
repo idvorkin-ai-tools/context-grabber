@@ -2058,6 +2058,20 @@ extension WhiteboardModel {
     opLedger.setTexts(texts, board: board.id)
   }
 
+  /// Stories 910–916: what a plan put on the canvas besides its ink, whoever made it: its notes (a connector's route, a
+  /// word grouped as one end, a connector turned plain ink) and the names of the strokes it drew.
+  func planPut(_ plan: BoardOps.Plan, drawn: [(hash: [String], name: String)]) {
+    guard editable else { return }
+    if !plan.metas.isEmpty || !plan.forgetMetas.isEmpty {
+      plan.forgetMetas.forEach { strokeMeta.remove($0) }
+      strokeMeta.merge(plan.metas)
+      opLedger.setStrokeMeta(strokeMeta, board: board.id)
+    }
+    guard !drawn.isEmpty else { return }
+    for stroke in drawn { stroke.hash.forEach { strokeIDs.name($0, as: stroke.name) } }
+    opLedger.setStrokeIDs(strokeIDs, board: board.id)
+  }
+
   /// The canvas applied a batch of Larry's: saved and a new revision like any change, and no stroke for Claude to answer.
   /// `renamed`: for each moved stroke, the hashes of its stretches before and after, so it keeps its names.
   /// `drawn`: each stroke Larry drew, its hashes and his name for it.

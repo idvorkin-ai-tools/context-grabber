@@ -140,6 +140,8 @@ public enum BoardOps {
     case setHidden([String], Bool)
     /// These strokes selected, as if lassoed (story 848).
     case select([String])
+    /// An arrow joining two things, that follows them (stories 913, 914).
+    case connector(NewConnector)
   }
 
   public struct Batch: Equatable, Sendable {
@@ -284,6 +286,8 @@ public enum BoardOps {
     case "select":
       guard let ids = names(json["ids"]) else { return .failure(Refusal(reason: Reason.badOp)) }
       return .success(.select(ids))
+    case "connector":
+      return connector(json)
     default:
       return .failure(Refusal(reason: Reason.unknownOp))
     }
@@ -370,6 +374,7 @@ public enum BoardOps {
       case .removeOverlay: kinds["remove_overlay", default: 0] += 1
       case .setHidden: kinds["set_hidden", default: 0] += 1
       case .select: kinds["select", default: 0] += 1
+      case .connector: kinds["connector", default: 0] += 1
       }
     }
     if !kinds.isEmpty { out["kinds"] = kinds }
