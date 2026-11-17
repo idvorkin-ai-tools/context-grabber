@@ -179,8 +179,8 @@ board differs, this says why.
   within about 12 points of there for half a second (a hand on a Pencil drifts; Igor's two long holds drifted past
   10). Once it has held, any drift is part of the drag. A Pencil that moves further sooner, or lifts sooner, draws as
   ever, so quick bullets and dashes in the margin stay ink. A hold leaves no ink behind: the stroke the Pencil drew
-  while holding and dragging is taken away. Held on a header's mark, the Pencil brings up the outline menu whatever the drag, as a
-  finger does.
+  while holding and dragging is taken away. Held on a header's mark, the Pencil brings up the outline menu whatever
+  the drag, as a finger does.
 - **A finger or the Pencil held still in the margin, not dragged**, or **a finger held still anywhere on the page**,
   brings up a small menu:
   *Make room here* (three lines, at the clear line nearest the finger), *Paste*, and *Make header* beside a line of
