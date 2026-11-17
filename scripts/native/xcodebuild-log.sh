@@ -19,9 +19,11 @@ else
   show=(grep -E "error:|BUILD|Test Case|TEST (SUCCEEDED|FAILED)")
 fi
 # xcodebuild can sit idle for good once the tests are done, holding the build lock: once a suite has closed, stop it
-# after this long with no new output (a retry prints on), and let the log say how the tests went. 30 s: a good run's tail is 1–5 s, the longest seen 36 s on a
-# run with failures (the timing study of 2026-11-10: the old 90 s cost 1.5 min on 10 of 27 runs).
-idle=${XCODEBUILD_IDLE_SECONDS:-30}
+# after this long with no new output, and let the log say how the tests went. 10 s: a good run's tail is 1–5 s. The
+# closing suite line comes once, after every retry (retries run inline, before it), so stopping early can't cut a test
+# short: it only skips xcodebuild's idle tail (36 s seen on a run with failures; the 915 run of 2026-11-16 hung 38 s).
+# The old 90 s cost 1.5 min on 10 of 27 runs (the timing study of 2026-11-10), 30 s up to 20 s more (story 689).
+idle=${XCODEBUILD_IDLE_SECONDS:-10}
 # Story 783: with the Mac's display off or its screen locked, a run of built tests sits for a quarter of an hour or more
 # before its first test (the 915 run of 2026-11-16: 17 minutes, against about 30 s lit). A healthy start, the simulator's
 # boot included, is under a minute, so one with no suite started by this time is stopped and said to be. Only runs of

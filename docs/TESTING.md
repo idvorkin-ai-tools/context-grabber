@@ -141,7 +141,7 @@ because contention makes a test fail when it shouldn't, not pass.
 
 **Every UI test run has a time limit, one retry and a short hang wait** (story 689). The wrapper all test runs go
 through gives each case two minutes, runs a failed case once more on its own rather than the whole list again
-(`UI_TEST_RETRY=0` turns that off), and stops an xcodebuild that prints nothing for 30 s once a suite has closed
+(`UI_TEST_RETRY=0` turns that off), and stops an xcodebuild that prints nothing for 10 s once the run's last suite has closed
 (`XCODEBUILD_IDLE_SECONDS`), taking the result from the log's last closing suite line. A run of built tests
 (`test-without-building`) whose first suite hasn't started within 180 s (`XCODEBUILD_START_SECONDS`; a healthy start,
 the simulator's boot included, is under a minute) is stopped and fails with exit 75, naming the dark or locked screen

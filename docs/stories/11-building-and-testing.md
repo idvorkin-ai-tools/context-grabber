@@ -257,7 +257,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 689:
 
 - **Summary:** A stuck or flaky UI test costs a minute or two, not a whole rerun
-- **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named)
+- **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named); the hang wait cut from 30 s to 10 s on branch `native/fast-sim-tests` (retries run before the one closing suite line, so the cut skips only xcodebuild's idle tail), verified on the host by the same check
 - **Issues:** the pipeline timing study of 2026-11-10 (Igor: "I don't want to be spending 20 minutes in the simulator"; "fix all the issues")
 
 #### Use Case:
@@ -269,7 +269,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A UI test run on the simulator
 - **Given:** a run where one case fails once and passes on a second try, one case runs past two minutes, and xcodebuild sits idle after the last suite closes
 - **When:** the run ends
-- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 30 s after the suite closed with the log's result kept
+- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed with the log's result kept
 
 ---
 
