@@ -401,8 +401,16 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
     if model.editable { view.addGestureRecognizer(holding) }
+    if drawsHere { view.addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(hovering(_:)))) }
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+  }
+
+  /// Stories 892, 893: the Pencil hovering over the paper, in board points. A pointer's hover has no height above the
+  /// glass and isn't the Pencil.
+  @objc private func hovering(_ hover: UIHoverGestureRecognizer) {
+    guard hover.state == .began || hover.state == .changed, hover.zOffset > 0 else { return }
+    model.hovered(at: lines.columnPoint(of: hover.location(in: lines)))
   }
 
   /// #850: whether a board raises the on-screen keyboard. On the iPad simulator one rose over an open Board menu and its

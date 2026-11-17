@@ -4167,7 +4167,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 660:
 
 - **Summary:** Claude is asked half a second after I lift the Pencil, not a second
-- **Status:** implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
+- **Status:** superseded by story 892 (the wait follows my rhythm, 1.5 to 5 s); was implemented in [10ee878](https://github.com/idvorkin/context-grabber/commit/10ee878); verified on the host (`WhiteboardResponderTests.testThePauseIsHalfASecond`; the pause's own rules unchanged in `WhiteboardPacerTests`). The feel on the iPad not yet tried
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Ghosts from Claude*
 
 #### Use Case:
@@ -5839,3 +5839,59 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I write *mmm* over a word, draw a slow zigzag over it, draw a zigzag on bare paper, or one that only clips the end of a long word
 - **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*, *no ink*, *beside ink*)
 
+---
+
+### User Story 892:
+
+- **Summary:** Claude and Larry wait until I've stopped writing, by my own rhythm
+- **Status:** implemented on `native/board-scratch-vad-tidy` (the web board's `WritingVad`, ported; replaces story 660's fixed half second); verified on the host (`WhiteboardWritingVadTests`; `just native-test`). How it feels is the iPad's to show
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
+
+#### Use Case:
+- **As someone** writing a sentence on the board
+- **I want to** be answered when I've finished a thought, not between two words
+- **so that** ghosts and Larry's turns follow what I mean, not a timer
+
+#### Acceptance Criteria:
+- **Scenario:** A pause mid-sentence and one at the end of a line
+- **Given:** Ghosts are on and I write a few words at my usual pace
+- **When:** I pause for a second in the middle of the line, then later stop at the end of the line
+- **Then:** the mid-line pause asks nothing, and the pause at the end asks after about four times my usual gap between strokes, never less than 1.5 s nor more than 5 s; the session log's `vad` line says the wait, its cue and my usual gap
+
+---
+
+### User Story 893:
+
+- **Summary:** An end-of-thought cue asks sooner
+- **Status:** implemented on `native/board-scratch-vad-tidy`; verified on the host (`WhiteboardWritingVadTests.testAQuestionMarkEndsTheThoughtAtOnce`, `testThePencilHoveringAtANewLineCutsThePauseToTheFloor`, `testTheHandLeavingIsSeenOnlyWhereTheHoverIs`). The Pencil's hover exists only on the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
+
+#### Use Case:
+- **As someone** asking the board a question in ink
+- **I want to** be answered as soon as the question is finished
+- **so that** a longer wait for my rhythm doesn't hold up a thought that is plainly over
+
+#### Acceptance Criteria:
+- **Scenario:** A question mark, a new line, the hand gone
+- **Given:** Ghosts are on and I have written a line
+- **When:** I end it with a question mark, or move the hovering Pencil to the start of the next line, or lift my hand away from the screen
+- **Then:** the turn is asked 1.5 s after my last lift (at once if that has passed), and the session log's `vad` line names the cue
+
+---
+
+### User Story 894:
+
+- **Summary:** Putting the Pencil down cancels a turn that hasn't landed
+- **Status:** implemented on `native/board-scratch-vad-tidy`; verified on the host (`WhiteboardGhostTurnsTests.testThePencilGoingDownCancelsATurnNotYetLanded` and its neighbours). The request being dropped on the wire is the iPad's to show
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *When he has stopped writing*
+
+#### Use Case:
+- **As someone** who starts writing again just after a pause
+- **I want to** have the stale turn dropped
+- **so that** Claude answers the board as it is when I next stop, not a picture I've already moved past
+
+#### Acceptance Criteria:
+- **Scenario:** Writing again while Claude is being asked
+- **Given:** a pause has asked Claude and no answer has landed yet, and I spoke some words with it
+- **When:** I put the Pencil down to write again
+- **Then:** that request is dropped, any of its marks already shown go, the bar says nothing went wrong, and my words go with the next turn after my next pause

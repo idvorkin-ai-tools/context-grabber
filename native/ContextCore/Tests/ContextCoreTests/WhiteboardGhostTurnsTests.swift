@@ -394,4 +394,59 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertFalse(T.framesScreen(said: nil, boardEmpty: true), "a pause on an empty board isn't asked")
     XCTAssertFalse(T.framesScreen(said: "draw a circle", boardEmpty: false))
   }
+
+  // MARK: Story 894: the Pencil going down cancels a turn not yet landed
+
+  func testThePencilGoingDownCancelsATurnNotYetLanded() {
+    var turns = turns()
+    _ = turns.spoke("draw a box")
+    let asked = asking(&turns)
+    let streamed = ghosts(.claude, 1)
+    turns.land(streamed, who: .claude, first: true, now: t0)
+    turns.land(ghosts(.larry, 1), who: .larry, first: true, now: t0)
+    XCTAssertTrue(turns.penCancelsTurn())
+    XCTAssertEqual(count(turns, .claude), 0, "the marks it had landed go")
+    XCTAssertEqual(count(turns, .larry), 1, "Larry's stay")
+    XCTAssertFalse(turns.current(asked), "anything still on its way lands stale")
+    let landing = turns.answered(
+      .away(reason: "cancelled"), who: .claude, asked: asked, streamed: true, said: "draw a box")
+    XCTAssertTrue(landing.stale)
+    XCTAssertTrue(landing.cancelled)
+    XCTAssertNil(landing.failure, "nothing went wrong")
+    XCTAssertNil(turns.note, "and the bar says nothing")
+    XCTAssertEqual(turns.unsaid, "draw a box", "the words wait for the next turn")
+  }
+
+  func testThePencilGoingDownWithNoTurnOutCancelsNothing() {
+    var turns = turns()
+    turns.land(ghosts(.claude, 2), who: .claude, first: true, now: t0)
+    XCTAssertFalse(turns.penCancelsTurn())
+    XCTAssertEqual(count(turns, .claude), 2, "ghosts of a landed turn stay while he draws")
+  }
+
+  func testAStrokeDuringTheCancelledTurnIsAskedAboutAfterItsPause() {
+    var turns = turns()
+    let asked = asking(&turns)
+    XCTAssertTrue(turns.penCancelsTurn())
+    turns.toolWentDown()
+    XCTAssertTrue(turns.stroked())
+    _ = turns.toolLifted()
+    _ = turns.answered(.away(reason: "cancelled"), who: .claude, asked: asked, streamed: false, said: nil)
+    XCTAssertFalse(turns.pauseEnded(), "one turn at a time: the cancelled one is still winding down")
+    XCTAssertTrue(turns.turnOver(.claude), "and once it has, the new stroke's pause starts")
+    XCTAssertTrue(turns.pauseEnded())
+  }
+
+  func testALaterFailureAfterACancelledTurnIsStillOne() {
+    var turns = turns()
+    let first = asking(&turns)
+    XCTAssertTrue(turns.penCancelsTurn())
+    _ = turns.answered(.away(reason: "cancelled"), who: .claude, asked: first, streamed: false, said: nil)
+    _ = turns.turnOver(.claude)
+    let next = asking(&turns)
+    let landing = turns.answered(.away(reason: "offline"), who: .claude, asked: next, streamed: false, said: nil)
+    XCTAssertFalse(landing.cancelled)
+    XCTAssertNotNil(landing.failure)
+    XCTAssertEqual(turns.note, WhiteboardTurn.ghostsAway)
+  }
 }

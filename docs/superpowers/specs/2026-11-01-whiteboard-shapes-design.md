@@ -16,7 +16,7 @@ suggest changes the board until Igor keeps it.
 
 ### Ghosts from Claude (stories 344, 350–352, 354, 357–359, 370–377)
 
-- He draws, then lifts the Pencil. After **half a second** with nothing new Claude is asked (1 s until 2026-11-10, story 660), and within a few seconds faint
+- He draws, then lifts the Pencil. **Once he has stopped writing** (see *When he has stopped writing*, below; half a second from 2026-11-10, story 660, and 1 s before that) Claude is asked, and within a few seconds faint
   shapes draw themselves in, one after another, in Claude's colour (orange): the box his arrow points at, a label, the
   third circle. Only one turn is asked at a time; strokes made meanwhile get their own turn after the next
   pause, which waits for the tool to lift.
@@ -58,6 +58,31 @@ suggest changes the board until Igor keeps it.
 - A point in an answer that lies past anywhere the board could reach is ignored, and a shape left with too few points
   isn't shown: a model's bad number never breaks the board. A label with nothing to draw (an emoji has no outline)
   isn't shown or counted either.
+
+### When he has stopped writing (stories 892–894; Igor, 2026-11-16: "match Larry's web board")
+
+A pause after the last stroke asks Claude for ghosts, or hands Larry the picture on a Larry board. A fixed half second
+asked in the middle of a sentence; the Cockpit's web board (*/ink*) waits the way voice detection waits for a speaker,
+and the iPad now waits the same way.
+
+- **The wait follows his rhythm.** The board learns the gaps between his strokes (the median of the last forty, a gap
+  over 3 s being a pause, not his rhythm) and waits about **four times** his usual gap, never less than **1.5 s** and
+  never more than **5 s**. Until it has seen three gaps it takes a usual gap of 0.35 s, so the first wait is 1.5 s.
+- **Mid-line waits longer.** A last stroke in the middle of the page, away from the start and the end of a line, makes
+  the wait half as long again, within the same 1.5 to 5 s; strokes still coming faster than his usual make it a quarter
+  longer again.
+- **End-of-thought cues cut it to 1.5 s**, counted from the lift: a question mark (a small dot just under the stroke
+  before it); the hovering Pencil going back to the start of a line below the last stroke; and the hand leaving the
+  paper (no Pencil hover for a second, on an iPad whose Pencil hovers). A cue after 1.5 s has passed asks at once. A
+  pause is cut short once.
+- **The Pencil going down cancels a turn that hasn't landed.** Writing again means the picture Claude is looking at is
+  already stale: the request is dropped, any of its marks that had arrived go, and words spoken with it wait for the
+  next turn. The bar says nothing about it, as nothing failed. The next pause asks about the board as it is then. A
+  Larry turn already handed to him stays out, as before.
+- **Larry's turns wait the same way.** On a Larry board the picture goes after the same learned pause; one Larry turn at
+  a time, as below.
+- The session log says, for each pause, how long it waited, why (*rhythm*, *mid-line*, *+quick*, *question*, *new line*,
+  *hand away*) and his usual gap, so the iPad can show whether it feels right.
 
 ### How a mark looks: pen, colour, lettering (#698)
 
@@ -231,7 +256,7 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 
 ## Acceptance
 
-- Draw a circle and lift the Pencil: the turn goes half a second later (the session log's pause), not a second.
+- Draw a circle and lift the Pencil: the turn goes once he has stopped writing, 1.5 to 5 s later by his rhythm (the session log's pause and its cue); the Pencil going down first cancels a turn not yet landed.
 - Open the Board menu: the Responder row names the board's own; open it and it shows Haiku, Sonnet and Larry with that one ticked. Pick Haiku, close and reopen
   the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.
 - Pick Larry and draw: no orange ghosts come; the bar's note begins with Larry's clock (*Larry · 0:00*, story 667), the picture is in the board's chat

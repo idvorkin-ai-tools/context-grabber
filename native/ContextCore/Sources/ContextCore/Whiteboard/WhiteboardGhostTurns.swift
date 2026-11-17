@@ -35,6 +35,10 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public let ghostLife: Duration
   private var pacer = WhiteboardPacer()
   private var failing = false
+  /// Claude's marks landed by the turn out, which go if the Pencil cancels it (story 894).
+  private var landedThisTurn: Set<String> = []
+  /// The generation of a turn the Pencil cancelled: its answer is no failure (story 894).
+  private var cancelled: Int?
 
   public init(on: Bool, ghostLife: Duration) {
     self.on = on
@@ -60,6 +64,18 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
 
   /// True: start the pause again.
   public mutating func toolLifted() -> Bool { pacer.toolLifted() }
+
+  /// Story 894: the Pencil going down while Claude's turn is out. Writing again makes that picture stale: the turn is
+  /// dropped, the marks it had landed go, and its words wait for the next. True when a turn was out, so the caller stops
+  /// its request.
+  public mutating func penCancelsTurn() -> Bool {
+    guard pacer.isAsking else { return false }
+    cancelled = pacer.generation
+    pacer.dropped()
+    ghosts.removeAll { landedThisTurn.contains($0.id) }
+    landedThisTurn = []
+    return true
+  }
 
   /// The pause ran out. True: ask now; during a turn, the ask waits for it to land.
   public mutating func pauseEnded() -> Bool { pacer.pauseEnded() }
@@ -121,6 +137,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     if who == .claude {
       unsaid = nil
       pacer.turnStarted()
+      landedThisTurn = []
     }
     return pacer.generation
   }
@@ -144,6 +161,8 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     public var status: Int?
     /// The first failure in a run of them: logged once, never a loop of errors.
     public var firstFailure = false
+    /// The Pencil cancelled it (story 894): stale, and no failure.
+    public var cancelled = false
   }
 
   /// How the turn's answer lands. Words that didn't get through go with the next turn, unless Ghosts went off meanwhile.
@@ -151,6 +170,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     _ answer: WhiteboardTurn.Answer, who: WhiteboardTurn.Who, asked generation: Int, streamed: Bool, said: String?
   ) -> Answered {
     var result = Answered(stale: who == .claude && !current(generation))
+    result.cancelled = who == .claude && cancelled == generation
     var undelivered = said
     switch answer {
     case .shapes(let shapes):
@@ -165,6 +185,11 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
       result.status = status
     case .away(let reason):
       result.failure = "Larry couldn't be reached: \(reason)"
+    }
+    if result.cancelled {
+      cancelled = nil
+      result.failure = nil
+      result.status = nil
     }
     if result.failure != nil { result.firstFailure = failed(who, stale: result.stale) }
     if on, let undelivered { unsaid = unsaid.map { "\(undelivered) \($0)" } ?? undelivered }
@@ -194,7 +219,10 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public mutating func land(_ new: [Ghost], who: WhiteboardTurn.Who, first: Bool, now: ContinuousClock.Instant) {
     if who == .claude, note == WhiteboardTurn.ghostsAway, !new.isEmpty { note = nil }
     ghosts = (first ? ghosts.filter { $0.who != who } : ghosts) + new
-    if who == .claude { fadeAt = now + ghostLife }
+    if who == .claude {
+      fadeAt = now + ghostLife
+      landedThisTurn.formUnion(new.map(\.id))
+    }
   }
 
   /// Claude's go once their time is up; Larry's stay (story 358).

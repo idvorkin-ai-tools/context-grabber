@@ -180,10 +180,6 @@ final class WhiteboardResponderTests: XCTestCase {
 
   // MARK: The pause and the timings
 
-  func testThePauseIsHalfASecond() {
-    XCTAssertEqual(WhiteboardPacer.pause, .milliseconds(500))
-  }
-
   func testTimingsRoundToWholeMilliseconds() {
     XCTAssertEqual(WhiteboardTimings.ms(.milliseconds(500)), 500)
     XCTAssertEqual(WhiteboardTimings.ms(.microseconds(12_600)), 13)
