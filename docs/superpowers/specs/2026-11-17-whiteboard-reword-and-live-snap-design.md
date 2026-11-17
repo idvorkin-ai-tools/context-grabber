@@ -1,6 +1,6 @@
 # Rewording a kept text, and a snap you see before you lift
 
-Status: draft for Igor, 2026-11-17 (stories 940–945). The two things the 2026-11-16 spec
+Status: draft for Igor, 2026-11-17 (stories 940–944). The two things the 2026-11-16 spec
 ([Handwriting to text, and shapes that snap](2026-11-16-whiteboard-to-text-and-snap-design.md)) left for later, as
 Larry's web board `/ink` already does them (cockpit FEATURES.md, *Ink*; `rewordText` and the shape cleanup's preview in
 cockpit `assets/ink/`). Larry ranked them third and fifth of the board's missing pieces.
