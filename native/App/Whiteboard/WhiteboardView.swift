@@ -2066,8 +2066,10 @@ struct WhiteboardView: View {
   private let onPhone: Bool
   private let openChat: (String) -> Void
   private let decisions: ChatDecisionsModel
+  private let store: WhiteboardStore
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
+    self.store = store
     _model = StateObject(
       wrappedValue: WhiteboardModel(
         board: board, store: store, log: app.log, inbox: app.inbox, cockpit: app.chat.cockpit,
@@ -2125,7 +2127,7 @@ struct WhiteboardView: View {
       .ignoresSafeArea(edges: .bottom)
     }
     .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
-    .navigationTitle(model.board.title)
+    .modifier(BoardNameInBar(board: model.board, store: store))  // Story 836: its name as it is now, renamed here.
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if model.editable {

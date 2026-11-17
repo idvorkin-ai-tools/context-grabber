@@ -1,6 +1,6 @@
 //  The boards (spec 2026-11-01-whiteboard-design.md, stories 348, 396–401): what the Whiteboard tile opens. A row per
-//  board, newest change first, + New board, a swipe or long press to delete any board, a long press to rename this
-//  device's own; every device's boards come down from iCloud when the list opens, comes forward, or is pulled.
+//  board, newest change first, + New board, a swipe or long press to delete any board, or to rename this device's own
+//  (story 836); every device's boards come down from iCloud when the list opens, comes forward, or is pulled.
 
 import BugKit
 import ContextCore
@@ -126,6 +126,13 @@ struct WhiteboardListView: View {
     // Tinted, not `role: .destructive`: that role takes the row away before the question is answered.
     .swipeActions {
       Button("Delete") { deleting = board }.tint(.red)
+      // Story 836 (#916): the long press alone wasn't found.
+      if store.editable(board) {
+        Button("Rename") {
+          newName = board.title
+          renaming = board
+        }
+      }
     }
     .contextMenu {
       if store.editable(board) {
