@@ -6502,7 +6502,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A refused change of Larry's says so on the board
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry: "show a chip so I'm not guessing" when Larry's push is refused
-- **Status:** in progress
+- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); the UI test `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` is written, not yet run: the Mac screen was locked for rung 2
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6532,7 +6532,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Retry hands Larry the board again
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
-- **Status:** in progress
+- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); the UI test `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` is written, not yet run: the Mac screen was locked for rung 2
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6552,7 +6552,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** The chip goes by × or by a change that applies
 - **Issues:** Igor on the iPad, build e61a582b, 2026-11-17, via Larry
-- **Status:** in progress
+- **Status:** implemented in [7b8e689](https://github.com/idvorkin/context-grabber/commit/7b8e689); verified by host tests (`BoardBlockedEditTests`), `just test` and the Mac build (`just native-build-mac`); the UI test `testARefusedPushShowsTheChipAndRetryHandsLarryTheBoard` is written, not yet run: the Mac screen was locked for rung 2
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *When Larry's edit is blocked*
 
 #### Use Case:
@@ -6577,7 +6577,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A selection dropped onto writing pushes the writing down
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"
-- **Status:** in progress
+- **Status:** implemented in [f62e422](https://github.com/idvorkin/context-grabber/commit/f62e422); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
@@ -6597,7 +6597,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** The drag and the push are one Undo
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry
-- **Status:** in progress
+- **Status:** implemented in [f62e422](https://github.com/idvorkin/context-grabber/commit/f62e422); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
@@ -6622,7 +6622,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A drop on clear paper moves only what I dragged
 - **Issues:** Igor on the iPad, 2026-11-17, via Larry
-- **Status:** in progress
+- **Status:** implemented in [f62e422](https://github.com/idvorkin/context-grabber/commit/f62e422); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
 #### Use Case:
