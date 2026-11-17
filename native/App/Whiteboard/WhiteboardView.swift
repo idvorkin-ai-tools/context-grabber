@@ -544,6 +544,8 @@ final class WhiteboardModel: ObservableObject {
     case .sent(let key, _):
       event["ok"] = true
       event["thread"] = key
+      // A reply that lands before the first look at a new thread is still his answer.
+      if thread == nil { marks.threadStarted() }
       threads.set(key, board: board.id)
       // The Cockpit has the picture (story 775): it isn't stuck. Kept apart from the marks the thread shows, so a
       // Cockpit that marks nothing never reads *Sent* (story 773).

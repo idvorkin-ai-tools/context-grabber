@@ -260,4 +260,20 @@ final class WhiteboardMarksTests: XCTestCase {
     threads.forget("old", board: "b1")
     XCTAssertEqual(threads.thread(board: "b1"), "new")
   }
+
+  /// The board's turn opened the thread and his answer was on it before the first look: it is still his answer, said
+  /// and replied, with its marks (the stale-push UI test, 2026-11-17: the fake answer beat the first look).
+  func testAnAnswerOnANewThreadBeforeTheFirstLookIsStillAnAnswer() {
+    var marks = WhiteboardMarks()
+    marks.threadStarted()
+    let update = marks.take([row("a", text: "made room", marks: false)], settled: nil)
+    XCTAssertTrue(update.replied)
+    XCTAssertEqual(update.say, "made room")
+  }
+
+  func testWithoutThreadStartedTheFirstLookStillTakesNothingAsAReply() {
+    var marks = WhiteboardMarks()
+    let update = marks.take([row("a", text: "made room", marks: false)], settled: nil)
+    XCTAssertFalse(update.replied, "rows already on a thread the board opened earlier aren't answers")
+  }
 }

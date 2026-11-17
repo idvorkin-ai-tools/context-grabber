@@ -127,6 +127,10 @@ public struct WhiteboardMarks: Sendable {
 
   public init() {}
 
+  /// The board's own turn opened the thread: nothing was on it before, so every row the first look finds is his answer,
+  /// however soon it came.
+  public mutating func threadStarted() { seen = [] }
+
   /// `rows`: Larry's, oldest first. `settled`: the row Igor already kept or dismissed from. The first look shows only
   /// the newest row of marks, unless that one is settled or has nowhere to go; after that, each new one.
   public mutating func take(_ rows: [Row], settled: String?) -> Update {
