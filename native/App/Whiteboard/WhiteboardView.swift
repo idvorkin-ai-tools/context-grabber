@@ -2496,7 +2496,11 @@ struct WhiteboardView: View {
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
         }
         // Story 995: the chosen mark's buttons keep clear of this corner.
-        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { model.cornerLaid($0) }
+        .onGeometryChange(for: CGRect.self) {
+          $0.frame(in: .global)
+        } action: {
+          model.cornerLaid($0)
+        }
       }
       // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.
       .overlay(alignment: .top) {
