@@ -206,7 +206,9 @@ import Foundation
     // What the steps touched, by name: where it is now, or where it was. A group answers to its name with all its ink.
     var places = Dictionary(
       board.ink.map { ($0.id, $0.bounds) } + board.texts.map { ($0.id, $0.box) }, uniquingKeysWith: { a, _ in a })
-    for ink in board.ink { if let group = ink.meta?.group { places[group] = (places[group] ?? .null).union(ink.bounds) } }
+    for ink in board.ink {
+      if let group = ink.meta?.group { places[group] = (places[group] ?? .null).union(ink.bounds) }
+    }
     for outcome in outcomes {
       for (id, was) in outcome.erased {
         box(was, in: ctx, color: Look.erased, dashed: true)
