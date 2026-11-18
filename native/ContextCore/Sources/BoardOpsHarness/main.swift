@@ -6,7 +6,8 @@
 //                      [--out <prefix>] [--rev <n>] [--scale <px per point>]
 //
 //  A step file may also be a chat reply of Larry's with `shapes` (#941): his marks show as ghosts where the iPad puts
-//  them, and each is tried with a tap; `--tap x,y` is a finger tap at a board point.
+//  them, and each is tried with a tap; `--tap x,y` is a finger tap at a board point; `--keep-group <reply id>` is
+//  Igor's Keep group (#942), the reply's marks kept as ink under one group.
 //
 //  Writes <prefix>.png (after), <prefix>-before.png, <prefix>.result.json (each step's op_result and what it touched)
 //  and <prefix>.board.json (the board after, to replay the next batch on). Prints the result JSON.
@@ -41,6 +42,7 @@ import Foundation
         case "--ops": steps.append(("ops", try value(flag)))
         case "--keep": steps.append(("keep", try value(flag)))
         case "--tap": steps.append(("tap", try value(flag)))
+        case "--keep-group": steps.append(("keep-group", try value(flag)))
         case "--out": out = try value(flag)
         case "--rev": rev = Int(try value(flag))
         case "--scale": scale = CGFloat(Double(try value(flag)) ?? 1.5)
@@ -57,7 +59,7 @@ import Foundation
 
     static let usage = """
       usage: board-ops-harness --board <snapshot.json> --ops <batch.json|reply.json> [--ops ...] [--keep id,id]
-                               [--tap x,y]
+                               [--tap x,y] [--keep-group <reply id>]
                                [--out <prefix>] [--rev <n>] [--scale <px per point>]
       """
   }
@@ -200,9 +202,10 @@ import Foundation
         say("tap → \(tap.chose ?? "nothing")", at: CGPoint(x: tap.at.x + 8, y: tap.at.y - 6), in: ctx, color: Look.erased)
       }
     }
-    // What the steps touched, by name: where it is now, or where it was.
-    let places = Dictionary(
+    // What the steps touched, by name: where it is now, or where it was. A group answers to its name with all its ink.
+    var places = Dictionary(
       board.ink.map { ($0.id, $0.bounds) } + board.texts.map { ($0.id, $0.box) }, uniquingKeysWith: { a, _ in a })
+    for ink in board.ink { if let group = ink.meta?.group { places[group] = (places[group] ?? .null).union(ink.bounds) } }
     for outcome in outcomes {
       for (id, was) in outcome.erased {
         box(was, in: ctx, color: Look.erased, dashed: true)
@@ -274,6 +277,8 @@ import Foundation
     for (i, step) in args.steps.enumerated() {
       if step.kind == "keep" {
         steps.append(.keep(step.value.split(separator: ",").map(String.init)))
+      } else if step.kind == "keep-group" {
+        steps.append(.keepGroup(step.value))
       } else if step.kind == "tap" {
         let xy = step.value.split(separator: ",").compactMap { Double($0) }
         guard xy.count == 2 else { throw Failure(description: "--tap wants x,y") }

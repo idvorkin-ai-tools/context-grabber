@@ -157,6 +157,21 @@ public struct WhiteboardMarks: Sendable {
   /// so it alone stays gone when the board opens again.
   public static func mark(_ index: Int, of row: String) -> String { "\(row)#\(index)" }
 
+  /// The reply a mark of Larry's came in (`mark`'s row); nil for any other ghost, such as his text from a change.
+  public static func reply(of mark: String) -> String? {
+    guard let hash = mark.lastIndex(of: "#"), Int(mark[mark.index(after: hash)...]) != nil else { return nil }
+    return String(mark[..<hash])
+  }
+
+  /// The group a reply kept whole goes under (#942, story 995): Larry moves or erases it by this one name.
+  public static func group(reply: String) -> String { "reply-\(reply)" }
+
+  /// The notes that make `names`, the strokes of a reply kept whole, one group.
+  public static func groupNotes(_ names: [String], reply: String) -> [String: BoardMeta] {
+    guard let meta = BoardMeta(["group": group(reply: reply)]) else { return [:] }
+    return Dictionary(names.map { ($0, meta) }, uniquingKeysWith: { a, _ in a })
+  }
+
   /// The marks remembered once `mark` of `row` is kept or dismissed: the ones already remembered from that row, and it.
   /// Another row's are forgotten: only the newest row ever comes back.
   public static func settling(_ mark: String, of row: String, after settled: [String]) -> [String] {

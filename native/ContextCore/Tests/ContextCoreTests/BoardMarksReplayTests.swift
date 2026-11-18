@@ -68,6 +68,33 @@ final class BoardMarksReplayTests: XCTestCase {
     }
   #endif
 
+  // MARK: Keep group (#942, story 995)
+
+  func testKeepGroupMakesTheReplyInkUnderOneGroupThatMovesAsOne() throws {
+    var replay = try family(then: [.keepGroup(row)])
+    let kept = replay.board.ink.filter { $0.meta?.group == "reply-\(row)" }
+    XCTAssertGreaterThanOrEqual(kept.count, 7, "the four boxes and three lines at least, and the names' letters")
+    XCTAssertEqual(replay.marks, [], "nothing of the reply left to keep")
+    XCTAssertEqual(replay.outcomes.last?.action, "kept")
+
+    let move: [String: Any] = [
+      "board": "13f700bf-ddcb-4a89-a6b7-64c0047f24e3", "base_rev": replay.board.rev ?? 0, "label": "move family",
+      "list": [["op": "translate", "ids": ["reply-\(row)"], "dy": 80]],
+    ]
+    replay.run(BoardReplay.Step.steps(move, key: "move"))
+    let outcome = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(outcome.action, "applied", "\(outcome.wire)")
+    XCTAssertEqual(outcome.result?.missingIDs ?? [], [], "the group answers to its one name")
+    XCTAssertEqual(Set(outcome.moved.keys), Set(kept.map(\.id)), "every stroke of the group moved, and only those")
+    XCTAssertTrue(outcome.moved.values.allSatisfy { $0.dy == 80 })
+  }
+
+  func testKeepGroupOfAReplyNotShowingKeepsNothing() throws {
+    let replay = try family(then: [.keepGroup("nope")])
+    XCTAssertEqual(replay.outcomes.last?.action, "ignored")
+    XCTAssertEqual(replay.marks.count, replay.outcomes.first?.marks.count)
+  }
+
   func testAReplyWithNoFrameShowsNothing() throws {
     var replay = BoardReplay(try BoardSnapshot(json: try fixture("family-board")))
     let row = WhiteboardMarks.Row(id: "r", shapes: [.init(kind: .line, points: [.zero, CGPoint(x: 9, y: 9)])])

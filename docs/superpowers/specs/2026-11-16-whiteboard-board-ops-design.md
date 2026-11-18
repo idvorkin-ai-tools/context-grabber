@@ -359,6 +359,9 @@ what a change would do except to send it to Igor's real board, and paused his ch
   placed by the picture he answered) shows them where the iPad would, and says, for each, whether a finger tapping on
   it reaches it or which other mark of his takes the tap instead. A tap at a point can be part of the check, and says
   which mark it would choose.
+- **Keeping a reply as a group checks too** (#942): Igor's *Keep group* on one of the reply's marks can be part of the
+  check. The marks become his ink under one group named for the reply, and a later change of Larry's that moves or
+  erases that group by its name shows it moving or going as one.
 
 ## Non-goals
 

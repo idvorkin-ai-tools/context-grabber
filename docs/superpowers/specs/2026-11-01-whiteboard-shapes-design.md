@@ -36,6 +36,21 @@ suggest changes the board until Igor keeps it.
     whichever came first in his reply, and a line crossing another is chosen where the finger is closer to it.
   - The session log says, for each mark chosen, how many marks were within the finger's reach, and, for each set of
     marks shown, how many of each kind, so a mark that can't be tapped shows up in a phone's log.
+  - **Keep group keeps a whole reply as one thing** (#942; Igor, 2026-11-17, via Larry: "accept the group", after
+    keeping his four named boxes one mark at a time). When the chosen mark is one of Larry's and more of the marks from
+    the same reply of his still show, a third button, **Keep group** with how many (*Keep group · 11*), sits between
+    Keep and Dismiss. One tap keeps every mark of that reply still showing, where each showed, as ink in his colours:
+    nothing moves for Igor's writing, as nothing does for one Keep. **One undo takes them all back.**
+  - What it keeps is **one group**, as Larry's own groups are: a push or a paste's room never splits it, the Pencil
+    held on any of it picks up all of it, and Larry hears it as one group (its strokes carry the same group note, named
+    for his reply) that he can move or erase by that one name. Tidy overlaps leaves it as it is. A mark of the reply
+    Igor already kept or dismissed is not in it; Claude's marks, and Larry's text from a change of his, never are.
+  - The buttons stay together, beside the mark and wholly on screen as before, and never under the board's top-right
+    corner (? and Feedback, and *Larry's edit blocked* when it shows): placed there, they move below that corner. Each
+    of the three takes at least 36 points each way, and a tap on any of them, or between them, never reaches the paper.
+  - The note line's *Keep all* stays as it was (story 895): every mark of his, each laid clear of Igor's writing, not
+    grouped.
+  - The session log says how many marks a group keep took, its strokes and its group's name.
   - **Keep** does what a tap used to: the mark becomes real ink in Claude's colour (or the one it asked for, below),
     and his eraser and undo treat it like his own strokes. One undo takes it back.
   - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the

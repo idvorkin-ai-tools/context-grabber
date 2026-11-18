@@ -101,6 +101,9 @@ final class WhiteboardModel: ObservableObject {
   /// applies.
   @Published private(set) var blocked = BoardBlockedEdit()
   private var blockedFrame: CGRect?
+  /// Story 995: the board's top-right corner (? and Feedback, and the chip), window points, which the chosen mark's
+  /// buttons keep clear of.
+  @Published private(set) var cornerFrame: CGRect = .null
   /// The board's mic (story 345): open, on its way up and finishing its last words.
   @Published private(set) var micOn = false
   @Published private(set) var micStarting = false
@@ -1428,6 +1431,43 @@ final class WhiteboardModel: ObservableObject {
     ink(kept)
   }
 
+  /// Story 995: how many of the chosen mark's reply still show; Keep group is offered from two.
+  var chosenReplyCount: Int { turns.chosenReply().count }
+
+  /// Keep group (#942, story 995): every mark of the chosen one's reply still showing, ink where it showed, in one keep
+  /// (one undo), its strokes one group named for the reply, which Larry moves or erases by that one name.
+  func keepChosenReply() {
+    guard editable, let reply = turns.chosen.flatMap({ WhiteboardMarks.reply(of: $0.id) }) else { return }
+    let marks = turns.keepChosenReply()
+    guard !marks.isEmpty else { return }
+    let started = Date()
+    var strokes: [PKStroke] = []
+    for (i, ghost) in marks.enumerated() {
+      // A moment of its own for each, a few milliseconds apart, as Keep all gives them. Not remembered as a label: Tidy
+      // overlaps leaves a group as it is.
+      let made = started.addingTimeInterval(Double(i) * 0.005)
+      strokes +=
+        connectorInk(ghost) ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made)
+      settleLarrys(ghost)
+    }
+    // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
+    let names = opStrokes(strokes).strokes.flatMap(\.ids)
+    strokeMeta.merge(WhiteboardMarks.groupNotes(names, reply: reply))
+    opLedger.setStrokeMeta(strokeMeta, board: board.id)
+    log.event(
+      "whiteboard",
+      [
+        "action": "keep_group", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+        "group": WhiteboardMarks.group(reply: reply),
+      ])
+    add(strokes)
+  }
+
+  /// Story 995: where the corner's buttons are, in window points.
+  func cornerLaid(_ frame: CGRect) {
+    if frame != cornerFrame { cornerFrame = frame }
+  }
+
   /// Dismiss beside the chosen mark: that mark goes, and doesn't come back when the board opens again.
   func dismissChosen() {
     guard let gone = turns.dismissChosen() else { return }
@@ -2455,6 +2495,8 @@ struct WhiteboardView: View {
             editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
         }
+        // Story 995: the chosen mark's buttons keep clear of this corner.
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { model.cornerLaid($0) }
       }
       // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.
       .overlay(alignment: .top) {

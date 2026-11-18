@@ -2145,31 +2145,51 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
 }
 
 /// Story 825 (#883): Keep and Dismiss beside the chosen mark, wholly on screen. Over the board, not in it, so a tap on
-/// them never reaches the board as a tap off the marks.
+/// them never reaches the board as a tap off the marks. Story 995 (#942): Keep group between them when more of the
+/// mark's reply of Larry's shows; each button at least 36 points each way, the capsule taking every tap within it, and
+/// never under the board's top-right corner.
 private struct MarkChoiceButtons: View {
   @ObservedObject var model: WhiteboardModel
   let mark: CGRect?
-  private static let size = CGSize(width: 184, height: 44)
+  private static let height: CGFloat = 48
 
   var body: some View {
     GeometryReader { geometry in
       if let mark {
+        let group = model.chosenReplyCount
+        let size = CGSize(width: group > 1 ? 400 : 210, height: Self.height)
+        let origin = geometry.frame(in: .global).origin
         let place = WhiteboardMarkChoice.place(
-          mark: mark, buttons: Self.size, in: CGRect(origin: .zero, size: geometry.size))
-        HStack(spacing: 6) {
-          Button("Keep", systemImage: "checkmark") { model.keepChosen() }
+          mark: mark, buttons: size, in: CGRect(origin: .zero, size: geometry.size),
+          avoid: model.cornerFrame.offsetBy(dx: -origin.x, dy: -origin.y))
+        HStack(spacing: 4) {
+          Button(action: model.keepChosen) { Self.label("Keep", "checkmark") }
             .accessibilityIdentifier("whiteboard-mark-keep")
-          Button("Dismiss", systemImage: "xmark") { model.dismissChosen() }
+          if group > 1 {
+            Button(action: model.keepChosenReply) { Self.label("Keep group · \(group)", "square.on.square") }
+              .accessibilityHint("Keeps all \(group) marks of this reply of Larry's as one group that moves together")
+              .accessibilityIdentifier("whiteboard-mark-keep-group")
+          }
+          Button(action: model.dismissChosen) { Self.label("Dismiss", "xmark") }
             .accessibilityIdentifier("whiteboard-mark-dismiss")
         }
         .font(.subheadline.weight(.semibold))
         .buttonStyle(.bordered)
         .controlSize(.small)
-        .frame(width: Self.size.width, height: Self.size.height)
+        .lineLimit(1)
+        .frame(width: size.width, height: size.height)
         .background(.regularMaterial, in: Capsule())
+        // A tap between the buttons lands on the capsule, never on the paper under it.
+        .contentShape(Capsule())
+        .onTapGesture {}
         .position(x: place.midX, y: place.midY)
       }
     }
+  }
+
+  /// A button's whole face, at least 36 points each way, takes its tap (#933: a bare glyph let taps through).
+  private static func label(_ title: String, _ image: String) -> some View {
+    Label(title, systemImage: image).frame(minWidth: 36, minHeight: 36).contentShape(Rectangle())
   }
 }
 

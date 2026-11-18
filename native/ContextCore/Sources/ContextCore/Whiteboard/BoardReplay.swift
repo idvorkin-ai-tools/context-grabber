@@ -21,6 +21,8 @@ public struct BoardReplay {
     case marks(WhiteboardMarks.Row)
     /// A finger tap at a board point: which of his marks it chooses (#941).
     case tap(CGPoint)
+    /// Igor's Keep group on a mark of this reply (#942): its marks still showing become ink, one group.
+    case keepGroup(String)
 
     /// A step file's JSON: a batch, a chat message carrying one under `ops`, `{"keep": [ids]}`, or a list of those.
     public static func steps(_ any: Any, key: String) -> [Step] {
@@ -29,6 +31,7 @@ public struct BoardReplay {
       }
       guard let json = any as? [String: Any] else { return [] }
       if let ids = json["keep"] as? [String] { return [.keep(ids)] }
+      if let reply = json["keep_group"] as? String { return [.keepGroup(reply)] }
       if let at = json["tap"] as? [NSNumber], at.count == 2 {
         return [.tap(CGPoint(x: at[0].doubleValue, y: at[1].doubleValue))]
       }
@@ -159,6 +162,7 @@ public struct BoardReplay {
       case .batch(let key, let json): run(key: key, json: json)
       case .keep(let ids): keep(ids)
       case .marks(let row): show(row)
+      case .keepGroup(let reply): keepGroup(reply)
       case .tap(let at):
         var outcome = Outcome(label: "tap", action: "tapped")
         outcome.taps = [Tap(at: at, mark: nil, chose: choose(at: at)?.id)]
@@ -303,5 +307,38 @@ public struct BoardReplay {
     outcome.taps = marks.compactMap { mark in
       mark.aim.map { Tap(at: $0, mark: mark.id, chose: choose(at: $0)?.id) }
     }
+  }
+
+  /// Keep group (#942, story 995): the reply's marks still showing become ink where they showed, each stroke named for
+  /// its mark, all under the reply's one group; one change.
+  private mutating func keepGroup(_ reply: String) {
+    var outcome = Outcome(label: "keep group \(reply)", action: "kept")
+    let kept = marks.filter { WhiteboardMarks.reply(of: $0.id) == reply }
+    guard !kept.isEmpty else {
+      outcome.action = "ignored"
+      outcome.why = "no marks of \(reply) showing"
+      outcomes.append(outcome)
+      return
+    }
+    var names: [String] = []
+    var strokes: [BoardSnapshot.Ink] = []
+    for mark in kept {
+      for (k, line) in mark.lines.enumerated() {
+        let name = "\(mark.id).\(k)"
+        names.append(name)
+        strokes.append(
+          BoardSnapshot.Ink(
+            id: name, t: nextTime(), color: String(format: "#%06x", mark.color), width: mark.width,
+            points: WhiteboardTurn.inkPoints(line)))
+      }
+    }
+    let notes = WhiteboardMarks.groupNotes(names, reply: reply)
+    for i in strokes.indices { strokes[i].meta = notes[strokes[i].id] }
+    board.ink += strokes
+    marks.removeAll { WhiteboardMarks.reply(of: $0.id) == reply }
+    outcome.drawn = [WhiteboardMarks.group(reply: reply)]
+    applier.changed()
+    board.rev = applier.rev
+    outcomes.append(outcome)
   }
 }

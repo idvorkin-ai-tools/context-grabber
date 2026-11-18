@@ -331,6 +331,19 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(for: [done], timeout: 5)
   }
 
+  /// The fake Cockpit draws `count` circles in a row on the board's thread, unprompted, as one reply of Larry's.
+  private func larryDraws(_ count: Int, _ cockpit: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-draws")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"count": \#(count)}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
   /// What each board message reported back to the fake Cockpit: its rev and op_result (story 818).
   private func opReports(_ cockpit: String) throws -> [[String: Any]] {
     let url = try XCTUnwrap(URL(string: cockpit + "/fake/ops"))
@@ -436,6 +449,39 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     let redone = ink(app, within: 8) { $0.maxY > before.maxY + 0.03 }
     XCTAssertNotNil(redone, "redo pushed it down again")
     XCTAssertEqual(send(app).label, strokes(2))
+  }
+
+  /// Story 995 (#942): beside one of Larry's marks, Keep group keeps his whole reply at once, in his purple, with nothing
+  /// left to keep, and one undo takes all of it back. Its buttons are a finger's height. That the strokes are one group
+  /// named for the reply, and move as one, is `WhiteboardKeepGroupTests` and `BoardMarksReplayTests`, on the host.
+  func testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_KEEP": "8,undo"])
+    ghosts(app).tap()  // Ghosts off: only Larry's marks show.
+    stroke(app)
+    wait(send(app), label: strokes(1))
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    try larryDraws(3, cockpit)
+    XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
+    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    // The first circle's left side.
+    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
+    let group = app.buttons["whiteboard-mark-keep-group"]
+    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(group.label.hasPrefix("Keep group · 3"), group.label)
+    for id in ["whiteboard-mark-keep", "whiteboard-mark-keep-group", "whiteboard-mark-dismiss"] {
+      XCTAssertGreaterThanOrEqual(app.buttons[id].frame.height, 36, "\(id) a finger's height")
+    }
+    shot(app, "keep group beside his mark")
+    group.tap()
+    waitUntil(NSPredicate(format: "label != %@", strokes(1)), send(app), timeout: 10)
+    XCTAssertFalse(toKeep(app, 3).exists, "none of his reply left to keep")
+    XCTAssertNotNil(PaperScreen.settled(app) { $0.larryKept }, "ink in his purple")
+    shot(app, "his reply kept as a group")
+    wait(send(app), label: strokes(1), timeout: 12)
+    XCTAssertNil(PaperScreen(app).larryKept, "one undo took all of it back")
+    shot(app, "after one undo")
   }
 
   /// Stories 817, 818: Larry's text arrives as a ghost in his purple, keeps on a tap and Keep where it showed, goes back to

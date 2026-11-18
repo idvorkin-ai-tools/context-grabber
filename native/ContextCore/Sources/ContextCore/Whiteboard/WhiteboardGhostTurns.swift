@@ -302,6 +302,24 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     return kept
   }
 
+  /// The marks still showing from the chosen mark's reply of Larry's, the chosen one among them, in the order they came;
+  /// empty when nothing of his is chosen (#942, story 995).
+  public func chosenReply() -> [Ghost] {
+    guard let chosen, chosen.who == .larry, let reply = WhiteboardMarks.reply(of: chosen.id) else { return [] }
+    return ghosts.filter { $0.who == .larry && WhiteboardMarks.reply(of: $0.id) == reply }
+  }
+
+  /// Keep group: the chosen mark's whole reply leaves the ghosts, in the order it came; the caller makes it ink, one
+  /// group. Empty with nothing of his chosen.
+  public mutating func keepChosenReply() -> [Ghost] {
+    let reply = Set(chosenReply().map(\.id))
+    guard !reply.isEmpty else { return [] }
+    chosenID = nil
+    let kept = ghosts.filter { reply.contains($0.id) }
+    ghosts.removeAll { reply.contains($0.id) }
+    return kept
+  }
+
   /// Keep: the chosen mark leaves the ghosts; the caller turns it into ink. Nil with nothing chosen.
   public mutating func keepChosen() -> Ghost? { removeChosen() }
 
@@ -323,6 +341,19 @@ public enum WhiteboardMarkChoice {
   public static let gap: CGFloat = 8
   /// Between the buttons and the view's edge.
   public static let margin: CGFloat = 8
+
+  /// `avoid`: the board's top-right corner (? and Feedback, and the blocked chip), never under the buttons (story 995).
+  /// Placed there, they go below it, or else to its left.
+  public static func place(mark: CGRect, buttons: CGSize, in view: CGRect, avoid: CGRect) -> CGRect {
+    let placed = place(mark: mark, buttons: buttons, in: view)
+    let corner = avoid.insetBy(dx: -gap, dy: -gap)
+    guard !avoid.isNull, !avoid.isEmpty, placed.intersects(corner) else { return placed }
+    let inside = view.insetBy(dx: margin, dy: margin)
+    let below = CGRect(x: placed.minX, y: corner.maxY, width: placed.width, height: placed.height)
+    if below.maxY <= inside.maxY { return below }
+    return CGRect(
+      x: max(inside.minX, corner.minX - placed.width), y: placed.minY, width: placed.width, height: placed.height)
+  }
 
   public static func place(mark: CGRect, buttons: CGSize, in view: CGRect) -> CGRect {
     let inside = view.insetBy(dx: margin, dy: margin)

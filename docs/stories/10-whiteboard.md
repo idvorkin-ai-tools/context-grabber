@@ -7119,3 +7119,38 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a reply of his with marks and a copy of the board
 - **When:** he runs `just board-ops` with them
 - **Then:** the picture shows his marks where the iPad would, and every mark a tap can't reach is named, with the mark that takes the tap instead
+
+---
+
+### User Story 995:
+
+- **Summary:** One tap keeps all of a reply of Larry's, as one group
+- **Status:** in progress on branch `native/board-keep-group`
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942): Igor, 2026-11-17 19:15, via Larry: "accept the group", after keeping his four named boxes one mark at a time
+
+#### Use Case:
+- **As someone** Larry answered with a little drawing of several marks
+- **I want to** keep the whole of his reply with one tap, as one thing
+- **so that** his drawing lands whole and moves as one, and one Undo takes it all back
+
+#### Acceptance Criteria:
+- **Scenario:** Keep group
+- **Given:** Larry's reply of several marks showing, and I tap one of them
+- **When:** I tap *Keep group* between Keep and Dismiss
+- **Then:** every mark of that reply still showing becomes ink in his colours where it showed, none is left to keep, and one Undo takes them all back
+
+- **Scenario:** It moves as one
+- **Given:** a reply I kept as a group
+- **When:** Larry moves it by the group's name, or a push opens room through it
+- **Then:** all of it moves together, and Larry hears its strokes under that one group
+
+- **Scenario:** One mark left
+- **Given:** only one mark of his reply still shows
+- **When:** I tap it
+- **Then:** Keep and Dismiss show, and no *Keep group*
+
+- **Scenario:** Never under the corner
+- **Given:** the mark I tapped is near the board's top right, where ? and Feedback (and *Larry's edit blocked*) sit
+- **When:** the buttons show
+- **Then:** they sit clear of that corner, each at least 36 points each way, and a tap on them never reaches the paper
