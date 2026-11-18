@@ -7097,7 +7097,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Summary:** A label inside one of Larry's boxes can be tapped on its words
 - **Status:** in progress on branch `native/board-ghost-labels`
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*; [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry checks a change before he sends it*
-- **Issues:** [#941](https://github.com/idvorkin/context-grabber/issues/941): Larry's four named boxes of 18:26, 2026-11-17 (board 13f700bf, build 10b84a5f): all eleven marks showed (`paper_ghosts` count 11), Igor's three taps each chose a box or a line, no tap could reach a name, and Larry's next reply replaced the eight left
+- **Issues:** [#941](https://github.com/idvorkin/context-grabber/issues/941): Larry's four named boxes of 18:26, 2026-11-17 (board 13f700bf, build 10b84a5f): all eleven marks showed (`paper_ghosts` count 11, past_side false); Igor's three taps each chose a box or a line and he kept those three; a tap on the upper half of a name went to its box (38–57% of each name's box, by `just board-ops`); and Larry's next reply replaced the eight left, the four names among them
 
 #### Use Case:
 - **As someone** keeping Larry's labelled boxes one at a time

@@ -197,7 +197,8 @@ import Foundation
       for tap in outcome.taps where tap.mark == nil {
         ctx.setFillColor(Look.erased)
         ctx.fillEllipse(in: CGRect(x: tap.at.x - 4, y: tap.at.y - 4, width: 8, height: 8))
-        say("tap → \(tap.chose ?? "nothing")", at: CGPoint(x: tap.at.x + 8, y: tap.at.y - 6), in: ctx, color: Look.erased)
+        say(
+          "tap → \(tap.chose ?? "nothing")", at: CGPoint(x: tap.at.x + 8, y: tap.at.y - 6), in: ctx, color: Look.erased)
       }
     }
     // What the steps touched, by name: where it is now, or where it was.
@@ -248,7 +249,8 @@ import Foundation
       line += " marks=\(outcome.marks.count) reachable=\(outcome.marks.count - outcome.unreachable.count)"
     }
     if !outcome.unreachable.isEmpty {
-      line += " UNREACHABLE=\(outcome.unreachable.map { "\($0.mark ?? "")->\($0.chose ?? "none")" }.joined(separator: ","))"
+      line +=
+        " UNREACHABLE=\(outcome.unreachable.map { "\($0.mark ?? "")->\($0.chose ?? "none")" }.joined(separator: ","))"
     }
     return line
   }
