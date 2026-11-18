@@ -157,6 +157,21 @@ public struct WhiteboardMarks: Sendable {
   /// so it alone stays gone when the board opens again.
   public static func mark(_ index: Int, of row: String) -> String { "\(row)#\(index)" }
 
+  /// The reply a mark of Larry's came in (`mark`'s row); nil for any other ghost, such as his text from a change.
+  public static func reply(of mark: String) -> String? {
+    guard let hash = mark.lastIndex(of: "#"), Int(mark[mark.index(after: hash)...]) != nil else { return nil }
+    return String(mark[..<hash])
+  }
+
+  /// The group a reply kept whole goes under (#942, story 995): Larry moves or erases it by this one name.
+  public static func group(reply: String) -> String { "reply-\(reply)" }
+
+  /// The notes that make `names`, the strokes of a reply kept whole, one group.
+  public static func groupNotes(_ names: [String], reply: String) -> [String: BoardMeta] {
+    guard let meta = BoardMeta(["group": group(reply: reply)]) else { return [:] }
+    return Dictionary(names.map { ($0, meta) }, uniquingKeysWith: { a, _ in a })
+  }
+
   /// The marks remembered once `mark` of `row` is kept or dismissed: the ones already remembered from that row, and it.
   /// Another row's are forgotten: only the newest row ever comes back.
   public static func settling(_ mark: String, of row: String, after settled: [String]) -> [String] {
@@ -168,15 +183,21 @@ public struct WhiteboardMarks: Sendable {
     guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["ok"] as? Bool == true,
       let messages = json["messages"] as? [[String: Any]]
     else { return nil }
-    return messages.compactMap { message in
-      guard message["who"] as? String == "larry", let id = message["id"] as? String else { return nil }
-      let place = (message["frame"] as? [String: Any]).flatMap(frame)
-      return Row(
-        id: id, text: (message["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-        shapes: (message["shapes"] as? [Any] ?? []).compactMap { WhiteboardTurn.anyShape($0) },
-        pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1,
-        ops: BoardOps.batch(message["ops"], key: id, source: "web"))
-    }
+    return messages.compactMap { row($0) }
+  }
+
+  /// One of Larry's messages on the thread as a row; nil for anyone else's. `lettering` decides which labels have
+  /// letters to draw; only a test passes one.
+  public static func row(
+    _ message: [String: Any], lettering: @escaping WhiteboardTurn.Lettering = WhiteboardTurn.hasLetters
+  ) -> Row? {
+    guard message["who"] as? String == "larry", let id = message["id"] as? String else { return nil }
+    let place = (message["frame"] as? [String: Any]).flatMap(frame)
+    return Row(
+      id: id, text: (message["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+      shapes: (message["shapes"] as? [Any] ?? []).compactMap { WhiteboardTurn.anyShape($0, lettering: lettering) },
+      pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1,
+      ops: BoardOps.batch(message["ops"], key: id, source: "web"))
   }
 
   /// A row's frame; nil for a number a picture of this board can't have, so a bad one can't send marks to infinity.

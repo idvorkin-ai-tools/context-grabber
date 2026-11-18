@@ -271,7 +271,13 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// A finger tap (stories 354, 825): on a mark chooses it, so its Keep and Dismiss show; anywhere else only puts them
   /// away. A stray tap never keeps or dismisses a mark.
   public mutating func tap(hitting: (Ghost) -> Bool) -> Tap {
-    if let ghost = ghosts.first(where: hitting) {
+    tapNearest(reach: { hitting($0) ? 0 : nil })
+  }
+
+  /// A finger tap, each mark's distance from it given (nil: out of reach): the nearest mark takes it, and between two as
+  /// near the one drawn later, on top (#941).
+  public mutating func tapNearest(reach: (Ghost) -> CGFloat?) -> Tap {
+    if let ghost = WhiteboardMarkChoice.nearest(ghosts, reach: reach) {
       guard ghost.id != chosenID else { return .nothing }
       chosenID = ghost.id
       return .chose(ghost)
@@ -293,6 +299,24 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     let kept = ghosts.filter { $0.who == who }
     if let chosen, chosen.who == who { chosenID = nil }
     ghosts.removeAll { $0.who == who }
+    return kept
+  }
+
+  /// The marks still showing from the chosen mark's reply of Larry's, the chosen one among them, in the order they came;
+  /// empty when nothing of his is chosen (#942, story 995).
+  public func chosenReply() -> [Ghost] {
+    guard let chosen, chosen.who == .larry, let reply = WhiteboardMarks.reply(of: chosen.id) else { return [] }
+    return ghosts.filter { $0.who == .larry && WhiteboardMarks.reply(of: $0.id) == reply }
+  }
+
+  /// Keep group: the chosen mark's whole reply leaves the ghosts, in the order it came; the caller makes it ink, one
+  /// group. Empty with nothing of his chosen.
+  public mutating func keepChosenReply() -> [Ghost] {
+    let reply = Set(chosenReply().map(\.id))
+    guard !reply.isEmpty else { return [] }
+    chosenID = nil
+    let kept = ghosts.filter { reply.contains($0.id) }
+    ghosts.removeAll { reply.contains($0.id) }
     return kept
   }
 
@@ -318,9 +342,22 @@ public enum WhiteboardMarkChoice {
   /// Between the buttons and the view's edge.
   public static let margin: CGFloat = 8
 
+  /// `avoid`: the board's top-right corner (? and Feedback, and the blocked chip), never under the buttons (story 1000).
+  /// Placed there, they go below it, or else to its left.
+  public static func place(mark: CGRect, buttons: CGSize, in view: CGRect, avoid: CGRect) -> CGRect {
+    let placed = place(mark: mark, buttons: buttons, in: view)
+    let corner = avoid.insetBy(dx: -gap, dy: -gap)
+    guard !avoid.isNull, !avoid.isEmpty, placed.intersects(corner) else { return placed }
+    let inside = view.insetBy(dx: margin, dy: margin)
+    let below = CGRect(x: placed.minX, y: corner.maxY, width: placed.width, height: placed.height)
+    if below.maxY <= inside.maxY { return below }
+    return CGRect(
+      x: max(inside.minX, corner.minX - placed.width), y: placed.minY, width: placed.width, height: placed.height)
+  }
+
   public static func place(mark: CGRect, buttons: CGSize, in view: CGRect) -> CGRect {
     let inside = view.insetBy(dx: margin, dy: margin)
-    let (w, h) = (buttons.width, buttons.height)
+    let (w, h) = (min(buttons.width, inside.width), buttons.height)
     let beside = mark.midY - h / 2
     let candidates = [
       CGRect(x: mark.maxX + gap, y: beside, width: w, height: h),
@@ -337,6 +374,18 @@ public enum WhiteboardMarkChoice {
     return CGRect(
       x: min(max(chosen.minX, inside.minX), inside.maxX - w), y: min(max(chosen.minY, inside.minY), inside.maxY - h),
       width: w, height: h)
+  }
+
+  /// The mark a tap takes (#941): the nearest within reach, and between two as near the later one, drawn on top. A box
+  /// drawn before its label no longer takes every tap near its sides, the label's words included.
+  public static func nearest<Mark>(_ marks: [Mark], reach: (Mark) -> CGFloat?) -> Mark? {
+    var best: (mark: Mark, away: CGFloat)?
+    for mark in marks {
+      guard let away = reach(mark) else { continue }
+      if let current = best, away > current.away { continue }
+      best = (mark, away)
+    }
+    return best?.mark
   }
 
   /// A mark's box from its lines, in their own points; null for none.

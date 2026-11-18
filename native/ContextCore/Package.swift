@@ -11,8 +11,12 @@ let package = Package(
     .executable(name: "board-ops-harness", targets: ["BoardOpsHarness"]),
   ],
   targets: [
-    // Linux only (just test-linux): SQLite from libsqlite3-dev. The Apple SDKs carry it as the SQLite3 module.
-    .systemLibrary(name: "CSQLite", providers: [.apt(["libsqlite3-dev"])]),
+    // Linux only (just test-linux, and the board-ops harness on Larry's box, #943): the system's SQLite, found through
+    // pkg-config's sqlite3 (its headers wherever the system put them); SwiftPM names the package to install when it is
+    // missing. The Apple SDKs carry SQLite as the SQLite3 module, so the Mac and iOS never build this.
+    .systemLibrary(
+      name: "CSQLite", pkgConfig: "sqlite3",
+      providers: [.apt(["libsqlite3-dev"]), .brew(["sqlite"]), .yum(["sqlite-devel"])]),
     .target(name: "ContextCore", dependencies: [.target(name: "CSQLite", condition: .when(platforms: [.linux]))]),
     .executableTarget(name: "BoardOpsHarness", dependencies: ["ContextCore"]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"]),

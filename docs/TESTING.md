@@ -20,7 +20,8 @@ Maestro rungs, were removed 2026-10-17; [design spec](superpowers/specs/2026-10-
 Rung 1L. On a Linux box, with no Xcode, `just test-linux` is the first rung to climb, and an agent with no Mac climbs
 it before every push. In order, it:
 
-1. runs `ContextCore`'s XCTests under Linux Swift (all but the few that need an Apple framework, below);
+1. runs `ContextCore`'s XCTests under Linux Swift (all but the few that need an Apple framework, below), then builds
+   the board-ops harness and replays the Judge batch to an SVG (#943);
 2. cross-builds the package and its tests for arm64 macOS, iOS and the iOS simulator with a Darwin Swift SDK (xtool's):
    compiled, never run;
 3. compiles the app's own sources for iOS with that SDK: App and Shared, the widgets, the share extension and the UI
@@ -29,9 +30,13 @@ it before every push. In order, it:
    was skipped. Nothing is linked into an app, signed or launched, and code under
    `#if targetEnvironment(macCatalyst)` isn't compiled (the Mac rung does);
 4. runs the host rung's portable script checks: the ladder's map (`test-ladder-map.sh`), the breath clips and the UI
-   timing digest. The asset catalog check needs `actool` and the signing guard BugKit's script, so they stay the Mac's.
+   timing digest, and that every `ContextCore` file with URL loading imports `FoundationNetworking` on Linux
+   (`test-linux-imports.sh`, #943: two files forgot it and nothing on the Mac could tell, as this rung runs only on a
+   Linux box, so the Mac's rung 1 runs that check too). The asset catalog check needs `actool` and the signing guard
+   BugKit's script, so they stay the Mac's.
 
-It prints each step's count or result. It needs a Swift 6 Linux toolchain and SQLite's header (`libsqlite3-dev`); the
+It prints each step's count or result. It needs a Swift 6 Linux toolchain and SQLite (`libsqlite3-dev`, found through
+`pkg-config sqlite3`); the
 script's header lists the settings for a toolchain that is not on `PATH`. The Mac's rung 1 still decides: Linux runs
 the same tests on another Foundation, and only the Mac's `just native-test` (with SwiftLint, which isn't on Linux, and
 the Mac's own swift-format) and its build say the app is right.
@@ -410,6 +415,7 @@ board-ops bug, on the Mac with no simulator, in seconds (#936, story 990). The b
 
 ```bash
 just board-ops --board <snapshot.json> --ops <batch.json> [--ops <next.json>] [--keep id,id] [--out <prefix>]
+just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-group <reply id>]
 ```
 
 - **The snapshot** is the board's strokes JSON, the body the board posts to `POST /whiteboard/strokes` or the
@@ -419,11 +425,20 @@ just board-ops --board <snapshot.json> --ops <batch.json> [--ops <next.json>] [-
   older look, so a batch from that look rebases or is refused stale exactly as on the iPad).
 - **A batch file** is the `ops` object of his message, the whole chat message, or a list of either. `--keep id,id`
   between them is Igor tapping Keep on those ghosts. Steps run in the order given.
+- **A reply with marks** (#941): his chat message with `shapes` shows them as his ghosts, placed by the message's
+  frame as the iPad places them, and tries a tap on each: the result's `taps` say which mark each chose, and
+  `unreachable` (ringed in red on the picture) names a mark a tap can't reach with the mark that takes it instead.
+  `--tap x,y` is a finger tap at a board point. `--keep-group <reply id>` is Igor's Keep group (#942): the reply's
+  marks become ink under the one group `reply-<id>`, which a later batch can move or erase by that name.
 - **Out**: `<prefix>.png` (the board after, with what each step moved in orange, drew or kept in green, erased in red
   dashes, his ghosts in purple dashes, and each step's `op_result` on top, a missing id in capitals),
   `<prefix>-before.png`, `<prefix>.result.json` (each step's `op_result` and the names it moved, erased, drew and left
   as ghosts) and `<prefix>.board.json`, the board after, to replay his next batch on. The default prefix is
-  `~/tmp/agent/board-ops/replay-<time>`.
+  `~/tmp/agent/board-ops/replay-<time>`. Where there is no CoreGraphics (Larry's Linux box, #943), the
+  pictures are `<prefix>.svg` and `<prefix>-before.svg` instead, the same marks, colours and words; the result's
+  `picture` and `picture_before` name whichever was written. With no fonts there, a reply's labels are dropped, so
+  its mark ids and taps after the first label are not the iPad's (the marks step's `why` says so). `just test-linux` builds the harness and replays the
+  Judge batch to an SVG.
 - The fixtures in `native/ContextCore/Tests/ContextCoreTests/Fixtures/board-ops/` are copies of board 13f700bf as
   the night of 2026-11-17 left it, with his batches as he sent them (#937–#939).
 

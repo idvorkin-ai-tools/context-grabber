@@ -101,6 +101,9 @@ final class WhiteboardModel: ObservableObject {
   /// applies.
   @Published private(set) var blocked = BoardBlockedEdit()
   private var blockedFrame: CGRect?
+  /// Story 1000: the board's top-right corner (? and Feedback, and the chip), window points, which the chosen mark's
+  /// buttons keep clear of.
+  @Published private(set) var cornerFrame: CGRect = .null
   /// The board's mic (story 345): open, on its way up and finishing its last words.
   @Published private(set) var micOn = false
   @Published private(set) var micStarting = false
@@ -1310,12 +1313,20 @@ final class WhiteboardModel: ObservableObject {
   /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (stories
   /// 825, 810, #883): a stray tap never keeps or dismisses a mark.
   func tap(at point: CGPoint, zoom: CGFloat) {
-    switch turns.tap(hitting: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) {
+    // #941: the nearest mark takes the tap, a label anywhere on its words, so a box drawn first never steals its name's.
+    let reach = { (ghost: Ghost) in
+      WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
+    }
+    let within = turns.ghosts.filter { reach($0) != nil }.count
+    switch turns.tapNearest(reach: reach) {
     case .nothing: return
     case .chose(let ghost):
       log.event(
         "whiteboard",
-        ["action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue])
+        [
+          "action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue,
+          "within": within,
+        ])
     case .putAway:
       log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "tap_off"])
     }
@@ -1418,6 +1429,43 @@ final class WhiteboardModel: ObservableObject {
     log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "keep", "who": kept.who.rawValue])
     settleLarrys(kept)
     ink(kept)
+  }
+
+  /// Story 999: how many of the chosen mark's reply still show; Keep group is offered from two.
+  var chosenReplyCount: Int { turns.chosenReply().count }
+
+  /// Keep group (#942, story 995): every mark of the chosen one's reply still showing, ink where it showed, in one keep
+  /// (one undo), its strokes one group named for the reply, which Larry moves or erases by that one name.
+  func keepChosenReply() {
+    guard editable, let reply = turns.chosen.flatMap({ WhiteboardMarks.reply(of: $0.id) }) else { return }
+    let marks = turns.keepChosenReply()
+    guard !marks.isEmpty else { return }
+    let started = Date()
+    var strokes: [PKStroke] = []
+    for (i, ghost) in marks.enumerated() {
+      // A moment of its own for each, a few milliseconds apart, as Keep all gives them. Not remembered as a label: Tidy
+      // overlaps leaves a group as it is.
+      let made = started.addingTimeInterval(Double(i) * 0.005)
+      strokes +=
+        connectorInk(ghost) ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made)
+      settleLarrys(ghost)
+    }
+    // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
+    let names = opStrokes(strokes).strokes.flatMap(\.ids)
+    strokeMeta.merge(WhiteboardMarks.groupNotes(names, reply: reply))
+    opLedger.setStrokeMeta(strokeMeta, board: board.id)
+    log.event(
+      "whiteboard",
+      [
+        "action": "keep_group", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+        "group": WhiteboardMarks.group(reply: reply),
+      ])
+    add(strokes)
+  }
+
+  /// Story 1000: where the corner's buttons are, in window points.
+  func cornerLaid(_ frame: CGRect) {
+    if frame != cornerFrame { cornerFrame = frame }
   }
 
   /// Dismiss beside the chosen mark: that mark goes, and doesn't come back when the board opens again.
@@ -1778,7 +1826,7 @@ extension WhiteboardModel {
   /// A finger tap on the board, in board points: Larry hears where, and which of his marks it hit (a ghost, or a text
   /// he wrote and Igor kept), if any.
   func tapped(at point: CGPoint, zoom: CGFloat) {
-    let tolerance = 22 / zoom
+    let tolerance = WhiteboardTurn.tapReach / zoom
     // Story 846: a tap on one of his controls goes to him at once.
     if let overlay = overlays.hit(point, tolerance: 4 / zoom) {
       events.record(.overlayTap(id: overlay.id, event: overlay.tapEvent, t: Self.nowMs))
@@ -1788,7 +1836,9 @@ extension WhiteboardModel {
     }
     // A finger in the margin is the margin's (story 849).
     guard point.x >= BoardMargin.width else { return }
-    let ghost = ghosts.first { WhiteboardTurn.hit($0.lines, at: point, tolerance: tolerance) }
+    let ghost = WhiteboardMarkChoice.nearest(ghosts) {
+      WhiteboardTurn.reach($0.lines, kind: $0.kind, at: point, tolerance: tolerance)
+    }
     let target = ghost.map { $0.text?.id ?? $0.id } ?? keptText(at: point, tolerance: tolerance)
     events.tap(at: point, target: target, t: Self.nowMs)
     if let event = events.list.last { takeOps(.event(event)) }
@@ -2444,6 +2494,12 @@ struct WhiteboardView: View {
           BoardHelpButtons(
             editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
+        }
+        // Story 1000: the chosen mark's buttons keep clear of this corner.
+        .onGeometryChange(for: CGRect.self) {
+          $0.frame(in: .global)
+        } action: {
+          model.cornerLaid($0)
         }
       }
       // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.

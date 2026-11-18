@@ -321,6 +321,37 @@ public enum WhiteboardTurn {
     return false
   }
 
+  /// How far from a mark a finger tap still reaches it, in screen points (the board's points at a zoom of 1).
+  public static let tapReach: CGFloat = 22
+
+  /// How far a tap at `point` is from a mark, in board points, or nil when it is out of reach (#941). A label is reached
+  /// anywhere in the box its letters fill, at no distance, as a finger aims at words rather than at their outlines;
+  /// any other mark by its lines.
+  public static func reach(
+    _ lines: [[CGPoint]], kind: Shape.Kind, at point: CGPoint, tolerance: CGFloat
+  ) -> CGFloat? {
+    if kind == .text {
+      let box = WhiteboardMarkChoice.bounds(lines)
+      guard !box.isNull else { return nil }
+      let dx = max(box.minX - point.x, 0, point.x - box.maxX)
+      let dy = max(box.minY - point.y, 0, point.y - box.maxY)
+      let away = hypot(dx, dy)
+      return away <= tolerance ? away : nil
+    }
+    var nearest = CGFloat.infinity
+    for line in lines {
+      if line.count == 1 { nearest = min(nearest, hypot(line[0].x - point.x, line[0].y - point.y)) }
+      for (a, b) in zip(line, line.dropFirst()) {
+        let dx = b.x - a.x
+        let dy = b.y - a.y
+        let span = dx * dx + dy * dy
+        let t = span == 0 ? 0 : max(0, min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / span))
+        nearest = min(nearest, hypot(a.x + t * dx - point.x, a.y + t * dy - point.y))
+      }
+    }
+    return nearest <= tolerance ? nearest : nil
+  }
+
   /// `line` with a point about every `spacing` board points, the most a board-sized edge needs. PencilKit treats a
   /// stroke's points as spline control points, so a corner between far-apart points would be cut short; at 4 points it
   /// misses by under a point.
