@@ -117,7 +117,7 @@ public struct BoardReplay {
     public var width: CGFloat
     public var color: UInt32
 
-    /// Where a finger aims at it: the middle of a label's words, the middle of any other mark's first stretch.
+    /// The middle of a label's words, or of any other mark's first stretch.
     public var aim: CGPoint? {
       if kind == .text {
         let box = WhiteboardMarkChoice.bounds(lines)
@@ -292,6 +292,19 @@ public struct BoardReplay {
     }
   }
 
+  /// Where a finger best reaches `mark`: of the points along it (a label's middle, for a label), the one furthest from
+  /// every other mark. A mark that point can't reach is one no tap can.
+  public func spot(on mark: Mark) -> CGPoint? {
+    let others = marks.filter { $0.id != mark.id }
+    let candidates =
+      mark.kind == .text ? mark.aim.map { [$0] } ?? [] : mark.lines.flatMap { WhiteboardTurn.inkPoints($0) }
+    let room = { (point: CGPoint) -> CGFloat in
+      others.compactMap { WhiteboardTurn.reach($0.lines, kind: $0.kind, at: point, tolerance: .infinity) }.min()
+        ?? .infinity
+    }
+    return candidates.max { room($0) < room($1) }
+  }
+
   /// His reply's marks replace his unkept ones (story 357), placed by the reply's own frame, and each is tried with a tap.
   private mutating func show(_ row: WhiteboardMarks.Row) {
     var outcome = Outcome(label: "marks \(row.id)", action: row.drawable ? "shown" : "unplaced")
@@ -305,7 +318,7 @@ public struct BoardReplay {
     }
     outcome.marks = marks.map(\.id)
     outcome.taps = marks.compactMap { mark in
-      mark.aim.map { Tap(at: $0, mark: mark.id, chose: choose(at: $0)?.id) }
+      spot(on: mark).map { Tap(at: $0, mark: mark.id, chose: choose(at: $0)?.id) }
     }
   }
 
