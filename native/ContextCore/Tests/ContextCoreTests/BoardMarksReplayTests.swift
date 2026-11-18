@@ -39,7 +39,8 @@ final class BoardMarksReplayTests: XCTestCase {
       // Each name sits inside its box.
       for (box, name) in [(0, 1), (2, 3), (7, 8), (9, 10)] {
         let outer = WhiteboardMarkChoice.bounds(replay.marks[box].lines)
-        XCTAssertTrue(outer.contains(WhiteboardMarkChoice.bounds(replay.marks[name].lines)), "name \(name) in box \(box)")
+        XCTAssertTrue(
+          outer.contains(WhiteboardMarkChoice.bounds(replay.marks[name].lines)), "name \(name) in box \(box)")
       }
     }
 
@@ -60,11 +61,26 @@ final class BoardMarksReplayTests: XCTestCase {
     }
 
     func testIgorsOwnTapsChooseWhatTheyChoseOnTheIPad() throws {
-      // From the iPad's session log: paper_tap at, then mark_chosen kind and the keep's ink box.
-      let replay = try family(then: [
-        .tap(CGPoint(x: 487.1, y: 1544.5)), .tap(CGPoint(x: 464.5, y: 1712.7)),
-      ])
-      XCTAssertEqual(replay.outcomes.dropFirst().map { $0.taps.first?.chose }, [mark(2), mark(6)])
+      // From the iPad's session log: paper_tap at, then mark_chosen kind and the keep's ink box. His second tap
+      // (464.5, 1712.7) chose the bottom line, 12 points away past its end; Amelia's box is 8 away and takes it now.
+      let replay = try family(then: [.tap(CGPoint(x: 487.1, y: 1544.5)), .tap(CGPoint(x: 225.8, y: 1754.6))])
+      XCTAssertEqual(replay.outcomes.dropFirst().map { $0.taps.first?.chose }, [mark(2), mark(7)])
+    }
+
+    func testEveryPartOfANamesBoxChoosesTheName() throws {
+      let replay = try family()
+      for name in [1, 3, 8, 10] {
+        let box = WhiteboardMarkChoice.bounds(replay.marks[name].lines)
+        var points: [CGPoint] = []
+        for i in 0...10 {
+          for j in 0...10 {
+            points.append(
+              CGPoint(x: box.minX + box.width * CGFloat(i) / 10, y: box.minY + box.height * CGFloat(j) / 10))
+          }
+        }
+        let other = points.filter { replay.choose(at: $0)?.id != mark(name) }
+        XCTAssertEqual(other, [], "parts of name \(name)'s box go to another mark")
+      }
     }
   #endif
 
@@ -113,10 +129,13 @@ final class BoardMarksReplayTests: XCTestCase {
   }
 
   func testALabelIsReachedAnywhereInItsBox() {
-    let letters: [[CGPoint]] = [[CGPoint(x: 0, y: 0), CGPoint(x: 10, y: 20)], [CGPoint(x: 50, y: 0), CGPoint(x: 60, y: 20)]]
+    let letters: [[CGPoint]] = [
+      [CGPoint(x: 0, y: 0), CGPoint(x: 10, y: 20)], [CGPoint(x: 50, y: 0), CGPoint(x: 60, y: 20)],
+    ]
     // Between two letters, far from either outline.
     XCTAssertEqual(WhiteboardTurn.reach(letters, kind: .text, at: CGPoint(x: 30, y: 10), tolerance: 5), 0)
     XCTAssertNil(WhiteboardTurn.reach(letters, kind: .line, at: CGPoint(x: 30, y: 10), tolerance: 5))
-    XCTAssertEqual(WhiteboardTurn.reach(letters, kind: .text, at: CGPoint(x: 63, y: 24), tolerance: 6) ?? -1, 5, accuracy: 0.01)
+    XCTAssertEqual(
+      WhiteboardTurn.reach(letters, kind: .text, at: CGPoint(x: 63, y: 24), tolerance: 6) ?? -1, 5, accuracy: 0.01)
   }
 }
