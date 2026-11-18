@@ -436,7 +436,8 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-gr
   as ghosts) and `<prefix>.board.json`, the board after, to replay his next batch on. The default prefix is
   `~/tmp/agent/board-ops/replay-<time>`. Where there is no CoreGraphics (Larry's Linux box, #943), the
   pictures are `<prefix>.svg` and `<prefix>-before.svg` instead, the same marks, colours and words; the result's
-  `picture` and `picture_before` name whichever was written. `just test-linux` builds the harness and replays the
+  `picture` and `picture_before` name whichever was written. With no fonts there, a reply's labels are dropped, so
+  its mark ids and taps after the first label are not the iPad's (the marks step's `why` says so). `just test-linux` builds the harness and replays the
   Judge batch to an SVG.
 - The fixtures in `native/ContextCore/Tests/ContextCoreTests/Fixtures/board-ops/` are copies of board 13f700bf as
   the night of 2026-11-17 left it, with his batches as he sent them (#937–#939).
