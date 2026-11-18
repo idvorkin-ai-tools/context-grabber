@@ -554,3 +554,134 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I run `just lead-times`
 - **Then:** it writes `data.json` and `index.html` to the output folder, each PR's minutes from asked to merged to on a device, and nothing in the repo changes
 
+
+---
+
+### User Story 980:
+
+- **Summary:** One booted simulator, left booted between runs
+- **Status:** implemented in f63a8e0, d1e8e18; verified on the host by the ladder's map self-test (265 checks: the phone and the iPad booted with `bootstatus -b`, nothing shut down at the end) and on the simulator 2026-11-17 (rung 2, `--changed` WhiteboardTurnUITests and GymTimerUITests, twice in a row): the old scripts booted 3 times each run (236 s, 273 s), these 2 then 1 (240 s, 178 s); the second run found the iPad booted and used it with no boot (CoreSimulator.log, boots inside each rung's own window)
+- **Issues:** the boot-less brief of 2026-11-15 (Igor: "sure do it"); 31 boots on 2026-11-14, and the disk full of wallpaper snapshots on 2026-11-17
+
+#### Use Case:
+- **As Igor,** running simulator checks many times a day on a 16 GB Air
+- **I want to** have the simulator a run used left booted for the next run, and only one booted at a time
+- **so that** each run doesn't pay a boot's 300 MB of wallpaper snapshots that are never removed, its heat and its wait, and two booted simulators never starve each other
+
+#### Acceptance Criteria:
+- **Scenario:** Two runs on one device
+- **Given:** a simulator run that just passed or failed on the iPhone simulator
+- **When:** the next run needs the iPhone simulator too
+- **Then:** it finds it booted and uses it without a boot, and the simulator log shows no new boot
+
+---
+
+### User Story 981:
+
+- **Summary:** A climb on both the iPhone and the iPad switches device at most once
+- **Status:** implemented in f63a8e0, d1e8e18; verified on the host by the ladder's map self-test (none booted: the phone, then the iPad; the iPad booted: the iPad, then the phone, the iPad shut first). verified on the simulator 2026-11-17: a second climb started on the iPad the first left booted (`rung 2 iPad simulator: 0 s`), then switched once to the iPhone
+
+#### Use Case:
+- **As Igor,** waiting on a whiteboard change, which runs its drawing classes on the iPad and the smoke on the iPhone
+- **I want to** have the ladder run all of one device's steps, then all of the other's, starting with the one already booted
+- **so that** a climb costs one boot at most, and a second climb right after costs no more than the first
+
+#### Acceptance Criteria:
+- **Scenario:** The iPad left booted by the last climb
+- **Given:** the iPad simulator is booted and a branch that changes the whiteboard and the Gym Timer
+- **When:** I run `just test-ladder`
+- **Then:** the whiteboard's classes run first on the iPad as it is, then the iPad is shut down and the iPhone booted once for the timer's classes and the smoke, and the iPhone is left booted
+
+---
+
+### User Story 982:
+
+- **Summary:** The whiteboard's ⌘V test runs on a simulator that is already up
+- **Status:** not implemented. The ladder still fresh-boots the iPad when `WhiteboardPasteUITests` runs, and only then, and `test-whiteboard-ui.sh` still reboots once per suite run. The one experiment (the ⌘V test three times on one boot, 2026-11-17) failed before any key was pressed, on a tap, at load 300 on a stalled screen, so it says nothing about keys yet
+
+#### Use Case:
+- **As Igor,** running the whiteboard's paste tests again and again
+- **I want to** have ⌘V and ⌘Z reach the app on a simulator that earlier runs used
+- **so that** the whiteboard suite doesn't reboot the iPad on every run to get its keys through
+
+#### Acceptance Criteria:
+- **Scenario:** The keys test, twice on one boot
+- **Given:** the iPad simulator booted, with the keys test already run on it
+- **When:** the whiteboard suite or the ladder runs `WhiteboardPasteUITests` again
+- **Then:** ⌘V pastes and ⌘Z takes it back, with no reboot in between
+
+---
+
+### User Story 983:
+
+- **Summary:** A hot Mac gets its simulator shut down at the end of a run
+- **Status:** implemented in f63a8e0, 1390e3d; verified on the host by the ladder's map self-test (a thermal warning from `pmset` shuts the simulator down and says why; a warning level back at 0 leaves it booted). The heat watch's own messages are not read: they live off the repo
+- **Issues:** Larry's heat stop of 2026-11-17 (heavy thermal at load 84 during a ladder run)
+
+#### Use Case:
+- **As Igor,** whose Air throttles when it runs hot
+- **I want to** have the ladder shut its simulator down rather than leave it booted when the Mac is hot
+- **so that** a simulator left up for the next run never adds to the heat that stopped this one
+
+#### Acceptance Criteria:
+- **Scenario:** A run ends on a hot Mac
+- **Given:** macOS reports a thermal or performance warning level above 0 (a level back at 0 after an earlier warning is cool; the load alone doesn't count: on this Mac it counts hung processes, and shut a cool run's simulator down at load 71 on 2026-11-17)
+- **When:** the ladder's simulator rung ends, pass or fail
+- **Then:** it shuts its simulator down and prints why; on a cool Mac it leaves it booted
+
+---
+
+### User Story 984:
+
+- **Summary:** The wallpaper snapshots are pruned before a simulator boots, when the disk is short
+- **Status:** implemented in c2067b7; the prune waits on machine-doctor's `sims` command (chop-conventions PR #251, not merged), so today every boot skips it with one line saying so; verified on the host by the ladder's map self-test (a fake doctor is called before the boot; a missing one is skipped)
+- **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free
+
+#### Use Case:
+- **As Igor,** whose Air's disk fills with wallpaper snapshots no one evicts
+- **I want to** have them pruned on the shut-down simulators just before a boot, when free space is under 20 GB
+- **so that** the boots that are left can't push the disk under the line that stops every build
+
+#### Acceptance Criteria:
+- **Scenario:** A boot on a short disk
+- **Given:** the target simulator is shut down and the disk has under 20 GB free
+- **When:** a run boots it
+- **Then:** machine-doctor prunes the shut-down simulators' snapshots first, then the simulator boots; with machine-doctor or its `sims` command missing, one line says the prune was skipped and the boot goes on
+
+---
+
+### User Story 985:
+
+- **Summary:** Only one simulator is booted at a time
+- **Status:** implemented in f63a8e0; verified on the host by the ladder's map self-test (the iPad booted: it is shut down before the phone boots)
+- **Issues:** split from story 980
+
+#### Use Case:
+- **As Igor,** on a 16 GB Air where one booted simulator takes about 10 GB
+- **I want to** have any other booted simulator shut down before a run's own device boots
+- **so that** two booted simulators never starve each other
+
+#### Acceptance Criteria:
+- **Scenario:** Another simulator is up
+- **Given:** a different simulator is booted, by any earlier run
+- **When:** a run needs its own device
+- **Then:** the other is shut down before its device boots, so only one is ever booted
+
+---
+
+### User Story 986:
+
+- **Summary:** A simulator already booted is used as it is, with no prune and no boot
+- **Status:** implemented in c2067b7; verified on the host by the ladder's map self-test (the device boots with `bootstatus -b`, which returns at once when it is up)
+- **Issues:** split from story 984
+
+#### Use Case:
+- **As Igor,** running checks one after another on the same device
+- **I want to** have a run that finds its simulator booted skip the snapshot prune and the boot
+- **so that** a run on a booted simulator costs no extra wait
+
+#### Acceptance Criteria:
+- **Scenario:** The target is already booted
+- **Given:** the target simulator is booted
+- **When:** a run uses it
+- **Then:** nothing is pruned and nothing boots

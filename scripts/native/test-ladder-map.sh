@@ -48,6 +48,8 @@ case "$*" in
   "simctl list devices available")
     printf '    iPhone 17 (00000000-0000-0000-0000-000000000000) (Shutdown)\n'
     printf '    iPad Pro 11-inch (M5) (00000000-0000-0000-0000-000000000001) (Shutdown)\n' ;;  # the whiteboard's (story 746)
+  "simctl list devices booted")  # story 981: FAKE_BOOTED names the one already up
+    [ -z "${FAKE_BOOTED:-}" ] || printf '    Booted One (%s) (Booted) \n' "$FAKE_BOOTED" ;;
   "simctl get_app_container "*) echo "${FAKE_CONTAINER:-}" ;;
   "simctl launch "*)
     # The app, importing as its launch hook says: the session log's import event.
@@ -87,6 +89,17 @@ F
 # The screen lock's probe (smoke-lock.sh): unlocked, unless a run says otherwise, so this Mac's own lock can't fail it.
 printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionOnConsoleKey\\"=Yes"\n' >"$fakes/unlocked"
 printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionScreenIsLocked\\"=Yes"\n' >"$fakes/locked"
+# The heat check (story 983): a cool Mac, unless FAKE_HOT says otherwise, so this Mac's own heat can't fail it.
+cat >"$fakes/pmset" <<'F'
+#!/usr/bin/env bash
+case "${FAKE_HOT:-}" in
+  "") echo "Note: No thermal warning level has been recorded" ;;
+  0) echo "Thermal warning level set to 0."; echo "Performance warning level set to 0." ;;
+  *) echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2" ;;
+esac
+F
+# machine-doctor (story 984): notes what it was asked, so no run of this test calls the real one.
+printf '#!/usr/bin/env bash\necho "doctor $*" >>"$MARKS/doctor"\n' >"$fakes/doctor"
 cat >"$fakes/uv" <<'F'
 #!/usr/bin/env bash
 exec sleep 30
@@ -109,7 +122,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   shift
   rm -f "$MARKS"/*
   env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
-    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
+    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" MACHINE_DOCTOR="$fakes/doctor" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
 chat_all="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
@@ -126,7 +139,7 @@ never "chat code: no whiteboard" "Whiteboard"
 never "chat code: no suite without --full" "rung 2 full"
 
 dry --changed native/App/Whiteboard/PaperBoard.swift
-says "whiteboard code: its classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
+says "whiteboard code: its classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 # Story 770: the iPhone's look at boards is the smoke's, so the whiteboard's classes are the only ones, and all on the iPad.
 never "whiteboard code: no iPhone class of its own" "rung 2 UI tests: "
 says "whiteboard code: the smoke's whiteboard section" "rung 2 smoke, on the same build and boot: whiteboard"
@@ -134,26 +147,26 @@ never "whiteboard code: no chat" "Chat"
 
 # The whiteboard's rules run only the classes that show them; its views still run them all.
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardPaste.swift
-says "a paste rule: the two paste classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperPasteUITests WhiteboardPasteUITests"
+says "a paste rule: the two paste classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperPasteUITests WhiteboardPasteUITests"
 dry --changed scripts/lead-times.py
 says "the lead-time report: no Mac build (story 828)" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
 says "the lead-time report: no simulator build" "rung 2 Simulator: skipped, nothing the simulator build compiles changed"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardGhostTurns.swift
-says "a ghost rule: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
+says "a ghost rule: the turn and ghosts classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 never "a ghost rule: not the lines" "WhiteboardPaperLinesUITests"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardFrame.swift
-says "the picture's frame: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
+says "the picture's frame: the turn and ghosts classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 never "the picture's frame: not the lines" "WhiteboardPaperLinesUITests"
 for f in WhiteboardLarryClock WhiteboardNote; do
   dry --changed "native/ContextCore/Sources/ContextCore/Whiteboard/$f.swift"
-  says "$f: the turn and ghosts classes" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
+  says "$f: the turn and ghosts classes" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardPaperGhostsUITests WhiteboardTurnUITests"
 done
 dry --changed native/App/Whiteboard/WhiteboardStore.swift
-says "the board list: row delete and on paper" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardOnPaperUITests WhiteboardRowDeleteUITests"
+says "the board list: row delete and on paper" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardOnPaperUITests WhiteboardRowDeleteUITests"
 never "the board list: no iPhone class of its own" "rung 2 UI tests: "
 # Story 784: the board fixture hook runs only the classes that launch with a fixture board, chat's picture one among them.
 dry --changed native/App/Whiteboard/WhiteboardHooks.swift
-says "the fixture hook: row delete" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardRowDeleteUITests"
+says "the fixture hook: row delete" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardRowDeleteUITests"
 says "the fixture hook: and the chat picture from a board" "rung 2 UI tests (chat, fake Cockpit and bridge): ChatImageUITests"
 for c in WhiteboardRowDeleteUITests ChatImageUITests; do
   case $known in *" $c "*) ok "the fixture hook: $c is a real class" ;; *) : >"$out"; bad "the fixture hook: $c is a real class" ;; esac
@@ -164,7 +177,7 @@ done
 for f in native/App/Whiteboard/WhiteboardQuestionsModel.swift native/App/Whiteboard/WhiteboardQuestionViews.swift \
   native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardQuestions.swift; do
   dry --changed "$f"
-  says "question cards, $(basename "$f"): their class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): WhiteboardQuestionUITests"
+  says "question cards, $(basename "$f"): their class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardQuestionUITests"
   if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
 done
 case $known in *" WhiteboardQuestionUITests "*) ok "question cards: a real class" ;; *) : >"$out"; bad "question cards: a real class" ;; esac
@@ -173,9 +186,9 @@ for c in $(sed -nE 's/^(final )?class (Whiteboard[A-Za-z0-9_]*UITests):.*/\2/p' 
   case " $board_all " in *" $c "*) ok "the whiteboard's list has $c" ;; *) : >"$out"; bad "the whiteboard's list has $c" ;; esac
 done
 dry --changed native/App/Whiteboard/WhiteboardView.swift
-says "the board's view: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
+says "the board's view: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardLaunchHooks.swift
-says "the hooks: every class" "rung 2 UI tests (whiteboard, fake Cockpit, fresh boot): $board_all"
+says "the hooks: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 
 dry --changed docs/TESTING.md --changed README.md
 says "docs: nothing to format" "rung 0 Lint: swift-format over 0 touched Swift file(s), SwiftLint over the tree"
@@ -332,7 +345,8 @@ if [ "$status" -eq 0 ]; then ok "a test file: climbs"; else bad "a test file: cl
 if grep -qF "build.lock" "$MARKS/lockf"; then ok "the simulator rung takes the build lock"; else bad "the simulator rung takes the build lock"; fi
 if head -1 "$MARKS/xcodebuild" | grep -q " build-for-testing"; then ok "the build comes first"; else bad "the build comes first"; fi
 if grep -q "only-testing:GrabberNativeUITests/CardUITests test-without-building" "$MARKS/xcodebuild"; then ok "then its class alone"; else bad "then its class alone"; fi
-if grep -q "simctl shutdown" "$MARKS/xcrun"; then ok "the simulator is shut down after"; else bad "the simulator is shut down after"; fi
+if grep -q "simctl shutdown" "$MARKS/xcrun"; then bad "the simulator is left booted after (story 980)"; else ok "the simulator is left booted after (story 980)"; fi
+if grep -q "simctl bootstatus 00000000-0000-0000-0000-000000000000 -b" "$MARKS/xcrun"; then ok "the phone boots only if it isn't up"; else bad "the phone boots only if it isn't up"; fi
 if grep -q "^smoke none 00000000-0000-0000-0000-000000000000 native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app$" "$MARKS/smoke" 2>/dev/null; then
   ok "then the smoke's sections on that build and simulator (story 755)"
 else bad "then the smoke's sections on that build and simulator (story 755): $(cat "$MARKS/smoke" 2>/dev/null)"; fi
@@ -364,7 +378,34 @@ status=$?
 if [ "$status" -eq 0 ]; then ok "paste: climbs"; else bad "paste: climbs, exit $status"; fi
 if grep -q "only-testing:GrabberNativeUITests/WhiteboardPasteUITests test-without-building" "$MARKS/xcodebuild"; then ok "paste: its class, keys test and all"; else bad "paste: its class, keys test and all"; fi
 if grep -q "skip-testing" "$MARKS/xcodebuild"; then bad "paste: nothing held back"; else ok "paste: nothing held back"; fi
-if [ "$(grep -c "simctl boot " "$MARKS/xcrun")" -eq 1 ]; then ok "paste: one boot"; else bad "paste: one boot"; fi
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "paste: the iPad fresh-booted for its keys (until story 982)"; else bad "paste: the iPad fresh-booted for its keys (until story 982)"; fi
+run -- --changed native/UITests/WhiteboardTurnUITests.swift
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then bad "the turn class: no reboot of the iPad"; else ok "the turn class: no reboot of the iPad"; fi
+if grep -q "simctl bootstatus 00000000-0000-0000-0000-000000000001 -b" "$MARKS/xcrun"; then ok "paste: on the iPad, booted if it isn't up"; else bad "paste: on the iPad, booted if it isn't up"; fi
+
+# Story 981: a climb on both devices switches once, starting with the one already booted.
+order() { sed -nE 's/.*simctl bootstatus 0{8}-0{4}-0{4}-0{4}-0{11}([0-9]) -b.*/\1/p' "$MARKS/xcrun" | tr -d '\n'; }
+run -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
+if [ "$(order)" = "01" ]; then ok "both devices, none up: the phone, then the iPad"; else bad "both devices, none up: $(order)"; fi
+run FAKE_BOOTED=00000000-0000-0000-0000-000000000001 -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
+if [ "$(order)" = "10" ]; then ok "both devices, the iPad up: the iPad, then the phone"; else bad "both devices, the iPad up: $(order)"; fi
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "both devices: the iPad is shut before the phone boots"; else bad "both devices: the iPad is shut before the phone boots"; fi
+# Story 984: the snapshots are pruned before a boot, by machine-doctor's sims command, and skipped without it.
+run -- --changed native/UITests/CardUITests.swift
+if grep -qxF "doctor sims --prune --below-free-gb 20" "$MARKS/doctor" 2>/dev/null; then ok "a boot prunes the snapshots first (story 984)"; else bad "a boot prunes the snapshots first (story 984)"; fi
+run MACHINE_DOCTOR="$tmp/no-such-doctor" -- --changed native/UITests/CardUITests.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "no machine-doctor: the boot goes on"; else bad "no machine-doctor: the boot goes on, exit $status"; fi
+says "no machine-doctor: one line says so" "no machine-doctor sims command ($tmp/no-such-doctor): the wallpaper snapshots are not pruned before this boot"
+# Story 983: a hot Mac gets its simulator shut down at the end.
+run FAKE_HOT=1 -- --changed native/UITests/CardUITests.swift
+if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000000" "$MARKS/xcrun"; then ok "a hot Mac: the simulator is shut down"; else bad "a hot Mac: the simulator is shut down"; fi
+says "a hot Mac: says why" "the Mac is hot (Thermal warning level set to 2): the simulator is shut down rather than left booted"
+run FAKE_HOT=0 -- --changed native/UITests/CardUITests.swift
+if grep -q "simctl shutdown" "$MARKS/xcrun"; then bad "a Mac cooled after a warning: the simulator is left booted"; else ok "a Mac cooled after a warning: the simulator is left booted"; fi
+run LADDER_SMOKE=0 -- --full --changed native/UITests/WhiteboardTurnUITests.swift
+if [ "$(grep -c "simctl boot.* 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun")" -eq 1 ]; then ok "--full whiteboard: the iPad boots once"
+else bad "--full whiteboard: the iPad boots once: $(grep "simctl boot" "$MARKS/xcrun")"; fi
 
 run -- --changed native/App/Chat/ChatViews.swift
 status=$?

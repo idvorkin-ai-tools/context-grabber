@@ -99,6 +99,7 @@ native-build-sim: native-project
 native-sim-health: native-project
     #!/usr/bin/env bash
     set -uo pipefail
+    scripts/native/sim-boot.sh "{{native_sim}}" || exit  # the one booted simulator (story 980)
     scripts/native/xcodebuild-log.sh sim-health "TEST SUCCEEDED" xcodebuild -project native/GrabberNative.xcodeproj -scheme GrabberNative \
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
