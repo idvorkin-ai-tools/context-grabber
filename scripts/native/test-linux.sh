@@ -30,8 +30,9 @@ if [ -n "${LINUX_LIB_DIR:-}" ]; then
   flags+=(-Xlinker "-L$LINUX_LIB_DIR")
 fi
 [ -n "${SQLITE_INCLUDE:-}" ] && flags+=(-Xcc "-I$SQLITE_INCLUDE")
-if [ -z "${SQLITE_INCLUDE:-}" ] && [ ! -e /usr/include/sqlite3.h ]; then
-  echo "no sqlite3.h: apt install libsqlite3-dev, or set SQLITE_INCLUDE" >&2
+# CSQLite finds SQLite through pkg-config (#943); SQLITE_INCLUDE stays for a box without its .pc file.
+if [ -z "${SQLITE_INCLUDE:-}" ] && ! pkg-config --exists sqlite3 2>/dev/null && [ ! -e /usr/include/sqlite3.h ]; then
+  echo "no sqlite3: apt install libsqlite3-dev pkg-config, or set SQLITE_INCLUDE" >&2
   exit 2
 fi
 build=${CG_LINUX_BUILD:-}
@@ -55,6 +56,20 @@ if [ $status -ne 0 ] || [ -z "$summary" ]; then
   fail=1
 else
   echo "ok   $summary"
+fi
+
+# The board-ops harness (#943): Larry runs it on this kind of box, where it writes SVGs. Built and run on a fixture.
+echo "== Linux: board-ops harness"
+log=$build/board-ops.log
+fixtures=Tests/ContextCoreTests/Fixtures/board-ops
+if low swift run -j "$jobs" --scratch-path "$build/linux" "${flags[@]}" board-ops-harness \
+  --board "$fixtures/judge-board.json" --ops "$fixtures/judge-ops.json" --out "$build/board-ops/judge" >"$log" 2>&1 \
+  && grep -q '<svg' "$build/board-ops/judge.svg" && grep -Eq '"action" ?: ?"applied"' "$build/board-ops/judge.result.json"; then
+  echo "ok   board-ops harness: the Judge batch replayed, $build/board-ops/judge.svg written"
+else
+  grep -E "error:" "$log" | head -20
+  echo "FAIL board-ops harness (log: $log)"
+  fail=1
 fi
 
 if swift sdk list 2>/dev/null | grep -qx darwin; then
@@ -142,7 +157,7 @@ fi
 # 4. The host rung's script checks that run anywhere (the rest need the Mac: actool, BugKit's signing guard).
 cd ../..
 for check in scripts/native/test-ladder-map.sh scripts/native/test-breath-clips.py scripts/native/test-ui-timings.sh \
-  scripts/native/test-smoke-lock.sh; do
+  scripts/native/test-smoke-lock.sh scripts/native/test-linux-imports.sh; do
   log=$build/$(basename "$check").log
   if "$check" >"$log" 2>&1; then
     echo "ok   $check"
