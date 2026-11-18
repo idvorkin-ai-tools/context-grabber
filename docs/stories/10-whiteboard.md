@@ -6992,3 +6992,24 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the one on bare paper shows and keeps as a plain arrow where he drew it; the one naming nothing shows nothing and is set aside as if dismissed
 
 ---
+
+### User Story 990:
+
+- **Summary:** Larry replays a change on a copy of Igor's board and sees the result before sending it
+- **Status:** in progress on branch `native/board-ops-harness`; verified by host tests (`BoardReplayTests`) and the tool on the night's fixtures
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry checks a change before he sends it*
+- **Issues:** [#936](https://github.com/idvorkin/context-grabber/issues/936)
+
+#### Use Case:
+- **As Larry,** about to change Igor's board
+- **I want to** run my change on a copy of his board with the board's own rules and see the board after
+- **so that** I never test on his real board, and a mess shows up on my screen instead of his
+
+#### Acceptance Criteria:
+- **Scenario:** A change checked on a copy
+- **Given:** a copy of a board as it sends me its strokes, and a batch of my changes
+- **When:** I run `just board-ops` with the two, on the Mac
+- **Then:** within seconds I get the `op_result` the iPad would answer, the names my change moved, erased, drew and left as ghosts, a picture of the board before and after with those marked, and the board after
+- **And:** tonight's three failures replay as they happened on the iPad: the Judge label missing (#937), the list landing on ink (#938) and the delete of ghosts missing (#939)
+
+---

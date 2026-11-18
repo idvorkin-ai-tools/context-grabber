@@ -312,6 +312,21 @@ that drift when he makes room."
 - Connectors in Larry's chat-reply shapes are not handled yet: only his board changes draw them.
 - Larry's connectors are drawn after the rest of his changes in the same answer, on the board those changes leave.
 
+## Larry checks a change before he sends it (#936)
+
+Igor, 2026-11-17, after Larry's changes made a mess of his board 13f700bf: "how can you test?" Larry had no way to see
+what a change would do except to send it to Igor's real board, and paused his changes until there was one.
+
+- Larry (or an agent chasing a bug) takes a copy of a board, as the board sends him its strokes, and one or more of his
+  changes, and gets back, on the Mac in seconds with no iPad and no simulator: what the board would answer him (the
+  same `op_result`: applied or refused, the revision, any missing names), which of his and Igor's things moved, were
+  erased, were drawn or stayed his ghosts, a picture of the board before and after with all of that marked on it, and
+  the board after, to try his next change on.
+- The board's own rules decide it, not a copy of them: what the iPad would do with the change is what the check shows.
+- The copy can say what only the iPad knows: the board's revision, his texts still showing as ghosts, and what Igor
+  moved since an older look. Igor keeping one of his ghosts can be part of the check.
+- It shows neither the Pencil's wait nor folds; those are checked on the iPad.
+
 ## Non-goals
 
 - Editing a kept label's words (#912).

@@ -59,6 +59,7 @@ same tests pass on Linux, but only the Mac's run says the app is right. Left out
 | Pure logic in `ContextCore`, a rule that needs no screen | Host | an XCTest in `native/ContextCore/Tests` |
 | A script check, the ladder's map | Host | `scripts/native/test-*`, run by `just native-test-host` |
 | Mac-only code, or anything else that goes into the Mac build | Mac | `just native-build-mac`; a host test can't compile it, and neither can a simulator build |
+| A batch of Larry's board changes: what it will do to a board | Host, on the Mac | `just board-ops` (below); the rules are `BoardOpsTests` and `BoardReplayTests` |
 | A UI test | Simulator | that class: `just test-ladder` |
 | Chat or whiteboard on screen | Simulator | `just test-ladder` for the area's classes, `--full` for its suite |
 | The timer, breathing, Places, the mirror, the card, the Cockpit, the daily strip, the eulogy or the links on screen | Simulator | `just test-ladder` for the feature's own classes (the map below) |
@@ -399,6 +400,36 @@ put the data in a fixture or a test, make it fail, fix, then ship. Never tune by
 are `__tests__/fixtures/locations.json` (36K real points), `context-grabber.db` (a real export with 4 known places;
 `sqlite3` opens it on the Mac) and `heart-rate-2d.json`; a geometry threshold is checked against them before it ships
 (the place-merge gate moved 50 m → 500 m because the tight gate caught 0/10 unmatched stays).
+
+## Larry's board changes on a copy of a board: `just board-ops`
+
+Larry checks what a batch of his changes will do to Igor's board before he sends it, and an agent reproduces a
+board-ops bug, on the Mac with no simulator, in seconds (#936, story 990). The board's own applier and planner
+(`BoardOpApplier`, `BoardOps.plan`, through `BoardReplay` in ContextCore) run on a snapshot, and the
+`board-ops-harness` tool draws the result:
+
+```bash
+just board-ops --board <snapshot.json> --ops <batch.json> [--ops <next.json>] [--keep id,id] [--out <prefix>]
+```
+
+- **The snapshot** is the board's strokes JSON, the body the board posts to `POST /whiteboard/strokes` or the
+  Cockpit's stored copy of it (`whiteboard-strokes/<board>/<picture_id>.json`), kept texts as `kind: "text"` entries.
+  It may add `rev` (the board's revision; without it the first batch's `base_rev`), `ghosts` (his text ghosts still
+  showing, each an `add_text` op as he sends it) and `touched` (`[{rev, ids}]`: what Igor moved or erased since an
+  older look, so a batch from that look rebases or is refused stale exactly as on the iPad).
+- **A batch file** is the `ops` object of his message, the whole chat message, or a list of either. `--keep id,id`
+  between them is Igor tapping Keep on those ghosts. Steps run in the order given.
+- **Out**: `<prefix>.png` (the board after, with what each step moved in orange, drew or kept in green, erased in red
+  dashes, his ghosts in purple dashes, and each step's `op_result` on top, a missing id in capitals),
+  `<prefix>-before.png`, `<prefix>.result.json` (each step's `op_result` and the names it moved, erased, drew and left
+  as ghosts) and `<prefix>.board.json`, the board after, to replay his next batch on. The default prefix is
+  `~/tmp/agent/board-ops/replay-<time>`.
+- The fixtures in `native/ContextCore/Tests/ContextCoreTests/Fixtures/board-ops/` are copies of board 13f700bf as
+  the night of 2026-11-17 left it, with his batches as he sent them (#937–#939).
+
+What it doesn't show: the Pencil's hold (a batch always applies at once), folds (a snapshot's `folds` are left out),
+connectors' routes, and anything PaperKit itself does; those are the simulator's (`WhiteboardPaperGhostsUITests`) and
+the iPad's.
 
 ## A worktree that keeps its build
 
