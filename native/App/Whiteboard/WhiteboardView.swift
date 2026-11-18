@@ -2166,26 +2166,35 @@ extension WhiteboardModel {
   }
 
   /// #937 (story 991): the texts a batch of Larry's inks at once (one he put notes on), lettered as Keep letters a text
-  /// of his, each a kept text under his id. The canvas adds the strokes in the batch's one undo.
-  func letter(_ inked: [BoardOps.Text]) -> [PKStroke] {
-    guard !inked.isEmpty else { return [] }
+  /// of his, each a kept text under his id. The canvas adds the strokes in the batch's one undo, then keeps the texts.
+  /// Each gets a moment of its own before now, as Keep all gives them, so each is known as one text and no stroke the
+  /// batch draws after shares one.
+  func letter(_ inked: [BoardOps.Text]) -> (strokes: [PKStroke], texts: [BoardText]) {
     let started = Date()
-    var out: [PKStroke] = []
+    var strokes: [PKStroke] = []
+    var kept: [BoardText] = []
     for (i, text) in inked.enumerated() {
       let ghost = Ghost(text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text)
-      // A moment of its own for each, as Keep all gives them, so each is known as one text.
-      let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
-      let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
-      rememberLabel(made.date)
-      texts.removeAll { $0.id == text.id }
-      texts.append(
+      let made = BoardText.time(started.addingTimeInterval(-Double(inked.count - i) * 0.005))
+      let glyphs = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      kept.append(
         BoardText(
           id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
-          color: Self.lightHex(ghost.color), glyphs: strokes.count))
-      out += strokes
+          color: Self.lightHex(ghost.color), glyphs: glyphs.count))
+      strokes += glyphs
+    }
+    return (strokes, kept)
+  }
+
+  /// The texts `letter` made, once their strokes are on the board.
+  func keep(lettered: [BoardText]) {
+    guard !lettered.isEmpty else { return }
+    for text in lettered {
+      rememberLabel(Date(timeIntervalSince1970: Double(text.t) / 1000))
+      texts.removeAll { $0.id == text.id }
+      texts.append(text)
     }
     opLedger.setTexts(texts, board: board.id)
-    return out
   }
 
   /// Stories 910–916: what a plan put on the canvas besides its ink, whoever made it: its notes (a connector's route, a

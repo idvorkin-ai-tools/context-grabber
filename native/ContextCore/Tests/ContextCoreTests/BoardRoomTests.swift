@@ -131,4 +131,25 @@ final class BoardRoomTests: XCTestCase {
     XCTAssertTrue(plan.offsets.isEmpty)
     XCTAssertEqual(plan.texts.first?.y, 300)
   }
+
+  func testTheRoomATextOpensLeavesWhatTheBatchDrewAndItsFrame() {
+    // Igor's writing at 100–130 under Larry's label at 105; the box he draws for it (top 110) and an underline at 160
+    // stay with the label, and a frame on the board the label sits in, its top on that row, stays too.
+    let writing = BoardOps.Stroke(ids: ["w"], t: nil, bounds: CGRect(x: 100, y: 100, width: 200, height: 30))
+    let frame = BoardOps.Stroke(ids: ["frame"], t: nil, bounds: CGRect(x: 30, y: 100, width: 340, height: 400))
+    let below = BoardOps.Stroke(ids: ["below"], t: nil, bounds: CGRect(x: 400, y: 600, width: 200, height: 30))
+    let plan = BoardOps.plan(
+      [
+        .addStrokes([
+          BoardOps.NewStroke(id: "box", points: [CGPoint(x: 40, y: 110), CGPoint(x: 360, y: 300)]),
+          BoardOps.NewStroke(id: "line", points: [CGPoint(x: 60, y: 160), CGPoint(x: 300, y: 160)]),
+        ]),
+        .addText(.init(id: "label", x: 50, y: 105, text: "Step 1", size: 22)),
+      ], strokes: [writing, frame, below], pages: 1)
+    XCTAssertNotNil(plan.offsets[0], "Igor's writing makes way")
+    XCTAssertEqual(plan.offsets[0], plan.offsets[2], "with the ink below it")
+    XCTAssertNil(plan.offsets[1], "the frame the label sits in stays")
+    XCTAssertEqual(plan.added.map { $0.points.first }, [CGPoint(x: 40, y: 110), CGPoint(x: 60, y: 160)])
+    XCTAssertEqual(plan.texts.first?.y, 105)
+  }
 }

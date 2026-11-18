@@ -160,9 +160,11 @@ extension BoardOps {
     var plan = Plan(pagesBefore: pages, pagesAfter: pages)
     var reach: CGFloat?
     var connectors: [NewConnector] = []
-    // Everything at or below `y` down `dy`: the ink, and his ghosts showing there.
-    func push(_ y: CGFloat, _ dy: CGFloat) {
-      for item in work.items.indices where work.top(item).map({ $0 >= y }) == true { work.move(item, 0, dy) }
+    // Everything at or below `y` down `dy`, of `items` (all the ink by default), and his ghosts showing there.
+    func push(_ y: CGFloat, _ dy: CGFloat, items: [Int]? = nil) {
+      for item in items ?? Array(work.items.indices) where work.top(item).map({ $0 >= y }) == true {
+        work.move(item, 0, dy)
+      }
       for at in ghosts.indices where ghosts[at].y >= y { ghosts[at].y += dy }
       if dy > 0 { reach = max(reach ?? y + dy, y + dy) }
     }
@@ -187,11 +189,13 @@ extension BoardOps {
       case .addText(var text):
         ghosts.removeAll { $0.id == text.id }
         // His text never lands on ink: it makes room, as a paste does (#938, story 992).
-        // What it lands clear of: the board's ink, not what this change draws (his box for it), nor a frame it sits in.
+        // What it lands clear of and moves: the board's ink, not what this change draws (his box for it), nor a frame
+        // it sits in.
         let box = text.box
-        let room = BoardRoom.text(box, among: work.shownBoxes.filter { !$0.contains(box) })
+        let ink = work.canvasInk.filter { $0.box.map { !$0.contains(box) } ?? true }
+        let room = BoardRoom.text(box, among: ink.compactMap(\.box))
         text.y = room.y
-        if let room = room.push { push(room.cut, room.dy) }
+        if let room = room.push { push(room.cut, room.dy, items: ink.filter(\.moves).map(\.item)) }
         ghosts.append(text)
       case .addStrokes(let new):
         work.add(new, plan: &plan)
@@ -306,12 +310,17 @@ extension BoardOps {
 
     var liveBounds: [CGRect] { entries.filter { !$0.gone }.map(\.bounds) }
 
-    /// The boxes of the board's ink that shows, by what moves whole, as the batch has left it; what the batch itself
-    /// draws is left out. What his text lands clear of.
-    var shownBoxes: [CGRect] {
+    /// The board's ink from before the batch, by what moves whole, as the batch has left it: each item's box of what
+    /// shows of it (nil when none does), and whether it is all canvas ink, nothing the batch drew or inked. What his text
+    /// lands clear of, and what of it the room his text opens moves.
+    var canvasInk: [(item: Int, box: CGRect?, moves: Bool)] {
       items.indices.compactMap { item in
-        let shown = live(item).filter { entries[$0].canvas != nil && !(entries[$0].hidden ?? entries[$0].folded) }
-        return shown.isEmpty ? nil : shown.map { entries[$0].bounds }.reduce(CGRect.null) { $0.union($1) }
+        let all = live(item)
+        let canvas = all.filter { entries[$0].canvas != nil }
+        guard !canvas.isEmpty else { return nil }
+        let shown = canvas.filter { !(entries[$0].hidden ?? entries[$0].folded) }
+        let box = shown.isEmpty ? nil : shown.map { entries[$0].bounds }.reduce(CGRect.null) { $0.union($1) }
+        return (item, box, canvas.count == all.count)
       }
     }
 

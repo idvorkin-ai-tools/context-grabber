@@ -1652,8 +1652,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     // #937: his texts with notes are ink in the same undo.
     let lettered = model.letter(plan.inked)
-    guard let (held, renamed, drawn) = put(plan, on: markup, hashes: hashes, adding: lettered, named: batch.label)
+    guard
+      let (held, renamed, drawn) = put(plan, on: markup, hashes: hashes, adding: lettered.strokes, named: batch.label)
     else { return nil }
+    model.keep(lettered: lettered.texts)
     model.opsApplied(held.inkDrawing, renamed: renamed, drawn: drawn)
     model.inkReset(Self.allHashes(held))
     log.event(
