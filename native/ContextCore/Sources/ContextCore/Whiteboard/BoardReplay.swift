@@ -159,6 +159,14 @@ public struct BoardReplay {
           hidden: stroke.hidden, meta: stroke.meta))
       outcome.drawn.append(stroke.id)
     }
+    // His texts with notes, lettered onto the board as Keep letters them (#937).
+    for text in plan.inked {
+      board.texts.append(
+        BoardSnapshot.Kept(
+          id: text.id, text: text.text, font: text.font, box: text.box, color: BoardSnapshot.hex(text.color),
+          t: nextTime(), size: text.size))
+      outcome.drawn.append(text.id)
+    }
     for name in plan.forgetMetas { setMeta(nil, on: name) }
     for (name, meta) in plan.metas { setMeta(meta, on: name) }
     for text in plan.texts {
@@ -179,16 +187,20 @@ public struct BoardReplay {
     if let at = board.texts.firstIndex(where: { $0.id == name }) { board.texts[at].meta = meta }
   }
 
+  /// A moment after everything on the board: a kept text's glyphs are known by theirs.
+  private func nextTime() -> Int64 {
+    ((board.texts.map(\.t) + board.ink.compactMap(\.t)).max() ?? 1_700_000_000_000) + 1000
+  }
+
   /// Igor keeps Larry's text ghosts: each becomes a kept text under Larry's id, where its ghost showed, one change.
   private mutating func keep(_ ids: [String]) {
     var outcome = Outcome(label: "keep", action: "kept")
-    var t = (board.texts.map(\.t) + board.ink.compactMap(\.t)).max() ?? 1_700_000_000_000
     for id in ids {
       guard let ghost = board.ghosts.first(where: { $0.id == id }) else {
         outcome.why = (outcome.why.map { $0 + ", " } ?? "no ghost ") + id
         continue
       }
-      t += 1000
+      let t = nextTime()
       board.ghosts.removeAll { $0.id == id }
       board.texts.append(
         BoardSnapshot.Kept(

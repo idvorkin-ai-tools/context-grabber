@@ -105,6 +105,14 @@ The web board (the Cockpit's `/ink`) is where these behaviours are worked out fi
 - Larry can tag strokes with notes of his own. The board never reads them, except one: a group. Strokes in one
   group move as one when he pushes or moves them, so a label and its underline never split.
 - His notes go back to him exactly as he wrote them, with the strokes they belong to.
+- **A text he puts notes on is ink, not a ghost** (#937; Larry, 2026-11-17, rev 180: his Judge box drew and its label
+  didn't, and grouping the two came back with the label missing). A text of his that the same change adds and then
+  groups, or gives any notes, lands on the board at once as kept text in his colour and lettering, under his name for
+  it, never as a ghost to keep: a box and its label arrive together. It is part of the change's one Undo, it is in the
+  group, it moves with the group as one, and it goes back to him as a kept text under his name, so grouping it is
+  never a missing name. A text he only adds, with no notes, is still a ghost for Igor to keep or dismiss.
+- A kept text he groups joins the group: it moves with it, whichever of the group's names he moves it by. Erasing or
+  moving the text by its own name takes the text alone out or along with its group, as for any stroke of a group.
 
 ### Larry hears my ink change and my selection
 

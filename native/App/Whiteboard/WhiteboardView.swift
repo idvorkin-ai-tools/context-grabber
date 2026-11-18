@@ -2038,7 +2038,8 @@ extension WhiteboardModel {
     let editing: [String: Any] = [
       "erased": plan.erase.count, "drawn": plan.added.count, "metas": plan.metas.count, "hidden": hiding,
       "shown": plan.hidden.count - hiding, "selected": plan.select.count, "overlays": overlays.list.count,
-      "texts": plan.texts.count, "missing_ids": plan.missingIDs.count, "changed": plan.changesBoard,
+      "texts": plan.texts.count, "inked": plan.inked.count, "missing_ids": plan.missingIDs.count,
+      "changed": plan.changesBoard,
       "ms": Int(started.duration(to: .now) / .milliseconds(1)),
     ]
     event.merge(moving) { $1 }
@@ -2131,6 +2132,29 @@ extension WhiteboardModel {
   func keep(text: BoardText) {
     texts.append(text)
     opLedger.setTexts(texts, board: board.id)
+  }
+
+  /// #937 (story 991): the texts a batch of Larry's inks at once (one he put notes on), lettered as Keep letters a text
+  /// of his, each a kept text under his id. The canvas adds the strokes in the batch's one undo.
+  func letter(_ inked: [BoardOps.Text]) -> [PKStroke] {
+    guard !inked.isEmpty else { return [] }
+    let started = Date()
+    var out: [PKStroke] = []
+    for (i, text) in inked.enumerated() {
+      let ghost = Ghost(text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text)
+      // A moment of its own for each, as Keep all gives them, so each is known as one text.
+      let made = BoardText.time(started.addingTimeInterval(Double(i) * 0.005))
+      let strokes = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      rememberLabel(made.date)
+      texts.removeAll { $0.id == text.id }
+      texts.append(
+        BoardText(
+          id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
+          color: Self.lightHex(ghost.color), glyphs: strokes.count))
+      out += strokes
+    }
+    opLedger.setTexts(texts, board: board.id)
+    return out
   }
 
   /// Stories 910–916: what a plan put on the canvas besides its ink, whoever made it: its notes (a connector's route, a

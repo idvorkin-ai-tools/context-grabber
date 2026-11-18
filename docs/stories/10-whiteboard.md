@@ -7013,3 +7013,25 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **And:** tonight's three failures replay as they happened on the iPad: the Judge label missing (#937), the list landing on ink (#938) and the delete of ghosts missing (#939)
 
 ---
+
+### User Story 991:
+
+- **Summary:** A label Larry groups with his box lands with it, as ink
+- **Status:** implemented on branch `native/board-ops-937-grouped-label`; verified by host tests (`BoardOpsInkTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's Judge batch; not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry groups ink*
+- **Issues:** [#937](https://github.com/idvorkin/context-grabber/issues/937)
+
+#### Use Case:
+- **As Larry,** drawing a labelled block on Igor's board
+- **I want to** send a box and its label grouped in one change
+- **so that** both land together and move as one, with nothing left for Igor to keep
+
+#### Acceptance Criteria:
+- **Scenario:** A grouped box and label
+- **Given:** a change of mine that draws a box, adds a text, and groups the two
+- **When:** it applies on the board
+- **Then:** the box and the label are both ink on the board at once, in my colour, with no ghost to keep
+- **And:** my next turn has the label as a kept text under my name, no missing ids, and moving the group moves both
+- **And:** one Undo takes both away
+
+---

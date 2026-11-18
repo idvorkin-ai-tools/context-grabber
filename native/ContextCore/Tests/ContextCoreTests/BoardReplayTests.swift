@@ -83,14 +83,29 @@ final class BoardReplayTests: XCTestCase {
 
   // MARK: Tonight's three, as the board answered them on 10b84a5f
 
-  /// #937: the box drew; the label stayed a ghost, and grouping it came back as a missing id (rev 180).
-  func testIssue937GroupedBoxAndLabel() throws {
-    let replay = try replay("judge")
+  /// #937: a box and its label grouped in one change both land as ink, the label as a kept text in the group, and
+  /// nothing is missing (on 10b84a5f the label stayed a ghost and came back as a missing id, rev 180).
+  func testIssue937GroupedBoxAndLabelBothLand() throws {
+    var replay = try replay("judge")
     let outcome = try XCTUnwrap(replay.outcomes.first)
     XCTAssertEqual(outcome.result?.ok, true)
-    XCTAssertEqual(outcome.drawn, ["larry-judge-box"])
-    XCTAssertEqual(outcome.result?.missingIDs, ["larry-judge-label"])
-    XCTAssertEqual(replay.board.ghosts.map(\.id), ["larry-judge-label"])
+    XCTAssertNil(outcome.result?.missingIDs)
+    XCTAssertEqual(Set(outcome.drawn), ["larry-judge-box", "larry-judge-label"])
+    XCTAssertTrue(replay.board.ghosts.isEmpty, "nothing left to keep")
+    let label = try XCTUnwrap(replay.board.texts.first { $0.id == "larry-judge-label" })
+    XCTAssertEqual(label.meta?.group, "judge-block")
+    XCTAssertEqual(label.box.minX, 545)
+    replay.run([
+      .batch(
+        key: "move",
+        json: [
+          "board": replay.board.board, "base_rev": replay.board.rev ?? 0, "label": "move",
+          "list": [["op": "translate", "ids": ["judge-block"], "dx": -100, "dy": 300]],
+        ])
+    ])
+    let moved = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(moved.moved["larry-judge-box"], CGVector(dx: -100, dy: 300))
+    XCTAssertEqual(moved.moved["larry-judge-label"], CGVector(dx: -100, dy: 300), "the label moves with its group")
   }
 
   /// #938: his list landed on Igor's two lines under the diagram, and nothing moved.
