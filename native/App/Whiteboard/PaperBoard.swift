@@ -266,6 +266,39 @@ class PaperHost: UIViewController {
   /// What a touch came to, for the log.
   func touchEnded(_ run: TouchRun, visible: CGRect, zoom: CGFloat, dx: CGFloat, dy: CGFloat) {}
 
+  /// #945: after a margin tap PaperKit showed a box, the watcher heard no touch again, and ink moved with nothing
+  /// selected. For a change no touch was heard making: what the watcher holds, and what is on top at `spot` (this
+  /// view's points), the board or something over it.
+  func watchState(at spot: CGPoint?) -> [String: Any] {
+    var state: [String: Any] = [
+      "watcher_state": Self.name(watcher.state), "watcher_down": watcher.held, "watcher_on": watcher.isEnabled,
+      "touches_down": touchesDown, "in_window": view.window != nil,
+    ]
+    guard let spot, let window = view.window else { return state }
+    let top = window.hitTest(view.convert(spot, to: window), with: nil)
+    var chain: [String] = []
+    var at = top
+    while let seen = at, chain.count < 4 {
+      chain.append(String(describing: type(of: seen)))
+      at = seen.superview
+    }
+    state["hit"] = chain
+    state["hit_on_board"] = top?.isDescendant(of: view) ?? false
+    return state
+  }
+
+  static func name(_ state: UIGestureRecognizer.State) -> String {
+    switch state {
+    case .possible: return "possible"
+    case .began: return "began"
+    case .changed: return "changed"
+    case .ended: return "ended"
+    case .cancelled: return "cancelled"
+    case .failed: return "failed"
+    @unknown default: return "other"
+    }
+  }
+
   // MARK: - The log's words
 
   var toolName: String {
@@ -687,15 +720,15 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let wanted = board.pages(
       after: pages, inkMaxY: drawing.strokes.isEmpty ? nil : drawing.bounds.maxY,
       redoWaiting: controller.undoManager?.canRedo ?? false)
-    log.event(
-      "whiteboard",
-      [
-        "action": "paper_ink", "board": model.board.id, "strokes": frames.count, "pages": pages, "wanted": wanted,
-        "added": change.added.count, "moved": change.moved.count, "removed": change.removed.count,
-        "added_box": rect(change.added.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }),
-        "can_undo": controller.undoManager?.canUndo ?? false, "can_redo": controller.undoManager?.canRedo ?? false,
-        "ms": ms(CACurrentMediaTime() - started),
-      ])
+    var event: [String: Any] = [
+      "action": "paper_ink", "board": model.board.id, "strokes": frames.count, "pages": pages, "wanted": wanted,
+      "added": change.added.count, "moved": change.moved.count, "removed": change.removed.count,
+      "added_box": rect(change.added.compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }),
+      "can_undo": controller.undoManager?.canUndo ?? false, "can_redo": controller.undoManager?.canRedo ?? false,
+      "ms": ms(CACurrentMediaTime() - started),
+    ]
+    event.merge(unheard(change, frames: frames, undo: controller.undoManager)) { $1 }
+    log.event("whiteboard", event)
     showLines()
     showPageNumber()
     showToText()
@@ -794,13 +827,44 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   func paperMarkupViewControllerDidChangeSelection(_ controller: PaperMarkupViewController) {
     run?.facts.selectionChanges += 1
     run?.selected = controller.selection.count
-    if !controller.selection.isEmpty, CACurrentMediaTime() < noSelectionUntil { controller.selection = [] }
+    let putBack = !controller.selection.isEmpty && CACurrentMediaTime() < noSelectionUntil
+    logSelection(controller.selection, putBack: putBack)
+    if putBack { controller.selection = [] }
     // Story 844: what the lasso holds, for Larry.
     let keys = Set(controller.selection.map(Self.key))
     if !pasted.isEmpty, keys != pasted { forgetPaste() }
     model.selectionChanged(keys)
     showToText()
     offerConnect(keys)
+  }
+
+  /// #945: every selection PaperKit reports, with what it holds and whether a touch was heard making it.
+  private func logSelection(_ selection: Set<MarkupOrderedSet.ElementID>, putBack: Bool) {
+    let keys = selection.map(Self.key)
+    let box = keys.compactMap { inkFrames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    var event: [String: Any] = [
+      "action": "paper_selection", "board": model.board.id, "selected": selection.count,
+      "strokes": keys.filter { inkFrames[$0] != nil }.count, "box": rect(box), "put_back": putBack,
+      "in_touch": run != nil, "touch_mode": name(paper.directTouchMode),
+    ]
+    if run == nil { event.merge(watchState(at: box.isNull ? nil : viewSpot(box))) { $1 } }
+    log.event("whiteboard", event)
+  }
+
+  /// #945: the ink's change, said with whether a touch was heard making it and what was selected; with none heard (and
+  /// no Undo or Redo), what the watcher holds and what is on top where the ink changed.
+  private func unheard(_ change: PaperProbe.InkChange, frames: [String: CGRect], undo: UndoManager?) -> [String: Any] {
+    let undoing = undo?.isUndoing == true || undo?.isRedoing == true
+    var fields: [String: Any] = ["in_touch": run != nil, "selected": paper.selection.count, "undoing": undoing]
+    guard run == nil, !undoing, !change.isEmpty else { return fields }
+    let box = (change.added + change.moved.map(\.id)).compactMap { frames[$0] }.reduce(CGRect.null) { $0.union($1) }
+    fields.merge(watchState(at: box.isNull ? nil : viewSpot(box))) { $1 }
+    return fields
+  }
+
+  /// A box on the board, its centre in this view's points.
+  private func viewSpot(_ box: CGRect) -> CGPoint {
+    lines.convert(lines.spot(of: CGPoint(x: box.midX, y: box.midY)), to: view)
   }
 
   func paperMarkupViewControllerDidBeginDrawing(_ controller: PaperMarkupViewController) {
@@ -2497,6 +2561,8 @@ final class PaperTouchWatcher: UIGestureRecognizer {
 
   var changed: ((UITouch, Phase, Int) -> Void)?
   private var down: Set<UITouch> = []
+  /// The touches it thinks are still down (#945's log).
+  var held: Int { down.count }
 
   init() {
     super.init(target: nil, action: nil)
