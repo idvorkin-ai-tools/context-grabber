@@ -633,13 +633,13 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 984:
 
-- **Summary:** The wallpaper snapshots of every shut-down simulator are pruned before a boot and when a simulator run ends
-- **Status:** implemented in c2067b7 (before a boot, through machine-doctor, which skipped every time: its `sims` command was never merged); our own prune, before a boot and at the end of a run, in 9ae4b49; verified on the host by the ladder's map self-test (a shut-down simulator's snapshots go, a booted one's stay, one booted between the look and the delete stays, a failing `simctl` is a line and exit 0, the prune runs before the boot and again when the rung ends) and on the simulator rung, 2026-11-18 (GymTimerUITests: the boot cleared the iPhone 17 and iPad snapshots, 910 MB, while both were shut down; the teardowns found nothing more; the iPhone left booted kept its own)
-- **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free; Igor, 2026-11-18: "can we do that cleanup as part of test tear down since it's in sim"
+- **Summary:** The wallpaper snapshots of every shut-down simulator are pruned before a boot
+- **Status:** implemented in c2067b7 (through machine-doctor, which skipped every time: its `sims` command was never merged); our own prune in 9ae4b49, 0230c40; verified on the host by the ladder's map self-test (the prune runs before the boot and clears both shut-down simulators' snapshots) and on the simulator rung, 2026-11-18 (GymTimerUITests: the boot cleared the iPhone 17 and iPad snapshots, 910 MB, while both were shut down)
+- **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free
 
 #### Use Case:
 - **As Igor,** whose Air's disk fills with wallpaper snapshots no one evicts
-- **I want to** have them deleted on the shut-down simulators before a boot and when a simulator run ends
+- **I want to** have them deleted on the shut-down simulators before a boot
 - **so that** the boots can't push the disk under the line that stops every build, and no one has to clear it by hand
 
 #### Acceptance Criteria:
@@ -647,21 +647,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the target simulator is shut down
 - **When:** a run boots it
 - **Then:** the wallpaper snapshots of every shut-down simulator, the target among them, are deleted first, whatever the free disk, then the simulator boots
-
-- **Scenario:** A simulator run ends
-- **Given:** the ladder's simulator rung, the whiteboard suite or the smoke ends, pass or fail
-- **When:** it tears down
-- **Then:** the wallpaper snapshots of every shut-down simulator are deleted; the simulator left booted keeps its own
-
-- **Scenario:** A booted simulator
-- **Given:** a simulator is booted, even one that booted after the prune looked
-- **When:** the prune runs
-- **Then:** its snapshots are left alone
-
-- **Scenario:** What the prune says
-- **Given:** any prune
-- **When:** it finishes
-- **Then:** one line names the simulators cleared and the MB freed (or says there was nothing), and a prune that fails never fails the boot or the run
 
 ---
 
@@ -700,3 +685,60 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the target simulator is booted
 - **When:** a run uses it
 - **Then:** nothing is pruned and nothing boots
+
+---
+
+### User Story 987:
+
+- **Summary:** The wallpaper snapshots of every shut-down simulator are pruned when a simulator run ends
+- **Status:** implemented in 9ae4b49, 0230c40; verified on the host by the ladder's map self-test (the rung prunes again after its last boot) and on the simulator rung, 2026-11-18 (GymTimerUITests: the teardowns ran and found nothing more after the boot's prune; the iPhone left booted kept its own)
+- **Issues:** split from story 984; Igor, 2026-11-18: "can we do that cleanup as part of test tear down since it's in sim"
+
+#### Use Case:
+- **As Igor,** whose Air's disk fills with wallpaper snapshots no one evicts
+- **I want to** have them deleted on the shut-down simulators when a simulator run ends
+- **so that** the snapshots a run's boots left behind are gone before the next build needs the disk
+
+#### Acceptance Criteria:
+- **Scenario:** A simulator run ends
+- **Given:** the ladder's simulator rung, the whiteboard suite or the smoke is running
+- **When:** it tears down, pass or fail
+- **Then:** the wallpaper snapshots of every shut-down simulator are deleted; the simulator left booted keeps its own
+
+---
+
+### User Story 988:
+
+- **Summary:** A booted simulator's wallpaper snapshots are never pruned
+- **Status:** implemented in 9ae4b49; verified on the host by the ladder's map self-test (a booted one's snapshots stay; one booted between the look and the delete stays, and goes once it is shut down again)
+- **Issues:** split from story 984
+
+#### Use Case:
+- **As Igor,** whose simulators PosterBoard holds open while they run
+- **I want to** have the prune leave a booted simulator's snapshots alone, even one that booted after the prune looked
+- **so that** a prune never pulls files out from under a running simulator
+
+#### Acceptance Criteria:
+- **Scenario:** A booted simulator
+- **Given:** a simulator is booted, even one that booted after the prune looked
+- **When:** the prune runs
+- **Then:** its snapshots are left alone
+
+---
+
+### User Story 989:
+
+- **Summary:** The prune says what it did in one line and never fails a boot or a run
+- **Status:** implemented in 9ae4b49; verified on the host by the ladder's map self-test (one line with the simulators and the MB; one line when there is nothing; a failing `simctl` is a line and exit 0)
+- **Issues:** split from story 984
+
+#### Use Case:
+- **As Igor,** reading a run's output
+- **I want to** see one line naming the simulators cleared and the MB freed, and have a failed prune ignored
+- **so that** housekeeping never hides a test result or stops a run
+
+#### Acceptance Criteria:
+- **Scenario:** What the prune says
+- **Given:** any prune, including one whose `simctl` fails
+- **When:** it finishes
+- **Then:** one line names the simulators cleared and the MB freed (or says there was nothing), and it exits 0 so the boot or the run goes on

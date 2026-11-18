@@ -47,7 +47,7 @@ cleanup() {
   # shellcheck disable=SC2086  # each is empty when its section did not run
   kill $BRIDGE $DROP $COCKPIT 2>/dev/null || true
   unstash  # smoke-lib's: puts stashed data back
-  "$root/scripts/native/sim-poster-prune.sh" || true  # story 984: the shut-down simulators' wallpaper snapshots
+  "$root/scripts/native/sim-poster-prune.sh" || true  # story 987: the shut-down simulators' wallpaper snapshots
 }
 trap cleanup EXIT
 

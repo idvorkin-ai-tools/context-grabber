@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Story 984: every simulator boot writes about 300 MB of PosterBoard wallpaper snapshots (PRBPosterExtensionDataStore)
+# Stories 984, 987, 988, 989: every simulator boot writes about 300 MB of PosterBoard wallpaper snapshots (PRBPosterExtensionDataStore)
 # that nothing evicts; the iPad simulator reached 3.5 GB in a day. This deletes them on every shut-down simulator, never a
 # booted one (PosterBoard holds its store open), and PosterBoard rebuilds them on the next boot. It runs before a boot
 # and when a simulator run ends, whatever the free disk, and prints one line. It never fails: a prune is housekeeping,

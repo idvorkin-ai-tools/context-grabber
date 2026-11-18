@@ -140,9 +140,9 @@ climb switches device at most once. Until story 982 finds why keys reach the app
 the iPad is still fresh-booted when `WhiteboardPasteUITests` runs, and only then. The one exception is a hot Mac: when macOS records a thermal or performance warning
 (`pmset -g therm`; not the load, which here counts hung processes), the rung shuts its simulator down at the end and says so (story
 983). The wallpaper snapshots of every shut-down simulator are deleted before a boot and again when the rung, the
-whiteboard suite or the smoke ends (`scripts/native/sim-poster-prune.sh`, story 984), whatever the free disk: a booted
-simulator's are never touched (each device's state is read again just before its delete), PosterBoard rebuilds about
-300 MB on the next boot, one line names the simulators and the MB freed, and a failed prune never fails the run. Don't `xcrun simctl shutdown all` after a run; that is a heat stop's, not a habit.
+whiteboard suite or the smoke ends (`scripts/native/sim-poster-prune.sh`, stories 984 and 987), whatever the free disk: a booted
+simulator's are never touched (each device's state is read again just before its delete; story 988), PosterBoard rebuilds about
+300 MB on the next boot, one line names the simulators and the MB freed, and a failed prune never fails the run (story 989). Don't `xcrun simctl shutdown all` after a run; that is a heat stop's, not a habit.
 
 **UI tests need the Mac's display on and its screen unlocked** (story 782). With the display off they don't start, and
 running ones stall: on 2026-11-16 the whiteboard step sat 17 minutes before its first test on a dark Mac, against about

@@ -282,7 +282,7 @@ leave_simulator() {
     echo "the Mac is hot ($hot_why): the simulator is shut down rather than left booted"
     xcrun simctl shutdown "$udid" 2>/dev/null
   fi
-  # Story 984: the shut-down simulators' wallpaper snapshots go when the rung ends (the booted one keeps its own).
+  # Story 987: the shut-down simulators' wallpaper snapshots go when the rung ends (the booted one keeps its own).
   [ -z "$udid" ] || scripts/native/sim-poster-prune.sh || true
   rm -f "${contended:-/nonexistent}"
 }

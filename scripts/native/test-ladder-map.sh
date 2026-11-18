@@ -394,7 +394,7 @@ if [ "$(order)" = "01" ]; then ok "both devices, none up: the phone, then the iP
 run FAKE_BOOTED=00000000-0000-0000-0000-000000000001 -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
 if [ "$(order)" = "10" ]; then ok "both devices, the iPad up: the iPad, then the phone"; else bad "both devices, the iPad up: $(order)"; fi
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "both devices: the iPad is shut before the phone boots"; else bad "both devices: the iPad is shut before the phone boots"; fi
-# Story 984: the shut-down simulators' wallpaper snapshots are pruned before a boot and when the rung ends; never a booted one's.
+# Stories 984, 987, 988, 989: the shut-down simulators' wallpaper snapshots are pruned before a boot and when the rung ends; never a booted one's.
 stores() {  # fresh fake snapshots, 1 MB each, under both fake simulators
   local d
   for d in 00000000-0000-0000-0000-000000000000 00000000-0000-0000-0000-000000000001; do
@@ -439,7 +439,7 @@ if [ ! -e "$(store_of 00000000-0000-0000-0000-000000000000)" ] && [ ! -e "$(stor
 else bad "the climb clears both shut-down simulators' snapshots"; fi
 last_boot=$(grep -n "simctl bootstatus" "$MARKS/xcrun" | tail -1 | cut -d: -f1)
 last_look=$(grep -n "simctl list devices -j" "$MARKS/xcrun" | tail -1 | cut -d: -f1)
-if [ -n "$last_look" ] && [ "$last_look" -gt "$last_boot" ]; then ok "the rung prunes again when it ends (story 984)"; else bad "the rung prunes again when it ends (story 984)"; fi
+if [ -n "$last_look" ] && [ "$last_look" -gt "$last_boot" ]; then ok "the rung prunes again when it ends (story 987)"; else bad "the rung prunes again when it ends (story 987)"; fi
 # Story 983: a hot Mac gets its simulator shut down at the end.
 run FAKE_HOT=1 -- --changed native/UITests/CardUITests.swift
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000000" "$MARKS/xcrun"; then ok "a hot Mac: the simulator is shut down"; else bad "a hot Mac: the simulator is shut down"; fi
