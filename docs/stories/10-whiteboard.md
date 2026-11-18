@@ -7091,3 +7091,31 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the ghost moves, and once kept it is a kept text under the same name
 
 ---
+
+### User Story 994:
+
+- **Summary:** A label inside one of Larry's boxes can be tapped on its words
+- **Status:** in progress on branch `native/board-ghost-labels`
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*; [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry checks a change before he sends it*
+- **Issues:** [#941](https://github.com/idvorkin/context-grabber/issues/941): Larry's four named boxes of 18:26, 2026-11-17 (board 13f700bf, build 10b84a5f): all eleven marks showed (`paper_ghosts` count 11), Igor's three taps each chose a box or a line, no tap could reach a name, and Larry's next reply replaced the eight left
+
+#### Use Case:
+- **As someone** keeping Larry's labelled boxes one at a time
+- **I want to** tap a name inside a box and get the name, and tap the box's side and get the box
+- **so that** no mark of his is out of my reach because another was drawn first
+
+#### Acceptance Criteria:
+- **Scenario:** A name inside its box
+- **Given:** Larry's box with a name inside it, the box first in his reply
+- **When:** I tap on the name's letters, or between them
+- **Then:** Keep and Dismiss show beside the name, not the box
+
+- **Scenario:** The box's side
+- **Given:** the same box and name
+- **When:** I tap on the box's side
+- **Then:** Keep and Dismiss show beside the box
+
+- **Scenario:** Larry checks his marks first
+- **Given:** a reply of his with marks and a copy of the board
+- **When:** he runs `just board-ops` with them
+- **Then:** the picture shows his marks where the iPad would, and every mark a tap can't reach is named, with the mark that takes the tap instead

@@ -271,7 +271,13 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// A finger tap (stories 354, 825): on a mark chooses it, so its Keep and Dismiss show; anywhere else only puts them
   /// away. A stray tap never keeps or dismisses a mark.
   public mutating func tap(hitting: (Ghost) -> Bool) -> Tap {
-    if let ghost = ghosts.first(where: hitting) {
+    tap(reach: { hitting($0) ? 0 : nil })
+  }
+
+  /// A finger tap, each mark's distance from it given (nil: out of reach): the nearest mark takes it, and between two as
+  /// near the one drawn later, on top (#941).
+  public mutating func tap(reach: (Ghost) -> CGFloat?) -> Tap {
+    if let ghost = WhiteboardMarkChoice.nearest(ghosts, reach: reach) {
       guard ghost.id != chosenID else { return .nothing }
       chosenID = ghost.id
       return .chose(ghost)
@@ -337,6 +343,18 @@ public enum WhiteboardMarkChoice {
     return CGRect(
       x: min(max(chosen.minX, inside.minX), inside.maxX - w), y: min(max(chosen.minY, inside.minY), inside.maxY - h),
       width: w, height: h)
+  }
+
+  /// The mark a tap takes (#941): the nearest within reach, and between two as near the later one, drawn on top. A box
+  /// drawn before its label no longer takes every tap near its sides, the label's words included.
+  public static func nearest<Mark>(_ marks: [Mark], reach: (Mark) -> CGFloat?) -> Mark? {
+    var best: (mark: Mark, away: CGFloat)?
+    for mark in marks {
+      guard let away = reach(mark) else { continue }
+      if let current = best, away > current.away { continue }
+      best = (mark, away)
+    }
+    return best?.mark
   }
 
   /// A mark's box from its lines, in their own points; null for none.

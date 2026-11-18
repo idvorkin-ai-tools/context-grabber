@@ -28,6 +28,14 @@ suggest changes the board until Igor keeps it.
   marks (the Pencil draws) changes nothing on the board yet: two small buttons, **Keep** and **Dismiss**, appear beside
   that mark, always wholly on screen, moved inward when the mark is at an edge of the view. They follow the mark when
   the board moves. A tap on another mark moves them to that one.
+  - **The tap goes to the mark nearest the finger** (#941; Larry, 2026-11-17: his four named boxes, and every label
+    inside a box was out of reach, because the box, drawn first, took any tap near its sides, and a box sixty points
+    tall has almost no middle the finger can reach past them). A tap anywhere on a label's letters, or in the box the
+    letters fill, is on the label. When the finger is within reach of several marks, the nearest takes it; between
+    two as near, the one drawn later, on top. So a label inside a box is tapped on its words and the box on its sides,
+    whichever came first in his reply, and a line crossing another is chosen where the finger is closer to it.
+  - The session log says, for each mark chosen, how many marks were within the finger's reach, and, for each set of
+    marks shown, how many of each kind, so a mark that can't be tapped shows up in a phone's log.
   - **Keep** does what a tap used to: the mark becomes real ink in Claude's colour (or the one it asked for, below),
     and his eraser and undo treat it like his own strokes. One undo takes it back.
   - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the

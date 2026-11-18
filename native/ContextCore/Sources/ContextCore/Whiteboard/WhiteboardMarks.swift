@@ -168,15 +168,21 @@ public struct WhiteboardMarks: Sendable {
     guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["ok"] as? Bool == true,
       let messages = json["messages"] as? [[String: Any]]
     else { return nil }
-    return messages.compactMap { message in
-      guard message["who"] as? String == "larry", let id = message["id"] as? String else { return nil }
-      let place = (message["frame"] as? [String: Any]).flatMap(frame)
-      return Row(
-        id: id, text: (message["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
-        shapes: (message["shapes"] as? [Any] ?? []).compactMap { WhiteboardTurn.anyShape($0) },
-        pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1,
-        ops: BoardOps.batch(message["ops"], key: id, source: "web"))
-    }
+    return messages.compactMap { row($0) }
+  }
+
+  /// One of Larry's messages on the thread as a row; nil for anyone else's. `lettering` decides which labels have
+  /// letters to draw; only a test passes one.
+  public static func row(
+    _ message: [String: Any], lettering: @escaping WhiteboardTurn.Lettering = WhiteboardTurn.hasLetters
+  ) -> Row? {
+    guard message["who"] as? String == "larry", let id = message["id"] as? String else { return nil }
+    let place = (message["frame"] as? [String: Any]).flatMap(frame)
+    return Row(
+      id: id, text: (message["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+      shapes: (message["shapes"] as? [Any] ?? []).compactMap { WhiteboardTurn.anyShape($0, lettering: lettering) },
+      pictureID: message["picture_id"] as? String, frame: place?.rect, scale: place?.scale ?? 1,
+      ops: BoardOps.batch(message["ops"], key: id, source: "web"))
   }
 
   /// A row's frame; nil for a number a picture of this board can't have, so a bad one can't send marks to infinity.

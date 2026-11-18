@@ -2,8 +2,11 @@
 //  drawn so he can see what they will do before he sends them. The replay is ContextCore's (`BoardReplay`: the board's
 //  own applier and planner); here only the arguments, the files and the picture.
 //
-//    board-ops-harness --board <snapshot.json> --ops <batch.json> [--ops <more.json>] [--keep id,id]
+//    board-ops-harness --board <snapshot.json> --ops <batch.json> [--ops <more.json>] [--keep id,id] [--tap x,y]
 //                      [--out <prefix>] [--rev <n>] [--scale <px per point>]
+//
+//  A step file may also be a chat reply of Larry's with `shapes` (#941): his marks show as ghosts where the iPad puts
+//  them, and each is tried with a tap; `--tap x,y` is a finger tap at a board point.
 //
 //  Writes <prefix>.png (after), <prefix>-before.png, <prefix>.result.json (each step's op_result and what it touched)
 //  and <prefix>.board.json (the board after, to replay the next batch on). Prints the result JSON.
@@ -37,6 +40,7 @@ import Foundation
         case "--board": board = try value(flag)
         case "--ops": steps.append(("ops", try value(flag)))
         case "--keep": steps.append(("keep", try value(flag)))
+        case "--tap": steps.append(("tap", try value(flag)))
         case "--out": out = try value(flag)
         case "--rev": rev = Int(try value(flag))
         case "--scale": scale = CGFloat(Double(try value(flag)) ?? 1.5)
@@ -52,7 +56,8 @@ import Foundation
     }
 
     static let usage = """
-      usage: board-ops-harness --board <snapshot.json> --ops <batch.json> [--ops ...] [--keep id,id]
+      usage: board-ops-harness --board <snapshot.json> --ops <batch.json|reply.json> [--ops ...] [--keep id,id]
+                               [--tap x,y]
                                [--out <prefix>] [--rev <n>] [--scale <px per point>]
       """
   }
@@ -125,8 +130,8 @@ import Foundation
   /// The board drawn: its ink, kept texts and Larry's ghosts, the steps' marks over it, and a note on top saying what
   /// each step came to.
   func render(
-    _ board: BoardSnapshot, outcomes: [BoardReplay.Outcome], region: CGRect, scale: CGFloat, to path: String,
-    title: String
+    _ board: BoardSnapshot, marks: [BoardReplay.Mark] = [], outcomes: [BoardReplay.Outcome], region: CGRect,
+    scale: CGFloat, to path: String, title: String
   ) throws {
     let notes = [title] + outcomes.map(noteLine) + (outcomes.isEmpty ? [] : [legend])
     let header = CGFloat(notes.count) * 16 + 12
@@ -175,6 +180,26 @@ import Foundation
       box(ghost.box, in: ctx, color: Look.ghost, dashed: true)
       say("ghost \(ghost.id)", at: CGPoint(x: ghost.box.maxX + 8, y: ghost.box.midY + 4), in: ctx, color: Look.ghost)
     }
+    // Larry's marks from a reply, as ghosts; a mark a tap can't reach is ringed in red with what takes the tap.
+    let unreachable = Dictionary(
+      outcomes.flatMap(\.unreachable).compactMap { tap in tap.mark.map { ($0, tap) } }, uniquingKeysWith: { _, b in b })
+    for mark in marks {
+      stroke(mark.lines, in: ctx, color: color(String(format: "#%06X", mark.color), alpha: 0.5), width: mark.width)
+      guard let tap = unreachable[mark.id] else { continue }
+      let at = WhiteboardMarkChoice.bounds(mark.lines)
+      box(at, in: ctx, color: Look.erased, dashed: true)
+      say(
+        "UNREACHABLE \(mark.text ?? mark.kind.rawValue): tap goes to \(tap.chose ?? "nothing")",
+        at: CGPoint(x: at.minX, y: at.maxY + 12), in: ctx,
+        color: Look.erased, size: 9)
+    }
+    for outcome in outcomes {
+      for tap in outcome.taps where tap.mark == nil {
+        ctx.setFillColor(Look.erased)
+        ctx.fillEllipse(in: CGRect(x: tap.at.x - 4, y: tap.at.y - 4, width: 8, height: 8))
+        say("tap → \(tap.chose ?? "nothing")", at: CGPoint(x: tap.at.x + 8, y: tap.at.y - 6), in: ctx, color: Look.erased)
+      }
+    }
     // What the steps touched, by name: where it is now, or where it was.
     let places = Dictionary(
       board.ink.map { ($0.id, $0.bounds) } + board.texts.map { ($0.id, $0.box) }, uniquingKeysWith: { a, _ in a })
@@ -219,17 +244,24 @@ import Foundation
       if let conflicts = result.conflictIDs { line += " conflicts=\(conflicts.joined(separator: ","))" }
     }
     if !outcome.ghostsGone.isEmpty { line += " ghosts_gone=\(outcome.ghostsGone.joined(separator: ","))" }
+    if !outcome.marks.isEmpty {
+      line += " marks=\(outcome.marks.count) reachable=\(outcome.marks.count - outcome.unreachable.count)"
+    }
+    if !outcome.unreachable.isEmpty {
+      line += " UNREACHABLE=\(outcome.unreachable.map { "\($0.mark ?? "")->\($0.chose ?? "none")" }.joined(separator: ","))"
+    }
     return line
   }
 
   /// Everything either picture shows, with a margin, from the page's left edge.
-  func region(_ boards: [BoardSnapshot], outcomes: [BoardReplay.Outcome]) -> CGRect {
+  func region(_ boards: [BoardSnapshot], marks: [BoardReplay.Mark] = [], outcomes: [BoardReplay.Outcome]) -> CGRect {
     var all = CGRect(x: 0, y: 0, width: BoardPages.pageWidth, height: BoardRoom.line)
     for board in boards {
       for ink in board.ink { all = all.union(ink.bounds) }
       for text in board.texts { all = all.union(text.box) }
       for ghost in board.ghosts { all = all.union(ghost.box) }
     }
+    for mark in marks { all = all.union(WhiteboardMarkChoice.bounds(mark.lines)) }
     for outcome in outcomes { for was in outcome.erased.values { all = all.union(was) } }
     return all.insetBy(dx: -40, dy: -40).intersection(
       CGRect(x: -400, y: -400, width: all.maxX + 440, height: all.maxY + 440))
@@ -242,6 +274,10 @@ import Foundation
     for (i, step) in args.steps.enumerated() {
       if step.kind == "keep" {
         steps.append(.keep(step.value.split(separator: ",").map(String.init)))
+      } else if step.kind == "tap" {
+        let xy = step.value.split(separator: ",").compactMap { Double($0) }
+        guard xy.count == 2 else { throw Failure(description: "--tap wants x,y") }
+        steps.append(.tap(CGPoint(x: xy[0], y: xy[1])))
       } else {
         steps += BoardReplay.Step.steps(try readJSON(step.value), key: "replay-\(i)")
       }
@@ -256,16 +292,17 @@ import Foundation
     let out = args.out
     try FileManager.default.createDirectory(
       at: URL(fileURLWithPath: out).deletingLastPathComponent(), withIntermediateDirectories: true)
-    let area = region([replay.start, replay.board], outcomes: replay.outcomes)
+    let area = region([replay.start, replay.board], marks: replay.marks, outcomes: replay.outcomes)
     try render(
       replay.start, outcomes: [], region: area, scale: args.scale, to: "\(out)-before.png",
       title: "BEFORE  board \(snapshot.board)  rev \(replay.start.rev ?? 0)")
     try render(
-      replay.board, outcomes: replay.outcomes, region: area, scale: args.scale, to: "\(out).png",
+      replay.board, marks: replay.marks, outcomes: replay.outcomes, region: area, scale: args.scale, to: "\(out).png",
       title: "AFTER  board \(snapshot.board)  rev \(replay.board.rev ?? 0)")
     let result: [String: Any] = [
       "board": snapshot.board, "rev_before": replay.start.rev ?? 0, "rev": replay.board.rev ?? 0,
       "steps": replay.outcomes.map(\.wire), "ghosts": replay.board.ghosts.map(\.id),
+      "marks": replay.marks.map(\.id),
       "png": "\(out).png", "png_before": "\(out)-before.png", "board_after": "\(out).board.json",
     ]
     try writeJSON(result, to: "\(out).result.json")

@@ -16,6 +16,11 @@ public struct BoardReplay {
     case batch(key: String, json: [String: Any])
     /// Igor keeps these ghosts of Larry's text, as a tap on Keep does.
     case keep([String])
+    /// A reply of Larry's with marks (#941): they show as his ghosts, replacing his unkept ones, where the iPad places
+    /// them, and each is tried with a tap on it.
+    case marks(WhiteboardMarks.Row)
+    /// A finger tap at a board point: which of his marks it chooses (#941).
+    case tap(CGPoint)
 
     /// A step file's JSON: a batch, a chat message carrying one under `ops`, `{"keep": [ids]}`, or a list of those.
     public static func steps(_ any: Any, key: String) -> [Step] {
@@ -24,6 +29,12 @@ public struct BoardReplay {
       }
       guard let json = any as? [String: Any] else { return [] }
       if let ids = json["keep"] as? [String] { return [.keep(ids)] }
+      if let at = json["tap"] as? [NSNumber], at.count == 2 {
+        return [.tap(CGPoint(x: at[0].doubleValue, y: at[1].doubleValue))]
+      }
+      if json["shapes"] != nil, let row = WhiteboardMarks.row(json.merging(["who": "larry"]) { a, _ in a }) {
+        return [.marks(row)]
+      }
       if let ops = json["ops"] as? [String: Any] { return [.batch(key: json["id"] as? String ?? key, json: ops)] }
       return json["list"] != nil ? [.batch(key: key, json: json)] : []
     }
@@ -47,6 +58,13 @@ public struct BoardReplay {
     public var ghostsGone: [String] = []
     public var pagesBefore = 0
     public var pagesAfter = 0
+    /// His marks the step showed, by id (#941).
+    public var marks: [String] = []
+    /// Taps tried: a mark's own (`mark` set) or one asked for, and which mark each chose.
+    public var taps: [Tap] = []
+
+    /// The marks a tap on them doesn't reach: another mark takes it, or none does.
+    public var unreachable: [Tap] { taps.filter { $0.mark != nil && $0.chose != $0.mark } }
 
     public var wire: [String: Any] {
       var out: [String: Any] = ["label": label, "action": action]
@@ -65,9 +83,51 @@ public struct BoardReplay {
         out["pages_before"] = pagesBefore
         out["pages"] = pagesAfter
       }
+      if !marks.isEmpty { out["marks"] = marks }
+      if !taps.isEmpty { out["taps"] = taps.map(\.wire) }
+      if !unreachable.isEmpty { out["unreachable"] = unreachable.compactMap(\.mark) }
       return out
     }
   }
+
+  /// A tap tried on the marks.
+  public struct Tap: Equatable, Sendable {
+    public var at: CGPoint
+    /// The mark the tap was aimed at; nil for a tap at a point.
+    public var mark: String?
+    /// The mark it chose; nil for none.
+    public var chose: String?
+
+    public var wire: [String: Any] {
+      var out: [String: Any] = ["at": [Double(at.x), Double(at.y)], "chooses": chose ?? NSNull()]
+      if let mark { out["mark"] = mark }
+      return out
+    }
+  }
+
+  /// One of Larry's marks showing, in board points, as the iPad draws its ghost.
+  public struct Mark: Equatable, Sendable {
+    public var id: String
+    public var kind: WhiteboardTurn.Shape.Kind
+    public var text: String?
+    public var lines: [[CGPoint]]
+    public var width: CGFloat
+    public var color: UInt32
+
+    /// Where a finger aims at it: the middle of a label's words, the middle of any other mark's first stretch.
+    public var aim: CGPoint? {
+      if kind == .text {
+        let box = WhiteboardMarkChoice.bounds(lines)
+        return box.isNull ? nil : CGPoint(x: box.midX, y: box.midY)
+      }
+      guard let line = lines.first, let a = line.first else { return nil }
+      let b = line.count > 1 ? line[1] : a
+      return CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2)
+    }
+  }
+
+  /// Larry's marks showing, oldest first, as the board's ghosts hold them.
+  public private(set) var marks: [Mark] = []
 
   public private(set) var board: BoardSnapshot
   public private(set) var applier: BoardOpApplier
@@ -98,6 +158,11 @@ public struct BoardReplay {
       switch step {
       case .batch(let key, let json): run(key: key, json: json)
       case .keep(let ids): keep(ids)
+      case .marks(let row): show(row)
+      case .tap(let at):
+        var outcome = Outcome(label: "tap", action: "tapped")
+        outcome.taps = [Tap(at: at, mark: nil, chose: choose(at: at)?.id)]
+        outcomes.append(outcome)
       }
     }
   }
@@ -214,5 +279,27 @@ public struct BoardReplay {
     if !outcome.drawn.isEmpty { applier.changed() }
     board.rev = applier.rev
     outcomes.append(outcome)
+  }
+
+  /// The mark a finger tap at `at` chooses, as the board's tap does at a zoom of 1.
+  public func choose(at point: CGPoint) -> Mark? {
+    marks.first { WhiteboardTurn.hit($0.lines, at: point, tolerance: WhiteboardTurn.tapReach) }
+  }
+
+  /// His reply's marks replace his unkept ones (story 357), placed by the reply's own frame, and each is tried with a tap.
+  private mutating func show(_ row: WhiteboardMarks.Row) {
+    var outcome = Outcome(label: "marks \(row.id)", action: row.drawable ? "shown" : "unplaced")
+    defer { outcomes.append(outcome) }
+    guard let frame = row.frame, row.drawable else { return }
+    marks = row.shapes.enumerated().map { index, shape in
+      Mark(
+        id: WhiteboardMarks.mark(index, of: row.id), kind: shape.kind, text: shape.text,
+        lines: WhiteboardTurn.lines(shape, frame: frame, scale: row.scale),
+        width: WhiteboardTurn.width(shape, scale: row.scale), color: shape.color ?? WhiteboardTurn.larryColor)
+    }
+    outcome.marks = marks.map(\.id)
+    outcome.taps = marks.compactMap { mark in
+      mark.aim.map { Tap(at: $0, mark: mark.id, chose: choose(at: $0)?.id) }
+    }
   }
 }

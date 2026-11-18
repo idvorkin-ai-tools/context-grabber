@@ -1,0 +1,125 @@
+{
+ "id": "12c6abcb46e7",
+ "ts": "2026-11-17T18:26:37-08:00",
+ "thread": "igor2-88g.1525",
+ "who": "larry",
+ "text": "Here's your family, below your last line. These are ghost marks: tap to keep, \u00d7 to dismiss, and they don't move anything. I couldn't read the end of 'Did you draw the [illegible]?'. Write it again and I'll answer.",
+ "source": "cli",
+ "attachments": [
+  "2026-11-17/73d5a705af1b44e4.png"
+ ],
+ "board": "13f700bf-ddcb-4a89-a6b7-64c0047f24e3",
+ "picture_id": "68471e1b-803e-4e9f-98e1-c4e3384d7d2b",
+ "frame": {
+  "x": 0.0,
+  "y": 484.8,
+  "w": 660.6,
+  "h": 970.6,
+  "scale": 1.0
+ },
+ "shapes": [
+  {
+   "kind": "rect",
+   "x": 120.0,
+   "y": 1080.0,
+   "w": 150.0,
+   "h": 60.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "label",
+   "text": "Igor",
+   "x": 160.0,
+   "y": 1122.0,
+   "size": 30.0,
+   "pen": 3.0,
+   "color": "#BA39E6",
+   "font": "hand"
+  },
+  {
+   "kind": "rect",
+   "x": 380.0,
+   "y": 1080.0,
+   "w": 150.0,
+   "h": 60.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "label",
+   "text": "Tori",
+   "x": 420.0,
+   "y": 1122.0,
+   "size": 30.0,
+   "pen": 3.0,
+   "color": "#BA39E6",
+   "font": "hand"
+  },
+  {
+   "kind": "line",
+   "x1": 270.0,
+   "y1": 1110.0,
+   "x2": 380.0,
+   "y2": 1110.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "line",
+   "x1": 325.0,
+   "y1": 1110.0,
+   "x2": 325.0,
+   "y2": 1220.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "line",
+   "x1": 195.0,
+   "y1": 1220.0,
+   "x2": 455.0,
+   "y2": 1220.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "rect",
+   "x": 120.0,
+   "y": 1220.0,
+   "w": 150.0,
+   "h": 60.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "label",
+   "text": "Zach",
+   "x": 155.0,
+   "y": 1262.0,
+   "size": 30.0,
+   "pen": 3.0,
+   "color": "#BA39E6",
+   "font": "hand"
+  },
+  {
+   "kind": "rect",
+   "x": 380.0,
+   "y": 1220.0,
+   "w": 150.0,
+   "h": 60.0,
+   "pen": 4.0,
+   "color": "#BA39E6"
+  },
+  {
+   "kind": "label",
+   "text": "Amelia",
+   "x": 392.0,
+   "y": 1262.0,
+   "size": 28.0,
+   "pen": 3.0,
+   "color": "#BA39E6",
+   "font": "hand"
+  }
+ ]
+}
