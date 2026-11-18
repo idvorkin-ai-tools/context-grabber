@@ -417,6 +417,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.draw = { [weak self] _, added in self?.keep(added) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
     model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
+    model.keepMakingRoom = { [weak self] strokes, push in self?.keep(strokes, making: push) ?? false }
     model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
     model.showOverlays = { [weak self] list in
       guard let self else { return }
@@ -1098,6 +1099,29 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterKeep)
     lookForInk(landedBox, why: "pasted")
+    return true
+  }
+
+  /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it. The room opens and the text
+  /// lands in one change, one undo named *Keep*, as a paste and its room are one.
+  private func keep(_ strokes: [PKStroke], making push: BoardRoom.Push) -> Bool {
+    guard let markup = paper.markup, !strokes.isEmpty else { return false }
+    let (ink, hashes) = opStrokes(markup)
+    var plan = BoardOps.plan(
+      [.translateBelow(y: push.cut, dy: push.dy)], strokes: ink, texts: model.texts, metas: model.strokeMeta,
+      folds: model.outline(of: ink).tags, pages: pages, board: board)
+    plan.pagesAfter = board.pages(
+      after: plan.pagesAfter, inkMaxY: PKDrawing(strokes: strokes).bounds.maxY, redoWaiting: false)
+    let framesBefore = inkFrames
+    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: strokes, named: "Keep") else { return false }
+    model.stepped(held.inkDrawing)
+    noteInk(held, since: framesBefore, report: true)
+    log.event(
+      "board_room",
+      [
+        "action": "keep_text", "board": model.board.id, "cut": Double(push.cut), "dy": Double(push.dy),
+        "moved": plan.moved, "pages_before": plan.pagesBefore, "pages": pages,
+      ])
     return true
   }
 

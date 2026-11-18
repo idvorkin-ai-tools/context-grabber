@@ -82,6 +82,24 @@ public enum BoardRoom {
     return dy > 0 ? Push(cut: at, dy: dy) : nil
   }
 
+  /// Where a text of Larry's at `box` lands and the room it opens (#938, story 992), as a paste or a drop does: on clear
+  /// paper, or only beside ink, where he put it and nothing moves. On ink: from the clear line nearest its top,
+  /// everything below goes down by whole lines until it is `air` under the text. When that line is the bottom of a line
+  /// of writing its top fell in, that line stays and the text lands just under it. `y` is its top.
+  public static func text(_ box: CGRect, among ink: [CGRect]) -> (y: CGFloat, push: Push?) {
+    let others = ink.filter { !$0.isNull }
+    let sitsOn = others.contains { other in
+      let overlap = other.intersection(box)
+      return !overlap.isNull && overlap.width > 0 && overlap.height > 0
+    }
+    guard sitsOn else { return (box.minY, nil) }
+    let at = cut(others, at: box.minY)
+    let y = at > box.minY ? at + air / 2 : box.minY
+    guard let below = band(others, at: at).below else { return (y, nil) }
+    let dy = max(0, ((y + box.height + air - below) / line).rounded(.up)) * line
+    return (y, dy > 0 ? Push(cut: at, dy: dy) : nil)
+  }
+
   /// Room that opens at a clear line: everything at or below `cut` goes down `dy`.
   public struct Push: Equatable, Sendable {
     public var cut: CGFloat

@@ -92,6 +92,7 @@ final class BoardReplayTests: XCTestCase {
     XCTAssertNil(outcome.result?.missingIDs)
     XCTAssertEqual(Set(outcome.drawn), ["larry-judge-box", "larry-judge-label"])
     XCTAssertTrue(replay.board.ghosts.isEmpty, "nothing left to keep")
+    XCTAssertTrue(outcome.moved.isEmpty, "a label in his own box makes no room (#938)")
     let label = try XCTUnwrap(replay.board.texts.first { $0.id == "larry-judge-label" })
     XCTAssertEqual(label.meta?.group, "judge-block")
     XCTAssertEqual(label.box.minX, 545)
@@ -108,14 +109,31 @@ final class BoardReplayTests: XCTestCase {
     XCTAssertEqual(moved.moved["larry-judge-label"], CGVector(dx: -100, dy: 300), "the label moves with its group")
   }
 
-  /// #938: his list landed on Igor's two lines under the diagram, and nothing moved.
-  func testIssue938TextLandsOnInkAndNothingMoves() throws {
+  /// #938: his list makes room: Igor's two lines under the diagram, and everything under them, move down clear of it;
+  /// the diagram stays (on 10b84a5f the list landed on his writing and nothing moved).
+  func testIssue938TextMakesRoomBelowIt() throws {
+    let start = try BoardSnapshot(json: try fixture("list-board"))
     let replay = try replay("list")
     let outcome = try XCTUnwrap(replay.outcomes.first)
-    XCTAssertTrue(outcome.moved.isEmpty)
+    XCTAssertEqual(outcome.result?.ok, true)
+    XCTAssertNil(outcome.result?.missingIDs)
     let ink = replay.board.ink.map(\.bounds)
-    let first = try XCTUnwrap(replay.board.ghosts.first)
-    XCTAssertTrue(ink.contains { $0.intersects(first.box) }, "his first line sits on Igor's writing")
+    for ghost in replay.board.ghosts {
+      XCTAssertFalse(ink.contains { $0.intersects(ghost.box) }, "\(ghost.id) sits on ink")
+    }
+    let lowest = try XCTUnwrap(replay.board.ghosts.map(\.box.maxY).max())
+    let moved = Set(outcome.moved.keys)
+    for (before, after) in zip(start.ink, replay.board.ink) {
+      if before.bounds.minY >= 570 {
+        XCTAssertTrue(moved.contains(before.id), "\(before.id) under the list moves")
+        XCTAssertGreaterThan(after.bounds.minY, lowest, "\(before.id) ends up under the list")
+      } else {
+        XCTAssertFalse(moved.contains(before.id), "\(before.id) above the list stays")
+      }
+      XCTAssertEqual(
+        after.bounds.minY.truncatingRemainder(dividingBy: 1), before.bounds.minY.truncatingRemainder(dividingBy: 1))
+    }
+    XCTAssertEqual(replay.board.rev, 93, "the room is a change of the ink")
   }
 
   /// #939: a delete of texts still showing as ghosts came back as missing ids, and the ghosts stayed for Igor to keep.

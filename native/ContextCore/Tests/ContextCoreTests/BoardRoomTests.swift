@@ -73,4 +73,62 @@ final class BoardRoomTests: XCTestCase {
     XCTAssertNil(BoardRoom.byHand(ink, at: 200, dy: 10), "under half a line moves nothing")
     XCTAssertNil(BoardRoom.byHand(ink, at: 400, dy: -80), "nothing below to close up")
   }
+
+  // MARK: #938: Larry's text makes room
+
+  func testATextOnClearPaperMovesNothing() {
+    let room = BoardRoom.text(
+      CGRect(x: 40, y: 300, width: 200, height: 30), among: [CGRect(x: 40, y: 100, width: 300, height: 30)])
+    XCTAssertEqual(room.y, 300)
+    XCTAssertNil(room.push)
+  }
+
+  func testATextOnALineOpensRoomFromItsTop() {
+    // His text's top just inside the line's top: the line and what's below go down clear of it, in whole lines.
+    let ink = [CGRect(x: 40, y: 100, width: 300, height: 30), CGRect(x: 40, y: 200, width: 300, height: 30)]
+    let room = BoardRoom.text(CGRect(x: 40, y: 105, width: 200, height: 30), among: ink)
+    XCTAssertEqual(room.y, 105)
+    XCTAssertEqual(room.push, BoardRoom.Push(cut: 100, dy: 80), "100 must go under 135 + 20: two lines")
+  }
+
+  func testATextLowInALineLandsUnderIt() {
+    let ink = [CGRect(x: 40, y: 100, width: 300, height: 30), CGRect(x: 40, y: 140, width: 300, height: 30)]
+    let room = BoardRoom.text(CGRect(x: 40, y: 125, width: 200, height: 30), among: [ink[0], ink[1]])
+    XCTAssertEqual(room.y, 140, "just under the line it fell low in")
+    XCTAssertEqual(room.push, BoardRoom.Push(cut: 130, dy: 80), "the next line makes way below it")
+  }
+
+  func testPlannedTextsPushInkAndLaterGhostsAndEachMakesItsOwnRoom() {
+    let strokes = [
+      BoardOps.Stroke(ids: ["above"], t: nil, bounds: CGRect(x: 40, y: 400, width: 300, height: 40)),
+      BoardOps.Stroke(ids: ["row1"], t: nil, bounds: CGRect(x: 40, y: 578, width: 300, height: 22)),
+      BoardOps.Stroke(ids: ["row2"], t: nil, bounds: CGRect(x: 40, y: 618, width: 300, height: 22)),
+    ]
+    let plan = BoardOps.plan(
+      [
+        .addText(.init(id: "low", x: 40, y: 900, text: "later", size: 22)),
+        .addText(.init(id: "a", x: 40, y: 580, text: "one", size: 22)),
+        .addText(.init(id: "b", x: 40, y: 612, text: "two", size: 22)),
+      ], strokes: strokes, pages: 1)
+    XCTAssertNil(plan.offsets[0], "ink above stays")
+    let a = plan.texts.first { $0.id == "a" }
+    let b = plan.texts.first { $0.id == "b" }
+    XCTAssertEqual(a?.y, 580)
+    XCTAssertEqual(b?.y, 612)
+    let row1 = strokes[1].bounds.offsetBy(dx: 0, dy: plan.offsets[1]?.dy ?? 0)
+    XCTAssertGreaterThan(row1.minY, (b?.box.maxY ?? .infinity), "Igor's row is under his last line")
+    XCTAssertEqual(plan.offsets[1], plan.offsets[2], "whole lines, together")
+    XCTAssertEqual(
+      plan.texts.first { $0.id == "low" }?.y, 900 + (plan.offsets[1]?.dy ?? 0), "his ghost below moved too")
+    XCTAssertTrue(plan.changesBoard)
+  }
+
+  func testALabelInsideAFrameOnTheBoardMakesNoRoom() {
+    let frame = BoardOps.Stroke(ids: ["frame"], t: nil, bounds: CGRect(x: 30, y: 280, width: 400, height: 120))
+    let under = BoardOps.Stroke(ids: ["under"], t: nil, bounds: CGRect(x: 30, y: 420, width: 400, height: 30))
+    let plan = BoardOps.plan(
+      [.addText(.init(id: "in", x: 60, y: 300, text: "inside", size: 22))], strokes: [frame, under], pages: 1)
+    XCTAssertTrue(plan.offsets.isEmpty)
+    XCTAssertEqual(plan.texts.first?.y, 300)
+  }
 }

@@ -7035,3 +7035,34 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **And:** one Undo takes both away
 
 ---
+
+### User Story 992:
+
+- **Summary:** Larry's text makes room instead of landing on my writing
+- **Status:** implemented on branch `native/board-ops-938-text-room`; verified by host tests (`BoardRoomTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's list batch; keeping a ghost with ink under it is not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
+- **Issues:** [#938](https://github.com/idvorkin/context-grabber/issues/938)
+
+#### Use Case:
+- **As someone** writing on the board while Larry answers
+- **I want to** have his text push my ink down the way a paste does
+- **so that** his words and mine never sit on top of each other
+
+#### Acceptance Criteria:
+- **Scenario:** His list lands where I wrote
+- **Given:** two lines of my writing under my diagram, and a change of Larry's that adds his list of lines there
+- **When:** it applies
+- **Then:** my two lines and everything under them move down in whole lines until they sit under his last line, my diagram above doesn't move, and none of his lines touch my ink
+- **And:** one Undo puts my ink back up
+
+- **Scenario:** His text on clear paper
+- **Given:** a text of his that lands on blank paper
+- **When:** it applies
+- **Then:** nothing moves
+
+- **Scenario:** I keep his ghost after writing under it
+- **Given:** a ghost of his text, and my writing that has since reached under it
+- **When:** I tap Keep on it
+- **Then:** my writing below moves down clear of it, and one Undo takes back both
+
+---

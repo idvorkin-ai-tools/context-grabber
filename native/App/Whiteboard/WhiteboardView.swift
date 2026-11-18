@@ -143,6 +143,9 @@ final class WhiteboardModel: ObservableObject {
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
   var landPaste: (([PKStroke]) -> Bool)?
+  /// #938 (story 992): a kept text of Larry's and the room it opens below it, one undo named *Keep*. False when the
+  /// canvas didn't take it, and the keep inks as ever.
+  var keepMakingRoom: (([PKStroke], BoardRoom.Push) -> Bool)?
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
   /// as one undo named for it; false when nothing changed. The canvas sets it.
   var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
@@ -1433,9 +1436,12 @@ final class WhiteboardModel: ObservableObject {
   private func ink(_ ghost: Ghost) {
     // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
     let made = BoardText.time(Date())
+    // #938: a text of his that Igor's ink has come under makes room as it lands.
+    let room = textRoom(ghost)
+    let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + room.dy) } }
     let strokes =
       connectorInk(ghost)
-      ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      ?? Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
     if ghost.kind == .text { rememberLabel(made.date) }
     if let text = ghost.text {
       texts.append(
@@ -1455,8 +1461,27 @@ final class WhiteboardModel: ObservableObject {
     if let letters = ghost.letters { event["letters"] = Double(letters) }
     if let text = ghost.text { event["text_id"] = text.id }
     if let visible = visibleRect?(), !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
+    if let push = room.push {
+      event["room_cut"] = Double(push.cut)
+      event["room_dy"] = Double(push.dy)
+    }
+    if room.dy != 0 { event["landed_dy"] = Double(room.dy) }
     log.event("whiteboard", event)
+    if let push = room.push, keepMakingRoom?(strokes, push) == true { return }
     add(strokes)
+  }
+
+  /// #938 (story 992): where a ghost of Larry's text lands when kept, as his text lands from a batch: clear of the ink,
+  /// with the room it opens. `dy` is how far the text itself goes down to sit under a line its top fell in.
+  private func textRoom(_ ghost: Ghost) -> (dy: CGFloat, push: BoardRoom.Push?) {
+    guard ghost.text != nil else { return (0, nil) }
+    let box = WhiteboardMarkChoice.bounds(ghost.lines)
+    guard !box.isNull else { return (0, nil) }
+    let strokes = opStrokes(drawing.strokes).strokes
+    let boxes = BoardOps.shownBoxes(
+      strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags)
+    let room = BoardRoom.text(box, among: boxes.filter { !$0.contains(box) })
+    return (room.y - box.minY, room.push)
   }
 
   /// A colour as `#rrggbb`, as it looks in light mode: the colour the Cockpit's strokes carry.

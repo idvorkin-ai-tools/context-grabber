@@ -62,6 +62,20 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   away, and Undo takes it back.
 - Kept text is part of the page. It shows in the board's picture and in what Larry gets back. It moves with a push
   like any ink.
+- **His text makes room, as a paste does** (#938; Igor, 2026-11-17, after Larry's list landed on his writing twice:
+  "why didn't purple text push down?"). When a text of his would land on ink, the ink makes way: from the clear line
+  nearest the text's top, everything below moves down, whole things whole, by as many whole lines as it takes to sit
+  half a line under the text. Ink above that line stays. If the text's top falls in a line of writing nearer its
+  bottom, that line stays and the text lands just under it instead, with the room opening below. A text on clear
+  paper, or only beside ink on its line without touching it, moves nothing. Ink the same change draws, and a frame
+  the text sits wholly inside, are never in its way: a label in his box, or in Igor's, stays where he put it.
+- The room is part of his change: one Undo puts the ink back up (the ghost itself is still his, to keep or dismiss),
+  and a page is added when the push needs one. Several lines of his in one change each make their own room, top to
+  bottom, so a list of his never lands on Igor's writing. His other ghosts below the line move down with the ink, as
+  do his texts already on the board.
+- **Keeping a ghost that ink has come under makes room too.** When Igor keeps one of Larry's text ghosts and his
+  writing has since reached under it, the keep opens room the same way, and one Undo takes back both the kept text and
+  the room. Keep all is as before: a label on ink moves under it (story 895).
 
 ### Larry hears the pen and taps
 

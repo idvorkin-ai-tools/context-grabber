@@ -194,7 +194,7 @@ import Foundation
       if let top = moved.min(by: { $0.2.minY < $1.2.minY }) {
         say(
           "moved \(moved.count) by dy \(Int(top.1.dy)) (\(outcome.label))",
-          at: CGPoint(x: top.2.maxX + 8, y: top.2.minY + 10),
+          at: CGPoint(x: top.2.minX, y: top.2.minY - 6),
           in: ctx, color: Look.moved)
       }
     }
