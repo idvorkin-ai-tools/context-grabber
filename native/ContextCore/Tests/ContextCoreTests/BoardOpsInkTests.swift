@@ -238,4 +238,50 @@ final class BoardOpsInkTests: XCTestCase {
     events.record(.selection(ids: [], t: 1))
     XCTAssertEqual(events.take().events, [.selection(ids: [], t: 1)])
   }
+
+  // MARK: #937: a text with notes is ink
+
+  func testATextGroupedInTheSameChangeIsInkedInTheGroupAndNothingIsMissing() {
+    let plan = BoardOps.plan(
+      batch([
+        ["op": "add_strokes", "strokes": [["id": "box", "points": [[500, 440], [690, 440], [690, 525]]]]],
+        ["op": "add_text", "id": "label", "x": 545, "y": 465, "text": "Judge", "size": 34],
+        ["op": "set_meta", "ids": ["box", "label"], "meta": ["group": "g"]],
+        ["op": "translate", "ids": ["g"], "dx": 0, "dy": 100],
+      ]).ops, strokes: [], pages: 1)
+    XCTAssertTrue(plan.missingIDs.isEmpty)
+    XCTAssertTrue(plan.texts.isEmpty, "no ghost")
+    XCTAssertEqual(plan.inked.map(\.id), ["label"])
+    XCTAssertEqual(plan.inked.first?.y, 565, "it moved with its group")
+    XCTAssertEqual(plan.added.first?.points.first?.y, 540)
+    XCTAssertEqual(plan.metas["label"]?.group, "g")
+    XCTAssertTrue(plan.changesBoard)
+  }
+
+  func testATextAddedWithNoNotesIsStillAGhost() {
+    let plan = BoardOps.plan(
+      batch([["op": "add_text", "id": "t", "x": 10, "y": 10, "text": "hi"]]).ops, strokes: [], pages: 1)
+    XCTAssertEqual(plan.texts.map(\.id), ["t"])
+    XCTAssertTrue(plan.inked.isEmpty)
+    XCTAssertFalse(plan.changesBoard)
+  }
+
+  func testAKeptTextLarryGroupsMovesWithTheGroupAndAloneByItsName() throws {
+    let texts = [BoardText(id: "kept", t: 5000, text: "hi", font: .plain, size: 18, color: "#ba39e6")]
+    let strokes = [
+      BoardOps.Stroke(ids: ["box"], t: nil, bounds: CGRect(x: 0, y: 100, width: 100, height: 50)),
+      BoardOps.Stroke(ids: ["glyph1"], t: 5000, bounds: CGRect(x: 10, y: 110, width: 30, height: 20)),
+      BoardOps.Stroke(ids: ["glyph2"], t: 5000, bounds: CGRect(x: 40, y: 110, width: 30, height: 20)),
+    ]
+    var metas = BoardStrokeMeta()
+    let group = try XCTUnwrap(BoardMeta(["group": "g"]))
+    metas.set(group, for: "box")
+    metas.set(group, for: "kept")
+    let byGroup = BoardOps.plan(
+      [.translateIDs(["g"], dx: 0, dy: 40)], strokes: strokes, texts: texts, metas: metas, pages: 1)
+    XCTAssertEqual(Set(byGroup.offsets.keys), [0, 1, 2], "the group moves the kept text with the box")
+    let erased = BoardOps.plan([.delete(["kept"])], strokes: strokes, texts: texts, metas: metas, pages: 1)
+    XCTAssertEqual(erased.erase, [1, 2], "the text alone")
+    XCTAssertTrue(erased.missingIDs.isEmpty)
+  }
 }

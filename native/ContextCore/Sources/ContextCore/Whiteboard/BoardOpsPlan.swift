@@ -59,7 +59,8 @@ extension BoardOps {
 
   /// The canvas's strokes as items: a header's row with what is folded under it is one item (`folds`, stroke name to
   /// `h:<id>`, from `BoardOutline`), a kept text's glyphs (made at its time) are one item answering to its id, and
-  /// strokes whose notes name one group are one item answering to the group.
+  /// strokes whose notes name one group are one item answering to the group. A kept text Larry grouped (notes under
+  /// its id, #937) is in its group's item, and still answers to its own id.
   public static func items(
     strokes: [Stroke], texts: [BoardText] = [], groups: [String: String] = [:], folds: [String: String] = [:]
   ) -> [Item] {
@@ -68,11 +69,13 @@ extension BoardOps {
     var byTag: [String: Int] = [:]
     var all: [CGRect] = []
     for (index, stroke) in strokes.enumerated() {
+      let text = BoardText.owning(stroke.t, in: byTime)?.id
       let tag =
-        stroke.ids.lazy.compactMap { folds[$0] }.first ?? BoardText.owning(stroke.t, in: byTime)?.id
-        ?? stroke.ids.lazy.compactMap { groups[$0] }.first
+        stroke.ids.lazy.compactMap { folds[$0] }.first ?? text.flatMap { groups[$0] }
+        ?? stroke.ids.lazy.compactMap { groups[$0] }.first ?? text
+      let ids = stroke.ids + (text.map { [$0] } ?? [])
       if let tag, let at = byTag[tag] {
-        out[at].ids.formUnion(stroke.ids)
+        out[at].ids.formUnion(ids)
         out[at].members.append(index)
         all[at] = all[at].union(stroke.bounds)
         if !stroke.hidden { out[at].bounds = out[at].hidden ? stroke.bounds : out[at].bounds.union(stroke.bounds) }
@@ -83,7 +86,7 @@ extension BoardOps {
       all.append(stroke.bounds)
       out.append(
         Item(
-          ids: Set(stroke.ids + (tag.map { [$0] } ?? [])), members: [index], bounds: stroke.bounds,
+          ids: Set(ids + (tag.map { [$0] } ?? [])), members: [index], bounds: stroke.bounds,
           hidden: stroke.hidden, tag: tag))
     }
     for at in out.indices where out[at].hidden { out[at].bounds = all[at] }
@@ -107,8 +110,13 @@ extension BoardOps {
     public var select: [String] = []
     /// Larry's controls laid and taken away, in order (story 845): never ink, never undone.
     public var overlays: [BoardOverlays.Change] = []
-    /// Ghosts of Larry's text to show.
+    /// Ghosts of Larry's text to show: new ones, and ones showing that the batch moved (they replace theirs by id).
     public var texts: [Text] = []
+    /// Ghosts of his text showing before the batch that it took away: deleted, replaced, or inked (#939, story 993).
+    public var dismissed: [String] = []
+    /// Larry's texts that go onto the board as kept text at once, where the batch leaves them: a text he put notes on
+    /// is ink, never a ghost (#937, story 991). The app letters them; their notes are in `metas` under their ids.
+    public var inked: [Text] = []
     public var pagesBefore: Int
     public var pagesAfter: Int
     /// Items that moved.
@@ -127,49 +135,85 @@ extension BoardOps {
     /// The board's ink changes: something moves, goes, is drawn, hides or shows, or a page is added. Text and notes
     /// alone leave the ink as it is.
     public var changesBoard: Bool {
-      !offsets.isEmpty || !erase.isEmpty || !added.isEmpty || !hidden.isEmpty || pagesAfter != pagesBefore
+      !offsets.isEmpty || !erase.isEmpty || !added.isEmpty || !inked.isEmpty || !hidden.isEmpty
+        || pagesAfter != pagesBefore
     }
   }
 
-  /// The batch's changes on the canvas's `strokes`, in order. `pages` is the column's page count now; it grows to hold
+  /// The batch's changes on the canvas's `strokes`, in order. `ghosts`: his text ghosts showing, which his ops reach by
+  /// name as they reach a kept text (#939). `pages` is the column's page count now; it grows to hold
   /// the ink after, and the room a push opens below the last ink.
   public static func plan(
     _ ops: [Op], strokes: [Stroke], texts: [BoardText] = [], metas: BoardStrokeMeta = BoardStrokeMeta(),
-    folds: [String: String] = [:], pages: Int, board: BoardPages = BoardPages()
+    folds: [String: String] = [:], ghosts showing: [Text] = [], pages: Int, board: BoardPages = BoardPages()
   ) -> Plan {
     var work = Working(
-      strokes: strokes, items: items(strokes: strokes, texts: texts, groups: metas.groups, folds: folds))
+      strokes: strokes, texts: texts, items: items(strokes: strokes, texts: texts, groups: metas.groups, folds: folds))
+    // His texts this batch shows as ghosts, in order; one he puts notes on leaves them for the board (#937).
+    var ghosts: [Text] = showing
+    /// A ghost of his named `id` takes it away; false when none is showing (#939).
+    func dismiss(_ id: String) -> Bool {
+      guard let at = ghosts.firstIndex(where: { $0.id == id }) else { return false }
+      ghosts.remove(at: at)
+      return true
+    }
     var plan = Plan(pagesBefore: pages, pagesAfter: pages)
     var reach: CGFloat?
     var connectors: [NewConnector] = []
+    // Everything at or below `y` down `dy`, of `items` (all the ink by default), and his ghosts showing there.
+    func push(_ y: CGFloat, _ dy: CGFloat, items: [Int]? = nil) {
+      for item in items ?? Array(work.items.indices) where work.top(item).map({ $0 >= y }) == true {
+        work.move(item, 0, dy)
+      }
+      for at in ghosts.indices where ghosts[at].y >= y { ghosts[at].y += dy }
+      if dy > 0 { reach = max(reach ?? y + dy, y + dy) }
+    }
     for op in ops {
       switch op {
       case .translateBelow(let y, let dy):
-        for item in work.items.indices where work.top(item).map({ $0 >= y }) == true { work.move(item, 0, dy) }
-        if dy > 0 { reach = max(reach ?? y + dy, y + dy) }
+        push(y, dy)
       case .translateIDs(let ids, let dx, let dy):
         var hit = Set<Int>()
         for id in ids {
           let found = work.items(named: id)
+          // A ghost of his moves by its name (#939).
+          if let at = ghosts.firstIndex(where: { $0.id == id }) {
+            ghosts[at].x += dx
+            ghosts[at].y += dy
+            continue
+          }
           if found.isEmpty { plan.missingIDs.append(id) }
           hit.formUnion(found)
         }
         for item in hit.sorted() { work.move(item, dx, dy) }
-      case .addText(let text):
-        plan.texts.removeAll { $0.id == text.id }
-        plan.texts.append(text)
+      case .addText(var text):
+        ghosts.removeAll { $0.id == text.id }
+        // His text never lands on ink: it makes room, as a paste does (#938, story 992).
+        // What it lands clear of and moves: the board's ink, not what this change draws (his box for it), nor a frame
+        // it sits in.
+        let box = text.box
+        let ink = work.canvasInk.filter { $0.box.map { !$0.contains(box) } ?? true }
+        let room = BoardRoom.text(box, among: ink.compactMap(\.box))
+        text.y = room.y
+        if let room = room.push { push(room.cut, room.dy, items: ink.filter(\.moves).map(\.item)) }
+        ghosts.append(text)
       case .addStrokes(let new):
         work.add(new, plan: &plan)
       case .delete(let ids):
-        for id in ids where !work.erase(named: id) { plan.missingIDs.append(id) }
+        for id in ids where !(work.erase(named: id) || dismiss(id)) { plan.missingIDs.append(id) }
       case .setMeta(let ids, let meta):
         for id in ids {
+          // A text with notes is ink, never a ghost (#937, story 991).
+          if let at = ghosts.firstIndex(where: { $0.id == id }) {
+            work.ink(ghosts.remove(at: at))
+          }
           let names = work.names(of: id)
           if names.isEmpty { plan.missingIDs.append(id) }
           for name in names { plan.metas[name] = meta }
+          if let group = meta.group { work.join(work.entries(named: id), group: group) }
         }
       case .replace(let ids, let new):
-        for id in ids where !work.erase(named: id) { plan.missingIDs.append(id) }
+        for id in ids where !(work.erase(named: id) || dismiss(id)) { plan.missingIDs.append(id) }
         work.add(new, plan: &plan)
       case .setHidden(let ids, let hidden):
         for id in ids {
@@ -191,6 +235,8 @@ extension BoardOps {
         connectors.append(new)
       }
     }
+    plan.texts = ghosts.filter { !showing.contains($0) }
+    plan.dismissed = showing.map(\.id).filter { id in !ghosts.contains { $0.id == id } }
     work.finish(into: &plan)
     // Connectors last, on the board the batch leaves; then every connector follows its ends (stories 910–916).
     BoardConnectors.draw(connectors, into: &plan, strokes: strokes, texts: texts, metas: metas, folds: folds)
@@ -207,23 +253,54 @@ extension BoardOps {
       /// Its place on the canvas, or in the plan's drawn strokes.
       var canvas: Int?
       var drawn: Int?
+      /// Its place in `inked`: a text of his the batch inks.
+      var text: Int?
       var bounds: CGRect
       var shift = CGVector.zero
       var gone = false
       /// Set by the batch: hidden or shown.
       var hidden: Bool?
+      /// Hidden on the canvas before the batch (folded away).
+      var folded = false
     }
 
     var entries: [Entry]
     /// Each item's entries, and the names it answers to as a whole (its text or group).
     var items: [(entries: [Int], tags: Set<String>)]
     var drawn: [NewStroke] = []
+    /// His texts the batch inks (#937), by `Entry.text`.
+    var inked: [Text] = []
 
-    init(strokes: [Stroke], items: [Item]) {
-      entries = strokes.enumerated().map { Entry(names: $1.ids, canvas: $0, bounds: $1.bounds) }
+    /// A kept text's glyphs answer to its id one by one, as a stroke does to its name: in a group, its id names the text
+    /// alone, not the group.
+    init(strokes: [Stroke], texts: [BoardText] = [], items: [Item]) {
+      let byTime = BoardText.byTime(texts)
+      let names = strokes.map { $0.ids + (BoardText.owning($0.t, in: byTime).map { [$0.id] } ?? []) }
+      entries = strokes.enumerated().map {
+        Entry(names: names[$0], canvas: $0, bounds: $1.bounds, folded: $1.hidden)
+      }
       self.items = items.map { item in
-        let own = Set(item.members.flatMap { strokes[$0].ids })
+        let own = Set(item.members.flatMap { names[$0] })
         return (item.members, item.ids.subtracting(own))
+      }
+    }
+
+    /// A text of his goes onto the board as ink, its own item until notes group it.
+    mutating func ink(_ text: Text) {
+      _ = erase(named: text.id)
+      entries.append(Entry(names: [text.id], text: inked.count, bounds: text.box))
+      inked.append(text)
+      items.append(([entries.count - 1], []))
+    }
+
+    /// These entries move as one with the group `group` from now on in the batch.
+    mutating func join(_ members: [Int], group: String) {
+      guard !members.isEmpty else { return }
+      for item in items.indices { items[item].entries.removeAll { members.contains($0) } }
+      if let item = items.firstIndex(where: { $0.tags.contains(group) }) {
+        items[item].entries += members
+      } else {
+        items.append((members, [group]))
       }
     }
 
@@ -232,6 +309,20 @@ extension BoardOps {
     func top(_ item: Int) -> CGFloat? { live(item).map { entries[$0].bounds.minY }.min() }
 
     var liveBounds: [CGRect] { entries.filter { !$0.gone }.map(\.bounds) }
+
+    /// The board's ink from before the batch, by what moves whole, as the batch has left it: each item's box of what
+    /// shows of it (nil when none does), and whether it is all canvas ink, nothing the batch drew or inked. What his text
+    /// lands clear of, and what of it the room his text opens moves.
+    var canvasInk: [(item: Int, box: CGRect?, moves: Bool)] {
+      items.indices.compactMap { item in
+        let all = live(item)
+        let canvas = all.filter { entries[$0].canvas != nil }
+        guard !canvas.isEmpty else { return nil }
+        let shown = canvas.filter { !(entries[$0].hidden ?? entries[$0].folded) }
+        let box = shown.isEmpty ? nil : shown.map { entries[$0].bounds }.reduce(CGRect.null) { $0.union($1) }
+        return (item, box, canvas.count == all.count)
+      }
+    }
 
     /// Items answering to `id`: by its text or group, or by one of its strokes' names. Moving a stroke of a group moves
     /// the group.
@@ -292,6 +383,11 @@ extension BoardOps {
             if entry.shift.dx != 0 || entry.shift.dy != 0 { plan.offsets[canvas] = entry.shift }
             if let hidden = entry.hidden { plan.hidden[canvas] = hidden }
           }
+        } else if let index = entry.text, !entry.gone {
+          var text = inked[index]
+          text.x += entry.shift.dx
+          text.y += entry.shift.dy
+          plan.inked.append(text)
         } else if let index = entry.drawn, !entry.gone {
           var stroke = drawn[index]
           stroke.points = stroke.points.map { CGPoint(x: $0.x + entry.shift.dx, y: $0.y + entry.shift.dy) }

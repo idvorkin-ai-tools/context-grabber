@@ -62,6 +62,27 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   away, and Undo takes it back.
 - Kept text is part of the page. It shows in the board's picture and in what Larry gets back. It moves with a push
   like any ink.
+- **His text makes room, as a paste does** (#938; Igor, 2026-11-17, after Larry's list landed on his writing twice:
+  "why didn't purple text push down?"). When a text of his would land on ink, the ink makes way: from the clear line
+  nearest the text's top, everything below moves down, whole things whole, by as many whole lines as it takes to sit
+  half a line under the text. Ink above that line stays. If the text's top falls in a line of writing nearer its
+  bottom, that line stays and the text lands just under it instead, with the room opening below. A text on clear
+  paper, or only beside ink on its line without touching it, moves nothing. Ink the same change draws, and a frame
+  the text sits wholly inside, are never in its way: a label in his box, or in Igor's, stays where he put it.
+- The room is part of his change: one Undo puts the ink back up (the ghost itself is still his, to keep or dismiss),
+  and a page is added when the push needs one. Several lines of his in one change each make their own room, top to
+  bottom, so a list of his never lands on Igor's writing. His other ghosts below the line move down with the ink, as
+  do his texts already on the board.
+- **A ghost of his text answers to his name for it** (#939; Larry, 2026-11-17: he deleted his list while its lines
+  were still ghosts, every name came back missing, the ghosts stayed, and Igor later kept three of them, which Larry
+  then had to delete again). While a text of his shows as a ghost, his changes reach it by the same name as once it is
+  kept: a delete (or a replace) takes the ghost away, so Igor can never keep it afterwards; a move by its name moves
+  the ghost; notes on it make it ink (above); a push moves it with the ink below. None of those is a missing name.
+  Kept, it keeps his name, so the same change works on it either way. A name he never used, or a ghost Igor already
+  dismissed, is still missing.
+- **Keeping a ghost that ink has come under makes room too.** When Igor keeps one of Larry's text ghosts and his
+  writing has since reached under it, the keep opens room the same way, and one Undo takes back both the kept text and
+  the room. Keep all is as before: a label on ink moves under it (story 895).
 
 ### Larry hears the pen and taps
 
@@ -105,6 +126,14 @@ The web board (the Cockpit's `/ink`) is where these behaviours are worked out fi
 - Larry can tag strokes with notes of his own. The board never reads them, except one: a group. Strokes in one
   group move as one when he pushes or moves them, so a label and its underline never split.
 - His notes go back to him exactly as he wrote them, with the strokes they belong to.
+- **A text he puts notes on is ink, not a ghost** (#937; Larry, 2026-11-17, rev 180: his Judge box drew and its label
+  didn't, and grouping the two came back with the label missing). A text of his that the same change adds and then
+  groups, or gives any notes, lands on the board at once as kept text in his colour and lettering, under his name for
+  it, never as a ghost to keep: a box and its label arrive together. It is part of the change's one Undo, it is in the
+  group, it moves with the group as one, and it goes back to him as a kept text under his name, so grouping it is
+  never a missing name. A text he only adds, with no notes, is still a ghost for Igor to keep or dismiss.
+- A kept text he groups joins the group: it moves with it, whichever of the group's names he moves it by. Erasing or
+  moving the text by its own name takes the text alone out or along with its group, as for any stroke of a group.
 
 ### Larry hears my ink change and my selection
 
@@ -311,6 +340,21 @@ that drift when he makes room."
 - Undoing a Connect gives Igor's own arrow back, but a word that Connect made one thing stays one thing.
 - Connectors in Larry's chat-reply shapes are not handled yet: only his board changes draw them.
 - Larry's connectors are drawn after the rest of his changes in the same answer, on the board those changes leave.
+
+## Larry checks a change before he sends it (#936)
+
+Igor, 2026-11-17, after Larry's changes made a mess of his board 13f700bf: "how can you test?" Larry had no way to see
+what a change would do except to send it to Igor's real board, and paused his changes until there was one.
+
+- Larry (or an agent chasing a bug) takes a copy of a board, as the board sends him its strokes, and one or more of his
+  changes, and gets back, on the Mac in seconds with no iPad and no simulator: what the board would answer him (the
+  same `op_result`: applied or refused, the revision, any missing names), which of his and Igor's things moved, were
+  erased, were drawn or stayed his ghosts, a picture of the board before and after with all of that marked on it, and
+  the board after, to try his next change on.
+- The board's own rules decide it, not a copy of them: what the iPad would do with the change is what the check shows.
+- The copy can say what only the iPad knows: the board's revision, his texts still showing as ghosts, and what Igor
+  moved since an older look. Igor keeping one of his ghosts can be part of the check.
+- It shows neither the Pencil's wait nor folds; those are checked on the iPad.
 
 ## Non-goals
 

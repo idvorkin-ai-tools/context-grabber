@@ -143,6 +143,9 @@ final class WhiteboardModel: ObservableObject {
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
   var landPaste: (([PKStroke]) -> Bool)?
+  /// #938 (story 992): a kept text of Larry's and the room it opens below it, one undo named *Keep*. False when the
+  /// canvas didn't take it, and the keep inks as ever.
+  var keepMakingRoom: (([PKStroke], BoardRoom.Push) -> Bool)?
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
   /// as one undo named for it; false when nothing changed. The canvas sets it.
   var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
@@ -1433,9 +1436,12 @@ final class WhiteboardModel: ObservableObject {
   private func ink(_ ghost: Ghost) {
     // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
     let made = BoardText.time(Date())
+    // #938: a text of his that Igor's ink has come under makes room as it lands.
+    let room = textRoom(ghost)
+    let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + room.dy) } }
     let strokes =
       connectorInk(ghost)
-      ?? Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      ?? Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
     if ghost.kind == .text { rememberLabel(made.date) }
     if let text = ghost.text {
       texts.append(
@@ -1455,8 +1461,27 @@ final class WhiteboardModel: ObservableObject {
     if let letters = ghost.letters { event["letters"] = Double(letters) }
     if let text = ghost.text { event["text_id"] = text.id }
     if let visible = visibleRect?(), !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
+    if let push = room.push {
+      event["room_cut"] = Double(push.cut)
+      event["room_dy"] = Double(push.dy)
+    }
+    if room.dy != 0 { event["landed_dy"] = Double(room.dy) }
     log.event("whiteboard", event)
+    if let push = room.push, keepMakingRoom?(strokes, push) == true { return }
     add(strokes)
+  }
+
+  /// #938 (story 992): where a ghost of Larry's text lands when kept, as his text lands from a batch: clear of the ink,
+  /// with the room it opens. `dy` is how far the text itself goes down to sit under a line its top fell in.
+  private func textRoom(_ ghost: Ghost) -> (dy: CGFloat, push: BoardRoom.Push?) {
+    guard ghost.text != nil else { return (0, nil) }
+    let box = WhiteboardMarkChoice.bounds(ghost.lines)
+    guard !box.isNull else { return (0, nil) }
+    let strokes = opStrokes(drawing.strokes).strokes
+    let boxes = BoardOps.shownBoxes(
+      strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags)
+    let room = BoardRoom.text(box, among: boxes.filter { !$0.contains(box) })
+    return (room.y - box.minY, room.push)
   }
 
   /// A colour as `#rrggbb`, as it looks in light mode: the colour the Cockpit's strokes carry.
@@ -2018,6 +2043,8 @@ extension WhiteboardModel {
       strokeMeta.merge(plan.metas)
       opLedger.setStrokeMeta(strokeMeta, board: board.id)
     }
+    // #939: his change reached ghosts of his text by name: the ones it took away go, the ones it moved show anew.
+    if !plan.dismissed.isEmpty { turns.larrysTextGone(Set(plan.dismissed.map { "op-text:\($0)" })) }
     if !plan.texts.isEmpty {
       turns.larrysText(
         plan.texts.map {
@@ -2038,7 +2065,9 @@ extension WhiteboardModel {
     let editing: [String: Any] = [
       "erased": plan.erase.count, "drawn": plan.added.count, "metas": plan.metas.count, "hidden": hiding,
       "shown": plan.hidden.count - hiding, "selected": plan.select.count, "overlays": overlays.list.count,
-      "texts": plan.texts.count, "missing_ids": plan.missingIDs.count, "changed": plan.changesBoard,
+      "texts": plan.texts.count, "inked": plan.inked.count, "dismissed": plan.dismissed.count,
+      "missing_ids": plan.missingIDs.count,
+      "changed": plan.changesBoard,
       "ms": Int(started.duration(to: .now) / .milliseconds(1)),
     ]
     event.merge(moving) { $1 }
@@ -2128,8 +2157,43 @@ extension WhiteboardModel {
   var sessionLog: SessionLog { log }
   func show(problem new: BugProblem?) { problem = new }
   func say(_ note: String) { pasteNote = note }
+  /// #939: Larry's text ghosts showing, which his changes reach by name.
+  var textGhosts: [BoardOps.Text] { turns.ghosts.compactMap(\.text) }
+
   func keep(text: BoardText) {
     texts.append(text)
+    opLedger.setTexts(texts, board: board.id)
+  }
+
+  /// #937 (story 991): the texts a batch of Larry's inks at once (one he put notes on), lettered as Keep letters a text
+  /// of his, each a kept text under his id. The canvas adds the strokes in the batch's one undo, then keeps the texts.
+  /// Each gets a moment of its own before now, as Keep all gives them, so each is known as one text and no stroke the
+  /// batch draws after shares one.
+  func letter(_ inked: [BoardOps.Text]) -> (strokes: [PKStroke], texts: [BoardText]) {
+    let started = Date()
+    var strokes: [PKStroke] = []
+    var kept: [BoardText] = []
+    for (i, text) in inked.enumerated() {
+      let ghost = Ghost(text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text)
+      let made = BoardText.time(started.addingTimeInterval(-Double(inked.count - i) * 0.005))
+      let glyphs = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
+      kept.append(
+        BoardText(
+          id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
+          color: Self.lightHex(ghost.color), glyphs: glyphs.count))
+      strokes += glyphs
+    }
+    return (strokes, kept)
+  }
+
+  /// The texts `letter` made, once their strokes are on the board.
+  func keep(lettered: [BoardText]) {
+    guard !lettered.isEmpty else { return }
+    for text in lettered {
+      rememberLabel(Date(timeIntervalSince1970: Double(text.t) / 1000))
+      texts.removeAll { $0.id == text.id }
+      texts.append(text)
+    }
     opLedger.setTexts(texts, board: board.id)
   }
 

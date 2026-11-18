@@ -417,6 +417,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.draw = { [weak self] _, added in self?.keep(added) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
     model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
+    model.keepMakingRoom = { [weak self] strokes, push in self?.keep(strokes, making: push) ?? false }
     model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
     model.showOverlays = { [weak self] list in
       guard let self else { return }
@@ -1101,6 +1102,29 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     return true
   }
 
+  /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it. The room opens and the text
+  /// lands in one change, one undo named *Keep*, as a paste and its room are one.
+  private func keep(_ strokes: [PKStroke], making push: BoardRoom.Push) -> Bool {
+    guard let markup = paper.markup, !strokes.isEmpty else { return false }
+    let (ink, hashes) = opStrokes(markup)
+    var plan = BoardOps.plan(
+      [.translateBelow(y: push.cut, dy: push.dy)], strokes: ink, texts: model.texts, metas: model.strokeMeta,
+      folds: model.outline(of: ink).tags, pages: pages, board: board)
+    plan.pagesAfter = board.pages(
+      after: plan.pagesAfter, inkMaxY: PKDrawing(strokes: strokes).bounds.maxY, redoWaiting: false)
+    let framesBefore = inkFrames
+    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: strokes, named: "Keep") else { return false }
+    model.stepped(held.inkDrawing)
+    noteInk(held, since: framesBefore, report: true)
+    log.event(
+      "board_room",
+      [
+        "action": "keep_text", "board": model.board.id, "cut": Double(push.cut), "dy": Double(push.dy),
+        "moved": plan.moved, "pages_before": plan.pagesBefore, "pages": pages,
+      ])
+    return true
+  }
+
   /// Stories 855–860: an outline change on the markup, one undo named `label`: what folds hides, what is below slides,
   /// and the headers are kept. A header made or unmade alone changes only the marks.
   /// `base` is the markup the change starts from (the board's own by default) and `undoTo` where its Undo goes back to
@@ -1621,12 +1645,17 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let (strokes, hashes) = opStrokes(markup)
     let plan = BoardOps.plan(
       batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta,
-      folds: model.outline(of: strokes).tags, pages: pages, board: board)
+      folds: model.outline(of: strokes).tags, ghosts: model.textGhosts, pages: pages, board: board)
     guard plan.changesBoard else {
       select(plan.select)
       return plan
     }
-    guard let (held, renamed, drawn) = put(plan, on: markup, hashes: hashes, named: batch.label) else { return nil }
+    // #937: his texts with notes are ink in the same undo.
+    let lettered = model.letter(plan.inked)
+    guard
+      let (held, renamed, drawn) = put(plan, on: markup, hashes: hashes, adding: lettered.strokes, named: batch.label)
+    else { return nil }
+    model.keep(lettered: lettered.texts)
     model.opsApplied(held.inkDrawing, renamed: renamed, drawn: drawn)
     model.inkReset(Self.allHashes(held))
     log.event(

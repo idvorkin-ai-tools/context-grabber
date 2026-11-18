@@ -6992,3 +6992,102 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Then:** the one on bare paper shows and keeps as a plain arrow where he drew it; the one naming nothing shows nothing and is set aside as if dismissed
 
 ---
+
+### User Story 990:
+
+- **Summary:** Larry replays a change on a copy of Igor's board and sees the result before sending it
+- **Status:** implemented on branch `native/board-ops-harness`; verified by host tests (`BoardReplayTests`), `just test` and `just board-ops` on the night's three fixtures
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry checks a change before he sends it*
+- **Issues:** [#936](https://github.com/idvorkin/context-grabber/issues/936)
+
+#### Use Case:
+- **As Larry,** about to change Igor's board
+- **I want to** run my change on a copy of his board with the board's own rules and see the board after
+- **so that** I never test on his real board, and a mess shows up on my screen instead of his
+
+#### Acceptance Criteria:
+- **Scenario:** A change checked on a copy
+- **Given:** a copy of a board as it sends me its strokes, and a batch of my changes
+- **When:** I run `just board-ops` with the two, on the Mac
+- **Then:** within seconds I get the `op_result` the iPad would answer, the names my change moved, erased, drew and left as ghosts, a picture of the board before and after with those marked, and the board after
+- **And:** tonight's three failures replay as they happened on the iPad: the Judge label missing (#937), the list landing on ink (#938) and the delete of ghosts missing (#939)
+
+---
+
+### User Story 991:
+
+- **Summary:** A label Larry groups with his box lands with it, as ink
+- **Status:** implemented on branch `native/board-ops-937-grouped-label`; verified by host tests (`BoardOpsInkTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's Judge batch; not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry groups ink*
+- **Issues:** [#937](https://github.com/idvorkin/context-grabber/issues/937)
+
+#### Use Case:
+- **As Larry,** drawing a labelled block on Igor's board
+- **I want to** send a box and its label grouped in one change
+- **so that** both land together and move as one, with nothing left for Igor to keep
+
+#### Acceptance Criteria:
+- **Scenario:** A grouped box and label
+- **Given:** a change of mine that draws a box, adds a text, and groups the two
+- **When:** it applies on the board
+- **Then:** the box and the label are both ink on the board at once, in my colour, with no ghost to keep
+- **And:** my next turn has the label as a kept text under my name, no missing ids, and moving the group moves both
+- **And:** one Undo takes both away
+
+---
+
+### User Story 992:
+
+- **Summary:** Larry's text makes room instead of landing on my writing
+- **Status:** implemented on branch `native/board-ops-938-text-room`; verified by host tests (`BoardRoomTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's list batch; keeping a ghost with ink under it is not yet seen on the simulator or the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
+- **Issues:** [#938](https://github.com/idvorkin/context-grabber/issues/938)
+
+#### Use Case:
+- **As someone** writing on the board while Larry answers
+- **I want to** have his text push my ink down the way a paste does
+- **so that** his words and mine never sit on top of each other
+
+#### Acceptance Criteria:
+- **Scenario:** His list lands where I wrote
+- **Given:** two lines of my writing under my diagram, and a change of Larry's that adds his list of lines there
+- **When:** it applies
+- **Then:** my two lines and everything under them move down in whole lines until they sit under his last line, my diagram above doesn't move, and none of his lines touch my ink
+- **And:** one Undo puts my ink back up
+
+- **Scenario:** His text on clear paper
+- **Given:** a text of his that lands on blank paper
+- **When:** it applies
+- **Then:** nothing moves
+
+- **Scenario:** I keep his ghost after writing under it
+- **Given:** a ghost of his text, and my writing that has since reached under it
+- **When:** I tap Keep on it
+- **Then:** my writing below moves down clear of it, and one Undo takes back both
+
+---
+
+### User Story 993:
+
+- **Summary:** Larry's change reaches his text ghost by the name he gave it
+- **Status:** implemented on branch `native/board-ops-939-ghost-ids`; verified by host tests (`BoardReplayTests`, `WhiteboardGhostTurnsTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's delete batch; not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
+- **Issues:** [#939](https://github.com/idvorkin/context-grabber/issues/939)
+
+#### Use Case:
+- **As Larry,** taking back text I put on Igor's board
+- **I want to** delete or move my text by its name whether Igor has kept it yet or not
+- **so that** what I take back is gone, and never comes back when he taps Keep later
+
+#### Acceptance Criteria:
+- **Scenario:** Delete a text still showing as a ghost
+- **Given:** five lines of mine still showing as ghosts
+- **When:** my change deletes them by name
+- **Then:** the five ghosts go, my change reports no missing ids, and there is nothing left for Igor to keep
+
+- **Scenario:** Move a ghost by name
+- **Given:** a text of mine still showing as a ghost
+- **When:** my change moves it by its name
+- **Then:** the ghost moves, and once kept it is a kept text under the same name
+
+---

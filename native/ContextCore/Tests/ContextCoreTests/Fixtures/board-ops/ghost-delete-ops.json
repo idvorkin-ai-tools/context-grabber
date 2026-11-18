@@ -1,0 +1,37 @@
+{
+ "board": "13f700bf-ddcb-4a89-a6b7-64c0047f24e3",
+ "base_rev": 119,
+ "label": "answer: why no push",
+ "list": [
+  {
+   "op": "delete",
+   "ids": [
+    "larry-m1a-2",
+    "larry-m1b-2",
+    "larry-m1c-2",
+    "larry-m1d-2",
+    "larry-m1e-2"
+   ]
+  },
+  {
+   "op": "add_text",
+   "id": "larry-m4a",
+   "x": 40,
+   "y": 650,
+   "text": "My fault: I placed text without opening room.",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  },
+  {
+   "op": "add_text",
+   "id": "larry-m4b",
+   "x": 40,
+   "y": 682,
+   "text": "Asking the app: inserted text pushes ink down.",
+   "font": "hand",
+   "size": 22,
+   "color": "#BA39E6"
+  }
+ ]
+}

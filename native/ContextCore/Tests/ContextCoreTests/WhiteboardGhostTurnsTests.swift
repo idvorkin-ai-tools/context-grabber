@@ -48,6 +48,18 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertEqual(turns.ghosts.suffix(2).map(\.id), ["op-text:t1", "op-text:t2"])
   }
 
+  /// #939: his change takes ghosts of his text away by name, and only those; a chosen one's buttons go with it.
+  func testLarrysTextGoneTakesOnlyThoseGhosts() {
+    var turns = turns()
+    turns.land(ghosts(.claude, 1), who: .claude, first: true, now: t0)
+    turns.larrysText([G(id: "op-text:t1", who: .larry), G(id: "op-text:t2", who: .larry)])
+    _ = turns.tap { $0.id == "op-text:t1" }
+    turns.larrysTextGone(["op-text:t1"])
+    XCTAssertEqual(turns.ghosts.map(\.id).suffix(1), ["op-text:t2"])
+    XCTAssertEqual(turns.ghosts.count, 2)
+    XCTAssertNil(turns.chosen)
+  }
+
   /// Claude's turn under way, asked from a stroke's pause.
   private func asking(_ turns: inout WhiteboardGhostTurns<G>) -> Int {
     XCTAssertTrue(turns.stroked())

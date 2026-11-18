@@ -157,6 +157,14 @@ native-run-mac: native-build-mac
     c="${COCKPIT:-}"
     open -n ${c:+--env GRABBER_CHAT_URL="$c" --env GRABBER_COCKPIT_URL="$c" --env GRABBER_USAGE_URL="$c"} {{native_mac_app}}
 
+# Larry's board changes replayed on a copy of a board, drawn to a PNG, on the Mac with no simulator, in seconds (#936,
+# story 990): the board's own applier and planner. Paths are from where you run it.
+#   just board-ops --board <strokes snapshot.json> --ops <batch.json> [--ops ...] [--keep id,id] [--out <prefix>]
+# Writes <prefix>.png, <prefix>-before.png, <prefix>.result.json and <prefix>.board.json (docs/TESTING.md).
+[no-cd]
+board-ops *args:
+    swift run --quiet --package-path "{{justfile_directory()}}/native/ContextCore" board-ops-harness {{args}}
+
 # Copy the native app's session logs, bug reports (with screenshots) and crash files from the phone and the iPad to
 # ~/tmp/agent/grabber-logs/<phone|ipad>/ (the iPad's id: IPAD=<udid> or scripts/native/ipad-udid.local)
 pull-logs:
