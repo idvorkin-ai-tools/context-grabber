@@ -287,7 +287,7 @@ leave_simulator() {
 # A thermal or performance warning recorded by macOS. Not the load: on this Mac it counts hung processes, not heat.
 hot_why=
 mac_hot() {
-  hot_why=$(pmset -g therm 2>/dev/null | grep -iE 'warning level|performance warning' | grep -v 'No ' | head -1)
+  hot_why=$(pmset -g therm 2>/dev/null | grep -iE 'warning level set to [1-9]' | head -1)
   [ -n "$hot_why" ]
 }
 # Story 980: the step's device becomes the one booted simulator; it boots only if it isn't up already.
@@ -408,15 +408,18 @@ phone_needed() {
 }
 # Story 746: the whiteboard's drawing classes, and its suite, on the iPad's simulator.
 ipad_steps() {
+  if [ "$full" -eq 1 ]; then
+    udid=$ipad
+    step "whiteboard suite" env SUITE_PREBUILT=1 scripts/native/test-whiteboard-ui.sh "$udid"
+    return
+  fi
   # ponytail: keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), so the
   # ⌘V class still gets a fresh boot. Story 982 is to find the real fix; until then only that class pays a boot.
   case " ${whiteboard[*]-} " in
     *" WhiteboardPasteUITests "*) xcrun simctl shutdown "$ipad" 2>/dev/null ;;
   esac
   step "iPad simulator" use_device "$ipad" || return
-  if [ "$run_whiteboard_classes" -gt 0 ]; then step "whiteboard classes" whiteboard_classes || return; fi
-  if [ "$full" -eq 1 ]; then step "whiteboard suite" env SUITE_PREBUILT=1 scripts/native/test-whiteboard-ui.sh "$udid" || return; fi
-  return 0
+  step "whiteboard classes" whiteboard_classes
 }
 ipad_needed() { [ "$n_whiteboard" -gt 0 ]; }
 

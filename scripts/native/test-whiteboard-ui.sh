@@ -16,7 +16,7 @@ trap 'kill $cockpit 2>/dev/null || true' EXIT
 # Keys reach the app only in the first test after a boot that presses any, so the suite boots a fresh simulator once and
 # has one test that presses keys (WhiteboardPasteUITests' ⌘V and ⌘Z, on both canvases).
 xcrun simctl shutdown "$udid" 2>/dev/null
-xcrun simctl boot "$udid" && xcrun simctl bootstatus "$udid" >/dev/null || { echo "the simulator did not boot" >&2; exit 1; }
+scripts/native/sim-boot.sh "$udid" || exit 1
 scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
 cockpit=$!
 sleep 1

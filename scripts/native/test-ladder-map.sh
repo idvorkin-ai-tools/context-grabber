@@ -92,7 +92,11 @@ printf '#!/usr/bin/env bash\necho "  | |   \\"CGSSessionScreenIsLocked\\"=Yes"\n
 # The heat check (story 983): a cool Mac, unless FAKE_HOT says otherwise, so this Mac's own heat can't fail it.
 cat >"$fakes/pmset" <<'F'
 #!/usr/bin/env bash
-if [ -n "${FAKE_HOT:-}" ]; then echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2"; else echo "Note: No thermal warning level has been recorded"; fi
+case "${FAKE_HOT:-}" in
+  "") echo "Note: No thermal warning level has been recorded" ;;
+  0) echo "Thermal warning level set to 0."; echo "Performance warning level set to 0." ;;
+  *) echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2" ;;
+esac
 F
 # machine-doctor (story 984): notes what it was asked, so no run of this test calls the real one.
 printf '#!/usr/bin/env bash\necho "doctor $*" >>"$MARKS/doctor"\n' >"$fakes/doctor"
@@ -397,6 +401,11 @@ says "no machine-doctor: one line says so" "no machine-doctor sims command ($tmp
 run FAKE_HOT=1 -- --changed native/UITests/CardUITests.swift
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000000" "$MARKS/xcrun"; then ok "a hot Mac: the simulator is shut down"; else bad "a hot Mac: the simulator is shut down"; fi
 says "a hot Mac: says why" "the Mac is hot (Thermal warning level set to 2): the simulator is shut down rather than left booted"
+run FAKE_HOT=0 -- --changed native/UITests/CardUITests.swift
+if grep -q "simctl shutdown" "$MARKS/xcrun"; then bad "a Mac cooled after a warning: the simulator is left booted"; else ok "a Mac cooled after a warning: the simulator is left booted"; fi
+run LADDER_SMOKE=0 -- --full --changed native/UITests/WhiteboardTurnUITests.swift
+if [ "$(grep -c "simctl boot.* 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun")" -eq 1 ]; then ok "--full whiteboard: the iPad boots once"
+else bad "--full whiteboard: the iPad boots once: $(grep "simctl boot" "$MARKS/xcrun")"; fi
 
 run -- --changed native/App/Chat/ChatViews.swift
 status=$?
