@@ -11,6 +11,8 @@ import UserNotifications
 @MainActor
 final class AppModel: ObservableObject {
   let log = SessionLog()
+  /// #946: `main_stall` in the log when the main thread stops answering.
+  private let stallWatch: MainStallWatch
   let database: AppDatabase
   /// The lock-screen card and the Dynamic Island, shared by the Gym Timer and Box breathing.
   let liveActivity: LiveActivityController
@@ -157,6 +159,8 @@ final class AppModel: ObservableObject {
     // BugKit's crash capture first (story 144), so a crash anywhere in the launch comes back: MetricKit, signal and
     // exception files under Documents/crashes, each announced once in this log.
     CrashReports.shared.install(logger: log.bugLogger)
+    stallWatch = MainStallWatch(log: log)
+    stallWatch.install()
     database = AppDatabase(log: log)
     liveActivity = LiveActivityController(log: log)
     tracker = LocationTracker(log: log, store: database.locations)

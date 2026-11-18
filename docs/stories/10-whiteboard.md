@@ -5686,6 +5686,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Summary:** A margin tap makes a header, and another folds it
 - **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: a margin tap makes a header once, a fold hides the indented lines and closes up whole lines and unfold puts everything back, a push never splits a fold from its header, unfold makes room for what was written under it, an undo that shows the ink opens the fold); a simulator UI test, `WhiteboardOutlineUITests.testAMarginTapMakesAHeaderAndAnotherFoldsIt`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+- **Issues:** [#946](https://github.com/idvorkin/context-grabber/issues/946) (the iPad, 2026-11-18, build 69f912fb: two finger taps in the margin each came back from PaperKit as a selection change, a resize box with no elements showed, and the log went silent for 14 s before "I think I just hung"; not settled, so `main_stall` now says whether the main thread stopped answering)
 
 #### Use Case:
 - **As someone** writing an outline on the board
