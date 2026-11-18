@@ -24,7 +24,8 @@ extension Sketch {
         "<text x=\"8\" y=\"\(16 + i * 16)\" font-family=\"Menlo, monospace\" font-size=\"\(i == 0 ? 12 : 11)\""
           + " fill=\"\(fill(Look.note))\">\(Self.escape(note))</text>")
     }
-    let clip = "<clipPath id=\"board\"><rect x=\"\(n(region.minX))\" y=\"\(n(region.minY))\""
+    let clip =
+      "<clipPath id=\"board\"><rect x=\"\(n(region.minX))\" y=\"\(n(region.minY))\""
       + " width=\"\(n(region.width))\" height=\"\(n(region.height))\"/></clipPath>"
     out.append(clip)
     out.append(

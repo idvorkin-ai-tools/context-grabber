@@ -15,7 +15,8 @@ let package = Package(
     // pkg-config's sqlite3 (its headers wherever the system put them); SwiftPM names the package to install when it is
     // missing. The Apple SDKs carry SQLite as the SQLite3 module, so the Mac and iOS never build this.
     .systemLibrary(
-      name: "CSQLite", pkgConfig: "sqlite3", providers: [.apt(["libsqlite3-dev"]), .brew(["sqlite"]), .yum(["sqlite-devel"])]),
+      name: "CSQLite", pkgConfig: "sqlite3",
+      providers: [.apt(["libsqlite3-dev"]), .brew(["sqlite"]), .yum(["sqlite-devel"])]),
     .target(name: "ContextCore", dependencies: [.target(name: "CSQLite", condition: .when(platforms: [.linux]))]),
     .executableTarget(name: "BoardOpsHarness", dependencies: ["ContextCore"]),
     .testTarget(name: "ContextCoreTests", dependencies: ["ContextCore"], exclude: ["Fixtures"]),
