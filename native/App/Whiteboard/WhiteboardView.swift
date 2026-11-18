@@ -1315,7 +1315,7 @@ final class WhiteboardModel: ObservableObject {
       WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
     }
     let within = turns.ghosts.filter { reach($0) != nil }.count
-    switch turns.tap(reach: reach) {
+    switch turns.tapNearest(reach: reach) {
     case .nothing: return
     case .chose(let ghost):
       log.event(

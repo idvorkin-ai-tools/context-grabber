@@ -271,12 +271,12 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   /// A finger tap (stories 354, 825): on a mark chooses it, so its Keep and Dismiss show; anywhere else only puts them
   /// away. A stray tap never keeps or dismisses a mark.
   public mutating func tap(hitting: (Ghost) -> Bool) -> Tap {
-    tap(reach: { hitting($0) ? 0 : nil })
+    tapNearest(reach: { hitting($0) ? 0 : nil })
   }
 
   /// A finger tap, each mark's distance from it given (nil: out of reach): the nearest mark takes it, and between two as
   /// near the one drawn later, on top (#941).
-  public mutating func tap(reach: (Ghost) -> CGFloat?) -> Tap {
+  public mutating func tapNearest(reach: (Ghost) -> CGFloat?) -> Tap {
     if let ghost = WhiteboardMarkChoice.nearest(ghosts, reach: reach) {
       guard ghost.id != chosenID else { return .nothing }
       chosenID = ghost.id
