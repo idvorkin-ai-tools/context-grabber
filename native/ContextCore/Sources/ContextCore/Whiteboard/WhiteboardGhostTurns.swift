@@ -342,7 +342,7 @@ public enum WhiteboardMarkChoice {
   /// Between the buttons and the view's edge.
   public static let margin: CGFloat = 8
 
-  /// `avoid`: the board's top-right corner (? and Feedback, and the blocked chip), never under the buttons (story 995).
+  /// `avoid`: the board's top-right corner (? and Feedback, and the blocked chip), never under the buttons (story 1000).
   /// Placed there, they go below it, or else to its left.
   public static func place(mark: CGRect, buttons: CGSize, in view: CGRect, avoid: CGRect) -> CGRect {
     let placed = place(mark: mark, buttons: buttons, in: view)
@@ -357,7 +357,7 @@ public enum WhiteboardMarkChoice {
 
   public static func place(mark: CGRect, buttons: CGSize, in view: CGRect) -> CGRect {
     let inside = view.insetBy(dx: margin, dy: margin)
-    let (w, h) = (buttons.width, buttons.height)
+    let (w, h) = (min(buttons.width, inside.width), buttons.height)
     let beside = mark.midY - h / 2
     let candidates = [
       CGRect(x: mark.maxX + gap, y: beside, width: w, height: h),

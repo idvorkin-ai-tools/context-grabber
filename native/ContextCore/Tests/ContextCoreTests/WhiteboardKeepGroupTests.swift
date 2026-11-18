@@ -7,7 +7,7 @@ import XCTest
   import CoreGraphics
 #endif
 
-/// #942 (story 995): Keep group keeps the chosen mark's whole reply as one group, and its buttons never sit under the
+/// #942 (stories 995, 998–1000): Keep group keeps the chosen mark's whole reply as one group, and its buttons never sit under the
 /// board's top-right corner. The oracle is the shapes spec's "Keep group keeps a whole reply as one thing".
 final class WhiteboardKeepGroupTests: XCTestCase {
   private struct G: WhiteboardGhost, Equatable {
@@ -80,5 +80,13 @@ final class WhiteboardKeepGroupTests: XCTestCase {
     let mark = CGRect(x: 600, y: 60, width: 150, height: 40)
     let placed = WhiteboardMarkChoice.place(mark: mark, buttons: buttons, in: short, avoid: corner)
     XCTAssertLessThanOrEqual(placed.maxX, corner.minX)
+  }
+
+  func testInAViewNarrowerThanTheButtonsTheyNarrowToStayOnScreen() {
+    let narrow = CGRect(x: 0, y: 0, width: 320, height: 600)
+    let mark = CGRect(x: 40, y: 200, width: 100, height: 40)
+    let placed = WhiteboardMarkChoice.place(mark: mark, buttons: CGSize(width: 400, height: 48), in: narrow)
+    XCTAssertTrue(narrow.contains(placed), "\(placed)")
+    XCTAssertEqual(placed.height, 48)
   }
 }

@@ -415,7 +415,7 @@ board-ops bug, on the Mac with no simulator, in seconds (#936, story 990). The b
 
 ```bash
 just board-ops --board <snapshot.json> --ops <batch.json> [--ops <next.json>] [--keep id,id] [--out <prefix>]
-just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-group <reply id>] [--svg]
+just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-group <reply id>]
 ```
 
 - **The snapshot** is the board's strokes JSON, the body the board posts to `POST /whiteboard/strokes` or the
@@ -434,7 +434,7 @@ just board-ops --board <snapshot.json> --ops <reply.json> [--tap x,y] [--keep-gr
   dashes, his ghosts in purple dashes, and each step's `op_result` on top, a missing id in capitals),
   `<prefix>-before.png`, `<prefix>.result.json` (each step's `op_result` and the names it moved, erased, drew and left
   as ghosts) and `<prefix>.board.json`, the board after, to replay his next batch on. The default prefix is
-  `~/tmp/agent/board-ops/replay-<time>`. Where there is no CoreGraphics (Larry's Linux box, #943), or with `--svg`, the
+  `~/tmp/agent/board-ops/replay-<time>`. Where there is no CoreGraphics (Larry's Linux box, #943), the
   pictures are `<prefix>.svg` and `<prefix>-before.svg` instead, the same marks, colours and words; the result's
   `picture` and `picture_before` name whichever was written. `just test-linux` builds the harness and replays the
   Judge batch to an SVG.

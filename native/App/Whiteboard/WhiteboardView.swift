@@ -101,7 +101,7 @@ final class WhiteboardModel: ObservableObject {
   /// applies.
   @Published private(set) var blocked = BoardBlockedEdit()
   private var blockedFrame: CGRect?
-  /// Story 995: the board's top-right corner (? and Feedback, and the chip), window points, which the chosen mark's
+  /// Story 1000: the board's top-right corner (? and Feedback, and the chip), window points, which the chosen mark's
   /// buttons keep clear of.
   @Published private(set) var cornerFrame: CGRect = .null
   /// The board's mic (story 345): open, on its way up and finishing its last words.
@@ -1431,7 +1431,7 @@ final class WhiteboardModel: ObservableObject {
     ink(kept)
   }
 
-  /// Story 995: how many of the chosen mark's reply still show; Keep group is offered from two.
+  /// Story 999: how many of the chosen mark's reply still show; Keep group is offered from two.
   var chosenReplyCount: Int { turns.chosenReply().count }
 
   /// Keep group (#942, story 995): every mark of the chosen one's reply still showing, ink where it showed, in one keep
@@ -1463,7 +1463,7 @@ final class WhiteboardModel: ObservableObject {
     add(strokes)
   }
 
-  /// Story 995: where the corner's buttons are, in window points.
+  /// Story 1000: where the corner's buttons are, in window points.
   func cornerLaid(_ frame: CGRect) {
     if frame != cornerFrame { cornerFrame = frame }
   }
@@ -2495,7 +2495,7 @@ struct WhiteboardView: View {
             editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
         }
-        // Story 995: the chosen mark's buttons keep clear of this corner.
+        // Story 1000: the chosen mark's buttons keep clear of this corner.
         .onGeometryChange(for: CGRect.self) {
           $0.frame(in: .global)
         } action: {

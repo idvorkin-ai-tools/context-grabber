@@ -7,7 +7,8 @@ set -uo pipefail
 cd "$(dirname "$0")/../../native/ContextCore/Sources" || exit 2
 fail=0
 while IFS= read -r file; do
-  if ! grep -q 'canImport(FoundationNetworking)' "$file"; then
+  if ! grep -A1 -E '^[[:space:]]*#if canImport\(FoundationNetworking\)[[:space:]]*$' "$file" \
+    | grep -qE '^[[:space:]]*import FoundationNetworking[[:space:]]*$'; then
     echo "FAIL $file uses URLRequest/URLSession without '#if canImport(FoundationNetworking) import FoundationNetworking'"
     fail=1
   fi

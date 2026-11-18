@@ -2145,7 +2145,7 @@ private struct PaperBoardHost: UIViewControllerRepresentable {
 }
 
 /// Story 825 (#883): Keep and Dismiss beside the chosen mark, wholly on screen. Over the board, not in it, so a tap on
-/// them never reaches the board as a tap off the marks. Story 995 (#942): Keep group between them when more of the
+/// them never reaches the board as a tap off the marks. Stories 995 and 1000 (#942): Keep group between them when more of the
 /// mark's reply of Larry's shows; each button at least 36 points each way, the capsule taking every tap within it, and
 /// never under the board's top-right corner.
 private struct MarkChoiceButtons: View {
@@ -2177,7 +2177,7 @@ private struct MarkChoiceButtons: View {
         .buttonStyle(.bordered)
         .controlSize(.small)
         .lineLimit(1)
-        .frame(width: size.width, height: size.height)
+        .frame(width: place.width, height: place.height)
         .background(.regularMaterial, in: Capsule())
         // A tap between the buttons lands on the capsule, never on the paper under it.
         .contentShape(Capsule())

@@ -11,7 +11,7 @@
 //
 //  Writes <prefix>.png (after), <prefix>-before.png, <prefix>.result.json (each step's op_result and what it touched)
 //  and <prefix>.board.json (the board after, to replay the next batch on). Prints the result JSON. Where there is no
-//  CoreGraphics (Linux, #943), or with --svg, the pictures are <prefix>.svg and <prefix>-before.svg, the same marks and
+//  CoreGraphics (Linux, #943), the pictures are <prefix>.svg and <prefix>-before.svg, the same marks and
 //  words. The result's `picture` and `picture_before` name them.
 
 import ContextCore
@@ -29,7 +29,6 @@ struct Arguments {
   var out = ""
   var rev: Int?
   var scale: CGFloat = 1.5
-  var svg = false
 
   init(_ args: [String]) throws {
     var rest = args[...]
@@ -46,7 +45,6 @@ struct Arguments {
       case "--keep-group": steps.append(("keep-group", try value(flag)))
       case "--out": out = try value(flag)
       case "--rev": rev = Int(try value(flag))
-      case "--svg": svg = true
       case "--scale": scale = CGFloat(Double(try value(flag)) ?? 1.5)
       case "-h", "--help": throw Failure(description: Self.usage)
       default: throw Failure(description: "unknown argument \(flag)\n\(Self.usage)")
@@ -61,7 +59,7 @@ struct Arguments {
 
   static let usage = """
     usage: board-ops-harness --board <snapshot.json> --ops <batch.json|reply.json> [--ops ...] [--keep id,id]
-                             [--tap x,y] [--keep-group <reply id>] [--svg]
+                             [--tap x,y] [--keep-group <reply id>]
                              [--out <prefix>] [--rev <n>] [--scale <px per point>]
     """
 }
@@ -110,8 +108,8 @@ func main() throws {
   let after = sketch(
     replay.board, marks: replay.marks, outcomes: replay.outcomes, region: area,
     title: "AFTER  board \(snapshot.board)  rev \(replay.board.rev ?? 0)")
-  let beforePath = try draw(before, scale: args.scale, to: "\(out)-before", svg: args.svg)
-  let afterPath = try draw(after, scale: args.scale, to: out, svg: args.svg)
+  let beforePath = try draw(before, scale: args.scale, to: "\(out)-before")
+  let afterPath = try draw(after, scale: args.scale, to: out)
   var result: [String: Any] = [
     "board": snapshot.board, "rev_before": replay.start.rev ?? 0, "rev": replay.board.rev ?? 0,
     "steps": replay.outcomes.map(\.wire), "ghosts": replay.board.ghosts.map(\.id),
@@ -132,16 +130,15 @@ func main() throws {
   FileHandle.standardOutput.write(Data("\n".utf8))
 }
 
-/// The picture at `prefix`, as a PNG on the Mac, an SVG where CoreGraphics can't make one or when asked: its path.
-func draw(_ sketch: Sketch, scale: CGFloat, to prefix: String, svg: Bool) throws -> String {
+/// The picture at `prefix`, as a PNG on the Mac, an SVG where CoreGraphics can't make one: its path.
+func draw(_ sketch: Sketch, scale: CGFloat, to prefix: String) throws -> String {
   #if canImport(CoreGraphics) && canImport(ImageIO) && canImport(CoreText)
-    if !svg {
-      try sketch.png(scale: scale, to: prefix + ".png")
-      return prefix + ".png"
-    }
+    try sketch.png(scale: scale, to: prefix + ".png")
+    return prefix + ".png"
+  #else
+    try Data(sketch.svg(scale: scale).utf8).write(to: URL(fileURLWithPath: prefix + ".svg"))
+    return prefix + ".svg"
   #endif
-  try Data(sketch.svg(scale: scale).utf8).write(to: URL(fileURLWithPath: prefix + ".svg"))
-  return prefix + ".svg"
 }
 
 do {

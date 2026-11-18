@@ -7110,11 +7110,41 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap on the name's letters, or between them
 - **Then:** Keep and Dismiss show beside the name, not the box
 
+---
+
+### User Story 996:
+
+- **Summary:** A tap on the side of Larry's labelled box chooses the box
+- **Status:** implemented in [75eef936](https://github.com/idvorkin/context-grabber/commit/75eef936) (the reproduction: `just board-ops` replays his marks and tries a tap on each), [491cab14](https://github.com/idvorkin/context-grabber/commit/491cab14), [13e47d0a](https://github.com/idvorkin/context-grabber/commit/13e47d0a) and [80f9873a](https://github.com/idvorkin/context-grabber/commit/80f9873a) (the nearest mark takes the tap); verified by host tests (`BoardMarksReplayTests`, failing on the old rule first), `just test`, the Mac build (`just native-build-mac`), `just board-ops` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests`, rung 2, 2026-11-17); not yet seen on the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** [#941](https://github.com/idvorkin/context-grabber/issues/941)
+
+#### Use Case:
+- **As someone** keeping Larry's labelled boxes one at a time
+- **I want to** tap a box's side and get the box, not the name inside it
+- **so that** the box stays in reach once its name is nearest the middle
+
+#### Acceptance Criteria:
 - **Scenario:** The box's side
-- **Given:** the same box and name
+- **Given:** Larry's box with a name inside it
 - **When:** I tap on the box's side
 - **Then:** Keep and Dismiss show beside the box
 
+---
+
+### User Story 997:
+
+- **Summary:** Larry sees which of his marks a tap can't reach before he sends them
+- **Status:** implemented in [75eef936](https://github.com/idvorkin/context-grabber/commit/75eef936); verified by host tests (`BoardMarksReplayTests`), `just test` and `just board-ops` on the 18:26 reply, on the Mac; off the Mac (Linux, #943, rung 1L not run) there are no fonts, so his labels are dropped and the step says so
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry checks a change before he sends it*
+- **Issues:** [#941](https://github.com/idvorkin/context-grabber/issues/941)
+
+#### Use Case:
+- **As Larry,** drawing marks for Igor to keep
+- **I want to** replay my reply on a copy of his board and see where every mark lands and what a tap on each chooses
+- **so that** I never send him a mark he can't reach
+
+#### Acceptance Criteria:
 - **Scenario:** Larry checks his marks first
 - **Given:** a reply of his with marks and a copy of the board
 - **When:** he runs `just board-ops` with them
@@ -7140,17 +7170,62 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I tap *Keep group* between Keep and Dismiss
 - **Then:** every mark of that reply still showing becomes ink in his colours where it showed, none is left to keep, and one Undo takes them all back
 
+---
+
+### User Story 998:
+
+- **Summary:** A reply of Larry's kept as a group moves as one
+- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942)
+
+#### Use Case:
+- **As someone** who kept Larry's drawing as a group
+- **I want** it to move as one thing, whoever moves it
+- **so that** his drawing never comes apart on my board
+
+#### Acceptance Criteria:
 - **Scenario:** It moves as one
 - **Given:** a reply I kept as a group
 - **When:** Larry moves it by the group's name, or a push opens room through it
 - **Then:** all of it moves together, and Larry hears its strokes under that one group
 
+---
+
+### User Story 999:
+
+- **Summary:** Keep group is offered only when more than one mark of the reply shows
+- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942)
+
+#### Use Case:
+- **As someone** keeping Larry's marks
+- **I want** *Keep group* only when there is a group to keep
+- **so that** the buttons beside one mark stay Keep and Dismiss
+
+#### Acceptance Criteria:
 - **Scenario:** One mark left
 - **Given:** only one mark of his reply still shows
 - **When:** I tap it
 - **Then:** Keep and Dismiss show, and no *Keep group*
 
+---
+
+### User Story 1000:
+
+- **Summary:** The buttons beside a chosen mark sit clear of the board's corner and wholly on screen
+- **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad; the buttons narrowed to the view's width in a view too narrow for them, by host tests (`WhiteboardKeepGroupTests`)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942)
+
+#### Use Case:
+- **As someone** tapping one of Larry's marks near the edge of the board
+- **I want** its buttons where I can tap them, clear of ? and Feedback
+- **so that** a tap meant for Keep never opens help or misses the button
+
+#### Acceptance Criteria:
 - **Scenario:** Never under the corner
 - **Given:** the mark I tapped is near the board's top right, where ? and Feedback (and *Larry's edit blocked*) sit
 - **When:** the buttons show
-- **Then:** they sit clear of that corner, each at least 36 points each way, and a tap on them never reaches the paper
+- **Then:** they sit clear of that corner and wholly on screen, each at least 36 points each way, and a tap on them never reaches the paper

@@ -310,6 +310,9 @@ public struct BoardReplay {
     var outcome = Outcome(label: "marks \(row.id)", action: row.drawable ? "shown" : "unplaced")
     defer { outcomes.append(outcome) }
     guard let frame = row.frame, row.drawable else { return }
+    if !WhiteboardTurn.hasLetters("A", .print) {
+      outcome.why = "no fonts here: his labels are dropped, so mark ids and taps after one are not the iPad's"
+    }
     marks = row.shapes.enumerated().map { index, shape in
       Mark(
         id: WhiteboardMarks.mark(index, of: row.id), kind: shape.kind, text: shape.text,
