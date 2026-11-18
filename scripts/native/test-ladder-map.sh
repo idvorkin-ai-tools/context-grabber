@@ -50,6 +50,12 @@ case "$*" in
     printf '    iPad Pro 11-inch (M5) (00000000-0000-0000-0000-000000000001) (Shutdown)\n' ;;  # the whiteboard's (story 746)
   "simctl list devices booted")  # story 981: FAKE_BOOTED names the one already up
     [ -z "${FAKE_BOOTED:-}" ] || printf '    Booted One (%s) (Booted) \n' "$FAKE_BOOTED" ;;
+  "simctl list devices -j")  # story 984: the prune's view, FAKE_BOOTED up; FAKE_BOOTS_LATER boots that one after the first look
+    looks=$(( $(cat "$MARKS/looks" 2>/dev/null || echo 0) + 1 )); echo "$looks" >"$MARKS/looks"
+    up=${FAKE_BOOTED:-}; [ "$looks" -gt 1 ] && [ -n "${FAKE_BOOTS_LATER:-}" ] && up=$FAKE_BOOTS_LATER
+    dev() { local st=Shutdown; [ "$2" = "$up" ] && st=Booted; printf '{"udid":"%s","state":"%s","name":"%s"}' "$2" "$st" "$1"; }
+    printf '{"devices":{"iOS-27":[%s,%s]}}\n' "$(dev "iPhone 17" 00000000-0000-0000-0000-000000000000)" \
+      "$(dev "iPad Pro 11-inch (M5)" 00000000-0000-0000-0000-000000000001)" ;;
   "simctl get_app_container "*) echo "${FAKE_CONTAINER:-}" ;;
   "simctl launch "*)
     # The app, importing as its launch hook says: the session log's import event.
@@ -98,8 +104,6 @@ case "${FAKE_HOT:-}" in
   *) echo "CPU_Scheduler_Limit = 50"; echo "Thermal warning level set to 2" ;;
 esac
 F
-# machine-doctor (story 984): notes what it was asked, so no run of this test calls the real one.
-printf '#!/usr/bin/env bash\necho "doctor $*" >>"$MARKS/doctor"\n' >"$fakes/doctor"
 cat >"$fakes/uv" <<'F'
 #!/usr/bin/env bash
 exec sleep 30
@@ -122,7 +126,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   shift
   rm -f "$MARKS"/*
   env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
-    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" MACHINE_DOCTOR="$fakes/doctor" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
+    XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" SIM_DEVICES_DIR="$tmp/devices" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
 chat_all="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
@@ -390,13 +394,52 @@ if [ "$(order)" = "01" ]; then ok "both devices, none up: the phone, then the iP
 run FAKE_BOOTED=00000000-0000-0000-0000-000000000001 -- --changed native/UITests/WhiteboardPasteUITests.swift --changed native/UITests/CardUITests.swift
 if [ "$(order)" = "10" ]; then ok "both devices, the iPad up: the iPad, then the phone"; else bad "both devices, the iPad up: $(order)"; fi
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then ok "both devices: the iPad is shut before the phone boots"; else bad "both devices: the iPad is shut before the phone boots"; fi
-# Story 984: the snapshots are pruned before a boot, by machine-doctor's sims command, and skipped without it.
-run -- --changed native/UITests/CardUITests.swift
-if grep -qxF "doctor sims --prune --below-free-gb 20" "$MARKS/doctor" 2>/dev/null; then ok "a boot prunes the snapshots first (story 984)"; else bad "a boot prunes the snapshots first (story 984)"; fi
-run MACHINE_DOCTOR="$tmp/no-such-doctor" -- --changed native/UITests/CardUITests.swift
+# Story 984: the shut-down simulators' wallpaper snapshots are pruned before a boot and when the rung ends; never a booted one's.
+stores() {  # fresh fake snapshots, 1 MB each, under both fake simulators
+  local d
+  for d in 00000000-0000-0000-0000-000000000000 00000000-0000-0000-0000-000000000001; do
+    mkdir -p "$tmp/devices/$d/data/Library/Application Support/PRBPosterExtensionDataStore/1"
+    head -c 1048576 /dev/zero >"$tmp/devices/$d/data/Library/Application Support/PRBPosterExtensionDataStore/1/snap"
+  done
+}
+store_of() { echo "$tmp/devices/$1/data/Library/Application Support/PRBPosterExtensionDataStore"; }
+prune() {  # <env assignments...>: the prune alone, against the fakes
+  rm -f "$MARKS"/*
+  env PATH="$fakes:$PATH" SIM_DEVICES_DIR="$tmp/devices" "$@" scripts/native/sim-poster-prune.sh >"$out" 2>&1
+}
+stores
+prune FAKE_BOOTED=00000000-0000-0000-0000-000000000001
 status=$?
-if [ "$status" -eq 0 ]; then ok "no machine-doctor: the boot goes on"; else bad "no machine-doctor: the boot goes on, exit $status"; fi
-says "no machine-doctor: one line says so" "no machine-doctor sims command ($tmp/no-such-doctor): the wallpaper snapshots are not pruned before this boot"
+if [ ! -e "$(store_of 00000000-0000-0000-0000-000000000000)" ]; then ok "prune: a shut-down simulator's snapshots go"; else bad "prune: a shut-down simulator's snapshots go"; fi
+if [ -e "$(store_of 00000000-0000-0000-0000-000000000001)/1/snap" ]; then ok "prune: a booted one's stay"; else bad "prune: a booted one's stay"; fi
+if [ -d "$tmp/devices/00000000-0000-0000-0000-000000000000/data/Library/Application Support" ]; then ok "prune: only the snapshots, not the simulator"; else bad "prune: only the snapshots, not the simulator"; fi
+says "prune: one line, the simulators and the MB" "sim-poster-prune: cleared the wallpaper snapshots of 1 shut-down simulator (iPhone 17), freed 1 MB"
+if [ "$status" -eq 0 ]; then ok "prune: exit 0"; else bad "prune: exit 0, got $status"; fi
+stores
+prune FAKE_BOOTS_LATER=00000000-0000-0000-0000-000000000001
+if [ -e "$(store_of 00000000-0000-0000-0000-000000000001)/1/snap" ]; then ok "prune: one booted since the list was read is left alone"; else bad "prune: one booted since the list was read is left alone"; fi
+says "prune: the other is still cleared" "sim-poster-prune: cleared the wallpaper snapshots of 1 shut-down simulator (iPhone 17), freed 1 MB"
+prune
+says "prune: once it is shut down again, its snapshots go" "sim-poster-prune: cleared the wallpaper snapshots of 1 shut-down simulator (iPad Pro 11-inch (M5)), freed 1 MB"
+prune
+says "prune: nothing left, one line says so" "sim-poster-prune: no wallpaper snapshots on a shut-down simulator"
+mkdir -p "$tmp/broken-bin"
+printf '#!/usr/bin/env bash\nexit 1\n' >"$tmp/broken-bin/xcrun"
+chmod +x "$tmp/broken-bin/xcrun"
+prune PATH="$tmp/broken-bin:$fakes:$PATH"
+status=$?
+if [ "$status" -eq 0 ]; then ok "prune: a simctl that fails is a line, not a failure"; else bad "prune: a simctl that fails is a line, not a failure, exit $status"; fi
+says "prune: says nothing was pruned" "sim-poster-prune: no simulators listed by simctl; nothing pruned"
+stores
+run -- --changed native/UITests/CardUITests.swift
+first_look=$(grep -n "simctl list devices -j" "$MARKS/xcrun" | head -1 | cut -d: -f1)
+first_boot=$(grep -n "simctl bootstatus" "$MARKS/xcrun" | head -1 | cut -d: -f1)
+if [ -n "$first_look" ] && [ -n "$first_boot" ] && [ "$first_look" -lt "$first_boot" ]; then ok "a boot prunes the snapshots first (story 984)"; else bad "a boot prunes the snapshots first (story 984)"; fi
+if [ ! -e "$(store_of 00000000-0000-0000-0000-000000000000)" ] && [ ! -e "$(store_of 00000000-0000-0000-0000-000000000001)" ]; then ok "the climb clears both shut-down simulators' snapshots"
+else bad "the climb clears both shut-down simulators' snapshots"; fi
+last_boot=$(grep -n "simctl bootstatus" "$MARKS/xcrun" | tail -1 | cut -d: -f1)
+last_look=$(grep -n "simctl list devices -j" "$MARKS/xcrun" | tail -1 | cut -d: -f1)
+if [ -n "$last_look" ] && [ "$last_look" -gt "$last_boot" ]; then ok "the rung prunes again when it ends (story 984)"; else bad "the rung prunes again when it ends (story 984)"; fi
 # Story 983: a hot Mac gets its simulator shut down at the end.
 run FAKE_HOT=1 -- --changed native/UITests/CardUITests.swift
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000000" "$MARKS/xcrun"; then ok "a hot Mac: the simulator is shut down"; else bad "a hot Mac: the simulator is shut down"; fi

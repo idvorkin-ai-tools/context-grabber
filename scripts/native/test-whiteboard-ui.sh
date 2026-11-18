@@ -11,8 +11,8 @@ port=${CHAT_PORT:-8799}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
 cockpit=
-# Story 980: the simulator is left booted for the next run.
-trap 'kill $cockpit 2>/dev/null || true' EXIT
+# Story 980: the simulator is left booted for the next run. Story 984: the shut-down ones' wallpaper snapshots go.
+trap 'kill $cockpit 2>/dev/null || true; scripts/native/sim-poster-prune.sh || true' EXIT
 # Keys reach the app only in the first test after a boot that presses any, so the suite boots a fresh simulator once and
 # has one test that presses keys (WhiteboardPasteUITests' ⌘V and ⌘Z, on both canvases).
 xcrun simctl shutdown "$udid" 2>/dev/null

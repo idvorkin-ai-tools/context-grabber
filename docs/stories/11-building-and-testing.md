@@ -633,20 +633,35 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 984:
 
-- **Summary:** The wallpaper snapshots are pruned before a simulator boots, when the disk is short
-- **Status:** implemented in c2067b7; the prune waits on machine-doctor's `sims` command (chop-conventions PR #251, not merged), so today every boot skips it with one line saying so; verified on the host by the ladder's map self-test (a fake doctor is called before the boot; a missing one is skipped)
-- **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free
+- **Summary:** The wallpaper snapshots of every shut-down simulator are pruned before a boot and when a simulator run ends
+- **Status:** implemented in c2067b7 (before a boot, through machine-doctor, which skipped every time: its `sims` command was never merged); our own prune, before a boot and at the end of a run, in COMMIT_TBD; verified on the host by the ladder's map self-test (a shut-down simulator's snapshots go, a booted one's stay, one booted between the look and the delete stays, a failing `simctl` is a line and exit 0, the prune runs before the boot and again when the rung ends) and on the simulator rung (RUNG2_TBD)
+- **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free; Igor, 2026-11-18: "can we do that cleanup as part of test tear down since it's in sim"
 
 #### Use Case:
 - **As Igor,** whose Air's disk fills with wallpaper snapshots no one evicts
-- **I want to** have them pruned on the shut-down simulators just before a boot, when free space is under 20 GB
-- **so that** the boots that are left can't push the disk under the line that stops every build
+- **I want to** have them deleted on the shut-down simulators before a boot and when a simulator run ends
+- **so that** the boots can't push the disk under the line that stops every build, and no one has to clear it by hand
 
 #### Acceptance Criteria:
-- **Scenario:** A boot on a short disk
-- **Given:** the target simulator is shut down and the disk has under 20 GB free
+- **Scenario:** A boot
+- **Given:** the target simulator is shut down
 - **When:** a run boots it
-- **Then:** machine-doctor prunes the shut-down simulators' snapshots first, then the simulator boots; with machine-doctor or its `sims` command missing, one line says the prune was skipped and the boot goes on
+- **Then:** the wallpaper snapshots of every shut-down simulator, the target among them, are deleted first, whatever the free disk, then the simulator boots
+
+- **Scenario:** A simulator run ends
+- **Given:** the ladder's simulator rung, the whiteboard suite or the smoke ends, pass or fail
+- **When:** it tears down
+- **Then:** the wallpaper snapshots of every shut-down simulator are deleted; the simulator left booted keeps its own
+
+- **Scenario:** A booted simulator
+- **Given:** a simulator is booted, even one that booted after the prune looked
+- **When:** the prune runs
+- **Then:** its snapshots are left alone
+
+- **Scenario:** What the prune says
+- **Given:** any prune
+- **When:** it finishes
+- **Then:** one line names the simulators cleared and the MB freed (or says there was nothing), and a prune that fails never fails the boot or the run
 
 ---
 
