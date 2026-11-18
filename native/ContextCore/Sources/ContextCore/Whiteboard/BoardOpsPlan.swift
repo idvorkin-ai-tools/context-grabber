@@ -110,8 +110,10 @@ extension BoardOps {
     public var select: [String] = []
     /// Larry's controls laid and taken away, in order (story 845): never ink, never undone.
     public var overlays: [BoardOverlays.Change] = []
-    /// Ghosts of Larry's text to show.
+    /// Ghosts of Larry's text to show: new ones, and ones showing that the batch moved (they replace theirs by id).
     public var texts: [Text] = []
+    /// Ghosts of his text showing before the batch that it took away: deleted, replaced, or inked (#939, story 993).
+    public var dismissed: [String] = []
     /// Larry's texts that go onto the board as kept text at once, where the batch leaves them: a text he put notes on
     /// is ink, never a ghost (#937, story 991). The app letters them; their notes are in `metas` under their ids.
     public var inked: [Text] = []
@@ -138,16 +140,23 @@ extension BoardOps {
     }
   }
 
-  /// The batch's changes on the canvas's `strokes`, in order. `pages` is the column's page count now; it grows to hold
+  /// The batch's changes on the canvas's `strokes`, in order. `ghosts`: his text ghosts showing, which his ops reach by
+  /// name as they reach a kept text (#939). `pages` is the column's page count now; it grows to hold
   /// the ink after, and the room a push opens below the last ink.
   public static func plan(
     _ ops: [Op], strokes: [Stroke], texts: [BoardText] = [], metas: BoardStrokeMeta = BoardStrokeMeta(),
-    folds: [String: String] = [:], pages: Int, board: BoardPages = BoardPages()
+    folds: [String: String] = [:], ghosts showing: [Text] = [], pages: Int, board: BoardPages = BoardPages()
   ) -> Plan {
     var work = Working(
       strokes: strokes, texts: texts, items: items(strokes: strokes, texts: texts, groups: metas.groups, folds: folds))
     // His texts this batch shows as ghosts, in order; one he puts notes on leaves them for the board (#937).
-    var ghosts: [Text] = []
+    var ghosts: [Text] = showing
+    /// A ghost of his named `id` takes it away; false when none is showing (#939).
+    func dismiss(_ id: String) -> Bool {
+      guard let at = ghosts.firstIndex(where: { $0.id == id }) else { return false }
+      ghosts.remove(at: at)
+      return true
+    }
     var plan = Plan(pagesBefore: pages, pagesAfter: pages)
     var reach: CGFloat?
     var connectors: [NewConnector] = []
@@ -165,6 +174,12 @@ extension BoardOps {
         var hit = Set<Int>()
         for id in ids {
           let found = work.items(named: id)
+          // A ghost of his moves by its name (#939).
+          if let at = ghosts.firstIndex(where: { $0.id == id }) {
+            ghosts[at].x += dx
+            ghosts[at].y += dy
+            continue
+          }
           if found.isEmpty { plan.missingIDs.append(id) }
           hit.formUnion(found)
         }
@@ -181,7 +196,7 @@ extension BoardOps {
       case .addStrokes(let new):
         work.add(new, plan: &plan)
       case .delete(let ids):
-        for id in ids where !work.erase(named: id) { plan.missingIDs.append(id) }
+        for id in ids where !(work.erase(named: id) || dismiss(id)) { plan.missingIDs.append(id) }
       case .setMeta(let ids, let meta):
         for id in ids {
           // A text with notes is ink, never a ghost (#937, story 991).
@@ -194,7 +209,7 @@ extension BoardOps {
           if let group = meta.group { work.join(work.entries(named: id), group: group) }
         }
       case .replace(let ids, let new):
-        for id in ids where !work.erase(named: id) { plan.missingIDs.append(id) }
+        for id in ids where !(work.erase(named: id) || dismiss(id)) { plan.missingIDs.append(id) }
         work.add(new, plan: &plan)
       case .setHidden(let ids, let hidden):
         for id in ids {
@@ -216,7 +231,8 @@ extension BoardOps {
         connectors.append(new)
       }
     }
-    plan.texts = ghosts
+    plan.texts = ghosts.filter { !showing.contains($0) }
+    plan.dismissed = showing.map(\.id).filter { id in !ghosts.contains { $0.id == id } }
     work.finish(into: &plan)
     // Connectors last, on the board the batch leaves; then every connector follows its ends (stories 910–916).
     BoardConnectors.draw(connectors, into: &plan, strokes: strokes, texts: texts, metas: metas, folds: folds)

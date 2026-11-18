@@ -1645,7 +1645,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let (strokes, hashes) = opStrokes(markup)
     let plan = BoardOps.plan(
       batch.ops, strokes: strokes, texts: model.texts, metas: model.strokeMeta,
-      folds: model.outline(of: strokes).tags, pages: pages, board: board)
+      folds: model.outline(of: strokes).tags, ghosts: model.textGhosts, pages: pages, board: board)
     guard plan.changesBoard else {
       select(plan.select)
       return plan

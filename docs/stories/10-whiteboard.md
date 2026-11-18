@@ -6996,7 +6996,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 990:
 
 - **Summary:** Larry replays a change on a copy of Igor's board and sees the result before sending it
-- **Status:** in progress on branch `native/board-ops-harness`; verified by host tests (`BoardReplayTests`) and the tool on the night's fixtures
+- **Status:** implemented on branch `native/board-ops-harness`; verified by host tests (`BoardReplayTests`), `just test` and `just board-ops` on the night's three fixtures
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry checks a change before he sends it*
 - **Issues:** [#936](https://github.com/idvorkin/context-grabber/issues/936)
 
@@ -7064,5 +7064,30 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a ghost of his text, and my writing that has since reached under it
 - **When:** I tap Keep on it
 - **Then:** my writing below moves down clear of it, and one Undo takes back both
+
+---
+
+### User Story 993:
+
+- **Summary:** Larry's change reaches his text ghost by the name he gave it
+- **Status:** implemented on branch `native/board-ops-939-ghost-ids`; verified by host tests (`BoardReplayTests`, `WhiteboardGhostTurnsTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's delete batch; not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
+- **Issues:** [#939](https://github.com/idvorkin/context-grabber/issues/939)
+
+#### Use Case:
+- **As Larry,** taking back text I put on Igor's board
+- **I want to** delete or move my text by its name whether Igor has kept it yet or not
+- **so that** what I take back is gone, and never comes back when he taps Keep later
+
+#### Acceptance Criteria:
+- **Scenario:** Delete a text still showing as a ghost
+- **Given:** five lines of mine still showing as ghosts
+- **When:** my change deletes them by name
+- **Then:** the five ghosts go, my change reports no missing ids, and there is nothing left for Igor to keep
+
+- **Scenario:** Move a ghost by name
+- **Given:** a text of mine still showing as a ghost
+- **When:** my change moves it by its name
+- **Then:** the ghost moves, and once kept it is a kept text under the same name
 
 ---

@@ -73,6 +73,13 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   and a page is added when the push needs one. Several lines of his in one change each make their own room, top to
   bottom, so a list of his never lands on Igor's writing. His other ghosts below the line move down with the ink, as
   do his texts already on the board.
+- **A ghost of his text answers to his name for it** (#939; Larry, 2026-11-17: he deleted his list while its lines
+  were still ghosts, every name came back missing, the ghosts stayed, and Igor later kept three of them, which Larry
+  then had to delete again). While a text of his shows as a ghost, his changes reach it by the same name as once it is
+  kept: a delete (or a replace) takes the ghost away, so Igor can never keep it afterwards; a move by its name moves
+  the ghost; notes on it make it ink (above); a push moves it with the ink below. None of those is a missing name.
+  Kept, it keeps his name, so the same change works on it either way. A name he never used, or a ghost Igor already
+  dismissed, is still missing.
 - **Keeping a ghost that ink has come under makes room too.** When Igor keeps one of Larry's text ghosts and his
   writing has since reached under it, the keep opens room the same way, and one Undo takes back both the kept text and
   the room. Keep all is as before: a label on ink moves under it (story 895).

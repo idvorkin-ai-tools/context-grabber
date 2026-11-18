@@ -131,7 +131,8 @@ public struct BoardReplay {
   private mutating func apply(_ batch: BoardOps.Batch, into outcome: inout Outcome) {
     let (strokes, texts, metas) = board.planInput
     let pages = board.pageCount
-    let plan = BoardOps.plan(batch.ops, strokes: strokes, texts: texts, metas: metas, pages: pages)
+    let plan = BoardOps.plan(
+      batch.ops, strokes: strokes, texts: texts, metas: metas, ghosts: board.ghosts, pages: pages)
     let names = strokes.map { $0.ids.first ?? "" }
     let inkCount = board.ink.count
     let textIDs = board.texts.map(\.id)
@@ -169,6 +170,8 @@ public struct BoardReplay {
     }
     for name in plan.forgetMetas { setMeta(nil, on: name) }
     for (name, meta) in plan.metas { setMeta(meta, on: name) }
+    board.ghosts.removeAll { plan.dismissed.contains($0.id) }
+    outcome.ghostsGone = plan.dismissed
     for text in plan.texts {
       board.ghosts.removeAll { $0.id == text.id }
       board.ghosts.append(text)

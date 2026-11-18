@@ -243,6 +243,13 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     ghosts = ghosts.filter { !ids.contains($0.id) } + new
   }
 
+  /// Larry's change took these ghosts of his text away (#939, story 993): they go, and Keep and Dismiss with one of
+  /// them chosen.
+  public mutating func larrysTextGone(_ ids: Set<String>) {
+    if let chosenID, ids.contains(chosenID) { self.chosenID = nil }
+    ghosts.removeAll { $0.who == .larry && ids.contains($0.id) }
+  }
+
   /// What Larry's newest row said, in the note; marks with no words clear it.
   public mutating func larrySaid(_ say: String?, marks: Bool) {
     if let say {

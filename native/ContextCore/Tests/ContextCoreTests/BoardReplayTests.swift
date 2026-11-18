@@ -136,12 +136,43 @@ final class BoardReplayTests: XCTestCase {
     XCTAssertEqual(replay.board.rev, 93, "the room is a change of the ink")
   }
 
-  /// #939: a delete of texts still showing as ghosts came back as missing ids, and the ghosts stayed for Igor to keep.
-  func testIssue939DeleteOfGhostsMisses() throws {
+  /// #939: a delete of texts still showing as ghosts takes the ghosts away, by the names he gave them, and nothing is
+  /// missing (on 10b84a5f all five came back missing, the ghosts stayed, and Igor kept three of them later).
+  func testIssue939DeleteOfGhostsTakesThemAway() throws {
     let replay = try replay("ghost-delete", then: [.keep(["larry-m1b-2", "larry-m1d-2", "larry-m1e-2"])])
+    let outcome = try XCTUnwrap(replay.outcomes.first)
+    XCTAssertNil(outcome.result?.missingIDs)
     XCTAssertEqual(
-      replay.outcomes.first?.result?.missingIDs,
-      ["larry-m1a-2", "larry-m1b-2", "larry-m1c-2", "larry-m1d-2", "larry-m1e-2"])
-    XCTAssertEqual(replay.board.texts.map(\.id), ["larry-m1b-2", "larry-m1d-2", "larry-m1e-2"])
+      outcome.ghostsGone, ["larry-m1a-2", "larry-m1b-2", "larry-m1c-2", "larry-m1d-2", "larry-m1e-2"])
+    XCTAssertEqual(replay.board.ghosts.map(\.id), ["larry-m4a", "larry-m4b"])
+    XCTAssertTrue(replay.board.texts.isEmpty, "nothing he deleted is left to keep")
+  }
+
+  func testAGhostMovesByItsNameAndKeepsItWhenKept() throws {
+    var replay = BoardReplay(
+      BoardSnapshot(board: "b", rev: 5, ghosts: [BoardOps.Text(id: "larry-t", x: 40, y: 300, text: "hi")]))
+    replay.run([
+      .batch(
+        key: "m",
+        json: [
+          "board": "b", "base_rev": 5, "label": "move", "list": [["op": "translate", "ids": ["larry-t"], "dy": 100]],
+        ]),
+      .keep(["larry-t"]),
+      .batch(
+        key: "d", json: ["board": "b", "base_rev": 6, "label": "gone", "list": [["op": "delete", "ids": ["larry-t"]]]]),
+    ])
+    XCTAssertNil(replay.outcomes[0].result?.missingIDs)
+    XCTAssertEqual(replay.outcomes[1].drawn, ["larry-t"])
+    XCTAssertEqual(Array(replay.outcomes[2].erased.keys), ["larry-t"])
+    XCTAssertNil(replay.outcomes[2].result?.missingIDs)
+    XCTAssertEqual(replay.outcomes[2].erased["larry-t"]?.minY, 400, "kept where the move left it")
+  }
+
+  func testANameNeverUsedIsStillMissing() throws {
+    var replay = BoardReplay(BoardSnapshot(board: "b", rev: 5))
+    replay.run([
+      .batch(key: "d", json: ["board": "b", "base_rev": 5, "label": "x", "list": [["op": "delete", "ids": ["nope"]]]])
+    ])
+    XCTAssertEqual(replay.outcomes[0].result?.missingIDs, ["nope"])
   }
 }

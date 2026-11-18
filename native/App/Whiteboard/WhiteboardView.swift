@@ -2043,6 +2043,8 @@ extension WhiteboardModel {
       strokeMeta.merge(plan.metas)
       opLedger.setStrokeMeta(strokeMeta, board: board.id)
     }
+    // #939: his change reached ghosts of his text by name: the ones it took away go, the ones it moved show anew.
+    if !plan.dismissed.isEmpty { turns.larrysTextGone(Set(plan.dismissed.map { "op-text:\($0)" })) }
     if !plan.texts.isEmpty {
       turns.larrysText(
         plan.texts.map {
@@ -2063,7 +2065,8 @@ extension WhiteboardModel {
     let editing: [String: Any] = [
       "erased": plan.erase.count, "drawn": plan.added.count, "metas": plan.metas.count, "hidden": hiding,
       "shown": plan.hidden.count - hiding, "selected": plan.select.count, "overlays": overlays.list.count,
-      "texts": plan.texts.count, "inked": plan.inked.count, "missing_ids": plan.missingIDs.count,
+      "texts": plan.texts.count, "inked": plan.inked.count, "dismissed": plan.dismissed.count,
+      "missing_ids": plan.missingIDs.count,
       "changed": plan.changesBoard,
       "ms": Int(started.duration(to: .now) / .milliseconds(1)),
     ]
@@ -2154,6 +2157,9 @@ extension WhiteboardModel {
   var sessionLog: SessionLog { log }
   func show(problem new: BugProblem?) { problem = new }
   func say(_ note: String) { pasteNote = note }
+  /// #939: Larry's text ghosts showing, which his changes reach by name.
+  var textGhosts: [BoardOps.Text] { turns.ghosts.compactMap(\.text) }
+
   func keep(text: BoardText) {
     texts.append(text)
     opLedger.setTexts(texts, board: board.id)
