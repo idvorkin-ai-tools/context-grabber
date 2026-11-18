@@ -634,7 +634,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 984:
 
 - **Summary:** The wallpaper snapshots of every shut-down simulator are pruned before a boot and when a simulator run ends
-- **Status:** implemented in c2067b7 (before a boot, through machine-doctor, which skipped every time: its `sims` command was never merged); our own prune, before a boot and at the end of a run, in COMMIT_TBD; verified on the host by the ladder's map self-test (a shut-down simulator's snapshots go, a booted one's stay, one booted between the look and the delete stays, a failing `simctl` is a line and exit 0, the prune runs before the boot and again when the rung ends) and on the simulator rung (RUNG2_TBD)
+- **Status:** implemented in c2067b7 (before a boot, through machine-doctor, which skipped every time: its `sims` command was never merged); our own prune, before a boot and at the end of a run, in 9ae4b49; verified on the host by the ladder's map self-test (a shut-down simulator's snapshots go, a booted one's stay, one booted between the look and the delete stays, a failing `simctl` is a line and exit 0, the prune runs before the boot and again when the rung ends) and on the simulator rung, 2026-11-18 (GymTimerUITests: the boot cleared the iPhone 17 and iPad snapshots, 910 MB, while both were shut down; the teardowns found nothing more; the iPhone left booted kept its own)
 - **Issues:** health-04, 2026-11-17: 3.5 GB of snapshots on the iPad simulator since the morning, the disk twice under 10 GB free; Igor, 2026-11-18: "can we do that cleanup as part of test tear down since it's in sim"
 
 #### Use Case:
