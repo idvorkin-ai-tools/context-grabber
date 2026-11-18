@@ -840,6 +840,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       "whiteboard",
       [
         "action": "paper_ghosts", "board": model.board.id, "count": ghosts.count,
+        // #941: how many of each kind show, so a mark that never drew is told from one that can't be tapped.
+        "kinds": Dictionary(ghosts.map { ($0.kind.rawValue, 1) }, uniquingKeysWith: +),
         "past_side": board.reachesPastSide(drawn), "pages": pages, "visible": rect(paper.contentVisibleFrame),
         "sheet": rect(lines.bounds),
         "screen_scale": Double(screenScale),

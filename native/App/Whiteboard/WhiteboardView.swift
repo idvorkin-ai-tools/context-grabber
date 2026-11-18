@@ -1310,12 +1310,20 @@ final class WhiteboardModel: ObservableObject {
   /// A tap at `point` (board points) on a mark shows its Keep and Dismiss; anywhere else only puts them away (stories
   /// 825, 810, #883): a stray tap never keeps or dismisses a mark.
   func tap(at point: CGPoint, zoom: CGFloat) {
-    switch turns.tap(hitting: { WhiteboardTurn.hit($0.lines, at: point, tolerance: 22 / zoom) }) {
+    // #941: the nearest mark takes the tap, a label anywhere on its words, so a box drawn first never steals its name's.
+    let reach = { (ghost: Ghost) in
+      WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
+    }
+    let within = turns.ghosts.filter { reach($0) != nil }.count
+    switch turns.tap(reach: reach) {
     case .nothing: return
     case .chose(let ghost):
       log.event(
         "whiteboard",
-        ["action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue])
+        [
+          "action": "mark_chosen", "board": board.id, "who": ghost.who.rawValue, "kind": ghost.kind.rawValue,
+          "within": within,
+        ])
     case .putAway:
       log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "tap_off"])
     }
@@ -1778,7 +1786,7 @@ extension WhiteboardModel {
   /// A finger tap on the board, in board points: Larry hears where, and which of his marks it hit (a ghost, or a text
   /// he wrote and Igor kept), if any.
   func tapped(at point: CGPoint, zoom: CGFloat) {
-    let tolerance = 22 / zoom
+    let tolerance = WhiteboardTurn.tapReach / zoom
     // Story 846: a tap on one of his controls goes to him at once.
     if let overlay = overlays.hit(point, tolerance: 4 / zoom) {
       events.record(.overlayTap(id: overlay.id, event: overlay.tapEvent, t: Self.nowMs))
@@ -1788,7 +1796,9 @@ extension WhiteboardModel {
     }
     // A finger in the margin is the margin's (story 849).
     guard point.x >= BoardMargin.width else { return }
-    let ghost = ghosts.first { WhiteboardTurn.hit($0.lines, at: point, tolerance: tolerance) }
+    let ghost = WhiteboardMarkChoice.nearest(ghosts) {
+      WhiteboardTurn.reach($0.lines, kind: $0.kind, at: point, tolerance: tolerance)
+    }
     let target = ghost.map { $0.text?.id ?? $0.id } ?? keptText(at: point, tolerance: tolerance)
     events.tap(at: point, target: target, t: Self.nowMs)
     if let event = events.list.last { takeOps(.event(event)) }

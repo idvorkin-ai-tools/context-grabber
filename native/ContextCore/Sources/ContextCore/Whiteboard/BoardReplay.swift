@@ -281,9 +281,11 @@ public struct BoardReplay {
     outcomes.append(outcome)
   }
 
-  /// The mark a finger tap at `at` chooses, as the board's tap does at a zoom of 1.
+  /// The mark a finger tap at `at` chooses, as the board's tap does at a zoom of 1: the nearest within reach (#941).
   public func choose(at point: CGPoint) -> Mark? {
-    marks.first { WhiteboardTurn.hit($0.lines, at: point, tolerance: WhiteboardTurn.tapReach) }
+    WhiteboardMarkChoice.nearest(marks) {
+      WhiteboardTurn.reach($0.lines, kind: $0.kind, at: point, tolerance: WhiteboardTurn.tapReach)
+    }
   }
 
   /// His reply's marks replace his unkept ones (story 357), placed by the reply's own frame, and each is tried with a tap.
