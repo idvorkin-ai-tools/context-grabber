@@ -78,13 +78,18 @@ try:
                   op_result={"label": "make room", "ok": True, "rev": 8}, events=[])
     call("/chat/" + key, second)
     stale = larry_rows(key)[-1].get("ops") or {}
-    check(stale.get("base_rev") == 7 and stale.get("list", [{}])[0].get("dy") == 50, "stale is one behind: %s" % stale)
+    check(stale.get("base_rev") == -1 and stale.get("list", [{}])[0].get("dy") == 50,
+          "stale is before anything the board remembers: %s" % stale)
+    call("/fake/larry-ops", {"behind": True})
+    call("/chat/" + key, dict(turn, id="p2b", picture_id="p2b", rev=8, op_result=None, events=[]))
+    behind = larry_rows(key)[-1].get("ops") or {}
+    check(behind.get("base_rev") == 7, "behind is one behind, story 961: %s" % behind)
 
     call("/chat/" + key, dict(turn, id="p3", picture_id="p3", rev=8, op_result=None, events=[]))
     last = larry_rows(key)[-1]
     check("ops" not in last and last.get("shapes"), "unarmed, he draws marks as before")
     reports = call("/fake/ops")["reports"]
-    check([r["rev"] for r in reports] == [7, 8, 8], "each board message's rev: %s" % reports)
+    check([r["rev"] for r in reports] == [7, 8, 8, 8], "each board message's rev: %s" % reports)
     check(reports[0]["events"] == 1 and reports[1]["op_result"] == {"label": "make room", "ok": True, "rev": 8},
           "and its events and op_result: %s" % reports)
     call("/fake/larry-ops", {"kind": "ink_and_button"})

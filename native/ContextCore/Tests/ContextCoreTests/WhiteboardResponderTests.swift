@@ -32,7 +32,39 @@ final class WhiteboardResponderTests: XCTestCase {
       {"ok": true, "board": "b1", "responder": "larry", "set": true, "at": "2026-11-10T09:00:00Z",
        "default": "sonnet", "choices": ["haiku", "sonnet", "larry"]}
       """#.utf8)
-    XCTAssertEqual(WhiteboardResponder.reply(status: 200, body: body), .responder(.larry))
+    XCTAssertEqual(WhiteboardResponder.reply(status: 200, body: body), .responder(.larry, set: true))
+    let unset = Data(#"{"ok": true, "board": "b2", "responder": "sonnet", "set": false, "default": "sonnet"}"#.utf8)
+    XCTAssertEqual(WhiteboardResponder.reply(status: 200, body: unset), .responder(.sonnet, set: false))
+    let older = Data(#"{"ok": true, "board": "b3", "responder": "sonnet"}"#.utf8)
+    XCTAssertEqual(
+      WhiteboardResponder.reply(status: 200, body: older), .responder(.sonnet, set: true),
+      "a Cockpit that doesn't say counts as set: nothing is written over a choice")
+  }
+
+  // MARK: Larry by default (story 960)
+
+  func testANewBoardOrAnOldOneNobodySetGoesToLarry() {
+    XCTAssertEqual(WhiteboardResponder.defaulting(.sonnet, set: false), .larry, "the Cockpit's own default, never set")
+    XCTAssertEqual(WhiteboardResponder.defaulting(.haiku, set: false), .larry)
+    XCTAssertNil(WhiteboardResponder.defaulting(.larry, set: false), "already his: nothing to write")
+  }
+
+  func testABoardIgorSetKeepsHisChoice() {
+    XCTAssertNil(WhiteboardResponder.defaulting(.sonnet, set: true))
+    XCTAssertNil(WhiteboardResponder.defaulting(.haiku, set: true))
+    XCTAssertNil(WhiteboardResponder.defaulting(.larry, set: true))
+  }
+
+  func testTheDefaultIsWrittenAsAChoiceTheTickShowsAtOnce() {
+    var knob = WhiteboardResponderKnob()
+    let asked = knob.generation
+    knob.heard(.sonnet, asked: asked)
+    let to = WhiteboardResponder.defaulting(.sonnet, set: false)
+    let choice = knob.chose(to!)
+    XCTAssertNotNil(choice, "the Cockpit has Sonnet: Larry is a change to write")
+    XCTAssertEqual(knob.shown, .larry)
+    knob.wrote(.larry, choice: choice!)
+    XCTAssertEqual(knob.shown, .larry)
   }
 
   func testAnAnswerThatCantBeReadIsAFailure() {
@@ -50,14 +82,14 @@ final class WhiteboardResponderTests: XCTestCase {
 
   func testTheMenuNamesThreeInOrder() {
     XCTAssertEqual(WhiteboardResponder.allCases.map(\.name), ["Haiku", "Sonnet", "Larry"])
-    XCTAssertEqual(WhiteboardResponder.fallback, .sonnet)
+    XCTAssertEqual(WhiteboardResponder.fallback, .larry, "story 960")
   }
 
   // MARK: The knob as the menu shows it
 
-  func testSonnetIsTickedUntilTheCockpitSays() {
+  func testLarryIsTickedUntilTheCockpitSays() {
     var knob = WhiteboardResponderKnob()
-    XCTAssertEqual(knob.shown, .sonnet)
+    XCTAssertEqual(knob.shown, .larry)
     XCTAssertFalse(knob.known)
     knob.heard(.haiku, asked: knob.generation)
     XCTAssertEqual(knob.shown, .haiku)
@@ -93,7 +125,7 @@ final class WhiteboardResponderTests: XCTestCase {
 
   func testWithTheCockpitUnheardEvenTheTickedOneIsWritten() {
     var knob = WhiteboardResponderKnob()
-    XCTAssertNotNil(knob.chose(.sonnet), "the board may be Larry's: the read never came")
+    XCTAssertNotNil(knob.chose(.larry), "the board may be Sonnet's: the read never came")
   }
 
   func testAFailedWriteTakesTheTickBack() {

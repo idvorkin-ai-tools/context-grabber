@@ -1565,8 +1565,8 @@ final class WhiteboardModel: ObservableObject {
     Task { await readResponder() }
   }
 
-  /// Story 659: which responder the board has, asked as it opens. Until the Cockpit answers, or when it can't, Sonnet
-  /// stays ticked: the log says so, the bar doesn't.
+  /// Story 659: which responder the board has, asked as it opens. Until the Cockpit answers, or when it can't, Larry
+  /// stays ticked: the log says so, the bar doesn't. Story 960: a board nobody ever set is given to Larry, once.
   private func readResponder() async {
     let asked = responder.generation
     let reply: WhiteboardResponder.Reply
@@ -1578,18 +1578,29 @@ final class WhiteboardModel: ObservableObject {
       reply = WhiteboardResponder.reply(status: nil, body: nil, error: error.localizedDescription)
     }
     var event: [String: Any] = ["action": "responder_read", "board": board.id]
+    var defaulting: WhiteboardResponder?
     switch reply {
-    case .responder(let answered):
+    case .responder(let answered, let set):
       responder.heard(answered, asked: asked)
       event["ok"] = true
       event["responder"] = answered.rawValue
+      event["set"] = set
+      // Only when nothing has been chosen here since the read went out.
+      if asked == responder.generation { defaulting = WhiteboardResponder.defaulting(answered, set: set) }
     case .failed(let reason, let status):
       event["ok"] = false
       event["reason"] = reason
       if let status { event["status"] = status }
     }
     event["ticked"] = responder.shown.rawValue
+    if let defaulting { event["defaulting_to"] = defaulting.rawValue }
     log.event("whiteboard", event)
+    if let defaulting, let choice = responder.chose(defaulting) {
+      log.event(
+        "whiteboard",
+        ["action": "responder", "board": board.id, "responder": defaulting.rawValue, "why": "default"])
+      await writeResponder(defaulting, choice: choice)
+    }
   }
 
   /// Story 659: Igor picked who answers the board's pauses. It shows at once and goes to the Cockpit; a write that
@@ -1610,7 +1621,7 @@ final class WhiteboardModel: ObservableObject {
       reply = WhiteboardResponder.reply(status: nil, body: nil, error: error.localizedDescription)
     }
     switch reply {
-    case .responder(let answered):
+    case .responder(let answered, _):
       responder.wrote(answered, choice: choice)
       if problem?.context == "WhiteboardView.responder" { problem = nil }
     case .failed(let reason, let status):
@@ -1950,6 +1961,7 @@ extension WhiteboardModel {
     case .refused(let result):
       event["action"] = "refused"
       event["reason"] = result.reason ?? ""
+      if let conflicts = result.conflictIDs { event["conflict_ids"] = conflicts }
       log.event("board_ops", event)
       showBlocked(batch.label, result.reason ?? "")
     case .held(let replaced):
@@ -2013,6 +2025,8 @@ extension WhiteboardModel {
         })
     }
     let result = ops.applied(batch, plan: plan)
+    if plan.changesBoard { ops.touched([], all: true) }
+    if let from = batch.rebasedFrom { event["rebased_from"] = from }
     var moves = plan.offsets.values.map(\.dy)
     moves.sort()
     let hiding = plan.hidden.values.filter { $0 }.count
@@ -2039,7 +2053,15 @@ extension WhiteboardModel {
     let change = ink.changed(updated: updated, removed: removed, ids: &strokeIDs)
     if strokeIDs != before { opLedger.setStrokeIDs(strokeIDs, board: board.id) }
     guard report, !change.isEmpty else { return }
+    let changed = change.moved + change.erased
+    let owners =
+      changed.isEmpty
+      ? []
+      : BoardOps.owners(
+        of: changed, live: opStrokes(drawing.strokes).strokes, groups: strokeMeta.groups, texts: texts)
     let dissolved = dissolve(erased: change.erased)
+    // Story 961: what a batch from an older look must not name.
+    ops.touched(changed + dissolved + owners + (reworded ?? []))
     let event = BoardEvent.strokesChanged(
       added: change.added, erased: change.erased, moved: change.moved, rev: ops.rev, t: Self.nowMs,
       dissolved: dissolved.isEmpty ? nil : dissolved, reworded: reworded)

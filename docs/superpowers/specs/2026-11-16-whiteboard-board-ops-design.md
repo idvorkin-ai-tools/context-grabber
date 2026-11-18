@@ -28,8 +28,16 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - One tap on Undo puts everything back where it was, page count included. Redo pushes it down again.
 - If Igor is drawing when the answer arrives (the Pencil is down, or was lifted less than a moment ago), the push
   waits until he lifts it. A push never moves ink under a live pen.
-- If Igor changed the board after Larry looked, the push is not applied, and Larry is told so. Larry looks again and
-  sends a fresh one. Igor never sees a half-applied change or a push in the wrong place.
+- **If Igor wrote on after Larry looked, the change still applies when nothing it names has moved or gone** (Larry,
+  2026-11-17: his make-room kept coming back stale at rev 257 and rev 111, because Igor writes a stroke or two before
+  it arrives). The board remembers, for each change since, which strokes moved or were erased. A batch from an older
+  look applies to the board as it is now when none of the strokes, groups or texts it names is among those: a make
+  room pushes down what is below its line now, Igor's newest strokes included, and his new strokes alone never
+  stop it. Larry is told it applied on a newer board than the one he saw, and which one he saw.
+- **It is refused as stale only on a real conflict**: it names a stroke Igor has since moved or erased, or it is older
+  than the board remembers (a relaunch forgets, and the memory holds the last 200 changes). Nothing moves then, Larry
+  is told why and which of his names conflicted, and he looks again and sends a fresh one. Igor never sees a
+  half-applied change.
 
 ### When Larry's edit is blocked (stories 970–972, 976–978; Igor, 2026-11-17, via Larry: "show a chip so I'm not guessing")
 
@@ -320,7 +328,9 @@ that drift when he makes room."
   far, the ink above doesn't move, and one Undo restores the board exactly.
 - A push that needs another page adds one. Undo removes it again.
 - With the Pencil down, a push waits, then applies within a second of the Pencil lifting.
-- When Igor drew after Larry looked, the push is refused, nothing moves, Larry is told why, and his next answer
+- When Igor drew new strokes after Larry looked, the push still applies to the board as it is now, and Larry's next
+  turn says it applied on a newer board. When Igor moved or erased a stroke the batch names, it is refused, nothing
+  moves, Larry is told why and which names, and his next answer
   applies.
 - Larry's plain text arrives as a ghost, keeps on a tap, reads in a plain typeface, shows in the next picture Larry
   gets, and moves with a later push.

@@ -34,7 +34,7 @@ batch the same way, whoever sent it.
   items moved, ids not found. Ops apply in order; each sees the board as the ops before it left it.
 - `BoardOps.Readiness` and `BoardOps.readiness(penDown:liftedAt:now:)`: now, after a wait, or on the lift. The hold
   after a lift is `BoardOps.hold`, 500 ms.
-- `BoardOps.Result`: `label, ok, rev, reason?, missing_ids?` → `wire`.
+- `BoardOps.Result`: `label, ok, rev, reason?, missing_ids?, rebased_from?, conflict_ids?` → `wire`.
 
 `Whiteboard/BoardOpApplier.swift`
 
@@ -44,6 +44,11 @@ batch the same way, whoever sent it.
   older one, which is refused `superseded`. `release(ready:)` hands back the held batch once ready. `applied(_:changed:)`
   records the result. `changed()` bumps `rev`; every ink change calls it (it replaces the model's in-memory
   `boardVersion`, so Larry's turn compares the same number the wire carries).
+- Story 961, the rebase: `touched(ids, all:)` records what the change that made the current rev moved, erased or
+  dissolved (the model's `inkElements`, Igor's changes; `all` for a batch of Larry's that changed the board), the last
+  200 such changes, in memory only; `since` is the oldest rev covered (the rev at launch, raised as entries drop). A
+  batch with `base_rev` < `rev` is let through, with `rebasedFrom` set, when `base_rev >= since`, no `all` change came
+  after it, and none of `BoardOps.namesUsed(ops)` was touched after it; else refused `stale` with `conflict_ids`.
 - `BoardOpLedger`: per board in UserDefaults, as `WhiteboardThreads`: `rev`, `handled`, kept texts.
 
 `Whiteboard/BoardOpSource.swift`

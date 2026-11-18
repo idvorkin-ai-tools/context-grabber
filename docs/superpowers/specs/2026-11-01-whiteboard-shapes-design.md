@@ -152,10 +152,15 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
 
 - **The Board menu has a Responder submenu: Haiku, Sonnet and Larry**, one of them ticked, and the submenu's row
   shows which. It is a submenu so the Board menu stays short enough to close when a colour or lines are picked (#848).
-  It is the board's own setting, kept on the Cockpit, so every device drawing that board answers the same way. A board nobody has set
-  answers with Sonnet.
-- **Opening a board asks the Cockpit which one it has.** Until it answers, or when it can't be reached, Sonnet is
-  ticked, and the board draws as before. A choice Igor makes before the answer comes wins over it.
+  It is the board's own setting, kept on the Cockpit, so every device drawing that board answers the same way.
+- **Larry is the default** (Igor, 2026-11-17: "Let's make Larry default responder"). Every board, new or old, that
+  nobody has set answers with Larry; a board Igor set to Haiku or Sonnet keeps his choice. The Cockpit tells the two
+  apart: it says whether a board's responder was ever set. Its own default for a board never set is still Sonnet, so
+  the board makes the choice itself: opening a board nobody has set gives it to Larry, once, as if Igor had picked
+  him, and the session log says it was the default and not him. (Were the Cockpit's own default to become Larry, that
+  first write would simply find nothing to change.)
+- **Opening a board asks the Cockpit which one it has.** Until it answers, or when it can't be reached, Larry is
+  ticked. A choice Igor makes before the answer comes wins over it, and a board Igor has set is never changed back.
 - **Choosing one tells the Cockpit at once**, and the next pause is answered by it. If the Cockpit refuses or can't be
   reached, the tick goes back to what the Cockpit last said and a copyable problem says what happened.
 - **Haiku and Sonnet** answer with orange ghosts, exactly as above: Haiku is the faster model, Sonnet the sharper one.
