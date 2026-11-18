@@ -5686,7 +5686,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Summary:** A margin tap makes a header, and another folds it
 - **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests`: a margin tap makes a header once, a fold hides the indented lines and closes up whole lines and unfold puts everything back, a push never splits a fold from its header, unfold makes room for what was written under it, an undo that shows the ink opens the fold); a simulator UI test, `WhiteboardOutlineUITests.testAMarginTapMakesAHeaderAndAnotherFoldsIt`, passes on the iPad simulator (the whiteboard and chat UI classes, `WhiteboardPaperGhostsUITests` again after [9c1f3d6](https://github.com/idvorkin/context-grabber/commit/9c1f3d6)); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
-- **Issues:** [#946](https://github.com/idvorkin/context-grabber/issues/946) (the iPad, 2026-11-18, build 69f912fb: two finger taps in the margin each came back from PaperKit as a selection change, a resize box with no elements showed, and the log went silent for 14 s before "I think I just hung"; not settled, so `main_stall` now says whether the main thread stopped answering)
+- **Issues:** [#946](https://github.com/idvorkin/context-grabber/issues/946) (the iPad, 2026-11-18, build 69f912fb: two finger taps in the margin each came back from PaperKit as a selection change, a resize box with no elements showed, and the log went silent for 14 s before "I think I just hung"; not settled, so `main_stall` now says whether the main thread stopped answering); [#945](https://github.com/idvorkin/context-grabber/issues/945) (half a minute later "a bad state now for selection": from those margin taps on, the touch watcher logged no touch, while 223 strokes moved twice by a drag on the box with nothing selected; `paper_selection` and the watch state on `paper_ink` now say what PaperKit selected and what took the touches)
 
 #### Use Case:
 - **As someone** writing an outline on the board
@@ -6685,7 +6685,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 973:
 
 - **Summary:** A selection dropped onto writing pushes the writing down
-- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"
+- **Issues:** Igor on the iPad, 2026-11-17, via Larry: "same as reflowing stuff below, as opposed to drop on top"; [#945](https://github.com/idvorkin/context-grabber/issues/945) (2026-11-18: a box PaperKit showed after a margin tap dragged 223 strokes onto writing, twice, and nothing was pushed: the move came with no selection, so it was never taken for a drop)
 - **Status:** implemented in [5fd311a](https://github.com/idvorkin/context-grabber/commit/5fd311a); verified by host tests (`BoardRoomDropTests`), `just test` and the Mac build (`just native-build-mac`); the drag itself not yet seen on the iPad: the simulator can't work the lasso
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *A dragged selection makes room*
 
