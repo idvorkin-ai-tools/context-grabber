@@ -530,6 +530,74 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I tap *Drill the stack* under the card, pick *Mixed*, tap to see an answer, tap again for one I knew and press *Wrong* for one I missed, then open *Stats*
 - **Then:** the drill asks both ways round from my stack (only the hard positions with *Skip easy cards* on), a tap shows the answer as the position alone, centred under the question, and *Wrong* is a small half-clear button at the bottom right, each answer is sent to the ledger (kept and sent later when offline), *Stats* shows the last 30 days from every source as a difficulty grid, one cell per position in stack order with its card face, with a *Taps / Voice* picker, the log never pairs a card with its position or shows the key, and *Done* returns to the card
 
+
+---
+
+### User Story 229:
+
+- **Summary:** The stack drill never asks two lookalike cards back to back
+- **Status:** native app only: on think-a-card-trainer v0.3.8 (the rule is the library's, think-a-card-trainer#46, merged there as 7b86605 and verified by its host `LookalikeTests`: over seeded passes only a pass's last card may follow its lookalike, every card still once per pass, no card twice running over 3,000 pass boundaries); the pin bump here in [581f6e6](https://github.com/idvorkin/context-grabber/commit/581f6e6); verified by host `just test`, the Mac build (resolves ThinkACard 0.3.8) and the simulator smoke's drill check (`GRABBER_DRILL=mixed` opens the drill over the card, 52 positions); `CardUITests` testDrillTheStackOpensTheTrainersDrill not yet (the Mac was locked); the order itself is the library's tests' to see, and the drill on the phone not yet
+- **Issues:** [#778](https://github.com/idvorkin/context-grabber/issues/778) (Igor's shake from the drill, 2026-11-07), [think-a-card-trainer#46](https://github.com/idvorkin/think-a-card-trainer/issues/46)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+Igor, 2026-11-07: *"Never do certain things back to back like Sequence of King and Queen in the same suit and color
+But the same thing on black and red is often good"*; 2026-11-10: *"heart and club of jack is good. Since they are far
+apart."*
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** never be asked a card right after one that looks almost the same
+- **so that** each answer is a fresh recall, not a nudge from the card before
+
+#### Acceptance Criteria:
+- **Scenario:** Lookalikes are kept apart, red and black of one rank are not
+- **Given:** the drill is open from the card screen, in any mode
+- **When:** I answer card after card through several passes
+- **Then:** two cards of the same suit and neighbouring ranks (K♠ then Q♠, 2♥ then 3♥; an ace and a king do not neighbour) never come one right after the
+  other, except that a pass's last card is still asked when nothing else is left; the same rank in a red and a black
+  suit (J♥ then J♣) may come back to back; every card still comes once per pass and never twice running; the card
+  screen's own deal is unchanged
+
+---
+
+### User Story 230:
+
+- **Summary:** Drill the positions I miss first
+- **Status:** native app only: comes with think-a-card-trainer v0.3.8 (the *Order* choice is the library's, trainer #32 and its story 073, shipped there in v0.3.7 and verified by its host tests), pinned here in [581f6e6](https://github.com/idvorkin/context-grabber/commit/581f6e6); not yet verified in this app (neither on the simulator nor on the phone)
+- **Issues:** [think-a-card-trainer#32](https://github.com/idvorkin/think-a-card-trainer/issues/32)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** have the drill ask first the positions I have been missing
+- **so that** my practice goes where I am weakest, not spread evenly over cards I already know
+
+#### Acceptance Criteria:
+- **Scenario:** Misses first
+- **Given:** the drill is open from the card screen and the practice ledger has seen some positions missed
+- **When:** I set *Order* to *Misses first* and answer through a pass
+- **Then:** the pass asks the missed positions first, worst first, then the never-graded ones, then the rest; *Shuffled*
+  stays the default
+
+---
+
+### User Story 231:
+
+- **Summary:** Misses first falls back to shuffled when the ledger cannot be read, and says so
+- **Status:** native app only: comes with think-a-card-trainer v0.3.8 (the *Order* choice is the library's, trainer #32 and its story 073, shipped there in v0.3.7 and verified by its host tests), pinned here in [581f6e6](https://github.com/idvorkin/context-grabber/commit/581f6e6); not yet verified in this app (neither on the simulator nor on the phone)
+- **Issues:** [think-a-card-trainer#32](https://github.com/idvorkin/think-a-card-trainer/issues/32)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** still be drilled when the ledger cannot tell which positions I miss, and be told so
+- **so that** a ledger outage never blocks practice or passes off a shuffled order as my misses
+
+#### Acceptance Criteria:
+- **Scenario:** The ledger cannot be read
+- **Given:** the drill is open and the practice ledger cannot be reached
+- **When:** I set *Order* to *Misses first*
+- **Then:** the drill stays shuffled and says so
 ---
 
 ### User Story 227:

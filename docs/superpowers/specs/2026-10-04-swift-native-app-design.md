@@ -183,7 +183,14 @@ covers the screen with the trainer's own drill, the same one as in the trainer a
   **Wrong**, a small half-clear red button in its own row at the bottom right, under the right thumb, counts a miss
   instead; the answer stays centred under the question (trainer #33, v0.3.5; #569 and #570, Igor 2026-10-29:
   *"24 needs to stay centered"*, *"wrong goes smaller and partially transparent on bottom"*, v0.3.6). Every card once
-  per pass, never the same twice running.
+  per pass, never the same twice running, and never two lookalikes one after the other: the same suit and
+  neighbouring ranks (K♠ then Q♠) are kept apart, while the same rank in a red and a black suit (J♥ then J♣) may come
+  back to back (#778, Igor 2026-11-07: *"Never do certain things back to back like Sequence of King and Queen in the
+  same suit"*; trainer #46, v0.3.8). A pass's last card can still follow its lookalike when nothing is left to deal
+  in its place. The card screen's own deal is not changed by this rule.
+- **Order**: *Shuffled* (the default) or *Misses first*, where each pass asks first the positions the practice ledger
+  has seen missed, worst first, then the never-graded ones, then the rest (trainer #32, story 073, v0.3.7). If the
+  ledger cannot be read, the drill stays shuffled and says so.
 - It follows *Skip easy cards* as it was when the drill opened: on, only the hard positions are drilled.
 - **Every graded answer goes to Igor's practice ledger**, the same one the trainer and Card Picker write to. Offline,
   answers wait on the phone and go when the ledger can be reached; nothing is lost by closing the app.
