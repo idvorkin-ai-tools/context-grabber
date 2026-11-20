@@ -1,5 +1,5 @@
 //  #950 (stories 1056, 1057) on the iPad simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
-//  it): the Board menu's Lettering, and a paste in the real font. The outlines, a text's own lettering, reword and the
+//  it): the Board menu's Real font switch, and a paste in the real font. The outlines, a text's own lettering, reword and the
 //  per-board memory are `BoardRealFontTests`, on the host. XCUITest's taps never reach the system's paste button, so the
 //  paste goes through the paste hook, as `WhiteboardPaperPasteUITests` does, which pastes each time the board opens.
 
