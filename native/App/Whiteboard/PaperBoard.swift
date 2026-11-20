@@ -1176,7 +1176,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it; #894 (stories 1004–1006): his
   /// marks kept over ink written after his picture. The room opens and the marks land in one change, one undo named
-  /// *Keep*, as a paste and its room are one. `why` names it in the log: keep_text, keep_late or keep_group.
+  /// *Keep* (*Keep group* for a group), as a paste and its room are one. `why` names it in the log: keep_text,
+  /// keep_late or keep_group.
   private func keep(_ strokes: [PKStroke], making push: BoardRoom.Push, why: String) -> Bool {
     guard let markup = paper.markup, !strokes.isEmpty else { return false }
     let (ink, hashes) = opStrokes(markup)
@@ -1186,7 +1187,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     plan.pagesAfter = board.pages(
       after: plan.pagesAfter, inkMaxY: PKDrawing(strokes: strokes).bounds.maxY, redoWaiting: false)
     let framesBefore = inkFrames
-    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: strokes, named: "Keep") else { return false }
+    let name = why == "keep_group" ? WhiteboardModel.keepGroupUndoName : WhiteboardModel.keepUndoName
+    guard let (held, _, _) = put(plan, on: markup, hashes: hashes, adding: strokes, named: name) else { return false }
     model.stepped(held.inkDrawing)
     noteInk(held, since: framesBefore, report: true)
     log.event(
@@ -1788,16 +1790,18 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     // His ink, in his colour unless he names one, under his names.
     var drawn: [(hash: [String], name: String)] = []
+    var theirs: [PKStroke] = []
     for stroke in plan.added {
       let shown = stroke.color.map { UIColor(rgb: $0) } ?? WhiteboardTurn.Who.larry.color
       let color = stroke.hidden ? shown.withAlphaComponent(0) : shown
       let made = WhiteboardModel.strokes([stroke.points], color: color, width: stroke.width, spacing: 4)
-      model.rememberTheirs(made)
+      theirs += made
       for one in made {
         markup.append(contentsOf: PKDrawing(strokes: [one]))
         drawn.append((Self.hashes(one), stroke.id))
       }
     }
+    model.rememberTheirs(theirs)
     if !extra.isEmpty { markup.append(contentsOf: PKDrawing(strokes: extra)) }
     if stepBack { registerStepBack(to: undoTo ?? before, named: name) }
     if plan.pagesAfter != pages { markup.bounds = board.bounds(pages: plan.pagesAfter) }
