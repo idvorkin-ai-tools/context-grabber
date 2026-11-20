@@ -381,7 +381,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 154:
 **A restore's unsent changes reach the iPad when the old phone is retired**
 - **Issues:** [#379](https://github.com/idvorkin/context-grabber/issues/379)
-- **Status:** not yet
+- **Status:** implemented in [1bef0fac](https://github.com/idvorkin/context-grabber/commit/1bef0fac); verified on the host by `StripSendForSilentTests` with `just test` (failed to compile before the change: only the changes the old phone's keys lack go up, merged newer-wins, unknown items kept, nothing rewritten when nothing is unsent) and the Mac build (`just native-build-mac`); a real restore with the old phone retired needs the phone and the iPad
 - **Spec:** [native home screen](../superpowers/specs/2026-10-06-native-home-screen-design.md)
 
 #### Use Case:
