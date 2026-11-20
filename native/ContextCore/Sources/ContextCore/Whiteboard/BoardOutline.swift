@@ -28,7 +28,7 @@ public struct BoardHeader: Codable, Equatable, Sendable {
   public var id: String
   public var ids: [String]
   public var fold: Fold?
-  /// The strokes of the underline or # that made it (#967): while none of them is on the board it is no header, so the
+  /// The strokes of the underline or # that made it (#967): while any of them is off the board it is no header, so the
   /// Undo of the mark takes the header and its Redo brings it back. Nil for a header made by a margin tap or the menu.
   public var mark: [String]?
 
@@ -39,11 +39,11 @@ public struct BoardHeader: Codable, Equatable, Sendable {
     self.mark = mark
   }
 
-  /// Made by ink whose strokes are all gone, and open: no header while its mark is away (#967). A folded one keeps
+  /// Made by ink with a stroke gone, and open: no header while its mark is away (#967). A folded one keeps
   /// its fold, so erasing its underline never loses what it hides.
   public func markGone(_ live: Set<String>) -> Bool {
     guard fold == nil, let mark, !mark.isEmpty else { return false }
-    return !mark.contains(where: live.contains)
+    return !mark.allSatisfy(live.contains)
   }
 }
 
@@ -225,11 +225,16 @@ public struct BoardOutline: Sendable {
     let indented = lines.first.map { leftOf($0.us) > edge } ?? false
     var nextTop = CGFloat.infinity
     let rules = rules()
+    let isRule = { (u: Unit) in u.tag == nil && u.members.contains(where: rules.contains) }
     for line in lines {
-      let shallowHeader = line.us.contains { $0.header != nil && $0.bounds.minX <= edge }
-      let rule = line.us.contains { $0.tag == nil && $0.members.contains(where: rules.contains) }
-      if shallowHeader || rule || (indented && leftOf(line.us) <= edge) {
+      let writing = line.us.filter { !isRule($0) }
+      let shallowHeader = writing.contains { $0.header != nil && $0.bounds.minX <= edge }
+      if shallowHeader || (indented && !writing.isEmpty && leftOf(writing) <= edge) {
         nextTop = line.top
+        break
+      }
+      if let rule = line.us.filter(isRule).map(\.bounds.minY).min() {
+        nextTop = rule
         break
       }
     }
@@ -457,7 +462,7 @@ public struct BoardOutline: Sendable {
         l.members.count >= Self.fewestStrokes, l.box.width >= 2 * h
       {
         why = .big
-      } else if unders.contains(where: { Self.underlines($0, l.box) }) {
+      } else if unders.contains(where: { Self.underlineOf($0, l.box) }) {
         why = .underline
       } else {
         why = nil

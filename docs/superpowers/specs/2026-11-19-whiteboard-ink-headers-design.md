@@ -60,15 +60,16 @@ a second kind of header; only the ways one is made and the ways a section ends a
 - The rule and what is below it never fold into the section above. Folding a header slides the rule up, with the rest
   of what is below, to a line or two under the header.
 - A rule ends every section open above it, outer ones included, as a horizontal rule ends them in Markdown.
-- A rule is plain ink in every other way: Igor erases it to let the section run on.
+- A rule is plain ink in every other way: Igor erases it to let the section run on. It never puts a faint H beside
+  the line above it: the faint H looks for the same underline the ink does, one that doesn't run far past the writing.
 - A rule is read wherever it is, ink drawn before this build included: it is never kept, only seen. A shorter flat
   line (a dash, a strike) is plain ink and ends nothing.
 
 ### Undoing a wrong guess
 
-- **One Undo takes the mark and the header with it.** The underline or the # was the last thing drawn; Undo takes the
-  stroke away and the line is no longer a header (its ▾ goes). Redo brings the stroke and the header back.
-- **Erasing the mark** (the underline, or every stroke of the #) also makes the line plain again, the header's words
+- **One Undo takes the mark and the header with it.** The underline or the #'s last stroke was the last thing drawn;
+  Undo takes that stroke away and the line is no longer a header (its ▾ goes). Redo brings the stroke and the header back.
+- **Erasing the mark** (the underline, or any stroke of the #) also makes the line plain again, the header's words
   left as they were. A folded header keeps its fold until it is unfolded: erasing its underline never springs or loses
   a fold.
 - ***Not a header*** (the hold menu beside a header, as today) keeps the underline or # as ink and makes the line
@@ -94,8 +95,8 @@ a second kind of header; only the ways one is made and the ways a section ends a
 - Writing # and then words at the start of a line shows ▾ beside it; the fold marker lands past the words, not over
   them.
 - A rule drawn across the page under a section's lines ends the section there: folding the header hides only the
-  lines above the rule, and the rule slides up under the header.
-- One Undo after an underline that made a header takes the underline and the ▾; Redo brings both back.
+  lines above the rule, the last one included even when the rule touches it, and the rule slides up under the header.
+- One Undo after an underline or a # that made a header takes its last stroke and the ▾; Redo brings both back.
 - *Not a header* on an underlined header leaves the underline and no ▾, and drawing elsewhere never brings it back.
 - A board opened with underlines drawn before this build shows them as they were: faint H, no header.
 - Larry's picture shows the grey ▾ beside an open header.

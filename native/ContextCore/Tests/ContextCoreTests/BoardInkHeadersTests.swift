@@ -142,6 +142,27 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertTrue(without.strokes[place(without, "c0")].hidden)
   }
 
+  func testARuleTouchingTheLastLineLeavesThatLineInTheSection() throws {
+    var strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("m", x: 140, y: 178)
+    strokes.append(line("rule", from: CGPoint(x: 90, y: 200), to: CGPoint(x: 600, y: 201)))
+    strokes += word("c", x: 140, y: 280)
+    var o = BoardOutline(strokes: strokes, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"])])
+    XCTAssertEqual(o.rules(), [place(o, "rule")])
+    XCTAssertTrue(o.candidates().isEmpty, "a rule offers no faint H beside the line it touches")
+    XCTAssertTrue(o.fold("h"))
+    XCTAssertTrue(o.strokes[place(o, "m0")].hidden, "the line the rule touches is the section's")
+    XCTAssertFalse(o.strokes[place(o, "rule")].hidden)
+    XCTAssertFalse(o.strokes[place(o, "c0")].hidden)
+  }
+
+  func testOneUndoOfAHashsLastBarTakesTheHeader() throws {
+    var o = BoardOutline(strokes: hash("#", x: 100, y: 100) + word("w", x: 140, y: 101), headers: [])
+    XCTAssertEqual(o.inkHeader(newest: place(o, "#l2"), id: "x")?.kind, "hash")
+    let undone = BoardOutline(strokes: o.strokes.filter { $0.ids != ["#l2"] }, headers: o.headers)
+    XCTAssertTrue(undone.headers.isEmpty, "three bars left are no #")
+    XCTAssertEqual(BoardOutline(strokes: o.strokes, headers: o.headers).headers.map(\.id), ["x"], "Redo")
+  }
+
   func testTheMarksUndoTakesTheHeaderAndItsRedoBringsItBack() throws {
     var strokes = word("h", x: 100, y: 100)
     let under = line("under", from: CGPoint(x: 96, y: 128), to: CGPoint(x: 172, y: 129))

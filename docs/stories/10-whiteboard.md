@@ -7374,7 +7374,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1030:
 
 - **Summary:** An underline drawn under a line of my writing makes it a header
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); `WhiteboardOutlineUITests.testAnUnderlineDrawnUnderALineMakesItAHeader` written for the iPad simulator but not yet run (the Mac's screen was locked); not yet seen with the Pencil on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); `WhiteboardOutlineUITests.testAnUnderlineDrawnUnderALineMakesItAHeader` written for the iPad simulator but not yet run (the Mac's screen was locked); not yet seen with the Pencil on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *An underline makes the line above it a header*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7394,7 +7394,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1031:
 
 - **Summary:** A # written at the start of a line makes it a header
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a # can't be drawn by a UI test (straight drags only), so host only; not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a # can't be drawn by a UI test (straight drags only), so host only; not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *A # at the start of a line makes it a header*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7414,7 +7414,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1032:
 
 - **Summary:** What I write on a header's line joins the header
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Writing more on a header's line*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7434,7 +7434,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1033:
 
 - **Summary:** One Undo takes an underline and the header it made; Redo brings both back
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); the Undo itself not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); the Undo itself not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7454,7 +7454,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1034:
 
 - **Summary:** Not a header keeps my underline as ink and the board never makes it a header again
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7474,7 +7474,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1035:
 
 - **Summary:** A rule drawn across the page ends the sections above it
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a rule can't be told from the simulator's straight "writing" by a UI test, so host only; not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a rule can't be told from the simulator's straight "writing" by a UI test, so host only; not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *A rule across the page ends the sections above it*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7494,7 +7494,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1036:
 
 - **Summary:** Larry's picture shows which lines are headers
-- **Status:** implemented in [2057a96a](https://github.com/idvorkin/context-grabber/commit/2057a96a), [ef8ba256](https://github.com/idvorkin/context-grabber/commit/ef8ba256); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19) (the ▾ marks a picture would draw, `openHeaderMarks`); the drawn picture not yet seen on the simulator or the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19) (the ▾ marks a picture would draw, `openHeaderMarks`); the drawn picture not yet seen on the simulator or the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Larry sees the headers*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
