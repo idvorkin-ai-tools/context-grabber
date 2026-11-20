@@ -83,7 +83,8 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - **Undo and Redo on the board's own bar** (#965; Igor, 2026-11-19, drawn on board 302d5345: "an Undo button on the
   board itself"). A board drawn on here has *Undo* and *Redo* at the start of its top bar, after the way back, where a
   finger or the Pencil reaches them whatever the tool picker is doing.
-  - Each is at least 44 points each way. Each is dimmed when there is nothing to undo or redo, and taps then do nothing.
+  - Each is at least 44 points wide and as tall as the bar's own buttons (36 points on the iPad, the system's glass
+    item: the bar hosts every button at its own height, whatever the button asks for). Each is dimmed when there is nothing to undo or redo, and taps then do nothing.
   - Each is the same step as the tool picker's Undo and Redo and a keyboard's ⌘Z and ⇧⌘Z: one press takes back one
     step, whether it was his stroke, a keep, a paste, a scratch-out or a batch of Larry's, and Redo brings it back.
   - VoiceOver reads what the press will do: *Undo Keep group*, *Redo Paste*, or plain *Undo* and *Redo* for a step with

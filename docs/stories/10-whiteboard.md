@@ -7436,7 +7436,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1008:
 
 - **Summary:** Undo and Redo on the board's own bar
-- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); the simulator test (`WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`) written but not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do
+- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97), [73d8e538](https://github.com/idvorkin/context-grabber/commit/73d8e538); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, PencilKit's *Add Strokes* read as plain *Undo*, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); on the iPad simulator (rung 2, 2026-11-20, `WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`: 44 points wide, the bar's 36 high, plain *Undo* for a stroke, *Undo Keep group* taking the group back); not yet seen on the iPad
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
 - **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965): Igor, 2026-11-19, drawn on board 302d5345, via Larry: "an Undo button on the board itself"
 
@@ -7449,14 +7449,14 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Undo a stroke and bring it back
 - **Given:** a board drawn on here, and I have just drawn a stroke
 - **When:** I tap *Undo* in the board's bar, then *Redo*
-- **Then:** the stroke goes, then comes back; each button is at least 44 points each way, and each is dimmed when there is nothing for it to do
+- **Then:** the stroke goes, then comes back; each button is at least 44 points wide and the bar's own height (36 points on the iPad), and each is dimmed when there is nothing for it to do
 
 ---
 
 ### User Story 1009:
 
 - **Summary:** VoiceOver says what Undo will take back
-- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); the simulator test (`WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`) written but not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do
+- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97), [73d8e538](https://github.com/idvorkin/context-grabber/commit/73d8e538); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, PencilKit's *Add Strokes* read as plain *Undo*, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); on the iPad simulator (rung 2, 2026-11-20, `WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`: 44 points wide, the bar's 36 high, plain *Undo* for a stroke, *Undo Keep group* taking the group back); not yet seen on the iPad
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
 - **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965)
 
