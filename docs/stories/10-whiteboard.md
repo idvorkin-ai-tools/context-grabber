@@ -6069,7 +6069,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 877:
 
 - **Summary:** An underlined line is offered as a header
-- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b); verified by host tests (`BoardOutlineTests.testABigOrUnderlinedLineIsOffered`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [711d91b](https://github.com/idvorkin/context-grabber/commit/711d91b), [981a4544](https://github.com/idvorkin/context-grabber/commit/981a4544) (a stroke running far past the line is a rule, not offered); verified by host tests (`BoardOutlineTests.testABigOrUnderlinedLineIsOffered`, `BoardInkHeadersTests.testARuleTouchingTheLastLineLeavesThatLineInTheSection`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
@@ -6079,7 +6079,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** An underlined line
-- **Given:** a line with a straight stroke under most of it
+- **Given:** a line with a straight stroke under most of it that doesn't run far past it (no more than half as wide again as the line, plus a line's height)
 - **When:** it is drawn
 - **Then:** the faint H shows beside it
 
@@ -7434,7 +7434,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1033:
 
 - **Summary:** One Undo takes an underline and the header it made; Redo brings both back
-- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); the Undo itself not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696), [981a4544](https://github.com/idvorkin/context-grabber/commit/981a4544); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); the Undo itself not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7474,7 +7474,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1035:
 
 - **Summary:** A rule drawn across the page ends the sections above it
-- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a rule can't be told from the simulator's straight "writing" by a UI test, so host only; not yet seen on the iPad
+- **Status:** implemented in [9f1eccf0](https://github.com/idvorkin/context-grabber/commit/9f1eccf0), [62e32696](https://github.com/idvorkin/context-grabber/commit/62e32696), [981a4544](https://github.com/idvorkin/context-grabber/commit/981a4544); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a rule can't be told from the simulator's straight "writing" by a UI test, so host only; not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *A rule across the page ends the sections above it*
 - **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
 
@@ -7487,7 +7487,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Ending a section
 - **Given:** a header with indented lines, then a long line drawn across the page, then more indented lines
 - **When:** I fold the header
-- **Then:** only the lines above the rule fold, and the rule and what is below it slide up under the header
+- **Then:** only the lines above the rule fold (the last one too, even when the rule touches it), and the rule and what is below it slide up under the header
 
 ---
 
@@ -7508,3 +7508,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an open header on the board
 - **When:** Larry gets a picture of the board (his turn, Send or Claude's turn)
 - **Then:** a small grey ▾ shows in the margin beside the header, where the board shows it
+
+---
+
+### User Story 1037:
+
+- **Summary:** One Undo of a #'s last bar takes the header it made; Redo brings it back
+- **Status:** implemented in [981a4544](https://github.com/idvorkin/context-grabber/commit/981a4544); verified by host tests (`BoardInkHeadersTests.testOneUndoOfAHashsLastBarTakesTheHeader`); a # can't be drawn by a UI test, so host only; not yet seen on the iPad
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** whose # was only a number sign
+- **I want** one Undo to take back the header the board made from it
+- **so that** a wrong guess costs one tap, as for an underline
+
+#### Acceptance Criteria:
+- **Scenario:** Undoing the #
+- **Given:** a line made a header by the # I just finished
+- **When:** I tap Undo, then Redo
+- **Then:** Undo takes the #'s last bar and the ▾ goes; Redo brings the bar and the ▾ back
