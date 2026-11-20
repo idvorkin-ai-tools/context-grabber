@@ -555,7 +555,7 @@ final class WhiteboardModel: ObservableObject {
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, folds: folds, picture: picture))) { $1 }
     if !folds.isEmpty { event["folds"] = folds.count }
-    let outcome = await deliver(jpeg, picture: picture, thread: thread, note: said ?? "Your turn on the board")
+    let outcome = await deliver(jpeg, picture: picture, thread: thread, note: said ?? WhiteboardNote.boardTurnNote)
     shipLog(why: "larry_turn")
     switch outcome {
     case .sent(let key, _):
@@ -2505,6 +2505,10 @@ struct WhiteboardView: View {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   /// Story 766: the note's one line, kept whether it says anything or not, so the paper never moves for it.
   @ScaledMetric(relativeTo: .footnote) private var noteHeight: CGFloat = 28
+  /// Story 1045 (#1003): the conversation's text stops at about seventy characters of its own type.
+  @ScaledMetric(relativeTo: .footnote) private var readableWidth: CGFloat = 470
+  /// The page's height, for the open panel's fifth (story 837).
+  @State private var pageHeight: CGFloat = 0
   private let logger: BugLogger
   private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
@@ -2581,6 +2585,12 @@ struct WhiteboardView: View {
         }
         .padding(.horizontal)
       }
+      // Story 1048 (#1003): the conversation sits above the paper and pushes it down, so it never covers ink. Story 837
+      // (#917): a fifth of the page at most; past that it scrolls rather than grows.
+      if model.conversationOpen, !onPhone {
+        conversation.frame(maxHeight: CGFloat(WhiteboardNote.panelHeight(board: Double(pageHeight))), alignment: .top)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       Group {
         PaperBoardCanvas(model: model, log: log)
       }
@@ -2599,17 +2609,14 @@ struct WhiteboardView: View {
           model.cornerLaid($0)
         }
       }
-      // Story 768: the conversation lies over the top of the board and never moves or resizes the paper.
-      .overlay(alignment: .top) {
-        if model.conversationOpen, !onPhone {
-          // Story 837 (#917): a fifth of the board at most; past that it scrolls rather than grows.
-          GeometryReader { space in
-            conversation.frame(
-              maxHeight: CGFloat(WhiteboardNote.panelHeight(board: Double(space.size.height))), alignment: .top)
-          }
-        }
-      }
       .ignoresSafeArea(edges: .bottom)
+    }
+    // Story 837 (#917): the panel's fifth is of the whole page, not of the paper it pushes down, so opening it doesn't
+    // change its own limit.
+    .onGeometryChange(for: CGFloat.self) {
+      $0.size.height
+    } action: {
+      pageHeight = $0
     }
     .modifier(
       WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, voice: chatVoice, logger: logger)
@@ -2839,6 +2846,8 @@ struct WhiteboardView: View {
         }
         if let middle = line.middle {
           Text(middle).lineLimit(1).truncationMode(line.keepsEnd ? .head : .tail)
+            // Story 1046 (#1003): Larry's words lead.
+            .foregroundStyle(line.larrySpeaks ? Color.primary : Color(WhiteboardNoteInk.quiet))
             .accessibilityIdentifier("whiteboard-note-said")
         }
         Spacer(minLength: 0)
@@ -2868,7 +2877,7 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-note-chevron")
         }
       }
-      .font(.footnote).foregroundStyle(.secondary)
+      .font(.footnote).foregroundStyle(Color(WhiteboardNoteInk.quiet))
       .padding(.vertical, 4).padding(.horizontal)
       .frame(minHeight: noteHeight)
       .contentShape(Rectangle())
@@ -2881,12 +2890,12 @@ struct WhiteboardView: View {
     }
   }
 
-  /// Story 768: the open note, over the top of the board: the recent end of the board's thread, selectable, then what is
-  /// live, and *Open in Chat*. The Pencil never acts on it: the thread's text takes finger touches only, and the rest
-  /// holds nothing to scroll or draw on.
+  /// Story 768: the open note, above the board (story 1048): the board's thread, selectable, then the status chip and
+  /// what the mic hears, and *Open in Chat*. The Pencil never acts on it: the thread's text takes finger touches only,
+  /// and the rest holds nothing to scroll or draw on. Its text stops at about seventy characters (story 1045).
   private var conversation: some View {
     let tick = WhiteboardNote.ticks(larry: model.larry, notice: nil)
-    return VStack(alignment: .leading, spacing: 4) {
+    return VStack(alignment: .leading, spacing: 6) {
       WhiteboardConversationText(rows: WhiteboardNote.recent(model.thread))
       if tick {
         TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(now: .now) }
@@ -2899,6 +2908,7 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-conversation-chat")
       }
     }
+    .frame(maxWidth: readableWidth, alignment: .leading)
     .padding(.horizontal).padding(.vertical, 6)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(.regularMaterial)
@@ -2907,24 +2917,41 @@ struct WhiteboardView: View {
     .accessibilityIdentifier("whiteboard-conversation")
   }
 
-  /// What is live under the thread: the turn that's out, what waits to go next, what the mic is hearing.
+  /// Under the thread: the status chip (story 1047) and what the mic is hearing.
   private func liveRows(now: ContinuousClock.Instant) -> some View {
     let live = WhiteboardNote.live(
-      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
-      said: model.lastSaid, micOn: model.micOn)
+      thread: model.thread, larry: model.larry, now: now, cockpitAnswering: !model.larryAway,
+      mark: model.larryMark(now: now), said: model.lastSaid, micOn: model.micOn)
     // One column of its own: a TimelineView lays several children over each other (#882).
     return VStack(alignment: .leading, spacing: 4) {
       ForEach(live) { row in
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-          Text("\(row.who):").bold()
-          Text(row.text)
+        Group {
+          if row.id == "live-chip" {
+            Text("\(Text(row.who).bold()) · \(row.text)")
+              .padding(.horizontal, 10).padding(.vertical, 3)
+              .background(Color(WhiteboardNoteInk.quiet).opacity(0.12), in: Capsule())
+          } else {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+              Text("\(row.who):").bold()
+              Text(row.text)
+            }
+          }
         }
-        .font(.footnote).foregroundStyle(.secondary)
+        .font(.footnote).foregroundStyle(Color(WhiteboardNoteInk.quiet))
         .textSelection(.enabled)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("whiteboard-conversation-\(row.id)")
       }
     }
+  }
+}
+
+/// #1003 (story 1046): the note's and the panel's quieter text, at least 4.5:1 on the paper and the panel's material in
+/// either appearance; the system's secondary and tertiary greys measured about 3:1 and 2:1. Larry's words take the main
+/// text colour.
+enum WhiteboardNoteInk {
+  static let quiet = UIColor { traits in
+    traits.userInterfaceStyle == .dark ? UIColor(white: 0.72, alpha: 1) : UIColor(white: 0.36, alpha: 1)
   }
 }
 
@@ -2977,13 +3004,10 @@ private struct WhiteboardConversationText: UIViewRepresentable {
     let text = NSMutableAttributedString()
     for (index, row) in rows.enumerated() {
       if index > 0 { text.append(NSAttributedString(string: "\n")) }
-      let color: UIColor = row.kind == .larry ? .label : .secondaryLabel
+      // Story 1046 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
+      let color: UIColor = row.kind == .larry ? .label : WhiteboardNoteInk.quiet
       text.append(NSAttributedString(string: "\(row.who): ", attributes: [.font: bold, .foregroundColor: color]))
       text.append(NSAttributedString(string: row.text, attributes: [.font: body, .foregroundColor: color]))
-      if let mark = row.mark {
-        text.append(
-          NSAttributedString(string: " · \(mark)", attributes: [.font: body, .foregroundColor: UIColor.tertiaryLabel]))
-      }
     }
     return text
   }

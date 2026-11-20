@@ -4665,7 +4665,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 767:
 
 - **Summary:** The note says what goes to Larry next
-- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); verified by host tests (`WhiteboardNoteTests`: *next: ink*, *next: words* and *next: ink + words*, and the panel's *Next* row with the waiting words; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
+- **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); verified by host tests (`WhiteboardNoteTests`: *next: ink*, *next: words* and *next: ink + words*, and the panel's chip with the waiting words, which took the *Next* row's place in #1003; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPad
 - **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation")
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
@@ -4684,9 +4684,9 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 768:
 
-- **Summary:** A tap on the note opens the conversation over the board
+- **Summary:** A tap on the note opens the conversation above the board
 - **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea), [128a18c](https://github.com/idvorkin/context-grabber/commit/128a18c); the live rows one under another (#882) in [98878ae](https://github.com/idvorkin/context-grabber/commit/98878ae); verified by host tests (`WhiteboardNoteTests`: the tap on an iPad, the last ten messages with their marks, what is live, a board with no thread; `just native-test`), the Mac build (`just native-build-mac`) and on the iPad simulator (`just test-ladder` at 98878ae: `WhiteboardTurnUITests.testTheNoteOpensOnLarrysReply` with the whiteboard's other UI classes). Not yet seen on the iPad: the Pencil on and below the panel is the iPad's check
-- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#882](https://github.com/idvorkin/context-grabber/issues/882) (the panel's live rows were drawn over each other)
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#882](https://github.com/idvorkin/context-grabber/issues/882) (the panel's live rows were drawn over each other); [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the panel covered ink)
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
 #### Use Case:
@@ -4698,7 +4698,87 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Open it
 - **Given:** a board with a thread, on an iPad
 - **When:** I tap the line with a finger
-- **Then:** a panel over the top of the board shows the last messages of the thread in full and, one under another, what is live; the ink below hasn't moved and the Pencil still draws below it
+- **Then:** a panel above the board shows the last messages of the thread in full and, under them, the status chip (story 1047); the page moves down to make room so no ink is under it (story 1048, #1003; until then it lay over the board), and the Pencil still draws below it
+
+---
+
+### User Story 1048:
+
+- **Summary:** The open conversation pushes the page down and never covers ink
+- **Status:** implemented in PENDING; verified by host tests (`WhiteboardNoteTests`; `just test`)
+- **Issues:** [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the banner covered Igor's top line of ink and was mostly *You: Your turn on the board · done* rows; iPad screenshots 2026-11-20)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** drawing with Larry on an iPad, with ink at the top of the page
+- **I want to** open the conversation and still see every line I wrote
+- **so that** reading Larry never hides what I am talking about
+
+#### Acceptance Criteria:
+- **Scenario:** Open it over ink
+- **Given:** a board with ink on its top line and a thread, on an iPad
+- **When:** I tap the note's line
+- **Then:** the panel opens above the paper and the page moves down by its height, the top line of ink just under the panel and none of it under it; I tap again and the page moves back up
+
+---
+
+### User Story 1047:
+
+- **Summary:** Igor's turns are one status chip, in one vocabulary
+- **Status:** implemented in PENDING; verified by host tests (`WhiteboardNoteTests`; `just test`)
+- **Issues:** [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the banner covered Igor's top line of ink and was mostly *You: Your turn on the board · done* rows; iPad screenshots 2026-11-20)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** reading Larry's replies in the open conversation
+- **I want to** see his sentences one after another and one place that says where my picture is
+- **so that** the panel is the conversation, not a log of *Your turn on the board · done* rows in four different words
+
+#### Acceptance Criteria:
+- **Scenario:** Three wordless turns
+- **Given:** a thread of three pictures I sent without words, each answered by Larry
+- **When:** I open the conversation
+- **Then:** it shows Larry's three replies one after another with no *You: Your turn on the board* row, and under them one chip, *Your board · Answered*; while a turn is out the chip says what the closed line says, *Your board · Larry · 0:12 · next: ink*; a picture that went with my spoken words shows as a row of those words
+
+---
+
+### User Story 1046:
+
+- **Summary:** Larry's words lead, and every line can be read
+- **Status:** implemented in PENDING; verified by host tests (`WhiteboardNoteTests`; `just test`)
+- **Issues:** [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the banner covered Igor's top line of ink and was mostly *You: Your turn on the board · done* rows; iPad screenshots 2026-11-20)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** glancing at the note and the open conversation while I draw
+- **I want to** have Larry's words stand out and the quieter text still be readable
+- **so that** the grey status text at about 2:1 no longer strains my eyes and his reply is what I see first
+
+#### Acceptance Criteria:
+- **Scenario:** Read the note
+- **Given:** Larry has replied and the conversation is open
+- **When:** I look at the note and the panel
+- **Then:** Larry's words are in the main text colour, in the closed line and in the panel; my lines, his state and the chip are quieter but at least 4.5:1 against what is behind them
+
+---
+
+### User Story 1045:
+
+- **Summary:** The conversation's lines are about seventy characters
+- **Status:** implemented in PENDING; verified by host tests (`WhiteboardNoteTests`; `just test`)
+- **Issues:** [#1003](https://github.com/idvorkin/context-grabber/issues/1003) (the banner covered Igor's top line of ink and was mostly *You: Your turn on the board · done* rows; iPad screenshots 2026-11-20)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Open: the conversation*
+
+#### Use Case:
+- **As someone** reading a long reply of Larry's on an iPad
+- **I want to** have it wrap like a paragraph, not run across the whole board
+- **so that** I can read it at a glance
+
+#### Acceptance Criteria:
+- **Scenario:** A long reply on a wide iPad
+- **Given:** Larry's reply of several sentences and the iPad in landscape
+- **When:** I open the conversation
+- **Then:** his reply wraps at about seventy characters, the panel's background still spanning the width
 
 ---
 

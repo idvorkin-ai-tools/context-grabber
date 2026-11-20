@@ -80,6 +80,8 @@ public enum WhiteboardNote {
     public var keepsEnd = false
     /// How many suggestions show: *3 to keep*.
     public var keep: String?
+    /// The middle is Larry's own line, which takes the emphasis (#1003, story 1046).
+    public var larrySpeaks = false
   }
 
   /// The line, or nil with nothing to say.
@@ -106,6 +108,7 @@ public enum WhiteboardNote {
     } else if let words {
       line.middle = words.text
       line.keepsEnd = words.keepsEnd
+      line.larrySpeaks = words.larry
     }
     line.keep = ghosts == 0 ? nil : "\(ghosts) to keep"
     return line == Line() ? nil : line
@@ -177,35 +180,61 @@ public enum WhiteboardNote {
   /// The most messages of the thread the panel holds; *Open in Chat* has the rest.
   public static let panelMessages = 10
 
+  /// What the board sends with a picture when Igor said nothing with it. Not a row of the panel (#1003): it was most of
+  /// it, between Larry's sentences; the status chip says where that picture is.
+  public static let boardTurnNote = "Your turn on the board"
+
   /// The panel's thread: the recent end of the board's thread (`thread`, oldest first, as the Cockpit sends it), newest
-  /// at the bottom. The Cockpit's own lines (*Moved to a new chat*) are neither Igor's nor Larry's, and are left out.
+  /// at the bottom. The Cockpit's own lines (*Moved to a new chat*) are neither Igor's nor Larry's, and are left out, and
+  /// so are Igor's pictures that carried no words of his (#1003, story 1047): the chip under the thread stands for them.
   public static func recent(_ thread: [ChatMessage]) -> [Row] {
-    thread.suffix(panelMessages).filter { !$0.isSystem }.map { message in
-      message.fromIgor
-        ? Row(
-          id: message.id, kind: .you, who: "You",
-          text: message.text.isEmpty ? (message.attachments.isEmpty ? "…" : "a picture") : message.text,
-          mark: message.receipt == .sent ? nil : message.receipt.rawValue)
-        : Row(
+    thread.suffix(panelMessages).compactMap { message in
+      if message.isSystem { return nil }
+      guard message.fromIgor else {
+        return Row(
           id: message.id, kind: .larry, who: message.author ?? "Larry",
           text: message.text.isEmpty ? "drew on the board" : message.text, mark: nil)
+      }
+      let words = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !message.attachments.isEmpty, words.isEmpty || words == boardTurnNote { return nil }
+      return Row(id: message.id, kind: .you, who: "You", text: words.isEmpty ? "…" : message.text, mark: nil)
     }
   }
 
-  /// The panel's live rows, under its thread: the turn that's out, what waits to go next, what the mic is hearing.
+  /// Where a picture of Igor's got to, in the chip's words, with no turn out (#1003, story 1047).
+  static func chipWord(_ receipt: ChatMessage.Receipt) -> String {
+    switch receipt {
+    case .sent, .received: return "Sent"
+    case .seen: return "Larry has it"
+    case .done: return "Answered"
+    }
+  }
+
+  /// The panel's status chip (#1003, story 1047): where Igor's newest board picture is, in one vocabulary. While a turn
+  /// is out, the closed line's own state with what waits to go next (the waiting words in full); else the newest
+  /// picture's mark in words; nil with neither.
+  public static func chip(
+    thread: [ChatMessage], larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
+    mark: WhiteboardLarryWait.Mark = .unknown
+  ) -> String? {
+    if larry.looking,
+      let clock = WhiteboardLarryClock.state(larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
+    {
+      guard let next = waiting(larry) else { return clock }
+      return "\(clock) · next: " + (larry.queued.map { "\(next): \($0)" } ?? next)
+    }
+    guard let picture = thread.last(where: { $0.fromIgor && !$0.attachments.isEmpty }) else { return nil }
+    return chipWord(picture.receipt)
+  }
+
+  /// The panel's live rows, under its thread: the status chip, and what the mic is hearing.
   public static func live(
-    larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
+    thread: [ChatMessage] = [], larry: WhiteboardLarryTurn, now: ContinuousClock.Instant, cockpitAnswering: Bool,
     mark: WhiteboardLarryWait.Mark = .unknown, said: WhiteboardSaid, micOn: Bool
   ) -> [Row] {
     var rows: [Row] = []
-    if let clock = WhiteboardLarryClock.state(
-      larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark)
-    {
-      rows.append(Row(id: "live-turn", kind: .live, who: "Now", text: clock, mark: nil))
-    }
-    if let next = waiting(larry) {
-      let text = larry.queued.map { "\(next): \($0)" } ?? next
-      rows.append(Row(id: "live-next", kind: .live, who: "Next", text: text, mark: nil))
+    if let chip = chip(thread: thread, larry: larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark) {
+      rows.append(Row(id: "live-chip", kind: .live, who: "Your board", text: chip, mark: nil))
     }
     if micOn {
       rows.append(Row(id: "live-mic", kind: .live, who: "Hearing", text: said.you ?? "Listening…", mark: nil))
@@ -225,11 +254,11 @@ public enum WhiteboardNote {
     }
   }
 
-  /// The newest thing said, by whoever said it last.
-  private static func middle(_ said: WhiteboardSaid, micOn: Bool) -> (text: String, keepsEnd: Bool)? {
-    let larry = said.larry.map { (text: "Larry: \($0)", keepsEnd: false) }
-    guard said.youLast else { return larry ?? said.you.map { ("You: \($0)", true) } }
-    if let you = said.you { return ("You: \(you)", true) }
-    return micOn ? ("Listening…", false) : larry
+  /// The newest thing said, by whoever said it last, and whether it is Larry's.
+  private static func middle(_ said: WhiteboardSaid, micOn: Bool) -> (text: String, keepsEnd: Bool, larry: Bool)? {
+    let larry = said.larry.map { (text: "Larry: \($0)", keepsEnd: false, larry: true) }
+    guard said.youLast else { return larry ?? said.you.map { ("You: \($0)", true, false) } }
+    if let you = said.you { return ("You: \(you)", true, false) }
+    return micOn ? ("Listening…", false, false) : larry
   }
 }

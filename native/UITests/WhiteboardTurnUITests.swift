@@ -162,5 +162,33 @@ final class WhiteboardTurnUITests: XCTestCase {
     // Story 837 (#917): the thread's text is held to a fifth of the board, under the window's fifth, however long.
     let window = app.windows.firstMatch.frame.height
     XCTAssertLessThanOrEqual(panel.frame.height, max(window / 5, 120) + 1, "the panel scrolls, it doesn't grow")
+    // Story 1047 (#1003): his words, no row for the picture that went without words, and one chip for where it is.
+    XCTAssertFalse(
+      (panel.value as? String ?? "").contains(WhiteboardTurnUITests.boardTurnNote), "no row for a wordless picture")
+    let chip = app.staticTexts["whiteboard-conversation-live-chip"]
+    XCTAssertTrue(chip.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(chip.label.hasPrefix("Your board · "), chip.label)
+    // Story 1048 (#1003): the panel pushes the paper down; the paper's top corner (its ? button) is below the panel.
+    let help = app.buttons["whiteboard-help"]
+    XCTAssertTrue(help.appears(within: 5), app.debugDescription)
+    let open = help.frame.minY
+    XCTAssertGreaterThanOrEqual(open, panel.frame.maxY, "nothing on the paper is under the panel")
+    shot("whiteboard-conversation-open")
+    chevron.tap()
+    expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: panel)
+    waitForExpectations(timeout: 5)
+    let deadline = Date().addingTimeInterval(5)
+    while help.frame.minY >= open - 20, Date() < deadline { usleep(200_000) }
+    XCTAssertLessThan(help.frame.minY, open - 20, "closed, the paper moves back up")
+    chevron.tap()
+    XCTAssertTrue(panel.appears(within: 5), app.debugDescription)
+  }
+
+  private static let boardTurnNote = "Your turn on the board"
+
+  /// A picture for the PR, when the run names a folder (TEST_RUNNER_GRABBER_SHOTS).
+  private func shot(_ name: String) {
+    guard let dir = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] else { return }
+    try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
   }
 }

@@ -62,6 +62,7 @@ final class WhiteboardNoteTests: XCTestCase {
     let note = try XCTUnwrap(line(sent(), said: said))
     XCTAssertEqual(note.middle, "Larry: a long reply about the middle box")
     XCTAssertFalse(note.keepsEnd)
+    XCTAssertTrue(note.larrySpeaks, "his words take the emphasis (story 1046)")
   }
 
   func testIgorsWordsKeepTheirEnd() throws {
@@ -72,6 +73,7 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(
       note.middle, "You: draw a box and then an arrow to the left", "the newest thing said, whoever said it")
     XCTAssertTrue(note.keepsEnd)
+    XCTAssertFalse(note.larrySpeaks)
     XCTAssertNil(note.state)
   }
 
@@ -177,32 +179,54 @@ final class WhiteboardNoteTests: XCTestCase {
 
   // MARK: Open: the conversation
 
-  func testThePanelShowsTheThreadWithItsMarksAndWhatIsLive() {
+  /// #1003 (story 1047): Larry's words, and Igor's own; his wordless pictures are the chip, not rows.
+  func testThePanelShowsTheConversationAndOneChip() {
     var turn = sent()
     _ = turn.paused(version: 2, words: "and label the arrow", now: at(5))
     var said = WhiteboardSaid()
     said.heard("make it bigger")
-    let rows = WhiteboardNote.recent([
+    let thread = [
       message("a", "igor", "Your turn on the board", receipt: .done, attachments: ["img"]),
       message("b", "larry", "This is where it goes, beside the box."),
       message("c", "igor", "", receipt: .seen, attachments: ["img"]),
       message("d", "larry", ""),
-    ])
+      message("e", "igor", "make the box blue", receipt: .received, attachments: ["img"]),
+    ]
     XCTAssertEqual(
-      rows,
+      WhiteboardNote.recent(thread),
       [
-        .init(id: "a", kind: .you, who: "You", text: "Your turn on the board", mark: "done"),
         .init(id: "b", kind: .larry, who: "Larry", text: "This is where it goes, beside the box.", mark: nil),
-        .init(id: "c", kind: .you, who: "You", text: "a picture", mark: "seen"),
         .init(id: "d", kind: .larry, who: "Larry", text: "drew on the board", mark: nil),
+        .init(id: "e", kind: .you, who: "You", text: "make the box blue", mark: nil),
       ])
     XCTAssertEqual(
-      WhiteboardNote.live(larry: turn, now: at(42), cockpitAnswering: true, said: said, micOn: true),
+      WhiteboardNote.live(thread: thread, larry: turn, now: at(42), cockpitAnswering: true, said: said, micOn: true),
       [
-        .init(id: "live-turn", kind: .live, who: "Now", text: "Larry · 0:42", mark: nil),
-        .init(id: "live-next", kind: .live, who: "Next", text: "ink + words: and label the arrow", mark: nil),
+        .init(
+          id: "live-chip", kind: .live, who: "Your board",
+          text: "Larry · 0:42 · next: ink + words: and label the arrow",
+          mark: nil),
         .init(id: "live-mic", kind: .live, who: "Hearing", text: "make it bigger", mark: nil),
       ])
+  }
+
+  /// #1003 (story 1047): with no turn out the chip says where the newest picture got to, in one vocabulary.
+  func testTheChipHasOneWordForEachMark() {
+    let idle = WhiteboardLarryTurn()
+    func chip(_ receipt: ChatMessage.Receipt) -> String? {
+      WhiteboardNote.chip(
+        thread: [
+          message("a", "igor", "", receipt: .done, attachments: ["img"]), message("b", "larry", "ok"),
+          message("c", "igor", "", receipt: receipt, attachments: ["img"]),
+        ], larry: idle, now: at(0), cockpitAnswering: true)
+    }
+    XCTAssertEqual(chip(.sent), "Sent")
+    XCTAssertEqual(chip(.received), "Sent")
+    XCTAssertEqual(chip(.seen), "Larry has it")
+    XCTAssertEqual(chip(.done), "Answered")
+    XCTAssertNil(
+      WhiteboardNote.chip(thread: [message("b", "larry", "hi")], larry: idle, now: at(0), cockpitAnswering: true),
+      "no picture and no turn out: no chip")
   }
 
   func testThePanelHoldsTheLastTenMessages() {
@@ -211,14 +235,15 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(rows.map(\.id), (5...14).map { "m\($0)" }, "newest at the bottom")
   }
 
-  func testABoardWithNoThreadShowsOnlyWhatIsLive() {
+  func testABoardWithNoThreadShowsOnlyTheChipAndTheMic() {
     var said = WhiteboardSaid()
     said.micOpened()
     XCTAssertEqual(WhiteboardNote.recent([]), [])
     XCTAssertEqual(
       WhiteboardNote.live(larry: sent(), now: at(3), cockpitAnswering: false, said: said, micOn: true),
       [
-        .init(id: "live-turn", kind: .live, who: "Now", text: "Larry · 0:03 · Cockpit not answering", mark: nil),
+        .init(
+          id: "live-chip", kind: .live, who: "Your board", text: "Larry · 0:03 · Cockpit not answering", mark: nil),
         .init(id: "live-mic", kind: .live, who: "Hearing", text: "Listening…", mark: nil),
       ])
   }
@@ -249,7 +274,7 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(
       WhiteboardNote.live(
         larry: turn, now: at(21), cockpitAnswering: true, mark: .received, said: WhiteboardSaid(), micOn: false
-      ).first?.text, "Sent · 0:21 · not picked up yet")
+      ).first?.text, "Sent · 0:21 · not picked up yet · next: ink", "the chip says what the line says")
     XCTAssertEqual(
       WhiteboardNote.line(
         larry: turn, now: at(42), cockpitAnswering: true, mark: .seen, said: WhiteboardSaid(), micOn: false,
