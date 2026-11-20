@@ -1,5 +1,5 @@
 //  A board's lettering on this device (spec 2026-11-01-whiteboard-shapes-design.md, *A real font, still drawn as ink*;
-//  stories 1044–1046, #950): single strokes or the real font, remembered per board as its lines are. A board with
+//  stories 1042–1044, #950): single strokes or the real font, remembered per board as its lines are. A board with
 //  nothing saved, every board from before included, letters in single strokes.
 
 import Foundation

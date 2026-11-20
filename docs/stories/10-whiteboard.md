@@ -4962,7 +4962,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1045:
+### User Story 1042:
 
 - **Summary:** A board starts, and stays, in single-stroke letters until I choose otherwise
 - **Status:** implemented in [6a18400d](https://github.com/idvorkin/context-grabber/commit/6a18400d) and [f91185a4](https://github.com/idvorkin/context-grabber/commit/f91185a4); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`); on the iPad simulator, rung 2, 2026-11-20 (`WhiteboardLetteringUITests`: HI four strokes on a new board, Real font on with no redraw, reopened still on, HI again as two outlines, a new board single strokes). The iPad not yet
@@ -4982,7 +4982,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1046:
+### User Story 1043:
 
 - **Summary:** Larry can letter one text in the real font, and it stays one text
 - **Status:** implemented in [6a18400d](https://github.com/idvorkin/context-grabber/commit/6a18400d) and [0db63e74](https://github.com/idvorkin/context-grabber/commit/0db63e74); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`). A text of Larry's in the real font not yet seen on the simulator or the iPad, and the Cockpit drops a chat mark's lettering until context-grabber-qlr3

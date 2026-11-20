@@ -1,4 +1,4 @@
-//  #950 (stories 1044–1046): a board's text in a real font, still ink: the per-board choice, a mark's or a text of
+//  #950 (stories 1042–1044): a board's text in a real font, still ink: the per-board choice, a mark's or a text of
 //  Larry's own choice, and the font's outlines as the strokes that draw it.
 
 import Foundation

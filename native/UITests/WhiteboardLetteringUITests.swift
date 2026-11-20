@@ -1,4 +1,4 @@
-//  #950 (stories 1044, 1045) on the iPad simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
+//  #950 (stories 1044, 1042) on the iPad simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
 //  it): the Board menu's Lettering, and a paste in the real font. The outlines, a text's own lettering, reword and the
 //  per-board memory are `BoardRealFontTests`, on the host. XCUITest's taps never reach the system's paste button, so the
 //  paste goes through the paste hook, as `WhiteboardPaperPasteUITests` does, which pastes each time the board opens.
@@ -46,7 +46,7 @@ final class WhiteboardLetteringUITests: XCTestCase {
     add(picture)
   }
 
-  /// Stories 1044, 1045: a new board letters in single strokes ("HI" is four strokes) until the Board menu's Real font
+  /// Stories 1044, 1042: a new board letters in single strokes ("HI" is four strokes) until the Board menu's Real font
   /// is on; then, the board left and opened again, it still is, and "HI" is Helvetica's two closed outlines. A new board
   /// after it is single strokes again.
   func testRealFontFromTheBoardMenuLettersAPasteInTheFontsOutlines() throws {
