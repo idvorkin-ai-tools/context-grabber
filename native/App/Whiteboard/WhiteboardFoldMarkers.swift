@@ -1,7 +1,7 @@
 //  Story 900: a folded header's "▸ N lines folded" in every picture of the board (Larry's turn, Send, Claude's turn),
 //  in the web board's words and place: 14-point grey letters starting 14 points past the header's row, on a baseline 5
 //  below its middle (the Cockpit's assets/ink/ink.html, `data-fold`). Larry reads a folded board as a folded one.
-//  Story 1016: an open header's grey ▾ in the margin too, so Larry sees which lines the board takes for headers.
+//  Story 1036: an open header's grey ▾ in the margin too, so Larry sees which lines the board takes for headers.
 
 import ContextCore
 import UIKit
@@ -14,7 +14,7 @@ extension WhiteboardModel {
     let font = UIFont.systemFont(ofSize: BoardOutline.markerPoints)
     let words: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor(rgb: 0x999999)]
     let outline = outline()
-    // Story 1016: the grey ▾ beside each open header, in the margin where the board shows it.
+    // Story 1036: the grey ▾ beside each open header, in the margin where the board shows it.
     let open = "▾" as NSString
     let size = open.size(withAttributes: words)
     for mark in outline.openHeaderMarks where mark.y >= rect.minY - size.height && mark.y <= rect.maxY + size.height {

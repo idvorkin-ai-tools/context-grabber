@@ -92,7 +92,7 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
   }
 
-  /// Story 1010 (#967): a line drawn under a line of writing makes it a header as it lands, no margin tap. The
+  /// Story 1030 (#967): a line drawn under a line of writing makes it a header as it lands, no margin tap. The
   /// "writing" is a slanted stroke, which no underline is; the indented line under it folds.
   func testAnUnderlineDrawnUnderALineMakesItAHeader() throws {
     let app = try openBoard()

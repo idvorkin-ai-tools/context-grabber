@@ -7371,7 +7371,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1010:
+### User Story 1030:
 
 - **Summary:** An underline drawn under a line of my writing makes it a header
 - **Status:** STATUS
@@ -7391,7 +7391,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1011:
+### User Story 1031:
 
 - **Summary:** A # written at the start of a line makes it a header
 - **Status:** STATUS
@@ -7411,7 +7411,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1012:
+### User Story 1032:
 
 - **Summary:** What I write on a header's line joins the header
 - **Status:** STATUS
@@ -7431,7 +7431,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1013:
+### User Story 1033:
 
 - **Summary:** One Undo takes an underline and the header it made; Redo brings both back
 - **Status:** STATUS
@@ -7451,7 +7451,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1014:
+### User Story 1034:
 
 - **Summary:** Not a header keeps my underline as ink and the board never makes it a header again
 - **Status:** STATUS
@@ -7471,7 +7471,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1015:
+### User Story 1035:
 
 - **Summary:** A rule drawn across the page ends the sections above it
 - **Status:** STATUS
@@ -7491,7 +7491,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1016:
+### User Story 1036:
 
 - **Summary:** Larry's picture shows which lines are headers
 - **Status:** STATUS

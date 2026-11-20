@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Stories 1010–1016 (#967): an underline under a line, or a # at its start, makes it a header; writing more on a
+/// Stories 1030–1036 (#967): an underline under a line, or a # at its start, makes it a header; writing more on a
 /// header's line joins its row; a rule ends the sections above it; the mark's Undo takes the header and its Redo
 /// brings it back; Larry's picture marks each open header. No board in the fixtures has an underline or a # drawn on
 /// it, so the strokes here are hand-like: a Pencil's wobble on every line.

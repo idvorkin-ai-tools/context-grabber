@@ -1,4 +1,4 @@
-//  Headers drawn in ink (#967, spec 2026-11-19-whiteboard-ink-headers-design.md, stories 1010–1016): an underline
+//  Headers drawn in ink (#967, spec 2026-11-19-whiteboard-ink-headers-design.md, stories 1030–1036): an underline
 //  drawn under a line of his writing, or a # written at the start of a line, makes that line a header; a stroke
 //  written on a header's line joins its row; a long flat line that underlines nothing is a rule, which ends the
 //  sections above it. Pure: the outline's strokes, the newest stroke by its place, and what the header became.
@@ -225,7 +225,7 @@ extension BoardOutline {
   // MARK: - Larry's picture
 
   /// Each open header that shows, by its row's middle: where the picture draws its grey ▾ in the margin, as the
-  /// board does (story 1016).
+  /// board does (story 1036).
   public var openHeaderMarks: [(header: String, y: CGFloat)] {
     headers.compactMap { header in
       guard shows(header), !isFolded(header), let box = box(header) else { return nil }

@@ -1,4 +1,4 @@
-//  Stories 1010–1016 (#967): headers drawn in ink (spec 2026-11-19-whiteboard-ink-headers-design.md). The stroke Igor
+//  Stories 1030–1036 (#967): headers drawn in ink (spec 2026-11-19-whiteboard-ink-headers-design.md). The stroke Igor
 //  just drew, read once: an underline under a line of his writing, or the last bar of a # at a line's start, makes the
 //  line a header; a stroke on a header's line joins its row. The mark's own Undo takes the header with it, as
 //  `BoardHeader.mark` says; nothing here is an undo step of its own.
