@@ -430,6 +430,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private weak var stepsOn: UndoManager?
   /// #966: the board's take-back of PaperKit's own step, which leaves one of the board's own on the stack.
   private let probe = BoardUndoProbe()
+  /// #965: the bar's Undo and Redo are about to be brought up to date.
+  private var undoShowing = false
   /// #966: what the stack said just before an Undo or Redo ran, for the log's line once it has.
   private var stepping: (name: String, strokes: Int)?
 
@@ -464,6 +466,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     model.move = { [weak self] moves in self?.move(moves) }
     model.menuChose = { [weak self] in self?.takeTheResponderBack() }
+    model.pressUndo = { [weak self] redo in self?.pressUndo(redo: redo) }
     if model.editable { view.addGestureRecognizer(holding) }
     if drawsHere { view.addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(hovering(_:)))) }
     NotificationCenter.default.addObserver(
@@ -525,6 +528,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     paper.becomeFirstResponder()
+    showUndoSoon()
   }
 
   /// The whole window in light mode while a board on paper is up, whatever the device's. In dark mode PaperKit draws new
@@ -2027,6 +2031,50 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       center.addObserver(self, selector: #selector(undoWill(_:)), name: will, object: nil)
       center.addObserver(self, selector: #selector(undoDid(_:)), name: did, object: nil)
     }
+    // #965: the bar's Undo and Redo follow every change to the stack, PaperKit's own steps too.
+    for name in [
+      Notification.Name.NSUndoManagerCheckpoint, .NSUndoManagerDidCloseUndoGroup, .NSUndoManagerDidUndoChange,
+      .NSUndoManagerDidRedoChange,
+    ] {
+      center.addObserver(self, selector: #selector(undoChanged(_:)), name: name, object: nil)
+    }
+  }
+
+  @objc private func undoChanged(_ note: Notification) {
+    guard let undo = note.object as? UndoManager, undo === paper.undoManager else { return }
+    showUndoSoon()
+  }
+
+  /// The bar's buttons once the stack has settled, never from inside a change: a take-back's undo and redo, and a view
+  /// update, are over by then.
+  private func showUndoSoon() {
+    guard !undoShowing else { return }
+    undoShowing = true
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      self.undoShowing = false
+      let undo = self.paper.undoManager
+      let now = BoardUndoButtons(
+        canUndo: undo?.canUndo ?? false, canRedo: undo?.canRedo ?? false, undoName: undo?.undoActionName ?? "",
+        redoName: undo?.redoActionName ?? "")
+      if self.model.undoButtons != now { self.model.undoButtons = now }
+    }
+  }
+
+  /// #965: the bar's Undo or Redo, the same step as the tool picker's; the paper keeps the Pencil after it.
+  private func pressUndo(redo: Bool) {
+    guard let undo = paper.undoManager else { return }
+    let can = redo ? undo.canRedo : undo.canUndo
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_undo_button", "board": model.board.id, "redo": redo, "can": can,
+        "name": redo ? undo.redoActionName : undo.undoActionName, "strokes": inkFrames.count,
+      ])
+    if can { redo ? undo.redo() : undo.undo() }
+    // As after the Board menu: the next stroke draws.
+    takeTheResponderBack()
+    showUndoSoon()
   }
 
   @objc private func undoWill(_ note: Notification) {

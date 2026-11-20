@@ -7329,3 +7329,43 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** I press Undo until the keep is reached
 - **Then:** the keep is still a step of its own, named for it, and one Undo takes every mark it kept back off the board
 
+---
+
+### User Story 1008:
+
+- **Summary:** Undo and Redo on the board's own bar
+- **Status:** in progress on branch `native/board-undo-button-965`
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
+- **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965): Igor, 2026-11-19, drawn on board 302d5345, via Larry: "an Undo button on the board itself"
+
+#### Use Case:
+- **As someone** drawing on a board with a finger or the Pencil
+- **I want** Undo and Redo buttons on the board's bar
+- **so that** I can take back a step without hunting for the tool picker's
+
+#### Acceptance Criteria:
+- **Scenario:** Undo a stroke and bring it back
+- **Given:** a board drawn on here, and I have just drawn a stroke
+- **When:** I tap *Undo* in the board's bar, then *Redo*
+- **Then:** the stroke goes, then comes back; each button is at least 44 points each way, and each is dimmed when there is nothing for it to do
+
+---
+
+### User Story 1009:
+
+- **Summary:** VoiceOver says what Undo will take back
+- **Status:** in progress on branch `native/board-undo-button-965`
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
+- **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965)
+
+#### Use Case:
+- **As someone** using the board with VoiceOver
+- **I want** the Undo and Redo buttons to name the step they act on
+- **so that** I know a press takes back Larry's kept group and not my last stroke
+
+#### Acceptance Criteria:
+- **Scenario:** A named step on top
+- **Given:** I have just kept a group of Larry's marks
+- **When:** VoiceOver reaches the Undo button
+- **Then:** it reads *Undo Keep group*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
+

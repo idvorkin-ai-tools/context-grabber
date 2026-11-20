@@ -80,6 +80,16 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
 - The **tool picker** sits along the edge: pen, marker, pencil, eraser, lasso, ruler, undo and redo, and colors.
   This is the system's own picker, so the Pencil's double tap or squeeze switches to the eraser, as it does in
   Notes.
+- **Undo and Redo on the board's own bar** (#965; Igor, 2026-11-19, drawn on board 302d5345: "an Undo button on the
+  board itself"). A board drawn on here has *Undo* and *Redo* at the start of its top bar, after the way back, where a
+  finger or the Pencil reaches them whatever the tool picker is doing.
+  - Each is at least 44 points each way. Each is dimmed when there is nothing to undo or redo, and taps then do nothing.
+  - Each is the same step as the tool picker's Undo and Redo and a keyboard's ⌘Z and ⇧⌘Z: one press takes back one
+    step, whether it was his stroke, a keep, a paste, a scratch-out or a batch of Larry's, and Redo brings it back.
+  - VoiceOver reads what the press will do: *Undo Keep group*, *Redo Paste*, or plain *Undo* and *Redo* for a step with
+    no name (his own stroke). Dimmed, it says so.
+  - A press doesn't cost a stroke: the next stroke after it draws, as after the Board menu.
+  - A board only looked at (another device's, or the old canvas's) has neither, as it has no tool picker.
 - **Who draws:**
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.
