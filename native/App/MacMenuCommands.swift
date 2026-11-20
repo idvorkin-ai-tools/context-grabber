@@ -1,6 +1,7 @@
 //  #681, stories 684 and 685: a Mac can't be shaken, so the menu bar carries Settings and a problem report. #722,
-//  stories 722-727: every shortcut is a menu item too: New Board, Go to the home destinations, Report a Problem. A
-//  phone and an iPad show no new items and get none of the keys.
+//  stories 722-727: every shortcut is a menu item too: New Board, Go to the home destinations, Report a Problem. #745,
+//  stories 725 and 734-735: Igor's Control+R and Control+N, as he wrote them (Command+N stays New Window). A phone and
+//  an iPad show no new items and get none of the keys.
 
 import BugKit
 import ContextCore
@@ -28,6 +29,9 @@ struct MacMenuCommands: Commands {
         Button("New Board") { model.newBoard(from: "mac_menu") }
           .keyboardShortcut("n", modifiers: [.command, .shift])
           .disabled(!model.homeInFront && !model.showWhiteboard)
+        Button("New Chat") { model.newChat(from: "mac_menu") }
+          .keyboardShortcut("n", modifiers: .control)
+          .disabled(!model.newChatLive)
       }
       // Story 729 (#781): chat's text size, from any screen; it shows wherever chat does.
       CommandGroup(after: .toolbar) {
@@ -53,6 +57,7 @@ struct MacMenuCommands: Commands {
       }
       CommandGroup(replacing: .help) {
         Button("Report a Problem…") { model.startBugReport(from: "mac_help_menu") }
+          .keyboardShortcut("r", modifiers: .control)
       }
     #else
       EmptyCommands()

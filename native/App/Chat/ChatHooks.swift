@@ -36,8 +36,18 @@ extension AppModel {
   }
 
   /// #536: Chat with its + already tapped, a new thread on screen; #637: `voice`, the button beside it.
-  func runChatNewHook(voice: Bool) {
-    openInbox(from: "hook")
-    chat.openNewChat(from: "hook", voice: voice)
+  func runChatNewHook(voice: Bool) { newChat(from: "hook", voice: voice) }
+
+  /// Chat on a new empty chat, as its + (or the mic beside it) would: the hook, and the Mac's New Chat (#745).
+  func newChat(from source: String, voice: Bool = false) {
+    openInbox(from: source)
+    chat.openNewChat(from: source, voice: voice)
+  }
+
+  /// #745, stories 734-735: whether the Mac's New Chat can open one without closing what is in front.
+  var newChatLive: Bool {
+    MacGoMenu.newChatLive(
+      homeInFront: homeInFront, chatInFront: screens.named == .chat && !reporter.flow.isPresented,
+      chatHasWindow: windowHolding(.chat))
   }
 }
