@@ -139,7 +139,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-### User Story 677:
+### User Story 786:
 
 - **Summary:** The host rung's script checks pass or fail the same way when several run at once
 - **Status:** implemented on branch `native/signing-guard-flake-981`; verified on the host rung: the signing-guard check, 24 copies started 0.3 s apart in batches of six (0 failures; before the fix, 5 of 18 failed this way, exit 143 or the No Accounts case killed), then 43 more, 20 of them with all 18 cores busy at a load average of 133, in batches of five and alone (0 failures)
