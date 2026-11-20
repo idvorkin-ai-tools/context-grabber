@@ -118,8 +118,8 @@ Board: from home it opens chat on a new empty chat, the same one chat's + opens,
 window or in a window of its own) it opens a new chat there. When chat has a window of its own, that window comes
 forward with the new chat whatever the home window shows. Otherwise, like the Go items, it is dimmed, and its key does
 nothing, while any other screen covers home (a timer, a call, the settings, the report dialog…), so nothing live is
-closed. In
-chat's bar Control+N stays New Chat rather than the text system's move down a line, which a one-line bar has no use for.
+closed. In chat's bar Control+N stays New Chat rather than the text system's move down a line, which a one-line
+bar has no use for.
 
 A phone and an iPad show no new menu items, and an iPad with a hardware keyboard gets none of these shortcuts either:
 the menu is the Mac's alone.
