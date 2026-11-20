@@ -84,8 +84,10 @@ targets:
         destinationFilters: [iOS]
     # What's new (story 148): the last month's story commits, made from git log at every build by BugKit's script.
     postBuildScripts:
+      # BugKit's checkout is found by walking up from the build folder: an archive's (just testflight, #1012) sits
+      # deeper under the derived data than a build's.
       - name: What's new
-        script: '"$BUILD_DIR/../../SourcePackages/checkouts/bug-kit/scripts/whats-new.sh" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/whats-new.json" --repo "$SRCROOT/.." --path native --base-url https://github.com/idvorkin/context-grabber/blob/main/docs/stories/ --fixed-reports'
+        script: 'd="$BUILD_DIR"; while [ "$d" != / ] && [ ! -d "$d/SourcePackages/checkouts/bug-kit" ]; do d=$(dirname "$d"); done; "$d/SourcePackages/checkouts/bug-kit/scripts/whats-new.sh" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/whats-new.json" --repo "$SRCROOT/.." --path native --base-url https://github.com/idvorkin/context-grabber/blob/main/docs/stories/ --fixed-reports'
         basedOnDependencyAnalysis: false
         showEnvVars: false
       # The card screen's stack and voice clips, from Igor's Mac, never from this repo (scripts/native/bundle-trainer.sh).
