@@ -135,6 +135,8 @@ final class WhiteboardModel: ObservableObject {
   private let inbox: InboxModel
   private let cockpit: String
   private let threads = WhiteboardThreads()
+  /// #894 (story 1006): when each picture sent to Larry was taken, so his reply knows what was written after it.
+  private let pictureTimes = WhiteboardPictureTimes()
   /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
   var visibleRect: (() -> CGRect)?
   var zoom: (() -> CGFloat)?
@@ -150,9 +152,9 @@ final class WhiteboardModel: ObservableObject {
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
   var landPaste: (([PKStroke]) -> Bool)?
-  /// #938 (story 992): a kept text of Larry's and the room it opens below it, one undo named *Keep*. False when the
-  /// canvas didn't take it, and the keep inks as ever.
-  var keepMakingRoom: (([PKStroke], BoardRoom.Push) -> Bool)?
+  /// #938 (story 992), #894 (stories 1004–1006): kept marks of Larry's and the room they open, one undo named *Keep*,
+  /// logged as `why`. False when the canvas didn't take it, and the keep inks as ever.
+  var keepMakingRoom: (([PKStroke], BoardRoom.Push, String) -> Bool)?
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
   /// as one undo named for it; false when nothing changed. The canvas sets it.
   var changeOutline: ((String, (inout BoardOutline) -> Bool) -> Bool)?
@@ -811,11 +813,12 @@ final class WhiteboardModel: ObservableObject {
     // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
     shownRow = row.id
     let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
+    let seen = pictureTimes.taken(row.pictureID, board: board.id)
     let (marks, nowhere) = connectorGhosts(
       row.shapes.enumerated().map { index, shape in
         Ghost(
           shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id),
-          hand: penInHand)
+          hand: penInHand, seen: seen)
       }.filter { !settled.contains($0.id) })
     // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
     turns.larrysMarks(marks)
@@ -824,7 +827,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard_marks",
       [
         "action": "shown", "board": board.id, "row": row.id, "shapes": row.shapes.count,
-        "picture": row.pictureID ?? "",
+        "picture": row.pictureID ?? "", "picture_known": seen != nil,
       ])
   }
 
@@ -1007,6 +1010,7 @@ final class WhiteboardModel: ObservableObject {
     let picture = WhiteboardPicture(
       board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale,
       report: turnReport())
+    pictureTimes.record(picture.pictureID, at: Self.unixMs(), board: board.id)
     return LarryOut(
       jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta),
       folds: foldsForLarry(), picture: picture, rect: rect,
@@ -1374,6 +1378,7 @@ final class WhiteboardModel: ObservableObject {
       }
       settleLarrys(ghost)
     }
+    rememberTheirs(strokes)
     if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }
     log.event(
       "whiteboard",
@@ -1422,6 +1427,18 @@ final class WhiteboardModel: ObservableObject {
     UserDefaults.standard.set(Array(known.suffix(2000)), forKey: labelsKey)
   }
 
+  private var theirsKey: String { "whiteboard_theirs_\(board.id)" }
+
+  /// #894: the moments of ink Larry or Claude made (a mark kept, Larry's ink or text), kept on this device, so it never
+  /// makes room as Igor's. ponytail: not synced, so a mark kept on another device is taken as Igor's.
+  func rememberTheirs(_ strokes: [PKStroke]) { rememberTheirs(moments: strokes.map(Self.moment)) }
+
+  private func rememberTheirs(moments: [Int64]) {
+    guard !moments.isEmpty else { return }
+    let known = UserDefaults.standard.array(forKey: theirsKey) as? [Int64] ?? []
+    UserDefaults.standard.set(Array((known + moments).suffix(4000)), forKey: theirsKey)
+  }
+
   private static func moment(_ stroke: PKStroke) -> Int64 {
     Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
   }
@@ -1463,14 +1480,18 @@ final class WhiteboardModel: ObservableObject {
     }
     // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
     let names = opStrokes(strokes).strokes.flatMap(\.ids)
+    // #894 (story 1004): before the group's notes, so the board it measures is the one he wrote on.
+    let late = lateRoom(marks)
+    rememberTheirs(strokes)
     strokeMeta.merge(WhiteboardMarks.groupNotes(names, reply: reply))
     opLedger.setStrokeMeta(strokeMeta, board: board.id)
-    log.event(
-      "whiteboard",
-      [
-        "action": "keep_group", "board": board.id, "marks": marks.count, "strokes": strokes.count,
-        "group": WhiteboardMarks.group(reply: reply),
-      ])
+    var event: [String: Any] = [
+      "action": "keep_group", "board": board.id, "marks": marks.count, "strokes": strokes.count,
+      "group": WhiteboardMarks.group(reply: reply),
+    ]
+    event.merge(Self.lateFields(late, marks)) { $1 }
+    log.event("whiteboard", event)
+    if let push = late?.push, keepMakingRoom?(strokes, push, "keep_group") == true { return }
     add(strokes, named: Self.keepGroupUndoName)
   }
 
@@ -1495,13 +1516,16 @@ final class WhiteboardModel: ObservableObject {
   private func ink(_ ghost: Ghost) {
     // Story 817: a text of Larry's is one thing on the board, known by its glyphs' one creation time.
     let made = BoardText.time(Date())
-    // #938: a text of his that Igor's ink has come under makes room as it lands.
+    // #938: a text of his that Igor's ink has come under makes room as it lands. #894: a mark of his on ink written
+    // after his picture makes room for itself.
     let room = textRoom(ghost)
+    let late = ghost.text == nil ? lateRoom([ghost]) : nil
     let lines = ghost.lines.map { line in line.map { CGPoint(x: $0.x, y: $0.y + room.dy) } }
     let strokes =
       connectorInk(ghost)
       ?? Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
     if ghost.kind == .text { rememberLabel(made.date) }
+    rememberTheirs(strokes)
     if let text = ghost.text {
       texts.append(
         BoardText(
@@ -1526,10 +1550,37 @@ final class WhiteboardModel: ObservableObject {
       event["room_dy"] = Double(push.dy)
     }
     if room.dy != 0 { event["landed_dy"] = Double(room.dy) }
+    if ghost.text == nil { event.merge(Self.lateFields(late, [ghost])) { $1 } }
     log.event("whiteboard", event)
-    if let push = room.push, keepMakingRoom?(strokes, push) == true { return }
+    if let push = room.push, keepMakingRoom?(strokes, push, "keep_text") == true { return }
+    if let push = late?.push, keepMakingRoom?(strokes, push, "keep_late") == true { return }
     add(strokes, named: Self.keepUndoName)
   }
+
+  /// #894 (stories 1004–1006): the room Larry's marks need when kept, for what Igor made after the picture they answer;
+  /// nil when that picture's time isn't known on this device. His marks stay where they showed.
+  private func lateRoom(_ marks: [Ghost]) -> BoardRoom.Late? {
+    guard let seen = marks.compactMap(\.seen).min() else { return nil }
+    let boxes = marks.map { WhiteboardMarkChoice.bounds($0.lines).insetBy(dx: -$0.width / 2, dy: -$0.width / 2) }
+    let strokes = opStrokes(drawing.strokes).strokes
+    let theirs = Set(UserDefaults.standard.array(forKey: theirsKey) as? [Int64] ?? [])
+    return BoardRoom.late(
+      boxes, seen: seen, strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags,
+      theirs: theirs)
+  }
+
+  /// The keep's log fields for #894: the picture's time (or that it isn't known), what newer it sat on, the room.
+  private static func lateFields(_ late: BoardRoom.Late?, _ marks: [Ghost]) -> [String: Any] {
+    guard let late, let seen = marks.compactMap(\.seen).min() else { return ["picture_t": NSNull()] }
+    var out: [String: Any] = ["picture_t": seen, "covered_newer": late.covered]
+    if let push = late.push {
+      out["late_cut"] = Double(push.cut)
+      out["late_dy"] = Double(push.dy)
+    }
+    return out
+  }
+
+  private static func unixMs(_ date: Date = Date()) -> Int64 { Int64(date.timeIntervalSince1970 * 1000) }
 
   /// #938 (story 992): where a ghost of Larry's text lands when kept, as his text lands from a batch: clear of the ink,
   /// with the room it opens. `dy` is how far the text itself goes down to sit under a line its top fell in.
@@ -1793,7 +1844,9 @@ final class WhiteboardModel: ObservableObject {
     draft.image = jpeg
     let title = store.index.board(board.id)?.title ?? board.title
     draft.text = words.map { "\(title): \($0)" } ?? title
-    draft.whiteboard = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale, report: turnReport())
+    let sending = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale, report: turnReport())
+    draft.whiteboard = sending
+    pictureTimes.record(sending.pictureID, at: Self.unixMs(), board: board.id)
     // Story 424: the strokes wait beside the picture and go first when it goes.
     draft.strokes = try? JSONSerialization.data(
       withJSONObject: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta))
@@ -2259,6 +2312,7 @@ extension WhiteboardModel {
   /// The texts `letter` made, once their strokes are on the board.
   func keep(lettered: [BoardText]) {
     guard !lettered.isEmpty else { return }
+    rememberTheirs(moments: lettered.map(\.t))
     for text in lettered {
       rememberLabel(Date(timeIntervalSince1970: Double(text.t) / 1000))
       texts.removeAll { $0.id == text.id }
@@ -2313,12 +2367,16 @@ struct Ghost: Identifiable, WhiteboardGhost {
   let text: BoardOps.Text?
   /// A connector mark (story 917): kept, it becomes a connector joining its ends.
   let connector: BoardOps.NewConnector?
+  /// When the picture this mark answers was taken, unix ms, when this device knows (#894): what Igor made after it
+  /// makes room for the mark when it is kept.
+  let seen: Int64?
 
   init(
     _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
-    id: String = UUID().uuidString, text: BoardOps.Text? = nil, hand: CGFloat? = nil
+    id: String = UUID().uuidString, text: BoardOps.Text? = nil, hand: CGFloat? = nil, seen: Int64? = nil
   ) {
     self.id = id
+    self.seen = seen
     self.text = text
     self.who = who
     connector = BoardConnectors.mark(shape, frame: frame, scale: scale, id: id)

@@ -4801,6 +4801,86 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1004:
+
+- **Summary:** A kept reply of Larry's pushes what I wrote since his picture out of the way
+- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
+- **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
+
+#### Use Case:
+- **As someone** writing on while Larry answers a picture of my board
+- **I want to** have his reply push down what I wrote after he looked, when I keep it
+- **so that** his reply never lands on my newer ink, and his marks still sit beside what they name
+
+#### Acceptance Criteria:
+- **Scenario:** Keep group over writing newer than his picture
+- **Given:** Larry's reply of several marks showing where I have written two lines since his picture went, under my older plan
+- **When:** I tap one of his marks and *Keep group*
+- **Then:** his marks become ink where they showed, my two lines and everything under them move down in whole lines until they sit half a line under his lowest mark, my plan above doesn't move, and one Undo puts my lines back and takes his marks away
+
+---
+
+### User Story 1005:
+
+- **Summary:** One kept mark of Larry's makes room for what I wrote since his picture
+- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
+- **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
+
+#### Use Case:
+- **As someone** keeping Larry's marks one at a time
+- **I want to** have one mark of his, kept, push my newer writing out from under it
+- **so that** a single Keep never leaves his mark on top of my ink
+
+#### Acceptance Criteria:
+- **Scenario:** Keep one mark over newer writing
+- **Given:** one of Larry's marks showing on a line I wrote after his picture went
+- **When:** I tap it and *Keep*
+- **Then:** the mark becomes ink where it showed, my line and everything under it move down clear of it, and one Undo takes back both
+
+---
+
+### User Story 1006:
+
+- **Summary:** Ink Larry saw never makes room for his reply
+- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
+- **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
+
+#### Use Case:
+- **As someone** who sometimes wants Larry to draw over what I wrote
+- **I want to** keep his marks on ink he saw exactly where he put them, with nothing moved
+- **so that** a circle round my word or an arrow onto it stays on it
+
+#### Acceptance Criteria:
+- **Scenario:** His reply on ink that was in his picture
+- **Given:** a mark of Larry's drawn over writing that was in the picture he answered, or over marks of his or Claude's kept since, and nothing newer of mine under it
+- **When:** I keep it, alone or as a group
+- **Then:** nothing of mine moves
+
+---
+
+### User Story 1037:
+
+- **Summary:** A reply that lands with the board closed still makes room
+- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
+- **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
+
+#### Use Case:
+- **As someone** who closes the board while Larry thinks
+- **I want to** have his reply, shown when I open the board again, still know what I wrote after his picture
+- **so that** closing the board never brings back the overlap
+
+#### Acceptance Criteria:
+- **Scenario:** Reopened after his reply
+- **Given:** a picture sent to Larry from this device, more writing of mine after it, the board closed, and his reply arrived meanwhile
+- **When:** I open the board and keep his reply over that writing
+- **Then:** my writing made after the picture moves down clear of it, as if the board had stayed open; a reply to a picture this device didn't send keeps with nothing moved
+
+---
+
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat

@@ -100,6 +100,54 @@ public enum BoardRoom {
     return (y, dy > 0 ? Push(cut: at, dy: dy) : nil)
   }
 
+  /// What a reply of Larry's needs when kept over ink Igor made after its picture (#894, stories 1004–1006).
+  public struct Late: Equatable, Sendable {
+    /// The room it opens, or nil when it sits on nothing newer than the picture.
+    public var push: Push?
+    /// How many things made after the picture its marks sit on.
+    public var covered: Int
+  }
+
+  /// Room for Larry's marks at `marks`, kept over what Igor made after his picture: none unless a mark sits on some of
+  /// `newer`; else, from the clear line at or above the top of the newer ink it sits on, everything below goes down by
+  /// whole lines until the first of it is `air` under the lowest mark. The marks stay where he put them. `ink` is all
+  /// that shows, `newer` among it.
+  public static func late(_ marks: [CGRect], newer: [CGRect], among ink: [CGRect]) -> Late {
+    let marks = marks.filter { !$0.isNull }
+    let covered = newer.filter { box in marks.contains { sitsOn($0, box) } }
+    guard let top = covered.map(\.minY).min(), let bottom = marks.map(\.maxY).max() else {
+      return Late(push: nil, covered: 0)
+    }
+    // Up to the top of the line of writing it starts in, however far: below it, the newer ink would stay covered.
+    let at = rows(ink).first { top > $0.lowerBound && top < $0.upperBound }?.lowerBound ?? top
+    guard let below = band(ink, at: at).below else { return Late(push: nil, covered: covered.count) }
+    let dy = max(0, ((bottom + air - below) / line).rounded(.up)) * line
+    return Late(push: dy > 0 ? Push(cut: at, dy: dy) : nil, covered: covered.count)
+  }
+
+  /// `late` over the board's strokes: what moves whole is newer than the picture taken at `seen` (unix ms) when any of
+  /// its strokes was made after it by Igor. A stroke whose making isn't known is taken as seen; one whose moment (unix
+  /// ms, a millisecond either way, as a saved drawing reads it back) is in `theirs` was made by Larry or Claude (a mark
+  /// of theirs kept, ink or a text of Larry's) and never makes room.
+  public static func late(
+    _ marks: [CGRect], seen: Int64, strokes: [BoardOps.Stroke], texts: [BoardText] = [],
+    groups: [String: String] = [:], folds: [String: String] = [:], theirs: Set<Int64> = []
+  ) -> Late {
+    let shown = BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: folds).filter { !$0.hidden }
+    let newer = shown.filter { item in
+      item.members.contains { member in
+        strokes[member].t.map { t in t > seen && ![t - 1, t, t + 1].contains(where: theirs.contains) } ?? false
+      }
+    }
+    return late(marks, newer: newer.map(\.bounds), among: shown.map(\.bounds))
+  }
+
+  /// Overlapping by some area: touching an edge isn't sitting on it.
+  private static func sitsOn(_ a: CGRect, _ b: CGRect) -> Bool {
+    let overlap = a.intersection(b)
+    return !overlap.isNull && overlap.width > 0 && overlap.height > 0
+  }
+
   /// Room that opens at a clear line: everything at or below `cut` goes down `dy`.
   public struct Push: Equatable, Sendable {
     public var cut: CGFloat

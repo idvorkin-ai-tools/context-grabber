@@ -40,7 +40,8 @@ suggest changes the board until Igor keeps it.
     keeping his four named boxes one mark at a time). When the chosen mark is one of Larry's and more of the marks from
     the same reply of his still show, a third button, **Keep group** with how many (*Keep group · 11*), sits between
     Keep and Dismiss. One tap keeps every mark of that reply still showing, where each showed, as ink in his colours:
-    nothing moves for Igor's writing, as nothing does for one Keep. **One undo takes them all back.**
+    nothing of Igor's moves, as with one Keep, unless the reply would land on what he wrote after Larry looked (below).
+    **One undo takes them all back.**
   - What it keeps is **one group**, as Larry's own groups are: a push or a paste's room never splits it, the Pencil
     held on any of it picks up all of it, and Larry hears it as one group (its strokes carry the same group note, named
     for his reply) that he can move or erase by that one name. Tidy overlaps leaves it as it is. A mark of the reply
@@ -53,6 +54,38 @@ suggest changes the board until Igor keeps it.
   - The session log says how many marks a group keep took, its strokes and its group's name.
   - **Keep** does what a tap used to: the mark becomes real ink in Claude's colour (or the one it asked for, below),
     and his eraser and undo treat it like his own strokes. One undo takes it back.
+  - **A reply of Larry's makes room for what Igor wrote after Larry looked** (#894, stories 1004–1006, 1037; Igor, 2026-11-14: push what he
+    wrote since the picture down the page to make room for Larry's reply, rather than put the reply below his ink;
+    2026-11-19, on a board where a kept group of Larry's landed on his writing: "group pushes purple text out of the
+    way"). Larry places a reply on the picture he was sent, often minutes old, and Igor keeps writing meanwhile. This
+    is the *A late reply* rule of the object-layer design (PR #912), which needs nothing from that design's objects.
+    - When **Keep** or **Keep group** would put marks of Larry's on ink drawn or pasted *after* the picture that reply
+      answers was taken (ink he could not have seen), that ink makes way in the same step: from the clear line at or
+      above the top of the newer ink the marks land on, everything below moves straight down by whole lines until the first
+      of it sits half a line under the lowest of the kept marks. Whole things move whole (a line of writing, a kept
+      text, a group, a folded section); nothing is scaled or split. Ink above that line stays.
+    - **His marks stay exactly where he put them**, beside what they name. Only the ink moves.
+    - **Ink that was in his picture never makes room this way.** If he drew over it (a circle round a word, an arrow
+      onto it) he meant to. A mark that lands on blank paper, beside ink without touching it, or only on ink he saw,
+      moves nothing, as before.
+    - **Only Igor's own ink makes room.** Marks of Larry's or Claude's kept or drawn after the picture (a box of his
+      kept a moment before the arrow that ends on it, a text of his, ink his changes drew) never do. The board knows
+      them on the device that kept them; a mark kept on another device is taken as Igor's.
+    - The keep and the room are **one step**: one Undo puts Igor's ink back up and takes the marks back, and Redo does
+      both. A page is added at the bottom when the push needs one.
+    - **A reply that arrives with the board closed** follows the same rule. The board remembers on this device when
+      each picture it sent Larry was taken, so a reply shown when the board next opens still knows what Igor wrote
+      after it. A reply to a picture this device doesn't remember (sent from another device, or more than 200 pictures
+      ago on this board) keeps as before, with nothing moved.
+    - It is Larry's drawn marks (Keep and Keep group). His text already makes room as it lands ([Larry edits the
+      board](2026-11-16-whiteboard-board-ops-design.md), *His text makes room*); *Keep all* lays his labels clear of
+      the writing (story 895); Claude's marks, which answer in seconds, are unchanged.
+    - Not yet (#912's *Reflow rules*): his other unkept marks don't slide with the ink, and blank paper further down
+      doesn't take up the push: the push moves everything below the line, as a paste's room does, marks of Larry's
+      kept earlier from the same reply included (Keep group keeps a reply whole, so this only bites when Igor keeps a
+      reply mark by mark).
+    - The session log's keep line says whether it made room, where and how far, how many things it landed on that Igor
+      wrote after the picture, and when that picture was taken, or that its time isn't known.
   - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the
     next time the board opens. The other marks stay, and the rest of an answer still on its way still lands.
   - **A tap anywhere else puts the buttons away and changes nothing**: no mark is kept or dismissed by a stray tap.
@@ -360,6 +393,10 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Draw two circles on the iPad and lift the Pencil: within about 5 s faint orange shapes appear, solid like ink. Tap
   one: Keep and Dismiss appear beside it and nothing else changes. Keep: it becomes orange ink, the same line only
   stronger, that the eraser removes and undo takes back. Dismiss on another: it goes, and the rest stay.
+- Tap Larry's turn, then write two lines below the last of the board's ink while he looks. When his reply lands where
+  those lines are, Keep group: his marks stay where they showed, the two lines and everything under them move down in
+  whole lines until they sit under his lowest mark, the ink above doesn't move, and one Undo puts the lines back and
+  takes his marks away. A reply that lands only on ink that was in his picture keeps with nothing moved.
 - Tap a mark at the very edge of the view: both buttons are wholly on screen. Tap off the marks, or start drawing:
   the buttons go and every mark is still there.
 - With the Cockpit streaming, marks appear one at a time, and the session log says how long the first one took. With a

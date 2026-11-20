@@ -7,7 +7,8 @@
 //
 //  A step file may also be a chat reply of Larry's with `shapes` (#941): his marks show as ghosts where the iPad puts
 //  them, and each is tried with a tap; `--tap x,y` is a finger tap at a board point; `--keep-group <reply id>` is
-//  Igor's Keep group (#942), the reply's marks kept as ink under one group.
+//  Igor's Keep group (#942), the reply's marks kept as ink under one group; `--keep-group <reply id>@<ms>` keeps it
+//  as if its picture was taken at that unix ms, so ink made after it makes room under the reply (#894).
 //
 //  Writes <prefix>.png (after), <prefix>-before.png, <prefix>.result.json (each step's op_result and what it touched)
 //  and <prefix>.board.json (the board after, to replay the next batch on). Prints the result JSON. Where there is no
@@ -59,7 +60,7 @@ struct Arguments {
 
   static let usage = """
     usage: board-ops-harness --board <snapshot.json> --ops <batch.json|reply.json> [--ops ...] [--keep id,id]
-                             [--tap x,y] [--keep-group <reply id>]
+                             [--tap x,y] [--keep-group <reply id>[@<picture ms>]]
                              [--out <prefix>] [--rev <n>] [--scale <px per point>]
     """
 }
@@ -83,7 +84,9 @@ func main() throws {
     if step.kind == "keep" {
       steps.append(.keep(step.value.split(separator: ",").map(String.init)))
     } else if step.kind == "keep-group" {
-      steps.append(.keepGroup(step.value))
+      // `<reply id>@<ms>`: when the picture it answers was taken, so ink made after it makes room (#894).
+      let parts = step.value.split(separator: "@", maxSplits: 1).map(String.init)
+      steps.append(.keepGroup(parts[0], seen: parts.count > 1 ? Int64(parts[1]) : nil))
     } else if step.kind == "tap" {
       let xy = step.value.split(separator: ",").compactMap { Double($0) }
       guard xy.count == 2 else { throw Failure(description: "--tap wants x,y") }

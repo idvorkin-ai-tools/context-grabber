@@ -80,6 +80,35 @@ public struct WhiteboardThreads: @unchecked Sendable {
   }
 }
 
+/// When each picture this device sent Larry was taken, unix ms, per board (#894, story 1006): a reply names its picture,
+/// and the ink made after that moment is what he couldn't have seen. Kept across launches, so a reply that lands with
+/// the board closed knows too. ponytail: UserDefaults on this device, the newest `kept` a board; a picture sent from
+/// another device isn't known, and its reply keeps with nothing moved.
+public struct WhiteboardPictureTimes: @unchecked Sendable {
+  public static let kept = 200
+  private let defaults: UserDefaults
+
+  public init(defaults: UserDefaults = .standard) {
+    self.defaults = defaults
+  }
+
+  private func key(_ board: String) -> String { "whiteboard_picture_times_\(board)" }
+
+  /// "<picture id> <ms>", oldest first.
+  private func entries(_ board: String) -> [String] { defaults.stringArray(forKey: key(board)) ?? [] }
+
+  public func record(_ pictureID: String, at ms: Int64, board: String) {
+    let others = entries(board).filter { !$0.hasPrefix("\(pictureID) ") }
+    defaults.set(Array((others + ["\(pictureID) \(ms)"]).suffix(Self.kept)), forKey: key(board))
+  }
+
+  /// When `pictureID` was taken on this board; nil for one this device doesn't remember.
+  public func taken(_ pictureID: String?, board: String) -> Int64? {
+    guard let pictureID else { return nil }
+    return entries(board).last { $0.hasPrefix("\(pictureID) ") }.flatMap { Int64($0.dropFirst(pictureID.count + 1)) }
+  }
+}
+
 public struct WhiteboardMarks: Sendable {
   /// One of Larry's rows on the thread.
   public struct Row: Equatable, Sendable {

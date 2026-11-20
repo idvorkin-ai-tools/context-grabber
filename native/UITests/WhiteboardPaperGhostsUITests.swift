@@ -35,7 +35,7 @@ struct PaperScreen {
     bytes = buffer
   }
 
-  private func box(_ matches: (Int, Int, Int) -> Bool) -> Box? {
+  private func box(in region: Box? = nil, _ matches: (Int, Int, Int) -> Bool) -> Box? {
     let started = Date()
     defer { print("ui-pixels: PaperScreen.box \(Int(Date().timeIntervalSince(started) * 1000)) ms") }
     // The extremes in pixels, turned into parts of the window once at the end.
@@ -45,7 +45,7 @@ struct PaperScreen {
       for y in stride(from: height / 5, to: height * 3 / 4, by: 2) {
         var i = y * width * 4
         for x in stride(from: 0, to: width, by: 2) {
-          if matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])) {
+          if matches(Int(bytes[i]), Int(bytes[i + 1]), Int(bytes[i + 2])), inside(x, y, region) {
             (minX, maxX) = (min(minX, x), max(maxX, x))
             (minY, maxY) = (min(minY, y), max(maxY, y))
           }
@@ -57,6 +57,16 @@ struct PaperScreen {
     let (w, h) = (CGFloat(width), CGFloat(height))
     return Box(minX: CGFloat(minX) / w, minY: CGFloat(minY) / h, maxX: CGFloat(maxX) / w, maxY: CGFloat(maxY) / h)
   }
+
+  /// The pixel at `x`, `y` is in `region` (parts of the window), or there is no region.
+  private func inside(_ x: Int, _ y: Int, _ region: Box?) -> Bool {
+    guard let region else { return true }
+    let (px, py) = (CGFloat(x) / CGFloat(width), CGFloat(y) / CGFloat(height))
+    return px >= region.minX && px <= region.maxX && py >= region.minY && py <= region.maxY
+  }
+
+  /// Black ink inside `region`.
+  func ink(in region: Box) -> Box? { box(in: region) { r, g, b in r < 70 && g < 70 && b < 70 } }
 
   /// A faint ghost of Claude's on pale paper, or a kept one at full strength.
   var orange: Box? { box { r, g, b in r > 225 && g > 120 && g < 225 && b < 170 && r - b > 80 } }
@@ -527,6 +537,45 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(send(app), label: strokes(1), timeout: 10)
     XCTAssertNil(PaperScreen(app).larryKept, "one press took the whole group back")
     shot(app, "kept group undone from the bar")
+  }
+
+  /// #894 (stories 1004, 1005): a line Igor writes after the picture went, where Larry's reply lands. Keep group pushes
+  /// the line down under the reply, his marks stay where they showed, and one undo puts the line back through them.
+  func testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard(["GRABBER_WHITEBOARD_AFTER_KEEP": "8,undo"])
+    ghosts(app).tap()  // Ghosts off: only Larry's marks show.
+    stroke(app, atHeight: 0.3)
+    wait(send(app), label: strokes(1))
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    try larryDraws(3, cockpit)
+    XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
+    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    // Written after his picture, straight through his circles.
+    app.coordinate(withNormalizedOffset: CGVector(dx: marks.minX - 0.03, dy: marks.center.y))
+      .press(
+        forDuration: 0.05,
+        thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: marks.maxX + 0.03, dy: marks.center.y)))
+    wait(send(app), label: strokes(2))
+    let under = PaperScreen.Box(minX: 0, minY: marks.maxY + 0.005, maxX: 1, maxY: marks.maxY + 0.12)
+    XCTAssertNotNil(PaperScreen(app).ink(in: marks), "the new line runs through his circles")
+    XCTAssertNil(PaperScreen(app).ink(in: under), "and nothing is under them yet")
+    shot(app, "a line written through his reply after the picture")
+    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.minY + (marks.maxY - marks.minY) * 0.3))
+    let group = app.buttons["whiteboard-mark-keep-group"]
+    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
+    group.tap()
+    waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
+    let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his reply as ink in his purple")
+    XCTAssertEqual(kept.center.y, marks.center.y, accuracy: 0.02, "his marks stay where they showed")
+    XCTAssertNotNil(PaperScreen(app).ink(in: under), "the line went down under his reply")
+    shot(app, "the line pushed under his kept reply")
+    waitUntil(NSPredicate(format: "label == %@", strokes(2)), send(app), timeout: 12)
+    XCTAssertNil(PaperScreen.settled(app) { $0.larryKept }, "one undo took his reply back")
+    XCTAssertNotNil(PaperScreen(app).ink(in: marks), "and put the line back where it was")
+    XCTAssertNil(PaperScreen(app).ink(in: under))
+    shot(app, "after one undo")
   }
 
   /// Stories 817, 818: Larry's text arrives as a ghost in his purple, keeps on a tap and Keep where it showed, goes back to
