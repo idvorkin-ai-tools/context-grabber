@@ -195,18 +195,17 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(
       WhiteboardNote.recent(thread),
       [
-        .init(id: "b", kind: .larry, who: "Larry", text: "This is where it goes, beside the box.", mark: nil),
-        .init(id: "d", kind: .larry, who: "Larry", text: "drew on the board", mark: nil),
-        .init(id: "e", kind: .you, who: "You", text: "make the box blue", mark: nil),
+        .init(id: "b", kind: .larry, who: "Larry", text: "This is where it goes, beside the box."),
+        .init(id: "d", kind: .larry, who: "Larry", text: "drew on the board"),
+        .init(id: "e", kind: .you, who: "You", text: "make the box blue"),
       ])
     XCTAssertEqual(
       WhiteboardNote.live(thread: thread, larry: turn, now: at(42), cockpitAnswering: true, said: said, micOn: true),
       [
         .init(
           id: "live-chip", kind: .live, who: "Your board",
-          text: "Larry · 0:42 · next: ink + words: and label the arrow",
-          mark: nil),
-        .init(id: "live-mic", kind: .live, who: "Hearing", text: "make it bigger", mark: nil),
+          text: "Larry · 0:42 · next: ink + words: and label the arrow"),
+        .init(id: "live-mic", kind: .live, who: "Hearing", text: "make it bigger"),
       ])
   }
 
@@ -243,8 +242,8 @@ final class WhiteboardNoteTests: XCTestCase {
       WhiteboardNote.live(larry: sent(), now: at(3), cockpitAnswering: false, said: said, micOn: true),
       [
         .init(
-          id: "live-chip", kind: .live, who: "Your board", text: "Larry · 0:03 · Cockpit not answering", mark: nil),
-        .init(id: "live-mic", kind: .live, who: "Hearing", text: "Listening…", mark: nil),
+          id: "live-chip", kind: .live, who: "Your board", text: "Larry · 0:03 · Cockpit not answering"),
+        .init(id: "live-mic", kind: .live, who: "Hearing", text: "Listening…"),
       ])
   }
 

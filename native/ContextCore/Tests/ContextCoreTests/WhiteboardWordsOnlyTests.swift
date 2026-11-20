@@ -80,7 +80,7 @@ final class WhiteboardWordsOnlyTests: XCTestCase {
       XCTAssertEqual(board.said.larry, "That box is the bottleneck, not the queue.")
       XCTAssertEqual(
         board.panel.last,
-        .init(id: "l2", kind: .larry, who: "Larry", text: "That box is the bottleneck, not the queue.", mark: nil))
+        .init(id: "l2", kind: .larry, who: "Larry", text: "That box is the bottleneck, not the queue."))
     }
   }
 

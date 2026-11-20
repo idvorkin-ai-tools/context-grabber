@@ -2509,6 +2509,9 @@ struct WhiteboardView: View {
   @ScaledMetric(relativeTo: .footnote) private var readableWidth: CGFloat = 470
   /// The page's height, for the open panel's fifth (story 837).
   @State private var pageHeight: CGFloat = 0
+  private var panelCap: CGFloat {
+    pageHeight > 0 ? CGFloat(WhiteboardNote.panelHeight(board: Double(pageHeight))) : CGFloat(WhiteboardNote.panelFloor)
+  }
   private let logger: BugLogger
   private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
@@ -2588,8 +2591,7 @@ struct WhiteboardView: View {
       // Story 1048 (#1003): the conversation sits above the paper and pushes it down, so it never covers ink. Story 837
       // (#917): a fifth of the page at most; past that it scrolls rather than grows.
       if model.conversationOpen, !onPhone {
-        conversation.frame(maxHeight: CGFloat(WhiteboardNote.panelHeight(board: Double(pageHeight))), alignment: .top)
-          .fixedSize(horizontal: false, vertical: true)
+        conversation.frame(maxHeight: panelCap, alignment: .top).layoutPriority(1)
       }
       Group {
         PaperBoardCanvas(model: model, log: log)

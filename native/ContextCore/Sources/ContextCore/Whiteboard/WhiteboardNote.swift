@@ -165,15 +165,12 @@ public enum WhiteboardNote {
     public let kind: Kind
     public let who: String
     public let text: String
-    /// The Cockpit's mark on a picture of Igor's: received, seen or done.
-    public let mark: String?
 
-    public init(id: String, kind: Kind, who: String, text: String, mark: String?) {
+    public init(id: String, kind: Kind, who: String, text: String) {
       self.id = id
       self.kind = kind
       self.who = who
       self.text = text
-      self.mark = mark
     }
   }
 
@@ -193,11 +190,11 @@ public enum WhiteboardNote {
       guard message.fromIgor else {
         return Row(
           id: message.id, kind: .larry, who: message.author ?? "Larry",
-          text: message.text.isEmpty ? "drew on the board" : message.text, mark: nil)
+          text: message.text.isEmpty ? "drew on the board" : message.text)
       }
       let words = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
       if !message.attachments.isEmpty, words.isEmpty || words == boardTurnNote { return nil }
-      return Row(id: message.id, kind: .you, who: "You", text: words.isEmpty ? "…" : message.text, mark: nil)
+      return Row(id: message.id, kind: .you, who: "You", text: words.isEmpty ? "…" : message.text)
     }
   }
 
@@ -234,10 +231,10 @@ public enum WhiteboardNote {
   ) -> [Row] {
     var rows: [Row] = []
     if let chip = chip(thread: thread, larry: larry, now: now, cockpitAnswering: cockpitAnswering, mark: mark) {
-      rows.append(Row(id: "live-chip", kind: .live, who: "Your board", text: chip, mark: nil))
+      rows.append(Row(id: "live-chip", kind: .live, who: "Your board", text: chip))
     }
     if micOn {
-      rows.append(Row(id: "live-mic", kind: .live, who: "Hearing", text: said.you ?? "Listening…", mark: nil))
+      rows.append(Row(id: "live-mic", kind: .live, who: "Hearing", text: said.you ?? "Listening…"))
     }
     return rows
   }
