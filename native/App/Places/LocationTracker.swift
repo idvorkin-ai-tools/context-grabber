@@ -20,6 +20,10 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
   @Published private(set) var you: CLLocation?
   /// Points written this launch, for the screen's count to move.
   @Published private(set) var pointsThisLaunch = 0
+  /// Each batch of stored points, for the arrivals and departures Larry hears about (#84).
+  var onPoints: (([LocationPoint]) -> Void)?
+  /// Recording started, with why (`launch` is a relaunch carrying on; anything else is the switch turned on).
+  var onStart: ((String) -> Void)?
 
   private let log: SessionLog
   private let store: LocationStore?
@@ -142,6 +146,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
     pointsSinceLog = 0
     lastPointLog = nil
     log.event("tracking", ["on": true, "reason": reason, "permission": Self.name(authorization)])
+    onStart?(reason)
   }
 
   private func stop(reason: String) {
@@ -276,6 +281,7 @@ final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelega
     lastErrorCode = nil
     do {
       try store?.insert(points)
+      onPoints?(points)
       pointsThisLaunch += points.count
       pointsSinceLog += points.count
       logPoints(force: lastPointLog == nil)

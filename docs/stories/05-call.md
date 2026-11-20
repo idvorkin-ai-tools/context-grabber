@@ -637,7 +637,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 099:
 
 - **Summary:** Larry hears that I arrived at a known place, within a few minutes, without a call
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too); nothing is sent yet. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built and verified by host tests against a fake Cockpit (`LiveContextSendTests`); the route is not on the Cockpit yet, so events wait and the phone is not yet seen. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
 
 #### Use Case:
 - **As a** Larry's client arriving at the gym
@@ -657,7 +657,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 335:
 
 - **Summary:** Larry hears that I left a known place, timed when I walked out
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built and verified by host tests (`LiveContextDetectorTests`); nothing is sent yet
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`); sending it, with the minutes stayed, by `LiveContextSendTests` against a fake Cockpit; the Cockpit's route and the phone not yet seen
 
 #### Use Case:
 - **As a** Larry's client leaving the gym
@@ -677,7 +677,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 336:
 
 - **Summary:** Passing a known place, or a position the phone itself reports as imprecise, tells Larry nothing
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Verified by host tests (`LiveContextDetectorTests`: driving past, stepping out and back, a 1.4 km fix at home on the real trail sending no departure)
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19); verified by host tests (`LiveContextDetectorTests`: driving past, stepping out and back, a 1.4 km fix at home on the real trail sending no departure)
 
 #### Use Case:
 - **As a** Larry's client who drives past the gym on the way to work
@@ -689,6 +689,26 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** Kettlebility is a known place and location recording is on
 - **When:** the phone passes through its circle in under five minutes
 - **Then:** nothing is sent to Larry
+
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
+---
+
+### User Story 337:
+
+- **Summary:** An arrival made off the tailnet waits, and reaches Larry with the time it happened
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Held, retried oldest first with the same id, refused ones not retried, dropped after a day: verified by host tests against a fake Cockpit (`LiveContextSendTests`). Nothing on the Cockpit takes these yet (cockpit#63 item 1), so the phone is not yet seen
+
+#### Use Case:
+- **As a** Larry's client whose phone is sometimes off the tailnet
+- **I want to** have an arrival the Cockpit could not take sent later, once
+- **so that** Larry hears it with the time I walked in, not the time it got through
+
+#### Acceptance Criteria:
+- **Scenario:** The Cockpit unreachable at the gym
+- **Given:** the phone cannot reach the Cockpit when it settles at Kettlebility
+- **When:** the Cockpit is next reachable, within a day
+- **Then:** Larry's record shows *arrived at Kettlebility* once, with the time I walked in, and the session log shows the `live_context` line waiting and then sent
 
 - **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
 
