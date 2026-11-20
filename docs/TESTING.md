@@ -148,8 +148,8 @@ and bridge's default ports move up by ten per lane (`BUILD_LANE_PORT_OFFSET`), s
 **One booted simulator per lane, left booted between runs; switched only when the device changes** (stories 980–983,
 985). Every script that needs a simulator goes through `scripts/native/sim-boot.sh <name|udid>`. On a one-lane Mac it
 shuts down any *other* booted simulator (one takes about 10 GB of a 16 GB Mac), as before. With more lanes it shuts
-down the lane's other device and any simulator that belongs to no lane, never one whose lane's lock another job holds,
-and an idle lane's only to keep the booted count at or under the lane count. It boots its own only if it isn't up
+down the lane's other device and any simulator that belongs to no lane (counted as lane 1's), never one whose lane's
+lock another job holds, and an idle lane's only to keep the booted count at or under the lane count. It boots its own only if it isn't up
 (`simctl bootstatus -b`). Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 300 MB of wallpaper snapshots
 (`PRBPosterExtensionDataStore`) that are never evicted, and spikes the CPU. On 2026-11-14 that was 31 boots, and on
 2026-11-17 the snapshots filled the disk. The rung's iPhone steps (chat, places, the other classes, the smoke, the chat

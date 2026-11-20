@@ -167,7 +167,7 @@ TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2 FAKE_HELD=build.lock
 is "a busy lane's simulator is left booted" "$(state_of "$PHONE")" Booted
 has "and it says why" "$out" "leaving 'iPhone 17' booted: build lane 1 is busy"
 is "the lane's other device is shut down" "$(state_of "$L2PAD")" Shutdown
-is "a simulator of no lane is shut down" "$(state_of "$OTHER")" Shutdown
+is "a simulator of no lane counts as lane 1's: busy, so left booted" "$(state_of "$OTHER")" Booted
 is "an idle lane's, within the lane count, stays booted" "$(state_of "$L3PHONE")" Booted
 is "the target is booted" "$(state_of "$L2PHONE")" Booted
 devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 lane 2" "$L3PHONE:Booted:iPhone 17 lane 3"
@@ -182,6 +182,21 @@ devices "$PHONE:Booted:iPhone 17" "$PAD:Booted:iPad Pro 11-inch (M5)" "$L2PAD:Bo
 TARGET=$PHONE boot BUILD_LANES=4 BUILD_LANE=1 FAKE_HELD=build-2.lock
 is "lane 1 moving to its phone: its iPad is shut down" "$(state_of "$PAD")" Shutdown
 is "and lane 2's busy iPad is not" "$(state_of "$L2PAD")" Booted
+devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 lane 2"
+TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2 FAKE_HELD=build.lock SIM=$L2PHONE
+is "SIM a udid, lane 1 busy: lane 1's iPhone 17 stays booted" "$(state_of "$PHONE")" Booted
+devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 lane 2" "$OTHER:Booted:iPhone 16e"
+TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2
+is "lane 1 idle: a simulator of no lane is shut down" "$(state_of "$OTHER")" Shutdown
+devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 Pro lane 2"
+TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2 FAKE_HELD=build.lock "SIM=iPhone 17 Pro"
+is "SIM another model, lane 1 busy: lane 1's iPhone 17 stays booted" "$(state_of "$PHONE")" Booted
+devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 Pro lane 2"
+TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2 "SIM=iPhone 17 Pro"
+is "SIM another model, lane 1 idle: its iPhone 17 belongs to no lane and is shut down" "$(state_of "$PHONE")" Shutdown
+devices "$PHONE:Shutdown:iPhone 17" "$OTHER:Booted:iPhone 16e"
+TARGET=$PHONE boot BUILD_LANES=4 BUILD_LANE=1
+is "lane 1's own job shuts a simulator of no lane down" "$(state_of "$OTHER")" Shutdown
 # One lane: every other booted simulator shut down, exactly as before lanes, whatever else holds a lock.
 devices "$PHONE:Shutdown:iPhone 17" "$PAD:Booted:iPad Pro 11-inch (M5)" "$L2PHONE:Booted:iPhone 17 lane 2" "$OTHER:Booted:iPhone 16e"
 TARGET="iPhone 17" boot BUILD_LANES=1 BUILD_LANE=1 FAKE_HELD=build-2.lock

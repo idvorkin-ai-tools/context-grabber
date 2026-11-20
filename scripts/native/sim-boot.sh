@@ -3,8 +3,9 @@
 # booted afterwards for the lane's next run: an iOS 27 boot writes about 300 MB of wallpaper snapshots that are never
 # evicted, and spikes the CPU. One booted simulator takes about 10 GB, so no more stay booted than the Mac has build
 # lanes (story 985, #954; scripts/native/build-lane.sh). On a one-lane Mac every other booted simulator is shut down
-# first, as before lanes. With more lanes: the lane's other device and any simulator of no lane are shut down, a busy
-# lane's simulator never is, and an idle lane's only to keep the booted count at or under the lane count.
+# first, as before lanes. With more lanes: the lane's other device and any idle simulator of no lane are shut down, a
+# busy lane's simulator never is (a name of no lane counts as lane 1's), and an idle lane's only to keep the booted
+# count at or under the lane count.
 # Run it inside a build lane (build-lane.sh run).
 # Usage: sim-boot.sh <simulator name or udid>
 set -uo pipefail
@@ -25,14 +26,16 @@ else
     [ -n "$other" ] && [ "$other" != "$udid" ] || continue
     base=$name lane=1
     if [[ $name =~ $laned ]]; then base=${BASH_REMATCH[1]} lane=${BASH_REMATCH[2]}; fi
-    if [ "$base" != "$phone" ] && [ "$base" != "$pad" ]; then
-      echo "sim-boot: shutting down '$name', which belongs to no build lane"
-      xcrun simctl shutdown "$other" 2>/dev/null
-    elif [ "$lane" = "$own" ]; then
+    if [ "$base" != "$phone" ] && [ "$base" != "$pad" ]; then foreign=1; else foreign=; fi
+    if [ "$lane" = "$own" ]; then
+      [ -z "$foreign" ] || echo "sim-boot: shutting down '$name', which belongs to no build lane"
       xcrun simctl shutdown "$other" 2>/dev/null  # this lane's other device
     elif "$here/build-lane.sh" busy "$lane"; then
       busy=$((busy + 1))
       echo "sim-boot: leaving '$name' booted: build lane $lane is busy"
+    elif [ -n "$foreign" ]; then
+      echo "sim-boot: shutting down '$name', which belongs to no build lane"
+      xcrun simctl shutdown "$other" 2>/dev/null
     else
       idle+=("$lane $other $name")
     fi

@@ -565,7 +565,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 785:
 
 - **Summary:** Up to four Mac and simulator jobs at once, as many as the Mac's memory allows
-- **Status:** implemented in 01bc1ce9; verified on the host by `scripts/native/test-build-lane.sh` (the lane count from the memory and from `BUILD_LANES`, the first free lane's lock, lane N's simulator named and cloned once, the wait for other xcodebuilds per lane, one lane unchanged) and the ladder's map self-test (the simulator rung takes a lane's lock)
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (the lane count from the memory and from `BUILD_LANES`; the rest in stories 786–789)
 - **Issues:** #954 (Igor, 2026-11-19, on the M5 Pro MacBook Pro, 48 GB, 18 cores: "this machine has way more horsepower so you can run multi simulators", "we can run 4 builds at once on this machine")
 
 #### Use Case:
@@ -579,21 +579,77 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** a Mac or simulator rung starts
 - **Then:** the Mac has four build lanes (one for every 12 GB, at most four, at least one): one on a 16 GB Mac, and `BUILD_LANES` names any other number
 
+---
+
+### User Story 786:
+
+- **Summary:** A job takes the first free build lane
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (the first free lane's lock, every lane busy past the wait, a command's own exit 75) and the ladder's map self-test (the simulator rung takes a lane's lock)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** with several agents running simulator checks at once
+- **I want to** have a job start in whichever lane is free, on that lane's own simulators and fake-server ports
+- **so that** it waits only when every lane is busy, and the wait is counted apart from the rung's own time
+
+#### Acceptance Criteria:
 - **Scenario:** A job takes the first free lane
 - **Given:** four lanes, with lanes 1 and 2 busy
 - **When:** a third agent's simulator rung starts
 - **Then:** it runs at once in lane 3, says so, and uses lane 3's own simulators (*iPhone 17 lane 3*, *iPad Pro 11-inch (M5) lane 3*) and its own fake-server ports; when all four are busy it waits, for up to an hour, and the ladder counts that wait apart from the rung's own seconds
 
+---
+
+### User Story 787:
+
+- **Summary:** A lane's simulator is made once, as a copy of lane 1's
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (lane N's simulator named, cloned once under lane 1's lock, or made fresh when lane 1 stays busy)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** starting a lane that has never run on this Mac
+- **I want to** have its simulators made once as copies of lane 1's
+- **so that** the copy keeps Health access and the seeded data, and no one grants Health again per lane
+
+#### Acceptance Criteria:
 - **Scenario:** A lane's simulator, the first time
 - **Given:** lane 3 has never run on this Mac
 - **When:** its first job needs the iPhone simulator
 - **Then:** *iPhone 17 lane 3* is made once as a copy of *iPhone 17*, taken while lane 1 is idle so the copy keeps Health access and the seeded data; `just native-sim-lanes` makes every lane's copies ahead of time
 
+---
+
+### User Story 788:
+
+- **Summary:** The wait for other Xcode builds counts the lanes
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (the xcodebuild wait's threshold per lane)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** with four lanes and other agents' xcodebuilds running
+- **I want to** have a simulator rung start while fewer others run than there are lanes
+- **so that** parallel lanes are not held back by each other, while a one-lane Mac waits for any other as before
+
+#### Acceptance Criteria:
 - **Scenario:** Other Xcode builds
 - **Given:** four lanes and three other xcodebuilds running
 - **When:** a simulator rung is about to start
 - **Then:** it starts; with four others running it waits, and refuses after half an hour; on a one-lane Mac it waits for any other, as before
 
+---
+
+### User Story 789:
+
+- **Summary:** A one-lane Mac runs one job at a time, as before lanes
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (one lane exactly the old lockf) and the ladder's map self-test (pinned to one lane)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** on a 16 GB Mac, or with checkouts that predate the lanes
+- **I want to** have a second simulator rung wait on the same lock as before
+- **so that** older and newer checkouts still exclude each other and nothing changes on a small Mac
+
+#### Acceptance Criteria:
 - **Scenario:** A one-lane Mac
 - **Given:** a 16 GB Mac
 - **When:** two agents start simulator rungs
@@ -601,10 +657,86 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 790:
+
+- **Summary:** Another lane's busy simulator is never shut down
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (a busy lane's simulator left booted, the lane's other device shut down, a simulator of no lane left while lane 1 is busy and shut down while it is idle, with SIM a udid or another model)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** with jobs in several lanes at once
+- **I want to** have a job booting its own simulator leave every busy lane's simulator alone
+- **so that** no job loses its simulator mid-run
+
+#### Acceptance Criteria:
+- **Scenario:** Another lane is busy
+- **Given:** a Mac with four build lanes, and a job in lane 1 running its tests on the iPhone simulator
+- **When:** a job in lane 2 boots its own iPhone simulator (*iPhone 17 lane 2*)
+- **Then:** lane 1's simulator stays booted and its tests run on; lane 2's iPad, if booted, is shut down first, and a simulator that belongs to no lane counts as lane 1's, so it is left booted too until lane 1 is idle
+
+---
+
+### User Story 791:
+
+- **Summary:** Idle simulators past the lane count are shut down
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (an idle lane's shut down only past the lane count, under its lane's lock; busy ones never)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** on a Mac whose lane count dropped, or with idle lanes' simulators still booted
+- **I want to** have idle simulators shut down until no more are booted than there are lanes
+- **so that** booted simulators never starve each other
+
+#### Acceptance Criteria:
+- **Scenario:** More booted than there are lanes
+- **Given:** a Mac with two build lanes, lane 2's job about to boot, and lane 1 idle with its simulator still booted from its last run, plus lane 3's from when the Mac had more lanes
+- **When:** lane 2 boots its simulator
+- **Then:** idle simulators are shut down until no more than two are booted, its own included, and a busy lane's never is
+
+---
+
+### User Story 792:
+
+- **Summary:** A one-lane Mac shuts every other simulator down, as before lanes
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (one lane: only the target booted, no lock asked)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** on a 16 GB Mac, or with `BUILD_LANES=1`
+- **I want to** have every other booted simulator shut down before a job boots its own
+- **so that** one booted simulator never starves the 16 GB Mac
+
+#### Acceptance Criteria:
+- **Scenario:** A one-lane Mac
+- **Given:** a 16 GB Mac, or `BUILD_LANES=1`
+- **When:** a job boots its simulator
+- **Then:** every other booted simulator is shut down first, exactly as before lanes
+
+---
+
+### User Story 793:
+
+- **Summary:** Another lane's simulator stays up within the lane count
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (an idle lane's, within the lane count, stays booted)
+- **Issues:** #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
+
+#### Use Case:
+- **As Igor,** on a 48 GB Mac with room for four booted simulators
+- **I want to** have another lane's simulator left booted while no more than four are booted
+- **so that** that lane's next run finds it up and pays no boot
+
+#### Acceptance Criteria:
+- **Scenario:** Another lane's simulator is up
+- **Given:** a Mac with four build lanes and another lane's simulator booted
+- **When:** a run needs its own device
+- **Then:** the other lane's simulator is left booted, busy or idle, while no more than four are booted with this run's
+
+---
+
 ### User Story 980:
 
 - **Summary:** One booted simulator per build lane, left booted between runs
-- **Status:** implemented in f63a8e0, d1e8e18; verified on the host by the ladder's map self-test (265 checks: the phone and the iPad booted with `bootstatus -b`, nothing shut down at the end) and on the simulator 2026-11-17 (rung 2, `--changed` WhiteboardTurnUITests and GymTimerUITests, twice in a row): the old scripts booted 3 times each run (236 s, 273 s), these 2 then 1 (240 s, 178 s); the second run found the iPad booted and used it with no boot (CoreSimulator.log, boots inside each rung's own window). Per lane (#954): implemented in 01bc1ce9; verified on the host by `scripts/native/test-build-lane.sh` (a busy lane's simulator left booted, the lane's other device and a simulator of no lane shut down, an idle lane's shut down only past the lane count, one lane shutting every other down as before)
+- **Status:** implemented in f63a8e0, d1e8e18; verified on the host by the ladder's map self-test (265 checks: the phone and the iPad booted with `bootstatus -b`, nothing shut down at the end) and on the simulator 2026-11-17 (rung 2, `--changed` WhiteboardTurnUITests and GymTimerUITests, twice in a row): the old scripts booted 3 times each run (236 s, 273 s), these 2 then 1 (240 s, 178 s); the second run found the iPad booted and used it with no boot (CoreSimulator.log, boots inside each rung's own window). Per lane (#954): implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (the lane's own simulator booted and left up; the rest in stories 790–792)
 - **Issues:** the boot-less brief of 2026-11-15 (Igor: "sure do it"); 31 boots on 2026-11-14, and the disk full of wallpaper snapshots on 2026-11-17; #954 (Igor, 2026-11-19, on the 48 GB M5 Pro: "we can run 4 builds at once on this machine")
 
 #### Use Case:
@@ -617,21 +749,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a simulator run that just passed or failed on the iPhone simulator of its lane
 - **When:** the next run in that lane needs the iPhone simulator too
 - **Then:** it finds it booted and uses it without a boot, and the simulator log shows no new boot
-
-- **Scenario:** Another lane is busy
-- **Given:** a Mac with four build lanes, and a job in lane 1 running its tests on the iPhone simulator
-- **When:** a job in lane 2 boots its own iPhone simulator (*iPhone 17 lane 2*)
-- **Then:** lane 1's simulator stays booted and its tests run on; lane 2's iPad, if booted, and any simulator that belongs to no lane are shut down first
-
-- **Scenario:** More booted than there are lanes
-- **Given:** a Mac with two build lanes, lane 2's job about to boot, and lane 1 idle with its simulator still booted from its last run, plus lane 3's from when the Mac had more lanes
-- **When:** lane 2 boots its simulator
-- **Then:** idle simulators are shut down until no more than two are booted, its own included, and a busy lane's never is
-
-- **Scenario:** A one-lane Mac
-- **Given:** a 16 GB Mac, or `BUILD_LANES=1`
-- **When:** a job boots its simulator
-- **Then:** every other booted simulator is shut down first, exactly as before lanes
 
 ---
 
@@ -712,7 +829,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 985:
 
 - **Summary:** No more simulators booted than the Mac has build lanes (one on a 16 GB Mac)
-- **Status:** implemented in f63a8e0; verified on the host by the ladder's map self-test (the iPad booted: it is shut down before the phone boots). Per lane (#954): implemented in 01bc1ce9; verified on the host by `scripts/native/test-build-lane.sh`
+- **Status:** implemented in f63a8e0; verified on the host by the ladder's map self-test (the iPad booted: it is shut down before the phone boots). Per lane (#954): implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh`
 - **Issues:** split from story 980; #954
 
 #### Use Case:
@@ -725,11 +842,6 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a Mac with one build lane, and a different simulator booted by any earlier run
 - **When:** a run needs its own device
 - **Then:** the other is shut down before its device boots, so only one is ever booted
-
-- **Scenario:** Another lane's simulator is up
-- **Given:** a Mac with four build lanes and another lane's simulator booted
-- **When:** a run needs its own device
-- **Then:** the other lane's simulator is left booted, busy or idle, while no more than four are booted with this run's
 
 ---
 
