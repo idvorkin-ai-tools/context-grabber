@@ -19,6 +19,7 @@ import UIKit
 
 final class CallAudioEngine: CallAudio, @unchecked Sendable {
   var onHealth: ((String?) -> Void)?
+  var onMicReopened: ((String) -> Void)?
 
   private let log: @Sendable (String, [String: Any]) -> Void
   private let queue = DispatchQueue(label: "grabber.call.audio")
@@ -545,7 +546,12 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       clockPrev = 0
       clockAdvancedAt = nowMs
     }
-    if wasListening { try armTap() }
+    if wasListening {
+      try armTap()
+      // #433, story 334: the session's first-frame window starts again from this reopen. Its own heal (`restart`)
+      // re-arms that watch itself, and the stall re-arm never comes through here.
+      if why != "restart" { main { [weak self] in self?.onMicReopened?(why) } }
+    }
   }
 
   /// A heal's rebuild, tried again when it fails (#186: a failure used to leave the engine stopped, so the rest of

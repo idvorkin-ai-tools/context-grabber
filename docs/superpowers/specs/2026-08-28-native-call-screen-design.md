@@ -14,6 +14,7 @@
 **Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 **Amended:** 2026-10-27, [#556](https://github.com/idvorkin/context-grabber/issues/556) — a Direct call picks its speech-to-text: Default, Nova-3 or Flux
 **Amended:** 2026-11-03, [#532](https://github.com/idvorkin/context-grabber/issues/532) — a half-said sentence stays in the live line when something else arrives
+**Amended:** 2026-11-19, [#433](https://github.com/idvorkin/context-grabber/issues/433) — the microphone's startup window starts again whenever the audio rebuilds itself before the first buffer
 **Amended:** 2026-11-19, [#897](https://github.com/idvorkin/context-grabber/issues/897) — Igor's latest sentence shows *sent* when it has left the phone, then *heard* when the agent has it
 **Amended:** 2026-11-14, [#582](https://github.com/idvorkin/context-grabber/issues/582) — a call whose microphone is refused because the app is not in front holds, asks Igor to open Grabber, and starts the mic when he does, instead of resetting and redialling
 
@@ -473,6 +474,19 @@ the window cancels the no-buffer heal. Built-in and wired microphones with a val
 sample rate retain the short watch; mid-call stalls and the other heals are unchanged.
 Diagnostics record the selected deadline and whether Bluetooth, a zero sample rate,
 or the ordinary startup watch chose it, so the next phone log can explain the wait.
+
+**The window counts from the latest reopen**
+([#433](https://github.com/idvorkin/context-grabber/issues/433)). The audio can
+rebuild itself before the microphone's first buffer — iOS changing the route or the
+audio configuration, or the speaker's clock not starting — and each rebuild opens the
+microphone again. The startup window then starts again from that reopen, rather than
+running on from the first open: a car microphone rebuilt two seconds into its ten
+gets ten more, not eight. The window is never shortened by a reopen (a Bluetooth
+window stays ten seconds even if the reopened route looks ordinary), only lengthened
+when the new route needs more. A reopen after the first buffer, or once the call has
+given up on the microphone, changes nothing. A route that keeps flapping cannot hold
+the heal off forever: three reopens restart one window, and a fourth leaves it running. Diagnostics record each restart of the
+window and what reopened the microphone.
 
 ### Starting a call
 
@@ -960,7 +974,8 @@ delivers is separate and unchanged: once per dead burst.
 30. **No-frames self-heal.** Diagnostics on any call where the mic never
     delivered shows the chosen no-buffer deadline (1.5 seconds for a valid built-in
     or wired mic, 10 seconds for Bluetooth or a zero sample rate) and its reason, then
-    an audio reset after that deadline and
+    an audio reset after that deadline — counted from the latest time the audio
+    reopened the mic, each reopen logged (#433) — and
     either `first mic frame` (healed) or `still no mic buffer → redialing`
     followed by a fresh `start` on the same backend; the screen shows
     *Calling Larry…* again briefly and then *live*, without a tap. The

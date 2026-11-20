@@ -73,6 +73,78 @@ final class MicStartupDeadlineTests: XCTestCase {
     XCTAssertEqual(t.connects.count, 2)
   }
 
+  // #433, story 334: the audio rebuilt itself and reopened the mic 2 s into a Bluetooth window: ten more seconds.
+  func testAnEngineReopenBeforeTheFirstBufferRestartsTheWindowFromThatReopen() {
+    let t = CallHarness()
+    t.audio.startupDeadline = MicStartupDeadline(bluetooth: true)
+    t.goLive()
+    t.clock.advance(2000)
+    t.audio.onMicReopened?("route change")
+    XCTAssertEqual(t.last("call_mic")?["action"] as? String, "first_frame_watch")
+    XCTAssertEqual(t.last("call_mic")?["reopened"] as? String, "route change")
+    XCTAssertEqual(t.last("call_mic")?["deadline_s"] as? Double, 10)
+    t.clock.advance(9999)
+    XCTAssertEqual(t.audio.restarts, 0, "ten seconds from the reopen, not eight")
+    t.clock.advance(1)
+    XCTAssertEqual(t.audio.restarts, 1)
+  }
+
+  func testAReopenOnAnOrdinaryLookingRouteNeverShortensAGrantedWindow() {
+    let t = CallHarness()
+    t.audio.startupDeadline = MicStartupDeadline(bluetooth: true)
+    t.goLive()
+    t.clock.advance(3000)
+    t.audio.startupDeadline = MicStartupDeadline(sampleRate: 48000)
+    t.audio.onMicReopened?("clock")
+    XCTAssertEqual(t.last("call_mic")?["deadline_s"] as? Double, 10)
+    t.clock.advance(9999)
+    XCTAssertEqual(t.audio.restarts, 0)
+    t.clock.advance(1)
+    XCTAssertEqual(t.audio.restarts, 1)
+  }
+
+  func testAReopenGrowsAnOrdinaryWindowWhenTheNewRouteIsBluetooth() {
+    let t = CallHarness()
+    t.goLive()
+    t.clock.advance(1000)
+    t.audio.startupDeadline = MicStartupDeadline(bluetooth: true)
+    t.audio.onMicReopened?("route change")
+    t.clock.advance(9999)
+    XCTAssertEqual(t.audio.restarts, 0)
+    t.clock.advance(1)
+    XCTAssertEqual(t.audio.restarts, 1)
+  }
+
+  func testAReopenAfterTheFirstBufferOrAfterGivingUpChangesNothing() {
+    let t = CallHarness()
+    t.audio.startupDeadline = MicStartupDeadline(bluetooth: true)
+    t.goLive()
+    t.audio.mic(480, value: 0.3)
+    t.socket.say(["type": "mic_ack", "token": 1])
+    let logged = t.events.count
+    t.audio.onMicReopened?("route change")
+    t.clock.advance(30000)
+    XCTAssertEqual(t.audio.restarts, 0)
+    XCTAssertFalse(t.events[logged...].contains { $0.0 == "call_mic" && $0.1["reopened"] != nil })
+  }
+
+  func testAFlappingRouteRestartsTheWindowOnlyThreeTimes() {
+    let t = CallHarness()
+    t.audio.startupDeadline = MicStartupDeadline(bluetooth: true)
+    t.goLive()
+    for _ in 0..<CallSession.reopensPerWatch {
+      t.clock.advance(5000)
+      t.audio.onMicReopened?("route change")
+    }
+    t.clock.advance(5000)
+    t.audio.onMicReopened?("route change")
+    XCTAssertEqual(t.last("call_mic")?["action"] as? String, "reopen_kept")
+    t.clock.advance(4999)
+    XCTAssertEqual(t.audio.restarts, 0)
+    t.clock.advance(1)
+    XCTAssertEqual(t.audio.restarts, 1, "ten seconds from the third reopen")
+  }
+
   func testHangupCancelsTheLongWatch() {
     let t = CallHarness()
     t.audio.startupDeadline = MicStartupDeadline(bluetooth: true)

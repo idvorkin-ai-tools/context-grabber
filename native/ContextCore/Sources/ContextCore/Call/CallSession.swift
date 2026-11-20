@@ -115,6 +115,9 @@ public protocol BridgeSocket: AnyObject {
 public protocol CallAudio: AnyObject {
   /// The audio layer's own verdict — a mic that stopped, audio not playing — or nil when fine. Set by the session.
   var onHealth: ((String?) -> Void)? { get set }
+  /// #433, story 334: the audio rebuilt itself and opened the mic again (a route or configuration change, a stalled
+  /// clock), with why. Set by the session; not called for the session's own `restartMic`.
+  var onMicReopened: ((String) -> Void)? { get set }
   /// Session, permission, echo cancellation. Called before the socket opens, so the prompt comes first.
   func prepare(_ done: @escaping (Error?) -> Void)
   /// Open the mic; every buffer arrives with the engine's actual rate.
@@ -183,6 +186,8 @@ public final class CallSession {
   public static let micNotReaching = "the microphone is not reaching Larry"
   /// Ordinary startup watch (#88); Bluetooth and a zero input rate get longer (#423).
   public static let firstFrameMs = MicStartupDeadline().ms
+  /// #433, story 334: engine reopens that restart one first-frame watch; later ones keep the window running.
+  public static let reopensPerWatch = 3
   /// How long the bridge gets to acknowledge the first mic frame. Mirrors the page.
   public static let micAckMs = 5000.0
   /// Both directions' counters go in the log this often (#106).
@@ -233,6 +238,8 @@ public final class CallSession {
   private var outRate = 24000.0
   private var micOpenedAt = 0.0
   private var firstFrameDeadline = MicStartupDeadline()
+  /// #433: how many engine reopens this watch has restarted from; a route that keeps flapping can't hold off the heal.
+  private var watchReopens = 0
   /// One automatic redial per dead burst; cleared by a call whose mic delivers.
   private var redialed = false
   /// #440: when the phone's network last changed under this call (0: not since it started).
@@ -266,6 +273,7 @@ public final class CallSession {
     self.deps = deps
     self.url = url
     deps.audio.onHealth = { [weak self] problem in self?.onAudioHealth(problem) }
+    deps.audio.onMicReopened = { [weak self] why in self?.onMicReopened(why: why) }
   }
 
   // MARK: - controls
@@ -619,14 +627,32 @@ public final class CallSession {
     firstFrameTimer?.cancel()
     micOpenedAt = deps.scheduler.now
     firstFrameDeadline = deps.audio.micStartupDeadline()
+    watchReopens = 0
     scheduleFirstFrameWatch()
   }
 
+  /// #433, story 334: a mic the audio reopened before its first buffer gets its window again from the reopen, never
+  /// shorter than the one already granted. After the first buffer, or with no watch running, nothing changes.
+  private func onMicReopened(why: String) {
+    guard snapshot.state == .live, micBuffers == 0, let timer = firstFrameTimer else { return }
+    guard watchReopens < Self.reopensPerWatch else {
+      log("call_mic", ["action": "reopen_kept", "reopened": why, "restarts": watchReopens])
+      return
+    }
+    watchReopens += 1
+    timer.cancel()
+    micOpenedAt = deps.scheduler.now
+    firstFrameDeadline = firstFrameDeadline.extended(by: deps.audio.micStartupDeadline())
+    scheduleFirstFrameWatch(reopened: why)
+  }
+
   // #423, story 204: recheck before each reset/redial; the route may have begun settling meanwhile.
-  private func scheduleFirstFrameWatch() {
-    log(
-      "call_mic",
-      ["action": "first_frame_watch", "deadline_s": firstFrameDeadline.ms / 1000, "why": firstFrameDeadline.why])
+  private func scheduleFirstFrameWatch(reopened: String? = nil) {
+    var fields: [String: Any] = [
+      "action": "first_frame_watch", "deadline_s": firstFrameDeadline.ms / 1000, "why": firstFrameDeadline.why,
+    ]
+    if let reopened { fields["reopened"] = reopened }
+    log("call_mic", fields)
     let remaining = max(0, micOpenedAt + firstFrameDeadline.ms - deps.scheduler.now)
     firstFrameTimer = deps.scheduler.after(remaining) { [weak self] in self?.onNoFirstFrame() }
   }

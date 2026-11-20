@@ -774,6 +774,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 334:
+
+- **Summary:** A car microphone that the audio reopens while it is still starting gets its full window again
+- **Status:** implemented in [e2e4d7a](https://github.com/idvorkin/context-grabber/commit/e2e4d7a3); verified by `just test` (host, `MicStartupDeadlineTests`: a reopen 2 s into a Bluetooth window gives ten more seconds, an ordinary-looking reopen never shortens it, a Bluetooth reopen grows an ordinary one, a reopen after the first buffer changes nothing, a fourth reopen keeps the window running) and `SMOKE_ONLY=call just native-test-sim` (the synthetic fake-bridge call; the real-audio call was skipped with the Mac locked, so the engine side is built, not run); a call in the car not yet
+- **Issues:** [#433](https://github.com/idvorkin/context-grabber/issues/433)
+- **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
+
+#### Use Case:
+- **As a** Larry's client calling from the car
+- **I want to** have the Bluetooth microphone's settling window start again when the audio rebuilds itself before the microphone has delivered anything
+- **so that** a rebuild early in startup does not cut the microphone's time short and set off a reset while it is still waking up
+
+#### Acceptance Criteria:
+- **Scenario:** The audio reopens the microphone during its startup window
+- **Given:** a call whose Bluetooth microphone has a ten-second window and has delivered no buffer
+- **When:** two seconds in, the audio rebuilds itself and opens the microphone again
+- **Then:** no reset comes until ten seconds after that reopen, the window is never shortened by it, Diagnostics record the restart and what reopened the microphone, a reopen after the first buffer changes nothing, and after three reopens in one window a fourth leaves the window running so a flapping route cannot hold off the reset
+
+---
+
 ### User Story 205:
 
 - **Summary:** Call Direct Larry from the app — my words straight to Larry, his answer in his own voice

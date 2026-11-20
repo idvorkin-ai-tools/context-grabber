@@ -91,6 +91,7 @@ final class FakeAudio: CallAudio {
   var startupDeadline = MicStartupDeadline()
   func micStartupDeadline() -> MicStartupDeadline { startupDeadline }
   var onHealth: ((String?) -> Void)?
+  var onMicReopened: ((String) -> Void)?
   var calls: [String] = []
   var prepareError: Error?
   var startMicError: Error?
