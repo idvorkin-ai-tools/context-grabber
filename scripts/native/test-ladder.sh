@@ -43,7 +43,7 @@ fi
 # The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
 # the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
 chat_area="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
-whiteboard_area="WhiteboardConnectUITests WhiteboardHelpFeedbackUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardToTextUITests WhiteboardTurnUITests"
+whiteboard_area="WhiteboardConnectUITests WhiteboardHelpFeedbackUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardToTextUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
 # feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
 # LiveActivity, so those paths stay unmapped and the output says so.
@@ -124,6 +124,8 @@ for f in ${changed[@]+"${changed[@]}"}; do
       add_classes WhiteboardToTextUITests ;;  # stories 920-922
     native/ContextCore/Sources/ContextCore/Whiteboard/BoardReword.swift | native/App/Whiteboard/BoardRewordFlow.swift)
       add_classes WhiteboardRewordUITests ;;  # stories 940-942
+    native/App/Whiteboard/PaperScratch.swift | native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardScratchOut.swift)
+      add_classes WhiteboardScratchOutUITests ;;  # story 890, #999
     # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
     # big views draw every board, so they and anything unnamed run every class.
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)

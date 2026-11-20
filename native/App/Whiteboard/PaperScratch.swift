@@ -25,16 +25,28 @@ extension PaperMarkup {
     var ms: Double?
   }
 
+  /// This markup without the strokes whose element keys are `keys`.
+  func without(_ keys: Set<String>) -> PaperMarkup {
+    var markup = self
+    for stroke in subelements.strokes where keys.contains(PaperHost.key(stroke.elementID)) {
+      markup.subelements.removeElement(for: stroke.elementID)
+    }
+    return markup
+  }
+
   /// The verdict on the stroke `key`; nil for a stroke with too few turns to be one. Only the strokes whose frames come
   /// near the zigzag are read point by point, so a big board stays quick.
-  func scratch(_ key: String) -> Scratch? {
+  /// `asZigzag`: the simulator's stand-in (`GRABBER_WHITEBOARD_ZIGZAG`, #999), the stroke read as a fast zigzag across its
+  /// own frame, since a UI test can only drag straight.
+  func scratch(_ key: String, asZigzag: Bool = false) -> Scratch? {
     let strokes = subelements.strokes
     guard let zigzag = strokes.first(where: { PaperHost.key($0.elementID) == key }) else { return nil }
-    let points = zigzag.path.map { $0.location.applying(zigzag.transform) }
+    let stand = asZigzag ? WhiteboardScratchOut.zigzag(across: zigzag.renderFrame) : nil
+    let points = stand?.points ?? zigzag.path.map { $0.location.applying(zigzag.transform) }
     // Most strokes are writing: nothing more is read, or logged, for one with fewer turns than a scratch-out has.
     guard WhiteboardScratchOut.shape(points).reversals >= WhiteboardScratchOut.reversals else { return nil }
     // The Pencil's time along the stroke, in seconds from its start.
-    let ms = zigzag.path.last.map { $0.timeOffset * 1000 }
+    let ms = stand?.ms ?? zigzag.path.last.map { $0.timeOffset * 1000 }
     let near = zigzag.renderFrame.insetBy(dx: -12, dy: -12)
     let ink = strokes.filter {
       $0.elementID != zigzag.elementID && !$0.isFolded && $0.renderFrame.intersects(near)

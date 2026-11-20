@@ -67,6 +67,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// `GRABBER_WHITEBOARD_SELECT_NEWEST=<n>`: once the board holds `n` strokes, the newest is selected as the lasso would
   /// leave it, for the simulator, whose UI tests can't draw a lasso (story 910).
   public var selectNewest: Int?
+  /// `GRABBER_WHITEBOARD_ZIGZAG=<n>`: the stroke that brings the board to `n` strokes is read as a fast zigzag across its
+  /// own frame, for the simulator, whose UI tests can only drag straight (#999, story 890).
+  public var zigzagAt: Int?
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -90,5 +93,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
     }
     larryWait = env["GRABBER_WHITEBOARD_LARRY_WAIT"].flatMap(LarryWaitPress.init(rawValue:))
     selectNewest = env["GRABBER_WHITEBOARD_SELECT_NEWEST"].flatMap { Int($0) }
+    zigzagAt = env["GRABBER_WHITEBOARD_ZIGZAG"].flatMap { Int($0) }
   }
 }
