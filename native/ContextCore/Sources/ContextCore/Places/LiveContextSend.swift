@@ -220,10 +220,12 @@ public enum LiveContextStatus {
     timeZone: TimeZone = .current
   ) -> String {
     guard on else { return "Off: Larry hears nothing about where you go." }
-    guard recording else { return "Nothing is sent while background tracking is off." }
-    guard knownPlaces > 0 else { return "Nothing is sent until a place is named." }
     var parts: [String] = []
-    if let lastSent {
+    if !recording {
+      parts.append("Background tracking is off, so nothing new is noticed")
+    } else if knownPlaces == 0 {
+      return "Nothing is sent until a place is named."
+    } else if let lastSent {
       let verb = lastSent.kind == .arrived ? "Arrived at" : "Left"
       parts.append("\(verb) \(lastSent.place) · \(clock(lastSent.at, timeZone))")
     } else {

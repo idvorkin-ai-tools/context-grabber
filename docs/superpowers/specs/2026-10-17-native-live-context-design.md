@@ -25,8 +25,9 @@ within a few minutes, without Igor opening the app. Larry treats it as he treats
 
 Nothing new by default: this runs on its own once location recording is on. In Places, under *Background tracking*, a
 switch, *Tell Larry when I arrive and leave*, on by default, and under it the last thing sent (*Arrived at
-Kettlebility · Mon 6:58*) and how many wait for the Cockpit. With recording off, or no known places, nothing is sent
-and the line says why. Turning the switch off drops what was waiting: nothing is sent with it off.
+Kettlebility · Mon 6:58*) and how many wait for the Cockpit. With recording off nothing new is noticed, and the line
+says so and still counts what waits (those were noticed while recording was on, so they still go). With no known
+places nothing is sent, and the line says why. Turning the switch off drops what was waiting: nothing is sent with it off.
 
 An arrival counts once Igor has stayed inside a known place for five minutes; a departure once he has been outside
 it for five minutes. Passing through does not count. A dropped connection holds the event and sends it when the

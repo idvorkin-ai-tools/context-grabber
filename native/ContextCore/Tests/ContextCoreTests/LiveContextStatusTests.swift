@@ -29,13 +29,19 @@ final class LiveContextStatusTests: XCTestCase {
       "Nothing sent yet · 1 waiting for the Cockpit")
   }
 
+  func testTrackingOffStillCountsWhatWaits() {
+    XCTAssertEqual(
+      LiveContextStatus.line(on: true, recording: false, knownPlaces: 4, lastSent: arrived, waiting: 2),
+      "Background tracking is off, so nothing new is noticed · 2 waiting for the Cockpit")
+  }
+
   func testWhyNothingIsSent() {
     XCTAssertEqual(
       LiveContextStatus.line(on: false, recording: true, knownPlaces: 4, lastSent: arrived, waiting: 0),
       "Off: Larry hears nothing about where you go.")
     XCTAssertEqual(
       LiveContextStatus.line(on: true, recording: false, knownPlaces: 4, lastSent: arrived, waiting: 0),
-      "Nothing is sent while background tracking is off.")
+      "Background tracking is off, so nothing new is noticed")
     XCTAssertEqual(
       LiveContextStatus.line(on: true, recording: true, knownPlaces: 0, lastSent: nil, waiting: 0),
       "Nothing is sent until a place is named.")

@@ -24,6 +24,7 @@ final class LiveContextModel: ObservableObject {
   private let sender: LiveContextSender
   private var state: LiveContext
   private var sending = false
+  private var sendTask: Task<Void, Never>?
   /// The send's background time, ended once: by the send finishing or by iOS's expiry, whichever comes first.
   private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   private var placesError: String?
@@ -75,6 +76,7 @@ final class LiveContextModel: ObservableObject {
     if value {
       state.detector = LiveContextDetector()
     } else {
+      sendTask?.cancel()
       state.waiting = []
     }
     save()
@@ -115,7 +117,7 @@ final class LiveContextModel: ObservableObject {
     }
     let start = state
     let log = self.log
-    Task {
+    sendTask = Task {
       let after = await sender.send(start) { name, fields in
         var fields = fields
         fields["trigger"] = reason
@@ -130,6 +132,7 @@ final class LiveContextModel: ObservableObject {
       }
       save()
       sending = false
+      sendTask = nil
       endBackgroundTask()
     }
   }
