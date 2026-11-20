@@ -65,19 +65,23 @@ struct BoardHeaderMarks: View {
       ForEach(controller.headerMarks, id: \.header) { mark in
         let frame = place.rect(mark.box)
         let corner = 6 * place.scale
-        Text(mark.text)
-          .font(.system(size: 15 * place.scale, weight: .semibold))
-          .foregroundStyle(.secondary)
-          .frame(width: frame.width, height: frame.height)
-          .background(
-            RoundedRectangle(cornerRadius: corner).fill(Color(uiColor: controller.paperColor).opacity(0.92))
-          )
-          .overlay(RoundedRectangle(cornerRadius: corner).strokeBorder(.secondary.opacity(0.4), lineWidth: 1))
-          .position(x: frame.midX, y: frame.midY)
-          .accessibilityElement()
-          .accessibilityLabel(mark.folded ? "Folded header" : "Header")
-          .accessibilityValue(mark.text)
-          .accessibilityIdentifier("whiteboard-margin-header-\(mark.header)")
+        // A chevron as bold as the line's own ink, not the font's small ▾ (#1004: "roughly 10 pt" and grey).
+        HStack(spacing: 2 * place.scale) {
+          Image(systemName: mark.folded ? "chevron.right" : "chevron.down")
+          if let lines = mark.text.split(separator: " ").last, mark.folded { Text(lines) }
+        }
+        .font(.system(size: 13 * place.scale, weight: .bold))
+        .foregroundStyle(Color.primary.opacity(0.7))
+        .frame(width: frame.width, height: frame.height)
+        .background(
+          RoundedRectangle(cornerRadius: corner).fill(Color(uiColor: controller.paperColor).opacity(0.92))
+        )
+        .overlay(RoundedRectangle(cornerRadius: corner).strokeBorder(.secondary.opacity(0.4), lineWidth: 1))
+        .position(x: frame.midX, y: frame.midY)
+        .accessibilityElement()
+        .accessibilityLabel(mark.folded ? "Folded header" : "Header")
+        .accessibilityValue(mark.text)
+        .accessibilityIdentifier("whiteboard-margin-header-\(mark.header)")
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

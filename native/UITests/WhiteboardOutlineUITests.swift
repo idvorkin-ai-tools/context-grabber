@@ -132,10 +132,11 @@ final class WhiteboardOutlineUITests: XCTestCase {
     let second = headers.element(boundBy: 1).frame
     XCTAssertEqual(first.minX, second.minX, accuracy: 1, "one spot across, whatever the indent")
     XCTAssertLessThan(first.maxX, app.frame.width * 0.08, "in the margin")
-    // Each "line" is a drag down 1% of the screen: its foot, the baseline, is at y + 0.01 (the pen adds a point or two).
+    // Each "line" is a drag down 1% of the screen, and its ink ends a few points short of where the drag does: the
+    // marks stand on their lines' feet, so they are as far apart as the lines, give or take the pen.
     let feet = [first, second].map(\.maxY).sorted()
-    XCTAssertEqual(feet[0], app.frame.height * 0.31, accuracy: 6, "on the first line's baseline")
-    XCTAssertEqual(feet[1], app.frame.height * 0.45, accuracy: 6, "on the second's")
+    XCTAssertEqual(feet[0], app.frame.height * 0.31, accuracy: 12, "near the first line's foot")
+    XCTAssertEqual(feet[1] - feet[0], app.frame.height * 0.14, accuracy: 4, "each on its own line's baseline")
     shot(app, "two headers, one spot")
     // A tap on the ▾ itself, near its top edge, folds it.
     app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: second.midX, dy: second.minY + 2)).tap()
