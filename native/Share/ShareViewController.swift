@@ -18,12 +18,27 @@ import UniformTypeIdentifiers
 final class ShareViewController: UIViewController {
   private let shared = Shared()
   private let recent = RecentChats()
-  // ponytail: the extension keeps no session log, so the dictation's events go nowhere and a failure's evidence is
-  // the copied problem (its state and both permissions); give it a log in the App Group if that is not enough.
-  private let dictation = NoteDictation(logger: { _, _ in })
+  /// Stories 155 and 157 (#876): the card's own session log and problem reports, in the App Group, where the app takes
+  /// the reports into its own and sends them to the Mac. Nil without the group (the dictation then logs nowhere).
+  private let reports = ShareReports.folder().map { folder in
+    let log = SessionLog(prefix: "share", documents: folder, fields: ["build": .string(ShareCard.buildLine)])
+    BugStore(documents: folder).pruneLogs(logger: log.logger)
+    return (folder: folder, log: log)
+  }
+  private lazy var dictation = NoteDictation(logger: reports?.log.logger ?? { _, _ in })
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    if let reports {
+      // An error on the card (its dictation's) files itself here, once per context per 10 minutes. The report is the
+      // app's once it takes it, so it carries the app's name and bundle; the card's bundle stays in its context.
+      let log = reports.log
+      let writer = BugReportWriter(
+        store: BugStore(documents: reports.folder), info: .fromMainBundle(device: BugAppInfo.hardwareModel()),
+        logger: log.logger)
+      BugProblemFiler.current = .auto(
+        BugAutoReporter(writer: writer), screen: { "share" }, sessionLog: { log.position }, flushLog: { log.flush() })
+    }
     let card = UIHostingController(
       rootView: ShareCard(
         shared: shared,
@@ -47,6 +62,7 @@ final class ShareViewController: UIViewController {
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     dictation.stop(why: "closed")
+    reports?.log.flush()
   }
 
   /// Nil when kept; otherwise why not, for the card to show.
@@ -306,11 +322,13 @@ struct ShareCard: View {
       case .notDetermined: "undetermined"
       @unknown default: "unknown"
       }
-    // BugAppInfo.buildLine's shape, "1.2 (34) abc1234"; GitSha is the app's key, in this extension's Info.plist too.
+    return BugProblem(message: message, context: "ShareCard.dictation", build: Self.buildLine, extra: extra)
+  }
+
+  /// BugAppInfo.buildLine's shape, "1.2 (34) abc1234"; GitSha is the app's key, in this extension's Info.plist too.
+  static var buildLine: String {
     let info = { Bundle.main.object(forInfoDictionaryKey: $0) as? String ?? "unknown" }
-    return BugProblem(
-      message: message, context: "ShareCard.dictation",
-      build: "\(info("CFBundleShortVersionString")) (\(info("CFBundleVersion"))) \(info("GitSha"))", extra: extra)
+    return "\(info("CFBundleShortVersionString")) (\(info("CFBundleVersion"))) \(info("GitSha"))"
   }
 
   private var destinations: some View {
