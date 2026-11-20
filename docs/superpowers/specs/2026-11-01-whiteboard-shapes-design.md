@@ -210,6 +210,8 @@ that labels are no longer bold.
   - Letters, digits and the punctuation on a keyboard are written. Curly quotes, dashes and the ellipsis a model
     writes are written as their plain keyboard forms (' " - ...). A character neither covers (an accented letter, an
     arrow, a symbol) keeps its traced outline, so nothing in a label goes missing; an emoji still draws nothing.
+  - Text Igor pastes onto the board is written in the same letters (#996, [the paste spec](2026-11-02-whiteboard-paste-design.md)),
+    so a board never mixes written and traced lettering.
   - A label is as tall and as wide as before, near enough, and stands on the same baseline: where it lands, how it is
     tapped and how kept labels make room are unchanged. Re-flowing or rewording a label measures it in the written
     letters.

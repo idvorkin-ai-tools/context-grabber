@@ -1212,8 +1212,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 390:
 
 - **Summary:** Paste text onto the board as ink
-- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); the layout verified by host tests (`WhiteboardPasteTests`); on the simulator (`WhiteboardPasteUITests`), ⌘V from a real clipboard with no prompt, and through a launch hook each line and Claude's pause; the ink's look checked by eye at its pen width in dark mode. Still to try on the iPad: the Paste button itself (XCUITest's taps never fire the system control) and that it shows no prompt, zoomed-out and zoomed-in pastes, sync to the other device
+- **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597), [#996](https://github.com/idvorkin/context-grabber/issues/996)
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); the layout verified by host tests (`WhiteboardPasteTests`); on the simulator (`WhiteboardPasteUITests`), ⌘V from a real clipboard with no prompt, and through a launch hook each line and Claude's pause; the ink's look checked by eye at its pen width in dark mode. Still to try on the iPad: the Paste button itself (XCUITest's taps never fire the system control) and that it shows no prompt, zoomed-out and zoomed-in pastes, sync to the other device; written in single strokes in [c0b61e1](https://github.com/idvorkin/context-grabber/commit/c0b61e1) (#996), verified by host tests (`WhiteboardPasteTests`: a letter's own strokes, curly typography, rows by the written width) and the simulator's whiteboard smoke; the paste UI tests' counts updated but not run (the Mac's screen was locked)
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1225,7 +1225,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A paste becomes ink
 - **Given:** a board I can draw on is open and the clipboard holds two lines of text
 - **When:** I tap Paste or press ⌘V
-- **Then:** both lines appear as thin outlined ink in the middle of what's on screen with no *Allow Paste?* prompt, the board saves it, and about a second later Claude's ghosts come
+- **Then:** both lines appear as thin ink, written in single strokes like Larry's labels (#996), in the middle of what's on screen with no *Allow Paste?* prompt, the board saves it, and about a second later Claude's ghosts come
 
 ---
 

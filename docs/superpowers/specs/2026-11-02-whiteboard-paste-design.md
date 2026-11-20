@@ -20,9 +20,12 @@ the board's picture to Larry and Claude.
 - The text lands **in the middle of what's on screen**, at a size that reads about the same however far he has zoomed out; zoomed in past 100% the letters are simply bigger on screen, because ink finer than that doesn't draw. Each line of
   the clipboard stays its own line, left-aligned. A line too wide for the screen wraps at the screen's width. A block
   taller than the screen starts at the top of the screen and runs on below it, and he pans to see the rest.
-- The letters are thin outlined ink, drawn as pen strokes, dark on light and light on dark like his own default ink.
-  In Larry's and Claude's picture they are dark on white.
-- It is ink from then on. His eraser removes it stroke by stroke, a letter's outline at a time.
+- The letters are thin ink written in single pen strokes, the same plain print as Larry's labels (#895, #996): not the
+  outline around each letter, so small letters stay open at the thinnest pen. Dark on light and light on dark like his
+  own default ink; in Larry's and Claude's picture they are dark on white. Curly quotes, dashes and the ellipsis are
+  written in their keyboard forms; a character the written letters don't have (an accented letter, an arrow, a
+  symbol) keeps its traced outline, so nothing pasted goes missing.
+- It is ink from then on. His eraser removes it stroke by stroke, a letter a stroke or a few at a time.
 - **Undo takes the whole paste back at once**, like a kept ghost.
 - A paste counts as a change: it saves, syncs, enables Send and Larry's turn, clears *Sent to Larry*, and starts
   Claude's pause like a drawn stroke. Ghosts showing stay.
@@ -33,7 +36,7 @@ the board's picture to Larry and Claude.
   says *Pasted the first 500 of 1,234 characters* until the next change on the board. The reason is what ink costs:
   every letter is a few strokes the canvas keeps drawing and iCloud keeps carrying.
 - Space and blank lines around the text are dropped.
-- A character with no outline, an emoji above all, draws nothing, and the rest of the text still lands. If nothing at
+- A character with nothing to write or trace, an emoji above all, draws nothing, and the rest of the text still lands. If nothing at
   all can be drawn, the board doesn't change and the bar says *Nothing in that text can be drawn*.
 
 ## Non-goals
@@ -58,5 +61,7 @@ the board's picture to Larry and Claude.
   like any other ink.
 - With a hardware keyboard: ⌘V pastes the same way.
 - Copy 2,000 characters: 500 land and the bar says so.
+- Paste "It’s fine — really…" zoomed out: the letters are single strokes like Larry's labels, open at the
+  thinnest pen, the quote, dash and dots written as ' - ...; every row is within the screen's width.
 - Copy only emoji: the board doesn't change and the bar says nothing could be drawn.
 - A board drawn on another device: no Paste, and ⌘V does nothing.
