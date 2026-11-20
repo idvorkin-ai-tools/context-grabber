@@ -947,7 +947,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1012:
 
 - **Summary:** The TestFlight lane says what is missing before it spends a build
-- **Status:** implemented in 1b6d88dc; verified on the Mac by hand (no key: exit 78 naming the three values; a dirty checkout: exit 65 naming the files; a key file inside the checkout refused)
+- **Status:** implemented in 1b6d88dc; verified on the Mac by hand (no key: exit 78 naming the three values; a dirty checkout: exit 65 naming the files; a key file inside the checkout refused), and on the host rung from the dry run (`scripts/native/test-testflight.sh`, ff17cac9)
 - **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
 
 #### Use Case:
@@ -966,7 +966,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1013:
 
 - **Summary:** The TestFlight lane can build and sign without uploading, and needs no key to do it
-- **Status:** implemented in 1b6d88dc and e38dd576; verified on the Mac (`just testflight --export-only`, 2026-11-20, no key set: the package signed and named, nothing uploaded)
+- **Status:** implemented in 1b6d88dc and e38dd576; verified on the Mac (`just testflight --export-only`, 2026-11-20, no key set: the package signed and named, nothing uploaded); that it needs no key, on the host rung from the dry run (`scripts/native/test-testflight.sh`, ff17cac9)
 - **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
 
 #### Use Case:
