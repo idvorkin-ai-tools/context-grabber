@@ -2028,8 +2028,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 430:
 
 - **Summary:** I can see which page I'm on
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
-- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented on paper in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f) (stories 591, 603); the page mostly on screen is the one at the screen's middle, verified by host tests (`BoardPagesTests`) and on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: *Page 1 of 2*; `WhiteboardPaperGhostsUITests`: *Page 1 of 6*). The corner is in no picture by construction: since [a5dbc315](https://github.com/idvorkin/context-grabber/commit/a5dbc315) (story 433) Larry's picture is drawn from the strokes, not the screen. *Page 2 of 3* while scrolling with a finger is for the iPad
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), closed by Igor 2026-11-20 ("the board feels good now")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
@@ -2048,8 +2048,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 431:
 
 - **Summary:** An old board moves onto pages with nothing lost
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
-- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented on paper in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e) as a look-only board (story 658; Igor, 2026-11-07: "Old canvas can be erased"): its ink moved onto the first page's corner, never scaled, by the rule in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34) (story 539); verified by host tests (`BoardPagesTests`, `BoardKeepingTests`) and the simulator smoke's `paper_open` (40 strokes at the first page's corner). A look-only board takes no turns, so Larry's marks don't arise on it. Igor's own old boards on the iPad not yet seen
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), closed by Igor 2026-11-20 ("the board feels good now")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
@@ -2228,8 +2228,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 520:
 
 - **Summary:** Pinching out stops at the page
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
-- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented on paper in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f): the pinch's floor is the zoom that fits the column's width, and it scrolls only up and down; the fit zoom verified by host tests (`BoardPagesTests`). XCUITest's pinch barely moves on an iPad simulator, so a real pinch is the iPad's. Zooming out past the page to a whole page held sideways was weighed for #636 and not wanted
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), closed by Igor 2026-11-20 ("the board feels good now")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
@@ -2248,8 +2248,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 521:
 
 - **Summary:** An old board wider than a page keeps its width
-- **Status:** not implemented; asks: [#636](https://github.com/idvorkin/context-grabber/issues/636)
-- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented on paper in [71bba7e](https://github.com/idvorkin/context-grabber/commit/71bba7e) (story 658): ink wider than a page widens the board by the rule in [4a04a34](https://github.com/idvorkin/context-grabber/commit/4a04a34), never scaled, and pages get no taller; verified by host tests (`BoardPagesTests`: `testInkWiderThanAPageWidensTheBoardInsteadOfShrinking`, `testAWideBoardsPagesAreWideAndNoTaller`). Panning sideways only as far as that width hasn't been driven on a simulator, as no fixture board is wider than a page; Igor's own wide boards on the iPad not yet seen
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636), closed by Igor 2026-11-20 ("the board feels good now")
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
