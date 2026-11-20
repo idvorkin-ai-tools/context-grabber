@@ -59,7 +59,7 @@ home first. A card window already open comes forward as it is: choosing *Drill t
 starts neither, then or the next time the card opens.
 
 **Another window of the app.** iPadOS can make a new window itself, from its own menus, and on the Mac File > New Window
-(Command+N) does. With no home window, it is the home window. With a home window up (Igor, 2026-11-07, #782, from the
+(Option+Command+N since #745; Command+N is New Chat there) does. With no home window, it is the home window. With a home window up (Igor, 2026-11-07, #782, from the
 Mac: *"If I make a new window, start on the main page and let me select a new thing"*), it starts as a short version of
 home: the screens that can have a window of their own, as home's tiles with their names and icons, in the order home
 shows them (the Today card first when home shows it), and nothing home hides. Choosing one turns this window into that
@@ -116,7 +116,7 @@ screen.
   when that closes. A screen opening or closing in another window doesn't rename it.
 - A window choosing what to show has no name from the app. Choosing Chat there makes it the Chat window, named Chat;
   choosing a screen already in a window brings that window forward and closes this one.
-- On the Mac, Command+N with home open opens a window offering the screens home shows that can have a window, in home's
+- On the Mac, Option+Command+N with home open opens a window offering the screens home shows that can have a window, in home's
   order, and nothing else: never the Gym Timer, Box breathing, a call or the Workout Supermix, whose names are in the
   footnote as staying in the home window.
 - On an iPhone the app names no window.

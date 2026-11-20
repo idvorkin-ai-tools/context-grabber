@@ -10,7 +10,7 @@ public enum MacGoMenu {
     homeInFront || rowID == reportRow
   }
 
-  /// New Chat (Control+N, #745): from home, from chat in front of home, or with chat in a window of its own, which it
+  /// New Chat (Command+N, #745): from home, from chat in front of home, or with chat in a window of its own, which it
   /// brings forward; anything else in front of home would have to close, so it waits.
   public static func newChatLive(homeInFront: Bool, chatInFront: Bool, chatHasWindow: Bool) -> Bool {
     homeInFront || chatInFront || chatHasWindow
