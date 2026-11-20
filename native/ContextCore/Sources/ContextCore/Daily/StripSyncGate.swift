@@ -136,3 +136,42 @@ extension DailyStrip {
     return arrival
   }
 }
+
+/// When a database waiting for iCloud's first sync stops waiting (#388 item 1, option A, Igor 2026-11-19). An
+/// arrival may be only part of the download, so it opens nothing itself: a minute counted with nothing more arriving
+/// does, each arrival starting the minute again. With no arrival at all, five minutes. Time counts only while online
+/// and in the foreground, and a stretch that is broken starts over.
+public struct StripFirstSyncWait: Equatable, Sendable {
+  public static let settle: TimeInterval = 60
+  public static let quiet: TimeInterval = 300
+
+  /// The arrival that started the wait settling, for the log.
+  public private(set) var after: String?
+  private var lastArrival: Date?
+  private var countingSince: Date?
+
+  public init() {}
+
+  /// Whether time counts from `at`: online and in the foreground. Being told again while it counts moves nothing.
+  public mutating func counting(_ on: Bool, at: Date) {
+    if !on {
+      countingSince = nil
+    } else if countingSince == nil {
+      countingSince = at
+    }
+  }
+
+  public mutating func arrived(_ why: String, at: Date) {
+    lastArrival = at
+    if after == nil { after = why }
+  }
+
+  /// When the wait ends if nothing changes; nil while no time counts.
+  public var deadline: Date? {
+    guard let since = countingSince else { return nil }
+    guard let last = lastArrival else { return since.addingTimeInterval(Self.quiet) }
+    return max(since, last).addingTimeInterval(Self.settle)
+  }
+
+  public var why: String { lastArrival == nil ? "online_quiet" : "settled" }
+}

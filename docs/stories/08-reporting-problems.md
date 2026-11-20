@@ -361,6 +361,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I tap a balloon, see it fail, and tap it again once the database takes writes
 - **Then:** the day counts one balloon on top of what iCloud brings back, not two: the failed tap left nothing held to replay
 
+- **Scenario:** iCloud's download after a reinstall comes in parts (#388)
+- **Given:** a reinstalled phone waiting for iCloud's first sync, online with the app open
+- **When:** iCloud delivers some of its months, then more of them 40 seconds later
+- **Then:** the phone sends nothing until a whole minute passes with nothing more arriving, and the log's first_sync says why: settled, after the delivery that started the wait
+
 - **Scenario:** One device's days can't be saved when they arrive (#388)
 - **Given:** the iPad's and the Mac's months arrive on the phone together, and the phone's database refuses the iPad's
 - **When:** the arrival is merged, and later I bring the app to the front with the database taking writes again
