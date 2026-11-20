@@ -20,6 +20,7 @@ final class LiveContextModel: ObservableObject {
   private let sender: LiveContextSender
   private var state: LiveContext
   private var sending = false
+  private var placesError: String?
 
   init(log: SessionLog, database: AppDatabase, cockpit: String) {
     self.log = log
@@ -43,9 +44,14 @@ final class LiveContextModel: ObservableObject {
     do {
       places = try database.locations?.knownPlaces() ?? []
     } catch {
-      log.event("error", ["where": "live_context_places", "message": "\(error)"])
+      let message = "\(error)"
+      if message != placesError {
+        placesError = message
+        log.event("error", ["where": "live_context_places", "message": message])
+      }
       return
     }
+    placesError = nil
     settled(state.observe(points, places: places))
     send(reason: "position")
   }
