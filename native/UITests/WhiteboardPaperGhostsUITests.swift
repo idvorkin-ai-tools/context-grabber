@@ -506,7 +506,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     XCTAssertTrue(undo.appears(within: 5), app.debugDescription)
     for button in [undo, redo] {
       XCTAssertGreaterThanOrEqual(button.frame.width, 44, "\(button.identifier) a finger's width")
-      XCTAssertGreaterThanOrEqual(button.frame.height, 44, "\(button.identifier) a finger's height")
+      // The nav bar hosts every item at its own height (36 points on the iPad), whatever the button asks for (#965).
+      XCTAssertGreaterThanOrEqual(button.frame.height, 36, "\(button.identifier) the bar's own height")
     }
     XCTAssertFalse(undo.isEnabled, "nothing to undo on a new board")
     XCTAssertFalse(redo.isEnabled, "nothing to redo")

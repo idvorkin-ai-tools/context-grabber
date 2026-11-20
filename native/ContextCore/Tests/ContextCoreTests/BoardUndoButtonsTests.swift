@@ -24,6 +24,13 @@ final class BoardUndoButtonsTests: XCTestCase {
     XCTAssertEqual(buttons.redo, .init(label: "Redo", enabled: false))
   }
 
+  /// PencilKit names his stroke *Add Strokes*; the button still reads plain *Undo* and *Redo* (story 1009).
+  func testHisStrokeReadsPlainUndoThoughPencilKitNamesIt() {
+    let buttons = BoardUndoButtons(canUndo: true, canRedo: true, undoName: "Add Strokes", redoName: "Add Strokes")
+    XCTAssertEqual(buttons.undo, .init(label: "Undo", enabled: true))
+    XCTAssertEqual(buttons.redo, .init(label: "Redo", enabled: true))
+  }
+
   /// A stale name with nothing to do isn't read: a dimmed button says only what it is.
   func testADimmedButtonNamesNoStep() {
     let buttons = BoardUndoButtons(canUndo: false, canRedo: false, undoName: "Keep", redoName: "Keep")

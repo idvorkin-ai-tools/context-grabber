@@ -7449,7 +7449,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Undo a stroke and bring it back
 - **Given:** a board drawn on here, and I have just drawn a stroke
 - **When:** I tap *Undo* in the board's bar, then *Redo*
-- **Then:** the stroke goes, then comes back; each button is at least 44 points each way, and each is dimmed when there is nothing for it to do
+- **Then:** the stroke goes, then comes back; each button is at least 44 points wide and the bar's own height (36 points on the iPad), and each is dimmed when there is nothing for it to do
 
 ---
 

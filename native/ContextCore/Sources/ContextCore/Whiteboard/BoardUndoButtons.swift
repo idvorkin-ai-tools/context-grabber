@@ -29,8 +29,12 @@ public struct BoardUndoButtons: Equatable, Sendable {
     redo = Button(label: Self.label("Redo", canRedo ? redoName : ""), enabled: canRedo)
   }
 
+  /// PencilKit's own name for his stroke (seen on the iPad simulator, rung 2, 2026-11-20): his stroke is a step with no
+  /// name, so it reads plain *Undo* (story 1009).
+  static let unnamed: Set<String> = ["Add Strokes"]
+
   private static func label(_ action: String, _ name: String) -> String {
     let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-    return name.isEmpty ? action : "\(action) \(name)"
+    return name.isEmpty || unnamed.contains(name) ? action : "\(action) \(name)"
   }
 }

@@ -2522,6 +2522,7 @@ struct WhiteboardView: View {
       model.pressUndo?(redo)
     } label: {
       Label(redo ? "Redo" : "Undo", systemImage: redo ? "arrow.uturn.forward" : "arrow.uturn.backward")
+        .labelStyle(.iconOnly)
         .frame(minWidth: BoardUndoButtons.side, minHeight: BoardUndoButtons.side)
         .contentShape(Rectangle())
     }
@@ -2620,9 +2621,14 @@ struct WhiteboardView: View {
       // #965 (stories 1008, 1009): Undo and Redo where a finger reaches them, after the way back, whatever the tool picker
       // is doing.
       if model.editable {
-        ToolbarItemGroup(placement: .topBarLeading) {
-          undoButton(redo: false)
-          undoButton(redo: true)
+        // One item holding both: a bar button from a plain Label is the system's own size (39.5 points wide on the
+        // iPad simulator), and only a view the bar hosts as it is keeps its 44-point width. The bar still hosts it at its own
+        // 36-point height, whatever the frame asks (stories 1008, #965).
+        ToolbarItem(placement: .topBarLeading) {
+          HStack(spacing: 0) {
+            undoButton(redo: false)
+            undoButton(redo: true)
+          }
         }
       }
       if model.editable {
