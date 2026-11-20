@@ -3992,7 +3992,25 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread, and Larry answers with a box in green at a fine pen and a label in the hand face
 - **and Given:** another label of his that names no pen, colour or face
 - **When:** his marks arrive and I keep them
-- **Then:** the box is a green outline at the fine pen, the first label is in handwriting letters, the second is in his purple print at a thin pen, not bold (never thinner than the iPad draws, story 772, so small letters read bolder), and each kept mark is ink exactly as its ghost showed
+- **Then:** the box is a green outline at the fine pen, the first label is in handwriting letters, the second is in his purple print at a thin pen, not bold (since story 1003, at the pen in my hand once the board knows it; never thinner than the iPad draws, story 772, so small letters read bolder), and each kept mark is ink exactly as its ghost showed
+
+### User Story 1003:
+
+- **Summary:** Larry's kept text is at the width of the pen in my hand
+- **Status:** implemented in COMMIT; verified on the host (`WhiteboardTurnTests.testALabelTakesThePenInIgorsHand`; `just test`); not yet seen on the iPad
+- **Issues:** [#949](https://github.com/idvorkin/context-grabber/issues/949)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
+
+#### Use Case:
+- **As someone** writing on a board beside Larry's labels
+- **I want to** have a label of his that names no pen drawn at the width of the pen I'm holding
+- **so that** his text and mine read at one weight, not his thinner or bolder than my writing
+
+#### Acceptance Criteria:
+- **Scenario:** A label with no pen of its own
+- **Given:** a board where I last held a pen of some width, then picked up the eraser
+- **When:** Larry's label that names no pen shows, and I keep it
+- **Then:** its ghost and its kept ink are at that pen's width (never thinner than the iPad draws, never wider than the widest pen), whatever its letters' size, and the eraser is still in my hand
 
 ---
 

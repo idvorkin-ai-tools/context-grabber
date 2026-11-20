@@ -2125,6 +2125,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       guard let self else { return }
       let erasing = self.paper.drawingTool is PKEraserTool
       if self.place.erasing != erasing { self.place.erasing = erasing }
+      // #949: the pen Igor holds is the width Larry's labels take; the eraser or lasso leaves the last pen's.
+      if let ink = self.paper.drawingTool as? PKInkingTool { self.model.penInHand = ink.width }
     }
   }
 

@@ -76,12 +76,19 @@ public enum WhiteboardTurn {
   /// is the other way out, and lowering this needs a kept mark between 1.9 and 2.5 seen to draw on the iPad.
   public static let thinnestPen: CGFloat = 2.5
 
-  /// The pen `shape` draws with, in board points. A label with no pen of its own gets one in proportion to its letters,
-  /// about a ninth of their height, so it reads as writing rather than a marker (#698's bold fix); no pen is thinner
-  /// than `thinnestPen`, so a kept mark is ink as its ghost showed it, never ink too thin to draw (#883).
-  public static func width(_ shape: Shape, scale: CGFloat) -> CGFloat {
-    let pen =
-      shape.pen.map { $0 / scale } ?? (shape.kind == .text ? textHeight(shape, scale: scale) * 0.11 : defaultPen)
+  /// The pen `shape` draws with, in board points. A label with no pen of its own takes `hand`, the width of the pen
+  /// Igor last held, in board points (#949: his text and Larry's at one weight); with none known, one in proportion to
+  /// its letters, about a ninth of their height, so it reads as writing rather than a marker (#698's bold fix). No pen
+  /// is thinner than `thinnestPen`, so a kept mark is ink as its ghost showed it, never ink too thin to draw (#883).
+  public static func width(_ shape: Shape, scale: CGFloat, hand: CGFloat? = nil) -> CGFloat {
+    let pen: CGFloat
+    if let asked = shape.pen {
+      pen = asked / scale
+    } else if shape.kind == .text {
+      pen = hand.flatMap { $0 > 0 ? $0 : nil } ?? textHeight(shape, scale: scale) * 0.11
+    } else {
+      pen = defaultPen
+    }
     return min(widestPen, max(thinnestPen, pen))
   }
 

@@ -144,6 +144,14 @@ that labels are no longer bold.
 - **Labels are no longer bold.** A label with no pen of its own is drawn at a pen about a ninth of its letter height
   (never under the thinnest pen, below), so its letters read as handwriting, not a marker. A label kept as ink is
   kept at that pen too. Ink kept before this change stays as it was saved.
+- **A label takes the pen in Igor's hand (#949).** Igor, 2026-11-18: *ink thicker should probably match my pen
+  width.* A label with no pen of its own, from Claude or Larry, is drawn at the width of the pen Igor last held on that
+  board, whatever its letters' size, so his text and Larry's read at one weight. It is held between the thinnest and
+  the widest pen as any mark is. With the eraser or the lasso in hand, it is the last pen he held; before he has held
+  one on the board, it is the ninth of its letters, as above. The width is taken when the ghost shows, so a kept label
+  is ink at the width its ghost showed even if he changes pen in between; changing pen doesn't redraw ghosts already
+  showing. A text of Larry's lettered straight onto the board by a batch of his takes the same width. A label that
+  names a pen keeps its own, and every other mark keeps the width above. Ink kept before this stays as it was saved.
 - **Never too thin to see (#883).** No mark, asked-for pen or label's own, is drawn thinner than the thinnest pen the
   iPad shows as ink, 2.5 points on the board. A kept label of small letters came out as ink too thin to draw: saved,
   counted and sent, but invisible on the board and in the picture. Below that pen the ghost would look fine and the
