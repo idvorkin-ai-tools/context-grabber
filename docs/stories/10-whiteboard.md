@@ -8019,7 +8019,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1065:
 
 - **Summary:** A line started with ## or ### is a header of that level, and its margin mark says so
-- **Status:** in progress (#1034)
+- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests`: ##, ###, a fourth # as ink, a # by an underline or after the words as ink), `just test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests.testHashHashMakesASubheaderThatFoldsWithTheHashAbove` on the iPad simulator (rung 2, 2026-11-20: # and ## drawn with drags, marks ▾ and ▾ ##); not yet written with the Pencil on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
 - **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
 
@@ -8039,7 +8039,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1066:
 
 - **Summary:** A ## section ends at the next ## or #, and folding the # above folds it too
-- **Status:** in progress (#1034)
+- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests`: a ## ending at the next ## or #, an indented body then an unindented ##, a shallower # ending a ## wherever its indent, the # folding its ##s and their folds kept, the outline's levels), `just test`, and `WhiteboardOutlineUITests.testHashHashMakesASubheaderThatFoldsWithTheHashAbove` on the iPad simulator (rung 2, 2026-11-20: folding the # hides the ## and its line); not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
 - **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
 
@@ -8059,7 +8059,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1067:
 
 - **Summary:** One Undo of the last # takes a header back a level
-- **Status:** in progress (#1034)
+- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests.testOneUndoOfTheLastHashTakesOneLevel`) and `just test`; the bar's Undo of a real # is for the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
 - **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
 
@@ -8079,7 +8079,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1068:
 
 - **Summary:** Larry's picture labels a deeper header with its level
-- **Status:** in progress (#1034)
+- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests.testLarrysPictureLabelsADeeperHeaderWithItsLevel`) and `just test`; the picture Larry gets is not yet seen from the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
 - **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
 
