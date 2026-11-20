@@ -54,19 +54,27 @@ extension PaperBoardController {
     let hits = outline.foldHits(along: scratch.points, reach: 4, onHeader: true)
     guard !hits.isEmpty else { return false }
     // The zigzag's other ink, as scratch-out takes it; the header's own goes with its fold either way.
-    var base = scratch.before
     let gone = Set(scratch.outcome.ok ? scratch.outcome.gone : [])
-    for stroke in base.subelements.strokes where gone.contains(PaperHost.key(stroke.elementID)) {
-      base.subelements.removeElement(for: stroke.elementID)
-    }
     Task { @MainActor [weak self] in
       guard let self else { return }
       // PaperKit's own step for the zigzag goes first, as for an ordinary scratch-out, so one Undo is the lot.
-      _ = self.takeBackPaperKitsStep(why: "scratch_fold")
-      let undid = self.paper.markup?.strokeFrames[key] == nil
-      self.eraseFolds(
-        hits, via: "scratch", path: scratch.points.count, on: base, undoTo: scratch.before,
-        extra: ["undid_zigzag": undid, "strokes_too": gone.count])
+      let taken = self.takeBackZigzag(key, before: scratch.before, why: "scratch_fold")
+      let took = self.eraseFolds(
+        hits, via: "scratch", path: scratch.points.count, on: taken.base.without(gone), undoTo: taken.base,
+        extra: ["undid_zigzag": taken.undid, "strokes_too": gone.count])
+      // #1015: what PaperKit holds once the fold's markup is set, and a beat later, as for an ordinary scratch-out (#999).
+      guard took else { return }
+      let went = Set(scratch.before.strokeFrames.keys).union([key]).subtracting(self.putKeys)
+      self.scratched = went
+      var event: [String: Any] = [
+        "action": "scratch_fold", "board": self.model.board.id, "base": taken.how, "wanted": self.putKeys.count,
+      ]
+      event.merge(self.heldAfterScratch(went)) { $1 }
+      self.log.event("whiteboard", event)
+      try? await Task.sleep(for: .seconds(1))
+      var later: [String: Any] = ["action": "scratch_held", "board": self.model.board.id, "fold": true]
+      later.merge(self.heldAfterScratch(went)) { $1 }
+      self.log.event("whiteboard", later)
     }
     return true
   }

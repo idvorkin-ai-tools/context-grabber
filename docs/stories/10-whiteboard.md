@@ -6703,7 +6703,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 905:
 
 - **Summary:** A scratch-out over a fold's marker or its header line erases the whole section
-- **Status:** implemented in [1cee727](https://github.com/idvorkin/context-grabber/commit/1cee727), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testAScratchOutOverTheMarkerTakesTheFold`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad
+- **Status:** implemented in [1cee727](https://github.com/idvorkin/context-grabber/commit/1cee727), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testAScratchOutOverTheMarkerTakesTheFold`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. Staying gone on the sheet and to Larry (#1015: PaperKit refused the board's markup and kept the section) fixed in [cb1ab206](https://github.com/idvorkin/context-grabber/commit/cb1ab206); verified on the iPad simulator (`WhiteboardScratchOutUITests.testAScratchedOutFoldStaysGoneWhenHeWritesOn`, failing before the fix: wanted 1 stroke, PaperKit held 3)
+- **Issues:** [#1015](https://github.com/idvorkin/context-grabber/issues/1015)
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*; [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -6715,7 +6716,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Scratching out a fold
 - **Given:** a folded header with a line of ink below the fold
 - **When:** I scratch out its "▸ N lines folded" or its header line with a fast zigzag
-- **Then:** the header, everything folded under it and the zigzag go, the ink below closes up to where the header was, and one Undo brings the section back still folded with the ink below where it was
+- **Then:** the header, everything folded under it and the zigzag go, on the sheet and in what Larry gets, and stay gone when I write on; the ink below closes up to where the header was, and one Undo brings the section back still folded with the ink below where it was
 
 ---
 
