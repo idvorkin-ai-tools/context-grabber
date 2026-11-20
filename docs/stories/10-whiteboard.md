@@ -5135,7 +5135,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 889:
 
 - **Summary:** I speak my own answer to a question card, with the mic beside Send
-- **Status:** implemented in [feb8014](https://github.com/idvorkin/context-grabber/commit/feb8014), Chat's mic beside the own answer's *Send*. Verified by host tests and lint (`just test`), the Mac build, and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests` measures the field, then the mic, then *Send*, a gap of at most 8 points and both buttons at least 44 points each way). Recording itself is dictation, so it is the phone's to show: not yet tried on a device
+- **Status:** implemented in [a113e38](https://github.com/idvorkin/context-grabber/commit/a113e38), Chat's mic beside the own answer's *Send*. Verified by host tests and lint (`just test`), the Mac build, and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests` measures the field, then the mic, then *Send*, a gap of at most 8 points and both buttons at least 44 points each way). Recording itself is dictation, so it is the phone's to show: not yet tried on a device
 - **Issues:** [#625](https://github.com/idvorkin/context-grabber/issues/625) ("put the record button by the send button", then "that should go on all of my screens")
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answering*
 
@@ -5148,17 +5148,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The mic sits by Send
 - **Given:** an open question card's popup, on iPhone or iPad
 - **When:** I look at *Your own answer*
-- **Then:** the mic is immediately beside *Send*, after the field, each at least 44 points in both directions
-
-- **Scenario:** Speaking the answer
-- **Given:** no call is live
-- **When:** I tap the mic, speak, and tap it again
-- **Then:** it shows red with the seconds while it records, my words fill the field after anything I typed, and nothing is sent until I tap *Send*, which answers as a typed answer does
-
-- **Scenario:** The microphone is taken, or I leave
-- **Given:** a call or another recording has the microphone, or I am recording
-- **When:** I tap the mic, or I close the popup or tap *Send*
-- **Then:** a line under the field says who has the microphone and the field stays as it was; closing or *Send* stops the recording
+- **Then:** the mic is immediately beside *Send*, after the field, each at least 44 points in both directions; the mic records into the field as Chat's does and *Send* answers as before
 
 ---
 

@@ -191,7 +191,7 @@ private struct WhiteboardQuestionPopup: View {
         .accessibilityIdentifier("whiteboard-question-send")
       }
       // What the mic could not do, copyable, and its quieter line (a call or another recording has the mic).
-      if voice.thread == thread, let problem = voice.problem {
+      if voice.thread == thread, let problem = voice.problem(context: "WhiteboardQuestionPopup.voice") {
         BugProblemView(problem: problem, logger: logger)
       }
       if voice.thread == thread, let notice = voice.notice {

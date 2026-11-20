@@ -79,12 +79,12 @@ final class ChatVoiceModel: ObservableObject {
   }
 
   /// What the dictation could not do (a permission off, the recognizer stopping, an interruption), copyable.
-  var problem: BugProblem? {
+  func problem(context: String = "ChatThreadView.voice") -> BugProblem? {
     guard let message = dictation.problem else { return nil }
     var extra = dictation.problemState
     extra["thread"] = .string(thread)
     extra["call_live"] = .bool(callLive)
-    return .grabber(message, context: "ChatThreadView.voice", extra: extra)
+    return .grabber(message, context: context, extra: extra)
   }
 
   // MARK: - which microphone (the problem report's pick, shared through NoteDictation's saved choice)
