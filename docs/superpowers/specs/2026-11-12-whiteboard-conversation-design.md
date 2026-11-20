@@ -156,6 +156,10 @@ on a board just opened, its line is kept empty, so the paper doesn't jump when L
 - **A message about something still wrong stays**: *Ghosts: the Cockpit isn't answering* and *Larry's marks: the
   Cockpit isn't answering* hold the middle until the Cockpit answers again, however long that is.
 - With nothing to say, there is no line, as today.
+- **Words alone are said, never drawn** (Igor, 2026-11-12, #898). A reply of Larry's that is words with no marks
+  and no changes to the board is his line in the note and a message in the panel, and nothing else: nothing lands on
+  the board, nothing is offered to keep, and his marks already showing stay as they were. Only marks he sends as marks,
+  or text he places with a change to the board, appear on it.
 
 ### Open: the conversation
 
@@ -194,6 +198,8 @@ A finger tap on the line opens a panel under it, over the top of the board.
 
 - Send Larry a picture: within a second the note begins *Larry · 0:00* and counts up each second.
 - He answers: the state goes and his line shows.
+- He answers in words only, with his marks from before still showing: his words are the note's line and in the
+  panel, nothing new is on the board or offered to keep, and his earlier marks are where they were.
 - Draw, pause, and tap *Larry's turn* while he is looking: the clock goes back to 0:00.
 - He never answers: at three minutes the note shows *Larry didn't answer*; copying it gives the board, the time the
   picture went, the wait, what was waiting and whether the Cockpit was answering.
