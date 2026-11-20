@@ -2509,8 +2509,12 @@ struct WhiteboardView: View {
   @ScaledMetric(relativeTo: .footnote) private var readableWidth: CGFloat = 470
   /// The page's height, for the open panel's fifth (story 837).
   @State private var pageHeight: CGFloat = 0
-  private var panelCap: CGFloat {
-    pageHeight > 0 ? CGFloat(WhiteboardNote.panelHeight(board: Double(pageHeight))) : CGFloat(WhiteboardNote.panelFloor)
+  /// Story 837: what the panel's chip, Open in Chat and padding take, and the fewest lines of thread it keeps.
+  @ScaledMetric(relativeTo: .footnote) private var panelChrome: CGFloat = 72
+  @ScaledMetric(relativeTo: .footnote) private var threadFloor: CGFloat = 64
+  private var threadCap: CGFloat {
+    let page = pageHeight > 0 ? WhiteboardNote.panelHeight(board: Double(pageHeight)) : WhiteboardNote.panelFloor
+    return max(CGFloat(page) - panelChrome, threadFloor)
   }
   private let logger: BugLogger
   private let log: SessionLog
@@ -2591,7 +2595,7 @@ struct WhiteboardView: View {
       // Story 1048 (#1003): the conversation sits above the paper and pushes it down, so it never covers ink. Story 837
       // (#917): a fifth of the page at most; past that it scrolls rather than grows.
       if model.conversationOpen, !onPhone {
-        conversation.frame(maxHeight: panelCap, alignment: .top).layoutPriority(1)
+        conversation.fixedSize(horizontal: false, vertical: true)
       }
       Group {
         PaperBoardCanvas(model: model, log: log)
@@ -2898,7 +2902,7 @@ struct WhiteboardView: View {
   private var conversation: some View {
     let tick = WhiteboardNote.ticks(larry: model.larry, notice: nil)
     return VStack(alignment: .leading, spacing: 6) {
-      WhiteboardConversationText(rows: WhiteboardNote.recent(model.thread))
+      WhiteboardConversationText(rows: WhiteboardNote.recent(model.thread), maxHeight: threadCap)
       if tick {
         TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(now: .now) }
       } else {
@@ -2962,6 +2966,7 @@ enum WhiteboardNoteInk {
 /// fingers only, so the Pencil neither scrolls nor selects it, and a ticking clock beside it doesn't reset a selection.
 private struct WhiteboardConversationText: UIViewRepresentable {
   let rows: [WhiteboardNote.Row]
+  let maxHeight: CGFloat
 
   func makeUIView(context: Context) -> NewestInView {
     let view = NewestInView()
@@ -2986,7 +2991,7 @@ private struct WhiteboardConversationText: UIViewRepresentable {
   func sizeThatFits(_ proposal: ProposedViewSize, uiView: NewestInView, context: Context) -> CGSize? {
     let width = proposal.width ?? 320
     let fit = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
-    return CGSize(width: width, height: min(fit.height, proposal.height ?? fit.height))
+    return CGSize(width: width, height: min(fit.height, maxHeight, proposal.height ?? .infinity))
   }
 
   /// ponytail: every gesture the text view has now, set again on each update since UIKit adds some lazily; a Pencil
