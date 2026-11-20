@@ -927,7 +927,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1011:
 
 - **Summary:** One command sends the current commit to TestFlight, beside the cable install
-- **Status:** not implemented
+- **Status:** implemented in 1b6d88dc and e38dd576; the archive and App Store export verified on the Mac (`just testflight --export-only`, 2026-11-20: 2.0.0 (2305) from 53f4dd93, the app, widgets and share extension signed Apple Distribution with App Store profiles); the upload and the TestFlight install wait for Igor's key and app record (docs/TESTING.md "TestFlight")
 - **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
 
 #### Use Case:
@@ -947,7 +947,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1012:
 
 - **Summary:** The TestFlight lane says what is missing before it spends a build
-- **Status:** not implemented
+- **Status:** implemented in 1b6d88dc; verified on the Mac by hand (no key: exit 78 naming the three values; a dirty checkout: exit 65 naming the files; a key file inside the checkout refused)
 - **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
 
 #### Use Case:
@@ -966,7 +966,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1013:
 
 - **Summary:** The TestFlight lane can build and sign without uploading, and needs no key to do it
-- **Status:** not implemented
+- **Status:** implemented in 1b6d88dc and e38dd576; verified on the Mac (`just testflight --export-only`, 2026-11-20, no key set: the package signed and named, nothing uploaded)
 - **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
 
 #### Use Case:
