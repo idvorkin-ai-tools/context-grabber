@@ -8019,7 +8019,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1065:
 
 - **Summary:** A line started with ## or ### is a header of that level, and its margin mark says so
-- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests`: ##, ###, a fourth # as ink, a # by an underline or after the words as ink), `just test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests.testHashHashMakesASubheaderThatFoldsWithTheHashAbove` on the iPad simulator (rung 2, 2026-11-20: # and ## drawn with drags, marks ▾ and ▾ ##); not yet written with the Pencil on the iPad
+- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests`: ##, ###, a fourth # as ink, a # by an underline or after the words as ink), `just test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests.testHashHashMakesASubheaderThatFoldsWithTheHashAbove` on the iPad simulator (rung 2, 2026-11-20: # and ## drawn with drags, marks ▾ and ▾ ##); a # under a tall # header kept as its own line's in [f346d8cc](https://github.com/idvorkin/context-grabber/commit/f346d8cc) and a tight ## whose bars overlap accepted in [f7293684](https://github.com/idvorkin/context-grabber/commit/f7293684), host tests; not yet written with the Pencil on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
 - **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
 
@@ -8059,7 +8059,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1067:
 
 - **Summary:** One Undo of the last # takes a header back a level
-- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests.testOneUndoOfTheLastHashTakesOneLevel`) and `just test`; the bar's Undo of a real # is for the iPad
+- **Status:** implemented in [8b770def](https://github.com/idvorkin/context-grabber/commit/8b770def); verified by host tests (`BoardInkHeadersTests.testOneUndoOfTheLastHashTakesOneLevel`) and `just test`; redrawing an undone # takes the level back in [f346d8cc](https://github.com/idvorkin/context-grabber/commit/f346d8cc) (`testRedrawingAnUndoneHashsLastBarTakesTheHeaderDeeperAgain`); the bar's Undo of a real # is for the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
 - **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
 
