@@ -143,6 +143,8 @@ public struct BoardReplay {
   public private(set) var board: BoardSnapshot
   public private(set) var applier: BoardOpApplier
   public private(set) var outcomes: [Outcome] = []
+  /// When Larry's kept texts and groups were made (unix ms): never Igor's ink, so they never make room (#894).
+  private var theirs: Set<Int64> = []
   /// The board before the first step, for the before picture.
   public let start: BoardSnapshot
 
@@ -286,6 +288,7 @@ public struct BoardReplay {
         continue
       }
       let t = nextTime()
+      theirs.insert(t)
       board.ghosts.removeAll { $0.id == id }
       board.texts.append(
         BoardSnapshot.Kept(
@@ -372,7 +375,8 @@ public struct BoardReplay {
       let marks = kept.map { mark in
         WhiteboardMarkChoice.bounds(mark.lines).insetBy(dx: -mark.width / 2, dy: -mark.width / 2)
       }
-      let late = BoardRoom.late(marks, seen: seen, strokes: made, texts: texts, groups: metas.groups)
+      let late = BoardRoom.late(
+        marks, seen: seen, strokes: made, texts: texts, groups: metas.groups, theirs: theirs)
       outcome.covered = late.covered
       if let push = late.push {
         outcome.room = push
@@ -384,6 +388,7 @@ public struct BoardReplay {
     }
     let notes = WhiteboardMarks.groupNotes(names, reply: reply)
     for i in strokes.indices { strokes[i].meta = notes[strokes[i].id] }
+    theirs.formUnion(strokes.compactMap(\.t))
     board.ink += strokes
     marks.removeAll { WhiteboardMarks.reply(of: $0.id) == reply }
     outcome.drawn = [WhiteboardMarks.group(reply: reply)]

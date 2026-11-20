@@ -151,6 +151,20 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertEqual(outcome.moved, [:])
   }
 
+  func testKeepGroupOverAReplyOfHisKeptAfterThePictureMovesNothing() throws {
+    // He answers the same picture twice, and the second reply lands on the first, kept a moment before: his own ink,
+    // made after the picture, is never Igor's to push.
+    var again = try XCTUnwrap(try fixture("family-marks") as? [String: Any])
+    again["id"] = "second"
+    var replay = try family(then: [.keepGroup(row, seen: picture)])
+    replay.run(BoardReplay.Step.steps(again, key: "again") + [.keepGroup("second", seen: picture)])
+    let outcome = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(outcome.action, "kept")
+    XCTAssertEqual(outcome.covered, 0, "\(outcome.wire)")
+    XCTAssertNil(outcome.room)
+    XCTAssertEqual(outcome.moved, [:])
+  }
+
   func testKeepGroupWithThePicturesTimeUnknownMovesNothing() throws {
     let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row)])
     XCTAssertEqual(replay.outcomes.last?.moved, [:])

@@ -68,6 +68,9 @@ suggest changes the board until Igor keeps it.
     - **Ink that was in his picture never makes room this way.** If he drew over it (a circle round a word, an arrow
       onto it) he meant to. A mark that lands on blank paper, beside ink without touching it, or only on ink he saw,
       moves nothing, as before.
+    - **Only Igor's own ink makes room.** Marks of Larry's or Claude's kept or drawn after the picture (a box of his
+      kept a moment before the arrow that ends on it, a text of his, ink his changes drew) never do. The board knows
+      them on the device that kept them; a mark kept on another device is taken as Igor's.
     - The keep and the room are **one step**: one Undo puts Igor's ink back up and takes the marks back, and Redo does
       both. A page is added at the bottom when the push needs one.
     - **A reply that arrives with the board closed** follows the same rule. The board remembers on this device when

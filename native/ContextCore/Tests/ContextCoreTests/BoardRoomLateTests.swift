@@ -105,6 +105,25 @@ final class BoardRoomLateTests: XCTestCase {
     XCTAssertEqual(late.push?.cut, 200, "the group's top, not between its strokes")
   }
 
+  func testAMarkOfLarrysKeptAfterThePictureNeverMakesRoom() {
+    // His box, kept a moment before the arrow that ends on it: made after the picture, but his.
+    let box = stroke("box", writing(200, width: 100), after: true)
+    let arrow = [CGRect(x: 120, y: 150, width: 4, height: 70)]
+    let theirs: Set<Int64> = [seen + 60_000]
+    let late = BoardRoom.late(arrow, seen: seen, strokes: [box], theirs: theirs)
+    XCTAssertNil(late.push)
+    XCTAssertEqual(late.covered, 0)
+  }
+
+  func testIgorsNewerInkBesideAKeptMarkOfLarrysStillMakesRoom() {
+    let box = stroke("box", writing(200, width: 100), after: true)
+    let igor = BoardOps.Stroke(ids: ["igor"], t: seen + 90_000, bounds: writing(200, x: 300, width: 100))
+    let marks = [CGRect(x: 120, y: 150, width: 300, height: 70)]
+    let late = BoardRoom.late(marks, seen: seen, strokes: [box, igor], theirs: [seen + 60_000])
+    XCTAssertEqual(late.covered, 1, "Igor's line, not Larry's box")
+    XCTAssertEqual(late.push?.cut, 200)
+  }
+
   func testHiddenInkNeverMakesRoom() {
     var folded = stroke("f", writing(200), after: true)
     folded.hidden = true

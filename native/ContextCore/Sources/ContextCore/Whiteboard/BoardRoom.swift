@@ -126,13 +126,19 @@ public enum BoardRoom {
   }
 
   /// `late` over the board's strokes: what moves whole is newer than the picture taken at `seen` (unix ms) when any of
-  /// its strokes was made after it. A stroke whose making isn't known is taken as seen.
+  /// its strokes was made after it by Igor. A stroke whose making isn't known is taken as seen; one whose moment (unix
+  /// ms) is in `theirs` was made by Larry or Claude (a mark of theirs kept, ink or a text of Larry's) and never makes
+  /// room.
   public static func late(
     _ marks: [CGRect], seen: Int64, strokes: [BoardOps.Stroke], texts: [BoardText] = [],
-    groups: [String: String] = [:], folds: [String: String] = [:]
+    groups: [String: String] = [:], folds: [String: String] = [:], theirs: Set<Int64> = []
   ) -> Late {
     let shown = BoardOps.items(strokes: strokes, texts: texts, groups: groups, folds: folds).filter { !$0.hidden }
-    let newer = shown.filter { item in item.members.contains { (strokes[$0].t ?? .min) > seen } }
+    let newer = shown.filter { item in
+      item.members.contains { member in
+        strokes[member].t.map { $0 > seen && !theirs.contains($0) } ?? false
+      }
+    }
     return late(marks, newer: newer.map(\.bounds), among: shown.map(\.bounds))
   }
 

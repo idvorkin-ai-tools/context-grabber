@@ -1792,6 +1792,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       let shown = stroke.color.map { UIColor(rgb: $0) } ?? WhiteboardTurn.Who.larry.color
       let color = stroke.hidden ? shown.withAlphaComponent(0) : shown
       let made = WhiteboardModel.strokes([stroke.points], color: color, width: stroke.width, spacing: 4)
+      model.rememberTheirs(made)
       for one in made {
         markup.append(contentsOf: PKDrawing(strokes: [one]))
         drawn.append((Self.hashes(one), stroke.id))

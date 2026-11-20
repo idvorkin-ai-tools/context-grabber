@@ -4855,7 +4855,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** His reply on ink that was in his picture
-- **Given:** a mark of Larry's drawn over writing that was in the picture he answered, and nothing newer under it
+- **Given:** a mark of Larry's drawn over writing that was in the picture he answered, or over marks of his or Claude's kept since, and nothing newer of mine under it
 - **When:** I keep it, alone or as a group
 - **Then:** nothing of mine moves
 

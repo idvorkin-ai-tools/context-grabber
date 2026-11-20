@@ -1378,6 +1378,7 @@ final class WhiteboardModel: ObservableObject {
       }
       settleLarrys(ghost)
     }
+    rememberTheirs(strokes)
     if marks.contains(where: { $0.text != nil }) { opLedger.setTexts(texts, board: board.id) }
     log.event(
       "whiteboard",
@@ -1426,6 +1427,18 @@ final class WhiteboardModel: ObservableObject {
     UserDefaults.standard.set(Array(known.suffix(2000)), forKey: labelsKey)
   }
 
+  private var theirsKey: String { "whiteboard_theirs_\(board.id)" }
+
+  /// #894: the moments of ink Larry or Claude made (a mark kept, Larry's ink or text), kept on this device, so it never
+  /// makes room as Igor's. ponytail: not synced, so a mark kept on another device is taken as Igor's.
+  func rememberTheirs(_ strokes: [PKStroke]) { rememberTheirs(moments: strokes.map(Self.moment)) }
+
+  private func rememberTheirs(moments: [Int64]) {
+    guard !moments.isEmpty else { return }
+    let known = UserDefaults.standard.array(forKey: theirsKey) as? [Int64] ?? []
+    UserDefaults.standard.set(Array((known + moments).suffix(4000)), forKey: theirsKey)
+  }
+
   private static func moment(_ stroke: PKStroke) -> Int64 {
     Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
   }
@@ -1469,6 +1482,7 @@ final class WhiteboardModel: ObservableObject {
     let names = opStrokes(strokes).strokes.flatMap(\.ids)
     // #894 (story 1003): before the group's notes, so the board it measures is the one he wrote on.
     let late = lateRoom(marks)
+    rememberTheirs(strokes)
     strokeMeta.merge(WhiteboardMarks.groupNotes(names, reply: reply))
     opLedger.setStrokeMeta(strokeMeta, board: board.id)
     var event: [String: Any] = [
@@ -1511,6 +1525,7 @@ final class WhiteboardModel: ObservableObject {
       connectorInk(ghost)
       ?? Self.strokes(lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
     if ghost.kind == .text { rememberLabel(made.date) }
+    rememberTheirs(strokes)
     if let text = ghost.text {
       texts.append(
         BoardText(
@@ -1548,8 +1563,10 @@ final class WhiteboardModel: ObservableObject {
     guard let seen = marks.compactMap(\.seen).min() else { return nil }
     let boxes = marks.map { WhiteboardMarkChoice.bounds($0.lines).insetBy(dx: -$0.width / 2, dy: -$0.width / 2) }
     let strokes = opStrokes(drawing.strokes).strokes
+    let theirs = Set(UserDefaults.standard.array(forKey: theirsKey) as? [Int64] ?? [])
     return BoardRoom.late(
-      boxes, seen: seen, strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags)
+      boxes, seen: seen, strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags,
+      theirs: theirs)
   }
 
   /// The keep's log fields for #894: the picture's time (or that it isn't known), what newer it sat on, the room.
@@ -2295,6 +2312,7 @@ extension WhiteboardModel {
   /// The texts `letter` made, once their strokes are on the board.
   func keep(lettered: [BoardText]) {
     guard !lettered.isEmpty else { return }
+    rememberTheirs(moments: lettered.map(\.t))
     for text in lettered {
       rememberLabel(Date(timeIntervalSince1970: Double(text.t) / 1000))
       texts.removeAll { $0.id == text.id }
