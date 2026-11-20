@@ -107,11 +107,12 @@ final class DailyStripModel: ObservableObject {
     // #376: a count steps this device's own share; a check flips what every device shows.
     let next: Int
     do {
-      let own = try store?.ownValue(item, day: today) ?? 0
-      next = item.isCounter ? max(0, own + step) : (value(item) > 0 ? 0 : 1)
-      // The step as applied (a − at 0 changes nothing), held while the first sync is awaited (#380).
-      if item.isCounter { sync?.stepping(item, day: today, by: next - own) }
-      try store?.set(item, day: today, value: next)
+      if item.isCounter {
+        next = try stepCounter(item, day: today, by: step)
+      } else {
+        next = value(item) > 0 ? 0 : 1
+        try store?.set(item, day: today, value: next)
+      }
     } catch {
       log.event("error", ["where": "daily_strip", "item": item.rawValue, "message": "\(error)"])
       return
@@ -193,10 +194,7 @@ final class DailyStripModel: ObservableObject {
       // The step, onto the count as it is now: iCloud may have restored this device's days while the sheet was up.
       let next: Int
       do {
-        let own = try store?.ownValue(week.item, day: change.day) ?? 0
-        next = max(0, own + change.step)
-        sync?.stepping(week.item, day: change.day, by: next - own)
-        try store?.set(week.item, day: change.day, value: next)
+        next = try stepCounter(week.item, day: change.day, by: change.step)
       } catch {
         log.event("error", ["where": "daily_strip", "item": week.item.rawValue, "message": "\(error)"])
         continue
@@ -209,6 +207,15 @@ final class DailyStripModel: ObservableObject {
       sync?.changed(day: change.day)
     }
     refresh()
+  }
+
+  /// A counter's own count steps, never below 0. With the sync, the step as applied (a − at 0 changes nothing) is
+  /// held with the write while the first sync is awaited, in one transaction (#380, #384).
+  private func stepCounter(_ item: DailyItem, day: String, by step: Int) throws -> Int {
+    if let sync { return try sync.step(item, day: day, by: step) }
+    let next = max(0, (try store?.ownValue(item, day: day) ?? 0) + step)
+    try store?.set(item, day: day, value: next)
+    return next
   }
 
   /// One `daily_strip_auto` line per item per day, the first time it is seen green with no tap.

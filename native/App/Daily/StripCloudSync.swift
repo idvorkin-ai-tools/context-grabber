@@ -17,44 +17,23 @@ final class StripCloudSync {
   private let handedOver: Set<String>
   private let log: SessionLog
   private let database: AppDatabase
-  /// #380: false until this database has seen iCloud's first sync. Until then nothing is published (a reinstall's
-  /// empty months would overwrite the ones in iCloud); the store's initial-sync or server change opens it.
-  private var ready: Bool
+  /// #380: closed until this database has seen iCloud's first sync (a reinstall's empty months would overwrite the
+  /// ones in iCloud), and again after a recovery of its own iCloud months fails until one succeeds (#384).
+  private var gate: StripPublishGate
+  private var ready: Bool { gate.ready }
   private var pendingMonths: Set<String> = []
-  /// False after this launch's recovery of its own iCloud months failed: nothing is published until one succeeds,
-  /// or a tap would send the partial local month over iCloud's complete one (Codex on #378, #384).
-  private var recovered = true
   /// While waiting: five minutes online with no download means iCloud holds nothing for this device (Codex on #378).
   private var path: NWPathMonitor?
   private var quiet: Task<Void, Never>?
-  /// Counter steps made before the first sync, by day and item: the row as it was before them and their sum. Kept in
-  /// `settings`, so a restart while waiting still lands them on the recovered count (local review).
-  private var waitingSteps: [String: WaitingStep] {
-    get {
-      (database.setting("strip_waiting_steps").flatMap {
-        try? JSONDecoder().decode([String: WaitingStep].self, from: Data($0.utf8))
-      })
-        ?? [:]
-    }
-    set {
-      let json = (try? JSONEncoder().encode(newValue)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-      database.setSetting("strip_waiting_steps", json)
-    }
-  }
-
-  struct WaitingStep: Codable {
-    var item: String
-    var day: String
-    /// The row before the first step, as value and updated_at; nil when there was none.
-    var original: [Int64]?
-    var net: Int
-  }
+  /// Counter steps made before the first sync, each saved with its counter write as one (local review, #384).
+  private let held: StripHeldSteps
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
 
   init?(database: AppDatabase, log: SessionLog) {
-    guard let strip = database.dailyStrip else { return nil }
+    guard let strip = database.dailyStrip, let settings = database.settings else { return nil }
     self.strip = strip
+    held = StripHeldSteps(strip: strip, settings: settings)
     self.log = log
     self.database = database
     // Only an empty database can overwrite iCloud with less than it holds (a reinstall); one with rows is this
@@ -64,8 +43,8 @@ final class StripCloudSync {
     // taps have given it rows (local review).
     let state = database.setting("strip_initial_sync")
     let empty = ((try? strip.ownRows()) ?? []).isEmpty
-    ready = state == "done" || (state != "waiting" && !empty)
-    if !ready {
+    gate = StripPublishGate(ready: state == "done" || (state != "waiting" && !empty))
+    if !gate.ready {
       database.setSetting("strip_initial_sync", "waiting")
     } else if state != "done" && !empty {
       database.setSetting("strip_initial_sync", "done")
@@ -84,9 +63,9 @@ final class StripCloudSync {
         database.setSetting("strip_handed_over", handedOver.sorted().joined(separator: ","))
         // A wait and its held steps carried in the backup were the old phone's; a new id has nothing in iCloud to
         // overwrite, so this device publishes at once.
-        ready = true
+        gate.opened()
         database.setSetting("strip_initial_sync", "done")
-        database.setSetting("strip_waiting_steps", "{}")
+        database.setSetting(StripHeldSteps.key, "{}")
         log.event("strip_sync", ["action": "device_changed", "handed_over_rows": moved])
       } catch {
         log.event("error", ["where": "strip_sync_hand_over", "message": "\(error)"])
@@ -144,7 +123,7 @@ final class StripCloudSync {
   }
 
   private var quietCounts: Bool {
-    !ready && path?.currentPath.status == .satisfied && UIApplication.shared.applicationState != .background
+    !gate.ready && path?.currentPath.status == .satisfied && UIApplication.shared.applicationState != .background
   }
 
   private func restartQuiet() {
@@ -163,10 +142,11 @@ final class StripCloudSync {
     // A count stepped while waiting was built on nothing: the steps come off, the recovered count comes back, and
     // the steps land again on top of it. All of it or none: a failure rolls back, the steps stay held and the sync
     // stays closed, since publishing then could replace iCloud's months with a partial copy (Codex on #378). The
-    // next arrival or launch tries again.
-    let steps = Array(waitingSteps.values)
+    // next arrival or launch tries again. The held steps clear in the same transaction, so none replays twice (#384).
+    var steps: [StripHeldStep] = []
     let restored: Int
     do {
+      steps = Array(try held.all().values)
       restored = try strip.inTransaction {
         var replayed: [(item: DailyItem, day: String, net: Int)] = []
         for s in steps {
@@ -181,15 +161,14 @@ final class StripCloudSync {
         for s in replayed {
           try strip.set(s.item, day: s.day, value: try strip.ownValue(s.item, day: s.day) + s.net)
         }
+        try held.clear()
         return replayed.count
       }
     } catch {
       log.event("error", ["where": "strip_sync_recover", "message": "\(error)", "why": why, "held_steps": steps.count])
       return
     }
-    waitingSteps = [:]
-    ready = true
-    recovered = true
+    gate.opened()
     path?.cancel()
     path = nil
     quiet?.cancel()
@@ -221,32 +200,20 @@ final class StripCloudSync {
     if count > 0 { log.event("strip_sync", ["action": "recovered_own", "rows": count]) }
   }
 
-  /// Before a counter steps: while waiting for the first sync, the step is remembered so it lands on the count that
-  /// sync brings back (#380).
-  func stepping(_ item: DailyItem, day: String, by step: Int) {
-    guard !ready else { return }
-    let key = "\(day)/\(item.rawValue)"
-    if waitingSteps[key] == nil {
-      do {
-        let original = try strip.ownRows(month: StripSync.month(of: day)).first { $0.day == day && $0.item == item }
-        waitingSteps[key] = WaitingStep(
-          item: item.rawValue, day: day, original: original.map { [Int64($0.value), $0.updatedAt] }, net: 0)
-      } catch {
-        log.event("error", ["where": "strip_sync_replay", "message": "\(error)"])
-        return
-      }
-    }
-    waitingSteps[key]?.net += step
+  /// A counter steps this device's own count, never below 0, and the new count comes back. While waiting for the
+  /// first sync the step is held too, in the same transaction, so it lands on the count that sync brings back (#380)
+  /// and a refused write leaves nothing to replay twice (#384).
+  func step(_ item: DailyItem, day: String, by step: Int) throws -> Int {
+    try held.step(item, day: day, by: step, holding: !gate.ready)
   }
 
   /// After a tap: that day's month goes up, or waits for the first sync, or for a recovery that failed to succeed.
   func changed(day: String) {
-    guard ready else {
-      pendingMonths.insert(StripSync.month(of: day))
-      return
+    switch gate.tap(day: day) {
+    case .hold(let month): pendingMonths.insert(month)
+    case .recoverFirst: recoverThenPublish()  // all months go up once it succeeds, this one included
+    case .publish(let month): publish(month: month)
     }
-    guard recovered else { return recoverThenPublish() }  // all months go up once it succeeds, this one included
-    publish(month: StripSync.month(of: day))
   }
 
   /// This device's own iCloud months merged back, all or nothing, then everything goes up. A failure leaves no
@@ -254,10 +221,10 @@ final class StripCloudSync {
   private func recoverThenPublish() {
     do {
       try strip.inTransaction { try recoverOwn() }
-      recovered = true
+      gate.recovery(succeeded: true)
       publish(month: nil)
     } catch {
-      recovered = false
+      gate.recovery(succeeded: false)
       log.event("error", ["where": "strip_sync_recover", "message": "\(error)", "publishing": "closed"])
     }
   }
@@ -329,7 +296,7 @@ final class StripCloudSync {
         byDevice[from, default: []].append(month)
       }
     } catch {
-      recovered = false
+      gate.arrivalFailed()
       log.event("error", ["where": "strip_sync_arrived", "message": "\(error)", "publishing": "closed"])
     }
     guard !byDevice.isEmpty else { return }

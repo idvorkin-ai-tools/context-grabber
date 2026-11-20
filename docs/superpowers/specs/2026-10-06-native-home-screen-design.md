@@ -169,7 +169,11 @@ usually within a minute, and offline changes catch up when the device is back on
   row online with the app open count as caught up and the device starts syncing; time offline or in the background
   never counts.
 - If the phone cannot take back what iCloud holds (its database refuses the write), it sends nothing and tries
-  again later, so iCloud's days are never replaced by a partial copy.
+  again later, so iCloud's days are never replaced by a partial copy. That holds at every launch and every later
+  arrival, not only the first sync: until taking back succeeds, a tap still counts on the device but sends nothing;
+  the next tap tries again, and once it succeeds every day goes up, that tap's included (#384).
+- A tap whose count could not be saved changes nothing, before the first sync too: it is not remembered for later,
+  so tapping again counts once, not twice (#384).
 - The strip's days sit in iCloud unencrypted beyond what iOS and iCloud already do on disk and in transit (Igor,
   2026-10-18: small app state, a personal build). Anything more sensitive, or an App Store build, encrypts first.
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and
