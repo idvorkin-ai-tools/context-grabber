@@ -2701,6 +2701,15 @@ struct WhiteboardView: View {
       try? await Task.sleep(for: .seconds(1))
       model.paste(text)
     }
+    .task {
+      // #965: the simulator presses the bar's own Undo and Redo, as a tap on them does.
+      guard model.editable, let hook = LaunchHooks.current.whiteboard.barUndo else { return }
+      try? await Task.sleep(for: .seconds(hook.delay))
+      for press in hook.presses {
+        model.pressUndo?(press == "redo")
+        try? await Task.sleep(for: .seconds(3))
+      }
+    }
     .onAppear {
       model.opened()
       model.startWatchingLarry()

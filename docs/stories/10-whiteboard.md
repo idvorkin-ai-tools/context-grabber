@@ -7334,7 +7334,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1008:
 
 - **Summary:** Undo and Redo on the board's own bar
-- **Status:** implemented in [4f83a720](https://github.com/idvorkin/context-grabber/commit/4f83a720); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); the simulator test (`WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`) written but not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do
+- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); the simulator test (`WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`) written but not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
 - **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965): Igor, 2026-11-19, drawn on board 302d5345, via Larry: "an Undo button on the board itself"
 
@@ -7354,7 +7354,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1009:
 
 - **Summary:** VoiceOver says what Undo will take back
-- **Status:** implemented in [4f83a720](https://github.com/idvorkin/context-grabber/commit/4f83a720); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); the simulator test (`WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`) written but not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do
+- **Status:** implemented in [11536e97](https://github.com/idvorkin/context-grabber/commit/11536e97); verified by host tests (`BoardUndoButtonsTests`: dimmed on a new board, *Undo Keep group* for a named step, plain *Undo* for his stroke, no name on a dimmed button), `just test` and the Mac build (`just native-build-mac`); the simulator test (`WhiteboardPaperGhostsUITests.testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup`) written but not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Undo and Redo on the board's own bar*
 - **Issues:** [#965](https://github.com/idvorkin/context-grabber/issues/965)
 
