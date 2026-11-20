@@ -41,7 +41,7 @@ import Foundation
       let (rows, kept) = rows(trimmed, width: visible.width * 0.8, height: height)
       var lines: [[CGPoint]] = []
       for (i, row) in rows.enumerated() {
-        lines += WhiteboardTurn.glyphLines(row, topLeft: CGPoint(x: 0, y: CGFloat(i) * height * 1.25), height: height)
+        lines += WhiteboardTurn.outlineLines(row, topLeft: CGPoint(x: 0, y: CGFloat(i) * height * 1.25), height: height)
       }
       let points = lines.joined()
       guard let minX = points.map(\.x).min(), let maxX = points.map(\.x).max(), let minY = points.map(\.y).min(),

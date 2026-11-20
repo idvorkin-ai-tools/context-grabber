@@ -9,7 +9,7 @@ then "make an issue for cockpit, build your side". Builds on [the whiteboard](20
 Claude and Larry don't paint pixels. They answer with **shapes**: a short list of lines, arrows, boxes, circles,
 freehand curves and labels, placed on the board. The app draws those shapes faint, as **ghosts**, in Claude's or
 Larry's colour. A ghost looks like ink, only fainter: a solid line with round ends, as wide as a kept stroke (Igor,
-2026-11-02: "via ink strokes"), and a label is the outlines of its letters. A tap keeps one as real ink. Nothing they
+2026-11-02: "via ink strokes"), and a label is its letters written in single pen strokes, as a hand would (#895). A tap keeps one as real ink. Nothing they
 suggest changes the board until Igor keeps it.
 
 ## What Igor sees
@@ -168,6 +168,26 @@ that labels are no longer bold.
   colour and width.
 - **Lettering.** A label can ask for *print* (the default) or *hand*, a handwriting face. The hand face is the app's
   own, not Igor's writing.
+- **Letters are written, not traced (#895).** Igor, 2026-11-14, on his board: "Why weird outline font, do you get to
+  pick?" and "don't use that outline view, just use like normal arial". A label's letters are single pen strokes, one
+  line down the middle of each stem and bowl, the way a pen writes them, not the outline around each letter. So a label
+  reads as plain, solid print at any size: at the thinnest pen (2.5 points) small letters stay open instead of filling
+  in, and a kept label is the same strokes as ink. *Print* is a plain upright sans letter; *hand* is a joined, slanted
+  script, still the app's own and not Igor's writing. Both are written the same way.
+  - Letters, digits and the punctuation on a keyboard are written. Curly quotes, dashes and the ellipsis a model
+    writes are written as their plain keyboard forms (' " - ...). A character neither covers (an accented letter, an
+    arrow, a symbol) keeps its traced outline, so nothing in a label goes missing; an emoji still draws nothing.
+  - A label is as tall and as wide as before, near enough, and stands on the same baseline: where it lands, how it is
+    tapped and how kept labels make room are unchanged. Re-flowing or rewording a label measures it in the written
+    letters.
+  - Kept, it is ink like any other: it erases stroke by stroke (a letter is a few strokes now, not one outline), undoes,
+    saves and syncs, and the strokes Larry is sent are the letters as written. Labels kept before this stay as they
+    were saved.
+  - Why this and not real text (#950): written letters are still ink, so the kept-ink path, the eraser, the 2.5-point
+    pen and the strokes Larry reads all keep working with nothing new on the board. A typeset font as a rendering
+    option for text objects is #950, which builds on the board's object layer; nothing here stands in its way. The
+    letter shapes are the public-domain Hershey single-stroke fonts (Roman Simplex for print, Script Simplex for
+    hand), carried by the app with their acknowledgement, so no new dependency or licence is added.
 - **Boxes.** Besides the shapes above, a mark can be a box given by its top-left corner, width and height. It's an
   outline; there's no fill.
 - **Nothing a mark asks for breaks the board.** A colour that isn't a colour, an unknown lettering or a pen of zero or
@@ -318,6 +338,9 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 
 ## Acceptance
 
+- Have Larry answer with a label in print and one in hand, at small and large sizes: each reads as plain written
+  letters, one stroke wide, open at the thinnest pen; kept, the ink is the same letters. A label with a curly quote
+  or a dash shows it; one with an accented letter still shows that letter.
 - Draw a circle and lift the Pencil: the turn goes once he has stopped writing, 1.5 to 5 s later by his rhythm (the session log's pause and its cue); the Pencil going down first cancels a turn not yet landed.
 - Open the Board menu: the Responder row names the board's own; open it and it shows Haiku, Sonnet and Larry with that one ticked. Pick Haiku, close and reopen
   the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.

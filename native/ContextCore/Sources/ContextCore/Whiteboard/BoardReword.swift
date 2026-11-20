@@ -83,10 +83,7 @@ public enum BoardReword {
 
     /// A row's width in `face` at letter height `size`.
     public static func measure(_ text: String, size: CGFloat, face: WhiteboardTurn.Face) -> CGFloat {
-      let font = CTFontCreateWithName(face.fontName as CFString, size, nil)
-      let line = CTLineCreateWithAttributedString(
-        NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
-      return CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+      WhiteboardTurn.lettered(text, topLeft: .zero, height: size, face: face).width
     }
 
     /// Where a text's lines start, from where its letters are: the box its glyphs drew (`box`) less how far the letters
