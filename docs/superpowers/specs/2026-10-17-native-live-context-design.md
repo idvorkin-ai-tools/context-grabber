@@ -73,7 +73,7 @@ Cockpit is next reachable, with the time it happened.
 - Walking into the gym with the app in the background: Larry has *arrived at the gym* within five minutes.
 - Walking past a known place without stopping sends nothing.
 - With the switch off, nothing is sent.
-- Driving past the gym, or a single wild position that lands in another place, sends nothing.
+- Driving past the gym, or a position the phone itself reports as imprecise, sends nothing.
 - With the Cockpit unreachable, the arrival waits, and goes with its original time once the Cockpit answers.
 - Turning the switch on at home sends no *arrived at Home*.
 

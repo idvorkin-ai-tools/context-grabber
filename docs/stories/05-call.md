@@ -676,7 +676,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 336:
 
-- **Summary:** Passing a known place, or one wild position, tells Larry nothing
+- **Summary:** Passing a known place, or a position the phone itself reports as imprecise, tells Larry nothing
 - **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Verified by host tests (`LiveContextDetectorTests`: driving past, stepping out and back, a 1.4 km fix at home on the real trail sending no departure)
 
 #### Use Case:

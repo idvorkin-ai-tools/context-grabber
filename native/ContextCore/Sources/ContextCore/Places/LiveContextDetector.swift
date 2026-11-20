@@ -74,7 +74,7 @@ public struct LiveContextDetector: Equatable, Sendable, Codable {
   /// Somewhere other than `current` the phone has been since `since`, not yet for five minutes.
   var candidate: Candidate?
   var lastSeen: Double?
-  /// Imprecise positions ignored since the last change, for the log.
+  /// Imprecise positions ignored since the app last took the count, for the log.
   public private(set) var ignoredFixes = 0
 
   public init() {}
@@ -110,8 +110,6 @@ public struct LiveContextDetector: Equatable, Sendable, Codable {
     if candidate == nil || candidate?.placeId != hit?.id {
       candidate = Candidate(placeId: hit?.id, name: hit?.name, since: t)
     }
-    // At no known place, being at none is already the state: nothing to settle.
-    if started, current == nil, hit == nil { candidate = nil }
     return changes
   }
 
