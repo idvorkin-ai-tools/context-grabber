@@ -115,6 +115,15 @@ final class BoardRoomLateTests: XCTestCase {
     XCTAssertEqual(late.covered, 0)
   }
 
+  func testAMarkOfLarrysReadBackAMillisecondOffIsStillHis() {
+    // A saved drawing reads a stroke's time back truncated: his box kept at t+1 shows as t.
+    let box = stroke("box", writing(200, width: 100), after: true)
+    let arrow = [CGRect(x: 120, y: 150, width: 4, height: 70)]
+    let late = BoardRoom.late(arrow, seen: seen, strokes: [box], theirs: [seen + 60_001])
+    XCTAssertNil(late.push)
+    XCTAssertEqual(late.covered, 0)
+  }
+
   func testIgorsNewerInkBesideAKeptMarkOfLarrysStillMakesRoom() {
     let box = stroke("box", writing(200, width: 100), after: true)
     let igor = BoardOps.Stroke(ids: ["igor"], t: seen + 90_000, bounds: writing(200, x: 300, width: 100))
