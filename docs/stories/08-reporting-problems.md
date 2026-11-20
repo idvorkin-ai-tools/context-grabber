@@ -526,3 +526,71 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the sheet showed seven days with check marks on yesterday only, then on both changed days; yesterday is 3
   and the day before is 1; the strip still shows *1d* in place of today's 0; and the log has two `ui` daily_strip
   events, each with the item, its day, its new value and `backdated`
+
+---
+
+### User Story 155:
+
+- **Summary:** An error on screen files a report by itself
+- **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876), idvorkin/bug-kit#119
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
+
+#### Use Case:
+- **As** the person who sees an error and has no time to report it
+- **I want to** have every error the app shows reach the Mac by itself
+- **so that** the errors I see get fixed, not only the ones I copied and filed
+
+#### Acceptance Criteria:
+- **Scenario:** An error appears, and again
+- **Given:** the phone is online
+- **When:** an error with its Copy error button shows on any screen, and the same kind of error shows again within 10
+  minutes
+- **Then:** one automatic report is saved, with no dialog and nothing on screen changing: its reason is where the
+  error happened, its note is what Copy error copies, and it carries the screen, the session log and the screen's
+  accessibility tree; the session log has `bug_report_auto` once, then `bug_report_auto_skipped`; the Mac files it as
+  *Automatic report: <where>* with the `auto` label
+
+---
+
+### User Story 156:
+
+- **Summary:** An error the app expects files nothing
+- **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
+
+#### Use Case:
+- **As** the developer reading the automatic reports
+- **I want to** get none for an error that is no bug (the phone offline, a device with no Health)
+- **so that** every automatic report is worth reading
+
+#### Acceptance Criteria:
+- **Scenario:** Offline, or no Health on the device
+- **Given:** the phone has no network, or the device has no Health (online or not)
+- **When:** an error shows while offline (a chat that will not load, a board that cannot reach Larry), or *Health is
+  not available on this device* shows
+- **Then:** it shows with Copy error as before, nothing is saved, and the session log has `bug_report_auto_skipped`
+  with `auto_file: false`
+
+---
+
+### User Story 157:
+
+- **Summary:** An error on the share card reaches the Mac through the app
+- **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
+- **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
+
+#### Use Case:
+- **As** the person sharing from another app, whose share card's mic failed
+- **I want to** have that error reach the Mac without copying it
+- **so that** a failure in the share sheet is fixed like one in the app (#876)
+
+#### Acceptance Criteria:
+- **Scenario:** The share card's dictation fails
+- **Given:** the share card shows *Voice input could not start* with Copy error
+- **When:** I close the card, and later open Grabber Native or bring it to the front
+- **Then:** the share card saved the report, with its own session log, in the space it shares with the app; the app
+  takes it into its own reports, logs `bug_report_adopted` and queues it for iCloud; the Mac files it under Grabber
+  Native as *Automatic report: ShareCard.dictation*, its context naming the share extension

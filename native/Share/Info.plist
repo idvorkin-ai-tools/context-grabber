@@ -4,6 +4,8 @@
 <dict>
 	<key>GitSha</key>
 	<string>$(GIT_SHA)</string>
+	<key>BugKitCommit</key>
+	<string>$(BUGKIT_COMMIT)</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>The share card's mic button turns what you say into the message.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

@@ -139,7 +139,8 @@ final class MirrorModel: ObservableObject {
         if ProcessInfo.processInfo.isMacCatalystApp || ProcessInfo.processInfo.isiOSAppOnMac {
           note = Self.macHealthNote
         } else {
-          problem = .grabber("Health is not available on this device.", context: "Today.grab")
+          // Story 156: the device has no Health, which no fix changes, so it files no report.
+          problem = .grabber("Health is not available on this device.", context: "Today.grab", autoFile: false)
         }
         phase = nil
         return
@@ -353,8 +354,13 @@ enum ExportKind: String {
 }
 
 extension BugProblem {
-  /// A failure on screen, BugKit's copyable problem, with CG's build line (the sha and the branch).
-  static func grabber(_ message: String, context: String, extra: [String: JSONValue] = [:]) -> BugProblem {
-    BugProblem(message: message, context: context, build: "\(BuildInfo.sha) \(BuildInfo.branch)", extra: extra)
+  /// A failure on screen, BugKit's copyable problem, with CG's build line (the sha and the branch). It files an
+  /// automatic report when it shows (story 155); `autoFile: false` for one that is no bug (story 156).
+  static func grabber(
+    _ message: String, context: String, extra: [String: JSONValue] = [:], autoFile: Bool = true
+  ) -> BugProblem {
+    BugProblem(
+      message: message, context: context, build: "\(BuildInfo.sha) \(BuildInfo.branch)", extra: extra,
+      autoFile: autoFile)
   }
 }

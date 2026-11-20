@@ -17,7 +17,7 @@ packages:
   # release tag exactly: every app and the Mac's reader must speak the same delivery format (bug-kit's rollout trains).
   BugKit:
     url: https://github.com/idvorkin/bug-kit
-    exactVersion: 0.3.13
+    exactVersion: 0.3.14
 settings:
   base:
     DEVELOPMENT_TEAM: 45P6D3439T
@@ -154,7 +154,7 @@ targets:
   # The share extension (#305, story 038): anything shared from another app lands in the Inbox in the App Group, for
   # the app to send to Larry. Its one network question is which recent chats to offer, and nothing waits for it (#587).
   # BugKit is here for the card's mic (#793, story 546): its dictation and its copyable error, not the reporter, which
-  # an extension cannot present. The two usage strings the mic needs are in Share/Info.plist.
+  # an extension cannot present. Its errors file themselves into the App Group, for the app to send on (story 157). The two usage strings the mic needs are in Share/Info.plist.
   GrabberShare:
     type: app-extension
     platform: iOS

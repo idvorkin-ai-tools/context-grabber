@@ -209,6 +209,7 @@ final class AppModel: ObservableObject {
     mirror = MirrorModel(app: self)
     reporter = makeReporter()
     startDelivery()
+    takeShareReports(reason: "launch")
     dailyStrip = DailyStripModel(log: log, database: database) { [weak self] in self?.mirror.snapshot }
     call.willStart = { [weak self] in
       // The song pauses (#197), then the call takes the microphone and whoever had it stops (#448). Before the call
@@ -280,6 +281,7 @@ final class AppModel: ObservableObject {
     if showPlaces || ledger.window(holding: .places) != nil { places.reload(reason: "foreground") }
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     startDelivery()  // story 152: what waited for a connection goes up now
+    takeShareReports(reason: "foreground")  // story 157: what the share card's errors filed while the app was away
     inbox.refresh(reason: "foreground")  // #305: what was shared while the app was away, then on to Larry
     Task { await chat.refreshList(reason: "foreground") }  // the tile's unread count, and nothing notified twice
     chat.scheduleBackgroundCheck()
@@ -462,6 +464,21 @@ final class AppModel: ObservableObject {
     Task { [delivery] in await delivery.start() }
   }
 
+  /// Story 157 (#876): the reports the share card's errors filed in the App Group become the app's own, queued for
+  /// iCloud with them. One take at a time: a foreground that comes while the launch's take runs leaves it to finish.
+  private var takingShareReports = false
+  private func takeShareReports(reason: String) {
+    guard !takingShareReports, let folder = ShareReports.folder() else { return }
+    takingShareReports = true
+    let writer = reporter.writer
+    let log = log
+    Task { @MainActor [weak self] in
+      let taken = await writer.adopt(from: BugStore(documents: folder))
+      if !taken.isEmpty { log.event("share_reports_taken", ["count": taken.count, "reason": reason]) }
+      self?.takingShareReports = false
+    }
+  }
+
   /// The report dialog, BugKit's (bug-kit migration, step 1). "Log it and another" takes a fresh picture of the
   /// screen underneath (story 142); dictation is off while a call holds the microphone (#239); the simulator hooks
   /// keep their names (`GRABBER_BUG`, `GRABBER_SHAKE_AFTER`).
@@ -485,6 +502,14 @@ final class AppModel: ObservableObject {
       options: options, delivery: delivery)
     reporterStatus = reporter.$lastStatus.compactMap { $0 }.receive(on: RunLoop.main)
       .sink { [weak self] in self?.status = $0 }
+    // Stories 155 and 156 (#876): every error on screen files an automatic report, once per context per 10 minutes
+    // (BugKit's window), except while the phone is offline, when a failed load or send is expected, not a bug.
+    BugProblemFiler.current = BugProblemFiler { [weak self, weak reporter] problem in
+      guard let self, let reporter else { return }
+      var problem = problem
+      if self.inbox.offline { problem.autoFile = false }
+      await reporter.autoReport(problem: problem)
+    }
     return reporter
   }
 
