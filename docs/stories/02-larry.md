@@ -1687,7 +1687,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A voice button beside the + opens a new chat already recording
 - **Status:** native app only: implemented in [08e89d1](https://github.com/idvorkin/context-grabber/commit/08e89d1); verified by `ChatNewChatVoiceTests` (host: recording once per tap) and `ChatNewThreadUITests` (simulator: the button sits beside the +, opens *New chat* with no sheet, its mic tapped as it opens); the red seconds and the keyboard staying down on the phone not yet
-- **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
+- **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637), [#961](https://github.com/idvorkin/context-grabber/issues/961)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1767,7 +1767,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 - **Summary:** A voice chat that can't record still opens
 - **Status:** native app only: implemented in [08e89d1](https://github.com/idvorkin/context-grabber/commit/08e89d1); verified by `ChatNewThreadUITests` (simulator: the mic's copyable line or a recording, whichever the simulator's permissions give, with nothing sent); declining on the phone not yet
-- **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637)
+- **Issues:** [#637](https://github.com/idvorkin/context-grabber/issues/637), [#961](https://github.com/idvorkin/context-grabber/issues/961)
 - **Spec:** [Chat with Larry in Grabber Native — A new chat by voice](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1777,7 +1777,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** Recording can't start
-- **Given:** speech recognition or the microphone is declined, or the recognizer won't start
+- **Given:** speech recognition or the microphone is declined, or the recognizer won't start or stops as soon as it starts
 - **When:** I tap the voice button
 - **Then:** the new chat stays open with a copyable line in its bar saying what is off, the field is empty, and nothing was sent
 
