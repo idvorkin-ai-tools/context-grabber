@@ -139,10 +139,10 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-### User Story 786:
+### User Story 799:
 
 - **Summary:** The host rung's script checks pass or fail the same way when several run at once
-- **Status:** implemented on branch `native/signing-guard-flake-981`; verified on the host rung: the signing-guard check, 24 copies started 0.3 s apart in batches of six (0 failures; before the fix, 5 of 18 failed this way, exit 143 or the No Accounts case killed), then 43 more, 20 of them with all 18 cores busy at a load average of 133, in batches of five and alone (0 failures)
+- **Status:** implemented in [96aab44b](https://github.com/idvorkin/context-grabber/commit/96aab44b) (#990); verified on the host rung: the signing-guard check, 24 copies started 0.3 s apart in batches of six (0 failures; before the fix, 5 of 18 failed this way, exit 143 or the No Accounts case killed), then 43 more, 20 of them with all 18 cores busy at a load average of 133, in batches of five and alone (0 failures)
 - **Issues:** [#981](https://github.com/idvorkin/context-grabber/issues/981) (the signing-guard check's clean build killed with exit 143 while another agent's copy of the same check ran; the copy's cleanup ended every process naming the shared fake device, the other run's build included); its "held the display awake" check failing about 1 run in 8 (the fake build could finish before the background display-awake stand-in wrote its line)
 
 #### Use Case:
