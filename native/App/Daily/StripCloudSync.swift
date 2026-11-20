@@ -25,6 +25,8 @@ final class StripCloudSync {
   /// While waiting: five minutes online with no download means iCloud holds nothing for this device (Codex on #378).
   private var path: NWPathMonitor?
   private var quiet: Task<Void, Never>?
+  /// An arrival may be part of the download, so the wait ends only after a quiet minute online (#388, option A).
+  private var wait = StripFirstSyncWait()
   /// Counter steps made before the first sync, each saved with its counter write as one (local review, #384).
   private let held: StripHeldSteps
   /// Keys whose write was refused when they arrived (#388): the whole store is read again when the app next comes to
@@ -122,8 +124,8 @@ final class StripCloudSync {
   }
 
   /// When no device has ever published, no download ever comes to end the wait (Codex on #378). Five minutes in a row
-  /// online and in the foreground with none means iCloud has nothing of this device's to overwrite; offline or
-  /// suspended time never counts.
+  /// online and in the foreground with none means iCloud has nothing of this device's to overwrite; after an arrival,
+  /// a minute with nothing more (#388). Offline or suspended time never counts.
   private func watchForAQuietCloud() {
     let monitor = NWPathMonitor()
     monitor.pathUpdateHandler = { [weak self] _ in
@@ -139,17 +141,27 @@ final class StripCloudSync {
   }
 
   private var quietCounts: Bool {
-    !gate.ready && path?.currentPath.status == .satisfied && UIApplication.shared.applicationState != .background
+    path?.currentPath.status == .satisfied && UIApplication.shared.applicationState != .background
   }
 
+  /// The wait's deadline again, after the network, the app's state or an arrival changed.
   private func restartQuiet() {
     quiet?.cancel()
-    guard quietCounts else { return }
+    guard !gate.ready else { return }
+    wait.counting(quietCounts, at: Date())
+    guard let deadline = wait.deadline else { return }
     quiet = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(300))
-      guard !Task.isCancelled, let self, self.quietCounts else { return }
-      self.open(why: "online_quiet")
+      try? await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow)))
+      guard !Task.isCancelled, let self, self.quietCounts, let due = self.wait.deadline, due <= Date() else { return }
+      self.open(why: self.wait.why)
     }
+  }
+
+  /// Something arrived while waiting: it may be only part of the download, so the quiet minute starts again (#388).
+  private func settle(after why: String) {
+    guard !ready else { return }
+    wait.arrived(why, at: Date())
+    restartQuiet()
   }
 
   /// The first sync has happened: this device's own months are merged back, then everything goes up.
@@ -192,7 +204,8 @@ final class StripCloudSync {
     log.event(
       "strip_sync",
       [
-        "action": "first_sync", "why": why, "queued_months": pendingMonths.count, "replayed_steps": restored,
+        "action": "first_sync", "why": why, "after": wait.after ?? "", "queued_months": pendingMonths.count,
+        "replayed_steps": restored,
       ])
     pendingMonths = []
     publish(month: nil)
@@ -278,17 +291,16 @@ final class StripCloudSync {
 
   private func arrived(keys: [String], reason: Int?) {
     switch reason {
-    case NSUbiquitousKeyValueStoreInitialSyncChange:
-      open(why: "initial_sync")  // the store now holds the download: own months merge back, then all goes up
-    case NSUbiquitousKeyValueStoreServerChange:
-      open(why: "server_change")  // the server answered, so the download has come
+    // The download is under way, not done (Apple delays writes during it): a quiet minute ends the wait (#388).
+    case NSUbiquitousKeyValueStoreInitialSyncChange: settle(after: "initial_sync")
+    case NSUbiquitousKeyValueStoreServerChange: settle(after: "server_change")
     case NSUbiquitousKeyValueStoreQuotaViolationChange:
       log.event("error", ["where": "strip_sync_quota", "message": "over the iCloud key-value store quota"])
     default: break
     }
-    // Strip keys already in the store mean the download has come, even if it finished before this device listened.
+    // Strip keys already in the store mean the download has begun, even if before this device listened.
     if !ready, store.dictionaryRepresentation.keys.contains(where: { StripSync.parse(key: $0) != nil }) {
-      open(why: "store_holds")
+      settle(after: "store_holds")
     }
     var keys = keys
     // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from

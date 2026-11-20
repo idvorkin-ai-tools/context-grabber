@@ -168,6 +168,11 @@ usually within a minute, and offline changes catch up when the device is back on
   nothing off (#380). When iCloud has nothing to send back (no device has synced the strip yet), five minutes in a
   row online with the app open count as caught up and the device starts syncing; time offline or in the background
   never counts.
+- iCloud's first delivery after a reinstall may be only part of what it holds, so it doesn't count as caught up on
+  its own: the device starts syncing once a minute in a row online with the app open passes with nothing more
+  arriving, and every further delivery starts that minute again; time offline or in the background never counts
+  (#388). This shrinks the reinstall's risk without closing it: a month iCloud delivers only after a whole quiet
+  minute can still be overwritten by the reinstall's own taps.
 - If the phone cannot take back what iCloud holds (its database refuses the write), it sends nothing and tries
   again later, so iCloud's days are never replaced by a partial copy. That holds at every launch and every later
   arrival, not only the first sync: until taking back succeeds, a tap still counts on the device but sends nothing;

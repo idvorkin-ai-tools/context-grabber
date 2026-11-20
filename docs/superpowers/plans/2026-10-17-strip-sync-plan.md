@@ -39,7 +39,7 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   keys) it clears the peers (but the handed-over ids'), publishes every month again (once the first sync is done) and rebuilds from the whole store. Decode reads each day
   and item on its own, so one bad entry skips only itself.
 - A database that has never seen iCloud's first sync (a new install or a reinstall) publishes nothing until the
-  store's initial-sync or server change arrives, the store already holds strip keys, or five minutes in a row online in the foreground pass with no download (nothing in iCloud to overwrite; offline or suspended time never counts) (every empty database waits, with or without an account, since `ubiquityIdentityToken` is nil with iCloud Drive off; one with rows publishes at once and records that; a restored database handed to the old id drops the wait it carried), then restores the held steps, merges its own months back and replays the steps in one `DailyStrip.inTransaction` (a failure rolls back, keeps the held steps and stays closed until the next arrival or launch; launch and account-change recovery are transactional too; a failed one, or a failed own-key merge on arrival, sets `recovered = false` and publishes nothing until the next tap retries the recovery and, on success, publishes every month) and publishes them all;
+  store's initial-sync or server change arrives, the store already holds strip keys (any of these three only once `StripFirstSyncWait.settle`, a minute online in the foreground, passes with no further arrival, each arrival restarting it, #388 option A: an arrival may be a partial download), or five minutes in a row online in the foreground pass with no download (nothing in iCloud to overwrite; offline or suspended time never counts) (every empty database waits, with or without an account, since `ubiquityIdentityToken` is nil with iCloud Drive off; one with rows publishes at once and records that; a restored database handed to the old id drops the wait it carried), then restores the held steps, merges its own months back and replays the steps in one `DailyStrip.inTransaction` (a failure rolls back, keeps the held steps and stays closed until the next arrival or launch; launch and account-change recovery are transactional too; a failed one, or a failed own-key merge on arrival, sets `recovered = false` and publishes nothing until the next tap retries the recovery and, on success, publishes every month) and publishes them all;
   taps in between are queued, and a counter stepped in between is taken back and stepped again on top of the
   recovered count (#380, local review). The gate is `StripPublishGate` in ContextCore (ready, recovered; a tap
   holds its month, retries the recovery first, or publishes it), so the host tests drive it (#384). A held step and
@@ -52,10 +52,13 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
 - Publishing carries through the entries of items this build doesn't know from the month iCloud holds under this
   device's key (`StripSync.carryingUnknown`), so an older build never removes a later build's items (#388 item 3).
   Known items are this device's own: one missing locally stays missing.
-- ponytail: #388 item 1 (a partial initial download overwritten after a reinstall) is open on Igor's decision; the
-  proposal on the issue recommends each install writing only keys it created (option E).
+- #388 item 1 (a partial initial download overwritten after a reinstall): Igor chose option A, tightening the wait
+  (2026-11-19). `StripFirstSyncWait` (ContextCore) holds the deadline: settle after an arrival, quiet with none, both
+  counted from the later of the last arrival and the start of the current online foreground stretch. ponytail: a
+  month delivered after a whole quiet minute can still be overwritten; option E (each install writes only keys it
+  created) on the issue closes it.
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
-  `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, queued_months, replayed_steps),
+  `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, after, queued_months, replayed_steps),
   `reclaimed` (rows), `recovered_own` (rows), `retry_missed` (keys, why);
   failures are `error` with `where` strip_sync_publish, strip_sync_hand_over, strip_sync_reclaim,
   strip_sync_recover, strip_sync_replay, strip_sync_arrived or strip_sync_quota.
