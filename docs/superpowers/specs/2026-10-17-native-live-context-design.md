@@ -43,8 +43,8 @@ Cockpit is next reachable, with the time it happened.
   for a departure — not the moment the five minutes ran out, and not when the message finally went.
 - Going straight from one known place into another (Work to the café next door) is a departure from the first and
   then an arrival at the second, in that order.
-- Turning the switch on, or the first start after an update that brings this, sends nothing about where Igor
-  already is: the first place the phone settles in is taken as the starting point, and only changes from it are
+- Turning the switch on, turning location recording back on, or the first start after an update that brings
+  this, sends nothing about where Igor already is: the first place the phone settles in is taken as the starting point, and only changes from it are
   sent.
 - A departure names the place as it was called when he arrived, even if it was renamed or deleted since.
 
@@ -64,7 +64,8 @@ Cockpit is next reachable, with the time it happened.
   and what became of it — detected, sent, waiting (with why: no answer, a server error), failed (with the
   Cockpit's reason, not retried) or dropped (waited over a day). A position ignored for being imprecise is not
   logged one by one; the count goes on the next event.
-- Turning the switch on or off is logged, and so is the starting point taken after turning it on.
+- Turning the switch on or off is logged, and so is the starting point taken after turning it on (or after
+  recording is turned back on).
 - From these alone, a phone's session log answers "did the phone see me arrive, and did Larry get it?" without a
   look at the Cockpit.
 

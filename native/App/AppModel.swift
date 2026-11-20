@@ -21,6 +21,8 @@ final class AppModel: ObservableObject {
   let places: PlacesModel
   /// What was shared to the app, on its way to Larry (#305, stories 038 and 039).
   let inbox: InboxModel
+  /// #84: arrivals at and departures from known places, to Larry.
+  let liveContext: LiveContextModel
   /// Chat with Larry on the Cockpit's threads (spec 2026-10-25); what Igor writes goes out through `inbox`.
   let chat: ChatModel
   private let chatNotifications = ChatNotificationDelegate()
@@ -175,6 +177,7 @@ final class AppModel: ObservableObject {
     }
     inbox = InboxModel(log: log, database: database, cockpit: chatCockpit)
     chat = ChatModel(inbox: inbox, log: log, database: database, cockpit: chatCockpit)
+    liveContext = LiveContextModel(log: log, database: database, cockpit: chatCockpit)
     chat.registerBackgroundTask()  // before the launch finishes, or iOS refuses the handler
     archive = ArchiveModel(log: log, database: database, environment: LaunchHooks.environment)
     archive.registerBackgroundTasks()  // before the launch finishes, or iOS refuses the handlers
@@ -205,6 +208,8 @@ final class AppModel: ObservableObject {
       self.openCall(from: "notification")
     }
     UNUserNotificationCenter.current().delegate = chatNotifications
+    tracker.onPoints = { [weak self] points in self?.liveContext.observe(points) }
+    tracker.onStart = { [weak self] reason in if reason != "launch" { self?.liveContext.restart(reason: reason) } }
     inbox.didSend = { [weak self] in Task { await self?.chat.refreshList(reason: "sent") } }
     mirror = MirrorModel(app: self)
     reporter = makeReporter()
@@ -277,6 +282,7 @@ final class AppModel: ObservableObject {
     dailyStrip.refresh()
     places.prune(reason: "foreground")
     tracker.foreground()
+    liveContext.foreground()  // #84: the quiet since the last position counts as staying; what waits goes to Larry
     if showPlaces || ledger.window(holding: .places) != nil { places.reload(reason: "foreground") }
     mirror.refresh(reason: "foreground")  // #355: the Today card current, in the background
     startDelivery()  // story 152: what waited for a connection goes up now
