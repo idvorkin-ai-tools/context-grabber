@@ -584,7 +584,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 785:
 
 - **Summary:** Up to four Mac and simulator jobs at once, as many as the Mac's memory allows
-- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (the lane count from the memory and from `BUILD_LANES`, the first free lane's lock, lane N's simulator named and cloned once, the wait for other xcodebuilds per lane, one lane unchanged) and the ladder's map self-test (the simulator rung takes a lane's lock)
+- **Status:** implemented in 33c2bb47; verified on the host by `scripts/native/test-build-lane.sh` (the lane count from the memory and from `BUILD_LANES`, the first free lane's lock, lane N's simulator named and cloned once, the wait for other xcodebuilds per lane, one lane unchanged) and the ladder's map self-test (the simulator rung takes a lane's lock); 3773facd (#1008) keeps both self-tests blind to a `BUILD_LANES` or `BUILD_LANE` in the shell, verified on the host by `just test` with `BUILD_LANES=6 BUILD_LANE=3` set and unset
 - **Issues:** #954 (Igor, 2026-11-19, on the M5 Pro MacBook Pro, 48 GB, 18 cores: "this machine has way more horsepower so you can run multi simulators", "we can run 4 builds at once on this machine"); #1008 (a `BUILD_LANES` set in the shell, `BUILD_LANES=6` in Igor's `~/.zshenv` on 2026-11-20, leaked into the lane and ladder self-tests and failed `just test`)
 
 #### Use Case:
