@@ -863,7 +863,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Solid, not dashed
 - **Given:** a ghost is showing, Claude's in orange or Larry's in purple
 - **When:** I look at it
-- **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows its letters written in single strokes (since story 1008; before, their outlines)
+- **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows its letters written in single strokes (since story 1049; before, their outlines)
 
 ---
 
@@ -3978,7 +3978,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 698:
 
 - **Summary:** Claude's and Larry's marks look the way they ask, and labels read as writing
-- **Status:** implemented in [bb3f487](https://github.com/idvorkin/context-grabber/commit/bb3f487); verified on the host (`WhiteboardTurnTests`, 22 of 22, five new). Letters written in single strokes, not traced, in [8c12f89](https://github.com/idvorkin/context-grabber/commit/8c12f89) (#895, story 1008), verified on the host and the Mac build. Not yet seen on a device
+- **Status:** implemented in [bb3f487](https://github.com/idvorkin/context-grabber/commit/bb3f487); verified on the host (`WhiteboardTurnTests`, 22 of 22, five new). Letters written in single strokes, not traced, in [ca0aa8a](https://github.com/idvorkin/context-grabber/commit/ca0aa8a) (#895, story 1049), verified on the host and the Mac build. Not yet seen on a device
 - **Issues:** [#698](https://github.com/idvorkin/context-grabber/issues/698)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
 
@@ -3992,7 +3992,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board with a thread, and Larry answers with a box in green at a fine pen and a label in the hand face
 - **and Given:** another label of his that names no pen, colour or face
 - **When:** his marks arrive and I keep them
-- **Then:** the box is a green outline at the fine pen, the first label is in joined handwriting letters, the second is in his purple print at a thin pen, both written in single strokes rather than traced (story 1008), not bold (since story 1003, at the pen in my hand once the board knows it; never thinner than the iPad draws, story 772, so small letters read bolder), and each kept mark is ink exactly as its ghost showed
+- **Then:** the box is a green outline at the fine pen, the first label is in joined handwriting letters, the second is in his purple print at a thin pen, both written in single strokes rather than traced (story 1049), not bold (since story 1003, at the pen in my hand once the board knows it; never thinner than the iPad draws, story 772, so small letters read bolder), and each kept mark is ink exactly as its ghost showed
 
 ### User Story 1003:
 
@@ -4781,10 +4781,10 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1008:
+### User Story 1049:
 
 - **Summary:** Larry's labels read as plain written letters, not traced outlines
-- **Status:** implemented in [8c12f89](https://github.com/idvorkin/context-grabber/commit/8c12f89); verified on the host (`just test`: `BoardLetteringTests`, the written glyphs, curly punctuation, an outline kept for a character the letters lack, a label's room and baseline, reword's measure; `WhiteboardTurnTests` and `BoardMarksReplayTests`) and by the Mac build (`just native-build-mac`). UI tests and the iPad not yet: the Mac's screen was locked
+- **Status:** implemented in [ca0aa8a](https://github.com/idvorkin/context-grabber/commit/ca0aa8a); verified on the host (`just test`: `BoardLetteringTests`, the written glyphs, curly punctuation, an outline kept for a character the letters lack, a label's room and baseline, reword's measure; `WhiteboardTurnTests` and `BoardMarksReplayTests`) and by the Mac build (`just native-build-mac`). UI tests and the iPad not yet: the Mac's screen was locked
 - **Issues:** [#895](https://github.com/idvorkin/context-grabber/issues/895)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*, *Letters are written, not traced*
 
