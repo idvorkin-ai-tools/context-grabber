@@ -163,28 +163,44 @@ on a board just opened, its line is kept empty, so the paper doesn't jump when L
 
 ### Open: the conversation
 
-A finger tap on the line opens a panel under it, over the top of the board.
+A finger tap on the line opens a panel under it, **above the board: it pushes the page down and never covers ink**
+(Igor, 2026-11-20, #1003: the panel lay over his top line of ink and took about a quarter of the screen; "a narrow
+strip showing Larry's latest line that never covers ink. Opened, it pushes the page down"). Until 2026-11-20 the panel
+lay over the board so the paper never moved; covering ink is the worse of the two, so now the paper moves down by the
+panel's height while it is open and back up when it closes. The ink keeps its place on the page: what was at the top
+of the screen is just under the panel.
 
-- **It lies over the board and doesn't move it.** At most a fifth of the board tall, and never less room than about
-  four lines; past that it doesn't grow, its messages scroll inside it (Igor, 2026-11-16, #917: "when chat expands it
-  needs to scroll not grow"; at a third it covered nearly half the page). What is live and *Open in Chat* stay at its
-  foot, under the messages, while the messages scroll.
+- **It is small and keeps its size.** At most a fifth of the board tall, and never less room than about four lines;
+  past that it doesn't grow, its messages scroll inside it (Igor, 2026-11-16, #917: "when chat expands it needs to
+  scroll not grow"; at a third it covered nearly half the page). The status chip and *Open in Chat* stay at its foot,
+  under the messages, while the messages scroll.
 - **It shows the newest.** It opens scrolled to the bottom, the newest line in view, and a new line scrolls it back
   there. A finger can scroll up to read older messages.
-- **It shows the recent end of the board's thread as it stands**: Larry's words in full, and for each picture of
-  Igor's the words that went with it and its mark from the Cockpit (received, seen, done). Newest at the bottom, where
-  it opens. Up to the last ten messages. *Open in Chat* opens the whole thread.
+- **It is the conversation, not a log of turns.** Larry's words in full, newest at the bottom, up to the last ten
+  messages; *Open in Chat* opens the whole thread. Igor's pictures that carried no words of his (the *Your turn on
+  the board* the board sends on its own) are not rows: they were most of the panel, between Larry's sentences. A
+  picture that went with Igor's own spoken words shows as a row of those words.
+- **Larry's words get the emphasis.** His lines are in the main text colour; Igor's lines and the status are quieter
+  but still at least 4.5:1 against the panel (the grey marks were about 2:1). The same holds for the closed line:
+  Larry's words in the main colour, his state in the quieter one.
+- **Lines of about seventy characters.** On a wide iPad the text column stops at about seventy characters, so a long
+  reply reads as a paragraph and not one line across the whole board; the panel's background still spans the width.
+- **One status chip, one vocabulary.** Under the messages, one chip says where Igor's newest board picture is. While
+  a turn is out it says exactly what the closed line's state says, the clock and what waits to go next: *Your board ·
+  Sent · 0:02* or *Your board · Larry · 0:36 · next: ink*. With no turn out it says where the last picture got to:
+  *Sent* (on its way, or the Cockpit has it and Larry hasn't picked it up), *Larry has it*, or *Answered*. The chip
+  replaces the *Now* and *Next* rows and each picture's *received*, *seen* and *done* marks, so the panel never shows
+  two words for one state. With no picture on the thread and no turn out there is no chip.
 - **The Cockpit's own lines are left out** (*Moved to a new chat*, where a message was sent on to a chat of its own):
   they are neither Igor's nor Larry's, and Chat shows them.
-- **Under them, what is live**: the turn that's out with its clock, what is waiting to go next with the waiting words
-  in full, and what the mic is hearing.
-- **A board with no thread yet** shows only what is live.
+- **What the mic is hearing** shows under the chip while the mic is open.
+- **A board with no thread yet** shows only the chip and what the mic hears.
 - **Text can be selected and copied.**
 - **The Pencil never acts on the panel**: it neither draws through it nor scrolls it. A stroke that starts on the
   board below draws as usual and the panel stays open. Fingers scroll and tap it.
 - **It closes on a tap on the line.** It doesn't close when Larry answers or when Igor draws. Open or closed is
   remembered for the next board.
-- **Suggestions under the panel can't be tapped** while it is open; the line's *3 to keep* is the hint to close it.
+- **Nothing on the board is under the panel**, so every suggestion stays tappable while it is open.
 - **On an iPhone** there is no panel: a tap on the line opens the board's thread in Chat, when it has one.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
@@ -225,7 +241,14 @@ A finger tap on the line opens a panel under it, over the top of the board.
 - The Cockpit stops answering after Larry has spoken: the note says so for as long as it lasts, not for five seconds.
 - Larry's long reply and a long *Heard:* are showing: the note is one line, the clock whole at its start.
 - Draw while he is looking: the state gains *next: ink*.
-- Tap the line: the panel opens over the board, the ink below hasn't moved, and Larry's whole reply can be read.
+- Tap the line: the panel opens above the board and the page moves down by its height, so the top line of ink is
+  just under the panel, not under it; Larry's whole reply can be read. Tap again: the page moves back up.
+- A thread of three pictures with no words and three replies: the panel shows Larry's three replies one after
+  another, no *You: Your turn on the board* rows, and one chip *Your board · Answered*.
+- Larry is looking at a picture with ink waiting: the chip reads *Your board · Larry · 0:12 · next: ink*, the same
+  words as the closed line.
+- Larry's lines read in the main text colour; every other line in the panel and the note is at least 4.5:1.
+- On an iPad in landscape, Larry's long reply wraps at about seventy characters.
 - With more messages than fit, the panel is a fifth of the board tall, shows the newest message at its bottom, and
   scrolls with a finger to the older ones; another reply arrives and the panel stays the same height, the reply in view.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
