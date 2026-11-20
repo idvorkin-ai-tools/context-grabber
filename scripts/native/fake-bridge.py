@@ -49,11 +49,12 @@ async def handle(ws, report_path: str, drop: bool) -> None:
                     spoke = True
                     await ws.send(json.dumps({"type": "stt_partial", "text": "hello"}))
                     await ws.send(json.dumps({"type": "stt_final", "text": "hello Larry"}))
-                    # #467, story 216: each sentence is sent before Larry answers; the late final restates the first.
+                    # #467, #897, story 216: each sentence is heard before Larry answers; the late final restates the
+                    # first, and the second is finished (speech_final) first, so it is sent in the live line.
                     await ws.send(json.dumps({"type": "transcript", "who": "igor", "text": "hello Larry"}))
                     await ws.send(json.dumps({"type": "stt_final", "text": "hello Larry"}))
                     await ws.send(json.dumps({"type": "stt_partial", "text": "are you"}))
-                    await ws.send(json.dumps({"type": "stt_final", "text": "are you there"}))
+                    await ws.send(json.dumps({"type": "stt_final", "text": "are you there", "speech_final": True}))
                     await ws.send(json.dumps({"type": "transcript", "who": "igor", "text": "are you there"}))
                     await ws.send(json.dumps({"type": "transcript", "who": "larry", "text": "Hi Igor, this is the fake bridge."}))
                     pcm = tone(1.0)

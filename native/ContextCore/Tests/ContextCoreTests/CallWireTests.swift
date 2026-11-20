@@ -175,7 +175,11 @@ final class CallProtocolTests: XCTestCase {
         .transcript(who: "igor", text: "hi", source: "typed")
       ),
       ("{\"type\":\"stt_partial\",\"text\":\"hel\"}", .sttPartial(text: "hel")),
-      ("{\"type\":\"stt_final\",\"text\":\"hello\",\"speech_final\":true}", .sttFinal(text: "hello")),
+      (
+        "{\"type\":\"stt_final\",\"text\":\"hello\",\"speech_final\":true}", .sttFinal(text: "hello", speechFinal: true)
+      ),
+      ("{\"type\":\"stt_final\",\"text\":\"hel\"}", .sttFinal(text: "hel", speechFinal: false)),
+      ("{\"type\":\"stt_utterance_end\"}", .sttUtteranceEnd),
       ("{\"type\":\"mic_ack\",\"token\":\"4\",\"frames\":1}", .micAck(token: 4)),
       ("{\"type\":\"mic_ack\",\"token\":5}", .micAck(token: 5)),
       ("{\"type\":\"interrupted\"}", .interrupted),
