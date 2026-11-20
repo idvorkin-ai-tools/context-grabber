@@ -103,7 +103,10 @@ final class CallModel: ObservableObject {
     var deps = CallSessionDeps(
       connect: { url in
         guard let u = URL(string: url) else { throw CallAudioError("not a bridge address: \(url)") }
-        return BridgeWebSocket(url: u)
+        return BridgeWebSocket(url: u) { [weak self] type, fields in
+          nonisolated(unsafe) let fields = fields
+          DispatchQueue.main.async { self?.event(type, fields) }
+        }
       },
       audio: audio, scheduler: MainScheduler(),
       log: { [weak self] type, fields in self?.event(type, fields) },
