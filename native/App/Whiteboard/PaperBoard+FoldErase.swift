@@ -62,8 +62,7 @@ extension PaperBoardController {
     Task { @MainActor [weak self] in
       guard let self else { return }
       // PaperKit's own step for the zigzag goes first, as for an ordinary scratch-out, so one Undo is the lot.
-      let undo = self.paper.undoManager
-      if undo?.canUndo ?? false { undo?.undo() }
+      _ = self.takeBackPaperKitsStep(why: "scratch_fold")
       let undid = self.paper.markup?.strokeFrames[key] == nil
       self.eraseFolds(
         hits, via: "scratch", path: scratch.points.count, on: base, undoTo: scratch.before,

@@ -267,6 +267,12 @@ paper. That description is the requirement, and this lists only where paper need
   If the board ever finds such ink missing from the screen a second later, it draws it again on its own, within a few
   seconds, with no visible jump.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
+- **Every keep is a step of Undo of its own, and keeps it** (#966). *Keep*, *Keep group*, *Keep all* and *Tidy overlaps*
+  are each one step, named for what was done (with a keyboard, the menu's *Undo Keep group*). Nothing the board does on its
+  own just after (taking back the dot a tap left, a zigzag's scratch-out, the room a dropped selection opens) ever takes
+  that step in place of its own: however soon after the keep it comes, the keep stays on the stack, and one Undo still
+  takes it back whole. The log says each time an Undo or Redo ran and what it was named, and each time the board's own
+  take-back found a keep on top and left it there.
 - **An undo doesn't outlive its board.** Closing a board takes its kept marks' undo steps with it, on either canvas, so Undo on
   the next board can't reach back and change the one that closed.
 - **A kept mark past the last page brings the pages it needs,** with the blank page below as for any ink.
