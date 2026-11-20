@@ -22,9 +22,12 @@ extension PaperBoardController {
     if marks != headerMarks { headerMarks = marks }
   }
 
-  /// The headers `outline` has that `before` didn't: the newest one's row tints, then fades (story 1040).
-  func tintNew(_ outline: BoardOutline, before: Set<String>) {
-    guard let made = outline.headers.last(where: { !before.contains($0.id) }), let box = outline.box(made) else {
+  /// The headers `outline` has that `before` didn't, or that a # took a level deeper (#1034): the newest one's row
+  /// tints, then fades (story 1040). `before` is each header's level before the change.
+  func tintNew(_ outline: BoardOutline, before: [String: Int]) {
+    guard let made = outline.headers.last(where: { h in before[h.id].map { outline.level(h) > $0 } ?? true }),
+      let box = outline.box(made)
+    else {
       return
     }
     let tint = HeaderTint(header: made.id, box: box.insetBy(dx: -6, dy: -4))
@@ -33,6 +36,7 @@ extension PaperBoardController {
       "board_outline",
       [
         "action": "header_tint", "board": model.board.id, "header": made.id, "y": round(box.midY),
+        "level": outline.level(made),
         "baseline": outline.baseline(made).map { Double(round($0)) } ?? -1,
       ])
     tinting?.cancel()
@@ -68,7 +72,9 @@ struct BoardHeaderMarks: View {
         // A chevron as bold as the line's own ink, not the font's small ▾ (#1004: "roughly 10 pt" and grey).
         HStack(spacing: 2 * place.scale) {
           Image(systemName: mark.folded ? "chevron.right" : "chevron.down")
-          if let lines = mark.text.split(separator: " ").last, mark.folded { Text(lines) }
+          // The folded lines, then a deeper header's #s (#1034): "▸ 4 ##" shows 4 and ##.
+          let words = mark.text.split(separator: " ").dropFirst().joined(separator: " ")
+          if !words.isEmpty { Text(words) }
         }
         .font(.system(size: 13 * place.scale, weight: .bold))
         .foregroundStyle(Color.primary.opacity(0.7))

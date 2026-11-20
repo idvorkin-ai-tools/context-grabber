@@ -1278,7 +1278,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     var outline = model.outline(of: strokes)
-    let before = Set(outline.headers.map(\.id))
+    let before = Dictionary(uniqueKeysWithValues: outline.headers.map { ($0.id, outline.level($0)) })
     guard change(&outline) else { return false }
     var plan = outline.plan(from: strokes, pages: pages, board: board)
     // Stories 911, 915: a fold moves ink, and the connectors follow it.

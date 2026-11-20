@@ -38,12 +38,17 @@ extension BoardOutline {
   /// An open header's label in a picture of the board (story 1036, #1001), in a folded one's place.
   public static let openLabel = "▾ header"
 
+  /// A header's label at its level (#1034, story 1068): "▾ header" at level 1, "▾ ## header" and "▾ ### header" deeper.
+  public static func openLabel(level: Int) -> String {
+    level > 1 ? "▾ " + String(repeating: "#", count: level) + " header" : openLabel
+  }
+
   /// Each open header that shows, labelled in words just past its line, where its fold marker would go: never on its
   /// ink, and readable in a picture without the board's margin to explain a bare ▾ (story 1036, #1001).
   public var headerLabels: [Marker] {
     headers.compactMap { header in
       guard shows(header), !isFolded(header) else { return nil }
-      return marker(header, text: Self.openLabel)
+      return marker(header, text: Self.openLabel(level: level(header)))
     }
   }
 

@@ -112,6 +112,47 @@ final class WhiteboardOutlineUITests: XCTestCase {
     shot(app, "underlined header folded")
   }
 
+  /// A # of four short straight drags, `size` screen points each way, its top left at the screen fractions (`x`, `y`).
+  private func hash(_ app: XCUIApplication, x: CGFloat, y: CGFloat, size: CGFloat = 18) {
+    let origin = point(app, x, y)
+    let at = { (dx: CGFloat, dy: CGFloat) in origin.withOffset(CGVector(dx: dx, dy: dy)) }
+    let third = size / 3
+    at(third, 0).press(forDuration: 0.05, thenDragTo: at(third, size))
+    at(2 * third, 0).press(forDuration: 0.05, thenDragTo: at(2 * third, size))
+    at(0, third).press(forDuration: 0.05, thenDragTo: at(size, third))
+    at(0, 2 * third).press(forDuration: 0.05, thenDragTo: at(size, 2 * third))
+  }
+
+  /// Stories 1065, 1066 (#1034): a line started with ## is a level-2 header (▾ ## in the margin) inside the # above
+  /// it, and folding the # tucks the ## away with its section.
+  func testHashHashMakesASubheaderThatFoldsWithTheHashAbove() throws {
+    let app = try openBoard()
+    sleep(1)
+    let gap = 26 / app.frame.width
+    // # then a slanted "word" (a straight flat stroke would be an underline).
+    hash(app, x: 0.12, y: 0.29)
+    wait(send(app), label: strokes(4))
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "a # makes a header: \(app.debugDescription)")
+    point(app, 0.12 + 2 * gap, 0.29).press(forDuration: 0.05, thenDragTo: point(app, 0.30, 0.31))
+    write(app, x: 0.16, to: 0.34, y: 0.36)
+    // ## then its word, and a line under it.
+    hash(app, x: 0.12, y: 0.43)
+    hash(app, x: 0.12 + gap, y: 0.43)
+    point(app, 0.12 + 3 * gap, 0.43).press(forDuration: 0.05, thenDragTo: point(app, 0.30, 0.45))
+    write(app, x: 0.16, to: 0.34, y: 0.50)
+    wait(send(app), label: strokes(16))
+    let headers = marks(app, "Header")
+    XCTAssertTrue(headers.element(boundBy: 1).appears(within: 5), "two headers: \(app.debugDescription)")
+    let values = (0..<headers.count).map { headers.element(boundBy: $0).value as? String ?? "" }
+    XCTAssertEqual(values.sorted(), ["▾", "▾ ##"], "the second line is a ##")
+    shot(app, "a # and a ## under it")
+    // Folding the # takes the ## with it: one folded mark, no open one.
+    point(app, margin, 0.30).tap()
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), "it folds: \(app.debugDescription)")
+    XCTAssertTrue(headers.firstMatch.waitForNonExistence(timeout: 5), "the ## folded away inside the #")
+    shot(app, "the # folded with its ##")
+  }
+
   /// Stories 1040, 1041 (#1004): a line tints the moment it becomes a header; every header's ▾ sits in one spot
   /// across, over the ink, its foot on the line, and a tap on the ▾ itself folds it.
   func testHeaderMarksShareOneSpotStandOnTheLineAndTintWhenMade() throws {
