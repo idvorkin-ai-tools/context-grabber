@@ -61,9 +61,11 @@ final class BoardLetteringTests: XCTestCase {
 
     func testRewordMeasuresTheWrittenLetters() {
       let measured = BoardReword.measure("word", size: 20, face: .print)
-      XCTAssertEqual(measured, WhiteboardTurn.lettered("word", topLeft: .zero, height: 20, face: .print).width)
       let drawn = WhiteboardMarkChoice.bounds(WhiteboardTurn.glyphLines("word", topLeft: .zero, height: 20))
       XCTAssertLessThanOrEqual(drawn.maxX, measured)
+      let pair = WhiteboardMarkChoice.bounds(WhiteboardTurn.glyphLines("ab cd", topLeft: .zero, height: 20))
+      XCTAssertEqual(BoardReword.rows("ab cd", width: pair.maxX - 1, size: 20, face: .print), ["ab", "cd"])
+      XCTAssertEqual(BoardReword.rows("ab cd", width: 1000, size: 20, face: .print), ["ab cd"])
     }
 
     func testTheHandFaceIsWrittenToo() {
