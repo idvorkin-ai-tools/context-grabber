@@ -228,9 +228,9 @@ that labels are no longer bold.
   - **Two letterings: *Single strokes* (the default) and *Real font*.** In the real font a label's letters are the
     outlines of a typeface that ships with the iPad, traced as thin ink: *print* is Helvetica, *hand* is Noteworthy.
     No font is downloaded or carried, so no licence is added. The outline is not filled, as no ink on the board is.
-  - **Per board.** The Board menu has a *Lettering* submenu, *Single strokes* or *Real font*, one ticked, the
-    submenu's row naming the one in use. It is a submenu so the Board menu stays short enough to close on a pick
-    (#848). The choice is remembered by that board on this device, as its lines are; a board with nothing chosen,
+  - **Per board.** The Board menu has a *Real font* switch, off until he turns it on; the Board button's spoken
+    label says *real font* while it is on. It is one row, not a submenu or a section: the Board menu has room for no
+    more rows and still closes on a pick (#848), and a submenu's rows closed under the iPad simulator's tap. The choice is remembered by that board on this device, as its lines are; a board with nothing chosen,
     every board from before included, uses single strokes. Changing it costs no stroke, adds no undo step and
     redraws nothing already on the board: it decides how text made from then on is lettered.
   - **What the board's lettering letters:** a paste, Claude's labels, Larry's labels and texts that name no lettering
@@ -399,10 +399,10 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Have Larry answer with a label in print and one in hand, at small and large sizes: each reads as plain written
   letters, one stroke wide, open at the thinnest pen; kept, the ink is the same letters. A label with a curly quote
   or a dash shows it; one with an accented letter still shows that letter.
-- Choose *Real font* in the Board menu's *Lettering*: the row says so, the menu closes, nothing on the board changes
+- Turn on *Real font* in the Board menu: the switch is on, the menu closes, nothing on the board changes
   and the next stroke draws. Paste, and have Larry add a text: both are Helvetica's outlines as thin ink. Keep Larry's
   text, move it, fold its section, reword it: it stays one text in the real font. Erase one letter: what is left is
-  plain ink. Leave and reopen the board: *Real font* is still ticked. A new board, and every older board, letter in
+  plain ink. Leave and reopen the board: *Real font* is still on. A new board, and every older board, letter in
   single strokes.
 - On a single-stroke board, a text of Larry's that asks for the real font is in the real font, and the board's next
   paste is still single strokes; on a real-font board, one that asks for single strokes is single strokes.

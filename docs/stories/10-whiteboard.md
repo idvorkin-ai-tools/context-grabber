@@ -4956,9 +4956,9 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** A paste on a real-font board
-- **Given:** a board on paper I can draw on, its Board menu's *Lettering* set to *Real font*
+- **Given:** a board on paper I can draw on, with *Real font* turned on in its Board menu
 - **When:** I copy "HI" and tap Paste
-- **Then:** "HI" lands as Helvetica's letter outlines traced in thin ink, more strokes than the four single strokes would be, and the Board menu still says *Lettering: Real font* when I reopen the board
+- **Then:** "HI" lands as Helvetica's letter outlines traced in thin ink, one closed outline a letter where single strokes write it in four, and *Real font* is still on when I reopen the board
 
 ---
 
@@ -4978,7 +4978,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A new board and an old one
 - **Given:** a new board, and a board made before the option, neither with a lettering chosen
 - **When:** I open its Board menu and paste "HI"
-- **Then:** *Lettering* reads *Single strokes* and the paste is four strokes; choosing *Real font* changes nothing already on the board, adds no undo step and costs no stroke
+- **Then:** *Real font* is off and the paste is four strokes; turning it on changes nothing already on the board, adds no undo step and costs no stroke
 
 ---
 

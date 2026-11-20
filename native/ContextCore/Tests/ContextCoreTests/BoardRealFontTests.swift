@@ -29,10 +29,6 @@ final class BoardRealFontTests: XCTestCase {
     XCTAssertEqual(choice.choice("a"), .single)
   }
 
-  func testTheMenusWords() {
-    XCTAssertEqual(WhiteboardTurn.LetterStyle.allCases.map(\.name), ["Single strokes", "Real font"])
-  }
-
   // MARK: What a mark or a text asks for
 
   func testALabelCanNameItsLettering() {
