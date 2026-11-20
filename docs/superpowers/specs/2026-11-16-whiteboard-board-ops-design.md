@@ -235,7 +235,7 @@ board differs, this says why.
   turn) draws each folded section in full, in place, as the board would look with it open: its lines sit under the
   header and what is below comes after them, so the picture is taller than the screen by what is folded. The section
   is shaded light grey across the page, with a grey "folded" in the margin at its top and a grey ▸ beside the header
-  where an open one has ▾; a fold folded inside it is drawn whole too, inside the shading. Larry never loses what Igor
+  (an open header in a picture is labelled "▾ header" past its line: the ink headers spec); a fold folded inside it is drawn whole too, inside the shading. Larry never loses what Igor
   set aside, and still sees that Igor set it aside. Igor's own board is unchanged: the section stays folded there, and
   the picture has no "▸ N lines folded".
 - With the picture goes where its folded sections are, so a reader can tell the picture's places from the board's.
