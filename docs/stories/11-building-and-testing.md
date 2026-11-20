@@ -526,8 +526,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 827:
 
 - **Summary:** The smoke skips its audio checks on a locked Mac, and says so
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by the script check `scripts/native/test-smoke-lock.sh` in `just native-test` (the lock probe faked); a real smoke run on a locked Mac still to do
-- **Issues:** [#419](https://github.com/idvorkin/context-grabber/issues/419) (a locked Mac starves the simulator's audio); Igor, 2026-11-14: skip them rather than rerun for 5 to 12 minutes
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by the script check `scripts/native/test-smoke-lock.sh` in `just native-test` (the lock probe faked); and by a real smoke run on a locked Mac (`SMOKE_ONLY=call just native-test-sim` at 76eb6552, 2026-11-19, for #364): the real-audio call printed *skipped: Mac screen locked*, the run's last lines counted it as skipped, and the synthetic and dropped calls still ran and passed
+- **Issues:** [#419](https://github.com/idvorkin/context-grabber/issues/419) (a locked Mac starves the simulator's audio); [#364](https://github.com/idvorkin/context-grabber/issues/364) (the real-audio call's mic gave exact zeros and the clean call filed an automatic report; unlocked, it passes); Igor, 2026-11-14: skip them rather than rerun for 5 to 12 minutes
 
 #### Use Case:
 - **As Igor,** waiting on a simulator run while the Mac's screen has locked
