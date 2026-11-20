@@ -57,6 +57,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
   private var firstLoudRxAt: Double?
   private var mixPeak: Float = 0
   private var mixBuffers = 0
+  /// #903: this window's samples of Larry's that the soft knee rounded down, so the mixer's peak stays under 1.0.
+  private var limitedSamples = 0
   private var mixTapInstalled = false
   /// #442: Larry's bytes as one stream across frames (an odd frame's last byte waits for the next), and five seconds
   /// of how his frames arrived and were queued, logged as `call_playback`.
@@ -210,7 +212,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       guard let player, let format = playerFormat, let engine, engine.isRunning else {
         if rebuildRetryPending {
           // #578: the retry's new player plays it after what the old one had not reached.
-          let samples = rxStream.decode(pcm)
+          var samples = rxStream.decode(pcm)
+          limitedSamples += PlaybackLimiter.apply(&samples)
           let duration = Double(samples.count) / outRate
           tail.append(samples, at: tail.durationS)
           lock.withLock {
@@ -224,7 +227,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
         window.dropped()
         return
       }
-      let samples = rxStream.decode(pcm)
+      var samples = rxStream.decode(pcm)
       let now = currentPlayerTime()
       let head = lock.withLock { playhead }
       let queued = head - now
@@ -238,6 +241,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       for x in samples { framePeak = max(framePeak, abs(x)) }
       rxPeak = max(rxPeak, framePeak)
       if framePeak > 0.01, firstLoudRxAt == nil { firstLoudRxAt = nowMs }
+      // #903: rx_peak above is what the bridge sent; headroom for the mixer's rate conversion is made here.
+      limitedSamples += PlaybackLimiter.apply(&samples)
       guard schedule(samples, on: player, format: format) else { return }
       tail.prune(before: now)
       tail.append(samples, at: max(head, now))
@@ -689,7 +694,8 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
       "call_out_level",
       [
         "rx_peak": (Double(rxPeak) * 1000).rounded() / 1000, "mix_peak": (Double(mixPeak) * 1000).rounded() / 1000,
-        "mix_buffers": mixBuffers, "engine_running": engine.isRunning, "player_playing": player?.isPlaying ?? false,
+        "mix_buffers": mixBuffers, "limited": limitedSamples, "engine_running": engine.isRunning,
+        "player_playing": player?.isPlaying ?? false,
         "player_volume": player?.volume ?? -1, "mixer_volume": engine.mainMixerNode.outputVolume,
         "session_volume": session.outputVolume, "out_rate": outFormat.sampleRate,
         "out_channels": Int(outFormat.channelCount),
@@ -710,6 +716,7 @@ final class CallAudioEngine: CallAudio, @unchecked Sendable {
     rxPeak = 0
     mixPeak = 0
     mixBuffers = 0
+    limitedSamples = 0
     if heals {
       lastReopenAt = nowMs
       log("call_heal", ["action": "reopen_playback", "why": "mixer silent while Larry's audio arrives"])
