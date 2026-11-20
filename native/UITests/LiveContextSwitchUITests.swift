@@ -9,9 +9,11 @@ final class LiveContextSwitchUITests: XCTestCase {
     app.launchEnvironment["GRABBER_PLACES"] = "open"
     app.launch()
     let toggle = app.switches["live-context-switch"].firstMatch
-    for _ in 0..<15 where !(toggle.exists && toggle.isHittable) { app.swipeUp() }
-    XCTAssertTrue(toggle.appears(within: 10), app.debugDescription)
     let status = app.staticTexts["live-context-status"]
+    // The line sits under the switch: scroll until both are on screen, or the line is not in the tree yet.
+    for _ in 0..<15 where !(toggle.exists && toggle.isHittable && status.exists && status.isHittable) { app.swipeUp() }
+    XCTAssertTrue(toggle.appears(within: 10), app.debugDescription)
+    XCTAssertTrue(status.appears(within: 5), app.debugDescription)
     if (toggle.value as? String) == "0" {
       toggle.switches.firstMatch.tap()
     }

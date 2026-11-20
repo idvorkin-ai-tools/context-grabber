@@ -717,7 +717,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 338:
 
 - **Summary:** One switch in Places stops Larry hearing where I go, and says what it last sent
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch not yet seen on the simulator or the phone
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch turning off and saying so on the simulator (`LiveContextSwitchUITests`, iPhone 17, 2026-11-20); the phone not yet seen
 
 #### Use Case:
 - **As a** Larry's client who wants a day to himself
