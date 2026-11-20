@@ -150,7 +150,7 @@ extension BoardOutline {
     guard let newest = bar(n) else { return nil }
     let near = strokes[n].bounds.insetBy(dx: -Self.hashMost, dy: -Self.hashMost)
     var taken = Set(headers.flatMap(\.ids))
-    if let beside { taken.subtract(Set(beside.ids).subtracting(Self.hashes(beside))) }
+    if let beside { taken.subtract(Set(beside.ids).subtracting(hashes(beside))) }
     let tagged = tagged
     let bars =
       strokes.indices.filter {
@@ -203,22 +203,24 @@ extension BoardOutline {
 
   // MARK: - ## and ### (#1034)
 
-  /// A header's #s by their strokes' names: the first # and each further one. None for an underline's or a margin
-  /// tap's.
-  static func hashes(_ header: BoardHeader) -> [String] {
+  /// A header's #s by their strokes' names: the first # and each further one still counted. None for an underline's
+  /// or a margin tap's.
+  func hashes(_ header: BoardHeader) -> [String] {
     guard let mark = header.mark else { return [] }
-    return mark + (header.deeper ?? []).flatMap { $0 }
+    return mark + header.further(liveNames).flatMap { $0 }
   }
 
   /// The new #'s box `box` sits right beside the header's #s, on their line, with none of the header's other ink
   /// between them.
   private func besideHashes(_ box: CGRect, _ header: BoardHeader, four: [Int]) -> Bool {
     let at = index
-    let marks = Self.hashes(header).compactMap { at[$0] }
+    let marks = hashes(header).compactMap { at[$0] }
     let hb = marks.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
     guard !hb.isNull, box.midY >= hb.minY, box.midY <= hb.maxY else { return false }
-    // The gap between them, whichever side the new # is on.
-    let (from, to) = box.minX >= hb.midX ? (hb.maxX, box.minX) : (box.maxX, hb.minX)
+    // Wholly to one side of them, and the gap between them.
+    let right = box.minX >= hb.maxX - Self.crossSlop
+    guard right || box.maxX <= hb.minX + Self.crossSlop else { return false }
+    let (from, to) = right ? (hb.maxX, box.minX) : (box.maxX, hb.minX)
     guard to - from <= Self.hashGap else { return false }
     let mine = Set(marks + four)
     return !header.ids.compactMap { at[$0] }.contains { i in
@@ -242,8 +244,7 @@ extension BoardOutline {
       else { continue }
       let names = four.flatMap { strokes[$0].ids }
       // A # undone before this one leaves no gap in the count: only the levels still on the board are kept.
-      let kept = (header.deeper ?? []).prefix { !$0.isEmpty && $0.allSatisfy(live.contains) }
-      headers[h].deeper = Array(kept) + [names]
+      headers[h].deeper = Array(header.further(live)) + [names]
       headers[h].ids = Self.union(header.ids, names)
       let box = four.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
       return .deeper(header: header.id, level: headers[h].level(live), y: box.midY, mark: names)

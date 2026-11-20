@@ -24,8 +24,6 @@ extension BoardOutline {
     public var header: String
     public var folded: Bool
     public var text: String
-    /// Its level by its #s (#1034): ▾ ## and ▾ ### say it.
-    public var level: Int
     /// The line's baseline, which the mark stands on.
     public var baseline: CGFloat
     /// The mark, board points: its bottom on the baseline, its left at `headerMarkLeft`.
@@ -60,7 +58,7 @@ extension BoardOutline {
       ? min(Self.headerMarkWidest, max(Self.headerMarkSize, CGFloat(text.count) * 9 + 8)) : Self.headerMarkSize
     let box = CGRect(
       x: Self.headerMarkLeft, y: baseline - Self.headerMarkSize, width: width, height: Self.headerMarkSize)
-    return HeaderMark(header: header.id, folded: folded, text: text, level: level, baseline: baseline, box: box)
+    return HeaderMark(header: header.id, folded: folded, text: text, baseline: baseline, box: box)
   }
 
   /// A margin tap at `y` is on the mark: within `headerMarkReach` of its middle.

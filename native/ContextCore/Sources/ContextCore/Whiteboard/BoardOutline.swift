@@ -48,8 +48,12 @@ public struct BoardHeader: Codable, Equatable, Sendable {
   /// Its level by its #s (#1034): 1, and one more for each further # still on the board, in the order they were
   /// written, so an Undo of the last # takes one level and its Redo brings it back.
   public func level(_ live: Set<String>) -> Int {
-    let more = (deeper ?? []).prefix { !$0.isEmpty && $0.allSatisfy(live.contains) }.count
-    return min(Self.deepest, 1 + more)
+    min(Self.deepest, 1 + further(live).count)
+  }
+
+  /// The further #s still on the board, in the order they were written: those after one that is away don't count.
+  func further(_ live: Set<String>) -> ArraySlice<[String]> {
+    (deeper ?? []).prefix { !$0.isEmpty && $0.allSatisfy(live.contains) }
   }
 
   /// Made by ink with a stroke gone, and open: no header while its mark is away (#967). A folded one keeps

@@ -37,13 +37,13 @@ final class BoardInkHeadersTests: XCTestCase {
     return stroke(id, points)
   }
 
-  /// A hand's #, top left at (`x`, `y`), 26 points each way, its upright bars slanted as a hand's are.
-  private func hash(_ id: String, x: CGFloat, y: CGFloat) -> [BoardOps.Stroke] {
+  /// A hand's #, top left at (`x`, `y`), 26 points wide and `h` tall, its upright bars slanted as a hand's are.
+  private func hash(_ id: String, x: CGFloat, y: CGFloat, h: CGFloat = 26) -> [BoardOps.Stroke] {
     [
-      line("\(id)u1", from: CGPoint(x: x + 10, y: y), to: CGPoint(x: x + 6, y: y + 26)),
-      line("\(id)u2", from: CGPoint(x: x + 20, y: y), to: CGPoint(x: x + 16, y: y + 26)),
-      line("\(id)l1", from: CGPoint(x: x, y: y + 8), to: CGPoint(x: x + 26, y: y + 7)),
-      line("\(id)l2", from: CGPoint(x: x - 1, y: y + 17), to: CGPoint(x: x + 25, y: y + 18)),
+      line("\(id)u1", from: CGPoint(x: x + 10, y: y), to: CGPoint(x: x + 6, y: y + h)),
+      line("\(id)u2", from: CGPoint(x: x + 20, y: y), to: CGPoint(x: x + 16, y: y + h)),
+      line("\(id)l1", from: CGPoint(x: x, y: y + h * 8 / 26), to: CGPoint(x: x + 26, y: y + h * 7 / 26)),
+      line("\(id)l2", from: CGPoint(x: x - 1, y: y + h * 17 / 26), to: CGPoint(x: x + 25, y: y + h * 18 / 26)),
     ]
   }
 
@@ -331,6 +331,32 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertEqual(redone.level(redone.headers[0]), 3)
     // The first # gone takes the header, as ever.
     XCTAssertTrue(BoardOutline(strokes: o.strokes.filter { $0.ids != ["x#0l2"] }, headers: o.headers).headers.isEmpty)
+  }
+
+  func testRedrawingAnUndoneHashsLastBarTakesTheHeaderDeeperAgain() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "x", level: 2, y: 100)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+    // Undo the second #'s last bar: ▾ alone.
+    o.strokes.removeAll { $0.ids == ["x#1l2"] }
+    o = BoardOutline(strokes: o.strokes, headers: o.headers)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾"])
+    // Draw it again: the three bars left and the new one are a # again, ▾ ## again.
+    let again = line("again", from: CGPoint(x: 133, y: 117), to: CGPoint(x: 159, y: 118))
+    XCTAssertEqual(draw(&o, [again], id: "unused")?.kind, "deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 2)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+  }
+
+  func testAHashUnderATallHashHeaderIsNotItsSecondHash() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    XCTAssertEqual(draw(&o, hash("a", x: 100, y: 100, h: 56), id: "x")?.kind, "hash")
+    draw(&o, word("w", x: 140, y: 120), id: "x")
+    // The next line's #, right under the tall one, its middle still beside it.
+    let under = draw(&o, hash("b", x: 100, y: 144), id: "y")
+    XCTAssertNotEqual(under?.kind, "deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 1)
+    XCTAssertEqual(o.headerMarks.first?.text, "▾", "the header above stays a #")
   }
 
   /// # Top, a line, ## A and its line, ## B and its line, # Next: all at one indent.
