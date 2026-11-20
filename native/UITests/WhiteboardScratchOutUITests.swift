@@ -59,4 +59,49 @@ final class WhiteboardScratchOutUITests: XCTestCase {
     add(picture)
     XCTAssertGreaterThan(ink.minY, 0.5, "nothing left where the word was: \(ink)")
   }
+
+  /// Story 905 (si4t): a scratch-out over a folded header takes the fold, and the fold stays gone when he writes on.
+  func testAScratchedOutFoldStaysGoneWhenHeWritesOn() throws {
+    let app = XCUIApplication.forTests(animated: true)
+    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
+    app.launchEnvironment["GRABBER_SILENT"] = "1"
+    app.launchEnvironment["GRABBER_CHAT_URL"] = try XCTUnwrap(
+      ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
+    app.launchEnvironment["GRABBER_WHITEBOARD_ZIGZAG"] = "4"
+    app.launch()
+    let new = app.buttons["whiteboard-new"]
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
+    new.tap()
+    let ghosts = app.buttons["whiteboard-ghosts"]
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
+    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    sleep(1)
+    let send = app.buttons["whiteboard-send"]
+    let marks = { (label: String) in
+      app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", label)).firstMatch
+    }
+    // A header, the indented line it folds, and a line after the section; the margin's taps make it a header and fold it.
+    point(app, 0.12, 0.30).press(forDuration: 0.05, thenDragTo: point(app, 0.40, 0.31))
+    point(app, 0.20, 0.36).press(forDuration: 0.05, thenDragTo: point(app, 0.50, 0.37))
+    point(app, 0.12, 0.44).press(forDuration: 0.05, thenDragTo: point(app, 0.40, 0.45))
+    wait(send, label: "Send to Larry, 3 strokes")
+    point(app, 0.025, 0.305).tap()
+    XCTAssertTrue(marks("Header").appears(within: 5), app.debugDescription)
+    point(app, 0.025, 0.305).tap()
+    XCTAssertTrue(marks("Folded header").appears(within: 5), app.debugDescription)
+    // The stroke the hook reads as a zigzag, over the folded header's line: the fold goes, header and line.
+    point(app, 0.10, 0.305).press(forDuration: 0.05, thenDragTo: point(app, 0.42, 0.305))
+    wait(send, label: "Send to Larry, 1 strokes")
+    XCTAssertFalse(marks("Folded header").exists, "the fold is gone")
+    // Writing on, below: the fold's ink never comes back.
+    point(app, 0.20, 0.70).press(forDuration: 0.05, thenDragTo: point(app, 0.45, 0.70))
+    wait(send, label: "Send to Larry, 2 strokes")
+    sleep(1)
+    let picture = XCTAttachment(screenshot: app.screenshot())
+    picture.name = "after writing on"
+    picture.lifetime = .keepAlways
+    add(picture)
+    XCTAssertEqual(send.label, "Send to Larry, 2 strokes", "the scratched-out fold never comes back")
+    XCTAssertFalse(marks("Folded header").exists, "no fold came back")
+  }
 }

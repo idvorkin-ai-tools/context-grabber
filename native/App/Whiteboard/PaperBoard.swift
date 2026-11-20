@@ -428,7 +428,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var seat = (worst: CGFloat(0), checks: 0)
   private var pressedForTests = false
   /// #999: the strokes the last scratch-out took, so a later change that brings them back without an Undo says so.
-  private var scratched: Set<String> = []
+  var scratched: Set<String> = []
+  /// The element keys of the markup `put` last set: what a fold's scratch-out wanted on the sheet (#1015).
+  private(set) var putKeys: Set<String> = []
   private var movedForTests = false
   /// The undo stack a kept mark's steps went on. A closing view may no longer be able to say.
   private weak var stepsOn: UndoManager?
@@ -1114,7 +1116,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   /// #999: how many strokes PaperKit's markup holds, and how many of a scratch-out's (`gone`, the zigzag's too) are among
   /// them: none, once it has worked.
-  private func heldAfterScratch(_ gone: Set<String>) -> [String: Any] {
+  func heldAfterScratch(_ gone: Set<String>) -> [String: Any] {
     let held = paper.markup?.strokeFrames ?? [:]
     return ["held": held.count, "held_gone": held.keys.filter(gone.contains).count, "board_strokes": inkFrames.count]
   }
@@ -1846,6 +1848,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     quiet = true
     paper.markup = markup
     quiet = false
+    putKeys = Set(markup.strokeFrames.keys)
     pages = plan.pagesAfter
     let held = paper.markup ?? markup
     inkFrames = held.strokeFrames
