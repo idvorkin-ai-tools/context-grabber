@@ -4,6 +4,9 @@
 #   1. unlocked, a clean build: the recipe passes, and the guard ran it (caffeinate held the display)
 #   2. "No Accounts" in a build that still printed BUILD SUCCEEDED: the recipe fails with 78, so no install follows
 #   3. the Mac locked: the guard waits, and the build does not start
+# Hermetic and safe to run several at once (#981): every run has its own fake device id, so the cleanup that ends the
+# waiting guard can only reach this run's processes, never another copy's build (the pipeline's test step and an
+# agent's `just test` often overlap).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 guard_dir=""
@@ -17,6 +20,7 @@ fi
 guard_dir=$(cd "$guard_dir" && pwd)
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cg-signing-test.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
+device=fake-device-${tmp##*.}  # mktemp's random suffix: no other run's command lines carry it
 fakes=$tmp/bin
 mkdir -p "$fakes"
 cat >"$fakes/xcodebuild" <<'F'
@@ -27,6 +31,9 @@ case " $* " in *" -derivedDataPath "*) case " $* " in *" -scheme "*) ;; *)
   exit 64 ;; esac ;; esac
 case " $* " in *" -resolvePackageDependencies "*) exit 0 ;; esac
 echo "xcodebuild $*" >>"$MARKS/build"
+# The guard starts caffeinate in the background just before the build: wait (up to 5 s) for it to say so, so "held the
+# display awake" is seen every time rather than racing a build that ends before caffeinate's first line (#981).
+for _ in $(seq 50); do [ -s "$MARKS/awake" ] && break; sleep 0.1; done
 [ -n "${FAKE_NO_ACCOUNTS:-}" ] && echo "error: No Accounts: Add a new account in Accounts settings."
 echo "** BUILD SUCCEEDED **"
 F
@@ -54,7 +61,7 @@ run() {
   export MARKS=$tmp/marks/$1
   mkdir -p "$MARKS"
   shift
-  env "$@" PATH="$fakes:$PATH" MARKS="$MARKS" DEVICE=fake-device NATIVE_LOG_DIR="$tmp/logs" \
+  env "$@" PATH="$fakes:$PATH" MARKS="$MARKS" DEVICE="$device" NATIVE_LOG_DIR="$tmp/logs" \
     just bugkit_scripts="$guard_dir" native-build-device >"$MARKS/out" 2>&1
 }
 check() {
@@ -83,8 +90,8 @@ done
 sleep 1  # and a second of it, for "starts no build" to mean something
 check "the guard is waiting for the Mac to unlock" 'grep -q "Mac is locked; waiting" "$tmp/logs/build-device.log"'
 check "a locked Mac starts no build" '[ ! -e "$MARKS/build" ]'
-# The waiting guard and its wrappers carry the fake device or this test's directory on their command lines.
-pkill -f "id=fake-device" 2>/dev/null
+# The waiting guard and its wrappers carry this run's fake device or its directory on their command lines.
+pkill -f "id=$device" 2>/dev/null
 pkill -f "$tmp" 2>/dev/null
 kill "$pid" 2>/dev/null
 wait "$pid" 2>/dev/null
