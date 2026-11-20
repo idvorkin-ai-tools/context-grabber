@@ -82,7 +82,10 @@ final class ChatNewThreadUITests: XCTestCase {
 
   /// Stories 500, 502 and 504: the button beside the + opens the same new chat, and its mic has already been tapped.
   /// The simulator's first run asks for speech recognition; declining is story 504's copyable line, in the new chat's
-  /// bar. Whichever way the recognizer goes, a tap was made for him: the mic is on its way, or it says why not.
+  /// bar. Whichever way the recognizer goes, a tap was made for him: the mic is on its way, or it says why not. With
+  /// both granted, the simulator's on-device recognizer starts and fails within milliseconds (#961: `dictation_start`,
+  /// then `dictation_error` "The speech service stopped unexpectedly" 8 ms later), so the red mic is gone before a poll
+  /// sees it and the bar's copyable line is the evidence of the tap.
   func testTheVoiceButtonOpensANewChatWithItsMicTapped() throws {
     let app = XCUIApplication.forTests()
     app.launchEnvironment["GRABBER_CHAT_URL"] = "http://127.0.0.1:9"
@@ -104,7 +107,8 @@ final class ChatNewThreadUITests: XCTestCase {
     let deadline = Date().addingTimeInterval(20)
     var answered = false
     while Date() < deadline, !answered {
-      let decline = springboard.alerts.buttons["Don\u{2019}t Allow"]
+      // #961: iOS 27's springboard can list the alert's button twice; tap the first rather than fail on the query.
+      let decline = springboard.alerts.buttons["Don\u{2019}t Allow"].firstMatch
       if decline.exists { decline.tap() }
       answered = micAnswered(app)
       if !answered { Thread.sleep(forTimeInterval: 0.5) }
@@ -149,10 +153,16 @@ final class ChatNewThreadUITests: XCTestCase {
     XCTAssertTrue(app.buttons["Find microphones"].appears(within: 5), app.debugDescription)
   }
 
-  /// Recording, on its way there, or its copyable line saying why not.
+  /// Recording, on its way there, or the dictation's copyable line saying why not: a permission off, the microphone
+  /// taken, or the recognizer failing to start or stopping as it starts (BugKit's NoteDictation lines).
   private func micAnswered(_ app: XCUIApplication) -> Bool {
     if app.buttons["Stop recording"].exists { return true }
-    let why = NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@", "off for this app", "could not start")
+    let lines = [
+      "off for this app", "could not start", "in use by this app", "speech service stopped",
+      "stopped receiving audio",
+    ]
+    let why = NSCompoundPredicate(
+      orPredicateWithSubpredicates: lines.map { NSPredicate(format: "label CONTAINS[c] %@", $0) })
     return app.staticTexts.matching(why).firstMatch.exists
   }
 
