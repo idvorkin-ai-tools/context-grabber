@@ -35,7 +35,7 @@ final class EulogyUITests: XCTestCase {
     row("eulogy_song", in: app).tap()
     let elapsed = app.staticTexts["eulogy-song-elapsed"]
     XCTAssertTrue(app.buttons["eulogy-song-toggle"].appears(within: 10), app.debugDescription)
-    XCTAssertTrue(waitFor(app.buttons["eulogy-song-toggle"], "label == 'Pause'", 10), "the song plays")
+    XCTAssertTrue(waitFor(app.buttons["eulogy-song-toggle"], "label == 'Pause'", 10), whyNotPlaying(app))
     app.buttons["eulogy-song-restart"].tap()
     XCTAssertTrue(waitFor(elapsed, "label BEGINSWITH '0:0'", 10), "restarted at \(elapsed.label)")
     XCTAssertEqual(app.buttons["eulogy-song-toggle"].label, "Pause")
@@ -67,6 +67,17 @@ final class EulogyUITests: XCTestCase {
     XCTAssertTrue(address.appears(within: 20), safari.debugDescription)
     XCTAssertTrue(waitFor(address, "value CONTAINS[c] 'suno.com'", 20), "Safari is on \(address.value ?? "?")")
     safari.terminate()
+  }
+
+  /// #692: when the system's player refuses, the app says so on the sheet (a copyable problem) and logs
+  /// `play_refused`; the simulator's audio has done that on code that plays on the phone (docs/TESTING.md). The
+  /// failure names which it was, so a red run reads as the app's or the simulator's without opening the log.
+  private func whyNotPlaying(_ app: XCUIApplication) -> String {
+    let problem = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'The song '")).firstMatch
+    guard problem.exists else { return "the song did not play and the sheet shows no problem: \(app.debugDescription)" }
+    return "the song did not play, and the sheet says \"\(problem.label)\": the song would not load, or the "
+      + "system's player refused it. On code that plays on the phone that has been the simulator's audio "
+      + "(docs/TESTING.md, #692): unlock the Mac, rerun, and read the session log's eulogy_song events"
   }
 
   private func waitFor(_ element: XCUIElement, _ format: String, _ timeout: TimeInterval) -> Bool {
