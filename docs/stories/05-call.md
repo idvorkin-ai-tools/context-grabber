@@ -465,7 +465,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 093:
 
 - **Summary:** Read the call's log on the phone, with both directions counted
-- **Status:** implemented in [b8d45ca](https://github.com/idvorkin/context-grabber/commit/b8d45ca), [6df0f65](https://github.com/idvorkin/context-grabber/commit/6df0f65), [ae01372](https://github.com/idvorkin/context-grabber/commit/ae01372), [7db050d](https://github.com/idvorkin/context-grabber/commit/7db050d); verified by `callLog.test.ts` and on the phone (every bug from #88 on was read from it); native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599) — the call's log is the session log, the fold shows this launch's `call_*` events with a rule between calls; verified by `just native-test` (`CallEventLogTests`) and `just native-test-sim` (the bridge received the dump at the hang-up); the phone still to be checked by Igor; #902 [4c736d2](https://github.com/idvorkin/context-grabber/commit/4c736d2) (the hang-up's close waits for the dump, `stt_stop` and `stop` to leave, at most two seconds), verified by `just test` (host: `SocketCloseDrainTests`), the Mac build and `SMOKE_ONLY=call just native-test-sim` (both calls logged `call_socket` close with drained: true after the hang-up, and the bridge received the dump and `stop`); the real socket on the phone not yet
+- **Status:** implemented in [b8d45ca](https://github.com/idvorkin/context-grabber/commit/b8d45ca), [6df0f65](https://github.com/idvorkin/context-grabber/commit/6df0f65), [ae01372](https://github.com/idvorkin/context-grabber/commit/ae01372), [7db050d](https://github.com/idvorkin/context-grabber/commit/7db050d); verified by `callLog.test.ts` and on the phone (every bug from #88 on was read from it); native app: [f6092a3](https://github.com/idvorkin/context-grabber/commit/f6092a3), [d782599](https://github.com/idvorkin/context-grabber/commit/d782599) — the call's log is the session log, the fold shows this launch's `call_*` events with a rule between calls; verified by `just native-test` (`CallEventLogTests`) and `just native-test-sim` (the bridge received the dump at the hang-up); the phone still to be checked by Igor
 
 #### Use Case:
 - **As a** Larry's client whose call just went silent
@@ -478,12 +478,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I open the Diagnostics fold
 - **Then:** every call is there, oldest first and separated by rules, each with its start, the *at arm:* line, `mic_ack`, an `rx … KB / … frames · played … of …` line every five seconds and the ending with the final pair — and *Copy diagnostics* copies all of it with the build and roster
 
-- **Scenario:** Hanging up lets the last frames reach the bridge (#902)
-- **Given:** a live call
-- **When:** I tap the red handset
-- **Then:** the screen says the call ended at once, the bridge receives the dump, *stop listening* and *stop* before the line closes, and the log's close line says the frames left (or, if they had not after two seconds, that the line closed anyway)
-
-- **Issues:** [#106](https://github.com/idvorkin/context-grabber/issues/106); [#92](https://github.com/idvorkin/context-grabber/issues/92) evidence must survive a retry; [#902](https://github.com/idvorkin/context-grabber/issues/902) the hang-up closed the socket before the stop frames left
+- **Issues:** [#106](https://github.com/idvorkin/context-grabber/issues/106); [#92](https://github.com/idvorkin/context-grabber/issues/92) evidence must survive a retry
 
 ---
 
@@ -1181,6 +1176,26 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a live call
 - **When:** Larry's voice stays under about 70% of full scale
 - **Then:** it plays exactly as sent, and the level line counts no rounded samples
+
+---
+
+### User Story 333:
+
+- **Summary:** Hanging up lets the last frames reach the bridge
+- **Status:** implemented in [4c736d2](https://github.com/idvorkin/context-grabber/commit/4c736d2) (the hang-up's close waits for the dump, `stt_stop` and `stop` to leave, at most two seconds); verified by `just test` (host: `SocketCloseDrainTests`), the Mac build and `SMOKE_ONLY=call just native-test-sim` (both calls logged `call_socket` close with drained: true after the hang-up, and the bridge received the dump and `stop`); the real socket on the phone not yet
+- **Issues:** [#902](https://github.com/idvorkin/context-grabber/issues/902) the hang-up closed the socket before the stop frames left
+- **Spec:** [Native call — Diagnostics](../superpowers/specs/2026-08-28-native-call-screen-design.md#diagnostics) (*The last frames leave before the line closes*)
+
+#### Use Case:
+- **As a** Larry's client ending a call
+- **I want to** my hang-up to reach the bridge as a hang-up, with the call's dump and the end of what I said
+- **so that** Larry hears a clean goodbye, not a dropped line, and the call's record is complete
+
+#### Acceptance Criteria:
+- **Scenario:** Hanging up lets the last frames reach the bridge
+- **Given:** a live call
+- **When:** I tap the red handset
+- **Then:** the screen says the call ended at once, the bridge receives the dump, *stop listening* and *stop* before the line closes, and the log's close line says the frames left (or, if they had not after two seconds, that the line closed anyway)
 
 ---
 
