@@ -217,9 +217,9 @@ extension BoardOutline {
     let marks = hashes(header).compactMap { at[$0] }
     let hb = marks.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
     guard !hb.isNull, box.midY >= hb.minY, box.midY <= hb.maxY else { return false }
-    // Wholly to one side of them, and the gap between them.
-    let right = box.minX >= hb.maxX - Self.crossSlop
-    guard right || box.maxX <= hb.minX + Self.crossSlop else { return false }
+    // Its middle to one side of them, and the gap between them: a tight ## may overlap a little.
+    let right = box.midX >= hb.maxX
+    guard right || box.midX <= hb.minX else { return false }
     let (from, to) = right ? (hb.maxX, box.minX) : (box.maxX, hb.minX)
     guard to - from <= Self.hashGap else { return false }
     let mine = Set(marks + four)

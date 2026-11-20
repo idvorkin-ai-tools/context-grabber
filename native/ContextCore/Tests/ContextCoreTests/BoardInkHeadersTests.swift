@@ -348,6 +348,14 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
   }
 
+  func testATightlyWrittenHashHashWhoseBarsOverlapIsStillAHashHash() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    draw(&o, hash("a", x: 100, y: 100), id: "x")
+    // The second #'s level bars start 5 points inside the first's right end.
+    XCTAssertEqual(draw(&o, hash("b", x: 121, y: 101), id: "unused")?.kind, "deeper")
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+  }
+
   func testAHashUnderATallHashHeaderIsNotItsSecondHash() throws {
     var o = BoardOutline(strokes: [], headers: [])
     XCTAssertEqual(draw(&o, hash("a", x: 100, y: 100, h: 56), id: "x")?.kind, "hash")
