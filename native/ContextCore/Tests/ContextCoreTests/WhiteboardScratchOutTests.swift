@@ -132,4 +132,22 @@ final class WhiteboardScratchOutTests: XCTestCase {
     let far = Scratch.Ink(id: "far", points: [CGPoint(x: 150, y: 140)], width: 10)
     XCTAssertEqual(Scratch.touched(by: zig, in: [far]), [])
   }
+
+  /// #999: the simulator's stand-in zigzag, across a straight stroke drawn over a word, is a scratch-out of that word and
+  /// nothing beside it, so a UI test can reach the scratch-out's PaperKit path.
+  func testTheSimulatorsZigzagAcrossAStrokeScratchesOutTheWordUnderIt() {
+    let word = Scratch.Ink(id: "word", points: stride(from: 100, through: 300, by: 10).map { CGPoint(x: $0, y: 100) })
+    let below = Scratch.Ink(id: "below", points: [CGPoint(x: 150, y: 160), CGPoint(x: 250, y: 160)])
+    let zig = Scratch.zigzag(across: CGRect(x: 90, y: 99, width: 220, height: 3))
+    XCTAssertGreaterThanOrEqual(Scratch.shape(zig.points).reversals, Scratch.reversals)
+    let outcome = Scratch.check(zig.points, ms: zig.ms, over: [word, below])
+    XCTAssertTrue(outcome.ok, "why: \(outcome.why ?? "-")")
+    XCTAssertEqual(outcome.gone, ["word"])
+    XCTAssertTrue(Scratch.isZigzag(Scratch.zigzag(across: CGRect(x: 0, y: 0, width: 3, height: 120)).points, ms: 100))
+  }
+
+  func testTheZigzagHookReadsItsStrokeCount() {
+    XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_ZIGZAG": "2"]).zigzagAt, 2)
+    XCTAssertNil(WhiteboardHooks([:]).zigzagAt)
+  }
 }

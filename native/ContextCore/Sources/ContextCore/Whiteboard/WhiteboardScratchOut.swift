@@ -103,6 +103,24 @@ public enum WhiteboardScratchOut {
     public var why: String?
   }
 
+  /// A fast zigzag across `box`, five sweeps along its longer side, and the milliseconds it takes: what the simulator's UI
+  /// tests draw in place of a straight stroke (`GRABBER_WHITEBOARD_ZIGZAG`, #999), as XCUITest can only drag straight.
+  public static func zigzag(across box: CGRect) -> (points: [CGPoint], ms: Double) {
+    let along = max(box.width, box.height, 40)
+    let wide = box.width >= box.height
+    let mid = CGPoint(x: box.midX, y: box.midY)
+    var points: [CGPoint] = []
+    for i in 0..<60 {
+      let t = CGFloat(i) / 59 * 5
+      let sweep = Int(t)
+      let f = t - CGFloat(sweep)
+      let a = (sweep % 2 == 0 ? f : 1 - f) - 0.5
+      let b = (t / 5 - 0.5) * 16
+      points.append(wide ? CGPoint(x: mid.x + a * along, y: mid.y + b) : CGPoint(x: mid.x + b, y: mid.y + a * along))
+    }
+    return (points, 100)
+  }
+
   /// A zigzag fast enough to be a scratch-out, whatever is under it: over a fold's marker there is no ink, and the fold
   /// goes all the same (story 903).
   public static func isZigzag(_ points: [CGPoint], ms: Double?) -> Bool {

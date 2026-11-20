@@ -427,6 +427,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// that took. For the iPad: the spec's "A ghost sits on the paper".
   private var seat = (worst: CGFloat(0), checks: 0)
   private var pressedForTests = false
+  /// #999: the strokes the last scratch-out took, so a later change that brings them back without an Undo says so.
+  private var scratched: Set<String> = []
   private var movedForTests = false
   /// The undo stack a kept mark's steps went on. A closing view may no longer be able to say.
   private weak var stepsOn: UndoManager?
@@ -740,6 +742,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       "ms": ms(CACurrentMediaTime() - started),
     ]
     event.merge(unheard(change, frames: frames, undo: controller.undoManager)) { $1 }
+    // #999: scratched-out ink back without an Undo or Redo.
+    if !scratched.isEmpty, controller.undoManager?.isUndoing != true, controller.undoManager?.isRedoing != true {
+      let back = change.added.filter(scratched.contains).count
+      if back > 0 { event["came_back"] = back }
+    }
     log.event("whiteboard", event)
     showLines()
     showPageNumber()
@@ -1051,7 +1058,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// step for the zigzag is undone first, as for the tap's dot, so the stack holds only the scratch-out's.
   private func scratchesOut(_ change: PaperProbe.InkChange, _ markup: PaperMarkup) -> Bool {
     guard drawsHere, change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty,
-      let key = change.added.first, let scratch = markup.scratch(key)
+      let key = change.added.first,
+      let scratch = markup.scratch(key, asZigzag: LaunchHooks.current.whiteboard.zigzagAt == inkFrames.count)
     else { return false }
     let outcome = scratch.outcome
     var event: [String: Any] = [
@@ -1062,7 +1070,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if let why = outcome.why { event["why"] = why }
     // Story 905: over a fold's marker or its folded header line, the whole section goes with what else it covered.
     if scratchTakesFolds(scratch, zigzag: key) { return true }
-    guard let after = scratch.after else {
+    guard scratch.after != nil else {
       log.event("whiteboard", event)
       return false
     }
@@ -1071,7 +1079,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       _ = self.takeBackPaperKitsStep(why: "scratch")
       // The zigzag's own step may not have been the one undone: the markup before it is set either way.
       event["undid_zigzag"] = self.paper.markup?.strokeFrames[key] == nil
-      self.registerStepBack(to: scratch.before)
+      // #999: both made from the markup PaperKit holds now, after the take-back. A markup made before it, from the one
+      // the zigzag's change handed over, was refused whole: PaperKit kept the scratched ink, on the sheet and in the
+      // next change, and so it reached Larry.
+      let gone = Set(scratch.outcome.gone + [key])
+      let before = (self.paper.markup ?? scratch.before).without([key])
+      let after = before.without(gone)
+      self.registerStepBack(to: before)
       self.quiet = true
       self.paper.markup = after
       self.quiet = false
@@ -1079,10 +1093,25 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       self.inkFrames = after.strokeFrames
       self.model.stepped(after.inkDrawing)
       self.noteInk(after, since: framesBefore, report: true)
+      // #999: what PaperKit holds once the markup is set, and a beat later: on the iPad the scratched ink came back.
+      self.scratched = gone
+      event["wanted"] = after.strokeFrames.count
+      event.merge(self.heldAfterScratch(gone)) { $1 }
       self.log.event("whiteboard", event)
       self.redrawSoon()
+      try? await Task.sleep(for: .seconds(1))
+      var later: [String: Any] = ["action": "scratch_held", "board": self.model.board.id]
+      later.merge(self.heldAfterScratch(gone)) { $1 }
+      self.log.event("whiteboard", later)
     }
     return true
+  }
+
+  /// #999: how many strokes PaperKit's markup holds, and how many of a scratch-out's (`gone`, the zigzag's too) are among
+  /// them: none, once it has worked.
+  private func heldAfterScratch(_ gone: Set<String>) -> [String: Any] {
+    let held = paper.markup?.strokeFrames ?? [:]
+    return ["held": held.count, "held_gone": held.keys.filter(gone.contains).count, "board_strokes": inkFrames.count]
   }
 
   // MARK: - Paste

@@ -6190,6 +6190,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A fast zigzag over ink scratches it out
 - **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4) (the Cockpit's web board's `scratchOut`, ported); verified on the host (`WhiteboardScratchOutTests`, the web board's own zigzags, humps and loops; `just native-test`). The Pencil's feel and the one undo are the iPad's to show
+- **Issues:** [#999](https://github.com/idvorkin/context-grabber/issues/999)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -6201,7 +6202,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Scratching out a word
 - **Given:** a board on paper with a word written on it and another word beside it
 - **When:** I draw a quick zigzag, turning back at least three times, over the first word
-- **Then:** the strokes the zigzag touched and the zigzag itself are gone, the word beside it stays, and one undo brings the scratched-out word back without the zigzag
+- **Then:** the strokes the zigzag touched and the zigzag itself are gone, and stay gone, on the sheet and in what Larry gets, when I write on; the word beside it stays, and one undo brings the scratched-out word back without the zigzag
 
 ---
 

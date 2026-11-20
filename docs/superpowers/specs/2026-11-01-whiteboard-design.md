@@ -332,7 +332,7 @@ ink it covers, without picking up the eraser.
   inside the zigzag's box). Handwriting never qualifies: an *mmm* or *www* marches along instead of turning back, and a slow
   zigzag, a zigzag on bare paper, or one beside a word rather than over it stays as ink.
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
-  it doesn't touch stay, however close.
+  it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
 - **One undo brings it all back**: the ink it removed, without the zigzag. One redo removes it again.
 - It's a change like any erase: the board saves, and Larry's next picture and strokes no longer have that ink. It doesn't
   ask Claude about the board, as nothing new was written.
@@ -343,7 +343,9 @@ ink it covers, without picking up the eraser.
   or over the folded header's own line, the header and everything folded under it go with whatever else the zigzag
   covered, and the ink below closes up to where the header was. One undo brings it all back, the section still folded.
 - The log says, for every zigzag with three or more turns, whether it fired, its turns and speed, why it didn't (*slow*,
-  *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels.
+  *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels;
+  and how much of what went the board still holds, then and a second later, and whether any of it comes back without an
+  Undo (#999).
 
 ### Larry can read what the board did (#883)
 
