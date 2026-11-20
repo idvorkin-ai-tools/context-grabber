@@ -579,6 +579,21 @@ apart."*
 - **Then:** the pass asks the missed positions first, worst first, then the never-graded ones, then the rest; *Shuffled*
   stays the default
 
+---
+
+### User Story 231:
+
+- **Summary:** Misses first falls back to shuffled when the ledger cannot be read, and says so
+- **Status:** native app only: comes with think-a-card-trainer v0.3.8 (the *Order* choice is the library's, trainer #32 and its story 073, shipped there in v0.3.7 and verified by its host tests), pinned here in [581f6e6](https://github.com/idvorkin/context-grabber/commit/581f6e6); not yet verified in this app (neither on the simulator nor on the phone)
+- **Issues:** [think-a-card-trainer#32](https://github.com/idvorkin/think-a-card-trainer/issues/32)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** still be drilled when the ledger cannot tell which positions I miss, and be told so
+- **so that** a ledger outage never blocks practice or passes off a shuffled order as my misses
+
+#### Acceptance Criteria:
 - **Scenario:** The ledger cannot be read
 - **Given:** the drill is open and the practice ledger cannot be reached
 - **When:** I set *Order* to *Misses first*
