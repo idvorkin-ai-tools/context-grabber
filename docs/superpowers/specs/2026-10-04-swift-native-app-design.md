@@ -90,7 +90,12 @@ way dictation does, recognised on the phone; a second tap, *Log it*, or closing 
 is already typed rather than replacing it, and a pause in speaking never replaces what was said before it (Igor,
 2026-10-10, #249: *"When I stop talking the input gets replaced"*). The first use asks iOS for speech recognition (and the microphone, if not
 yet granted); a refusal, or a phone that cannot recognise speech, leaves the button showing why when tapped, and
-typing still works. During a Larry call the button is off, since the call holds the microphone. Dictating never
+typing still works. During a Larry call the button is off, since the call holds the microphone. **Still speaking
+into the next one** (Igor, 2026-10-17, #341: *"If I'm recording with my microphone and I said log another start
+logging with the microphone again"*): *Log it and another* tapped while the note is being spoken keeps the last words,
+logs the report, and the fresh report starts listening by itself, so a run of problems can be spoken one after the
+other with a tap between each; typed, not spoken, the fresh report opens with the microphone off as before, and *Log
+it*, Cancel or closing the sheet never start it again. Dictating never
 stops music or a podcast that was playing, and the Gym Timer's sound carries on afterwards as it was. Each start
 and stop, each pause the recogniser started over after, and any failure, goes into the session log. The
 picture stays on the Mac and the issue says where: the issues are public, and a screen can show health, places

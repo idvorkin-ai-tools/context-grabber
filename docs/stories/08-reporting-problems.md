@@ -594,3 +594,46 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the share card saved the report, with its own session log, in the space it shares with the app; the app
   takes it into its own reports, logs `bug_report_adopted` and queues it for iCloud; the Mac files it under Grabber
   Native as *Automatic report: ShareCard.dictation*, its context naming the share extension
+
+---
+
+### User Story 158:
+
+- **Summary:** Speak several reports in a row without tapping the mic each time
+- **Issues:** [#341](https://github.com/idvorkin/context-grabber/issues/341) (the next report opened with the microphone off); BugKit's side is [bug-kit#121](https://github.com/idvorkin/bug-kit/issues/121)
+- **Status:** implemented in [73cf5a89](https://github.com/idvorkin/context-grabber/commit/73cf5a89) with BugKit 0.3.14 (idvorkin/bug-kit#121, #123); verified by BugKit's host tests (`BugReportFlow`'s carried dictation) and iOS typecheck, and here by the host rung (`just test`) and the Mac build (`just native-build-mac`); the phone is not yet verified (a real voice across two reports)
+- **Spec:** [Grabber Native, the shake](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+
+#### Use Case:
+- **As someone** speaking a run of problems into the report, the phone in one hand
+- **I want to** tap *Log it and another* and go straight on speaking the next one
+- **so that** each problem is its own report without a tap on the microphone between them
+
+#### Acceptance Criteria:
+- **Scenario:** Still speaking when I log one
+- **Given:** a report is open and its microphone is recording what I say, with no call up
+- **When:** I say "the timer skipped the rest", tap *Log it and another*, and say "the count was late"
+- **Then:** the first report is stored with "the timer skipped the rest", the next report opens empty and already
+  listening, its note ends up "the count was late", and the log has `dictation_carried` between the two
+  `dictation_start` lines
+
+---
+
+### User Story 159:
+
+- **Summary:** A typed report hands on no microphone
+- **Issues:** [#341](https://github.com/idvorkin/context-grabber/issues/341); BugKit's side is [bug-kit#121](https://github.com/idvorkin/bug-kit/issues/121)
+- **Status:** implemented in [73cf5a89](https://github.com/idvorkin/context-grabber/commit/73cf5a89) with BugKit 0.3.14 (idvorkin/bug-kit#121, #123); verified by BugKit's host tests (`BugReportFlow`'s carried dictation) and iOS typecheck, and here by the host rung (`just test`) and the Mac build (`just native-build-mac`); the phone is not yet verified
+- **Spec:** [Grabber Native, the shake](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+
+#### Use Case:
+- **As someone** who typed a report rather than spoke it
+- **I want to** have the next report open quiet
+- **so that** the microphone only listens when I was already speaking
+
+#### Acceptance Criteria:
+- **Scenario:** Typed, then logged with another
+- **Given:** a report is open with a note I typed, the microphone off
+- **When:** I tap *Log it and another*
+- **Then:** the first report is stored with my typed note, the next report opens empty with the microphone off, and
+  the log has no `dictation_carried` or `dictation_start` after the report
