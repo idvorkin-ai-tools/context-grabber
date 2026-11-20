@@ -5090,15 +5090,37 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
-- **As someone** who scribbled where there was nothing, or only beside a word
+- **As someone** who scribbled where there was nothing
 - **I want to** be told nothing was erased, and not be left with the scribble
 - **so that** I don't wonder whether the scratch-out failed, and can try again over the ink
 
 #### Acceptance Criteria:
 - **Scenario:** A zigzag over bare paper
 - **Given:** a board on paper with bare paper where I draw
-- **When:** I draw a quick zigzag there, or one that only clips the end of a long word
+- **When:** I draw a quick zigzag there
 - **Then:** the zigzag is taken away, *Nothing under the scribble to erase* shows beside where it was for a few seconds, and Redo brings the zigzag back as ink
+
+---
+
+### User Story 1052:
+
+- **Summary:** A zigzag that only clips the end of a word says so and goes, leaving the word
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** implemented in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13), [d70e8e4](https://github.com/idvorkin/context-grabber/commit/d70e8e4); verified on the host (`WhiteboardScratchOutTests.testOnlyAZigzagOverNothingFindsNothing`), and the Mac build; the simulator's UI test draws over bare paper only (story 1051), so a zigzag beside a word is the iPad's
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** who scribbled beside a word rather than over it
+- **I want to** be told nothing was erased, and not be left with the scribble
+- **so that** I don't wonder whether the scratch-out failed, and can try again over the ink
+
+#### Acceptance Criteria:
+- **Scenario:** A zigzag beside a word
+- **Given:** a board on paper with a long word written on it
+- **When:** I draw a quick zigzag that only clips the end of the word
+- **Then:** the word stays, the zigzag is taken away, *Nothing under the scribble to erase* shows beside where it was for a few seconds, and Redo brings the zigzag back as ink
+
+---
 
 ### User Story 769:
 
@@ -6427,7 +6449,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 891:
 
 - **Summary:** Writing that only looks like a zigzag stays ink
-- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4); verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad; narrowed to writing in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13) (#1000): a fast zigzag over bare paper or beside a word is story 1051
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4); verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad; narrowed to writing in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13) (#1000): a fast zigzag over bare paper or beside a word is stories 1051 and 1052
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -6439,7 +6461,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Near misses
 - **Given:** a board with writing on it
 - **When:** I write *mmm* over a word, or draw a slow zigzag over it
-- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*). A fast zigzag on bare paper, or one that only clips the end of a long word, is story 1051 (#1000)
+- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*). A fast zigzag on bare paper, or one that only clips the end of a long word, is stories 1051 and 1052 (#1000)
 
 ---
 

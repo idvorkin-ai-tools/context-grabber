@@ -1,5 +1,5 @@
 //  What a scratch-out did, shown (spec 2026-11-01-whiteboard-design.md, *Every pen gesture shows what it did (#1000)*;
-//  stories 1050, 1051, 1043): the struck ink flashes and fades where it was, and a zigzag that finds nothing to erase goes,
+//  stories 1050–1052, 1043): the struck ink flashes and fades where it was, and a zigzag that finds nothing to erase goes,
 //  with *Nothing under the scribble to erase* beside where it was. Over the paper, in no picture, taking no touches.
 
 import ContextCore
@@ -68,7 +68,7 @@ extension PaperBoardController {
       ])
   }
 
-  /// Story 1051: a zigzag that found nothing to erase goes, as an Undo would take it (Redo brings it back), and says so
+  /// Stories 1051, 1052: a zigzag that found nothing to erase goes, as an Undo would take it (Redo brings it back), and says so
   /// beside where it was for a few seconds. When PaperKit's step for it can't be taken back, it stays ink, unsaid.
   func scratchFoundNothing(_ key: String, frame: CGRect, event: [String: Any]) {
     Task { @MainActor [weak self] in

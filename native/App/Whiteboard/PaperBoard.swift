@@ -1086,7 +1086,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       return true
     }
     guard scratch.after != nil else {
-      // Story 1051 (#1000): a zigzag over nothing goes, with a word; writing that only looks like one stays ink.
+      // Stories 1051, 1052 (#1000): a zigzag over nothing goes, with a word; writing that only looks like one stays ink.
       if outcome.findsNothing, let frame = markup.strokeFrames[key] {
         scratchFoundNothing(key, frame: frame, event: event)
         return true

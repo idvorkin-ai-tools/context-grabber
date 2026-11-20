@@ -103,7 +103,7 @@ public enum WhiteboardScratchOut {
     public var why: String?
 
     /// A scratch-out in shape and speed that found nothing to erase: no ink under it, or only ink beside it (#1000,
-    /// story 1051). It goes, with a word; writing that only looks like a zigzag (slow, marches along...) stays ink.
+    /// stories 1051, 1052). It goes, with a word; writing that only looks like a zigzag (slow, marches along...) stays ink.
     public var findsNothing: Bool { !ok && (why == "no ink" || why == "beside ink") }
   }
 
