@@ -4942,10 +4942,10 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1044:
+### User Story 1056:
 
 - **Summary:** I can letter a board's text in a real font, still as ink
-- **Status:** implemented on branch `native/board-font-950`; not yet verified
+- **Status:** implemented in [6a18400d](https://github.com/idvorkin/context-grabber/commit/6a18400d), [f91185a4](https://github.com/idvorkin/context-grabber/commit/f91185a4) and [0db63e74](https://github.com/idvorkin/context-grabber/commit/0db63e74); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`); on the iPad simulator, rung 2, 2026-11-20 (`WhiteboardLetteringUITests`: HI four strokes on a new board, Real font on with no redraw, reopened still on, HI again as two outlines, a new board single strokes). The iPad not yet
 - **Issues:** [#950](https://github.com/idvorkin/context-grabber/issues/950): Igor, 2026-11-18, "Why not have the app render a real font?"; 2026-11-20 (W3 on #912's decision page), "a real font as a per-board or per-text option, still drawn as ink"
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A real font, still drawn as ink*; [the paste spec](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
@@ -4956,16 +4956,16 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Acceptance Criteria:
 - **Scenario:** A paste on a real-font board
-- **Given:** a board on paper I can draw on, its Board menu's *Lettering* set to *Real font*
+- **Given:** a board on paper I can draw on, with *Real font* turned on in its Board menu
 - **When:** I copy "HI" and tap Paste
-- **Then:** "HI" lands as Helvetica's letter outlines traced in thin ink, more strokes than the four single strokes would be, and the Board menu still says *Lettering: Real font* when I reopen the board
+- **Then:** "HI" lands as Helvetica's letter outlines traced in thin ink, one closed outline a letter where single strokes write it in four, and *Real font* is still on when I reopen the board
 
 ---
 
-### User Story 1045:
+### User Story 1057:
 
 - **Summary:** A board starts, and stays, in single-stroke letters until I choose otherwise
-- **Status:** implemented on branch `native/board-font-950`; not yet verified
+- **Status:** implemented in [6a18400d](https://github.com/idvorkin/context-grabber/commit/6a18400d) and [f91185a4](https://github.com/idvorkin/context-grabber/commit/f91185a4); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`); on the iPad simulator, rung 2, 2026-11-20 (`WhiteboardLetteringUITests`: HI four strokes on a new board, Real font on with no redraw, reopened still on, HI again as two outlines, a new board single strokes). The iPad not yet
 - **Issues:** [#950](https://github.com/idvorkin/context-grabber/issues/950): Igor, 2026-11-18, "Why not have the app render a real font?"; 2026-11-20 (W3 on #912's decision page), "a real font as a per-board or per-text option, still drawn as ink"
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A real font, still drawn as ink*
 
@@ -4978,14 +4978,14 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A new board and an old one
 - **Given:** a new board, and a board made before the option, neither with a lettering chosen
 - **When:** I open its Board menu and paste "HI"
-- **Then:** *Lettering* reads *Single strokes* and the paste is four strokes; choosing *Real font* changes nothing already on the board, adds no undo step and costs no stroke
+- **Then:** *Real font* is off and the paste is four strokes; turning it on changes nothing already on the board, adds no undo step and costs no stroke
 
 ---
 
-### User Story 1046:
+### User Story 1058:
 
 - **Summary:** Larry can letter one text in the real font, and it stays one text
-- **Status:** implemented on branch `native/board-font-950`; not yet verified
+- **Status:** implemented in [6a18400d](https://github.com/idvorkin/context-grabber/commit/6a18400d) and [0db63e74](https://github.com/idvorkin/context-grabber/commit/0db63e74); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`). A text of Larry's in the real font not yet seen on the simulator or the iPad, and the Cockpit drops a chat mark's lettering until context-grabber-qlr3
 - **Issues:** [#950](https://github.com/idvorkin/context-grabber/issues/950): Igor, 2026-11-18, "Why not have the app render a real font?"; 2026-11-20 (W3 on #912's decision page), "a real font as a per-board or per-text option, still drawn as ink"
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A real font, still drawn as ink*; [board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md)
 

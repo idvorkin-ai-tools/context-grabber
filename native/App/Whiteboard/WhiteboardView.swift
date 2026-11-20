@@ -43,7 +43,7 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var ruledOn: Bool
   /// The board's colour (story 378).
   @Published private(set) var paper: BoardPaper
-  /// How text made on the board from now on is lettered (#950, stories 1044–1046), remembered per board on this device.
+  /// How text made on the board from now on is lettered (#950, stories 1056–1058), remembered per board on this device.
   @Published private(set) var lettering: WhiteboardTurn.LetterStyle
   /// Who answers a pause: Haiku, Sonnet or Larry, the board's knob on the Cockpit (story 659).
   @Published private(set) var responder = WhiteboardResponderKnob()
@@ -2155,6 +2155,7 @@ extension WhiteboardModel {
 
   private func apply(_ batch: BoardOps.Batch, held: Bool) {
     let started = ContinuousClock.now
+    let batch = batch.lettered(lettering)
     var event = BoardOps.logFields(batch)
     event["board"] = board.id
     event["held"] = held
@@ -2738,22 +2739,17 @@ struct WhiteboardView: View {
               model.menuChose?()
             }
             .accessibilityIdentifier("whiteboard-tidy")
-            // #950 (stories 1044, 1045): how the board letters its text. A submenu, as Responder is, so the menu stays
-            // short enough to close on a pick (#848).
-            Menu {
-              ForEach(WhiteboardTurn.LetterStyle.allCases, id: \.self) { lettering in
-                Toggle(
-                  lettering.name,
-                  isOn: Binding(
-                    get: { model.lettering == lettering },
-                    set: { _ in
-                      model.setLettering(lettering)
-                      model.menuChose?()
-                    }))
-              }
-            } label: {
-              Label("Lettering: \(model.lettering.name)", systemImage: "textformat")
-            }
+            // #950 (stories 1056, 1057): how the board letters its text. One row, a switch, as the menu has room for no
+            // more (#848), and a submenu's rows close before a tap reaches them while the board's bar redraws.
+            Toggle(
+              "Real font",
+              isOn: Binding(
+                get: { model.lettering == .font },
+                set: {
+                  model.setLettering($0 ? .font : .single)
+                  model.menuChose?()
+                })
+            )
             .accessibilityIdentifier("whiteboard-lettering")
             // Story 659: who answers a pause, the board's own on the Cockpit. A submenu, not a section: three more rows
             // make the iPad show the menu as a full-height list that stays up after a pick (#848).

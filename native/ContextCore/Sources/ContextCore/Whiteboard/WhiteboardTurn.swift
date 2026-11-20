@@ -75,9 +75,6 @@ public enum WhiteboardTurn {
 
     /// As a mark or a text names it; nil for none or one this build doesn't know, which takes the board's.
     public static func named(_ any: Any?) -> LetterStyle? { (any as? String).flatMap(LetterStyle.init(rawValue:)) }
-
-    /// The Board menu's words for it.
-    public var name: String { self == .single ? "Single strokes" : "Real font" }
   }
 
   /// A mark's pen with nothing asked for, in board points: the width of a kept stroke.
