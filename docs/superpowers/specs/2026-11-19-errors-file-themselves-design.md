@@ -20,8 +20,8 @@ he sees, he does not have time to report, so they are never fixed.
   says what Copy error would have copied (the message, where it happened, the build and the state), which screen it
   was on, the session log, and what was on screen (its accessibility tree). The Mac's listener files it as an
   *Automatic report: <where it happened>* issue, labelled `auto`, like the call's automatic reports.
-- **The same error again.** Each kind of error (where it happened, such as `ChatThreadView.send`) files at most once
-  every 10 minutes, even across a relaunch. A repeat is noted in the session log and files nothing.
+- **The same error again.** Each kind of error (where it happened, the context Copy error shows, such as sending a
+  chat message) files at most once every 10 minutes, even across a relaunch. A repeat is noted in the session log and files nothing.
 - **Errors that are expected file nothing.** They still show, with Copy error, exactly as before:
   - every error shown while the phone has no network: offline, a failed send or load is expected, not a bug;
   - *Health is not available on this device*: the device has no Health, which no fix can change.

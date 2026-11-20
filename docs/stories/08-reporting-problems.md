@@ -533,7 +533,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** An error on screen files a report by itself
 - **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876), idvorkin/bug-kit#119
-- **Status:** in the app with BugKit 0.3.14 (idvorkin/bug-kit#119, #122) in [94865cdf](https://github.com/idvorkin/context-grabber/commit/94865cdf); verified on the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; an error filing itself on the phone and from the share sheet is the phone's to check
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
@@ -557,7 +557,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** An error the app expects files nothing
 - **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
-- **Status:** in the app with BugKit 0.3.14 (idvorkin/bug-kit#119, #122) in [94865cdf](https://github.com/idvorkin/context-grabber/commit/94865cdf); verified on the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; an error filing itself on the phone and from the share sheet is the phone's to check
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
@@ -566,10 +566,10 @@ Part of the [user stories](README.md); persona and format are described there.
 - **so that** every automatic report is worth reading
 
 #### Acceptance Criteria:
-- **Scenario:** Offline
-- **Given:** the phone has no network
-- **When:** an error shows (a chat that will not load, a board that cannot reach Larry), or *Health is not available
-  on this device* shows on any device
+- **Scenario:** Offline, or no Health on the device
+- **Given:** the phone has no network, or the device has no Health (online or not)
+- **When:** an error shows while offline (a chat that will not load, a board that cannot reach Larry), or *Health is
+  not available on this device* shows
 - **Then:** it shows with Copy error as before, nothing is saved, and the session log has `bug_report_auto_skipped`
   with `auto_file: false`
 
@@ -579,7 +579,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** An error on the share card reaches the Mac through the app
 - **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
-- **Status:** in the app with BugKit 0.3.14 (idvorkin/bug-kit#119, #122) in [94865cdf](https://github.com/idvorkin/context-grabber/commit/94865cdf); verified on the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; an error filing itself on the phone and from the share sheet is the phone's to check
+- **Status:** implemented in [d269610c](https://github.com/idvorkin/context-grabber/commit/d269610c) with BugKit 0.3.14 (idvorkin/bug-kit#119, #122); verified by the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; the phone is not yet verified (an error filing itself there and from the share sheet)
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
