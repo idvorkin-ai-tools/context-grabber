@@ -5,8 +5,8 @@ import XCTest
 /// #388 item 1, option A (Igor, 2026-11-19), story 153: iCloud's first delivery may be partial, so a reinstall waits
 /// for a minute online in the foreground with nothing more arriving; with nothing arriving at all, five minutes.
 final class StripFirstSyncWaitTests: XCTestCase {
-  private let t0 = Date(timeIntervalSince1970: 1_000_000)
-  private func at(_ s: TimeInterval) -> Date { t0.addingTimeInterval(s) }
+  private let t0 = ContinuousClock.now
+  private func at(_ s: Double) -> ContinuousClock.Instant { t0.advanced(by: .seconds(s)) }
 
   /// Nothing arrives: five minutes online in the foreground end the wait, as before.
   func testWithNoArrivalFiveQuietMinutesEndTheWait() {
@@ -55,5 +55,16 @@ final class StripFirstSyncWaitTests: XCTestCase {
     wait.counting(true, at: t0)
     wait.counting(true, at: at(100))
     XCTAssertEqual(wait.deadline, at(300))
+  }
+
+  /// #972: the wait is due on the clock the timer sleeps on, so the wall clock being set back can't hold it shut.
+  func testTheWaitIsDueOnTheTimersOwnClock() {
+    var wait = StripFirstSyncWait()
+    wait.counting(true, at: t0)
+    wait.arrived("initial_sync", at: at(1))
+    XCTAssertFalse(wait.isDue(at: at(60)))
+    XCTAssertTrue(wait.isDue(at: at(61)))
+    wait.counting(false, at: at(62))
+    XCTAssertFalse(wait.isDue(at: at(1_000)), "no time counts offline")
   }
 }

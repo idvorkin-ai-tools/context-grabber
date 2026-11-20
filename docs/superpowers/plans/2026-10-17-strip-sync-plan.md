@@ -54,7 +54,8 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   Known items are this device's own: one missing locally stays missing.
 - #388 item 1 (a partial initial download overwritten after a reinstall): Igor chose option A, tightening the wait
   (2026-11-19). `StripFirstSyncWait` (ContextCore) holds the deadline: settle after an arrival, quiet with none, both
-  counted from the later of the last arrival and the start of the current online foreground stretch. ponytail: a
+  counted from the later of the last arrival and the start of the current online foreground stretch, all on the
+  continuous clock the timer sleeps on, never the wall clock (#972: a clock set back held the wait shut). ponytail: a
   month delivered after a whole quiet minute can still be overwritten; option E (each install writes only keys it
   created) on the issue closes it.
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
