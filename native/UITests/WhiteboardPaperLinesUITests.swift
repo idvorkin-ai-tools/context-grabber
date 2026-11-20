@@ -44,7 +44,19 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     board(app).tap()
     let choice = app.descendants(matching: .any)[item].firstMatch
     XCTAssertTrue(choice.appears(within: 5), app.debugDescription)
-    choice.tapWhenSettled()
+    // #880: on the iPad simulator, which has no hardware keyboard, opening the menu raises the on-screen keyboard over
+    // the board, and it rises again every half second or more while the menu stays up. A tap that lands as it rises is
+    // cancelled (the session log: `ui_touch_cancel` on the row, then `keyboard_shown` 18 ms later), and the menu stays
+    // open. So the row is tapped again, at most twice more, but only while the menu is still up and nothing changed:
+    // a pick that took closes the menu, and then the row is gone and the board's label reads `expect`.
+    let took = { !choice.exists || (self.board(app).exists && self.board(app).label == expect) }
+    for _ in 0..<3 {
+      choice.tapWhenSettled()
+      let deadline = Date().addingTimeInterval(2)
+      while Date() < deadline, !took() { RunLoop.current.run(until: Date().addingTimeInterval(0.1)) }
+      guard !took(), choice.isHittable else { break }
+      print("ui-menu: the tap on \(item) didn't take and the menu is still up; tapping it again (#880)")
+    }
     wait(board(app), label: expect, timeout: 10)
     sleep(1)  // The menu gone and the sheet laid.
   }

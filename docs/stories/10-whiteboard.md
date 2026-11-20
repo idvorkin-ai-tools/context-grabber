@@ -3961,7 +3961,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** The Board menu never costs a stroke
 - **Status:** implemented in [bc0f653](https://github.com/idvorkin/context-grabber/commit/bc0f653); verified on an iPhone 17 simulator (`testTheFirstStrokeAfterTheMenuDraws`, 5 of 5 after the fix, and before it the stroke was lost 5 of 5). Choosing the colour already chosen takes the same path; its test, `testTheFirstStrokeAfterChoosingTheSameColourDraws`, hasn't been run on a simulator yet; since bead `context-grabber-y8r` the first two cases share one launch, and since [e234dc6](https://github.com/idvorkin/context-grabber/commit/e234dc6) the same-colour case has its own again, on a fresh board choosing Plain (chained after the others, the menu tap missed the colour row); verified on the simulator (the whole whiteboard suite, 0 failures)
-- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608)
+- **Issues:** [#635](https://github.com/idvorkin/context-grabber/issues/635), [#608](https://github.com/idvorkin/context-grabber/issues/608), [#880](https://github.com/idvorkin/context-grabber/issues/880) (the menu's UI tests flaky on the iPad simulator: opening the Board menu raises the on-screen keyboard there, and a row tapped as it rises is cancelled, so `WhiteboardPaperLinesUITests` taps the row again while the menu is still up)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
