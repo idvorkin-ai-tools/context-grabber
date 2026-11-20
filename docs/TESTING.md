@@ -539,7 +539,9 @@ stay under `native/Build/Archives` and `native/Build/Export`, named by version, 
 
 - `just testflight --export-only`: the archive and the signed package, no upload and no key. It is how a Release-only
   compile failure or a distribution-signing problem shows up before the day it matters.
-- `just testflight --dry-run`: checks the key and the checkout and prints the plan.
+- `just testflight --dry-run`: checks the key and the checkout and prints the plan. The host rung runs
+  `scripts/native/test-testflight.sh` against it: each refusal above, the plan, and that the key's values are never
+  printed.
 
 **The key** comes from the environment, `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_KEY_PATH` (the `.p8` file), else from
 the same three as `KEY=value` lines in `scripts/native/testflight.local`, which git ignores. The repository is public:

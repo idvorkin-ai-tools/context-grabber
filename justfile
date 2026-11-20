@@ -79,6 +79,8 @@ native-test-host:
     scripts/native/test-smoke-lock.sh
     # Stories 814-818: the fake Cockpit's board ops, which the whiteboard UI tests rely on.
     scripts/native/test-fake-cockpit-ops.py
+    # Stories 1012, 1013 (#1012): what just testflight refuses before it builds, from its dry run.
+    scripts/native/test-testflight.sh
     # #943: URL loading on Linux needs FoundationNetworking; the Mac's build can't see a file that forgot it.
     scripts/native/test-linux-imports.sh
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
