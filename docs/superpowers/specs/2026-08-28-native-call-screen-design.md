@@ -187,6 +187,23 @@ this rule ran Larry's voice went into the dongle and Igor heard nothing
 (2026-08-29). The output stays where it was, and a USB device is offered in
 the output picker only while iOS is actually playing through it.
 
+**Larry's voice never goes over full scale**
+([#903](https://github.com/idvorkin/context-grabber/issues/903)). A call on
+2026-10-25 rendered Larry at a peak of 1.08: louder than the speaker can
+play, so the top of his loudest syllables was cut flat, a harsh edge on
+exactly the words he stresses. What arrives from the bridge can never be
+over full scale; the overshoot is made on the phone, when his voice is
+converted to the speaker's rate, which can ring a little above a peak that
+was already at the top. So his voice goes to the speaker with a little
+headroom kept: anything quieter than about 70% of full scale (-3 dBFS),
+which is nearly all of speech, plays exactly as sent, and only the loudest
+peaks are rounded smoothly toward a ceiling a little under 90%, never cut
+flat, leaving room for that conversion. Nothing gets quieter overall, and
+there is no pumping or delay, because nothing depends on what came before.
+The five-second level line counts how many of Larry's samples were
+rounded, beside the peak that came in and the peak the mixer rendered, so
+a phone call shows the rendered peak under full scale.
+
 ### Diagnostics
 
 *"Do you have logging output on this?"* Under the devices line, a
@@ -1025,6 +1042,12 @@ delivers is separate and unchanged: once per dead burst.
     until the bridge acknowledges the mic. A call whose first second is
     exact zeros and whose mic the bridge never acknowledges restarts the
     mic once, not twice, then says *not reaching Larry*.
+
+47. **Larry's voice stays under full scale** (#903). On a Direct call,
+    listen through a reply with a loud, stressed word: no harsh, flattened
+    edge on it. Open Diagnostics: every level line while he spoke shows
+    the mixer's peak under 1.0, and the count of rounded samples; a quiet
+    reply shows that count at 0, played exactly as sent.
 
 ## Rationale and risks
 **Why native rather than fixing the web view.** WebKit on iOS suspends
