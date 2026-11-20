@@ -58,7 +58,7 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   month delivered after a whole quiet minute can still be overwritten; option E (each install writes only keys it
   created) on the issue closes it.
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
-  `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, queued_months, replayed_steps),
+  `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, after, queued_months, replayed_steps),
   `reclaimed` (rows), `recovered_own` (rows), `retry_missed` (keys, why);
   failures are `error` with `where` strip_sync_publish, strip_sync_hand_over, strip_sync_reclaim,
   strip_sync_recover, strip_sync_replay, strip_sync_arrived or strip_sync_quota.
