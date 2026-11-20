@@ -160,6 +160,10 @@ final class WhiteboardModel: ObservableObject {
   var move: (([Int: CGFloat]) -> Void)?
   /// Something was chosen in the Board menu, the colour already chosen too; a board on paper sets it.
   var menuChose: (() -> Void)?
+  /// #965 (stories 1008, 1009): the bar's Undo and Redo, as the board's undo stack stands; the canvas keeps it current.
+  @Published var undoButtons = BoardUndoButtons.none
+  /// The bar's Undo (false) or Redo (true) pressed; the canvas sets it.
+  var pressUndo: ((_ redo: Bool) -> Void)?
   private let callLive: @MainActor () -> Bool
   private lazy var dictation = makeDictation()
   private var dictationWatches: Set<AnyCancellable> = []
@@ -2452,6 +2456,21 @@ struct WhiteboardView: View {
   private let reportSaved: AnyPublisher<String, Never>
   /// Story 769: an iPhone has no conversation panel; a tap on the note opens the board's thread in Chat.
   private let onPhone: Bool
+
+  /// #965: one of the bar's Undo and Redo, at least 44 points each way, named for the step it acts on.
+  private func undoButton(redo: Bool) -> some View {
+    let state = redo ? model.undoButtons.redo : model.undoButtons.undo
+    return Button {
+      model.pressUndo?(redo)
+    } label: {
+      Label(redo ? "Redo" : "Undo", systemImage: redo ? "arrow.uturn.forward" : "arrow.uturn.backward")
+        .frame(minWidth: BoardUndoButtons.side, minHeight: BoardUndoButtons.side)
+        .contentShape(Rectangle())
+    }
+    .disabled(!state.enabled)
+    .accessibilityLabel(state.label)
+    .accessibilityIdentifier(redo ? "whiteboard-redo" : "whiteboard-undo")
+  }
   private let openChat: (String) -> Void
   private let decisions: ChatDecisionsModel
   /// Story 889: a question card's own answer is spoken with Chat's mic.
@@ -2540,6 +2559,14 @@ struct WhiteboardView: View {
     .navigationTitle(model.board.title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
+      // #965 (stories 1008, 1009): Undo and Redo where a finger reaches them, after the way back, whatever the tool picker
+      // is doing.
+      if model.editable {
+        ToolbarItemGroup(placement: .topBarLeading) {
+          undoButton(redo: false)
+          undoButton(redo: true)
+        }
+      }
       if model.editable {
         // The board's own settings, in one menu. Six items in an iPhone's top bar push Larry's turn and Send under *More*,
         // so at that width this one goes to the bottom (story 402).
@@ -2673,6 +2700,15 @@ struct WhiteboardView: View {
       guard let text = LaunchHooks.current.whiteboard.paste else { return }
       try? await Task.sleep(for: .seconds(1))
       model.paste(text)
+    }
+    .task {
+      // #965: the simulator presses the bar's own Undo and Redo, as a tap on them does.
+      guard model.editable, let hook = LaunchHooks.current.whiteboard.barUndo else { return }
+      try? await Task.sleep(for: .seconds(hook.delay))
+      for press in hook.presses {
+        model.pressUndo?(press == "redo")
+        try? await Task.sleep(for: .seconds(3))
+      }
     }
     .onAppear {
       model.opened()

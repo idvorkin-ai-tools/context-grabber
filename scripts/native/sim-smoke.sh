@@ -181,6 +181,23 @@ case $device in
 esac
 if [ "$looks" = "$wanted" ]; then ok "whiteboard: on an $device, New board $(cut -d' ' -f1 <<<"$looks"), its own board: $(cut -d' ' -f2- <<<"$looks")"
 else bad "whiteboard: on an $device, New board, editable and look-only were '$looks', wanted '$wanted'"; fi
+# #965, stories 1008, 1009: on a board drawn on here (not an iPhone's), the bar's own Undo takes a paste back and its
+# Redo brings it again, pressed through the buttons' own press. How they look and what VoiceOver reads are
+# WhiteboardPaperGhostsUITests'.
+if [ "$device" != iPhone ]; then
+SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-bar-undo SIMCTL_CHILD_GRABBER_WHITEBOARD_PASTE=hi \
+  SIMCTL_CHILD_GRABBER_WHITEBOARD_BAR_UNDO=4,undo,redo \
+  SIMCTL_CHILD_GRABBER_LINK="grabbernative://whiteboard?board=smoke-bar-undo" relaunch
+wait_jq 'select(.type=="whiteboard" and .action=="paper_undo_button" and .redo==true)' 30 \
+  || echo "      (timed out waiting for paper_undo_button)"
+f=$(newest_log)
+pressed=$(jq -sr '[.[] | select(.type=="whiteboard" and .action=="paper_undo_button" and .board=="smoke-bar-undo")
+  | "\(.redo) \(.can) \(.name)"] | join(", ")' "$f")
+errors=$(jq -c 'select(.type=="error")' "$f")
+if [ "$pressed" = "false true Paste, true true Paste" ] && [ -z "$errors" ]; then
+  ok "whiteboard: the bar's Undo took the paste back and its Redo brought it again, no error events"
+else bad "whiteboard: the bar's Undo and Redo pressed '$pressed', wanted 'false true Paste, true true Paste', errors: $errors"; fi
+fi
 # Story 658: a board drawn on the old canvas opens on paper to look at only, its 40 strokes moved onto the first page
 # (the ink's box starts at the page's margin).
 SIMCTL_CHILD_GRABBER_BOARD_FIXTURE=smoke-old-canvas SIMCTL_CHILD_GRABBER_BOARD_FIXTURE_OLD_INK=40 \

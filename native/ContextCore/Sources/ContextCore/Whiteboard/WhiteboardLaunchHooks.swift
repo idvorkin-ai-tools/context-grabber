@@ -59,6 +59,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   public var pageAfterInk: Int?
   public var afterKeep: AfterKeep?
   public var afterOps: AfterKeep?
+  /// `GRABBER_WHITEBOARD_BAR_UNDO=<seconds>,undo,redo,...`: those presses of the bar's own Undo and Redo, that long after a
+  /// board drawn on here opens (#965, stories 1008, 1009).
+  public var barUndo: AfterKeep?
   public var larryTimeout: LarryTimeout?
   public var larryWait: LarryWaitPress?
   /// `GRABBER_WHITEBOARD_SELECT_NEWEST=<n>`: once the board holds `n` strokes, the newest is selected as the lasso would
@@ -80,6 +83,7 @@ public struct WhiteboardHooks: Equatable, Sendable {
     }
     afterKeep = env["GRABBER_WHITEBOARD_AFTER_KEEP"].map(presses)
     afterOps = env["GRABBER_WHITEBOARD_AFTER_OPS"].map(presses)
+    barUndo = env["GRABBER_WHITEBOARD_BAR_UNDO"].map(presses)
     let timeout = (env["GRABBER_WHITEBOARD_LARRY_TIMEOUT"] ?? "").split(separator: ",").map(String.init)
     if let seconds = timeout.first.flatMap({ Double($0) }) {
       larryTimeout = LarryTimeout(seconds: seconds, dismiss: timeout.dropFirst().contains("dismiss"))

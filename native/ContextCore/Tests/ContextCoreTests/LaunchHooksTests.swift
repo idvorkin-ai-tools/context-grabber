@@ -256,6 +256,10 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertEqual(
       WhiteboardHooks(["GRABBER_WHITEBOARD_AFTER_OPS": "5,undo,redo"]).afterOps,
       WhiteboardHooks.AfterKeep(delay: 5, presses: ["undo", "redo"]), "story 814: the presses after Larry's push")
+    XCTAssertNil(board.barUndo, "a keep's presses are not the bar's")
+    XCTAssertEqual(
+      WhiteboardHooks(["GRABBER_WHITEBOARD_BAR_UNDO": "4,undo,redo"]).barUndo,
+      WhiteboardHooks.AfterKeep(delay: 4, presses: ["undo", "redo"]), "#965: the bar's own Undo, then its Redo")
     XCTAssertEqual(board.larryTimeout, WhiteboardHooks.LarryTimeout(seconds: 5, dismiss: true))
     XCTAssertEqual(
       WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_TIMEOUT": "2.5"]).larryTimeout,
@@ -282,6 +286,7 @@ final class LaunchHooksTests: XCTestCase {
     XCTAssertNil(none.pageAfterInk)
     XCTAssertNil(none.afterKeep)
     XCTAssertNil(none.afterOps)
+    XCTAssertNil(none.barUndo)
     XCTAssertNil(none.larryTimeout)
     XCTAssertNil(none.larryWait)
     XCTAssertNil(WhiteboardHooks(["GRABBER_WHITEBOARD_LARRY_WAIT": "Retry"]).larryWait, "as written, or no hook")

@@ -484,6 +484,51 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "after one undo")
   }
 
+  /// Stories 1008, 1009 (#965): the bar's Undo and Redo, a finger's size, dimmed with nothing to do, take a stroke back and
+  /// bring it again; after Keep group, Undo names it and one press takes the whole group back. What each label says for
+  /// each state of the stack is `BoardUndoButtonsTests`, on the host.
+  func testTheBarsUndoAndRedoTakeAStepBackAndNameAKeptGroup() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    ghosts(app).tap()  // Ghosts off: only Larry's marks show.
+    let undo = app.buttons["whiteboard-undo"]
+    let redo = app.buttons["whiteboard-redo"]
+    XCTAssertTrue(undo.appears(within: 5), app.debugDescription)
+    for button in [undo, redo] {
+      XCTAssertGreaterThanOrEqual(button.frame.width, 44, "\(button.identifier) a finger's width")
+      XCTAssertGreaterThanOrEqual(button.frame.height, 44, "\(button.identifier) a finger's height")
+    }
+    XCTAssertFalse(undo.isEnabled, "nothing to undo on a new board")
+    XCTAssertFalse(redo.isEnabled, "nothing to redo")
+
+    stroke(app)
+    wait(send(app), label: strokes(1))
+    waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
+    XCTAssertEqual(undo.label, "Undo", "his own stroke has no name")
+    undo.tap()
+    wait(send(app), label: strokes(0))
+    waitUntil(NSPredicate(format: "isEnabled == true"), redo, timeout: 5)
+    redo.tap()
+    wait(send(app), label: strokes(1))
+    shot(app, "his stroke back by Redo")
+
+    app.buttons["whiteboard-larry"].tap()
+    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    try larryDraws(3, cockpit)
+    XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
+    let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")
+    PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.center.y))
+    let group = app.buttons["whiteboard-mark-keep-group"]
+    XCTAssertTrue(group.appears(within: 5), app.debugDescription)
+    group.tap()
+    waitUntil(NSPredicate(format: "label != %@", strokes(1)), send(app), timeout: 10)
+    waitUntil(NSPredicate(format: "label == %@", "Undo Keep group"), undo, timeout: 5)
+    undo.tap()
+    wait(send(app), label: strokes(1), timeout: 10)
+    XCTAssertNil(PaperScreen(app).larryKept, "one press took the whole group back")
+    shot(app, "kept group undone from the bar")
+  }
+
   /// Stories 817, 818: Larry's text arrives as a ghost in his purple, keeps on a tap and Keep where it showed, goes back to
   /// him as one text under his id, and his next turn says the change applied. The text's typeface is for the eye, in
   /// the screenshots; folding its glyphs into one text is `BoardOpsTests`, on the host.
