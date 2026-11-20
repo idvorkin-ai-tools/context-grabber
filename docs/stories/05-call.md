@@ -777,7 +777,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 334:
 
 - **Summary:** A car microphone that the audio reopens while it is still starting gets its full window again
-- **Status:** implemented in COMMIT_433; verified by RUNG_433; a call in the car not yet
+- **Status:** implemented in [f3108f7](https://github.com/idvorkin/context-grabber/commit/f3108f7); verified by `just test` (host, `MicStartupDeadlineTests`: a reopen 2 s into a Bluetooth window gives ten more seconds, an ordinary-looking reopen never shortens it, a Bluetooth reopen grows an ordinary one, a reopen after the first buffer changes nothing, a fourth reopen keeps the window running) and `SMOKE_ONLY=call just native-test-sim` (the synthetic fake-bridge call; the real-audio call was skipped with the Mac locked, so the engine side is built, not run); a call in the car not yet
 - **Issues:** [#433](https://github.com/idvorkin/context-grabber/issues/433)
 - **Spec:** [Native call — a microphone that never delivers](../superpowers/specs/2026-08-28-native-call-screen-design.md#a-microphone-that-never-delivers)
 
