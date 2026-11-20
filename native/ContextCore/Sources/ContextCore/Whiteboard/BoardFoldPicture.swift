@@ -76,8 +76,8 @@ extension BoardOutline {
     public var map: BoardFoldMap
     /// The headers that were folded, by their row's middle, for the ▸ beside them.
     public var foldedMarks: [(header: String, y: CGFloat)]
-    /// The headers that were open, for the ▾ (story 1036).
-    public var openMarks: [(header: String, y: CGFloat)]
+    /// The headers that were open, each labelled "▾ header" past its line in the opened picture (story 1036, #1001).
+    public var openLabels: [Marker]
   }
 
   /// Nil when no fold shows: the picture is the board as it is.
@@ -107,7 +107,7 @@ extension BoardOutline {
     return FoldPicture(
       open: open, offsets: plan.offsets, shown: Set(plan.hidden.filter { !$0.value }.keys), bands: bands, map: map,
       foldedMarks: marks.filter { folded.contains($0.header) },
-      openMarks: open.openHeaderMarks.filter { !folded.contains($0.header) })
+      openLabels: open.headerLabels.filter { !folded.contains($0.header) })
   }
 
   /// The tag in the margin at the top of a folded section in the picture.

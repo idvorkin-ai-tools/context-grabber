@@ -27,7 +27,7 @@ final class BoardFoldPictureTests: XCTestCase {
     XCTAssertEqual(picture.bands, [.init(header: "h", top: 124, bottom: 204)])
     XCTAssertEqual(picture.foldedMarks.map(\.header), ["h"])
     XCTAssertEqual(picture.foldedMarks.first?.y, 112)
-    XCTAssertTrue(picture.openMarks.isEmpty)
+    XCTAssertTrue(picture.openLabels.isEmpty)
   }
 
   func testAMarkBelowTheSectionLandsUnderTheSameInkOnTheFoldedBoard() throws {
@@ -59,7 +59,11 @@ final class BoardFoldPictureTests: XCTestCase {
     XCTAssertLessThanOrEqual(outer.top, inner.top)
     XCTAssertGreaterThanOrEqual(outer.bottom, inner.bottom)
     XCTAssertEqual(Set(picture.foldedMarks.map(\.header)), ["o", "i"])
-    XCTAssertEqual(picture.openMarks.map(\.header), ["p"], "the header left open keeps its ▾")
+    XCTAssertEqual(picture.openLabels.map(\.header), ["p"], "the header left open keeps its label")
+    // #1001: past its line in the opened picture, not in the margin on its ink.
+    let p = try XCTUnwrap(picture.open.header("p").flatMap { picture.open.box($0) })
+    XCTAssertGreaterThan(picture.openLabels.first?.box.minX ?? 0, p.maxX)
+    XCTAssertEqual(picture.openLabels.first?.origin.y ?? 0, p.midY + 5, accuracy: 0.001)
     // The board opened is the board Unfold all makes.
     var all = o
     all.unfoldAll()

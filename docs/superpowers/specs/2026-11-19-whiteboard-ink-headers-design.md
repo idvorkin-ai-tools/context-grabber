@@ -96,11 +96,22 @@ unrecognised. (It was a header: the ▾ sat in the margin's middle, under the ve
 
 ### Larry sees the headers
 
-- Every picture of the board (Larry's turn, Send, Claude's turn) shows a small grey ▾ in the margin beside each open
-  header, where the board shows it, and a grey ▸ beside a folded one, whose section the picture draws whole and shaded
-  (#1013). Larry reads the ink's
-  underline or # and the ▾ together: this line is a header and can fold.
-- What Larry is sent besides the picture is unchanged: folded sections go under their header as before.
+What a turn sends Larry is a picture of the board, its strokes (in board points, each with its id) and the board's
+events. The strokes carry no headers: the underline or # is a stroke like any other, and only a *folded* section goes
+beside the strokes, under its header. So the picture is where Larry learns which lines are open headers (#1001: a ▾
+in the margin's middle sat on the very # it marked, or fell outside the picture when the line started further in, and
+Larry saw plain strokes).
+
+- Every picture of the board (Larry's turn, Send, Claude's turn) labels each open header in words, in grey 14-point
+  letters: "▾ header", starting 14 points past the end of the header's line, where the board puts a fold's marker. The
+  label never sits on ink, and reads as what it is without the board's margin to explain it. Larry reads the ink's
+  underline or # and the label together: this line is a header and can fold.
+- A folded header's section is drawn whole and shaded, with a grey ▸ beside the header and "folded" at the section's
+  top (#1013). An open header in such a picture is labelled as above.
+- The picture always takes in these labels: it grows past the ink to hold them rather than cutting them off.
+- The board itself is unchanged: its margin shows the ▾ (see *Seeing the headers*).
+- What Larry is sent besides the picture is unchanged: the strokes stay plain ink, and folded sections go under their
+  header as before. If Larry is asked, he finds the headers in the picture, not the strokes.
 
 ### The session log
 
@@ -118,7 +129,8 @@ unrecognised. (It was a header: the ▾ sat in the margin's middle, under the ve
 - One Undo after an underline or a # that made a header takes its last stroke and the ▾; Redo brings both back.
 - *Not a header* on an underlined header leaves the underline and no ▾, and drawing elsewhere never brings it back.
 - A board opened with underlines drawn before this build shows them as they were: faint H, no header.
-- Larry's picture shows the grey ▾ beside an open header.
+- Larry's picture labels an open header "▾ header" just past the end of its line, clear of the ink and inside the
+  picture however far in the line starts.
 - Making a header (by an underline, a #, a margin tap or *Make header*) tints its row for about a second; writing more
   on its line doesn't.
 - Two headers at different indents have their ▾ at the same place across, each standing on its line's baseline.
@@ -129,7 +141,7 @@ unrecognised. (It was a header: the ▾ sat in the margin's middle, under the ve
 
 - `##` and `###` as levels, and the outline's levels following the marks when there are any.
 - A double rule, or a rule with a word on it, as an end of everything, or a page break.
-- Larry told about open headers in what he is sent, not only in the picture (it needs a Cockpit change).
+- Larry told about open headers in the strokes, not only in the picture (it needs a Cockpit change; #1001).
 - Larry making a line a header (an op), and *To text* turning a header line into a kept text that is still a header.
 - A header made by a live-snapped line: a snap swaps the stroke, so the header's mark is lost and the line goes plain.
   The snap should hand the header to the clean line.
