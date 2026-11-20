@@ -219,8 +219,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 750:
 
 - **Summary:** A box with no Mac checks the whole app's Swift before anything reaches the Mac
-- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged
-- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung")
+- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged; a missing kept build directory created in [7dae5d56](https://github.com/idvorkin/context-grabber/commit/7dae5d56) (#904), verified on the host rung by running the new block alone: a relative path not yet there made and resolved against the caller, an uncreatable one stops with exit 2 naming it; the full Linux rung was not run, as this Mac has no Linux box
+- **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung"); [#904](https://github.com/idvorkin/context-grabber/issues/904) (a kept build directory that did not exist yet failed the rung)
 
 #### Use Case:
 - **As Igor,** with agents working on Linux boxes while the Mac is busy or locked
@@ -232,6 +232,11 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a Linux box with the Swift toolchain and the Darwin SDK, and no Mac
 - **When:** the agent runs the Linux rung
 - **Then:** ContextCore's tests run, the package and the app's sources (the app, the widgets, the share extension and the UI tests) are compiled for Apple, the ladder's map is checked, and each step says ok, failed or skipped and why
+
+- **Scenario:** An agent keeps the rung's build between runs in a folder that does not exist yet
+- **Given:** a build directory to keep, named by a path that is not there yet (relative to where the agent stands, or absolute)
+- **When:** the agent runs the Linux rung
+- **Then:** the folder is made and used, and when it cannot be made the rung stops at once, saying which folder and that it could not create it
 
 ---
 
