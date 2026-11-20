@@ -33,7 +33,7 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   what it would run). Rung 0 lint and 1 host are `just test` (swift-format and SwiftLint, `ContextCore`'s XCTest, the
   script checks; seconds); off the Mac, rung 1L `just test-linux` stands in first (ContextCore's tests on Linux, the
   package and the app's sources compiled for Apple, the portable script checks) → 1.5 the Mac build (`just native-build-mac`) → 2 the simulator (`just native-test-sim`,
-  launch hooks judged from the session log, and the UI tests in `native/UITests/`; never while another xcodebuild runs)
+  launch hooks judged from the session log, and the UI tests in `native/UITests/`; never while as many other xcodebuilds run as there are build lanes)
   → 3 the phone (`just native-run-device`). Verify on the cheapest rung that can see the change and **say which rung
   you used**. Audio session behaviour, HealthKit, GPS, widgets, Live Activities,
   Shortcuts and the voice bridge exist only on the phone ([TESTING.md](docs/TESTING.md)).
@@ -61,14 +61,18 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 - **Sanity-check geometry thresholds against the real fixtures** (`__tests__/fixtures/locations.json`,
   `context-grabber.db`) before shipping clustering, place-matching or distance rules; synthetic tests miss what real
   data exposes.
-- **One booted simulator on this Mac, left booted between runs** (story 980). Boot one only inside the build lane,
-  through `scripts/native/sim-boot.sh <name|udid>`: it shuts down every *other* booted simulator and boots yours only
-  if it isn't up. Don't shut it down when done: the next run reuses it. Switch device only when the device changes.
-  Every iOS 27 boot writes about 300 MB of wallpaper snapshots that are never evicted (the disk filled on 2026-11-17)
-  and spikes the CPU, and two booted simulators starve each other (about 10 GB of RAM each).
+- **Build lanes scale with RAM; one booted simulator per lane, left booted between runs** (stories 785, 980; #954).
+  The Mac and simulator rungs run in `scripts/native/build-lane.sh run`: one job per lane, `BUILD_LANES` or one lane
+  per 12 GB, at most four (4 on this 48 GB Mac, 1 on a 16 GB one, where everything is one job at a time as before).
+  Each lane has its own simulators (lane 1 the named ones, lane N "<name> lane N", cloned once; `just
+  native-sim-lanes`). Boot one only inside a lane, through `scripts/native/sim-boot.sh <name|udid>`: it never shuts
+  down a busy lane's simulator, keeps the booted count at or under the lane count, and boots yours only if it isn't
+  up. Don't shut it down when done: the lane's next run reuses it. Switch device only when the device changes. Every
+  iOS 27 boot writes about 300 MB of wallpaper snapshots that are never evicted (the disk filled on 2026-11-17) and
+  spikes the CPU, and booted simulators past the RAM starve each other (about 10 GB each).
 - **Build in a pool slot, not a new worktree.** `slot=$(treehouse get --lease -b <branch>)`, work and build there,
   `treehouse return "$slot"` once the branch is pushed. A slot keeps its `native/Build` across returns, so disk stays
-  bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Four slots (`treehouse.toml`);
+  bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Eight slots (`treehouse.toml`), for four build lanes;
   [TESTING.md](docs/TESTING.md) has the rest, pruning included.
 - **Background agents** that investigate are read-only, in a worktree, notes under `~/tmp/agent/notes/`; confirm
   scope before an agent that writes to the repo. Reap background commands when done.

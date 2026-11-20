@@ -465,13 +465,20 @@ skipped, and the output says why.
   simulator rung runs the whole suite of each area the change touched, in place of that area's classes.
 - **Phone**: never climbed by the command; it stays Igor's.
 
-Only one job uses the simulator at a time. The simulator rung waits its turn in the build lane. It also waits while
-any other Xcode build is running, because startup waits fail under that load, and it says so. If the other build is
-still running after half an hour, the rung refuses to start. A test that fails while another build ran is reported as
-contention: it counts as failed and is rerun, not debugged. One simulator is booted on the Mac at a time, and it is
-left booted afterwards for the next run: every boot writes wallpaper snapshots the system never removes (about 300 MB on
-iOS 27) and heats the Mac. Before a step uses a device, any other booted simulator is shut down, and the device is booted
-only if it isn't already up. A climb that needs both the iPhone and the iPad switches between them at most once, starting
+The Mac and simulator rungs run in build lanes, one job per lane, and the number of lanes scales with the Mac's memory:
+one for every 12 GB, at most four, at least one (four on a 48 GB Mac, one on a 16 GB one), unless a setting names the
+number. A job takes the first free lane, waits only while every lane is busy, and says which lane it got. Each lane has
+its own iPhone and iPad simulators: lane 1's are the named ones, as on a one-lane Mac, and another lane's are copies of
+them made once, so they keep Health access and the seeded data. Jobs in different lanes never share a simulator or a
+fake server's port. A simulator job also waits while as many other Xcode builds run as there are lanes (on a one-lane
+Mac: any other), because startup waits fail under that load, and it says so. If they are still running after half an
+hour, the rung refuses to start. A test that fails while more builds ran than there are lanes is reported as
+contention: it counts as failed and is rerun, not debugged. Each lane's simulator is left booted afterwards for that
+lane's next run: every boot writes wallpaper snapshots the system never removes (about 300 MB on iOS 27) and heats the
+Mac. Before a step uses a device, the lane's other device and any simulator that belongs to no lane are shut down; a
+simulator a busy lane is using is never shut down (one that belongs to no lane counts as the first lane's), and an idle lane's is shut down only to keep the booted count at or
+under the number of lanes. The device is then booted only if it isn't already up. A one-lane Mac behaves exactly as
+before: one job at a time, one booted simulator, every other one shut down. A climb that needs both the iPhone and the iPad switches between them at most once, starting
 with whichever is already booted. A dry run prints the rungs and classes without running any of them.
 
 ## Acceptance criteria

@@ -2,9 +2,9 @@
 # Rung 2 of the native test ladder: run the simulator build from launch hooks and judge it from the session log.
 # Usage: sim-smoke.sh <simulator name or udid> <bundle id> <app path>
 set -euo pipefail
-SIM=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
-"$(dirname "$0")/sim-boot.sh" "$SIM"  # the one booted simulator, left booted after (story 980)
-xcrun simctl install "$SIM" "$APP"
+SMOKE_UDID=$("$(dirname "$0")/sim-udid.sh" "$1"); BUNDLE=$2; APP=$3  # one device, whatever runtimes share the name
+"$(dirname "$0")/sim-boot.sh" "$SMOKE_UDID"  # the one booted simulator, left booted after (story 980)
+xcrun simctl install "$SMOKE_UDID" "$APP"
 # BugKit's smoke-lib: launch freshness (wait only for a log newer than the launch), a timeout that fails the run,
 # error events, the stash; this script keeps CG's checks, fixtures and hooks. From the checkout SwiftPM pinned, else
 # ~/gits/bug-kit.
@@ -15,7 +15,7 @@ BUG_KIT=$(\ls -d "$root/native/Build/SourcePackages/checkouts/bug-kit" 2>/dev/nu
 export SMOKE_POLL=${SMOKE_POLL:-1}
 # shellcheck source=/dev/null
 source "$BUG_KIT/scripts/smoke-lib.sh"
-smoke_init "$SIM" "$BUNDLE"
+smoke_init "$SMOKE_UDID" "$BUNDLE"
 DOCS=$SMOKE_DOCS
 relaunch() { launch "$@"; }  # CG's call sites pass their hooks as SIMCTL_CHILD_* assignments in front
 bad() { not_ok "$@"; }
@@ -244,11 +244,11 @@ if want places; then
 # Places (stories 040-047, 052, 055). A clean trail, then Context Grabber's real export (the 36 601-point fixture)
 # imported by the hook, shifted by whole days so its newest point falls in the last 24 hours.
 FIXTURE="$(dirname "$0")/../../__tests__/fixtures/context-grabber.db"
-xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
+xcrun simctl terminate "$SMOKE_UDID" "$BUNDLE" 2>/dev/null || true
 rm -f "$DOCS/SQLite/context-grabber.db" "$DOCS/SQLite/context-grabber.db-journal"
 cp -f "$FIXTURE" "$DOCS/import-fixture.db"
-xcrun simctl privacy "$SIM" grant location-always "$BUNDLE" >/dev/null 2>&1 || true
-xcrun simctl location "$SIM" set 47.641901,-122.304481
+xcrun simctl privacy "$SMOKE_UDID" grant location-always "$BUNDLE" >/dev/null 2>&1 || true
+xcrun simctl location "$SMOKE_UDID" set 47.641901,-122.304481
 SIMCTL_CHILD_GRABBER_IMPORT_DB="import-fixture.db,recent" SIMCTL_CHILD_GRABBER_PLACES=open relaunch
 wait_for places_open 30 || echo "      (timed out waiting for places_open)"
 f=$(newest_log)
@@ -276,7 +276,7 @@ else bad "places: export '$path' rows '$rows'"; fi
 # Story 040: the switch with Always granted records points as the simulator moves.
 SIMCTL_CHILD_GRABBER_TRACKING=on relaunch
 wait_for tracking 20 || echo "      (timed out waiting for tracking)"
-xcrun simctl location "$SIM" start --speed=15 --interval=2 47.641901,-122.304481 47.6450,-122.3100 47.6500,-122.3200 >/dev/null 2>&1
+xcrun simctl location "$SMOKE_UDID" start --speed=15 --interval=2 47.641901,-122.304481 47.6450,-122.3100 47.6500,-122.3200 >/dev/null 2>&1
 wait_for location_point 30 || echo "      (timed out waiting for location_point)"
 f=$(newest_log)
 on=$(jq -sr '[.[] | select(.type=="tracking")][0] | "\(.on) \(.reason) \(.permission)"' "$f")
@@ -300,7 +300,7 @@ if [ "${pruned%% *}" = "7" ] && [ "${pruned##* }" -gt 0 ] 2>/dev/null && [ "$off
 else bad "places: prune '$pruned', tracking '$off'"; fi
 failed=$(jq -c 'select(.type=="error")' "$f")
 if [ -z "$failed" ]; then ok "places: no error events"; else bad "places: $failed"; fi
-xcrun simctl location "$SIM" clear >/dev/null 2>&1 || true
+xcrun simctl location "$SMOKE_UDID" clear >/dev/null 2>&1 || true
 
 fi  # places
 
@@ -310,8 +310,8 @@ if want call; then
 # with the client tag, mic frames flowed up, PCM came down and was scheduled, captions arrived, and the hang-up
 # sent the dump, stt_stop and stop and ended as "stopped". Once with synthetic audio (the protocol path, whatever
 # the simulator's audio does), once with the real engine (voice processing, the tap, the player node).
-xcrun simctl privacy "$SIM" grant microphone "$BUNDLE" 2>/dev/null || true
-PORT=${CALL_PORT:-8799}
+xcrun simctl privacy "$SMOKE_UDID" grant microphone "$BUNDLE" 2>/dev/null || true
+PORT=${CALL_PORT:-$((8799 + ${BUILD_LANE_PORT_OFFSET:-0}))}  # ten up per build lane (story 785)
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
 # Taken already, another bridge would answer instead; checked first, as the wait below can't tell whose it is.
 nc -z localhost "$PORT" 2>/dev/null && bad "call: port $PORT is taken before the fake bridge started"
@@ -457,7 +457,7 @@ if want chat; then
 # Chat (spec 2026-10-25): against a fake Cockpit (scripts/native/fake-cockpit.py), a message written for a new thread
 # goes up once as POST /chat with its id and the app as source, and one written in a thread as POST /chat/<key>;
 # opening that thread reads it and marks it seen. The log names the thread, never the text.
-CHAT_PORT=${CHAT_PORT:-8797}
+CHAT_PORT=${CHAT_PORT:-$((8797 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
 nc -z localhost "$CHAT_PORT" 2>/dev/null && bad "chat: port $CHAT_PORT is taken before the fake Cockpit started"
 "$(dirname "$0")/fake-cockpit.py" "$CHAT_PORT" "$CHAT_REPORT" >/dev/null 2>&1 &
@@ -528,7 +528,7 @@ if [ "$why" = 1 ] && [ "$listed" -ge 1 ] && [ "$left" = 0 ]; then ok "chat: no a
 else bad "chat: no address: launch line x$why, list said x$listed, sends tried x$left"; fi
 fi  # chat
 
-xcrun simctl terminate "$SIM" "$BUNDLE" 2>/dev/null || true
+xcrun simctl terminate "$SMOKE_UDID" "$BUNDLE" 2>/dev/null || true
 mac_locked_note "at the end"
 audio_skips_said
 smoke_done

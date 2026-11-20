@@ -25,7 +25,7 @@ while [ $# -gt 0 ]; do
     --dry-run) dry=1 ;;
     --full) full=1 ;;
     --all) all=1 ;;
-    --in-lane) in_lane=1 ;;  # the script itself, once it holds the build lock
+    --in-lane) in_lane=1 ;;  # the script itself, once it holds a build lane's lock
     --base) base=${2:?--base needs a ref}; shift ;;
     --changed) changed+=("${2:?--changed needs a path}"); given=1; shift ;;
     --rung) only=${2:?--rung needs a rung}; shift ;;
@@ -231,8 +231,12 @@ plan() {
       [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && echo "rung 2 full: no area with a suite touched"
     fi
     say_unmapped
-    if [ "$((mac_build + sim_build))" -gt 0 ] && pgrep -x xcodebuild >/dev/null; then
-      echo "another xcodebuild is running now: the Mac and simulator rungs would wait for it"
+    if [ "$((mac_build + sim_build))" -gt 0 ] && [ "$(xcodebuilds)" -ge "$lanes" ]; then
+      if [ "$lanes" -le 1 ]; then
+        echo "another xcodebuild is running now: the Mac and simulator rungs would wait for it"
+      else
+        echo "$(xcodebuilds) xcodebuilds are running now, one for each of the $lanes build lanes: the Mac and simulator rungs would wait for one to finish"
+      fi
     fi
   fi
   return 0
@@ -244,13 +248,15 @@ say_unmapped() {
   echo "so no UI tests were chosen for them; --all runs every UI test class"
 }
 
-# The build lane: one job at a time on the simulator and in Xcode, across every agent. Inside the lock the rung first
-# waits for other xcodebuilds, then runs under a time limit so a hung run can't hold it (docs/TESTING.md).
+# The build lanes (story 785): one job per lane on the simulator and in Xcode, across every agent, as many lanes as the
+# Mac's memory holds (one on a 16 GB Mac). Inside its lane's lock the rung first waits for other xcodebuilds, then runs
+# under a time limit so a hung run can't hold it (docs/TESTING.md).
 lane() {
-  mkdir -p "$HOME/tmp/agent/locks"
-  LADDER_ASKED=$(date +%s) LADDER_WAITED=$waited LADDER_MINUTES=$2 lockf -k -t 3600 "$HOME/tmp/agent/locks/build.lock" \
+  LADDER_ASKED=$(date +%s) LADDER_WAITED=$waited LADDER_MINUTES=$2 scripts/native/build-lane.sh run \
     "$self" ${orig[@]+"${orig[@]}"} --rung "$1" --in-lane
 }
+lanes=$(scripts/native/build-lane.sh count)
+xcodebuilds() { pgrep -x xcodebuild 2>/dev/null | wc -l | tr -d ' '; }
 
 rung_0() {
   if [ "${#swift[@]}" -gt 0 ]; then
@@ -330,8 +336,8 @@ step() {  # <label> <command...>: times one step of rung 2
 }
 
 chat_classes() {
-  start_cockpit "${CHAT_PORT:-8798}" "${FAKE_COCKPIT_NEW_DELAY:-2}" || return
-  scripts/native/fake-bridge.py "${CHAT_BRIDGE_PORT:-8797}" "$(mktemp "${TMPDIR:-/tmp}/fake-bridge.XXXXXX")" >/dev/null 2>&1 &
+  start_cockpit "${CHAT_PORT:-$((8798 + ${BUILD_LANE_PORT_OFFSET:-0}))}" "${FAKE_COCKPIT_NEW_DELAY:-2}" || return
+  scripts/native/fake-bridge.py "${CHAT_BRIDGE_PORT:-$((8797 + ${BUILD_LANE_PORT_OFFSET:-0}))}" "$(mktemp "${TMPDIR:-/tmp}/fake-bridge.XXXXXX")" >/dev/null 2>&1 &
   bridge=$!
   disown
   sleep 1
@@ -340,13 +346,13 @@ chat_classes() {
   xcrun simctl terminate "$udid" com.idvorkin.grabbernative >/dev/null 2>&1 || true
   scripts/native/forget-chat-thread.sh "$udid" com.idvorkin.grabbernative igor2-88g.629 >/dev/null \
     || echo "the outbox's leftovers for igor2-88g.629 could not be removed: ChatReactionUITests may fail on them (#801)" >&2
-  TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:${CHAT_PORT:-8798}" TEST_RUNNER_GRABBER_FAKE_BRIDGE="ws://localhost:${CHAT_BRIDGE_PORT:-8797}" \
+  TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:${CHAT_PORT:-$((8798 + ${BUILD_LANE_PORT_OFFSET:-0}))}" TEST_RUNNER_GRABBER_FAKE_BRIDGE="ws://localhost:${CHAT_BRIDGE_PORT:-$((8797 + ${BUILD_LANE_PORT_OFFSET:-0}))}" \
     xcodebuild_sim chat "TEST EXECUTE SUCCEEDED" $(only_testing "${chat[@]}") test-without-building
 }
 
 # Story 746: an iPhone only looks at boards, so the drawing classes run on an iPad simulator (ipad_steps).
 whiteboard_classes() {
-  local port=${WHITEBOARD_PORT:-8799}
+  local port=${WHITEBOARD_PORT:-$((8799 + ${BUILD_LANE_PORT_OFFSET:-0}))}
   start_cockpit "$port" 0 \
     && TEST_RUNNER_GRABBER_FAKE_COCKPIT="http://localhost:$port" \
       xcodebuild_sim whiteboard "TEST EXECUTE SUCCEEDED" $(only_testing "${whiteboard[@]}") test-without-building
@@ -455,11 +461,12 @@ rung_simulator() {
   fi
   phone=$(scripts/native/sim-udid.sh "${SIM:-iPhone 17}") || return
   udid=$phone  # the build's destination
-  # Our own xcodebuild is one; a second is someone else's, and device builds don't take the build lock.
+  # Our own xcodebuild is one, and each other lane may run one; more than the lanes is contention, and device builds
+  # don't take a lane's lock.
   contended=$(mktemp -u)
   (
     while :; do
-      [ "$(pgrep -x xcodebuild | wc -l)" -gt 1 ] && : >"$contended"
+      [ "$(xcodebuilds)" -gt "$lanes" ] && : >"$contended"
       sleep 30
     done
   ) >/dev/null 2>&1 &
@@ -467,13 +474,19 @@ rung_simulator() {
   disown
   simulator_steps
   local status=$?
-  # Our xcodebuild is done here, so any still running is another's.
-  pgrep -x xcodebuild >/dev/null && : >"$contended"
+  # Our xcodebuild is done here, so any still running is another's: as many as the lanes is contention.
+  [ "$(xcodebuilds)" -ge "$lanes" ] && : >"$contended"
   if [ -e "$contended" ]; then
     if [ "$status" -ne 0 ]; then
-      echo "another xcodebuild ran during this rung: startup waits fail under contention, so this counts as failed; rerun it, don't debug it"
-    else
+      if [ "$lanes" -le 1 ]; then
+        echo "another xcodebuild ran during this rung: startup waits fail under contention, so this counts as failed; rerun it, don't debug it"
+      else
+        echo "more xcodebuilds than the $lanes build lanes ran during this rung: startup waits fail under contention, so this counts as failed; rerun it, don't debug it"
+      fi
+    elif [ "$lanes" -le 1 ]; then
       echo "note: another xcodebuild ran during this rung; what passed still passed"
+    else
+      echo "note: more xcodebuilds than the $lanes build lanes ran during this rung; what passed still passed"
     fi
   fi
   return $status
