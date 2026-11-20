@@ -244,6 +244,7 @@ extension BoardOps.Text {
       "size": Double(size),
     ]
     if let color { out["color"] = String(format: "#%06X", color) }
+    if let lettering { out["lettering"] = lettering.rawValue }
     return out
   }
 

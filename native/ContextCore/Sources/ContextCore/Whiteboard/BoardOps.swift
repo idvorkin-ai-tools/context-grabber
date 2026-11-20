@@ -98,10 +98,14 @@ public enum BoardOps {
     public var size: CGFloat
     /// `0xRRGGBB`; nil is Larry's colour.
     public var color: UInt32?
+    /// Single strokes or the real font (#950); nil until the board gives its own.
+    public var lettering: WhiteboardTurn.LetterStyle?
 
     public init(
-      id: String, x: CGFloat, y: CGFloat, text: String, font: Font = .plain, size: CGFloat = 18, color: UInt32? = nil
+      id: String, x: CGFloat, y: CGFloat, text: String, font: Font = .plain, size: CGFloat = 18, color: UInt32? = nil,
+      lettering: WhiteboardTurn.LetterStyle? = nil
     ) {
+      self.lettering = lettering
       self.id = id
       self.x = x
       self.y = y
@@ -114,7 +118,8 @@ public enum BoardOps {
     /// The mark its ghost draws, placed with a frame at the board's origin and a scale of 1.
     public var shape: WhiteboardTurn.Shape {
       WhiteboardTurn.Shape(
-        kind: .text, points: [CGPoint(x: x, y: y)], text: text, size: size, color: color, face: font.face)
+        kind: .text, points: [CGPoint(x: x, y: y)], text: text, size: size, color: color, face: font.face,
+        lettering: lettering)
     }
   }
 
@@ -302,7 +307,9 @@ public enum BoardOps {
       let font = (json["font"] as? String).flatMap(Font.init(rawValue:)) ?? .plain
       return .success(
         .addText(
-          Text(id: id, x: x, y: y, text: text, font: font, size: size, color: WhiteboardTurn.hexColor(json["color"]))))
+          Text(
+            id: id, x: x, y: y, text: text, font: font, size: size, color: WhiteboardTurn.hexColor(json["color"]),
+            lettering: WhiteboardTurn.LetterStyle.named(json["lettering"]))))
     case "add_strokes":
       return newStrokes(json["strokes"]).map { .addStrokes($0) }
     case "delete":

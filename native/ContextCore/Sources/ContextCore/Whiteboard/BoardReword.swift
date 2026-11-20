@@ -49,9 +49,13 @@ public enum BoardReword {
 
   #if canImport(CoreText)
     /// `text` as the rows it draws in: its own line breaks kept, each wrapped by word to `width` in `face` at letter
-    /// height `size`, a word longer than a row broken. Empty lines between paragraphs stay; trailing ones go.
-    public static func rows(_ text: String, width: CGFloat, size: CGFloat, face: WhiteboardTurn.Face) -> [String] {
-      let fits = { (s: String) in measure(s, size: size, face: face) <= width }
+    /// height `size`, a word longer than a row broken. Empty lines between paragraphs stay; trailing ones go. Measured
+    /// in `lettering`, the text's own (#950).
+    public static func rows(
+      _ text: String, width: CGFloat, size: CGFloat, face: WhiteboardTurn.Face,
+      lettering: WhiteboardTurn.LetterStyle = .single
+    ) -> [String] {
+      let fits = { (s: String) in measure(s, size: size, face: face, lettering: lettering) <= width }
       var out: [String] = []
       for para in text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
         var line = ""
@@ -82,30 +86,38 @@ public enum BoardReword {
     }
 
     /// A row's width in `face` at letter height `size`.
-    public static func measure(_ text: String, size: CGFloat, face: WhiteboardTurn.Face) -> CGFloat {
-      WhiteboardTurn.lettered(text, topLeft: .zero, height: size, face: face).width
+    public static func measure(
+      _ text: String, size: CGFloat, face: WhiteboardTurn.Face, lettering: WhiteboardTurn.LetterStyle = .single
+    ) -> CGFloat {
+      WhiteboardTurn.lettered(text, topLeft: .zero, height: size, face: face, lettering: lettering).width
     }
 
     /// Where a text's lines start, from where its letters are: the box its glyphs drew (`box`) less how far the letters
     /// of `text` sit inside their own lines, laid out as the board lays a text.
-    public static func topLeft(of text: String, size: CGFloat, face: WhiteboardTurn.Face, box: CGRect) -> CGPoint {
+    public static func topLeft(
+      of text: String, size: CGFloat, face: WhiteboardTurn.Face, box: CGRect,
+      lettering: WhiteboardTurn.LetterStyle = .single
+    ) -> CGPoint {
       let rows = text.split(whereSeparator: \.isNewline).map(String.init)
       let own = bounds(
-        lines(rows, topLeft: .zero, size: size, face: face).flatMap { WhiteboardTurn.lines($0, frame: .zero, scale: 1) }
+        lines(rows, topLeft: .zero, size: size, face: face, lettering: lettering).flatMap {
+          WhiteboardTurn.lines($0, frame: .zero, scale: 1)
+        }
       )
       guard !own.isNull, !box.isNull else { return box.isNull ? .zero : box.origin }
       return CGPoint(x: box.minX - own.minX, y: box.minY - own.minY)
     }
 
     /// The marks that draw `rows` from `topLeft`, a row every `BoardToText.leading` letter heights, as To text lays them.
-    public static func lines(_ rows: [String], topLeft: CGPoint, size: CGFloat, face: WhiteboardTurn.Face)
-      -> [WhiteboardTurn.Shape]
-    {
+    public static func lines(
+      _ rows: [String], topLeft: CGPoint, size: CGFloat, face: WhiteboardTurn.Face,
+      lettering: WhiteboardTurn.LetterStyle = .single
+    ) -> [WhiteboardTurn.Shape] {
       rows.enumerated().compactMap { i, row in
         guard !row.isEmpty else { return nil }
         let top = topLeft.y + CGFloat(i) * size * BoardToText.leading
         return WhiteboardTurn.Shape(
-          kind: .text, points: [CGPoint(x: topLeft.x, y: top)], text: row, size: size, face: face)
+          kind: .text, points: [CGPoint(x: topLeft.x, y: top)], text: row, size: size, face: face, lettering: lettering)
       }
     }
 

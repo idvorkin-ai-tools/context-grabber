@@ -223,6 +223,7 @@ final class WhiteboardStore: ObservableObject {
     saveIndex()
     keeping.removeFiles(id)
     BoardLines().forget(id)
+    BoardLetteringChoice().forget(id)
     pictures += 1
     log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own])
     if !index.deleted.isEmpty { Task { await sync(reason: "delete") } }

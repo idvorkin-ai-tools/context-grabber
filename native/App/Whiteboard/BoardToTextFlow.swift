@@ -126,9 +126,11 @@ extension PaperBoardController {
       }
       let lines = BoardToText.lines(words, ink: ink)
       let made = BoardText.time(Date())
+      // #950: in the board's lettering.
+      let lettering = model.lettering
       let strokes = lines.flatMap { line in
         WhiteboardModel.strokes(
-          WhiteboardTurn.lines(line.shape, frame: .zero, scale: 1), color: color,
+          WhiteboardTurn.lines(line.shape, frame: .zero, scale: 1, lettering: lettering), color: color,
           width: WhiteboardTurn.width(line.shape, scale: 1), spacing: 4, made: made.date)
       }
       guard !strokes.isEmpty else {
@@ -140,7 +142,7 @@ extension PaperBoardController {
       model.keep(
         text: BoardText(
           id: id, t: made.t, text: BoardToText.words(lines), font: .plain, size: Double(lines[0].size),
-          color: WhiteboardModel.lightHex(color), glyphs: strokes.count))
+          color: WhiteboardModel.lightHex(color), glyphs: strokes.count, lettering: lettering))
       paper.selection = []
       replaceInk(removing: keys, adding: strokes, named: BoardToText.undoName)
       showToText()
