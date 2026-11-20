@@ -458,7 +458,12 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I open the Diagnostics fold
 - **Then:** every call is there, oldest first and separated by rules, each with its start, the *at arm:* line, `mic_ack`, an `rx … KB / … frames · played … of …` line every five seconds and the ending with the final pair — and *Copy diagnostics* copies all of it with the build and roster
 
-- **Issues:** [#106](https://github.com/idvorkin/context-grabber/issues/106); [#92](https://github.com/idvorkin/context-grabber/issues/92) evidence must survive a retry
+- **Scenario:** Hanging up lets the last frames reach the bridge (#902)
+- **Given:** a live call
+- **When:** I tap the red handset
+- **Then:** the screen says the call ended at once, the bridge receives the dump, *stop listening* and *stop* before the line closes, and the log's close line says the frames left (or, if they had not after two seconds, that the line closed anyway)
+
+- **Issues:** [#106](https://github.com/idvorkin/context-grabber/issues/106); [#92](https://github.com/idvorkin/context-grabber/issues/92) evidence must survive a retry; [#902](https://github.com/idvorkin/context-grabber/issues/902) the hang-up closed the socket before the stop frames left
 
 ---
 

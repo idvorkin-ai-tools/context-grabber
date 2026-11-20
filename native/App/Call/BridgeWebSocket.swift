@@ -20,6 +20,9 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
   private var task: URLSessionWebSocketTask!
   private var opened = false
   private var gone = false
+  private let log: (String, [String: Any]) -> Void
+  /// #902: a hang-up's close waits for the stop frames to leave (or two seconds), not cancelling them in the queue.
+  private let drain = SocketCloseDrain(scheduler: MainScheduler())
 
   /// The Cockpit refuses a socket with no Origin and no bearer token (its write boundary, #136). A browser on the
   /// Cockpit page sends the page's origin, and so does the React Native app's socket; URLSession sends none.
@@ -33,7 +36,8 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
     return request
   }
 
-  init(url: URL) {
+  init(url: URL, log: @escaping (String, [String: Any]) -> Void = { _, _ in }) {
+    self.log = log
     super.init()
     let config = URLSessionConfiguration.default
     config.waitsForConnectivity = false
@@ -50,20 +54,36 @@ final class BridgeWebSocket: NSObject, BridgeSocket, URLSessionWebSocketDelegate
 
   func send(text: String) {
     guard !gone else { return }
-    task.send(.string(text)) { _ in }  // a failed send is followed by the receive loop's failure, which reports it
+    send(.string(text))
   }
 
   func send(data: Data) {
     guard !gone else { return }
-    task.send(.data(data)) { _ in }
+    send(.data(data))
   }
 
-  /// Ours: no `onClose` for a close we asked for.
+  /// A failed send is followed by the receive loop's failure, which reports it; the completion only tells the
+  /// drain the frame has left the queue.
+  private func send(_ message: URLSessionWebSocketTask.Message) {
+    drain.sending()
+    task.send(message) { [self] _ in DispatchQueue.main.async { self.drain.completed() } }
+  }
+
+  /// Ours: no `onClose` for a close we asked for. Nothing more is delivered from here on, but the socket itself
+  /// closes only once the frames already sent have left — the hang-up's dump, `stt_stop` and `stop` (#902).
   func close() {
     guard !gone else { return }
     gone = true
-    task.cancel(with: .normalClosure, reason: nil)
-    session.invalidateAndCancel()  // the session holds its delegate; this lets both go
+    drain.close { [self] outcome in
+      log(
+        "call_socket",
+        [
+          "action": "close", "drained": outcome.drained, "pending": outcome.pending,
+          "waited_ms": outcome.waitedMs.rounded(),
+        ])
+      task.cancel(with: .normalClosure, reason: nil)
+      session.invalidateAndCancel()  // the session holds its delegate; this lets both go
+    }
   }
 
   private func receive() {

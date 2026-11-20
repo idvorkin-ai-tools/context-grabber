@@ -311,6 +311,14 @@ the app sends the dump to the bridge over the call's own socket before
 anything closes, so Larry can read it from the call's record without Igor
 pasting anything. (Bridge half: the Cockpit repo.)
 
+**The last frames leave before the line closes** (#902). A hang-up tells the
+bridge three things — the dump, *stop listening* (which flushes the end of
+what Igor said) and *stop* — and the connection closes only once all three
+have left the phone, or two seconds after the hang-up if they have not, so
+the bridge hears the hang-up instead of a dropped line. The screen does not
+wait: it says the call ended at the tap. Diagnostics say whether the frames
+left or the wait ran out, and how long it took.
+
 **The log reaches the Cockpit's archive on its own** (#442, story 212).
 The bridge has never filed that dump, and an automatic report waits for a
 troubled call and the Mac's listener, so a call that merely *sounded* wrong
