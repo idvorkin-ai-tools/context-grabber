@@ -90,6 +90,24 @@ wait_jq() {  # like wait_for, on any jq filter; looks five times a second, so a 
   fail=1
   return 1
 }
+wait_js() {  # like wait_jq, for a filter over the whole log at once (what came after what) that answers true; the caller says what is missing
+  local waited=0 f
+  while [ "$waited" -lt $(($2 * 5)) ]; do
+    sleep 0.2; waited=$((waited + 1))
+    f=$(newest_log)
+    [ -n "$f" ] && [ "$f" != "$previous_log" ] && jq -se "$1" "$f" >/dev/null 2>&1 && return 0
+  done
+  return 1
+}
+# How far into its launch a log is now, on the log's own clock (`t`, ms since launch): the file is born with its
+# session_start line. Against the last line's `t` it says whether a check read before a line or the line never came.
+log_age_ms() { perl -MTime::HiRes=time -e 'printf "%d", (time - $ARGV[0]) * 1000' "$(stat -f %FB "$1")"; }
+last_timer_line() {  # the workout's last timer_ line in this launch's log, and its t
+  local f; f=$(this_log)
+  [ -n "$f" ] || { echo "no log from this launch"; return 0; }
+  jq -sr '[.[] | select(.type | startswith("timer_"))][-1] // {type: "no timer_ line"}
+    | "\(.type)\(if .action then " " + .action else "" end)\(if .cue then " " + .cue else "" end) at t \(.t // "-") ms"' "$f"
+}
 
 if want cockpit; then
 # Stories 096, 097, 200: the Cockpit screen on the bundled bridge test page, which speaks only the protocol
@@ -185,9 +203,18 @@ if want timer && audio_ok timer; then
 # forgotten first.
 sqlite3 "$DOCS/SQLite/context-grabber.db" "DELETE FROM settings WHERE key='gym_count_voice'" 2>/dev/null || true
 SIMCTL_CHILD_GRABBER_TIMER="10,0,1" relaunch
-wait_for timer_finished 30 || echo "      (timed out waiting for timer_finished)"
-sleep 4  # "done" sounds, then the window lets go of the session
+# Story 1010 (#389): judged only once the workout's last lines are in, each waited for (bounded) rather than slept
+# past: the finish's window lets go of the session 2.4 s after timer_finished, and the card's end waits on ActivityKit.
+if wait_for timer_finished 30; then
+  wait_js '([.[] | select(.type=="timer_finished")][0].t) as $fin
+    | any(.[]; .type=="timer_session" and .action=="inactive" and (.for // "") != "sample" and .t >= $fin)' 10 \
+    || bad "timer: the finish never let go of the session (no timer_session inactive within 10 s of timer_finished); last: $(last_timer_line)"
+  wait_js 'any(.[]; .type=="live_activity" and .kind=="gymTimer"
+    and ((.action=="end" and .reason=="finished") or .action=="unavailable"))' 10 \
+    || bad "live activity: no end on DONE! (nor unavailable) within 10 s of timer_finished; last: $(last_timer_line)"
+else bad "timer: the workout stopped before its finish; last: $(last_timer_line)"; fi
 f=$(newest_log)
+echo "      timer: read the log $(log_age_ms "$f") ms into the launch, $(last_timer_line)"
 cues=$(jq -sr '[.[] | select(.type=="timer_cue") | "\(.cue)\(if .ok then "" else "!" end)"] | join(" ")' "$f")
 if [ "$cues" = "three two one go three two one done" ]; then ok "timer: 8 cues played from their files"
 else bad "timer: cues '$cues'"; fi
