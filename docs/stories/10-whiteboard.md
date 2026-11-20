@@ -7296,7 +7296,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1007:
 
 - **Summary:** A keep stays one Undo, whatever the board does just after it
-- **Status:** in progress on branch `native/undo-kept-group-966`
+- **Status:** implemented in [aa8ecdb4](https://github.com/idvorkin/context-grabber/commit/aa8ecdb4); verified by host tests (`BoardUndoProbeTests`: PaperKit's step on top taken back, a keep on top left on the stack with nothing said to Larry and one Undo still taking the whole group back, with a fake stack and Foundation's `UndoManager`), `just test` and the Mac build (`just native-build-mac`); the simulator not run (the Mac's screen was locked, so UI tests could not start), and the iPad still to do: the log's `paper_undo` and `paper_undo_left_ours` lines will say whether the take-back ever reached a keep there
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every keep is a step of Undo of its own, and keeps it*
 - **Issues:** [#966](https://github.com/idvorkin/context-grabber/issues/966): Igor, 2026-11-19, board 302d5345, via Larry: he kept Larry's whole reply group, it sat on top of his own plan, and undo couldn't take it back
 
