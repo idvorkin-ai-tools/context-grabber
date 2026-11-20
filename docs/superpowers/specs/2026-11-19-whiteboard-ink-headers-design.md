@@ -54,13 +54,15 @@ a second kind of header; only the ways one is made and the ways a section ends a
 
 ### A rule across the page ends the sections above it
 
-- **A long, straight, flat line that underlines nothing** (at least 240 points long, and not just under a line of
-  writing it would underline) is a rule. A section ends at the first rule below its header, as it ends where the ink
+- **A long, straight, flat line that underlines nothing** (at least about half the page wide, and not just under a
+  line of writing it would underline) is a rule. A section ends at the first rule below its header, as it ends where the ink
   comes back to the header's indent or at the next header: whichever comes first.
 - The rule and what is below it never fold into the section above. Folding a header slides the rule up, with the rest
   of what is below, to a line or two under the header.
 - A rule ends every section open above it, outer ones included, as a horizontal rule ends them in Markdown.
 - A rule is plain ink in every other way: Igor erases it to let the section run on.
+- A rule is read wherever it is, ink drawn before this build included: it is never kept, only seen. A shorter flat
+  line (a dash, a strike) is plain ink and ends nothing.
 
 ### Undoing a wrong guess
 

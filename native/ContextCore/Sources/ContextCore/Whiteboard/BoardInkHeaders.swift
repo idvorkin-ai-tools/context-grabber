@@ -10,8 +10,9 @@ import Foundation
 #endif
 
 extension BoardOutline {
-  /// A rule is at least this long; shorter, a flat line under nothing is plain ink.
-  public static let ruleWidth: CGFloat = 240
+  /// A rule is at least this long, about half the page; shorter, a flat line under nothing is plain ink (a dash, or
+  /// the simulator's straight "writing").
+  public static let ruleWidth: CGFloat = 400
   /// A # fits in this box each way: about a line and a half.
   public static let hashMost: CGFloat = 60
   /// Each of a #'s bars is at least this long.

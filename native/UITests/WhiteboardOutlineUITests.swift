@@ -92,6 +92,24 @@ final class WhiteboardOutlineUITests: XCTestCase {
     XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "unfolded again")
   }
 
+  /// Story 1010 (#967): a line drawn under a line of writing makes it a header as it lands, no margin tap. The
+  /// "writing" is a slanted stroke, which no underline is; the indented line under it folds.
+  func testAnUnderlineDrawnUnderALineMakesItAHeader() throws {
+    let app = try openBoard()
+    sleep(1)
+    point(app, 0.15, 0.30).press(forDuration: 0.05, thenDragTo: point(app, 0.30, 0.32))
+    point(app, 0.22, 0.38).press(forDuration: 0.05, thenDragTo: point(app, 0.40, 0.40))
+    wait(send(app), label: strokes(2))
+    XCTAssertFalse(marks(app, "Header").firstMatch.exists, "no header before the underline")
+    point(app, 0.14, 0.33).press(forDuration: 0.05, thenDragTo: point(app, 0.31, 0.33))
+    wait(send(app), label: strokes(3))
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), "a ▾ in the margin: \(app.debugDescription)")
+    shot(app, "underlined, a header")
+    point(app, margin, 0.31).tap()
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), "it folds: \(app.debugDescription)")
+    shot(app, "underlined header folded")
+  }
+
   /// Story 901: a folded header says beside its row how many lines it holds, and the words go when it unfolds.
   func testAFoldShowsItsLinesBesideTheHeader() throws {
     let app = try openBoard()
