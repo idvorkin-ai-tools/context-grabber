@@ -210,8 +210,9 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
   /// for all five; the grid on Plain with the ink left where it was is `testRuledLinesAndTheGridAreOneChoiceAndNeverInk`,
   /// and each colour's own shade against the ink is `BoardPaperTests`, on the host.
   func testEveryColourShowsItsLinesAndKeepsTheInk() throws {
+    // HI is written in four single strokes: H three, I one (#996).
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
-    wait(send(app), label: "Send to Larry, 2 strokes")
+    wait(send(app), label: "Send to Larry, 4 strokes")
     let ink = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "dark letters on screen")
     menu(app, "Lilac", expect: "Board, Lilac")
     let bare = Screen(app)
@@ -224,7 +225,7 @@ final class WhiteboardPaperLinesUITests: XCTestCase {
     let grid = Screen(app).lines(against: bare)
     XCTAssertGreaterThan(grid.across, 5, "Lilac: the grid shows")
     XCTAssertNotNil(PaperScreen(app).ink, "Lilac: the letters with a grid")
-    XCTAssertEqual(send(app).label, "Send to Larry, 2 strokes", "neither is ink")
+    XCTAssertEqual(send(app).label, "Send to Larry, 4 strokes", "neither is ink")
   }
 
   /// Story 657: the first stroke after the menu draws, and after leaving the menu with no choice. One launch for the two.
