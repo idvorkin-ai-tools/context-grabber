@@ -104,4 +104,59 @@ final class WhiteboardScratchOutUITests: XCTestCase {
     XCTAssertEqual(send.label, "Send to Larry, 2 strokes", "the scratched-out fold never comes back")
     XCTAssertFalse(marks("Folded header").exists, "no fold came back")
   }
+
+  /// A new board on paper with Ghosts off, the hook reading stroke `zigzag` as a zigzag, feedback held `seconds`.
+  private func openBoard(zigzag: Int, seconds: Int) throws -> XCUIApplication {
+    let app = XCUIApplication.forTests(animated: true)
+    app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
+    app.launchEnvironment["GRABBER_SILENT"] = "1"
+    app.launchEnvironment["GRABBER_CHAT_URL"] = try XCTUnwrap(
+      ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"], "run through scripts/native/test-whiteboard-ui.sh")
+    app.launchEnvironment["GRABBER_WHITEBOARD_ZIGZAG"] = "\(zigzag)"
+    app.launchEnvironment["GRABBER_WHITEBOARD_FEEDBACK_SECONDS"] = "\(seconds)"
+    app.launch()
+    let new = app.buttons["whiteboard-new"]
+    XCTAssertTrue(new.appears(within: 20), app.debugDescription)
+    new.tap()
+    let ghosts = app.buttons["whiteboard-ghosts"]
+    XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
+    if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }
+    sleep(1)
+    return app
+  }
+
+  private func shot(_ app: XCUIApplication, _ name: String) {
+    let picture = XCTAttachment(screenshot: app.screenshot())
+    picture.name = name
+    picture.lifetime = .keepAlways
+    add(picture)
+  }
+
+  /// Story 1047 (#1000): the struck ink flashes where it was as it goes; the hook holds it up for the picture.
+  func testAScratchOutFlashesTheInkItTook() throws {
+    let app = try openBoard(zigzag: 2, seconds: 6)
+    let send = app.buttons["whiteboard-send"]
+    point(app, 0.20, 0.35).press(forDuration: 0.05, thenDragTo: point(app, 0.45, 0.35))
+    wait(send, label: "Send to Larry, 1 strokes")
+    point(app, 0.18, 0.35).press(forDuration: 0.05, thenDragTo: point(app, 0.47, 0.35))
+    wait(send, label: "Send to Larry, 0 strokes")
+    let flash = app.descendants(matching: .any)["whiteboard-scratch-flash"]
+    XCTAssertTrue(flash.appears(within: 3), "the flash: \(app.debugDescription)")
+    shot(app, "scratched out: the struck ink flashing")
+    XCTAssertFalse(app.descendants(matching: .any)["whiteboard-scratch-nothing"].exists, "no word when it worked")
+  }
+
+  /// Story 1048 (#1000): a zigzag on bare paper goes, with a word, and Redo brings it back as ink.
+  func testAZigzagOverNothingSaysSoAndGoes() throws {
+    let app = try openBoard(zigzag: 1, seconds: 6)
+    let send = app.buttons["whiteboard-send"]
+    point(app, 0.20, 0.45).press(forDuration: 0.05, thenDragTo: point(app, 0.45, 0.45))
+    let note = app.descendants(matching: .any)["whiteboard-scratch-nothing"]
+    XCTAssertTrue(note.appears(within: 5), "the word: \(app.debugDescription)")
+    XCTAssertEqual(note.label, "Nothing under the scribble to erase")
+    wait(send, label: "Send to Larry, 0 strokes")
+    shot(app, "a zigzag over nothing: taken away, with a word")
+    app.buttons["whiteboard-redo"].tap()
+    wait(send, label: "Send to Larry, 1 strokes")
+  }
 }

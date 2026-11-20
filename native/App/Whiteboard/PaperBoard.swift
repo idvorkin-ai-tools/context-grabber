@@ -404,6 +404,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let snaps = BoardSnapWatch()
   /// Stories 1044–1046 (#1000): the band the room handle shows while held (PaperBoard+RoomBand.swift).
   let roomBand = BoardRoomBandState()
+  /// Story 1048 (#1000): *Nothing under the scribble to erase*, while it shows (PaperBoard+ScratchFeedback.swift).
+  let scratchNote = BoardScratchNote()
   /// Stories 940–942: a kept text's words open in place (BoardRewordFlow.swift).
   let reword = BoardRewordState()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
@@ -1077,11 +1079,21 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if let speed = outcome.speed { event["speed"] = speed }
     if let why = outcome.why { event["why"] = why }
     // Story 905: over a fold's marker or its folded header line, the whole section goes with what else it covered.
-    if scratchTakesFolds(scratch, zigzag: key) { return true }
+    if scratchTakesFolds(scratch, zigzag: key) {
+      flashScratched(Set(outcome.gone + [key]), from: markup)
+      return true
+    }
     guard scratch.after != nil else {
+      // Story 1048 (#1000): a zigzag over nothing goes, with a word; writing that only looks like one stays ink.
+      if outcome.findsNothing, let frame = markup.strokeFrames[key] {
+        scratchFoundNothing(key, frame: frame, event: event)
+        return true
+      }
       log.event("whiteboard", event)
       return false
     }
+    // Story 1047 (#1000): the struck ink flashes and fades where it was, read before it goes.
+    flashScratched(Set(outcome.gone + [key]), from: markup)
     Task { @MainActor [weak self] in
       guard let self else { return }
       let taken = self.takeBackZigzag(key, before: scratch.before, why: "scratch")
@@ -2365,6 +2377,7 @@ struct PaperBoardCanvas: View {
     .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame, toText: controller.toText) }
     .overlay { RewordField(controller: controller, state: controller.reword) }
     .overlay { RoomBandOverlay(state: controller.roomBand) }
+    .overlay { ScratchNoteOverlay(note: controller.scratchNote) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

@@ -378,8 +378,8 @@ still there for half a second) until the finger or the Pencil lifts:
   Undo, the save and Larry's picture are as before.
 - **A zigzag that finds nothing to erase says so**: one that is a scratch-out in shape and speed but has no ink under
   it (*no ink*), or only ink beside it rather than under it (*beside ink*), is taken away, and **Nothing under the
-  scribble to erase** shows beside where it was for a few seconds. One Undo brings the zigzag back as ink, for the
-  time a zigzag was meant as a drawing.
+  scribble to erase** shows beside where it was for a few seconds. It is taken away as an Undo would take it, so
+  Redo brings it back as ink, for the time a zigzag was meant as a drawing.
 - Writing that only looks like a zigzag (*slow*, *marches along*, *short sweeps*) stays ink, with no word, as before.
 - The flash and the message are in no picture and take no touches.
 

@@ -5022,6 +5022,46 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1047:
+
+- **Summary:** A scratch-out flashes and fades the ink it took
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** STATUS_1047
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** scribbling out a word with the Pencil
+- **I want to** see the ink I struck flash and fade where it was
+- **so that** I know the scratch-out fired and what it took
+
+#### Acceptance Criteria:
+- **Scenario:** Scratching out a word
+- **Given:** a board on paper with a word written on it
+- **When:** I draw a quick zigzag over it
+- **Then:** the word and the zigzag show in a bright tint where they were and fade out over about half a second, and the board is without them, one Undo bringing the word back
+
+---
+
+### User Story 1048:
+
+- **Summary:** A zigzag that finds nothing to erase says so and goes
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** STATUS_1048
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** who scribbled where there was nothing, or only beside a word
+- **I want to** be told nothing was erased, and not be left with the scribble
+- **so that** I don't wonder whether the scratch-out failed, and can try again over the ink
+
+#### Acceptance Criteria:
+- **Scenario:** A zigzag over bare paper
+- **Given:** a board on paper with bare paper where I draw
+- **When:** I draw a quick zigzag there, or one that only clips the end of a long word
+- **Then:** the zigzag is taken away, *Nothing under the scribble to erase* shows beside where it was for a few seconds, and Redo brings the zigzag back as ink
+
+---
+
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat
@@ -6360,8 +6400,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** Near misses
 - **Given:** a board with writing on it
-- **When:** I write *mmm* over a word, draw a slow zigzag over it, draw a zigzag on bare paper, or one that only clips the end of a long word
-- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*, *no ink*, *beside ink*)
+- **When:** I write *mmm* over a word, or draw a slow zigzag over it
+- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*). A fast zigzag on bare paper, or one that only clips the end of a long word, is story 1048 (#1000)
 
 ---
 
