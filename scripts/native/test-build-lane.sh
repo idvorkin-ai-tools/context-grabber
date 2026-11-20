@@ -27,6 +27,8 @@ cat >"$fakes/lockf" <<'F'
 #!/usr/bin/env bash
 echo "lockf $2 $3 ${4##*/}" >>"$MARKS/lockf"
 case " ${FAKE_HELD:-} " in *" ${4##*/} "*) echo "lockf: $4: already locked" >&2; exit 75 ;; esac
+# A lock named in FAKE_TAKEN is free when probed (true) and taken by another job before anything else runs under it.
+case " ${FAKE_TAKEN:-} " in *" ${4##*/} "*) [ "$5" = true ] || { echo "lockf: $4: already locked" >&2; exit 75; } ;; esac
 shift 4
 exec "$@"
 F
@@ -188,6 +190,9 @@ is "SIM a udid, lane 1 busy: lane 1's iPhone 17 stays booted" "$(state_of "$PHON
 devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 lane 2" "$OTHER:Booted:iPhone 16e"
 TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2
 is "lane 1 idle: a simulator of no lane is shut down" "$(state_of "$OTHER")" Shutdown
+devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 lane 2" "$OTHER:Booted:iPhone 16e"
+TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2 FAKE_TAKEN=build.lock
+is "lane 1 taken just after it looked idle: its simulator of no lane stays booted" "$(state_of "$OTHER")" Booted
 devices "$PHONE:Booted:iPhone 17" "$L2PHONE:Shutdown:iPhone 17 Pro lane 2"
 TARGET=$L2PHONE boot BUILD_LANES=4 BUILD_LANE=2 FAKE_HELD=build.lock "SIM=iPhone 17 Pro"
 is "SIM another model, lane 1 busy: lane 1's iPhone 17 stays booted" "$(state_of "$PHONE")" Booted

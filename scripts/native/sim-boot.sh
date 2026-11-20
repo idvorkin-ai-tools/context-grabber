@@ -34,8 +34,11 @@ else
       busy=$((busy + 1))
       echo "sim-boot: leaving '$name' booted: build lane $lane is busy"
     elif [ -n "$foreign" ]; then
-      echo "sim-boot: shutting down '$name', which belongs to no build lane"
-      xcrun simctl shutdown "$other" 2>/dev/null
+      if lockf -k -t 0 "$("$here/build-lane.sh" lock "$lane")" xcrun simctl shutdown "$other" 2>/dev/null; then
+        echo "sim-boot: shut down '$name', which belongs to no build lane"
+      else
+        busy=$((busy + 1))
+      fi
     else
       idle+=("$lane $other $name")
     fi
