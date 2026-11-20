@@ -489,7 +489,7 @@ treehouse return "$slot"                                # when the branch is pus
   from the main checkout into the slot on each lease, and a return removes them.
 - **A return discards uncommitted work** and stops what is still running in the slot. It asks first; `--force`
   doesn't. Commit and push before returning. A leased slot is never handed to anyone else and never pruned.
-- **A full pool is an error, not a fifth worktree.** `treehouse status` shows who holds what; return one.
+- **A full pool is an error, not a ninth worktree.** `treehouse status` shows who holds what; return one.
 - **Disk is bounded at eight build folders.** For a slot's build alone, delete its `native/Build` (the next build
   there is cold; also the cure for a build that fails only in one slot). `treehouse prune` lists every idle returned
   slot and `--yes` deletes them, warm builds included, so it is for reclaiming disk, not for tidying.
