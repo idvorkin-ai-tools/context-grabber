@@ -7498,7 +7498,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Summary:** A # written at the start of a line makes it a header
 - **Status:** implemented in [fda25548](https://github.com/idvorkin/context-grabber/commit/fda25548), [6bb7c2ab](https://github.com/idvorkin/context-grabber/commit/6bb7c2ab); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19); a # can't be drawn by a UI test (straight drags only), so host only; not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *A # at the start of a line makes it a header*
-- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967), [#1004](https://github.com/idvorkin/context-grabber/issues/1004) (it was recognised; its ▾ hid under the # written in the margin: story 1041)
 
 #### Use Case:
 - **As someone** who thinks in Markdown
@@ -7610,3 +7610,43 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an open header on the board
 - **When:** Larry gets a picture of the board (his turn, Send or Claude's turn)
 - **Then:** a small grey ▾ shows in the margin beside the header, where the board shows it
+
+---
+
+### User Story 1040:
+
+- **Summary:** A line tints for a moment when it becomes a header
+- **Status:** implemented in PENDING
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Seeing the headers*
+- **Issues:** [#1004](https://github.com/idvorkin/context-grabber/issues/1004)
+
+#### Use Case:
+- **As someone** who makes headers with the Pencil as I write
+- **I want** the board to show me the moment it takes a line for a header
+- **so that** I never wonder whether my # or underline was recognised
+
+#### Acceptance Criteria:
+- **Scenario:** A header made
+- **Given:** a line of my writing
+- **When:** it becomes a header (an underline, a #, a margin tap or *Make header*)
+- **Then:** its row is tinted for about a second, then the tint fades; writing more on the line doesn't tint it again
+
+---
+
+### User Story 1041:
+
+- **Summary:** Every header's ▾ sits in one spot in the margin, on the line's baseline, over the ink, easy to tap
+- **Status:** implemented in PENDING
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Seeing the headers*
+- **Issues:** [#1004](https://github.com/idvorkin/context-grabber/issues/1004) (a # written in the margin hid its own ▾, so "#Affirmations" looked unrecognised)
+
+#### Use Case:
+- **As someone** who folds my board's sections with a finger
+- **I want** each header's ▾ in the same place, standing on its line, never under my ink and big enough to hit
+- **so that** I can see at a glance which lines are headers and fold one without aiming
+
+#### Acceptance Criteria:
+- **Scenario:** Headers at different indents, one started with a # in the margin
+- **Given:** two headers, one indented and one whose # I wrote in the margin's left corner
+- **When:** I look at the margin and tap a ▾, or up to 22 points above or below its middle
+- **Then:** both ▾ sit at the same place across, each on its line's baseline and over the ink, and the tap folds that header
