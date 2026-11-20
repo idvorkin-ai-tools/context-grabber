@@ -1137,7 +1137,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 331:
 
 - **Summary:** Larry's loudest words play without a clipped edge
-- **Status:** implemented; verified by `just test` (host: `PlaybackLimiterTests`); a Direct call on the phone not yet
+- **Status:** implemented in [b3c7cdd](https://github.com/idvorkin/context-grabber/commit/b3c7cdd); verified by `just test` (host: `PlaybackLimiterTests`) and the Mac build (rung 1.5); a Direct call on the phone not yet
 - **Issues:** [#903](https://github.com/idvorkin/context-grabber/issues/903) playback rendered a mixer peak of 1.08 (2026-10-25)
 - **Spec:** [Native call — Larry's voice never goes over full scale](../superpowers/specs/2026-08-28-native-call-screen-design.md#the-voice)
 
