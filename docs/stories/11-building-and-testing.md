@@ -750,10 +750,10 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
-### User Story 1005:
+### User Story 1010:
 
 - **Summary:** The smoke judges the Gym Timer's workout only once its last line has landed, and says which way a short one went
-- **Status:** implemented in 12dfdf9; verified on the host rung (`just test`) and the simulator rung (`SMOKE_ONLY=timer just native-test-sim`, iPhone, 2026-11-19: all passed, the log read 18253 ms into the launch against the last `timer_` line, the finish's `timer_session inactive`, at 17839 ms)
+- **Status:** implemented in 20d11016; verified on the host rung (`just test`) and the simulator rung (`SMOKE_ONLY=timer just native-test-sim`, iPhone, 2026-11-19: all passed, the log read 18253 ms into the launch against the last `timer_` line, the finish's `timer_session inactive`, at 17839 ms)
 - **Issues:** [#389](https://github.com/idvorkin/context-grabber/issues/389) (a workout seen ending early: 3 of 4 duck windows, no Live Activity end; the run could not say whether the workout stopped or the smoke read too soon)
 
 #### Use Case:

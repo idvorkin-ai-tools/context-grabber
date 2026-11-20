@@ -203,7 +203,7 @@ if want timer && audio_ok timer; then
 # forgotten first.
 sqlite3 "$DOCS/SQLite/context-grabber.db" "DELETE FROM settings WHERE key='gym_count_voice'" 2>/dev/null || true
 SIMCTL_CHILD_GRABBER_TIMER="10,0,1" relaunch
-# Story 1005 (#389): judged only once the workout's last lines are in, each waited for (bounded) rather than slept
+# Story 1010 (#389): judged only once the workout's last lines are in, each waited for (bounded) rather than slept
 # past: the finish's window lets go of the session 2.4 s after timer_finished, and the card's end waits on ActivityKit.
 if wait_for timer_finished 30; then
   wait_js '([.[] | select(.type=="timer_finished")][0].t) as $fin
@@ -211,7 +211,7 @@ if wait_for timer_finished 30; then
     || bad "timer: the finish never let go of the session (no timer_session inactive within 10 s of timer_finished); last: $(last_timer_line)"
   wait_js 'any(.[]; .type=="live_activity" and .kind=="gymTimer"
     and ((.action=="end" and .reason=="finished") or .action=="unavailable"))' 10 \
-    || bad "live activity: no end on DONE! (nor unavailable) within 10 s of timer_finished"
+    || bad "live activity: no end on DONE! (nor unavailable) within 10 s of timer_finished; last: $(last_timer_line)"
 else bad "timer: the workout stopped before its finish; last: $(last_timer_line)"; fi
 f=$(newest_log)
 echo "      timer: read the log $(log_age_ms "$f") ms into the launch, $(last_timer_line)"
