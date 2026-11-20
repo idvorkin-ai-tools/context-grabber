@@ -91,6 +91,16 @@ struct PaperScreen {
 }
 
 extension PaperScreen {
+  /// What `look` finds goes away within `timeout`: a quarter second between looks.
+  static func clears(_ app: XCUIApplication, within timeout: TimeInterval = 3, _ look: (PaperScreen) -> Box?) -> Bool {
+    let deadline = Date().addingTimeInterval(timeout)
+    while look(PaperScreen(app)) != nil {
+      guard Date() < deadline else { return false }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+    }
+    return true
+  }
+
   /// Story 673: what `look` finds once it has stopped changing, two looks a quarter second apart finding the same box,
   /// in place of a fixed wait before reading the screen. Nil when nothing settles within `timeout`.
   static func settled(_ app: XCUIApplication, within timeout: TimeInterval = 6, _ look: (PaperScreen) -> Box?) -> Box? {
@@ -559,9 +569,11 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
         forDuration: 0.05,
         thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: marks.maxX + 0.03, dy: marks.center.y)))
     wait(send(app), label: strokes(2))
-    let under = PaperScreen.Box(minX: 0, minY: marks.maxY + 0.005, maxX: 1, maxY: marks.maxY + 0.12)
+    // Larry's picture is cut to the ink, so his circles land just above Igor's first line, which is in his picture and
+    // shows under them: what tells the push is the newer line leaving his circles and the ink under them reaching lower.
+    let under = PaperScreen.Box(minX: 0, minY: marks.maxY + 0.005, maxX: 1, maxY: marks.maxY + 0.25)
     XCTAssertNotNil(PaperScreen(app).ink(in: marks), "the new line runs through his circles")
-    XCTAssertNil(PaperScreen(app).ink(in: under), "and nothing is under them yet")
+    let before = try XCTUnwrap(PaperScreen(app).ink(in: under), "Igor's first line, just under his circles")
     shot(app, "a line written through his reply after the picture")
     PaperScreen.tap(app, CGPoint(x: marks.minX + 0.003, y: marks.minY + (marks.maxY - marks.minY) * 0.3))
     let group = app.buttons["whiteboard-mark-keep-group"]
@@ -570,12 +582,17 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
     let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "his reply as ink in his purple")
     XCTAssertEqual(kept.center.y, marks.center.y, accuracy: 0.02, "his marks stay where they showed")
-    XCTAssertNotNil(PaperScreen(app).ink(in: under), "the line went down under his reply")
+    // A look the moment his purple settles can catch the paper's tiles mid-redraw; the settled board has nothing black
+    // in his circles (rung 2, 2026-11-20: six looks over three seconds after the keep found none).
+    XCTAssertTrue(PaperScreen.clears(app) { $0.ink(in: marks) }, "the newer line left his circles")
+    let pushed = try XCTUnwrap(PaperScreen(app).ink(in: under), "the line went down under his reply")
+    XCTAssertGreaterThan(pushed.maxY, before.maxY + 0.005, "what's under his reply reaches lower")
     shot(app, "the line pushed under his kept reply")
     waitUntil(NSPredicate(format: "label == %@", strokes(2)), send(app), timeout: 12)
     XCTAssertNil(PaperScreen.settled(app) { $0.larryKept }, "one undo took his reply back")
     XCTAssertNotNil(PaperScreen(app).ink(in: marks), "and put the line back where it was")
-    XCTAssertNil(PaperScreen(app).ink(in: under))
+    let undone = try XCTUnwrap(PaperScreen(app).ink(in: under), "Igor's first line, back under his circles")
+    XCTAssertEqual(undone.maxY, before.maxY, accuracy: 0.005, "back as it was before the keep")
     shot(app, "after one undo")
   }
 

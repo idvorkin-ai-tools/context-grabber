@@ -1234,6 +1234,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "action": why, "board": model.board.id, "cut": Double(push.cut), "dy": Double(push.dy),
         "moved": plan.moved, "pages_before": plan.pagesBefore, "pages": pages,
       ])
+    undoSoonForTests(LaunchHooks.current.whiteboard.afterKeep)
     return true
   }
 
