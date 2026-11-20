@@ -127,6 +127,7 @@ just test                 # = just native-test: lint, ContextCore's host tests, 
 just native-test-sim      # simulator build + the launch-hook smoke (scripts/native/sim-smoke.sh)
 just native-sim-health    # once per simulator: grant Health access (a UI test taps the sheet)
 just native-run-device    # build under the signing lock, install and launch on the iPhone
+just testflight           # the commit to TestFlight beside the cable (--export-only needs no key; docs/TESTING.md)
 just pull-logs            # session logs, reports and crashes from the phone (and the iPad)
 just bugs-check           # unfiled reports on every plugged-in device
 ```

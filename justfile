@@ -156,6 +156,12 @@ native-run-device: native-build-device
     @r="$HOME/gits/mac-driver/bin/record-deploy"; [ ! -x "$r" ] || "$r" context-grabber "$([ "{{native_device}}" = "$(tr -d '[:space:]' 2>/dev/null <scripts/native/ipad-udid.local)" ] && echo ipad || echo phone)" "$(git rev-parse HEAD)" || true
     xcrun devicectl device process launch --device {{native_device}} {{native_bundle}}
 
+# The current commit to TestFlight, beside the cable install (#1012, stories 1011-1013; docs/TESTING.md "TestFlight"):
+# a Release archive with the build stamps, signed for App Store distribution, uploaded with the App Store Connect key
+# (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, or the ignored scripts/native/testflight.local). --export-only needs no key.
+testflight *args: native-project
+    scripts/native/testflight.sh {{args}}
+
 # Native rung 1.5, the Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
 native-build-mac: native-project
     #!/usr/bin/env bash

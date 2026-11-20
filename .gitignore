@@ -61,6 +61,8 @@ beads_report_*.md
 # The iPhone's hardware UDID for the native recipes (scripts/native/phone-udid.sh); the repo is public
 scripts/native/phone-udid.local
 scripts/native/ipad-udid.local
+# The App Store Connect key's ids and where its .p8 lives, for just testflight (#1012)
+scripts/native/testflight.local
 
 # Python bytecode (scripts/native/fake-bridge.py run by the smoke test)
 __pycache__/
