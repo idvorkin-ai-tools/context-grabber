@@ -1294,7 +1294,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Nothing to paste, or a board that is not mine
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); not verified by a test; to try on the iPad: the dimmed Paste, no Paste on a look-only board, ⌘V doing nothing on either
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); not verified by a test; changed in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac) (#1005: no Paste without text), verified on the iPad simulator by `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`; to try on the iPad: no Paste on a look-only board, ⌘V doing nothing on either
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1306,7 +1306,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** No paste to make
 - **Given:** the clipboard holds neither text nor copied strokes, or the board is look-only
 - **When:** I look at the bar or press ⌘V
-- **Then:** Paste is dimmed (or absent on a look-only board) and ⌘V does nothing
+- **Then:** there is no Paste in the bar and ⌘V does nothing
 
 ---
 
@@ -1314,7 +1314,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Strokes I copied still paste
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented on this branch; not verified by a test (on the simulator, PencilKit's canvas was seen to have its own paste); to try on the iPad with a hardware keyboard
+- **Status:** implemented on this branch; changed in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac) (#1005: no Paste without text); not verified by a test (on the simulator, PencilKit's canvas was seen to have its own paste); to try on the iPad with a hardware keyboard
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1326,7 +1326,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Copied strokes
 - **Given:** a board I can draw on is open and the clipboard holds strokes copied with the lasso and no text
 - **When:** I press ⌘V
-- **Then:** the strokes land the way the system always pastes them, and the bar's Paste stays dimmed
+- **Then:** the strokes land the way the system always pastes them, and there is no Paste in the bar
 
 ---
 
@@ -1447,6 +1447,46 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** I deleted an iPad board on the phone with no network, and the iPad then drew on it and that reached iCloud
 - **When:** the phone gets back online and both devices sync
 - **Then:** the board and its new ink return to both devices
+
+---
+
+### User Story 1054:
+
+- **Summary:** The board's bar has no hole: Paste shows only with text to paste, beside the Board menu
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` with no text on the clipboard, `WhiteboardPasteUITests` and `WhiteboardPaperGhostsUITests` with text on it, and the whiteboard's other UI classes) and the Mac build; changed in [53231df](https://github.com/idvorkin/context-grabber/commit/53231df) (text copied in an app beside the board shows Paste within about a second), not verified by a test. Not yet seen on the iPad
+- **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** reaching for Larry's buttons at the top of a board
+- **I want to** see the bar's buttons evenly spaced, the board's own menu in a group of its own
+- **so that** a blank space doesn't look like a missing or broken button
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing to paste
+- **Given:** a board open on an iPad and no text on the clipboard
+- **When:** I look at the top bar
+- **Then:** the Board menu sits in a group of its own, Talk, Ghosts, Larry and Send are evenly spaced in theirs, and there is no empty space; once I copy some text, here or in an app beside the board, Paste appears beside the Board menu within about a second and the other four don't move
+
+---
+
+### User Story 1055:
+
+- **Summary:** A long press on a bar button says its name
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
+- **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** who sees a sparkle and a hand in the board's bar
+- **I want to** find out what each one does without trying it
+- **so that** I don't send Larry a picture or turn off Claude's suggestions by accident
+
+#### Acceptance Criteria:
+- **Scenario:** Long press the sparkle
+- **Given:** a board open with Ghosts on
+- **When:** I press and hold the sparkle
+- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way, and a plain tap on any of them does what it always did
 
 ---
 
@@ -4742,7 +4782,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1046:
+### User Story 1053:
 
 - **Summary:** Larry's words lead, and every line can be read
 - **Status:** implemented in [60c8129](https://github.com/idvorkin/context-grabber/commit/60c8129); verified by host tests (`WhiteboardNoteTests`: Larry's line marked for emphasis; `just test`) and a screenshot on the iPad simulator (`WhiteboardTurnUITests`, Larry's words in the main colour). The contrast figures are from the colour values, not measured on the iPad

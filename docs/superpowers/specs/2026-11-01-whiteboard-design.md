@@ -91,6 +91,22 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     no name (his own stroke). Dimmed, it says so.
   - A press doesn't cost a stroke: the next stroke after it draws, as after the Board menu.
   - A board only looked at (another device's, or the old canvas's) has neither, as it has no tool picker.
+- **The top bar's groups and labels** (#1005; Igor's design critique of the iPad board, 2026-11-20: "Nothing says what
+  the sparkle and hand icons do. There is a large empty gap between the palette and the mic in the right-hand group").
+  - **Three groups.** The way back and *Undo*/*Redo* on the left; on the right the board's own things, the **Board**
+    menu and **Paste**, in a group of their own like *Undo* and *Redo*; then the four that talk to Claude and Larry:
+    **Talk**, **Ghosts**, **Larry** and **Send**, evenly spaced, with no hole among them.
+  - **Paste shows only while the clipboard holds text.** The gap was the system's paste button with nothing to paste:
+    iOS dims it to near nothing, so it read as an empty space. Looking whether the clipboard holds text never asks
+    *Allow Paste?*. When it does, Paste appears beside the Board menu and the four on the far right don't move.
+    It appears within about a second of text being copied, also from an app beside the board.
+  - **A long press names the button.** A long press on Talk, Ghosts, Larry or Send shows a small menu headed by the
+    button's one word (*Talk*, *Ghosts*, *Larry*, *Send*) with one row saying what a tap does (*Talk to Claude*, *Hide
+    Claude's suggestions*, *Hand Larry the board*, *Send the board to Larry*); that row does it, and a tap anywhere
+    else closes the menu. A plain tap does what it always did. The Board menu already opens on a tap and is headed
+    by its sections. VoiceOver reads each button's name as before.
+  - On a width as narrow as an iPhone's the Board menu stays at the bottom of the screen (below), and Paste with it in
+    the top bar's right group.
 - **Who draws:**
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.

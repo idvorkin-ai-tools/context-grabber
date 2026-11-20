@@ -2531,6 +2531,8 @@ struct WhiteboardView: View {
     let page = pageHeight > 0 ? WhiteboardNote.panelHeight(board: Double(pageHeight)) : WhiteboardNote.panelFloor
     return max(CGFloat(page) - panelChrome, threadFloor)
   }
+  /// #1005 (story 1054): Paste shows only while there is text to paste.
+  @State private var clipboardHasText = false
   private let logger: BugLogger
   private let log: SessionLog
   private let callLive: AnyPublisher<Bool, Never>
@@ -2540,6 +2542,20 @@ struct WhiteboardView: View {
   private let reportSaved: AnyPublisher<String, Never>
   /// Story 769: an iPhone has no conversation panel; a tap on the note opens the board's thread in Chat.
   private let onPhone: Bool
+
+  /// #1005 (story 1055): a bar button a tap runs as always, and a long press names, in one word, with a row
+  /// saying what the tap does (which does it too).
+  private func named<L: View>(
+    _ word: String, does: String, action: @escaping () -> Void, @ViewBuilder label: () -> L
+  ) -> some View {
+    Menu {
+      Section(word) { Button(does, action: action) }
+    } label: {
+      label()
+    } primaryAction: {
+      action()
+    }
+  }
 
   /// #965: one of the bar's Undo and Redo, at least 44 points wide and the bar's own height, named for the step it acts on.
   private func undoButton(redo: Bool) -> some View {
@@ -2728,30 +2744,40 @@ struct WhiteboardView: View {
         }
       }
       if model.editable {
-        ToolbarItem(placement: .topBarTrailing) {
-          // The system's button: no *Allow Paste?* prompt, and iOS dims it when the clipboard holds no text.
-          PasteButton(payloadType: String.self) { texts in
-            Task { @MainActor in model.paste(texts.joined(separator: "\n")) }
+        // #1005 (story 1054): Paste beside the Board menu, in the board's own group, and only while the clipboard holds
+        // text: dimmed, the system's button read as a hole in the bar.
+        if clipboardHasText {
+          ToolbarItem(placement: .topBarTrailing) {
+            // The system's button: no *Allow Paste?* prompt.
+            PasteButton(payloadType: String.self) { texts in
+              Task { @MainActor in model.paste(texts.joined(separator: "\n")) }
+            }
+            .labelStyle(.iconOnly)
+            .accessibilityIdentifier("whiteboard-paste")
           }
-          .labelStyle(.iconOnly)
-          .accessibilityIdentifier("whiteboard-paste")
         }
+        // #1005 (story 1054): the board's own things are a group of their own, like Undo and Redo.
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            model.tapMic()
-          } label: {
-            Label(model.micOn ? "Stop listening" : "Talk to Claude", systemImage: model.micOn ? "mic.fill" : "mic")
-          }
+          named(
+            "Talk", does: model.micOn ? "Stop listening" : "Talk to Claude", action: { model.tapMic() },
+            label: {
+              Label(model.micOn ? "Stop listening" : "Talk to Claude", systemImage: model.micOn ? "mic.fill" : "mic")
+            }
+          )
           .disabled(model.micStarting || model.micFinishing)
           .tint(model.micOn ? .red : nil)
+          .accessibilityLabel(model.micOn ? "Stop listening" : "Talk to Claude")
           .accessibilityIdentifier("whiteboard-mic")
         }
         ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            model.setGhosts(!model.ghostsOn)
-          } label: {
-            Label(model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "eye.slash")
-          }
+          named(
+            "Ghosts", does: model.ghostsOn ? "Hide Claude's suggestions" : "Show Claude's suggestions",
+            action: { model.setGhosts(!model.ghostsOn) },
+            label: {
+              Label(model.ghostsOn ? "Ghosts on" : "Ghosts off", systemImage: model.ghostsOn ? "sparkles" : "eye.slash")
+            }
+          )
           // How many show, for VoiceOver and the UI test (the board's own content is not in the accessibility tree,
           // and a toolbar button's accessibility value never reaches it).
           .accessibilityLabel(
@@ -2761,29 +2787,48 @@ struct WhiteboardView: View {
           .accessibilityIdentifier("whiteboard-ghosts")
         }
         ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            model.larryTurn()
-          } label: {
-            Label("Larry's turn", systemImage: "hand.draw")
-          }
+          named(
+            "Larry", does: "Hand Larry the board", action: { model.larryTurn() },
+            label: { Label("Larry's turn", systemImage: "hand.draw") }
+          )
           .disabled(
             model.isEmpty || model.nothingOnScreen || model.larrySending || model.firstSendWaiting(in: inbox.items)
           )
+          .accessibilityLabel("Larry's turn")
           .accessibilityIdentifier("whiteboard-larry")
         }
       }
       // An old-canvas board's ink sits where the column put it, not where it's saved: nothing to frame for Larry (story 658).
       if !model.oldCanvas {
         ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            model.send()
-          } label: {
-            Label("Send to Larry", systemImage: "paperplane")
-          }
+          named(
+            "Send", does: "Send the board to Larry", action: { model.send() },
+            label: { Label("Send to Larry", systemImage: "paperplane") }
+          )
           // How much is drawn, for VoiceOver and the UI test, in the label for the reason above.
           .accessibilityLabel("Send to Larry, \(model.drawing.strokes.count) strokes")
           .disabled(model.isEmpty || model.nothingOnScreen || model.sent != nil || model.larrySending)
           .accessibilityIdentifier("whiteboard-send")
+        }
+      }
+    }
+    // #1005 (story 1054): asking whether the clipboard holds text never prompts; it can change while the app is away, and
+    // inside it on a copy.
+    .onAppear { clipboardHasText = UIPasteboard.general.hasStrings }
+    .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+      clipboardHasText = UIPasteboard.general.hasStrings
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { clipboardHasText = UIPasteboard.general.hasStrings }
+    }
+    .task {
+      var seen = UIPasteboard.general.changeCount
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(1))
+        let count = UIPasteboard.general.changeCount
+        if count != seen {
+          seen = count
+          clipboardHasText = UIPasteboard.general.hasStrings
         }
       }
     }
@@ -2873,7 +2918,7 @@ struct WhiteboardView: View {
         }
         if let middle = line.middle {
           Text(middle).lineLimit(1).truncationMode(line.keepsEnd ? .head : .tail)
-            // Story 1046 (#1003): Larry's words lead.
+            // Story 1053 (#1003): Larry's words lead.
             .foregroundStyle(line.larrySpeaks ? Color.primary : Color(WhiteboardNoteInk.quiet))
             .accessibilityIdentifier("whiteboard-note-said")
         }
@@ -2973,7 +3018,7 @@ struct WhiteboardView: View {
   }
 }
 
-/// #1003 (story 1046): the note's and the panel's quieter text, at least 4.5:1 on the paper and the panel's material in
+/// #1003 (story 1053): the note's and the panel's quieter text, at least 4.5:1 on the paper and the panel's material in
 /// either appearance; the system's secondary and tertiary greys measured about 3:1 and 2:1. Larry's words take the main
 /// text colour.
 enum WhiteboardNoteInk {
@@ -3032,7 +3077,7 @@ private struct WhiteboardConversationText: UIViewRepresentable {
     let text = NSMutableAttributedString()
     for (index, row) in rows.enumerated() {
       if index > 0 { text.append(NSAttributedString(string: "\n")) }
-      // Story 1046 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
+      // Story 1053 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
       let color: UIColor = row.kind == .larry ? .label : WhiteboardNoteInk.quiet
       text.append(NSAttributedString(string: "\(row.who): ", attributes: [.font: bold, .foregroundColor: color]))
       text.append(NSAttributedString(string: row.text, attributes: [.font: body, .foregroundColor: color]))

@@ -185,6 +185,8 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
   /// Stories 598, 613, 614, 615, 825, 809: the bar, a ghost that can be seen, and a tap on it and Keep that make it ink of its
   /// colour.
   func testAGhostShowsOnThePaperAndKeepMakesItInk() throws {
+    // #1005 (story 1054): Paste shows only while the clipboard holds text.
+    UIPasteboard.general.string = "HI"
     let app = try openBoard()
     for id in ["whiteboard-ghosts", "whiteboard-mic", "whiteboard-larry", "whiteboard-send"] {
       XCTAssertTrue(app.buttons[id].exists, id)

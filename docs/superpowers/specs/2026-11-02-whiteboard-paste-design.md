@@ -12,7 +12,7 @@ the board's picture to Larry and Claude.
 ## What Igor sees
 
 - **Paste** in the board's bar. It is the system's own paste button, so iOS never asks *Allow Paste?* when he taps it,
-  and iOS dims it when the clipboard holds no text. A board that is look-only has no Paste.
+  and it shows only while the clipboard holds text (#1005: dimmed, it read as a hole in the bar). A board that is look-only has no Paste.
 - **⌘V** does the same with a hardware keyboard attached, on a board he can draw on, whenever the clipboard holds text.
 - **Strokes he copied keep working.** With a hardware keyboard, when the clipboard holds strokes copied with the lasso
   and no text, ⌘V pastes those strokes the way the system always does, on a board he can draw on. The bar's Paste is
@@ -51,8 +51,8 @@ the board's picture to Larry and Claude.
 
 ## Acceptance
 
-- Clipboard empty: Paste is dimmed, ⌘V does nothing, and no permission prompt ever appears from opening a board.
-- Copy strokes with the lasso, with no text on the clipboard: Paste is dimmed, and ⌘V pastes the strokes as ink.
+- Clipboard empty: there is no Paste in the bar, ⌘V does nothing, and no permission prompt ever appears from opening a board.
+- Copy strokes with the lasso, with no text on the clipboard: there is no Paste in the bar, and ⌘V pastes the strokes as ink.
 - Copy two lines of text and tap Paste: both lines appear as ink in the middle of the screen, no *Allow Paste?*
   prompt. Send's stroke count goes up, and about a second later Claude's ghosts come.
 - Zoom out, pan and paste again: the new text sits in the middle of the new view at the same on-screen size. Zoom in

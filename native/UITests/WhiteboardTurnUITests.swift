@@ -191,4 +191,27 @@ final class WhiteboardTurnUITests: XCTestCase {
     guard let dir = ProcessInfo.processInfo.environment["GRABBER_SHOTS"] else { return }
     try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
   }
+
+  /// #1005 (stories 1054, 1055): with nothing to paste there is no Paste, so no hole in the bar; a long press on a button
+  /// names it and says what a tap does, and a tap still does it.
+  func testTheBarNamesItsButtonsAndHasNoHole() throws {
+    UIPasteboard.general.items = []
+    let (app, ghosts) = try openBoard()
+    XCTAssertFalse(app.buttons["whiteboard-paste"].exists, "nothing to paste: no Paste")
+    let mic = app.buttons["whiteboard-mic"]
+    let larry = app.buttons["whiteboard-larry"]
+    let send = app.buttons["whiteboard-send"]
+    // Even spacing: the gaps between the four on the right differ by no more than a few points.
+    let gaps = zip([mic, ghosts, larry], [ghosts, larry, send]).map { $1.frame.minX - $0.frame.maxX }
+    XCTAssertLessThan((gaps.max() ?? 0) - (gaps.min() ?? 0), 12, "\(gaps)")
+    ghosts.press(forDuration: 1.2)
+    let named = app.buttons["Hide Claude's suggestions"]
+    XCTAssertTrue(named.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Ghosts"].exists, app.debugDescription)
+    shot("whiteboard-bar-long-press")
+    named.tap()
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts off'"), ghosts, timeout: 5)
+    ghosts.tap()
+    waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts on'"), ghosts, timeout: 5)
+  }
 }
