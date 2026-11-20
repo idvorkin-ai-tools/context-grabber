@@ -1232,7 +1232,7 @@ final class CallSessionPlaybackAndCaptionTests: XCTestCase {
     XCTAssertEqual(t.events.filter { $0.0 == "call_caption" && $0.1["who"] as? String == "igor" }.count, 1)
   }
 
-  // #897, story 216: the recognizer heard him stop, so the live line is marked sent; the agent's account makes it
+  // #897, story 332: the recognizer heard him stop, so the live line is marked sent; the agent's account makes it
   // a heard row, and the sent mark never outlives the live line.
   func testAFinishedSentenceIsSentInTheLiveLineThenHeardInTheTranscript() {
     let t = CallHarness()

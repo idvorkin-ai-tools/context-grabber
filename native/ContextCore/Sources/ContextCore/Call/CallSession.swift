@@ -26,7 +26,7 @@ public struct CaptionRow: Equatable, Identifiable, Sendable {
   public var text: String
   /// Igor's words as the recognizer still hears them — not yet settled.
   public var pending: Bool
-  /// #897, story 216: the live line's sentence has left the phone — the recognizer heard him finish it — and the
+  /// #897, story 332: the live line's sentence has left the phone — the recognizer heard him finish it — and the
   /// agent doesn't have it yet. Only ever on the pending row.
   public var sent: Bool
   /// #467, #897, story 216: the agent has Igor's sentence and Larry has not answered yet.

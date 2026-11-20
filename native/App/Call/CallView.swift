@@ -134,7 +134,7 @@ struct CallView: View {
   }
 
   /// What the recognizer hears Igor saying right now, big, before the agent has it (story 084); marked sent once he
-  /// has finished the sentence and it has left the phone (#897, story 216).
+  /// has finished the sentence and it has left the phone (#897, story 332).
   private var liveLine: some View {
     let pending = call.snapshot.captions.last { $0.who == .igor && $0.pending }
     let muted = call.snapshot.muted

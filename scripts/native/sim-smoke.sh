@@ -338,7 +338,7 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
   igor=$(jq -sr '[.[] | select(.type=="call_caption" and .who=="igor")][0].text // empty' "$f")
   # Story 216: two sentences heard before Larry answers are two rows, each heard; the late final is not a third.
   igor_sent=$(jq -sr '[.[] | select(.type=="call_caption" and .who=="igor") | "\(.text)/\(.heard)"] | join(",")' "$f")
-  # #897: the second sentence was finished before it was heard, so the live line marked it sent, once.
+  # #897, story 332: the second sentence was finished before it was heard, so the live line marked it sent, once.
   live_sent=$(jq -sr '[.[] | select(.type=="call_caption_sent") | .text] | join(",")' "$f")
   restated=$(jq -sr '[.[] | select(.type=="call_caption_restated")] | length' "$f")
   ended=$(jq -sr '[.[] | select(.type=="call_ended")][0] | "\(.reason) \(.badly)"' "$f")
