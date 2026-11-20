@@ -72,7 +72,7 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   spikes the CPU, and booted simulators past the RAM starve each other (about 10 GB each).
 - **Build in a pool slot, not a new worktree.** `slot=$(treehouse get --lease -b <branch>)`, work and build there,
   `treehouse return "$slot"` once the branch is pushed. A slot keeps its `native/Build` across returns, so disk stays
-  bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Eight slots (`treehouse.toml`), for four build lanes;
+  bounded and the device ids are seeded; a new worktree leaves another build folder behind (the speed gain is ~30 s). Twelve slots (`treehouse.toml`), two per build lane on the M5 Pro's six;
   [TESTING.md](docs/TESTING.md) has the rest, pruning included.
 - **Background agents** that investigate are read-only, in a worktree, notes under `~/tmp/agent/notes/`; confirm
   scope before an agent that writes to the repo. Reap background commands when done.

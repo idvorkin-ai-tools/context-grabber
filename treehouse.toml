@@ -3,9 +3,10 @@
 # generated project stay in it across returns, so disk stays bounded at one build folder per slot
 # and the next branch's build reuses it (a modest ~30 s saving; docs/TESTING.md has the timings).
 
-# Eight slots: two for each of the four build lanes on the 48 GB M5 Pro (story 785, #954), so an agent can work while
-# another's job holds a lane, and the bound on disk (eight build folders).
-max_trees = 8
+# Twelve slots: two for each build lane the M5 Pro runs (six, from BUILD_LANES=6; story 785, #954), so an agent can
+# work while another's job holds a lane, and the bound on disk (twelve build folders, about 6 GB). A Mac with fewer
+# lanes needs fewer, but an idle slot costs only its build folder.
+max_trees = 12
 
 # Named so a missing main is an error, never a quiet fall back to whatever branch the checkout is on.
 base_branch = "main"

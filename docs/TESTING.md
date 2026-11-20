@@ -478,7 +478,7 @@ behind: 24 GB across worktrees on 2026-11-09 (#803). The fix is to stop making n
 bounded disk and the seeded device ids; speed gains are modest. Measured on this Mac with Xcode's machine-wide caches
 warm: a first build in a new slot took 39 s, a rebuild 6 s, and a returned slot re-leased for a new branch with one
 file touched 7 s. [treehouse](https://github.com/kunchenguid/treehouse)
-keeps a pool of eight (`treehouse.toml`; four build lanes, story 785) under `~/.treehouse/`, and a slot is leased, returned and leased again:
+keeps a pool of twelve (`treehouse.toml`; two per build lane at the M5 Pro's six, story 785) under `~/.treehouse/`, and a slot is leased, returned and leased again:
 
 ```bash
 slot=$(treehouse get --lease -b native/123-my-change)   # prints the slot's path; the branch is cut from origin/main
@@ -494,8 +494,8 @@ treehouse return "$slot"                                # when the branch is pus
   from the main checkout into the slot on each lease, and a return removes them.
 - **A return discards uncommitted work** and stops what is still running in the slot. It asks first; `--force`
   doesn't. Commit and push before returning. A leased slot is never handed to anyone else and never pruned.
-- **A full pool is an error, not a ninth worktree.** `treehouse status` shows who holds what; return one.
-- **Disk is bounded at eight build folders.** For a slot's build alone, delete its `native/Build` (the next build
+- **A full pool is an error, not a thirteenth worktree.** `treehouse status` shows who holds what; return one.
+- **Disk is bounded at twelve build folders.** For a slot's build alone, delete its `native/Build` (the next build
   there is cold; also the cure for a build that fails only in one slot). `treehouse prune` lists every idle returned
   slot and `--yes` deletes them, warm builds included, so it is for reclaiming disk, not for tidying.
 - **Slots share nothing.** Each has its own Swift package checkouts: one shared folder
