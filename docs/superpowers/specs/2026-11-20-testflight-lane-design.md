@@ -14,7 +14,9 @@ iPad) from anywhere, installed and updated by the TestFlight app, with no cable 
 - Each upload gets a build number that is never reused and grows with the history.
 - Nothing secret is in the repository: the repository is public, so App Store Connect's key, its ids and where the
   key file lives come from the environment or a local file git ignores.
-- When the key or the App Store Connect record is missing, the lane says what is missing before it spends a build.
+- When the App Store Connect key is incomplete, the lane says what is missing before it spends a build. A missing
+  App Store Connect app record shows only when the upload fails; the lane then keeps the package and points at the
+  one-time setup.
 
 ## Non-goals
 
