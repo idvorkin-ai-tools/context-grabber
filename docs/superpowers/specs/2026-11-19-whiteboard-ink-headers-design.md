@@ -19,7 +19,8 @@ a second kind of header; only the ways one is made and the ways a section ends a
 
 - Old ink is never converted. A board opened with underlined lines on it keeps them as they were (the faint H still
   offers them); only an underline or a # drawn from now on makes a header.
-- Header levels by mark (`#` against `##`): a header's level is still how deep it nests.
+- Header levels by mark (`#` against `##`) were left out of the first slice; they came next ([#1034](https://github.com/idvorkin/context-grabber/issues/1034),
+  *Header levels: ## and ###* below).
 - Larry making or unmaking headers, and any change to what the Cockpit is sent. (Larry needs no wire or op change.)
 
 ## What Igor sees
@@ -69,6 +70,40 @@ unrecognised. (It was a header: the ▾ sat in the margin's middle, under the ve
 - **The ▾ is easy to hit**: a tap in the margin anywhere within 22 points above or below the ▾'s middle (44 points
   top to bottom, the margin's full width across) is on its header, as is a tap beside the line's ink, as before.
 - The faint H beside a line that looks like a header is unchanged: under the ink, in the margin's middle.
+
+### Header levels: ## and ### (#1034)
+
+Igor, 2026-11-20 (decision O2): "Keep [the #967 ink header design]; build ## and ### levels next."
+
+- **A line started with `##` is a level-2 header, with `###` a level-3 one.** A single # or an underline still makes a
+  level-1 header, and so does a margin tap or *Make header*.
+- **Igor writes the #s one after another.** The first # makes the line a level-1 header as before (its row tints).
+  Each further # finished right beside the header's #s (no more than about three quarters of a line away, with none
+  of the header's words between) takes the header one level deeper, at once: ## is level 2, ### level 3. The row
+  tints again for each new level, as it did when it became a header. A fourth # is
+  plain ink on the header's line. Only a # header deepens: a # drawn after an underlined or margin-tapped header's
+  words is its row's ink, as any writing on its line is.
+- **The level shows in the margin**: an open level-2 header's mark is ▾ ##, a level-3 one's ▾ ###, in the same spot
+  as every header's ▾; a level-1 header's is the ▾ alone. A folded header's mark is ▸ and its lines, with the #s after
+  them on a deeper header (▸ 4 ##).
+- **A level-N section runs to the next header of level N or shallower**, or to a rule: so a ## under a # is inside
+  the #'s section, and the next ## or # ends the ##'s section. Folding a level-1 header folds its ## and ### sections
+  with it, as a section folds the headers inside it today; unfolding it brings them back as they were, a folded ##
+  still folded.
+- **Indents still count for headers of one level**, as before: a margin-tapped header indented under another nests in
+  it, and a line coming back to a header's indent ends its section when its first line was indented. But once a
+  deeper header (a ## under a #) has started inside a section, only a header of its level or shallower, or a rule,
+  ends it: the ##'s own unindented lines don't end the # above it. A shallower header (a # after a ##) ends the
+  ##'s section wherever its indent.
+- **The outline's levels** (*Fold all*, *1*, *2*, *3*) still go by how deep each header nests, which now follows the
+  #s: a ## under a # is level 2. A ## with no # above it is the outline's level 1.
+- **Undo of the last # takes one level**: the header goes back to the level it had (Redo brings the level back).
+  Undo or erase of the first # still takes the whole header, as before.
+- **Larry's picture labels a deeper header with its level**: "▾ ## header", "▾ ### header". A level-1 header's label
+  stays "▾ header". A folded header's "▸ N lines folded" is unchanged; its #s are in the picture's ink.
+- **The session log** says when a # took a header a level deeper, and to which level.
+- **Not in this slice:** a double underline as level 2 (two flat lines under a line read as an underline and a rule
+  or a strike as often as a level, so it isn't cheap to tell apart), and levels below ###.
 
 ### A rule across the page ends the sections above it
 
@@ -136,10 +171,14 @@ Larry saw plain strokes).
 - Two headers at different indents have their ▾ at the same place across, each standing on its line's baseline.
 - A # written in the margin's left corner leaves its header's ▾ showing over it.
 - A tap in the margin anywhere on the ▾, or up to 22 points above or below its middle, folds its header.
+- Writing ## at a line's start shows ▾ ## in its margin; a third # makes it ▾ ###; one Undo takes it back to ▾ ##.
+- Under a # header, a ## header's section ends at the next ## or #, and folding the # hides the ## and its lines
+  with the rest of the section.
+- Larry's picture labels an open ## header "▾ ## header".
 
 ## Future work (not in this slice)
 
-- `##` and `###` as levels, and the outline's levels following the marks when there are any.
+- A double underline as a level-2 header, and levels below ###.
 - A double rule, or a rule with a word on it, as an end of everything, or a page break.
 - Larry told about open headers in the strokes, not only in the picture (it needs a Cockpit change; #1001).
 - Larry making a line a header (an op), and *To text* turning a header line into a kept text that is still a header.

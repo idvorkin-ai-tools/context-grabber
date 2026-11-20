@@ -8013,3 +8013,83 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** two headers, one indented and one whose # I wrote in the margin's left corner
 - **When:** I look at the margin and tap a ▾, or up to 22 points above or below its middle
 - **Then:** both ▾ sit at the same place across, each on its line's baseline and over the ink, and the tap folds that header
+
+---
+
+### User Story 1065:
+
+- **Summary:** A line started with ## or ### is a header of that level, and its margin mark says so
+- **Status:** in progress (#1034)
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
+- **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
+
+#### Use Case:
+- **As someone** who outlines my board in Markdown's way as I write
+- **I want** ## and ### written at a line's start to make a level-2 and a level-3 header
+- **so that** my notes get sub-headings without reaching for the margin
+
+#### Acceptance Criteria:
+- **Scenario:** Writing ## then ###
+- **Given:** a line I start with a #, which makes it a header (▾)
+- **When:** I write a second # right beside the first, then a third
+- **Then:** the margin's mark reads ▾ ## after the second and ▾ ### after the third, in the same spot; a fourth # is plain ink on the line
+
+---
+
+### User Story 1066:
+
+- **Summary:** A ## section ends at the next ## or #, and folding the # above folds it too
+- **Status:** in progress (#1034)
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
+- **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
+
+#### Use Case:
+- **As someone** who folds my board's sections
+- **I want** a ## section to sit inside the # section above it, as in Markdown
+- **so that** folding a top-level header tucks away everything under it, sub-headings included
+
+#### Acceptance Criteria:
+- **Scenario:** A # with two ## under it
+- **Given:** a # header, then a ## header with lines under it, then another ## with lines, all at one indent
+- **When:** I fold the first ##, then the #
+- **Then:** the first ##'s fold hides only its own lines (the second ## ends it); folding the # hides both ## and all their lines, and unfolding it brings them back as they were
+
+---
+
+### User Story 1067:
+
+- **Summary:** One Undo of the last # takes a header back a level
+- **Status:** in progress (#1034)
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
+- **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
+
+#### Use Case:
+- **As someone** who sometimes writes one # too many
+- **I want** Undo of the # that deepened a header to take back only that level
+- **so that** a slip costs one Undo and never the header itself
+
+#### Acceptance Criteria:
+- **Scenario:** A ### undone
+- **Given:** a line I made a ### header
+- **When:** I Undo once, then Redo
+- **Then:** the mark reads ▾ ## after the Undo and ▾ ### again after the Redo; the line stays a header throughout
+
+---
+
+### User Story 1068:
+
+- **Summary:** Larry's picture labels a deeper header with its level
+- **Status:** in progress (#1034)
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
+- **Issues:** [#1034](https://github.com/idvorkin/context-grabber/issues/1034)
+
+#### Use Case:
+- **As someone** who talks my board over with Larry
+- **I want** Larry to see which headers are sub-headings
+- **so that** he reads my outline's shape, not only which lines are headers
+
+#### Acceptance Criteria:
+- **Scenario:** A picture with a # and a ## header
+- **Given:** an open # header and an open ## header under it
+- **When:** a turn sends Larry a picture of the board
+- **Then:** the # is labelled "▾ header" and the ## "▾ ## header" past their lines, clear of the ink

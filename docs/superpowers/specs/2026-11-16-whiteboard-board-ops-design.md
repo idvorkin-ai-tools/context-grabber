@@ -248,7 +248,7 @@ board differs, this says why.
   and what was below back where it was. (Across the header's ink the eraser takes those strokes itself first, so
   there it is two Undos.) A scratch-out over the marker or the folded header line does the same, with one Undo, and what it took stays gone, on the sheet and to Larry, as he writes on (#1015).
 - **Fold all and Unfold all**, and **collapse to a level**: from the hold menu on a header's mark, Fold all, 1, 2, 3
-  and Unfold all. A header's level is how deep it nests with everything open. Collapsing to level *n* shows the
+  and Unfold all. A header's level is how deep it nests with everything open. A ## or ### written at a header's start nests it under the # above it (the ink headers spec, *Header levels*). Collapsing to level *n* shows the
   headers down to level *n* and nothing deeper: every header at level *n* folds, and so does a shallower one with no
   headers under it; a shallower one with headers under it stays open.
 - **A line that looks like a header shows a faint H in the margin**: one written well bigger than his usual lines
