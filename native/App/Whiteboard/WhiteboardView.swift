@@ -1316,7 +1316,8 @@ final class WhiteboardModel: ObservableObject {
     folds: BoardFoldMap? = nil, first: Bool
   ) {
     turns.land(
-      shapes.map { Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand, folds: folds, lettering: lettering)
+      shapes.map {
+        Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand, folds: folds, lettering: lettering)
       }, who: who, first: first, now: .now)
     if who == .claude { fadeClaudesGhosts() }
   }
