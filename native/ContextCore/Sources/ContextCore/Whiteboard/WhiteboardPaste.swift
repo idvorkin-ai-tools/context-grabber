@@ -8,14 +8,15 @@ import Foundation
   import CoreText
 #endif
 
-// CoreText wraps and outlines the letters, so the whole layout is Apple-only (just test-linux leaves it out).
+// The letters are written in single strokes as Larry's labels are (#996), measured and drawn where there are fonts, so
+// the whole layout is Apple-only (just test-linux leaves it out).
 #if canImport(CoreText)
   public enum WhiteboardPaste {
     public static let maxCharacters = 500
     public static let maxLines = 40
 
     public struct Layout: Equatable, Sendable {
-      /// The outlines of the letters, in board points. Empty when nothing in the text has an outline.
+      /// The letters' strokes, in board points. Empty when nothing in the text can be written or traced.
       public var lines: [[CGPoint]]
       /// How much of the text landed, and how much there was, in characters.
       public var kept: Int
@@ -33,7 +34,7 @@ import Foundation
     /// The old canvas's fixed square. A board on paper has its own: a page wide, with no end below.
     public static let wholeBoard = CGRect(x: 0, y: 0, width: WhiteboardFrame.side, height: WhiteboardFrame.side)
 
-    /// `text` as outlines of `height`-point letters inside `visible` (board points), on `board`.
+    /// `text` as `height`-point letters written inside `visible` (board points), on `board`.
     public static func layout(
       _ text: String, visible: CGRect, height: CGFloat, board: CGRect = wholeBoard
     ) -> Layout {
@@ -41,7 +42,7 @@ import Foundation
       let (rows, kept) = rows(trimmed, width: visible.width * 0.8, height: height)
       var lines: [[CGPoint]] = []
       for (i, row) in rows.enumerated() {
-        lines += WhiteboardTurn.outlineLines(row, topLeft: CGPoint(x: 0, y: CGFloat(i) * height * 1.25), height: height)
+        lines += WhiteboardTurn.glyphLines(row, topLeft: CGPoint(x: 0, y: CGFloat(i) * height * 1.25), height: height)
       }
       let points = lines.joined()
       guard let minX = points.map(\.x).min(), let maxX = points.map(\.x).max(), let minY = points.map(\.y).min(),
@@ -76,19 +77,47 @@ import Foundation
       return (rows, min(kept, capped.count))
     }
 
-    private static func wrapped(_ line: String, width: CGFloat, height: CGFloat) -> [String] {
+    /// `line` in rows no wider than `width` in the written letters, broken after a space where it can be and inside a
+    /// word too long for a row alone. The rows together are the line, character for character, so the count of what
+    /// landed holds.
+    static func wrapped(_ line: String, width: CGFloat, height: CGFloat) -> [String] {
       guard !line.isEmpty else { return [""] }
-      let font = CTFontCreateWithName("Helvetica" as CFString, height, nil)
-      let typesetter = CTTypesetterCreateWithAttributedString(
-        NSAttributedString(string: line, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
-      let units = line as NSString
-      var rows: [String] = []
-      var start = 0
-      while start < units.length {
-        let count = max(1, CTTypesetterSuggestLineBreak(typesetter, start, Double(width)))
-        rows.append(units.substring(with: NSRange(location: start, length: count)))
-        start += count
+      let measure = { (s: String) in
+        WhiteboardTurn.lettered(
+          String(s.reversed().drop { $0 == " " }.reversed()), topLeft: .zero, height: height, face: .print
+        )
+        .width
       }
+      // Each word with the spaces after it: a row breaks only between them.
+      var words: [String] = []
+      for character in line {
+        if character != " ", let last = words.last, last.last == " " {
+          words.append(String(character))
+        } else if words.isEmpty {
+          words.append(String(character))
+        } else {
+          words[words.count - 1].append(character)
+        }
+      }
+      var rows: [String] = []
+      var row = ""
+      for word in words {
+        if measure(row + word) <= width {
+          row += word
+          continue
+        }
+        if !row.isEmpty { rows.append(row) }
+        row = ""
+        // A word too wide for a row alone breaks between its letters.
+        for character in word {
+          if !row.isEmpty, measure(row + String(character)) > width {
+            rows.append(row)
+            row = ""
+          }
+          row.append(character)
+        }
+      }
+      if !row.isEmpty { rows.append(row) }
       return rows
     }
   }

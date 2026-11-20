@@ -163,9 +163,49 @@ final class WhiteboardPasteTests: XCTestCase {
     }
 
     /// Stories 390, 391: each letter's outline is one stroke, a line at a time.
-    func testEachLettersOutlineIsOneStroke() {
-      XCTAssertEqual(WhiteboardPaste.layout("HI", visible: view, height: 24).lines.count, 2)
-      XCTAssertEqual(WhiteboardPaste.layout("HI\nHI", visible: view, height: 24).lines.count, 4)
+    /// #996: letters are written as a pen writes them, H in three strokes (two stems and its bar) and I in one, not
+    /// each traced as one closed outline.
+    func testEachLetterIsWrittenInItsOwnStrokes() throws {
+      XCTAssertEqual(WhiteboardPaste.layout("HI", visible: view, height: 24).lines.count, 3 + 1)
+      XCTAssertEqual(WhiteboardPaste.layout("HI\nHI", visible: view, height: 24).lines.count, 2 * (3 + 1))
+      let l = try XCTUnwrap(WhiteboardPaste.layout("l", visible: view, height: 24).lines.first)
+      XCTAssertNotEqual(l.first, l.last, "a written stem is an open line, where an outline closes on itself")
+    }
+
+    /// #996: a model's or a page's typography is written in its keyboard form, and a character the written letters
+    /// lack keeps its outline, so nothing pasted goes missing.
+    func testCurlyTypographyIsWrittenAndAnAccentIsStillDrawn() {
+      let curly = WhiteboardPaste.layout("it\u{2019}s \u{2014} so\u{2026}", visible: view, height: 24)
+      let plain = WhiteboardPaste.layout("it's - so...", visible: view, height: 24)
+      XCTAssertEqual(curly.lines.count, plain.lines.count)
+      XCTAssertGreaterThan(
+        WhiteboardPaste.layout("cafe\u{301}", visible: view, height: 24).lines.count,
+        WhiteboardPaste.layout("caf", visible: view, height: 24).lines.count + 1, "the e and its accent")
+    }
+
+    /// #996: rows are measured in the written letters: each fits the width, they break after spaces, and together
+    /// they are the whole line, so the count of what landed holds.
+    func testRowsFitTheWrittenWidthAndAreTheWholeLine() {
+      let line = "the quick brown fox jumps over the lazy dog and keeps running"
+      let rows = WhiteboardPaste.wrapped(line, width: 200, height: 24)
+      XCTAssertGreaterThan(rows.count, 1)
+      XCTAssertEqual(rows.joined(), line)
+      for row in rows {
+        let drawn = WhiteboardMarkChoice.bounds(WhiteboardTurn.glyphLines(row, topLeft: .zero, height: 24))
+        XCTAssertLessThanOrEqual(drawn.maxX, 200, row)
+      }
+      XCTAssertTrue(rows.dropLast().allSatisfy { $0.hasSuffix(" ") }, "each break is after a space: \(rows)")
+    }
+
+    func testAWordWiderThanARowBreaksBetweenItsLetters() {
+      let word = String(repeating: "m", count: 40)
+      let rows = WhiteboardPaste.wrapped(word, width: 200, height: 24)
+      XCTAssertGreaterThan(rows.count, 1)
+      XCTAssertEqual(rows.joined(), word)
+      for row in rows {
+        XCTAssertLessThanOrEqual(
+          WhiteboardMarkChoice.bounds(WhiteboardTurn.glyphLines(row, topLeft: .zero, height: 24)).maxX, 200)
+      }
     }
 
     /// Stories 392, 393: what the board's bar says after a paste.

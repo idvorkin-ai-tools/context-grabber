@@ -85,7 +85,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
   /// Stories 637, 645: in the middle of the paper on screen, by the screen's own pixels, and the first ink's next page.
   func testAPasteLandsInTheMiddleOfThePaperOnScreen() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
-    wait(send(app), label: strokes(2))
+    wait(send(app), label: strokes(4))
     wait(pageNumber(app), label: "Page 1 of 2")
     let seen = PaperScreen.settled(app, within: 8) { $0.ink }
     shot(app, "pasted")
@@ -102,7 +102,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     let app = try openBoard([
       "GRABBER_WHITEBOARD_PASTE": tall, "GRABBER_WHITEBOARD_AFTER_KEEP": "5,undo,redo",
     ])
-    wait(send(app), label: strokes(80))
+    wait(send(app), label: strokes(160))
     let many = pageNumber(app)
     expectation(
       for: NSPredicate(format: "NOT (label ENDSWITH ' of 1') AND NOT (label ENDSWITH ' of 2')"), evaluatedWith: many)
@@ -111,7 +111,7 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     shot(app, "a tall paste")
     wait(send(app), label: strokes(0))
     wait(many, label: "Page 1 of 1")
-    wait(send(app), label: strokes(80))
+    wait(send(app), label: strokes(160))
     wait(many, label: brought)
   }
 }

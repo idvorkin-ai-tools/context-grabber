@@ -1,7 +1,7 @@
 //  Stories 390–393, 638 and 639 on the simulator, on paper, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts it),
-//  read from the Send button's label (the strokes drawn). HI is two strokes, one a letter. The text's layout, its caps, a
-//  stroke a letter and what the bar says are `WhiteboardPasteTests`, on the host; these are the keys, the canvas and the
-//  bar. XCUITest's taps never reach the system's paste button, so the button is the iPad's check and these go through
+//  read from the Send button's label (the strokes drawn). HI is four strokes, written: H three, I one (#996). The
+//  text's layout, its caps, a letter's strokes and what the bar says are `WhiteboardPasteTests`, on the host; these are
+//  the keys, the canvas and the bar. XCUITest's taps never reach the system's paste button, so the button is the iPad's check and these go through
 //  ⌘V or GRABBER_WHITEBOARD_PASTE. What a page adds to a paste is `WhiteboardPaperPasteUITests`. Story 393's note (an
 //  emoji-only paste draws nothing and says so) is `WhiteboardPasteTests` and, on the bar, `WhiteboardNoteTests`.
 
@@ -57,7 +57,7 @@ final class WhiteboardPasteUITests: XCTestCase {
     wait(app, strokes: 1)
     sleep(1)
     app.typeKey("v", modifierFlags: .command)
-    wait(app, strokes: 3)
+    wait(app, strokes: 5)
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = "pasted with keys on paper"
     shot.lifetime = .keepAlways
@@ -69,11 +69,11 @@ final class WhiteboardPasteUITests: XCTestCase {
     waitUntil(NSPredicate(format: "label BEGINSWITH 'Ghosts on'"), ghosts, timeout: 5)
   }
 
-  /// Stories 390, 391: each letter is a stroke on the canvas, and a paste starts Claude's pause as a drawn stroke does.
+  /// Stories 390, 391: each letter is written in its strokes on the canvas, and a paste starts Claude's pause as a drawn stroke does.
   func testEachLetterIsAStrokeAndClaudesPauseStarts() throws {
     let app = try openBoard(pasting: "HI\nHI")
     XCTAssertTrue(app.buttons["whiteboard-paste"].appears(within: 5))
-    wait(app, strokes: 4)
+    wait(app, strokes: 8)
     let ghosts = app.buttons["whiteboard-ghosts"]
     waitUntil(NSPredicate(format: "label == %@", "Ghosts on, 1 showing"), ghosts, timeout: 10)
   }
