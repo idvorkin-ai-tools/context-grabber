@@ -54,7 +54,8 @@ shift
 set_state() { awk -F'|' -v OFS='|' -v u="$1" -v s="$2" '$1 == u { $2 = s } { print }' "$db" >"$db.new" && mv -f "$db.new" "$db"; }
 add() {  # <name> <type> <runtime>
   local n udid
-  n=$(($(wc -l <"$db") + 1))
+  n=$(($(cat "$STATE/minted" 2>/dev/null || echo 0) + 1))
+  echo "$n" >"$STATE/minted"
   udid=$(printf '00000000-0000-0000-0000-%012d' "$((90 + n))")
   echo "$udid|Shutdown|$1|$2|$3" >>"$db"
   echo "$udid"
@@ -72,6 +73,7 @@ case "$1 $2 ${3:-}" in
   shutdown*) set_state "$2" Shutdown ;;
   bootstatus*) set_state "$2" Booted ;;
   clone*)
+    [ "$3" != "${FAKE_CLONE_FAILS:-}" ] || exit 1
     line=$(grep "^$2|" "$db") || exit 1
     IFS='|' read -r _ _ _ type rt <<<"$line"
     add "$3" "$type" "$rt" ;;
@@ -193,6 +195,13 @@ has "lane 3 is named as skipped" "$out" "lane 3: skipped, a job is using it"
 has "and the run again is said" "$out" "skipped while busy, lanes 3:"
 has "lane 2 is still refreshed" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 2"
 has "and lane 4" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 4"
+is "every copy has its own udid" "$(cut -d'|' -f1 "$STATE/devices" | sort | uniq -d)" ""
+fresh
+with BUILD_LANES=4 FAKE_HELD=build-2.lock "FAKE_CLONE_FAILS=iPhone 17 lane 3" "$lane" sims refresh >"$out" 2>&1
+is "refresh, lane 3's copy fails: its exit, not 75" "$?" 1
+has "lane 3's failure is said" "$out" "refreshing lane 3 failed"
+has "lane 4 is still refreshed after it" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 4"
+has "and the busy lane 2 is still named" "$out" "skipped while busy, lanes 2:"
 fresh
 with BUILD_LANES=4 FAKE_HELD=build.lock "$lane" sims refresh >"$out" 2>&1
 is "refresh, lane 1 busy: exit 75" "$?" 75

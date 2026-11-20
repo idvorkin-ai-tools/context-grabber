@@ -172,7 +172,7 @@ relane() {  # <lane>
 }
 
 refresh() {
-  local n lane status skipped=
+  local n lane status skipped= failed=0
   n=$(lanes)
   [ "$n" -gt 1 ] || { echo "one build lane on this Mac: lane 1's simulators are the named ones, nothing to refresh"; return 0; }
   mkdir -p "$locks"
@@ -183,10 +183,12 @@ refresh() {
       0) ;;
       75) echo "lane $lane: skipped, a job is using it; its copies are left as they are"; skipped+=" $lane" ;;
       76) skipped+=" $lane" ;;
-      *) echo "build-lane: refreshing lane $lane failed (exit $status)" >&2; return "$status" ;;
+      *) echo "build-lane: refreshing lane $lane failed (exit $status)" >&2; failed=$status ;;
     esac
   done
-  [ -z "$skipped" ] || { echo "build-lane: skipped while busy, lanes${skipped}: run just native-sim-lanes refresh again once they are idle" >&2; return 75; }
+  [ -z "$skipped" ] || echo "build-lane: skipped while busy, lanes${skipped}: run just native-sim-lanes refresh again once they are idle" >&2
+  [ "$failed" -eq 0 ] || return "$failed"
+  [ -z "$skipped" ] || return 75
 }
 
 sims() {

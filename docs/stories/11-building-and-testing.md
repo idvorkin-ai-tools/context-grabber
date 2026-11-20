@@ -604,7 +604,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 786:
 
 - **Summary:** A lane's simulator copies can be made again from lane 1's, after lane 1 gains Health access or new data
-- **Status:** implemented in 1776b8e7; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
+- **Status:** implemented in 7ae00520; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
 - **Issues:** #980 (found 2026-11-19 after #954: the lane copies were made before lane 1's *iPhone 17* had Health access, so every lane's Health check skipped, and `just native-sim-lanes` never replaces a copy that exists)
 
 #### Use Case:
@@ -623,7 +623,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 787:
 
 - **Summary:** Refreshing the lane copies skips a busy lane instead of pulling its simulator from under its job
-- **Status:** implemented in 1776b8e7; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
+- **Status:** implemented in 7ae00520; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
 - **Issues:** #980; split from story 786
 
 #### Use Case:
@@ -642,7 +642,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 788:
 
 - **Summary:** A report of every lane's simulator copies, which exist and which are missing
-- **Status:** implemented in 1776b8e7; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
+- **Status:** implemented in 7ae00520; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
 - **Issues:** #980
 
 #### Use Case:
