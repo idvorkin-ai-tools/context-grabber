@@ -1453,7 +1453,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1054:
 
 - **Summary:** The board's bar has no hole: Paste shows only with text to paste, beside the Board menu
-- **Status:** implemented in [f802581](https://github.com/idvorkin/context-grabber/commit/f802581); verified on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` with no text on the clipboard, `WhiteboardPasteUITests` and `WhiteboardPaperGhostsUITests` with text on it, and the whiteboard's other UI classes) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` with no text on the clipboard, `WhiteboardPasteUITests` and `WhiteboardPaperGhostsUITests` with text on it, and the whiteboard's other UI classes) and the Mac build. Not yet seen on the iPad
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
@@ -1473,7 +1473,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1055:
 
 - **Summary:** A long press on a bar button says its name
-- **Status:** implemented in [f802581](https://github.com/idvorkin/context-grabber/commit/f802581); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
+- **Status:** implemented in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
 - **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
 - **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
 
