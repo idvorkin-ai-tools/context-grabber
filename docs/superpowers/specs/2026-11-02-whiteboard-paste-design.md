@@ -12,7 +12,7 @@ the board's picture to Larry and Claude.
 ## What Igor sees
 
 - **Paste** in the board's bar. It is the system's own paste button, so iOS never asks *Allow Paste?* when he taps it,
-  and iOS dims it when the clipboard holds no text. A board that is look-only has no Paste.
+  and it shows only while the clipboard holds text (#1005: dimmed, it read as a hole in the bar). A board that is look-only has no Paste.
 - **⌘V** does the same with a hardware keyboard attached, on a board he can draw on, whenever the clipboard holds text.
 - **Strokes he copied keep working.** With a hardware keyboard, when the clipboard holds strokes copied with the lasso
   and no text, ⌘V pastes those strokes the way the system always does, on a board he can draw on. The bar's Paste is

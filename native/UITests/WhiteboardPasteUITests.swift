@@ -71,6 +71,8 @@ final class WhiteboardPasteUITests: XCTestCase {
 
   /// Stories 390, 391: each letter is written in its strokes on the canvas, and a paste starts Claude's pause as a drawn stroke does.
   func testEachLetterIsAStrokeAndClaudesPauseStarts() throws {
+    // #1005 (story 1043): Paste shows only while the clipboard holds text.
+    UIPasteboard.general.string = "HI"
     let app = try openBoard(pasting: "HI\nHI")
     XCTAssertTrue(app.buttons["whiteboard-paste"].appears(within: 5))
     wait(app, strokes: 8)

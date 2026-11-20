@@ -1450,6 +1450,46 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1043:
+
+- **Summary:** The board's bar has no hole: Paste shows only with text to paste, beside the Board menu
+- **Status:** implemented in PENDING
+- **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** reaching for Larry's buttons at the top of a board
+- **I want to** see the bar's buttons evenly spaced, the board's own menu in a group of its own
+- **so that** a blank space doesn't look like a missing or broken button
+
+#### Acceptance Criteria:
+- **Scenario:** Nothing to paste
+- **Given:** a board open on an iPad and no text on the clipboard
+- **When:** I look at the top bar
+- **Then:** the Board menu sits in a group of its own, Talk, Ghosts, Larry and Send are evenly spaced in theirs, and there is no empty space; once I copy some text, Paste appears beside the Board menu and the other four don't move
+
+---
+
+### User Story 1044:
+
+- **Summary:** A long press on a bar button says its name
+- **Status:** implemented in PENDING
+- **Issues:** [#1005](https://github.com/idvorkin/context-grabber/issues/1005) (design critique of the iPad board, 2026-11-20: unlabelled sparkle and hand, a large gap between the palette and the mic)
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *The top bar's groups and labels*
+
+#### Use Case:
+- **As someone** who sees a sparkle and a hand in the board's bar
+- **I want to** find out what each one does without trying it
+- **so that** I don't send Larry a picture or turn off Claude's suggestions by accident
+
+#### Acceptance Criteria:
+- **Scenario:** Long press the sparkle
+- **Given:** a board open with Ghosts on
+- **When:** I press and hold the sparkle
+- **Then:** a small menu headed *Ghosts* shows one row, *Hide Claude's suggestions*, which does it if I tap it; Talk, Larry and Send name themselves the same way, and a plain tap on any of them does what it always did
+
+---
+
 ### User Story 402:
 
 - **Summary:** The Board menu on an iPhone's width
