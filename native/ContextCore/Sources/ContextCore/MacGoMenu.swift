@@ -1,4 +1,5 @@
-//  Stories 726 and 730 (#722, #783): which of the Mac's Go menu items stay live while another screen covers home.
+//  Stories 726, 730 and 734-735 (#722, #783, #745): which of the Mac's Go menu items, and New Chat, stay live while
+//  another screen covers home.
 
 import Foundation
 
@@ -7,6 +8,12 @@ public enum MacGoMenu {
   /// other destination would replace the screen in front (a live timer or call among them), so it waits for home.
   public static func live(_ rowID: String, homeInFront: Bool) -> Bool {
     homeInFront || rowID == reportRow
+  }
+
+  /// New Chat (Control+N, #745): from home, from chat in front of home, or with chat in a window of its own, which it
+  /// brings forward; anything else in front of home would have to close, so it waits.
+  public static func newChatLive(homeInFront: Bool, chatInFront: Bool, chatHasWindow: Bool) -> Bool {
+    homeInFront || chatInFront || chatHasWindow
   }
 
   /// Home's *Report a problem* tile.

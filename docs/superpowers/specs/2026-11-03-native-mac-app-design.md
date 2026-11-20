@@ -88,8 +88,9 @@ mac"*). Every shortcut is also a menu item, so the menu bar is where to find the
 | App menu | Settings… | Command+Comma | the app's settings, over home |
 | App menu | Report a Problem… | Command+Shift+R | the report dialog, over whatever screen is in front |
 | File | New Board | Command+Shift+N | the whiteboard, on a new empty board |
+| File | New Chat | Control+N | chat, on a new empty chat, as its + would |
 | Go | the first nine home destinations | Command+1 … Command+9 | that destination, as a tap on its tile would |
-| Help | Report a Problem… | | the same, where a Mac app usually keeps it |
+| Help | Report a Problem… | Control+R | the same, where a Mac app usually keeps it |
 
 The Go menu lists the home screen's destinations in the order home shows them: the Today card first when it is shown,
 then the tiles, as Igor arranged them. A hidden one is not listed, and the daily strip, which opens nothing, is not
@@ -106,6 +107,19 @@ screen I'm on"*). He reached for the report from the Go menu, where *Report a pr
 dimmed in chat, so he went back home to report. So *Report a problem* in the Go menu stays live on every screen: it opens
 the report dialog over whatever is in front and closes nothing, unlike the other Go items. And *Report a Problem…* sits in
 the app menu too, under *Settings…*, with Command+Shift+R, so it is in the first menu he opens. The Help menu keeps it.
+
+**Control+R and Control+N** (Igor, 2026-11-07, #745: *"Make C-R report a bug from anywhere on Mac and C-N open a new
+chat form anywhere on the app as well"*; #741: *"Report a problem needs keyboard shortcut"*). *C-R* and *C-N* are the
+Control keys, as he wrote them, and both are free. Command+N stays the Mac's New Window, which he uses to put chat
+beside home (story 731), and Command+R would sit next to a Command+Shift+R that already reports, so the Control keys
+are the ones that add something without taking anything away. Control+R opens the report dialog from any screen, as
+Command+Shift+R does; the Help menu's *Report a Problem…* shows it. Control+N is *New Chat* in the File menu, under New
+Board: from home it opens chat on a new empty chat, the same one chat's + opens, ready to type; from chat (in the home
+window or in a window of its own) it opens a new chat there. When chat has a window of its own, that window comes
+forward with the new chat whatever the home window shows. Otherwise, like the Go items, it is dimmed, and its key does
+nothing, while any other screen covers home (a timer, a call, the settings, the report dialog…), so nothing live is
+closed. In chat's bar Control+N stays New Chat rather than the text system's move down a line, which a one-line
+bar has no use for.
 
 A phone and an iPad show no new menu items, and an iPad with a hardware keyboard gets none of these shortcuts either:
 the menu is the Mac's alone.
@@ -126,7 +140,10 @@ when the app is quit nothing runs, and that isn't an error.
   same order as home; after hiding or moving a tile, the menu follows.
 - On the Mac, Command+Shift+N from home opens the whiteboard on a new empty board; from the whiteboard it opens a new
   board there too.
-- On the Mac, Command+Shift+R opens the report dialog from any screen.
+- On the Mac, Command+Shift+R opens the report dialog from any screen, and so does Control+R.
+- On the Mac, Control+N (or File > New Chat) from home opens chat on a new empty chat ready to type; from chat, in
+  either window, it opens a new chat there; while a timer, a call or any other screen covers home, and chat has no
+  window of its own, it is dimmed and does nothing. Command+N is still New Window.
 - In chat, a timer or any other screen, *Report a problem* in the Go menu and *Report a Problem…* in the app menu are live
   and open the report dialog over that screen; the other Go items are dimmed.
 - While a timer, a call or any other screen covers home, the Go items other than *Report a problem* and New Board are

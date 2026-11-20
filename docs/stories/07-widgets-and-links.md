@@ -1696,9 +1696,9 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 725:
 
 - **Summary:** Report a Problem by key on the Mac
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
-- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
-- **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438) and [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722), [#745](https://github.com/idvorkin/context-grabber/issues/745), [#741](https://github.com/idvorkin/context-grabber/issues/741)
+- **Spec:** [Grabber Native on the Mac — Control+R and Control+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
 - **As** Igor, using the app on a Mac with a keyboard under my hands
@@ -1708,14 +1708,14 @@ Part of the [user stories](README.md); persona and format are described there.
 #### Acceptance Criteria:
 - **Scenario:** Reporting a problem by key
 - **Given:** the Mac build is open on any screen
-- **When:** I press Command+Shift+R
-- **Then:** the report dialog opens, as Report a Problem… in the app menu (and the Help menu) opens it
+- **When:** I press Command+Shift+R, or Control+R
+- **Then:** the report dialog opens over that screen, as Report a Problem… in the app menu (and the Help menu) opens it
 
 ### User Story 726:
 
 - **Summary:** The Go keys never close a live screen
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
-- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438) and [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722), [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
@@ -1728,7 +1728,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a timer, a call, the settings, What's new, the report dialog or any other screen covers home
 - **When:** I open the Go menu, or press one of its keys
 - **Then:** its items are dimmed and nothing happens, so nothing live is closed; New Board is dimmed too, unless home or
-  the whiteboard is the screen in front; *Report a problem* stays live (story 730)
+  the whiteboard is the screen in front, and New Chat (Control+N), unless home or chat is in
+  front, or chat has a window of its own; *Report a problem* stays live (story 730)
 
 ### User Story 727:
 
@@ -1766,6 +1767,42 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I choose *Report a problem* in the Go menu, or *Report a Problem…* in the app menu, or press Command+Shift+R
 - **Then:** the report dialog opens over that screen with its screenshot, and nothing in front is closed; the other Go
   items stay dimmed
+
+### User Story 734:
+
+- **Summary:** A new chat by key from anywhere on the Mac
+- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
+- **Issues:** [#745](https://github.com/idvorkin/context-grabber/issues/745)
+- **Spec:** [Grabber Native on the Mac — Control+R and Control+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, on the Mac with a thought for Larry
+- **I want** Control+N to open a new chat wherever I am
+- **so that** I start the conversation from the keyboard without finding chat's tile and its +
+
+#### Acceptance Criteria:
+- **Scenario:** A new chat from home
+- **Given:** the Mac build is open on home
+- **When:** I press Control+N, or choose New Chat from the File menu
+- **Then:** chat opens on a new empty chat, as its + would, ready to type
+
+### User Story 735:
+
+- **Summary:** A new chat by key from chat on the Mac
+- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
+- **Issues:** [#745](https://github.com/idvorkin/context-grabber/issues/745)
+- **Spec:** [Grabber Native on the Mac — Control+R and Control+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, reading a thread in chat on the Mac
+- **I want** Control+N to start another chat right there
+- **so that** a new subject gets its own thread without reaching for the mouse
+
+#### Acceptance Criteria:
+- **Scenario:** A new chat from chat
+- **Given:** chat is in front, in the home window or in a window of its own
+- **When:** I press Control+N
+- **Then:** a new empty chat opens there, and Command+N is still New Window
 
 ### User Story 731:
 
