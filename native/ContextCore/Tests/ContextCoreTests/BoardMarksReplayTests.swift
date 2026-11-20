@@ -63,8 +63,11 @@ final class BoardMarksReplayTests: XCTestCase {
     func testIgorsOwnTapsChooseWhatTheyChoseOnTheIPad() throws {
       // From the iPad's session log: paper_tap at, then mark_chosen kind and the keep's ink box. His second tap
       // (464.5, 1712.7) chose the bottom line, 12 points away past its end; Amelia's box is 8 away and takes it now.
+      // His third, (225.8, 1754.6), in the corner of the box round Zach, chose the box on the iPad, 10 points from its
+      // bottom side, when the name was traced outlines. Written in single strokes (#895), the script Z's tail and the h
+      // reach 6 points from the tap, so the nearer name takes it now, as #941's nearest-mark rule says.
       let replay = try family(then: [.tap(CGPoint(x: 487.1, y: 1544.5)), .tap(CGPoint(x: 225.8, y: 1754.6))])
-      XCTAssertEqual(replay.outcomes.dropFirst().map { $0.taps.first?.chose }, [mark(2), mark(7)])
+      XCTAssertEqual(replay.outcomes.dropFirst().map { $0.taps.first?.chose }, [mark(2), mark(8)])
     }
 
     func testEveryPartOfANamesBoxChoosesTheName() throws {

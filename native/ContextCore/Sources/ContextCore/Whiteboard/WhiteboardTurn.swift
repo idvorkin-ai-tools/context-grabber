@@ -383,8 +383,53 @@ public enum WhiteboardTurn {
       CTFontGetAscent(CTFontCreateWithName(face.fontName as CFString, 100, nil)) / 100
     }
 
-    /// A label as the outlines of its letters (the system font), flattened into lines PencilKit can draw.
+    /// A label as its letters written in single pen strokes (#895), lines PencilKit can draw. A character the written
+    /// letters don't have keeps its outline, so nothing goes missing; an emoji has neither and draws nothing.
     static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] {
+      lettered(text, topLeft: topLeft, height: height, face: face).lines
+    }
+
+    /// A label's written lines and how far its letters reach along the row, in board points. Its capitals are as tall
+    /// as print's and stand on the face's baseline, so a label takes about the room it did as outlines (the script's
+    /// capitals at the hand face's own, much taller, height came out a third bigger).
+    static func lettered(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face)
+      -> (lines: [[CGPoint]], width: CGFloat)
+    {
+      let print = CTFontCreateWithName(Face.print.fontName as CFString, height, nil)
+      let baseline = ascent(face) * height
+      let unit = CTFontGetCapHeight(print) / BoardLettering.capHeight
+      var x: CGFloat = 0
+      var out: [[CGPoint]] = []
+      for character in BoardLettering.plain(text) {
+        if let glyph = BoardLettering.glyph(character, face: face) {
+          let origin = CGPoint(x: topLeft.x + x, y: topLeft.y + baseline)
+          out += glyph.strokes.map { stroke in
+            stroke.map {
+              CGPoint(
+                x: origin.x + ($0.x - glyph.left) * unit, y: origin.y + ($0.y - BoardLettering.baseline) * unit)
+            }
+          }
+          x += glyph.advance * unit
+        } else {
+          let one = String(character)
+          out += outlineLines(one, topLeft: CGPoint(x: topLeft.x + x, y: topLeft.y), height: height, face: face)
+          x += outlineWidth(one, height: height, face: face)
+        }
+      }
+      return (out, x)
+    }
+
+    /// How far `text` reaches in `face`'s outlines at `height`.
+    static func outlineWidth(_ text: String, height: CGFloat, face: Face) -> CGFloat {
+      let font = CTFontCreateWithName(face.fontName as CFString, height, nil)
+      let line = CTLineCreateWithAttributedString(
+        NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
+      return CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+    }
+
+    /// Text as the outlines of its letters (the system font), flattened into lines PencilKit can draw: a pasted text's
+    /// letters, and a label's character the written letters don't have.
+    static func outlineLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] {
       let font = CTFontCreateWithName(face.fontName as CFString, height, nil)
       let line = CTLineCreateWithAttributedString(
         NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font]))
