@@ -52,7 +52,7 @@ the board's picture to Larry and Claude.
 ## Acceptance
 
 - Clipboard empty: Paste is dimmed, ⌘V does nothing, and no permission prompt ever appears from opening a board.
-- Copy strokes with the lasso, with no text on the clipboard: Paste is dimmed, and ⌘V pastes the strokes as ink.
+- Copy strokes with the lasso, with no text on the clipboard: there is no Paste in the bar, and ⌘V pastes the strokes as ink.
 - Copy two lines of text and tap Paste: both lines appear as ink in the middle of the screen, no *Allow Paste?*
   prompt. Send's stroke count goes up, and about a second later Claude's ghosts come.
 - Zoom out, pan and paste again: the new text sits in the middle of the new view at the same on-screen size. Zoom in

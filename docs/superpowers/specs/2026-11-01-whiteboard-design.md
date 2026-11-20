@@ -99,6 +99,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - **Paste shows only while the clipboard holds text.** The gap was the system's paste button with nothing to paste:
     iOS dims it to near nothing, so it read as an empty space. Looking whether the clipboard holds text never asks
     *Allow Paste?*. When it does, Paste appears beside the Board menu and the four on the far right don't move.
+    It appears within about a second of text being copied, also from an app beside the board.
   - **A long press names the button.** A long press on Talk, Ghosts, Larry or Send shows a small menu headed by the
     button's one word (*Talk*, *Ghosts*, *Larry*, *Send*) with one row saying what a tap does (*Talk to Claude*, *Hide
     Claude's suggestions*, *Hand Larry the board*, *Send the board to Larry*); that row does it, and a tap anywhere

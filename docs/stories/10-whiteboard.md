@@ -1294,7 +1294,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Nothing to paste, or a board that is not mine
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); not verified by a test; to try on the iPad: the dimmed Paste, no Paste on a look-only board, ⌘V doing nothing on either
+- **Status:** implemented in [135f67c](https://github.com/idvorkin/context-grabber/commit/135f67c); not verified by a test; changed in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac) (#1005: no Paste without text), verified on the iPad simulator by `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`; to try on the iPad: no Paste on a look-only board, ⌘V doing nothing on either
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1306,7 +1306,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** No paste to make
 - **Given:** the clipboard holds neither text nor copied strokes, or the board is look-only
 - **When:** I look at the bar or press ⌘V
-- **Then:** Paste is dimmed (or absent on a look-only board) and ⌘V does nothing
+- **Then:** there is no Paste in the bar and ⌘V does nothing
 
 ---
 
@@ -1314,7 +1314,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Strokes I copied still paste
 - **Issues:** [#597](https://github.com/idvorkin/context-grabber/issues/597)
-- **Status:** implemented on this branch; not verified by a test (on the simulator, PencilKit's canvas was seen to have its own paste); to try on the iPad with a hardware keyboard
+- **Status:** implemented on this branch; changed in [cd677ac](https://github.com/idvorkin/context-grabber/commit/cd677ac) (#1005: no Paste without text); not verified by a test (on the simulator, PencilKit's canvas was seen to have its own paste); to try on the iPad with a hardware keyboard
 - **Spec:** [Whiteboard: paste text onto the board](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
 
 #### Use Case:
@@ -1326,7 +1326,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Copied strokes
 - **Given:** a board I can draw on is open and the clipboard holds strokes copied with the lasso and no text
 - **When:** I press ⌘V
-- **Then:** the strokes land the way the system always pastes them, and the bar's Paste stays dimmed
+- **Then:** the strokes land the way the system always pastes them, and there is no Paste in the bar
 
 ---
 

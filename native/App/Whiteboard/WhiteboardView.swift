@@ -2822,6 +2822,17 @@ struct WhiteboardView: View {
       if phase == .active { clipboardHasText = UIPasteboard.general.hasStrings }
     }
     .task {
+      var seen = UIPasteboard.general.changeCount
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(1))
+        let count = UIPasteboard.general.changeCount
+        if count != seen {
+          seen = count
+          clipboardHasText = UIPasteboard.general.hasStrings
+        }
+      }
+    }
+    .task {
       // XCUITest's taps never reach the system's paste button: the UI test pastes through this.
       guard let text = LaunchHooks.current.whiteboard.paste else { return }
       try? await Task.sleep(for: .seconds(1))
