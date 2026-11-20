@@ -37,13 +37,13 @@ final class BoardInkHeadersTests: XCTestCase {
     return stroke(id, points)
   }
 
-  /// A hand's #, top left at (`x`, `y`), 26 points each way, its upright bars slanted as a hand's are.
-  private func hash(_ id: String, x: CGFloat, y: CGFloat) -> [BoardOps.Stroke] {
+  /// A hand's #, top left at (`x`, `y`), 26 points wide and `h` tall, its upright bars slanted as a hand's are.
+  private func hash(_ id: String, x: CGFloat, y: CGFloat, h: CGFloat = 26) -> [BoardOps.Stroke] {
     [
-      line("\(id)u1", from: CGPoint(x: x + 10, y: y), to: CGPoint(x: x + 6, y: y + 26)),
-      line("\(id)u2", from: CGPoint(x: x + 20, y: y), to: CGPoint(x: x + 16, y: y + 26)),
-      line("\(id)l1", from: CGPoint(x: x, y: y + 8), to: CGPoint(x: x + 26, y: y + 7)),
-      line("\(id)l2", from: CGPoint(x: x - 1, y: y + 17), to: CGPoint(x: x + 25, y: y + 18)),
+      line("\(id)u1", from: CGPoint(x: x + 10, y: y), to: CGPoint(x: x + 6, y: y + h)),
+      line("\(id)u2", from: CGPoint(x: x + 20, y: y), to: CGPoint(x: x + 16, y: y + h)),
+      line("\(id)l1", from: CGPoint(x: x, y: y + h * 8 / 26), to: CGPoint(x: x + 26, y: y + h * 7 / 26)),
+      line("\(id)l2", from: CGPoint(x: x - 1, y: y + h * 17 / 26), to: CGPoint(x: x + 25, y: y + h * 18 / 26)),
     ]
   }
 
@@ -255,5 +255,200 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertFalse(o.headerLabels.allSatisfy { bare.contains($0.box) }, "the old frame cut a label off")
     let framed = try XCTUnwrap(BoardPages().picture(visible: visible, ink: ink + o.headerLabels.map(\.box))).rect
     for label in o.headerLabels { XCTAssertTrue(framed.contains(label.box), "\(label.header)'s label is cut off") }
+  }
+
+  // MARK: - ## and ### (#1034, stories 1065–1068)
+
+  /// Each stroke drawn in turn, read as Igor's Pencil lifts: what the last one made.
+  @discardableResult
+  private func draw(_ o: inout BoardOutline, _ strokes: [BoardOps.Stroke], id: String) -> BoardOutline.InkHeader? {
+    var made: BoardOutline.InkHeader?
+    for s in strokes {
+      o.strokes.append(s)
+      made = o.inkHeader(newest: o.strokes.count - 1, id: id)
+    }
+    return made
+  }
+
+  /// A line `#`, `##` or `###` then a word, at `y`: its #s 34 points apart from `x`, the word after them.
+  private func headerLine(
+    _ o: inout BoardOutline, _ id: String, level: Int, x: CGFloat = 100, y: CGFloat
+  ) {
+    for n in 0..<level { draw(&o, hash("\(id)#\(n)", x: x + CGFloat(n) * 34, y: y), id: id) }
+    draw(&o, word("\(id)w", x: x + CGFloat(level) * 34 + 10, y: y + 1), id: id)
+  }
+
+  func testASecondAndThirdHashBesideAHeadersHashTakeItDeeper() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    XCTAssertEqual(draw(&o, hash("a", x: 100, y: 100), id: "x")?.kind, "hash")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 1)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾"], "a level-1 header's mark is the ▾ alone")
+    let second = try XCTUnwrap(draw(&o, hash("b", x: 134, y: 101), id: "unused"))
+    guard case .deeper(let header, let level, _, let mark) = second else { return XCTFail("\(second)") }
+    XCTAssertEqual(header, "x")
+    XCTAssertEqual(level, 2)
+    XCTAssertEqual(Set(mark), ["bu1", "bu2", "bl1", "bl2"])
+    XCTAssertEqual(o.headers.count, 1, "the same header, a level deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 2)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+    XCTAssertEqual(draw(&o, hash("c", x: 166, y: 99), id: "unused")?.kind, "deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 3)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ###"])
+    XCTAssertEqual(o.headerLabels.map(\.text), ["▾ ### header"])
+    // A fourth is plain ink on the header's line.
+    XCTAssertEqual(draw(&o, hash("d", x: 200, y: 100), id: "unused")?.kind, "grew")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 3)
+    // Folded, the mark keeps its #s after the lines.
+    o.strokes += word("body", x: 140, y: 150)
+    XCTAssertTrue(o.fold("x"))
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▸ 1 ###"])
+  }
+
+  func testAHashAfterTheHeadersWordsOrBesideAnUnderlineIsPlainInk() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    draw(&o, hash("a", x: 100, y: 100), id: "x")
+    draw(&o, word("w", x: 140, y: 101), id: "x")
+    XCTAssertEqual(draw(&o, hash("b", x: 220, y: 100), id: "unused")?.kind, "grew", "a # after the words")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 1)
+    // An underlined header: a # drawn just left of its words is its row's ink.
+    var u = BoardOutline(strokes: word("h", x: 140, y: 300), headers: [])
+    draw(&u, [line("under", from: CGPoint(x: 136, y: 328), to: CGPoint(x: 212, y: 329))], id: "y")
+    XCTAssertEqual(draw(&u, hash("c", x: 106, y: 300), id: "unused")?.kind, "grew")
+    XCTAssertEqual(u.level(try XCTUnwrap(u.header("y"))), 1)
+  }
+
+  func testOneUndoOfTheLastHashTakesOneLevel() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "x", level: 3, y: 100)
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 3)
+    // Undo the third #'s last bar: back to ##, still a header.
+    let undone = BoardOutline(strokes: o.strokes.filter { $0.ids != ["x#2l2"] }, headers: o.headers)
+    XCTAssertEqual(undone.headers.map(\.id), ["x"])
+    XCTAssertEqual(undone.level(undone.headers[0]), 2)
+    XCTAssertEqual(undone.headerMarks.map(\.text), ["▾ ##"])
+    // Redo: ### again.
+    let redone = BoardOutline(strokes: o.strokes, headers: undone.headers)
+    XCTAssertEqual(redone.level(redone.headers[0]), 3)
+    // The first # gone takes the header, as ever.
+    XCTAssertTrue(BoardOutline(strokes: o.strokes.filter { $0.ids != ["x#0l2"] }, headers: o.headers).headers.isEmpty)
+  }
+
+  func testRedrawingAnUndoneHashsLastBarTakesTheHeaderDeeperAgain() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "x", level: 2, y: 100)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+    // Undo the second #'s last bar: ▾ alone.
+    o.strokes.removeAll { $0.ids == ["x#1l2"] }
+    o = BoardOutline(strokes: o.strokes, headers: o.headers)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾"])
+    // Draw it again: the three bars left and the new one are a # again, ▾ ## again.
+    let again = line("again", from: CGPoint(x: 133, y: 117), to: CGPoint(x: 159, y: 118))
+    XCTAssertEqual(draw(&o, [again], id: "unused")?.kind, "deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 2)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+  }
+
+  func testATightlyWrittenHashHashWhoseBarsOverlapIsStillAHashHash() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    draw(&o, hash("a", x: 100, y: 100), id: "x")
+    // The second #'s level bars start 5 points inside the first's right end.
+    XCTAssertEqual(draw(&o, hash("b", x: 121, y: 101), id: "unused")?.kind, "deeper")
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
+  }
+
+  func testAHashUnderATallHashHeaderIsNotItsSecondHash() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    XCTAssertEqual(draw(&o, hash("a", x: 100, y: 100, h: 56), id: "x")?.kind, "hash")
+    draw(&o, word("w", x: 140, y: 120), id: "x")
+    // The next line's #, right under the tall one, its middle still beside it.
+    let under = draw(&o, hash("b", x: 100, y: 144), id: "y")
+    XCTAssertNotEqual(under?.kind, "deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 1)
+    XCTAssertEqual(o.headerMarks.first?.text, "▾", "the header above stays a #")
+  }
+
+  /// # Top, a line, ## A and its line, ## B and its line, # Next: all at one indent.
+  private func outline() -> BoardOutline {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "top", level: 1, y: 100)
+    o.strokes += word("t", x: 100, y: 150)
+    headerLine(&o, "a", level: 2, y: 200)
+    o.strokes += word("p", x: 100, y: 250)
+    headerLine(&o, "b", level: 2, y: 300)
+    o.strokes += word("q", x: 100, y: 350)
+    headerLine(&o, "next", level: 1, y: 400)
+    o.strokes += word("n", x: 100, y: 450)
+    return o
+  }
+
+  func testASubsectionEndsAtTheNextHeaderOfItsLevelOrShallower() throws {
+    var o = outline()
+    XCTAssertEqual(o.headers.map(\.id), ["top", "a", "b", "next"])
+    XCTAssertEqual(o.headers.map { o.level($0) }, [1, 2, 2, 1])
+    XCTAssertTrue(o.fold("a"))
+    XCTAssertTrue(o.strokes[place(o, "p0")].hidden, "##a's own line")
+    XCTAssertFalse(o.strokes[place(o, "b#0l1")].hidden, "the next ## ends it")
+    XCTAssertFalse(o.strokes[place(o, "q0")].hidden)
+    XCTAssertTrue(o.fold("b"))
+    XCTAssertTrue(o.strokes[place(o, "q0")].hidden)
+    XCTAssertFalse(o.strokes[place(o, "nextw0")].hidden, "the # ends the ##")
+  }
+
+  func testFoldingTheHashFoldsItsSubsectionsAndUnfoldingKeepsTheirFolds() throws {
+    var o = outline()
+    XCTAssertTrue(o.fold("b"))
+    XCTAssertTrue(o.fold("top"))
+    for name in ["t0", "aw0", "p0", "bw0", "q0"] { XCTAssertTrue(o.strokes[place(o, name)].hidden, name) }
+    XCTAssertFalse(o.strokes[place(o, "nextw0")].hidden, "the next # is not the section's")
+    XCTAssertTrue(o.unfold("top"))
+    XCTAssertFalse(o.strokes[place(o, "aw0")].hidden)
+    XCTAssertTrue(o.isFolded(try XCTUnwrap(o.header("b"))), "the ## folded inside it stays folded")
+    XCTAssertTrue(o.strokes[place(o, "q0")].hidden)
+  }
+
+  func testTheOutlinesLevelsFollowTheHashes() {
+    let o = outline()
+    XCTAssertEqual(o.levels(), ["top": 1, "a": 2, "b": 2, "next": 1])
+    var c = o
+    c.collapse(to: 1)
+    XCTAssertTrue(c.isFolded(c.header("top")!))
+    XCTAssertTrue(c.isFolded(c.header("next")!))
+    XCTAssertTrue(c.strokes[place(c, "aw0")].hidden, "the ## tucked under the #")
+  }
+
+  func testAnIndentedBodyThenAnUnindentedSubheaderStaysInTheSection() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "top", level: 1, y: 100)
+    o.strokes += word("t", x: 160, y: 150)
+    headerLine(&o, "a", level: 2, y: 200)
+    o.strokes += word("p", x: 100, y: 250)
+    headerLine(&o, "next", level: 1, y: 300)
+    XCTAssertTrue(o.fold("top"))
+    for name in ["t0", "aw0", "p0"] { XCTAssertTrue(o.strokes[place(o, name)].hidden, name) }
+    XCTAssertFalse(o.strokes[place(o, "nextw0")].hidden)
+  }
+
+  func testAShallowerHeaderEndsASubsectionWhateverItsIndent() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "a", level: 2, y: 100)
+    o.strokes += word("p", x: 140, y: 150)
+    headerLine(&o, "next", level: 1, x: 180, y: 200)
+    o.strokes += word("n", x: 220, y: 250)
+    XCTAssertTrue(o.fold("a"))
+    XCTAssertTrue(o.strokes[place(o, "p0")].hidden)
+    XCTAssertFalse(o.strokes[place(o, "nextw0")].hidden, "an indented # still ends a ##")
+  }
+
+  func testLarrysPictureLabelsADeeperHeaderWithItsLevel() {
+    let o = outline()
+    XCTAssertEqual(o.headerLabels.map(\.text), ["▾ header", "▾ ## header", "▾ ## header", "▾ header"])
+  }
+
+  func testOldHeadersDecodeAtLevelOne() throws {
+    let old = Data(#"[{"id":"h","ids":["a"],"mark":["a"]}]"#.utf8)
+    let headers = try JSONDecoder().decode([BoardHeader].self, from: old)
+    XCTAssertNil(headers.first?.deeper)
+    let o = BoardOutline(strokes: [letter("a", x: 100, y: 100)], headers: headers)
+    XCTAssertEqual(o.headers.map { o.level($0) }, [1])
   }
 }

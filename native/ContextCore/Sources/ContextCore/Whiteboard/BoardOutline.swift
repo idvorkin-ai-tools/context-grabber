@@ -31,12 +31,29 @@ public struct BoardHeader: Codable, Equatable, Sendable {
   /// The strokes of the underline or # that made it (#967): while any of them is off the board it is no header, so the
   /// Undo of the mark takes the header and its Redo brings it back. Nil for a header made by a margin tap or the menu.
   public var mark: [String]?
+  /// The strokes of each further # written beside the first (#1034): ## and ###. Nil for a level-1 header.
+  public var deeper: [[String]]?
 
-  public init(id: String, ids: [String], fold: Fold? = nil, mark: [String]? = nil) {
+  public init(id: String, ids: [String], fold: Fold? = nil, mark: [String]? = nil, deeper: [[String]]? = nil) {
     self.id = id
     self.ids = ids
     self.fold = fold
     self.mark = mark
+    self.deeper = deeper
+  }
+
+  /// The deepest a header's #s take it: ###.
+  public static let deepest = 3
+
+  /// Its level by its #s (#1034): 1, and one more for each further # still on the board, in the order they were
+  /// written, so an Undo of the last # takes one level and its Redo brings it back.
+  public func level(_ live: Set<String>) -> Int {
+    min(Self.deepest, 1 + further(live).count)
+  }
+
+  /// The further #s still on the board, in the order they were written: those after one that is away don't count.
+  func further(_ live: Set<String>) -> ArraySlice<[String]> {
+    (deeper ?? []).prefix { !$0.isEmpty && $0.allSatisfy(live.contains) }
   }
 
   /// Made by ink with a stroke gone, and open: no header while its mark is away (#967). A folded one keeps
@@ -138,6 +155,9 @@ public struct BoardOutline: Sendable {
 
   public func header(_ id: String) -> BoardHeader? { headers.first { $0.id == id } }
 
+  /// The header's level by its #s: 1 for a single #, an underline or a margin tap; 2 for ##, 3 for ### (#1034).
+  public func level(_ header: BoardHeader) -> Int { header.level(liveNames) }
+
   /// Its own strokes show: it isn't folded away inside another's section.
   public func shows(_ header: BoardHeader) -> Bool {
     let at = index
@@ -226,10 +246,21 @@ public struct BoardOutline: Sendable {
     var nextTop = CGFloat.infinity
     let rules = rules()
     let isRule = { (u: Unit) in u.tag == nil && u.members.contains(where: rules.contains) }
+    // Levels by #s (#1034): a header of this level at or left of the indent ends the section, as one of a shallower
+    // level does wherever it is; a deeper one never does, and once one has begun, the indent no longer ends it.
+    let live = liveNames
+    let levels = Dictionary(uniqueKeysWithValues: headers.map { ($0.id, $0.level(live)) })
+    let mine = header.level(live)
+    let levelOf = { (u: Unit) in u.header.flatMap { levels[$0] } ?? 1 }
+    var deeper = false
     for line in lines {
       let writing = line.us.filter { !isRule($0) }
-      let shallowHeader = writing.contains { $0.header != nil && $0.bounds.minX <= edge }
-      if shallowHeader || (indented && !writing.isEmpty && leftOf(writing) <= edge) {
+      let heads = writing.filter { $0.header != nil }
+      let shallowHeader = heads.contains {
+        levelOf($0) < mine || (levelOf($0) == mine && $0.bounds.minX <= edge)
+      }
+      let sub = heads.contains { levelOf($0) > mine }
+      if shallowHeader || (!deeper && !sub && indented && !writing.isEmpty && leftOf(writing) <= edge) {
         nextTop = line.top
         break
       }
@@ -237,6 +268,7 @@ public struct BoardOutline: Sendable {
         nextTop = rule
         break
       }
+      if sub { deeper = true }
     }
     return Section(
       header: hb, body: all.filter { $0.bounds.minY < nextTop }, after: all.filter { $0.bounds.minY >= nextTop })

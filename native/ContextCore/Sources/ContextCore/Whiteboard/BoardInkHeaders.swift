@@ -22,6 +22,9 @@ extension BoardOutline {
   static let uprightDegrees: CGFloat = 35
   /// Bars that miss each other by this little still cross: a hand's # doesn't always close.
   static let crossSlop: CGFloat = 4
+  /// A further # this close across to a header's #s takes it deeper (#1034): half a # wide, less than a word's gap
+  /// and a half.
+  public static let hashGap: CGFloat = 30
 
   /// How the ink made a header, or added to one.
   public enum InkHeader: Equatable, Sendable {
@@ -31,18 +34,21 @@ extension BoardOutline {
     case hash(header: String, y: CGFloat, mark: [String])
     /// The stroke was written on a header's own line and joined its row.
     case grew(header: String, names: [String])
+    /// A # finished beside a # header's #s took it a level deeper (#1034): ## or ###.
+    case deeper(header: String, level: Int, y: CGFloat, mark: [String])
 
     public var kind: String {
       switch self {
       case .underline: "underline"
       case .hash: "hash"
       case .grew: "grew"
+      case .deeper: "deeper"
       }
     }
 
     public var header: String {
       switch self {
-      case .underline(let id, _, _), .hash(let id, _, _), .grew(let id, _): id
+      case .underline(let id, _, _), .hash(let id, _, _), .grew(let id, _), .deeper(let id, _, _, _): id
       }
     }
   }
@@ -55,6 +61,7 @@ extension BoardOutline {
     guard strokes.indices.contains(newest), !strokes[newest].hidden, !strokes[newest].points.isEmpty,
       !tagged.contains(newest)
     else { return nil }
+    if let deeper = deepened(newest) { return deeper }
     if let grew = grow(newest) { return grew }
     if let made = underlined(newest, id: id) { return made }
     return hashed(newest, id: id)
@@ -137,11 +144,13 @@ extension BoardOutline {
   }
 
   /// The # the stroke at `n` finishes: four bars, two level and two upright, each level one crossing both upright
-  /// ones, in a small box, the leftmost ink on its line. Their places.
-  func hash(finishedBy n: Int) -> [Int]? {
+  /// ones, in a small box, the leftmost ink on its line. Their places. `beside` a header, it is a further # right
+  /// next to that header's #s instead (#1034): its bars may be the header's row already, never its #s.
+  func hash(finishedBy n: Int, beside: BoardHeader? = nil) -> [Int]? {
     guard let newest = bar(n) else { return nil }
     let near = strokes[n].bounds.insetBy(dx: -Self.hashMost, dy: -Self.hashMost)
-    let taken = Set(headers.flatMap(\.ids))
+    var taken = Set(headers.flatMap(\.ids))
+    if let beside { taken.subtract(Set(beside.ids).subtracting(hashes(beside))) }
     let tagged = tagged
     let bars =
       strokes.indices.filter {
@@ -159,7 +168,8 @@ extension BoardOutline {
               Self.cross(l2, u2), !Self.cross(l1, l2), !Self.cross(u1, u2)
             else { continue }
             let box = four.reduce(CGRect.null) { $0.union(strokes[$1.at].bounds) }
-            guard box.width <= Self.hashMost, box.height <= Self.hashMost, leftmost(box, besides: four.map(\.at))
+            guard box.width <= Self.hashMost, box.height <= Self.hashMost,
+              beside.map({ besideHashes(box, $0, four: four.map(\.at)) }) ?? leftmost(box, besides: four.map(\.at))
             else { continue }
             return four.map(\.at)
           }
@@ -189,6 +199,57 @@ extension BoardOutline {
     let mark = four.flatMap { strokes[$0].ids }
     headers.append(BoardHeader(id: id, ids: Self.union(row.names, mark), mark: mark))
     return .hash(header: id, y: box.midY, mark: mark)
+  }
+
+  // MARK: - ## and ### (#1034)
+
+  /// A header's #s by their strokes' names: the first # and each further one still counted. None for an underline's
+  /// or a margin tap's.
+  func hashes(_ header: BoardHeader) -> [String] {
+    guard let mark = header.mark else { return [] }
+    return mark + header.further(liveNames).flatMap { $0 }
+  }
+
+  /// The new #'s box `box` sits right beside the header's #s, on their line, with none of the header's other ink
+  /// between them.
+  private func besideHashes(_ box: CGRect, _ header: BoardHeader, four: [Int]) -> Bool {
+    let at = index
+    let marks = hashes(header).compactMap { at[$0] }
+    let hb = marks.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
+    guard !hb.isNull, box.midY >= hb.minY, box.midY <= hb.maxY else { return false }
+    // Its middle to one side of them, and the gap between them: a tight ## may overlap a little.
+    let right = box.midX >= hb.maxX
+    guard right || box.midX <= hb.minX else { return false }
+    let (from, to) = right ? (hb.maxX, box.minX) : (box.maxX, hb.minX)
+    guard to - from <= Self.hashGap else { return false }
+    let mine = Set(marks + four)
+    return !header.ids.compactMap { at[$0] }.contains { i in
+      !mine.contains(i) && !strokes[i].hidden && strokes[i].bounds.midX > from && strokes[i].bounds.midX < to
+    }
+  }
+
+  /// The stroke at `n` finishes a # beside a showing # header's #s: the header goes one level deeper, to ###
+  /// at most. Nil for any other stroke, and for a header already at ###.
+  private mutating func deepened(_ n: Int) -> InkHeader? {
+    guard bar(n) != nil else { return nil }
+    let live = liveNames
+    let at = index
+    // Only a # header deepens: one whose mark is its # (no underline in it).
+    let unders = Set(strokes.indices.filter { Self.isUnderline(strokes[$0]) })
+    let byHash = { (mark: [String]) in !mark.contains { name in at[name].map(unders.contains) ?? true } }
+    for (h, header) in headers.enumerated() {
+      guard let mark = header.mark, !mark.isEmpty, byHash(mark), shows(header),
+        header.level(live) < BoardHeader.deepest,
+        let four = hash(finishedBy: n, beside: header)
+      else { continue }
+      let names = four.flatMap { strokes[$0].ids }
+      // A # undone before this one leaves no gap in the count: only the levels still on the board are kept.
+      headers[h].deeper = Array(header.further(live)) + [names]
+      headers[h].ids = Self.union(header.ids, names)
+      let box = four.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
+      return .deeper(header: header.id, level: headers[h].level(live), y: box.midY, mark: names)
+    }
+    return nil
   }
 
   // MARK: - Writing on a header's line

@@ -1,6 +1,7 @@
 //  Stories 1030–1036 (#967): headers drawn in ink (spec 2026-11-19-whiteboard-ink-headers-design.md). The stroke Igor
 //  just drew, read once: an underline under a line of his writing, or the last bar of a # at a line's start, makes the
-//  line a header; a stroke on a header's line joins its row. The mark's own Undo takes the header with it, as
+//  line a header; a # finished beside a # header's #s takes it a level deeper (## and ###, #1034); a stroke on a
+//  header's line joins its row. The mark's own Undo takes the header with it, as
 //  `BoardHeader.mark` says; nothing here is an undo step of its own.
 
 import ContextCore
@@ -34,6 +35,10 @@ extension PaperBoardController {
       event["y"] = round(y)
       event["mark"] = mark.count
     case .grew(_, let names): event["joined"] = names.count
+    case .deeper(_, let level, let y, let mark):
+      event["level"] = level
+      event["y"] = round(y)
+      event["mark"] = mark.count
     }
     log.event("board_outline", event)
   }
