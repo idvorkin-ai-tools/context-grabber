@@ -100,7 +100,7 @@ public enum BoardRoom {
     return (y, dy > 0 ? Push(cut: at, dy: dy) : nil)
   }
 
-  /// What a reply of Larry's needs when kept over ink Igor made after its picture (#894, stories 1003–1005).
+  /// What a reply of Larry's needs when kept over ink Igor made after its picture (#894, stories 1004–1006).
   public struct Late: Equatable, Sendable {
     /// The room it opens, or nil when it sits on nothing newer than the picture.
     public var push: Push?

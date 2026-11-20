@@ -3,7 +3,7 @@ import XCTest
 @testable import ContextCore
 
 /// The oracle is the shapes spec's *A reply of Larry's makes room for what Igor wrote after Larry looked* (#894, stories
-/// 1003–1005), #912's *A late reply*: a kept reply of his that sits on ink made after his picture pushes that ink down
+/// 1004–1006), #912's *A late reply*: a kept reply of his that sits on ink made after his picture pushes that ink down
 /// clear of it, his marks staying where he put them; ink he saw never makes room.
 final class BoardRoomLateTests: XCTestCase {
   private let line = BoardRoom.line
@@ -139,7 +139,7 @@ final class BoardRoomLateTests: XCTestCase {
     XCTAssertNil(BoardRoom.late([CGRect(x: 120, y: 190, width: 100, height: 40)], seen: seen, strokes: [folded]).push)
   }
 
-  // MARK: When each picture was taken (story 1005)
+  // MARK: When each picture was taken (story 1006)
 
   private func times() throws -> WhiteboardPictureTimes {
     let suite = "whiteboard-picture-times-\(UUID().uuidString)"

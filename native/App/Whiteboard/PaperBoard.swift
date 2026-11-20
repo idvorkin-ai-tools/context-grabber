@@ -1174,7 +1174,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     return true
   }
 
-  /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it; #894 (stories 1003–1005): his
+  /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it; #894 (stories 1004–1006): his
   /// marks kept over ink written after his picture. The room opens and the marks land in one change, one undo named
   /// *Keep*, as a paste and its room are one. `why` names it in the log: keep_text, keep_late or keep_group.
   private func keep(_ strokes: [PKStroke], making push: BoardRoom.Push, why: String) -> Bool {

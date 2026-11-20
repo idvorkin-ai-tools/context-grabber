@@ -80,7 +80,7 @@ public struct WhiteboardThreads: @unchecked Sendable {
   }
 }
 
-/// When each picture this device sent Larry was taken, unix ms, per board (#894, story 1005): a reply names its picture,
+/// When each picture this device sent Larry was taken, unix ms, per board (#894, story 1006): a reply names its picture,
 /// and the ink made after that moment is what he couldn't have seen. Kept across launches, so a reply that lands with
 /// the board closed knows too. ponytail: UserDefaults on this device, the newest `kept` a board; a picture sent from
 /// another device isn't known, and its reply keeps with nothing moved.

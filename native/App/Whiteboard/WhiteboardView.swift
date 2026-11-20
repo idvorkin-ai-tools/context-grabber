@@ -135,7 +135,7 @@ final class WhiteboardModel: ObservableObject {
   private let inbox: InboxModel
   private let cockpit: String
   private let threads = WhiteboardThreads()
-  /// #894 (story 1005): when each picture sent to Larry was taken, so his reply knows what was written after it.
+  /// #894 (story 1006): when each picture sent to Larry was taken, so his reply knows what was written after it.
   private let pictureTimes = WhiteboardPictureTimes()
   /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
   var visibleRect: (() -> CGRect)?
@@ -152,7 +152,7 @@ final class WhiteboardModel: ObservableObject {
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
   var landPaste: (([PKStroke]) -> Bool)?
-  /// #938 (story 992), #894 (stories 1003–1005): kept marks of Larry's and the room they open, one undo named *Keep*,
+  /// #938 (story 992), #894 (stories 1004–1006): kept marks of Larry's and the room they open, one undo named *Keep*,
   /// logged as `why`. False when the canvas didn't take it, and the keep inks as ever.
   var keepMakingRoom: (([PKStroke], BoardRoom.Push, String) -> Bool)?
   /// Stories 855–860: a change to the outline (a header made, folded, unfolded, the outline collapsed) on the canvas
@@ -1480,7 +1480,7 @@ final class WhiteboardModel: ObservableObject {
     }
     // Named as Larry will hear them, before the canvas has them (`paper_keep` says the names survive it).
     let names = opStrokes(strokes).strokes.flatMap(\.ids)
-    // #894 (story 1003): before the group's notes, so the board it measures is the one he wrote on.
+    // #894 (story 1004): before the group's notes, so the board it measures is the one he wrote on.
     let late = lateRoom(marks)
     rememberTheirs(strokes)
     strokeMeta.merge(WhiteboardMarks.groupNotes(names, reply: reply))
@@ -1557,7 +1557,7 @@ final class WhiteboardModel: ObservableObject {
     add(strokes, named: Self.keepUndoName)
   }
 
-  /// #894 (stories 1003–1005): the room Larry's marks need when kept, for what Igor made after the picture they answer;
+  /// #894 (stories 1004–1006): the room Larry's marks need when kept, for what Igor made after the picture they answer;
   /// nil when that picture's time isn't known on this device. His marks stay where they showed.
   private func lateRoom(_ marks: [Ghost]) -> BoardRoom.Late? {
     guard let seen = marks.compactMap(\.seen).min() else { return nil }

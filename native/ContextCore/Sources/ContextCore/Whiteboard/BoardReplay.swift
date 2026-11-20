@@ -366,7 +366,7 @@ public struct BoardReplay {
             points: WhiteboardTurn.inkPoints(line)))
       }
     }
-    // #894 (stories 1003, 1005): what Igor made after the picture makes room under the reply, in the same change.
+    // #894 (stories 1004, 1006): what Igor made after the picture makes room under the reply, in the same change.
     if let seen {
       let (planned, texts, metas) = board.planInput
       // The plan's ink goes by no time (a time is how a text's glyphs are known); here it is when each was made.

@@ -4801,7 +4801,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1003:
+### User Story 1004:
 
 - **Summary:** A kept reply of Larry's pushes what I wrote since his picture out of the way
 - **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
@@ -4821,7 +4821,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1004:
+### User Story 1005:
 
 - **Summary:** One kept mark of Larry's makes room for what I wrote since his picture
 - **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
@@ -4841,7 +4841,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1005:
+### User Story 1006:
 
 - **Summary:** Ink Larry saw never makes room for his reply
 - **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
@@ -4861,7 +4861,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1006:
+### User Story 1037:
 
 - **Summary:** A reply that lands with the board closed still makes room
 - **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run

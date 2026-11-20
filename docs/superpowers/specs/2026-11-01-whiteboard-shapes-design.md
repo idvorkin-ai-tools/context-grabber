@@ -54,14 +54,14 @@ suggest changes the board until Igor keeps it.
   - The session log says how many marks a group keep took, its strokes and its group's name.
   - **Keep** does what a tap used to: the mark becomes real ink in Claude's colour (or the one it asked for, below),
     and his eraser and undo treat it like his own strokes. One undo takes it back.
-  - **A reply of Larry's makes room for what Igor wrote after Larry looked** (#894, stories 1003–1006; Igor, 2026-11-14: push what he
+  - **A reply of Larry's makes room for what Igor wrote after Larry looked** (#894, stories 1004–1006, 1037; Igor, 2026-11-14: push what he
     wrote since the picture down the page to make room for Larry's reply, rather than put the reply below his ink;
     2026-11-19, on a board where a kept group of Larry's landed on his writing: "group pushes purple text out of the
     way"). Larry places a reply on the picture he was sent, often minutes old, and Igor keeps writing meanwhile. This
     is the *A late reply* rule of the object-layer design (PR #912), which needs nothing from that design's objects.
     - When **Keep** or **Keep group** would put marks of Larry's on ink drawn or pasted *after* the picture that reply
-      answers was taken (ink he could not have seen), that ink makes way in the same step: from the clear line nearest
-      the top of the newer ink the marks land on, everything below moves straight down by whole lines until the first
+      answers was taken (ink he could not have seen), that ink makes way in the same step: from the clear line at or
+      above the top of the newer ink the marks land on, everything below moves straight down by whole lines until the first
       of it sits half a line under the lowest of the kept marks. Whole things move whole (a line of writing, a kept
       text, a group, a folded section); nothing is scaled or split. Ink above that line stays.
     - **His marks stay exactly where he put them**, beside what they name. Only the ink moves.
@@ -81,7 +81,9 @@ suggest changes the board until Igor keeps it.
       board](2026-11-16-whiteboard-board-ops-design.md), *His text makes room*); *Keep all* lays his labels clear of
       the writing (story 895); Claude's marks, which answer in seconds, are unchanged.
     - Not yet (#912's *Reflow rules*): his other unkept marks don't slide with the ink, and blank paper further down
-      doesn't take up the push: the push moves everything below the line, as a paste's room does.
+      doesn't take up the push: the push moves everything below the line, as a paste's room does, marks of Larry's
+      kept earlier from the same reply included (Keep group keeps a reply whole, so this only bites when Igor keeps a
+      reply mark by mark).
     - The session log's keep line says whether it made room, where and how far, how many things it landed on that Igor
       wrote after the picture, and when that picture was taken, or that its time isn't known.
   - **Dismiss** removes that mark and only that mark. It isn't kept, and it doesn't come back, on the next look or the

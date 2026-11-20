@@ -539,7 +539,7 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     shot(app, "kept group undone from the bar")
   }
 
-  /// #894 (stories 1003, 1004): a line Igor writes after the picture went, where Larry's reply lands. Keep group pushes
+  /// #894 (stories 1004, 1005): a line Igor writes after the picture went, where Larry's reply lands. Keep group pushes
   /// the line down under the reply, his marks stay where they showed, and one undo puts the line back through them.
   func testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply() throws {
     let cockpit = try cockpit()

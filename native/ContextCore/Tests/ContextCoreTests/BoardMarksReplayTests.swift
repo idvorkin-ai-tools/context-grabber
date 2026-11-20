@@ -108,7 +108,7 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertTrue(outcome.moved.values.allSatisfy { $0.dy == 80 })
   }
 
-  // MARK: A late reply makes room (#894, stories 1003, 1005)
+  // MARK: A late reply makes room (#894, stories 1004, 1006)
 
   /// The family board with a line Igor wrote at 1600 after the picture (made `at`), where the reply's top boxes land
   /// (they show from 1564.8 to 1764.8 on the board).
