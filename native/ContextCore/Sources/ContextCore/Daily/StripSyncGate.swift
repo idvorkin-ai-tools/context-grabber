@@ -140,20 +140,23 @@ extension DailyStrip {
 /// When a database waiting for iCloud's first sync stops waiting (#388 item 1, option A, Igor 2026-11-19). An
 /// arrival may be only part of the download, so it opens nothing itself: a minute counted with nothing more arriving
 /// does, each arrival starting the minute again. With no arrival at all, five minutes. Time counts only while online
-/// and in the foreground, and a stretch that is broken starts over.
+/// and in the foreground, and a stretch that is broken starts over. All on the continuous clock the timer sleeps on,
+/// never the wall clock, so setting the phone's clock back can't hold the wait shut (#972).
 public struct StripFirstSyncWait: Equatable, Sendable {
-  public static let settle: TimeInterval = 60
-  public static let quiet: TimeInterval = 300
+  public typealias Instant = ContinuousClock.Instant
+
+  public static let settle: Duration = .seconds(60)
+  public static let quiet: Duration = .seconds(300)
 
   /// The arrival that started the wait settling, for the log.
   public private(set) var after: String?
-  private var lastArrival: Date?
-  private var countingSince: Date?
+  private var lastArrival: Instant?
+  private var countingSince: Instant?
 
   public init() {}
 
   /// Whether time counts from `at`: online and in the foreground. Being told again while it counts moves nothing.
-  public mutating func counting(_ on: Bool, at: Date) {
+  public mutating func counting(_ on: Bool, at: Instant) {
     if !on {
       countingSince = nil
     } else if countingSince == nil {
@@ -161,17 +164,20 @@ public struct StripFirstSyncWait: Equatable, Sendable {
     }
   }
 
-  public mutating func arrived(_ why: String, at: Date) {
+  public mutating func arrived(_ why: String, at: Instant) {
     lastArrival = at
     if after == nil { after = why }
   }
 
   /// When the wait ends if nothing changes; nil while no time counts.
-  public var deadline: Date? {
+  public var deadline: Instant? {
     guard let since = countingSince else { return nil }
-    guard let last = lastArrival else { return since.addingTimeInterval(Self.quiet) }
-    return max(since, last).addingTimeInterval(Self.settle)
+    guard let last = lastArrival else { return since.advanced(by: Self.quiet) }
+    return max(since, last).advanced(by: Self.settle)
   }
+
+  /// Whether the wait has ended by `now`, on the same clock.
+  public func isDue(at now: Instant) -> Bool { deadline.map { $0 <= now } ?? false }
 
   public var why: String { lastArrival == nil ? "online_quiet" : "settled" }
 }

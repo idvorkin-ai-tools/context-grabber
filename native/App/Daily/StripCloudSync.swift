@@ -148,11 +148,12 @@ final class StripCloudSync {
   private func restartQuiet() {
     quiet?.cancel()
     guard !gate.ready else { return }
-    wait.counting(quietCounts, at: Date())
+    wait.counting(quietCounts, at: .now)
     guard let deadline = wait.deadline else { return }
     quiet = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow)))
-      guard !Task.isCancelled, let self, self.quietCounts, let due = self.wait.deadline, due <= Date() else { return }
+      // The continuous clock both ways: the wall clock set back can't leave the wait due but shut (#972).
+      try? await Task.sleep(until: deadline, clock: .continuous)
+      guard !Task.isCancelled, let self, self.quietCounts, self.wait.isDue(at: .now) else { return }
       self.open(why: self.wait.why)
     }
   }
@@ -160,7 +161,7 @@ final class StripCloudSync {
   /// Something arrived while waiting: it may be only part of the download, so the quiet minute starts again (#388).
   private func settle(after why: String) {
     guard !ready else { return }
-    wait.arrived(why, at: Date())
+    wait.arrived(why, at: .now)
     restartQuiet()
   }
 
