@@ -70,8 +70,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// `GRABBER_WHITEBOARD_ZIGZAG=<n>`: the stroke that brings the board to `n` strokes is read as a fast zigzag across its
   /// own frame, for the simulator, whose UI tests can only drag straight (#999, story 890).
   public var zigzagAt: Int?
-  /// `GRABBER_WHITEBOARD_FEEDBACK_SECONDS=<seconds>`: how long a pen gesture's feedback (the room band, #1000) stays
-  /// after the finger or the Pencil lifts, for a UI test's picture; nil (it goes on the lift) when unset.
+  /// `GRABBER_WHITEBOARD_FEEDBACK_SECONDS=<seconds>`: how long a pen gesture's feedback (#1000) stays after the finger
+  /// or the Pencil lifts, for a UI test's picture: the room band held after the lift, the scratch flash held bright
+  /// before it fades, and *Nothing under the scribble* shown at least that long. Nil (none held) when unset.
   public var feedbackSeconds: Double?
 
   public init(_ env: [String: String] = [:]) {

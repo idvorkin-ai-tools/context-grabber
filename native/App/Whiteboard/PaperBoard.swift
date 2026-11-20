@@ -402,9 +402,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let toText = BoardToTextState()
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()
-  /// Stories 1044–1046 (#1000): the band the room handle shows while held (PaperBoard+RoomBand.swift).
+  /// Stories 1044, 1038, 1039, 1042 (#1000): the band the room handle shows while held (PaperBoard+RoomBand.swift).
   let roomBand = BoardRoomBandState()
-  /// Story 1048 (#1000): *Nothing under the scribble to erase*, while it shows (PaperBoard+ScratchFeedback.swift).
+  /// Story 1051 (#1000): *Nothing under the scribble to erase*, while it shows (PaperBoard+ScratchFeedback.swift).
   let scratchNote = BoardScratchNote()
   /// Stories 940–942: a kept text's words open in place (BoardRewordFlow.swift).
   let reword = BoardRewordState()
@@ -1086,7 +1086,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       return true
     }
     guard scratch.after != nil else {
-      // Story 1048 (#1000): a zigzag over nothing goes, with a word; writing that only looks like one stays ink.
+      // Story 1051 (#1000): a zigzag over nothing goes, with a word; writing that only looks like one stays ink.
       if outcome.findsNothing, let frame = markup.strokeFrames[key] {
         scratchFoundNothing(key, frame: frame, event: event)
         return true
@@ -1094,7 +1094,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       log.event("whiteboard", event)
       return false
     }
-    // Story 1047 (#1000): the struck ink flashes and fades where it was, read before it goes.
+    // Story 1050 (#1000): the struck ink flashes and fades where it was, read before it goes.
     flashScratched(Set(outcome.gone + [key]), from: markup)
     Task { @MainActor [weak self] in
       guard let self else { return }

@@ -1,5 +1,5 @@
 //  The band the room handle shows while held (spec 2026-11-01-whiteboard-design.md, *Every pen gesture shows what it
-//  did (#1000)*; stories 1044–1046): from the moment a margin hold becomes the handle until the finger or the Pencil
+//  did (#1000)*; stories 1044, 1038, 1039, 1042): from the moment a margin hold becomes the handle until the finger or the Pencil
 //  lifts, a see-through band where the room a lift would open (or close) lies, with up and down arrows and a chip. What
 //  it shows is `BoardRoomBand` in ContextCore, `BoardRoom.byHand`'s own answer, so the lift does what the band said.
 
@@ -45,11 +45,11 @@ extension PaperBoardController {
   func roomBandMoved(dy: CGFloat) {
     guard let held = roomBand.held else { return }
     let band = BoardRoomBand.held(held.boxes, at: held.y, dy: dy)
-    let scale = lines.spot(of: CGPoint(x: 1, y: 0)).x
     let page = lines.convert(lines.bounds, to: view)
-    let top = lines.convert(lines.spot(of: CGPoint(x: 0, y: band.top)), to: view).y
-    let frame = CGRect(x: page.minX, y: top, width: page.width, height: max(band.height * scale, 2))
-    let shown = BoardRoomBandState.Shown(band: band, frame: frame, margin: BoardMargin.width * scale)
+    let a = lines.convert(lines.spot(of: CGPoint(x: 0, y: band.top)), to: view)
+    let b = lines.convert(lines.spot(of: CGPoint(x: BoardMargin.width, y: band.top + band.height)), to: view)
+    let frame = CGRect(x: page.minX, y: min(a.y, b.y), width: page.width, height: max(abs(b.y - a.y), 2))
+    let shown = BoardRoomBandState.Shown(band: band, frame: frame, margin: abs(b.x - a.x))
     if roomBand.shown != shown { roomBand.shown = shown }
   }
 
@@ -121,7 +121,7 @@ extension PaperBoardController {
   }
 }
 
-/// Stories 1044–1046: the band over the board, in no picture and taking no touches.
+/// Stories 1044, 1038, 1039, 1042: the band over the board, in no picture and taking no touches.
 struct RoomBandOverlay: View {
   @ObservedObject var state: BoardRoomBandState
   @Environment(\.accessibilityReduceMotion) private var reduceMotion

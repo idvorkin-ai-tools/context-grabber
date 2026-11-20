@@ -151,7 +151,7 @@ final class WhiteboardScratchOutTests: XCTestCase {
     XCTAssertNil(WhiteboardHooks([:]).zigzagAt)
   }
 
-  /// Story 1048 (#1000): only a real zigzag that found nothing to erase says so and goes; writing stays ink, unsaid.
+  /// Story 1051 (#1000): only a real zigzag that found nothing to erase says so and goes; writing stays ink, unsaid.
   func testOnlyAZigzagOverNothingFindsNothing() {
     func outcome(_ ok: Bool, _ why: String?) -> Scratch.Outcome {
       Scratch.Outcome(ok: ok, gone: [], reversals: 4, speed: 1, why: why)

@@ -1,5 +1,5 @@
 //  What a scratch-out did, shown (spec 2026-11-01-whiteboard-design.md, *Every pen gesture shows what it did (#1000)*;
-//  stories 1047, 1048): the struck ink flashes and fades where it was, and a zigzag that finds nothing to erase goes,
+//  stories 1050, 1051, 1043): the struck ink flashes and fades where it was, and a zigzag that finds nothing to erase goes,
 //  with *Nothing under the scribble to erase* beside where it was. Over the paper, in no picture, taking no touches.
 
 import ContextCore
@@ -33,7 +33,7 @@ final class BoardScratchNote: ObservableObject {
 }
 
 extension PaperBoardController {
-  /// Story 1047: the strokes `gone` (the zigzag's too), read from `markup` before they went, flash and fade where they
+  /// Story 1050: the strokes `gone` (the zigzag's too), read from `markup` before they went, flash and fade where they
   /// were. Reduce Motion: no flash, a plain fade (the overlay's).
   func flashScratched(_ gone: Set<String>, from markup: PaperMarkup) {
     let strokes = markup.subelements.strokes.filter { gone.contains(PaperHost.key($0.elementID)) }
@@ -48,7 +48,9 @@ extension PaperBoardController {
       if points.count == 1 { path.addLine(to: first) }
       widest = max(widest, stroke.path.map(\.size.width).max() ?? 2)
     }
-    let scale = lines.spot(of: CGPoint(x: 1, y: 0)).x
+    let scale = abs(
+      view.convert(lines.spot(of: CGPoint(x: 1, y: 0)), from: lines).x
+        - view.convert(lines.spot(of: .zero), from: lines).x)
     let hold = LaunchHooks.current.whiteboard.feedbackSeconds ?? 0
     let flash = BoardScratchNote.Flash(path: path, width: max(3, widest * scale + 2), hold: hold)
     scratchNote.flashing?.cancel()
@@ -66,7 +68,7 @@ extension PaperBoardController {
       ])
   }
 
-  /// Story 1048: a zigzag that found nothing to erase goes, as an Undo would take it (Redo brings it back), and says so
+  /// Story 1051: a zigzag that found nothing to erase goes, as an Undo would take it (Redo brings it back), and says so
   /// beside where it was for a few seconds. When PaperKit's step for it can't be taken back, it stays ink, unsaid.
   func scratchFoundNothing(_ key: String, frame: CGRect, event: [String: Any]) {
     Task { @MainActor [weak self] in
@@ -91,9 +93,9 @@ extension PaperBoardController {
 
   /// The word, over the board-point `frame` the zigzag took.
   private func sayScratchFoundNothing(near frame: CGRect) {
-    let scale = lines.spot(of: CGPoint(x: 1, y: 0)).x
-    let origin = view.convert(lines.spot(of: frame.origin), from: lines)
-    let near = CGRect(origin: origin, size: CGSize(width: frame.width * scale, height: frame.height * scale))
+    let a = view.convert(lines.spot(of: CGPoint(x: frame.minX, y: frame.minY)), from: lines)
+    let b = view.convert(lines.spot(of: CGPoint(x: frame.maxX, y: frame.maxY)), from: lines)
+    let near = CGRect(x: min(a.x, b.x), y: min(a.y, b.y), width: abs(b.x - a.x), height: abs(b.y - a.y))
     scratchNote.hiding?.cancel()
     scratchNote.shown = BoardScratchNote.Shown(text: "Nothing under the scribble to erase", near: near)
     let seconds = max(3, LaunchHooks.current.whiteboard.feedbackSeconds ?? 0)
@@ -105,7 +107,7 @@ extension PaperBoardController {
   }
 }
 
-/// Story 1048: the word beside where the zigzag was, in no picture and taking no touches.
+/// Story 1051: the word beside where the zigzag was, in no picture and taking no touches.
 struct ScratchNoteOverlay: View {
   @ObservedObject var note: BoardScratchNote
 
@@ -132,7 +134,7 @@ struct ScratchNoteOverlay: View {
   }
 }
 
-/// Story 1047: the struck ink, bright for a moment, then fading over about half a second. Reduce Motion: no flash, it
+/// Stories 1050, 1043: the struck ink, bright for a moment, then fading over about half a second. Reduce Motion: no flash, it
 /// shows plainly and fades.
 private struct ScratchFlash: View {
   let flash: BoardScratchNote.Flash

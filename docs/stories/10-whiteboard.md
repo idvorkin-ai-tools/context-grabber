@@ -4966,7 +4966,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** Holding the room handle shows a band and a "Making room" chip until I lift
 - **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
-- **Status:** implemented in [7460e8b](https://github.com/idvorkin/context-grabber/commit/7460e8b); verified by host tests (`BoardRoomBandTests`; `just test`), the Mac build, and on the iPad simulator by `WhiteboardOutlineUITests.testTheRoomHandleShowsABandWhileHeld` (a finger in the margin, the band and chip photographed with `GRABBER_WHITEBOARD_FEEDBACK_SECONDS`); the Pencil's hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Status:** implemented in [1827700](https://github.com/idvorkin/context-grabber/commit/1827700); verified by host tests (`BoardRoomBandTests`; `just test`), the Mac build, and on the iPad simulator by `WhiteboardOutlineUITests.testTheRoomHandleShowsABandWhileHeld` (a finger in the margin, the band and chip photographed with `GRABBER_WHITEBOARD_FEEDBACK_SECONDS`); the Pencil's hold not yet seen on the iPad: the simulator can't hold a Pencil
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
@@ -4982,51 +4982,91 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1045:
+### User Story 1038:
 
 - **Summary:** Dragging the room handle up shows the blank paper that will close
 - **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
-- **Status:** implemented in [7460e8b](https://github.com/idvorkin/context-grabber/commit/7460e8b); verified by host tests (`BoardRoomBandTests`; `just test`), the Mac build, and on the iPad simulator by `WhiteboardOutlineUITests.testTheRoomHandleShowsABandWhileHeld` (a finger in the margin, the band and chip photographed with `GRABBER_WHITEBOARD_FEEDBACK_SECONDS`); the Pencil's hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Status:** implemented in [1827700](https://github.com/idvorkin/context-grabber/commit/1827700); verified by host tests (`BoardRoomBandTests`; `just test`), the Mac build, and on the iPad simulator by `WhiteboardOutlineUITests.testTheRoomHandleShowsABandWhileHeld` (a finger in the margin, the band and chip photographed with `GRABBER_WHITEBOARD_FEEDBACK_SECONDS`); the Pencil's hold not yet seen on the iPad: the simulator can't hold a Pencil
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
 - **As someone** closing up a gap I no longer need
-- **I want to** see the band cover the blank paper that will close, or be told there's none
+- **I want to** see the band cover the blank paper that will close
 - **so that** I know what the lift will do before I lift
 
 #### Acceptance Criteria:
-- **Scenario:** Dragging up
-- **Given:** a board with three blank lines between two lines of writing, and another two lines with no blank line between
-- **When:** I hold in the margin in the gap and drag up four lines, then hold between the two lines with no gap and drag up
-- **Then:** in the gap the band covers the three blank lines and the chip says *Closing room*; between the touching lines the band is a thin line and the chip says *No blank paper to close*
+- **Scenario:** Dragging up over blank paper
+- **Given:** a board with three blank lines between two lines of writing
+- **When:** I hold in the margin in the gap and drag up four lines
+- **Then:** the band covers the three blank lines, never the writing, and the chip says *Closing room*
 
 ---
 
-### User Story 1046:
+### User Story 1039:
+
+- **Summary:** Dragging the room handle up with no blank paper says there is none to close
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** implemented in [1827700](https://github.com/idvorkin/context-grabber/commit/1827700); verified by host tests (`BoardRoomBandTests`; `just test`), the Mac build, and on the iPad simulator by `WhiteboardOutlineUITests.testTheRoomHandleShowsABandWhileHeld` (a finger in the margin, the band and chip photographed with `GRABBER_WHITEBOARD_FEEDBACK_SECONDS`); the Pencil's hold not yet seen on the iPad: the simulator can't hold a Pencil
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** closing up a gap I no longer need
+- **I want to** be told when there is no blank paper to close
+- **so that** I know the lift will change nothing before I lift
+
+#### Acceptance Criteria:
+- **Scenario:** Dragging up with no blank paper
+- **Given:** a board with two lines of writing with no blank line between them
+- **When:** I hold in the margin between the two lines and drag up
+- **Then:** the band is a thin line and the chip says *No blank paper to close*
+
+---
+
+### User Story 1042:
 
 - **Summary:** The room band follows Reduce Motion
 - **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
-- **Status:** implemented in [7460e8b](https://github.com/idvorkin/context-grabber/commit/7460e8b) (the band) and [8ba5284](https://github.com/idvorkin/context-grabber/commit/8ba5284) (the flash): the band's easing and the flash are off under Reduce Motion; built and its UI tests pass on the iPad simulator with Reduce Motion off; with it on, not yet seen anywhere
+- **Status:** implemented in [1827700](https://github.com/idvorkin/context-grabber/commit/1827700): the band's easing is off under Reduce Motion; built and its UI tests pass on the iPad simulator with Reduce Motion off; with it on, not yet seen anywhere
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
 - **As someone** with Reduce Motion on
-- **I want to** have the board's feedback show without easing or flashing
+- **I want to** have the room band move without easing
 - **so that** the board never moves more than it has to
 
 #### Acceptance Criteria:
-- **Scenario:** Reduce Motion on
+- **Scenario:** Dragging the room handle with Reduce Motion on
 - **Given:** Reduce Motion is on in Settings
-- **When:** I drag the room handle down, or scratch out a word
-- **Then:** the band jumps a line at a time with no easing, and the struck ink shows plainly and fades without a flash
+- **When:** I drag the room handle down
+- **Then:** the band jumps a line at a time with no easing
 
 ---
 
-### User Story 1047:
+### User Story 1043:
+
+- **Summary:** The scratch-out's flash follows Reduce Motion
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** implemented in [d70e8e4](https://github.com/idvorkin/context-grabber/commit/d70e8e4): the flash is off under Reduce Motion; built and its UI tests pass on the iPad simulator with Reduce Motion off; with it on, not yet seen anywhere
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** with Reduce Motion on
+- **I want to** have the struck ink fade without flashing
+- **so that** the board never moves more than it has to
+
+#### Acceptance Criteria:
+- **Scenario:** Scratching out with Reduce Motion on
+- **Given:** Reduce Motion is on in Settings
+- **When:** I scratch out a word
+- **Then:** the struck ink shows plainly and fades without a flash
+
+---
+
+### User Story 1050:
 
 - **Summary:** A scratch-out flashes and fades the ink it took
 - **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
-- **Status:** implemented in [2470cec](https://github.com/idvorkin/context-grabber/commit/2470cec), [8ba5284](https://github.com/idvorkin/context-grabber/commit/8ba5284); verified by `just test`, the Mac build, and on the iPad simulator by `WhiteboardScratchOutUITests.testAScratchOutFlashesTheInkItTook` (the hook's zigzag, the flash held for its picture); the Pencil's zigzag is the iPad's
+- **Status:** implemented in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13), [d70e8e4](https://github.com/idvorkin/context-grabber/commit/d70e8e4); verified by `just test`, the Mac build, and on the iPad simulator by `WhiteboardScratchOutUITests.testAScratchOutFlashesTheInkItTook` (the hook's zigzag, the flash held for its picture); the Pencil's zigzag is the iPad's
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
@@ -5042,11 +5082,11 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1048:
+### User Story 1051:
 
 - **Summary:** A zigzag that finds nothing to erase says so and goes
 - **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
-- **Status:** implemented in [2470cec](https://github.com/idvorkin/context-grabber/commit/2470cec), [8ba5284](https://github.com/idvorkin/context-grabber/commit/8ba5284); verified on the host (`WhiteboardScratchOutTests.testOnlyAZigzagOverNothingFindsNothing`), the Mac build, and on the iPad simulator by `WhiteboardScratchOutUITests.testAZigzagOverNothingSaysSoAndGoes` (the word, the zigzag gone, Redo bringing it back); the Pencil's zigzag is the iPad's
+- **Status:** implemented in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13), [d70e8e4](https://github.com/idvorkin/context-grabber/commit/d70e8e4); verified on the host (`WhiteboardScratchOutTests.testOnlyAZigzagOverNothingFindsNothing`), the Mac build, and on the iPad simulator by `WhiteboardScratchOutUITests.testAZigzagOverNothingSaysSoAndGoes` (the word, the zigzag gone, Redo bringing it back); the Pencil's zigzag is the iPad's
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
 
 #### Use Case:
@@ -5059,8 +5099,6 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board on paper with bare paper where I draw
 - **When:** I draw a quick zigzag there, or one that only clips the end of a long word
 - **Then:** the zigzag is taken away, *Nothing under the scribble to erase* shows beside where it was for a few seconds, and Redo brings the zigzag back as ink
-
----
 
 ### User Story 769:
 
@@ -6389,7 +6427,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 891:
 
 - **Summary:** Writing that only looks like a zigzag stays ink
-- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4); verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad; narrowed to writing in [2470cec](https://github.com/idvorkin/context-grabber/commit/2470cec) (#1000): a fast zigzag over bare paper or beside a word is story 1048
+- **Status:** implemented in [767fdd4](https://github.com/idvorkin/context-grabber/commit/767fdd4); verified on the host (`WhiteboardScratchOutTests.testHandwritingNeverQualifies`, `testAZigzagThatIsNotAScratchOutStaysInk`, `testAZigzagBesideAWordRatherThanOverItStaysInk`). The session log's `scratch` line says why each near miss stayed ink, for the iPad; narrowed to writing in [dedaa13](https://github.com/idvorkin/context-grabber/commit/dedaa13) (#1000): a fast zigzag over bare paper or beside a word is story 1051
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
 
 #### Use Case:
@@ -6401,7 +6439,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Near misses
 - **Given:** a board with writing on it
 - **When:** I write *mmm* over a word, or draw a slow zigzag over it
-- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*). A fast zigzag on bare paper, or one that only clips the end of a long word, is story 1048 (#1000)
+- **Then:** what I drew stays as ink, nothing else is removed, and the session log says why it wasn't a scratch-out (*marches along*, *slow*). A fast zigzag on bare paper, or one that only clips the end of a long word, is story 1051 (#1000)
 
 ---
 

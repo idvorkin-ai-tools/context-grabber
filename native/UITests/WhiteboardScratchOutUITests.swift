@@ -132,7 +132,7 @@ final class WhiteboardScratchOutUITests: XCTestCase {
     add(picture)
   }
 
-  /// Story 1047 (#1000): the struck ink flashes where it was as it goes; the hook holds it up for the picture.
+  /// Story 1050 (#1000): the struck ink flashes where it was as it goes; the hook holds it up for the picture.
   func testAScratchOutFlashesTheInkItTook() throws {
     let app = try openBoard(zigzag: 2, seconds: 6)
     let send = app.buttons["whiteboard-send"]
@@ -146,7 +146,7 @@ final class WhiteboardScratchOutUITests: XCTestCase {
     XCTAssertFalse(app.descendants(matching: .any)["whiteboard-scratch-nothing"].exists, "no word when it worked")
   }
 
-  /// Story 1048 (#1000): a zigzag on bare paper goes, with a word, and Redo brings it back as ink.
+  /// Story 1051 (#1000): a zigzag on bare paper goes, with a word, and Redo brings it back as ink.
   func testAZigzagOverNothingSaysSoAndGoes() throws {
     let app = try openBoard(zigzag: 1, seconds: 6)
     let send = app.buttons["whiteboard-send"]

@@ -1,4 +1,4 @@
-//  Stories 1044–1046 (#1000): the band the room handle shows while held is what the lift will do.
+//  Stories 1044, 1038, 1039, 1042 (#1000): the band the room handle shows while held is what the lift will do.
 
 import ContextCore
 import CoreGraphics

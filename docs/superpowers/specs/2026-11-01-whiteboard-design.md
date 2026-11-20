@@ -349,7 +349,7 @@ ink it covers, without picking up the eraser.
   and how much of what went the board still holds, then and a second later, and whether any of it comes back without an
   Undo (#999).
 
-### Every pen gesture shows what it did (#1000; stories 1044–1048)
+### Every pen gesture shows what it did (#1000; stories 1038, 1039, 1042–1044, 1050, 1051)
 
 Igor on the iPad, 2026-11-20: *Need visual feedback when creating or adding space, like with transparent arrows, so
 it's clear I'm in that mode.* The design critique the same day widened it: every pen gesture shows what it did. A

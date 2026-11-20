@@ -1,5 +1,5 @@
 //  What the room handle shows while it is held (spec 2026-11-01-whiteboard-design.md, *Every pen gesture shows what it
-//  did (#1000)*; stories 1044–1046): the see-through band where the room a lift would open (or close) lies, and the
+//  did (#1000)*; stories 1044, 1038, 1039, 1042): the see-through band where the room a lift would open (or close) lies, and the
 //  chip's words. The band is `BoardRoom.byHand`'s own answer, so what it shows is what the lift does. Pure.
 
 import Foundation

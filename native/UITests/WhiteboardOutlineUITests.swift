@@ -150,7 +150,7 @@ final class WhiteboardOutlineUITests: XCTestCase {
     shot(app, "folded from the ▾")
   }
 
-  /// Stories 1044, 1045 (#1000): while the room handle is held, a see-through band and a chip say what the lift will
+  /// Stories 1044, 1038 (#1000): while the room handle is held, a see-through band and a chip say what the lift will
   /// do. The simulator can't look mid-drag, so `GRABBER_WHITEBOARD_FEEDBACK_SECONDS` keeps the band up after the lift.
   func testTheRoomHandleShowsABandWhileHeld() throws {
     let app = try openBoard(["GRABBER_WHITEBOARD_FEEDBACK_SECONDS": "8"])
