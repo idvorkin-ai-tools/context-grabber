@@ -97,7 +97,8 @@ unrecognised. (It was a header: the ▾ sat in the margin's middle, under the ve
 ### Larry sees the headers
 
 - Every picture of the board (Larry's turn, Send, Claude's turn) shows a small grey ▾ in the margin beside each open
-  header, where the board shows it, as a folded header's "▸ N lines folded" already shows. Larry reads the ink's
+  header, where the board shows it, and a grey ▸ beside a folded one, whose section the picture draws whole and shaded
+  (#1013). Larry reads the ink's
   underline or # and the ▾ together: this line is a header and can fold.
 - What Larry is sent besides the picture is unchanged: folded sections go under their header as before.
 

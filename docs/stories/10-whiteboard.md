@@ -4862,6 +4862,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1046:
+
+- **Summary:** Larry's marks on a picture with a folded section land where he drew them
+- **Status:** implemented in [a043ea5c](https://github.com/idvorkin/context-grabber/commit/a043ea5c) (#1013); verified by host tests (`BoardFoldPictureTests`); `just test` and the Mac build (`just native-build-mac`); the iPad simulator (rung 2, `WhiteboardOutlineUITests.testLarrysPictureShowsAFoldedSectionWholeAndShaded`); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+- **Issues:** [#1013](https://github.com/idvorkin/context-grabber/issues/1013)
+
+#### Use Case:
+- **As someone** whose folded board Larry marks up
+- **I want** his marks to land on my folded board by the ink he drew them on in his picture
+- **so that** a picture showing my folded lines in full never puts his marks in the wrong place
+
+#### Acceptance Criteria:
+- **Scenario:** A mark below a folded section
+- **Given:** a header folded over four lines, a line of writing below the section, and Larry's picture showing the section whole
+- **When:** Larry circles that line of writing on the picture
+- **Then:** his circle shows around the same line on my folded board, not four lines below it; a mark he draws on the folded lines shows just under their header
+
+---
+
 ### User Story 1049:
 
 - **Summary:** Larry's labels read as plain written letters, not traced outlines
@@ -6687,20 +6707,22 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ### User Story 900:
 
-- **Summary:** Larry's picture shows a folded section as its header and "▸ N lines folded"
-- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a); verified by host tests (`BoardFoldMarkerTests`); `just test` and the Mac build (`just native-build-mac`); the picture not yet seen on the iPad
+- **Summary:** Larry's picture shows a folded section whole, flagged folded
+- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a) (header and "▸ N lines folded"); changed to the whole section in [a043ea5c](https://github.com/idvorkin/context-grabber/commit/a043ea5c) (#1013); verified by host tests (`BoardFoldMarkerTests`, `BoardFoldPictureTests`); `just test` and the Mac build (`just native-build-mac`); the iPad simulator (rung 2, `WhiteboardOutlineUITests.testLarrysPictureShowsAFoldedSectionWholeAndShaded`); the picture not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+- **Issues:** [#1013](https://github.com/idvorkin/context-grabber/issues/1013) (Igor, 2026-11-20, W4 on PR #912: "the picture shows the whole section, flagged as folded")
 
 #### Use Case:
 - **As someone** folding sections of a board I talk over with Larry
-- **I want to** have the picture Larry gets show "▸ N lines folded" beside a folded header, as the web board's does
-- **so that** he reads a folded board as a folded one, not as a header with nothing under it
+- **I want to** have the picture Larry gets show a folded section in full, marked as folded
+- **so that** he never loses what I set aside, and still knows I set it aside
 
 #### Acceptance Criteria:
-- **Scenario:** A folded header in Larry's picture
-- **Given:** a header folded over two lines
+- **Scenario:** A folded section in Larry's picture
+- **Given:** a header folded over two lines, with more writing below the section
 - **When:** Larry's turn takes a picture of the board (or I Send it, or Claude takes its turn)
-- **Then:** the picture shows the header and, beside it in small grey letters, "▸ 2 lines folded"; one line folded reads "▸ 1 line folded", and a fold folded away inside another shows none
+- **Then:** the picture shows the two folded lines under the header, shaded light grey across the page, with a grey "folded" in the margin at their top and a grey ▸ beside the header; the writing below comes after them, and a fold folded inside the section is drawn whole inside the shading
+- **And:** the picture has no "▸ 2 lines folded", and the board on the iPad stays folded
 
 ---
 
@@ -6712,7 +6734,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 #### Use Case:
 - **As someone** folding sections on the board
-- **I want to** see "▸ N lines folded" beside a folded header, where Larry's picture has it
+- **I want to** see "▸ N lines folded" beside a folded header
 - **so that** I know what the fold holds and have something to erase to take it
 
 #### Acceptance Criteria:

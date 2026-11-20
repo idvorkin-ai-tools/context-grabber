@@ -223,14 +223,25 @@ board differs, this says why.
   the section rather than being drawn over.
 - A fold is one Undo, named *Fold* or *Unfold*. (The web board's folds are not undo steps; on paper every change is,
   and an Undo of an earlier step would otherwise spring a fold open.)
-- Folded ink is still on the board: it moves with its header, a push never splits it from its header, and it is in no
-  picture. Larry is told which strokes are folded under which header and how many lines, so folded ink is never taken
-  for erased, nor for new when it unfolds.
+- Folded ink is still on the board: it moves with its header, and a push never splits it from its header. Larry is
+  told which strokes are folded under which header and how many lines, so folded ink is never taken for erased, nor
+  for new when it unfolds.
 - Headers are kept with the board on this device, by the names of their strokes.
-- **A folded header says what it holds, on the board and in Larry's picture.** Beside the folded header's row, a
-  little right of its last stroke, a small grey "▸ N lines folded" ("▸ 1 line folded" for one) shows on the board
-  and is drawn into every picture of the board (Larry's turn, Send, Claude's turn), in the same words and the same
-  place as the web board's, so Larry can read a folded board as a folded one.
+- **A folded header says what it holds on the board.** Beside the folded header's row, a little right of its last
+  stroke, a small grey "▸ N lines folded" ("▸ 1 line folded" for one) shows on the board, in the same words and the
+  same place as the web board's.
+- **Larry's picture shows a folded section whole, flagged folded** (Igor, 2026-11-20, W4 on PR #912: "the picture
+  shows the whole section, flagged as folded"; #1013). Every picture of the board (Larry's turn, Send, Claude's
+  turn) draws each folded section in full, in place, as the board would look with it open: its lines sit under the
+  header and what is below comes after them, so the picture is taller than the screen by what is folded. The section
+  is shaded light grey across the page, with a grey "folded" in the margin at its top and a grey ▸ beside the header
+  where an open one has ▾; a fold folded inside it is drawn whole too, inside the shading. Larry never loses what Igor
+  set aside, and still sees that Igor set it aside. Igor's own board is unchanged: the section stays folded there, and
+  the picture has no "▸ N lines folded".
+- With the picture goes where its folded sections are, so a reader can tell the picture's places from the board's.
+  Larry's marks drawn on that picture land on Igor's board where he drew them: a mark below a folded section lands
+  below it on the folded board, and a mark on the folded lines lands just under their header. A mark on a picture
+  sent from another device lands as the picture's frame says, unmoved by folds.
 - **Erasing a fold takes the whole section.** The eraser across a folded header's "▸ N lines folded", or across the
   folded header's own ink, erases the header and everything folded under it (folds folded inside it included), and
   what was below closes up to where the header was, in whole lines. One Undo brings the section back, still folded,
@@ -409,7 +420,10 @@ what a change would do except to send it to Igor's real board, and paused his ch
   another tap brings them back where they were. Folding a section holding a folded header and unfolding it leaves the
   inner one folded. Larry's next turn lists the folded strokes under their header, and none of them as erased.
 - Fold all, 1, 2 and Unfold all on a two-level outline show what the outline would.
-- A folded header shows "▸ N lines folded" beside it, and Larry's next picture has the same words beside the header.
+- A folded header shows "▸ N lines folded" beside it. Larry's next picture shows the folded lines under the header,
+  shaded, with "folded" in the margin and ▸ beside the header, and the ink below the section after them; the board on
+  the iPad stays folded.
+- A mark of Larry's drawn on that picture under the folded section lands under the same ink on the folded board.
 - The eraser drawn across that marker erases the header and its folded lines, the ink below closes up to where the
   header was, and one Undo brings the section back folded with the ink below where it was.
 - A line written big or underlined shows a faint H; a margin tap there makes it a header.

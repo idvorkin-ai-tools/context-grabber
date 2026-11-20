@@ -585,7 +585,7 @@ class Handler(BaseHTTPRequestHandler):
             if frame is not None and not all(isinstance(frame.get(k), (int, float)) for k in ("x", "y", "w", "h")):
                 return self._json(400, {"ok": False, "error": "frame needs x, y, w, h"})
             m = row(key, "igor", data.get("text") or "", data.get("id"), data.get("attachments"))
-            for name in ("board", "picture_id", "frame", "rev"):
+            for name in ("board", "picture_id", "frame", "rev", "picture_folds"):
                 if name in data:
                     m[name] = data[name]
             t["messages"].append(m)

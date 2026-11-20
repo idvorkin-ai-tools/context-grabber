@@ -41,16 +41,21 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
       x: Double(rect.minX), y: Double(rect.minY), w: Double(rect.width), h: Double(rect.height), scale: Double(scale))
   }
 
+  /// #1013: the folded sections the picture draws open, and how its places map onto the folded board.
+  public var folds: BoardFoldMap?
+
   enum CodingKeys: String, CodingKey {
-    case board, frame, title, report
+    case board, frame, title, report, folds
     case pictureID = "picture_id"
   }
 
   var wire: [String: Any] {
-    [
+    var out: [String: Any] = [
       "board": board, "picture_id": pictureID,
       "frame": ["x": frame.x, "y": frame.y, "w": frame.w, "h": frame.h, "scale": frame.scale],
     ]
+    if let folds, !folds.steps.isEmpty { out["picture_folds"] = folds.wire }
+    return out
   }
 }
 
