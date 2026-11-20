@@ -636,21 +636,81 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ### User Story 099:
 
-- **Summary:** Larry hears about arrivals and workouts as they happen, and can nudge the phone back
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84)
+- **Summary:** Larry hears that I arrived at a known place, within a few minutes, without a call
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too); nothing is sent yet. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
 
 #### Use Case:
 - **As a** Larry's client arriving at the gym
-- **I want to** have the arrival reach Larry without a call, and let Larry send a line to the phone
+- **I want to** have the arrival reach Larry without a call
 - **so that** the coaching is live context, not only what I bring to a call
 
 #### Acceptance Criteria:
 - **Scenario:** Arriving at a known place
-- **Given:** Kettlebility is a known place and background tracking is on
-- **When:** the phone settles inside its radius
-- **Then:** Larry's record shows the arrival within a few minutes, and a note Larry sends back appears on the phone
+- **Given:** Kettlebility is a known place, location recording is on and the app is in the background
+- **When:** the phone has been inside its circle for five minutes
+- **Then:** Larry's record shows *arrived at Kettlebility* with the time I walked in, and the session log has a `live_context` line for it
 
-- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84) — shape to be discussed first
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
+---
+
+### User Story 335:
+
+- **Summary:** Larry hears that I left a known place, timed when I walked out
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built and verified by host tests (`LiveContextDetectorTests`); nothing is sent yet
+
+#### Use Case:
+- **As a** Larry's client leaving the gym
+- **I want to** have the departure reach Larry with when I left
+- **so that** he knows the session is over and how long it was
+
+#### Acceptance Criteria:
+- **Scenario:** Leaving a known place
+- **Given:** the phone has told Larry I arrived at Kettlebility
+- **When:** it has been outside the circle for five minutes
+- **Then:** Larry's record shows *left Kettlebility* with the time of the first position outside, and a `live_context` line names it
+
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
+---
+
+### User Story 336:
+
+- **Summary:** Passing a known place, or a position the phone itself reports as imprecise, tells Larry nothing
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Verified by host tests (`LiveContextDetectorTests`: driving past, stepping out and back, a 1.4 km fix at home on the real trail sending no departure)
+
+#### Use Case:
+- **As a** Larry's client who drives past the gym on the way to work
+- **I want to** have only real arrivals and departures reach Larry
+- **so that** he never congratulates me on a workout I drove past
+
+#### Acceptance Criteria:
+- **Scenario:** Driving past a known place
+- **Given:** Kettlebility is a known place and location recording is on
+- **When:** the phone passes through its circle in under five minutes
+- **Then:** nothing is sent to Larry
+
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
+---
+
+### User Story 339:
+
+- **Summary:** Larry can nudge the phone back with a line
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84), the second half, after arrivals and departures
+
+#### Use Case:
+- **As a** Larry's client
+- **I want to** have a note Larry sends appear on the phone
+- **so that** he can nudge me where I am, without Telegram
+
+#### Acceptance Criteria:
+- **Scenario:** A nudge from Larry
+- **Given:** Larry has heard I arrived at Kettlebility
+- **When:** he sends a line to the phone
+- **Then:** it appears on the phone as a notification
+
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
 
 ---
 
