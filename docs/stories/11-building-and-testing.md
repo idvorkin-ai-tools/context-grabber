@@ -921,3 +921,61 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** the workout finishes
 - **Then:** the smoke judges the log only after the finish's letting go of the audio and the Live Activity's end (or its one *unavailable* line) have been logged, waiting a bounded time for each, and prints how long after the workout's last `timer_` line it read the log
 - **And:** a line that never comes is a failure naming what was missing and the last `timer_` line the workout did log, with its second into the workout, so a stopped workout reads differently from a slow one
+
+---
+
+### User Story 1011:
+
+- **Summary:** One command sends the current commit to TestFlight, beside the cable install
+- **Status:** not implemented
+- **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
+
+#### Use Case:
+- **As Igor,** away from the Mac or with the phone not on its cable
+- **I want to** send a commit to TestFlight with one command and install it from the TestFlight app
+- **so that** a build reaches my phone without a cable, while the cable install stays for everyday work ([spec](../superpowers/specs/2026-11-20-testflight-lane-design.md))
+
+#### Acceptance Criteria:
+- **Scenario:** Shipping a clean commit
+- **Given:** a clean checkout and the App Store Connect key set up in the environment or the ignored local file
+- **When:** Igor runs `just testflight`
+- **Then:** the app is archived in its release build with the commit stamped in, signed with its widgets and share extension for App Store distribution, and uploaded, with version 2.0.0 and the commit count as its build number
+- **And:** the lane ends by naming the version, the build number and the commit, and installed from TestFlight the build names that commit in its session log's first line
+
+---
+
+### User Story 1012:
+
+- **Summary:** The TestFlight lane says what is missing before it spends a build
+- **Status:** not implemented
+- **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
+
+#### Use Case:
+- **As Igor,** running the TestFlight lane before its one-time setup is done, or from a checkout with changes in it
+- **I want to** have the lane stop at once, naming what is missing or changed
+- **so that** a five-minute release build never ends in an upload that could not happen, and no build on TestFlight is a commit that doesn't exist
+
+#### Acceptance Criteria:
+- **Scenario:** No key, or uncommitted changes
+- **Given:** the key's id, its issuer or its file is missing, or the checkout has uncommitted changes
+- **When:** Igor runs `just testflight`
+- **Then:** it stops before building, naming which of the three is missing and where they are read from, or the changed files
+
+---
+
+### User Story 1013:
+
+- **Summary:** The TestFlight lane can build and sign without uploading, and needs no key to do it
+- **Status:** not implemented
+- **Issues:** [#1012](https://github.com/idvorkin/context-grabber/issues/1012)
+
+#### Use Case:
+- **As Igor,** or an agent without the App Store Connect key
+- **I want to** run the release build and its App Store signing on their own
+- **so that** a release-only compile failure or a signing problem shows up before the day a build has to reach the phone
+
+#### Acceptance Criteria:
+- **Scenario:** Export only
+- **Given:** a clean checkout, with or without the key
+- **When:** `just testflight --export-only` runs
+- **Then:** it archives and signs the package for App Store distribution, names where the package is, and uploads nothing
