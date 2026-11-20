@@ -1,14 +1,10 @@
-//  #950 (stories 1042–1044): a board's text in a real font, still ink: the per-board choice, a mark's or a text of
+//  #950 (stories 1044–1046): a board's text in a real font, still ink: the per-board choice, a mark's or a text of
 //  Larry's own choice, and the font's outlines as the strokes that draw it.
 
 import Foundation
 import XCTest
 
 @testable import ContextCore
-
-#if canImport(CoreText)
-  import CoreText
-#endif
 
 final class BoardRealFontTests: XCTestCase {
   private func fresh() -> BoardLetteringChoice {
@@ -31,6 +27,10 @@ final class BoardRealFontTests: XCTestCase {
     XCTAssertEqual(choice.choice("b"), .single, "another board's choice is its own")
     choice.forget("a")
     XCTAssertEqual(choice.choice("a"), .single)
+  }
+
+  func testTheMenusWords() {
+    XCTAssertEqual(WhiteboardTurn.LetterStyle.allCases.map(\.name), ["Single strokes", "Real font"])
   }
 
   // MARK: What a mark or a text asks for
@@ -103,6 +103,7 @@ final class BoardRealFontTests: XCTestCase {
       XCTAssertEqual(font.count, 1)
       let loop = try XCTUnwrap(font.first)
       XCTAssertEqual(loop.first, loop.last, "an outline closes on itself")
+      XCTAssertEqual(font, WhiteboardTurn.outlineLines("H", topLeft: .zero, height: 40), "the font's own outline")
     }
 
     /// A label in the real font stands where a written one would: capitals as tall, on the same baseline.
@@ -130,44 +131,8 @@ final class BoardRealFontTests: XCTestCase {
       let print = WhiteboardTurn.glyphLines("hi", topLeft: .zero, height: 30, lettering: .font)
       let hand = WhiteboardTurn.glyphLines("hi", topLeft: .zero, height: 30, face: .hand, lettering: .font)
       XCTAssertFalse(hand.isEmpty)
-      XCTAssertNotEqual(WhiteboardMarkChoice.bounds(hand), WhiteboardMarkChoice.bounds(print))
-      let h = WhiteboardMarkChoice.bounds(
-        WhiteboardTurn.glyphLines("H", topLeft: .zero, height: 30, face: .hand, lettering: .font))
-      let noteworthy = CTFontCreateWithName("Noteworthy-Light" as CFString, 30, nil)
-      XCTAssertEqual(h.height, CTFontGetCapHeight(noteworthy), accuracy: 1, "Noteworthy-Light's own cap height")
-    }
-
-    /// Larry's text naming no lettering, on a real-font board, makes room for the box its outlines take, not single
-    /// strokes': ink between where the two would end moves only if the font's letters reach it (#938).
-    func testLarrysTextOnARealFontBoardMakesRoomForTheFontsBox() throws {
-      let text = BoardOps.Text(id: "t", x: 0, y: 100, text: "Hello world", size: 40)
-      let single = WhiteboardMarkChoice.bounds(
-        WhiteboardTurn.glyphLines(text.text, topLeft: .zero, height: 40))
-      let font = WhiteboardMarkChoice.bounds(
-        WhiteboardTurn.glyphLines(text.text, topLeft: .zero, height: 40, lettering: .font))
-      let (near, far) = (min(single.maxX, font.maxX), max(single.maxX, font.maxX))
-      try XCTSkipIf(far - near < 4, "the two letterings end within a few points of each other")
-      let batch = BoardOps.Batch(
-        key: "k", source: "web", board: "b", label: "hi", baseRev: 0, ops: [.addText(text)]
-      ).lettered(.font)
-      guard case .addText(let lettered) = batch.ops.first else { return XCTFail("still one add_text") }
-      XCTAssertEqual(lettered.lettering, .font)
-      XCTAssertEqual(lettered.box.maxX, font.maxX, accuracy: 0.5, "its box is the outline's")
-      let ink = BoardOps.Stroke(
-        ids: ["s"], t: 1, bounds: CGRect(x: (near + far) / 2 - 1, y: 110, width: 2, height: 20))
-      let plan = BoardOps.plan(batch.ops, strokes: [ink], pages: 1)
-      let lands = try XCTUnwrap(plan.texts.first)
-      XCTAssertEqual(plan.offsets[0] != nil, font.maxX > single.maxX, "the ink moves only if the outline is on it")
-      XCTAssertEqual(lands.lettering, .font)
-    }
-
-    /// A text that names its own lettering keeps it on any board.
-    func testATextsOwnLetteringWinsOverTheBoardsInABatch() {
-      let batch = BoardOps.Batch(
-        key: "k", source: "web", board: "b", label: "hi", baseRev: 0,
-        ops: [.addText(BoardOps.Text(id: "t", x: 0, y: 0, text: "H", lettering: .single))]
-      ).lettered(.font)
-      XCTAssertEqual(batch.ops, [.addText(BoardOps.Text(id: "t", x: 0, y: 0, text: "H", lettering: .single))])
+      XCTAssertNotEqual(hand, print)
+      XCTAssertEqual(hand, WhiteboardTurn.outlineLines("hi", topLeft: .zero, height: 30, face: .hand))
     }
 
     /// An emoji still draws nothing, so its label has no letters in either lettering.

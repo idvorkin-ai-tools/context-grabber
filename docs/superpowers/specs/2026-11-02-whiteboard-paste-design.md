@@ -25,7 +25,7 @@ the board's picture to Larry and Claude.
   own default ink; in Larry's and Claude's picture they are dark on white. Curly quotes, dashes and the ellipsis are
   written in their keyboard forms; a character the written letters don't have (an accented letter, an arrow, a
   symbol) keeps its traced outline, so nothing pasted goes missing.
-- **On a board with *Real font* on** (the Board menu's switch, #950, [the shapes
+- **On a board whose lettering is *Real font*** (the Board menu's *Lettering*, #950, [the shapes
   spec](2026-11-01-whiteboard-shapes-design.md)), the paste is the outlines of Helvetica instead, traced as thin ink,
   wrapped and placed by the same rules measured in that font. Everything else here holds. A paste's own choice, made
   as it lands, waits for a paste to be one text object (#912's paste row); until then the board's lettering is how
@@ -69,6 +69,6 @@ the board's picture to Larry and Claude.
 - Paste "It’s fine — really…" zoomed out: the letters are single strokes like Larry's labels, open at the
   thinnest pen, the quote, dash and dots written as ' - ...; every row is within the screen's width.
 - Copy only emoji: the board doesn't change and the bar says nothing could be drawn.
-- Turn on *Real font* in the Board menu and paste "HI": the letters are Helvetica's outlines as ink, one closed
-  outline a letter; turn it off and paste again: H is three strokes and I one.
+- Choose *Real font* in the Board menu's *Lettering* and paste "HI": the letters are Helvetica's outlines as ink,
+  more strokes than single strokes draw; choose *Single strokes* and paste again: H is three strokes and I one.
 - A board drawn on another device: no Paste, and ⌘V does nothing.
