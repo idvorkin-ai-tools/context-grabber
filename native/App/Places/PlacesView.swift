@@ -211,6 +211,8 @@ struct PlacesView: View {
       if !tracker.trackingNote.isEmpty {
         Text(tracker.trackingNote).font(.footnote).foregroundStyle(.orange)
       }
+      LiveContextRow(
+        liveContext: app.liveContext, recording: tracker.trackingOn, knownPlaces: places.knownPlaces.count)
       Stepper(
         value: Binding(get: { places.retentionDays }, set: { places.setRetention($0, from: "stepper") }), in: 1...365
       ) {
@@ -225,6 +227,30 @@ struct PlacesView: View {
         "Points stay on the phone. Older ones than the retention are deleted when the app opens and when the number is lowered, except any the archive has not taken yet, which stay until it has."
       )
     }
+  }
+}
+
+// MARK: - telling Larry (#84, story 338)
+
+/// *Tell Larry when I arrive and leave*, and under it the last thing sent or why nothing is.
+struct LiveContextRow: View {
+  @ObservedObject var liveContext: LiveContextModel
+  let recording: Bool
+  let knownPlaces: Int
+
+  var body: some View {
+    Toggle(
+      "Tell Larry when I arrive and leave",
+      isOn: Binding(get: { liveContext.on }, set: { liveContext.setOn($0, from: "switch") })
+    )
+    .accessibilityIdentifier("live-context-switch")
+    Text(
+      LiveContextStatus.line(
+        on: liveContext.on, recording: recording, knownPlaces: knownPlaces, lastSent: liveContext.lastSent,
+        waiting: liveContext.waitingCount)
+    )
+    .font(.footnote).foregroundStyle(.secondary)
+    .accessibilityIdentifier("live-context-status")
   }
 }
 

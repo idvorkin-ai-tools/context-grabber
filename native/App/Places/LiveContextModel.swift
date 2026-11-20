@@ -10,16 +10,23 @@ import UIKit
 @MainActor
 final class LiveContextModel: ObservableObject {
   static let stateKey = "live_context"
+  /// The switch, on unless turned off (story 338).
+  static let onKey = "live_context_on"
 
   /// The last event the Cockpit took, for Settings.
   @Published private(set) var lastSent: LiveContextEvent?
   @Published private(set) var waitingCount = 0
+  /// *Tell Larry when I arrive and leave*.
+  @Published private(set) var on: Bool
 
   private let log: SessionLog
   private let database: AppDatabase
   private let sender: LiveContextSender
   private var state: LiveContext
   private var sending = false
+  private var sendTask: Task<Void, Never>?
+  /// The send's background time, ended once: by the send finishing or by iOS's expiry, whichever comes first.
+  private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   private var placesError: String?
 
   init(log: SessionLog, database: AppDatabase, cockpit: String) {
@@ -27,6 +34,7 @@ final class LiveContextModel: ObservableObject {
     self.database = database
     sender = LiveContextSender(cockpit: cockpit, transport: { try await URLSession.shared.data(for: $0) })
     state = LiveContext()
+    on = database.setting(Self.onKey) != "0"
     if let raw = database.setting(Self.stateKey) {
       do {
         state = try JSONDecoder().decode(LiveContext.self, from: Data(raw.utf8))
@@ -40,6 +48,7 @@ final class LiveContextModel: ObservableObject {
 
   /// New points from the trail, as the tracker stored them.
   func observe(_ points: [LocationPoint]) {
+    guard on else { return }
     let places: [KnownPlace]
     do {
       places = try database.locations?.knownPlaces() ?? []
@@ -56,6 +65,23 @@ final class LiveContextModel: ObservableObject {
     send(reason: "position")
   }
 
+  /// The switch. Off drops what waits (nothing is sent with it off); on starts afresh, so where the phone already is
+  /// is the unsent starting point.
+  func setOn(_ value: Bool, from source: String) {
+    guard value != on else { return }
+    on = value
+    database.setSetting(Self.onKey, value ? "1" : "0")
+    log.event(
+      "live_context", ["action": "switch", "on": value, "from": source, "dropped": value ? 0 : state.waiting.count])
+    if value {
+      state.detector = LiveContextDetector()
+    } else {
+      sendTask?.cancel()
+      state.waiting = []
+    }
+    save()
+  }
+
   /// Recording was turned on again: where the phone was when it stopped says nothing about now, so the next place it
   /// settles in is a fresh, unsent starting point. What still waits to be sent keeps waiting.
   func restart(reason: String) {
@@ -66,6 +92,7 @@ final class LiveContextModel: ObservableObject {
 
   /// The app came to the front: the quiet since the last position counts as staying, then what waits goes.
   func foreground() {
+    guard on else { return }
     settled(state.advance(to: Geo.ms(Date())))
     send(reason: "foreground")
   }
@@ -78,13 +105,19 @@ final class LiveContextModel: ObservableObject {
   }
 
   private func send(reason: String) {
-    guard !sending, !state.waiting.isEmpty else { return }
+    guard on, !sending, !state.waiting.isEmpty else { return }
     sending = true
     // A position's wake gives the app seconds; the request asks for a little more.
-    let task = UIApplication.shared.beginBackgroundTask(withName: "live_context")
+    // An app that hasn't ended its task when the time runs out is terminated, and background recording with it.
+    backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "live_context") { [weak self] in
+      MainActor.assumeIsolated {
+        self?.log.event("live_context", ["action": "background_time_up", "waiting": self?.state.waiting.count ?? 0])
+        self?.endBackgroundTask()
+      }
+    }
     let start = state
     let log = self.log
-    Task {
+    sendTask = Task {
       let after = await sender.send(start) { name, fields in
         var fields = fields
         fields["trigger"] = reason
@@ -99,8 +132,15 @@ final class LiveContextModel: ObservableObject {
       }
       save()
       sending = false
-      if task != .invalid { UIApplication.shared.endBackgroundTask(task) }
+      sendTask = nil
+      endBackgroundTask()
     }
+  }
+
+  private func endBackgroundTask() {
+    guard backgroundTask != .invalid else { return }
+    UIApplication.shared.endBackgroundTask(backgroundTask)
+    backgroundTask = .invalid
   }
 
   private func save() {
