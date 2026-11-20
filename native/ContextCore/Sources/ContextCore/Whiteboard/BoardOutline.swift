@@ -266,10 +266,13 @@ public struct BoardOutline: Sendable {
   /// Unfold: what is below slides back down and the body shows again. Anything written under the folded header lands
   /// after the body: the slide grows by whole lines so nothing is drawn over.
   @discardableResult
-  public mutating func unfold(_ id: String) -> Bool {
+  public mutating func unfold(_ id: String) -> Bool { opening(id) != nil }
+
+  /// Unfold, saying where: the header row's bottom, and how far everything from there down slid (#1013).
+  mutating func opening(_ id: String) -> (top: CGFloat, slide: CGFloat)? {
     guard let at = headers.firstIndex(where: { $0.id == id }), isFolded(headers[at]), let fold = headers[at].fold,
       let hb = box(headers[at])
-    else { return false }
+    else { return nil }
     let top = hb.maxY
     let below = units().filter { $0.header != id && $0.bounds.minY >= top }
     let extra =
@@ -280,7 +283,7 @@ public struct BoardOutline: Sendable {
     let positions = index
     for name in fold.own { if let m = positions[name] { strokes[m].hidden = false } }
     headers[at].fold = nil
-    return true
+    return (top, fold.shift + extra)
   }
 
   /// Folded, unfolded.

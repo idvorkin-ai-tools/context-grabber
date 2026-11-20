@@ -137,6 +137,8 @@ final class WhiteboardModel: ObservableObject {
   private let threads = WhiteboardThreads()
   /// #894 (story 1006): when each picture sent to Larry was taken, so his reply knows what was written after it.
   private let pictureTimes = WhiteboardPictureTimes()
+  /// #1013: each picture's map through the folds it drew open, for the marks Larry draws on it.
+  private let pictureFolds = WhiteboardPictureFolds()
   /// What's on screen in board points, for a turn on an empty board or a paste, and the zoom; the canvas sets them.
   var visibleRect: (() -> CGRect)?
   var zoom: (() -> CGFloat)?
@@ -814,11 +816,13 @@ final class WhiteboardModel: ObservableObject {
     shownRow = row.id
     let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
     let seen = pictureTimes.taken(row.pictureID, board: board.id)
+    // Story 1046: a picture drawn with folds open maps back onto the folded board.
+    let folds = pictureFolds.map(row.pictureID, board: board.id)
     let (marks, nowhere) = connectorGhosts(
       row.shapes.enumerated().map { index, shape in
         Ghost(
           shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id),
-          hand: penInHand, seen: seen)
+          hand: penInHand, seen: seen, folds: folds)
       }.filter { !settled.contains($0.id) })
     // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
     turns.larrysMarks(marks)
@@ -827,7 +831,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard_marks",
       [
         "action": "shown", "board": board.id, "row": row.id, "shapes": row.shapes.count,
-        "picture": row.pictureID ?? "", "picture_known": seen != nil,
+        "picture": row.pictureID ?? "", "picture_known": seen != nil, "folds_open": folds?.steps.count ?? 0,
       ])
   }
 
@@ -1006,15 +1010,18 @@ final class WhiteboardModel: ObservableObject {
     guard let (rect, scale) = pictureFrame() else { return nil }
     larryFrame = rect
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
-    let jpeg = picture(rect: rect, scale: scale).jpegData(compressionQuality: 0.85) ?? Data()
-    let picture = WhiteboardPicture(
-      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: rect, scale: scale,
+    let shot = shot(rect: rect, scale: scale)
+    let jpeg = shot.image.jpegData(compressionQuality: 0.85) ?? Data()
+    var picture = WhiteboardPicture(
+      board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: shot.rect, scale: shot.scale,
       report: turnReport())
+    picture.folds = shot.folds
     pictureTimes.record(picture.pictureID, at: Self.unixMs(), board: board.id)
+    pictureFolds.record(picture.pictureID, map: shot.folds, board: board.id)
     return LarryOut(
       jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta),
-      folds: foldsForLarry(), picture: picture, rect: rect,
-      scale: scale, said: said)
+      folds: foldsForLarry(), picture: picture, rect: shot.rect,
+      scale: shot.scale, said: said)
   }
 
   /// A picture handed to Larry, kept while his turn on it is out: *Retry* sends exactly this again (story 775).
@@ -1178,7 +1185,8 @@ final class WhiteboardModel: ObservableObject {
     // Story 661: the iPad's half of the turn, measured around the picture and its send.
     var timings = WhiteboardTimings(pause: paused)
     let rendering = ContinuousClock.now
-    let image = picture(rect: rect, scale: scale)
+    let shot = shot(rect: rect, scale: scale)
+    let image = shot.image
     let encoding = ContinuousClock.now
     timings.render = rendering.duration(to: encoding)
     let png = image.pngData() ?? Data()
@@ -1196,7 +1204,7 @@ final class WhiteboardModel: ObservableObject {
         cockpit: cockpit, board: board.id, timings: timings.wire)
       read = await readClaude(request, started: started, upload: upload) { [weak self] shape, first in
         guard let self, self.turns.current(asked) else { return }
-        self.land([shape], who: .claude, rect: rect, scale: scale, first: first)
+        self.land([shape], who: .claude, rect: shot.rect, scale: shot.scale, folds: shot.folds, first: first)
       }
       answer = read.answer
     } catch {
@@ -1293,11 +1301,12 @@ final class WhiteboardModel: ObservableObject {
 
   /// Marks landing on the board: an answer's first replaces its author's earlier ones, and only those.
   private func land(
-    _ shapes: [WhiteboardTurn.Shape], who: WhiteboardTurn.Who, rect: CGRect, scale: CGFloat, first: Bool
+    _ shapes: [WhiteboardTurn.Shape], who: WhiteboardTurn.Who, rect: CGRect, scale: CGFloat,
+    folds: BoardFoldMap? = nil, first: Bool
   ) {
     turns.land(
-      shapes.map { Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand) }, who: who, first: first,
-      now: .now)
+      shapes.map { Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand, folds: folds) }, who: who,
+      first: first, now: .now)
     if who == .claude { fadeClaudesGhosts() }
   }
 
@@ -1678,21 +1687,6 @@ final class WhiteboardModel: ObservableObject {
     if turns.stroked() { startPause() }
   }
 
-  /// Dark ink on white whatever the iPad's mode and the board's colour: what Larry and Claude see.
-  private func picture(rect: CGRect, scale: CGFloat) -> UIImage {
-    var ink = UIImage()
-    UITraitCollection(userInterfaceStyle: .light).performAsCurrent { ink = drawing.image(from: rect, scale: scale) }
-    let format = UIGraphicsImageRendererFormat()
-    format.scale = ink.scale
-    format.opaque = true
-    return UIGraphicsImageRenderer(size: ink.size, format: format).image { ctx in
-      UIColor.white.setFill()
-      ctx.fill(CGRect(origin: .zero, size: ink.size))
-      ink.draw(at: .zero)
-      drawFoldMarkers(in: rect)
-    }
-  }
-
   /// The app going to the background: what is drawn is written now. The board stays open, so an empty new one is
   /// kept.
   func flush() {
@@ -1838,15 +1832,19 @@ final class WhiteboardModel: ObservableObject {
     larryFrame = rect
     let turn = larry.state
     checkLarryWait()
-    let ink = picture(rect: rect, scale: scale)
+    let shot = shot(rect: rect, scale: scale)
+    let ink = shot.image
     let jpeg = ink.jpegData(compressionQuality: 0.85) ?? Data()
     var draft = InboxDraft()
     draft.image = jpeg
     let title = store.index.board(board.id)?.title ?? board.title
     draft.text = words.map { "\(title): \($0)" } ?? title
-    let sending = WhiteboardPicture(board: board.id, title: title, rect: rect, scale: scale, report: turnReport())
+    var sending = WhiteboardPicture(
+      board: board.id, title: title, rect: shot.rect, scale: shot.scale, report: turnReport())
+    sending.folds = shot.folds
     draft.whiteboard = sending
     pictureTimes.record(sending.pictureID, at: Self.unixMs(), board: board.id)
+    pictureFolds.record(sending.pictureID, map: shot.folds, board: board.id)
     // Story 424: the strokes wait beside the picture and go first when it goes.
     draft.strokes = try? JSONSerialization.data(
       withJSONObject: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta))
@@ -1861,7 +1859,8 @@ final class WhiteboardModel: ObservableObject {
         [
           "action": "send", "board": board.id, "strokes": drawing.strokes.count, "bytes": jpeg.count,
           "pixels": "\(Int(ink.size.width * ink.scale))x\(Int(ink.size.height * ink.scale))",
-          "frame": [Double(rect.minX), Double(rect.minY), Double(rect.width), Double(rect.height)],
+          "frame": [Double(shot.rect.minX), Double(shot.rect.minY), Double(shot.rect.width), Double(shot.rect.height)],
+          "folds_open": shot.folds?.steps.count ?? 0,
         ])
     } catch {
       larry.failed(turn, words: words)
@@ -2373,14 +2372,30 @@ struct Ghost: Identifiable, WhiteboardGhost {
 
   init(
     _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
-    id: String = UUID().uuidString, text: BoardOps.Text? = nil, hand: CGFloat? = nil, seen: Int64? = nil
+    id: String = UUID().uuidString, text: BoardOps.Text? = nil, hand: CGFloat? = nil, seen: Int64? = nil,
+    folds: BoardFoldMap? = nil
   ) {
     self.id = id
     self.seen = seen
     self.text = text
     self.who = who
-    connector = BoardConnectors.mark(shape, frame: frame, scale: scale, id: id)
-    lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
+    // Story 1046: drawn on a picture with folds open, the mark lands on the folded board by the ink it was drawn on.
+    var connector = BoardConnectors.mark(shape, frame: frame, scale: scale, id: id)
+    var lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
+    if let folds {
+      let onBoard = { (end: BoardOps.NewConnector.End) -> BoardOps.NewConnector.End in
+        if case .point(let p) = end { return .point(folds.toBoard(p)) }
+        return end
+      }
+      if var mark = connector {
+        mark.from = onBoard(mark.from)
+        mark.to = onBoard(mark.to)
+        connector = mark
+      }
+      lines = lines.map { $0.map(folds.toBoard) }
+    }
+    self.connector = connector
+    self.lines = lines
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
     width = WhiteboardTurn.width(shape, scale: scale, hand: hand)
     kind = shape.kind

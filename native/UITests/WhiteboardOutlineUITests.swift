@@ -1,5 +1,6 @@
-//  Stories 853, 855, 858, 901 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
-//  it): a paste's Delete, a margin tap that makes a header and folds it, a fold's lines beside it, and the hold menu.
+//  Stories 853, 855, 858, 900, 901 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh
+//  starts it): a paste's Delete, a margin tap that makes a header and folds it, a fold's lines beside it, Larry's
+//  picture of a folded section (#1013), and the hold menu.
 //  Where things land, how a section ends and what a fold moves are `BoardRoomTests` and `BoardOutlineTests` on the
 //  host; these check the gestures reach them on paper.
 
@@ -154,5 +155,105 @@ final class WhiteboardOutlineUITests: XCTestCase {
     point(app, margin, 0.35).press(forDuration: 0.8, thenDragTo: point(app, margin, 0.45))
     shot(app, "room opened by the margin")
     XCTAssertFalse(app.buttons["whiteboard-hold-make-room"].exists, "a drag is room, not the menu")
+  }
+
+  /// Story 900 (#1013): Send on a folded board gives Larry the folded lines whole and shaded, the picture taller by
+  /// them, with where they are beside its frame; the board on the iPad stays folded.
+  func testLarrysPictureShowsAFoldedSectionWholeAndShaded() throws {
+    let cockpit = try cockpit()
+    let app = try openBoard()
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.2, to: 0.5, y: 0.36)
+    write(app, x: 0.2, to: 0.5, y: 0.42)
+    write(app, x: 0.12, to: 0.4, y: 0.52)
+    wait(send(app), label: strokes(4))
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Header").firstMatch.appears(within: 5), app.debugDescription)
+    point(app, margin, 0.305).tap()
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), app.debugDescription)
+    sleep(1)
+    let before = Set(try boardMessages(cockpit).compactMap { $0["picture_id"] as? String })
+    send(app).tap()
+    let message = try newBoardMessage(cockpit, besides: before)
+    let folds = try XCTUnwrap(message["picture_folds"] as? [[String: Any]], "the folds beside the frame: \(message)")
+    XCTAssertEqual(folds.count, 1, "\(folds)")
+    let fold = try XCTUnwrap(folds.first)
+    let (y, h) = (try XCTUnwrap(fold["y"] as? Double), try XCTUnwrap(fold["h"] as? Double))
+    XCTAssertGreaterThan(h, 0, "the picture grows by the folded lines: \(fold)")
+    let frame = try XCTUnwrap(message["frame"] as? [String: Any])
+    let (top, scale) = (try XCTUnwrap(frame["y"] as? Double), try XCTUnwrap(frame["scale"] as? Double))
+    let picture = try XCTUnwrap(UIImage(data: try attachment(cockpit, of: message)), "the picture's bytes")
+    let attached = XCTAttachment(image: picture)
+    attached.name = "Larry's picture, the folded section whole"
+    attached.lifetime = .keepAlways
+    add(attached)
+    let width = Double(try XCTUnwrap(picture.cgImage).width)
+    // At the page's right edge, clear of the ink: white beside the header, the shading across the folded lines.
+    let edge = width - 4
+    XCTAssertGreaterThan(try grey(picture, x: edge, y: (y - 8 - top) * scale), 0.97, "white above the fold")
+    let shaded = try grey(picture, x: edge, y: (y + h / 2 - top) * scale)
+    XCTAssertLessThan(shaded, 0.96, "shaded across the folded lines")
+    XCTAssertGreaterThan(shaded, 0.85, "a light shade, not ink")
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.exists, "the board on the iPad stays folded")
+    shot(app, "still folded after Send")
+  }
+
+  private func get(_ cockpit: String, _ path: String) throws -> Data {
+    let url = try XCTUnwrap(URL(string: cockpit + path))
+    var got: Data?
+    let done = expectation(description: "the fake Cockpit answered \(path)")
+    URLSession.shared.dataTask(with: url) { body, _, _ in
+      got = body
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+    return try XCTUnwrap(got)
+  }
+
+  private func json(_ cockpit: String, _ path: String) throws -> [String: Any] {
+    try XCTUnwrap(try JSONSerialization.jsonObject(with: try get(cockpit, path)) as? [String: Any])
+  }
+
+  /// Igor's board pictures on the fake's threads.
+  private func boardMessages(_ cockpit: String) throws -> [[String: Any]] {
+    let threads = try XCTUnwrap(try json(cockpit, "/chat")["threads"] as? [[String: Any]])
+    return try threads.compactMap { $0["key"] as? String }.flatMap { key in
+      (try json(cockpit, "/chat/\(key)")["messages"] as? [[String: Any]] ?? []).filter {
+        $0["who"] as? String == "igor" && $0["picture_id"] != nil
+      }
+    }
+  }
+
+  private func newBoardMessage(_ cockpit: String, besides seen: Set<String>) throws -> [String: Any] {
+    let until = Date().addingTimeInterval(15)
+    while Date() < until {
+      if let new = try boardMessages(cockpit).first(where: { !seen.contains($0["picture_id"] as? String ?? "") }) {
+        return new
+      }
+      Thread.sleep(forTimeInterval: 0.5)
+    }
+    return try XCTUnwrap(nil as [String: Any]?, "no new board picture reached the fake Cockpit")
+  }
+
+  private func attachment(_ cockpit: String, of message: [String: Any]) throws -> Data {
+    let first = try XCTUnwrap((message["attachments"] as? [Any])?.first, "\(message)")
+    let ref = try XCTUnwrap(
+      (first as? String) ?? ((first as? [String: Any])?["ref"] as? String), "an attachment's ref: \(first)")
+    return try get(cockpit, "/attachments/" + ref)
+  }
+
+  /// A pixel's brightness, 0 black to 1 white.
+  private func grey(_ image: UIImage, x: Double, y: Double) throws -> Double {
+    let cg = try XCTUnwrap(image.cgImage)
+    let (px, py) = (Int(x), Int(y))
+    XCTAssertTrue((0..<cg.width).contains(px) && (0..<cg.height).contains(py), "(\(px), \(py)) in the picture")
+    var pixel: [UInt8] = [0, 0, 0, 0]
+    let context = try XCTUnwrap(
+      CGContext(
+        data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+    context.draw(cg, in: CGRect(x: -px, y: py - cg.height + 1, width: cg.width, height: cg.height))
+    return (Double(pixel[0]) + Double(pixel[1]) + Double(pixel[2])) / (3 * 255)
   }
 }
