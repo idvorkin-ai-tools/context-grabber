@@ -20,6 +20,11 @@
 #   CG_LINUX_BUILD   a build directory to keep between runs (default: a temporary one, removed afterwards)
 #   JOBS             build jobs (default 3)
 set -uo pipefail
+# A kept build directory is the caller's: created if missing, and a relative one is taken from where they ran it (#904).
+if [ -n "${CG_LINUX_BUILD:-}" ]; then
+  mkdir -p "$CG_LINUX_BUILD" && CG_LINUX_BUILD=$(cd "$CG_LINUX_BUILD" && pwd) ||
+    { echo "CG_LINUX_BUILD=$CG_LINUX_BUILD: cannot create that build directory" >&2; exit 2; }
+fi
 cd "$(dirname "$0")/../../native/ContextCore"
 [ "$(uname -s)" = Linux ] || { echo "test-linux is the Linux rung; on a Mac run just native-test" >&2; exit 2; }
 [ -n "${LINUX_SWIFT_BIN:-}" ] && export PATH="$LINUX_SWIFT_BIN:$PATH"
