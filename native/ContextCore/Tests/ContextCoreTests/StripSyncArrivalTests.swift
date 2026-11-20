@@ -66,14 +66,16 @@ final class StripSyncArrivalTests: XCTestCase {
   func testARefusedKeyLeavesNoHalfMonthAndAReReadLandsIt() throws {
     try db.execute(
       """
-      CREATE TRIGGER refuse_gym BEFORE INSERT ON daily_strip_peers WHEN NEW.item = 'gym'
+      CREATE TRIGGER refuse_second BEFORE INSERT ON daily_strip_peers
+      WHEN (SELECT count(*) FROM daily_strip_peers WHERE device = 'ipad') >= 1
       BEGIN SELECT RAISE(ABORT, 'refused'); END;
       """)
     let key = StripSync.key(device: "ipad", month: "2026-10")
     XCTAssertEqual(Array(absorb([key]).failed.keys), [key])
     XCTAssertEqual(
-      try strip.value(.balloons, day: "2026-10-17"), 0, "the balloon row before the refused one rolled back")
-    try db.execute("DROP TRIGGER refuse_gym;")
+      try strip.value(.balloons, day: "2026-10-17") + strip.value(.gym, day: "2026-10-18"), 0,
+      "the row written before the refused one rolled back")
+    try db.execute("DROP TRIGGER refuse_second;")
     let again = absorb()
     XCTAssertEqual(again.failed, [:])
     XCTAssertEqual(try strip.value(.balloons, day: "2026-10-17"), 3)
