@@ -41,7 +41,10 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
 - A database that has never seen iCloud's first sync (a new install or a reinstall) publishes nothing until the
   store's initial-sync or server change arrives, the store already holds strip keys, or five minutes in a row online in the foreground pass with no download (nothing in iCloud to overwrite; offline or suspended time never counts) (every empty database waits, with or without an account, since `ubiquityIdentityToken` is nil with iCloud Drive off; one with rows publishes at once and records that; a restored database handed to the old id drops the wait it carried), then restores the held steps, merges its own months back and replays the steps in one `DailyStrip.inTransaction` (a failure rolls back, keeps the held steps and stays closed until the next arrival or launch; launch and account-change recovery are transactional too; a failed one, or a failed own-key merge on arrival, sets `recovered = false` and publishes nothing until the next tap retries the recovery and, on success, publishes every month) and publishes them all;
   taps in between are queued, and a counter stepped in between is taken back and stepped again on top of the
-  recovered count (#380, local review).
+  recovered count (#380, local review). The gate is `StripPublishGate` in ContextCore (ready, recovered; a tap
+  holds its month, retries the recovery first, or publishes it), so the host tests drive it (#384). A held step and
+  its counter write are one transaction (`StripHeldSteps.step`, the held steps in `settings` on the same connection):
+  a refused counter write keeps no held step, and a refused held-step write leaves the count as it was (#384).
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
   `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, queued_months, replayed_steps),
   `reclaimed` (rows), `recovered_own` (rows);
@@ -56,7 +59,9 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   another device), the table migration, the 12-month window across year boundaries, and a full year of every item
   on four devices under half the 1 MB quota; an arriving month never deleting, an older month keeping a newer
   handed-over count, own iCloud rows coming back only where newer, rows under this device's own id reclaimed, and a
-  count stepped before the first sync landing on the recovered one.
+  count stepped before the first sync landing on the recovered one; with a database that refuses a write (a SQLite
+  trigger), a failed launch or arrival recovery closing publishing until a retried recovery succeeds, and a held
+  step whose counter write fails leaving nothing held (#384).
 - Simulator: a launch hook can't see a second device. The smoke checks that the strip still works with no iCloud
   account (the store is a no-op there).
 - Phone + iPad: the story's scenario, read from both devices' logs.
