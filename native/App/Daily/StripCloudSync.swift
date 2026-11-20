@@ -27,6 +27,9 @@ final class StripCloudSync {
   private var quiet: Task<Void, Never>?
   /// Counter steps made before the first sync, each saved with its counter write as one (local review, #384).
   private let held: StripHeldSteps
+  /// Keys whose write was refused when they arrived (#388): the whole store is read again when the app next comes to
+  /// the front, or once a retried recovery succeeds, so a missed key needn't change again to land.
+  private var missed: Set<String> = []
   /// Called after another device's months arrive, so the strip redraws.
   var onArrived: () -> Void = {}
 
@@ -89,6 +92,19 @@ final class StripCloudSync {
       let keys = note.userInfo?[NSUbiquitousKeyValueStoreChangedKeysKey] as? [String] ?? []
       MainActor.assumeIsolated { self?.arrived(keys: keys, reason: reason) }
     }
+    NotificationCenter.default.addObserver(
+      forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      MainActor.assumeIsolated { self?.retryMissed(why: "foreground") }
+    }
+  }
+
+  /// The keys a refused write skipped, and everything else the store holds, read again (#388).
+  private func retryMissed(why: String) {
+    guard !missed.isEmpty else { return }
+    log.event("strip_sync", ["action": "retry_missed", "keys": missed.count, "why": why])
+    missed = []  // a key that left the store is gone for good; one refused again comes back
+    arrived(keys: Array(store.dictionaryRepresentation.keys), reason: nil)
   }
 
   /// At launch: every month this device has goes up (the first sync sends its history), the other devices' keys
@@ -211,7 +227,9 @@ final class StripCloudSync {
   func changed(day: String) {
     switch gate.tap(day: day) {
     case .hold(let month): pendingMonths.insert(month)
-    case .recoverFirst: recoverThenPublish()  // all months go up once it succeeds, this one included
+    case .recoverFirst:
+      recoverThenPublish()  // all months go up once it succeeds, this one included
+      if gate.publishes { retryMissed(why: "recovered") }
     case .publish(let month): publish(month: month)
     }
   }
@@ -238,7 +256,11 @@ final class StripCloudSync {
       let months = StripSync.encode(try strip.ownRows(month: month)).filter { $0.key >= oldest }
       // ponytail: stored unencrypted in iCloud KVS by design (Igor, 2026-10-18); encrypt before storing anything
       // sensitive here, or before App Store submission.
-      for (m, data) in months { store.set(data, forKey: StripSync.key(device: device, month: m)) }
+      // A later build's items in this month stay in iCloud, though this build can't read them (#388).
+      for (m, data) in months {
+        let key = StripSync.key(device: device, month: m)
+        store.set(StripSync.carryingUnknown(data, from: store.data(forKey: key)), forKey: key)
+      }
       // Every device's months that aged out leave the store, this one's and abandoned ids' alike (a replaced phone
       // never prunes its own), so it stays inside its quota; each device keeps its own copy (Codex on #378).
       let aged = store.dictionaryRepresentation.keys.filter {
@@ -269,41 +291,47 @@ final class StripCloudSync {
       open(why: "store_holds")
     }
     var keys = keys
-    var byDevice: [String: [String]] = [:]
-    do {
-      // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from
-      // everything the store now holds (Codex on #378).
-      if reason == NSUbiquitousKeyValueStoreAccountChange {
+    // Another iCloud account's data replaces this one's, and the changed keys may not be listed: start over from
+    // everything the store now holds (Codex on #378).
+    if reason == NSUbiquitousKeyValueStoreAccountChange {
+      do {
         try strip.clearPeers(keeping: handedOver)
-        // The new account's own months for this device come back first, then this device's months go up over them.
-        // Waiting, the first sync recovers them itself; ready, a failure keeps publishing closed until one succeeds.
-        if ready { recoverThenPublish() }
-        keys = Array(store.dictionaryRepresentation.keys)
-        log.event("strip_sync", ["action": "account_change", "keys": keys.count])
-        onArrived()
+      } catch {
+        gate.arrivalFailed()
+        log.event(
+          "error",
+          ["where": "strip_sync_arrived", "message": "\(error)", "step": "clear_peers", "publishing": "closed"])
       }
-      for key in keys {
-        guard let (from, month) = StripSync.parse(key: key) else { continue }
-        // A month older than iCloud carries, or a key that left (only its owner pruning removes one), is kept as this
-        // device last had it.
-        guard month >= oldestKept, let data = store.data(forKey: key) else { continue }
-        if from == device {
-          // This device's own months, downloaded after a reinstall: back into its table where newer (local review).
-          try strip.mergeOwn(StripSync.decode(data))
-        } else {
-          try strip.mergePeer(from, month: month, rows: StripSync.decode(data))
-        }
-        byDevice[from, default: []].append(month)
-      }
-    } catch {
-      gate.arrivalFailed()
-      log.event("error", ["where": "strip_sync_arrived", "message": "\(error)", "publishing": "closed"])
+      // The new account's own months for this device come back first, then this device's months go up over them.
+      // Waiting, the first sync recovers them itself; ready, a failure keeps publishing closed until one succeeds.
+      if ready { recoverThenPublish() }
+      keys = Array(store.dictionaryRepresentation.keys)
+      missed = []
+      log.event("strip_sync", ["action": "account_change", "keys": keys.count])
+      onArrived()
     }
+    // Each key lands on its own (this device's own months back into its table where newer, the others' as peer
+    // rows), so a refused one costs only itself and is read again later (#388).
+    let arrival = strip.absorb(keys: keys, device: device, oldest: oldestKept) { store.data(forKey: $0) }
+    for months in arrival.merged {
+      for m in months.value { missed.remove(StripSync.key(device: months.key, month: m)) }
+    }
+    if !arrival.failed.isEmpty {
+      missed.formUnion(arrival.failed.keys)
+      gate.arrivalFailed()
+      log.event(
+        "error",
+        [
+          "where": "strip_sync_arrived", "message": arrival.failed.values.sorted().first ?? "",
+          "keys": arrival.failed.keys.sorted(), "publishing": "closed",
+        ])
+    }
+    let byDevice = arrival.merged
     guard !byDevice.isEmpty else { return }
     for (from, months) in byDevice {
       log.event(
         "strip_sync",
-        ["action": "arrived", "device": from, "months": months.sorted(), "reason": reason.map(String.init) ?? "launch"])
+        ["action": "arrived", "device": from, "months": months, "reason": reason.map(String.init) ?? "launch"])
     }
     onArrived()
   }

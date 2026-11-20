@@ -174,6 +174,10 @@ usually within a minute, and offline changes catch up when the device is back on
   the next tap tries again, and once it succeeds every day goes up, that tap's included (#384).
 - A tap whose count could not be saved changes nothing, before the first sync too: it is not remembered for later,
   so tapping again counts once, not twice (#384).
+- If one device's days can't be saved when they arrive, the other devices' days still arrive, and the missed ones
+  appear no later than the next time the app comes to the front (#388).
+- An older build never removes from iCloud an item it doesn't know: when it sends a month that iCloud holds with an
+  item from a later build, that item's days stay as they were (#388).
 - The strip's days sit in iCloud unencrypted beyond what iOS and iCloud already do on disk and in transit (Igor,
   2026-10-18: small app state, a personal build). Anything more sensitive, or an App Store build, encrypts first.
 - Without iCloud (signed out, or iCloud Drive off for the app) the strip works as before on that device alone, and

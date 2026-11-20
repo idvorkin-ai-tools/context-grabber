@@ -84,6 +84,27 @@ public enum StripSync {
     return months.compactMapValues { try? JSONSerialization.data(withJSONObject: $0, options: [.sortedKeys]) }
   }
 
+  /// `month` as this build wrote it, with every entry of an item it doesn't know carried over from `old`, the same
+  /// month as iCloud holds it: an older build republishing its month must not remove a later build's items (#388).
+  /// A known item is this device's own to write, so one missing from `month` stays missing.
+  public static func carryingUnknown(_ month: Data, from old: Data?) -> Data {
+    guard let old, let previous = (try? JSONSerialization.jsonObject(with: old)) as? [String: Any],
+      var days = (try? JSONSerialization.jsonObject(with: month)) as? [String: Any]
+    else { return month }
+    var carried = false
+    for (day, items) in previous {
+      guard let items = items as? [String: Any] else { continue }
+      let unknown = items.filter { DailyItem(rawValue: $0.key) == nil }
+      guard !unknown.isEmpty else { continue }
+      var merged = days[day] as? [String: Any] ?? [:]
+      for (name, entry) in unknown where merged[name] == nil { merged[name] = entry }
+      days[day] = merged
+      carried = true
+    }
+    guard carried else { return month }
+    return (try? JSONSerialization.data(withJSONObject: days, options: [.sortedKeys])) ?? month
+  }
+
   /// A monthly value back into rows. Each day and item is read on its own, so an unknown item or one malformed
   /// entry (a later build's, say) skips just that entry, not the month (Codex on #378).
   public static func decode(_ data: Data) -> [StripRow] {

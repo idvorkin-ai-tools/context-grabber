@@ -45,9 +45,18 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   holds its month, retries the recovery first, or publishes it), so the host tests drive it (#384). A held step and
   its counter write are one transaction (`StripHeldSteps.step`, the held steps in `settings` on the same connection):
   a refused counter write keeps no held step, and a refused held-step write leaves the count as it was (#384).
+- Arrivals go through `DailyStrip.absorb` (ContextCore): each key merges in its own transaction, so a refused key
+  costs only itself (#388 item 2). Its key is remembered (`missed`, in memory); the next `didBecomeActive`, or a
+  tap's retried recovery that succeeds, re-reads the whole store (`retry_missed`). Any refused key still closes the
+  gate (#384's rule).
+- Publishing carries through the entries of items this build doesn't know from the month iCloud holds under this
+  device's key (`StripSync.carryingUnknown`), so an older build never removes a later build's items (#388 item 3).
+  Known items are this device's own: one missing locally stays missing.
+- ponytail: #388 item 1 (a partial initial download overwritten after a reinstall) is open on Igor's decision; the
+  proposal on the issue recommends each install writing only keys it created (option E).
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
   `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, queued_months, replayed_steps),
-  `reclaimed` (rows), `recovered_own` (rows);
+  `reclaimed` (rows), `recovered_own` (rows), `retry_missed` (keys, why);
   failures are `error` with `where` strip_sync_publish, strip_sync_hand_over, strip_sync_reclaim,
   strip_sync_recover, strip_sync_replay, strip_sync_arrived or strip_sync_quota.
 - Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
@@ -61,7 +70,9 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   handed-over count, own iCloud rows coming back only where newer, rows under this device's own id reclaimed, and a
   count stepped before the first sync landing on the recovered one; with a database that refuses a write (a SQLite
   trigger), a failed launch or arrival recovery closing publishing until a retried recovery succeeds, and a held
-  step whose counter write fails leaving nothing held (#384).
+  step whose counter write fails leaving nothing held (#384); one refused arriving key skipping only itself, rolled
+  back whole and landed by a re-read, and a republished month keeping a later build's items (#388,
+  `StripSyncArrivalTests`).
 - Simulator: a launch hook can't see a second device. The smoke checks that the strip still works with no iCloud
   account (the store is a no-op there).
 - Phone + iPad: the story's scenario, read from both devices' logs.
