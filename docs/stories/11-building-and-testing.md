@@ -747,3 +747,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** any prune, including one whose `simctl` fails
 - **When:** it finishes
 - **Then:** one line names the simulators cleared and the MB freed (or says there was nothing), and it exits 0 so the boot or the run goes on
+
+---
+
+### User Story 1005:
+
+- **Summary:** The smoke judges the Gym Timer's workout only once its last line has landed, and says which way a short one went
+- **Status:** in progress on branch `native/gym-smoke-389`
+- **Issues:** [#389](https://github.com/idvorkin/context-grabber/issues/389) (a workout seen ending early: 3 of 4 duck windows, no Live Activity end; the run could not say whether the workout stopped or the smoke read too soon)
+
+#### Use Case:
+- **As Igor,** reading a simulator smoke run that failed the timer's checks
+- **I want to** have the smoke wait for the workout's last lines before it judges, and say how long after the last one it read the log
+- **so that** a slow simulator never fails a good workout, and a failure says whether the workout stopped early or the smoke read too soon
+
+#### Acceptance Criteria:
+- **Scenario:** The smoke's timer run
+- **Given:** the smoke starts its short Gym Timer workout
+- **When:** the workout finishes
+- **Then:** the smoke judges the log only after the finish's letting go of the audio and the Live Activity's end (or its one *unavailable* line) have been logged, waiting a bounded time for each, and prints how long after the workout's last `timer_` line it read the log
+- **And:** a line that never comes is a failure naming what was missing and the last `timer_` line the workout did log, with its second into the workout, so a stopped workout reads differently from a slow one
