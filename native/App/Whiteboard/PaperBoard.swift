@@ -1067,8 +1067,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Stories 890, 891: a fast zigzag over ink takes it and itself away, one undo bringing the ink back. PaperKit's own
   /// step for the zigzag is undone first, as for the tap's dot, so the stack holds only the scratch-out's.
   private func scratchesOut(_ change: PaperProbe.InkChange, _ markup: PaperMarkup) -> Bool {
-    guard drawsHere, change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty,
-      let key = change.added.first,
+    // An Undo or Redo that brings a stroke back is never a new zigzag: Redo brings back one that found nothing (#1000).
+    let undo = paper.undoManager
+    guard drawsHere, undo?.isUndoing != true, undo?.isRedoing != true, change.added.count == 1, change.removed.isEmpty,
+      change.moved.isEmpty, let key = change.added.first,
       let scratch = markup.scratch(key, asZigzag: LaunchHooks.current.whiteboard.zigzagAt == inkFrames.count)
     else { return false }
     let outcome = scratch.outcome

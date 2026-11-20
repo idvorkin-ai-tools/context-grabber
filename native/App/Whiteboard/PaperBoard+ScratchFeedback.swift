@@ -8,7 +8,7 @@ import PencilKit
 import SwiftUI
 import UIKit
 
-/// The scratch-out's word, while it shows.
+/// What a scratch-out shows: the word, while it shows, and the struck ink's flash.
 @MainActor
 final class BoardScratchNote: ObservableObject {
   struct Shown: Equatable {
@@ -17,68 +17,53 @@ final class BoardScratchNote: ObservableObject {
     var near: CGRect
   }
 
-  @Published fileprivate(set) var shown: Shown?
-  fileprivate var hiding: Task<Void, Never>?
-}
-
-/// The struck ink's ghost: one tinted path per stroke, fading. A view, not a bare layer, so a UI test can find it.
-final class ScratchFlashView: UIView {
-  init(frame: CGRect, path: CGPath, width: CGFloat) {
-    super.init(frame: frame)
-    isUserInteractionEnabled = false
-    isAccessibilityElement = true
-    accessibilityIdentifier = "whiteboard-scratch-flash"
-    accessibilityLabel = "Scratched out"
-    let shape = CAShapeLayer()
-    shape.frame = bounds
-    shape.path = path
-    shape.fillColor = nil
-    shape.strokeColor = UIColor.systemOrange.cgColor
-    shape.lineWidth = width
-    shape.lineCap = .round
-    shape.lineJoin = .round
-    layer.addSublayer(shape)
+  /// The struck ink, in the board view's points, and the pen's width there.
+  struct Flash: Equatable {
+    var id = UUID()
+    var path: Path
+    var width: CGFloat
+    /// How long it stays bright before it fades: the launch hook's, for a UI test's picture.
+    var hold: Double
   }
 
-  @available(*, unavailable)
-  required init?(coder: NSCoder) { fatalError("not from a storyboard") }
+  @Published fileprivate(set) var shown: Shown?
+  @Published fileprivate(set) var flash: Flash?
+  fileprivate var hiding: Task<Void, Never>?
+  fileprivate var flashing: Task<Void, Never>?
 }
 
 extension PaperBoardController {
   /// Story 1047: the strokes `gone` (the zigzag's too), read from `markup` before they went, flash and fade where they
-  /// were. Reduce Motion: no flash, a plain fade.
+  /// were. Reduce Motion: no flash, a plain fade (the overlay's).
   func flashScratched(_ gone: Set<String>, from markup: PaperMarkup) {
     let strokes = markup.subelements.strokes.filter { gone.contains(PaperHost.key($0.elementID)) }
     guard !strokes.isEmpty else { return }
-    let path = CGMutablePath()
-    var widths: [CGFloat] = []
+    var path = Path()
+    var widest: CGFloat = 2
     for stroke in strokes {
       let points = stroke.path.map { view.convert(lines.spot(of: $0.location.applying(stroke.transform)), from: lines) }
       guard let first = points.first else { continue }
       path.move(to: first)
       for point in points.dropFirst() { path.addLine(to: point) }
       if points.count == 1 { path.addLine(to: first) }
-      widths.append(stroke.path.map(\.size.width).max() ?? 2)
+      widest = max(widest, stroke.path.map(\.size.width).max() ?? 2)
     }
     let scale = lines.spot(of: CGPoint(x: 1, y: 0)).x
-    let width = max(3, (widths.max() ?? 2) * scale + 2)
-    let flash = ScratchFlashView(frame: view.bounds, path: path, width: width)
-    view.addSubview(flash)
-    let still = UIAccessibility.isReduceMotionEnabled
     let hold = LaunchHooks.current.whiteboard.feedbackSeconds ?? 0
-    flash.alpha = still ? 0.6 : 0
-    if !still {
-      // The flash: up bright at once, then the fade.
-      UIView.animate(withDuration: 0.08) { flash.alpha = 1 }
-    }
-    UIView.animate(withDuration: 0.45, delay: 0.1 + hold, options: [.curveEaseOut]) {
-      flash.alpha = 0
-    } completion: { _ in
-      flash.removeFromSuperview()
+    let flash = BoardScratchNote.Flash(path: path, width: max(3, widest * scale + 2), hold: hold)
+    scratchNote.flashing?.cancel()
+    scratchNote.flash = flash
+    scratchNote.flashing = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(hold + 0.8))
+      guard !Task.isCancelled, self?.scratchNote.flash?.id == flash.id else { return }
+      self?.scratchNote.flash = nil
     }
     log.event(
       "whiteboard",
-      ["action": "scratch_flash", "board": model.board.id, "strokes": strokes.count, "reduce_motion": still])
+      [
+        "action": "scratch_flash", "board": model.board.id, "strokes": strokes.count,
+        "reduce_motion": UIAccessibility.isReduceMotionEnabled,
+      ])
   }
 
   /// Story 1048: a zigzag that found nothing to erase goes, as an Undo would take it (Redo brings it back), and says so
@@ -126,6 +111,9 @@ struct ScratchNoteOverlay: View {
 
   var body: some View {
     GeometryReader { geometry in
+      if let flash = note.flash {
+        ScratchFlash(flash: flash).id(flash.id)
+      }
       if let shown = note.shown {
         Text(shown.text)
           .font(.subheadline.weight(.semibold))
@@ -141,5 +129,31 @@ struct ScratchNoteOverlay: View {
       }
     }
     .allowsHitTesting(false)
+  }
+}
+
+/// Story 1047: the struck ink, bright for a moment, then fading over about half a second. Reduce Motion: no flash, it
+/// shows plainly and fades.
+private struct ScratchFlash: View {
+  let flash: BoardScratchNote.Flash
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @State private var opacity: Double = 0
+
+  var body: some View {
+    flash.path
+      .stroke(Color.orange, style: StrokeStyle(lineWidth: flash.width, lineCap: .round, lineJoin: .round))
+      .opacity(opacity)
+      .accessibilityElement()
+      .accessibilityLabel("Scratched out")
+      .accessibilityIdentifier("whiteboard-scratch-flash")
+      .task {
+        if reduceMotion {
+          opacity = 0.6
+        } else {
+          withAnimation(.easeOut(duration: 0.08)) { opacity = 1 }
+        }
+        try? await Task.sleep(for: .seconds(0.1 + flash.hold))
+        withAnimation(.easeOut(duration: 0.45)) { opacity = 0 }
+      }
   }
 }
