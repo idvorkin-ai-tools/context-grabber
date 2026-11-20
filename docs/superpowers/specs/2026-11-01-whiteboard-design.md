@@ -264,6 +264,8 @@ paper. That description is the requirement, and this lists only where paper need
   later.
 - **Ink the app adds is on the screen.** A kept ghost, a paste, an undo or a redo of one shows within half a second, where it
   belongs, with the view staying where it is. Ink that's saved and counted but not shown is a bug, however rarely it happens.
+  If the board ever finds such ink missing from the screen a second later, it draws it again on its own, within a few
+  seconds, with no visible jump.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
 - **An undo doesn't outlive its board.** Closing a board takes its kept marks' undo steps with it, on either canvas, so Undo on
   the next board can't reach back and change the one that closed.
