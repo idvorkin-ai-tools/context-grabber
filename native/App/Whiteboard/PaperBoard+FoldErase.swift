@@ -58,19 +58,17 @@ extension PaperBoardController {
     Task { @MainActor [weak self] in
       guard let self else { return }
       // PaperKit's own step for the zigzag goes first, as for an ordinary scratch-out, so one Undo is the lot.
-      _ = self.takeBackPaperKitsStep(why: "scratch_fold")
-      let undid = self.paper.markup?.strokeFrames[key] == nil
-      // #1015, as #999: both made from the markup PaperKit holds after the take-back. One made before it, from the
-      // markup the zigzag's change handed over, was refused whole, and the folded section stayed on the sheet.
-      let before = (self.paper.markup ?? scratch.before).without([key])
+      let taken = self.takeBackZigzag(key, before: scratch.before, why: "scratch_fold")
       let took = self.eraseFolds(
-        hits, via: "scratch", path: scratch.points.count, on: before.without(gone), undoTo: before,
-        extra: ["undid_zigzag": undid, "strokes_too": gone.count])
+        hits, via: "scratch", path: scratch.points.count, on: taken.base.without(gone), undoTo: taken.base,
+        extra: ["undid_zigzag": taken.undid, "strokes_too": gone.count])
       // #1015: what PaperKit holds once the fold's markup is set, and a beat later, as for an ordinary scratch-out (#999).
       guard took else { return }
       let went = Set(scratch.before.strokeFrames.keys).union([key]).subtracting(self.putKeys)
       self.scratched = went
-      var event: [String: Any] = ["action": "scratch_fold", "board": self.model.board.id, "wanted": self.putKeys.count]
+      var event: [String: Any] = [
+        "action": "scratch_fold", "board": self.model.board.id, "base": taken.how, "wanted": self.putKeys.count,
+      ]
       event.merge(self.heldAfterScratch(went)) { $1 }
       self.log.event("whiteboard", event)
       try? await Task.sleep(for: .seconds(1))
