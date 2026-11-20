@@ -212,3 +212,32 @@ public struct LiveContextSender: Sendable {
     return state
   }
 }
+
+/// The line under *Tell Larry when I arrive and leave* (story 338): the last thing sent, or why nothing is.
+public enum LiveContextStatus {
+  public static func line(
+    on: Bool, recording: Bool, knownPlaces: Int, lastSent: LiveContextEvent?, waiting: Int,
+    timeZone: TimeZone = .current
+  ) -> String {
+    guard on else { return "Off: Larry hears nothing about where you go." }
+    guard recording else { return "Nothing is sent while background tracking is off." }
+    guard knownPlaces > 0 else { return "Nothing is sent until a place is named." }
+    var parts: [String] = []
+    if let lastSent {
+      let verb = lastSent.kind == .arrived ? "Arrived at" : "Left"
+      parts.append("\(verb) \(lastSent.place) · \(clock(lastSent.at, timeZone))")
+    } else {
+      parts.append("Nothing sent yet")
+    }
+    if waiting > 0 { parts.append("\(waiting) waiting for the Cockpit") }
+    return parts.joined(separator: " · ")
+  }
+
+  static func clock(_ ms: Double, _ timeZone: TimeZone) -> String {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.timeZone = timeZone
+    f.dateFormat = "EEE h:mm"
+    return f.string(from: Date(timeIntervalSince1970: ms / 1000))
+  }
+}

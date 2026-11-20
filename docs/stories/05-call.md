@@ -714,6 +714,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 338:
+
+- **Summary:** One switch in Places stops Larry hearing where I go, and says what it last sent
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch not yet seen on the simulator or the phone
+
+#### Use Case:
+- **As a** Larry's client who wants a day to himself
+- **I want to** turn off *Tell Larry when I arrive and leave* in Places
+- **so that** nothing about where I go leaves the phone until I turn it back on
+
+#### Acceptance Criteria:
+- **Scenario:** The switch off
+- **Given:** *Tell Larry when I arrive and leave* is off and background tracking is on
+- **When:** I arrive at and leave Kettlebility
+- **Then:** nothing is sent, the line under the switch says it is off, and turning it back on sends nothing about where I already am
+
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
+---
+
 ### User Story 339:
 
 - **Summary:** Larry can nudge the phone back with a line
