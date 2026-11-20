@@ -210,7 +210,9 @@ sleeping, so a slow start cannot reuse the previous result ([`scripts/native/sim
 **A locked Mac seems to starve the simulator's audio** (and with the display off, the UI tests don't start at all:
 story 782 above) (#419: inferred from comparing locked and unlocked runs of the
 same code, not traced into CoreAudio). Timer cues come late or empty, the keepalive fails, breathing is silent and the
-real-audio call can hear only zeros, on code that passes unlocked. The eulogy song failed the same way (#692; whether the Mac was locked then isn't known): on 2026-11-05 the song took 15 s to load and the system's player would not start it, nor a fresh one, and on 2026-11-19, unlocked, the same tests passed with a 0.2 s load. So `EulogyUITests` names the problem the sheet shows when the song doesn't play, and that is the sign to unlock and rerun. Since story 827 the smoke skips those checks while the
+real-audio call can hear only zeros, on code that passes unlocked. Zeros for the whole call make the app re-arm the
+mic, find no sound after it and file an automatic report, which is right for a real call (#364: unlocked on
+2026-11-19 the same call heard the mic from its first buffer and filed none). The eulogy song failed the same way (#692; whether the Mac was locked then isn't known): on 2026-11-05 the song took 15 s to load and the system's player would not start it, nor a fresh one, and on 2026-11-19, unlocked, the same tests passed with a 0.2 s load. So `EulogyUITests` names the problem the sheet shows when the song doesn't play, and that is the sign to unlock and rerun. Since story 827 the smoke skips those checks while the
 Mac's screen is locked (the timer and its voice, breathing, the real-audio call): each prints *skipped: Mac screen
 locked*, the run's last lines count them as skipped, not passed, and a rerun unlocked is what checks them. A screen
 that locks during one of them can still fail it; the line at the end says so. `scripts/native/test-smoke-lock.sh`
