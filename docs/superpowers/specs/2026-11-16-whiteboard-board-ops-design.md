@@ -244,6 +244,9 @@ board differs, this says why.
   (1.5 times his usual line height and 1.6 times his usual letters, once the board has four lines of his to judge by,
   three strokes or more, wider than tall), or one underlined across most of its width. It is only a suggestion: it
   doesn't fold and isn't kept until his margin tap there makes it a header.
+- **Headers drawn in ink** (#967): an underline drawn under a line, or a # written at its start, makes it a header as
+  he draws it, and a rule drawn across the page ends the sections above it. See
+  [Headers drawn in ink](2026-11-19-whiteboard-ink-headers-design.md). The faint H stays for ink drawn before.
 
 ### Press and hold (#918)
 

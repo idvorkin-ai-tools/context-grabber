@@ -369,6 +369,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   var following: Task<Void, Never>?
   var selectedNewestForTests = false
   private var marking: Task<Void, Never>?
+  /// Headers made by ink whose mark is away, as last logged (#967).
+  var marksGone: Set<String> = []
   /// Stories 902, 903: an eraser touch on a board with a fold, from where it went down (PaperBoard+FoldErase.swift).
   var foldErasing: FoldErasing?
   /// Story 858: the menu a held finger brought up, in this view's points; nil with none.
@@ -692,6 +694,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       || pickedUp(change, markup: markup, before: previous) || scratchesOut(change, markup)
     snapNoticed(change, consumed: consumed)
     if consumed { return }
+    inkHeaderSoon(change)
     if !change.isEmpty {
       forgetPaste()
       showMarksSoon()
@@ -1270,6 +1273,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       marks.append(PaperLines.Mark(id: "candidate-\(n)", y: candidate.y, text: "H", faint: true))
     }
     lines.showMarks(marks)
+    noteMarksGone(outline)
   }
 
   // MARK: - Press and hold (#918)

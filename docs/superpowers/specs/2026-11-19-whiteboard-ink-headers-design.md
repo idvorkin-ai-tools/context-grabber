@@ -1,0 +1,112 @@
+# Whiteboard: headers drawn in ink
+
+Issue [#967](https://github.com/idvorkin/context-grabber/issues/967). Igor, on board 302d5345 (2026-11-19, relayed by
+Larry): "A line drawn under handwritten text, or a leading #, makes that line a header, plus a way to end a header
+section."
+
+This builds on *Headers fold their sections* in [Larry edits the board](2026-11-16-whiteboard-board-ops-design.md):
+a header is the same header a margin tap makes, with the same ▾, folds, sections, levels and erase. Nothing here is
+a second kind of header; only the ways one is made and the ways a section ends are new.
+
+## Goals
+
+- Igor makes a header the way he would in a notebook or in Markdown, with the Pencil, without reaching for the margin.
+- A section can end where Igor says it ends, not only where his indent comes back.
+- A wrong guess costs one Undo, and never comes back on its own.
+- Larry sees which lines the board takes for headers.
+
+## Non-goals (this slice)
+
+- Old ink is never converted. A board opened with underlined lines on it keeps them as they were (the faint H still
+  offers them); only an underline or a # drawn from now on makes a header.
+- Header levels by mark (`#` against `##`): a header's level is still how deep it nests.
+- Larry making or unmaking headers, and any change to what the Cockpit is sent. (Larry needs no wire or op change.)
+
+## What Igor sees
+
+### An underline makes the line above it a header
+
+- **When Igor draws a straight, flat line under a line of his writing**, across most of its width, that line becomes
+  a header as soon as he lifts the Pencil: the ▾ shows in the margin beside it, as after a margin tap.
+- The underline is the same one the faint H already looks for: long (60 points or more), flat and straight, its
+  middle just under the writing (from a third of the way up the letters to a little over half a line below them),
+  and covering at least seven tenths of the line's width.
+- An underline that runs far past the writing (more than half as wide again as the line, plus a line's height) is
+  not an underline: it is a rule (below).
+- The underline belongs to the header: it folds with it, moves with it and is erased with it.
+- Only Igor's own writing is made a header this way, never one of Larry's groups or kept texts, and never a line that
+  is already a header.
+
+### A # at the start of a line makes it a header
+
+- **When Igor writes a # at the start of a line**, the line becomes a header as soon as the # is finished, before or
+  after he writes the words after it.
+- A # is four short straight strokes, two of them roughly level and two roughly upright (or slanted up to about 35°),
+  each level one crossing both upright ones, all inside a box no bigger than about a line and a half each way. It is
+  the leftmost ink on its line.
+- The # stays on the board as ink: it is part of the header's row.
+
+### Writing more on a header's line
+
+- Anything Igor writes on a header's own line afterwards is part of the header's row: the header's words written
+  after the #, or a word added to an underlined header. It folds with it, the fold's "▸ N lines folded" sits past it,
+  and the margin's ▾ stays one mark. This holds for every header, a margin tap's included.
+
+### A rule across the page ends the sections above it
+
+- **A long, straight, flat line that underlines nothing** (at least about half the page wide, and not just under a
+  line of writing it would underline) is a rule. A section ends at the first rule below its header, as it ends where the ink
+  comes back to the header's indent or at the next header: whichever comes first.
+- The rule and what is below it never fold into the section above. Folding a header slides the rule up, with the rest
+  of what is below, to a line or two under the header.
+- A rule ends every section open above it, outer ones included, as a horizontal rule ends them in Markdown.
+- A rule is plain ink in every other way: Igor erases it to let the section run on. It never puts a faint H beside
+  the line above it: the faint H looks for the same underline the ink does, one that doesn't run far past the writing.
+- A rule is read wherever it is, ink drawn before this build included: it is never kept, only seen. A shorter flat
+  line (a dash, a strike) is plain ink and ends nothing.
+
+### Undoing a wrong guess
+
+- **One Undo takes the mark and the header with it.** The underline or the #'s last stroke was the last thing drawn;
+  Undo takes that stroke away and the line is no longer a header (its ▾ goes). Redo brings the stroke and the header back.
+- **Erasing the mark** (the underline, or any stroke of the #) also makes the line plain again, the header's words
+  left as they were. A folded header keeps its fold until it is unfolded: erasing its underline never springs or loses
+  a fold.
+- ***Not a header*** (the hold menu beside a header, as today) keeps the underline or # as ink and makes the line
+  plain. The board never makes it a header again on its own: only a newly drawn underline or # makes one.
+- A wrong rule is erased or undone like any stroke, and the section runs on as before.
+
+### Larry sees the headers
+
+- Every picture of the board (Larry's turn, Send, Claude's turn) shows a small grey ▾ in the margin beside each open
+  header, where the board shows it, as a folded header's "▸ N lines folded" already shows. Larry reads the ink's
+  underline or # and the ▾ together: this line is a header and can fold.
+- What Larry is sent besides the picture is unchanged: folded sections go under their header as before.
+
+### The session log
+
+- Every header the ink makes is in the session log: by an underline or a #, the line's place, and the strokes it took,
+  so a phone's log says why a line became a header. A header made plain again by its mark's Undo or erase is logged
+  too.
+
+## Acceptance criteria
+
+- Drawing an underline under a line of writing shows ▾ beside it at once; a tap on the ▾ folds the section below it.
+- Writing # and then words at the start of a line shows ▾ beside it; the fold marker lands past the words, not over
+  them.
+- A rule drawn across the page under a section's lines ends the section there: folding the header hides only the
+  lines above the rule, the last one included even when the rule touches it, and the rule slides up under the header.
+- One Undo after an underline or a # that made a header takes its last stroke and the ▾; Redo brings both back.
+- *Not a header* on an underlined header leaves the underline and no ▾, and drawing elsewhere never brings it back.
+- A board opened with underlines drawn before this build shows them as they were: faint H, no header.
+- Larry's picture shows the grey ▾ beside an open header.
+
+## Future work (not in this slice)
+
+- `##` and `###` as levels, and the outline's levels following the marks when there are any.
+- A double rule, or a rule with a word on it, as an end of everything, or a page break.
+- Larry told about open headers in what he is sent, not only in the picture (it needs a Cockpit change).
+- Larry making a line a header (an op), and *To text* turning a header line into a kept text that is still a header.
+- A header made by a live-snapped line: a snap swaps the stroke, so the header's mark is lost and the line goes plain.
+  The snap should hand the header to the clean line.
+- Recognising a header from handwriting recognition (the words "#" or "1." read by the model) rather than geometry.
