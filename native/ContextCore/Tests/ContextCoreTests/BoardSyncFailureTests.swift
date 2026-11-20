@@ -75,6 +75,17 @@ final class BoardSyncFailureTests: XCTestCase {
     XCTAssertEqual(zone?["domain"] as? String, NSURLErrorDomain)
   }
 
+  func testAFailedDownloadBlamesNoBoardTheEarlierStepsWrote() {
+    let fields = BoardSyncFailure(
+      why: "open", step: .download, board: "last-uploaded", strokes: 7, pending: 1, firstOfLaunch: false,
+      error: cloud(4)
+    ).fields
+
+    XCTAssertEqual(fields["step"] as? String, "download")
+    XCTAssertNil(fields["board"])
+    XCTAssertNil(fields["strokes"])
+  }
+
   func testTheFieldsAreJSONTheSessionLogCanWrite() {
     let fields = BoardSyncFailure(
       why: "open", step: .upload, board: "a", strokes: 1, pending: 1, firstOfLaunch: true,

@@ -15,6 +15,8 @@ public enum BoardSyncStep: String, Sendable {
   case upload
   /// Listing every board in iCloud.
   case list
+  /// Fetching boards' drawings after the list; each failure is also logged with its board where it happens.
+  case download
 }
 
 /// What a whiteboard sync knew when it failed, turned into the `whiteboard_sync` event's fields.
@@ -61,8 +63,8 @@ public struct BoardSyncFailure {
       "ok": false, "why": why, "step": step.rawValue, "pending": pending, "first_of_launch": firstOfLaunch,
       "message": "\(error)", "code": (error as NSError).code,
     ]
-    if let board { out["board"] = board }
-    if let strokes { out["strokes"] = strokes }
+    if let board, step == .delete || step == .upload { out["board"] = board }
+    if let strokes, step == .upload { out["strokes"] = strokes }
     if let saveError { out["save_error"] = CloudErrorFields.item(saveError) }
     if let deleteError { out["delete_error"] = CloudErrorFields.item(deleteError) }
     if let zoneError { out["zone_error"] = CloudErrorFields.item(zoneError) }

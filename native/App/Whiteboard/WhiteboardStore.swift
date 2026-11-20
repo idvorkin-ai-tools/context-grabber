@@ -292,8 +292,6 @@ final class WhiteboardStore: ObservableObject {
         index.uploaded(board.id, at: board.updated)
       }
       step = .list
-      stepBoard = nil
-      stepStrokes = nil
       let listed = try await cloud.boards()
       let merged = index.merge(
         cloud: listed.boards, device: device, unread: listed.unread, tombstones: listed.tombstones, open: open)
@@ -301,6 +299,7 @@ final class WhiteboardStore: ObservableObject {
       for id in merged.dropped { keeping.removeFiles(id) }
       // Each board on its own: one that fails is asked for again next sync, the rest still arrive.
       var failed: (any Error)?
+      step = .download
       for id in merged.fetch {
         guard let drawing = drawingURL(id), let picture = pictureURL(id), let board = index.board(id) else { continue }
         do {
@@ -332,7 +331,7 @@ final class WhiteboardStore: ObservableObject {
       let write = error as? BoardCloud.WriteFailed
       // A download's own failure is logged with its board where it happens; this is the step that threw.
       let failure = BoardSyncFailure(
-        why: reason, step: step, board: step == .list ? nil : stepBoard, strokes: step == .upload ? stepStrokes : nil,
+        why: reason, step: step, board: stepBoard, strokes: stepStrokes,
         pending: pending, firstOfLaunch: firstOfLaunch, error: write?.error ?? error, saveError: write?.save,
         deleteError: write?.delete, zoneError: zoneError,
         recordName: { ($0.base as? CKRecord.ID)?.recordName ?? "\($0.base)" })
