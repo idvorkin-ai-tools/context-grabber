@@ -91,6 +91,9 @@ struct BoardHelpSheet: View {
         Row(
           gesture: "Hold the Pencil on a word",
           does: "Picks it up: drag and lift to move it, or lift without moving to select it."),
+        Row(
+          gesture: "Underline a line, or start it with #",
+          does: "Makes it a header (▾); Undo takes the mark and the header. A rule across the page ends a section."),
         Row(gesture: "Fast zigzag over ink", does: "Scratches it out. Undo brings it back."),
         Row(gesture: "Lasso, then To text", does: "Turns the handwriting into typed text."),
         Row(

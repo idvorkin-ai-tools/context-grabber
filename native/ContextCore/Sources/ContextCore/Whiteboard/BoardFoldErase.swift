@@ -101,11 +101,18 @@ extension BoardOutline {
 
   /// The headers to keep after an outline change: the outline's own, and those of `previous` whose ink is all gone from
   /// the board (erased with their fold, or by the eraser), so an Undo that brings the ink back brings the header back,
-  /// still folded. Unmarking a header, whose ink is still there, drops it.
+  /// still folded. Unmarking a header, whose ink is still there, drops it. One made by an underline or a # whose mark
+  /// is gone is kept too, so the mark's Redo brings it back (#967), unless the row has been made a header since.
   /// ponytail: a header whose ink is gone for good stays in the list, a few bytes each; prune ones no Undo can reach
   /// (older than the board's open) if a board ever carries many.
   public static func keeping(_ headers: [BoardHeader], previous: [BoardHeader], live: Set<String>) -> [BoardHeader] {
     let ids = Set(headers.map(\.id))
-    return headers + previous.filter { !ids.contains($0.id) && !$0.ids.contains(where: live.contains) }
+    let taken = Set(headers.flatMap(\.ids))
+    return headers
+      + previous.filter { header in
+        guard !ids.contains(header.id) else { return false }
+        if !header.ids.contains(where: live.contains) { return true }
+        return header.markGone(live) && !header.ids.contains(where: taken.contains)
+      }
   }
 }

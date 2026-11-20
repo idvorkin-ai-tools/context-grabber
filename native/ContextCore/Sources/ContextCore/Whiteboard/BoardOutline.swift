@@ -28,11 +28,22 @@ public struct BoardHeader: Codable, Equatable, Sendable {
   public var id: String
   public var ids: [String]
   public var fold: Fold?
+  /// The strokes of the underline or # that made it (#967): while none of them is on the board it is no header, so the
+  /// Undo of the mark takes the header and its Redo brings it back. Nil for a header made by a margin tap or the menu.
+  public var mark: [String]?
 
-  public init(id: String, ids: [String], fold: Fold? = nil) {
+  public init(id: String, ids: [String], fold: Fold? = nil, mark: [String]? = nil) {
     self.id = id
     self.ids = ids
     self.fold = fold
+    self.mark = mark
+  }
+
+  /// Made by ink whose strokes are all gone, and open: no header while its mark is away (#967). A folded one keeps
+  /// its fold, so erasing its underline never loses what it hides.
+  public func markGone(_ live: Set<String>) -> Bool {
+    guard fold == nil, let mark, !mark.isEmpty else { return false }
+    return !mark.contains(where: live.contains)
   }
 }
 
@@ -63,8 +74,8 @@ public struct BoardOutline: Sendable {
     self.texts = texts
     self.groups = groups
     let names = Set(strokes.flatMap(\.ids))
-    // A header whose ink is gone is no header.
-    self.headers = headers.filter { $0.ids.contains(where: names.contains) }
+    // A header whose ink is gone is no header, nor one whose underline or # is (#967).
+    self.headers = headers.filter { $0.ids.contains(where: names.contains) && !$0.markGone(names) }
   }
 
   // MARK: - What moves whole
@@ -197,6 +208,7 @@ public struct BoardOutline: Sendable {
   /// A section, by indent: the header's row down to the first line whose ink starts at or left of the header's own
   /// left edge (within half a line), or to the next header at the same indent or shallower, whichever comes first.
   /// Blank paper never ends one. A header whose next line isn't indented runs to the next header at its indent.
+  /// A rule drawn across the page ends it too, whatever its indent (#967).
   func section(_ id: String) -> Section? {
     guard let header = header(id), let hb = box(header) else { return nil }
     let us = units()
@@ -212,9 +224,11 @@ public struct BoardOutline: Sendable {
     let leftOf = { (us: [Unit]) in us.map(\.bounds.minX).min() ?? 0 }
     let indented = lines.first.map { leftOf($0.us) > edge } ?? false
     var nextTop = CGFloat.infinity
+    let rules = rules()
     for line in lines {
       let shallowHeader = line.us.contains { $0.header != nil && $0.bounds.minX <= edge }
-      if shallowHeader || (indented && leftOf(line.us) <= edge) {
+      let rule = line.us.contains { $0.tag == nil && $0.members.contains(where: rules.contains) }
+      if shallowHeader || rule || (indented && leftOf(line.us) <= edge) {
         nextTop = line.top
         break
       }

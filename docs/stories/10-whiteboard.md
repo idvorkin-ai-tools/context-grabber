@@ -7369,3 +7369,142 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **When:** VoiceOver reaches the Undo button
 - **Then:** it reads *Undo Keep group*; for my own stroke it reads *Undo*, and with nothing to undo it says the button is dimmed
 
+---
+
+### User Story 1010:
+
+- **Summary:** An underline drawn under a line of my writing makes it a header
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *An underline makes the line above it a header*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who underlines my headings as I would in a notebook
+- **I want to** draw a line under a line of my writing and have it become a header
+- **so that** I never reach for the margin to make one
+
+#### Acceptance Criteria:
+- **Scenario:** Underlining a line
+- **Given:** a line of my writing with indented lines under it
+- **When:** I draw a straight line under it across most of its width and lift the Pencil
+- **Then:** a ▾ shows beside the line, and a tap on the ▾ folds the indented lines, the underline staying with the header
+
+---
+
+### User Story 1011:
+
+- **Summary:** A # written at the start of a line makes it a header
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *A # at the start of a line makes it a header*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who thinks in Markdown
+- **I want to** write a # at the start of a line and have the line become a header
+- **so that** a heading on the board reads as one in my notes
+
+#### Acceptance Criteria:
+- **Scenario:** Writing a #
+- **Given:** a blank line
+- **When:** I write a # (two level strokes crossing two upright ones) with no ink left of it
+- **Then:** a ▾ shows beside it as soon as the # is finished, before I write the words
+
+---
+
+### User Story 1012:
+
+- **Summary:** What I write on a header's line joins the header
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Writing more on a header's line*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who writing a header's words after its #
+- **I want** the words I write on a header's line to be part of the header
+- **so that** the fold's marker never lands on my words and the line stays one header
+
+#### Acceptance Criteria:
+- **Scenario:** Words after a #
+- **Given:** a line made a header by a #
+- **When:** I write words after the # on the same line, then fold it
+- **Then:** the words fold and move with the header, "▸ N lines folded" sits past the last word, and there is one ▾
+
+---
+
+### User Story 1013:
+
+- **Summary:** One Undo takes an underline and the header it made; Redo brings both back
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who whose underline was only emphasis
+- **I want** one Undo to take back a header the board guessed from my mark
+- **so that** a wrong guess costs one tap
+
+#### Acceptance Criteria:
+- **Scenario:** Undoing the mark
+- **Given:** a line made a header by the underline I just drew
+- **When:** I tap Undo, then Redo
+- **Then:** Undo takes the underline and the ▾ goes; Redo brings the underline and the ▾ back
+
+---
+
+### User Story 1014:
+
+- **Summary:** Not a header keeps my underline as ink and the board never makes it a header again
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who who underlined for emphasis and wants to keep the line
+- **I want** to keep my underline but not the header
+- **so that** the board stops treating that line as a header for good
+
+#### Acceptance Criteria:
+- **Scenario:** Not a header
+- **Given:** a line made a header by an underline
+- **When:** I choose *Not a header* from the hold menu and go on drawing elsewhere
+- **Then:** the underline stays as ink, there is no ▾, and the line never becomes a header again on its own
+
+---
+
+### User Story 1015:
+
+- **Summary:** A rule drawn across the page ends the sections above it
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *A rule across the page ends the sections above it*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who whose next lines belong to no header
+- **I want** to end a header's section where I draw a line across the page
+- **so that** folding a header never takes what comes after the rule
+
+#### Acceptance Criteria:
+- **Scenario:** Ending a section
+- **Given:** a header with indented lines, then a long line drawn across the page, then more indented lines
+- **When:** I fold the header
+- **Then:** only the lines above the rule fold, and the rule and what is below it slide up under the header
+
+---
+
+### User Story 1016:
+
+- **Summary:** Larry's picture shows which lines are headers
+- **Status:** STATUS
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Larry sees the headers*
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+
+#### Use Case:
+- **As someone** who talking the board over with Larry
+- **I want** Larry to see which lines the board takes for headers
+- **so that** he reads my board's outline as I see it
+
+#### Acceptance Criteria:
+- **Scenario:** A header in Larry's picture
+- **Given:** an open header on the board
+- **When:** Larry gets a picture of the board (his turn, Send or Claude's turn)
+- **Then:** a small grey ▾ shows in the margin beside the header, where the board shows it
