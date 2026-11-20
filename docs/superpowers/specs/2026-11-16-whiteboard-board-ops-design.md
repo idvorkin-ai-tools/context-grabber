@@ -241,7 +241,7 @@ board differs, this says why.
 - With the picture goes where its folded sections are, so a reader can tell the picture's places from the board's.
   Larry's marks drawn on that picture land on Igor's board where he drew them: a mark below a folded section lands
   below it on the folded board, and a mark on the folded lines lands just under their header. A mark on a picture
-  from before the iPad last opened the board lands as the picture's frame says, unmoved by folds.
+  sent from another device lands as the picture's frame says, unmoved by folds.
 - **Erasing a fold takes the whole section.** The eraser across a folded header's "▸ N lines folded", or across the
   folded header's own ink, erases the header and everything folded under it (folds folded inside it included), and
   what was below closes up to where the header was, in whole lines. One Undo brings the section back, still folded,
