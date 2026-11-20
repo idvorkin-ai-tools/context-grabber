@@ -13,6 +13,10 @@
 #                                  BUILD_LANE_PORT_OFFSET (ten per lane, for the fake servers' ports)
 #   build-lane.sh sim <name>       the simulator name for this job's lane ($BUILD_LANE), made once for a lane past 1
 #   build-lane.sh sims             makes every lane's iPhone and iPad simulators now (`just native-sim-lanes`)
+#   build-lane.sh sims refresh     story 786 (#980): lane by lane, under that lane's lock and lane 1's, deletes each lane's
+#                                  copies and copies lane 1's again; a busy lane (or a busy lane 1) is skipped, named,
+#                                  and the exit is 75. Waits BUILD_LANE_REFRESH_WAIT seconds (none) for a lock
+#   build-lane.sh sims list        story 788: each lane's copies, their ids and states, or missing; changes nothing
 set -uo pipefail
 self=$0
 here=$(dirname "$0")
@@ -123,8 +127,78 @@ sim() {  # <name>
   echo "$want"
 }
 
+bases() { printf '%s\n' "${SIM:-iPhone 17}" "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}"; }
+
+# The newest runtime's simulator of that name, as sim-udid.sh picks it: "<udid> <state>", or nothing.
+found() {
+  xcrun simctl list devices available 2>/dev/null | grep -F -- "    $1 (" | tail -1 |
+    sed -nE 's/.*\(([0-9A-Fa-f-]{36})\) \(([^)]*)\).*/\1 \2/p'
+}
+
+list() {
+  local n lane base name got
+  n=$(lanes)
+  for ((lane = 1; lane <= n; lane++)); do
+    while IFS= read -r base; do
+      name=$base
+      [ "$lane" -le 1 ] || name="$base lane $lane"
+      got=$(found "$name")
+      if [ -n "$got" ]; then echo "lane $lane: $name: ${got% *} (${got#* })"; else echo "lane $lane: $name: missing"; fi
+    done < <(bases)
+  done
+}
+
+# Under lane <lane>'s lock and lane 1's: that lane's copies deleted and copied again from lane 1's.
+reclone() {  # <lane>
+  local lane=$1 base want src got
+  while IFS= read -r base; do
+    src=$(BUILD_LANE=1 "$here/sim-udid.sh" "$base") || return 1
+    want="$base lane $lane"
+    while got=$(found "$want") && [ -n "$got" ]; do
+      [ "${got#* }" != Booted ] || xcrun simctl shutdown "${got% *}" 2>/dev/null
+      xcrun simctl delete "${got% *}" || { echo "build-lane: could not delete '$want' (${got% *})" >&2; return 1; }
+    done
+    clone "$src" "$want" >/dev/null 2>&1 || { echo "build-lane: could not copy lane 1's '$base' as '$want'" >&2; return 1; }
+    echo "lane $lane: '$want' copied again from lane 1's '$base'"
+  done < <(bases)
+}
+
+# Under lane <lane>'s lock: lane 1's taken in turn, so the copy is never a blank simulator. 76: lane 1 was busy.
+relane() {  # <lane>
+  lockf -k -t "${BUILD_LANE_REFRESH_WAIT:-0}" "$(lock 1)" "$self" _reclone "$1"
+  local status=$?
+  [ "$status" -ne 75 ] || { echo "lane $1: skipped, lane 1 is busy (it is shut down to be copied)"; exit 76; }
+  exit "$status"
+}
+
+refresh() {
+  local n lane status skipped= failed=0
+  n=$(lanes)
+  [ "$n" -gt 1 ] || { echo "one build lane on this Mac: lane 1's simulators are the named ones, nothing to refresh"; return 0; }
+  mkdir -p "$locks"
+  for ((lane = 2; lane <= n; lane++)); do
+    lockf -k -t "${BUILD_LANE_REFRESH_WAIT:-0}" "$(lock "$lane")" "$self" _relane "$lane"
+    status=$?
+    case $status in
+      0) ;;
+      75) echo "lane $lane: skipped, a job is using it; its copies are left as they are"; skipped+=" $lane" ;;
+      76) skipped+=" $lane" ;;
+      *) echo "build-lane: refreshing lane $lane failed (exit $status)" >&2; failed=$status ;;
+    esac
+  done
+  [ -z "$skipped" ] || echo "build-lane: skipped while busy, lanes${skipped}: run just native-sim-lanes refresh again once they are idle" >&2
+  [ "$failed" -eq 0 ] || return "$failed"
+  [ -z "$skipped" ] || return 75
+}
+
 sims() {
   local n lane base
+  case ${1:-} in
+    "") ;;
+    refresh | --refresh) refresh; return ;;
+    list | --list) list; return ;;
+    *) echo "build-lane: sims takes nothing, refresh or list, not '$1'" >&2; return 2 ;;
+  esac
   n=$(lanes)
   for ((lane = 2; lane <= n; lane++)); do
     for base in "${SIM:-iPhone 17}" "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}"; do
@@ -143,6 +217,8 @@ case ${1:-} in
   _ran) shift; ran "$@" ;;
   _clone) shift; clone "$@" ;;
   sim) shift; sim "$@" ;;
-  sims) sims ;;
+  sims) shift; sims "$@" ;;
+  _relane) shift; relane "$@" ;;
+  _reclone) shift; reclone "$@" ;;
   *) sed -n '/^# Usage/,/^set /p' "$self" | sed -e '$d' -e 's/^# *//' >&2; exit 2 ;;
 esac

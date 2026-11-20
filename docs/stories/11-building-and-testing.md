@@ -601,6 +601,63 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 786:
+
+- **Summary:** A lane's simulator copies can be made again from lane 1's, after lane 1 gains Health access or new data
+- **Status:** implemented in 7ae00520; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
+- **Issues:** #980 (found 2026-11-19 after #954: the lane copies were made before lane 1's *iPhone 17* had Health access, so every lane's Health check skipped, and `just native-sim-lanes` never replaces a copy that exists)
+
+#### Use Case:
+- **As Igor,** whose lane simulators were copied from lane 1's before it was granted Health access
+- **I want to** have every lane's copies thrown away and copied again from lane 1's with one command
+- **so that** every lane runs with lane 1's Health access and data, without deleting simulators by hand under each lane's lock
+
+#### Acceptance Criteria:
+- **Scenario:** Refreshing the copies
+- **Given:** four lanes, each of lanes 2–4 with copies of lane 1's iPhone and iPad, and no job running
+- **When:** I run `just native-sim-lanes refresh`
+- **Then:** lane by lane, holding that lane's lock and lane 1's, each lane's iPhone and iPad copies are deleted and copied again from lane 1's, and it says which lanes it refreshed
+
+---
+
+### User Story 787:
+
+- **Summary:** Refreshing the lane copies skips a busy lane instead of pulling its simulator from under its job
+- **Status:** implemented in 7ae00520; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
+- **Issues:** #980; split from story 786
+
+#### Use Case:
+- **As Igor,** refreshing the lane copies while other agents run simulator jobs
+- **I want to** have a lane in use left alone and named, and a copy never replaced by a blank simulator
+- **so that** no agent's run loses its simulator, and I know which lanes to refresh again
+
+#### Acceptance Criteria:
+- **Scenario:** A busy lane, or a busy lane 1
+- **Given:** lane 3 is running a job, or lane 1 stays busy past the wait (`BUILD_LANE_REFRESH_WAIT`, default none)
+- **When:** I run `just native-sim-lanes refresh`
+- **Then:** lane 3's copies are left as they are (with a busy lane 1, every lane's are), the other lanes are refreshed, it names each lane it skipped, and it exits 75
+
+---
+
+### User Story 788:
+
+- **Summary:** A report of every lane's simulator copies, which exist and which are missing
+- **Status:** implemented in 7ae00520; verified on the host by `scripts/native/test-build-lane.sh` (rung 1; no simulator run, the Mac's screen locked)
+- **Issues:** #980
+
+#### Use Case:
+- **As Igor,** or an agent, about to refresh the lane copies or wondering why a lane's Health check skipped
+- **I want to** see each lane's iPhone and iPad copy, with its simulator id and whether it is booted, or that it is missing
+- **so that** I can tell what a refresh would replace, without changing anything
+
+#### Acceptance Criteria:
+- **Scenario:** The report
+- **Given:** four lanes, lane 2 with both copies and lane 4 with none
+- **When:** I run `just native-sim-lanes list`
+- **Then:** it prints one line per lane and device (lane 1's named simulators first), lane 2's with their ids and states, lane 4's as missing, and no simulator is made, deleted, shut down or booted
+
+---
+
 ### User Story 980:
 
 - **Summary:** One booted simulator per build lane, left booted between runs

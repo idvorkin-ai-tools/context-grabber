@@ -5,7 +5,8 @@
 #   the lane count from the memory and from BUILD_LANES; the first free lane's lock; a command's own exit 75 kept apart
 #   from a busy lock; one lane exactly the old lockf; lane N's simulator named and cloned once under lane 1's lock, or
 #   made fresh when lane 1 stays busy; sim-boot leaving a busy lane's simulator booted and keeping the booted count at
-#   or under the lanes; the xcodebuild wait's threshold; and one lane shutting every other simulator down as before.
+#   or under the lanes; the xcodebuild wait's threshold; one lane shutting every other simulator down as before; and
+#   `sims refresh` and `sims list` (stories 786-788, #980).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 lane=scripts/native/build-lane.sh
@@ -53,7 +54,8 @@ shift
 set_state() { awk -F'|' -v OFS='|' -v u="$1" -v s="$2" '$1 == u { $2 = s } { print }' "$db" >"$db.new" && mv -f "$db.new" "$db"; }
 add() {  # <name> <type> <runtime>
   local n udid
-  n=$(($(wc -l <"$db") + 1))
+  n=$(($(cat "$STATE/minted" 2>/dev/null || echo 0) + 1))
+  echo "$n" >"$STATE/minted"
   udid=$(printf '00000000-0000-0000-0000-%012d' "$((90 + n))")
   echo "$udid|Shutdown|$1|$2|$3" >>"$db"
   echo "$udid"
@@ -71,10 +73,12 @@ case "$1 $2 ${3:-}" in
   shutdown*) set_state "$2" Shutdown ;;
   bootstatus*) set_state "$2" Booted ;;
   clone*)
+    [ "$3" != "${FAKE_CLONE_FAILS:-}" ] || exit 1
     line=$(grep "^$2|" "$db") || exit 1
     IFS='|' read -r _ _ _ type rt <<<"$line"
     add "$3" "$type" "$rt" ;;
   create*) add "$2" "$3" "$4" ;;
+  delete*) grep -v "^$2|" "$db" >"$db.new"; mv -f "$db.new" "$db" ;;
 esac
 exit 0
 F
@@ -160,6 +164,66 @@ has "lane 1 busy: says Health needs granting once" "$out" "BUILD_LANE=2 just nat
 devices "$PHONE:Shutdown:iPhone 17"
 with BUILD_LANES=1 BUILD_LANE=1 "$lane" sims >"$out" 2>&1
 has "sims on one lane: nothing to make" "$out" "one build lane on this Mac"
+
+# sims refresh and sims list (stories 786-788, #980).
+uuid_of() { awk -F'|' -v n="$1" '$3 == n { print $1 }' "$STATE/devices"; }
+L2PAD_NAME="iPad Pro 11-inch (M5) lane 2"
+fresh() {
+  devices "$PHONE:Booted:iPhone 17" "$PAD:Shutdown:iPad Pro 11-inch (M5)" "$L2PHONE:Booted:iPhone 17 lane 2" \
+    "$L2PAD:Shutdown:$L2PAD_NAME" "$L3PHONE:Shutdown:iPhone 17 lane 3"
+}
+fresh
+with BUILD_LANES=4 "$lane" sims refresh >"$out" 2>&1
+is "refresh, all idle: exit 0" "$?" 0
+is "lane 2's old copies are gone" "$(grep -cE "^($L2PHONE|$L2PAD)\|" "$STATE/devices")" 0
+has "lane 2's booted copy is shut down before it is deleted" "$MARKS/xcrun" "simctl shutdown $L2PHONE"
+has "lane 2's iPhone copied again from lane 1's" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 2"
+has "lane 2's iPad copied again from lane 1's" "$MARKS/xcrun" "simctl clone $PAD $L2PAD_NAME"
+has "a lane with one copy gets both" "$MARKS/xcrun" "simctl clone $PAD iPad Pro 11-inch (M5) lane 3"
+has "a lane with none gets both" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 4"
+is "each lane ends with one copy of each device" "$(cut -d'|' -f3 "$STATE/devices" | grep -c ' lane ')" 6
+has "under the lane's own lock" "$MARKS/lockf" "lockf -t 0 build-2.lock"
+has "and lane 1's" "$MARKS/lockf" "lockf -t 0 build.lock"
+has "says what it refreshed" "$out" "lane 4: 'iPhone 17 lane 4' copied again from lane 1's 'iPhone 17'"
+lacks "never a blank simulator" "$MARKS/xcrun" "simctl create"
+fresh
+with BUILD_LANES=4 FAKE_HELD=build-3.lock "$lane" sims refresh >"$out" 2>&1
+is "refresh, lane 3 busy: exit 75" "$?" 75
+is "lane 3's copy is left as it is" "$(uuid_of "iPhone 17 lane 3")" "$L3PHONE"
+lacks "nothing of lane 3's is touched" "$MARKS/xcrun" "lane 3"
+has "lane 3 is named as skipped" "$out" "lane 3: skipped, a job is using it"
+has "and the run again is said" "$out" "skipped while busy, lanes 3:"
+has "lane 2 is still refreshed" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 2"
+has "and lane 4" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 4"
+is "every copy has its own udid" "$(cut -d'|' -f1 "$STATE/devices" | sort | uniq -d)" ""
+fresh
+with BUILD_LANES=4 FAKE_HELD=build-2.lock "FAKE_CLONE_FAILS=iPhone 17 lane 3" "$lane" sims refresh >"$out" 2>&1
+is "refresh, lane 3's copy fails: its exit, not 75" "$?" 1
+has "lane 3's failure is said" "$out" "refreshing lane 3 failed"
+has "lane 4 is still refreshed after it" "$MARKS/xcrun" "simctl clone $PHONE iPhone 17 lane 4"
+has "and the busy lane 2 is still named" "$out" "skipped while busy, lanes 2:"
+fresh
+with BUILD_LANES=4 FAKE_HELD=build.lock "$lane" sims refresh >"$out" 2>&1
+is "refresh, lane 1 busy: exit 75" "$?" 75
+lacks "lane 1 busy: nothing deleted" "$MARKS/xcrun" "simctl delete"
+lacks "lane 1 busy: nothing cloned or made" "$MARKS/xcrun" "simctl c"
+is "lane 1 busy: lane 1's simulator stays booted" "$(state_of "$PHONE")" Booted
+has "lane 1 busy: says why for each lane" "$out" "lane 4: skipped, lane 1 is busy"
+has "lane 1 busy: names every lane" "$out" "skipped while busy, lanes 2 3 4:"
+devices "$PHONE:Shutdown:iPhone 17"
+with BUILD_LANES=1 "$lane" sims refresh >"$out" 2>&1
+has "refresh on one lane: nothing to refresh" "$out" "nothing to refresh"
+fresh
+with BUILD_LANES=4 "$lane" sims list >"$out" 2>&1
+is "list: exit 0" "$?" 0
+has "list: lane 1's named simulator first" <(head -1 "$out") "lane 1: iPhone 17: $PHONE (Booted)"
+has "list: a lane's copy with its id and state" "$out" "lane 2: $L2PAD_NAME: $L2PAD (Shutdown)"
+has "list: a missing copy" "$out" "lane 4: iPad Pro 11-inch (M5) lane 4: missing"
+is "list: a line per lane and device" "$(wc -l <"$out" | tr -d ' ')" 8
+is "list: changes nothing" "$(grep -cvE 'simctl list' "$MARKS/xcrun")" 0
+[ ! -e "$MARKS/lockf" ] && ok "list: takes no lock" || bad "list: takes no lock"
+with BUILD_LANES=4 "$lane" sims sideways >"$out" 2>&1
+is "sims with an unknown mode: exit 2" "$?" 2
 
 # sim-boot.sh with lanes.
 boot() { with "$@" scripts/native/sim-boot.sh "${TARGET:?}" >"$out" 2>&1; }
