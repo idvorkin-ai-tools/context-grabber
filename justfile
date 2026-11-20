@@ -1,6 +1,10 @@
 # Context Grabber task runner: Grabber Native, the Swift app under native/
 # (docs/superpowers/specs/2026-10-04-swift-native-app-design.md). The React Native app's code was removed 2026-10-17.
 
+# Shared entry points across Igor's native repos: just build, test, install, run.
+alias build := native-build-sim
+alias run := native-run-mac
+
 # Every host check (the native rungs 0 and 1, the whole tree's layout included)
 test: native-test
 
