@@ -711,6 +711,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** it appears on the phone as a notification
 
 - **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+
 ---
 
 ### User Story 200:
