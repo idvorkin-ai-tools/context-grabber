@@ -2531,7 +2531,7 @@ struct WhiteboardView: View {
     let page = pageHeight > 0 ? WhiteboardNote.panelHeight(board: Double(pageHeight)) : WhiteboardNote.panelFloor
     return max(CGFloat(page) - panelChrome, threadFloor)
   }
-  /// #1005 (story 1043): Paste shows only while there is text to paste.
+  /// #1005 (story 1054): Paste shows only while there is text to paste.
   @State private var clipboardHasText = false
   private let logger: BugLogger
   private let log: SessionLog
@@ -2543,7 +2543,7 @@ struct WhiteboardView: View {
   /// Story 769: an iPhone has no conversation panel; a tap on the note opens the board's thread in Chat.
   private let onPhone: Bool
 
-  /// #1005 (story 1044): a bar button a tap runs as always, and a long press names, in one word, with a row
+  /// #1005 (story 1055): a bar button a tap runs as always, and a long press names, in one word, with a row
   /// saying what the tap does (which does it too).
   private func named<L: View>(
     _ word: String, does: String, action: @escaping () -> Void, @ViewBuilder label: () -> L
@@ -2744,7 +2744,7 @@ struct WhiteboardView: View {
         }
       }
       if model.editable {
-        // #1005 (story 1043): Paste beside the Board menu, in the board's own group, and only while the clipboard holds
+        // #1005 (story 1054): Paste beside the Board menu, in the board's own group, and only while the clipboard holds
         // text: dimmed, the system's button read as a hole in the bar.
         if clipboardHasText {
           ToolbarItem(placement: .topBarTrailing) {
@@ -2756,7 +2756,7 @@ struct WhiteboardView: View {
             .accessibilityIdentifier("whiteboard-paste")
           }
         }
-        // #1005 (story 1043): the board's own things are a group of their own, like Undo and Redo.
+        // #1005 (story 1054): the board's own things are a group of their own, like Undo and Redo.
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {
           named(
@@ -2812,7 +2812,7 @@ struct WhiteboardView: View {
         }
       }
     }
-    // #1005 (story 1043): asking whether the clipboard holds text never prompts; it can change while the app is away, and
+    // #1005 (story 1054): asking whether the clipboard holds text never prompts; it can change while the app is away, and
     // inside it on a copy.
     .onAppear { clipboardHasText = UIPasteboard.general.hasStrings }
     .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
@@ -2907,7 +2907,7 @@ struct WhiteboardView: View {
         }
         if let middle = line.middle {
           Text(middle).lineLimit(1).truncationMode(line.keepsEnd ? .head : .tail)
-            // Story 1046 (#1003): Larry's words lead.
+            // Story 1053 (#1003): Larry's words lead.
             .foregroundStyle(line.larrySpeaks ? Color.primary : Color(WhiteboardNoteInk.quiet))
             .accessibilityIdentifier("whiteboard-note-said")
         }
@@ -3007,7 +3007,7 @@ struct WhiteboardView: View {
   }
 }
 
-/// #1003 (story 1046): the note's and the panel's quieter text, at least 4.5:1 on the paper and the panel's material in
+/// #1003 (story 1053): the note's and the panel's quieter text, at least 4.5:1 on the paper and the panel's material in
 /// either appearance; the system's secondary and tertiary greys measured about 3:1 and 2:1. Larry's words take the main
 /// text colour.
 enum WhiteboardNoteInk {
@@ -3066,7 +3066,7 @@ private struct WhiteboardConversationText: UIViewRepresentable {
     let text = NSMutableAttributedString()
     for (index, row) in rows.enumerated() {
       if index > 0 { text.append(NSAttributedString(string: "\n")) }
-      // Story 1046 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
+      // Story 1053 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
       let color: UIColor = row.kind == .larry ? .label : WhiteboardNoteInk.quiet
       text.append(NSAttributedString(string: "\(row.who): ", attributes: [.font: bold, .foregroundColor: color]))
       text.append(NSAttributedString(string: row.text, attributes: [.font: body, .foregroundColor: color]))

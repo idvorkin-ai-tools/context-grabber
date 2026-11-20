@@ -80,7 +80,7 @@ public enum WhiteboardNote {
     public var keepsEnd = false
     /// How many suggestions show: *3 to keep*.
     public var keep: String?
-    /// The middle is Larry's own line, which takes the emphasis (#1003, story 1046).
+    /// The middle is Larry's own line, which takes the emphasis (#1003, story 1053).
     public var larrySpeaks = false
   }
 

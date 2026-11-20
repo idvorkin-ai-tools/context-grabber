@@ -1450,7 +1450,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1043:
+### User Story 1054:
 
 - **Summary:** The board's bar has no hole: Paste shows only with text to paste, beside the Board menu
 - **Status:** implemented in [f802581](https://github.com/idvorkin/context-grabber/commit/f802581); verified on the iPad simulator (`just test-ladder`: `WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole` with no text on the clipboard, `WhiteboardPasteUITests` and `WhiteboardPaperGhostsUITests` with text on it, and the whiteboard's other UI classes) and the Mac build. Not yet seen on the iPad
@@ -1470,7 +1470,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1044:
+### User Story 1055:
 
 - **Summary:** A long press on a bar button says its name
 - **Status:** implemented in [f802581](https://github.com/idvorkin/context-grabber/commit/f802581); verified on the iPad simulator (`WhiteboardTurnUITests.testTheBarNamesItsButtonsAndHasNoHole`: a long press on Ghosts shows the *Ghosts* menu, its row turns them off, a tap turns them back on) and the Mac build. Not yet seen on the iPad
@@ -4782,7 +4782,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 1046:
+### User Story 1053:
 
 - **Summary:** Larry's words lead, and every line can be read
 - **Status:** implemented in [60c8129](https://github.com/idvorkin/context-grabber/commit/60c8129); verified by host tests (`WhiteboardNoteTests`: Larry's line marked for emphasis; `just test`) and a screenshot on the iPad simulator (`WhiteboardTurnUITests`, Larry's words in the main colour). The contrast figures are from the colour values, not measured on the iPad

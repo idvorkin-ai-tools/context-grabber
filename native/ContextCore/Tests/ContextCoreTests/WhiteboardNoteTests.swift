@@ -62,7 +62,7 @@ final class WhiteboardNoteTests: XCTestCase {
     let note = try XCTUnwrap(line(sent(), said: said))
     XCTAssertEqual(note.middle, "Larry: a long reply about the middle box")
     XCTAssertFalse(note.keepsEnd)
-    XCTAssertTrue(note.larrySpeaks, "his words take the emphasis (story 1046)")
+    XCTAssertTrue(note.larrySpeaks, "his words take the emphasis (story 1053)")
   }
 
   func testIgorsWordsKeepTheirEnd() throws {

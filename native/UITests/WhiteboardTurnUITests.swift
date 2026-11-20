@@ -192,7 +192,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
   }
 
-  /// #1005 (stories 1043, 1044): with nothing to paste there is no Paste, so no hole in the bar; a long press on a button
+  /// #1005 (stories 1054, 1055): with nothing to paste there is no Paste, so no hole in the bar; a long press on a button
   /// names it and says what a tap does, and a tap still does it.
   func testTheBarNamesItsButtonsAndHasNoHole() throws {
     UIPasteboard.general.items = []
