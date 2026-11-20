@@ -30,13 +30,29 @@ extension BoardOutline {
   /// The markers of the folded headers that show (a fold folded away inside another's shows none).
   public var markers: [Marker] {
     headers.compactMap { header in
-      guard isFolded(header), shows(header), let hb = box(header), let lines = header.fold?.lines else { return nil }
-      let text = Self.markerText(lines: lines)
-      let cy = hb.midY
-      let right = hb.maxX + 18 + CGFloat(text.count) * Self.markerPoints * 0.55
-      return Marker(
-        header: header.id, text: text, origin: CGPoint(x: hb.maxX + Self.markerGap, y: cy + 5),
-        box: CGRect(x: hb.maxX + 10, y: cy - 12, width: right - (hb.maxX + 10), height: 20))
+      guard isFolded(header), shows(header), let lines = header.fold?.lines else { return nil }
+      return marker(header, text: Self.markerText(lines: lines))
     }
+  }
+
+  /// An open header's label in a picture of the board (story 1036, #1001), in a folded one's place.
+  public static let openLabel = "▾ header"
+
+  /// Each open header that shows, labelled in words just past its line, where its fold marker would go: never on its
+  /// ink, and readable in a picture without the board's margin to explain a bare ▾ (story 1036, #1001).
+  public var headerLabels: [Marker] {
+    headers.compactMap { header in
+      guard shows(header), !isFolded(header) else { return nil }
+      return marker(header, text: Self.openLabel)
+    }
+  }
+
+  private func marker(_ header: BoardHeader, text: String) -> Marker? {
+    guard let hb = box(header) else { return nil }
+    let cy = hb.midY
+    let right = hb.maxX + 18 + CGFloat(text.count) * Self.markerPoints * 0.55
+    return Marker(
+      header: header.id, text: text, origin: CGPoint(x: hb.maxX + Self.markerGap, y: cy + 5),
+      box: CGRect(x: hb.maxX + 10, y: cy - 12, width: right - (hb.maxX + 10), height: 20))
   }
 }

@@ -69,8 +69,8 @@ extension WhiteboardModel {
     }
   }
 
-  /// The margin: ▾ beside each open header (story 1036), ▸ beside each one folded on the board, and "folded" at the top
-  /// of each section the picture opened.
+  /// The margin: ▸ beside each header folded on the board and "folded" at the top of each section the picture opened;
+  /// and each open header labelled "▾ header" past its line, clear of its ink (story 1036, #1001).
   private func drawMargin(_ opened: BoardOutline.FoldPicture, in rect: CGRect) {
     let font = UIFont.systemFont(ofSize: BoardOutline.markerPoints)
     let words: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor(rgb: 0x999999)]
@@ -82,7 +82,12 @@ extension WhiteboardModel {
       guard at.y + size.height >= 0, at.y <= rect.height else { return }
       mark.draw(at: at, withAttributes: words)
     }
-    for mark in opened.openMarks { inMargin("▾", mark.y, false) }
+    for label in opened.openLabels {
+      // `draw(at:)` takes the text's top left; the label's origin is its baseline.
+      let at = CGPoint(x: label.origin.x - rect.minX, y: label.origin.y - font.ascender - rect.minY)
+      guard at.y + font.lineHeight >= 0, at.y <= rect.height else { continue }
+      (label.text as NSString).draw(at: at, withAttributes: words)
+    }
     for mark in opened.foldedMarks { inMargin("▸", mark.y, false) }
     for band in opened.bands { inMargin(BoardOutline.foldedTag, band.top, true) }
   }

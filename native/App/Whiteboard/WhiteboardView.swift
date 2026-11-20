@@ -66,7 +66,11 @@ final class WhiteboardModel: ObservableObject {
   /// Larry's notes on strokes, kept as he wrote them (story 842).
   private(set) var strokeMeta: BoardStrokeMeta
   /// Story 855: the board's headers and their folds, kept on this device by their strokes' names.
-  private(set) var headers: [BoardHeader]
+  private(set) var headers: [BoardHeader] {
+    didSet { cachedLabelBoxes = nil }
+  }
+  /// `labelBoxes()`'s answer for the ink and headers as they are.
+  private var cachedLabelBoxes: [CGRect]?
   /// Each element's ink hashes, to tell Larry what Igor added, erased and moved (story 843).
   private var ink = BoardInk()
   /// The lasso's selection as last told (story 844).
@@ -248,6 +252,7 @@ final class WhiteboardModel: ObservableObject {
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
     inkBoxes = loaded.strokes.map(\.renderBounds)
+    cachedLabelBoxes = nil
     log.event(
       "whiteboard",
       [
@@ -363,6 +368,7 @@ final class WhiteboardModel: ObservableObject {
   /// The ink changed: what's on screen may have too.
   private func inkMoved() {
     inkBoxes = drawing.strokes.map(\.renderBounds)
+    cachedLabelBoxes = nil
     screenMoved()
   }
 
@@ -381,7 +387,16 @@ final class WhiteboardModel: ObservableObject {
   /// Larry's picture, for Send and his turn: the pages on screen (story 433). Claude's own turns frame theirs as they
   /// always have.
   private func pictureFrame() -> (rect: CGRect, scale: CGFloat)? {
-    BoardPages().picture(visible: visibleRect?() ?? .null, ink: inkBoxes)
+    BoardPages().picture(visible: visibleRect?() ?? .null, ink: inkBoxes + labelBoxes())
+  }
+
+  /// The header markers' boxes, kept until the ink or the headers change: the picture's frame is asked for on every
+  /// scroll (#1001).
+  private func labelBoxes() -> [CGRect] {
+    if let cachedLabelBoxes { return cachedLabelBoxes }
+    let boxes = pictureLabelBoxes()
+    cachedLabelBoxes = boxes
+    return boxes
   }
 
   /// The Pencil touching down: the ghosts stay, and a pause under way starts over when it lifts.
@@ -1176,7 +1191,7 @@ final class WhiteboardModel: ObservableObject {
     // An empty board has no drawing to frame: a spoken turn sees the part on screen, and any other isn't asked.
     let framed =
       WhiteboardGhostTurns<Ghost>.framesScreen(said: said, boardEmpty: drawing.strokes.isEmpty)
-      ? visibleRect?() ?? .null : drawing.bounds
+      ? visibleRect?() ?? .null : labelBoxes().reduce(drawing.bounds) { $0.union($1) }
     guard editable, let (rect, scale) = WhiteboardFrame.export(framed) else { return }
     let asked = turns.asked(who)
     defer { if turns.turnOver(who) { startPause() } }

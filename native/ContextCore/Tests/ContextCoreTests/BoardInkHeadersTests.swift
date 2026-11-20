@@ -4,7 +4,7 @@ import XCTest
 
 /// Stories 1030–1036 (#967): an underline under a line, or a # at its start, makes it a header; writing more on a
 /// header's line joins its row; a rule ends the sections above it; the mark's Undo takes the header and its Redo
-/// brings it back; Larry's picture marks each open header. No board in the fixtures has an underline or a # drawn on
+/// brings it back; Larry's picture labels each open header (#1001). No board in the fixtures has an underline or a # drawn on
 /// it, so the strokes here are hand-like: a Pencil's wobble on every line.
 final class BoardInkHeadersTests: XCTestCase {
   /// A stroke through `points`, a Pencil's 3-point pen, its box padded by the pen as PencilKit's render bounds are.
@@ -173,7 +173,7 @@ final class BoardInkHeadersTests: XCTestCase {
     // Undo: the underline is gone.
     let undone = BoardOutline(strokes: Array(strokes.dropLast()), headers: saved)
     XCTAssertTrue(undone.headers.isEmpty, "no header while its underline is away")
-    XCTAssertTrue(undone.openHeaderMarks.isEmpty)
+    XCTAssertTrue(undone.headerLabels.isEmpty)
     let kept = BoardOutline.keeping(undone.headers, previous: saved, live: undone.liveNames)
     XCTAssertEqual(kept.map(\.id), ["x"], "kept, so the Redo brings it back")
     XCTAssertEqual(BoardOutline(strokes: strokes, headers: kept).headers.map(\.id), ["x"])
@@ -214,13 +214,46 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertNil(headers.first?.mark)
   }
 
-  func testLarrysPictureMarksEachOpenHeader() {
+  func testLarrysPictureLabelsEachOpenHeaderInWords() {
     let strokes = word("h", x: 100, y: 100) + word("a", x: 140, y: 140) + word("g", x: 100, y: 300)
     var o = BoardOutline(
       strokes: strokes, headers: [BoardHeader(id: "h", ids: ["h0", "h1", "h2"]), BoardHeader(id: "g", ids: ["g0"])])
-    XCTAssertEqual(o.openHeaderMarks.map(\.header), ["h", "g"])
-    XCTAssertEqual(o.openHeaderMarks.first?.y ?? 0, 112, accuracy: 2)
+    XCTAssertEqual(o.headerLabels.map(\.header), ["h", "g"])
+    XCTAssertEqual(o.headerLabels.map(\.text), ["▾ header", "▾ header"])
+    // The h row ends at 169.5 (the pen pads its box) and its middle is 112: the label starts 14 past it, where a fold's
+    // marker would.
+    XCTAssertEqual(o.headerLabels.first?.origin, CGPoint(x: 183.5, y: 117))
     o.fold("h")
-    XCTAssertEqual(o.openHeaderMarks.map(\.header), ["g"], "a folded one has its own marker")
+    XCTAssertEqual(o.headerLabels.map(\.header), ["g"], "a folded one has its own marker")
+  }
+
+  /// #1001: a ▾ at the margin's middle sat on the very # it marked, and for a line written further in fell outside
+  /// Larry's picture, so he saw plain strokes. The label sits past the line, clear of its ink, and the picture's frame
+  /// takes it in.
+  func testTheLabelIsClearOfTheInkAndInsideThePicture() throws {
+    // A # in the margin, as Igor writes one, then the words; and an underlined line written further in.
+    var o = BoardOutline(strokes: hash("#", x: 20, y: 380), headers: [])
+    XCTAssertNotNil(o.inkHeader(newest: place(o, "#l2"), id: "x"))
+    for s in word("w", x: 60, y: 381) {
+      o.strokes.append(s)
+      XCTAssertEqual(o.inkHeader(newest: o.strokes.count - 1, id: "n")?.kind, "grew")
+    }
+    o.strokes += word("u", x: 300, y: 600)
+    o.strokes.append(line("under", from: CGPoint(x: 296, y: 628), to: CGPoint(x: 372, y: 629)))
+    XCTAssertEqual(o.inkHeader(newest: place(o, "under"), id: "y")?.kind, "underline")
+    XCTAssertEqual(o.headerLabels.map(\.header), ["x", "y"])
+    for label in o.headerLabels {
+      let row = o.strokes.filter { s in o.header(label.header)?.ids.contains(where: s.ids.contains) ?? false }
+      XCTAssertFalse(row.isEmpty)
+      for s in row { XCTAssertFalse(label.box.intersects(s.bounds), "\(label.header)'s label is on its ink") }
+      XCTAssertGreaterThan(label.origin.x, row.map(\.bounds.maxX).max() ?? 0, "past the line")
+    }
+    // Larry's picture of the page: the ink alone stops 40 points past it, short of the labels; with them it holds both.
+    let ink = o.strokes.map(\.bounds)
+    let visible = CGRect(x: 0, y: 0, width: 820, height: 1_000)
+    let bare = try XCTUnwrap(BoardPages().picture(visible: visible, ink: ink)).rect
+    XCTAssertFalse(o.headerLabels.allSatisfy { bare.contains($0.box) }, "the old frame cut a label off")
+    let framed = try XCTUnwrap(BoardPages().picture(visible: visible, ink: ink + o.headerLabels.map(\.box))).rect
+    for label in o.headerLabels { XCTAssertTrue(framed.contains(label.box), "\(label.header)'s label is cut off") }
   }
 }

@@ -7901,7 +7901,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Summary:** Larry's picture shows which lines are headers
 - **Status:** implemented in [fda25548](https://github.com/idvorkin/context-grabber/commit/fda25548), [6bb7c2ab](https://github.com/idvorkin/context-grabber/commit/6bb7c2ab); verified by host tests (`BoardInkHeadersTests`), `just test` and the Mac build (rung 1.5, 2026-11-19) (the ▾ marks a picture would draw, `openHeaderMarks`); the drawn picture not yet seen on the simulator or the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Larry sees the headers*
-- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967)
+- **Issues:** [#967](https://github.com/idvorkin/context-grabber/issues/967), [#1001](https://github.com/idvorkin/context-grabber/issues/1001)
 
 #### Use Case:
 - **As someone** who talking the board over with Larry
@@ -7912,7 +7912,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** A header in Larry's picture
 - **Given:** an open header on the board
 - **When:** Larry gets a picture of the board (his turn, Send or Claude's turn)
-- **Then:** a small grey ▾ shows in the margin beside the header, where the board shows it
+- **Then:** the header is labelled "▾ header" in grey just past the end of its line, clear of its ink and inside the picture however far in the line starts
 
 ---
 

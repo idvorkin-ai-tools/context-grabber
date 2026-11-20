@@ -221,15 +221,4 @@ extension BoardOutline {
     let have = Set(a)
     return a + b.filter { !have.contains($0) }
   }
-
-  // MARK: - Larry's picture
-
-  /// Each open header that shows, by its row's middle: where the picture draws its grey ▾ in the margin, as the
-  /// board does (story 1036).
-  public var openHeaderMarks: [(header: String, y: CGFloat)] {
-    headers.compactMap { header in
-      guard shows(header), !isFolded(header), let box = box(header) else { return nil }
-      return (header.id, box.midY)
-    }
-  }
 }
