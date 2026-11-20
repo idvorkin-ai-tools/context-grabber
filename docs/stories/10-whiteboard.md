@@ -863,7 +863,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Solid, not dashed
 - **Given:** a ghost is showing, Claude's in orange or Larry's in purple
 - **When:** I look at it
-- **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows the outlines of its letters
+- **Then:** it is a solid faint line with round ends, as wide as a kept stroke, and a label shows its letters written in single strokes (since story 1008; before, their outlines)
 
 ---
 
