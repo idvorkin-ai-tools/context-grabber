@@ -5135,7 +5135,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 889:
 
 - **Summary:** I speak my own answer to a question card, with the mic beside Send
-- **Status:** in progress
+- **Status:** implemented in [feb8014](https://github.com/idvorkin/context-grabber/commit/feb8014), Chat's mic beside the own answer's *Send*. Verified by host tests and lint (`just test`), the Mac build, and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests` measures the field, then the mic, then *Send*, a gap of at most 8 points and both buttons at least 44 points each way). Recording itself is dictation, so it is the phone's to show: not yet tried on a device
 - **Issues:** [#625](https://github.com/idvorkin/context-grabber/issues/625) ("put the record button by the send button", then "that should go on all of my screens")
 - **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answering*
 
