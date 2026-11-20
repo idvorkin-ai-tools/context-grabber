@@ -1,4 +1,4 @@
-//  #634, stories 460-464, 470-482, 560-564 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
+//  #634, stories 460-464, 470-479, 560-567 (spec 2026-11-03-ipad-windows-design.md): more than one window on an iPad. The home
 //  window keeps presenting what AppModel says is up; a screen in a window of its own is simply not up there.
 
 import ContextCore
@@ -182,7 +182,7 @@ extension AppModel {
     openWindowAction(id: Self.homeWindowID)
   }
 
-  /// Story 482: iOS can bring back only a screen's window when the app starts (seen on the simulator: the last window
+  /// Story 567: iOS can bring back only a screen's window when the app starts (seen on the simulator: the last window
   /// in front, no home), leaving no home screen. Once per launch, after a moment for a home window on its way too.
   private func openHomeAfterRestore() {
     guard !restoreChecked else { return }

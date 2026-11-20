@@ -81,6 +81,8 @@ native-test-host:
     scripts/native/test-fake-cockpit-ops.py
     # #943: URL loading on Linux needs FoundationNetworking; the Mac's build can't see a file that forgot it.
     scripts/native/test-linux-imports.sh
+    # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
+    scripts/native/test-story-ids.sh
 
 # Rung 1L, on a Linux box (scripts/native/test-linux.sh says what it needs): ContextCore's portable tests run on Linux,
 # the package and its tests cross-built for macOS, iOS and the simulator with a Darwin Swift SDK, the app's sources

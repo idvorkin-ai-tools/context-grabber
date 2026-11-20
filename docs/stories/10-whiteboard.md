@@ -7000,7 +7000,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
-### User Story 980:
+### User Story 969:
 
 - **Summary:** A word slid along its own line moves nothing else
 - **Issues:** review of stories 973–975, 2026-11-17: a word slid sideways onto its neighbour pushed its own line down

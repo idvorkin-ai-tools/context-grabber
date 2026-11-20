@@ -64,7 +64,7 @@ public enum BoardRoom {
     return d == 0 ? nil : Push(cut: at, dy: d)
   }
 
-  /// Room for ink dropped by hand at `block`, lifted from `from` (stories 973–975, 980): none when it sits on none of
+  /// Room for ink dropped by hand at `block`, lifted from `from` (stories 969, 973–975): none when it sits on none of
   /// `ink` (touching an edge isn't sitting on it, nor is ink on the line it was lifted from); else, from the clear line
   /// nearest its top, what is below goes down by whole lines until the first of it is `air` under the block. `ink` is
   /// everything but what was dropped.

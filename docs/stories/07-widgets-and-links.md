@@ -1204,7 +1204,7 @@ apart."*
 
 ---
 
-### User Story 480:
+### User Story 565:
 
 - **Summary:** Closing the card's window brings its widgets up to date
 - **Status:** native app only: implemented in [cc011df](https://github.com/idvorkin/context-grabber/commit/cc011df) and its review fix; not verified by a run: widgets exist only on a device, for the iPad.
@@ -1224,7 +1224,7 @@ apart."*
 
 ---
 
-### User Story 481:
+### User Story 566:
 
 - **Summary:** A Places window closed on its map opens on the list next time
 - **Status:** native app only: implemented in [cc011df](https://github.com/idvorkin/context-grabber/commit/cc011df) and its review fix; not verified by a run: for the iPad.
@@ -1244,7 +1244,7 @@ apart."*
 
 ---
 
-### User Story 482:
+### User Story 567:
 
 - **Summary:** A relaunch always has a home window
 - **Status:** native app only: implemented in [cc011df](https://github.com/idvorkin/context-grabber/commit/cc011df); verified on the iPad simulator (a relaunch brings the home window).
