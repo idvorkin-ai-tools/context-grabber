@@ -637,7 +637,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 099:
 
 - **Summary:** Larry hears that I arrived at a known place, within a few minutes, without a call
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built and verified by host tests against a fake Cockpit (`LiveContextSendTests`); the route is not on the Cockpit yet, so events wait and the phone is not yet seen. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes inside, silence counting as staying, a fix less precise than 100 m ignored) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`, on the real fixture trail too). Holding and sending to the Cockpit's `POST /context` (the shape proposed to Larry on 2026-11-20) is built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6) and verified by host tests against a fake Cockpit (`LiveContextSendTests`); the route is not on the Cockpit yet, so events wait and the phone is not yet seen. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
 
 #### Use Case:
 - **As a** Larry's client arriving at the gym
@@ -657,7 +657,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 335:
 
 - **Summary:** Larry hears that I left a known place, timed when I walked out
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`); sending it, with the minutes stayed, by `LiveContextSendTests` against a fake Cockpit; the Cockpit's route and the phone not yet seen
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). The detection (five minutes outside, the time of the first position outside, how long I stayed) is built in [27eff19](https://github.com/idvorkin/context-grabber/commit/27eff19) and verified by host tests (`LiveContextDetectorTests`); sending it, with the minutes stayed, in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6), verified by `LiveContextSendTests` against a fake Cockpit; the Cockpit's route and the phone not yet seen
 
 #### Use Case:
 - **As a** Larry's client leaving the gym
@@ -697,7 +697,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 337:
 
 - **Summary:** An arrival made off the tailnet waits, and reaches Larry with the time it happened
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Held, retried oldest first with the same id, refused ones not retried, dropped after a day: verified by host tests against a fake Cockpit (`LiveContextSendTests`). Nothing on the Cockpit takes these yet (cockpit#63 item 1), so the phone is not yet seen
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Held, retried oldest first with the same id, refused ones not retried, dropped after a day: built in [4f278d6](https://github.com/idvorkin/context-grabber/commit/4f278d6), verified by host tests against a fake Cockpit (`LiveContextSendTests`). Nothing on the Cockpit takes these yet (cockpit#63 item 1), so the phone is not yet seen
 
 #### Use Case:
 - **As a** Larry's client whose phone is sometimes off the tailnet

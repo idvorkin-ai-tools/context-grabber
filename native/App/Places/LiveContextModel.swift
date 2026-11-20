@@ -24,6 +24,8 @@ final class LiveContextModel: ObservableObject {
   private let sender: LiveContextSender
   private var state: LiveContext
   private var sending = false
+  /// The send's background time, ended once: by the send finishing or by iOS's expiry, whichever comes first.
+  private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   private var placesError: String?
 
   init(log: SessionLog, database: AppDatabase, cockpit: String) {
@@ -104,7 +106,13 @@ final class LiveContextModel: ObservableObject {
     guard on, !sending, !state.waiting.isEmpty else { return }
     sending = true
     // A position's wake gives the app seconds; the request asks for a little more.
-    let task = UIApplication.shared.beginBackgroundTask(withName: "live_context")
+    // An app that hasn't ended its task when the time runs out is terminated, and background recording with it.
+    backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "live_context") { [weak self] in
+      MainActor.assumeIsolated {
+        self?.log.event("live_context", ["action": "background_time_up", "waiting": self?.state.waiting.count ?? 0])
+        self?.endBackgroundTask()
+      }
+    }
     let start = state
     let log = self.log
     Task {
@@ -122,8 +130,14 @@ final class LiveContextModel: ObservableObject {
       }
       save()
       sending = false
-      if task != .invalid { UIApplication.shared.endBackgroundTask(task) }
+      endBackgroundTask()
     }
+  }
+
+  private func endBackgroundTask() {
+    guard backgroundTask != .invalid else { return }
+    UIApplication.shared.endBackgroundTask(backgroundTask)
+    backgroundTask = .invalid
   }
 
   private func save() {
