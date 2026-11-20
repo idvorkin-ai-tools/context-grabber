@@ -331,7 +331,8 @@ ink it covers, without picking up the eraser.
   each sweep crossing most of the zigzag's length; no wider across than it is long; at least 30 points long; drawn fast (at
   least half a board point per millisecond); and lying mostly over the ink it touches (at least 60% of that ink's points
   inside the zigzag's box). Handwriting never qualifies: an *mmm* or *www* marches along instead of turning back, and a slow
-  zigzag, a zigzag on bare paper, or one beside a word rather than over it stays as ink.
+  zigzag stays as ink. A zigzag on bare paper, or one beside a word rather than over it, takes nothing and is
+  taken away with a word (*Every pen gesture shows what it did*, below).
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
   it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
 - **One undo brings it all back**: the ink it removed, without the zigzag. One redo removes it again.
@@ -347,6 +348,46 @@ ink it covers, without picking up the eraser.
   *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels;
   and how much of what went the board still holds, then and a second later, and whether any of it comes back without an
   Undo (#999).
+
+### Every pen gesture shows what it did (#1000; stories 1038, 1039, 1042–1044, 1050–1052)
+
+Igor on the iPad, 2026-11-20: *Need visual feedback when creating or adding space, like with transparent arrows, so
+it's clear I'm in that mode.* The design critique the same day widened it: every pen gesture shows what it did. A
+gesture that changes the board without a sign, or does nothing without a word, leaves him guessing whether it fired.
+
+**Making room.** From the moment a hold in the margin becomes the room handle (*Press and hold (#918)* in
+[Larry edits the board](2026-11-16-whiteboard-board-ops-design.md): a finger the board sees held, or the Pencil held
+still there for half a second) until the finger or the Pencil lifts:
+
+- **A see-through band lies across the page** at the clear line the room would open at, as tall as the room a lift
+  right now would open, in whole lines. It grows and shrinks a line at a time as the drag goes on. Before the drag
+  reaches half a line it is a thin line across the page, so the mode shows the moment the hold fires.
+- **Up and down arrows** sit at the band's left, in the margin, and a **Making room** chip sits beside them.
+- **Dragged up**, the band covers the blank paper that would close, and the chip says **Closing room**. Dragged up
+  where there is no blank paper to close, the band stays a line and the chip says **No blank paper to close**.
+- The ink below doesn't move until the lift, as before; the band says where it will go. When the finger or the
+  Pencil lifts, the band goes and the room opens (or closes) as the band showed.
+- A hold that becomes the menu instead (lifted without a drag), or a hold on a header's mark (the outline menu),
+  shows no band once the menu is up.
+- The band is in no picture, takes no touches, and never moves the paper.
+
+**Scratching out.**
+
+- **A scratch-out that works flashes and fades the struck ink**: the strokes it took, and the zigzag, show where they
+  were in a bright tint for a moment and fade out over about half a second. The board has already changed underneath:
+  Undo, the save and Larry's picture are as before.
+- **A zigzag that finds nothing to erase says so**: one that is a scratch-out in shape and speed but has no ink under
+  it (*no ink*), or only ink beside it rather than under it (*beside ink*), is taken away, and **Nothing under the
+  scribble to erase** shows beside where it was for a few seconds. It is taken away as an Undo would take it, so
+  Redo brings it back as ink, for the time a zigzag was meant as a drawing.
+- Writing that only looks like a zigzag (*slow*, *marches along*, *short sweeps*) stays ink, with no word, as before.
+- The flash and the message are in no picture and take no touches.
+
+**Reduced motion.** With *Reduce Motion* on, the band jumps between lines instead of easing, and the struck ink
+doesn't flash: it shows plainly and fades. Nothing else changes.
+
+The log says when the band showed, for which tool, and what it showed when it went (*opening*, *closing*,
+*nothing to close*, and the lines), and, for each zigzag that found nothing, that it was taken away with the message.
 
 ### Larry can read what the board did (#883)
 

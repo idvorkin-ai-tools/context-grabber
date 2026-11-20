@@ -402,6 +402,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let toText = BoardToTextState()
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()
+  /// Stories 1044, 1038, 1039, 1042 (#1000): the band the room handle shows while held (PaperBoard+RoomBand.swift).
+  let roomBand = BoardRoomBandState()
+  /// Story 1051 (#1000): *Nothing under the scribble to erase*, while it shows (PaperBoard+ScratchFeedback.swift).
+  let scratchNote = BoardScratchNote()
   /// Stories 940–942: a kept text's words open in place (BoardRewordFlow.swift).
   let reword = BoardRewordState()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
@@ -1063,8 +1067,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Stories 890, 891: a fast zigzag over ink takes it and itself away, one undo bringing the ink back. PaperKit's own
   /// step for the zigzag is undone first, as for the tap's dot, so the stack holds only the scratch-out's.
   private func scratchesOut(_ change: PaperProbe.InkChange, _ markup: PaperMarkup) -> Bool {
-    guard drawsHere, change.added.count == 1, change.removed.isEmpty, change.moved.isEmpty,
-      let key = change.added.first,
+    // An Undo or Redo that brings a stroke back is never a new zigzag: Redo brings back one that found nothing (#1000).
+    let undo = paper.undoManager
+    guard drawsHere, undo?.isUndoing != true, undo?.isRedoing != true, change.added.count == 1, change.removed.isEmpty,
+      change.moved.isEmpty, let key = change.added.first,
       let scratch = markup.scratch(key, asZigzag: LaunchHooks.current.whiteboard.zigzagAt == inkFrames.count)
     else { return false }
     let outcome = scratch.outcome
@@ -1075,11 +1081,21 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if let speed = outcome.speed { event["speed"] = speed }
     if let why = outcome.why { event["why"] = why }
     // Story 905: over a fold's marker or its folded header line, the whole section goes with what else it covered.
-    if scratchTakesFolds(scratch, zigzag: key) { return true }
+    if scratchTakesFolds(scratch, zigzag: key) {
+      flashScratched(Set(outcome.gone + [key]), from: markup)
+      return true
+    }
     guard scratch.after != nil else {
+      // Stories 1051, 1052 (#1000): a zigzag over nothing goes, with a word; writing that only looks like one stays ink.
+      if outcome.findsNothing, let frame = markup.strokeFrames[key] {
+        scratchFoundNothing(key, frame: frame, event: event)
+        return true
+      }
       log.event("whiteboard", event)
       return false
     }
+    // Story 1050 (#1000): the struck ink flashes and fades where it was, read before it goes.
+    flashScratched(Set(outcome.gone + [key]), from: markup)
     Task { @MainActor [weak self] in
       guard let self else { return }
       let taken = self.takeBackZigzag(key, before: scratch.before, why: "scratch")
@@ -1337,14 +1353,19 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       {
         grip = (at.y, spot)
         scrolls(false)
+        roomBandBegan(at: at.y, tool: "finger")
       } else {
         showHoldMenu(at: at, spot: spot)
       }
+    case .changed:
+      guard let grip else { return }
+      roomBandMoved(dy: (spot.y - grip.spot.y) / max(screenScale, 0.01))
     case .ended, .cancelled, .failed:
       guard let grip else { return }
       self.grip = nil
       scrolls(true)
       let dy = (spot.y - grip.spot.y) / max(screenScale, 0.01)
+      roomBandEnded(why: hold.state == .ended ? "lifted" : "cancelled")
       if hold.state == .ended, abs(dy) >= BoardRoom.line / 2 {
         room(at: grip.y, dy: dy, why: "margin_drag")
       } else if hold.state == .ended {
@@ -2246,6 +2267,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let tool: BoardMarginHold.Tool = touch.type == .pencil ? .pencil : .finger
     marginTry = (ObjectIdentifier(touch), tool, at.y, false)
+    if tool == .pencil { roomBandPencilDown(touch, at: at) }
     log.event(
       "board_margin",
       [
@@ -2255,6 +2277,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func touchEnded(_ touch: UITouch, cancelled: Bool, seconds: Double, travel: CGFloat) {
+    roomBandPencilLifted(touch)
     guard let attempt = marginTry, attempt.touch == ObjectIdentifier(touch) else { return }
     marginTry = nil
     var event: [String: Any] = [
@@ -2276,6 +2299,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func touchMoved(_ touch: UITouch) {
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     foldEraserMoved(touch)
+    roomBandPencilMoved(touch, at: lines.columnPoint(of: touch.location(in: lines)))
     guard place.erasing, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
@@ -2355,6 +2379,8 @@ struct PaperBoardCanvas: View {
     .overlay { ToTextButton(controller: controller, state: controller.toText) }
     .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame, toText: controller.toText) }
     .overlay { RewordField(controller: controller, state: controller.reword) }
+    .overlay { RoomBandOverlay(state: controller.roomBand) }
+    .overlay { ScratchNoteOverlay(note: controller.scratchNote) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

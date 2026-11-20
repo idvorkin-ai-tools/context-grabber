@@ -151,6 +151,26 @@ final class WhiteboardOutlineUITests: XCTestCase {
     shot(app, "folded from the ▾")
   }
 
+  /// Stories 1044, 1038 (#1000): while the room handle is held, a see-through band and a chip say what the lift will
+  /// do. The simulator can't look mid-drag, so `GRABBER_WHITEBOARD_FEEDBACK_SECONDS` keeps the band up after the lift.
+  func testTheRoomHandleShowsABandWhileHeld() throws {
+    let app = try openBoard(["GRABBER_WHITEBOARD_FEEDBACK_SECONDS": "8"])
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.12, to: 0.4, y: 0.40)
+    wait(send(app), label: strokes(2))
+    let band = app.descendants(matching: .any)["whiteboard-room-band"]
+    XCTAssertFalse(band.exists, "no band before a hold")
+    point(app, margin, 0.35).press(forDuration: 0.8, thenDragTo: point(app, margin, 0.45))
+    XCTAssertTrue(band.appears(within: 3), "the band: \(app.debugDescription)")
+    XCTAssertEqual(band.label, "Making room")
+    XCTAssertNotEqual(band.value as? String, "0 lines", "as tall as the room it opened")
+    shot(app, "making room: the band, arrows and chip")
+    point(app, margin, 0.36).press(forDuration: 0.8, thenDragTo: point(app, margin, 0.33))
+    waitUntil(NSPredicate(format: "label == %@", "Closing room"), band, timeout: 3)
+    shot(app, "closing room: the band over the blank paper")
+  }
+
   /// Story 901: a folded header says beside its row how many lines it holds, and the words go when it unfolds.
   func testAFoldShowsItsLinesBesideTheHeader() throws {
     let app = try openBoard()

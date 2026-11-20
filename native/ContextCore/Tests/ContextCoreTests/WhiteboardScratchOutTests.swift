@@ -150,4 +150,17 @@ final class WhiteboardScratchOutTests: XCTestCase {
     XCTAssertEqual(WhiteboardHooks(["GRABBER_WHITEBOARD_ZIGZAG": "2"]).zigzagAt, 2)
     XCTAssertNil(WhiteboardHooks([:]).zigzagAt)
   }
+
+  /// Stories 1051, 1052 (#1000): only a real zigzag that found nothing to erase says so and goes; writing stays ink, unsaid.
+  func testOnlyAZigzagOverNothingFindsNothing() {
+    func outcome(_ ok: Bool, _ why: String?) -> Scratch.Outcome {
+      Scratch.Outcome(ok: ok, gone: [], reversals: 4, speed: 1, why: why)
+    }
+    XCTAssertTrue(outcome(false, "no ink").findsNothing)
+    XCTAssertTrue(outcome(false, "beside ink").findsNothing)
+    for why in ["slow", "marches along", "short sweeps", "few turns", "short", "small"] {
+      XCTAssertFalse(outcome(false, why).findsNothing, why)
+    }
+    XCTAssertFalse(outcome(true, nil).findsNothing, "one that worked")
+  }
 }
