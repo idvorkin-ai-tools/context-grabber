@@ -111,6 +111,45 @@ final class WhiteboardOutlineUITests: XCTestCase {
     shot(app, "underlined header folded")
   }
 
+  /// Stories 1040, 1041 (#1004): a line tints the moment it becomes a header; every header's ▾ sits in one spot
+  /// across, over the ink, its foot on the line, and a tap on the ▾ itself folds it.
+  func testHeaderMarksShareOneSpotStandOnTheLineAndTintWhenMade() throws {
+    let app = try openBoard()
+    sleep(1)
+    write(app, x: 0.12, to: 0.4, y: 0.30)
+    write(app, x: 0.3, to: 0.6, y: 0.44)
+    write(app, x: 0.36, to: 0.6, y: 0.50)
+    wait(send(app), label: strokes(3))
+    point(app, margin, 0.305).tap()
+    let tint = app.descendants(matching: .any)["whiteboard-header-tint"]
+    XCTAssertTrue(tint.appears(within: 2), "the new header tints: \(app.debugDescription)")
+    shot(app, "a header made, tinted")
+    XCTAssertTrue(tint.waitForNonExistence(timeout: 4), "the tint fades")
+    point(app, margin, 0.445).tap()
+    let headers = marks(app, "Header")
+    XCTAssertTrue(headers.element(boundBy: 1).appears(within: 5), "two headers: \(app.debugDescription)")
+    let first = headers.element(boundBy: 0).frame
+    let second = headers.element(boundBy: 1).frame
+    XCTAssertEqual(first.minX, second.minX, accuracy: 1, "one spot across, whatever the indent")
+    XCTAssertLessThan(first.maxX, app.frame.width * 0.08, "in the margin")
+    // Each mark's foot on its line's baseline: the bottom of the line's ink, read from the screen's pixels (a drag's ink
+    // ends a little short of where the drag does, so not from where it was drawn).
+    let screen = PaperScreen(app)
+    let lines = [(0.25, 0.37), (0.40, 0.475)].map { band in
+      screen.ink(in: PaperScreen.Box(minX: 0.1, minY: band.0, maxX: 1, maxY: band.1)).map { $0.maxY * app.frame.height }
+    }
+    let feet = [first, second].map(\.maxY).sorted()
+    for (foot, line) in zip(feet, lines) {
+      let bottom = try XCTUnwrap(line, "the line's ink on screen")
+      XCTAssertEqual(foot, bottom, accuracy: 4, "the mark stands on its line")
+    }
+    shot(app, "two headers, one spot")
+    // A tap on the ▾ itself, near its top edge, folds it.
+    app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: second.midX, dy: second.minY + 2)).tap()
+    XCTAssertTrue(marks(app, "Folded header").firstMatch.appears(within: 5), "it folds: \(app.debugDescription)")
+    shot(app, "folded from the ▾")
+  }
+
   /// Story 901: a folded header says beside its row how many lines it holds, and the words go when it unfolds.
   func testAFoldShowsItsLinesBesideTheHeader() throws {
     let app = try openBoard()

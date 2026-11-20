@@ -177,11 +177,11 @@ public struct BoardOutline: Sendable {
       bottom: r.upperBound)
   }
 
-  /// The header showing whose row a margin tap at `y` is on.
+  /// The header showing whose row a margin tap at `y` is on, or whose ▾ it is within reach of (#1004).
   public func header(at y: CGFloat) -> BoardHeader? {
     headers.first { header in
       guard shows(header), let box = box(header) else { return false }
-      return y >= box.minY - Self.tapReach && y <= box.maxY + Self.tapReach
+      return (y >= box.minY - Self.tapReach && y <= box.maxY + Self.tapReach) || onMark(header, y: y)
     }
   }
 

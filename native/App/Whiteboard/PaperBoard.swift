@@ -371,6 +371,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var marking: Task<Void, Never>?
   /// Headers made by ink whose mark is away, as last logged (#967).
   var marksGone: Set<String> = []
+  /// Each header's ▾ in the margin, over the ink (stories 1040, 1041), and a new header's tint.
+  @Published var headerMarks: [BoardOutline.HeaderMark] = []
+  @Published var headerTint: HeaderTint?
+  var tinting: Task<Void, Never>?
   /// Stories 902, 903: an eraser touch on a board with a fold, from where it went down (PaperBoard+FoldErase.swift).
   var foldErasing: FoldErasing?
   /// Story 858: the menu a held finger brought up, in this view's points; nil with none.
@@ -1257,6 +1261,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     var outline = model.outline(of: strokes)
+    let before = Set(outline.headers.map(\.id))
     guard change(&outline) else { return false }
     var plan = outline.plan(from: strokes, pages: pages, board: board)
     // Stories 911, 915: a fold moves ink, and the connectors follow it.
@@ -1271,6 +1276,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     model.outlineChanged(outline)
     showMarks()
+    tintNew(outline, before: before)
     log.event(
       "board_outline",
       [
@@ -1298,14 +1304,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     // ponytail: the whole board's outline on each change, ~ms per hundred strokes; incremental by changed line if
     // a long board feels it.
     let outline = model.outline(of: opStrokes(markup).strokes)
+    // Stories 1040, 1041: the headers' ▾ go over the ink, in one spot on their baselines.
+    showHeaderMarks(outline)
     var marks: [PaperLines.Mark] = []
-    for header in outline.headers where outline.shows(header) {
-      guard let box = outline.box(header) else { continue }
-      let folded = outline.isFolded(header)
-      marks.append(
-        PaperLines.Mark(
-          id: "header-\(header.id)", y: box.midY, text: folded ? "▸ \(header.fold?.lines ?? 0)" : "▾", faint: false))
-    }
     // Story 901: "▸ N lines folded" beside a folded header, where the eraser takes the fold.
     for marker in outline.markers {
       marks.append(
@@ -2347,6 +2348,7 @@ struct PaperBoardCanvas: View {
     .overlay {
       if model.editable { WhiteboardQuestionCards(questions: model.questions, place: controller.place) }
     }
+    .overlay { BoardHeaderMarks(controller: controller, place: controller.place) }
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
     .overlay { ToTextButton(controller: controller, state: controller.toText) }

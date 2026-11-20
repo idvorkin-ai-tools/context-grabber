@@ -52,6 +52,24 @@ a second kind of header; only the ways one is made and the ways a section ends a
   after the #, or a word added to an underlined header. It folds with it, the fold's "▸ N lines folded" sits past it,
   and the margin's ▾ stays one mark. This holds for every header, a margin tap's included.
 
+### Seeing the headers (#1004)
+
+Igor, on the iPad (2026-11-20): the ▾ was a small grey mark at a different place beside each header, hard to see and
+hard to hit, and the ▾ of a line he started with a # in the margin didn't show at all, so he took the line for
+unrecognised. (It was a header: the ▾ sat in the margin's middle, under the very # that made it.)
+
+- **The moment a line becomes a header** (an underline, a #, a margin tap or *Make header*), its row is tinted in the
+  accent colour for about a second, then the tint fades. Words written on a header's line afterwards don't tint it
+  again, nor does opening a board, an Undo or a Redo.
+- **Every header's ▾ sits in one spot**: at the margin's left edge, the same place for every header whatever its
+  indent, standing on the line's baseline as a letter of the line would (not its middle, which a g's tail or an
+  underline pulls down). A folded header's ▸ and its lines sit in the same spot.
+- **The ▾ is over the ink**, on a small plate of the paper's colour with a thin edge, so ink written in the margin
+  (a # started there) never hides it. It covers only the margin's left corner of that line.
+- **The ▾ is easy to hit**: a tap in the margin anywhere within 22 points above or below the ▾'s middle (44 points
+  top to bottom, the margin's full width across) is on its header, as is a tap beside the line's ink, as before.
+- The faint H beside a line that looks like a header is unchanged: under the ink, in the margin's middle.
+
 ### A rule across the page ends the sections above it
 
 - **A long, straight, flat line that underlines nothing** (at least about half the page wide, and not just under a
@@ -100,6 +118,11 @@ a second kind of header; only the ways one is made and the ways a section ends a
 - *Not a header* on an underlined header leaves the underline and no ▾, and drawing elsewhere never brings it back.
 - A board opened with underlines drawn before this build shows them as they were: faint H, no header.
 - Larry's picture shows the grey ▾ beside an open header.
+- Making a header (by an underline, a #, a margin tap or *Make header*) tints its row for about a second; writing more
+  on its line doesn't.
+- Two headers at different indents have their ▾ at the same place across, each standing on its line's baseline.
+- A # written in the margin's left corner leaves its header's ▾ showing over it.
+- A tap in the margin anywhere on the ▾, or up to 22 points above or below its middle, folds its header.
 
 ## Future work (not in this slice)
 
