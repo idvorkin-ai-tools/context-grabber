@@ -1076,9 +1076,14 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     Task { @MainActor [weak self] in
       guard let self else { return }
-      _ = self.takeBackPaperKitsStep(why: "scratch")
-      // The zigzag's own step may not have been the one undone: the markup before it is set either way.
+      let could = self.takeBackPaperKitsStep(why: "scratch")
       event["undid_zigzag"] = self.paper.markup?.strokeFrames[key] == nil
+      // The zigzag's own step may not have been the one undone (#966): one that took other ink is put back, and the
+      // zigzag's stays beneath, as the margin hold's does.
+      let held = Set((self.paper.markup?.strokeFrames ?? [:]).keys).subtracting([key])
+      let redone = could && held != Set(scratch.before.strokeFrames.keys)
+      if redone { self.paper.undoManager?.redo() }
+      event["base"] = redone ? "redone" : could ? "taken_back" : "untouched"
       // #999: both made from the markup PaperKit holds now, after the take-back. A markup made before it, from the one
       // the zigzag's change handed over, was refused whole: PaperKit kept the scratched ink, on the sheet and in the
       // next change, and so it reached Larry.
