@@ -105,6 +105,41 @@ public enum StripSync {
     return (try? JSONSerialization.data(withJSONObject: days, options: [.sortedKeys])) ?? month
   }
 
+  /// How long a device handed a restore's history must send nothing before this one sends that history for it (#379).
+  public static let silentDays = 30
+
+  /// Whether a device whose newest row is `newest` (unix ms) has been silent for `silentDays` on `now`. No rows is
+  /// not silence: there is nothing to send.
+  public static func isSilent(newest: Int64?, now: Date) -> Bool {
+    guard let newest else { return false }
+    return Double(newest) < (now.timeIntervalSince1970 - Double(silentDays) * 86_400) * 1000
+  }
+
+  /// The months to write under a silent device's keys, from its peer rows here (#379): only a month where a row is
+  /// absent from the key or newer than the key's, merged into the value `cloud` gives for that month (the newer change
+  /// per day and item winning, unknown items carried through), with how many rows were unsent. Months older than
+  /// `oldest` stay out.
+  public static func unsentMonths(_ rows: [StripRow], oldest: String, cloud: (String) -> Data?) -> [String: (
+    data: Data, rows: Int
+  )] {
+    var out: [String: (data: Data, rows: Int)] = [:]
+    for (m, local) in Dictionary(grouping: rows, by: { month(of: $0.day) }) where m >= oldest {
+      let old = cloud(m)
+      var merged: [String: StripRow] = [:]
+      for r in old.map(decode) ?? [] { merged["\(r.day)/\(r.item.rawValue)"] = r }
+      var unsent = 0
+      for r in local {
+        let key = "\(r.day)/\(r.item.rawValue)"
+        if let there = merged[key], there.updatedAt >= r.updatedAt { continue }
+        merged[key] = r
+        unsent += 1
+      }
+      guard unsent > 0, let data = encode(Array(merged.values))[m] else { continue }
+      out[m] = (carryingUnknown(data, from: old), unsent)
+    }
+    return out
+  }
+
   /// A monthly value back into rows. Each day and item is read on its own, so an unknown item or one malformed
   /// entry (a later build's, say) skips just that entry, not the month (Codex on #378).
   public static func decode(_ data: Data) -> [StripRow] {
