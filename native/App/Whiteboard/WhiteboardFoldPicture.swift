@@ -65,7 +65,7 @@ extension WhiteboardModel {
     Self.foldShade.setFill()
     for band in opened.bands where band.bottom > rect.minY && band.top < rect.maxY {
       UIRectFillUsingBlendMode(
-        CGRect(x: 0, y: band.top - rect.minY, width: rect.width, height: band.bottom - band.top), .multiply)
+        CGRect(x: 0, y: band.top - rect.minY, width: rect.width, height: band.bottom - band.top), .normal)
     }
   }
 

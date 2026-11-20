@@ -4785,7 +4785,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1046:
 
 - **Summary:** Larry's marks on a picture with a folded section land where he drew them
-- **Status:** implemented in [1a3e67b7](https://github.com/idvorkin/context-grabber/commit/1a3e67b7) (#1013); verified by host tests (`BoardFoldPictureTests`); `just test` and the Mac build (`just native-build-mac`); not yet seen on the iPad
+- **Status:** implemented in [a043ea5c](https://github.com/idvorkin/context-grabber/commit/a043ea5c) (#1013); verified by host tests (`BoardFoldPictureTests`); `just test` and the Mac build (`just native-build-mac`); the iPad simulator (rung 2, `WhiteboardOutlineUITests.testLarrysPictureShowsAFoldedSectionWholeAndShaded`); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 - **Issues:** [#1013](https://github.com/idvorkin/context-grabber/issues/1013)
 
@@ -6628,7 +6628,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 900:
 
 - **Summary:** Larry's picture shows a folded section whole, flagged folded
-- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a) (header and "▸ N lines folded"); changed to the whole section in [1a3e67b7](https://github.com/idvorkin/context-grabber/commit/1a3e67b7) (#1013); verified by host tests (`BoardFoldMarkerTests`, `BoardFoldPictureTests`); `just test` and the Mac build (`just native-build-mac`); the picture not yet seen on the iPad
+- **Status:** implemented in [568bd4a](https://github.com/idvorkin/context-grabber/commit/568bd4a) (header and "▸ N lines folded"); changed to the whole section in [a043ea5c](https://github.com/idvorkin/context-grabber/commit/a043ea5c) (#1013); verified by host tests (`BoardFoldMarkerTests`, `BoardFoldPictureTests`); `just test` and the Mac build (`just native-build-mac`); the iPad simulator (rung 2, `WhiteboardOutlineUITests.testLarrysPictureShowsAFoldedSectionWholeAndShaded`); the picture not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 - **Issues:** [#1013](https://github.com/idvorkin/context-grabber/issues/1013) (Igor, 2026-11-20, W4 on PR #912: "the picture shows the whole section, flagged as folded")
 
