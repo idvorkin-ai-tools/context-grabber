@@ -7616,7 +7616,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1040:
 
 - **Summary:** A line tints for a moment when it becomes a header
-- **Status:** implemented in PENDING
+- **Status:** implemented in [8e0a8e6e](https://github.com/idvorkin/context-grabber/commit/8e0a8e6e), [cb503b46](https://github.com/idvorkin/context-grabber/commit/cb503b46), [ddea0bc3](https://github.com/idvorkin/context-grabber/commit/ddea0bc3); verified by `WhiteboardOutlineUITests.testHeaderMarksShareOneSpotStandOnTheLineAndTintWhenMade` on the iPad simulator (rung 2, 2026-11-20: the tint appears on a margin tap's header and fades, the `header_tint` event in the session log) and `just test`; not yet seen with the Pencil on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Seeing the headers*
 - **Issues:** [#1004](https://github.com/idvorkin/context-grabber/issues/1004)
 
@@ -7636,7 +7636,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1041:
 
 - **Summary:** Every header's ▾ sits in one spot in the margin, on the line's baseline, over the ink, easy to tap
-- **Status:** implemented in PENDING
+- **Status:** implemented in [8e0a8e6e](https://github.com/idvorkin/context-grabber/commit/8e0a8e6e), [cb503b46](https://github.com/idvorkin/context-grabber/commit/cb503b46), [ddea0bc3](https://github.com/idvorkin/context-grabber/commit/ddea0bc3); verified by host tests (`BoardHeaderMarksTests`, the # row from the iPad's 2026-11-20 log), `just test`, the Mac build (rung 1.5) and `WhiteboardOutlineUITests.testHeaderMarksShareOneSpotStandOnTheLineAndTintWhenMade` on the iPad simulator (rung 2, 2026-11-20: two headers' marks at one x, each foot on its line's ink read from the screen's pixels, a tap on the mark folds); a # in the margin can't be drawn by a UI test, so over-the-ink is host and screenshot only; not yet seen on the iPad
 - **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Seeing the headers*
 - **Issues:** [#1004](https://github.com/idvorkin/context-grabber/issues/1004) (a # written in the margin hid its own ▾, so "#Affirmations" looked unrecognised)
 
