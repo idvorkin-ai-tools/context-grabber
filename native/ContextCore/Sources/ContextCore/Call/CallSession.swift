@@ -26,15 +26,19 @@ public struct CaptionRow: Equatable, Identifiable, Sendable {
   public var text: String
   /// Igor's words as the recognizer still hears them — not yet settled.
   public var pending: Bool
-  /// #467, story 216: Igor's sentence has gone to Larry and Larry has not answered yet.
+  /// #897, story 216: the live line's sentence has left the phone — the recognizer heard him finish it — and the
+  /// agent doesn't have it yet. Only ever on the pending row.
   public var sent: Bool
+  /// #467, #897, story 216: the agent has Igor's sentence and Larry has not answered yet.
+  public var heard: Bool
 
-  public init(id: Int, who: CaptionWho, text: String, pending: Bool, sent: Bool = false) {
+  public init(id: Int, who: CaptionWho, text: String, pending: Bool, sent: Bool = false, heard: Bool = false) {
     self.id = id
     self.who = who
     self.text = text
     self.pending = pending
     self.sent = sent
+    self.heard = heard
   }
 }
 
@@ -466,12 +470,12 @@ public final class CallSession {
       if token == probeToken { clearProbe() }
     case .transcript(let who, let text, let source):
       if who == "igor" {
-        // The bridge took his words and sent them to Larry (#467): the vendor's transcript replaces the
-        // recognizer's, and the sentence leaves the live line now, marked sent, rather than when Larry answers.
+        // The agent has his words (#467, #897): the vendor's transcript replaces the recognizer's, and the
+        // sentence leaves the live line now, marked heard, rather than when Larry answers.
         if source != "typed", !text.isEmpty {
           let next = wordsAfter(sent: text)
           setIgor(final: text, partial: "")
-          promoteIgor(sent: true)
+          promoteIgor(heard: true)
           // #532: the next sentence's words stay live, and its final is new speech, not a restatement.
           if let next {
             restateWindow = false
@@ -488,19 +492,22 @@ public final class CallSession {
         cutOffPending = false
         // #532: a half-said sentence keeps building; a correction line arrives mid-word.
         if igorPartial.isEmpty { promoteIgor() }
-        clearSent()
+        clearHeard()
         appendLarry(text)
       }
     case .sttPartial(let text):
       restateWindow = false
       setIgor(final: igorFinal, partial: text)
-    case .sttFinal(let text):
+    case .sttFinal(let text, let speechFinal):
       if restateWindow {
         // The recognizer's own final for a sentence the bridge already sent: never show it twice.
         log("call_caption_restated", ["text": text])
       } else {
         setIgor(final: joinWords(igorFinal, text), partial: "")
+        if speechFinal { markLiveSent(why: "speech_final") }
       }
+    case .sttUtteranceEnd:
+      if !restateWindow { markLiveSent(why: "utterance_end") }
     case .interrupted:
       log("call_bridge", ["kind": "interrupted"])
       cutOffPending = true
@@ -509,7 +516,7 @@ public final class CallSession {
     case .turnEnd:
       closeLarryRow()
       promoteIgor()
-      clearSent()
+      clearHeard()
     case .toolCall(let question):
       if igorPartial.isEmpty { promoteIgor() }
       closeLarryRow()
@@ -930,13 +937,20 @@ public final class CallSession {
     igorPartial = partial
     let text = joinWords(final, partial)
     if text.isEmpty {
-      if let id = igorRowId { setRow(id) { $0.text = "" } }
+      if let id = igorRowId {
+        setRow(id) {
+          $0.text = ""
+          $0.sent = false
+        }
+      }
       return
     }
     if let id = igorRowId {
       setRow(id) {
         $0.text = text
         $0.pending = true
+        // #897: new words, so the sentence isn't finished after all.
+        $0.sent = false
       }
     } else {
       igorRowId = addRow(.igor, text, pending: true)
@@ -955,9 +969,15 @@ public final class CallSession {
     return sentWords.indices.contains { sentWords[$0...].joined().hasPrefix(live) } ? nil : igorPartial
   }
 
-  /// Igor's pending row becomes a settled one, marked sent when the bridge sent it to Larry; an empty pending row
-  /// is dropped.
-  private func promoteIgor(sent: Bool = false) {
+  /// #897: the recognizer heard him finish the live line's sentence, so all of it has left the phone. Logged once.
+  private func markLiveSent(why: String) {
+    guard let row = row(igorRowId), !row.text.isEmpty, !row.sent else { return }
+    setRow(row.id) { $0.sent = true }
+    log("call_caption_sent", ["text": row.text, "why": why])
+  }
+
+  /// Igor's pending row becomes a settled one, marked heard when the agent has it; an empty pending row is dropped.
+  private func promoteIgor(heard: Bool = false) {
     let id = igorRowId
     igorRowId = nil
     igorFinal = ""
@@ -969,17 +989,18 @@ public final class CallSession {
     }
     setRow(row.id) {
       $0.pending = false
-      $0.sent = sent
+      $0.sent = false
+      $0.heard = heard
     }
-    if sent { restateWindow = true }
-    log("call_caption", ["who": "igor", "text": row.text, "sent": sent])
+    if heard { restateWindow = true }
+    log("call_caption", ["who": "igor", "text": row.text, "heard": heard])
   }
 
   /// Larry answered, or the turn or the call ended: nothing is waiting on him any more.
-  private func clearSent() {
-    guard snapshot.captions.contains(where: { $0.sent }) else { return }
+  private func clearHeard() {
+    guard snapshot.captions.contains(where: { $0.heard }) else { return }
     update { s in
-      for i in s.captions.indices where s.captions[i].sent { s.captions[i].sent = false }
+      for i in s.captions.indices where s.captions[i].heard { s.captions[i].heard = false }
     }
   }
 
@@ -1060,7 +1081,7 @@ public final class CallSession {
     guard snapshot.isActive else { return }
     closeLarryRow()
     promoteIgor()
-    clearSent()
+    clearHeard()
     let stats = deps.audio.stats()
     log(
       "call_ended",

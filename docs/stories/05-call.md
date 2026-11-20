@@ -104,27 +104,32 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A sentence is recognised
 - **Given:** a call is live and the box under the call line reads *listening…*
 - **When:** I say a sentence slowly
-- **Then:** the words appear in the box in large type as they are recognised, and when the sentence is sent to Larry the box returns to *listening…* and the sentence is one *Igor* row in the transcript below ([story 216](#user-story-216))
+- **Then:** the words appear in the box in large type as they are recognised, and when the agent has the sentence the box returns to *listening…* and the sentence is one *Igor* row in the transcript below ([story 216](#user-story-216))
 
 ---
 
 ### User Story 216:
 
-- **Summary:** See the moment my sentence is sent to Larry, without waiting for his reply
-- **Status:** implemented in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) and [33a965b](https://github.com/idvorkin/context-grabber/commit/33a965b) (a real repeat is not taken for the recognizer's late final) and [8f94f16](https://github.com/idvorkin/context-grabber/commit/8f94f16) (every final after a send, before the next partial, is the recognizer's late account, whatever its words); verified by `just native-test` (host: `CallSessionTests` — a sent sentence leaves the live line marked sent, two sentences sent before Larry answers are two rows, a late final spelled differently, a prefix final and two split finals are not shown, a real repeat is, the mark survives an interruption and a consult, hanging up clears it) and `just native-test-sim` (the fake bridge sends two sentences before Larry answers: both are logged as sent Igor captions and the late final as restated); the phone, on a Direct call, still to be checked by Igor; #532: what happens to the next sentence's words when one is sent is [story 325](#user-story-325)
-- **Issues:** [#467](https://github.com/idvorkin/context-grabber/issues/467)
+- **Summary:** See my sentence leave the phone (*sent*), then reach the agent (*heard*), without waiting for Larry's reply
+- **Status:** implemented in [085663f](https://github.com/idvorkin/context-grabber/commit/085663f) and [33a965b](https://github.com/idvorkin/context-grabber/commit/33a965b) (a real repeat is not taken for the recognizer's late final) and [8f94f16](https://github.com/idvorkin/context-grabber/commit/8f94f16) (every final after a send, before the next partial, is the recognizer's late account, whatever its words); verified by `just native-test` (host: `CallSessionTests` — a sent sentence leaves the live line marked sent, two sentences sent before Larry answers are two rows, a late final spelled differently, a prefix final and two split finals are not shown, a real repeat is, the mark survives an interruption and a consult, hanging up clears it) and `just native-test-sim` (the fake bridge sends two sentences before Larry answers: both are logged as sent Igor captions and the late final as restated); the phone, on a Direct call, still to be checked by Igor; #897: *sent* in the live line when the recognizer has the whole sentence, the transcript mark renamed *heard*, in COMMIT_897 (verified by RUNG_897); #532: what happens to the next sentence's words when one is sent is [story 325](#user-story-325)
+- **Issues:** [#467](https://github.com/idvorkin/context-grabber/issues/467), [#897](https://github.com/idvorkin/context-grabber/issues/897)
 - **Spec:** [Native call — the live line](../superpowers/specs/2026-08-28-native-call-screen-design.md)
 
 #### Use Case:
 - **As a** Larry's client on a Direct call, where Larry can think for seconds before he speaks
-- **I want to** see each sentence leave the live line and sit in the transcript marked *sent* the moment it goes to Larry
-- **so that** I know what he has, and what I say next is plainly a new sentence rather than more of the last one
+- **I want to** see *sent* in the live line once my sentence has left the phone, then see it leave the live line and sit in the transcript marked *heard* the moment the agent has it
+- **so that** I know my words got out and what he has, and what I say next is plainly a new sentence rather than more of the last one
 
 #### Acceptance Criteria:
-- **Scenario:** Two sentences sent before Larry answers
+- **Scenario:** A sentence is sent, then heard
 - **Given:** a live call, on Direct or ElevenLabs, with the live line reading *listening…*
-- **When:** I say a sentence, it is sent to Larry, and I say a second one before he answers
-- **Then:** the first sentence is an *Igor* row marked *sent* as soon as it is sent, the second builds in a fresh live line and becomes a second *Igor* row marked *sent* — two rows, neither shown twice — and when Larry answers both *sent* marks go
+- **When:** I say a sentence and stop talking
+- **Then:** a small *sent* mark appears in the live line beside my words once the recognizer has the whole sentence; if I start talking again the mark goes until I stop; when the agent has the sentence the live line empties and the sentence is an *Igor* row marked *heard*
+
+- **Scenario:** Two sentences heard before Larry answers
+- **Given:** a live call, on Direct or ElevenLabs, with the live line reading *listening…*
+- **When:** I say a sentence, the agent has it, and I say a second one before Larry answers
+- **Then:** the first sentence is an *Igor* row marked *heard* as soon as the agent has it, the second builds in a fresh live line and becomes a second *Igor* row marked *heard* — two rows, neither shown twice — and when Larry answers both *heard* marks go
 
 ---
 

@@ -133,10 +133,13 @@ struct CallView: View {
     .frame(maxWidth: .infinity)
   }
 
-  /// What the recognizer hears Igor saying right now, big, before it is sent (story 084).
+  /// What the recognizer hears Igor saying right now, big, before the agent has it (story 084); marked sent once he
+  /// has finished the sentence and it has left the phone (#897, story 216).
   private var liveLine: some View {
     let pending = call.snapshot.captions.last { $0.who == .igor && $0.pending }
-    let text = call.snapshot.muted ? "muted" : (pending?.text ?? "")
+    let muted = call.snapshot.muted
+    let text = muted ? "muted" : (pending?.text ?? "")
+    let sent = !muted && !text.isEmpty && pending?.sent == true
     return ScrollViewReader { proxy in
       ScrollView {
         Text(text.isEmpty ? "listening…" : text)
@@ -148,6 +151,12 @@ struct CallView: View {
       .frame(height: 76)
       .padding(.horizontal, 12)
       .background(Color(.secondarySystemBackground))
+      .overlay(alignment: .bottomTrailing) {
+        if sent {
+          Text("sent").font(.caption2).foregroundStyle(.tertiary).padding(6)
+            .accessibilityIdentifier("call-live-sent")
+        }
+      }
       .onChange(of: text) { _, _ in proxy.scrollTo("live", anchor: .bottom) }
     }
   }
@@ -254,9 +263,9 @@ struct CallView: View {
           guard isTool else { return }
           if expanded.contains(row.id) { expanded.remove(row.id) } else { expanded.insert(row.id) }
         }
-      // #467, story 216: gone to Larry, no answer yet. Small and quiet; it goes when he answers.
-      if row.sent {
-        Text("sent").font(.caption2).foregroundStyle(.tertiary).accessibilityIdentifier("call-caption-sent")
+      // #467, #897, story 216: the agent has it, no answer yet. Small and quiet; it goes when he answers.
+      if row.heard {
+        Text("heard").font(.caption2).foregroundStyle(.tertiary).accessibilityIdentifier("call-caption-heard")
       }
     }
   }

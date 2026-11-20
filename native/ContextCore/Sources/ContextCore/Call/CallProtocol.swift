@@ -140,7 +140,10 @@ public enum BridgeMessage: Equatable, Sendable {
   case micAck(token: Int)
   case transcript(who: String, text: String, source: String?)
   case sttPartial(text: String)
-  case sttFinal(text: String)
+  /// `speechFinal`: the recognizer heard him stop — the whole sentence has left the phone (#897).
+  case sttFinal(text: String, speechFinal: Bool)
+  /// The recognizer's second way of saying he stopped (#897).
+  case sttUtteranceEnd
   case interrupted
   case turnEnd
   case toolCall(question: String)
@@ -228,7 +231,8 @@ public enum CallProtocol {
       return .micAck(token: token)
     case "transcript": return .transcript(who: str("who"), text: str("text"), source: m["source"] as? String)
     case "stt_partial": return .sttPartial(text: str("text"))
-    case "stt_final": return .sttFinal(text: str("text"))
+    case "stt_final": return .sttFinal(text: str("text"), speechFinal: m["speech_final"] as? Bool == true)
+    case "stt_utterance_end": return .sttUtteranceEnd
     case "interrupted": return .interrupted
     case "turn_end": return .turnEnd
     case "tool_call": return .toolCall(question: str("question"))

@@ -14,6 +14,7 @@
 **Amended:** 2026-10-26, [#467](https://github.com/idvorkin/context-grabber/issues/467) — a sentence leaves the live line the moment it is sent to Larry, marked *sent* until Larry answers
 **Amended:** 2026-10-27, [#556](https://github.com/idvorkin/context-grabber/issues/556) — a Direct call picks its speech-to-text: Default, Nova-3 or Flux
 **Amended:** 2026-11-03, [#532](https://github.com/idvorkin/context-grabber/issues/532) — a half-said sentence stays in the live line when something else arrives
+**Amended:** 2026-11-19, [#897](https://github.com/idvorkin/context-grabber/issues/897) — Igor's latest sentence shows *sent* when it has left the phone, then *heard* when the agent has it
 **Amended:** 2026-11-14, [#582](https://github.com/idvorkin/context-grabber/issues/582) — a call whose microphone is refused because the app is not in front holds, asks Igor to open Grabber, and starts the mic when he does, instead of resetting and redialling
 
 ## Summary
@@ -543,7 +544,7 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   *"In the call log, it should say Igor and Tony, not Igor and Larry"*);
   Larry is the reasoning half behind him. A line Larry put into the call
   himself (injected context) carries the label *Larry*. Larry's spoken text appears as he says it;
-  Igor's appears the moment it is sent to Larry — until then it lives
+  Igor's appears the moment the agent has it — until then it lives
   in the **live line** (below). No turn numbers, no
   links, no per-turn readouts. Larry's *consults* (asking the other Larry
   something mid-call) show as a short clamped row that expands on tap and
@@ -555,19 +556,36 @@ The screen is the conversation and nothing else (Cockpit DESIGN P23/P24):
   box about twice a caption row tall, with big type: what the recognizer
   hears Igor saying *right now*, word by word, before the turn is sent. It
   is where the eye goes while talking — a wrong word shows up here, large,
-  while there is still time to say it again. The moment the sentence is
-  sent to Larry — the bridge says it took his words, on every backend,
-  Direct and ElevenLabs alike — the box empties and the sentence drops
-  into the transcript as an *Igor* row carrying a small, quiet *sent*
-  mark; what he says next starts a fresh live line. Igor, 2026-10-26
+  while there is still time to say it again. **Sent, then heard**
+  ([#897](https://github.com/idvorkin/context-grabber/issues/897); asked
+  2026-10-25: *on a call there is no sign that what I just said left the
+  phone, or that the agent heard it* — he wants both). When the recognizer
+  on the Mac says he has finished the sentence — it has all of his audio
+  and has heard him stop — a small, quiet *sent* mark appears in the
+  corner of the box beside his words: they have left the phone. The
+  moment the agent has the sentence — the bridge hands back the agent's
+  own account of his words, on every backend, Direct and ElevenLabs
+  alike — the box empties and the sentence drops into the transcript as
+  an *Igor* row carrying a small, quiet *heard* mark; what he says next
+  starts a fresh live line. The *sent* mark goes the moment he speaks
+  again (the sentence was not finished after all), when the sentence
+  drops into the transcript, when the turn ends, and while he is muted.
+  On ElevenLabs the two marks are usually a beat or two apart, while the
+  vendor settles its own transcript; on Direct the bridge hands the
+  sentence to Larry as soon as the recognizer finishes it, so *sent* is
+  barely seen and the long wait — Larry thinking — is spent on *heard*.
+  A sentence the recognizer never marks finished shows no *sent* mark
+  and still drops in as *heard*. *Heard* means the agent has his words,
+  not that Larry has started on them: the bridge sends no signal for that
+  today. Igor, 2026-10-26
   ([#467](https://github.com/idvorkin/context-grabber/issues/467)):
   *"once we've sent the partial text show up as partial text don't
   wait, this is needed on direct larry calls"* — on Direct, Larry can
   think for seconds before he speaks, and a box that held every sentence
-  until then left no way to tell what had gone. Two sentences sent before
-  Larry answers are two rows, each marked *sent*. When Larry answers (or
-  the turn ends) every *sent* mark goes and the rows are ordinary *Igor*
-  rows. A sentence the bridge never reports as sent still drops in when
+  until then left no way to tell what had gone. Two sentences heard before
+  Larry answers are two rows, each marked *heard*. When Larry answers (or
+  the turn ends) every *heard* mark goes and the rows are ordinary *Igor*
+  rows. A sentence the bridge never reports as heard still drops in when
   Tony answers or the turn ends, as before. What Igor is saying mid-sentence
   never splits or flickers away because of something else that arrives
   ([#532](https://github.com/idvorkin/context-grabber/issues/532)): words of
@@ -1006,11 +1024,12 @@ delivers is separate and unchanged: once per dead burst.
 42. **The live line.** On a live call, under the call line, a box about
     twice a caption row tall reads *listening…*. Say a sentence slowly:
     the words appear in it, large, as they are recognised; a misheard word
-    is readable from arm's length. When the sentence is sent to Larry —
-    before he says a word — the box returns to *listening…* and the
+    is readable from arm's length. Stop talking: a small *sent* mark
+    appears in the box beside the words. When the agent has the sentence —
+    before Larry says a word — the box returns to *listening…* and the
     sentence is now an *Igor* row in the transcript below, once, not
-    twice, with a small *sent* mark beside it. Mute: the box reads
-    *muted*. Hang up: the box is gone.
+    twice, with a small *heard* mark beside it. Mute: the box reads
+    *muted*, with no mark. Hang up: the box is gone.
 
 43. **Playback is watched and the log leaves the phone** (#442). On a
     Direct call, listen through two of Larry's replies: no static. Open
@@ -1024,13 +1043,16 @@ delivers is separate and unchanged: once per dead burst.
     lines under the call's bridge session, oldest first, with the header
     record before them.
 
-44. **Sent, before Larry answers** (#467). On a Direct call, ask a
-    question that makes Larry think: the moment the live line empties,
-    the question is an *Igor* row marked *sent*, while Larry is still
-    silent. Before he answers, say a second sentence: it builds in a
-    fresh live line, then becomes a second *Igor* row marked *sent* —
-    two rows, not one run-on row. When Larry speaks, both marks go. The
-    same on ElevenLabs.
+44. **Sent, then heard, before Larry answers** (#467, #897). On an
+    ElevenLabs call, say a sentence and stop: the live line shows *sent*
+    beside the words, then empties, and the sentence is an *Igor* row
+    marked *heard*. Start talking again before the box empties: the *sent*
+    mark goes until you stop again. On a Direct call, ask a question that
+    makes Larry think: the moment the live line empties, the question is
+    an *Igor* row marked *heard*, while Larry is still silent. Before he
+    answers, say a second sentence: it builds in a fresh live line, shows
+    *sent* when you stop, then becomes a second *Igor* row marked *heard* —
+    two rows, not one run-on row. When Larry speaks, both marks go.
 
 45. **Speech to text on Direct** (#556). Choose Direct: a *Speech to
     text* row offers Default, Nova-3 and Flux, Default chosen; choose
