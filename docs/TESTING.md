@@ -142,7 +142,7 @@ N*: `scripts/native/sim-udid.sh` resolves a name to the job's lane's device, and
 cloned (`simctl clone`) from lane 1's while holding lane 1's lock, lane 1's shut down for it, so the copy keeps the
 Health grant and the seeded data. If lane 1 stays busy for ten minutes (`BUILD_LANE_CLONE_WAIT`), the lane gets a fresh
 simulator of the same model and runtime instead, and says it needs `BUILD_LANE=<n> just native-sim-health` once.
-`just native-sim-lanes` makes every lane's copies ahead of time, waiting for lane 1 up to an hour. The fake Cockpit's
+`just native-sim-lanes` makes every lane's copies ahead of time, waiting for lane 1 up to an hour. It never replaces a copy that exists, so after lane 1 gains something (`just native-sim-health`, seeded data) run `just native-sim-lanes refresh` (stories 786, 787): lane by lane, holding that lane's lock and then lane 1's, it deletes the lane's copies and copies lane 1's again; a busy lane, or a busy lane 1, is skipped and named, never given a blank simulator, and the exit is 75 (`BUILD_LANE_REFRESH_WAIT` seconds to wait for a lock, none by default). `just native-sim-lanes list` (story 788) prints each lane's copies with their ids and states, or *missing*, and changes nothing. The fake Cockpit's
 and bridge's default ports move up by ten per lane (`BUILD_LANE_PORT_OFFSET`), so lanes never collide on a port.
 
 **One booted simulator per lane, left booted between runs; switched only when the device changes** (stories 980–983,

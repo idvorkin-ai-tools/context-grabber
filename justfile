@@ -115,9 +115,10 @@ native-sim-health: native-project
 
 # Story 785: every build lane's own iPhone and iPad simulators ("<name> lane N"), copied from lane 1's so they keep its
 # Health access and data. A lane makes its own the first time it needs them; this makes them all now, waiting for lane 1
-# to be idle (it is shut down to be copied). Nothing to do on a one-lane Mac.
-native-sim-lanes:
-    scripts/native/build-lane.sh sims
+# to be idle (it is shut down to be copied). Nothing to do on a one-lane Mac. `refresh` (story 786, #980) deletes and
+# copies again each idle lane's copies, after lane 1 gains Health access or data; `list` (story 788) reports them.
+native-sim-lanes *mode:
+    scripts/native/build-lane.sh sims {{mode}}
 
 # Native rung 2's smoke: the simulator build driven by launch hooks, judged from its session log. It waits while another
 # xcodebuild runs: a simulator run under contention counts as failed.
