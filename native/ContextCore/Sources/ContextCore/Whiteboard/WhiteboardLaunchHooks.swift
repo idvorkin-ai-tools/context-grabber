@@ -70,6 +70,9 @@ public struct WhiteboardHooks: Equatable, Sendable {
   /// `GRABBER_WHITEBOARD_ZIGZAG=<n>`: the stroke that brings the board to `n` strokes is read as a fast zigzag across its
   /// own frame, for the simulator, whose UI tests can only drag straight (#999, story 890).
   public var zigzagAt: Int?
+  /// `GRABBER_WHITEBOARD_FEEDBACK_SECONDS=<seconds>`: how long a pen gesture's feedback (the room band, #1000) stays
+  /// after the finger or the Pencil lifts, for a UI test's picture; nil (it goes on the lift) when unset.
+  public var feedbackSeconds: Double?
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
@@ -94,5 +97,6 @@ public struct WhiteboardHooks: Equatable, Sendable {
     larryWait = env["GRABBER_WHITEBOARD_LARRY_WAIT"].flatMap(LarryWaitPress.init(rawValue:))
     selectNewest = env["GRABBER_WHITEBOARD_SELECT_NEWEST"].flatMap { Int($0) }
     zigzagAt = env["GRABBER_WHITEBOARD_ZIGZAG"].flatMap { Int($0) }
+    feedbackSeconds = env["GRABBER_WHITEBOARD_FEEDBACK_SECONDS"].flatMap { Double($0) }
   }
 }

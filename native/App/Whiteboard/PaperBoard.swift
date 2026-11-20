@@ -402,6 +402,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let toText = BoardToTextState()
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()
+  /// Stories 1044–1046 (#1000): the band the room handle shows while held (PaperBoard+RoomBand.swift).
+  let roomBand = BoardRoomBandState()
   /// Stories 940–942: a kept text's words open in place (BoardRewordFlow.swift).
   let reword = BoardRewordState()
   /// A page wide, or wider for an old-canvas board's wider ink (story 658).
@@ -1336,14 +1338,19 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       {
         grip = (at.y, spot)
         scrolls(false)
+        roomBandBegan(at: at.y, tool: "finger")
       } else {
         showHoldMenu(at: at, spot: spot)
       }
+    case .changed:
+      guard let grip else { return }
+      roomBandMoved(dy: (spot.y - grip.spot.y) / max(screenScale, 0.01))
     case .ended, .cancelled, .failed:
       guard let grip else { return }
       self.grip = nil
       scrolls(true)
       let dy = (spot.y - grip.spot.y) / max(screenScale, 0.01)
+      roomBandEnded(why: hold.state == .ended ? "lifted" : "cancelled")
       if hold.state == .ended, abs(dy) >= BoardRoom.line / 2 {
         room(at: grip.y, dy: dy, why: "margin_drag")
       } else if hold.state == .ended {
@@ -2245,6 +2252,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     let tool: BoardMarginHold.Tool = touch.type == .pencil ? .pencil : .finger
     marginTry = (ObjectIdentifier(touch), tool, at.y, false)
+    if tool == .pencil { roomBandPencilDown(touch, at: at) }
     log.event(
       "board_margin",
       [
@@ -2254,6 +2262,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func touchEnded(_ touch: UITouch, cancelled: Bool, seconds: Double, travel: CGFloat) {
+    roomBandPencilLifted(touch)
     guard let attempt = marginTry, attempt.touch == ObjectIdentifier(touch) else { return }
     marginTry = nil
     var event: [String: Any] = [
@@ -2275,6 +2284,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func touchMoved(_ touch: UITouch) {
     snapTouch(touch, .moved, draws: touch.type == .pencil || fingersDraw)
     foldEraserMoved(touch)
+    roomBandPencilMoved(touch, at: lines.columnPoint(of: touch.location(in: lines)))
     guard place.erasing, touch.type == .pencil || fingersDraw,
       model.questions.board.cards.contains(where: { $0.answered != nil })
     else { return }
@@ -2354,6 +2364,7 @@ struct PaperBoardCanvas: View {
     .overlay { ToTextButton(controller: controller, state: controller.toText) }
     .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame, toText: controller.toText) }
     .overlay { RewordField(controller: controller, state: controller.reword) }
+    .overlay { RoomBandOverlay(state: controller.roomBand) }
     .overlay { HoldMenuButtons(controller: controller, menu: controller.holdMenu) }
     .overlay(alignment: .topTrailing) {
       Text(controller.pageText).font(.footnote.monospacedDigit())

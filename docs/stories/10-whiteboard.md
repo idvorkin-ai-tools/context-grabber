@@ -4962,6 +4962,66 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1044:
+
+- **Summary:** Holding the room handle shows a band and a "Making room" chip until I lift
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** STATUS_1044
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** making room in the middle of my writing on the iPad
+- **I want to** see a see-through band with up and down arrows and a *Making room* chip while I hold and drag in the margin
+- **so that** it's clear I'm in that mode, and where the room will open, before I lift
+
+#### Acceptance Criteria:
+- **Scenario:** Dragging down in the margin
+- **Given:** a board on paper with writing above and below
+- **When:** I hold a finger or the Pencil in the margin until the handle fires, and drag down two lines without lifting
+- **Then:** a see-through band two lines tall lies across the page at the clear line, with up and down arrows and a *Making room* chip beside it; nothing below has moved yet; and when I lift, the band goes and the ink below moves down those two lines
+
+---
+
+### User Story 1045:
+
+- **Summary:** Dragging the room handle up shows the blank paper that will close
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** STATUS_1045
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** closing up a gap I no longer need
+- **I want to** see the band cover the blank paper that will close, or be told there's none
+- **so that** I know what the lift will do before I lift
+
+#### Acceptance Criteria:
+- **Scenario:** Dragging up
+- **Given:** a board with three blank lines between two lines of writing, and another two lines with no blank line between
+- **When:** I hold in the margin in the gap and drag up four lines, then hold between the two lines with no gap and drag up
+- **Then:** in the gap the band covers the three blank lines and the chip says *Closing room*; between the touching lines the band is a thin line and the chip says *No blank paper to close*
+
+---
+
+### User Story 1046:
+
+- **Summary:** The room band follows Reduce Motion
+- **Issues:** [#1000](https://github.com/idvorkin/context-grabber/issues/1000)
+- **Status:** STATUS_1046
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every pen gesture shows what it did (#1000)*
+
+#### Use Case:
+- **As someone** with Reduce Motion on
+- **I want to** have the board's feedback show without easing or flashing
+- **so that** the board never moves more than it has to
+
+#### Acceptance Criteria:
+- **Scenario:** Reduce Motion on
+- **Given:** Reduce Motion is on in Settings
+- **When:** I drag the room handle down, or scratch out a word
+- **Then:** the band jumps a line at a time with no easing, and the struck ink shows plainly and fades without a flash
+
+---
+
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat

@@ -271,7 +271,8 @@ board differs, this says why.
   and lifted without moving, the word is left selected. Off ink, a held Pencil draws as ever. In the margin a
   held Pencil is the hold above, never the pick-up, as a finger's is.
 - On paper the word lands, and the room opens, when the Pencil lifts rather than following it live; PaperKit owns
-  the stroke while it is drawn.
+  the stroke while it is drawn. While the handle is held, a see-through band shows where the room will open or close
+  (*Every pen gesture shows what it did (#1000)* in [Whiteboard with Claude](2026-11-01-whiteboard-design.md)).
 - Every hold tried in the margin is in the session log: when it began, with the finger or the Pencil and where, and
   whether it became a hold or why not (it moved first, it lifted too soon, or the board never saw it held), so a
   phone's log says what happened to a hold that didn't fire.
