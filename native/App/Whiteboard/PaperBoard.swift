@@ -456,7 +456,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.draw = { [weak self] _, added, name in self?.keep(added, named: name) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
     model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
-    model.keepMakingRoom = { [weak self] strokes, push in self?.keep(strokes, making: push) ?? false }
+    model.keepMakingRoom = { [weak self] strokes, push, why in self?.keep(strokes, making: push, why: why) ?? false }
     model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
     model.showOverlays = { [weak self] list in
       guard let self else { return }
@@ -1174,9 +1174,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     return true
   }
 
-  /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it. The room opens and the text
-  /// lands in one change, one undo named *Keep*, as a paste and its room are one.
-  private func keep(_ strokes: [PKStroke], making push: BoardRoom.Push) -> Bool {
+  /// #938 (story 992): a ghost of Larry's text kept where Igor's ink has come under it; #894 (stories 1003–1005): his
+  /// marks kept over ink written after his picture. The room opens and the marks land in one change, one undo named
+  /// *Keep*, as a paste and its room are one. `why` names it in the log: keep_text, keep_late or keep_group.
+  private func keep(_ strokes: [PKStroke], making push: BoardRoom.Push, why: String) -> Bool {
     guard let markup = paper.markup, !strokes.isEmpty else { return false }
     let (ink, hashes) = opStrokes(markup)
     var plan = BoardOps.plan(
@@ -1191,7 +1192,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     log.event(
       "board_room",
       [
-        "action": "keep_text", "board": model.board.id, "cut": Double(push.cut), "dy": Double(push.dy),
+        "action": why, "board": model.board.id, "cut": Double(push.cut), "dy": Double(push.dy),
         "moved": plan.moved, "pages_before": plan.pagesBefore, "pages": pages,
       ])
     return true

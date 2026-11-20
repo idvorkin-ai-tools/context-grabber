@@ -108,6 +108,61 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertTrue(outcome.moved.values.allSatisfy { $0.dy == 80 })
   }
 
+  // MARK: A late reply makes room (#894, stories 1003, 1005)
+
+  /// The family board with a line Igor wrote at 1600 after the picture (made `at`), where the reply's top boxes land
+  /// (they show from 1564.8 to 1764.8 on the board).
+  private func familyWithALateLine(madeAt at: Int64, then more: [BoardReplay.Step]) throws -> BoardReplay {
+    var json = try XCTUnwrap(try fixture("family-board") as? [String: Any])
+    var strokes = try XCTUnwrap(json["strokes"] as? [[String: Any]])
+    strokes.append([
+      "id": "igor005", "t": at, "color": "#000000", "width": 3, "tool": "pen",
+      "points": [[100, 1600], [330, 1606], [560, 1610]],
+    ])
+    json["strokes"] = strokes
+    var replay = BoardReplay(try BoardSnapshot(json: json))
+    replay.run(BoardReplay.Step.steps(try fixture("family-marks"), key: "family") + more)
+    return replay
+  }
+
+  /// When the picture was taken: after every stroke of the fixture, which end at 1763432004000.
+  private let picture: Int64 = 1_763_432_004_500
+
+  func testKeepGroupOverALineWrittenAfterThePicturePushesItUnderTheReply() throws {
+    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row, seen: picture)])
+    let outcome = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(outcome.action, "kept")
+    XCTAssertEqual(outcome.covered, 1, "\(outcome.wire)")
+    let push = try XCTUnwrap(outcome.room)
+    XCTAssertEqual(Set(outcome.moved.keys), ["igor005"], "only the late line; his writing above stays")
+    let line = try XCTUnwrap(replay.board.ink.first { $0.id == "igor005" })
+    let reply = replay.board.ink.filter { $0.meta?.group == "reply-\(row)" }.map(\.bounds)
+      .reduce(CGRect.null) { $0.union($1) }
+    XCTAssertGreaterThanOrEqual(line.bounds.minY + 1, reply.maxY + BoardRoom.air, "the line now sits under the reply")
+    XCTAssertEqual(push.dy.truncatingRemainder(dividingBy: BoardRoom.line), 0, "whole lines")
+    XCTAssertEqual(reply.minY, 1564.8, accuracy: 4, "the reply stays where it showed")
+  }
+
+  func testKeepGroupOverALineInHisPictureMovesNothing() throws {
+    let replay = try familyWithALateLine(madeAt: picture - 500, then: [.keepGroup(row, seen: picture)])
+    let outcome = try XCTUnwrap(replay.outcomes.last)
+    XCTAssertEqual(outcome.covered, 0)
+    XCTAssertNil(outcome.room)
+    XCTAssertEqual(outcome.moved, [:])
+  }
+
+  func testKeepGroupWithThePicturesTimeUnknownMovesNothing() throws {
+    let replay = try familyWithALateLine(madeAt: picture + 90_000, then: [.keepGroup(row)])
+    XCTAssertEqual(replay.outcomes.last?.moved, [:])
+  }
+
+  func testAKeepGroupStepFileCarriesThePicturesTime() {
+    let steps = BoardReplay.Step.steps(["keep_group": "r", "seen": 42], key: "k")
+    guard case .keepGroup(let reply, let seen)? = steps.first else { return XCTFail("not a keep group") }
+    XCTAssertEqual(reply, "r")
+    XCTAssertEqual(seen, 42)
+  }
+
   func testKeepGroupOfAReplyNotShowingKeepsNothing() throws {
     let replay = try family(then: [.keepGroup("nope")])
     XCTAssertEqual(replay.outcomes.last?.action, "ignored")
