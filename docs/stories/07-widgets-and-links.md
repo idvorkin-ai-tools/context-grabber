@@ -530,6 +530,33 @@ Part of the [user stories](README.md); persona and format are described there.
 - **When:** I tap *Drill the stack* under the card, pick *Mixed*, tap to see an answer, tap again for one I knew and press *Wrong* for one I missed, then open *Stats*
 - **Then:** the drill asks both ways round from my stack (only the hard positions with *Skip easy cards* on), a tap shows the answer as the position alone, centred under the question, and *Wrong* is a small half-clear button at the bottom right, each answer is sent to the ledger (kept and sent later when offline), *Stats* shows the last 30 days from every source as a difficulty grid, one cell per position in stack order with its card face, with a *Taps / Voice* picker, the log never pairs a card with its position or shows the key, and *Done* returns to the card
 
+
+---
+
+### User Story 229:
+
+- **Summary:** The stack drill never asks two lookalike cards back to back
+- **Status:** native app only: on think-a-card-trainer v0.3.8 (the rule is the library's, think-a-card-trainer#46, merged there as 7b86605 and verified by its host `LookalikeTests`: over seeded passes only a pass's last card may follow its lookalike, every card still once per pass, no card twice running over 3,000 pass boundaries); the pin bump here in PENDING; verified by host `just test` and the Mac build here; the drill on the phone not yet
+- **Issues:** [#778](https://github.com/idvorkin/context-grabber/issues/778) (Igor's shake from the drill, 2026-11-07), [think-a-card-trainer#46](https://github.com/idvorkin/think-a-card-trainer/issues/46)
+- **Spec:** [Swift-native app — Think of a card: the trainer's screen, in the app](../superpowers/specs/2026-10-04-swift-native-app-design.md#think-of-a-card-the-trainers-screen-in-the-app)
+
+Igor, 2026-11-07: *"Never do certain things back to back like Sequence of King and Queen in the same suit and color
+But the same thing on black and red is often good"*; 2026-11-10: *"heart and club of jack is good. Since they are far
+apart."*
+
+#### Use Case:
+- **As a** man drilling his stack
+- **I want to** never be asked a card right after one that looks almost the same
+- **so that** each answer is a fresh recall, not a nudge from the card before
+
+#### Acceptance Criteria:
+- **Scenario:** Lookalikes are kept apart, red and black of one rank are not
+- **Given:** the drill is open from the card screen, in any mode
+- **When:** I answer card after card through several passes
+- **Then:** two cards of the same suit and neighbouring ranks (K♠ then Q♠, 2♥ then 3♥; an ace and a king do not neighbour) never come one right after the
+  other, except that a pass's last card is still asked when nothing else is left; the same rank in a red and a black
+  suit (J♥ then J♣) may come back to back; every card still comes once per pass and never twice running; the card
+  screen's own deal is unchanged
 ---
 
 ### User Story 227:
