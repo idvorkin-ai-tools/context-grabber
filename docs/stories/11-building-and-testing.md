@@ -219,7 +219,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 750:
 
 - **Summary:** A box with no Mac checks the whole app's Swift before anything reaches the Mac
-- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged
+- **Status:** implemented in [97a0b57](https://github.com/idvorkin/context-grabber/commit/97a0b57); verified on the Linux rung (`just test-linux` on aarch64 Ubuntu: 1,185 tests, the three cross-builds, the app's sources for iOS and the three script checks all ok); the Mac's own rungs are unchanged; a missing kept build directory created in [7dae5d56](https://github.com/idvorkin/context-grabber/commit/7dae5d56) (#904), verified on the host rung by running the new block alone: a relative path not yet there made and resolved against the caller, an uncreatable one stops with exit 2 naming it; the full Linux rung was not run, as this Mac has no Linux box
 - **Issues:** the test-ladder audit of 2026-11-10 ("Linux as a real rung"); [#904](https://github.com/idvorkin/context-grabber/issues/904) (a kept build directory that did not exist yet failed the rung)
 
 #### Use Case:
