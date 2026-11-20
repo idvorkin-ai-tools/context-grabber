@@ -2515,7 +2515,7 @@ struct WhiteboardView: View {
   /// Story 769: an iPhone has no conversation panel; a tap on the note opens the board's thread in Chat.
   private let onPhone: Bool
 
-  /// #965: one of the bar's Undo and Redo, at least 44 points each way, named for the step it acts on.
+  /// #965: one of the bar's Undo and Redo, at least 44 points wide and the bar's own height, named for the step it acts on.
   private func undoButton(redo: Bool) -> some View {
     let state = redo ? model.undoButtons.redo : model.undoButtons.undo
     return Button {

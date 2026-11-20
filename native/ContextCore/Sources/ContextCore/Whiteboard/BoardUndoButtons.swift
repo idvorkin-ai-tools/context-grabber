@@ -15,7 +15,7 @@ public struct BoardUndoButtons: Equatable, Sendable {
     }
   }
 
-  /// The smallest a button is, each way, in points.
+  /// The narrowest a button is, in points; its height is the bar's own.
   public static let side: Double = 44
 
   public var undo: Button
