@@ -28,6 +28,8 @@ final class WhiteboardStore: ObservableObject {
   private var running: Task<Void, Never>?
   /// A sync asked for while one ran: it runs again when that one ends, so what changed meanwhile goes up too.
   private var again = false
+  /// Whether this launch has synced yet: a failed first sync says so (#1002).
+  private var syncedThisLaunch = false
 
   init(log: SessionLog, device: String) {
     self.log = log
@@ -264,18 +266,32 @@ final class WhiteboardStore: ObservableObject {
   }
 
   private func syncOnce(reason: String) async {
+    // Where a failure happened and what was in hand, for its log line (#1002); the sync itself doesn't read them.
+    let firstOfLaunch = !syncedThisLaunch
+    syncedThisLaunch = true
+    let pending = index.pendingUploads(device: device).count
+    var step = BoardSyncStep.zone
+    var stepBoard: String?
+    var stepStrokes: Int?
+    var zoneError: (any Error)?
     do {
-      try await cloud.ready()
+      zoneError = try await cloud.ready()
+      step = .delete
       for id in index.deleted {
+        stepBoard = id
         try await cloud.delete(id, seen: index.deletedVersions[id])
         index.deletedInCloud(id)
       }
+      step = .upload
       for board in index.pendingUploads(device: device) {
         guard let drawing = drawingURL(board.id), FileManager.default.fileExists(atPath: drawing.path) else { continue }
         let picture = pictureURL(board.id).flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
+        stepBoard = board.id
+        stepStrokes = board.strokes
         try await cloud.upload(board, drawing: drawing, picture: picture)
         index.uploaded(board.id, at: board.updated)
       }
+      step = .list
       let listed = try await cloud.boards()
       let merged = index.merge(
         cloud: listed.boards, device: device, unread: listed.unread, tombstones: listed.tombstones, open: open)
@@ -283,6 +299,7 @@ final class WhiteboardStore: ObservableObject {
       for id in merged.dropped { keeping.removeFiles(id) }
       // Each board on its own: one that fails is asked for again next sync, the rest still arrive.
       var failed: (any Error)?
+      step = .download
       for id in merged.fetch {
         guard let drawing = drawingURL(id), let picture = pictureURL(id), let board = index.board(id) else { continue }
         do {
@@ -297,12 +314,12 @@ final class WhiteboardStore: ObservableObject {
       if let failed { throw failed }
       if !merged.fetch.isEmpty || !merged.dropped.isEmpty { pictures += 1 }
       syncNote = nil
-      log.event(
-        "whiteboard_sync",
-        [
-          "ok": true, "why": reason, "boards": index.boards.count, "fetched": merged.fetch.count,
-          "dropped": merged.dropped.count, "tombstones": listed.tombstones.count, "resend": merged.resend,
-        ])
+      var fields: [String: Any] = [
+        "ok": true, "why": reason, "boards": index.boards.count, "fetched": merged.fetch.count,
+        "dropped": merged.dropped.count, "tombstones": listed.tombstones.count, "resend": merged.resend,
+      ]
+      if let zoneError { fields["zone_error"] = CloudErrorFields.item(zoneError) }
+      log.event("whiteboard_sync", fields)
     } catch let unavailable as BoardCloud.Unavailable {
       saveIndex()
       syncNote = unavailable.note
@@ -311,7 +328,14 @@ final class WhiteboardStore: ObservableObject {
       // What was done before the failure is kept; the rest waits for the next sync.
       saveIndex()
       syncNote = "Boards are not syncing right now: \(error.localizedDescription)"
-      log.event("whiteboard_sync", ["ok": false, "why": reason, "message": "\(error)"])
+      let write = error as? BoardCloud.WriteFailed
+      // A download's own failure is logged with its board where it happens; this is the step that threw.
+      let failure = BoardSyncFailure(
+        why: reason, step: step, board: stepBoard, strokes: stepStrokes,
+        pending: pending, firstOfLaunch: firstOfLaunch, error: write?.error ?? error, saveError: write?.save,
+        deleteError: write?.delete, zoneError: zoneError,
+        recordName: { ($0.base as? CKRecord.ID)?.recordName ?? "\($0.base)" })
+      log.event("whiteboard_sync", failure.fields)
     }
   }
 }
@@ -363,7 +387,9 @@ struct BoardCloud {
 
   private var database: CKDatabase { CKContainer(identifier: Self.containerID).privateCloudDatabase }
 
-  func ready() async throws {
+  /// Throws when iCloud can't be reached; returns the zone's own error, which the sync goes on without (#1002).
+  @discardableResult
+  func ready() async throws -> (any Error)? {
     guard Self.entitled else {
       throw Unavailable(reason: "not_entitled", note: "This build cannot reach iCloud, so boards stay on this device.")
     }
@@ -373,7 +399,19 @@ struct BoardCloud {
         reason: "account_\(status.rawValue)",
         note: "Not signed into iCloud, so boards stay on this device until it is.")
     }
-    _ = try await database.modifyRecordZones(saving: [zone], deleting: [])
+    let saved = try await database.modifyRecordZones(saving: [zone], deleting: [])
+    if case .failure(let error)? = saved.saveResults[zone.zoneID] { return error }
+    return nil
+  }
+
+  /// A write that failed, with each record's own result: the save's error and the delete's, so the log names the
+  /// item CloudKit really refused when the other comes back "Atomic failure" (#1002). It reads as the error thrown.
+  struct WriteFailed: Error, LocalizedError, CustomStringConvertible {
+    let error: any Error
+    let save: (any Error)?
+    let delete: (any Error)?
+    var description: String { "\(error)" }
+    var errorDescription: String? { error.localizedDescription }
   }
 
   func upload(_ board: BoardEntry, drawing: URL, picture: URL?) async throws {
@@ -410,9 +448,13 @@ struct BoardCloud {
     do {
       let result = try await database.modifyRecords(
         saving: [record], deleting: [other], savePolicy: .allKeys, atomically: false)
-      _ = try result.saveResults[record.recordID]?.get()
-      if case .failure(let error)? = result.deleteResults[other], (error as? CKError)?.code != .unknownItem {
-        throw error
+      var saveError: (any Error)?
+      var deleteError: (any Error)?
+      if case .failure(let error)? = result.saveResults[record.recordID] { saveError = error }
+      if case .failure(let error)? = result.deleteResults[other] { deleteError = error }
+      if let saveError { throw WriteFailed(error: saveError, save: saveError, delete: deleteError) }
+      if let deleteError, (deleteError as? CKError)?.code != .unknownItem {
+        throw WriteFailed(error: deleteError, save: nil, delete: deleteError)
       }
     } catch let error as CKError
       where error.code == .partialFailure && error.partialErrorsByItemID?.count == 1

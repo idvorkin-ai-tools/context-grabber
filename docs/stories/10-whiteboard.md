@@ -164,7 +164,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 347:
 
 - **Summary:** See the iPad's boards on the phone
-- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and the review fixes in [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: read-only off the drawing device, the merge, a failed fetch retried) and the simulator (the boards open, iCloud skipped with no account); an iPad board on the phone not yet seen
+- **Issues:** [#1002](https://github.com/idvorkin/context-grabber/issues/1002) (an upload sometimes fails *Batch Request Failed / Atomic failure*, the first sync of a launch)
+- **Status:** implemented in [f65c023](https://github.com/idvorkin/context-grabber/commit/f65c023) and the review fixes in [58048e5](https://github.com/idvorkin/context-grabber/commit/58048e5); verified by host tests (`BoardIndexTests`: read-only off the drawing device, the merge, a failed fetch retried) and the simulator (the boards open, iCloud skipped with no account); an iPad board on the phone not yet seen; a failed sync's log line names its step and each record's own CloudKit error (#1002, instrumentation only) in [6ccd13a](https://github.com/idvorkin/context-grabber/commit/6ccd13a), its fields verified by host tests (`BoardSyncFailureTests`), the real error awaits the iPad's next log
 
 #### Use Case:
 - **As someone** away from the iPad
