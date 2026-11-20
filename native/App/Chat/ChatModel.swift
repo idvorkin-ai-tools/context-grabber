@@ -448,7 +448,15 @@ final class ChatModel: ObservableObject {
   func openNewChat(from source: String, voice: Bool = false) {
     log.event("ui", ["action": "open_new_chat", "from": source, "voice": voice])
     newChatVoice.open(voice: voice)
-    newChatOpen = true
+    guard newChatOpen else {
+      newChatOpen = true
+      return
+    }
+    newChatOpen = false
+    Task {
+      try? await Task.sleep(for: .milliseconds(HomeStack.coverSettles))
+      newChatOpen = true
+    }
   }
 
   /// Whether the new chat coming on screen should start recording, once per tap.

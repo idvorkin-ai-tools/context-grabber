@@ -1728,8 +1728,8 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a timer, a call, the settings, What's new, the report dialog or any other screen covers home
 - **When:** I open the Go menu, or press one of its keys
 - **Then:** its items are dimmed and nothing happens, so nothing live is closed; New Board is dimmed too, unless home or
-  the whiteboard is the screen in front, and New Chat (Control+N), unless home or chat is or chat has a window of its
-  own; *Report a problem* stays live (story 730)
+  the whiteboard is the screen in front, and New Chat (Control+N), unless home or chat is in
+  front, or chat has a window of its own; *Report a problem* stays live (story 730)
 
 ### User Story 727:
 
