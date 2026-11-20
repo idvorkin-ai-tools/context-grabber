@@ -8,6 +8,7 @@ import Foundation
 
 final class SyntheticCallAudio: CallAudio {
   var onHealth: ((String?) -> Void)?
+  var onMicReopened: ((String) -> Void)?
 
   private let log: (String, [String: Any]) -> Void
   private var mic: Timer?
