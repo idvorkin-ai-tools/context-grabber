@@ -4942,6 +4942,66 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1056:
+
+- **Summary:** I can letter a board's text in a real font, still as ink
+- **Status:** implemented in [d4f7faaa](https://github.com/idvorkin/context-grabber/commit/d4f7faaa), [9d963efd](https://github.com/idvorkin/context-grabber/commit/9d963efd), [133e7124](https://github.com/idvorkin/context-grabber/commit/133e7124) and [c8bcc70f](https://github.com/idvorkin/context-grabber/commit/c8bcc70f); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`); on the iPad simulator, rung 2, 2026-11-20 (`WhiteboardLetteringUITests`: HI four strokes on a new board, Real font on with no redraw, reopened still on, HI again as two outlines, a new board single strokes). The iPad not yet
+- **Issues:** [#950](https://github.com/idvorkin/context-grabber/issues/950): Igor, 2026-11-18, "Why not have the app render a real font?"; 2026-11-20 (W3 on #912's decision page), "a real font as a per-board or per-text option, still drawn as ink"
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A real font, still drawn as ink*; [the paste spec](../superpowers/specs/2026-11-02-whiteboard-paste-design.md)
+
+#### Use Case:
+- **As someone** who wants a board's typed words to look typeset rather than written
+- **I want to** choose a real font for that board's lettering
+- **so that** pastes and labels read as type while staying ink I can move, erase and fold
+
+#### Acceptance Criteria:
+- **Scenario:** A paste on a real-font board
+- **Given:** a board on paper I can draw on, with *Real font* turned on in its Board menu
+- **When:** I copy "HI" and tap Paste
+- **Then:** "HI" lands as Helvetica's letter outlines traced in thin ink, one closed outline a letter where single strokes write it in four, and *Real font* is still on when I reopen the board
+
+---
+
+### User Story 1057:
+
+- **Summary:** A board starts, and stays, in single-stroke letters until I choose otherwise
+- **Status:** implemented in [d4f7faaa](https://github.com/idvorkin/context-grabber/commit/d4f7faaa), [9d963efd](https://github.com/idvorkin/context-grabber/commit/9d963efd) and [133e7124](https://github.com/idvorkin/context-grabber/commit/133e7124); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`); on the iPad simulator, rung 2, 2026-11-20 (`WhiteboardLetteringUITests`: HI four strokes on a new board, Real font on with no redraw, reopened still on, HI again as two outlines, a new board single strokes). The iPad not yet
+- **Issues:** [#950](https://github.com/idvorkin/context-grabber/issues/950): Igor, 2026-11-18, "Why not have the app render a real font?"; 2026-11-20 (W3 on #912's decision page), "a real font as a per-board or per-text option, still drawn as ink"
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A real font, still drawn as ink*
+
+#### Use Case:
+- **As someone** who liked #895's single-stroke letters
+- **I want to** have every board letter in single strokes unless I pick the real font for it
+- **so that** the option changes nothing on the boards I already have
+
+#### Acceptance Criteria:
+- **Scenario:** A new board and an old one
+- **Given:** a new board, and a board made before the option, neither with a lettering chosen
+- **When:** I open its Board menu and paste "HI"
+- **Then:** *Real font* is off and the paste is four strokes; turning it on changes nothing already on the board, adds no undo step and costs no stroke
+
+---
+
+### User Story 1058:
+
+- **Summary:** Larry can letter one text in the real font, and it stays one text
+- **Status:** implemented in [d4f7faaa](https://github.com/idvorkin/context-grabber/commit/d4f7faaa), [9d963efd](https://github.com/idvorkin/context-grabber/commit/9d963efd) and [c8bcc70f](https://github.com/idvorkin/context-grabber/commit/c8bcc70f); verified on the host (`just test`: `BoardRealFontTests`, the per-board choice, a mark's and Larry's lettering, a kept text's lettering through a save, the strokes sent to the Cockpit unchanged, H as one closed outline, baseline and height, paste layout and wrap, reword) and the Mac build (`just native-build-mac`). A text of Larry's in the real font not yet seen on the simulator or the iPad, and the Cockpit drops a chat mark's lettering until context-grabber-qlr3
+- **Issues:** [#950](https://github.com/idvorkin/context-grabber/issues/950): Igor, 2026-11-18, "Why not have the app render a real font?"; 2026-11-20 (W3 on #912's decision page), "a real font as a per-board or per-text option, still drawn as ink"
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A real font, still drawn as ink*; [board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md)
+
+#### Use Case:
+- **As someone** working on a board with Larry
+- **I want to** have a text of his that asks for the real font drawn in it, whatever the board's lettering
+- **so that** he can set a heading or a quote apart, and it still moves, folds, rewords and erases as his text
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's text in the real font, reworded
+- **Given:** a single-stroke board and a text of Larry's that asks for the real font
+- **When:** it lands, I keep it, and I reword it
+- **Then:** it is the real font's outlines as ink under his id, and after the reword it is still one text in the real font while the board's next paste is single strokes
+
+---
+
 ### User Story 1004:
 
 - **Summary:** A kept reply of Larry's pushes what I wrote since his picture out of the way

@@ -34,15 +34,18 @@ import Foundation
     /// The old canvas's fixed square. A board on paper has its own: a page wide, with no end below.
     public static let wholeBoard = CGRect(x: 0, y: 0, width: WhiteboardFrame.side, height: WhiteboardFrame.side)
 
-    /// `text` as `height`-point letters written inside `visible` (board points), on `board`.
+    /// `text` as `height`-point letters written inside `visible` (board points), on `board`, in the board's
+    /// `lettering` (#950).
     public static func layout(
-      _ text: String, visible: CGRect, height: CGFloat, board: CGRect = wholeBoard
+      _ text: String, visible: CGRect, height: CGFloat, board: CGRect = wholeBoard,
+      lettering: WhiteboardTurn.LetterStyle = .single
     ) -> Layout {
       let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-      let (rows, kept) = rows(trimmed, width: visible.width * 0.8, height: height)
+      let (rows, kept) = rows(trimmed, width: visible.width * 0.8, height: height, lettering: lettering)
       var lines: [[CGPoint]] = []
       for (i, row) in rows.enumerated() {
-        lines += WhiteboardTurn.glyphLines(row, topLeft: CGPoint(x: 0, y: CGFloat(i) * height * 1.25), height: height)
+        lines += WhiteboardTurn.glyphLines(
+          row, topLeft: CGPoint(x: 0, y: CGFloat(i) * height * 1.25), height: height, lettering: lettering)
       }
       let points = lines.joined()
       guard let minX = points.map(\.x).min(), let maxX = points.map(\.x).max(), let minY = points.map(\.y).min(),
@@ -62,12 +65,14 @@ import Foundation
     }
 
     /// The rows to draw and how many characters of `text` they cover: the clipboard's own lines, wrapped, within the caps.
-    private static func rows(_ text: String, width: CGFloat, height: CGFloat) -> (rows: [String], kept: Int) {
+    private static func rows(
+      _ text: String, width: CGFloat, height: CGFloat, lettering: WhiteboardTurn.LetterStyle
+    ) -> (rows: [String], kept: Int) {
       let capped = text.prefix(maxCharacters)
       var rows: [String] = []
       var kept = 0
       for line in capped.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
-        for row in wrapped(String(line), width: width, height: height) {
+        for row in wrapped(String(line), width: width, height: height, lettering: lettering) {
           guard rows.count < maxLines else { return (rows, kept) }
           rows.append(row)
           kept += row.count
@@ -80,11 +85,14 @@ import Foundation
     /// `line` in rows no wider than `width` in the written letters, broken after a space where it can be and inside a
     /// word too long for a row alone. The rows together are the line, character for character, so the count of what
     /// landed holds.
-    static func wrapped(_ line: String, width: CGFloat, height: CGFloat) -> [String] {
+    static func wrapped(
+      _ line: String, width: CGFloat, height: CGFloat, lettering: WhiteboardTurn.LetterStyle = .single
+    ) -> [String] {
       guard !line.isEmpty else { return [""] }
       let measure = { (s: String) in
         WhiteboardTurn.lettered(
-          String(s.reversed().drop { $0 == " " }.reversed()), topLeft: .zero, height: height, face: .print
+          String(s.reversed().drop { $0 == " " }.reversed()), topLeft: .zero, height: height, face: .print,
+          lettering: lettering
         )
         .width
       }

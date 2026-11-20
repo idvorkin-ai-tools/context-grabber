@@ -45,7 +45,8 @@ extension PaperBoardController {
     let text = found.text
     let face = text.font.face
     let size = CGFloat(text.size)
-    let topLeft = BoardReword.topLeft(of: text.text, size: size, face: face, box: found.box)
+    let topLeft = BoardReword.topLeft(
+      of: text.text, size: size, face: face, box: found.box, lettering: text.lettering ?? .single)
     let width = BoardReword.width(box: found.box, pageRight: BoardPages.pageWidth)
     let zoom = screenScale
     let origin = lines.convert(lines.spot(of: topLeft), to: view)
@@ -89,9 +90,13 @@ extension PaperBoardController {
     case .reword(let words):
       let face = editing.text.font.face
       let size = CGFloat(editing.text.size)
-      let rows = BoardReword.rows(words, width: editing.width, size: size, face: face)
+      // #950: redrawn in the lettering it was made in.
+      let lettering = editing.text.lettering ?? .single
+      let rows = BoardReword.rows(words, width: editing.width, size: size, face: face, lettering: lettering)
       let made = BoardText.time(Date())
-      let strokes = BoardReword.lines(rows, topLeft: editing.topLeft, size: size, face: face).flatMap { shape in
+      let strokes = BoardReword.lines(
+        rows, topLeft: editing.topLeft, size: size, face: face, lettering: lettering
+      ).flatMap { shape in
         WhiteboardModel.strokes(
           WhiteboardTurn.lines(shape, frame: .zero, scale: 1), color: editing.color, width: editing.pen, spacing: 4,
           made: made.date)

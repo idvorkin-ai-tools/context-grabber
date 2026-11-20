@@ -219,10 +219,33 @@ that labels are no longer bold.
     saves and syncs, and the strokes Larry is sent are the letters as written. Labels kept before this stay as they
     were saved.
   - Why this and not real text (#950): written letters are still ink, so the kept-ink path, the eraser, the 2.5-point
-    pen and the strokes Larry reads all keep working with nothing new on the board. A typeset font as a rendering
-    option for text objects is #950, which builds on the board's object layer; nothing here stands in its way. The
-    letter shapes are the public-domain Hershey single-stroke fonts (Roman Simplex for print, Script Simplex for
+    pen and the strokes Larry reads all keep working with nothing new on the board. A typeset font is an option
+    beside them (#950, next), never instead of them. The letter shapes are the public-domain Hershey single-stroke fonts (Roman Simplex for print, Script Simplex for
     hand), carried by the app with their acknowledgement, so no new dependency or licence is added.
+- **A real font, still drawn as ink (#950).** Igor, 2026-11-18, on his board: "Why not have the app render a real
+  font?"; and 2026-11-20 (W3 on his decision page for #912): "a real font as a per-board or per-text option, still
+  drawn as ink (keeps its id, moves, folds and erases like ink)". Single-stroke letters stay the default.
+  - **Two letterings: *Single strokes* (the default) and *Real font*.** In the real font a label's letters are the
+    outlines of a typeface that ships with the iPad, traced as thin ink: *print* is Helvetica, *hand* is Noteworthy.
+    No font is downloaded or carried, so no licence is added. The outline is not filled, as no ink on the board is.
+  - **Per board.** The Board menu has a *Real font* switch, off until he turns it on; the Board button's spoken
+    label says *real font* while it is on. It is one row, not a submenu or a section: the Board menu has room for no
+    more rows and still closes on a pick (#848), and a submenu's rows closed under the iPad simulator's tap. The choice is remembered by that board on this device, as its lines are; a board with nothing chosen,
+    every board from before included, uses single strokes. Changing it costs no stroke, adds no undo step and
+    redraws nothing already on the board: it decides how text made from then on is lettered.
+  - **What the board's lettering letters:** a paste, Claude's labels, Larry's labels and texts that name no lettering
+    of their own, and *To text*. A ghost takes the lettering when it shows, so a kept label is the ink its ghost
+    showed even if the board's lettering changed in between.
+  - **Per text: Larry or Claude can ask.** A label or a text of Larry's can name its own lettering, *single* or
+    *font*, which wins over the board's for that text alone. One that names an unknown lettering is lettered as if it
+    had named none. The strokes the board sends Larry name a text as before; how it is lettered is in its ink.
+  - **It is the same text object.** A text in the real font keeps its id, words, colour, size and lettering: it
+    moves, is lassoed, folds with its section, erases (a partial erase dissolves it to plain ink, as for any text),
+    undoes in one step, and rewording it redraws it in the lettering it was made in. Its box (where it is tapped, how
+    much room it takes, how a reword wraps) is measured in the font's own letters.
+  - **Where it can look worse, and why it is opt-in.** Outlines at the thinnest pen fill in on small letters (the
+    #895 complaint), and each letter is more ink than its single strokes. A character Helvetica or Noteworthy lacks
+    falls back to whatever face the iPad has for it; an emoji still draws nothing.
 - **Boxes.** Besides the shapes above, a mark can be a box given by its top-left corner, width and height. It's an
   outline; there's no fill.
 - **Nothing a mark asks for breaks the board.** A colour that isn't a colour, an unknown lettering or a pen of zero or
@@ -376,6 +399,13 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Have Larry answer with a label in print and one in hand, at small and large sizes: each reads as plain written
   letters, one stroke wide, open at the thinnest pen; kept, the ink is the same letters. A label with a curly quote
   or a dash shows it; one with an accented letter still shows that letter.
+- Turn on *Real font* in the Board menu: the switch is on, the menu closes, nothing on the board changes
+  and the next stroke draws. Paste, and have Larry add a text: both are Helvetica's outlines as thin ink. Keep Larry's
+  text, move it, fold its section, reword it: it stays one text in the real font. Erase one letter: what is left is
+  plain ink. Leave and reopen the board: *Real font* is still on. A new board, and every older board, letter in
+  single strokes.
+- On a single-stroke board, a text of Larry's that asks for the real font is in the real font, and the board's next
+  paste is still single strokes; on a real-font board, one that asks for single strokes is single strokes.
 - Draw a circle and lift the Pencil: the turn goes once he has stopped writing, 1.5 to 5 s later by his rhythm (the session log's pause and its cue); the Pencil going down first cancels a turn not yet landed.
 - Open the Board menu: the Responder row names the board's own; open it and it shows Haiku, Sonnet and Larry with that one ticked. Pick Haiku, close and reopen
   the board, and on another device: Haiku is ticked on both, and the next ghost turn's log says Haiku answered.

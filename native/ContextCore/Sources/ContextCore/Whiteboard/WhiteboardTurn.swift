@@ -39,14 +39,17 @@ public enum WhiteboardTurn {
     public var color: UInt32?
     /// A label's lettering (#698).
     public var face: Face
+    /// A label's letters as single strokes or a real font's outlines (#950); nil takes the board's.
+    public var lettering: LetterStyle?
     /// A connector's ends by name (story 917); nil when its ends are its two points.
     public var from: String?
     public var to: String?
 
     public init(
       kind: Kind, points: [CGPoint], text: String? = nil, size: CGFloat? = nil, pen: CGFloat? = nil,
-      color: UInt32? = nil, face: Face = .print, from: String? = nil, to: String? = nil
+      color: UInt32? = nil, face: Face = .print, lettering: LetterStyle? = nil, from: String? = nil, to: String? = nil
     ) {
+      self.lettering = lettering
       self.from = from
       self.to = to
       self.kind = kind
@@ -63,6 +66,15 @@ public enum WhiteboardTurn {
   public enum Face: String, Sendable {
     case print, hand
     var fontName: String { self == .print ? "Helvetica" : "Noteworthy-Light" }
+  }
+
+  /// How a label's letters are drawn (#950): single pen strokes (#895, the default), or the outlines of the face's real
+  /// font, Helvetica or Noteworthy, which ship with the iPad. Either way they are ink.
+  public enum LetterStyle: String, Sendable, Codable, CaseIterable {
+    case single, font
+
+    /// As a mark or a text names it; nil for none or one this build doesn't know, which takes the board's.
+    public static func named(_ any: Any?) -> LetterStyle? { (any as? String).flatMap(LetterStyle.init(rawValue:)) }
   }
 
   /// A mark's pen with nothing asked for, in board points: the width of a kept stroke.
@@ -172,7 +184,7 @@ public enum WhiteboardTurn {
   /// A stroke from the ghost endpoint as a shape's JSON, so `shape` checks it the same way; nil for a kind it doesn't
   /// know or a number that's missing.
   static func shapeJSON(stroke s: [String: Any]) -> [String: Any]? {
-    let looks = s.filter { ["pen", "color", "font"].contains($0.key) }
+    let looks = s.filter { ["pen", "color", "font", "lettering"].contains($0.key) }
     return strokeShape(s).map { $0.merging(looks) { a, _ in a } }
   }
 
@@ -245,7 +257,8 @@ public enum WhiteboardTurn {
     let pen = json["pen"].flatMap(number).flatMap { $0 > 0 ? $0 : nil }
     return Shape(
       kind: kind, points: points, text: text, size: json["size"].flatMap(number), pen: pen,
-      color: hexColor(json["color"]), face: face, from: kind == .connector ? ends.0 : nil,
+      color: hexColor(json["color"]), face: face, lettering: LetterStyle.named(json["lettering"]),
+      from: kind == .connector ? ends.0 : nil,
       to: kind == .connector ? ends.1 : nil)
   }
 
@@ -258,8 +271,11 @@ public enum WhiteboardTurn {
     return CGFloat(n.doubleValue)
   }
 
-  /// The ink lines that draw `shape` on the board, given the picture's frame (`WhiteboardFrame.export`).
-  public static func lines(_ shape: Shape, frame: CGRect, scale: CGFloat) -> [[CGPoint]] {
+  /// The ink lines that draw `shape` on the board, given the picture's frame (`WhiteboardFrame.export`). A label that
+  /// names no lettering is lettered in `lettering`, the board's (#950).
+  public static func lines(_ shape: Shape, frame: CGRect, scale: CGFloat, lettering: LetterStyle = .single)
+    -> [[CGPoint]]
+  {
     let board = { (p: CGPoint) in CGPoint(x: frame.minX + p.x / scale, y: frame.minY + p.y / scale) }
     let p = shape.points.map(board)
     switch shape.kind {
@@ -300,7 +316,8 @@ public enum WhiteboardTurn {
       let size = (shape.size ?? 28) / scale
       let height = textHeight(shape, scale: scale)
       let top = CGPoint(x: p[0].x, y: p[0].y + ascent(shape.face) * (size - height))
-      return glyphLines(shape.text ?? "", topLeft: top, height: height, face: shape.face)
+      return glyphLines(
+        shape.text ?? "", topLeft: top, height: height, face: shape.face, lettering: shape.lettering ?? lettering)
     }
   }
 
@@ -384,17 +401,28 @@ public enum WhiteboardTurn {
     }
 
     /// A label as its letters written in single pen strokes (#895), lines PencilKit can draw. A character the written
-    /// letters don't have keeps its outline, so nothing goes missing; an emoji has neither and draws nothing.
-    static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] {
-      lettered(text, topLeft: topLeft, height: height, face: face).lines
+    /// letters don't have keeps its outline, so nothing goes missing; an emoji has neither and draws nothing. In the
+    /// real font (#950), every letter is its outline.
+    static func glyphLines(
+      _ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print, lettering: LetterStyle = .single
+    ) -> [[CGPoint]] {
+      lettered(text, topLeft: topLeft, height: height, face: face, lettering: lettering).lines
     }
 
     /// A label's written lines and how far its letters reach along the row, in board points. Its capitals are as tall
     /// as print's and stand on the face's baseline, so a label takes about the room it did as outlines (the script's
     /// capitals at the hand face's own, much taller, height came out a third bigger).
-    static func lettered(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face)
-      -> (lines: [[CGPoint]], width: CGFloat)
-    {
+    static func lettered(
+      _ text: String, topLeft: CGPoint, height: CGFloat, face: Face, lettering: LetterStyle = .single
+    ) -> (lines: [[CGPoint]], width: CGFloat) {
+      // The real font (#950): the face's own outlines, on the same baseline at the same size, so a label stands where
+      // a written one would and its capitals are as tall.
+      if lettering == .font {
+        return (
+          outlineLines(text, topLeft: topLeft, height: height, face: face),
+          outlineWidth(text, height: height, face: face)
+        )
+      }
       let print = CTFontCreateWithName(Face.print.fontName as CFString, height, nil)
       let baseline = ascent(face) * height
       let unit = CTFontGetCapHeight(print) / BoardLettering.capHeight
@@ -506,6 +534,8 @@ public enum WhiteboardTurn {
     // Linux (just test-linux) has no fonts: a label has no outline there, so the app's `hasLetters` drops every text
     // shape. The parse tests hand `answer` their own lettering; the outline tests run on the Mac only.
     static func ascent(_ face: Face) -> CGFloat { 0 }
-    static func glyphLines(_ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print) -> [[CGPoint]] { [] }
+    static func glyphLines(
+      _ text: String, topLeft: CGPoint, height: CGFloat, face: Face = .print, lettering: LetterStyle = .single
+    ) -> [[CGPoint]] { [] }
   #endif
 }

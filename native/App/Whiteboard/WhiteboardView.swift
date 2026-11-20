@@ -43,6 +43,8 @@ final class WhiteboardModel: ObservableObject {
   @Published private(set) var ruledOn: Bool
   /// The board's colour (story 378).
   @Published private(set) var paper: BoardPaper
+  /// How text made on the board from now on is lettered (#950, stories 1056–1058), remembered per board on this device.
+  @Published private(set) var lettering: WhiteboardTurn.LetterStyle
   /// Who answers a pause: Haiku, Sonnet or Larry, the board's knob on the Cockpit (story 659).
   @Published private(set) var responder = WhiteboardResponderKnob()
   /// Larry's turn, one at a time, latest wins (story 662): while one is out the bar says he is looking.
@@ -230,6 +232,7 @@ final class WhiteboardModel: ObservableObject {
     turns = WhiteboardGhostTurns(
       on: UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true, ghostLife: .seconds(Self.ghostSeconds))
     let lines = BoardLines().choice(board.id)
+    lettering = BoardLetteringChoice().choice(board.id)
     gridOn = lines == .grid
     ruledOn = lines == .ruled
     editable = store.drawable(board)
@@ -505,6 +508,14 @@ final class WhiteboardModel: ObservableObject {
 
   private func saveLines() {
     BoardLines().set(gridOn ? .grid : ruledOn ? .ruled : .none, board: board.id)
+  }
+
+  /// #950: single strokes or the real font for what the board letters next; nothing already on it changes.
+  func setLettering(_ new: WhiteboardTurn.LetterStyle) {
+    guard editable, new != lettering else { return }
+    lettering = new
+    BoardLetteringChoice().set(new, board: board.id)
+    log.event("whiteboard", ["action": "lettering", "board": board.id, "lettering": new.rawValue])
   }
 
   func setPaper(_ new: BoardPaper) {
@@ -837,7 +848,7 @@ final class WhiteboardModel: ObservableObject {
       row.shapes.enumerated().map { index, shape in
         Ghost(
           shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id),
-          hand: penInHand, seen: seen, folds: folds)
+          hand: penInHand, seen: seen, folds: folds, lettering: lettering)
       }.filter { !settled.contains($0.id) })
     // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
     turns.larrysMarks(marks)
@@ -1320,8 +1331,9 @@ final class WhiteboardModel: ObservableObject {
     folds: BoardFoldMap? = nil, first: Bool
   ) {
     turns.land(
-      shapes.map { Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand, folds: folds) }, who: who,
-      first: first, now: .now)
+      shapes.map {
+        Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand, folds: folds, lettering: lettering)
+      }, who: who, first: first, now: .now)
     if who == .claude { fadeClaudesGhosts() }
   }
 
@@ -1398,7 +1410,7 @@ final class WhiteboardModel: ObservableObject {
         texts.append(
           BoardText(
             id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
-            color: Self.lightHex(ghost.color), glyphs: mine.count))
+            color: Self.lightHex(ghost.color), glyphs: mine.count, lettering: text.lettering))
       }
       settleLarrys(ghost)
     }
@@ -1554,7 +1566,7 @@ final class WhiteboardModel: ObservableObject {
       texts.append(
         BoardText(
           id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
-          color: Self.lightHex(ghost.color), glyphs: strokes.count))
+          color: Self.lightHex(ghost.color), glyphs: strokes.count, lettering: text.lettering))
       opLedger.setTexts(texts, board: board.id)
     }
     // #883: what a kept mark that doesn't show needs said: its pen, letters and colour, the zoom, and whether the ink
@@ -1672,7 +1684,8 @@ final class WhiteboardModel: ObservableObject {
   func paste(_ text: String) {
     guard editable, let visible = visibleRect?(), !visible.isNull, let zoom = zoom?() else { return }
     let height = Self.pasteLetters / min(zoom, 1)
-    let layout = WhiteboardPaste.layout(text, visible: visible, height: height, board: pasteReach)
+    let layout = WhiteboardPaste.layout(
+      text, visible: visible, height: height, board: pasteReach, lettering: lettering)
     let made = Date()
     let strokes = Self.strokes(layout.lines, color: .black, width: height * 0.11, spacing: height / 8, made: made)
     if !strokes.isEmpty { rememberLabel(made) }
@@ -1680,6 +1693,7 @@ final class WhiteboardModel: ObservableObject {
       "whiteboard",
       [
         "action": "paste", "board": board.id, "characters": layout.kept, "of": layout.total, "strokes": strokes.count,
+        "lettering": lettering.rawValue,
       ])
     guard !strokes.isEmpty else {
       pasteNote = layout.note
@@ -2157,6 +2171,7 @@ extension WhiteboardModel {
 
   private func apply(_ batch: BoardOps.Batch, held: Bool) {
     let started = ContinuousClock.now
+    let batch = batch.lettered(lettering)
     var event = BoardOps.logFields(batch)
     event["board"] = board.id
     event["held"] = held
@@ -2184,7 +2199,9 @@ extension WhiteboardModel {
     if !plan.texts.isEmpty {
       turns.larrysText(
         plan.texts.map {
-          Ghost($0.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\($0.id)", text: $0, hand: penInHand)
+          Ghost(
+            $0.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\($0.id)", text: $0, hand: penInHand,
+            lettering: lettering)
         })
     }
     let result = ops.applied(batch, plan: plan)
@@ -2311,13 +2328,14 @@ extension WhiteboardModel {
     var kept: [BoardText] = []
     for (i, text) in inked.enumerated() {
       let ghost = Ghost(
-        text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text, hand: penInHand)
+        text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text, hand: penInHand,
+        lettering: lettering)
       let made = BoardText.time(started.addingTimeInterval(-Double(inked.count - i) * 0.005))
       let glyphs = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
       kept.append(
         BoardText(
           id: text.id, t: made.t, text: text.text, font: text.font, size: Double(text.size),
-          color: Self.lightHex(ghost.color), glyphs: glyphs.count))
+          color: Self.lightHex(ghost.color), glyphs: glyphs.count, lettering: ghost.text?.lettering))
       strokes += glyphs
     }
     return (strokes, kept)
@@ -2388,15 +2406,20 @@ struct Ghost: Identifiable, WhiteboardGhost {
   init(
     _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
     id: String = UUID().uuidString, text: BoardOps.Text? = nil, hand: CGFloat? = nil, seen: Int64? = nil,
-    folds: BoardFoldMap? = nil
+    folds: BoardFoldMap? = nil, lettering: WhiteboardTurn.LetterStyle = .single
   ) {
     self.id = id
     self.seen = seen
-    self.text = text
+    // #950: a label naming no lettering takes the board's as it shows, and a text of Larry's keeps it when kept.
+    self.text = text.map { text in
+      var text = text
+      text.lettering = text.lettering ?? lettering
+      return text
+    }
     self.who = who
     // Story 1046: drawn on a picture with folds open, the mark lands on the folded board by the ink it was drawn on.
     var connector = BoardConnectors.mark(shape, frame: frame, scale: scale, id: id)
-    var lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
+    var lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale, lettering: lettering)
     if let folds {
       let onBoard = { (end: BoardOps.NewConnector.End) -> BoardOps.NewConnector.End in
         if case .point(let p) = end { return .point(folds.toBoard(p)) }
@@ -2732,6 +2755,18 @@ struct WhiteboardView: View {
               model.menuChose?()
             }
             .accessibilityIdentifier("whiteboard-tidy")
+            // #950 (stories 1056, 1057): how the board letters its text. One row, a switch, as the menu has room for no
+            // more (#848), and a submenu's rows close before a tap reaches them while the board's bar redraws.
+            Toggle(
+              "Real font",
+              isOn: Binding(
+                get: { model.lettering == .font },
+                set: {
+                  model.setLettering($0 ? .font : .single)
+                  model.menuChose?()
+                })
+            )
+            .accessibilityIdentifier("whiteboard-lettering")
             // Story 659: who answers a pause, the board's own on the Cockpit. A submenu, not a section: three more rows
             // make the iPad show the menu as a full-height list that stays up after a pick (#848).
             Menu {
@@ -2751,9 +2786,10 @@ struct WhiteboardView: View {
           } label: {
             Label("Board", systemImage: "paintpalette")
           }
-          // Its colour and lines, for VoiceOver and the UI test, in the label for the reason below.
+          // Its colour, lines and a real font (#950), for VoiceOver and the UI test, in the label for the reason below.
           .accessibilityLabel(
             "Board, \(model.paper.name)\(model.gridOn ? ", grid on" : model.ruledOn ? ", ruled lines on" : "")"
+              + (model.lettering == .font ? ", real font" : "")
           )
           .accessibilityIdentifier("whiteboard-board")
         }

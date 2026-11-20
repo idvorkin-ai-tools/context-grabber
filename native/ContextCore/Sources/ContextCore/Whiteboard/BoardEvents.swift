@@ -178,10 +178,14 @@ public struct BoardText: Equatable, Codable, Sendable {
   /// How many glyph strokes it was kept as: fewer left means part of it was erased (story 854). Nil for a text kept
   /// before the board counted.
   public var glyphs: Int?
+  /// How its letters were drawn (#950); nil is single strokes, as every text kept before the choice was.
+  public var lettering: WhiteboardTurn.LetterStyle?
 
   public init(
-    id: String, t: Int64, text: String, font: BoardOps.Font, size: Double, color: String, glyphs: Int? = nil
+    id: String, t: Int64, text: String, font: BoardOps.Font, size: Double, color: String, glyphs: Int? = nil,
+    lettering: WhiteboardTurn.LetterStyle? = nil
   ) {
+    self.lettering = lettering
     self.id = id
     self.t = t
     self.text = text
