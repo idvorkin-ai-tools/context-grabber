@@ -3,6 +3,9 @@
 # check which rungs and UI test classes a change gets; the rest run it with fake just, xcodebuild, xcrun, lockf, pgrep and
 # uv, so nothing builds, nothing boots and nothing takes the real lock.
 set -uo pipefail
+# The lane settings come from each run, never from this shell: ~/.zshenv may set BUILD_LANES (#1008), and a run inside a
+# lane carries BUILD_LANE and its port offset.
+unset BUILD_LANES BUILD_LANE BUILD_LANE_PORT_OFFSET
 cd "$(dirname "$0")/../.."
 ladder=scripts/native/test-ladder.sh
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cg-ladder-test.XXXXXX")
@@ -289,7 +292,7 @@ dry --changed docs/TESTING.md --all
 says "--all: chat" "rung 2 UI tests (chat, fake Cockpit and bridge): $chat_all"
 says "--all: the simulator builds" "rung 2 Simulator: the build with its UI tests"
 
-FAKE_BUSY=always dry --changed native/App/Chat/ChatViews.swift
+BUILD_LANES=1 FAKE_BUSY=always dry --changed native/App/Chat/ChatViews.swift
 says "dry run: says another xcodebuild would be waited for" "another xcodebuild is running now: the Mac and simulator rungs would wait for it"
 
 # The diff itself, in a throwaway repository holding a copy of the script: committed, staged and untracked all count.

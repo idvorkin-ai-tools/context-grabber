@@ -8,6 +8,9 @@
 #   or under the lanes; the xcodebuild wait's threshold; one lane shutting every other simulator down as before; and
 #   `sims refresh` and `sims list` (stories 786-788, #980).
 set -uo pipefail
+# The lane settings come from each case, never from this shell: ~/.zshenv may set BUILD_LANES (#1008), and a run inside a
+# lane carries BUILD_LANE and its port offset.
+unset BUILD_LANES BUILD_LANE BUILD_LANE_PORT_OFFSET
 cd "$(dirname "$0")/../.."
 lane=scripts/native/build-lane.sh
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cg-build-lane-test.XXXXXX")
