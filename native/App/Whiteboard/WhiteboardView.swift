@@ -2156,6 +2156,7 @@ extension WhiteboardModel {
 
   private func apply(_ batch: BoardOps.Batch, held: Bool) {
     let started = ContinuousClock.now
+    let batch = batch.lettered(lettering)
     var event = BoardOps.logFields(batch)
     event["board"] = board.id
     event["held"] = held

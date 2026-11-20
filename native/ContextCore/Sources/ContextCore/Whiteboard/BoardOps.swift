@@ -205,6 +205,18 @@ public enum BoardOps {
       self.ops = ops
       self.refusal = refusal
     }
+
+    /// #950: the batch with each text that names no lettering lettered in the board's, so it is placed and measured
+    /// as it is drawn.
+    public func lettered(_ lettering: WhiteboardTurn.LetterStyle) -> Batch {
+      var out = self
+      out.ops = ops.map { op in
+        guard case .addText(var text) = op else { return op }
+        text.lettering = text.lettering ?? lettering
+        return .addText(text)
+      }
+      return out
+    }
   }
 
   /// What came of a batch, for Larry's next turn (`op_result`).
