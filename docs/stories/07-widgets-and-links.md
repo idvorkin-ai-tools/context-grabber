@@ -1746,8 +1746,8 @@ apart."*
 ### User Story 724:
 
 - **Summary:** New Board by key on the Mac
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
-- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722)
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [59157ff](https://github.com/idvorkin/context-grabber/commit/59157ff) (Command+N no longer New Window); verified on the Mac (rung 1.5): File > New Board reads Shift+Command+N in the app's menu; not yet pressed by a person
+- **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722), [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
@@ -1839,7 +1839,7 @@ apart."*
 ### User Story 734:
 
 - **Summary:** A new chat by key from anywhere on the Mac
-- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
+- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7), changed in [59157ff](https://github.com/idvorkin/context-grabber/commit/59157ff); `MacGoMenuTests` (host) pass and the Mac build compiles; on the Mac (rung 1.5) the File menu reads New Chat Command+N, New Window Option+Command+N, New Board Shift+Command+N, and choosing New Chat by accessibility logged `open_new_chat` from mac_menu and opened chat; the key not yet pressed by a person
 - **Issues:** [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac — Control+R and Command+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1857,7 +1857,7 @@ apart."*
 ### User Story 735:
 
 - **Summary:** A new chat by key from chat on the Mac
-- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
+- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7), changed in [59157ff](https://github.com/idvorkin/context-grabber/commit/59157ff); `MacGoMenuTests` (host) pass and the Mac build compiles; on the Mac (rung 1.5) the File menu reads New Chat Command+N, New Window Option+Command+N, New Board Shift+Command+N, and choosing New Chat by accessibility logged `open_new_chat` from mac_menu and opened chat; the key not yet pressed by a person
 - **Issues:** [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac — Control+R and Command+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1875,8 +1875,8 @@ apart."*
 ### User Story 731:
 
 - **Summary:** A new window lets me choose what it shows
-- **Status:** implemented in [c02ddeb](https://github.com/idvorkin/context-grabber/commit/c02ddeb); `WindowOfferTests` (host) pass and the Mac build compiles; not yet opened with Command+N on the Mac or the iPad's New Window
-- **Issues:** [#782](https://github.com/idvorkin/context-grabber/issues/782)
+- **Status:** implemented in [c02ddeb](https://github.com/idvorkin/context-grabber/commit/c02ddeb), moved to Option+Command+N in [59157ff](https://github.com/idvorkin/context-grabber/commit/59157ff); `WindowOfferTests` (host) pass and the Mac build compiles; on the Mac (rung 1.5) File > New Window reads Option+Command+N and, chosen by accessibility with home up, logged `new_window` then `extra_home` with two scenes (the chooser); not yet pressed by a person, nor the iPad's New Window
+- **Issues:** [#782](https://github.com/idvorkin/context-grabber/issues/782), [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Windows on the iPad — Another window of the app](../superpowers/specs/2026-11-03-ipad-windows-design.md)
 
 #### Use Case:
