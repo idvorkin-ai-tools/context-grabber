@@ -50,7 +50,7 @@ final class BoardRoomDropTests: XCTestCase {
   }
 
   func testAWordSlidAlongItsOwnLineOntoItsNeighbourMovesNothing() {
-    // Story 980: lifted from the line at 200 and dropped on a word beside it, still on that line.
+    // Story 969: lifted from the line at 200 and dropped on a word beside it, still on that line.
     let from = CGRect(x: 100, y: 202, width: 60, height: 20)
     let block = from.offsetBy(dx: 120, dy: 0)
     let neighbour = CGRect(x: 200, y: 200, width: 120, height: 24)

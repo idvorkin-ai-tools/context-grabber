@@ -677,6 +677,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 789:
+
+- **Summary:** A story ID used twice, or outside its journey's range, fails the host rung by name
+- **Status:** implemented on branch `native/story-id-check-993`; verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: hand-written story trees (a duplicate in one file and across two, an ID outside its journey, overlapping ranges, an unlisted file, a missing one, a heading in another form, an unreadable IDs column) each fail with exactly the expected lines, a clean tree passes, and docs/stories passes once the duplicates on main (480–482 in the home screen journey, 980 in the whiteboard's) were renumbered and the journey table brought up to the IDs in use
+- **Issues:** [#993](https://github.com/idvorkin/context-grabber/issues/993) (parallel PRs on 2026-11-19 collided on story IDs four times, each caught only by a reviewer or by luck; 480–482 and 980 were already duplicated on main)
+
+#### Use Case:
+- **As Igor,** with several agents adding stories at once
+- **I want to** have the host rung fail on a story ID that is taken twice or sits outside its journey's ranges
+- **so that** two stories never share an ID, and a collision costs a renumber before merge rather than a reviewer's luck
+
+#### Acceptance Criteria:
+- **Scenario:** A story takes an ID that is already used, or that its journey doesn't hold
+- **Given:** the stories and the journey table with each journey's IDs, where no two journeys hold the same ID
+- **When:** the host rung runs (on the Mac or the Linux box)
+- **Then:** it fails naming each ID used twice with both places, each ID outside its journey's IDs, any two journeys whose IDs overlap, and any story file or heading it can't check; with none of these it passes
+
+---
+
 ### User Story 980:
 
 - **Summary:** One booted simulator per build lane, left booted between runs

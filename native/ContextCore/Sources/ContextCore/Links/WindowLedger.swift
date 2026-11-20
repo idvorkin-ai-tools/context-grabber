@@ -1,4 +1,4 @@
-//  #634, stories 460-464, 470-482, 560-563 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
+//  #634, stories 460-464, 470-479, 560-563, 565-567 (spec 2026-11-03-ipad-windows-design.md): which window holds what on an iPad. Pure; the
 //  app names each window by its scene session and does the opening.
 
 import Foundation

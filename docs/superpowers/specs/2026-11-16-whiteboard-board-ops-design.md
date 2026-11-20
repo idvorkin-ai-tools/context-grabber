@@ -185,7 +185,7 @@ board differs, this says why.
   stays, as on the web board. Selecting anything else, or any change to the ink, puts Delete away.
 - Ink folded away (below) is no obstacle: a paste may land where a folded section's hidden lines are.
 
-### A dragged selection makes room (stories 973–975, 979, 980; Igor, 2026-11-17: "same as reflowing stuff below, as opposed to drop on top")
+### A dragged selection makes room (stories 969, 973–975, 979; Igor, 2026-11-17: "same as reflowing stuff below, as opposed to drop on top")
 
 - When Igor lasso-drags ink and drops it onto other ink, the ink there moves down to make room, as a paste does: the
   dropped ink stays exactly where he let go, and from the clear line nearest its top everything below slides down,
