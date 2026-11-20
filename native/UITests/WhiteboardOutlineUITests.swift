@@ -62,8 +62,9 @@ final class WhiteboardOutlineUITests: XCTestCase {
 
   /// Story 853: a paste lands selected with Delete beside it, and Delete takes it away.
   func testAPasteLandsSelectedAndDeleteTakesItAway() throws {
+    // HI is written in four single strokes: H three, I one (#996).
     let app = try openBoard(["GRABBER_WHITEBOARD_PASTE": "HI"])
-    wait(send(app), label: strokes(2))
+    wait(send(app), label: strokes(4))
     let delete = app.buttons["whiteboard-paste-delete"]
     XCTAssertTrue(delete.appears(within: 5), "Delete beside the paste: \(app.debugDescription)")
     shot(app, "pasted, selected, with Delete")
