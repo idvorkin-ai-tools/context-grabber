@@ -109,7 +109,8 @@ cat >"$fakes/uv" <<'F'
 exec sleep 30
 F
 chmod +x "$fakes"/*
-dry() { PATH="$fakes:$PATH" "$ladder" --dry-run "$@" >"$out" 2>&1; }
+# One build lane unless a run says otherwise (story 785), so this Mac's own memory can't change what the checks see.
+dry() { PATH="$fakes:$PATH" BUILD_LANES=${BUILD_LANES:-1} "$ladder" --dry-run "$@" >"$out" 2>&1; }
 # Every class the ladder can discover, by the parser its --all uses: a mapped class missing from it would run nothing.
 dry --all --changed docs/TESTING.md
 known=" $(sed -n 's/^rung 2 UI tests[^:]*: //p' "$out" | tr '\n' ' ') "
@@ -125,7 +126,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   while [ "$1" != "--" ]; do vars+=("$1"); shift; done
   shift
   rm -f "$MARKS"/*
-  env PATH="$fakes:$PATH" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
+  env PATH="$fakes:$PATH" BUILD_LANES=1 BUILD_LOCK_DIR="$tmp/locks" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
     XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" SIM_DEVICES_DIR="$tmp/devices" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
@@ -346,7 +347,8 @@ says "docs: the end names the phone" "every rung passed; rung 3, the phone, is y
 run -- --changed native/UITests/CardUITests.swift
 status=$?
 if [ "$status" -eq 0 ]; then ok "a test file: climbs"; else bad "a test file: climbs, exit $status"; fi
-if grep -qF "build.lock" "$MARKS/lockf"; then ok "the simulator rung takes the build lock"; else bad "the simulator rung takes the build lock"; fi
+if grep -qE "build(-[0-9]+)?\.lock" "$MARKS/lockf"; then ok "the simulator rung takes a build lane's lock"; else bad "the simulator rung takes a build lane's lock"; fi
+if grep -qxF "lockf 3600 $tmp/locks/build.lock" "$MARKS/lockf"; then ok "one lane: the old build.lock, an hour's wait"; else bad "one lane: the old build.lock, an hour's wait"; fi
 if head -1 "$MARKS/xcodebuild" | grep -q " build-for-testing"; then ok "the build comes first"; else bad "the build comes first"; fi
 if grep -q "only-testing:GrabberNativeUITests/CardUITests test-without-building" "$MARKS/xcodebuild"; then ok "then its class alone"; else bad "then its class alone"; fi
 if grep -q "simctl shutdown" "$MARKS/xcrun"; then bad "the simulator is left booted after (story 980)"; else ok "the simulator is left booted after (story 980)"; fi
@@ -481,6 +483,15 @@ run -- --changed native/App/Gym/GymTimerView.swift
 status=$?
 if [ "$status" -eq 0 ]; then ok "the timer: climbs against the fakes"; else bad "the timer: climbs against the fakes, exit $status"; fi
 if grep -q "only-testing:GrabberNativeUITests/GymTimerDialsUITests -only-testing:GrabberNativeUITests/GymTimerUITests test-without-building" "$MARKS/xcodebuild"; then ok "the timer: runs its classes"; else bad "the timer: runs its classes"; fi
+
+# Story 785: four lanes take the first free lane's lock, and one other xcodebuild is no contention.
+run BUILD_LANES=4 FAKE_BUSY=always -- --changed native/UITests/CardUITests.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "four lanes: one other xcodebuild, still climbs"; else bad "four lanes: one other xcodebuild, still climbs, exit $status"; fi
+if grep -qE "^lockf 0 .*/build(-[0-9]+)?\.lock$" "$MARKS/lockf"; then ok "four lanes: a lane's lock, taken at once"; else bad "four lanes: a lane's lock, taken at once"; fi
+never "four lanes: no contention note for one other" "more xcodebuilds than the 4 build lanes"
+FAKE_BUSY=always BUILD_LANES=4 dry --changed native/App/Chat/ChatViews.swift
+never "four lanes: a dry run doesn't wait for one other" "the Mac and simulator rungs would wait"
 
 run FAKE_BUSY=always XCODEBUILD_IDLE_WAIT=0 -- --changed native/UITests/CardUITests.swift
 status=$?

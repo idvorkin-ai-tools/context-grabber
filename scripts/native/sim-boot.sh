@@ -1,17 +1,56 @@
 #!/usr/bin/env bash
-# Story 980: makes this simulator the one booted on the Mac, booting it only if it isn't up. Every other booted
-# simulator is shut down first (one booted takes about 10 GB of the Mac's 16), and the target is left booted afterwards
-# for the next run: an iOS 27 boot writes about 300 MB of wallpaper snapshots that are never evicted, and spikes the CPU.
-# Run it inside the build lane, which keeps simulator work to one job at a time.
+# Story 980: makes this simulator the booted one for its build lane, booting it only if it isn't up, and leaves it
+# booted afterwards for the lane's next run: an iOS 27 boot writes about 300 MB of wallpaper snapshots that are never
+# evicted, and spikes the CPU. One booted simulator takes about 10 GB, so no more stay booted than the Mac has build
+# lanes (story 985, #954; scripts/native/build-lane.sh). On a one-lane Mac every other booted simulator is shut down
+# first, as before lanes. With more lanes: the lane's other device and any simulator of no lane are shut down, a busy
+# lane's simulator never is, and an idle lane's only to keep the booted count at or under the lane count.
+# Run it inside a build lane (build-lane.sh run).
 # Usage: sim-boot.sh <simulator name or udid>
 set -uo pipefail
-udid=$("$(dirname "$0")/sim-udid.sh" "${1:?simulator name or udid}") || exit
-xcrun simctl list devices booted | grep -oE '\(([0-9A-F-]{36})\) \(Booted\)' | grep -oE '[0-9A-F-]{36}' |
-  while IFS= read -r other; do
-    [ "$other" = "$udid" ] || xcrun simctl shutdown "$other" 2>/dev/null
+here=$(dirname "$0")
+udid=$("$here/sim-udid.sh" "${1:?simulator name or udid}") || exit
+lanes=$("$here/build-lane.sh" count)
+if [ "$lanes" -le 1 ]; then
+  xcrun simctl list devices booted | grep -oE '\(([0-9A-F-]{36})\) \(Booted\)' | grep -oE '[0-9A-F-]{36}' |
+    while IFS= read -r other; do
+      [ "$other" = "$udid" ] || xcrun simctl shutdown "$other" 2>/dev/null
+    done
+else
+  own=${BUILD_LANE:-}  # unset: a run outside any lane, which owns none of them
+  phone=${SIM:-iPhone 17} pad=${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}
+  laned='^(.+) lane ([0-9]+)$'
+  idle=() busy=0
+  while IFS=' ' read -r other name; do
+    [ -n "$other" ] && [ "$other" != "$udid" ] || continue
+    base=$name lane=1
+    if [[ $name =~ $laned ]]; then base=${BASH_REMATCH[1]} lane=${BASH_REMATCH[2]}; fi
+    if [ "$base" != "$phone" ] && [ "$base" != "$pad" ]; then
+      echo "sim-boot: shutting down '$name', which belongs to no build lane"
+      xcrun simctl shutdown "$other" 2>/dev/null
+    elif [ "$lane" = "$own" ]; then
+      xcrun simctl shutdown "$other" 2>/dev/null  # this lane's other device
+    elif "$here/build-lane.sh" busy "$lane"; then
+      busy=$((busy + 1))
+      echo "sim-boot: leaving '$name' booted: build lane $lane is busy"
+    else
+      idle+=("$lane $other $name")
+    fi
+  done < <(xcrun simctl list devices booted | sed -nE 's/^ +(.+) \(([0-9A-F-]{36})\) \(Booted\).*$/\2 \1/p')
+  # Idle lanes keep theirs booted for their next run while there is room: this one, the busy ones and the idle ones
+  # within the lane count. Each shutdown holds that lane's lock, so a job starting there meanwhile keeps its simulator.
+  over=$((1 + busy + ${#idle[@]} - lanes))
+  for entry in ${idle[@]+"${idle[@]}"}; do
+    [ "$over" -gt 0 ] || break
+    read -r lane other name <<<"$entry"
+    if lockf -k -t 0 "$("$here/build-lane.sh" lock "$lane")" xcrun simctl shutdown "$other" 2>/dev/null; then
+      echo "sim-boot: shut down '$name' (build lane $lane is idle) to keep no more than $lanes booted"
+      over=$((over - 1))
+    fi
   done
+fi
 # Story 984: a boot grows the wallpaper snapshots by about 300 MB and nothing evicts them, so the shut-down simulators'
 # are pruned first, the target among them while it is still shut down. A failed prune never stops the boot.
-xcrun simctl list devices booted | grep -qF "($udid)" || "$(dirname "$0")/sim-poster-prune.sh" || true
+xcrun simctl list devices booted | grep -qF "($udid)" || "$here/sim-poster-prune.sh" || true
 # -b boots it only if it isn't booted, and returns at once if it is; a bare bootstatus after a failed boot waits forever.
 xcrun simctl bootstatus "$udid" -b >/dev/null || { echo "the simulator $udid did not boot" >&2; exit 1; }

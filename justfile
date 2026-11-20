@@ -68,6 +68,8 @@ native-test-host:
     scripts/native/test-tile-art.sh
     # Story 683: which rungs and UI test classes a change gets, from the real script's dry run.
     scripts/native/test-ladder-map.sh
+    # Story 785 (#954): the build lanes, their locks and simulators, sim-boot and the xcodebuild wait per lane.
+    scripts/native/test-build-lane.sh
     # Where a UI test run's time went, from a real run's log.
     scripts/native/test-ui-timings.sh
     # Story 689: a UI test run gets a time limit per case and one retry of a failed case; a hang after it is stopped.
@@ -110,6 +112,12 @@ native-sim-health: native-project
       -derivedDataPath native/Build -destination "platform=iOS Simulator,id=$(scripts/native/sim-udid.sh "{{native_sim}}")" \
       CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual GIT_SHA="$(git rev-parse --short HEAD)" GIT_BRANCH="$(git branch --show-current)" BUGKIT_COMMIT="$(git describe --always --dirty --exclude='*')" \
       -only-testing:GrabberNativeUITests/HealthAccessUITests test
+
+# Story 785: every build lane's own iPhone and iPad simulators ("<name> lane N"), copied from lane 1's so they keep its
+# Health access and data. A lane makes its own the first time it needs them; this makes them all now, waiting for lane 1
+# to be idle (it is shut down to be copied). Nothing to do on a one-lane Mac.
+native-sim-lanes:
+    scripts/native/build-lane.sh sims
 
 # Native rung 2's smoke: the simulator build driven by launch hooks, judged from its session log. It waits while another
 # xcodebuild runs: a simulator run under contention counts as failed.

@@ -311,7 +311,7 @@ if want call; then
 # sent the dump, stt_stop and stop and ended as "stopped". Once with synthetic audio (the protocol path, whatever
 # the simulator's audio does), once with the real engine (voice processing, the tap, the player node).
 xcrun simctl privacy "$SIM" grant microphone "$BUNDLE" 2>/dev/null || true
-PORT=${CALL_PORT:-8799}
+PORT=${CALL_PORT:-$((8799 + ${BUILD_LANE_PORT_OFFSET:-0}))}  # ten up per build lane (story 785)
 REPORT=$(mktemp -t fake-bridge); : >"$REPORT"
 # Taken already, another bridge would answer instead; checked first, as the wait below can't tell whose it is.
 nc -z localhost "$PORT" 2>/dev/null && bad "call: port $PORT is taken before the fake bridge started"
@@ -457,7 +457,7 @@ if want chat; then
 # Chat (spec 2026-10-25): against a fake Cockpit (scripts/native/fake-cockpit.py), a message written for a new thread
 # goes up once as POST /chat with its id and the app as source, and one written in a thread as POST /chat/<key>;
 # opening that thread reads it and marks it seen. The log names the thread, never the text.
-CHAT_PORT=${CHAT_PORT:-8797}
+CHAT_PORT=${CHAT_PORT:-$((8797 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 CHAT_REPORT=$(mktemp -t fake-cockpit); : >"$CHAT_REPORT"
 nc -z localhost "$CHAT_PORT" 2>/dev/null && bad "chat: port $CHAT_PORT is taken before the fake Cockpit started"
 "$(dirname "$0")/fake-cockpit.py" "$CHAT_PORT" "$CHAT_REPORT" >/dev/null 2>&1 &

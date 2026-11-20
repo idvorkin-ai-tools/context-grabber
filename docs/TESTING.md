@@ -125,14 +125,32 @@ A whiteboard class list is the suite less its fake-Cockpit report checks, so a c
 costs about the suite's time; a change to one test file costs that file. `--full` runs the whole suite of each area the
 change touched, in place of that area's classes.
 
-The Mac and simulator rungs run in the build lane, one job at a time: `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`,
-then, inside the lock, the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i` (the simulator
-rung `caffeinate -d -i`, story 782), so the time limit counts only the rung's own run.
+The Mac and simulator rungs run in build lanes, one job per lane (story 785, #954). The lane count is `BUILD_LANES`,
+else one per 12 GB of memory (`sysctl -n hw.memsize`), at most four and at least one: four on the 48 GB M5 Pro, one on a
+16 GB Mac. `scripts/native/build-lane.sh run <command…>` takes the first free lane's lock, waiting only while every lane
+is busy (up to an hour, then exit 75), and exports `BUILD_LANE` (its number) and `BUILD_LANES` to the job. Lane 1's lock
+is `~/tmp/agent/locks/build.lock`, the one every older checkout takes, so those still exclude lane 1; lane N's is
+`build-N.lock`. With one lane it is exactly `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`, as before lanes. Inside
+the lock come the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i` (the simulator rung
+`caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. A suite script runs in a lane the same way,
+given the simulator's name so that it resolves the lane's own device inside the lane:
+`scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 30 caffeinate -i scripts/native/test-chat-ui.sh "iPhone 17"`.
 
-**One booted simulator, left booted between runs; switched only when the device changes** (stories 980–983). Every
-script that needs a simulator goes through `scripts/native/sim-boot.sh <name|udid>`, which shuts down any *other*
-booted simulator (one takes about 10 GB of the Mac's 16) and boots its own only if it isn't up (`simctl bootstatus -b`).
-Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 300 MB of wallpaper snapshots
+**Each lane has its own simulators.** Lane 1's are the named ones (`SIM`, default *iPhone 17*, and `WHITEBOARD_SIM`,
+default *iPad Pro 11-inch (M5)*), as on a one-lane Mac. Lane N's are *iPhone 17 lane N* and *iPad Pro 11-inch (M5) lane
+N*: `scripts/native/sim-udid.sh` resolves a name to the job's lane's device, and the first time a lane needs one it is
+cloned (`simctl clone`) from lane 1's while holding lane 1's lock, lane 1's shut down for it, so the copy keeps the
+Health grant and the seeded data. If lane 1 stays busy for ten minutes (`BUILD_LANE_CLONE_WAIT`), the lane gets a fresh
+simulator of the same model and runtime instead, and says it needs `BUILD_LANE=<n> just native-sim-health` once.
+`just native-sim-lanes` makes every lane's copies ahead of time, waiting for lane 1 up to an hour. The fake Cockpit's
+and bridge's default ports move up by ten per lane (`BUILD_LANE_PORT_OFFSET`), so lanes never collide on a port.
+
+**One booted simulator per lane, left booted between runs; switched only when the device changes** (stories 980–983,
+985). Every script that needs a simulator goes through `scripts/native/sim-boot.sh <name|udid>`. On a one-lane Mac it
+shuts down any *other* booted simulator (one takes about 10 GB of a 16 GB Mac), as before. With more lanes it shuts
+down the lane's other device and any simulator that belongs to no lane, never one whose lane's lock another job holds,
+and an idle lane's only to keep the booted count at or under the lane count. It boots its own only if it isn't up
+(`simctl bootstatus -b`). Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 300 MB of wallpaper snapshots
 (`PRBPosterExtensionDataStore`) that are never evicted, and spikes the CPU. On 2026-11-14 that was 31 boots, and on
 2026-11-17 the snapshots filled the disk. The rung's iPhone steps (chat, places, the other classes, the smoke, the chat
 suite) and its iPad steps (the whiteboard's classes and suite) run as two groups, the device already booted first, so a
@@ -152,11 +170,12 @@ screen. So the simulator rung holds the display on (`caffeinate -d`), lights it 
 locked screen at once with exit 75 and a line saying so, rather than hold the build lock for an hour. Unlock the Mac and
 rerun. A screen locked by hand during the run is caught by the start watchdog below, or by the per-test time limit.
 
-**Never run a simulator rung while another xcodebuild is running.** Startup waits fail under contention, and a run
-under contention counts as failed and is rerun, not debugged. The lock doesn't cover this, since a device build skips
-it. `scripts/native/xcodebuild-idle.sh` waits for every xcodebuild on the Mac before the Mac rung, the simulator rung
-and `just native-test-sim` start, says so, and refuses with exit 75 after half an hour (`XCODEBUILD_IDLE_WAIT`). If one
-appears during the run, the rung says so at the end: a failure is reported as contention. A pass stands, with a note,
+**Never run a simulator rung while more xcodebuilds run than the Mac has lanes.** Startup waits fail under contention,
+and a run under contention counts as failed and is rerun, not debugged. The lock doesn't cover this, since a device
+build skips it. `scripts/native/xcodebuild-idle.sh` waits while as many other xcodebuilds run as there are lanes (on a
+one-lane Mac: any other) before the Mac rung, the simulator rung and `just native-test-sim` start, says so, and refuses
+with exit 75 after half an hour (`XCODEBUILD_IDLE_WAIT`). If more than the lane count run together during the rung, it
+says so at the end: a failure is reported as contention. A pass stands, with a note,
 because contention makes a test fail when it shouldn't, not pass.
 
 **Every UI test run has a time limit, one retry and a short hang wait** (story 689). The wrapper all test runs go
@@ -454,7 +473,7 @@ behind: 24 GB across worktrees on 2026-11-09 (#803). The fix is to stop making n
 bounded disk and the seeded device ids; speed gains are modest. Measured on this Mac with Xcode's machine-wide caches
 warm: a first build in a new slot took 39 s, a rebuild 6 s, and a returned slot re-leased for a new branch with one
 file touched 7 s. [treehouse](https://github.com/kunchenguid/treehouse)
-keeps a pool of four (`treehouse.toml`) under `~/.treehouse/`, and a slot is leased, returned and leased again:
+keeps a pool of eight (`treehouse.toml`; four build lanes, story 785) under `~/.treehouse/`, and a slot is leased, returned and leased again:
 
 ```bash
 slot=$(treehouse get --lease -b native/123-my-change)   # prints the slot's path; the branch is cut from origin/main
@@ -471,7 +490,7 @@ treehouse return "$slot"                                # when the branch is pus
 - **A return discards uncommitted work** and stops what is still running in the slot. It asks first; `--force`
   doesn't. Commit and push before returning. A leased slot is never handed to anyone else and never pruned.
 - **A full pool is an error, not a fifth worktree.** `treehouse status` shows who holds what; return one.
-- **Disk is bounded at four build folders.** For a slot's build alone, delete its `native/Build` (the next build
+- **Disk is bounded at eight build folders.** For a slot's build alone, delete its `native/Build` (the next build
   there is cold; also the cure for a build that fails only in one slot). `treehouse prune` lists every idle returned
   slot and `--yes` deletes them, warm builds included, so it is for reclaiming disk, not for tidying.
 - **Slots share nothing.** Each has its own Swift package checkouts: one shared folder

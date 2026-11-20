@@ -3,17 +3,17 @@
 # scripts/native/fake-cockpit.py on a local port, its POST /chat held a few seconds so a new chat's waiting state shows.
 # And scripts/native/fake-bridge.py for a live call the voice button must stand down for (GRABBER_FAKE_BRIDGE).
 # The tests read the address as GRABBER_FAKE_COCKPIT (xcodebuild passes TEST_RUNNER_* through to the runner).
-# Usage: test-chat-ui.sh <simulator udid>   — run it in the build lane:
-#   lockf -k -t 3600 ~/tmp/agent/locks/build.lock ~/gits/mac-driver/bin/time-limit 30 caffeinate -i \
-#     scripts/native/test-chat-ui.sh <udid>
+# Usage: test-chat-ui.sh <simulator udid or name>   — run it in the build lane:
+#   scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 30 caffeinate -i \
+#     scripts/native/test-chat-ui.sh "iPhone 17"   (a name is the lane's own device: story 785)
 set -uo pipefail
-udid=$1
-port=${CHAT_PORT:-8798}
+udid=$("$(dirname "$0")/sim-udid.sh" "${1:?simulator udid or name}") || exit 1
+port=${CHAT_PORT:-$((8798 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 report=$(mktemp -t fake-cockpit)
 cd "$(dirname "$0")/../.."
 FAKE_COCKPIT_NEW_DELAY=${FAKE_COCKPIT_NEW_DELAY:-2} scripts/native/fake-cockpit.py "$port" "$report" >/dev/null 2>&1 &
 cockpit=$!
-bridge_port=${CHAT_BRIDGE_PORT:-8797}
+bridge_port=${CHAT_BRIDGE_PORT:-$((8797 + ${BUILD_LANE_PORT_OFFSET:-0}))}
 scripts/native/fake-bridge.py "$bridge_port" "$(mktemp -t fake-bridge)" >/dev/null 2>&1 &
 bridge=$!
 trap 'kill $cockpit $bridge 2>/dev/null || true' EXIT
