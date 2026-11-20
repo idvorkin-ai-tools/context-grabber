@@ -3997,7 +3997,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1003:
 
 - **Summary:** Larry's kept text is at the width of the pen in my hand
-- **Status:** implemented in [14cab9a0](https://github.com/idvorkin/context-grabber/commit/14cab9a0); verified on the host (`WhiteboardTurnTests.testALabelTakesThePenInIgorsHand`; `just test`), the Mac build and the simulator smoke (`just native-test-sim`); the iPad whiteboard UI tests didn't start (the Mac's screen was locked); not yet seen on the iPad
+- **Status:** implemented in [1df5eda4](https://github.com/idvorkin/context-grabber/commit/1df5eda4); verified on the host (`WhiteboardTurnTests.testALabelTakesThePenInIgorsHand`; `just test`), the Mac build and the simulator smoke (`just native-test-sim`); the iPad whiteboard UI tests didn't start (the Mac's screen was locked); not yet seen on the iPad
 - **Issues:** [#949](https://github.com/idvorkin/context-grabber/issues/949)
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *How a mark looks*
 
