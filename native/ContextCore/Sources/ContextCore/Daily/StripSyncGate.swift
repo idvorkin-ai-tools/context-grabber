@@ -106,3 +106,33 @@ public struct StripHeldSteps {
     }
   }
 }
+
+/// What came of merging the keys that arrived from iCloud (#388): the months merged, by device, and the keys whose
+/// write was refused, with why. A refused key costs only itself; a later full re-read picks it up.
+public struct StripArrival: Equatable, Sendable {
+  public var merged: [String: [String]] = [:]
+  public var failed: [String: String] = [:]
+}
+
+extension DailyStrip {
+  /// The strip keys among `keys` merged into this database, each on its own and all or nothing: this device's own
+  /// months back into its table where newer, every other device's into its peer rows. A month older than `oldest`,
+  /// a key `read` no longer finds (only its owner's pruning removes one) and any other key are passed over.
+  public func absorb(keys: [String], device: String, oldest: String, read: (String) -> Data?) -> StripArrival {
+    var arrival = StripArrival()
+    for key in keys {
+      guard let (from, month) = StripSync.parse(key: key), month >= oldest, let data = read(key) else { continue }
+      do {
+        try inTransaction {
+          let rows = StripSync.decode(data)
+          if from == device { try mergeOwn(rows) } else { try mergePeer(from, month: month, rows: rows) }
+        }
+        arrival.merged[from, default: []].append(month)
+      } catch {
+        arrival.failed[key] = "\(error)"
+      }
+    }
+    arrival.merged = arrival.merged.mapValues { $0.sorted() }
+    return arrival
+  }
+}
