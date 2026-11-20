@@ -262,7 +262,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 688:
 
 - **Summary:** A new branch builds in a worktree that already has a build
-- **Status:** implemented in 0e0cf96; verified on the Mac rung (a slot returned and re-leased for a new branch rebuilt in 7 s with one file touched, against 39 s for its first build)
+- **Status:** implemented in 0e0cf96; verified on the Mac rung (a slot returned and re-leased for a new branch rebuilt in 7 s with one file touched, against 39 s for its first build); the pool raised from eight to twelve slots, two per build lane at the M5 Pro's six, in 802177c0 (config and docs only; `treehouse.toml` read back)
 - **Issues:** [#803](https://github.com/idvorkin/context-grabber/issues/803)
 
 #### Use Case:
