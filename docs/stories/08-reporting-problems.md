@@ -397,6 +397,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 158:
+
+- **Summary:** Speak several reports in a row without tapping the mic each time
+- **Issues:** [#341](https://github.com/idvorkin/context-grabber/issues/341) (the next report opened with the microphone off); BugKit's side is [bug-kit#121](https://github.com/idvorkin/bug-kit/issues/121)
+- **Status:** in the app with BugKit 0.3.14, pinned in [73cf5a89](https://github.com/idvorkin/context-grabber/commit/73cf5a89) (#876's PR; bug-kit#123, fixing [bug-kit#121](https://github.com/idvorkin/bug-kit/issues/121)); verified in BugKit on the host (`BugReportFlow`'s carried dictation) and by an iOS typecheck, and here on the host rung; a real voice across two reports is the phone's to check
+- **Spec:** [Grabber Native, the shake](../superpowers/specs/2026-10-04-swift-native-app-design.md)
+
+#### Use Case:
+- **As someone** speaking a run of problems into the report, the phone in one hand
+- **I want to** tap *Log it and another* and go straight on speaking the next one
+- **so that** each problem is its own report without a tap on the microphone between them
+
+#### Acceptance Criteria:
+- **Scenario:** Still speaking when I log one
+- **Given:** a report is open and its microphone is recording what I say, with no call up
+- **When:** I say "the timer skipped the rest", tap *Log it and another*, and say "the count was late"
+- **Then:** the first report is stored with "the timer skipped the rest", the next report opens empty and already listening, its note ends up "the count was late", and the log has `dictation_carried` between the two `dictation_start` lines; had I typed the first note instead, the next report would have opened with the microphone off, and *Log it*, Cancel or closing the sheet never start it again
+
+---
+
 ### User Story 246:
 
 - **Summary:** A daily strip: gym, meditation, journal, balloons and magic, at a glance
