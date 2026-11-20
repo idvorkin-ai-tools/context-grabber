@@ -65,6 +65,7 @@ final class StripCloudSync {
       do {
         let moved = try strip.handOver(to: old)
         handedOver.insert(old)
+        database.setSetting("strip_handed_over_at.\(old)", String(Int64(Date().timeIntervalSince1970 * 1000)))
         database.setSetting("strip_handed_over", handedOver.sorted().joined(separator: ","))
         // A wait and its held steps carried in the backup were the old phone's; a new id has nothing in iCloud to
         // overwrite, so this device publishes at once.
@@ -215,8 +216,7 @@ final class StripCloudSync {
 
   /// This device's own months already in iCloud come back into its database first, so a reinstall (same vendor id,
   /// empty database) picks up where it was instead of overwriting them.
-  /// ponytail: a restore's rows that the old phone never uploaded stay on this phone if that phone is retired (#379);
-  /// the upgrade is publishing handed-over rows under the old id once it has been silent for a while.
+  /// A restore's rows the old phone never uploaded go up for it once it has been silent (`sendForSilent`, #379).
   /// Throws when the database refuses a row: the caller must not publish, or iCloud gets the partial copy.
   private func recoverOwn() throws {
     var count = 0
@@ -287,6 +287,41 @@ final class StripCloudSync {
         ["action": "publish", "months": months.keys.sorted(), "all": month == nil, "aged_out": aged.count])
     } catch {
       log.event("error", ["where": "strip_sync_publish", "message": "\(error)"])
+      return
+    }
+    if month == nil { sendForSilent() }
+  }
+
+  /// A restore's history was handed to the old phone's id; what that phone never sent shows here but not on the iPad.
+  /// Once it has sent nothing for `StripSync.silentDays`, those rows go up under its keys, each month merged into the
+  /// one iCloud holds, so nothing it sent is replaced and a revived old phone picks them up (#379).
+  private func sendForSilent() {
+    let now = Date()
+    for old in handedOver.sorted() where old != device {
+      do {
+        // The hand-over counts as the old phone's last word: right after a restore iCloud may not have delivered its
+        // keys yet, and an old backup's rows alone would look silent. An id handed over before #379 starts now.
+        let stamp = "strip_handed_over_at.\(old)"
+        guard let handed = database.setting(stamp).flatMap(Int64.init) else {
+          database.setSetting(stamp, String(Int64(now.timeIntervalSince1970 * 1000)))
+          continue
+        }
+        let rows = try strip.peerRows(old)
+        guard StripSync.isSilent(newest: max(handed, rows.map(\.updatedAt).max() ?? 0), now: now) else { continue }
+        let months = StripSync.unsentMonths(rows, oldest: oldestKept) {
+          store.data(forKey: StripSync.key(device: old, month: $0))
+        }
+        guard !months.isEmpty else { continue }
+        for (m, out) in months { store.set(out.data, forKey: StripSync.key(device: old, month: m)) }
+        log.event(
+          "strip_sync",
+          [
+            "action": "sent_for", "device": old, "months": months.keys.sorted(),
+            "rows": months.values.reduce(0) { $0 + $1.rows },
+          ])
+      } catch {
+        log.event("error", ["where": "strip_sync_send_for", "device": old, "message": "\(error)"])
+      }
     }
   }
 

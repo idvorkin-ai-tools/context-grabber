@@ -378,6 +378,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 154:
+**A restore's unsent changes reach the iPad when the old phone is retired**
+- **Issues:** [#379](https://github.com/idvorkin/context-grabber/issues/379)
+- **Status:** implemented in [1bef0fac](https://github.com/idvorkin/context-grabber/commit/1bef0fac); verified on the host by `StripSendForSilentTests` with `just test` (failed to compile before the change: only the changes the old phone's keys lack go up, merged newer-wins, unknown items kept, nothing rewritten when nothing is unsent) and the Mac build (`just native-build-mac`); a real restore with the old phone retired needs the phone and the iPad
+- **Spec:** [native home screen](../superpowers/specs/2026-10-06-native-home-screen-design.md)
+
+#### Use Case:
+- **As someone** who restores a backup onto a new phone and retires the old one
+- **I want to** see on the iPad the strip changes the old phone made but never sent
+- **so that** a phone swap doesn't leave the iPad's strip short
+
+#### Acceptance Criteria:
+- **Scenario:** The old phone stays silent for 30 days
+- **Given:** a backup holding a balloon the old phone never sent is restored onto a new phone, and the old phone never syncs again
+- **When:** 30 days pass with nothing from the old phone and the new phone's app launches
+- **Then:** the iPad shows that balloon once, the old phone's sent days are unchanged, and the new phone's log has strip_sync sent_for naming the old phone's id
+
+---
+
 ### User Story 246:
 
 - **Summary:** A daily strip: gym, meditation, journal, balloons and magic, at a glance

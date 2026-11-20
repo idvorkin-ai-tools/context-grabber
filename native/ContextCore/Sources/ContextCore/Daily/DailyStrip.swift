@@ -115,6 +115,13 @@ public struct DailyStrip {
     }
   }
 
+  /// The peer rows filed under `device` (#379: a silent handed-over id's).
+  public func peerRows(_ device: String) throws -> [StripRow] {
+    try db.run(
+      "SELECT date_key, item, value, updated_at FROM daily_strip_peers WHERE device = ?", [.text(device)]
+    ).compactMap(StripRow.init(row:))
+  }
+
   /// Rows this device wrote to iCloud earlier, back into its own table where they are newer: a reinstall keeps the
   /// vendor id but starts with an empty database, and its iCloud months would otherwise be overwritten (local review).
   public func mergeOwn(_ rows: [StripRow]) throws {

@@ -182,6 +182,12 @@ usually within a minute, and offline changes catch up when the device is back on
   so tapping again counts once, not twice (#384).
 - If one device's days can't be saved when they arrive, the other devices' days still arrive, and the missed ones
   appear no later than the next time the app comes to the front (#388).
+- A backup restored onto a replacement phone may hold changes the old phone never sent. They show on the
+  replacement at once, and once the old phone has sent nothing for 30 days, and 30 days have passed since the restore (so iCloud has long since
+  delivered what the old phone did send), the replacement sends them on its behalf,
+  so the iPad gets them too even if the old phone is retired (#379). Nothing the old phone did send is replaced:
+  for each day and item the newer change wins, and if the old phone comes back it keeps what it had and picks up
+  what was sent for it.
 - An older build never removes from iCloud an item it doesn't know: when it sends a month that iCloud holds with an
   item from a later build, that item's days stay as they were (#388).
 - The strip's days sit in iCloud unencrypted beyond what iOS and iCloud already do on disk and in transit (Igor,

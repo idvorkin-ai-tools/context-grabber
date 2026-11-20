@@ -49,6 +49,14 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   costs only itself (#388 item 2). Its key is remembered (`missed`, in memory); the next `didBecomeActive`, or a
   tap's retried recovery that succeeds, re-reads the whole store (`retry_missed`). Any refused key still closes the
   gate (#384's rule).
+- A handed-over id silent for `StripSync.silentDays` (30): its newest row (in `daily_strip_peers`, its keys' rows and
+  the handed-over ones alike) and the hand-over itself (`strip_handed_over_at.<id>` in `settings`, stamped at the
+  hand-over, or at first sight for an id handed over before #379) are older than that: a restore publishes at once,
+  before iCloud may have delivered the old id's keys, so an old backup alone must not count as silence. Then, at each launch once publishing is open, the handed-over
+  rows its keys don't already hold (absent, or older there) go up under its keys, each month merged into the value
+  iCloud holds, newer change per day and item winning, unknown items carried through
+  (`StripSync.unsentMonths`, ContextCore). A month with nothing unsent isn't rewritten. Log `strip_sync` action
+  `sent_for` (device, months, rows) (#379).
 - Publishing carries through the entries of items this build doesn't know from the month iCloud holds under this
   device's key (`StripSync.carryingUnknown`), so an older build never removes a later build's items (#388 item 3).
   Known items are this device's own: one missing locally stays missing.
@@ -60,9 +68,9 @@ The ids handed to are kept in `settings` (`strip_handed_over`) so an account cha
   created) on the issue closes it.
 - Log: `strip_sync` with `action` `publish` (months, all, aged_out), `arrived` (device, months, reason), `account_change` (keys),
   `device_changed` (handed_over_rows), `waiting_for_first_sync`, `first_sync` (why, after, queued_months, replayed_steps),
-  `reclaimed` (rows), `recovered_own` (rows), `retry_missed` (keys, why);
+  `reclaimed` (rows), `recovered_own` (rows), `retry_missed` (keys, why), `sent_for` (device, months, rows);
   failures are `error` with `where` strip_sync_publish, strip_sync_hand_over, strip_sync_reclaim,
-  strip_sync_recover, strip_sync_replay, strip_sync_arrived or strip_sync_quota.
+  strip_sync_recover, strip_sync_replay, strip_sync_arrived, strip_sync_send_for or strip_sync_quota.
 - Entitlement: `com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)`
   in `native/project.yml`. That's a native build and a provisioning update (automatic signing handles it).
 
