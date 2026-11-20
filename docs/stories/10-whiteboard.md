@@ -4723,6 +4723,46 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1001:
+
+- **Summary:** Larry's words with no marks stay in the note and the panel, off the board
+- **Status:** already true on main (only a reply's marks become ghosts, only its board changes are applied); pinned in [c8cc50d](https://github.com/idvorkin/context-grabber/commit/c8cc50d), verified by host tests (`WhiteboardWordsOnlyTests`: `testWordsAfterMarksAreSaidAndTheMarksStay`, `testOpeningOnWordsAfterSettledMarksShowsNothing`, `testTheReplayLeavesTheBoardAsItWas`; `just test`); not yet seen on the iPad
+- **Issues:** [#898](https://github.com/idvorkin/context-grabber/issues/898) (asked 2026-11-12 on [#879](https://github.com/idvorkin/context-grabber/issues/879); Larry's bead `context-grabber-0q7`)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Closed: one line*
+
+#### Use Case:
+- **As someone** drawing with Larry on a board
+- **I want to** have his words-only replies read as words, in the note and the panel
+- **so that** the board holds only what was drawn on it, mine or the marks he means to draw
+
+#### Acceptance Criteria:
+- **Scenario:** Words after marks
+- **Given:** Larry's marks from his last reply showing on the board
+- **When:** he replies in words only
+- **Then:** his words are the note's line and the newest message in the panel, nothing new is on the board or offered to keep, and his earlier marks are where they were
+
+---
+
+### User Story 1002:
+
+- **Summary:** A board whose thread holds only Larry's words draws nothing of his
+- **Status:** already true on main; split from story 1001, pinned in [c8cc50d](https://github.com/idvorkin/context-grabber/commit/c8cc50d), verified by host tests (`WhiteboardWordsOnlyTests.testAThreadOfOnlyWordsDrawsNothing`, which also opens the board on that thread and finds nothing drawn; `just test`); not yet seen on the iPad
+- **Issues:** [#898](https://github.com/idvorkin/context-grabber/issues/898)
+- **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *Closed: one line*
+
+#### Use Case:
+- **As someone** drawing with Larry on a board
+- **I want to** have his answer in words read as words, even when he has never drawn on the board
+- **so that** the board holds only what was drawn on it
+
+#### Acceptance Criteria:
+- **Scenario:** Only words
+- **Given:** a board whose thread holds only Larry's words
+- **When:** he answers my picture in words
+- **Then:** nothing of his is on the board, and the panel shows what he said
+
+---
+
 ### User Story 769:
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat

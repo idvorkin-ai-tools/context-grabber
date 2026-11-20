@@ -307,7 +307,9 @@ public struct BoardReplay {
 
   /// His reply's marks replace his unkept ones (story 357), placed by the reply's own frame, and each is tried with a tap.
   private mutating func show(_ row: WhiteboardMarks.Row) {
-    var outcome = Outcome(label: "marks \(row.id)", action: row.drawable ? "shown" : "unplaced")
+    // #898 (story 1001): a reply of words alone is said, never drawn; only shapes with nowhere to go are unplaced.
+    var outcome = Outcome(
+      label: "marks \(row.id)", action: row.drawable ? "shown" : row.shapes.isEmpty ? "said" : "unplaced")
     defer { outcomes.append(outcome) }
     guard let frame = row.frame, row.drawable else { return }
     if !WhiteboardTurn.hasLetters("A", .print) {
