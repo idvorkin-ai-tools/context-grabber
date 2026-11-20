@@ -533,7 +533,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** An error on screen files a report by itself
 - **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876), idvorkin/bug-kit#119
-- **Status:** in progress: written against BugKit 0.3.14 (idvorkin/bug-kit#119), not yet released; host `just test` only, the Mac, simulator and phone rungs wait for the release
+- **Status:** in the app with BugKit 0.3.14 (idvorkin/bug-kit#119, #122) in [94865cdf](https://github.com/idvorkin/context-grabber/commit/94865cdf); verified on the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; an error filing itself on the phone and from the share sheet is the phone's to check
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
@@ -557,7 +557,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** An error the app expects files nothing
 - **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
-- **Status:** in progress: written against BugKit 0.3.14 (idvorkin/bug-kit#119), not yet released; host `just test` only, the Mac, simulator and phone rungs wait for the release
+- **Status:** in the app with BugKit 0.3.14 (idvorkin/bug-kit#119, #122) in [94865cdf](https://github.com/idvorkin/context-grabber/commit/94865cdf); verified on the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; an error filing itself on the phone and from the share sheet is the phone's to check
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
@@ -579,7 +579,7 @@ Part of the [user stories](README.md); persona and format are described there.
 
 - **Summary:** An error on the share card reaches the Mac through the app
 - **Issues:** [#876](https://github.com/idvorkin/context-grabber/issues/876)
-- **Status:** in progress: written against BugKit 0.3.14 (idvorkin/bug-kit#119), not yet released; host `just test` only, the Mac, simulator and phone rungs wait for the release
+- **Status:** in the app with BugKit 0.3.14 (idvorkin/bug-kit#119, #122) in [94865cdf](https://github.com/idvorkin/context-grabber/commit/94865cdf); verified on the host rung (`just test`, `ShareReportsTests`) and the Mac build against the released tag; an error filing itself on the phone and from the share sheet is the phone's to check
 - **Spec:** [An error on screen files a report by itself](../superpowers/specs/2026-11-19-errors-file-themselves-design.md)
 
 #### Use Case:
