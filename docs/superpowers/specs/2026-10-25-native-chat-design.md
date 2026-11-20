@@ -346,7 +346,10 @@ type in or to try the mic again. An older copyable line from the mic never hides
 cockpit"*; then, on learning the problem reports' dictation is Apple's own recognizer: *"All right, use that."* So the
 chat mic is the same dictation the problem report's note uses — Apple's speech recognizer, on the phone when it can
 be, no key and no service of ours. The bar has a mic button right beside *Send*, at the bar's trailing edge after the
-field, each at least a finger tall and wide (Igor, 2026-11-03, #625: *"put the record button by the send button"*).
+field, each at least a finger tall and wide (Igor, 2026-11-03, #625: *"put the record button by the send button"*;
+then *"that should go on all of my screens"*). Every field in the app with a *Send* has this mic beside it: a thread,
+a new chat, and a question card's own answer on a board. The share sheet has none (an extension can't record; Igor
+to decide), and the web chats are the Cockpit's pages, not the app's.
 Tap it to start; it turns red and shows the seconds counting; tap it again to stop. The words appear **in the field as Igor speaks**, after what was in it
 when he tapped — never sent. When he stops, the last words settle (a spinner while they do), and he reads them, fixes
 what he likes, and taps Send. A recording where nothing was heard leaves the field as it was. Nothing is kept of the

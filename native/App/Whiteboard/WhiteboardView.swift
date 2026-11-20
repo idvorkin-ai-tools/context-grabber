@@ -2437,6 +2437,8 @@ struct WhiteboardView: View {
   private let onPhone: Bool
   private let openChat: (String) -> Void
   private let decisions: ChatDecisionsModel
+  /// Story 889: a question card's own answer is spoken with Chat's mic.
+  private let chatVoice: ChatVoiceModel
 
   init(board: BoardEntry, store: WhiteboardStore, app: AppModel) {
     _model = StateObject(
@@ -2453,6 +2455,7 @@ struct WhiteboardView: View {
     onPhone = store.onPhone
     openChat = { [weak app] key in app?.open(route: .chat(thread: key), from: "whiteboard") }
     decisions = app.chat.decisions
+    chatVoice = app.chatVoice
   }
 
   var body: some View {
@@ -2514,7 +2517,9 @@ struct WhiteboardView: View {
       }
       .ignoresSafeArea(edges: .bottom)
     }
-    .modifier(WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, logger: logger))
+    .modifier(
+      WhiteboardQuestionSheet(questions: model.questions, decisions: decisions, voice: chatVoice, logger: logger)
+    )
     .navigationTitle(model.board.title)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
