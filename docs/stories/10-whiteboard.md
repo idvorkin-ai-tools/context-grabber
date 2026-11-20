@@ -5132,6 +5132,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 889:
+
+- **Summary:** I speak my own answer to a question card, with the mic beside Send
+- **Status:** implemented in [a113e38](https://github.com/idvorkin/context-grabber/commit/a113e38), Chat's mic beside the own answer's *Send*. Verified by host tests and lint (`just test`), the Mac build, and on the iPad simulator (`just test-ladder`: `WhiteboardQuestionUITests` measures the field, then the mic, then *Send*, a gap of at most 8 points and both buttons at least 44 points each way). Recording itself is dictation, so it is the phone's to show: not yet tried on a device
+- **Issues:** [#625](https://github.com/idvorkin/context-grabber/issues/625) ("put the record button by the send button", then "that should go on all of my screens")
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Answering*
+
+#### Use Case:
+- **As someone** answering Larry's question on a board, often with the Pencil in hand
+- **I want to** speak my own answer with the mic right beside *Send*, as in Chat
+- **so that** every place I write to Larry has its two thumb actions together
+
+#### Acceptance Criteria:
+- **Scenario:** The mic sits by Send
+- **Given:** an open question card's popup, on iPhone or iPad
+- **When:** I look at *Your own answer*
+- **Then:** the mic is immediately beside *Send*, after the field, each at least 44 points in both directions; the mic records into the field as Chat's does and *Send* answers as before
+
+---
+
 ### User Story 814:
 
 - **Summary:** Larry makes room between my lines

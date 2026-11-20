@@ -1395,7 +1395,7 @@ private struct ComposeBar: View {
       if let pickProblem { BugProblemView(problem: pickProblem, logger: logger) }
       // #448: what the mic could not do, copyable, and its quieter line (a call has the mic, the five-minute stop),
       // each in the thread it came from only; then, in a new chat, where its next message stands (#536). All show.
-      if voice.thread == thread, let problem = voice.problem {
+      if voice.thread == thread, let problem = voice.problem() {
         BugProblemView(problem: problem, logger: logger)
       }
       if voice.thread == thread, let notice = voice.notice {
@@ -1625,11 +1625,13 @@ private struct ComposeBar: View {
 }
 
 /// Tap to record, tap to stop (#448): red with the seconds while recording, a spinner while it starts and while the
-/// last words settle, dimmed during a call, when a tap says why instead.
-private struct MicButton: View {
+/// last words settle, dimmed during a call, when a tap says why instead. Every field with a Send has it beside Send
+/// (#625): a chat's bar, and a question card's own answer on a board (story 889).
+struct MicButton: View {
   @ObservedObject var voice: ChatVoiceModel
   let thread: String
   let draft: String
+  var identifier = "chat-mic"
 
   var body: some View {
     Button {
@@ -1657,7 +1659,7 @@ private struct MicButton: View {
     }
     .disabled(voice.phase == .starting || voice.phase == .finishing)
     .accessibilityLabel(label)
-    .accessibilityIdentifier("chat-mic")
+    .accessibilityIdentifier(identifier)
   }
 
   private var label: String {

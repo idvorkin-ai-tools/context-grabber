@@ -41,7 +41,11 @@ zooms with the board.
 **Answering.** A tap on an open card opens it over the board: the ask's question, Larry's context, and its options as
 Chat's decision card shows them (the default marked, the expiry, the ⋯ menu with Snooze, Close… and Abandon). A tap on
 an option answers at once. Under the card, *Your own answer* and *Send* answer in Igor's words instead (needed for an ask
-with no options). The Cockpit takes the answer exactly as the Inbox's (*DECISION: \<label>*, or *DECISION: \<words>*);
+with no options). The answer can be spoken: a mic sits immediately beside *Send*, after the field, both at least a
+finger tall and wide (Igor, 2026-11-03, #625: the record button goes by Send on every input). It is Chat's mic: a tap
+records, it turns red with the seconds, the words fill the field after what was typed, and a tap stops it; nothing is
+sent until *Send*. *Send* or closing the popup stops a recording. A call, or another recording, holding the microphone
+says so under the field, as in Chat. The Cockpit takes the answer exactly as the Inbox's (*DECISION: \<label>*, or *DECISION: \<words>*);
 the popup closes and the card is answered. A snooze leaves the card open. A close or an abandon answers the card with
 *Closed* or *Abandoned* and the reason under it.
 

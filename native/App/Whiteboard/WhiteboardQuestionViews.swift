@@ -97,11 +97,13 @@ private struct WhiteboardQuestionCardFace: View {
 struct WhiteboardQuestionSheet: ViewModifier {
   @ObservedObject var questions: WhiteboardQuestionsModel
   let decisions: ChatDecisionsModel
+  let voice: ChatVoiceModel
   let logger: BugLogger
 
   func body(content: Content) -> some View {
     content.sheet(item: $questions.opened) { opened in
-      WhiteboardQuestionPopup(questions: questions, decisions: decisions, logger: logger, cardID: opened.id)
+      WhiteboardQuestionPopup(
+        questions: questions, decisions: decisions, voice: voice, logger: logger, cardID: opened.id)
     }
   }
 }
@@ -109,6 +111,8 @@ struct WhiteboardQuestionSheet: ViewModifier {
 private struct WhiteboardQuestionPopup: View {
   @ObservedObject var questions: WhiteboardQuestionsModel
   @ObservedObject var decisions: ChatDecisionsModel
+  /// Story 889 (#625): Chat's mic, beside Send, dictating into the own-answer field.
+  @ObservedObject var voice: ChatVoiceModel
   let logger: BugLogger
   let cardID: String
   @State private var words = ""
@@ -159,27 +163,52 @@ private struct WhiteboardQuestionPopup: View {
     }
   }
 
-  /// Story 882: an answer in Igor's own words, for an ask with no options or one none of them fits.
+  /// Story 882: an answer in Igor's own words, for an ask with no options or one none of them fits. Story 889 (#625):
+  /// spoken with Chat's mic, immediately beside Send, both a finger's size.
   private func ownWords(_ card: WhiteboardQuestion, _ ask: ChatAsk) -> some View {
     let sending = decisions.card(ask.id).sending
-    return HStack(alignment: .bottom) {
-      TextField(ask.options.isEmpty ? "Your answer" : "Your own answer", text: $words, axis: .vertical)
-        .lineLimit(1...4)
-        .textFieldStyle(.roundedBorder)
-        .accessibilityIdentifier("whiteboard-question-words")
-      Button("Send") {
-        let verb = ChatDecisions.Verb.ownWords(words)
-        Task {
-          if let outcome = await decisions.run(verb, on: ask, from: "board") {
-            questions.decided(card, ask: ask, verb: verb, outcome: outcome)
+    let thread = Self.voiceThread(ask)
+    return VStack(alignment: .leading, spacing: 6) {
+      HStack(alignment: .bottom, spacing: 8) {
+        TextField(ask.options.isEmpty ? "Your answer" : "Your own answer", text: $words, axis: .vertical)
+          .lineLimit(1...4)
+          .textFieldStyle(.roundedBorder)
+          .accessibilityIdentifier("whiteboard-question-words")
+        MicButton(voice: voice, thread: thread, draft: words, identifier: "whiteboard-question-mic")
+        Button {
+          let verb = ChatDecisions.Verb.ownWords(words)
+          voice.sent(thread: thread)
+          Task {
+            if let outcome = await decisions.run(verb, on: ask, from: "board") {
+              questions.decided(card, ask: ask, verb: verb, outcome: outcome)
+            }
           }
+        } label: {
+          Text("Send").frame(minWidth: 44, minHeight: 44)
         }
+        .buttonStyle(.borderedProminent)
+        .disabled(sending || !ChatDecisions.canSend(words: words))
+        .accessibilityIdentifier("whiteboard-question-send")
       }
-      .buttonStyle(.borderedProminent)
-      .disabled(sending || !ChatDecisions.canSend(words: words))
-      .accessibilityIdentifier("whiteboard-question-send")
+      // What the mic could not do, copyable, and its quieter line (a call or another recording has the mic).
+      if voice.thread == thread, let problem = voice.problem(context: "WhiteboardQuestionPopup.voice") {
+        BugProblemView(problem: problem, logger: logger)
+      }
+      if voice.thread == thread, let notice = voice.notice {
+        Text(notice).font(.footnote).foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityIdentifier("whiteboard-question-voice-notice")
+      }
     }
+    // The words stream into the field as Igor speaks, after what was typed, for him to read before he sends.
+    .onChange(of: voice.words) { _, _ in
+      if let heard = voice.take(thread: thread) { words = heard }
+    }
+    .onDisappear { voice.cancel(thread: thread, why: "left_question") }
   }
+
+  /// The mic's key for this card's field: its own, so a chat bar never takes these words, nor this field a chat's.
+  static func voiceThread(_ ask: ChatAsk) -> String { "board-question:\(ask.id)" }
 
   /// Story 885: the question and the answer in full, and the card folded from here.
   private func answered(_ card: WhiteboardQuestion, _ answer: WhiteboardQuestion.Answer) -> some View {

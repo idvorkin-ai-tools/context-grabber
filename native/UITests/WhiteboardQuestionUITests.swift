@@ -1,4 +1,4 @@
-//  Stories 880, 882, 883, 885 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
+//  Stories 880, 882, 883, 885, 889 on the simulator, against the fake Cockpit (scripts/native/test-whiteboard-ui.sh starts
 //  it): Larry puts a question card on the board, a tap opens it, an option answers it through the fake's /act, the card
 //  keeps the question over the answer, opens read-only and folds to a chip that a tap opens out. Where cards land, the
 //  open asks naming a board, the answers fetched for asks closed elsewhere and the eraser are `WhiteboardQuestionsTests`,
@@ -75,6 +75,26 @@ final class WhiteboardQuestionUITests: XCTestCase {
     card.tap()
     let option = app.buttons["decision-option-yes"]
     XCTAssertTrue(option.appears(within: 10), app.debugDescription)
+    // Story 889 (#625): the own answer's mic sits immediately beside Send, after the field, both a finger's size.
+    let field =
+      app.textViews["whiteboard-question-words"].exists
+      ? app.textViews["whiteboard-question-words"] : app.textFields["whiteboard-question-words"]
+    let mic = app.buttons["whiteboard-question-mic"]
+    let send = app.buttons["whiteboard-question-send"]
+    XCTAssertTrue(mic.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(mic.isEnabled, "no call is live, so the mic is ready")
+    XCTAssertEqual(mic.label, "Speak a message")
+    XCTAssertLessThanOrEqual(field.frame.maxX, mic.frame.minX, "the field comes before the mic")
+    XCTAssertLessThanOrEqual(mic.frame.maxX, send.frame.minX, "the mic comes before Send")
+    XCTAssertLessThanOrEqual(send.frame.minX - mic.frame.maxX, 8, "the mic is right beside Send")
+    for button in [mic, send] {
+      XCTAssertGreaterThanOrEqual(button.frame.width, 44, button.identifier)
+      XCTAssertGreaterThanOrEqual(button.frame.height, 44, button.identifier)
+    }
+    let bar = XCTAttachment(screenshot: app.screenshot())
+    bar.name = "question-card-mic-by-send"
+    bar.lifetime = .keepAlways
+    add(bar)
     option.tap()
     // Story 883: the card keeps the question over the answer.
     waitUntil(NSPredicate(format: "label == %@", "✓ Renew the gym for a year?, Renew"), card, timeout: 10)
