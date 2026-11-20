@@ -299,6 +299,32 @@ final class WhiteboardTurnTests: XCTestCase {
     XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 1), 4.4, accuracy: 0.001)
   }
 
+  /// #949: a label with no pen of its own takes the pen in Igor's hand, held to the pens a mark can have; a label that
+  /// names a pen, and every other mark, keeps its own.
+  func testALabelTakesThePenInIgorsHand() throws {
+    let shapes = try strokes(
+      #"""
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 40},
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 13},
+      {"kind": "label", "text": "hi", "x": 10, "y": 40, "size": 40, "pen": 8},
+      {"kind": "arrow", "x1": 0, "y1": 0, "x2": 9, "y2": 9}
+      """#)
+    // Big letters and small ones alike: Igor's pen, not a ninth of their height.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1, hand: 3.2), 3.2)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[1], scale: 1, hand: 3.2), 3.2)
+    // His pen is in board points already: the picture's scale doesn't touch it.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 2, hand: 3.2), 3.2)
+    // Never thinner than the iPad draws, never wider than any kept stroke.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1, hand: 1), WhiteboardTurn.thinnestPen)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1, hand: 40), WhiteboardTurn.widestPen)
+    // No pen known, or one that isn't a pen: the ninth of its letters, as before.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1, hand: nil), 4.4, accuracy: 0.001)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[0], scale: 1, hand: 0), 4.4, accuracy: 0.001)
+    // A label that names its pen, and a mark that isn't a label, keep their own.
+    XCTAssertEqual(WhiteboardTurn.width(shapes[2], scale: 1, hand: 3.2), 8)
+    XCTAssertEqual(WhiteboardTurn.width(shapes[3], scale: 1, hand: 3.2), WhiteboardTurn.defaultPen)
+  }
+
   /// #883: Larry's labels at 13–14-point letters were kept at a pen of 1.4–1.5 points, and PencilKit drew none of it.
   func testNoMarkIsThinnerThanTheIPadDraws() throws {
     let shapes = try strokes(

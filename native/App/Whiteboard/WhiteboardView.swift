@@ -32,6 +32,9 @@ final class WhiteboardModel: ObservableObject {
   }
   /// Shapes Claude or Larry offered, faint on the board until a tap keeps one (stories 344, 349).
   var ghosts: [Ghost] { turns.ghosts }
+  /// The width of the pen Igor last held on this board, in board points; nil until the canvas says. A label with no
+  /// pen of its own shows and is kept at it (#949).
+  var penInHand: CGFloat?
   /// Story 344's switch, remembered across boards.
   var ghostsOn: Bool { turns.on }
   /// Story 407's switch, remembered per board on this device. Lines on the board, never in the drawing or a picture.
@@ -805,7 +808,9 @@ final class WhiteboardModel: ObservableObject {
     let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
     let (marks, nowhere) = connectorGhosts(
       row.shapes.enumerated().map { index, shape in
-        Ghost(shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id))
+        Ghost(
+          shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id),
+          hand: penInHand)
       }.filter { !settled.contains($0.id) })
     // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
     turns.larrysMarks(marks)
@@ -1282,7 +1287,8 @@ final class WhiteboardModel: ObservableObject {
     _ shapes: [WhiteboardTurn.Shape], who: WhiteboardTurn.Who, rect: CGRect, scale: CGFloat, first: Bool
   ) {
     turns.land(
-      shapes.map { Ghost($0, who: who, frame: rect, scale: scale) }, who: who, first: first, now: .now)
+      shapes.map { Ghost($0, who: who, frame: rect, scale: scale, hand: penInHand) }, who: who, first: first,
+      now: .now)
     if who == .claude { fadeClaudesGhosts() }
   }
 
@@ -1506,6 +1512,7 @@ final class WhiteboardModel: ObservableObject {
       "kind": ghost.kind.rawValue, "width": Double(ghost.width),
       "color": Self.lightHex(ghost.color), "zoom": Double(zoom?() ?? 1),
     ]
+    if let hand = penInHand { event["pen_in_hand"] = Double(hand) }
     if let letters = ghost.letters { event["letters"] = Double(letters) }
     if let text = ghost.text { event["text_id"] = text.id }
     if let visible = visibleRect?(), !visible.isNull, !ink.isNull { event["in_view"] = visible.intersects(ink) }
@@ -2098,7 +2105,7 @@ extension WhiteboardModel {
     if !plan.texts.isEmpty {
       turns.larrysText(
         plan.texts.map {
-          Ghost($0.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\($0.id)", text: $0)
+          Ghost($0.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\($0.id)", text: $0, hand: penInHand)
         })
     }
     let result = ops.applied(batch, plan: plan)
@@ -2224,7 +2231,8 @@ extension WhiteboardModel {
     var strokes: [PKStroke] = []
     var kept: [BoardText] = []
     for (i, text) in inked.enumerated() {
-      let ghost = Ghost(text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text)
+      let ghost = Ghost(
+        text.shape, who: .larry, frame: .zero, scale: 1, id: "op-text:\(text.id)", text: text, hand: penInHand)
       let made = BoardText.time(started.addingTimeInterval(-Double(inked.count - i) * 0.005))
       let glyphs = Self.strokes(ghost.lines, color: ghost.color, width: ghost.width, spacing: 4, made: made.date)
       kept.append(
@@ -2282,7 +2290,8 @@ struct Ghost: Identifiable, WhiteboardGhost {
   let who: WhiteboardTurn.Who
   /// What it draws; a connector mark's are drawn against the board (story 917).
   var lines: [[CGPoint]]
-  /// The colour and pen it asked for, or its author's colour and the default pen (#698).
+  /// The colour and pen it asked for, or its author's colour and the default pen (#698); a label with no pen of its own
+  /// takes `hand`, the pen in Igor's hand as it showed (#949).
   let color: UIColor
   let width: CGFloat
   /// What it is and, for a label, its letters' height in board points: for the keep's log line (#883).
@@ -2295,7 +2304,7 @@ struct Ghost: Identifiable, WhiteboardGhost {
 
   init(
     _ shape: WhiteboardTurn.Shape, who: WhiteboardTurn.Who, frame: CGRect, scale: CGFloat,
-    id: String = UUID().uuidString, text: BoardOps.Text? = nil
+    id: String = UUID().uuidString, text: BoardOps.Text? = nil, hand: CGFloat? = nil
   ) {
     self.id = id
     self.text = text
@@ -2303,7 +2312,7 @@ struct Ghost: Identifiable, WhiteboardGhost {
     connector = BoardConnectors.mark(shape, frame: frame, scale: scale, id: id)
     lines = WhiteboardTurn.lines(shape, frame: frame, scale: scale)
     color = shape.color.map { UIColor(rgb: $0) } ?? who.color
-    width = WhiteboardTurn.width(shape, scale: scale)
+    width = WhiteboardTurn.width(shape, scale: scale, hand: hand)
     kind = shape.kind
     letters = WhiteboardTurn.letters(shape, scale: scale)
   }
