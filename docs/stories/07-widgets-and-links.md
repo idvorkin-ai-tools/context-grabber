@@ -1696,7 +1696,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 725:
 
 - **Summary:** Report a Problem by key on the Mac
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438) and [829c0a4](https://github.com/idvorkin/context-grabber/commit/829c0a4); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438) and [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
 - **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722), [#745](https://github.com/idvorkin/context-grabber/issues/745), [#741](https://github.com/idvorkin/context-grabber/issues/741)
 - **Spec:** [Grabber Native on the Mac — Control+R and Control+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1714,7 +1714,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 726:
 
 - **Summary:** The Go keys never close a live screen
-- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438) and [829c0a4](https://github.com/idvorkin/context-grabber/commit/829c0a4); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
+- **Status:** implemented in [c6977e4](https://github.com/idvorkin/context-grabber/commit/c6977e4), changed in [ae8c438](https://github.com/idvorkin/context-grabber/commit/ae8c438) and [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); verified by the Mac build (it compiles), not yet by pressing the keys on a Mac
 - **Issues:** [#722](https://github.com/idvorkin/context-grabber/issues/722), [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1771,7 +1771,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 734:
 
 - **Summary:** A new chat by key from anywhere on the Mac
-- **Status:** implemented in [829c0a4](https://github.com/idvorkin/context-grabber/commit/829c0a4); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
+- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
 - **Issues:** [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac — Control+R and Control+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
@@ -1789,7 +1789,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 735:
 
 - **Summary:** A new chat by key from chat on the Mac
-- **Status:** implemented in [829c0a4](https://github.com/idvorkin/context-grabber/commit/829c0a4); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
+- **Status:** implemented in [5a6bff7](https://github.com/idvorkin/context-grabber/commit/5a6bff7); `MacGoMenuTests` (host) pass and the Mac build compiles; not yet pressed on the Mac (the agent's osascript has no keystroke or accessibility permission)
 - **Issues:** [#745](https://github.com/idvorkin/context-grabber/issues/745)
 - **Spec:** [Grabber Native on the Mac — Control+R and Control+N](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
