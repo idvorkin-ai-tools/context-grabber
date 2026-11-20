@@ -89,7 +89,8 @@ final class WhiteboardPaperPasteUITests: XCTestCase {
     wait(pageNumber(app), label: "Page 1 of 2")
     let seen = PaperScreen.settled(app, within: 8) { $0.ink }
     shot(app, "pasted")
-    let ink = try XCTUnwrap(seen, "dark letters on screen")
+    // #906: nothing settled says whether the letters never drew or kept moving; the last look says which.
+    let ink = try XCTUnwrap(seen, "dark letters on screen; the last look: \(String(describing: PaperScreen(app).ink))")
     XCTAssertEqual(ink.center.x, 0.5, accuracy: 0.03, "across the middle")
     XCTAssertEqual(ink.width, 0.1, accuracy: 0.08, "at a size that reads")
   }

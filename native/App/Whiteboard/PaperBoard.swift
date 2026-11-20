@@ -1881,7 +1881,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// zoom anyway, the fit. So the zoom moves too little to see and back, with the touches done and the view at rest.
   /// ponytail: works around a miss inside PaperKit, unseen on a real device so far; drop it if `paper_ink_look` shows the iOS
   /// it's built for no longer misses without it.
-  private func redrawSoon() {
+  /// `step`: how far a centred page moves and back, in points; a heal after a measured miss moves further (#906).
+  private func redrawSoon(step: CGFloat = 1) {
     redrawing?.cancel()
     redrawing = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(0.2))
@@ -1904,11 +1905,11 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         [
           "action": "paper_redraw_nudge", "board": self.model.board.id, "zoom": zoom, "to": nudged,
           "range_lo": range.lowerBound, "range_hi": range.upperBound, "visible": self.rect(place),
-          "how": centred ? "frame" : "zoom",
+          "how": centred ? "frame" : "zoom", "step": Double(step),
         ])
       if centred {
         // #833: centred, a point down and back instead, which draws the missed tile without setting the zoom.
-        self.paper.contentVisibleFrame = place.offsetBy(dx: 0, dy: 1)
+        self.paper.contentVisibleFrame = place.offsetBy(dx: 0, dy: step)
         try? await Task.sleep(for: .seconds(0.05))
         if self.touchesDown == 0 { self.paper.contentVisibleFrame = place }
         return
@@ -1921,22 +1922,35 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   /// A second after ink is kept or pasted or the sheet changes under it, whether the view's own picture has it. 0 with the
-  /// ink in view is the ink missing.
-  private func lookForInk(_ ink: CGRect, why: String) {
+  /// ink in view is the ink missing, and the view redraws and looks again, twice at most, each try moving the view further
+  /// (#906: a paste on a centred iPad page went unseen about 1 in 6 on the simulator, and a missed tile the first redraw
+  /// leaves empty was never drawn after). `paper_ink_heal` says a try was made; the look after it, whether it drew.
+  private func lookForInk(_ ink: CGRect, why: String, attempt: Int = 0) {
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))
       guard let self, let markup = self.paper.markup else { return }
       let corner = self.lines.convert(self.lines.spot(of: ink.origin), to: self.view)
       let scale = self.screenScale
       let spot = CGRect(x: corner.x, y: corner.y, width: ink.width * scale, height: ink.height * scale)
+      let inView = self.view.bounds.contains(spot)
+      let shown = self.shownPixels(in: spot)
       self.log.event(
         "whiteboard",
         [
           "action": "paper_ink_look", "why": why, "board": self.model.board.id, "ink": self.rect(ink),
-          "spot": self.rect(spot),
-          "in_view": self.view.bounds.contains(spot), "strokes": markup.subelements.strokes.count,
-          "visible": self.rect(self.paper.contentVisibleFrame), "shown_px": self.shownPixels(in: spot),
+          "spot": self.rect(spot), "in_view": inView, "strokes": markup.subelements.strokes.count,
+          "visible": self.rect(self.paper.contentVisibleFrame), "shown_px": shown, "attempt": attempt,
         ])
+      guard inView, shown == 0, !ink.isEmpty, attempt < 2, self.touchesDown == 0 else { return }
+      let step: CGFloat = attempt == 0 ? 8 : 32
+      self.log.event(
+        "whiteboard",
+        [
+          "action": "paper_ink_heal", "why": why, "board": self.model.board.id, "attempt": attempt + 1,
+          "step": Double(step),
+        ])
+      self.redrawSoon(step: step)
+      self.lookForInk(ink, why: why, attempt: attempt + 1)
     }
   }
 
