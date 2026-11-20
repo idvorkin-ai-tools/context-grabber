@@ -428,6 +428,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var movedForTests = false
   /// The undo stack a kept mark's steps went on. A closing view may no longer be able to say.
   private weak var stepsOn: UndoManager?
+  /// #966: the board's take-back of PaperKit's own step, which leaves one of the board's own on the stack.
+  private let probe = BoardUndoProbe()
+  /// #966: what the stack said just before an Undo or Redo ran, for the log's line once it has.
+  private var stepping: (name: String, strokes: Int)?
 
   private var placeKey: String { "whiteboard_paper_y_\(model.board.id)" }
 
@@ -447,7 +451,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.questions.visibleRect = { [weak self] in self?.paperOnScreen ?? .null }
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
-    model.draw = { [weak self] _, added in self?.keep(added) }
+    model.draw = { [weak self] _, added, name in self?.keep(added, named: name) }
     model.applyOps = { [weak self] batch in self?.applyOps(batch) }
     model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
     model.keepMakingRoom = { [weak self] strokes, push in self?.keep(strokes, making: push) ?? false }
@@ -464,6 +468,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if drawsHere { view.addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(hovering(_:)))) }
     NotificationCenter.default.addObserver(
       self, selector: #selector(keyboardShown(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+    watchUndo()
   }
 
   /// Stories 892, 893: the Pencil hovering over the paper, in board points. A pointer's hover has no height above the
@@ -784,9 +789,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     // Not from inside PaperKit's own callback: its step for the drag is taken back, and one step for both goes on.
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let undo = self.paper.undoManager
       self.quiet = true
-      if undo?.canUndo ?? false { undo?.undo() }
+      event["took_back"] = self.takeBackPaperKitsStep(why: "drop")
       self.quiet = false
       event["undid_drag"] = self.paper.markup.map { Self.close($0.strokeFrames, before.strokeFrames) } ?? false
       let framesBefore = self.inkFrames
@@ -1017,9 +1021,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     Task { @MainActor [weak self] in
       guard let self else { return }
       let undo = self.paper.undoManager
-      let could = undo?.canUndo ?? false
       let before = self.paper.markup?.strokeFrames ?? [:]
-      if could { undo?.undo() }
+      let could = self.takeBackPaperKitsStep(why: "tap_dot")
       let wanted = before.filter { !dot.contains($0.key) }
       let gone = could && PaperProbe.inkChange(before: wanted, after: self.paper.markup?.strokeFrames ?? [:]).isEmpty
       if !gone {
@@ -1058,8 +1061,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let undo = self.paper.undoManager
-      if undo?.canUndo ?? false { undo?.undo() }
+      _ = self.takeBackPaperKitsStep(why: "scratch")
       // The zigzag's own step may not have been the one undone: the markup before it is set either way.
       event["undid_zigzag"] = self.paper.markup?.strokeFrames[key] == nil
       self.registerStepBack(to: scratch.before)
@@ -1638,7 +1640,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// A kept mark into the markup, and any page it needs in the same change: one undo takes them both. PaperKit registers no
   /// undo for a markup that's set: left to itself, the next undo took back the stroke before the kept mark, and the mark
   /// stayed (the simulator, iOS 27, 2026-11-03). Its own steps go on working after this, as the elements keep their ids.
-  private func keep(_ strokes: [PKStroke]) {
+  private func keep(_ strokes: [PKStroke], named name: String) {
     let started = CACurrentMediaTime()
     guard var markup = paper.markup else {
       // Not laid out yet: the load takes the model's drawing, with this in it.
@@ -1652,7 +1654,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let toolBefore = toolText(tool)
     let wanted = board.pages(after: pages, inkMaxY: model.drawing.bounds.maxY, redoWaiting: false)
     let made = PKDrawing(strokes: strokes)
-    registerStepBack(to: markup)
+    registerStepBack(to: markup, named: name)
     if wanted > pages { markup.bounds = board.bounds(pages: wanted) }
     markup.append(contentsOf: made)
     quiet = true
@@ -1685,7 +1687,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     log.event(
       "whiteboard",
       [
-        "action": "paper_keep", "board": model.board.id, "strokes": strokes.count, "total": whole.strokes.count,
+        "action": "paper_keep", "board": model.board.id, "name": name, "strokes": strokes.count,
+        "total": whole.strokes.count, "undo_name": undo?.undoActionName ?? "",
         "pages_before": pagesBefore, "pages": wanted, "same_ids": idsMade == idsBack, "ids_made": idsMade.count,
         "ids_back": idsBack.count, "ink": rect(made.bounds), "visible": rect(paper.contentVisibleFrame),
         "in_view": paper.contentVisibleFrame.intersects(made.bounds), "screen_scale": Double(screenScale),
@@ -1851,7 +1854,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private func move(_ moves: [Int: CGFloat]) {
     guard var markup = paper.markup else { return }
     let strokes = markup.subelements.strokes
-    registerStepBack(to: markup)
+    registerStepBack(to: markup, named: WhiteboardModel.tidyUndoName)
     for (i, dy) in moves where strokes.indices.contains(i) {
       var stroke = strokes[i]
       stroke.transform = stroke.transform.concatenating(CGAffineTransform(translationX: 0, y: dy))
@@ -1996,6 +1999,56 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     if let name, !name.isEmpty { undo.setActionName(name) }
   }
 
+  /// #966: PaperKit's own step on top of the stack taken back (a tap's dot, a zigzag, a drag), never one of the board's:
+  /// a keep's step on top is left there, Redo putting it straight back, so Undo still reaches it. False when nothing of
+  /// PaperKit's went.
+  func takeBackPaperKitsStep(why: String) -> Bool {
+    guard let undo = paper.undoManager else { return false }
+    let name = undo.undoActionName
+    let outcome = probe.takeBackOthers(on: undo)
+    guard case .leftOurs(let ours) = outcome else { return outcome == .tookBack }
+    log.event(
+      "whiteboard",
+      [
+        "action": "paper_undo_left_ours", "board": model.board.id, "why": why, "name": ours, "undo_name": name,
+        "can_undo": undo.canUndo, "can_redo": undo.canRedo, "strokes": inkFrames.count,
+      ])
+    return false
+  }
+
+  /// #966: every Undo and Redo on the board's stack in the log, by name, with the ink before and after; the board's own
+  /// take-backs say themselves.
+  private func watchUndo() {
+    let center = NotificationCenter.default
+    for (will, did) in [
+      (Notification.Name.NSUndoManagerWillUndoChange, Notification.Name.NSUndoManagerDidUndoChange),
+      (.NSUndoManagerWillRedoChange, .NSUndoManagerDidRedoChange),
+    ] {
+      center.addObserver(self, selector: #selector(undoWill(_:)), name: will, object: nil)
+      center.addObserver(self, selector: #selector(undoDid(_:)), name: did, object: nil)
+    }
+  }
+
+  @objc private func undoWill(_ note: Notification) {
+    guard let undo = note.object as? UndoManager, undo === paper.undoManager, !probe.probing else { return }
+    let redo = note.name == .NSUndoManagerWillRedoChange
+    stepping = (redo ? undo.redoActionName : undo.undoActionName, inkFrames.count)
+  }
+
+  @objc private func undoDid(_ note: Notification) {
+    guard let undo = note.object as? UndoManager, undo === paper.undoManager, !probe.probing, let was = stepping else {
+      return
+    }
+    stepping = nil
+    log.event(
+      "whiteboard",
+      [
+        "action": note.name == .NSUndoManagerDidRedoChange ? "paper_redo" : "paper_undo", "board": model.board.id,
+        "name": was.name, "strokes_before": was.strokes, "strokes": paper.markup?.strokeFrames.count ?? inkFrames.count,
+        "can_undo": undo.canUndo, "can_redo": undo.canRedo, "undo_name": undo.undoActionName,
+      ])
+  }
+
   /// The board really closed, which a cancelled swipe back isn't: the stack can be the window's, and the next board's Undo
   /// mustn't reach this one's steps.
   func boardClosed() {
@@ -2010,6 +2063,16 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   private func step(to markup: PaperMarkup, named name: String? = nil) {
+    if probe.reached(name ?? "") {
+      // #966: the board's take-back of PaperKit's step reached this one instead; Redo puts it straight back, unsaid.
+      if let now = paper.markup { registerStepBack(to: now, named: name) }
+      quiet = true
+      paper.markup = markup
+      quiet = false
+      inkFrames = markup.strokeFrames
+      pages = board.pages(in: markup.bounds)
+      return
+    }
     // Story 851: an undo of one of Larry's batches, by its label.
     if let name, !name.isEmpty, paper.undoManager?.isUndoing == true { model.undid(name) }
     if let now = paper.markup { registerStepBack(to: now, named: name) }

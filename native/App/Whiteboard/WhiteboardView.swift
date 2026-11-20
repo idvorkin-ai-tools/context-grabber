@@ -139,7 +139,8 @@ final class WhiteboardModel: ObservableObject {
   var pasteReach = WhiteboardPaste.wholeBoard
   /// Puts a kept ghost or a paste on the canvas (undoably), given the whole drawing and what's new in it; the canvas sets
   /// it.
-  var draw: ((PKDrawing, [PKStroke]) -> Void)?
+  /// The third is the step's name for Undo and Redo (#966).
+  var draw: ((PKDrawing, [PKStroke], String) -> Void)?
   /// Plans a batch of Larry's changes on the canvas and applies it as one undo named for it; nil with no canvas yet.
   /// The canvas sets it.
   var applyOps: ((BoardOps.Batch) -> BoardOps.Plan?)?
@@ -1370,7 +1371,7 @@ final class WhiteboardModel: ObservableObject {
         "action": "keep_all", "board": board.id, "marks": marks.count, "strokes": strokes.count,
         "moved": moves.values.filter { $0 > 0 }.count,
       ])
-    add(strokes)
+    add(strokes, named: Self.keepAllUndoName)
   }
 
   /// Story 896: kept labels and pastes that sit on other ink laid out again, top to bottom; his ink stays. One undo.
@@ -1460,7 +1461,7 @@ final class WhiteboardModel: ObservableObject {
         "action": "keep_group", "board": board.id, "marks": marks.count, "strokes": strokes.count,
         "group": WhiteboardMarks.group(reply: reply),
       ])
-    add(strokes)
+    add(strokes, named: Self.keepGroupUndoName)
   }
 
   /// Story 1000: where the corner's buttons are, in window points.
@@ -1516,7 +1517,7 @@ final class WhiteboardModel: ObservableObject {
     if room.dy != 0 { event["landed_dy"] = Double(room.dy) }
     log.event("whiteboard", event)
     if let push = room.push, keepMakingRoom?(strokes, push) == true { return }
-    add(strokes)
+    add(strokes, named: Self.keepUndoName)
   }
 
   /// #938 (story 992): where a ghost of Larry's text lands when kept, as his text lands from a batch: clear of the ink,
@@ -1563,13 +1564,20 @@ final class WhiteboardModel: ObservableObject {
     }
   }
 
-  private func add(_ strokes: [PKStroke]) {
+  private func add(_ strokes: [PKStroke], named name: String) {
     var kept = drawing
     kept.strokes += strokes
     drawing = kept
     drawingMoved()
-    draw?(kept, strokes)
+    draw?(kept, strokes, name)
   }
+
+  /// #966: what Undo and Redo call each keep, and Tidy overlaps.
+  static let keepUndoName = "Keep"
+  static let keepGroupUndoName = "Keep group"
+  static let keepAllUndoName = "Keep all"
+  static let pasteUndoName = "Paste"
+  static let tidyUndoName = "Tidy overlaps"
 
   /// Stories 390, 391: the text as ink in the middle of the view, one undo, and a change like a drawn stroke. Black ink
   /// shows light in dark mode, as the Pencil's does, and dark in the picture. The pen's width is in proportion to the
@@ -1597,7 +1605,7 @@ final class WhiteboardModel: ObservableObject {
   }
 
   private func land(_ strokes: [PKStroke]) {
-    if landPaste?(strokes) != true { add(strokes) }
+    if landPaste?(strokes) != true { add(strokes, named: Self.pasteUndoName) }
   }
 
   /// Copied strokes the canvas didn't place itself: one undo, and a change like a drawn stroke, as a paste of text is.

@@ -7218,7 +7218,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Summary:** One tap keeps all of a reply of Larry's, as one group
 - **Status:** implemented in [1beb97f1](https://github.com/idvorkin/context-grabber/commit/1beb97f1); verified by host tests (`WhiteboardKeepGroupTests`, `BoardMarksReplayTests`: kept as one group, moved as one by its name), `just test`, the Mac build (`just native-build-mac`), `just board-ops --keep-group` on the 18:26 reply, and on the simulator (`WhiteboardPaperGhostsUITests.testKeepGroupKeepsHisWholeReplyAndOneUndoTakesItBack`, rung 2, 2026-11-17: Keep group · 3, buttons 36 points tall, one undo); the corner's clearance and a push through a kept group not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss*
-- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942): Igor, 2026-11-17 19:15, via Larry: "accept the group", after keeping his four named boxes one mark at a time
+- **Issues:** [#942](https://github.com/idvorkin/context-grabber/issues/942): Igor, 2026-11-17 19:15, via Larry: "accept the group", after keeping his four named boxes one mark at a time; [#966](https://github.com/idvorkin/context-grabber/issues/966): Igor, 2026-11-19, board 302d5345, via Larry: he kept Larry's whole reply group, it sat on top of his own plan, and undo couldn't take it back (story 1007)
 
 #### Use Case:
 - **As someone** Larry answered with a little drawing of several marks
@@ -7290,3 +7290,24 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** the mark I tapped is near the board's top right, where ? and Feedback (and *Larry's edit blocked*) sit
 - **When:** the buttons show
 - **Then:** they sit clear of that corner and wholly on screen, each at least 36 points each way, and a tap on them never reaches the paper
+
+---
+
+### User Story 1007:
+
+- **Summary:** A keep stays one Undo, whatever the board does just after it
+- **Status:** in progress on branch `native/undo-kept-group-966`
+- **Spec:** [Whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md), *Every keep is a step of Undo of its own, and keeps it*
+- **Issues:** [#966](https://github.com/idvorkin/context-grabber/issues/966): Igor, 2026-11-19, board 302d5345, via Larry: he kept Larry's whole reply group, it sat on top of his own plan, and undo couldn't take it back
+
+#### Use Case:
+- **As someone** who kept one of Larry's replies and then went on working round it
+- **I want** Undo to take the keep back, whatever I did with the board straight after
+- **so that** a keep I regret never gets stuck on top of my own writing
+
+#### Acceptance Criteria:
+- **Scenario:** The board's own take-back comes just after a keep
+- **Given:** I have just tapped *Keep group* (or *Keep*, *Keep all* or *Tidy overlaps*), and the board then takes back a step of PaperKit's of its own, for a tap's dot, a zigzag or a dropped selection, before PaperKit's step is on top
+- **When:** I press Undo until the keep is reached
+- **Then:** the keep is still a step of its own, named for it, and one Undo takes every mark it kept back off the board
+
