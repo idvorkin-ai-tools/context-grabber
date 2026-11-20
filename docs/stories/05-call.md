@@ -1134,6 +1134,31 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 331:
+
+- **Summary:** Larry's loudest words play without a clipped edge
+- **Status:** implemented; verified by `just test` (host: `PlaybackLimiterTests`); a Direct call on the phone not yet
+- **Issues:** [#903](https://github.com/idvorkin/context-grabber/issues/903) playback rendered a mixer peak of 1.08 (2026-10-25)
+- **Spec:** [Native call — Larry's voice never goes over full scale](../superpowers/specs/2026-08-28-native-call-screen-design.md#the-voice)
+
+#### Use Case:
+- **As a** Larry's client listening to his answer
+- **I want to** his stressed words to sound as clean as the rest
+- **so that** the voice I hear is the one he sent, not a harsh, flattened version of it
+
+#### Acceptance Criteria:
+- **Scenario:** A loud reply
+- **Given:** a live call
+- **When:** Larry's voice arrives at full scale
+- **Then:** the loudest peaks are rounded smoothly to leave headroom, the level line's mixer peak stays under 1.0, and it counts the rounded samples
+
+- **Scenario:** A quiet reply
+- **Given:** a live call
+- **When:** Larry's voice stays under about 70% of full scale
+- **Then:** it plays exactly as sent, and the level line counts no rounded samples
+
+---
+
 ### User Story 751:
 
 - **Summary:** The call's problem line shows the worst thing still wrong, and the mic is restarted once
