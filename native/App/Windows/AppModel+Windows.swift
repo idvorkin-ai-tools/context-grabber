@@ -147,7 +147,7 @@ extension AppModel {
     }
   }
 
-  /// `GRABBER_WINDOW_CHOOSE=<screen>`: once home is up, a new window opens as Command+N would, and its chooser picks
+  /// `GRABBER_WINDOW_CHOOSE=<screen>`: once home is up, a new window opens as New Window would, and its chooser picks
   /// that screen as a tap would. docs/TESTING.md.
   func chooseForHook(closing window: String?) {
     guard let screen = windowHookChoice else { return }
@@ -171,6 +171,20 @@ extension AppModel {
     UIApplication.shared.activateSceneSession(for: UISceneSessionActivationRequest(session: session)) { [log] error in
       log.event("window", ["action": "bring_home", "ok": false, "message": error.localizedDescription])
     }
+  }
+
+  /// Story 731, #745: File > New Window on the Mac (Option+Command+N, since Command+N is New Chat). Another window from
+  /// the home group, as the system's New Window opened: the home window when there is none, else the chooser.
+  func openNewWindow(from: String) {
+    log.event("window", ["action": "new_window", "from": from, "scenes": sceneCount])
+    guard windowsAvailable else { return }
+    guard let openWindowAction else {
+      UIApplication.shared.requestSceneSessionActivation(nil, userActivity: nil, options: nil) { [log] error in
+        log.event("window", ["action": "new_window", "ok": false, "message": error.localizedDescription])
+      }
+      return
+    }
+    openWindowAction(id: Self.homeWindowID)
   }
 
   /// Story 477: a link, a Shortcut or a notification with the home window closed has somewhere to show.
