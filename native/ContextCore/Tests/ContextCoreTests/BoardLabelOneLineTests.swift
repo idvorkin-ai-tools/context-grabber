@@ -18,7 +18,10 @@ final class BoardLabelOneLineTests: XCTestCase {
       guard
         case .shapes(let shapes) = WhiteboardTurn.answer(
           status: 200, body: Data(#"{"ok": true, "strokes": [\#(shape)]}"#.utf8))
-      else { throw XCTSkip("no shapes") }
+      else {
+        XCTFail("the label's answer gave no shapes")
+        return []
+      }
       let frame = CGRect(x: 0, y: 0, width: 165 / scale, height: 2048 / scale)
       return WhiteboardTurn.lines(try XCTUnwrap(shapes.first), frame: frame, scale: scale)
     }
@@ -52,13 +55,24 @@ final class BoardLabelOneLineTests: XCTestCase {
       }
     }
 
-    /// Kept, the strokes PencilKit gets stay in that row.
+    /// Kept, each stroke PencilKit gets starts and ends where its letter's does, lies within the row, and has a point
+    /// at least every 4 board points, so PencilKit's spline can't swing a letter out of the row.
     func testKeptInkStaysInTheRow() throws {
       let lines = try label()
-      let kept = lines.map { WhiteboardTurn.inkPoints($0) }.joined()
       let drawn = lines.joined()
-      XCTAssertEqual(kept.map(\.y).min() ?? 0, drawn.map(\.y).min() ?? 0, accuracy: 0.01)
-      XCTAssertEqual(kept.map(\.y).max() ?? 0, drawn.map(\.y).max() ?? 0, accuracy: 0.01)
+      let top = try XCTUnwrap(drawn.map(\.y).min())
+      let bottom = try XCTUnwrap(drawn.map(\.y).max())
+      for line in lines {
+        let kept = WhiteboardTurn.inkPoints(line)
+        XCTAssertEqual(kept.first, line.first)
+        XCTAssertEqual(kept.last, line.last)
+        for point in kept {
+          XCTAssertTrue((top - 0.01...bottom + 0.01).contains(point.y), "a kept point at y \(point.y)")
+        }
+        for (a, b) in zip(kept, kept.dropFirst()) {
+          XCTAssertLessThanOrEqual(hypot(b.x - a.x, b.y - a.y), 4.01, "a gap after \(a)")
+        }
+      }
     }
   #endif
 }
