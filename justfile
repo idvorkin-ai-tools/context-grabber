@@ -79,6 +79,8 @@ native-test-host:
     scripts/native/test-smoke-lock.sh
     # Stories 814-818: the fake Cockpit's board ops, which the whiteboard UI tests rely on.
     scripts/native/test-fake-cockpit-ops.py
+    # Stories 1012, 1013 (#1012): what just testflight refuses before it builds, from its dry run.
+    scripts/native/test-testflight.sh
     # #943: URL loading on Linux needs FoundationNetworking; the Mac's build can't see a file that forgot it.
     scripts/native/test-linux-imports.sh
     # Story 789 (#993): every story ID is used once and sits in its journey's ranges in docs/stories/README.md.
@@ -155,6 +157,12 @@ native-run-device: native-build-device
     @# ponytail: only where mac-driver is checked out (Igor's Mac); elsewhere it is skipped.
     @r="$HOME/gits/mac-driver/bin/record-deploy"; [ ! -x "$r" ] || "$r" context-grabber "$([ "{{native_device}}" = "$(tr -d '[:space:]' 2>/dev/null <scripts/native/ipad-udid.local)" ] && echo ipad || echo phone)" "$(git rev-parse HEAD)" || true
     xcrun devicectl device process launch --device {{native_device}} {{native_bundle}}
+
+# The current commit to TestFlight, beside the cable install (#1012, stories 1011-1013; docs/TESTING.md "TestFlight"):
+# a Release archive with the build stamps, signed for App Store distribution, uploaded with the App Store Connect key
+# (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, or the ignored scripts/native/testflight.local). --export-only needs no key.
+testflight *args: native-project
+    scripts/native/testflight.sh {{args}}
 
 # Native rung 1.5, the Mac app (#638), with no signing identity: no iCloud, nothing asked of Xcode's account.
 native-build-mac: native-project

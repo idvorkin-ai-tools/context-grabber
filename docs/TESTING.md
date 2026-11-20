@@ -522,3 +522,57 @@ tailnet, and everything visual on an OLED.
 **Log before theorizing.** When a phone symptom is unexplained, the first change is a log line, not a fix. Every
 session log and report carries the build it came from. [DEBUGGING.md](DEBUGGING.md) says what each holds and how to
 get it.
+
+## TestFlight: `just testflight`
+
+The cable install stays the everyday path. `just testflight` is the lane beside it, for a build that has to reach the
+phone or the iPad without the cable ([spec](superpowers/specs/2026-11-20-testflight-lane-design.md), stories
+1011–1013, #1012). From a clean checkout of the commit to ship, it archives the app in Release with the same build
+stamps as the device build (the commit, the branch, BugKit's commit), signs the app, the widgets and the share
+extension for App Store distribution, and uploads the package with an App Store Connect API key. The version is the
+project's (2.0.0); the build number is `git rev-list --count HEAD`, so it grows with main and points back to its
+commit (`--build-number <n>` or `BUILD_NUMBER` overrides it; App Store Connect refuses a number it has seen). Uncommitted
+changes stop it before building (`--allow-dirty` overrides, and the BugKit commit then says `-dirty`). It takes the
+Mac's one signing lock and BugKit's screen-lock guard, as `native-build-device` does. The archive and the package
+stay under `native/Build/Archives` and `native/Build/Export`, named by version, build number and commit; the logs are
+`native/Build/logs/testflight-{archive,export}.log`.
+
+- `just testflight --export-only`: the archive and the signed package, no upload and no key. It is how a Release-only
+  compile failure or a distribution-signing problem shows up before the day it matters.
+- `just testflight --dry-run`: checks the key and the checkout and prints the plan. The host rung runs
+  `scripts/native/test-testflight.sh` against it: each refusal above, the plan, and that the key's values are never
+  printed.
+
+**The key** comes from the environment, `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_KEY_PATH` (the `.p8` file), else from
+the same three as `KEY=value` lines in `scripts/native/testflight.local`, which git ignores. The repository is public:
+none of the three is committed, and the lane refuses a key file inside the checkout. Without them, the upload stops
+before building and names what is missing.
+
+**Once, by Igor:**
+
+1. [App Store Connect](https://appstoreconnect.apple.com) → Apps → + → New App: iOS, bundle id
+   `com.idvorkin.grabbernative` (registered already by the development builds), any name and SKU. The widgets
+   (`.widgets`) and the share extension (`.share`) need no app records of their own.
+2. Users and Access → Integrations → App Store Connect API → Team Keys → +: a key with the App Manager role. Download
+   the `.p8` (it downloads once) to somewhere outside the repository, such as `~/.appstoreconnect/private_keys/`, and
+   note its key id and the issuer id shown above the list.
+3. Put the three values in your shell's environment or in `scripts/native/testflight.local`.
+4. TestFlight → Internal Testing → +: a group with yourself in it, so every processed build is offered to the phone.
+5. Archive and export use Xcode's signed-in account (Settings → Accounts), as the device build does; the first export
+   lets Xcode create the team's cloud-managed Apple Distribution certificate and the App Store profiles.
+
+**What a TestFlight build gives up:**
+
+- **`just pull-logs` can't read it.** A distribution-signed app's container is closed to `devicectl`, so its session
+  logs, reports and crash files stay on the phone. Use the cable install to debug.
+- **Reports and crashes go through BugKit's iCloud delivery, to the production database.** The Mac's listener reads
+  the development one, so until BugKit's report schema is deployed to production and the Mac has a production reader
+  (BugKit's `docs/integration.md`, "Mac reader and listener"), a TestFlight build's shake reports and crashes do not
+  reach `~/tmp/agent/bugs/inbox.jsonl`.
+- **Apple's processing takes 5–30 minutes** after the upload before TestFlight offers the build.
+- **`#if DEBUG` code is absent.** Checked 2026-11-20 for #1012: the only such code is the Cockpit page's Safari Web
+  Inspector (`isInspectable`), a development aid. The launch hooks are read from the launch environment, which a
+  TestFlight install never sets; BugKit and ThinkACard have no debug-only code. A new `#if DEBUG` must be something
+  the app can do without.
+- **It is optimized.** Code that only works unoptimized (a timing that depended on it) shows up here first;
+  `--export-only` is the cheap way to look.
