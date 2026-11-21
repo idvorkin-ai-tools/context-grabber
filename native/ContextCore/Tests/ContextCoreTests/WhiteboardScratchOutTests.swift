@@ -91,6 +91,72 @@ final class WhiteboardScratchOutTests: XCTestCase {
     }
   }
 
+  /// context-grabber-4kj: a zigzag whose sweeps cross about 60% of its length, drifting along as a hand does.
+  private func wandering(_ n: Int, _ x0: CGFloat, _ y0: CGFloat, _ sweep: CGFloat, _ drift: CGFloat) -> [CGPoint] {
+    var points: [CGPoint] = []
+    for i in 0...n {
+      let x = x0 + drift * CGFloat(i) / CGFloat(n) + (i % 2 == 1 ? sweep : 0)
+      let y = y0 + CGFloat(i % 2) * 20
+      if let last = points.last {
+        for k in 1..<6 {
+          points.append(CGPoint(x: last.x + (x - last.x) * CGFloat(k) / 6, y: last.y + (y - last.y) * CGFloat(k) / 6))
+        }
+      }
+      points.append(CGPoint(x: x, y: y))
+    }
+    return points
+  }
+
+  /// context-grabber-4kj, the oracle: Igor's own scribbles on 2026-11-21 (board 65167d7d, Cockpit thread
+  /// igor2-88g.1575; and one on the web board), which all stayed ink on *short sweeps*, and the hatching on his boards
+  /// that must stay ink. Each case says what `check` must find, and which strokes go.
+  func testIgorsRealScribblesScratchOutAndHisHatchingStaysInk() throws {
+    let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+      .appendingPathComponent("Fixtures/scratch-out/igor-2026-11-21.json")
+    let root = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    let cases = try XCTUnwrap(root["cases"] as? [[String: Any]])
+    XCTAssertEqual(cases.count, 7)
+    func points(_ any: Any?) -> [CGPoint] {
+      (any as? [[Double]] ?? []).map { CGPoint(x: $0[0], y: $0[1]) }
+    }
+    for c in cases {
+      let name = c["name"] as? String ?? "?"
+      let ink = (c["ink"] as? [[String: Any]] ?? []).map {
+        Scratch.Ink(
+          id: $0["id"] as? String ?? "", points: points($0["points"]), width: CGFloat($0["width"] as? Double ?? 3))
+      }
+      let outcome = Scratch.check(points(c["points"]), ms: c["ms"] as? Double, over: ink)
+      let why = c["why"] as? String
+      XCTAssertEqual(outcome.why, why, name)
+      XCTAssertEqual(outcome.ok, why == nil, name)
+      XCTAssertEqual(Set(outcome.gone), Set(c["gone"] as? [String] ?? []), name)
+      XCTAssertFalse(outcome.findsNothing, "\(name): stays ink unsaid, or scratches out")
+    }
+  }
+
+  func testAScribbleThatWandersAlongAWordTakesIt() {
+    let word = line("word", 100, 100, 200)
+    let zig = wandering(8, 95, 104, 130, 80)
+    let shape = Scratch.shape(zig)
+    XCTAssertTrue(shape.ok, shape.why ?? "")
+    XCTAssertTrue(shape.wanders)
+    let outcome = Scratch.check(zig, ms: 800, over: [word, line("below", 300)])
+    XCTAssertTrue(outcome.ok, outcome.why ?? "")
+    XCTAssertEqual(outcome.gone, ["word"])
+    // Over a fold's marker, where there is no ink, it takes the fold as a zigzag does (story 905).
+    XCTAssertTrue(Scratch.isZigzag(zig, ms: 800))
+  }
+
+  func testAWanderingScribbleNeedsFiveTurnsAndStaysInkOverNothing() {
+    XCTAssertEqual(Scratch.shape(wandering(4, 95, 104, 130, 80)).why, "short sweeps", "four turns: writing or hatching")
+    XCTAssertEqual(Scratch.shape(wandering(8, 95, 104, 120, 160)).why, "short sweeps", "sweeps under half its length")
+    let bare = Scratch.check(wandering(8, 95, 400, 130, 80), ms: 800, over: [line("word", 100, 100, 200)])
+    XCTAssertEqual(bare.why, "wanders, no ink", "over bare paper it is hatching: it stays ink")
+    XCTAssertFalse(bare.findsNothing)
+    // A full-length zigzag over bare paper still goes, with a word (#1000).
+    XCTAssertTrue(Scratch.check(zigzag(5, 95, 400, 210, 26), ms: 600, over: [line("word", 100)]).findsNothing)
+  }
+
   func testAFastZigzagOverAWordTakesItAndNothingElse() {
     let ink = [line("a", 100, 100, 200), line("b", 100, 340, 200), line("c", 300)]
     let zig = zigzag(5, 95, 98, 210, 26)
@@ -158,7 +224,9 @@ final class WhiteboardScratchOutTests: XCTestCase {
     }
     XCTAssertTrue(outcome(false, "no ink").findsNothing)
     XCTAssertTrue(outcome(false, "beside ink").findsNothing)
-    for why in ["slow", "marches along", "short sweeps", "few turns", "short", "small"] {
+    for why in [
+      "slow", "marches along", "short sweeps", "few turns", "short", "small", "wanders, no ink", "wanders, beside ink",
+    ] {
       XCTAssertFalse(outcome(false, why).findsNothing, why)
     }
     XCTAssertFalse(outcome(true, nil).findsNothing, "one that worked")

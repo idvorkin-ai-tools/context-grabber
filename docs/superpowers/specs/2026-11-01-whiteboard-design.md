@@ -357,6 +357,12 @@ ink it covers, without picking up the eraser.
   inside the zigzag's box). Handwriting never qualifies: an *mmm* or *www* marches along instead of turning back, and a slow
   zigzag stays as ink. A zigzag on bare paper, or one beside a word rather than over it, takes nothing and is
   taken away with a word (*Every pen gesture shows what it did*, below).
+- **A scribble that wanders along the word counts too** (context-grabber-4kj; Igor, 2026-11-21: "why isn't scribble
+  working"). A hand scratching out a word drifts along it as it goes, so no sweep spans the whole scribble: his three
+  that day swept 63% to 75% of their length on average and all stayed ink. A scribble that turns back at least **five
+  times**, its sweeps crossing at least half its length on average, is a scratch-out when it lies over ink. Shading and
+  hatching look the same, so a wandering scribble over bare paper, or beside ink rather than over it, stays as ink,
+  without a word; a short wiggle of three or four turns still needs sweeps across most of its length.
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
   it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
 - **Nothing else changes.** Ink he moved with the lasso, wrote or erased just before the zigzag stays as he left it:
@@ -371,7 +377,8 @@ ink it covers, without picking up the eraser.
   or over the folded header's own line, the header and everything folded under it go with whatever else the zigzag
   covered, and the ink below closes up to where the header was. One undo brings it all back, the section still folded.
 - The log says, for every zigzag with three or more turns, whether it fired, its turns and speed, why it didn't (*slow*,
-  *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels;
+  *no ink*, *beside ink*, *marches along*, *short sweeps*, and for a wandering scribble *wanders, no ink* or *wanders,
+  beside ink*) and how many strokes went, so the iPad can show how it feels;
   and how much of what went the board still holds, then and a second later, and whether any of it comes back without an
   Undo (#999).
 
