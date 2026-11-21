@@ -169,9 +169,11 @@ final class WhiteboardScratchOutTests: XCTestCase {
   func testATakeBackIsRedoneWhenTheStepItUndidWasNotTheZigzags() {
     let ink: Set<String> = ["a", "b"]
     XCTAssertFalse(
-      Scratch.redoTakeBack(could: false, zigzagHeld: true, held: ink, before: ink), "nothing taken back, nothing to redo")
+      Scratch.redoTakeBack(could: false, zigzagHeld: true, held: ink, before: ink),
+      "nothing taken back, nothing to redo")
     XCTAssertFalse(
-      Scratch.redoTakeBack(could: true, zigzagHeld: false, held: ink, before: ink), "the zigzag's step: it stays undone")
+      Scratch.redoTakeBack(could: true, zigzagHeld: false, held: ink, before: ink), "the zigzag's step: it stays undone"
+    )
     XCTAssertTrue(
       Scratch.redoTakeBack(could: true, zigzagHeld: true, held: ["a"], before: ink), "a step that took ink is put back")
     XCTAssertTrue(
