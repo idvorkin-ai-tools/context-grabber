@@ -351,6 +351,8 @@ ink it covers, without picking up the eraser.
   taken away with a word (*Every pen gesture shows what it did*, below).
 - **What goes.** Every stroke the zigzag touches goes whole, as the stroke eraser takes it, and so does the zigzag. Strokes
   it doesn't touch stay, however close. What went stays gone as he writes on: only Undo brings it back (#999).
+- **Nothing else changes.** Ink he moved with the lasso, wrote or erased just before the zigzag stays as he left it:
+  a scratch-out never takes back his last other change, a move included (#966, story 1059).
 - **One undo brings it all back**: the ink it removed, without the zigzag. One redo removes it again.
 - It's a change like any erase: the board saves, and Larry's next picture and strokes no longer have that ink. It doesn't
   ask Claude about the board, as nothing new was written.

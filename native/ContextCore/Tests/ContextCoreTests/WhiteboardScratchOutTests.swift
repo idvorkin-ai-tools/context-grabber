@@ -163,4 +163,22 @@ final class WhiteboardScratchOutTests: XCTestCase {
     }
     XCTAssertFalse(outcome(true, nil).findsNothing, "one that worked")
   }
+
+  /// #966, #999, context-grabber-geaz: the board's take-back of a zigzag undid PaperKit's newest step; it is redone when
+  /// that step was not the zigzag's. The oracle: the zigzag's own step takes the zigzag and nothing else.
+  func testATakeBackIsRedoneWhenTheStepItUndidWasNotTheZigzags() {
+    let ink: Set<String> = ["a", "b"]
+    XCTAssertFalse(
+      Scratch.redoTakeBack(could: false, zigzagHeld: true, held: ink, before: ink), "nothing taken back, nothing to redo")
+    XCTAssertFalse(
+      Scratch.redoTakeBack(could: true, zigzagHeld: false, held: ink, before: ink), "the zigzag's step: it stays undone")
+    XCTAssertTrue(
+      Scratch.redoTakeBack(could: true, zigzagHeld: true, held: ["a"], before: ink), "a step that took ink is put back")
+    XCTAssertTrue(
+      Scratch.redoTakeBack(could: true, zigzagHeld: true, held: ink.union(["c"]), before: ink),
+      "a step that added ink is put back")
+    // A lasso move keeps every stroke's key: only the zigzag still on the board tells it was the wrong step.
+    XCTAssertTrue(
+      Scratch.redoTakeBack(could: true, zigzagHeld: true, held: ink, before: ink), "a step that moved ink is put back")
+  }
 }

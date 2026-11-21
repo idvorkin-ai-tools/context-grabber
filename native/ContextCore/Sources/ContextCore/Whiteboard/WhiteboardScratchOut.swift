@@ -107,6 +107,14 @@ public enum WhiteboardScratchOut {
     public var findsNothing: Bool { !ok && (why == "no ink" || why == "beside ink") }
   }
 
+  /// After the board takes back PaperKit's newest step for a zigzag (#966, #999): whether the step it took was another
+  /// one, to be redone. It was the zigzag's when the zigzag is gone (`zigzagHeld` false) and the rest of the ink (`held`,
+  /// by stroke) is what it was before the zigzag; a step that added or took ink, or one that only moved it, leaving
+  /// every stroke's key as it was (a lasso move, context-grabber-geaz), leaves the zigzag on the board.
+  public static func redoTakeBack(could: Bool, zigzagHeld: Bool, held: Set<String>, before: Set<String>) -> Bool {
+    could && (zigzagHeld || held != before)
+  }
+
   /// A fast zigzag across `box`, five sweeps along its longer side, and the milliseconds it takes: what the simulator's UI
   /// tests draw in place of a straight stroke (`GRABBER_WHITEBOARD_ZIGZAG`, #999), as XCUITest can only drag straight.
   public static func zigzag(across box: CGRect) -> (points: [CGPoint], ms: Double) {
