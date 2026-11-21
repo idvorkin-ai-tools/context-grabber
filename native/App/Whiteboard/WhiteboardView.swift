@@ -2583,19 +2583,8 @@ struct WhiteboardView: View {
   @ObservedObject private var inbox: InboxModel
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-  /// Story 766: the note's one line, kept whether it says anything or not, so the paper never moves for it.
-  @ScaledMetric(relativeTo: .footnote) private var noteHeight: CGFloat = 28
-  /// Story 1045 (#1003): the conversation's text stops at about seventy characters of its own type.
-  @ScaledMetric(relativeTo: .footnote) private var readableWidth: CGFloat = 470
   /// The page's height, for the open panel's fifth (story 837).
   @State private var pageHeight: CGFloat = 0
-  /// Story 837: what the panel's chip, Open in Chat and padding take, and the fewest lines of thread it keeps.
-  @ScaledMetric(relativeTo: .footnote) private var panelChrome: CGFloat = 72
-  @ScaledMetric(relativeTo: .footnote) private var threadFloor: CGFloat = 64
-  private var threadCap: CGFloat {
-    let page = pageHeight > 0 ? WhiteboardNote.panelHeight(board: Double(pageHeight)) : WhiteboardNote.panelFloor
-    return max(CGFloat(page) - panelChrome, threadFloor)
-  }
   /// #1005 (story 1054): Paste shows only while there is text to paste.
   @State private var clipboardHasText = false
   private let logger: BugLogger
@@ -2664,35 +2653,16 @@ struct WhiteboardView: View {
     VStack(spacing: 0) {
       // Story 667: while Larry is looking the note begins with his clock, so it ticks once a second, as it does while a
       // message holds the middle (story 766); else it's still.
-      if WhiteboardNote.ticks(larry: model.larry, notice: model.notice) {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in noteLine(now: .now) }
-      } else {
-        noteLine(now: .now)
-      }
+      noteStrip
       if let problem = model.problem {
-        HStack(alignment: .firstTextBaseline) {
-          BugProblemView(problem: problem, logger: logger)
-          // Stories 761, 762: his silence stays until he next answers or this.
-          if problem.context == WhiteboardLarryClock.DidntAnswer.context {
-            Spacer()
-            Button("Dismiss") { model.dismissProblem() }.font(.footnote).buttonStyle(.borderless)
-              .accessibilityIdentifier("whiteboard-dismiss-problem")
-          }
-          // Stories 775, 776: a picture the Cockpit hasn't taken in twenty seconds.
-          if problem.context == WhiteboardLarryWait.stuckContext {
-            Spacer()
-            Button("Retry") { model.retryLarry() }.font(.footnote).buttonStyle(.borderless)
-              .accessibilityIdentifier("whiteboard-larry-retry")
-            Button("Dismiss") { model.dismissStuck() }.font(.footnote).buttonStyle(.borderless)
-              .accessibilityIdentifier("whiteboard-larry-dismiss")
-          }
-        }
-        .padding(.horizontal)
+        WhiteboardProblemRow(
+          problem: problem, logger: logger, dismissSilence: { model.dismissProblem() },
+          retryLarry: { model.retryLarry() }, dismissStuck: { model.dismissStuck() })
       }
       // Story 1048 (#1003): the conversation sits above the paper and pushes it down, so it never covers ink. Story 837
       // (#917): a fifth of the page at most; past that it scrolls rather than grows.
       if model.conversationOpen, !onPhone {
-        conversation.fixedSize(horizontal: false, vertical: true)
+        conversationPanel.fixedSize(horizontal: false, vertical: true)
       }
       Group {
         PaperBoardCanvas(model: model, log: log)
@@ -2977,189 +2947,36 @@ struct WhiteboardView: View {
     }
   }
 
-  /// The bar's note, one line (story 766): Larry's state first so it is never what gets cut off (story 667), the newest
-  /// thing said, how many suggestions show, and a chevron. A finger tap opens the conversation over the board. VoiceOver
-  /// reads his state in words when it reaches the note, not on every tick.
-  @ViewBuilder private func noteLine(now: ContinuousClock.Instant) -> some View {
-    if let line = WhiteboardNote.line(
-      larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
-      said: model.lastSaid, micOn: model.micOn,
-      notice: model.notice, ghosts: model.ghosts.count)
-    {
-      let tap = WhiteboardNote.tap(onPhone: onPhone, thread: model.threadKey)
-      HStack(spacing: 6) {
-        if let state = line.state {
-          Text(state).lineLimit(1).layoutPriority(1)
-            .accessibilityLabel(line.spokenState ?? state)
-            .accessibilityIdentifier("whiteboard-note-state")
-          if line.middle != nil { Text("·") }
-        }
-        if let middle = line.middle {
-          Text(middle).lineLimit(1).truncationMode(line.keepsEnd ? .head : .tail)
-            // Story 1053 (#1003): Larry's words lead.
-            .foregroundStyle(line.larrySpeaks ? Color.primary : Color(WhiteboardNoteInk.quiet))
-            .accessibilityIdentifier("whiteboard-note-said")
-        }
-        Spacer(minLength: 0)
-        if let keep = line.keep { Text(keep).lineLimit(1).fixedSize() }
-        // Story 895: every mark of Larry's kept at once, in order, as the web board's Keep all.
-        if model.editable, model.larrysMarks > 0 {
-          Button("Keep all") { model.keepLarrysMarks() }.buttonStyle(.borderless).fixedSize()
-            .accessibilityHint("Keeps every mark of Larry's, top to bottom, clear of your writing")
-            .accessibilityIdentifier("whiteboard-keep-all")
-        }
-        // Story 777: Larry has the picture and twenty seconds have passed: a quiet way to stop waiting for him.
-        if model.larryWait == .working {
-          Button("Interrupt") { model.interruptLarry() }.buttonStyle(.borderless).fixedSize()
-            .accessibilityHint("Stops waiting for Larry's answer, so the next picture is a fresh ask")
-            .accessibilityIdentifier("whiteboard-larry-interrupt")
-        }
-        if tap != .nothing {
-          Button {
-            model.tapNote(onPhone: onPhone, openChat: openChat)
-          } label: {
-            Image(systemName: onPhone ? "chevron.right" : model.conversationOpen ? "chevron.up" : "chevron.down")
-          }
-          .buttonStyle(.borderless)
-          .accessibilityLabel(
-            onPhone ? "Open in Chat" : model.conversationOpen ? "Hide the conversation" : "Show the conversation"
-          )
-          .accessibilityIdentifier("whiteboard-note-chevron")
-        }
-      }
-      .font(.footnote).foregroundStyle(Color(WhiteboardNoteInk.quiet))
-      .padding(.vertical, 4).padding(.horizontal)
-      .frame(minHeight: noteHeight)
-      .contentShape(Rectangle())
-      .onTapGesture { model.tapNote(onPhone: onPhone, openChat: openChat) }
-      .accessibilityElement(children: .contain)
-      .accessibilityIdentifier("whiteboard-note")
-    } else {
-      // Nothing to say yet: the line's room stays, so the paper doesn't jump when it first speaks.
-      Color.clear.frame(height: noteHeight).accessibilityHidden(true)
+  /// The note's line (story 766), from the model's values; its taps go back to the model (#1039).
+  private var noteStrip: some View {
+    let model = model
+    let (onPhone, openChat) = (onPhone, openChat)
+    let shown: (ContinuousClock.Instant) -> WhiteboardNoteStrip.Shown = { now in
+      WhiteboardNoteStrip.Shown(
+        line: WhiteboardNote.line(
+          larry: model.larry, now: now, cockpitAnswering: !model.larryAway, mark: model.larryMark(now: now),
+          said: model.lastSaid, micOn: model.micOn, notice: model.notice, ghosts: model.ghosts.count),
+        tap: WhiteboardNote.tap(onPhone: onPhone, thread: model.threadKey), conversationOpen: model.conversationOpen,
+        keepAll: model.editable && model.larrysMarks > 0 ? { model.keepLarrysMarks() } : nil,
+        interrupt: model.larryWait == .working ? { model.interruptLarry() } : nil)
     }
+    return WhiteboardNoteStrip(
+      shown: shown, ticks: WhiteboardNote.ticks(larry: model.larry, notice: model.notice), onPhone: onPhone,
+      tapNote: { model.tapNote(onPhone: onPhone, openChat: openChat) })
   }
 
-  /// Story 768: the open note, above the board (story 1048): the board's thread, selectable, then the status chip and
-  /// what the mic hears, and *Open in Chat*. The Pencil never acts on it: the thread's text takes finger touches only,
-  /// and the rest holds nothing to scroll or draw on. Its text stops at about seventy characters (story 1045).
-  private var conversation: some View {
-    let tick = WhiteboardNote.ticks(larry: model.larry, notice: nil)
-    return VStack(alignment: .leading, spacing: 6) {
-      WhiteboardConversationText(rows: WhiteboardNote.recent(model.thread), maxHeight: threadCap)
-      if tick {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in liveRows(now: .now) }
-      } else {
-        liveRows(now: .now)
-      }
-      if let key = model.threadKey {
-        Button("Open in Chat") { openChat(key) }
-          .font(.footnote).buttonStyle(.borderless)
-          .accessibilityIdentifier("whiteboard-conversation-chat")
-      }
+  /// The open note over the board on an iPad (story 768), from the model's values (#1039).
+  private var conversationPanel: some View {
+    let model = model
+    let openChat = openChat
+    let live: (ContinuousClock.Instant) -> [WhiteboardNote.Row] = { now in
+      WhiteboardNote.live(
+        thread: model.thread, larry: model.larry, now: now, cockpitAnswering: !model.larryAway,
+        mark: model.larryMark(now: now), said: model.lastSaid, micOn: model.micOn)
     }
-    .frame(maxWidth: readableWidth, alignment: .leading)
-    .padding(.horizontal).padding(.vertical, 6)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(.regularMaterial)
-    .contentShape(Rectangle())
-    .accessibilityElement(children: .contain)
-    .accessibilityIdentifier("whiteboard-conversation")
-  }
-
-  /// Under the thread: the status chip (story 1047) and what the mic is hearing.
-  private func liveRows(now: ContinuousClock.Instant) -> some View {
-    let live = WhiteboardNote.live(
-      thread: model.thread, larry: model.larry, now: now, cockpitAnswering: !model.larryAway,
-      mark: model.larryMark(now: now), said: model.lastSaid, micOn: model.micOn)
-    // One column of its own: a TimelineView lays several children over each other (#882).
-    return VStack(alignment: .leading, spacing: 4) {
-      ForEach(live) { row in
-        Group {
-          if row.id == "live-chip" {
-            Text("\(Text(row.who).bold()) · \(row.text)")
-              .padding(.horizontal, 10).padding(.vertical, 3)
-              .background(Color(WhiteboardNoteInk.quiet).opacity(0.12), in: Capsule())
-          } else {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-              Text("\(row.who):").bold()
-              Text(row.text)
-            }
-          }
-        }
-        .font(.footnote).foregroundStyle(Color(WhiteboardNoteInk.quiet))
-        .textSelection(.enabled)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("whiteboard-conversation-\(row.id)")
-      }
-    }
-  }
-}
-
-/// #1003 (story 1053): the note's and the panel's quieter text, at least 4.5:1 on the paper and the panel's material in
-/// either appearance; the system's secondary and tertiary greys measured about 3:1 and 2:1. Larry's words take the main
-/// text colour.
-enum WhiteboardNoteInk {
-  static let quiet = UIColor { traits in
-    traits.userInterfaceStyle == .dark ? UIColor(white: 0.72, alpha: 1) : UIColor(white: 0.36, alpha: 1)
-  }
-}
-
-/// Story 768: the board's thread in the open note, one text that can be selected and copied across rows and scrolls
-/// inside the panel, newest at the bottom. A UITextView rather than SwiftUI text: its gestures can be told to take
-/// fingers only, so the Pencil neither scrolls nor selects it, and a ticking clock beside it doesn't reset a selection.
-private struct WhiteboardConversationText: UIViewRepresentable {
-  let rows: [WhiteboardNote.Row]
-  let maxHeight: CGFloat
-
-  func makeUIView(context: Context) -> NewestInView {
-    let view = NewestInView()
-    view.isEditable = false
-    view.isSelectable = true
-    view.backgroundColor = .clear
-    view.textContainerInset = .zero
-    view.textContainer.lineFragmentPadding = 0
-    view.adjustsFontForContentSizeCategory = true
-    view.accessibilityIdentifier = "whiteboard-conversation-text"
-    return view
-  }
-
-  func updateUIView(_ view: NewestInView, context: Context) {
-    let text = Self.text(rows)
-    fingersOnly(view)
-    guard view.attributedText != text else { return }
-    view.attributedText = text
-    view.showNewest()
-  }
-
-  func sizeThatFits(_ proposal: ProposedViewSize, uiView: NewestInView, context: Context) -> CGSize? {
-    let width = proposal.width ?? 320
-    let fit = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
-    return CGSize(width: width, height: min(fit.height, maxHeight, proposal.height ?? .infinity))
-  }
-
-  /// ponytail: every gesture the text view has now, set again on each update since UIKit adds some lazily; a Pencil
-  /// touch on it then does nothing at all. If one ever slips through, subclass UITextView and filter in its
-  /// `gestureRecognizerShouldBegin`.
-  private func fingersOnly(_ view: UITextView) {
-    let fingers = [NSNumber(value: UITouch.TouchType.direct.rawValue)]
-    for gesture in view.gestureRecognizers ?? [] where gesture.allowedTouchTypes != fingers {
-      gesture.allowedTouchTypes = fingers
-    }
-  }
-
-  private static func text(_ rows: [WhiteboardNote.Row]) -> NSAttributedString {
-    let body = UIFont.preferredFont(forTextStyle: .footnote)
-    let bold = UIFont(
-      descriptor: body.fontDescriptor.withSymbolicTraits(.traitBold) ?? body.fontDescriptor, size: body.pointSize)
-    let text = NSMutableAttributedString()
-    for (index, row) in rows.enumerated() {
-      if index > 0 { text.append(NSAttributedString(string: "\n")) }
-      // Story 1053 (#1003): Larry's words lead; Igor's are quieter, still 4.5:1.
-      let color: UIColor = row.kind == .larry ? .label : WhiteboardNoteInk.quiet
-      text.append(NSAttributedString(string: "\(row.who): ", attributes: [.font: bold, .foregroundColor: color]))
-      text.append(NSAttributedString(string: row.text, attributes: [.font: body, .foregroundColor: color]))
-    }
-    return text
+    let openInChat: (() -> Void)? = model.threadKey.map { key in { openChat(key) } }
+    return WhiteboardConversationPanel(
+      rows: WhiteboardNote.recent(model.thread), ticks: WhiteboardNote.ticks(larry: model.larry, notice: nil),
+      live: live, pageHeight: pageHeight, openInChat: openInChat)
   }
 }
