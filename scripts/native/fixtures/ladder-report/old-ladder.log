@@ -1,0 +1,17 @@
+test ladder: 1 changed path(s), measured from origin/main
+rung 2 UI tests (chat, fake Cockpit and bridge): ChatArchiveUITests
+  rung 2 compile: 20 s
+  rung 2 chat classes: 270 s
+seconds per rung:
+  rung 0 Lint: ok, 1 s
+  rung 1 Host: ok, 30 s
+  rung 1.5 Mac: ok, 20 s
+  rung 2 Simulator: FAILED, 300 s, after 40 s waiting for the build lock and other xcodebuilds
+stopped on rung 2 Simulator (exit 65)
+test ladder: 1 changed path(s), measured from origin/main
+ladder run id: r-up (the run ledger: runs.jsonl)
+rung 2 UI tests (chat, fake Cockpit and bridge): ChatArchiveUITests
+seconds per rung:
+  rung 0 Lint: ok, 1 s
+  rung 2 Simulator: ok, 230 s, after 10 s waiting for the build lock and other xcodebuilds
+every rung passed; rung 3, the phone, is yours: just native-run-device

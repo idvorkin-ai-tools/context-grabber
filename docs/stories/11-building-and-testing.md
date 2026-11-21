@@ -219,8 +219,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 745:
 
 - **Summary:** Every UI test run says where its time went
-- **Status:** implemented in 28af189; verified on the host rung (`scripts/native/test-ui-timings.sh`, against a real whiteboard run's log)
-- **Issues:** [#826](https://github.com/idvorkin/context-grabber/issues/826)
+- **Status:** implemented in 28af189; verified on the host rung (`scripts/native/test-ui-timings.sh`, against a real whiteboard run's log); each line carries the ladder climb's run id on branch `native/ladder-ledger-1038` (story 1016), verified on the host rung by `scripts/native/test-ladder-map.sh`
+- **Issues:** [#826](https://github.com/idvorkin/context-grabber/issues/826); [#1038](https://github.com/idvorkin/context-grabber/issues/1038)
 
 #### Use Case:
 - **As Igor,** waiting on slow simulator runs
@@ -583,8 +583,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 828:
 
 - **Summary:** A report of how long a change takes, from the repo
-- **Status:** implemented on branch `native/batch-decided-1114`; run once by hand against GitHub and the deploys ledger, writing to a scratch folder; no automated check (it reads live GitHub)
-- **Issues:** the lead-time study of 2026-11-14
+- **Status:** implemented on branch `native/batch-decided-1114`; run once by hand against GitHub and the deploys ledger, writing to a scratch folder; no automated check (it reads live GitHub). On branch `native/ladder-ledger-1038` (story 1016) only a cable install or a build TestFlight offers counts as on a device, the upload has its own column, and the ledger is written by the repo's own recorder: the one it named was never checked out, so the ledger did not exist (2026-11-21)
+- **Issues:** the lead-time study of 2026-11-14; [#1038](https://github.com/idvorkin/context-grabber/issues/1038)
 
 #### Use Case:
 - **As Igor,** wanting to know where a change's time goes, week after week
@@ -1036,3 +1036,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a change that selects the iPad's launcher test and an iPhone class, or a run of every class
 - **When:** the test ladder climbs
 - **Then:** the iPad's test runs on the iPad's simulator in a run of its own and the iPhone class on the iPhone's, the step says how many of the iPad's tests passed and skipped, and a skip on the iPad fails the climb, saying the destination was wrong
+
+---
+
+### User Story 1016:
+
+- **Summary:** A change can be followed from what the ladder chose, through the lanes, to the phone
+- **Status:** implemented on branch `native/ladder-ledger-1038`; verified on the host rung: `scripts/native/test-ladder-map.sh` reads the ledger a climb with fakes writes (one run id across the lane's process, the start's selection and simulators, the lane and its wait, the device, a warm or cold build, each rung, a pass, a failure's first rung, a locked screen as unavailable, a skip on the iPad, the timing lines' run id, none for a dry run or `off`), and `scripts/native/test-ladder-report.sh` holds a fixture's retry, wrong-device skip, missing deploy, upload alone, interrupted and censored climbs apart and records an install through the recorder. Two real climbs on 2026-11-21 wrote the ledger (lint passed; rung 2 on a locked screen: lane 1, no wait, unavailable). The sample of the 20 latest climbs from the logs already on this Mac: the whiteboard's 11 climbs ran a median of 611 s (p90 2,178 s, 9 known) with 7 first-pass failures and 106 avoidable lane minutes, chat's 5 ran 262 s (p90 442 s) with 2, and not one change had a known delivery: no install had ever been recorded
+- **Issues:** [#1038](https://github.com/idvorkin/context-grabber/issues/1038); bead `context-grabber-qawx`
+
+#### Use Case:
+- **As Igor,** deciding whether the next hour goes into test selection, a slow test, lane capacity or getting builds onto the phone
+- **I want to** see, for each change, what the ladder chose and why, how long it waited for a lane, how long it ran, what retried or skipped, and when it reached a device
+- **so that** I put the work where the minutes actually go, not where a class's duration alone suggests
+
+#### Acceptance Criteria:
+- **Scenario:** A failure and its retry, a skip on the wrong device, and a change never installed
+- **Given:** climbs of the ladder that failed and then passed on a second attempt with a case retried, one whose iPad test skipped, one that never finished, and a change that was merged but never installed or only uploaded to TestFlight
+- **When:** I run `just ladder-report`
+- **Then:** each climb shows as itself (its attempt, its outcome and first failure, the retried case, the skipped coverage, a delivery that is unknown, only uploaded, or the install that delivered it), and by kind of change I see the median and slowest-tenth queue and execution times with their counts, the first-pass failures, the skipped coverage, the share delivered, and the kinds ranked by the lane minutes they could save

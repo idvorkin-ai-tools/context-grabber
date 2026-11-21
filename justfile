@@ -72,6 +72,8 @@ native-test-host:
     scripts/native/test-build-lane.sh
     # Where a UI test run's time went, from a real run's log.
     scripts/native/test-ui-timings.sh
+    # #1038 (story 1016): the ladder report keeps a retry, a wrong-device skip and a missing deploy apart, on a fixture.
+    scripts/native/test-ladder-report.sh
     # Story 689: a UI test run gets a time limit per case and one retry of a failed case; a hang after it is stopped.
     # Story 790: the hang stop waits for the result bundle to be written, so failed tests' screenshots survive.
     # Story 783: a run of built tests whose first suite never starts (a dark or locked Mac) is stopped, exit 75.
@@ -155,8 +157,8 @@ native-build-device: _phone native-project
 native-run-device: native-build-device
     xcrun devicectl device install app --device {{native_device}} {{native_device_app}}
     @# The deploy ledger, once the app is installed: a locked device then fails the launch below, and that still counts.
-    @# ponytail: only where mac-driver is checked out (Igor's Mac); elsewhere it is skipped.
-    @r="$HOME/gits/mac-driver/bin/record-deploy"; [ ! -x "$r" ] || "$r" context-grabber "$([ "{{native_device}}" = "$(tr -d '[:space:]' 2>/dev/null <scripts/native/ipad-udid.local)" ] && echo ipad || echo phone)" "$(git rev-parse HEAD)" || true
+    @# #1038: the repo's own recorder; the mac-driver one it used was never checked out, so no install was ever recorded.
+    @scripts/native/record-deploy.sh "$([ "{{native_device}}" = "$(tr -d '[:space:]' 2>/dev/null <scripts/native/ipad-udid.local)" ] && echo ipad || echo phone)" "$(git rev-parse HEAD)" cable || true
     xcrun devicectl device process launch --device {{native_device}} {{native_bundle}}
 
 # The current commit to TestFlight, beside the cable install (#1012, stories 1011-1013; docs/TESTING.md "TestFlight"):
@@ -199,6 +201,11 @@ pull-logs:
 # Story 828: how long a change takes, asked to merged to on a device, from GitHub and the deploys ledger (docs/TESTING.md)
 lead-times *args:
     scripts/lead-times.py {{args}}
+
+# #1038 (story 1016): each climb of the ladder from its selection to the phone, and the areas ranked by the lane minutes
+# a better selection, a fixed flake or a free lane would save (docs/TESTING.md "Where a change's test time goes")
+ladder-report *args:
+    scripts/native/ladder-report.py {{args}}
 
 # The same from the simulator
 pull-logs-sim:

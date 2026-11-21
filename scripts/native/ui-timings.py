@@ -12,6 +12,7 @@ largest gap kinds; with --jsonl appends one line per case so runs can be compare
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -129,9 +130,11 @@ def main(argv=None):
     print(report(cases, args.top))
     if args.jsonl and cases:
         stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        # #1038: the ladder's climb this run was part of, so the report can join its cases to the climb.
+        run_id = {"run_id": os.environ["LADDER_RUN_ID"]} if os.environ.get("LADDER_RUN_ID") else {}
         with open(args.jsonl, "a") as f:
             for c in cases:
-                f.write(json.dumps({"t": stamp, "run": args.run, **c}) + "\n")
+                f.write(json.dumps({"t": stamp, "run": args.run, **run_id, **c}) + "\n")
     return 0
 
 

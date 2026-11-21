@@ -18,6 +18,7 @@ for f in $files; do
   case $f in
     *.md | docs/* | .beads/* | .lavish/*) ;;  # words, not code
     scripts/lead-times.py) ;;                 # a report off GitHub (story 828)
+    scripts/native/ladder-report.py | scripts/native/record-deploy.sh | scripts/native/fixtures/ladder-report/*) ;;  # #1038's ledgers
     native/ContextCore/Tests/*) ;;            # host tests, the host rung's
     native/UITests/*) ;;                      # UI tests, which the ladder runs as their own classes (story 755)
     # #1036: the replay of Larry's board changes and its harness, which the app never runs: the host's replay fixtures.
