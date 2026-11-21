@@ -293,7 +293,26 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A UI test run on the simulator
 - **Given:** a run where one case fails once and passes on a second try, one case runs past two minutes, and xcodebuild sits idle after the last suite closes
 - **When:** the run ends
-- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed with the log's result kept
+- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed (once its result bundle is written, story 790) with the log's result kept
+
+---
+
+### User Story 790:
+
+- **Summary:** A failed UI test's screenshots can still be opened after the run
+- **Status:** implemented in [ce8857d2](https://github.com/idvorkin/context-grabber/commit/ce8857d2); verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild that writes its bundle for 8 s, silently, after its suite closes and then hangs: the stop waits for `Info.plist`, the failure names the bundle; one that never finishes is given up on at the limit and says so; a command's own bundle path is kept, a build gets none; the check fails against the old script), and on the simulator (rung 2, `GymTimerUITests`): the run's bundle at `native/Build/logs/ladder-ui-tests.xcresult` opened with `xcrun xcresulttool get test-results summary` (Passed, 1 test). That run's xcodebuild ended by itself, so the stop's wait was seen only with the fake
+- **Issues:** bead `context-grabber-r4wh` (2026-11-21: every recent result bundle in the pool slots held only `Staging`, no `Info.plist`, so `xcresulttool` called it corrupted and the screenshots failed tests keep were gone; evidence for two flaky tests had to be re-gathered by making the tests write PNGs)
+
+#### Use Case:
+- **As Igor,** or an agent, looking into a UI test that failed
+- **I want to** open the run's result bundle and see the screenshots and view trees the failed test kept
+- **so that** a failure is read from its evidence, not run again with extra instrumentation
+
+#### Acceptance Criteria:
+- **Scenario:** xcodebuild sits quiet after the last suite closes
+- **Given:** a UI test run whose last suite has closed, while xcodebuild is still writing the run's result bundle
+- **When:** the run's idle stop would fire
+- **Then:** the run waits until the bundle is written in full (up to two minutes after the suite closed), then stops xcodebuild if it is still there; the bundle sits beside the run's log, named for the run, and opens with `xcrun xcresulttool`; a failed run names it; a bundle not written in time is given up on and the run says it can't be opened
 
 ---
 

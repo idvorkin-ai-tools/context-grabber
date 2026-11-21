@@ -73,6 +73,7 @@ native-test-host:
     # Where a UI test run's time went, from a real run's log.
     scripts/native/test-ui-timings.sh
     # Story 689: a UI test run gets a time limit per case and one retry of a failed case; a hang after it is stopped.
+    # Story 790: the hang stop waits for the result bundle to be written, so failed tests' screenshots survive.
     # Story 783: a run of built tests whose first suite never starts (a dark or locked Mac) is stopped, exit 75.
     scripts/native/test-xcodebuild-log.sh
     # Story 827 (#419): the smoke's audio checks are skipped, and said to be, on a locked Mac.
