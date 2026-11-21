@@ -58,8 +58,12 @@ final class WhiteboardRewordUITests: XCTestCase {
     wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: words)], timeout: 5)
     waitUntil(NSPredicate(format: "label != %@", glyphs), send, timeout: 10)
     XCTAssertFalse(app.buttons["copy-error"].exists, "no problem")
-    let after = try XCTUnwrap(PaperScreen.settled(app) { $0.ink }, "the new words show")
-    XCTAssertGreaterThan(after.width, before.width * 1.5, "hello world is wider than hello")
+    // The new words are drawn a beat after the field goes: wait for ink wider than "hello", then for it to settle. A
+    // settled read alone could take the old words, still on screen (context-grabber-yfrl).
+    let wider = { (screen: PaperScreen) in screen.ink.flatMap { $0.width > before.width * 1.5 ? $0 : nil } }
+    let after = try XCTUnwrap(
+      PaperScreen.settled(app, within: 10, wider),
+      "hello world is wider than hello: \(String(describing: PaperScreen(app).ink)) against \(before)")
     XCTAssertEqual(after.minX, before.minX, accuracy: 0.01, "from the same left")
   }
 
