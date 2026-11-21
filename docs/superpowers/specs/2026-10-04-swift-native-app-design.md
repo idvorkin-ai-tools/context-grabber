@@ -475,6 +475,10 @@ skipped, and the output says why.
   whiteboard are mapped so far, and a changed test file names its own class. A change to app code outside the map runs
   no UI tests. The output names those paths and the option that runs every UI test class. Asked for in full, the
   simulator rung runs the whole suite of each area the change touched, in place of that area's classes.
+  Code the app never runs, such as the replay of Larry's board changes that only the command-line harness and the
+  host tests use, gets no UI test, no smoke section and no simulator build: its host fixtures are its check, and the
+  output says so. Code that both the replay and the board's canvas use still runs every whiteboard class, and a change
+  to the replay and the canvas together gets everything either would.
 - **Phone**: never climbed by the command; it stays Igor's.
 
 The Mac and simulator rungs run in build lanes, one job per lane, and the number of lanes scales with the Mac's memory:

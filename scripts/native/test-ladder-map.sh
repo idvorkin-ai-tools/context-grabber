@@ -198,6 +198,44 @@ says "the board's view: every class" "rung 2 UI tests (whiteboard, on the iPad, 
 dry --changed native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardLaunchHooks.swift
 says "the hooks: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
 
+# #1036: the replay of Larry's board changes runs only in the harness and the host tests, so a change to it alone gets
+# the host rung's replay fixtures and the Mac build, and no simulator, UI class or smoke.
+replay=native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
+dry --changed $replay
+says "the replay alone: the host rung" "rung 1 Host: ContextCore's tests and the script checks"
+says "the replay alone: the Mac build compiles it" "rung 1.5 Mac: the Catalyst build"
+says "the replay alone: no simulator" "rung 2 Simulator: skipped, the app never runs what changed; the host rung's replay fixtures do"
+says "the replay alone: says why" "no UI test or smoke of their own, the host rung's replay fixtures hold them (#1036): $replay"
+says "the replay alone: no UI class" "rung 2 UI tests: none, no app UI change"
+never "the replay alone: no whiteboard class" "UITests"
+never "the replay alone: no smoke" "rung 2 smoke"
+never "the replay alone: not unmapped" "no UI test map"
+dry --changed native/ContextCore/Sources/BoardOpsHarness/main.swift --changed native/ContextCore/Sources/BoardOpsHarness/Sketch.swift
+says "the harness: in no app build, so no Mac build" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
+says "the harness: no simulator" "rung 2 Simulator: skipped, the app never runs what changed; the host rung's replay fixtures do"
+never "the harness: not unmapped" "no UI test map"
+# The planner and applier the replay calls are the canvas's too: every class and the smoke, as before.
+for f in BoardOpsPlan BoardOps BoardOpApplier; do
+  dry --changed "native/ContextCore/Sources/ContextCore/Whiteboard/$f.swift"
+  says "the shared planning, $f: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
+  says "the shared planning, $f: the smoke's whiteboard" "rung 2 smoke, on the same build and boot: whiteboard"
+done
+# A mixed change keeps the union: the canvas's classes and smoke, and the replay's host fixtures.
+dry --changed $replay --changed native/App/Whiteboard/PaperBoard.swift
+says "replay and canvas: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
+says "replay and canvas: the smoke's whiteboard" "rung 2 smoke, on the same build and boot: whiteboard"
+says "replay and canvas: the simulator builds" "rung 2 Simulator: the build with its UI tests"
+says "replay and canvas: the Mac build" "rung 1.5 Mac: the Catalyst build"
+dry --changed $replay --changed native/App/Chat/ChatViews.swift
+says "replay and chat: chat's classes" "rung 2 UI tests (chat, fake Cockpit and bridge): $chat_all"
+says "replay and chat: chat's smoke, not the whiteboard's" "rung 2 smoke, on the same build and boot: chat"
+never "replay and chat: no whiteboard class" "rung 2 UI tests (whiteboard"
+for f in $replay native/ContextCore/Sources/BoardOpsHarness/main.swift native/ContextCore/Sources/BoardOpsHarness/Sketch.swift \
+  native/ContextCore/Sources/ContextCore/Whiteboard/BoardOpsPlan.swift native/ContextCore/Sources/ContextCore/Whiteboard/BoardOps.swift \
+  native/ContextCore/Sources/ContextCore/Whiteboard/BoardOpApplier.swift; do
+  if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
+done
+
 dry --changed docs/TESTING.md --changed README.md
 says "docs: nothing to format" "rung 0 Lint: swift-format over 0 touched Swift file(s), SwiftLint over the tree"
 says "docs: no Mac build" "rung 1.5 Mac: skipped, nothing the Mac build compiles changed"
@@ -347,6 +385,15 @@ if [ "$status" -eq 0 ] && [ ! -e "$MARKS/lockf" ]; then ok "docs: climbs without
 says "docs: the Mac skipped in the seconds" "  rung 1.5 Mac: skipped"
 says "docs: the end names the phone" "every rung passed; rung 3, the phone, is yours: just native-run-device"
 
+# #1036: a climb for the replay alone runs the host tests and the Mac build, and starts no simulator.
+run -- --changed native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "the replay alone: climbs"; else bad "the replay alone: climbs, exit $status"; fi
+if grep -qxF "just native-test-host" "$MARKS/just" && grep -qxF "just native-build-mac" "$MARKS/just"; then ok "the replay alone: the host tests and the Mac build"
+else bad "the replay alone: the host tests and the Mac build: $(cat "$MARKS/just" 2>/dev/null)"; fi
+if [ -e "$MARKS/xcodebuild" ] || [ -e "$MARKS/smoke" ]; then bad "the replay alone: no simulator build, class or smoke"; else ok "the replay alone: no simulator build, class or smoke"; fi
+says "the replay alone: the simulator skipped in the seconds" "  rung 2 Simulator: skipped"
+
 run -- --changed native/UITests/CardUITests.swift
 status=$?
 if [ "$status" -eq 0 ]; then ok "a test file: climbs"; else bad "a test file: climbs, exit $status"; fi
@@ -369,6 +416,11 @@ says_smoke "the smoke: a UI test file runs none of it" none native/UITests/CardU
 says_smoke "the smoke: shared code runs all of it" all native/App/AppModel.swift
 says_smoke "the smoke: its audio-lock helper runs all of it (story 827)" all scripts/native/smoke-lock.sh
 says_smoke "the smoke: the lead-time report runs none of it (story 828)" none scripts/lead-times.py
+says_smoke "the smoke: the replay runs none of it (#1036)" none native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
+says_smoke "the smoke: nor its harness (#1036)" none native/ContextCore/Sources/BoardOpsHarness/main.swift
+says_smoke "the smoke: the replay beside the canvas, the whiteboard's (#1036)" whiteboard \
+  native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift native/App/Whiteboard/PaperBoard.swift
+says_smoke "the smoke: the shared planner, the whiteboard's (#1036)" whiteboard native/ContextCore/Sources/ContextCore/Whiteboard/BoardOpsPlan.swift
 
 # Story 782: the simulator rung holds the display on and wakes it first; the Mac rung only keeps the Mac awake.
 if grep -qxF "caffeinate -d -i" "$MARKS/caffeinate"; then ok "rung 2 holds the display on"; else bad "rung 2 holds the display on: $(cat "$MARKS/caffeinate")"; fi

@@ -979,3 +979,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a clean checkout, with or without the key
 - **When:** `just testflight --export-only` runs
 - **Then:** it archives and signs the package for App Store distribution, names where the package is, and uploads nothing
+
+---
+
+### User Story 1014:
+
+- **Summary:** A change only to the replay of Larry's board changes runs its host fixtures, not the whiteboard's UI tests
+- **Status:** implemented on branch `native/replay-host-route-1036`; verified on the host rung (`scripts/native/test-ladder-map.sh` runs the real selector and smoke selector: the replay alone, the harness, the shared planner, the replay with the canvas and with chat) and compared on one commit (944718ed, 2026-11-21): the old route ran 15 whiteboard classes, 63 cases, first run passed with one skip, plus the whiteboard smoke, 1,605 s of a simulator lane; the new route ran lint 1 s, the host rung 181 s and the Mac build 38 s, and no simulator. A one-line break of the replay's Keep step failed the host's replay fixtures (`BoardReplayTests`), which no UI test could see, as the app never calls the replay
+- **Issues:** [#1036](https://github.com/idvorkin/context-grabber/issues/1036); bead `context-grabber-wcmi`
+
+#### Use Case:
+- **As Igor,** waiting on a fix to how Larry's board changes replay on a copy of a board
+- **I want to** have the ladder run the host tests that replay the real boards, and not every whiteboard UI test on the iPad
+- **so that** a change no screen can show costs seconds on the host, not twenty minutes of a build lane, while a change to what the canvas draws still runs everything
+
+#### Acceptance Criteria:
+- **Scenario:** A change to the replay alone, to what it shares with the canvas, or to both
+- **Given:** a branch that changes only the replay, which the app never runs
+- **When:** the test ladder climbs
+- **Then:** it runs lint, the host tests with their replay fixtures and the Mac build, and no simulator build, UI test class or smoke section, saying why; a change to the planner the replay shares with the canvas still runs every whiteboard class and the whiteboard smoke, and a change to the replay and the canvas together gets everything either would
