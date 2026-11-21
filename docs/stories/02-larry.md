@@ -1263,6 +1263,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 838:
+
+- **Summary:** A chip names the machine that started a chat
+- **Status:** not built: spec written for bead context-grabber-p5s4; waits on the Cockpit naming the machine that started a thread (bead context-grabber-l0g1), which no Cockpit does today
+- **Issues:** bead context-grabber-p5s4, bead context-grabber-l0g1
+- **Spec:** [Native chat — Which machine started a chat](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man whose computers start chats with Larry on their own
+- **I want to** see which machine started a chat, on its row and inside it
+- **so that** I can tell a machine's chat from one I started without opening it
+
+#### Acceptance Criteria:
+- **Scenario:** A chat a machine started
+- **Given:** the Cockpit says a chat was started by the machine *ig-mba*, and another was started by me on the phone
+- **When:** I open the chat list, and then the first chat
+- **Then:** its row and its header show a chip reading *ig-mba*; the chat I started has no chip; a Cockpit that names no machine shows no chip on any chat
+
+---
+
 ### User Story 315:
 
 - **Summary:** A batch that partly fails says which and why

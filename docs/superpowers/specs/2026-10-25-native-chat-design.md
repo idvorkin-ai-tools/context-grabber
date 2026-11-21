@@ -88,6 +88,15 @@ tap archives them, and unticking keeps any of them. A thread that finishes or is
 the count and is not archived. When some can't be archived those threads go back and one copyable problem names each of
 them and why; a single thread reads as it always did. A failed *Undo* of several says the same.
 
+**Which machine started a chat** (Igor, 2026-11-21: *"In chat mode, sometimes the chat gets started by one of the
+machines. Can we get a chip making that clear: the machine name?"*). A chat that one of Igor's computers started, an
+agent or a script there rather than Igor himself, shows a small chip with that machine's name: on its row in the list,
+beside the title, and in the open chat's header. A chat Igor started himself, from the phone, the Cockpit's page or
+Telegram, has no chip. The name is the one the Cockpit gives; the app never works it out from a sender's label. A
+Cockpit that names no machine, as every one does today, changes nothing: no chip anywhere. Whether a chat Larry starts
+counts as a machine's, and with which name, is the Cockpit's call (asked of Larry, 2026-11-21). *Not built yet: it waits
+on the Cockpit naming the machine* (bead context-grabber-l0g1).
+
 **Only the new messages** (Igor, 2026-11-21: *"have inbox have new message filtering as well"*). Above the list, a
 two-way switch of the same kind as Review's: *All*, the list as it always was, or *New*, only the live chats with a
 reply Igor hasn't read (the ones with the unread mark), in the list's own order. Under *New* the pinned thread shows
