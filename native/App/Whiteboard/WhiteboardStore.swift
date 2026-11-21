@@ -315,9 +315,17 @@ final class WhiteboardStore: ObservableObject {
       var failed: (any Error)?
       step = .download
       for id in merged.fetch {
-        guard let drawing = drawingURL(id), let picture = pictureURL(id), let board = index.board(id) else { continue }
+        guard let board = index.board(id) else { continue }
         do {
-          try await cloud.download(id, drawing: drawing, picture: picture)
+          // #1043: the assets are checked before they replace this device's copy; only then is the revision fetched.
+          let assets = try await cloud.download(id)
+          let taken = try keeping.takeReplica(
+            id, mine: board.device == device, drawing: assets.drawing?.fileURL, picture: assets.picture?.fileURL,
+            decode: PKDrawing.init(data:))
+          if let missing = taken.pictureProblem {
+            log.event("whiteboard_sync", ["board": id, "picture": "drawn_here", "message": "\(missing)"])
+            writePicture(of: taken.drawing, id: id)
+          }
           index.fetched(id, at: board.updated)
         } catch {
           failed = failed ?? error
@@ -508,15 +516,13 @@ struct BoardCloud {
     return (found, unread, tombstones)
   }
 
-  /// A board's drawing and picture, copied to where this device keeps them.
-  func download(_ id: String, drawing: URL, picture: URL) async throws {
+  /// A board's drawing and picture as CloudKit downloaded them; nil for one the record doesn't carry. The assets are
+  /// held, so their files stay, while the store checks them before they replace this device's copy
+  /// (`BoardKeeping.takeReplica`, #1043).
+  func download(_ id: String) async throws -> (drawing: CKAsset?, picture: CKAsset?) {
     let results = try await database.records(for: [self.id(id)], desiredKeys: ["drawing", "picture"])
     guard let record = try results[self.id(id)]?.get() else { throw CKError(.unknownItem) }
-    for (key, target) in [("drawing", drawing), ("picture", picture)] {
-      guard let source = (record[key] as? CKAsset)?.fileURL else { continue }
-      if FileManager.default.fileExists(atPath: target.path) { try FileManager.default.removeItem(at: target) }
-      try FileManager.default.copyItem(at: source, to: target)
-    }
+    return (record["drawing"] as? CKAsset, record["picture"] as? CKAsset)
   }
 
   private func id(_ board: String) -> CKRecord.ID { CKRecord.ID(recordName: board, zoneID: zone.zoneID) }

@@ -1,6 +1,7 @@
 //  What the whiteboard store decides about keeping boards on this device (spec 2026-11-01-whiteboard-design.md):
 //  where a board's files go, the list read or set aside, a failed save remembered until that board saves (stories 599,
-//  612) and a new board closed without a stroke dropped (stories 344, 604). The app's `WhiteboardStore` and
+//  612), a new board closed without a stroke dropped (stories 344, 604) and another device's board brought down
+//  without losing the last good one (#1043). The app's `WhiteboardStore` and
 //  `WhiteboardListView` only carry these out: PencilKit decodes, UIKit draws the picture, CloudKit syncs. The disk is handed in, so a test can give it one that fails.
 
 import Foundation
@@ -82,6 +83,30 @@ public struct BoardHeld: LocalizedError {
   }
 }
 
+/// A board brought down from iCloud without its drawing, or its picture: the drawing is asked for again next sync, and
+/// a picture is drawn here from the drawing (#1043).
+public struct ReplicaIncomplete: LocalizedError {
+  public let board: String
+  public let asset: String
+  public var errorDescription: String? { "iCloud's copy of this board came without its \(asset)." }
+}
+
+/// A board's drawing from iCloud that couldn't be read: the one this device had stays, and it's asked for again (#1043).
+public struct UnreadableReplica: LocalizedError {
+  public let board: String
+  public let reason: any Error
+  public var errorDescription: String? {
+    "iCloud's copy of this board couldn't be read: \(reason.localizedDescription)"
+  }
+}
+
+/// What a board brought down from iCloud left on this device: its drawing, decoded, and why its picture wasn't kept,
+/// if it wasn't (#1043).
+public struct ReplicaTaken<Drawing> {
+  public let drawing: Drawing
+  public let pictureProblem: (any Error)?
+}
+
 public struct BoardKeeping {
   /// The whiteboard's folder; nil in a build with nowhere to keep boards, where nothing is read or written.
   public let dir: URL?
@@ -160,6 +185,37 @@ public struct BoardKeeping {
     guard unsavedBoard == id else { return false }
     unsavedBoard = nil
     return true
+  }
+
+  /// Another device's board brought down from iCloud: its drawing read and checked before it takes the place of the one
+  /// this device had, so a copy that fails, is cut short or can't be read leaves the last good one showing and throws,
+  /// for the sync to ask again. The drawing is needed; the picture isn't: one missing or not kept is said, and the
+  /// store draws it from the drawing. A held copy of another device's board is only a replica, so a good copy repairs
+  /// it and lets it go; a held board of this device's (`mine`) is never replaced (#1042, #1043).
+  public mutating func takeReplica<Drawing>(
+    _ id: String, mine: Bool, drawing source: URL?, picture pictureSource: URL?, decode: (Data) throws -> Drawing
+  ) throws -> ReplicaTaken<Drawing> {
+    guard let url = drawingURL(id), let pictureURL = pictureURL(id) else { throw CocoaError(.fileNoSuchFile) }
+    guard !(mine && heldBoards.contains(id)) else { throw BoardHeld(board: id) }
+    guard let source else { throw ReplicaIncomplete(board: id, asset: "drawing") }
+    let data = try disk.read(source)
+    let drawing: Drawing
+    do {
+      drawing = try decode(data)
+    } catch {
+      throw UnreadableReplica(board: id, reason: error)
+    }
+    try disk.write(data, to: url)
+    heldBoards.remove(id)
+    guard let pictureSource else {
+      return ReplicaTaken(drawing: drawing, pictureProblem: ReplicaIncomplete(board: id, asset: "picture"))
+    }
+    do {
+      try disk.write(disk.read(pictureSource), to: pictureURL)
+      return ReplicaTaken(drawing: drawing, pictureProblem: nil)
+    } catch {
+      return ReplicaTaken(drawing: drawing, pictureProblem: error)
+    }
   }
 
   /// A board closed with ink that couldn't be saved: the board's screen is gone, so the list says it until that board
