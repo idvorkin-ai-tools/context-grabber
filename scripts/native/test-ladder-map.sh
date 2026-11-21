@@ -315,7 +315,7 @@ says "three features: places apart" "rung 2 UI tests (places, the real export in
 says "three features: the timer's" "rung 2 UI tests: GymTimerDialsUITests GymTimerUITests"
 says "three features: chat's" "rung 2 UI tests (chat, fake Cockpit and bridge): $chat_all"
 
-# No class on the ladder's simulator opens a second window (IPadUITests skips on a phone), so Windows stays unmapped.
+# No class on the ladder's simulator opens a second window (IPadUITests opens the launchers), so Windows stays unmapped.
 dry --changed native/App/Windows/WindowViews.swift
 says "unmapped code: says so" "no UI test map for: native/App/Windows/WindowViews.swift"
 says "unmapped code: names the option" "so no UI tests were chosen for them; --all runs every UI test class"

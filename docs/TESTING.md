@@ -155,7 +155,7 @@ lock another job holds, and an idle lane's only to keep the booted count at or u
 (`simctl bootstatus -b`). Nothing shuts it down when it ends, pass or fail: each iOS 27 boot writes about 300 MB of wallpaper snapshots
 (`PRBPosterExtensionDataStore`) that are never evicted, and spikes the CPU. On 2026-11-14 that was 31 boots, and on
 2026-11-17 the snapshots filled the disk. The rung's iPhone steps (chat, places, the other classes, the smoke, the chat
-suite) and its iPad steps (the whiteboard's classes and suite) run as two groups, the device already booted first, so a
+suite) and its iPad steps (the whiteboard's classes and suite, then the iPad's own classes) run as two groups, the device already booted first, so a
 climb switches device at most once. Until story 982 finds why keys reach the app only in the first test after a boot,
 the iPad is still fresh-booted when `WhiteboardPasteUITests` runs, and only then. The one exception is a hot Mac: when macOS records a thermal or performance warning
 (`pmset -g therm`; not the load, which here counts hung processes), the rung shuts its simulator down at the end and says so (story
