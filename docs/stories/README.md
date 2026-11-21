@@ -11,7 +11,7 @@ the deep dives behind them — a story links to its spec where one exists, and a
 first and the story in the same PR ([AGENTS.md](../../AGENTS.md)).
 
 Every story carries its own `Status:` line: **implemented** with the commits that built it and where it was
-verified (host tests, the simulator, or the phone), or **not implemented** with the issue that asks for it. The
+verified (host tests, the simulator, or the phone), or **not implemented** with the issue or bead that asks for it. The
 stories are the only record of status; there is no separate table to keep in step. A bug against a story goes on
 its `Issues:` line.
 
