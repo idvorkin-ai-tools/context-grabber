@@ -8,6 +8,9 @@ import Foundation
 public enum WhiteboardScratchOut {
   /// Turns back along the zigzag's main direction, at least.
   public static let reversals = 3
+  /// Turns back a scribble needs when it wanders along the word, its sweeps crossing only part of its length
+  /// (context-grabber-4kj).
+  public static let wanderingReversals = 5
   /// Board points per millisecond, at least.
   public static let speed: Double = 0.5
   /// How near the zigzag a stroke's own line passes to be taken, beyond half its pen.
@@ -33,10 +36,15 @@ public enum WhiteboardScratchOut {
     public var reversals: Int
     /// Why it isn't one: short, small, few turns, short sweeps, marches along.
     public var why: String?
+    /// A scribble that wanders along the word as it goes (context-grabber-4kj): it scratches out only ink it lies
+    /// over; over none, or beside it, it stays ink, as hatching looks the same.
+    public var wanders = false
   }
 
   /// The shape alone: three or more turns back along the main axis, each sweep crossing most of it, and no wider across
-  /// than it is long, so *mmm* and *www*, whose humps march along, never qualify.
+  /// than it is long, so *mmm* and *www*, whose humps march along, never qualify. A scribble with five or more turns
+  /// whose sweeps cross half its length on average also qualifies, as it `wanders`: a hand scratching out a word drifts
+  /// along it, so no sweep spans the whole scribble (context-grabber-4kj: Igor's on 2026-11-21 averaged 63% to 75%).
   public static func shape(_ points: [CGPoint]) -> Shape {
     guard points.count >= 8 else { return Shape(ok: false, reversals: 0, why: "short") }
     var (tx, ty) = (CGFloat(0), CGFloat(0))
@@ -87,9 +95,13 @@ public enum WhiteboardScratchOut {
       }
     }
     if turns < reversals { return Shape(ok: false, reversals: turns, why: "few turns") }
-    if travel < 0.8 * CGFloat(turns + 1) * ext { return Shape(ok: false, reversals: turns, why: "short sweeps") }
+    let sweep = travel / CGFloat(turns + 1)
+    let wanders = sweep < 0.8 * ext
+    if wanders && (turns < wanderingReversals || sweep < 0.5 * ext) {
+      return Shape(ok: false, reversals: turns, why: "short sweeps")
+    }
     if cross > 0.8 * ext { return Shape(ok: false, reversals: turns, why: "marches along") }
-    return Shape(ok: true, reversals: turns, why: nil)
+    return Shape(ok: true, reversals: turns, why: nil, wanders: wanders)
   }
 
   public struct Outcome: Equatable, Sendable {
@@ -160,7 +172,8 @@ public enum WhiteboardScratchOut {
     guard shape.ok else { return no(shape.why) }
     if let speed, speed < Self.speed { return no("slow") }
     let hits = touched(by: points, in: ink)
-    guard !hits.isEmpty else { return no("no ink") }
+    // A wandering scribble over nothing, or beside ink, is hatching or writing: it stays ink, unsaid (4kj).
+    guard !hits.isEmpty else { return no(shape.wanders ? "short sweeps" : "no ink") }
     // The ink it touched lies mostly under it, not beside it.
     let zone = box(points).insetBy(dx: -6, dy: -6)
     let taken = Set(hits)
@@ -171,7 +184,7 @@ public enum WhiteboardScratchOut {
         if within(p, zone) { inside += 1 }
       }
     }
-    if all > 0, Double(inside) / Double(all) < over { return no("beside ink") }
+    if all > 0, Double(inside) / Double(all) < over { return no(shape.wanders ? "short sweeps" : "beside ink") }
     return Outcome(ok: true, gone: hits, reversals: shape.reversals, speed: speed, why: nil)
   }
 
