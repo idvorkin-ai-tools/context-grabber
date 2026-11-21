@@ -8093,3 +8093,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** an open # header and an open ## header under it
 - **When:** a turn sends Larry a picture of the board
 - **Then:** the # is labelled "▾ header" and the ## "▾ ## header" past their lines, clear of the ink
+
+---
+
+### User Story 1069:
+
+- **Summary:** Redrawing an erased bar of a ### header's middle # brings back ###
+- **Status:** implemented in [e801768f](https://github.com/idvorkin/context-grabber/commit/e801768f); verified by host tests (`BoardInkHeadersTests.testRedrawingAnErasedBarOfTheMiddleHashBringsBackEveryHash`, failing before the fix: ▾ ##) and `just test`; the eraser and the Pencil's bar are for the iPad
+- **Spec:** [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Header levels: ## and ###*
+- **Issues:** context-grabber-2zud (from [#1034](https://github.com/idvorkin/context-grabber/issues/1034)'s review)
+
+#### Use Case:
+- **As someone** who fixes a wobbly # with the eraser
+- **I want** a bar I erase and redraw to give back the level the #s on the board say
+- **so that** a ### stays a ### after a touch-up, never quietly a ##
+
+#### Acceptance Criteria:
+- **Scenario:** The middle # of a ### touched up
+- **Given:** a line I made a ### header
+- **When:** I erase one bar of the second # with the eraser, then draw that bar again
+- **Then:** the mark reads ▾ after the erase and ▾ ### again after the redraw; the line stays a header throughout
