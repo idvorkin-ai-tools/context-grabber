@@ -271,17 +271,18 @@ public struct ChatListSelection: Equatable, Sendable {
   /// A live row while selecting: the pinned thread has no tick (#598).
   public func shows(_ thread: ChatSummary) -> Bool { !selecting || !thread.pinned }
 
-  /// The live rows the list shows. While not ticking: all of them, or under *New* only those with an unread reply.
+  /// The live rows the list shows. While not ticking: all of them, or under *New* only those with an unread reply and
+  /// the chat that is open (`keeping`), which reading it must not take out from under itself.
   /// While ticking, those with a tick, and under *Recommendations* only the ones that look done; *New* doesn't apply.
-  public func rows(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all) -> [ChatSummary] {
+  public func rows(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all, keeping: String? = nil) -> [ChatSummary] {
     let live = Self.live(threads).filter(shows)
     if selecting { return filter == .recommendations ? live.filter(\.looksDone) : live }
-    return inbox == .new ? live.filter { $0.unread > 0 } : live
+    return inbox == .new ? live.filter { $0.unread > 0 || $0.key == keeping } : live
   }
 
   /// A switch's side with nothing to show says so in place of the rows. An empty list has its own line.
-  public func emptyLine(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all) -> String? {
-    guard !threads.isEmpty, rows(threads, inbox: inbox).isEmpty else { return nil }
+  public func emptyLine(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all, keeping: String? = nil) -> String? {
+    guard !threads.isEmpty, rows(threads, inbox: inbox, keeping: keeping).isEmpty else { return nil }
     if selecting { return filter == .recommendations ? "Nothing looks done" : nil }
     return inbox == .new ? "No new messages" : nil
   }

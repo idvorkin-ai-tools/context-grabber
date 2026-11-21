@@ -163,4 +163,26 @@ final class ChatArchiveUITests: XCTestCase {
     filter.buttons["All"].tap()
     XCTAssertTrue(pinned.appears(within: 5), app.debugDescription)
   }
+
+  /// Story 834: a chat opened from *New* is read, stays open while he reads it, and has left *New* when he comes back.
+  func testAChatOpenedFromNewStaysOpenAndHasLeftNewOnceBack() throws {
+    let app = try openList()
+    let filter = app.segmentedControls["chat-inbox-filter"]
+    XCTAssertTrue(filter.appears(within: 5), app.debugDescription)
+    addTeardownBlock { if filter.buttons["All"].exists { filter.buttons["All"].tap() } }
+    filter.buttons["New"].tap()
+    let unread = app.buttons.matching(
+      NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "chat-thread-", "chat-thread-more")
+    ).firstMatch
+    XCTAssertTrue(unread.appears(within: 5), "a chat with an unread reply: \(app.debugDescription)")
+    let row = app.buttons[unread.identifier]
+    row.tap()
+    let more = app.buttons["chat-thread-more"]
+    XCTAssertTrue(more.appears(within: 10), app.debugDescription)
+    Thread.sleep(forTimeInterval: 3)
+    XCTAssertTrue(more.exists, "read, and still open: \(app.debugDescription)")
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    XCTAssertTrue(filter.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(row.waitForNonExistence(timeout: 5), "read, so out of New: \(app.debugDescription)")
+  }
 }

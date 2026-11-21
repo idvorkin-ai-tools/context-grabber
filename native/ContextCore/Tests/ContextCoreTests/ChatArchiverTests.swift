@@ -557,6 +557,15 @@ final class ChatArchiverTests: XCTestCase {
     XCTAssertNil(selection.emptyLine([row("a")], inbox: .all))
   }
 
+  func testTheOpenChatStaysInNewWhileOpenAndLeavesOnceBackOnTheList() {
+    let selection = ChatListSelection()
+    let opened = [unread("a").read(), unread("b")]
+    XCTAssertEqual(keys(selection.rows(opened, inbox: .new, keeping: "a")), ["a", "b"], "read while open: still there")
+    XCTAssertNil(selection.emptyLine([unread("a").read()], inbox: .new, keeping: "a"))
+    XCTAssertEqual(keys(selection.rows(opened, inbox: .new)), ["b"], "back on the list: gone")
+    XCTAssertEqual(keys(selection.rows([unread("a", done: true).read()], inbox: .new, keeping: "a")), [], "live only")
+  }
+
   func testWhileTickingReviewsSwitchDecidesAndNewComesBackAfter() {
     let threads = [row("p", pinned: true), unread("a"), row("b", looksDone: true)]
     var selection = ChatListSelection()

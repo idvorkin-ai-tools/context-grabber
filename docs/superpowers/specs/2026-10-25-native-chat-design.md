@@ -92,8 +92,8 @@ them and why; a single thread reads as it always did. A failed *Undo* of several
 two-way switch of the same kind as Review's: *All*, the list as it always was, or *New*, only the live chats with a
 reply Igor hasn't read (the ones with the unread mark), in the list's own order. Under *New* the pinned thread shows
 only when it has an unread reply, the *Done* fold is hidden, and with nothing unread the list says *No new messages*.
-Opening a chat from *New* reads it, so it has left *New* when Igor comes back; a reply arriving while he looks puts its
-chat in. Messages not sent yet, *Decisions (N)* and *Earlier shares* show under either side. The choice is remembered on
+Opening a chat from *New* reads it; it stays open while he reads, and has left *New* when Igor comes back; a reply
+arriving while he looks puts its chat in. Messages not sent yet, *Decisions (N)* and *Earlier shares* show under either side. The choice is remembered on
 each device, across launches, and is not shared between devices. While ticking, Review's own switch takes its place and
 *All* there means every live chat whatever this switch says; *Cancel* or *Archive (N)* brings this switch back as it was.
 The switch shows once the list has a chat.
