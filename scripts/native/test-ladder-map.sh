@@ -438,6 +438,8 @@ says_smoke "the smoke: a UI test file runs none of it" none native/UITests/CardU
 says_smoke "the smoke: shared code runs all of it" all native/App/AppModel.swift
 says_smoke "the smoke: its audio-lock helper runs all of it (story 827)" all scripts/native/smoke-lock.sh
 says_smoke "the smoke: the lead-time report runs none of it (story 828)" none scripts/lead-times.py
+says_smoke "the smoke: the ladder report and the deploy recorder run none of it (#1038)" none \
+  scripts/native/ladder-report.py scripts/native/record-deploy.sh scripts/native/fixtures/ladder-report/runs.jsonl
 says_smoke "the smoke: the replay runs none of it (#1036)" none native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
 says_smoke "the smoke: nor its harness (#1036)" none native/ContextCore/Sources/BoardOpsHarness/main.swift
 says_smoke "the smoke: the replay beside the canvas, the whiteboard's (#1036)" whiteboard \
