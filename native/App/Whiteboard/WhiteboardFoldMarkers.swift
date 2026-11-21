@@ -21,7 +21,8 @@ extension WhiteboardModel {
   }
 
   /// The open headers' labels' boxes, which a picture of the board takes in with the ink (#1001): none without headers.
+  /// With a fold showing, the opened picture's, an open sub-header inside a folded section too (context-grabber-e91y).
   func pictureLabelBoxes() -> [CGRect] {
-    headers.isEmpty ? [] : outline().headerLabels.map(\.box)
+    headers.isEmpty ? [] : outline().pictureLabelBoxes
   }
 }
