@@ -300,7 +300,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 790:
 
 - **Summary:** A failed UI test's screenshots can still be opened after the run
-- **Status:** not implemented
+- **Status:** implemented in [ce8857d2](https://github.com/idvorkin/context-grabber/commit/ce8857d2); verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild that writes its bundle for 8 s, silently, after its suite closes and then hangs: the stop waits for `Info.plist`, the failure names the bundle; one that never finishes is given up on at the limit and says so; a command's own bundle path is kept, a build gets none; the check fails against the old script), and on the simulator (rung 2, `GymTimerUITests`): the run's bundle at `native/Build/logs/ladder-ui-tests.xcresult` opened with `xcrun xcresulttool get test-results summary` (Passed, 1 test). That run's xcodebuild ended by itself, so the stop's wait was seen only with the fake
 - **Issues:** bead `context-grabber-r4wh` (2026-11-21: every recent result bundle in the pool slots held only `Staging`, no `Info.plist`, so `xcresulttool` called it corrupted and the screenshots failed tests keep were gone; evidence for two flaky tests had to be re-gathered by making the tests write PNGs)
 
 #### Use Case:
