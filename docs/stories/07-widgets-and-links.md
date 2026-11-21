@@ -1872,6 +1872,24 @@ apart."*
 - **When:** I press Command+N
 - **Then:** a new empty chat opens there
 
+### User Story 736:
+
+- **Summary:** Command+T opens a new chat on the Mac too
+- **Status:** not yet built
+- **Issues:** [#1046](https://github.com/idvorkin/context-grabber/issues/1046)
+- **Spec:** [Grabber Native on the Mac — Command+T is New Chat too](../superpowers/specs/2026-11-03-native-mac-app-design.md)
+
+#### Use Case:
+- **As** Igor, on the Mac, whose fingers reach for Command+T for a new thread as often as Command+N
+- **I want** Command+T to open a new chat just as Command+N does
+- **so that** either "new" key starts the thread, and neither has to be remembered over the other
+
+#### Acceptance Criteria:
+- **Scenario:** Command+T opens a new chat
+- **Given:** home or chat is in front, or chat has a window of its own
+- **When:** I press Command+T, or choose New Thread from the File menu
+- **Then:** a new empty chat opens, as Command+N would, and Command+N still opens one too
+
 ### User Story 731:
 
 - **Summary:** A new window lets me choose what it shows

@@ -1,7 +1,8 @@
 //  #681, stories 684 and 685: a Mac can't be shaken, so the menu bar carries Settings and a problem report. #722,
 //  stories 722-727: every shortcut is a menu item too: New Board, Go to the home destinations, Report a Problem. #745,
 //  stories 725 and 734-735: Control+R reports, and Command+N is New Chat (Igor, 2026-11-20), so New Window (story 731)
-//  moves to Option+Command+N. A phone and an iPad show no new items and get none of the keys.
+//  moves to Option+Command+N. #1046, story 736: Command+T, the Mac's new-tab key, is New Thread, the same new chat. A
+//  phone and an iPad show no new items and get none of the keys.
 
 import BugKit
 import ContextCore
@@ -28,6 +29,10 @@ struct MacMenuCommands: Commands {
       CommandGroup(replacing: .newItem) {
         Button("New Chat") { model.newChat(from: "mac_menu") }
           .keyboardShortcut("n")
+          .disabled(!model.newChatLive)
+        // Story 736 (#1046): a menu item holds one key, so Command+T is a second item doing what New Chat does.
+        Button("New Thread") { model.newChat(from: "mac_menu_new_thread") }
+          .keyboardShortcut("t")
           .disabled(!model.newChatLive)
         Button("New Window") { model.openNewWindow(from: "mac_menu") }
           .keyboardShortcut("n", modifiers: [.command, .option])
