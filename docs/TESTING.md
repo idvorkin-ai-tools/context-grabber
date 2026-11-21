@@ -141,7 +141,8 @@ is busy (up to an hour, then exit 75), and exports `BUILD_LANE` (its number) and
 is `~/tmp/agent/locks/build.lock`, the one every older checkout takes, so those still exclude lane 1; lane N's is
 `build-N.lock`. With one lane it is exactly `lockf -k -t 3600 ~/tmp/agent/locks/build.lock`, as before lanes. Inside
 the lock come the wait for other xcodebuilds (below), then `time-limit` and `caffeinate -i` (the simulator rung
-`caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. A suite script runs in a lane the same way,
+`caffeinate -d -i`, story 782), so the time limit counts only the rung's own run. `time-limit` is a zsh script and
+zsh reads `~/.zshenv`, so the ladder passes the lane's `BUILD_LANES` past it again rather than trust what arrives. A suite script runs in a lane the same way,
 given the simulator's name so that it resolves the lane's own device inside the lane:
 `scripts/native/build-lane.sh run ~/gits/mac-driver/bin/time-limit 30 caffeinate -i scripts/native/test-chat-ui.sh "iPhone 17"`.
 

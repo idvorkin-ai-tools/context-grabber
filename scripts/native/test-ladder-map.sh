@@ -120,6 +120,14 @@ cat >"$fakes/uv" <<'F'
 #!/usr/bin/env bash
 exec sleep 30
 F
+# The rung's time limit (mac-driver's time-limit) is a zsh script, and zsh reads ~/.zshenv: this one sets BUILD_LANES
+# the way Igor's does, so a lane count that doesn't survive it fails here on every Mac (context-grabber-jacw).
+cat >"$fakes/time-limit" <<'F'
+#!/usr/bin/env bash
+shift
+export BUILD_LANES=6
+exec "$@"
+F
 chmod +x "$fakes"/*
 # One build lane unless a run says otherwise (story 785), so this Mac's own memory can't change what the checks see.
 dry() { PATH="$fakes:$PATH" BUILD_LANES=${BUILD_LANES:-1} "$ladder" --dry-run "$@" >"$out" 2>&1; }
@@ -138,7 +146,7 @@ run() {  # <env assignments...> -- <ladder arguments...>
   while [ "$1" != "--" ]; do vars+=("$1"); shift; done
   shift
   rm -f "$MARKS"/* "$tmp/ledger.jsonl" "$tmp/logs/ui-timings.jsonl"
-  env PATH="$fakes:$PATH" LADDER_LEDGER="$tmp/ledger.jsonl" BUILD_LANES=1 BUILD_LOCK_DIR="$tmp/locks" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
+  env PATH="$fakes:$PATH" LADDER_LEDGER="$tmp/ledger.jsonl" LADDER_TIME_LIMIT="$fakes/time-limit" BUILD_LANES=1 BUILD_LOCK_DIR="$tmp/locks" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
     XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" SIM_DEVICES_DIR="$tmp/devices" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
