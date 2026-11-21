@@ -348,6 +348,22 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ##"])
   }
 
+  func testRedrawingAnErasedBarOfTheMiddleHashBringsBackEveryHash() throws {
+    var o = BoardOutline(strokes: [], headers: [])
+    headerLine(&o, "x", level: 3, y: 100)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ###"])
+    // Erase one bar of the second # (the eraser, not Undo): the third # no longer counts, back to ▾.
+    o.strokes.removeAll { $0.ids == ["x#1l2"] }
+    o = BoardOutline(strokes: o.strokes, headers: o.headers)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾"])
+    // Redraw it: all three #s are on the board again, so ▾ ### again, not ▾ ##.
+    let again = line("again", from: CGPoint(x: 133, y: 117), to: CGPoint(x: 159, y: 118))
+    XCTAssertEqual(draw(&o, [again], id: "unused")?.kind, "deeper")
+    XCTAssertEqual(o.level(try XCTUnwrap(o.header("x"))), 3)
+    XCTAssertEqual(o.headerMarks.map(\.text), ["▾ ###"])
+    XCTAssertEqual(o.hashes(try XCTUnwrap(o.header("x"))).count, 12, "the third #'s bars are #s again, not row ink")
+  }
+
   func testATightlyWrittenHashHashWhoseBarsOverlapIsStillAHashHash() throws {
     var o = BoardOutline(strokes: [], headers: [])
     draw(&o, hash("a", x: 100, y: 100), id: "x")

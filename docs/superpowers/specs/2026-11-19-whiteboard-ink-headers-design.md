@@ -99,6 +99,9 @@ Igor, 2026-11-20 (decision O2): "Keep [the #967 ink header design]; build ## and
   #s: a ## under a # is level 2. A ## with no # above it is the outline's level 1.
 - **Undo of the last # takes one level**: the header goes back to the level it had (Redo brings the level back).
   Undo or erase of the first # still takes the whole header, as before.
+- **Erasing a bar of a further # takes the header back to the level before that #**, so a ### whose middle # loses
+  a bar is a level-1 header (the #s after it no longer count). **Redrawing the bar brings every # still on the board
+  back**: the ### is ▾ ### again, not ▾ ##, and the third #'s strokes are its #s again, not the row's ink.
 - **Larry's picture labels a deeper header with its level**: "▾ ## header", "▾ ### header". A level-1 header's label
   stays "▾ header". A folded header's "▸ N lines folded" is unchanged; its #s are in the picture's ink.
 - **The session log** says when a # took a header a level deeper, and to which level.

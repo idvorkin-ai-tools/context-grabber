@@ -243,8 +243,12 @@ extension BoardOutline {
         let four = hash(finishedBy: n, beside: header)
       else { continue }
       let names = four.flatMap { strokes[$0].ids }
-      // A # undone before this one leaves no gap in the count: only the levels still on the board are kept.
-      headers[h].deeper = Array(header.further(live)) + [names]
+      // It takes the place of the first # that no longer counts, one undone or with a bar erased, so the #s
+      // written after that one count again once it is whole (an erased middle #'s bar redrawn is ### again).
+      var deeper = header.deeper ?? []
+      let kept = header.further(live).count
+      if kept < deeper.count { deeper[kept] = names } else { deeper.append(names) }
+      headers[h].deeper = deeper
       headers[h].ids = Self.union(header.ids, names)
       let box = four.reduce(CGRect.null) { $0.union(strokes[$1].bounds) }
       return .deeper(header: header.id, level: headers[h].level(live), y: box.midY, mark: names)
