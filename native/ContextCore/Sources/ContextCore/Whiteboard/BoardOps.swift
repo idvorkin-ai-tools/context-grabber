@@ -35,6 +35,8 @@ public enum BoardOps {
     /// More strokes in one op than `maxNewStrokes`, or a stroke with more points than the Cockpit takes.
     public static let tooManyStrokes = "too_many_strokes"
     public static let tooManyPoints = "too_many_points"
+    /// Let through, but the canvas wasn't there or didn't take it (#1040).
+    public static let notApplied = "not_applied"
   }
 
   /// The most strokes one `add_strokes` or `replace` may draw.
