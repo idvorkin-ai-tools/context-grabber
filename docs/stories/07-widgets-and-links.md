@@ -1875,8 +1875,8 @@ apart."*
 ### User Story 736:
 
 - **Summary:** Command+T opens a new chat on the Mac too
-- **Status:** not yet built
-- **Issues:** [#1046](https://github.com/idvorkin/context-grabber/issues/1046)
+- **Status:** implemented in [7395b8e](https://github.com/idvorkin/context-grabber/commit/7395b8e); on the Mac (rung 1.5) the File menu reads New Chat Command+N, New Thread Command+T, New Window Option+Command+N, and Command+T pressed through System Events logged `open_new_chat` from `mac_menu_new_thread` from home and again from chat, with Command+N still logging `open_new_chat`; not yet pressed by a person
+- **Issues:** [#1046](https://github.com/idvorkin/context-grabber/issues/1046), bead context-grabber-kupi
 - **Spec:** [Grabber Native on the Mac — Command+T is New Chat too](../superpowers/specs/2026-11-03-native-mac-app-design.md)
 
 #### Use Case:
