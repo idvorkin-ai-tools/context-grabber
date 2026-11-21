@@ -88,6 +88,7 @@ mac"*). Every shortcut is also a menu item, so the menu bar is where to find the
 | App menu | Settings… | Command+Comma | the app's settings, over home |
 | App menu | Report a Problem… | Command+Shift+R | the report dialog, over whatever screen is in front |
 | File | New Chat | Command+N | chat, on a new empty chat, as its + would |
+| File | New Thread | Command+T | the same as New Chat |
 | File | New Window | Option+Command+N | another window of the app, which offers the screens that can have one |
 | File | New Board | Command+Shift+N | the whiteboard, on a new empty board |
 | Go | the first nine home destinations | Command+1 … Command+9 | that destination, as a tap on its tile would |
@@ -125,6 +126,12 @@ forward with the new chat whatever the home window shows. Otherwise, like the Go
 nothing, while any other screen covers home (a timer, a call, the settings, the report dialog…), so nothing live is
 closed.
 
+**Command+T is New Chat too** (Igor, 2026-11-21, #1046: *"Make Command-T start a new chat"*, a new thread). Command+T is
+the Mac's key for a new tab, the other "new" his fingers reach for. It did nothing in the app before: no menu item held
+it, and the window's tab bar offers no new tab. Both keys open a new chat, so neither has to be remembered over the other.
+Each shortcut is a menu item, so the File menu shows *New Thread* with Command+T right under *New Chat*; it does exactly
+what New Chat does, live and dimmed on the same screens. Command+N stays New Chat, and Option+Command+N stays New Window.
+
 A phone and an iPad show no new menu items, and an iPad with a hardware keyboard gets none of these shortcuts either:
 the menu is the Mac's alone.
 
@@ -148,6 +155,8 @@ when the app is quit nothing runs, and that isn't an error.
 - On the Mac, Command+N (or File > New Chat) from home opens chat on a new empty chat ready to type; from chat, in
   either window, it opens a new chat there; while a timer, a call or any other screen covers home, and chat has no
   window of its own, it is dimmed and does nothing. Control+N does nothing of the app's own.
+- On the Mac, Command+T (or File > New Thread) does just what Command+N does, from the same screens, and is dimmed
+  where New Chat is; Command+N still opens a new chat.
 - On the Mac, Option+Command+N (or File > New Window) opens another window of the app, as Command+N did before.
 - In chat, a timer or any other screen, *Report a problem* in the Go menu and *Report a Problem…* in the app menu are live
   and open the report dialog over that screen; the other Go items are dimmed.
