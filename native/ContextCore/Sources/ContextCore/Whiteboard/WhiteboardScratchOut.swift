@@ -111,7 +111,8 @@ public enum WhiteboardScratchOut {
     public var reversals: Int
     /// Board points per millisecond, to two places; nil when the time wasn't known.
     public var speed: Double?
-    /// Why it stays ink: the shape's reason, or slow, no ink, beside ink.
+    /// Why it stays ink: the shape's reason, or slow, no ink, beside ink; for a scribble that wanders, "wanders, no ink"
+    /// or "wanders, beside ink", which stay ink unsaid.
     public var why: String?
 
     /// A scratch-out in shape and speed that found nothing to erase: no ink under it, or only ink beside it (#1000,
@@ -173,7 +174,7 @@ public enum WhiteboardScratchOut {
     if let speed, speed < Self.speed { return no("slow") }
     let hits = touched(by: points, in: ink)
     // A wandering scribble over nothing, or beside ink, is hatching or writing: it stays ink, unsaid (4kj).
-    guard !hits.isEmpty else { return no(shape.wanders ? "short sweeps" : "no ink") }
+    guard !hits.isEmpty else { return no(shape.wanders ? "wanders, no ink" : "no ink") }
     // The ink it touched lies mostly under it, not beside it.
     let zone = box(points).insetBy(dx: -6, dy: -6)
     let taken = Set(hits)
@@ -184,7 +185,7 @@ public enum WhiteboardScratchOut {
         if within(p, zone) { inside += 1 }
       }
     }
-    if all > 0, Double(inside) / Double(all) < over { return no(shape.wanders ? "short sweeps" : "beside ink") }
+    if all > 0, Double(inside) / Double(all) < over { return no(shape.wanders ? "wanders, beside ink" : "beside ink") }
     return Outcome(ok: true, gone: hits, reversals: shape.reversals, speed: speed, why: nil)
   }
 

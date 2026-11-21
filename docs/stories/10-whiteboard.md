@@ -6592,7 +6592,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** Shading
 - **Given:** a board with a drawn box on it
 - **When:** I hatch fast beside the box or inside it, back and forth along a line
-- **Then:** the hatching stays as ink, without a word, and the box stays (*short sweeps*)
+- **Then:** the hatching stays as ink, without a word, and the box stays (*short sweeps*, or *wanders, beside ink*)
 
 ---
 

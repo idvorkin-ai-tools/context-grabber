@@ -377,7 +377,8 @@ ink it covers, without picking up the eraser.
   or over the folded header's own line, the header and everything folded under it go with whatever else the zigzag
   covered, and the ink below closes up to where the header was. One undo brings it all back, the section still folded.
 - The log says, for every zigzag with three or more turns, whether it fired, its turns and speed, why it didn't (*slow*,
-  *no ink*, *beside ink*, *marches along*, *short sweeps*) and how many strokes went, so the iPad can show how it feels;
+  *no ink*, *beside ink*, *marches along*, *short sweeps*, and for a wandering scribble *wanders, no ink* or *wanders,
+  beside ink*) and how many strokes went, so the iPad can show how it feels;
   and how much of what went the board still holds, then and a second later, and whether any of it comes back without an
   Undo (#999).
 

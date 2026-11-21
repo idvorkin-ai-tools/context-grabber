@@ -143,13 +143,15 @@ final class WhiteboardScratchOutTests: XCTestCase {
     let outcome = Scratch.check(zig, ms: 800, over: [word, line("below", 300)])
     XCTAssertTrue(outcome.ok, outcome.why ?? "")
     XCTAssertEqual(outcome.gone, ["word"])
+    // Over a fold's marker, where there is no ink, it takes the fold as a zigzag does (story 905).
+    XCTAssertTrue(Scratch.isZigzag(zig, ms: 800))
   }
 
   func testAWanderingScribbleNeedsFiveTurnsAndStaysInkOverNothing() {
     XCTAssertEqual(Scratch.shape(wandering(4, 95, 104, 130, 80)).why, "short sweeps", "four turns: writing or hatching")
     XCTAssertEqual(Scratch.shape(wandering(8, 95, 104, 120, 160)).why, "short sweeps", "sweeps under half its length")
     let bare = Scratch.check(wandering(8, 95, 400, 130, 80), ms: 800, over: [line("word", 100, 100, 200)])
-    XCTAssertEqual(bare.why, "short sweeps", "over bare paper it is hatching: it stays ink")
+    XCTAssertEqual(bare.why, "wanders, no ink", "over bare paper it is hatching: it stays ink")
     XCTAssertFalse(bare.findsNothing)
     // A full-length zigzag over bare paper still goes, with a word (#1000).
     XCTAssertTrue(Scratch.check(zigzag(5, 95, 400, 210, 26), ms: 600, over: [line("word", 100)]).findsNothing)
@@ -222,7 +224,9 @@ final class WhiteboardScratchOutTests: XCTestCase {
     }
     XCTAssertTrue(outcome(false, "no ink").findsNothing)
     XCTAssertTrue(outcome(false, "beside ink").findsNothing)
-    for why in ["slow", "marches along", "short sweeps", "few turns", "short", "small"] {
+    for why in [
+      "slow", "marches along", "short sweeps", "few turns", "short", "small", "wanders, no ink", "wanders, beside ink",
+    ] {
       XCTAssertFalse(outcome(false, why).findsNothing, why)
     }
     XCTAssertFalse(outcome(true, nil).findsNothing, "one that worked")
