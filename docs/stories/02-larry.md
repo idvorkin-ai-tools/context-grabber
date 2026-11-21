@@ -1186,7 +1186,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 823:
 
 - **Summary:** Review shows only the chats that look done
-- **Status:** native app only: building on bead context-grabber-szom
+- **Status:** native app only: implemented in [b2867e90](https://github.com/idvorkin/context-grabber/commit/b2867e90) (bead context-grabber-szom); verified on the host by `ChatArchiverTests` (Review opens on Recommendations, only what looks done shows, *Nothing looks done* when none is left), the Mac build, and the simulator by `ChatArchiveUITests.testReviewShowsOnlyRecommendationsAndTicksSurviveTheSwitch` against the fake Cockpit; the phone and the real Cockpit not yet
 - **Issues:** bead context-grabber-szom
 - **Spec:** [Native chat — Reviewing only what looks done](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1206,7 +1206,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 824:
 
 - **Summary:** Switch between the recommendations and every chat without losing a tick
-- **Status:** native app only: building on bead context-grabber-szom
+- **Status:** native app only: implemented in [b2867e90](https://github.com/idvorkin/context-grabber/commit/b2867e90) (bead context-grabber-szom); verified on the host by `ChatArchiverTests` (Select opens on All, ticks survive the switch, *Archive (N)* takes the hidden tick), the Mac build, and the simulator by `ChatArchiveUITests.testReviewShowsOnlyRecommendationsAndTicksSurviveTheSwitch` against the fake Cockpit; the phone not yet
 - **Issues:** bead context-grabber-szom
 - **Spec:** [Native chat — Reviewing only what looks done](../superpowers/specs/2026-10-25-native-chat-design.md)
 
