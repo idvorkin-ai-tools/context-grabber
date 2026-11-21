@@ -110,6 +110,16 @@ extension BoardOutline {
       openLabels: open.headerLabels.filter { !folded.contains($0.header) })
   }
 
+  /// The boxes of the labels a picture of the board draws, on the board as it is, for its frame to take in (#1001):
+  /// each open header's; with a fold showing, each one the opened picture labels, an open sub-header inside a folded
+  /// section too (context-grabber-e91y), mapped back through the folds.
+  public var pictureLabelBoxes: [CGRect] {
+    guard let opened = foldPicture() else { return headerLabels.map(\.box) }
+    return opened.openLabels.map { label in
+      CGRect(origin: opened.map.toBoard(label.box.origin), size: label.box.size)
+    }
+  }
+
   /// The tag in the margin at the top of a folded section in the picture.
   public static let foldedTag = "folded"
 }

@@ -70,6 +70,34 @@ final class BoardFoldPictureTests: XCTestCase {
     XCTAssertEqual(picture.open.strokes.map(\.bounds), all.strokes.map(\.bounds))
   }
 
+  /// context-grabber-e91y: an open sub-header inside a folded section is labelled in the opened picture, so the
+  /// picture's frame takes its label in, as it does every open header's: written as the rightmost line, its "▾ header"
+  /// was cut off.
+  func testTheFrameTakesInAnOpenSubheadersLabelInsideAFold() throws {
+    let wide = F.word("i", x: 140, y: 140) + [F.letter("i3", x: 212, y: 140), F.letter("i4", x: 236, y: 140)]
+    let strokes =
+      F.word("o", x: 100, y: 100) + wide + F.word("d", x: 180, y: 180) + F.word("e", x: 140, y: 220)
+      + F.word("p", x: 100, y: 260)
+    let inner = BoardHeader(id: "i", ids: (0..<5).map { "i\($0)" })
+    var o = BoardOutline(strokes: strokes, headers: [F.header("o"), inner, F.header("p")])
+    XCTAssertTrue(o.fold("o"))
+    XCTAssertEqual(o.headerLabels.map(\.header), ["p"], "the sub-header doesn't show on the folded board")
+    let picture = try XCTUnwrap(o.foldPicture())
+    let label = try XCTUnwrap(picture.openLabels.first { $0.header == "i" }, "the opened picture labels it")
+    let visible = CGRect(x: 0, y: 0, width: 820, height: 1_000)
+    let ink = o.strokes.map(\.bounds)
+    let bare = try XCTUnwrap(BoardPages().picture(visible: visible, ink: ink + o.headerLabels.map(\.box))).rect
+    XCTAssertFalse(picture.map.toPicture(bare).contains(label.box), "the old frame cut the label off")
+    XCTAssertEqual(o.pictureLabelBoxes.count, 2, "the sub-header's label and p's")
+    let framed = try XCTUnwrap(BoardPages().picture(visible: visible, ink: ink + o.pictureLabelBoxes)).rect
+    for label in picture.openLabels {
+      XCTAssertTrue(picture.map.toPicture(framed).contains(label.box), "\(label.header)'s label is cut off")
+    }
+    // With no fold showing, the boxes are the board's own labels.
+    o.unfoldAll()
+    XCTAssertEqual(o.pictureLabelBoxes, o.headerLabels.map(\.box))
+  }
+
   func testEveryInkThatShowsMapsBothWays() throws {
     var o = F.nested
     o.fold("i")
