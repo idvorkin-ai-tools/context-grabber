@@ -243,8 +243,10 @@ final class LaunchHooksTests: XCTestCase {
       "GRABBER_WHITEBOARD_SAY": "draw a cat", "GRABBER_WHITEBOARD_PASTE": "hello",
       "GRABBER_WHITEBOARD_AFTER_INK": "copy,paste", "GRABBER_WHITEBOARD_PAGE_AFTER_INK": "2",
       "GRABBER_WHITEBOARD_AFTER_KEEP": "1.5,undo,redo", "GRABBER_WHITEBOARD_LARRY_TIMEOUT": "5,dismiss",
+      "GRABBER_WHITEBOARD_UNREADABLE": "stuck",
     ])
     XCTAssertTrue(board.saveFails)
+    XCTAssertTrue(board.unreadableStuck)
     XCTAssertEqual(board.ghostSeconds, 2.5)
     XCTAssertTrue(board.grid)
     XCTAssertEqual(board.say, "draw a cat")
@@ -277,6 +279,8 @@ final class LaunchHooksTests: XCTestCase {
   func testWhatABoardDoesNotDo() {
     let none = WhiteboardHooks()
     XCTAssertFalse(none.saveFails)
+    XCTAssertFalse(none.unreadableStuck)
+    XCTAssertFalse(WhiteboardHooks(["GRABBER_WHITEBOARD_UNREADABLE": "1"]).unreadableStuck, "only as written")
     XCTAssertNil(none.ghostSeconds)
     XCTAssertFalse(none.grid)
     XCTAssertFalse(none.newBoardsBare)
