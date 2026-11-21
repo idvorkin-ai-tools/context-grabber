@@ -32,8 +32,7 @@ extension WhiteboardModel {
         CGAffineTransform(translationX: by.dx, y: by.dy))
     }
     for index in opened.shown where strokes.indices.contains(index) {
-      let ink = strokes[index].ink
-      strokes[index].ink = PKInk(ink.inkType, color: ink.color.withAlphaComponent(1))
+      strokes[index].ink = WhiteboardInk.withAlpha(strokes[index].ink, 1, at: "fold")
     }
     let tall = opened.map.toPicture(rect)
     let fine = WhiteboardFrame.scale(for: tall, atMost: scale)

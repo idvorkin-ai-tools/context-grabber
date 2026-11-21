@@ -469,6 +469,21 @@ docks along the bottom and takes every tap there.
   report could only be noted in the log, the board says that instead. It shows to the left of the buttons.
 - A tap on **?** or **Feedback** is in the session log.
 
+### Ink the app doesn't know never crashes the board (story 1063, #1083; Igor, 2026-11-21: "I think I'm crashing")
+
+On 2026-11-21 the iPad's board closed three times in two minutes, each time just after Igor wrote: a stroke had come in
+whose kind of ink (pen, pencil, marker and so on) the app had no name for, and asking it for that name stopped the app.
+Where that ink came from isn't known yet; the log is what will say.
+
+- **Any stroke on the board is ink like any other**, whatever its kind: it draws, saves, is sent to Larry, can be moved,
+  erased, scratched out, hidden under a fold and shown again. Nothing a stroke carries ever closes the app.
+- **Larry gets its kind as the ink says it**, the last word of its name (*pen*, *marker*, or a word he hasn't seen before),
+  as for every stroke; a stroke whose ink has no kind at all goes to him as *pen*.
+- **Hidden and shown again, it keeps its colour.** Where the board has to redraw it with another strength (a fold, Larry's
+  marks waiting to be kept), an ink with no name it knows comes back as the pen in that colour.
+- **The log names it**: the first stroke of each unknown kind in a session logs that kind, as the ink spells it, where it
+  was met, and how many points the stroke has, so the next time it happens the log says what it was.
+
 ## Trial on paper (removed 2026-11-07)
 
 The trial (#635, #636) settled what it was for: Igor made paper the default on 2026-11-03 and the only canvas on 2026-11-07.
@@ -490,6 +505,8 @@ that ghosts need the tailnet.
 ## Acceptance
 
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
+- A stroke whose ink is of a kind the app has no name for draws, saves and goes to Larry like any other, and the board
+  stays open; the log names that kind once (#1083).
 - Close the board, kill the app, reopen it: the drawing is there, at the place he left it.
 - A new board is one page wide and scrolls only up and down. Draw to the bottom of a page and keep scrolling: a blank
   page is always there. The ink keeps Notes' feel past 4,000 and past 9,600 points down the column.

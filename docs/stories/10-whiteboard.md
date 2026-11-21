@@ -8205,3 +8205,21 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** the iPhone's copy of the iPad's board can't be read and couldn't be moved aside
 - **When:** the iPhone syncs and iCloud has a good copy of that board
 - **Then:** the good copy replaces the broken one, the board opens to look at again, and the list doesn't say boards aren't syncing
+
+### User Story 1063:
+
+- **Summary:** A stroke of an ink the app doesn't know never closes the board
+- **Status:** implemented in 61540121; verified by host tests (WhiteboardInkTests) and the Mac build; the iPad is still owed
+- **Issues:** [#1083](https://github.com/idvorkin/context-grabber/issues/1083), with [#1080](https://github.com/idvorkin/context-grabber/issues/1080), [#1081](https://github.com/idvorkin/context-grabber/issues/1081), [#1082](https://github.com/idvorkin/context-grabber/issues/1082), [#1084](https://github.com/idvorkin/context-grabber/issues/1084), [#1085](https://github.com/idvorkin/context-grabber/issues/1085): the iPad closed three times in two minutes on 2026-11-21, each just after a stroke landed, when the board asked that stroke's ink for its kind
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink the app doesn't know never crashes the board*
+
+#### Use Case:
+- **As someone** writing on the iPad's board
+- **I want to** keep writing whatever ink a stroke turns out to carry
+- **so that** the board never closes under my Pencil and loses the thought I was on
+
+#### Acceptance Criteria:
+- **Scenario:** A stroke of an unknown ink lands on the board
+- **Given:** a board open on the iPad
+- **When:** a stroke arrives whose ink is of a kind the app has no name for
+- **Then:** the board stays open, the stroke draws and saves, Larry gets it with its kind as the ink spells it, and the session log names that kind once
