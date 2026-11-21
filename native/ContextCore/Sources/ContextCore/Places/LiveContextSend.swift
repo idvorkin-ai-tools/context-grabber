@@ -177,6 +177,8 @@ public struct LiveContextSender: Sendable {
       return state
     }
     for event in state.waiting {
+      // Story 338: the switch went off mid-send. Nothing more goes, and what was dropped isn't called waiting.
+      guard !Task.isCancelled else { return cancelled(state, log) }
       let sentAt = Geo.ms(now())
       var fields = event.logFields(timeZone)
       let outcome: LiveContextWire.Outcome
@@ -185,6 +187,7 @@ public struct LiveContextSender: Sendable {
         let (data, response) = try await transport(request)
         outcome = LiveContextWire.outcome(status: (response as? HTTPURLResponse)?.statusCode, body: data)
       } catch {
+        if Task.isCancelled || Self.isCancellation(error) { return cancelled(state, log) }
         if CockpitReach.isAway(error) { fields["unreachable"] = true }
         outcome = LiveContextWire.outcome(status: nil, body: nil, error: error.localizedDescription)
       }
@@ -210,6 +213,15 @@ public struct LiveContextSender: Sendable {
       }
     }
     return state
+  }
+
+  private func cancelled(_ state: LiveContext, _ log: (String, [String: Any]) -> Void) -> LiveContext {
+    log("live_context", ["action": "cancelled", "count": state.waiting.count])
+    return state
+  }
+
+  static func isCancellation(_ error: Error) -> Bool {
+    error is CancellationError || (error as? URLError)?.code == .cancelled
   }
 }
 

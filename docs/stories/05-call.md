@@ -717,7 +717,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 338:
 
 - **Summary:** One switch in Places stops Larry hearing where I go, and says what it last sent
-- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [a795fca](https://github.com/idvorkin/context-grabber/commit/a795fca), [dc4fcfe](https://github.com/idvorkin/context-grabber/commit/dc4fcfe), [acf9c86](https://github.com/idvorkin/context-grabber/commit/acf9c86) (the switch and its line; the send's background time ended when iOS says it is up; the UI test). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch turning off and saying so on the simulator (`LiveContextSwitchUITests`, iPhone 17, 2026-11-20); the phone not yet seen
+- **Status:** not implemented; asks: [#84](https://github.com/idvorkin/context-grabber/issues/84). Built in [a795fca](https://github.com/idvorkin/context-grabber/commit/a795fca), [dc4fcfe](https://github.com/idvorkin/context-grabber/commit/dc4fcfe), [acf9c86](https://github.com/idvorkin/context-grabber/commit/acf9c86), [aa6e613](https://github.com/idvorkin/context-grabber/commit/aa6e613) (the switch and its line; the send's background time ended when iOS says it is up; the UI test; switching off cancels the send under way, and the line's wording with tracking off), [0839f56](https://github.com/idvorkin/context-grabber/commit/0839f56) (a send cancelled by switching off sends nothing more and logs `cancelled`, not a stale `waiting`: `LiveContextSendTests`, host). The line's wording is verified by host tests (`LiveContextStatusTests`); the switch turning off and saying so on the simulator (`LiveContextSwitchUITests`, iPhone 17, 2026-11-20); the phone not yet seen
 
 #### Use Case:
 - **As a** Larry's client who wants a day to himself
@@ -728,9 +728,9 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** The switch off
 - **Given:** *Tell Larry when I arrive and leave* is off and background tracking is on
 - **When:** I arrive at and leave Kettlebility
-- **Then:** nothing is sent, the line under the switch says it is off, and turning it back on sends nothing about where I already am
+- **Then:** nothing is sent, the line under the switch says it is off, and turning it back on sends nothing about where I already am; turned off while a send is under way, nothing more goes and the session log says the send was cancelled
 
-- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84)
+- **Issues:** [#84](https://github.com/idvorkin/context-grabber/issues/84), context-grabber-x9ko
 
 ---
 

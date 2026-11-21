@@ -120,6 +120,38 @@ final class LiveContextSendTests: XCTestCase {
     XCTAssertEqual(back.bodies.first?["at"] as? String, "2026-03-16T05:47:00-07:00", "its own time, not the send's")
   }
 
+  /// Story 338: the switch goes off while the first is on its way. Its request cancelled, the send stops and says so,
+  /// with no stale "waiting" line counting what the switch dropped.
+  func testASendCancelledBySwitchingOffSaysCancelledNotWaiting() async {
+    let cockpit = FakeCockpit([])
+    cockpit.failWith = URLError(.cancelled)
+    let sender = LiveContextSender(
+      cockpit: "https://cockpit.example.ts.net", timeZone: pacific, transport: cockpit.transport)
+    let after = await sender.send(
+      aGymVisit(), now: { Date(timeIntervalSince1970: (monday + 80 * minute) / 1000) }, log: log)
+    XCTAssertEqual(cockpit.requests.count, 1)
+    XCTAssertEqual(after.waiting.count, 2)
+    XCTAssertEqual(lines.map { $0["action"] as? String }, ["cancelled"])
+    XCTAssertEqual(lines.first?["count"] as? Int, 2)
+  }
+
+  /// Story 338: switched off once the first has gone, the second never goes.
+  func testNothingMoreGoesOnceTheSendIsCancelled() async {
+    let cockpit = FakeCockpit([])
+    let transport = cockpit.transport
+    let sender = LiveContextSender(cockpit: "https://cockpit.example.ts.net", timeZone: pacific) { request in
+      let answer = try await transport(request)
+      withUnsafeCurrentTask { $0?.cancel() }
+      return answer
+    }
+    let after = await sender.send(
+      aGymVisit(), now: { Date(timeIntervalSince1970: (monday + 80 * minute) / 1000) }, log: log)
+    XCTAssertEqual(cockpit.requests.count, 1, "the second waits for the switch to come back on")
+    XCTAssertEqual(after.waiting.map(\.kind), [.left])
+    XCTAssertEqual(lines.map { $0["action"] as? String }, ["sent", "cancelled"])
+    XCTAssertEqual(lines.last?["count"] as? Int, 1)
+  }
+
   func testTheRouteNotThereYetWaitsRatherThanFails() async {
     let cockpit = FakeCockpit([(404, #"{"ok": false, "error": "not found"}"#)])
     let sender = LiveContextSender(
