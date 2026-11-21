@@ -173,6 +173,30 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     return false
   }
 
+  /// Story 1060 (#1042): a board whose drawing can't be read or moved aside opens look-only with a copyable problem, and
+  /// opens the same way again, its file never saved over (the bytes surviving is `BoardKeepingTests` on the host).
+  func testAnUnreadableBoardThatCannotBeMovedAsideOpensLookOnly() {
+    let app = launch(["GRABBER_WHITEBOARD_UNREADABLE": "stuck"])
+    newBoard(app)
+    sleep(2)
+    stroke(app, atHeight: 0.3)
+    waitFor(app.buttons["whiteboard-send"], label: "Send to Larry, 1 strokes")
+    sleep(2)  // Past the save a moment after the stroke.
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    for time in ["first", "second"] {
+      card.tap()
+      XCTAssertTrue(copyError(app).appears(within: 10), "the \(time) open says so" + app.debugDescription)
+      let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'look only'")).firstMatch
+      XCTAssertTrue(note.appears(within: 5), "and is look only" + app.debugDescription)
+      keep(app, "an unreadable board, the \(time) open")
+      stroke(app, atHeight: 0.5)
+      app.navigationBars.buttons.element(boundBy: 0).tap()
+      XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
+    }
+  }
+
   /// Stories 599, 612: a failed save is a problem that can be copied, on the board, and on the list if he then leaves.
   func testAFailedSaveShowsAndDoesNotVanishOnLeaving() {
     let app = launch([

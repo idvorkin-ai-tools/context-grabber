@@ -235,23 +235,17 @@ final class WhiteboardModel: ObservableObject {
     lettering = BoardLetteringChoice().choice(board.id)
     gridOn = lines == .grid
     ruledOn = lines == .ruled
-    editable = store.drawable(board)
+    let (loaded, loadProblem, held) = Self.load(board, from: store, log: log)
+    // #1042: an unreadable drawing left in place opens look-only, so no stroke saves over it.
+    editable = store.drawable(board) && !held
     oldCanvas = BoardIndex.drawnOnTheOldCanvas(board)
-    lookOnlyNote = store.lookOnlyNote(board)
+    lookOnlyNote = held ? "Couldn't be read: look only" : store.lookOnlyNote(board)
     ops = opLedger.applier(board: board.id)
     texts = opLedger.texts(board: board.id)
     strokeIDs = opLedger.strokeIDs(board: board.id)
     strokeMeta = opLedger.strokeMeta(board: board.id)
     headers = opLedger.headers(board: board.id)
-    var loaded = PKDrawing()
-    do {
-      loaded = try store.drawing(board.id)
-    } catch {
-      log.event("error", ["where": "whiteboard_load", "message": "\(error)", "board": board.id])
-      problem = .grabber(
-        "This board could not be read: \(error.localizedDescription)", context: "WhiteboardView.load",
-        extra: ["board": .string(board.id)])
-    }
+    problem = loadProblem
     drawing = loaded
     isEmpty = loaded.strokes.isEmpty
     inkBoxes = loaded.strokes.map(\.renderBounds)
@@ -264,6 +258,39 @@ final class WhiteboardModel: ObservableObject {
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()
+  }
+
+  /// The board's drawing as it opens, and a copyable problem when it can't be read: moved aside, the board starts
+  /// afresh; left in place because the move failed, it is held, look-only, so nothing saves over it (#1042).
+  private static func load(
+    _ board: BoardEntry, from store: WhiteboardStore, log: SessionLog
+  ) -> (PKDrawing, BugProblem?, held: Bool) {
+    do {
+      return (try store.drawing(board.id), nil, false)
+    } catch {
+      let unreadable = error as? UnreadableDrawing
+      let reason = unreadable?.reason ?? error
+      let stuck = unreadable?.stuck
+      log.event(
+        "error",
+        [
+          "where": "whiteboard_load", "message": "\(reason)", "board": board.id, "set_aside": stuck == nil,
+          "kept_at": unreadable?.keptAt?.lastPathComponent as Any? ?? NSNull(),
+          "move_error": stuck.map { "\($0)" } as Any? ?? NSNull(),
+        ])
+      var extra: [String: JSONValue] = [
+        "board": .string(board.id), "operation": .string("open"), "reason": .string("\(reason)"),
+      ]
+      if let kept = unreadable?.keptAt { extra["kept_at"] = .string(kept.lastPathComponent) }
+      if let stuck { extra["move_error"] = .string("\(stuck)") }
+      let message =
+        stuck == nil
+        ? "This board could not be read, so its drawing was set aside and the board starts empty: "
+          + reason.localizedDescription
+        : "This board could not be read or moved aside, so it is left as it was and opens look-only; nothing is "
+          + "saved over it: " + reason.localizedDescription
+      return (PKDrawing(), .grabber(message, context: "WhiteboardView.load", extra: extra), stuck != nil)
+    }
   }
 
   /// Story 766: when the note's other messages change, so a new one takes the line's middle for its few seconds.

@@ -21,6 +21,7 @@ final class BoardKeepingTests: XCTestCase {
   private final class TestDisk: BoardDisk {
     let disk = FileBoardDisk()
     var full = false
+    var moveFails = false
     var changes: [String] = []
     func exists(_ url: URL) -> Bool { disk.exists(url) }
     func read(_ url: URL) throws -> Data { try disk.read(url) }
@@ -34,6 +35,7 @@ final class BoardKeepingTests: XCTestCase {
     }
     func move(_ url: URL, to target: URL) throws {
       changes.append("move \(url.lastPathComponent)")
+      if moveFails { throw CocoaError(.fileWriteNoPermission) }
       try disk.move(url, to: target)
     }
     func makeDirectory(_ url: URL) throws { try disk.makeDirectory(url) }
@@ -68,14 +70,100 @@ final class BoardKeepingTests: XCTestCase {
   }
 
   func testAnUnreadableDrawingIsSetAsideAndTheErrorGoesUp() throws {
-    let keeping = keeping()
+    var keeping = keeping()
     let url = try XCTUnwrap(keeping.drawingURL("a"))
     try put("not a drawing", at: url)
-    XCTAssertThrowsError(try keeping.drawing("a", decode: decode))
+    XCTAssertThrowsError(try keeping.drawing("a", decode: decode)) { error in
+      XCTAssertEqual((error as? UnreadableDrawing)?.keptAt, url.appendingPathExtension("unreadable"))
+      XCTAssertNil((error as? UnreadableDrawing)?.stuck)
+    }
     XCTAssertFalse(FileManager.default.fileExists(atPath: url.path), "so the next save doesn't write over it")
     XCTAssertEqual(
       try String(contentsOf: url.appendingPathExtension("unreadable"), encoding: .utf8), "not a drawing",
       "kept aside")
+    XCTAssertFalse(keeping.held("a"), "kept aside, the board can be drawn on afresh")
+    XCTAssertFalse(try keeping.save(Data("ink: afresh".utf8), board: "a"))
+  }
+
+  // MARK: #1042: an unreadable drawing that can't be moved aside
+
+  func testAnUnreadableDrawingThatCannotBeMovedAsideIsLeftAndNeverSavedOver() throws {
+    let disk = TestDisk()
+    var keeping = keeping(disk)
+    let url = try XCTUnwrap(keeping.drawingURL("a"))
+    let aside = url.appendingPathExtension("unreadable")
+    try put("not a drawing", at: url)
+    try put("an older bad drawing", at: aside)
+    disk.moveFails = true
+    XCTAssertThrowsError(try keeping.drawing("a", decode: decode)) { error in
+      let unreadable = error as? UnreadableDrawing
+      XCTAssertNotNil(unreadable, "the error says whether it was moved aside")
+      XCTAssertNil(unreadable?.keptAt)
+      XCTAssertNotNil(unreadable?.stuck, "and why it couldn't be")
+      XCTAssertTrue(unreadable?.reason is Unreadable, "the decode's own reason is kept")
+    }
+    XCTAssertTrue(keeping.held("a"))
+    XCTAssertThrowsError(try keeping.save(Data("ink: drawn after".utf8), board: "a")) { error in
+      XCTAssertTrue(error is BoardHeld, "an edit's flush or a close never writes over it")
+    }
+    XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "not a drawing", "the original is untouched")
+    XCTAssertEqual(try String(contentsOf: aside, encoding: .utf8), "an older bad drawing", "and so is the older one")
+    XCTAssertFalse(disk.changes.contains { $0.hasPrefix("remove") || $0.hasPrefix("write a.") }, "\(disk.changes)")
+    XCTAssertFalse(try keeping.save(Data("ink".utf8), board: "b"), "another board still saves")
+
+    // Reopened after a relaunch, with the disk still refusing: the same, and the bytes still there.
+    var relaunched = BoardKeeping(dir: dir, disk: disk)
+    XCTAssertThrowsError(try relaunched.drawing("a", decode: decode))
+    XCTAssertThrowsError(try relaunched.save(Data("ink".utf8), board: "a"))
+    XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "not a drawing")
+
+    // Once the move works it is set aside beside the older one, and the board saves again.
+    disk.moveFails = false
+    XCTAssertThrowsError(try relaunched.drawing("a", decode: decode)) { error in
+      XCTAssertEqual((error as? UnreadableDrawing)?.keptAt?.lastPathComponent, "a.drawing.2.unreadable")
+      XCTAssertNil((error as? UnreadableDrawing)?.stuck)
+    }
+    XCTAssertFalse(relaunched.held("a"))
+    XCTAssertEqual(try String(contentsOf: aside, encoding: .utf8), "an older bad drawing")
+    XCTAssertEqual(
+      try String(
+        contentsOf: url.deletingLastPathComponent().appendingPathComponent("a.drawing.2.unreadable"),
+        encoding: .utf8), "not a drawing")
+    XCTAssertFalse(try relaunched.save(Data("ink: fresh".utf8), board: "a"))
+    XCTAssertEqual(try relaunched.drawing("a", decode: decode), "ink: fresh")
+  }
+
+  func testAHealthyDrawingAndANewBoardAreNeverHeld() throws {
+    let disk = TestDisk()
+    disk.moveFails = true
+    var keeping = keeping(disk)
+    try put("ink: an old board", at: keeping.drawingURL("old"))
+    XCTAssertEqual(try keeping.drawing("old", decode: decode), "ink: an old board")
+    XCTAssertNil(try keeping.drawing("new", decode: decode), "a new board has nothing to read")
+    XCTAssertFalse(keeping.held("old"))
+    XCTAssertFalse(keeping.held("new"))
+    XCTAssertFalse(try keeping.save(Data("ink: more".utf8), board: "old"))
+    XCTAssertFalse(try keeping.save(Data("ink: first".utf8), board: "new"))
+  }
+
+  func testADeletedHeldBoardIsNoLongerHeld() throws {
+    let disk = TestDisk()
+    disk.moveFails = true
+    var keeping = keeping(disk)
+    try put("not a drawing", at: keeping.drawingURL("a"))
+    XCTAssertThrowsError(try keeping.drawing("a", decode: decode))
+    keeping.removeFiles("a")
+    XCTAssertFalse(keeping.held("a"), "deleting it is what was asked")
+  }
+
+  func testTheSimulatorsStuckDiskReadsBadInkAndRefusesTheMove() throws {
+    var keeping = BoardKeeping(dir: dir, disk: StuckUnreadableDisk(over: FileBoardDisk()))
+    _ = keeping.readIndex()
+    XCTAssertFalse(try keeping.save(Data("ink".utf8), board: "a"), "a new board's first save goes through")
+    XCTAssertThrowsError(try keeping.drawing("a", decode: decode)) { error in
+      XCTAssertNotNil((error as? UnreadableDrawing)?.stuck)
+    }
+    XCTAssertEqual(try String(contentsOf: XCTUnwrap(keeping.drawingURL("a")), encoding: .utf8), "ink")
   }
 
   func testABuildWithNowhereToKeepBoardsSavesNothing() {
@@ -142,7 +230,7 @@ final class BoardKeepingTests: XCTestCase {
   }
 
   func testADroppedBoardsFilesGo() throws {
-    let keeping = keeping()
+    var keeping = keeping()
     try put("ink", at: keeping.drawingURL("a"))
     try put("png", at: keeping.pictureURL("a"))
     keeping.removeFiles("a")

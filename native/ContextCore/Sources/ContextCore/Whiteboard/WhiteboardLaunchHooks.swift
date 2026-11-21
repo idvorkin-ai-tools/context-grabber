@@ -42,6 +42,8 @@ public struct WhiteboardHooks: Equatable, Sendable {
 
   /// `GRABBER_WHITEBOARD_SAVE_FAILS`, set to anything: the disk is full (stories 599, 612).
   public var saveFails: Bool
+  /// `GRABBER_WHITEBOARD_UNREADABLE=stuck`: a saved drawing reads as nonsense and can't be moved aside (#1042).
+  public var unreadableStuck: Bool
   /// `GRABBER_WHITEBOARD_GHOST_SECONDS=<seconds>`: how long Claude's ghosts stay.
   public var ghostSeconds: Double?
   /// `GRABBER_WHITEBOARD_GRID=on`: the board turns its grid on as it opens.
@@ -77,6 +79,7 @@ public struct WhiteboardHooks: Equatable, Sendable {
 
   public init(_ env: [String: String] = [:]) {
     saveFails = env["GRABBER_WHITEBOARD_SAVE_FAILS"] != nil
+    unreadableStuck = env["GRABBER_WHITEBOARD_UNREADABLE"] == "stuck"
     ghostSeconds = env["GRABBER_WHITEBOARD_GHOST_SECONDS"].flatMap { Double($0) }
     grid = env["GRABBER_WHITEBOARD_GRID"] == "on"
     newBoardsBare = env["GRABBER_WHITEBOARD_GRID"] == "off"

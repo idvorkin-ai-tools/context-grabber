@@ -38,8 +38,11 @@ final class WhiteboardStore: ObservableObject {
       .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
       .appendingPathComponent("whiteboard", isDirectory: true)
     // `GRABBER_WHITEBOARD_SAVE_FAILS=1`: for the simulator, whose disk doesn't fill (stories 599, 612).
-    let saveFails = LaunchHooks.current.whiteboard.saveFails
-    keeping = BoardKeeping(dir: dir, disk: saveFails ? FullDisk(over: FileBoardDisk()) : FileBoardDisk())
+    // `GRABBER_WHITEBOARD_UNREADABLE=stuck`: a reopened board can't be read or moved aside (#1042).
+    let hooks = LaunchHooks.current.whiteboard
+    var disk: any BoardDisk = hooks.saveFails ? FullDisk(over: FileBoardDisk()) : FileBoardDisk()
+    if hooks.unreadableStuck { disk = StuckUnreadableDisk(over: disk) }
+    keeping = BoardKeeping(dir: dir, disk: disk)
     load()
   }
 
@@ -177,7 +180,8 @@ final class WhiteboardStore: ObservableObject {
     return .grabber(why, context: context, extra: ["board": .string(id), "sync": .string(syncNote ?? "ok")])
   }
 
-  /// A board's drawing; one that cannot be read is moved aside before the error goes up (`BoardKeeping.drawing`).
+  /// A board's drawing; one that cannot be read is moved aside before the error goes up, or, when it can't be moved,
+  /// held so nothing saves over it (`BoardKeeping.drawing`, #1042).
   func drawing(_ id: String) throws -> PKDrawing {
     try keeping.drawing(id, decode: PKDrawing.init(data:)) ?? PKDrawing()
   }

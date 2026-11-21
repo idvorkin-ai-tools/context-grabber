@@ -8113,3 +8113,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a line I made a ### header
 - **When:** I erase one bar of the second # with the eraser, then draw that bar again
 - **Then:** the mark reads ▾ after the erase and ▾ ### again after the redraw; the line stays a header throughout
+
+---
+
+### User Story 1060:
+
+- **Summary:** A board whose drawing can't be read or moved aside is left as it was, and nothing saves over it
+- **Status:** implemented on branch `native/quarantine-keeps-original-1042`; verified by host tests (`BoardKeepingTests`: bad bytes and a failed move leave the original and an older set-aside copy untouched through an edit's save, a relaunch and a reopen; a later open that can move it sets it aside beside the older one and the board saves again; a healthy board and a new one are never held)
+- **Issues:** [#1042](https://github.com/idvorkin/context-grabber/issues/1042) (bead context-grabber-75cg): a source review, 2026-11-21, "a subsequent save can overwrite the recoverable original"
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The board is kept*
+
+#### Use Case:
+- **As someone** whose board file has gone bad on a device that won't let it be moved
+- **I want to** see a problem I can copy, and have the board open look-only
+- **so that** nothing I draw that time saves over a drawing that might still be recovered
+
+#### Acceptance Criteria:
+- **Scenario:** An unreadable board that can't be moved aside
+- **Given:** a board of mine on paper whose saved drawing can't be read, and whose file can't be moved aside
+- **When:** I open it, draw, leave, and open it again
+- **Then:** each time a copyable problem names the board and says it was left as it was, the board says *Couldn't be read: look only*, my stroke isn't kept, and the file and any copy set aside before are exactly as they were

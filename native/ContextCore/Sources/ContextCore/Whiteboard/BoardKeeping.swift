@@ -43,12 +43,53 @@ public struct FullDisk: BoardDisk {
   public func makeDirectory(_ url: URL) throws { try disk.makeDirectory(url) }
 }
 
+/// A disk whose drawings read as nonsense and can't be moved aside: `GRABBER_WHITEBOARD_UNREADABLE=stuck` on the
+/// simulator, so a board reopened after its first save shows what an unreadable board left in place does (#1042).
+/// Writes go through, so a new board's first save lands.
+public struct StuckUnreadableDisk: BoardDisk {
+  let disk: any BoardDisk
+  public init(over disk: any BoardDisk) { self.disk = disk }
+  public func exists(_ url: URL) -> Bool { disk.exists(url) }
+  public func read(_ url: URL) throws -> Data {
+    url.pathExtension == "drawing" ? Data("not a drawing".utf8) : try disk.read(url)
+  }
+  public func write(_ data: Data, to url: URL) throws { try disk.write(data, to: url) }
+  public func remove(_ url: URL) throws { try disk.remove(url) }
+  public func move(_ url: URL, to target: URL) throws {
+    if url.pathExtension == "drawing" { throw CocoaError(.fileWriteNoPermission) }
+    try disk.move(url, to: target)
+  }
+  public func makeDirectory(_ url: URL) throws { try disk.makeDirectory(url) }
+}
+
+/// A board's drawing that couldn't be read: why, and where it went. Moved aside, the board starts afresh; left in place
+/// because the move failed, the board is held (#1042).
+public struct UnreadableDrawing: Error {
+  public let board: String
+  /// Why it couldn't be read.
+  public let reason: any Error
+  /// Where it was moved; nil when it couldn't be and stays where it was.
+  public let keptAt: URL?
+  /// Why it couldn't be moved aside; nil when it was.
+  public let stuck: (any Error)?
+}
+
+/// A save refused because the board's unreadable drawing couldn't be moved aside: writing would lose it (#1042).
+public struct BoardHeld: LocalizedError {
+  public let board: String
+  public var errorDescription: String? {
+    "This board's saved drawing couldn't be read or moved aside, so nothing is saved over it."
+  }
+}
+
 public struct BoardKeeping {
   /// The whiteboard's folder; nil in a build with nowhere to keep boards, where nothing is read or written.
   public let dir: URL?
   let disk: any BoardDisk
   /// The board the list's problem is about, when it's a save that failed on leaving (story 612).
   public private(set) var unsavedBoard: String?
+  /// Boards whose unreadable drawing couldn't be moved aside: no save writes over it until it can be (#1042).
+  private var heldBoards: Set<String> = []
 
   public init(dir: URL?, disk: any BoardDisk = FileBoardDisk()) {
     self.dir = dir
@@ -82,23 +123,39 @@ public struct BoardKeeping {
 
   // MARK: - A board's drawing
 
-  /// A board's drawing for its screen: nil when it has none yet. One that can't be read is moved aside before the
-  /// error goes up. If that move fails, the file stays in place and the next save writes over it, which the spec's
-  /// "The board is kept" does not allow yet.
-  public func drawing<Drawing>(_ id: String, decode: (Data) throws -> Drawing) throws -> Drawing? {
-    guard let url = drawingURL(id), disk.exists(url) else { return nil }
+  /// A board's drawing for its screen: nil when it has none yet. One that can't be read is moved aside, beside any
+  /// older one, before the error goes up. If that move fails the file stays where it is and the board is held: no save
+  /// writes over it, this launch or the next, until a later open moves it aside (#1042).
+  public mutating func drawing<Drawing>(_ id: String, decode: (Data) throws -> Drawing) throws -> Drawing? {
+    guard let url = drawingURL(id), disk.exists(url) else {
+      heldBoards.remove(id)
+      return nil
+    }
     do {
-      return try decode(disk.read(url))
+      let drawing = try decode(disk.read(url))
+      heldBoards.remove(id)
+      return drawing
     } catch {
-      setAside(url)
-      throw error
+      switch setAside(url) {
+      case .success(let aside):
+        heldBoards.remove(id)
+        throw UnreadableDrawing(board: id, reason: error, keptAt: aside, stuck: nil)
+      case .failure(let stuck):
+        heldBoards.insert(id)
+        throw UnreadableDrawing(board: id, reason: error, keptAt: nil, stuck: stuck)
+      }
     }
   }
 
+  /// Whether this board's unreadable drawing is still where it was, so nothing may be saved over it (#1042).
+  public func held(_ id: String) -> Bool { heldBoards.contains(id) }
+
   /// A board drawn on: its drawing written. When the write fails nothing else changes, and a board that closed
-  /// unsaved stays so. True when this was that board, so the list's problem about it goes (story 612).
+  /// unsaved stays so. A held board refuses (#1042). True when this was that board, so the list's problem about it
+  /// goes (story 612).
   public mutating func save(_ drawing: Data, board id: String) throws -> Bool {
     guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
+    guard !heldBoards.contains(id) else { throw BoardHeld(board: id) }
     try disk.write(drawing, to: url)
     guard unsavedBoard == id else { return false }
     unsavedBoard = nil
@@ -116,14 +173,26 @@ public struct BoardKeeping {
     return board.updated == board.created && BoardIndex.editable(board, on: device)
   }
 
-  /// A deleted board's drawing and picture, gone from this device.
-  public func removeFiles(_ id: String) {
+  /// A deleted board's drawing and picture, gone from this device; a held board is let go, as asked.
+  public mutating func removeFiles(_ id: String) {
+    heldBoards.remove(id)
     for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? disk.remove(url) }
   }
 
-  private func setAside(_ url: URL) {
-    let aside = url.appendingPathExtension("unreadable")
-    try? disk.remove(aside)
-    try? disk.move(url, to: aside)
+  /// A file that can't be read, moved beside it under a name no older one has, so an earlier one set aside stays too.
+  @discardableResult
+  private func setAside(_ url: URL) -> Result<URL, any Error> {
+    var aside = url.appendingPathExtension("unreadable")
+    var copy = 2
+    while disk.exists(aside) {
+      aside = url.appendingPathExtension("\(copy).unreadable")
+      copy += 1
+    }
+    do {
+      try disk.move(url, to: aside)
+      return .success(aside)
+    } catch {
+      return .failure(error)
+    }
   }
 }
