@@ -96,15 +96,20 @@ final class BoardCanvasOutcomeTests: XCTestCase {
     }
     XCTAssertEqual(applier.report(first, .applied(moving)), .applied(BoardOps.Result(label: "room", ok: true, rev: 0)))
     XCTAssertEqual(applier.report(first, .failed(reason: "again")), .late, "its completion came twice")
-    XCTAssertEqual(applier.lastResult?.ok, true, "the first word stands")
+    XCTAssertEqual(applier.lastResult, BoardOps.Result(label: "room", ok: true, rev: 0), "the first word stands")
+    let touchedOnce = applier.touches
 
-    guard case .apply(let second) = applier.receive(batch(key: "m2"), board: "b1", editable: true, ready: true) else {
+    guard
+      case .apply(let second) = applier.receive(
+        batch(key: "m2", label: "late"), board: "b1", editable: true, ready: true)
+    else {
       return XCTFail("let through")
     }
     applier.closed()
     XCTAssertEqual(applier.report(second, .applied(moving)), .late, "the board closed before the canvas answered")
-    XCTAssertEqual(applier.lastResult?.label, "room")
-    XCTAssertTrue(applier.touches.allSatisfy { $0.rev == 0 })
+    XCTAssertEqual(
+      applier.lastResult, BoardOps.Result(label: "room", ok: true, rev: 0), "a late answer records nothing")
+    XCTAssertEqual(applier.touches, touchedOnce)
   }
 
   func testABatchHeldForThePencilReportsOnceReleased() {
