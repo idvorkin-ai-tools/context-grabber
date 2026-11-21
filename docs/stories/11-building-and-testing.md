@@ -297,6 +297,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 790:
+
+- **Summary:** A failed UI test's screenshots can still be opened after the run
+- **Status:** not implemented
+- **Issues:** bead `context-grabber-r4wh` (2026-11-21: every recent result bundle in the pool slots held only `Staging`, no `Info.plist`, so `xcresulttool` called it corrupted and the screenshots failed tests keep were gone; evidence for two flaky tests had to be re-gathered by making the tests write PNGs)
+
+#### Use Case:
+- **As Igor,** or an agent, looking into a UI test that failed
+- **I want to** open the run's result bundle and see the screenshots and view trees the failed test kept
+- **so that** a failure is read from its evidence, not run again with extra instrumentation
+
+#### Acceptance Criteria:
+- **Scenario:** xcodebuild sits quiet after the last suite closes
+- **Given:** a UI test run whose last suite has closed, while xcodebuild is still writing the run's result bundle
+- **When:** the run's idle stop would fire
+- **Then:** the run waits until the bundle is written in full (up to two minutes after the suite closed), then stops xcodebuild if it is still there; the bundle sits beside the run's log, named for the run, and opens with `xcrun xcresulttool`; a failed run names it; a bundle not written in time is given up on and the run says it can't be opened
+
+---
+
 ### User Story 782:
 
 - **Summary:** The simulator rung keeps the Mac's display on, and refuses a locked screen at once
