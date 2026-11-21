@@ -293,7 +293,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A UI test run on the simulator
 - **Given:** a run where one case fails once and passes on a second try, one case runs past two minutes, and xcodebuild sits idle after the last suite closes
 - **When:** the run ends
-- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed with the log's result kept
+- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed (once its result bundle is written, story 790) with the log's result kept
 
 ---
 
