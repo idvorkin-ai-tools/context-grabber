@@ -522,4 +522,67 @@ final class ChatArchiverTests: XCTestCase {
     XCTAssertNil(selection.emptyLine(refreshed), "All shows a")
     XCTAssertNil(ChatListSelection().emptyLine(refreshed), "nothing to say while not ticking")
   }
+
+  // MARK: The Inbox's New filter (bead context-grabber-qp3m; stories 834, 835)
+
+  private func unread(_ key: String, _ count: Int = 1, pinned: Bool = false, done: Bool = false) -> ChatSummary {
+    ChatSummary(
+      key: key, title: "T\(key)", lastTs: "", lastWho: "larry", lastText: "", unread: count, done: done,
+      pinned: pinned)
+  }
+
+  func testNewShowsOnlyLiveChatsWithAnUnreadReplyAndNoDoneFold() {
+    let threads = [row("p", pinned: true), unread("a"), row("b"), unread("c", 3), unread("old", done: true)]
+    let selection = ChatListSelection()
+    XCTAssertEqual(keys(selection.rows(threads, inbox: .all)), ["p", "a", "b", "c"], "All: the list as it was")
+    XCTAssertTrue(selection.showsDone(threads, inbox: .all))
+    XCTAssertEqual(keys(selection.rows(threads, inbox: .new)), ["a", "c"], "New: live and unread, in the list's order")
+    XCTAssertFalse(selection.showsDone(threads, inbox: .new), "no Done fold under New")
+    XCTAssertNil(selection.emptyLine(threads, inbox: .new))
+    XCTAssertEqual(ChatInboxFilter.allCases.map(\.title), ["All", "New"])
+  }
+
+  func testThePinnedThreadShowsUnderNewOnlyWithAnUnreadReply() {
+    let selection = ChatListSelection()
+    XCTAssertEqual(keys(selection.rows([row("p", pinned: true), unread("a")], inbox: .new)), ["a"])
+    XCTAssertEqual(keys(selection.rows([unread("p", pinned: true), unread("a")], inbox: .new)), ["p", "a"])
+  }
+
+  func testAReadChatLeavesNewAndNothingLeftSaysSo() {
+    let selection = ChatListSelection()
+    let threads = [unread("a")]
+    XCTAssertEqual(keys(selection.rows(threads.map { $0.read() }, inbox: .new)), [], "opened, so read")
+    XCTAssertEqual(selection.emptyLine(threads.map { $0.read() }, inbox: .new), "No new messages")
+    XCTAssertNil(selection.emptyLine([], inbox: .new), "an empty list has its own line")
+    XCTAssertNil(selection.emptyLine([row("a")], inbox: .all))
+  }
+
+  func testTheOpenChatStaysInNewWhileOpenAndLeavesOnceBackOnTheList() {
+    let selection = ChatListSelection()
+    let opened = [unread("a").read(), unread("b")]
+    XCTAssertEqual(keys(selection.rows(opened, inbox: .new, keeping: "a")), ["a", "b"], "read while open: still there")
+    XCTAssertNil(selection.emptyLine([unread("a").read()], inbox: .new, keeping: "a"))
+    XCTAssertEqual(keys(selection.rows(opened, inbox: .new)), ["b"], "back on the list: gone")
+    XCTAssertEqual(keys(selection.rows([unread("a", done: true).read()], inbox: .new, keeping: "a")), [], "live only")
+  }
+
+  func testWhileTickingReviewsSwitchDecidesAndNewComesBackAfter() {
+    let threads = [row("p", pinned: true), unread("a"), row("b", looksDone: true)]
+    var selection = ChatListSelection()
+    selection.toggle()
+    XCTAssertEqual(keys(selection.rows(threads, inbox: .new)), ["a", "b"], "Select's All is every live chat")
+    XCTAssertNil(selection.emptyLine([row("b")], inbox: .new), "no New line while ticking")
+    selection.show(.recommendations)
+    XCTAssertEqual(keys(selection.rows(threads, inbox: .new)), ["b"])
+    selection.toggle()
+    XCTAssertEqual(keys(selection.rows(threads, inbox: .new)), ["a"], "Cancel: New as it was")
+  }
+
+  func testTheChoiceIsRememberedAndAnythingElseIsAll() {
+    XCTAssertEqual(ChatInboxFilter.restored("new"), .new)
+    XCTAssertEqual(ChatInboxFilter.restored("all"), .all)
+    XCTAssertEqual(ChatInboxFilter.restored(nil), .all, "nothing remembered: the list as it always was")
+    XCTAssertEqual(ChatInboxFilter.restored("recommendations"), .all)
+    XCTAssertEqual(ChatInboxFilter.defaultsKey, "chat_inbox_filter")
+  }
 }
