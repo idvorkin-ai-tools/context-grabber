@@ -190,12 +190,13 @@ public struct BoardKeeping {
   /// Another device's board brought down from iCloud: its drawing read and checked before it takes the place of the one
   /// this device had, so a copy that fails, is cut short or can't be read leaves the last good one showing and throws,
   /// for the sync to ask again. The drawing is needed; the picture isn't: one missing or not kept is said, and the
-  /// store draws it from the drawing. A held board is never replaced (#1042, #1043).
-  public func takeReplica<Drawing>(
-    _ id: String, drawing source: URL?, picture pictureSource: URL?, decode: (Data) throws -> Drawing
+  /// store draws it from the drawing. A held copy of another device's board is only a replica, so a good copy repairs
+  /// it and lets it go; a held board of this device's (`mine`) is never replaced (#1042, #1043).
+  public mutating func takeReplica<Drawing>(
+    _ id: String, mine: Bool, drawing source: URL?, picture pictureSource: URL?, decode: (Data) throws -> Drawing
   ) throws -> ReplicaTaken<Drawing> {
     guard let url = drawingURL(id), let pictureURL = pictureURL(id) else { throw CocoaError(.fileNoSuchFile) }
-    guard !heldBoards.contains(id) else { throw BoardHeld(board: id) }
+    guard !(mine && heldBoards.contains(id)) else { throw BoardHeld(board: id) }
     guard let source else { throw ReplicaIncomplete(board: id, asset: "drawing") }
     let data = try disk.read(source)
     let drawing: Drawing
@@ -205,6 +206,7 @@ public struct BoardKeeping {
       throw UnreadableReplica(board: id, reason: error)
     }
     try disk.write(data, to: url)
+    heldBoards.remove(id)
     guard let pictureSource else {
       return ReplicaTaken(drawing: drawing, pictureProblem: ReplicaIncomplete(board: id, asset: "picture"))
     }

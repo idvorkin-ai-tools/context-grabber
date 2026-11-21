@@ -320,7 +320,8 @@ final class WhiteboardStore: ObservableObject {
           // #1043: the assets are checked before they replace this device's copy; only then is the revision fetched.
           let assets = try await cloud.download(id)
           let taken = try keeping.takeReplica(
-            id, drawing: assets.drawing?.fileURL, picture: assets.picture?.fileURL, decode: PKDrawing.init(data:))
+            id, mine: board.device == device, drawing: assets.drawing?.fileURL, picture: assets.picture?.fileURL,
+            decode: PKDrawing.init(data:))
           if let missing = taken.pictureProblem {
             log.event("whiteboard_sync", ["board": id, "picture": "drawn_here", "message": "\(missing)"])
             writePicture(of: taken.drawing, id: id)

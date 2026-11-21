@@ -8160,7 +8160,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1061:
 
 - **Summary:** A board whose newer version fails to come down from iCloud keeps showing the last one that did
-- **Status:** implemented in [21bfa57f](https://github.com/idvorkin/context-grabber/commit/21bfa57f); verified by host tests (`BoardKeepingTests`: a failed copy, an unreadable or missing drawing and an interrupted asset each leave the old drawing and picture untouched and nothing removed first; a retry brings the new version; a failed first download leaves no file; a missing or failed picture still takes the drawing and says so; a held board isn't replaced) and the Mac build. The simulator has no iCloud account, so the CloudKit path itself waits for the iPhone and the iPad
+- **Status:** implemented in [64927b91](https://github.com/idvorkin/context-grabber/commit/64927b91); verified by host tests (`BoardKeepingTests`: a failed copy, an unreadable or missing drawing and an interrupted asset each leave the old drawing and picture untouched and nothing removed first; a retry brings the new version; a failed first download leaves no file; a missing or failed picture still takes the drawing and says so; a held copy of another device's board is repaired by the next good copy and let go; a held board of this device's isn't replaced) and the Mac build. The simulator has no iCloud account, so the CloudKit path itself waits for the iPhone and the iPad
 - **Issues:** [#1043](https://github.com/idvorkin/context-grabber/issues/1043) (bead context-grabber-nuyw): a source review, 2026-11-21, "a copy failure can leave a reading device without its last viewable replica"
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A board that fails to come down keeps the one that did*
 
@@ -8174,3 +8174,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** the iPhone has a board from the iPad, and the iPad has drawn more on it
 - **When:** the iPhone's sync of the newer version fails partway, and I open the board offline, then sync again with the network back
 - **Then:** offline it shows the version it had, the list says boards aren't syncing, and the next sync brings the newer version, with its picture drawn on the iPhone if iCloud's came without one
+
+- **Scenario:** A broken copy of another device's board is repaired
+- **Given:** the iPhone's copy of the iPad's board can't be read and couldn't be moved aside
+- **When:** the iPhone syncs and iCloud has a good copy of that board
+- **Then:** the good copy replaces the broken one, the board opens to look at again, and the list doesn't say boards aren't syncing

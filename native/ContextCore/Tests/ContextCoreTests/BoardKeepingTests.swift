@@ -181,8 +181,9 @@ final class BoardKeepingTests: XCTestCase {
   private func text(_ url: URL?) throws -> String { try String(contentsOf: XCTUnwrap(url), encoding: .utf8) }
 
   func testAFirstDownloadKeepsTheDrawingAndItsPicture() throws {
-    let keeping = keeping()
-    let taken = try keeping.takeReplica("a", drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
+    var keeping = keeping()
+    let taken = try keeping.takeReplica(
+      "a", mine: false, drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
     XCTAssertEqual(taken.drawing, "ink: v1")
     XCTAssertNil(taken.pictureProblem)
     XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v1")
@@ -191,70 +192,95 @@ final class BoardKeepingTests: XCTestCase {
 
   func testAFailedRefreshKeepsTheLastGoodReplicaAndARetryBringsTheNewOne() throws {
     let disk = TestDisk()
-    let keeping = keeping(disk)
-    _ = try keeping.takeReplica("a", drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
+    var keeping = keeping(disk)
+    _ = try keeping.takeReplica("a", mine: false, drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
     disk.full = true
     XCTAssertThrowsError(
-      try keeping.takeReplica("a", drawing: asset("ink: v2"), picture: asset("png v2"), decode: decode))
+      try keeping.takeReplica("a", mine: false, drawing: asset("ink: v2"), picture: asset("png v2"), decode: decode))
     XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v1", "the copy failed: the old drawing still shows")
     XCTAssertEqual(try text(keeping.pictureURL("a")), "png v1", "and its picture with it")
     XCTAssertFalse(disk.changes.contains { $0.hasPrefix("remove") }, "nothing was removed first: \(disk.changes)")
     disk.full = false
-    let retried = try keeping.takeReplica("a", drawing: asset("ink: v2"), picture: asset("png v2"), decode: decode)
+    let retried = try keeping.takeReplica(
+      "a", mine: false, drawing: asset("ink: v2"), picture: asset("png v2"), decode: decode)
     XCTAssertEqual(retried.drawing, "ink: v2")
     XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v2", "the next sync brings the right revision")
     XCTAssertEqual(try text(keeping.pictureURL("a")), "png v2")
   }
 
   func testAnIncomingDrawingThatCannotBeReadOrIsMissingChangesNothing() throws {
-    let keeping = keeping()
-    _ = try keeping.takeReplica("a", drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
+    var keeping = keeping()
+    _ = try keeping.takeReplica("a", mine: false, drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
     XCTAssertThrowsError(
-      try keeping.takeReplica("a", drawing: asset("garbled"), picture: asset("png v2"), decode: decode)
+      try keeping.takeReplica("a", mine: false, drawing: asset("garbled"), picture: asset("png v2"), decode: decode)
     ) { error in XCTAssertTrue(error is UnreadableReplica, "\(error)") }
-    XCTAssertThrowsError(try keeping.takeReplica("a", drawing: nil, picture: asset("png v2"), decode: decode)) {
+    XCTAssertThrowsError(
+      try keeping.takeReplica("a", mine: false, drawing: nil, picture: asset("png v2"), decode: decode)
+    ) {
       error in XCTAssertTrue(error is ReplicaIncomplete, "\(error)")
     }
     let gone = dir.appendingPathComponent("assets/interrupted")
     XCTAssertThrowsError(
-      try keeping.takeReplica("a", drawing: gone, picture: nil, decode: decode), "an interrupted one")
+      try keeping.takeReplica("a", mine: false, drawing: gone, picture: nil, decode: decode), "an interrupted one")
     XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v1")
     XCTAssertEqual(try text(keeping.pictureURL("a")), "png v1")
   }
 
   func testAFailedFirstDownloadLeavesNoBoardFile() throws {
     let disk = TestDisk()
-    let keeping = keeping(disk)
-    XCTAssertThrowsError(try keeping.takeReplica("a", drawing: asset("garbled"), picture: nil, decode: decode))
+    var keeping = keeping(disk)
+    XCTAssertThrowsError(
+      try keeping.takeReplica("a", mine: false, drawing: asset("garbled"), picture: nil, decode: decode))
     disk.full = true
-    XCTAssertThrowsError(try keeping.takeReplica("a", drawing: asset("ink"), picture: asset("png"), decode: decode))
+    XCTAssertThrowsError(
+      try keeping.takeReplica("a", mine: false, drawing: asset("ink"), picture: asset("png"), decode: decode))
     XCTAssertFalse(disk.exists(try XCTUnwrap(keeping.drawingURL("a"))), "it waits for the next sync")
     XCTAssertFalse(disk.exists(try XCTUnwrap(keeping.pictureURL("a"))), "no picture of a drawing that isn't here")
   }
 
   func testAMissingOrFailedPictureStillTakesTheDrawingAndSaysSo() throws {
     let disk = TestDisk()
-    let keeping = keeping(disk)
-    _ = try keeping.takeReplica("a", drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
-    let missing = try keeping.takeReplica("a", drawing: asset("ink: v2"), picture: nil, decode: decode)
+    var keeping = keeping(disk)
+    _ = try keeping.takeReplica("a", mine: false, drawing: asset("ink: v1"), picture: asset("png v1"), decode: decode)
+    let missing = try keeping.takeReplica("a", mine: false, drawing: asset("ink: v2"), picture: nil, decode: decode)
     XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v2")
     XCTAssertTrue(missing.pictureProblem is ReplicaIncomplete, "the store draws the picture from the drawing")
     disk.picturesFail = true
-    let failed = try keeping.takeReplica("a", drawing: asset("ink: v3"), picture: asset("png v3"), decode: decode)
+    let failed = try keeping.takeReplica(
+      "a", mine: false, drawing: asset("ink: v3"), picture: asset("png v3"), decode: decode)
     XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v3")
     XCTAssertNotNil(failed.pictureProblem)
   }
 
-  func testAHeldBoardIsNotReplacedFromICloud() throws {
+  func testAHeldReplicaIsRepairedByTheNextGoodCopyAndLetGo() throws {
     let disk = TestDisk()
     var keeping = keeping(disk)
     try put("not a drawing", at: keeping.drawingURL("a"))
     disk.moveFails = true
     XCTAssertThrowsError(try keeping.drawing("a", decode: decode))
-    XCTAssertThrowsError(try keeping.takeReplica("a", drawing: asset("ink"), picture: nil, decode: decode)) { error in
-      XCTAssertTrue(error is BoardHeld)
-    }
+    XCTAssertTrue(keeping.held("a"))
+    let taken = try keeping.takeReplica(
+      "a", mine: false, drawing: asset("ink: v2"), picture: asset("png v2"), decode: decode)
+    XCTAssertEqual(taken.drawing, "ink: v2")
+    XCTAssertEqual(try text(keeping.drawingURL("a")), "ink: v2", "iCloud holds the original: the copy is repaired")
+    XCTAssertFalse(keeping.held("a"), "and let go")
+    XCTAssertEqual(try keeping.drawing("a", decode: decode), "ink: v2")
+  }
+
+  func testAHeldBoardOfThisDevicesIsNotReplacedFromICloud() throws {
+    let disk = TestDisk()
+    var keeping = keeping(disk)
+    try put("not a drawing", at: keeping.drawingURL("a"))
+    disk.moveFails = true
+    XCTAssertThrowsError(try keeping.drawing("a", decode: decode))
+    XCTAssertThrowsError(
+      try keeping.takeReplica("a", mine: true, drawing: asset("ink"), picture: nil, decode: decode)
+    ) { error in XCTAssertTrue(error is BoardHeld, "\(error)") }
     XCTAssertEqual(try text(keeping.drawingURL("a")), "not a drawing")
+    XCTAssertTrue(keeping.held("a"))
+    XCTAssertThrowsError(try keeping.save(Data("ink".utf8), board: "a")) { error in
+      XCTAssertTrue(error is BoardHeld, "\(error)")
+    }
   }
 
   func testABuildWithNowhereToKeepBoardsSavesNothing() {

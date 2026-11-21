@@ -68,7 +68,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   showing the version it had, offline too, the list says boards aren't syncing, and the next sync asks again until the
   new version arrives. A board coming down for the first time that fails isn't shown blank or half-written: it waits
   for the next sync like a board not yet down. A version that arrives without its picture, or whose picture can't be
-  kept, still arrives: the list's picture is drawn on this device from the drawing.
+  kept, still arrives: the list's picture is drawn on this device from the drawing. A broken copy of another
+  device's board, one that can't be read or moved aside, is repaired by the next good sync: iCloud holds the original.
+  A board of this device's that can't be read or moved aside is never replaced from iCloud.
 - **Read-only elsewhere:** a board opens for drawing only on the device that made it. On any other device it opens
   to look at: pan and pinch, no tool picker, and a note in the bar saying where it's drawn.
 - **On an iPhone every board is look-only**, its own included (Igor, 2026-11-10). The list has no *+ New board*;
