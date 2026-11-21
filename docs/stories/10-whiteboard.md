@@ -8119,7 +8119,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1060:
 
 - **Summary:** A board whose drawing can't be read or moved aside is left as it was, and nothing saves over it
-- **Status:** implemented on branch `native/quarantine-keeps-original-1042`; verified by host tests (`BoardKeepingTests`: bad bytes and a failed move leave the original and an older set-aside copy untouched through an edit's save, a relaunch and a reopen; a later open that can move it sets it aside beside the older one and the board saves again; a healthy board and a new one are never held)
+- **Status:** implemented in [e735ebba](https://github.com/idvorkin/context-grabber/commit/e735ebba); verified by host tests (`BoardKeepingTests`: bad bytes and a failed move leave the original and an older set-aside copy untouched through an edit's save, a relaunch and a reopen; a later open that can move it sets it aside beside the older one and the board saves again; a healthy board and a new one are never held), the Mac build, and the iPad simulator (rung 2, 2026-11-21: the 14 other whiteboard classes green on this change; `WhiteboardOnPaperUITests.testAnUnreadableBoardThatCannotBeMovedAsideOpensLookOnly`'s first open showed the copyable problem and *look only*, the session log `editable: false`, `kept_at: null` and the move's permission error; its rerun after taking out a drag a look-only board reads as swipe back waits on the Mac's screen unlocking). Not yet seen on the iPad
 - **Issues:** [#1042](https://github.com/idvorkin/context-grabber/issues/1042) (bead context-grabber-75cg): a source review, 2026-11-21, "a subsequent save can overwrite the recoverable original"
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The board is kept*
 
@@ -8131,5 +8131,5 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 #### Acceptance Criteria:
 - **Scenario:** An unreadable board that can't be moved aside
 - **Given:** a board of mine on paper whose saved drawing can't be read, and whose file can't be moved aside
-- **When:** I open it, draw, leave, and open it again
-- **Then:** each time a copyable problem names the board and says it was left as it was, the board says *Couldn't be read: look only*, my stroke isn't kept, and the file and any copy set aside before are exactly as they were
+- **When:** I open it, leave, and open it again
+- **Then:** each time a copyable problem names the board and says it was left as it was, the board says *Couldn't be read: look only* and takes no ink, and the file and any copy set aside before are exactly as they were

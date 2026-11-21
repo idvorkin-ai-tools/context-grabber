@@ -186,12 +186,15 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     let card = app.buttons.matching(identifier: "whiteboard-card").firstMatch
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     for time in ["first", "second"] {
+      keep(app, "the list before the \(time) open")
+      XCTAssertTrue(card.appears(within: 10), "the card before the \(time) open" + app.debugDescription)
       card.tap()
       XCTAssertTrue(copyError(app).appears(within: 10), "the \(time) open says so" + app.debugDescription)
       let note = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'look only'")).firstMatch
       XCTAssertTrue(note.appears(within: 5), "and is look only" + app.debugDescription)
       keep(app, "an unreadable board, the \(time) open")
-      stroke(app, atHeight: 0.5)
+      // No stroke: a finger drag across a look-only board is the system's swipe back, and that nothing is saved over
+      // the file is the host's to show.
       app.navigationBars.buttons.element(boundBy: 0).tap()
       XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
     }
