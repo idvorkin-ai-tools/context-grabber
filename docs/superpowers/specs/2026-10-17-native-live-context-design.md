@@ -67,7 +67,8 @@ Cockpit is next reachable, with the time it happened.
   Cockpit's reason, not retried) or dropped (waited over a day). A position ignored for being imprecise is not
   logged one by one; the count goes on the next event.
 - Turning the switch on or off is logged, and so is the starting point taken after turning it on (or after
-  recording is turned back on).
+  recording is turned back on). Turning it off while a send is under way stops that send: nothing more goes, and the
+  log says the send was cancelled rather than calling the dropped events "waiting".
 - From these alone, a phone's session log answers "did the phone see me arrive, and did Larry get it?" without a
   look at the Cockpit.
 
