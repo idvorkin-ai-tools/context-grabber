@@ -101,6 +101,22 @@ extension PaperScreen {
     return true
   }
 
+  /// What `look` finds once `holds` is true of it, two looks a quarter second apart finding the same box; else, after
+  /// `timeout`, the last box found (nil when none), so the assertion after it says what was there.
+  static func showing(
+    _ app: XCUIApplication, within timeout: TimeInterval = 10, _ look: (PaperScreen) -> Box?, _ holds: (Box) -> Bool
+  ) -> Box? {
+    let deadline = Date().addingTimeInterval(timeout)
+    var last = look(PaperScreen(app))
+    while Date() < deadline {
+      RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+      let now = look(PaperScreen(app))
+      if let now, now == last, holds(now) { return now }
+      last = now
+    }
+    return last
+  }
+
   /// Story 673: what `look` finds once it has stopped changing, two looks a quarter second apart finding the same box,
   /// in place of a fixed wait before reading the screen. Nil when nothing settles within `timeout`.
   static func settled(_ app: XCUIApplication, within timeout: TimeInterval = 6, _ look: (PaperScreen) -> Box?) -> Box? {
@@ -617,7 +633,10 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     keep(app)
     waitUntil(NSPredicate(format: "label != %@", strokes(2)), send(app), timeout: 10)
     XCTAssertFalse(toKeep(app, 1).exists, "kept, it's no longer a ghost")
-    let kept = try XCTUnwrap(PaperScreen.settled(app) { $0.larryKept }, "ink in his purple")
+    // The canvas draws new ink in its own time, and on a busy Mac a part of it ("r", then "ro") can hold still for two
+    // looks: what's read is his text once it's as wide as the ghost was, every glyph drawn (context-grabber-5uo2).
+    let kept = try XCTUnwrap(
+      PaperScreen.showing(app, { $0.larryKept }) { abs($0.width - ghost.width) < 0.03 }, "ink in his purple")
     shot(app, "his text kept")
     XCTAssertEqual(kept.center.x, ghost.center.x, accuracy: 0.03, "where the ghost was")
     XCTAssertEqual(kept.center.y, ghost.center.y, accuracy: 0.03, "where the ghost was")
