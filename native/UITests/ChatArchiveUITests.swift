@@ -55,6 +55,18 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertLessThanOrEqual(row.frame.maxY, bar.frame.minY, "scrolled clear: \(app.debugDescription)")
   }
 
+  /// The Done fold sits under every live row, and since the Inbox's All / New row (bead context-grabber-qp3m) that is
+  /// below the screen, where the list hasn't built it yet: scrolled down to, as he would (bead context-grabber-zlfl).
+  private func scrollDownTo(_ row: XCUIElement, _ app: XCUIApplication) {
+    let origin = app.coordinate(withNormalizedOffset: .zero)
+    for _ in 0..<6 where !row.exists {
+      origin.withOffset(CGVector(dx: 30, dy: 600))
+        .press(
+          forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 30, dy: 300)), withVelocity: .slow,
+          thenHoldForDuration: 0.3)
+    }
+  }
+
   /// Story 506 (#685): the + and the voice button float over the list, which runs to the foot of the screen, with no bar
   /// across it. The pinned thread (#598) is first, and its row says so to VoiceOver.
   func testTheNewChatButtonsFloatOverTheListAndThePinnedThreadLeadsIt() throws {
@@ -105,10 +117,13 @@ final class ChatArchiveUITests: XCTestCase {
     more.tap()
     app.buttons["Archive chat"].tap()
     let done = doneFold(app)
+    XCTAssertTrue(app.buttons["inbox-add"].appears(within: 5), "back on the list: \(app.debugDescription)")
+    scrollDownTo(done, app)
     XCTAssertTrue(done.appears(within: 5), "back on the list, under Done: \(app.debugDescription)")
     scrollClearOfTheBar(done, app)
     done.tap()
     let row = app.buttons["chat-thread-\(key)"]
+    scrollDownTo(row, app)
     XCTAssertTrue(row.appears(within: 5), app.debugDescription)
     scrollClearOfTheBar(row, app)
     row.swipeLeft()

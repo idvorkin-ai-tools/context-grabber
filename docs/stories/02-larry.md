@@ -1045,8 +1045,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 308:
 
 - **Summary:** Archive a chat from inside it
-- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30); verified by the simulator (`ChatArchiveUITests` against the fake Cockpit); not re-run since the request gained its `Content-Type` in [9ff3ded](https://github.com/idvorkin/context-grabber/commit/9ff3ded); against the real Cockpit on the iPad not yet; bead `context-grabber-t8i`: the menu's rules are `ChatArchiverTests` (host), and the menu archiving and going back stays in `ChatArchiveUITests`
-- **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591)
+- **Status:** native app only: implemented in [61e7f30](https://github.com/idvorkin/context-grabber/commit/61e7f30); verified by the simulator (`ChatArchiveUITests` against the fake Cockpit); not re-run since the request gained its `Content-Type` in [9ff3ded](https://github.com/idvorkin/context-grabber/commit/9ff3ded); against the real Cockpit on the iPad not yet; bead `context-grabber-t8i`: the menu's rules are `ChatArchiverTests` (host), and the menu archiving and going back stays in `ChatArchiveUITests`; since the Inbox's All / New row put *Done* below the screen, the test scrolls down to it (bead context-grabber-zlfl), passing on the simulator 2026-11-21
+- **Issues:** [#589](https://github.com/idvorkin/context-grabber/issues/589), [#591](https://github.com/idvorkin/context-grabber/issues/591), bead context-grabber-zlfl
 - **Spec:** [Chat with Larry in Grabber Native — Archiving](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -1226,7 +1226,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 834:
 
 - **Summary:** Show only the chats with a reply I haven't read
-- **Status:** native app only: implemented in [f4889234](https://github.com/idvorkin/context-grabber/commit/f4889234), [81c5d6d4](https://github.com/idvorkin/context-grabber/commit/81c5d6d4) and [d7c83910](https://github.com/idvorkin/context-grabber/commit/d7c83910) (bead context-grabber-qp3m); verified on the host by `ChatArchiverTests` (an open chat stays in New while read, New shows only live chats with an unread reply, the pinned one only when unread, no *Done* fold, *No new messages*, Review's switch while ticking) and the Mac build; `ChatArchiveUITests.testNewHidesWhatIsReadAndIsRememberedAcrossALaunch` and `testAChatOpenedFromNewStaysOpenAndHasLeftNewOnceBack` (a chat opened from New stays open while read) are written and have not run yet (the Mac's screen was locked); the phone not yet
+- **Status:** native app only: implemented in [f4889234](https://github.com/idvorkin/context-grabber/commit/f4889234), [81c5d6d4](https://github.com/idvorkin/context-grabber/commit/81c5d6d4) and [d7c83910](https://github.com/idvorkin/context-grabber/commit/d7c83910) (bead context-grabber-qp3m); verified on the host by `ChatArchiverTests` (an open chat stays in New while read, New shows only live chats with an unread reply, the pinned one only when unread, no *Done* fold, *No new messages*, Review's switch while ticking) and the Mac build; `ChatArchiveUITests.testNewHidesWhatIsReadAndIsRememberedAcrossALaunch` and `testAChatOpenedFromNewStaysOpenAndHasLeftNewOnceBack` (a chat opened from New stays open while read) pass on the simulator (rung 2, iPhone 17, 2026-11-21, main 0228020e); the phone not yet
 - **Issues:** bead context-grabber-qp3m
 - **Spec:** [Native chat — Only the new messages](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1246,7 +1246,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 835:
 
 - **Summary:** The list remembers New or All on each device
-- **Status:** native app only: implemented in [f4889234](https://github.com/idvorkin/context-grabber/commit/f4889234) and [81c5d6d4](https://github.com/idvorkin/context-grabber/commit/81c5d6d4) (bead context-grabber-qp3m); what is remembered and that anything else restores as *All* verified on the host by `ChatArchiverTests`, and the Mac build; the relaunch is `ChatArchiveUITests.testNewHidesWhatIsReadAndIsRememberedAcrossALaunch`, written and not run yet (the Mac's screen was locked); the phone not yet
+- **Status:** native app only: implemented in [f4889234](https://github.com/idvorkin/context-grabber/commit/f4889234) and [81c5d6d4](https://github.com/idvorkin/context-grabber/commit/81c5d6d4) (bead context-grabber-qp3m); what is remembered and that anything else restores as *All* verified on the host by `ChatArchiverTests`, and the Mac build; the relaunch is `ChatArchiveUITests.testNewHidesWhatIsReadAndIsRememberedAcrossALaunch`, passing on the simulator (rung 2, iPhone 17, 2026-11-21); the phone not yet
 - **Issues:** bead context-grabber-qp3m
 - **Spec:** [Native chat — Only the new messages](../superpowers/specs/2026-10-25-native-chat-design.md)
 
