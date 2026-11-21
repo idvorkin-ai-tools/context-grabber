@@ -110,6 +110,10 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     addTeardownBlock { XCUIDevice.shared.appearance = mode }
     XCUIDevice.shared.appearance = .dark
     let app = launch()
+    // The simulator takes the mode in its own time, and a busy Mac makes that seconds: the list shows it before the board
+    // is opened, so the end's look at the list isn't racing the switch (context-grabber-8ish).
+    XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 20), app.debugDescription)
+    XCTAssertTrue(listTurnsDark(app, within: 20), "the boards list is dark to start: the device's mode took")
     newBoard(app)
     sleep(2)
     // The first stroke brings page 2, and on a phone that moves the view: the second is the one that stays put.
@@ -136,15 +140,37 @@ final class WhiteboardOnPaperUITests: XCTestCase {
     XCTAssertGreaterThan(lightest, 200, "the paper is its pale shade")
     XCTAssertLessThan(darkest, 90, "and the ink on it is dark enough to see")
 
-    // The list goes back to the device's mode.
+    // The list goes back to the device's mode, once the board has slid away, whose screen is still light.
     app.navigationBars.buttons.element(boundBy: 0).tap()
     XCTAssertTrue(app.buttons["whiteboard-new"].appears(within: 10), app.debugDescription)
-    sleep(2)  // Past the board sliding away, whose screen is still light.
+    let dark = listTurnsDark(app, within: 10)
     keep(app, "the list after a board on paper, in dark mode")
-    let list = try XCTUnwrap(app.screenshot().image.cgImage)
-    let corner = try XCTUnwrap(list.cropping(to: CGRect(x: 4, y: list.height / 2, width: 1, height: 1)))
-    context.draw(corner, in: CGRect(x: 0, y: 0, width: 1, height: 200))
-    XCTAssertLessThan(Int(data[0]), 60, "the boards list is dark again")
+    XCTAssertTrue(dark, "the boards list is dark again")
+  }
+
+  /// The list's left edge, halfway down, is dark within `timeout`: read off the screen's own pixels a quarter second
+  /// apart, as the list isn't drawn in the accessibility tree's terms.
+  private func listTurnsDark(_ app: XCUIApplication, within timeout: TimeInterval) -> Bool {
+    let started = Date()
+    var red = 255
+    repeat {
+      if let list = app.screenshot().image.cgImage,
+        let corner = list.cropping(to: CGRect(x: 4, y: list.height / 2, width: 1, height: 1)),
+        let context = CGContext(
+          data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+      {
+        context.draw(corner, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        red = Int(context.data?.load(as: UInt8.self) ?? 255)
+        if red < 60 {
+          print("ui-dark: the list was dark after \(Int(Date().timeIntervalSince(started) * 1000)) ms")
+          return true
+        }
+      }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+    } while Date().timeIntervalSince(started) < timeout
+    print("ui-dark: the list was still \(red) after \(Int(timeout)) s")
+    return false
   }
 
   /// Stories 599, 612: a failed save is a problem that can be copied, on the board, and on the list if he then leaves.
