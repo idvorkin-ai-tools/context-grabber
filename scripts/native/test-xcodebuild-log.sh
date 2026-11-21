@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # xcodebuild-log.sh against a fake xcodebuild (the pipeline report of 2026-11-10): a test run gets a time limit per
 # test, a build doesn't, an xcodebuild that hangs after its suite closes is stopped and judged by the log, and a run of
-# built tests whose first suite never starts is stopped and fails with exit 75 (story 783).
+# built tests whose first suite never starts is stopped and fails with exit 75 (story 783), and the hang stop waits for
+# the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 dir=$(mktemp -d)
@@ -19,6 +20,14 @@ if [ -n "${FAKE_NO_START:-}" ]; then  # a dark or locked Mac: the runner waits, 
 fi
 echo "Test Suite 'Selected tests' started at now."
 echo "Test Suite 'Selected tests' ${FAKE_RESULT:-passed} at now."
+bundle= prev=
+for a in "$@"; do [ "$prev" = -resultBundlePath ] && bundle=$a; prev=$a; done
+if [ -n "$bundle" ]; then  # like xcodebuild: Staging while it writes, quietly, then Info.plist, and Staging goes
+  mkdir -p "$bundle/Staging" "$bundle/Data"
+  for _ in $(seq "${FAKE_BUNDLE_SECONDS:-0}"); do sleep 1; done  # short sleeps: a stop isn't held up by a long one
+  echo "<plist/>" >"$bundle/Info.plist"
+  rm -rf "$bundle/Staging"
+fi
 if [ -n "${FAKE_RETRY:-}" ]; then  # the retry runs on, printing, well past the idle limit, then passes
   for _ in $(seq 16); do echo "    t = 0.00s Retrying"; sleep 0.5; done
   echo "Test Suite 'Selected tests' passed at now."
@@ -49,6 +58,39 @@ FAKE_HANG=1 FAKE_RESULT=failed XCODEBUILD_IDLE_SECONDS=1 run xcodebuild -scheme 
 FAKE_HANG=1 FAKE_RESULT=failed FAKE_RETRY=1 XCODEBUILD_IDLE_SECONDS=1 run xcodebuild -scheme X test
 status=$?
 [ "$status" -eq 0 ] && ok "a retry still printing isn't stopped, and its passed decides" || bad "a retry that passed exited $status"
+
+# Story 790: the hang stop waits for the result bundle. The fake writes it for 8 s after the suite closes, printing
+# nothing, then hangs: stopping at the 1 s idle limit (the suite line is looked for every 5 s) would leave Staging and no Info.plist.
+mkdir -p "$dir/logs/fake.xcresult/Staging"  # last run's bundle: replaced, as xcodebuild refuses a path that exists
+start=$SECONDS
+out=$(FAKE_HANG=1 FAKE_RESULT=failed FAKE_BUNDLE_SECONDS=8 XCODEBUILD_IDLE_SECONDS=1 PATH="$dir/bin:$PATH" \
+  NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
+  scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" xcodebuild -scheme X test 2>&1 >/dev/null)
+status=$?
+took=$((SECONDS - start))
+case " $(cat "$dir/args") " in *" -resultBundlePath $dir/logs/fake.xcresult "*) ok "a test run's bundle is named for the run, beside its log";;
+  *) bad "no bundle path on a test run: $(cat "$dir/args")";; esac
+[ -e "$dir/logs/fake.xcresult/Info.plist" ] && [ ! -e "$dir/logs/fake.xcresult/Staging" ] &&
+  ok "a hang is stopped only once the bundle is written in full" || bad "the bundle was cut off: $(ls "$dir/logs/fake.xcresult")"
+[ "$took" -ge 8 ] && [ "$took" -lt 30 ] && ok "and it waited for it, not forever (${took} s)" || bad "the bundle wait took $took s"
+[ "$status" -eq 65 ] && ok "and the log's failed still decides" || bad "a failed suite whose bundle was waited for exited $status"
+case $out in *"the failed tests' screenshots: $dir/logs/fake.xcresult"*) ok "and the failure names the bundle";;
+  *) bad "the failure said: $out";; esac
+start=$SECONDS
+out=$(FAKE_HANG=1 FAKE_BUNDLE_SECONDS=600 XCODEBUILD_IDLE_SECONDS=1 XCODEBUILD_BUNDLE_SECONDS=2 PATH="$dir/bin:$PATH" \
+  NATIVE_LOG_DIR="$dir/logs" FAKE_ARGS="$dir/args" UI_TIMINGS_JSONL="$dir/t.jsonl" \
+  scripts/native/xcodebuild-log.sh fake "TEST SUCCEEDED" xcodebuild -scheme X test 2>&1 >/dev/null)
+status=$?
+[ $((SECONDS - start)) -lt 30 ] && ok "a bundle that's never written in full is given up on" || bad "the bundle wait didn't end"
+[ "$status" -eq 0 ] && ok "and the log's passed decides" || bad "a passed suite with an unwritten bundle exited $status"
+case $out in *"wasn't written in full 2 s after the tests finished"*) ok "and it says the bundle can't be opened";;
+  *) bad "an unwritten bundle said: $out";; esac
+run xcodebuild -scheme X test -resultBundlePath "$dir/mine.xcresult"
+case " $(cat "$dir/args") " in *"-resultBundlePath $dir/mine.xcresult "*"-resultBundlePath"*) bad "a named bundle got a second path";;
+  *" -resultBundlePath $dir/mine.xcresult "*) ok "a command that names its bundle keeps it";; *) bad "the named bundle was lost";; esac
+[ -e "$dir/mine.xcresult/Info.plist" ] && ok "and that bundle is the one waited on" || bad "the named bundle wasn't written"
+run xcodebuild -scheme X build
+case " $(cat "$dir/args") " in *"-resultBundlePath"*) bad "a build got a result bundle path";; *) ok "a build gets no bundle path";; esac
 
 # Story 783: a run of built tests that never starts its first suite.
 start=$SECONDS
