@@ -5,6 +5,25 @@
 
 import Foundation
 
+/// What the canvas made of a batch it was handed (#1040): it took it as planned, it wasn't there to take it (not laid
+/// out yet, or closed), or PaperKit refused the edit.
+public enum BoardCanvasOutcome: Equatable, Sendable {
+  case applied(BoardOps.Plan)
+  case unavailable
+  case failed(reason: String)
+}
+
+/// What the board reports of one batch after the canvas answered (#1040).
+public enum BoardApplyReport: Equatable, Sendable {
+  /// The canvas took it; Larry's next turn hears `result`.
+  case applied(BoardOps.Result)
+  /// The canvas didn't take it; recorded as refused, with the wire's `not_applied`. `canvas` says why, for the log:
+  /// `unavailable`, or `failed:<reason>`.
+  case refused(BoardOps.Result, canvas: String)
+  /// Not the batch this applier let through: its completion came twice, or after the board closed. Nothing recorded.
+  case late
+}
+
 public struct BoardOpApplier: Equatable, Sendable {
   /// Batches remembered as handled, newest last: far more than a board's thread holds between looks.
   public static let remembered = 64
@@ -22,6 +41,9 @@ public struct BoardOpApplier: Equatable, Sendable {
   public private(set) var touches: [Touch] = []
   /// The oldest revision `touches` covers every change after; a batch based before it is stale.
   public private(set) var since: Int
+
+  /// The batch let through to the canvas whose answer hasn't come yet (#1040): only its report counts.
+  public private(set) var applying: String?
 
   /// The most changes remembered: far more than Igor writes while Larry thinks.
   public static let rememberedChanges = 200
@@ -104,7 +126,10 @@ public struct BoardOpApplier: Equatable, Sendable {
     }
     var batch = batch
     if batch.baseRev != rev { batch.rebasedFrom = batch.baseRev }
-    if ready { return .apply(batch) }
+    if ready {
+      applying = batch.key
+      return .apply(batch)
+    }
     let replaced = held?.label
     if let older = held { _ = refusal(older, BoardOps.Reason.superseded) }
     held = batch
@@ -115,6 +140,7 @@ public struct BoardOpApplier: Equatable, Sendable {
   public mutating func release(ready: Bool) -> BoardOps.Batch? {
     guard ready, let batch = held else { return nil }
     held = nil
+    applying = batch.key
     return batch
   }
 
@@ -124,6 +150,28 @@ public struct BoardOpApplier: Equatable, Sendable {
     held = nil
     return refusal(batch, reason)
   }
+
+  /// The canvas answered for `batch` (#1040): taken, it is recorded as applied and, if it changed the ink, as
+  /// touching everything since, so no batch from an earlier look applies over it; not taken, it is refused as
+  /// `not_applied` and nothing else changes. Only the batch let through counts, once: a repeated answer, or one after
+  /// the board closed, is `late`. The board's own change (if any) has already bumped `rev`.
+  public mutating func report(_ batch: BoardOps.Batch, _ outcome: BoardCanvasOutcome) -> BoardApplyReport {
+    guard applying == batch.key else { return .late }
+    applying = nil
+    switch outcome {
+    case .applied(let plan):
+      let result = applied(batch, plan: plan)
+      if plan.changesBoard { touched([], all: true) }
+      return .applied(result)
+    case .unavailable:
+      return .refused(refusal(batch, BoardOps.Reason.notApplied), canvas: "unavailable")
+    case .failed(let reason):
+      return .refused(refusal(batch, BoardOps.Reason.notApplied), canvas: "failed:\(reason)")
+    }
+  }
+
+  /// The board closed: an answer still to come from the canvas no longer counts (#1040).
+  public mutating func closed() { applying = nil }
 
   /// `batch` was applied as planned; the board's own change (if any) has already bumped `rev`.
   @discardableResult

@@ -468,7 +468,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     model.pasteReach = board.pasteReach
     model.zoom = { [weak self] in self?.screenScale ?? 1 }
     model.draw = { [weak self] _, added, name in self?.keep(added, named: name) }
-    model.applyOps = { [weak self] batch in self?.applyOps(batch) }
+    model.applyOps = { [weak self] batch in self?.applyOps(batch) ?? .unavailable }
     model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
     model.keepMakingRoom = { [weak self] strokes, push, why in self?.keep(strokes, making: push, why: why) ?? false }
     model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
@@ -1785,9 +1785,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   /// Stories 814–816, 840–842: a batch of Larry's changes on the markup. Every stroke it moves moves whole, by a transform
   /// on its own element (its id kept, so PaperKit's own steps go on working); strokes it erases go, the ink he draws is
   /// added, the column grows to the pages it needs, and the lot is one undo named for the batch, the page count
-  /// included. Text and notes alone leave the markup as it is. Nil before the markup is laid out.
-  private func applyOps(_ batch: BoardOps.Batch) -> BoardOps.Plan? {
-    guard let markup = paper.markup else { return nil }
+  /// included. Text and notes alone leave the markup as it is. What came of it is said to the caller (#1040): not there
+  /// before the markup is laid out, failed when PaperKit didn't take the moves as moves.
+  private func applyOps(_ batch: BoardOps.Batch) -> BoardCanvasOutcome {
+    guard let markup = paper.markup else { return .unavailable }
     let started = CACurrentMediaTime()
     let (strokes, hashes) = opStrokes(markup)
     let plan = BoardOps.plan(
@@ -1795,13 +1796,13 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       folds: model.outline(of: strokes).tags, ghosts: model.textGhosts, pages: pages, board: board)
     guard plan.changesBoard else {
       select(plan.select)
-      return plan
+      return .applied(plan)
     }
     // #937: his texts with notes are ink in the same undo.
     let lettered = model.letter(plan.inked)
     guard
       let (held, renamed, drawn) = put(plan, on: markup, hashes: hashes, adding: lettered.strokes, named: batch.label)
-    else { return nil }
+    else { return .failed(reason: "paper_ops_failed") }
     model.keep(lettered: lettered.texts)
     model.opsApplied(held.inkDrawing, renamed: renamed, drawn: drawn)
     model.inkReset(Self.allHashes(held))
@@ -1815,7 +1816,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       ])
     undoSoonForTests(LaunchHooks.current.whiteboard.afterOps)
     select(plan.select)
-    return plan
+    return .applied(plan)
   }
 
   func opStrokes(_ markup: PaperMarkup) -> (strokes: [BoardOps.Stroke], hashes: [[String]]) {

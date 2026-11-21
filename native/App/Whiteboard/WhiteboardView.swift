@@ -156,7 +156,8 @@ final class WhiteboardModel: ObservableObject {
   var draw: ((PKDrawing, [PKStroke], String) -> Void)?
   /// Plans a batch of Larry's changes on the canvas and applies it as one undo named for it; nil with no canvas yet.
   /// The canvas sets it.
-  var applyOps: ((BoardOps.Batch) -> BoardOps.Plan?)?
+  /// The canvas applies a batch of Larry's and says what came of it (#1040); nil while there is no canvas.
+  var applyOps: ((BoardOps.Batch) -> BoardCanvasOutcome)?
   /// Story 852: a paste on paper lands clear of ink or opens room for itself, in one undo, and comes back as the whole
   /// drawing; nil where it can't (no paper laid out), and the paste is added as it was placed.
   var landPaste: (([PKStroke]) -> Bool)?
@@ -1838,6 +1839,7 @@ final class WhiteboardModel: ObservableObject {
     stopWatchingLarry()
     saveTask?.cancel()
     heldTask?.cancel()
+    ops.closed()
     if let dropped = ops.dropHeld(reason: "board_closed") {
       log.event(
         "board_ops", ["action": "refused", "board": board.id, "label": dropped.label, "reason": "board_closed"])
@@ -2202,13 +2204,24 @@ extension WhiteboardModel {
     var event = BoardOps.logFields(batch)
     event["board"] = board.id
     event["held"] = held
-    guard let plan = applyOps?(batch) else {
-      // No canvas laid out yet, or PaperKit didn't take the move (`paper_ops_failed`).
-      let result = ops.refusal(batch, "not_applied")
+    // #1040: what the canvas made of it decides what is reported, once: no canvas laid out yet or PaperKit refusing the
+    // move is refused as `not_applied`; an answer for a batch no longer being applied changes nothing.
+    let outcome = applyOps?(batch) ?? .unavailable
+    let result: BoardOps.Result
+    let plan: BoardOps.Plan
+    switch (ops.report(batch, outcome), outcome) {
+    case (.applied(let applied), .applied(let planned)):
+      (result, plan) = (applied, planned)
+    case (.refused(let refused, let canvas), _):
       event["action"] = "refused"
-      event["reason"] = result.reason ?? ""
+      event["reason"] = refused.reason ?? ""
+      event["canvas"] = canvas
       log.event("board_ops", event)
-      showBlocked(batch.label, result.reason ?? "")
+      showBlocked(batch.label, refused.reason ?? "")
+      return
+    case (.late, _), (.applied, _):
+      event["action"] = "late"
+      log.event("board_ops", event)
       return
     }
     if blocked.applied() { log.event("board_blocked", ["action": "cleared", "board": board.id, "why": "applied"]) }
@@ -2231,8 +2244,6 @@ extension WhiteboardModel {
             lettering: lettering)
         })
     }
-    let result = ops.applied(batch, plan: plan)
-    if plan.changesBoard { ops.touched([], all: true) }
     if let from = batch.rebasedFrom { event["rebased_from"] = from }
     var moves = plan.offsets.values.map(\.dy)
     moves.sort()
