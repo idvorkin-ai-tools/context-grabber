@@ -392,7 +392,7 @@ final class WhiteboardModel: ObservableObject {
     saveTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(1))
       guard !Task.isCancelled else { return }
-      self?.save()
+      self?.save(.debounce)
     }
   }
 
@@ -1749,7 +1749,7 @@ final class WhiteboardModel: ObservableObject {
   func flush() {
     stopWatchingLarry()
     saveTask?.cancel()
-    if editable, dirty { save() }
+    if editable, dirty { save(.background) }
   }
 
   /// On screen: a delete from another device waits for `close`, which comes after the last save.
@@ -1846,7 +1846,7 @@ final class WhiteboardModel: ObservableObject {
     }
     guard editable else { return }
     if dirty {
-      save()
+      save(.close)
       log.event(
         "whiteboard", ["action": "close", "board": board.id, "strokes": drawing.strokes.count, "saved": !dirty])
       if dirty, let problem { store.closedUnsaved(problem, board: board.id) }
@@ -1855,10 +1855,11 @@ final class WhiteboardModel: ObservableObject {
   }
 
   // ponytail: serialised on the main thread; a board big enough to stutter here moves it to a background task.
-  private func save() {
+  /// `trigger`: what set the save off, for its timing in the session log (#1044).
+  private func save(_ trigger: BoardSaveTiming.Trigger) {
     guard dirty else { return }
     do {
-      try store.save(drawing, board: board.id)
+      try store.save(drawing, board: board.id, trigger: trigger)
       dirty = false
       saveFailing = false
       if problem?.context == "WhiteboardView.save" { problem = nil }

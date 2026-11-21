@@ -144,7 +144,7 @@ final class WhiteboardStore: ObservableObject {
       id: id, at: Date(), device: other ?? device, deviceName: other ?? deviceName, onPages: oldInk == nil)
     if let oldInk, oldInk > 0 {
       do {
-        try save(PKDrawing(strokes: Self.oldCanvasInk(oldInk)), board: id)
+        try save(PKDrawing(strokes: Self.oldCanvasInk(oldInk)), board: id, trigger: .fixture)
       } catch {
         log.event("error", ["where": "whiteboard_fixture", "board": id, "message": "\(error)"])
       }
@@ -186,14 +186,23 @@ final class WhiteboardStore: ObservableObject {
     try keeping.drawing(id, decode: PKDrawing.init(data:)) ?? PKDrawing()
   }
 
-  /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it.
-  func save(_ drawing: PKDrawing, board id: String) throws {
-    if try keeping.save(drawing.dataRepresentation(), board: id), problem?.context == "WhiteboardView.save" {
+  /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it. Each stage's time goes
+  /// to the session log (`save_timing`, #1044), with what set it off, never the drawing.
+  func save(_ drawing: PKDrawing, board id: String, trigger: BoardSaveTiming.Trigger) throws {
+    var timing = BoardSaveTiming(board: id, trigger: trigger, strokes: drawing.strokes.count) {
+      ProcessInfo.processInfo.systemUptime
+    }
+    defer { log.event("whiteboard", timing.fields) }
+    let data = timing.time("encode") { drawing.dataRepresentation() }
+    if try timing.time("write", { try keeping.save(data, board: id) }), problem?.context == "WhiteboardView.save" {
       problem = nil
     }
-    writePicture(of: drawing, id: id)
-    index.drew(id, strokes: drawing.strokes.count, at: Int64(Date().timeIntervalSince1970 * 1000))
-    saveIndex()
+    timing.time("picture") { writePicture(of: drawing, id: id) }
+    timing.time("index") {
+      index.drew(id, strokes: drawing.strokes.count, at: Int64(Date().timeIntervalSince1970 * 1000))
+      saveIndex()
+    }
+    timing.revision = index.board(id)?.updated
   }
 
   func opened(_ id: String) { open.insert(id) }

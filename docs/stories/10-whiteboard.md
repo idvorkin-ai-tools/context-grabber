@@ -2733,8 +2733,8 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 593:
 
 - **Summary:** A board on paper is kept like any other
-- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: killed and reopened with the same ink)
-- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636)
+- **Status:** implemented in [a2e922f](https://github.com/idvorkin/context-grabber/commit/a2e922f); verified on an iPhone and an iPad simulator (`WhiteboardOnPaperUITests`: killed and reopened with the same ink); #1044: every save logs `save_timing`, the time of each stage (encode, write, picture, index) with its trigger, strokes and revision and nothing of the drawing, verified by host tests (`BoardSaveTimingTests`) and the Mac build; the measurement at 100, 1,000 and 5,000 strokes on the iPad is Igor's
+- **Issues:** [#636](https://github.com/idvorkin/context-grabber/issues/636); [#1044](https://github.com/idvorkin/context-grabber/issues/1044) (bead context-grabber-a99q: what each stage of a save costs on the iPad)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
