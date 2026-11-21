@@ -227,6 +227,10 @@ final class WhiteboardModel: ObservableObject {
     paper = board.paper
     self.store = store
     self.log = log
+    // #1083 (story 1063): the first stroke of each kind of ink the app has no name for, so the log says what it was.
+    WhiteboardInk.onUnknown = { [log] ink, place, points in
+      log.event("whiteboard", ["action": "unknown_ink", "ink": ink ?? "none", "where": place, "points": points])
+    }
     self.inbox = inbox
     self.cockpit = cockpit
     questions = WhiteboardQuestionsModel(board: board.id, log: log, inbox: inbox, cockpit: cockpit)
@@ -741,7 +745,9 @@ final class WhiteboardModel: ObservableObject {
       let color = lightHex(stroke.ink.color)
       let width = WhiteboardStrokes.width(sizes: stroke.path.map(\.size.width), transform: stroke.transform)
       let t = Int64(stroke.path.creationDate.timeIntervalSince1970 * 1000)
-      let tool = WhiteboardStrokes.tool(rawValue: stroke.ink.inkType.rawValue)
+      // #1083 (story 1063): never `ink.inkType`, which traps on a kind of ink PencilKit's Swift enum doesn't name.
+      let tool = WhiteboardStrokes.tool(
+        rawValue: WhiteboardInk.name(stroke.ink, at: "strokes", points: stroke.path.count) ?? "pen")
       return stroke.maskedPathRanges.map { range in
         var points = stroke.path.interpolatedPoints(in: range, by: .distance(WhiteboardStrokes.spacing)).map {
           $0.location.applying(stroke.transform)

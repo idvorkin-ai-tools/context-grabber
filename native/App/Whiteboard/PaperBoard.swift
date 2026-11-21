@@ -303,7 +303,7 @@ class PaperHost: UIViewController {
 
   var toolName: String {
     switch paper.drawingTool {
-    case let ink as PKInkingTool: return ink.inkType.rawValue
+    case let ink as PKInkingTool: return WhiteboardInk.name(ink.ink, at: "tool") ?? "unknown"
     case is PKEraserTool: return "eraser"
     case is PKLassoTool: return "lasso"
     default: return String(describing: type(of: paper.drawingTool))
@@ -317,7 +317,8 @@ class PaperHost: UIViewController {
     ink.color.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light)).getRed(
       &red, green: &green, blue: &blue, alpha: nil)
     let width = (ink.width * 100).rounded() / 100
-    return "\(ink.inkType.rawValue) \(WhiteboardStrokes.hex(red: red, green: green, blue: blue)) \(width)"
+    let kind = WhiteboardInk.name(ink.ink, at: "tool") ?? "unknown"
+    return "\(kind) \(WhiteboardStrokes.hex(red: red, green: green, blue: blue)) \(width)"
   }
 
   func name(_ mode: PaperMarkupViewController.TouchMode) -> String {
@@ -1844,7 +1845,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     for (index, hidden) in plan.hidden where elements.indices.contains(index) {
       guard var stroke = markup.subelements[elements[index].elementID] as? PKStroke else { continue }
       // ponytail: shown again at full strength, whatever alpha the ink had; the Pencil's inks draw opaque colours.
-      stroke.ink = PKInk(stroke.ink.inkType, color: stroke.ink.color.withAlphaComponent(hidden ? 0 : 1))
+      stroke.ink = WhiteboardInk.withAlpha(stroke.ink, hidden ? 0 : 1, at: "hide")
       _ = markup.subelements.updateOrAppend(stroke)
     }
     // A moved stroke that came back as a new element would leave its old self behind: nothing is set, and the log says so.
