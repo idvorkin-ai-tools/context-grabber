@@ -1,4 +1,4 @@
-//  Stories 307–309 (#589), 311–314 (#599) and 506 on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
+//  Stories 307–309 (#589), 311–314 (#599), 823–824 (bead context-grabber-szom) and 506 on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
 //  starts it): only what the real list can show. A real swipe archives a thread and its Undo brings it back; Select's
 //  ticks and Archive (N) archive two with one Undo; the thread's ⋯ menu archives and goes back, and a swipe under Done
 //  unarchives; the + and the voice button float over the list with the pinned thread on top. Which row offers what,
@@ -112,6 +112,33 @@ final class ChatArchiveUITests: XCTestCase {
     scrollClearOfTheBar(row, app)
     row.swipeLeft()
     app.buttons["Unarchive"].tap()
+    assertBackInTheLiveList(app)
+  }
+
+  /// Stories 823 and 824 (bead context-grabber-szom): Review opens on *Recommendations*, with only what looks done shown;
+  /// *All* shows the rest, and a tick made there survives the switch back and goes with *Archive (N)*.
+  func testReviewShowsOnlyRecommendationsAndTicksSurviveTheSwitch() throws {
+    let app = try openList()
+    let review = app.buttons["chat-review-done"]
+    XCTAssertTrue(review.appears(within: 10), app.debugDescription)
+    review.tap()
+    let filter = app.segmentedControls["chat-select-filter"]
+    XCTAssertTrue(filter.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(filter.buttons["Recommendations"].isSelected, "Review opens on Recommendations")
+    let (proposed, other) = (app.buttons["chat-tick-igor2-88g.593"], app.buttons["chat-tick-\(key)"])
+    XCTAssertTrue(proposed.appears(within: 5), app.debugDescription)
+    XCTAssertEqual(proposed.value as? String, "ticked")
+    XCTAssertFalse(other.exists, "a chat that doesn't look done isn't shown")
+    filter.buttons["All"].tap()
+    XCTAssertTrue(other.appears(within: 5), app.debugDescription)
+    other.tap()
+    filter.buttons["Recommendations"].tap()
+    XCTAssertTrue(other.waitForNonExistence(timeout: 5), app.debugDescription)
+    let archive = app.buttons["chat-archive-selected"]
+    XCTAssertEqual(archive.label, "Archive (2)", "the tick under All still counts")
+    archive.tap()
+    XCTAssertTrue(app.staticTexts["Archived 2 chats"].appears(within: 5), app.debugDescription)
+    app.buttons["chat-archive-undo"].tap()
     assertBackInTheLiveList(app)
   }
 }

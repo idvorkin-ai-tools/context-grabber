@@ -461,4 +461,65 @@ final class ChatArchiverTests: XCTestCase {
     XCTAssertTrue(selection.shows(row("a")))
     XCTAssertTrue(selection.canToggle([pinned]), "Cancel always works")
   }
+
+  // MARK: Review's filter (bead context-grabber-szom; stories 823, 824)
+
+  private func keys(_ rows: [ChatSummary]) -> [String] { rows.map(\.key) }
+
+  func testReviewOpensOnRecommendationsShowingOnlyWhatLooksDone() {
+    let threads = [
+      row("p", pinned: true), row("a"), row("b", looksDone: true), row("c", looksDone: true),
+      row("old", done: true, looksDone: true),
+    ]
+    var selection = ChatListSelection()
+    XCTAssertEqual(keys(selection.rows(threads)), ["p", "a", "b", "c"], "not ticking: every live row, as before")
+    selection.review(threads)
+    XCTAssertEqual(selection.filter, .recommendations)
+    XCTAssertEqual(keys(selection.rows(threads)), ["b", "c"], "only the live ones that look done")
+    XCTAssertEqual(selection.archiveTitle(threads), "Archive (2)")
+    XCTAssertNil(selection.emptyLine(threads))
+    XCTAssertEqual(ChatListSelection.Filter.allCases.map(\.title), ["Recommendations", "All"])
+  }
+
+  func testSelectOpensOnAllShowingEveryLiveRowButThePinnedOne() {
+    let threads = [row("p", pinned: true), row("a"), row("b", looksDone: true), row("d", archived: true)]
+    var selection = ChatListSelection()
+    selection.review(threads)
+    selection.toggle()  // Cancel
+    XCTAssertEqual(keys(selection.rows(threads)), ["p", "a", "b"], "Cancel shows the whole list again")
+    selection.toggle()  // Select
+    XCTAssertEqual(selection.filter, .all, "Select opens on All, whatever the last Review chose")
+    XCTAssertEqual(keys(selection.rows(threads)), ["a", "b"])
+  }
+
+  func testTicksSurviveSwitchingAndArchiveTakesEveryTickShownOrNot() {
+    let threads = [row("a"), row("b", looksDone: true), row("c", looksDone: true)]
+    var selection = ChatListSelection()
+    selection.review(threads)
+    selection.tick("c")  // keep c
+    selection.show(.all)
+    XCTAssertEqual(keys(selection.rows(threads)), ["a", "b", "c"])
+    XCTAssertTrue(selection.ticked("b"), "the switch changes no tick")
+    selection.tick("a")
+    selection.show(.recommendations)
+    XCTAssertEqual(keys(selection.rows(threads)), ["b", "c"])
+    XCTAssertTrue(selection.ticked("a"), "ticked under All, still ticked though not shown")
+    XCTAssertEqual(selection.archiveTitle(threads), "Archive (2)", "a and b")
+    XCTAssertEqual(Set(selection.archivePicked(threads)), ["a", "b"])
+    XCTAssertFalse(selection.selecting)
+    XCTAssertEqual(keys(selection.rows(threads)), ["a", "b", "c"], "the list is whole again")
+    selection.review(threads)
+    XCTAssertEqual(selection.filter, .recommendations, "the next Review opens on its own side")
+  }
+
+  func testRecommendationsWithNothingLeftSaysSo() {
+    var selection = ChatListSelection()
+    selection.review([row("a"), row("b", looksDone: true)])
+    let refreshed = [row("a"), row("b", archived: true)]
+    XCTAssertEqual(selection.rows(refreshed), [])
+    XCTAssertEqual(selection.emptyLine(refreshed), "Nothing looks done")
+    selection.show(.all)
+    XCTAssertNil(selection.emptyLine(refreshed), "All shows a")
+    XCTAssertNil(ChatListSelection().emptyLine(refreshed), "nothing to say while not ticking")
+  }
 }

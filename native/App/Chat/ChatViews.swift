@@ -108,16 +108,23 @@ struct ChatListView: View {
           }
         }
       }
+      if selection.selecting {
+        // Bead context-grabber-szom: Review opens on what looks done, Select on every live thread; ticks stay put.
+        Picker("Show", selection: Binding(get: { selection.filter }, set: { showFilter($0) })) {
+          ForEach(ChatListSelection.Filter.allCases, id: \.self) { Text($0.title).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .accessibilityIdentifier("chat-select-filter")
+      }
       Section {
         let decisionsAfter = ChatDecisions.rowAfter(live)
         if decisionsAfter == nil { decisionsRow }
-        ForEach(live) { thread in
-          if !selection.selecting {
-            threadLink(thread)
-          } else if selection.shows(thread) {
-            tickRow(thread)
-          }
+        ForEach(selection.rows(chat.threads)) { thread in
+          if selection.selecting { tickRow(thread) } else { threadLink(thread) }
           if thread.key == decisionsAfter { decisionsRow }
+        }
+        if let line = selection.emptyLine(chat.threads) {
+          Text(line).foregroundStyle(.secondary).accessibilityIdentifier("chat-select-empty")
         }
       }
       if selection.showsDone(chat.threads) {
@@ -223,6 +230,12 @@ struct ChatListView: View {
   private func review(from: String) {
     let count = selection.review(chat.threads)
     chat.logAction("select", ["from": from, "count": count])
+  }
+
+  private func showFilter(_ filter: ChatListSelection.Filter) {
+    guard filter != selection.filter else { return }
+    selection.show(filter)
+    chat.logAction("select_filter", ["filter": filter.rawValue])
   }
 
   private func archivePicked() {

@@ -88,6 +88,14 @@ tap archives them, and unticking keeps any of them. A thread that finishes or is
 the count and is not archived. When some can't be archived those threads go back and one copyable problem names each of
 them and why; a single thread reads as it always did. A failed *Undo* of several says the same.
 
+**Reviewing only what looks done** (Igor, 2026-11-21: *"the review is archived. It should be all, or it's
+recommendations"*). While ticking, a two-way switch at the top of the list chooses what shows: *Recommendations*, only
+the live threads that look done, or *All*, every live thread as before. *Review* opens on *Recommendations*, so the
+proposals are all there is to look at; *Select* from the toolbar opens on *All*. Switching never changes a tick: a
+thread ticked under one stays ticked under the other, and *Archive (N)* counts and archives every ticked thread, shown
+or not. *Recommendations* with nothing left that looks done says *Nothing looks done* in place of the rows. *Cancel* or
+*Archive (N)* ends the ticking, and the next *Select* or *Review* opens on its own side again.
+
 **A thread.** Bubbles: Igor's on the right, Larry's on the left, oldest at the top, opening at the newest. Images
 show inline, tap to see full size; the full-size view always has a Done that shows on any picture, white or
 dark, and a swipe down closes it too. The full-size picture zooms (#907, Igor, 2026-11-14: *"Need to be able to pinch
