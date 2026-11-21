@@ -198,6 +198,23 @@ for f in native/App/Whiteboard/WhiteboardQuestionsModel.swift native/App/Whitebo
   if [ -e "$f" ]; then ok "a real file: $f"; else : >"$out"; bad "a real file: $f"; fi
 done
 case $known in *" WhiteboardQuestionUITests "*) ok "question cards: a real class" ;; *) : >"$out"; bad "question cards: a real class" ;; esac
+# #1041: the conversation strip runs the classes that use it, not the board's fifteen; the iPhone's side is the smoke's.
+strip=native/App/Whiteboard/WhiteboardConversationStrip.swift
+if [ -e "$strip" ]; then ok "a real file: $strip"; else : >"$out"; bad "a real file: $strip"; fi
+dry --changed "$strip"
+says "the strip: the turn, connect and on-paper classes" \
+  "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardConnectUITests WhiteboardOnPaperUITests WhiteboardTurnUITests"
+says "the strip: the smoke's whiteboard, for the iPhone's tap to Chat" "rung 2 smoke, on the same build and boot: whiteboard"
+never "the strip: not the lines" "WhiteboardPaperLinesUITests"
+for c in WhiteboardConnectUITests WhiteboardOnPaperUITests WhiteboardTurnUITests; do
+  case $known in *" $c "*) ok "the strip: $c is a real class" ;; *) : >"$out"; bad "the strip: $c is a real class" ;; esac
+done
+# A strip change with the shared canvas in it takes the union: every class.
+dry --changed "$strip" --changed native/App/Whiteboard/PaperBoard.swift
+says "the strip and the canvas: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
+dry --changed "$strip" --changed native/App/Whiteboard/WhiteboardView.swift
+says "the strip and the drawing screen: every class" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): $board_all"
+
 # Every Whiteboard*UITests class the tree declares is in the whiteboard's list, so a new one isn't left out of a view change.
 for c in $(sed -nE 's/^(final )?class (Whiteboard[A-Za-z0-9_]*UITests):.*/\2/p' native/UITests/*.swift); do
   case " $board_all " in *" $c "*) ok "the whiteboard's list has $c" ;; *) : >"$out"; bad "the whiteboard's list has $c" ;; esac

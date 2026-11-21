@@ -151,6 +151,11 @@ for f in ${changed[@]+"${changed[@]}"}; do
       add_classes WhiteboardRewordUITests ;;  # stories 940-942
     native/App/Whiteboard/PaperScratch.swift | native/ContextCore/Sources/ContextCore/Whiteboard/WhiteboardScratchOut.swift)
       add_classes WhiteboardScratchOutUITests ;;  # story 890, #999
+    # #1041: the note's strip, the problem row and the conversation panel (#1039). The classes that tap or read them:
+    # the note, its chevron and the panel (Turn), Keep all (Turn, Connect), the problem's Copy error (OnPaper). The
+    # iPhone's tap to Chat is the smoke's whiteboard section.
+    native/App/Whiteboard/WhiteboardConversationStrip.swift)
+      add_classes WhiteboardTurnUITests WhiteboardConnectUITests WhiteboardOnPaperUITests ;;
     # A view file of its own gets a row here when it lands, naming the classes that open it (story 784); the board's two
     # big views draw every board, so they and anything unnamed run every class.
     native/App/Whiteboard/* | native/ContextCore/Sources/ContextCore/Whiteboard/* | scripts/native/test-whiteboard-ui.sh)
