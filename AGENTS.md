@@ -8,7 +8,7 @@ package (host tests), `native/App/` the SwiftUI app, `native/Widgets/` the widge
 `native/project.yml` the XcodeGen spec (the `.xcodeproj` is generated, never committed or hand-edited). The React
 Native app it replaced was removed 2026-10-17; "Ported from lib/….ts" comments name where logic came from, and git
 history has the rest. The stories are what must stay true, not the old TypeScript. Work lands on a branch as one PR
-per issue, through the no-mistakes pipeline (below); the agent merges it.
+per bead or issue, through the no-mistakes pipeline (below); the agent merges it.
 
 Recipes: `just native-test` (which first runs `native-lint-format` and `native-lint`; `native-format` fixes the
 layout, a SwiftLint finding is rewritten or justified on a `swiftlint:disable:next` line), `native-test-sim`,
@@ -45,12 +45,17 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 - **Instrument before theorizing.** For any phone-only symptom add the session-log event that would settle it (or a
   copyable error carrying the state), ship it, reproduce, pull the logs, read the evidence, then fix. Never ship a
   second guessed fix ([DEBUGGING.md](docs/DEBUGGING.md)).
-- **Bugs**: a report Igor makes — a shake report, a copied error, or his voice in the session — becomes a GitHub
-  issue with the evidence attached (shake reports and crashes by the listener, the rest by you). Before fixing, find
-  or write the story in `docs/stories/` that covers it (a bug gets an `Issues:` line, a request becomes a story, no
-  story means the spec has a hole). One PR per issue, referencing it; never bundle fixes. Close the issue once the
-  build is on the phone with a comment saying what was verified where and what Igor should feel; Igor reopens if it
-  is not fixed. Never leave a fixed bug open.
+- **Track work in beads; GitHub issues are for what BugKit files** (Igor, 2026-11-21: "Beads is the right place.
+  GitHub should be for bigger issues that came in over Bugkit"). Shake reports and crashes arrive as GitHub issues,
+  filed by the listener. Everything else is a bead (`bd create`) with the evidence on it: a copied error, Igor's
+  voice in the session, a follow-up, a review finding left for later, a flaky test, work an agent finds. Never open
+  a GitHub issue for those, and never backfill beads from old GitHub issues.
+- **Bugs**: before fixing, find or write the story in `docs/stories/` that covers it (a bug gets an `Issues:` line
+  naming the GitHub issue or the bead, a request becomes a story, no story means the spec has a hole). One PR per
+  bead or issue, referencing it; never bundle fixes. Close it once the build is on the phone with a note saying what
+  was verified where and what Igor should feel (a comment on a GitHub issue, `bd close --reason` on a bead); Igor
+  reopens if it is not fixed. Never leave a fixed bug open.
+- **Igor runs beads on several machines**: `bd dolt pull` before every `bd dolt push`.
 - **A bug in BugKit code is fixed in [idvorkin/bug-kit](https://github.com/idvorkin/bug-kit), not here.** That covers
   the dialog, the shake, dictation, the store and its format, crash capture, pruning, What's new, the listener and the
   scripts. File the bug there, fix it test-first, open a PR, then bump BugKit here. Until that lands, work around it
@@ -95,7 +100,7 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   them. Once the run's review, test, document, lint, push and PR steps have all completed, and the only thing left
   is the CI step "waiting for results" on those bots, merge the PR. Don't wait for them.
 - **Review settles in one fix round.** In round 1, fix every error and warning together. In later rounds, fix errors
-  only and decide info findings in one pass. Cap review at two rounds; file the rest as issues.
+  only and decide info findings in one pass. Cap review at two rounds; file the rest as beads.
 - **Architecture is discussed, not assumed**: propose with a trade-off table or a numeric plan, then one "do it".
   Prefer `just` recipes over raw commands — they carry the project generation, the signing lock and the build stamps.
 

@@ -158,18 +158,19 @@ not synthesis (2026-09-07).
 1. **On the phone**: Igor hits it. He shakes the phone, copies the error, or says it in the session. The
    copied payload carries the build line, so nothing needs retyping.
 2. **File it**: a shake report or a crash is filed by BugKit's listener on its own (above); never file one yourself.
-   A report that arrives any other way (a copied error or log, or Igor's voice in the session) gets one GitHub issue
-   (`gh issue create`) with the payload, the build line and what he was doing, so the trail is complete. Track the work in `bd` when it spans sessions; the issue is where the
-   evidence lives and what the commit closes.
+   A report that arrives any other way (a copied error or log, or Igor's voice in the session) gets one bead
+   (`bd create`) with the payload, the build line and what he was doing, so the trail is complete; never a GitHub
+   issue, which is for what BugKit files (Igor, 2026-11-21). The issue or bead is where the evidence lives and what
+   the commit closes.
 3. **Before fixing**: find or write the story in [stories/](stories/README.md) that the report belongs to — a bug gets
    an `Issues:` line, a request becomes a story, no story means the spec has a hole — and, when the behaviour will
    change, re-open the feature's design spec first (spec-first, [AGENTS.md](../AGENTS.md)). Then read the log at
-   the moment of the report and put that evidence on the issue as a comment.
+   the moment of the report and put that evidence on the issue or bead as a comment.
 4. **Fix on the cheapest rung** that can see it ([TESTING.md](TESTING.md)): a host test that fails first when the
-   logic is in `ContextCore`; a line in the log when it is the phone's. One PR per issue, referencing it.
-5. **Ship and close**: `just native-run-device`. Close the issue once the build is on the
-   phone (`Fixes #N` in the PR when the verifying rung already ran, otherwise by hand after the build landed) with a
-   comment saying what was verified where and what Igor should feel; Igor reopens if it is not fixed. Never leave a
+   logic is in `ContextCore`; a line in the log when it is the phone's. One PR per issue or bead, referencing it.
+5. **Ship and close**: `just native-run-device`. Close the issue or bead once the build is on the
+   phone (`Fixes #N` in the PR when the verifying rung already ran, otherwise by hand after the build landed;
+   `bd close --reason` for a bead) with a note saying what was verified where and what Igor should feel; Igor reopens if it is not fixed. Never leave a
    fixed bug open.
 
 
