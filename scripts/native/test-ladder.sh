@@ -62,8 +62,13 @@ daily_area="DailyStripUITests"
 eulogy_area="EulogyUITests"
 links_area="LinksUITests"
 
+# #1036: the replay, which the host tests' fixtures run and the app doesn't (the planner and applier it calls are the
+# canvas's too, and stay on the whiteboard's every-class row).
+replay=native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift
+
 classes=()
 unknown=()
+host_only=()
 swift=()
 sim_build=0
 mac_build=0
@@ -78,6 +83,11 @@ for f in ${changed[@]+"${changed[@]}"}; do
     scripts/lead-times.py) ;;  # a report read off GitHub, nothing the app builds (story 828)
     scripts/native/bundle-trainer.sh) sim_build=1 mac_build=1 ;;
     scripts/native/*) ;;
+    # #1036: the replay of Larry's board changes on a copy of a board. Only the harness and the host tests run it; the
+    # app never calls it, so no UI test or smoke can see it. The Mac build still compiles it, as the app links the
+    # package; the harness is in no app build at all.
+    "$replay") mac_build=1; host_only+=("$f") ;;
+    native/ContextCore/Sources/BoardOpsHarness/*) host_only+=("$f") ;;
     native/UITests/*) sim_build=1 ;;
     *) sim_build=1 mac_build=1 ;;
   esac
@@ -85,6 +95,7 @@ for f in ${changed[@]+"${changed[@]}"}; do
   case $f in
     *.md | scripts/lead-times.py) ;;
     native/App/Assets.xcassets/*) ;;  # the host rung's tile-art check
+    "$replay" | native/ContextCore/Sources/BoardOpsHarness/*) ;;  # #1036: the host's replay fixtures, above
     native/App/Chat/* | native/App/Inbox/* | native/ContextCore/Sources/ContextCore/Chat/* | \
       native/ContextCore/Sources/ContextCore/Inbox/* | scripts/native/test-chat-ui.sh | scripts/native/fake-bridge.py)
       add_classes $chat_area ;;
@@ -215,8 +226,13 @@ plan() {
     if [ "$sim_build" -eq 1 ]; then
       echo "rung 2 Simulator: the build with its UI tests"
     else
-      echo "rung 2 Simulator: skipped, nothing the simulator build compiles changed"
+      if [ "${#host_only[@]}" -gt 0 ]; then
+        echo "rung 2 Simulator: skipped, the app never runs what changed; the host rung's replay fixtures do"
+      else
+        echo "rung 2 Simulator: skipped, nothing the simulator build compiles changed"
+      fi
     fi
+    [ "${#host_only[@]}" -eq 0 ] || echo "no UI test or smoke of their own, the host rung's replay fixtures hold them (#1036): ${host_only[*]}"
     [ "$run_chat_classes" -gt 0 ] && echo "rung 2 UI tests (chat, fake Cockpit and bridge): ${chat[*]}"
     [ "$run_whiteboard_classes" -gt 0 ] && echo "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): ${whiteboard[*]}"
     [ "$n_places" -gt 0 ] && echo "rung 2 UI tests (places, the real export in Documents): ${places[*]}"

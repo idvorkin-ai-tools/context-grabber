@@ -20,6 +20,8 @@ for f in $files; do
     scripts/lead-times.py) ;;                 # a report off GitHub (story 828)
     native/ContextCore/Tests/*) ;;            # host tests, the host rung's
     native/UITests/*) ;;                      # UI tests, which the ladder runs as their own classes (story 755)
+    # #1036: the replay of Larry's board changes and its harness, which the app never runs: the host's replay fixtures.
+    native/ContextCore/Sources/ContextCore/Whiteboard/BoardReplay.swift | native/ContextCore/Sources/BoardOpsHarness/*) ;;
     native/App/Gym/* | native/ContextCore/Sources/ContextCore/Gym/* | assets/audio/timer*) add timer ;;
     native/App/Breathe/* | native/ContextCore/Sources/ContextCore/Breathe/* | assets/audio/breathe*) add breathe ;;
     native/App/Places/* | native/ContextCore/Sources/ContextCore/Places/*) add places ;;
