@@ -37,6 +37,8 @@ TIMINGS = (f"{HOME}/.treehouse/*/*/*/native/Build/logs/ui-timings.jsonl:"
 DEPLOYS = os.environ.get("LEAD_TIMES_DEPLOYS", f"{HOME}/tmp/agent/notes/lead-times/deploys.jsonl")
 # The kinds of deploy that put a change on a device. An upload to TestFlight is not one until it is available.
 DELIVERED = {"cable", "testflight_available"}
+FAILED = ("fail", "timeout")
+NOT_RUN = ("unavailable", "interrupted", "censored")
 RUNG = re.compile(r"^  rung ([0-9.]+) ([^:]+): (ok|FAILED|skipped)(?:, (\d+) s)?(?:, after (\d+) s waiting)?")
 STEP = re.compile(r"^  rung 2 (.+): (\d+) s$")
 PLAN_UI = re.compile(r"^rung 2 UI tests(?: \(([^)]*)\))?: (.*)$")
@@ -229,18 +231,19 @@ def join_deploys(runs, deploys, root):
 
 
 def attempts(runs):
-    """A climb of the same source and selection as an earlier one is its next attempt."""
+    """A climb of the same source and selection as an earlier one that ran is its next attempt."""
     seen = defaultdict(int)
     for r in sorted(runs, key=lambda r: (r.get("at") or "", r["run_id"])):
         key = (r.get("sha"), json.dumps(r.get("classes", {}), sort_keys=True)) if r.get("sha") else (r["run_id"],)
-        seen[key] += 1
-        r["attempt"] = seen[key]
+        r["attempt"] = seen[key] + 1
+        if r["outcome"] not in NOT_RUN:
+            seen[key] += 1
 
 
 def avoidable_s(r):
     """Lane time a better selection, a fixed flake or a free lane would have saved."""
     s = (r.get("queue_s") or 0) + (r.get("retry_s") or 0)
-    if r["outcome"] in ("fail", "interrupted"):
+    if r["outcome"] in FAILED + ("interrupted",):
         s += r.get("exec_s") or 0
     return s
 
@@ -258,8 +261,8 @@ def summarise(runs):
             "exec_p50": pct([r.get("exec_s") for r in rs], 50), "exec_p90": pct([r.get("exec_s") for r in rs], 90),
             "queue_n": sum(r.get("queue_s") is not None for r in rs), "exec_n": sum(r.get("exec_s") is not None for r in rs),
             # A climb that could not start, was stopped or never finished is not a test's failure: counted apart.
-            "first_pass_failures": sum(1 for r in rs if r.get("attempt", 1) == 1 and r["outcome"] in ("fail", "timeout")),
-            "not_run": sum(1 for r in rs if r["outcome"] in ("unavailable", "interrupted", "censored")),
+            "first_pass_failures": sum(1 for r in rs if r.get("attempt", 1) == 1 and r["outcome"] in FAILED),
+            "not_run": sum(1 for r in rs if r["outcome"] in NOT_RUN),
             "retried_cases": sum(len(r.get("retried", [])) for r in rs),
             "skipped_coverage": sum(len(r.get("skipped", [])) for r in rs),
             "delivered": sum(1 for r in with_sha if r.get("delivered")), "with_source": len(with_sha),

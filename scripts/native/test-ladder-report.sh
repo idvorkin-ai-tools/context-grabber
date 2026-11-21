@@ -49,4 +49,26 @@ wb = d["by_area"][0]
 # The queue of both attempts (120 + 30 s), the failed attempt's 900 s and the 50 s retried case: 18.3 min, twice.
 assert wb["avoidable_min"] == 18.3 and wb["rank_score"] == 36.6, wb
 PY
+# A locked screen does not use up the first attempt: the rerun's failure is the first pass's. A timeout's time is avoidable.
+sel='"classes":{"chat":["ChatArchiveUITests"],"whiteboard":[],"places":[],"ipad":[],"other":[]},"smoke":"chat"'
+cat >"$dir/rerun.jsonl" <<EOF
+{"run_id":"r-lock","event":"start","at":"2026-11-21T08:00:00Z","sha":"ffff6666","base":"origin/main",$sel}
+{"run_id":"r-lock","event":"finish","at":"2026-11-21T08:00:05Z","outcome":"unavailable","status":75}
+{"run_id":"r-rerun","event":"start","at":"2026-11-21T09:00:00Z","sha":"ffff6666","base":"origin/main",$sel}
+{"run_id":"r-rerun","event":"rung","at":"2026-11-21T09:05:00Z","rung":"2","name":"Simulator","secs":300,"waited_s":0,"status":65}
+{"run_id":"r-rerun","event":"finish","at":"2026-11-21T09:05:00Z","outcome":"fail","status":65,"first_failure":{"rung":"2"}}
+{"run_id":"r-hung","event":"start","at":"2026-11-21T10:00:00Z","sha":"9999aaaa","base":"origin/main",$sel}
+{"run_id":"r-hung","event":"rung","at":"2026-11-21T10:30:00Z","rung":"2","name":"Simulator","secs":1800,"waited_s":0,"status":124}
+{"run_id":"r-hung","event":"finish","at":"2026-11-21T10:30:00Z","outcome":"timeout","status":124,"first_failure":{"rung":"2"}}
+EOF
+"$here/ladder-report.py" --ledger "$dir/rerun.jsonl" --logs '' --timings '' --deploys '' --repo "$dir" \
+  --json "$dir/rerun.json" >"$out" 2>&1
+has "a climb that could not run: still the first attempt" "r-lock  chat  #1  unavailable"
+has "the rerun after it: its failure is the first attempt's" "r-rerun  chat  #1  fail"
+python3 - "$dir/rerun.json" <<'PY' && ok "first-pass failures count the rerun and the timeout; the timeout's 30 min is avoidable" || bad "rerun and timeout"
+import json, sys
+chat = json.load(open(sys.argv[1]))["by_area"][0]
+# The failed rerun's 300 s and the timed-out climb's 1,800 s: 35 min; the locked screen ran nothing.
+assert chat["first_pass_failures"] == 2 and chat["not_run"] == 1 and chat["avoidable_min"] == 35.0, chat
+PY
 exit $fail

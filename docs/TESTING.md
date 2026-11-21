@@ -551,10 +551,12 @@ The UI test timing lines (`ui-timings.jsonl`) carry the climb's run id, so a cas
 ledger, and prints each climb (its area, attempt, outcome and first failure, queue and execution seconds, cases
 retried, coverage skipped, warm or cold build, and when it first reached a device, or that none is known, or that it was
 only uploaded), then by area the climbs, median and p90 queue and execution, first-pass failures, skipped coverage, the
-share with a known delivery, and the rank: climbs times avoidable lane minutes (the queue, a failed attempt's
-execution, and retried cases). The timing lines no climb claims are summed by class, which is where the flakes'
+share with a known delivery, and the rank: climbs times avoidable lane minutes (the queue, a failed, timed-out or
+interrupted attempt's execution, and retried cases). A climb that could not run (a locked screen, interrupted, never
+finished) is counted apart and does not use up an attempt. The timing lines no climb claims are summed by class, which is where the flakes'
 minutes show. `--sample N` takes the latest N climbs; `--json` writes it all. `scripts/native/test-ladder-report.sh`
-pins it on a fixture with a retry, a wrong-device skip, a missing deploy, an upload alone and a censored climb.
+pins it on a fixture with a retry, a wrong-device skip, a missing deploy, an upload alone, a censored climb, and a
+failure on the rerun after a locked screen.
 
 ## The phone
 
