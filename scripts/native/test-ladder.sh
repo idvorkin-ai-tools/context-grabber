@@ -45,8 +45,9 @@ fi
 chat_area="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
 whiteboard_area="WhiteboardConnectUITests WhiteboardHelpFeedbackUITests WhiteboardLetteringUITests WhiteboardOnPaperUITests WhiteboardOutlineUITests WhiteboardPaperGhostsUITests WhiteboardPaperLinesUITests WhiteboardPaperPasteUITests WhiteboardPasteUITests WhiteboardQuestionUITests WhiteboardRewordUITests WhiteboardRowDeleteUITests WhiteboardScratchOutUITests WhiteboardToTextUITests WhiteboardTurnUITests"
 # #795: the other features' own classes, by directory. Only classes that run on the ladder's simulator and open that
-# feature: Windows has none (IPadUITests skips on a phone, MacKeysUITests is the Mac build's), nor Call, Archive or
-# LiveActivity, so those paths stay unmapped and the output says so.
+# feature: Windows has none (MacKeysUITests is the Mac build's), nor Call, Archive or LiveActivity, so those paths stay
+# unmapped and the output says so. IPadUITests (story 150) skips on a phone, so wherever it is chosen (its own file,
+# --all) it runs on the iPad's simulator (#1037).
 gym_area="GymTimerDialsUITests GymTimerUITests"
 breathe_area="BreathePresetsUITests BreatheStyleUITests"
 # Story 770: the Mindful test's one rule only the simulator holds is the write to Health; when a session is saved is
@@ -186,15 +187,16 @@ if [ "$all" -eq 1 ]; then
   unknown=()
 fi
 
-# One run per kind of class: chat's fakes differ from the whiteboard's, the whiteboard's runs on the iPad, and
-# Places' need Context Grabber's real export in the app's Documents.
-chat=() whiteboard=() places=() other=()
+# One run per kind of class: chat's fakes differ from the whiteboard's, the whiteboard's runs on the iPad, the iPad's
+# own classes too (#1037), and Places' need Context Grabber's real export in the app's Documents.
+chat=() whiteboard=() places=() tablet=() other=()
 if [ "${#classes[@]}" -gt 0 ]; then
   while IFS= read -r c; do
     case $c in
       Chat*) chat+=("$c") ;;
       Whiteboard*) whiteboard+=("$c") ;;
       Place*) places+=("$c") ;;
+      IPad*) tablet+=("$c") ;;
       *) other+=("$c") ;;
     esac
   done < <(printf '%s\n' "${classes[@]}" | sort -u)
@@ -202,7 +204,7 @@ if [ "${#classes[@]}" -gt 0 ]; then
 fi
 [ "$all" -eq 1 ] && sim_build=1
 
-n_chat=${#chat[@]} n_whiteboard=${#whiteboard[@]} n_places=${#places[@]} n_other=${#other[@]}
+n_chat=${#chat[@]} n_whiteboard=${#whiteboard[@]} n_places=${#places[@]} n_tablet=${#tablet[@]} n_other=${#other[@]}
 run_chat_classes=$n_chat run_whiteboard_classes=$n_whiteboard
 if [ "$full" -eq 1 ]; then
   run_chat_classes=0
@@ -236,8 +238,10 @@ plan() {
     [ "$run_chat_classes" -gt 0 ] && echo "rung 2 UI tests (chat, fake Cockpit and bridge): ${chat[*]}"
     [ "$run_whiteboard_classes" -gt 0 ] && echo "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): ${whiteboard[*]}"
     [ "$n_places" -gt 0 ] && echo "rung 2 UI tests (places, the real export in Documents): ${places[*]}"
+    [ "$n_tablet" -gt 0 ] && echo "rung 2 UI tests (on the iPad, which they need): ${tablet[*]}"
     [ "$n_other" -gt 0 ] && echo "rung 2 UI tests: ${other[*]}"
-    if [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && [ "$n_places" -eq 0 ] && [ "$n_other" -eq 0 ] && [ "${#unknown[@]}" -eq 0 ]; then
+    if [ "$n_chat" -eq 0 ] && [ "$n_whiteboard" -eq 0 ] && [ "$n_places" -eq 0 ] && [ "$n_tablet" -eq 0 ] && [ "$n_other" -eq 0 ] &&
+      [ "${#unknown[@]}" -eq 0 ]; then
       echo "rung 2 UI tests: none, no app UI change"
     fi
     if [ "$sim_build" -eq 1 ] && [ "${LADDER_SMOKE:-1}" = 1 ]; then
@@ -410,6 +414,23 @@ places_classes() {
 
 other_classes() { xcodebuild_sim ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${other[@]}") test-without-building; }
 
+# #1037: the iPad's own classes, on the iPad. A test of theirs that skips there skipped for its destination (they skip
+# only off an iPad), so it fails the step rather than pass as a skip; the step says how many ran, passed and skipped.
+tablet_classes() {
+  local log=${NATIVE_LOG_DIR:-native/Build/logs}/ladder-ipad-ui-tests.log status passed failed skipped
+  xcodebuild_sim ipad-ui-tests "TEST EXECUTE SUCCEEDED" $(only_testing "${tablet[@]}") test-without-building
+  status=$?
+  # One line per run of a case: a failure and its retry count twice.
+  ran() { grep -cE "^Test Case '-\[GrabberNativeUITests\.[A-Za-z0-9_]+ [A-Za-z0-9_]+\]' $1 " "$log" 2>/dev/null; }
+  passed=$(ran passed) failed=$(ran failed) skipped=$(ran skipped)
+  echo "  the iPad's classes on $udid: ${passed:-0} passed, ${failed:-0} failed, ${skipped:-0} skipped"
+  if [ "${skipped:-0}" -gt 0 ]; then
+    echo "the iPad's classes skipped ${skipped} test(s) on the iPad simulator: a skip there is the wrong destination, not a pass (#1037)" >&2
+    return 1
+  fi
+  return $status
+}
+
 # The steps on the iPhone's simulator: everything but the whiteboard's drawing.
 phone_steps() {
   step "iPhone simulator" use_device "$phone" || return
@@ -432,22 +453,31 @@ phone_needed() {
   [ "$run_chat_classes" -gt 0 ] || [ "$n_places" -gt 0 ] || [ "$n_other" -gt 0 ] || [ "${LADDER_SMOKE:-1}" = 1 ] ||
     { [ "$full" -eq 1 ] && [ "$n_chat" -gt 0 ]; }
 }
-# Story 746: the whiteboard's drawing classes, and its suite, on the iPad's simulator.
+# Story 746: the whiteboard's drawing classes, and its suite, on the iPad's simulator; #1037: the iPad's own classes
+# after them, on the same boot.
 ipad_steps() {
-  if [ "$full" -eq 1 ]; then
-    udid=$ipad
-    step "whiteboard suite" env SUITE_PREBUILT=1 scripts/native/test-whiteboard-ui.sh "$udid"
-    return
+  if [ "$n_whiteboard" -gt 0 ]; then
+    if [ "$full" -eq 1 ]; then
+      udid=$ipad
+      step "whiteboard suite" env SUITE_PREBUILT=1 scripts/native/test-whiteboard-ui.sh "$udid" || return
+    else
+      # ponytail: keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), so
+      # the ⌘V class still gets a fresh boot. Story 982 is to find the real fix; until then only that class pays a boot.
+      case " ${whiteboard[*]-} " in
+        *" WhiteboardPasteUITests "*) xcrun simctl shutdown "$ipad" 2>/dev/null ;;
+      esac
+      step "iPad simulator" use_device "$ipad" || return
+      step "whiteboard classes" whiteboard_classes || return
+    fi
   fi
-  # ponytail: keys reach the app only in the first test after a boot that presses any (test-whiteboard-ui.sh), so the
-  # ⌘V class still gets a fresh boot. Story 982 is to find the real fix; until then only that class pays a boot.
-  case " ${whiteboard[*]-} " in
-    *" WhiteboardPasteUITests "*) xcrun simctl shutdown "$ipad" 2>/dev/null ;;
-  esac
-  step "iPad simulator" use_device "$ipad" || return
-  step "whiteboard classes" whiteboard_classes
+  if [ "$n_tablet" -gt 0 ]; then
+    # After the whiteboard's suite the iPad is still up, so this boots only when nothing ran on it yet.
+    step "iPad simulator" use_device "$ipad" || return
+    step "iPad classes" tablet_classes || return
+  fi
+  return 0
 }
-ipad_needed() { [ "$n_whiteboard" -gt 0 ]; }
+ipad_needed() { [ "$n_whiteboard" -gt 0 ] || [ "$n_tablet" -gt 0 ]; }
 
 simulator_steps() {
   # A fresh worktree has no project until it is generated, and a new test file needs it regenerated.

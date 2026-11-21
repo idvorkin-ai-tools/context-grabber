@@ -1017,3 +1017,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a branch that changes only the replay, which the app never runs
 - **When:** the test ladder climbs
 - **Then:** it runs lint, the host tests with their replay fixtures and the Mac build, and no simulator build, UI test class or smoke section, saying why; a change to the planner the replay shares with the canvas still runs every whiteboard class and the whiteboard smoke, and a change to the replay and the canvas together gets everything either would
+
+---
+
+### User Story 1015:
+
+- **Summary:** The iPad's own UI test runs on the iPad, and a skip there fails rather than passes
+- **Status:** implemented on branch `native/ipad-class-destination-1037`; verified on the host rung (`scripts/native/test-ladder-map.sh`: the class alone, beside an iPhone and a whiteboard class, and under `--all`, from the real selector's dry run; climbs with fakes put it on the iPad's simulator and the iPhone class on the iPhone's, a skip there fails, `--full` keeps it) and on the simulator (2026-11-21, lane 5's *iPad Pro 11-inch (M5)*: `just test-ladder --rung 2 --changed native/UITests/IPadUITests.swift` ran the landscape test on the iPad for the first time, 0 passed, 2 failed, 0 skipped, 214 s: the location prompt over Places, and on the retry the call launcher; before, it went to the iPhone and skipped. The failure is bead `context-grabber-4j2p`)
+- **Issues:** [#1037](https://github.com/idvorkin/context-grabber/issues/1037); bead `context-grabber-hkqy`
+
+#### Use Case:
+- **As Igor,** trusting a green ladder to mean the iPad's home screen was checked
+- **I want to** have the test that turns the iPad to landscape and opens each launcher run on an iPad simulator whenever it is chosen
+- **so that** a passing run never hides that the iPad's test only skipped on a phone
+
+#### Acceptance Criteria:
+- **Scenario:** The iPad's test chosen with iPhone classes, and the iPad's test skipping
+- **Given:** a change that selects the iPad's launcher test and an iPhone class, or a run of every class
+- **When:** the test ladder climbs
+- **Then:** the iPad's test runs on the iPad's simulator in a run of its own and the iPhone class on the iPhone's, the step says how many of the iPad's tests passed and skipped, and a skip on the iPad fails the climb, saying the destination was wrong
