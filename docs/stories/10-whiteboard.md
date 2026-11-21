@@ -8016,6 +8016,26 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 ---
 
+### User Story 1059:
+
+- **Summary:** A scratch-out never puts back ink I had just moved
+- **Status:** implemented in [820ec0ae](https://github.com/idvorkin/context-grabber/commit/820ec0ae); verified by host tests (`WhiteboardScratchOutTests.testATakeBackIsRedoneWhenTheStepItUndidWasNotTheZigzags`, failing before the fix for a step that moved ink), `just test`, the Mac build (rung 1.5) and the iPad simulator's whiteboard UI classes (rung 2, 2026-11-21, `WhiteboardScratchOutUITests` among them); PaperKit taking back the wrong step happens only on the iPad (the log's `base: redone`)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Scratch out*
+- **Issues:** context-grabber-geaz (from [#999](https://github.com/idvorkin/context-grabber/issues/999)'s review)
+
+#### Use Case:
+- **As someone** who tidies my board with the lasso and scratches out words as I go
+- **I want** a scratch-out to take only what it covers
+- **so that** ink I just moved never jumps back to where it was
+
+#### Acceptance Criteria:
+- **Scenario:** A move, then a scratch-out
+- **Given:** a board on paper where I have just moved a word with the lasso
+- **When:** I scratch out another word with a quick zigzag
+- **Then:** the scratched-out word and the zigzag are gone, and the word I moved stays where I put it
+
+---
+
 ### User Story 1065:
 
 - **Summary:** A line started with ## or ### is a header of that level, and its margin mark says so

@@ -1136,7 +1136,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     let could = takeBackPaperKitsStep(why: why)
     let undid = paper.markup?.strokeFrames[key] == nil
     let held = Set((paper.markup?.strokeFrames ?? [:]).keys).subtracting([key])
-    let redone = could && held != Set(before.strokeFrames.keys)
+    let redone = WhiteboardScratchOut.redoTakeBack(
+      could: could, zigzagHeld: !undid, held: held, before: Set(before.strokeFrames.keys))
     if redone { paper.undoManager?.redo() }
     return ((paper.markup ?? before).without([key]), undid, redone ? "redone" : could ? "taken_back" : "untouched")
   }
