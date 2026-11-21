@@ -170,3 +170,6 @@ xcrun altool --upload-package "$ipa" "${auth[@]}" || {
   exit 1
 }
 echo "testflight: uploaded $shown; TestFlight offers it once Apple has processed it (5-30 minutes)"
+# #1038: the upload in the deploys ledger, apart from a device install; once TestFlight offers the build, say so with
+# scripts/native/record-deploy.sh testflight <sha> testflight_available.
+"$(dirname "$0")/record-deploy.sh" testflight "$(git rev-parse HEAD)" testflight_upload || true

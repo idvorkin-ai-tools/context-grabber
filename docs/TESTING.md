@@ -521,6 +521,40 @@ they name, the deploys ledger and the ladder logs, and writes `data.json` and a 
 minutes: asked, first commit, opened, merged, on a device. The ledger is `LEAD_TIMES_DEPLOYS` (default
 `~/tmp/agent/notes/lead-times/deploys.jsonl`), the ladder logs are `*ladder*.log` in `LEAD_TIMES_LADDER_LOGS` (default
 `~/tmp/agent/notes`), and the output goes to `LEAD_TIMES_OUT` (default `~/tmp/agent/notes/lead-times`), never the repo.
+Only a cable install (`cable`) or a build TestFlight offers (`testflight_available`) counts as on a device; an upload
+(`testflight_upload`) has its own column (#1038).
+
+The ledger is written by `scripts/native/record-deploy.sh <phone|ipad|testflight> <sha> [kind]`: `just
+native-run-device` records each cable install, `just testflight` its upload, and the day TestFlight offers the build
+is recorded by hand with `testflight_available`. Until 2026-11-21 the recorder was a mac-driver script that was never
+checked out on this Mac, so no install had been recorded.
+
+## Where a change's test time goes: the run ledger and `just ladder-report`
+
+Every climb of the ladder (not a dry run) writes its events to the run ledger, `LADDER_LEDGER` (default
+`~/tmp/agent/notes/ladder/runs.jsonl`; `off` writes none), one JSON line each, under one run id the climb prints as
+`ladder run id: …` (#1038, story 1016):
+
+| Event | What it holds |
+|---|---|
+| `start` | the source sha, branch, base and fork point, the changed paths, the classes chosen by group (chat, whiteboard, places, the iPad's, the rest), the smoke sections, the iPhone and iPad simulators, the host-only and unmapped paths, and the flags |
+| `lane` | the rung, the lane it got, and the seconds from asking to holding it (the lock and the other xcodebuilds) |
+| `device` | the simulator a step ran on, and whether it is the phone's or the iPad's |
+| `step` | each step of rung 2 and the Mac build: its seconds and exit status; a build step says whether the lane's build folder already held a build (`warm`) |
+| `destination_skip` | an iPad class that skipped on the iPad (#1037) |
+| `rung` | each rung's seconds, its wait and its status, or that it was skipped |
+| `finish` | `pass`, `fail`, `unavailable` (exit 75: a locked screen, a busy lane), `timeout` or `interrupted`, with the rung it first failed on. A climb with a start and no finish (a crash, a reboot) is the report's `censored` |
+
+The UI test timing lines (`ui-timings.jsonl`) carry the climb's run id, so a case retried by xcodebuild joins its climb.
+`just ladder-report` (`scripts/native/ladder-report.py`) reads the ledger, the older climbs' logs (`*ladder*.log` in
+`~/tmp/agent/notes`; a log naming a run id the ledger has is counted once), every slot's timing lines and the deploys
+ledger, and prints each climb (its area, attempt, outcome and first failure, queue and execution seconds, cases
+retried, coverage skipped, warm or cold build, and when it first reached a device, or that none is known, or that it was
+only uploaded), then by area the climbs, median and p90 queue and execution, first-pass failures, skipped coverage, the
+share with a known delivery, and the rank: climbs times avoidable lane minutes (the queue, a failed attempt's
+execution, and retried cases). The timing lines no climb claims are summed by class, which is where the flakes'
+minutes show. `--sample N` takes the latest N climbs; `--json` writes it all. `scripts/native/test-ladder-report.sh`
+pins it on a fixture with a retry, a wrong-device skip, a missing deploy, an upload alone and a censored climb.
 
 ## The phone
 

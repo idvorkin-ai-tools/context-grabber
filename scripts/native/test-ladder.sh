@@ -40,6 +40,19 @@ if [ "$given" -eq 0 ]; then
   while IFS= read -r f; do changed+=("$f"); done < <({ git diff --name-only "$fork"; git ls-files --others --exclude-standard; } | sort -u)
 fi
 
+# #1038 (story 1016): the run ledger, one JSON line per event of a climb, so a change can be followed from what the
+# ladder chose through the lanes to the phone (scripts/native/ladder-report.py). Every event of one climb carries its
+# run id, in the lane's process too; LADDER_LEDGER=off writes none. A dry run writes nothing.
+ledger=${LADDER_LEDGER:-$HOME/tmp/agent/notes/ladder/runs.jsonl}
+note() {  # <event> [jq --arg/--argjson pairs...]
+  [ "$dry" -eq 0 ] && [ "$ledger" != off ] && [ -n "${LADDER_RUN_ID:-}" ] || return 0
+  command -v jq >/dev/null || return 0
+  mkdir -p "${ledger%/*}" 2>/dev/null
+  jq -cn --arg run_id "$LADDER_RUN_ID" --arg event "$1" --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${@:2}" \
+    '$ARGS.named' >>"$ledger" 2>/dev/null || true
+}
+json_list() { printf '%s\n' "$@" | jq -R . | jq -cs 'map(select(length > 0))'; }
+
 # The areas' classes. The suite scripts hold what each area runs in full. What an iPhone does with boards (story 746) is
 # the smoke's whiteboard section, on the phone's simulator (story 770): no class of its own, no second session.
 chat_area="ChatArchiveUITests ChatDecisionUITests ChatImageUITests ChatNewThreadUITests ChatReactionUITests ChatSkillThreadUITests"
@@ -291,7 +304,13 @@ rung_1() { just native-test-host; }
 
 rung_mac() {
   [ "$in_lane" -eq 1 ] || { lane 1.5 30; return; }
+  local start=$SECONDS warm=false status
+  [ -d native/Build/Build/Products/Debug-maccatalyst ] && warm=true
   just native-build-mac
+  status=$?
+  note step --arg rung 1.5 --arg label "Mac build" --argjson secs $((SECONDS - start)) --argjson status "$status" \
+    --argjson warm "$warm"
+  return $status
 }
 
 # Set while rung 2 holds the simulator: udid is the device the current step runs on, the phone's or the iPad's.
@@ -323,6 +342,7 @@ mac_hot() {
 # Story 980: the step's device becomes the one booted simulator; it boots only if it isn't up already.
 use_device() {  # <udid>
   udid=$1
+  note device --arg rung 2 --arg udid "$udid" --arg device "$([ "$udid" = "${ipad:-}" ] && echo ipad || echo phone)"
   scripts/native/sim-boot.sh "$udid"
 }
 start_cockpit() {  # <port> <seconds POST /chat is held>
@@ -347,13 +367,17 @@ xcodebuild_sim() {  # <log name> <done line> <xcodebuild arguments...>
 # The smoke's sections for the paths this climb takes as changed (--changed's, or git's since the base).
 smoke_sections() { scripts/native/smoke-features.sh "$base" ${changed[@]+"${changed[@]}"}; }
 only_testing() { for c in "$@"; do printf -- '-only-testing:GrabberNativeUITests/%s\n' "$c"; done; }
+step_warm=  # set just before a build step: whether the lane's build folder already held a build (#1038)
 step() {  # <label> <command...>: times one step of rung 2
-  local label=$1 start=$SECONDS status
+  local label=$1 start=$SECONDS status warm=$step_warm
   shift
+  step_warm=
   "$@"
   status=$?
   stop_fakes
   echo "  rung 2 $label: $((SECONDS - start)) s"
+  note step --arg rung 2 --arg label "$label" --argjson secs $((SECONDS - start)) --argjson status "$status" \
+    ${warm:+--argjson warm "$warm"}
   return $status
 }
 
@@ -425,6 +449,7 @@ tablet_classes() {
   passed=$(ran passed) failed=$(ran failed) skipped=$(ran skipped)
   echo "  the iPad's classes on $udid: ${passed:-0} passed, ${failed:-0} failed, ${skipped:-0} skipped"
   if [ "${skipped:-0}" -gt 0 ]; then
+    note destination_skip --arg udid "$udid" --arg classes "${tablet[*]}" --argjson skipped "$skipped"
     echo "the iPad's classes skipped ${skipped} test(s) on the iPad simulator: a skip there is the wrong destination, not a pass (#1037)" >&2
     return 1
   fi
@@ -482,6 +507,8 @@ ipad_needed() { [ "$n_whiteboard" -gt 0 ] || [ "$n_tablet" -gt 0 ]; }
 simulator_steps() {
   # A fresh worktree has no project until it is generated, and a new test file needs it regenerated.
   step project just native-project || return
+  step_warm=false
+  [ -d native/Build/Build/Products/Debug-iphonesimulator/GrabberNative.app ] && step_warm=true
   step compile xcodebuild_sim build-for-testing "TEST BUILD SUCCEEDED" build-for-testing || return
   # Story 981: a climb switches device at most once. The device already booted goes first, so a run after a whiteboard
   # run starts on the iPad it left booted, and one after any other on the phone.
@@ -548,6 +575,8 @@ if [ "$in_lane" -eq 1 ]; then
     scripts/native/xcodebuild-idle.sh || exit
     # How long the lock and the other xcodebuilds took, for the report: the rung's own seconds are the rest.
     [ -z "${LADDER_WAITED:-}" ] || echo $(($(date +%s) - LADDER_ASKED)) >"$LADDER_WAITED"
+    note lane --arg rung "$only" --argjson lane "${BUILD_LANE:-1}" --argjson lanes "$lanes" \
+      --argjson waited_s $(($(date +%s) - ${LADDER_ASKED:-$(date +%s)}))
     tl=$HOME/gits/mac-driver/bin/time-limit limit=()
     if [ -x "$tl" ]; then
       limit=("$tl" "${LADDER_MINUTES:?}")
@@ -570,6 +599,25 @@ fi
 report=()
 waited=$(mktemp "${TMPDIR:-/tmp}/ladder-wait.XXXXXX")
 trap 'rm -f "$waited"' EXIT
+# #1038: the climb's start, with what it chose and why; the lane's process inherits the run id.
+export LADDER_RUN_ID=${LADDER_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-$$}
+if [ "$ledger" != off ] && command -v jq >/dev/null; then
+  note start --arg sha "$(git rev-parse HEAD 2>/dev/null)" --arg branch "$(git branch --show-current 2>/dev/null)" \
+    --arg base "$([ "$given" -eq 1 ] && echo --changed || echo "$base")" --arg fork "${fork:-}" \
+    --argjson changed "$(json_list ${changed[@]+"${changed[@]}"})" \
+    --argjson classes "$(jq -cn --argjson chat "$(json_list ${chat[@]+"${chat[@]}"})" \
+      --argjson whiteboard "$(json_list ${whiteboard[@]+"${whiteboard[@]}"})" --argjson places "$(json_list ${places[@]+"${places[@]}"})" \
+      --argjson ipad "$(json_list ${tablet[@]+"${tablet[@]}"})" --argjson other "$(json_list ${other[@]+"${other[@]}"})" '$ARGS.named')" \
+    --arg smoke "$([ "$sim_build" -eq 1 ] && [ "${LADDER_SMOKE:-1}" = 1 ] && echo "${SMOKE_ONLY-$(smoke_sections)}")" \
+    --argjson destinations "$(jq -cn --arg phone "${SIM:-iPhone 17}" --arg ipad "${WHITEBOARD_SIM:-iPad Pro 11-inch (M5)}" '$ARGS.named')" \
+    --argjson host_only "$(json_list ${host_only[@]+"${host_only[@]}"})" --argjson unknown "$(json_list ${unknown[@]+"${unknown[@]}"})" \
+    --argjson flags "$(jq -cn --argjson full "$full" --argjson all "$all" --arg rung "$only" --argjson mac_build "$mac_build" \
+      --argjson sim_build "$sim_build" '$ARGS.named')"
+  echo "ladder run id: $LADDER_RUN_ID (the run ledger: $ledger)"
+fi
+# A climb stopped by a signal says so; one that ends with no finish line at all (a crash, a reboot) is the report's
+# "censored".
+trap 'note finish --arg outcome interrupted --argjson status 130; exit 130' INT TERM
 finish() {
   echo "seconds per rung:"
   printf '  %s\n' "${report[@]}"
@@ -584,11 +632,16 @@ climb() {  # <rung> <name> <function>
   [ -s "$waited" ] && lock_wait=$(<"$waited")
   took="$((SECONDS - start - lock_wait)) s"
   [ "$lock_wait" -eq 0 ] || took="$took, after $lock_wait s waiting for the build lock and other xcodebuilds"
+  note rung --arg rung "$1" --arg name "$2" --argjson secs $((SECONDS - start - lock_wait)) --argjson waited_s "$lock_wait" \
+    --argjson status "$status"
   if [ "$status" -eq 0 ]; then
     report+=("rung $1 $2: ok, $took")
     return 0
   fi
   report+=("rung $1 $2: FAILED, $took")
+  local outcome=fail
+  case $status in 75) outcome=unavailable ;; 124) outcome=timeout ;; 130 | 143) outcome=interrupted ;; esac
+  note finish --arg outcome "$outcome" --argjson status "$status" --argjson first_failure "$(jq -cn --arg rung "$1" '$ARGS.named')"
   finish
   case $status in
     75) echo "stopped on rung $1 $2: it could not start: the build lock or another xcodebuild was still busy, the screen was locked, or no test started; the lines above say which (exit 75)" ;;
@@ -597,12 +650,17 @@ climb() {  # <rung> <name> <function>
   esac
   exit "$status"
 }
-skipped() { wanted "$1" && report+=("rung $1 $2: skipped"); return 0; }
+skipped() {
+  wanted "$1" || return 0
+  report+=("rung $1 $2: skipped")
+  note rung --arg rung "$1" --arg name "$2" --argjson secs 0 --argjson status 0 --argjson skipped true
+}
 
 climb 0 Lint rung_0
 climb 1 Host rung_1
 if [ "$mac_build" -eq 1 ]; then climb 1.5 Mac rung_mac; else skipped 1.5 Mac; fi
 if [ "$sim_build" -eq 1 ]; then climb 2 Simulator rung_simulator; else skipped 2 Simulator; fi
+note finish --arg outcome pass --argjson status 0
 finish
 if [ -z "$only" ]; then
   echo "every rung passed; rung 3, the phone, is yours: just native-run-device"

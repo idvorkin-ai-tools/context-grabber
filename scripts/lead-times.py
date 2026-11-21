@@ -28,6 +28,7 @@ SCREEN_DIRS = ("native/App/", "native/UITests/", "native/Widgets/", "native/Shar
 PAGE = 30
 SLEPT_S = 3000  # a single rung over this was a slept or hung Mac, not a real run
 DEPLOY_LOG_START = "2026-11-14"
+ON_DEVICE = {"cable", "testflight_available"}  # the deploys ledger's kinds that put a build on a device (#1038)
 
 
 def gql(query, **variables):
@@ -137,11 +138,20 @@ def on_device(merge_oid, merged_at, deploys, anc_cache):
     if not merge_oid:
         return None, None
     for d in deploys:
-        if d.get("at", "") < merged_at:
+        # #1038: an upload to TestFlight is not on a device until TestFlight offers it (testflight_available).
+        if d.get("at", "") < merged_at or d.get("kind", "cable") not in ON_DEVICE:
             continue
         if is_ancestor(merge_oid, d["sha"], anc_cache):
             return d["at"], d.get("device")
     return None, None
+
+
+def uploaded(merge_oid, merged_at, deploys, anc_cache):
+    """When a TestFlight upload first carried the merge, apart from when a device had it (#1038)."""
+    for d in deploys:
+        if d.get("kind") == "testflight_upload" and d.get("at", "") >= merged_at and merge_oid and is_ancestor(merge_oid, d["sha"], anc_cache):
+            return d["at"]
+    return None
 
 
 LADDER_RE = re.compile(r"^  rung ([0-9.]+) ([^:]+): (?:(ok|FAILED), )?(\d+) s(?:, after (\d+) s waiting)?")
@@ -197,8 +207,9 @@ def build(count):
         # so its first *logged* deploy would overstate merged->on device: leave it unknown.
         if merged and merged >= DEPLOY_LOG_START:
             dev_at, dev = on_device(merge_oid, merged, deploys, anc_cache)
+            up_at = uploaded(merge_oid, merged, deploys, anc_cache)
         else:
-            dev_at, dev = None, None
+            dev_at, dev, up_at = None, None, None
         rows.append(
             {
                 "number": pr["number"],
@@ -213,6 +224,7 @@ def build(count):
                 "merged": merged,
                 "on_device": dev_at,
                 "on_device_device": dev,
+                "uploaded": up_at,
                 "merge_commit": merge_oid,
                 "commit_count": pr["commits"]["totalCount"],
                 "file_count": pr["files"]["totalCount"],
@@ -224,6 +236,7 @@ def build(count):
                 "min_first_to_opened": minutes(first, pr["createdAt"]),
                 "min_opened_to_merged": minutes(pr["createdAt"], merged),
                 "min_merged_to_device": minutes(merged, dev_at),
+                "min_merged_to_upload": minutes(merged, up_at),
             }
         )
     rows.sort(key=lambda r: r["merged"])

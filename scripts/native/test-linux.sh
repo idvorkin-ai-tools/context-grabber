@@ -161,7 +161,7 @@ fi
 
 # 4. The host rung's script checks that run anywhere (the rest need the Mac: actool, BugKit's signing guard).
 cd ../..
-for check in scripts/native/test-ladder-map.sh scripts/native/test-breath-clips.py scripts/native/test-ui-timings.sh \
+for check in scripts/native/test-ladder-map.sh scripts/native/test-breath-clips.py scripts/native/test-ui-timings.sh scripts/native/test-ladder-report.sh \
   scripts/native/test-smoke-lock.sh scripts/native/test-linux-imports.sh scripts/native/test-build-lane.sh \
   scripts/native/test-story-ids.sh; do
   log=$build/$(basename "$check").log

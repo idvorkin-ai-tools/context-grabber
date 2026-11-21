@@ -137,8 +137,8 @@ run() {  # <env assignments...> -- <ladder arguments...>
   local vars=()
   while [ "$1" != "--" ]; do vars+=("$1"); shift; done
   shift
-  rm -f "$MARKS"/*
-  env PATH="$fakes:$PATH" BUILD_LANES=1 BUILD_LOCK_DIR="$tmp/locks" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
+  rm -f "$MARKS"/* "$tmp/ledger.jsonl" "$tmp/logs/ui-timings.jsonl"
+  env PATH="$fakes:$PATH" LADDER_LEDGER="$tmp/ledger.jsonl" BUILD_LANES=1 BUILD_LOCK_DIR="$tmp/locks" SIM="iPhone 17" NATIVE_LOG_DIR="$tmp/logs" CHAT_PORT="$chat_port" CHAT_BRIDGE_PORT="$bridge_port" WHITEBOARD_PORT="$board_port" \
     XCODEBUILD_IDLE_POLL=1 SMOKE_LOCK_PROBE="$fakes/unlocked" SIM_DEVICES_DIR="$tmp/devices" ${vars[@]+"${vars[@]}"} "$ladder" "$@" >"$out" 2>&1
 }
 
@@ -584,6 +584,53 @@ run -- --changed native/App/Gym/GymTimerView.swift
 status=$?
 if [ "$status" -eq 0 ]; then ok "the timer: climbs against the fakes"; else bad "the timer: climbs against the fakes, exit $status"; fi
 if grep -q "only-testing:GrabberNativeUITests/GymTimerDialsUITests -only-testing:GrabberNativeUITests/GymTimerUITests test-without-building" "$MARKS/xcodebuild"; then ok "the timer: runs its classes"; else bad "the timer: runs its classes"; fi
+
+# #1038 (story 1016): every climb writes its events to the run ledger under one run id, the selection and where it ran
+# included, and the UI test timings it made carry that id. The ledger is the report's input, read here as its consumer
+# reads it.
+ledger_says() {  # <label> <python assertions over `ev`, the ledger's events, and `rows`, the timing lines>
+  if python3 - "$tmp/ledger.jsonl" "$tmp/logs/ui-timings.jsonl" "$2" <<'PY' >>"$out" 2>&1; then ok "$1"; else bad "$1"; fi
+import json, os, sys
+read = lambda p: [json.loads(l) for l in open(p)] if os.path.exists(p) else []
+ev, rows = read(sys.argv[1]), read(sys.argv[2])
+kinds = [e["event"] for e in ev]
+by = {k: [e for e in ev if e["event"] == k] for k in set(kinds)}
+exec(sys.argv[3])
+PY
+}
+run -- --changed native/UITests/CardUITests.swift
+ledger_says "the ledger: one run id for the whole climb, the lane's events too" \
+  'assert len({e["run_id"] for e in ev}) == 1 and {"start", "lane", "device", "step", "rung", "finish"} <= set(kinds), kinds'
+ledger_says "the ledger: the start names the source, the change and what it chose, and where" \
+  'st = by["start"][0]; assert len(st["sha"]) == 40 and st["base"] == "--changed" and st["changed"] == ["native/UITests/CardUITests.swift"], st
+assert st["classes"]["other"] == ["CardUITests"] and st["classes"]["whiteboard"] == [] and st["smoke"] == "none", st
+assert st["destinations"]["phone"] == "iPhone 17" and st["flags"]["sim_build"] == 1, st'
+ledger_says "the ledger: the lane and its wait, the device, the build warm or cold" \
+  'assert by["lane"][0]["lane"] == 1 and by["lane"][0]["rung"] == "2" and by["lane"][0]["waited_s"] >= 0, by["lane"]
+assert by["device"][0]["udid"] == "00000000-0000-0000-0000-000000000000" and by["device"][0]["device"] == "phone"
+c = [s for s in by["step"] if s["label"] == "compile"][0]; assert c["status"] == 0 and isinstance(c["warm"], bool), c
+assert [s for s in by["step"] if s["label"] == "other classes"][0]["status"] == 0'
+ledger_says "the ledger: each rung, and the finish passed" \
+  'assert [(r["rung"], r["status"]) for r in by["rung"]] == [("0", 0), ("1", 0), ("1.5", 0), ("2", 0)], by["rung"]
+assert by["rung"][2].get("skipped") is True and by["finish"][-1]["outcome"] == "pass" and kinds[-1] == "finish", ev[-3:]'
+ledger_says "the ledger: the UI timings carry the climb's run id" \
+  'assert rows and {r.get("run_id") for r in rows} == {ev[0]["run_id"]}, rows'
+run FAKE_JUST_FAILS=native-test-host -- --changed native/App/Chat/ChatViews.swift
+ledger_says "the ledger: a failure, and the rung it first failed on" \
+  'f = by["finish"][-1]; assert f["outcome"] == "fail" and f["status"] == 7 and f["first_failure"] == {"rung": "1"}, f
+assert "lane" not in kinds'
+run SMOKE_LOCK_PROBE="$fakes/locked" -- --changed native/UITests/CardUITests.swift
+ledger_says "the ledger: a climb that could not start is unavailable, not failed" \
+  'f = by["finish"][-1]; assert f["outcome"] == "unavailable" and f["status"] == 75, f'
+run FAKE_SKIPS=IPadUITests -- --changed native/UITests/IPadUITests.swift
+ledger_says "the ledger: a skip on the iPad is a destination skip" \
+  'd = by["destination_skip"][0]; assert d["classes"] == "IPadUITests" and d["skipped"] == 1 and d["udid"].endswith("1"), d
+assert by["finish"][-1]["outcome"] == "fail"'
+run LADDER_LEDGER=off -- --changed native/UITests/CardUITests.swift
+if [ -e "$tmp/ledger.jsonl" ]; then bad "the ledger: off writes nothing"; else ok "the ledger: off writes nothing"; fi
+rm -f "$tmp/ledger.jsonl"
+LADDER_LEDGER="$tmp/ledger.jsonl" dry --changed native/UITests/CardUITests.swift
+if [ -e "$tmp/ledger.jsonl" ]; then bad "the ledger: a dry run writes nothing"; else ok "the ledger: a dry run writes nothing"; fi
 
 # Story 785: four lanes take the first free lane's lock, and one other xcodebuild is no contention.
 run BUILD_LANES=4 FAKE_BUSY=always -- --changed native/UITests/CardUITests.swift
