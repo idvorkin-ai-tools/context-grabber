@@ -90,7 +90,7 @@ script's dry run:
 
 | Changed | UI test classes |
 |---|---|
-| A test file | the classes it declares, and any that inherit them |
+| A test file | the classes it declares, and any that inherit them; `IPadUITests` (story 150), which skips on a phone, runs on the iPad's simulator (the whiteboard's), here and under `--all`, in a run of its own after the whiteboard's classes; a test of it that skips there fails the step, as a skip on the iPad can only be the wrong destination, and the step prints how many passed and skipped (#1037, story 1015) |
 | Chat or the Inbox, in the app or `ContextCore`; the chat suite's script; the fake bridge | chat's |
 | The whiteboard, in the app or `ContextCore`; the whiteboard suite's script | a rule in `ContextCore` runs only the classes that show it (paste, lines and pages, the board list, the turn and ghosts — the picture's frame, Larry's clock and the note among them; stories 753, 756), Larry's question cards, in the app or `ContextCore`, run `WhiteboardQuestionUITests`; the app's board fixture hook runs `WhiteboardRowDeleteUITests` and chat's `ChatImageUITests`, the two that launch with a fixture board (story 784); the board's views, its hooks in `ContextCore` and the suite's script run every class: the whiteboard's, on an iPad simulator (`WHITEBOARD_SIM`, default *iPad Pro 11-inch (M5)*; the iPhone's is shut first, and the iPad's stays up for the next climb). An iPhone only looks at boards (story 746): that is the smoke's whiteboard section on the iPhone, from the session log (no New board, its own board look-only with the bar's reason), so no class runs on the iPhone and there's no second test session (story 770) |
 | The fake Cockpit | chat's and the whiteboard's |
@@ -113,7 +113,8 @@ script's dry run:
 A feature's row is its directory under `native/App` and the one of the same name under `ContextCore`'s sources (#795).
 A class is in the map only if it runs on the ladder's simulator and opens that feature, and the map's check fails when a
 class it names is gone. A file whose feature isn't its directory's has a row of its own. The windows have no row, nor
-their ledger in `ContextCore`: `IPadUITests` skips on a phone and `MacKeysUITests` exists only in the Mac build.
+their ledger in `ContextCore`: `IPadUITests` opens the home screen's launchers, not a second window, and `MacKeysUITests`
+exists only in the Mac build.
 `HealthAccessUITests` stays the smoke's.
 
 **One running app per class** (story 672). A launch costs 5-9 s a test. A class whose tests start on the same screen

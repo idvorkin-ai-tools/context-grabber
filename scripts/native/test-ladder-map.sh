@@ -39,6 +39,15 @@ cat >"$fakes/xcodebuild" <<'F'
 #!/usr/bin/env bash
 echo "xcodebuild $*" >>"$MARKS/xcodebuild"
 if [ -n "${FAKE_XCODEBUILD_FAILS:-}" ]; then exit 65; fi
+# Each class it is asked to run passes one case, or skips it when FAKE_SKIPS names the class (#1037).
+for a in "$@"; do
+  case $a in -only-testing:GrabberNativeUITests/*)
+    c=${a#*/}
+    echo "Test Case '-[GrabberNativeUITests.$c testOne]' started."
+    case " ${FAKE_SKIPS:-} " in *" $c "*) st=skipped ;; *) st=passed ;; esac
+    echo "Test Case '-[GrabberNativeUITests.$c testOne]' $st (1.000 seconds)." ;;
+  esac
+done
 case " $* " in
   *" build-for-testing "*) echo "** TEST BUILD SUCCEEDED **" ;;
   *) echo "** TEST EXECUTE SUCCEEDED **" ;;
@@ -312,6 +321,19 @@ says "unmapped code: says so" "no UI test map for: native/App/Windows/WindowView
 says "unmapped code: names the option" "so no UI tests were chosen for them; --all runs every UI test class"
 never "unmapped code: chooses nothing" "rung 2 UI tests"
 
+# #1037: IPadUITests skips on a phone, so wherever it is chosen it runs on the iPad, never in the iPhone's run.
+dry --changed native/UITests/IPadUITests.swift
+says "the iPad's class: on the iPad" "rung 2 UI tests (on the iPad, which they need): IPadUITests"
+never "the iPad's class: not on the iPhone" "rung 2 UI tests: IPadUITests"
+dry --changed native/UITests/IPadUITests.swift --changed native/UITests/CardUITests.swift --changed native/UITests/WhiteboardTurnUITests.swift
+says "iPad, iPhone and whiteboard classes: the iPad's apart" "rung 2 UI tests (on the iPad, which they need): IPadUITests"
+says "iPad, iPhone and whiteboard classes: the phone's alone" "rung 2 UI tests: CardUITests"
+says "iPad, iPhone and whiteboard classes: the whiteboard's" "rung 2 UI tests (whiteboard, on the iPad, fake Cockpit): WhiteboardTurnUITests"
+dry --all --changed docs/TESTING.md
+says "--all: the iPad's class on the iPad" "rung 2 UI tests (on the iPad, which they need): IPadUITests"
+if grep -E "^rung 2 UI tests: .*IPadUITests" "$out" >/dev/null; then bad "--all: the iPad's class not in the iPhone's run"; else ok "--all: the iPad's class not in the iPhone's run"; fi
+case $known in *" IPadUITests "*) ok "the iPad's class: a real class" ;; *) : >"$out"; bad "the iPad's class: a real class" ;; esac
+
 dry --changed native/UITests/HomeScreen.swift
 says "a shared test helper: says so" "no UI test map for: native/UITests/HomeScreen.swift"
 
@@ -443,6 +465,30 @@ if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"
 run -- --changed native/UITests/WhiteboardTurnUITests.swift
 if grep -q "simctl shutdown 00000000-0000-0000-0000-000000000001" "$MARKS/xcrun"; then bad "the turn class: no reboot of the iPad"; else ok "the turn class: no reboot of the iPad"; fi
 if grep -q "simctl bootstatus 00000000-0000-0000-0000-000000000001 -b" "$MARKS/xcrun"; then ok "paste: on the iPad, booted if it isn't up"; else bad "paste: on the iPad, booted if it isn't up"; fi
+
+# #1037: the iPad's class runs on the iPad's simulator, the phone's on the phone's, and a skip on the iPad fails.
+run -- --changed native/UITests/IPadUITests.swift --changed native/UITests/CardUITests.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "iPad and iPhone classes: climbs"; else bad "iPad and iPhone classes: climbs, exit $status"; fi
+if grep "only-testing:GrabberNativeUITests/IPadUITests " "$MARKS/xcodebuild" | grep -q "id=00000000-0000-0000-0000-000000000001"; then
+  ok "the iPad's class: on the iPad's simulator"
+else bad "the iPad's class: on the iPad's simulator: $(grep IPadUITests "$MARKS/xcodebuild")"; fi
+if grep "only-testing:GrabberNativeUITests/CardUITests " "$MARKS/xcodebuild" | grep -q "id=00000000-0000-0000-0000-000000000000"; then
+  ok "the phone's class: on the phone's simulator"
+else bad "the phone's class: on the phone's simulator"; fi
+if grep "IPadUITests" "$MARKS/xcodebuild" | grep -q "CardUITests"; then bad "the iPad's class: a run of its own"; else ok "the iPad's class: a run of its own"; fi
+says "the iPad's class: says what ran" "  the iPad's classes on 00000000-0000-0000-0000-000000000001: 1 passed, 0 failed, 0 skipped"
+run FAKE_SKIPS=IPadUITests -- --changed native/UITests/IPadUITests.swift
+status=$?
+if [ "$status" -ne 0 ]; then ok "the iPad's class skipped on the iPad: fails"; else bad "the iPad's class skipped on the iPad: fails"; fi
+says "the iPad's class skipped: counted" "  the iPad's classes on 00000000-0000-0000-0000-000000000001: 0 passed, 0 failed, 1 skipped"
+says "the iPad's class skipped: says it is the destination, not a pass" "the iPad's classes skipped 1 test(s) on the iPad simulator: a skip there is the wrong destination, not a pass (#1037)"
+run LADDER_SMOKE=0 -- --full --changed native/UITests/IPadUITests.swift
+status=$?
+if [ "$status" -eq 0 ]; then ok "--full with the iPad's class: climbs"; else bad "--full with the iPad's class: climbs, exit $status"; fi
+if grep "only-testing:GrabberNativeUITests/IPadUITests " "$MARKS/xcodebuild" | grep -q "id=00000000-0000-0000-0000-000000000001"; then
+  ok "--full: the iPad's class still runs, on the iPad"
+else bad "--full: the iPad's class still runs, on the iPad"; fi
 
 # Story 981: a climb on both devices switches once, starting with the one already booted.
 order() { sed -nE 's/.*simctl bootstatus 0{8}-0{4}-0{4}-0{4}-0{11}([0-9]) -b.*/\1/p' "$MARKS/xcrun" | tr -d '\n'; }

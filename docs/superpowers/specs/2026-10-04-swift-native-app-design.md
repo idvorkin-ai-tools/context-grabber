@@ -479,6 +479,9 @@ skipped, and the output says why.
   host tests use, gets no UI test, no smoke section and no simulator build: its host fixtures are its check, and the
   output says so. Code that both the replay and the board's canvas use still runs every whiteboard class, and a change
   to the replay and the canvas together gets everything either would.
+  A UI test class that only means something on an iPad (the home screen filling an iPad in landscape) runs on the
+  iPad's simulator wherever it is chosen, on its own or among every class, beside iPhone classes in the same climb; if
+  its test skips there, the climb fails and says the destination was wrong, so a skip never reads as a pass.
 - **Phone**: never climbed by the command; it stays Igor's.
 
 The Mac and simulator rungs run in build lanes, one job per lane, and the number of lanes scales with the Mac's memory:
