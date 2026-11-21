@@ -195,6 +195,20 @@ extension ChatSummary {
   public var showsLooksDone: Bool { looksDone && !done }
 }
 
+/// The Inbox's switch while not ticking (bead context-grabber-qp3m, stories 834–835): every chat, or only the live ones
+/// with a reply not yet read. Remembered on each device.
+public enum ChatInboxFilter: String, CaseIterable, Sendable {
+  case all, new
+
+  public var title: String { self == .all ? "All" : "New" }
+
+  /// Where this device remembers the choice.
+  public static let defaultsKey = "chat_inbox_filter"
+
+  /// A remembered value, or *All* when nothing (or something else) was remembered.
+  public static func restored(_ saved: String?) -> ChatInboxFilter { saved.flatMap(Self.init(rawValue:)) ?? .all }
+}
+
 /// Select and Review on the chat list (#599, stories 311–314, 823–824): which rows tick, what *Archive (N)* takes, and
 /// which parts of the list show meanwhile.
 public struct ChatListSelection: Equatable, Sendable {
@@ -257,20 +271,25 @@ public struct ChatListSelection: Equatable, Sendable {
   /// A live row while selecting: the pinned thread has no tick (#598).
   public func shows(_ thread: ChatSummary) -> Bool { !selecting || !thread.pinned }
 
-  /// The live rows the list shows: all of them while not ticking; while ticking, those with a tick, and under
-  /// *Recommendations* only the ones that look done.
-  public func rows(_ threads: [ChatSummary]) -> [ChatSummary] {
+  /// The live rows the list shows. While not ticking: all of them, or under *New* only those with an unread reply.
+  /// While ticking, those with a tick, and under *Recommendations* only the ones that look done; *New* doesn't apply.
+  public func rows(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all) -> [ChatSummary] {
     let live = Self.live(threads).filter(shows)
-    return selecting && filter == .recommendations ? live.filter(\.looksDone) : live
+    if selecting { return filter == .recommendations ? live.filter(\.looksDone) : live }
+    return inbox == .new ? live.filter { $0.unread > 0 } : live
   }
 
-  /// *Recommendations* with nothing left that looks done says so in place of the rows.
-  public func emptyLine(_ threads: [ChatSummary]) -> String? {
-    selecting && filter == .recommendations && rows(threads).isEmpty ? "Nothing looks done" : nil
+  /// A switch's side with nothing to show says so in place of the rows. An empty list has its own line.
+  public func emptyLine(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all) -> String? {
+    guard !threads.isEmpty, rows(threads, inbox: inbox).isEmpty else { return nil }
+    if selecting { return filter == .recommendations ? "Nothing looks done" : nil }
+    return inbox == .new ? "No new messages" : nil
   }
 
-  /// The Done fold, while not selecting.
-  public func showsDone(_ threads: [ChatSummary]) -> Bool { !selecting && !Self.done(threads).isEmpty }
+  /// The Done fold, while not selecting and not on *New*.
+  public func showsDone(_ threads: [ChatSummary], inbox: ChatInboxFilter = .all) -> Bool {
+    !selecting && inbox == .all && !Self.done(threads).isEmpty
+  }
 
   public func ticked(_ key: String) -> Bool { picked.contains(key) }
 

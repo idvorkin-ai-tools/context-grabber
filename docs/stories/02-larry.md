@@ -1223,6 +1223,46 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 834:
+
+- **Summary:** Show only the chats with a reply I haven't read
+- **Status:** native app only: building on bead context-grabber-qp3m
+- **Issues:** bead context-grabber-qp3m
+- **Spec:** [Native chat — Only the new messages](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man with a long chat list and a few new replies in it
+- **I want to** switch the list to only the chats with something new
+- **so that** I read what's waiting without scanning every row for the unread mark
+
+#### Acceptance Criteria:
+- **Scenario:** Switching to New
+- **Given:** two live chats have a reply I haven't read and others don't
+- **When:** I switch the list to *New*
+- **Then:** only those two show, in the list's order, with no *Done* fold; after I open one and come back only the other is left; with none left the list says *No new messages*, and *All* shows every chat again
+
+---
+
+### User Story 835:
+
+- **Summary:** The list remembers New or All on each device
+- **Status:** native app only: building on bead context-grabber-qp3m
+- **Issues:** bead context-grabber-qp3m
+- **Spec:** [Native chat — Only the new messages](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man who prefers to see only what's new on his phone
+- **I want to** find the list as I left it the next time I open the app
+- **so that** I don't switch it back every time
+
+#### Acceptance Criteria:
+- **Scenario:** Coming back to the app
+- **Given:** I switched the list to *New* on this device
+- **When:** I quit the app and open Chat again
+- **Then:** the list is still on *New*; another device keeps its own choice
+
+---
+
 ### User Story 315:
 
 - **Summary:** A batch that partly fails says which and why

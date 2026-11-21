@@ -51,6 +51,9 @@ struct ChatListView: View {
   }
   /// Select and Review (#599): what ticks, what *Archive (N)* takes, what shows meanwhile (`ChatListSelection`).
   @State private var selection = ChatListSelection()
+  /// Bead context-grabber-qp3m: *All* or *New*, remembered on this device.
+  @AppStorage(ChatInboxFilter.defaultsKey) private var inboxSaved = ChatInboxFilter.all.rawValue
+  private var inbox: ChatInboxFilter { ChatInboxFilter.restored(inboxSaved) }
   /// GRABBER_CHAT_SELECT=archive: once the list is read, *Review* and *Archive (N)* tap themselves, for the simulator.
   @State private var selectHook = LaunchHooks.current.chat.selectArchive
 
@@ -108,6 +111,13 @@ struct ChatListView: View {
           }
         }
       }
+      if !selection.selecting && !chat.threads.isEmpty {
+        Picker("Show", selection: Binding(get: { inbox }, set: { showInbox($0) })) {
+          ForEach(ChatInboxFilter.allCases, id: \.self) { Text($0.title).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .accessibilityIdentifier("chat-inbox-filter")
+      }
       if selection.selecting {
         // Bead context-grabber-szom: Review opens on what looks done, Select on every live thread; ticks stay put.
         Picker("Show", selection: Binding(get: { selection.filter }, set: { showFilter($0) })) {
@@ -117,17 +127,18 @@ struct ChatListView: View {
         .accessibilityIdentifier("chat-select-filter")
       }
       Section {
-        let decisionsAfter = ChatDecisions.rowAfter(live)
+        let rows = selection.rows(chat.threads, inbox: inbox)
+        let decisionsAfter = ChatDecisions.rowAfter(rows)
         if decisionsAfter == nil { decisionsRow }
-        ForEach(selection.rows(chat.threads)) { thread in
+        ForEach(rows) { thread in
           if selection.selecting { tickRow(thread) } else { threadLink(thread) }
           if thread.key == decisionsAfter { decisionsRow }
         }
-        if let line = selection.emptyLine(chat.threads) {
+        if let line = selection.emptyLine(chat.threads, inbox: inbox) {
           Text(line).foregroundStyle(.secondary).accessibilityIdentifier("chat-select-empty")
         }
       }
-      if selection.showsDone(chat.threads) {
+      if selection.showsDone(chat.threads, inbox: inbox) {
         Section {
           DisclosureGroup("Done (\(done.count))", isExpanded: $doneOpen) {
             ForEach(done) { thread in threadLink(thread) }
@@ -230,6 +241,12 @@ struct ChatListView: View {
   private func review(from: String) {
     let count = selection.review(chat.threads)
     chat.logAction("select", ["from": from, "count": count])
+  }
+
+  private func showInbox(_ filter: ChatInboxFilter) {
+    guard filter != inbox else { return }
+    inboxSaved = filter.rawValue
+    chat.logAction("inbox_filter", ["filter": filter.rawValue])
   }
 
   private func showFilter(_ filter: ChatListSelection.Filter) {

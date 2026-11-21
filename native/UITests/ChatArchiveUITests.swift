@@ -1,4 +1,5 @@
-//  Stories 307–309 (#589), 311–314 (#599), 823–824 (bead context-grabber-szom) and 506 on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
+//  Stories 307–309 (#589), 311–314 (#599), 823–824 (bead context-grabber-szom), 834–835 (bead
+//  context-grabber-qp3m) and 506 on the simulator, against the fake Cockpit (scripts/native/test-chat-ui.sh
 //  starts it): only what the real list can show. A real swipe archives a thread and its Undo brings it back; Select's
 //  ticks and Archive (N) archive two with one Undo; the thread's ⋯ menu archives and goes back, and a swipe under Done
 //  unarchives; the + and the voice button float over the list with the pinned thread on top. Which row offers what,
@@ -140,5 +141,26 @@ final class ChatArchiveUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Archived 2 chats"].appears(within: 5), app.debugDescription)
     app.buttons["chat-archive-undo"].tap()
     assertBackInTheLiveList(app)
+  }
+
+  /// Stories 834 and 835 (bead context-grabber-qp3m): *New* hides the chats with nothing unread (the pinned thread here
+  /// has no message, so never a reply), *All* brings them back, and *New* survives a relaunch. Left on *All*.
+  func testNewHidesWhatIsReadAndIsRememberedAcrossALaunch() throws {
+    let app = try openList()
+    let filter = app.segmentedControls["chat-inbox-filter"]
+    XCTAssertTrue(filter.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(filter.buttons["All"].isSelected, "the list as it always was")
+    let pinned = app.buttons["chat-thread-igor2-88g.1268"]
+    XCTAssertTrue(pinned.appears(within: 5), app.debugDescription)
+    addTeardownBlock { if filter.buttons["All"].exists { filter.buttons["All"].tap() } }
+    filter.buttons["New"].tap()
+    XCTAssertTrue(pinned.waitForNonExistence(timeout: 5), "nothing unread on the pinned thread")
+    app.terminate()
+    app.launch()
+    XCTAssertTrue(filter.appears(within: 20), app.debugDescription)
+    XCTAssertTrue(filter.buttons["New"].isSelected, "remembered across the launch")
+    XCTAssertFalse(pinned.exists, app.debugDescription)
+    filter.buttons["All"].tap()
+    XCTAssertTrue(pinned.appears(within: 5), app.debugDescription)
   }
 }
