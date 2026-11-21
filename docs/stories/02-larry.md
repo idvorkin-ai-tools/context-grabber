@@ -1183,6 +1183,46 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 823:
+
+- **Summary:** Review shows only the chats that look done
+- **Status:** native app only: building on bead context-grabber-szom
+- **Issues:** bead context-grabber-szom
+- **Spec:** [Native chat — Reviewing only what looks done](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man approving Larry's proposals to close chats
+- **I want to** see only the chats he thinks are finished while I review them
+- **so that** the proposals aren't lost among every other live chat
+
+#### Acceptance Criteria:
+- **Scenario:** Reviewing the recommendations
+- **Given:** two live chats look done and others don't
+- **When:** I tap *Review*
+- **Then:** the switch at the top reads *Recommendations*, only those two show, both ticked, and *Archive (2)* archives them
+
+---
+
+### User Story 824:
+
+- **Summary:** Switch between the recommendations and every chat without losing a tick
+- **Status:** native app only: building on bead context-grabber-szom
+- **Issues:** bead context-grabber-szom
+- **Spec:** [Native chat — Reviewing only what looks done](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man reviewing Larry's proposals who spots another chat to close
+- **I want to** switch to every live chat, tick it too, and archive them all in one tap
+- **so that** one review clears everything I'm done with
+
+#### Acceptance Criteria:
+- **Scenario:** Ticks survive the switch
+- **Given:** I tapped *Review*, or *Select*, which opens on *All*
+- **When:** I switch to *All*, tick another chat, and switch back to *Recommendations*
+- **Then:** every tick I made is still there, *Archive (N)* counts the chat ticked under *All* though it isn't shown, and archiving takes all of them
+
+---
+
 ### User Story 315:
 
 - **Summary:** A batch that partly fails says which and why
