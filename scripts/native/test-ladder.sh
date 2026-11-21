@@ -582,7 +582,7 @@ if [ "$in_lane" -eq 1 ]; then
     [ -z "${LADDER_WAITED:-}" ] || echo $(($(date +%s) - LADDER_ASKED)) >"$LADDER_WAITED"
     note lane --arg rung "$only" --argjson lane "${BUILD_LANE:-1}" --argjson lanes "$lanes" \
       --argjson waited_s $(($(date +%s) - ${LADDER_ASKED:-$(date +%s)}))
-    tl=$HOME/gits/mac-driver/bin/time-limit limit=()
+    tl=${LADDER_TIME_LIMIT:-$HOME/gits/mac-driver/bin/time-limit} limit=()
     if [ -x "$tl" ]; then
       limit=("$tl" "${LADDER_MINUTES:?}")
     else
@@ -592,7 +592,9 @@ if [ "$in_lane" -eq 1 ]; then
     # the Mac awake but lets the display sleep, and with the lock set to "immediately" that locks it.
     keep=(-i)
     [ "$only" = 2 ] && keep=(-d -i)
-    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} caffeinate "${keep[@]}" "$self" "${orig[@]}"
+    # The lane's settings go past the time limit by hand (context-grabber-jacw): it is a zsh script, so zsh reads
+    # ~/.zshenv, and a BUILD_LANES there would replace the count this lane ran with.
+    LADDER_TIMED=1 exec ${limit[@]+"${limit[@]}"} env BUILD_LANES="$lanes" caffeinate "${keep[@]}" "$self" "${orig[@]}"
   fi
   case $only in
     1.5) rung_mac ;;
