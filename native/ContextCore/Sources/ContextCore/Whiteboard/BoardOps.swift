@@ -264,10 +264,9 @@ public enum BoardOps {
   public static func batch(_ json: Any?, key: String, source: String) -> Batch? {
     guard let json = json as? [String: Any] else { return nil }
     let board = json["board"] as? String
-    let baseRev = (json["base_rev"] as? NSNumber).flatMap { n -> Int? in
-      let d = n.doubleValue
-      return d.isFinite && d == d.rounded() ? Int(d) : nil
-    }
+    // A whole number an Int can hold, else nil and the batch is refused (context-grabber-4nes: `Int(d)` trapped on
+    // one past Int's range while Larry's reply was read). `Int(exactly:)` is nil for NaN, infinity and fractions too.
+    let baseRev = (json["base_rev"] as? NSNumber).flatMap { Int(exactly: $0.doubleValue) }
     let label = json["label"] as? String ?? ""
     var batch = Batch(key: key, source: source, board: board, label: label, baseRev: baseRev, ops: [])
     guard board != nil, baseRev != nil, let list = json["list"] as? [Any] else {
