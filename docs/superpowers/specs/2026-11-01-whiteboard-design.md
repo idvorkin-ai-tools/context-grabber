@@ -159,7 +159,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   - With a Pencil paired, only the Pencil draws, and a finger moves the board. A palm resting on the glass never
     leaves a mark.
   - Without a Pencil (an iPad with none paired), a finger draws and two fingers move the board.
-  - This follows the system's "Only Draw with Apple Pencil" setting.
+  - This follows the system's "Only Draw with Apple Pencil" setting, and on paper also the Pencil itself: once it has
+    touched a board, a finger only pans, selects and taps until the app is next launched (context-grabber-2eml; the
+    rules for a finger while marks show are in [Claude and Larry draw back](2026-11-01-whiteboard-shapes-design.md)).
 - **The board is a column of pages** (#636; Igor, 2026-11-03: "the board is way too big maybe do the set up like
   Notability"; he chose page-width over sideways growth).
   - A page is 820 points wide and about 1,060 tall, paper's shape. On an iPad held upright, writing stays the size it is
@@ -337,8 +339,9 @@ paper. That description is the requirement, and this lists only where paper need
   Leaving the board with a ghost showing saves nothing of it.
 - **A finger tap keeps or dismisses,** as on the old canvas: on a ghost it keeps that one, off them it dismisses Claude's;
   Larry's go only to a tap off them once Claude's are gone (#823).
-  While ghosts show, a finger doesn't draw, wherever a finger would, so a tap leaves no dot and selects nothing. With none left it
-  goes back to what it did. What a finger drag does in those seconds is part of what the iPad has yet to settle.
+  While ghosts show, a finger doesn't draw, wherever a finger would, so a tap leaves no dot and selects nothing; its drag
+  pans. A tap off them gives a finger with no Pencil in use its pen back, and with none left it goes back to what it
+  did (context-grabber-2eml).
 - **A kept ghost is ink like his own.** It's in its author's colour, the eraser and lasso treat it like his, and it saves a moment
   later.
 - **Ink the app adds is on the screen.** A kept ghost, a paste, an undo or a redo of one shows within half a second, where it

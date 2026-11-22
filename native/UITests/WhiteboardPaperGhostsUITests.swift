@@ -250,6 +250,39 @@ final class WhiteboardPaperGhostsUITests: XCTestCase {
     wait(send(app), label: strokes(2))
   }
 
+  /// Story 1152 (context-grabber-2eml): with marks showing a finger drag pans; a tap on empty paper gives the finger its
+  /// pen back, the mark still showing, and a tap on the mark still brings its Keep with no dot.
+  func testATapOffLetsAFingerDrawWithTheMarksShowingAndATapOnOneStillChoosesIt() throws {
+    let app = try openBoard()
+    XCTAssertNotNil(strokeBringsAGhost(app))
+    stroke(app, atHeight: 0.4)
+    sleep(1)
+    XCTAssertEqual(send(app).label, strokes(1), "while marks show a finger pans")
+    PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
+    sleep(1)
+    XCTAssertEqual(send(app).label, strokes(1), "the tap off leaves no dot")
+    stroke(app, atHeight: 0.4)
+    wait(send(app), label: strokes(2))
+    XCTAssertEqual(ghosts(app).label, "Ghosts on, 1 showing", "the mark still shows")
+    shot(app, "drew with the mark showing")
+    let ghost = try XCTUnwrap(PaperScreen.settled(app) { $0.ghost }, "the ghost, wherever the pan left it")
+    PaperScreen.tap(app, ghost.center)
+    XCTAssertTrue(app.buttons["whiteboard-mark-keep"].appears(within: 5), app.debugDescription)
+    sleep(1)
+    XCTAssertEqual(send(app).label, strokes(2), "a tap on the mark leaves no dot")
+  }
+
+  /// Story 1153: once the Pencil has touched a board (the hook stands in, the simulator has none), a finger never draws.
+  func testOnceThePencilHasTouchedAFingerDragDrawsNothing() throws {
+    let app = try openBoard(["GRABBER_WHITEBOARD_PENCIL": "seen"])
+    let before = send(app).label
+    stroke(app, atHeight: 0.5)
+    PaperScreen.tap(app, CGPoint(x: 0.1, y: 0.72))
+    stroke(app, atHeight: 0.4)
+    sleep(2)
+    XCTAssertEqual(send(app).label, before, "a finger pans, and a tap gives it no pen")
+  }
+
   /// Story 614: pinched and moved, the ghost stays beside the ink, by the screen's own pixels. The same check on a sheet
   /// placed by hand would show any lag only while it moved, which is the iPad's (`paper_touch`'s ghost_slip).
   func testAGhostStaysOnTheInkWhenTheBoardMoves() throws {
