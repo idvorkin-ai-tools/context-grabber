@@ -103,6 +103,11 @@ final class ChatDecisionsModel: ObservableObject {
       ])
   }
 
+  /// #1072: *Close…* opened its prompt; the close itself is logged only once it is sent.
+  func closeAsked(_ ask: ChatAsk, from place: String) {
+    log.event("chat", ["action": "decision_close_asked", "ask": ask.id, "from": place])
+  }
+
   func openedChat(_ ask: ChatAsk) {
     log.event("chat", ["action": "decision_open_chat", "ask": ask.id])
   }
@@ -142,6 +147,14 @@ final class ChatDecisionsModel: ObservableObject {
     }
     // The menu's verb rides as `verb`, so it doesn't overwrite the event's own action.
     for (key, value) in verb.logFields { fields[key == "action" ? "verb" : key] = value }
+    // #1072: the open asks the screens still list once this one has left them (an outcome that keeps it, counted with it).
+    let finishes: Bool = {
+      switch outcome {
+      case .done, .alreadyAnswered: return true
+      case .changed, .refused: return false
+      }
+    }()
+    fields["asks_left"] = asks.filter { !finishes || $0.id != ask.id }.count
     log.event("chat", fields)
 
     switch outcome {

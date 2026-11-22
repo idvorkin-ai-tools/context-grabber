@@ -104,6 +104,44 @@ final class ChatDecisionUITests: XCTestCase {
     wait(for: [expectation(for: two, evaluatedWith: decisions)], timeout: 10)
   }
 
+  /// Story 832, #1072: the last card answered on *Decisions* leaves its line there. With the row's link gone under it the
+  /// screen froze on the answered card, and a further tap only answered it again.
+  func testTheLastDecisionFinishedOnDecisionsLeavesItsLine() throws {
+    let cockpit = try fakeCockpit()
+    let app = launch(cockpit, ["GRABBER_INBOX": "open"])
+
+    let decisions = app.buttons["chat-decisions"]
+    XCTAssertTrue(decisions.appears(within: 20), app.debugDescription)
+    let three = NSPredicate(format: "label CONTAINS %@", "Decisions (3)")
+    wait(for: [expectation(for: three, evaluatedWith: decisions)], timeout: 10)
+    decisions.tap()
+
+    let lines = app.staticTexts.matching(identifier: "decision-line")
+    for (ask, option) in [("igor2-88g.881", "tacos"), ("igor2-88g.879", "yes")] {
+      let card = app.otherElements["decision-card-\(ask)"]
+      XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+      app.buttons["decision-option-\(option)"].tap()
+      XCTAssertTrue(card.waitForNonExistence(timeout: 10), "\(ask) gave way: \(app.debugDescription)")
+    }
+    XCTAssertEqual(lines.count, 2, app.debugDescription)
+
+    // The last one, finished from its menu as #1072's was.
+    let last = app.otherElements["decision-card-igor2-88g.880"]
+    XCTAssertTrue(last.appears(within: 10), app.debugDescription)
+    app.buttons["decision-menu"].tap()
+    XCTAssertTrue(app.buttons["Abandon"].appears(within: 5), app.debugDescription)
+    app.buttons["Abandon"].tap()
+    XCTAssertTrue(app.buttons["Stale"].appears(within: 5), app.debugDescription)
+    app.buttons["Stale"].tap()
+    XCTAssertTrue(last.waitForNonExistence(timeout: 10), "the last card gave way: \(app.debugDescription)")
+    let abandoned = lines.matching(NSPredicate(format: "label CONTAINS %@", "Abandoned")).firstMatch
+    XCTAssertTrue(abandoned.appears(within: 5), "its line is on Decisions: \(app.debugDescription)")
+    XCTAssertEqual(lines.count, 3, app.debugDescription)
+    XCTAssertTrue(app.navigationBars["Decisions"].exists, "still on Decisions: \(app.debugDescription)")
+    let closed = try answers(cockpit).filter { $0["path"] as? String == "/close" }
+    XCTAssertEqual(closed.count, 1, "abandoned once: \(closed)")
+  }
+
   /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.
   func testARefusedAnswerLeavesTheCardWithACopyableProblem() throws {
     let cockpit = try fakeCockpit()
