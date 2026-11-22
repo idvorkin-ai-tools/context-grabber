@@ -715,6 +715,25 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 796:
+
+- **Summary:** A journey's stories can live in several files, and every ID is still checked once and in range
+- **Status:** implemented on branch `native/whiteboard-stories-split-9yxo` (bead context-grabber-9yxo), where the whiteboard's 8,400-line story file became nine files by feature area with no story changed; verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: a two-file journey passes, and an ID used in two of its files, an ID outside its ranges in its second file, a part the row doesn't link, a linked part that is missing and a file linked by two journeys each fail with exactly the expected lines; docs/stories passes with the whiteboard split
+- **Issues:** bead context-grabber-9yxo (parallel PRs kept colliding in the one whiteboard story file)
+
+#### Use Case:
+- **As Igor,** with several agents adding whiteboard stories at once
+- **I want to** have a big journey's stories split into files by feature area, still under one row of the journey table
+- **so that** parallel PRs stop colliding in one file, while two stories still never share an ID
+
+#### Acceptance Criteria:
+- **Scenario:** A journey's row links several files
+- **Given:** the journey table, where one journey's row links each of its files and gives one IDs column
+- **When:** the host rung runs
+- **Then:** every story in any of those files is checked against that journey's IDs and against every other story's ID, and a story file no row links, a linked file that is missing, or a file two rows link fails by name
+
+---
+
 ### User Story 980:
 
 - **Summary:** One booted simulator per build lane, left booted between runs

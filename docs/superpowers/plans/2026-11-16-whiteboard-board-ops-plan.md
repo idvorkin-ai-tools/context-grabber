@@ -1,7 +1,7 @@
 # Plan: whiteboard board ops, step 1
 
 Spec: [2026-11-16-whiteboard-board-ops-design.md](../specs/2026-11-16-whiteboard-board-ops-design.md). Stories 814–819
-(`docs/stories/10-whiteboard.md`). Wire contract agreed with Larry on thread igor2-88g.1499.
+(`docs/stories/10-whiteboard-edits.md`). Wire contract agreed with Larry on thread igor2-88g.1499.
 
 ## Shape
 
