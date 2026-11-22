@@ -186,6 +186,15 @@ final class WhiteboardNoteTests: XCTestCase {
     XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: nil), .nothing)
   }
 
+  /// #1161 (story 769): the tap says how it found the thread, and with none the note says where the conversation is.
+  func testATapWithNoThreadOnThisPhoneSaysWhereTheConversationIs() {
+    XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: "t1").found, "this_device")
+    XCTAssertEqual(WhiteboardNote.tap(onPhone: true, thread: nil).found, "none")
+    XCTAssertNil(WhiteboardNote.tap(onPhone: false, thread: nil).found, "the panel's toggle looks for no thread")
+    XCTAssertEqual(WhiteboardNote.noThread(drawnOn: "iPad"), "Larry's conversation is on the iPad")
+    XCTAssertEqual(WhiteboardNote.noThread(drawnOn: nil), "No conversation with Larry yet")
+  }
+
   // MARK: Open: the conversation
 
   /// #1003 (story 1047): Larry's words, and Igor's own; his wordless pictures are the chip, not rows.

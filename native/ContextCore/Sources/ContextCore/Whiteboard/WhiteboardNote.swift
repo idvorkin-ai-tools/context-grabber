@@ -142,13 +142,30 @@ public enum WhiteboardNote {
     case toggle
     /// On an iPhone, which has no panel: the board's thread in Chat.
     case openChat(String)
-    /// On an iPhone, a board with no thread yet.
+    /// On an iPhone, a board with no thread on this device: the note says where its conversation is (#1161).
     case nothing
+
+    /// How the thread was found, for `conversation_chat`: `this_device` (the thread this device keeps for the
+    /// board) or `none`; nil for the panel's toggle, which looks for none.
+    public var found: String? {
+      switch self {
+      case .toggle: nil
+      case .openChat: "this_device"
+      case .nothing: "none"
+      }
+    }
   }
 
   public static func tap(onPhone: Bool, thread: String?) -> Tap {
     guard onPhone else { return .toggle }
     return thread.map { .openChat($0) } ?? .nothing
+  }
+
+  /// #1161 (story 769): what the note says when a tap on an iPhone finds no thread. A board's thread is known only to
+  /// the device that sent its pictures, so another device's board says where its conversation is; one drawn here
+  /// never went to Larry. `drawnOn`: the name of the device that drew the board, nil when this one did.
+  public static func noThread(drawnOn: String?) -> String {
+    drawnOn.map { "Larry's conversation is on the \($0)" } ?? "No conversation with Larry yet"
   }
 
   // MARK: Open: the conversation

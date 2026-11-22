@@ -209,6 +209,12 @@ of the screen is just under the panel.
   remembered for the next board.
 - **Nothing on the board is under the panel**, so every suggestion stays tappable while it is open.
 - **On an iPhone** there is no panel: a tap on the line opens the board's thread in Chat, when it has one.
+- **A tap that finds no thread says so** (Igor, 2026-11-22, #1161: "I should be able to interact with the chat"; the
+  tap did nothing, silently). A board's thread is known only to the device that sent its pictures to Larry, so the
+  iPhone looking at an iPad's board finds none. The note's middle then says, for its few seconds, where the
+  conversation is: *Larry's conversation is on the iPad* (the name of the device that drew the board). On a board
+  drawn on this device that has never gone to Larry, it says *No conversation with Larry yet*. Finding the other
+  device's thread from the phone is not built yet; it waits on a choice on #1161.
 - **Not here:** how each picture was sent, how much ink was new, how long each answer took. That is for a page on
   the Cockpit.
 
@@ -261,6 +267,8 @@ of the screen is just under the panel.
 - Draw with the Pencil below the open panel: the stroke lands and the panel stays open.
 - Close the board with the panel open and open another: the panel is open there.
 - On an iPhone, tap the line on a board with a thread: Chat opens on that thread.
+- On an iPhone, tap the line on an iPad's board: Chat doesn't open, and the note says *Larry's conversation is on the
+  iPad*.
 - Send Larry a picture, the Cockpit takes it and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
 - He picks it up: the state changes to *Larry ·* and the clock doesn't restart.
 - Twenty seconds pass with the picture not picked up: the state adds *not picked up yet* and *Interrupt* shows.
