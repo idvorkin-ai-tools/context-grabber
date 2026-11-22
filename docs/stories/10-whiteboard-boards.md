@@ -192,7 +192,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 946:
 
 - **Summary:** Rename a board by tapping its name in the board's own bar
-- **Status:** implemented in [ad6a21a9](https://github.com/idvorkin/context-grabber/commit/ad6a21a9); verified by host tests (`just native-test`) and the Mac build (`just native-build-mac`); on an iPad simulator (`WhiteboardTitleRenameUITests`: a tap on the name opens the box filled with it, a long name shows cut short with every bar button still there, the next stroke draws, the Board menu takes Grey and closes, the row takes the name, another device's board has no tappable name; `WhiteboardRowDeleteUITests` and `WhiteboardPaperLinesUITests.testTheFirstStrokeAfterChoosingTheSameColourDraws` still pass); the real iPad not yet tried
+- **Status:** implemented in [9b9c9a77](https://github.com/idvorkin/context-grabber/commit/9b9c9a77); verified by host tests (`just native-test`) and the Mac build (`just native-build-mac`); on an iPad simulator (`WhiteboardTitleRenameUITests`: a tap on the name opens the box filled with it, a long name shows cut short with every bar button still there, the next stroke draws, the Board menu takes Grey and closes, the row takes the name, another device's board has no tappable name; `WhiteboardRowDeleteUITests` and `WhiteboardPaperLinesUITests.testTheFirstStrokeAfterChoosingTheSameColourDraws` still pass); the real iPad not yet tried
 - **Issues:** bead context-grabber-5chm (Igor, 2026-11-22: he looked for rename inside a board and couldn't find it)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Rename from the board's own bar*
 
