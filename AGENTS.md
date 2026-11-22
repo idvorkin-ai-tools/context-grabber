@@ -186,6 +186,12 @@ Requires Xcode, an Apple ID signed into Xcode, Developer Mode on the iPhone, and
   capture reconfigures the shared audio session when it starts, so a route set *before* a call begins has to be
   re-asserted on `routeChangeNotification` or it silently reverts. `WKWebView` denies `getUserMedia` unless its UI
   delegate answers `requestMediaCapturePermissionFor`.
+- **A new whiteboard feature gets its own file, not a bigger one** (Igor, 2026-11-21, context-grabber-jp6z). The
+  board model's methods live in `native/App/Whiteboard/WhiteboardModel+<Feature>.swift` (its state, init and load in
+  `WhiteboardModel.swift`, the SwiftUI view alone in `WhiteboardView.swift`), and the canvas's in
+  `PaperBoard+<Feature>.swift`. A new feature adds its own `+Feature.swift` file and its own story section rather
+  than growing `WhiteboardView.swift` or `PaperBoard.swift`: two PRs that edit one file go one after the other, so a
+  big shared file serialises every whiteboard PR behind the one before it.
 - **Never put `invalidatableContent()` on a `Button(intent:)` label.** With it, the tap stops running the intent and
   falls through to `widgetURL` (opens the app) — bisected on the memdeck card, 2026-09-07. If a dim-while-changing
   look is wanted, mark a sibling view, not the button's own label. Keep widget intents discoverable. iPhone
