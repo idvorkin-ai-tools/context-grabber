@@ -6,7 +6,8 @@
 # is stopped and the log's last closing suite line decides (passed exits 0, failed exits 65). A test-without-building run
 # whose first suite doesn't start in time is stopped too, and fails with exit 75 (story 783). Without xcbeautify the
 # screen gets the error and result lines instead. A test run's result bundle, with the screenshots its failed tests
-# kept, is native/Build/logs/<name>.xcresult unless the command names its own (story 790).
+# kept, is native/Build/logs/<name>.xcresult unless the command names its own (story 790). A test run that would pass
+# fails with exit 65 when a case passed only on its retry, unless scripts/native/ui-quarantine.txt names it (story 1017).
 # Usage: xcodebuild-log.sh <name> <done> <command...>
 set -uo pipefail
 name=$1 done=$2
@@ -42,7 +43,8 @@ if [ "${1##*/}" = xcodebuild ]; then
     *" test "* | *" test-without-building "*)
       set -- "$@" -test-timeouts-enabled YES -default-test-execution-time-allowance 120
       # A failed case runs once more, alone, rather than the whole list again (Igor, 2026-11-10: "fix all the issues").
-      # ui-timings names every case that passed only on its retry, so a flake is still seen; UI_TEST_RETRY=0 turns it off.
+      # The retry finishes the run and catches the flake; a case that passed only on it fails the run below (story 1017).
+      # UI_TEST_RETRY=0 turns it off.
       [ "${UI_TEST_RETRY:-1}" = 1 ] && set -- "$@" -retry-tests-on-failure -test-iterations 2
       ;;
   esac
@@ -127,11 +129,25 @@ if [ -e "$unstarted" ]; then
     "asleep or its screen is locked ($now); wake and unlock it, then rerun. The whole log: $log" >&2
   exit 75
 fi
-# Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py).
+# Where a test run's time went, per case, on screen and as JSON lines to compare runs (ui-timings.py), and the cases that
+# passed only on their retry and aren't quarantined (story 1017).
+flaky=$(mktemp "${TMPDIR:-/tmp}/ui-flaky.XXXXXX")
+trap 'rm -f "$flaky"' EXIT
 if grep -q "^Test Case '" "$log"; then
-  "$(dirname "$0")/ui-timings.py" "$log" --run "$name" --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" ||
-    echo "ui-timings could not read $log" >&2
+  "$(dirname "$0")/ui-timings.py" "$log" --run "$name" --jsonl "${UI_TIMINGS_JSONL:-${log%/*}/ui-timings.jsonl}" \
+    --flaky-out "$flaky" || echo "ui-timings could not read $log" >&2
 fi
+# Story 1017: a run that would pass, with a case that passed only on its retry, fails: a flake is a failure to fix, not a
+# pass to forget. A known one, chased under its bead, goes in the quarantine file instead.
+pass() {
+  if [ -s "$flaky" ]; then
+    echo "passed only on its retry, so the run fails (a flake: fix the race, or quarantine it with its bead in" \
+      "scripts/native/ui-quarantine.txt): $(paste -sd' ' "$flaky"); the whole log: $log" >&2
+    [ -n "$bundle" ] && bundle_written && echo "the failed tries' screenshots: $bundle" >&2
+    exit 65
+  fi
+  exit 0
+}
 if [ -e "$stopped" ]; then
   rm -f "$stopped"
   echo "xcodebuild hung after the tests finished, so it was stopped; the log has the result: $log" >&2
@@ -141,7 +157,7 @@ if [ -e "$stopped" ]; then
   fi
   last=$(grep -E "^Test Suite '(All|Selected) tests' (passed|failed)" "$log" | tail -1)
   case $last in
-    *" passed"*) exit 0 ;;
+    *" passed"*) pass ;;
     *)
       [ -n "$bundle" ] && bundle_written && echo "the failed tests' screenshots: $bundle" >&2
       exit 65
@@ -153,6 +169,6 @@ if [ "$status" -ne 0 ]; then
   echo "the build exited $status; the whole log: $log" >&2
   exit "$status"
 fi
-grep -q "$done" "$log" && exit 0
+grep -q "$done" "$log" && pass
 echo "no \"$done\" in the output; the whole log: $log" >&2
 exit 1

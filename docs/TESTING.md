@@ -196,7 +196,11 @@ through gives each case two minutes, runs a failed case once more on its own rat
 the simulator's boot included, is under a minute) is stopped and fails with exit 75, naming the dark or locked screen
 as the likely cause and saying whether the screen is locked now (story 783). A plain `test` compiles first, so it isn't
 watched for its start. The timing summary counts a
-retried case once and names every case that passed only on its retry: that is a flake to fix, not a pass to forget.
+retried case once and names every case that passed only on its retry: that is a flake to fix, not a pass to forget, so
+the run fails for it with exit 65 even though xcodebuild called it a success (story 1017). A known flake someone is
+chasing goes in `scripts/native/ui-quarantine.txt`, one `Class[.test] <bead or #issue> <why>` per line (a line with no
+tracker is ignored): it still runs, retries and is named as quarantined, but doesn't fail the run. Take its line out
+when the bead closes. A run asked to repeat a passing case (`-test-iterations N`) repeats it; repeats are not retries.
 
 The host rung has no report suites to skip: nothing in `native/ContextCore/Tests` prints (checked 2026-11-05, 985
 tests).
@@ -553,9 +557,11 @@ ledger, and prints each climb (its area, attempt, outcome and first failure, que
 retried, coverage skipped, warm or cold build, and when it first reached a device, or that none is known, or that it was
 only uploaded), then by area the climbs, median and p90 queue and execution, first-pass failures, skipped coverage, the
 share with a known delivery, and the rank: climbs times avoidable lane minutes (the queue, a failed, timed-out or
-interrupted attempt's execution, and retried cases). A climb that could not run (a locked screen, interrupted, never
+interrupted attempt's execution, and retried cases). A climb that failed on cases that passed only on their retry and
+nothing else is `flaky`: a failed attempt, its flakes and quarantined cases named (story 1017). Retries and flakes
+are read from each logged run's states, not the lines' old `retry` flag, which also marked a repeat asked for. A climb that could not run (a locked screen, interrupted, never
 finished) is counted apart and does not use up an attempt. The timing lines no climb claims are summed by class, which is where the flakes'
-minutes show. `--sample N` takes the latest N climbs; `--json` writes it all. `scripts/native/test-ladder-report.sh`
+minutes show, with each class's passes only on retry apart from its repeats. `--sample N` takes the latest N climbs; `--json` writes it all. `scripts/native/test-ladder-report.sh`
 pins it on a fixture with a retry, a wrong-device skip, a missing deploy, an upload alone, a censored climb, and a
 failure on the rerun after a locked screen.
 

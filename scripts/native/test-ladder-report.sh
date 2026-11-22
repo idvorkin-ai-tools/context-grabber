@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # #1038 (story 1016): ladder-report.py on a fixture of climbs that must stay apart in the report: a failure and its
-# passing second attempt with a retried case, a wrong-device skip, a climb with no known delivery, one only uploaded
+# second attempt that passed only on a retried case (a flake, story 1017), a quarantined flake that still passes, a
+# repeat asked for that is no retry, a wrong-device skip, a climb with no known delivery, one only uploaded
 # to TestFlight, one that never finished, and an older climb read from its log.
 set -uo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
@@ -14,12 +15,17 @@ bad() { echo "FAIL ladder report: $1"; sed 's/^/     /' "$out"; fail=1; }
 has() { if grep -qF -- "$2" "$out"; then ok "$1"; else echo "     wanted: $2"; bad "$1"; fi; }
 
 "$here/ladder-report.py" --ledger "$fx/runs.jsonl" --logs "$fx/*ladder*.log" --timings "$fx/ui-timings.jsonl" \
-  --deploys "$fx/deploys.jsonl" --repo "$dir" --json "$dir/report.json" >"$out" 2>&1
+  --deploys "$fx/deploys.jsonl" --quarantine "$fx/quarantine.txt" --repo "$dir" --json "$dir/report.json" >"$out" 2>&1
 status=$?
 if [ "$status" -eq 0 ]; then ok "runs"; else bad "runs, exit $status"; fi
 has "counts both sources, a logged climb the ledger holds once" "ladder report: 7 climbs (6 from the ledger, 1 from older logs)"
 has "a failure: its first failing rung and step" "r-wb-1  whiteboard  #1  fail (first at rung 2 whiteboard classes)"
-has "its second attempt: attempt 2, passed, the retried case named" "r-wb-2  whiteboard  #2  pass  queue 30  exec 600  retried 1"
+has "its second attempt: passed only on a retry, so flaky, the flake named" \
+  "r-wb-2  whiteboard  #2  flaky  queue 30  exec 600  retried 1  flaky 1 [WhiteboardTurnUITests.testA]  skipped 0"
+has "a quarantined flake: the climb still passes, the case named with its bead" \
+  "r-up  chat  #1  pass  queue 10  exec 230  retried 1  flaky 0  quarantined 1 [ChatArchiveUITests.testQ (context-grabber-fx1)]"
+has "a repeat asked for is no retry and no flake" \
+  "WhiteboardTurnUITests                 1     0.3 min  failed   0  flaky   0  quarantined  0  retried   0 (0.0 min)  repeats   1"
 has "a delivered change: the cable install" "cable 2026-11-21T10:00:00Z"
 has "a warm build" "warm build"
 has "a wrong-device skip: counted as skipped coverage" "skipped 1 [IPadUITests (wrong device)]"
@@ -28,16 +34,16 @@ has "a missing deploy: no delivery known" "no delivery known"
 has "an upload alone is not a delivery" "uploaded 2026-11-21T11:00:00Z, not yet available"
 has "a climb that never finished: censored" "r-crash  chat  #1  censored"
 has "a climb a signal stopped: interrupted" "r-int  chat  #1  interrupted"
-has "by area: chat's climbs that did not run apart from its failure" "chat         4  queue 10/40 (n=2)  exec 230/300 (n=2)  first-pass failures 1  not run 2  retried 0  skipped 0  delivered 0/3"
+has "by area: chat's climbs that did not run apart from its failure" "chat         4  queue 10/40 (n=2)  exec 230/300 (n=2)  first-pass failures 1 (flaky 0)  not run 2  retried 1  flaky 0  skipped 0  delivered 0/3"
 has "an older climb from its log" "old-ladder.log#1  chat  #1  fail (first at rung 2)  queue 40  exec 300"
-has "by area: the whiteboard's first-pass failure, retry and delivery" \
-  "whiteboard   2  queue 30/120 (n=2)  exec 600/900 (n=2)  first-pass failures 1  not run 0  retried 1  skipped 0  delivered 2/2"
-has "by area: the iPad's skip and its missing delivery" "ipad         1  queue -/- (n=0)  exec 200/200 (n=1)  first-pass failures 0  not run 0  retried 0  skipped 1  delivered 0/1"
+has "by area: the whiteboard's first-pass failure, its flaky rerun and delivery" \
+  "whiteboard   2  queue 30/120 (n=2)  exec 600/900 (n=2)  first-pass failures 1 (flaky 0)  not run 0  retried 1  flaky 1  skipped 0  delivered 2/2"
+has "by area: the iPad's skip and its missing delivery" "ipad         1  queue -/- (n=0)  exec 200/200 (n=1)  first-pass failures 0 (flaky 0)  not run 0  retried 0  flaky 0  skipped 1  delivered 0/1"
 # The recorder writes what the report reads: a cable install of the iPad change makes it delivered.
 LEAD_TIMES_DEPLOYS=$dir/deploys.jsonl "$here/record-deploy.sh" phone bbbb2222 cable >/dev/null
 cat "$fx/deploys.jsonl" >>"$dir/deploys.jsonl"
 "$here/ladder-report.py" --ledger "$fx/runs.jsonl" --logs '' --timings '' --deploys "$dir/deploys.jsonl" --repo "$dir" >"$out" 2>&1
-has "a recorded install: the change is delivered" "ipad         1  queue -/- (n=0)  exec 200/200 (n=1)  first-pass failures 0  not run 0  retried 0  skipped 1  delivered 1/1"
+has "a recorded install: the change is delivered" "ipad         1  queue -/- (n=0)  exec 200/200 (n=1)  first-pass failures 0 (flaky 0)  not run 0  retried 0  flaky 0  skipped 1  delivered 1/1"
 LEAD_TIMES_DEPLOYS=$dir/deploys.jsonl "$here/record-deploy.sh" phone bbbb2222 shipped >"$out" 2>&1
 if [ $? -eq 2 ]; then ok "the recorder: an unknown kind is refused"; else bad "the recorder: an unknown kind is refused"; fi
 python3 - "$dir/report.json" <<'PY' && ok "the JSON: the ranking puts the costliest area first" || { : >"$out"; bad "the JSON ranking"; }
@@ -46,8 +52,12 @@ d = json.load(open(sys.argv[1]))
 areas = [t["area"] for t in d["by_area"]]
 assert areas[0] == "whiteboard", areas
 wb = d["by_area"][0]
-# The queue of both attempts (120 + 30 s), the failed attempt's 900 s and the 50 s retried case: 18.3 min, twice.
-assert wb["avoidable_min"] == 18.3 and wb["rank_score"] == 36.6, wb
+# The queue of both attempts (120 + 30 s), the failed attempt's 900 s, the flaky attempt's 600 s (story 1017: it fails
+# now, so it runs again) and the 50 s retried case: 28.3 min, twice.
+assert wb["avoidable_min"] == 28.3 and wb["rank_score"] == 56.6, wb
+climbs = {r["run_id"]: r for r in d["climbs"]}
+assert climbs["r-wb-2"]["flaky"] == ["WhiteboardTurnUITests.testA"], climbs["r-wb-2"]
+assert climbs["r-up"]["outcome"] == "pass" and climbs["r-up"]["flaky"] == [], climbs["r-up"]
 PY
 # A locked screen does not use up the first attempt: the rerun's failure is the first pass's. A timeout's time is avoidable.
 sel='"classes":{"chat":["ChatArchiveUITests"],"whiteboard":[],"places":[],"ipad":[],"other":[]},"smoke":"chat"'
@@ -64,6 +74,22 @@ EOF
 "$here/ladder-report.py" --ledger "$dir/rerun.jsonl" --logs '' --timings '' --deploys '' --repo "$dir" \
   --json "$dir/rerun.json" >"$out" 2>&1
 has "a climb that could not run: still the first attempt" "r-lock  chat  #1  unavailable"
+# Story 1017: a climb the wrapper failed for a case that passed only on its retry is flaky, and a first-pass failure.
+cat >"$dir/flaky.jsonl" <<EOF
+{"run_id":"r-flake","event":"start","at":"2026-11-21T11:00:00Z","sha":"1111bbbb","base":"origin/main",$sel}
+{"run_id":"r-flake","event":"step","at":"2026-11-21T11:04:00Z","rung":"2","label":"chat classes","secs":200,"status":65}
+{"run_id":"r-flake","event":"rung","at":"2026-11-21T11:04:00Z","rung":"2","name":"Simulator","secs":240,"waited_s":0,"status":65}
+{"run_id":"r-flake","event":"finish","at":"2026-11-21T11:04:00Z","outcome":"fail","status":65,"first_failure":{"rung":"2"}}
+EOF
+cat >"$dir/flaky-t.jsonl" <<EOF
+{"t":"2026-11-21T11:04:00Z","run":"ladder-chat","run_id":"r-flake","class":"ChatArchiveUITests","test":"testR","secs":20.0,"state":"failed","retry":false}
+{"t":"2026-11-21T11:04:00Z","run":"ladder-chat","run_id":"r-flake","class":"ChatArchiveUITests","test":"testR","secs":25.0,"state":"passed","retry":true}
+EOF
+"$here/ladder-report.py" --ledger "$dir/flaky.jsonl" --logs '' --timings "$dir/flaky-t.jsonl" --deploys '' --quarantine '' \
+  --repo "$dir" >"$out" 2>&1
+has "a climb failed on a flake alone: flaky, the flake named" "r-flake  chat  #1  flaky (first at rung 2 chat classes)"
+has "and it is a first-pass failure, a flaky one" "first-pass failures 1 (flaky 1)"
+"$here/ladder-report.py" --ledger "$dir/rerun.jsonl" --logs '' --timings '' --deploys '' --repo "$dir" >"$out" 2>&1
 has "the rerun after it: its failure is the first attempt's" "r-rerun  chat  #1  fail"
 python3 - "$dir/rerun.json" <<'PY' && ok "first-pass failures count the rerun and the timeout; the timeout's 30 min is avoidable" || bad "rerun and timeout"
 import json, sys

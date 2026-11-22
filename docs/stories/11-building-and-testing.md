@@ -281,7 +281,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 689:
 
 - **Summary:** A stuck or flaky UI test costs a minute or two, not a whole rerun
-- **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named); the hang wait cut from 30 s to 10 s in e427499 (retries run before the one closing suite line, so the cut skips only xcodebuild's idle tail), verified on the host by the same check
+- **Status:** implemented in 4337f19; verified on the host by `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild: the time limit, the retry, the stopped hang, a retry printing past the idle limit) and `scripts/native/test-ui-timings.sh` (a retried case named); the hang wait cut from 30 s to 10 s in e427499 (retries run before the one closing suite line, so the cut skips only xcodebuild's idle tail), verified on the host by the same check; on branch `native/flaky-retry-86z1` (story 1017) a case that passed only on its retry fails the run, verified on the host rung by the same two checks
 - **Issues:** the pipeline timing study of 2026-11-10 (Igor: "I don't want to be spending 20 minutes in the simulator"; "fix all the issues")
 
 #### Use Case:
@@ -293,7 +293,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** A UI test run on the simulator
 - **Given:** a run where one case fails once and passes on a second try, one case runs past two minutes, and xcodebuild sits idle after the last suite closes
 - **When:** the run ends
-- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed (once its result bundle is written, story 790) with the log's result kept
+- **Then:** the failed case alone ran again and the run's timing summary names it as passed only on retry, and the run fails for it unless it is quarantined (story 1017), the long case failed at two minutes, and xcodebuild was stopped 10 s after the suite closed (once its result bundle is written, story 790) with the log's result kept
 
 ---
 
@@ -1055,3 +1055,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** climbs of the ladder that failed and then passed on a second attempt with a case retried, one whose iPad test skipped, one that never finished, and a change that was merged but never installed or only uploaded to TestFlight
 - **When:** I run `just ladder-report`
 - **Then:** each climb shows as itself (its attempt, its outcome and first failure, the retried case, the skipped coverage, a delivery that is unknown, only uploaded, or the install that delivered it), and by kind of change I see the median and slowest-tenth queue and execution times with their counts, the first-pass failures, the skipped coverage, the share delivered, and the kinds ranked by the lane minutes they could save
+
+---
+
+### User Story 1017:
+
+- **Summary:** A UI test that passed only on its retry fails the run, unless it is a quarantined known flake
+- **Status:** implemented on branch `native/flaky-retry-86z1`; verified on the host rung: `scripts/native/test-xcodebuild-log.sh` (a fake xcodebuild whose case fails, then passes on its retry: the run fails with exit 65 naming it, after a stopped hang too; a quarantine line with a bead lets the run pass, one for the whole class too, one without a tracker quarantines nothing), `scripts/native/test-ui-timings.sh` (the flake named as counted, the quarantined one named apart, a repeat of a passing case is no retry), `scripts/native/test-ladder-report.sh` (a climb that passed on a retried case and one the wrapper failed for it are flaky, a quarantined flake still passes, a repeat is no retry). Read against every slot's timing lines on 2026-11-22: counted from the states, 7 cases in the whole history passed only on retry (PaperGhosts 5 of them, fixed by #1051); the 57 retried PaperPaste lines and PaperLines' 32 were repeats asked for (#906's 40 iterations), not retries, so the one quarantine is the paste flake still open (bead `context-grabber-2jw`)
+- **Issues:** bead `context-grabber-86z1` (whiteboard architecture review, item 7: "the retry hides flakes from pass/fail")
+
+#### Use Case:
+- **As Igor,** reading whether a change's UI tests passed
+- **I want to** have a test that failed once and passed on its retry count as a failure, unless it is a known flake someone is chasing
+- **so that** flakes get fixed instead of hiding behind the retry, and a green run means every test passed the first time
+
+#### Acceptance Criteria:
+- **Scenario:** A flake, a quarantined flake and a repeat
+- **Given:** a UI test run where one case fails and then passes on its retry, another does the same but is quarantined with the bead that tracks it, and a third is asked to run three times and passes each time
+- **When:** the run ends and I run `just ladder-report`
+- **Then:** the run fails, naming the first case as a flake; the quarantined case is named as quarantined with its bead and doesn't fail the run; the repeats are counted as repeats, not retries; a quarantine line with no bead or issue quarantines nothing; and the report calls a climb that failed on flakes alone flaky, counts it as a failed attempt, and shows each class's passes on retry apart from its repeats

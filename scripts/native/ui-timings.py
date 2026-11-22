@@ -2,12 +2,17 @@
 """Where a UI test run's time went, from its xcodebuild log (Igor, 2026-11-10: "detailed logging so we can speed
 them up").
 
-Usage: ui-timings.py <xcodebuild log> [--run <name>] [--jsonl <file>] [--top N]
+Usage: ui-timings.py <xcodebuild log> [--run <name>] [--jsonl <file>] [--top N] [--quarantine <file>] [--flaky-out <file>]
 
 For every test case: its total, the launch (from the start until the app is up and idle, the first step that is not
 setting the app up), the steps XCUITest retried, the attachments taken, and the slow gaps (a second or more between
 two activity lines, named by the line that ended them). Prints the slowest cases, the per-class totals and the
 largest gap kinds; with --jsonl appends one line per case so runs can be compared over time.
+
+A case that failed and then passed on xcodebuild's retry passed only on retry: a flake, which the run counts as a
+failure (story 1017), unless the quarantine file names it with the bead that tracks it. --flaky-out writes the flakes
+that count, one per line, for the wrapper to fail the run on. A run of a case after one that passed is a repeat (an
+iteration asked for), not a retry.
 """
 
 import argparse
@@ -25,6 +30,33 @@ LAUNCH = re.compile(
     r"(?:Start Test|Set Up|Launch |Setting up automation|Wait for .* to idle|Terminate |Open |Find the Target Application)"
 )
 GAP_S = 1.0
+QUARANTINE = os.environ.get("UI_QUARANTINE") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui-quarantine.txt")
+# What tracks a quarantined case: a bead or a GitHub issue. An entry without one is not a quarantine.
+TRACKER = re.compile(r"^(context-grabber-[a-z0-9.]+|#\d+)$")
+
+
+def load_quarantine(path, warn=None):
+    """Story 1017: the known flakes, as {"Class" or "Class.test": tracker}. A line is `Class[.test] <bead or #issue>
+    <why>`; '#' starts a comment line."""
+    out = {}
+    try:
+        lines = open(path).read().splitlines()
+    except OSError:
+        return out
+    for n, line in enumerate(lines, 1):
+        parts = line.split()
+        if not parts or parts[0].startswith("#"):
+            continue
+        if len(parts) < 2 or not TRACKER.match(parts[1]):
+            if warn:
+                warn(f"{path}:{n}: a quarantine names the bead or issue that tracks it, so this line is ignored: {line}")
+            continue
+        out[parts[0]] = parts[1]
+    return out
+
+
+def quarantined_by(quarantine, cls, test):
+    return quarantine.get(f"{cls}.{test}") or quarantine.get(cls)
 
 
 def kind(line):
@@ -35,7 +67,7 @@ def kind(line):
 
 
 def parse(lines):
-    cases, current, seen = [], None, set()
+    cases, current, last, failed = [], None, {}, set()
     for line in lines:
         m = CASE.search(line)
         if m:
@@ -44,8 +76,14 @@ def parse(lines):
                 current = {"class": cls, "test": test, "steps": [], "secs": None, "state": None}
             elif current and current["test"] == test:
                 current["state"], current["secs"] = state, float(secs or 0)
-                current["retry"] = (cls, test) in seen
-                seen.add((cls, test))
+                key = (cls, test)
+                # Story 1017: a retry follows a failed run of the case; a run after a pass is a repeat.
+                current["retry"] = key in failed
+                current["repeat"] = last.get(key) in ("passed", "skipped") and key not in failed
+                current["flaky"] = state == "passed" and key in failed
+                last[key] = state
+                if state == "failed":
+                    failed.add(key)
                 cases.append(current)
                 current = None
             continue
@@ -76,7 +114,21 @@ def summarise(case):
     return case
 
 
-def report(cases, top):
+def flakes(cases, quarantine):
+    """The cases that passed only on retry: (counted, quarantined), each a sorted list of (class, test[, tracker])."""
+    counted, held = set(), set()
+    for c in cases:
+        if c.get("flaky"):
+            q = quarantined_by(quarantine, c["class"], c["test"])
+            c["quarantined"] = bool(q)
+            if q:
+                held.add((c["class"], c["test"], q))
+            else:
+                counted.add((c["class"], c["test"]))
+    return sorted(counted), sorted(held)
+
+
+def report(cases, top, quarantine=None):
     if not cases:
         return "ui timings: no test cases in the log"
     total = sum(c["secs"] for c in cases)
@@ -87,12 +139,18 @@ def report(cases, top):
         f" ({100 * launch / total if total else 0:.0f}%), {sum(c['retries'] for c in cases)} retried steps,"
         f" {sum(c['attachments'] for c in cases)} attachments"
     ]
-    # A case that failed and then passed on xcodebuild's retry: named, so a flake is never hidden by the retry.
-    failed = {(c["class"], c["test"]) for c in cases if c["state"] == "failed"}
-    passed = {(c["class"], c["test"]) for c in cases if c["state"] == "passed"}
-    flaky = sorted(failed & passed)
+    # A case that failed and then passed on xcodebuild's retry: named, so a flake is never hidden by the retry, and
+    # counted as a failure unless it is quarantined (story 1017).
+    flaky, held = flakes(cases, quarantine or {})
     if flaky:
-        out.append(f"  passed only on retry ({len(flaky)}): " + ", ".join(f"{k}.{t}" for k, t in flaky))
+        out.append(f"  passed only on retry ({len(flaky)}), a flake, counted as a failure: "
+                   + ", ".join(f"{k}.{t}" for k, t in flaky))
+    if held:
+        out.append(f"  passed only on retry ({len(held)}), quarantined, not counted: "
+                   + ", ".join(f"{k}.{t} ({q})" for k, t, q in held))
+    repeats = sum(1 for c in cases if c.get("repeat"))
+    if repeats:
+        out.append(f"  repeated runs of a passing case (asked for, not retries): {repeats}")
     per_class = defaultdict(lambda: [0, 0.0, 0.0])
     for c in cases:
         p = per_class[c["class"]]
@@ -124,10 +182,17 @@ def main(argv=None):
     ap.add_argument("--run", default="", help="the run's name, kept on each JSON line")
     ap.add_argument("--jsonl", help="append one JSON line per case to this file")
     ap.add_argument("--top", type=int, default=8)
+    ap.add_argument("--quarantine", default=QUARANTINE, help="the known flakes, each with its bead (story 1017)")
+    ap.add_argument("--flaky-out", help="write the flakes that count as failures here, one Class.test per line")
     args = ap.parse_args(argv)
     with open(args.log, errors="replace") as f:
         cases = parse(f)
-    print(report(cases, args.top))
+    quarantine = load_quarantine(args.quarantine, warn=lambda m: print(m, file=sys.stderr))
+    print(report(cases, args.top, quarantine))
+    if args.flaky_out:
+        counted, _ = flakes(cases, quarantine)
+        with open(args.flaky_out, "w") as f:
+            f.writelines(f"{k}.{t}\n" for k, t in counted)
     if args.jsonl and cases:
         stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         # #1038: the ladder's climb this run was part of, so the report can join its cases to the climb.

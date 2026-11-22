@@ -1,0 +1,11 @@
+# Story 1017: the UI tests whose pass on xcodebuild's retry is a known flake, each with the bead or issue chasing it.
+# A case here still runs, still gets its one retry, and is still named when it passes only on that retry ("quarantined,
+# not counted"); a case that is not here and passes only on retry fails the run, as a flake is a failure, not a pass.
+# One line per case or class: Class[.test] <context-grabber-… bead or #issue> <why>. A line without a tracker is
+# ignored, so nothing is quarantined without someone chasing it. Take the line out when its bead closes.
+#
+# Chosen from every slot's ui-timings.jsonl on 2026-11-22: counting a case as flaky only when it failed and then
+# passed in the same run, the whole history holds 7 such passes (PaperGhosts 5, fixed by #1051; Reword 1; ChatImage
+# 1). The "57 retried" PaperPaste lines were #906's deliberate 40-iteration repeat runs, not retries, so no class
+# earns a quarantine on the numbers; the one below is the flake still open, unexplained after its fix.
+WhiteboardPaperPasteUITests.testAPasteLandsInTheMiddleOfThePaperOnScreen context-grabber-2jw #906: no dark letters on screen about 1 run in 6; #962's heal not yet seen to fire

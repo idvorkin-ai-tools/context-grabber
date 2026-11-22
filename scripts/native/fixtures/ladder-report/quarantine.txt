@@ -1,0 +1,3 @@
+# Story 1017: a quarantined case, with its bead; a line without one is ignored.
+ChatArchiveUITests.testQ context-grabber-fx1 a known flake, chased
+WhiteboardTurnUITests.testA no tracker, so this quarantines nothing
