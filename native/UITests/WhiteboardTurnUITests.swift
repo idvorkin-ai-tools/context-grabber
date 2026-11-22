@@ -56,7 +56,7 @@ final class WhiteboardTurnUITests: XCTestCase {
     wait(app, strokes: 0)
   }
 
-  /// Story 1113 (bead context-grabber-h5c0): holding the mic, closed, offers its own row and the microphones, and that
+  /// Story 926 (bead context-grabber-h5c0): holding the mic, closed, offers its own row and the microphones, and that
   /// row still talks. The simulator has no microphone to pick; the pocket mic is the iPad's to show.
   func testHoldingTheMicPicksTheMicrophone() throws {
     let (app, ghosts) = try openBoard(say: "draw a circle")

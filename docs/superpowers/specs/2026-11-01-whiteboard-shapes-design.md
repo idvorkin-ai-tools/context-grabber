@@ -491,7 +491,7 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
 - **The list is read each time the mic opens**, so a pocket mic plugged in or paired since the last time shows up.
   One connected while the mic is already open shows up at the next opening.
 - **A long press on Talk picks the microphone too, open or closed** (Igor, 2026-11-22: "Hold mic should let me do mic
-  selection as well!"; story 1113). Under the menu's *Talk* row, a *Microphone* section lists *Automatic* and the
+  selection as well!"; story 926). Under the menu's *Talk* row, a *Microphone* section lists *Automatic* and the
   microphones the board knows (read at the last opening, or by *Find microphones*), the picked one ticked; a pick
   kept from before a relaunch and not read since shows ticked by its name. Picking one with the mic closed keeps it
   for the next opening, on any board, and opens nothing; with the mic open it does what a pick from the note's line

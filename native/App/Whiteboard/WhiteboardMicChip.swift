@@ -21,7 +21,7 @@ struct WhiteboardMicChip: View {
   var body: some View {
     HStack(spacing: 6) {
       Menu {
-        // Story 1113: the same rows as Talk's long press lists.
+        // Story 926: the same rows as Talk's long press lists.
         WhiteboardMicRows(menu: dictation.boardMicMenu(micOpen: true, busy: false), pick: pick)
       } label: {
         HStack(spacing: 3) {

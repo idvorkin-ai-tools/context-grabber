@@ -1,4 +1,4 @@
-//  Stories 1103 and 1113 (bead context-grabber-h5c0; spec 2026-11-01-whiteboard-shapes-design.md, *Which microphone,
+//  Stories 1103 and 926 (bead context-grabber-h5c0; spec 2026-11-01-whiteboard-shapes-design.md, *Which microphone,
 //  and what it hears*): the microphone rows the board offers, in the note's line while the mic is open and under Talk's
 //  long press, open or closed, and whether *Find microphones* may read the connected ones now.
 

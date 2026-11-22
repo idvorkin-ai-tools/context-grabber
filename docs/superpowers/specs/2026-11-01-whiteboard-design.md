@@ -154,7 +154,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     else closes the menu. A plain tap does what it always did. The Board menu already opens on a tap and is headed
     by its sections. VoiceOver reads each button's name as before. Talk's menu also picks the microphone, under its
     one row, whether the mic is open or closed ([Which microphone, and what it hears](2026-11-01-whiteboard-shapes-design.md),
-    story 1113).
+    story 926).
   - On a width as narrow as an iPhone's the Board menu stays at the bottom of the screen (below), and Paste with it in
     the top bar's right group.
 - **Who draws:**
