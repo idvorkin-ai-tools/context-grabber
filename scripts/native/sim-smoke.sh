@@ -426,12 +426,13 @@ call_check() {  # $1: label, $2: audio (synthetic or empty)
   failed=$(jq -c 'select(.type=="error" or ((.type|startswith("call_")) and .ok == false
     and (.type != "call_archive" or .reason != "no archive URL")))' "$f")
   if [ -z "$failed" ]; then ok "call ($label): nothing failed"; else bad "call ($label): $failed"; fi
-  # Story 248: a clean call files no automatic report. Story 1025 (bead qj5y): judged on this call's own log, and a
+  # Story 248: a clean call files no automatic report. Story 1026 (bead qj5y): judged on this call's own log, and a
   # report the ten-minute window held back (bug_report_auto_skipped) counts as filed, or a rerun hides the failure.
-  local filed
-  filed=$(jq -sr '[.[] | select(.type=="bug_report_auto" or .type=="bug_report_auto_skipped") | .reason] | join(",")' "$f")
-  if [ -z "$filed" ]; then ok "call ($label): a clean call files no automatic report"
-  else bad "call ($label): a clean call filed (or the window held back) automatic report(s): $filed"; fi
+  local reports filed
+  reports=$(jq -sc '[.[] | select(.type=="bug_report_auto" or .type=="bug_report_auto_skipped")]' "$f")
+  filed=$(jq -r 'length' <<<"$reports")
+  if [ "$filed" -eq 0 ]; then ok "call ($label): a clean call files no automatic report"
+  else bad "call ($label): a clean call filed (or the window held back) $filed automatic report(s): $(jq -r 'map(.reason // .type) | join(",")' <<<"$reports")"; fi
 }
 call_check synthetic synthetic
 # Story 1025: with the lid closed on the built-in mic the simulator hears exact zeros, so the call is skipped, not run.

@@ -244,7 +244,7 @@ the lid shut since 09:28) heard only zeros, and every real-audio call run with t
 the mic. So the smoke skips the real-audio call while the lid is closed and the default input is the built-in
 microphone: it prints *skipped: Mac lid closed, the built-in mic hears nothing*, the run's last lines count it as
 skipped, not passed, and a run with the lid open (or another input chosen as the default) is what checks it. The
-timer and breathing only play sound, so they still run. A clean call is judged on its own log, and a report the
+timer and breathing only play sound, so they still run. A clean call is judged on its own log (story 1026), and a report the
 ten-minute window held back counts as filed: the 10:06 rerun "passed" only because the window skipped its report.
 `scripts/native/test-smoke-lock.sh` checks the skip with the lid and input probes faked (`SMOKE_LID_PROBE`,
 `SMOKE_MIC_PROBE`).
