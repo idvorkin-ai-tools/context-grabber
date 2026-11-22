@@ -97,6 +97,21 @@ final class BoardOpsTests: XCTestCase {
     XCTAssertNil(BoardOps.batch("ops", key: "k", source: "web"))
   }
 
+  /// context-grabber-4nes (story 865): a whole-number revision past what an Int holds trapped while Larry's reply was
+  /// read; now the batch is refused whole, like any other revision the board can't use.
+  func testARevisionNoBoardCanHaveRefusesTheBatchAndNeverTraps() throws {
+    for rev in ["9223372036854775808", "1e300", "-1e300", "18446744073709551616", "2.5"] {
+      let reply =
+        #"{"ok":true,"messages":[{"who":"larry","id":"m1","text":"room","ops":{"board":"b","base_rev":"#
+        + rev + #","label":"room","list":[{"op":"translate","below_y":10,"dy":50}]}}]}"#
+      let row = try XCTUnwrap(WhiteboardMarks.rows(Data(reply.utf8))?.first, rev)
+      XCTAssertEqual(row.ops?.refusal, BoardOps.Reason.badBatch, rev)
+      XCTAssertNil(row.ops?.baseRev, rev)
+    }
+    XCTAssertEqual(
+      BoardOps.batch(["board": "b", "base_rev": 4, "label": "l", "list": []], key: "k", source: "web")?.baseRev, 4)
+  }
+
   func testLarrysRowCarriesItsBatchKeyedByTheMessage() throws {
     let body = try JSONSerialization.data(withJSONObject: [
       "ok": true,

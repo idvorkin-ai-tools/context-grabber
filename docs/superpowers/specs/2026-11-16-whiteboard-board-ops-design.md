@@ -105,6 +105,9 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   undo, or not at all.
 - A push asked for at a line below the last ink just adds blank paper; nothing moves.
 - An answer with changes for a different board, or for a board that was deleted, is ignored and logged.
+- An answer whose change names a board revision no board can have (a fraction, or a number too large to be one) is
+  refused whole like any other change the board can't take: nothing moves, Larry is told why, the rest of his answer
+  shows, and the board keeps running.
 - With no network, Igor's ink works as it does today. Larry's changes simply don't arrive until he can answer.
 - Older builds that don't understand a change ignore it and show Larry's answer as they do today. Nothing breaks.
 
