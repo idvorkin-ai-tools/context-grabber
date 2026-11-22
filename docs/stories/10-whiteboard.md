@@ -8431,3 +8431,23 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** iCloud lists a board this device has never had the drawing of
 - **When:** the sync fails to bring its drawing down
 - **Then:** the board isn't in the list, the list says boards aren't syncing, a link to it says its drawing hasn't come down, and the next good sync puts it in the list with its ink
+
+### User Story 1109:
+
+- **Summary:** A board's folds, cards and Larry's names reach every device with its ink
+- **Issues:** bead context-grabber-cc75 step 2 (the architecture review, 2026-11-21: a board's meaning lived only on the iPad that drew it, so the iPhone, the Mac and a reinstalled iPad saw the ink without the folds, the cards, or the names Larry knows the strokes by)
+- **Status:** not implemented; asks: bead context-grabber-cc75 step 2 (proposed, waiting on Igor's decision to sync the meaning and on the CloudKit production-schema deploy for TestFlight builds)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A board's meaning goes through iCloud with its ink*
+
+#### Use Case:
+- **As someone** who draws on the iPad and looks at boards on the iPhone and the Mac
+- **I want to** see a board on every device the way the iPad shows it, folds, headers, question cards and Larry's groups included
+- **so that** a board means the same thing wherever I open it, and Larry's names for its strokes survive a reinstall
+
+#### Acceptance Criteria:
+- **Scenario:** The meaning arrives with the ink
+- **Given:** a board drawn on the iPad with a folded header, a question card and a kept text of Larry's
+- **When:** the iPhone syncs and I open the board there
+- **Then:** the header is folded, the card and the text are there, and Larry's text keeps its name
+
+---

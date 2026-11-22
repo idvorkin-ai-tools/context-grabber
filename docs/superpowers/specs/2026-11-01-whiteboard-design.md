@@ -74,6 +74,34 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
   picture can't be kept, still arrives: the list's picture is drawn on this device from the drawing. A broken copy of another
   device's board, one that can't be read or moved aside, is repaired by the next good sync: iCloud holds the original.
   A board of this device's that can't be read or moved aside is never replaced from iCloud.
+- **A board's meaning goes through iCloud with its ink** (proposed, bead context-grabber-cc75 step 2; not built,
+  waiting on Igor's yes). Besides the strokes, a board holds what the strokes mean: Larry's kept texts, his notes and
+  groups, the headers and their folds, the question cards, the names moved strokes keep, and the count Larry's changes
+  are checked against. Today that stays on the iPad that drew the board; with this it goes up with the drawing.
+  - On the iPhone, the Mac, and the iPad back after a reinstall, a board opens with the folds, headers, question cards
+    and Larry's groups the drawing iPad has, and Larry's texts and moved strokes keep the names he knows them by.
+  - **The drawing device's copy wins.** Only the device that drew a board sends its meaning up. Every other device
+    takes what arrives in place of its own, so a question card Larry left on a board on the iPhone, or a change of his
+    the iPhone refused, is replaced by the iPad's on the next sync.
+  - **Ink and meaning arrive together.** A device takes a version's meaning only with that version's drawing: if the
+    drawing fails to come down, the meaning isn't taken either, and the device keeps the pair it had (as above).
+    A meaning that arrives and can't be read is not taken; the device keeps what it had, and the next sync asks again.
+  - **A device that couldn't read its own copy never sends an empty one.** If the drawing device's meaning was
+    unreadable and set aside, its next uploads carry the ink without a meaning, so iCloud's copy stays, until that
+    device has taken iCloud's copy back down. A change on the board in the meantime (a fold opened, a card answered)
+    doesn't end that: it stays on the device and is replaced when iCloud's copy arrives. If iCloud has no meaning for
+    the board, the device's own becomes the one it sends.
+  - A board last sent up by a build from before this has no meaning in iCloud: other devices open it with its ink, as
+    today.
+  - A change to the meaning alone (a fold opened, a card answered, a batch of Larry's handled) counts as a change: it
+    goes up on the next sync like new ink.
+  - A delete takes the board's meaning from iCloud with the board.
+  - **TestFlight builds need one step from Igor first.** Builds from the cable save to iCloud's development side,
+    where CloudKit adds a new field the first time a record carries it. TestFlight builds save to the production side,
+    which accepts only the fields deployed to it: a board record carrying a field production doesn't have is refused
+    whole, ink included. So before the first TestFlight build with this ships: run a cable build that sends one board
+    up, then in the CloudKit Console (the app's container, Schema) deploy the development schema to production. Until
+    then, a TestFlight build must not be shipped with this, or its boards stop reaching the other devices.
 - **Read-only elsewhere:** a board opens for drawing only on the device that made it. On any other device it opens
   to look at: pan and pinch, no tool picker, and a note in the bar saying where it's drawn.
 - **On an iPhone every board is look-only**, its own included (Igor, 2026-11-10). The list has no *+ New board*;
@@ -578,6 +606,12 @@ that ghosts need the tailnet.
 ## Acceptance
 
 - Picking the eraser, the lasso or another pen in the tool picker logs what the picker shows and what the board holds, and every pen touch after it names both (story 1064, #1078).
+- (Proposed, cc75 step 2, story 1109.) A board drawn on the iPad with a fold, a header, a question card and a kept
+  text of Larry's opens on the iPhone with all four; a card left on the iPhone is gone after the next sync; an iPad
+  whose meaning file was unreadable sends up no meaning over iCloud's, even after a fold is opened, until it has taken
+  iCloud's back; a newer version whose drawing fails to come down is not taken, and neither is one whose meaning
+  can't be read: the device keeps the pair it had and asks again on the next sync; a TestFlight build that sends the
+  meaning up isn't shipped until the CloudKit schema is deployed to production.
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
 - A stroke whose ink is of a kind the app has no name for draws, saves and goes to Larry like any other, and the board
   stays open; the log names that kind once (#1083).
