@@ -11,7 +11,7 @@ import Foundation
 extension WhiteboardTidy {
   /// The canvas split for a tidy: each kept label free to move, by its moment, with its strokes' places on the canvas;
   /// every other stroke that shows is ink. `known`: the moments of kept labels. `texts` and `groups` (stroke or text name
-  /// to group) say what moves whole: a label in a group is ink, so Tidy never pulls a group apart. `folded`: places of
+  /// to group) say what moves whole: a label any of whose strokes is in a group is ink, so Tidy never pulls a group or a label apart. `folded`: places of
   /// folded strokes, neither moved nor in the way. `grouped`: how many labels a group held.
   public static func laid(
     _ strokes: [BoardOps.Stroke], known: Set<Int64>, texts: [BoardText] = [], groups: [String: String] = [:],
@@ -22,20 +22,15 @@ extension WhiteboardTidy {
     for item in BoardOps.items(strokes: strokes, texts: texts, groups: groups) {
       if let tag = item.tag, names.contains(tag) { inGroup.formUnion(item.members) }
     }
+    let held = Set(inGroup.compactMap { strokes[$0].t }.filter(known.contains))
     var labels: [String: [Int]] = [:]
     var ink: [Int] = []
-    var held = Set<Int64>()
     for (i, stroke) in strokes.enumerated() where !folded.contains(i) {
-      guard let t = stroke.t, known.contains(t) else {
+      guard let t = stroke.t, known.contains(t), !held.contains(t) else {
         ink.append(i)
         continue
       }
-      if inGroup.contains(i) {
-        held.insert(t)
-        ink.append(i)
-      } else {
-        labels["\(t)", default: []].append(i)
-      }
+      labels["\(t)", default: []].append(i)
     }
     return (labels, ink, held.count)
   }

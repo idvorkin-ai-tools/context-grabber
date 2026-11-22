@@ -54,6 +54,14 @@ final class WhiteboardTidyGroupTests: XCTestCase {
     XCTAssertTrue(tidy(board, laid).isEmpty)
   }
 
+  func testALabelWithOnlyOneGlyphGroupedStaysWhole() {
+    let groups = ["box": "judge-block", "glyph-1": "judge-block"]
+    let laid = Tidy.laid(board, known: [5000], groups: groups)
+    XCTAssertTrue(laid.labels.isEmpty, "half a label never moves under its other half")
+    XCTAssertEqual(laid.grouped, 1)
+    XCTAssertTrue(tidy(board, laid).isEmpty)
+  }
+
   func testTheSameLabelUngroupedStillMovesOffMyWriting() {
     let laid = Tidy.laid(board, known: [5000], texts: [label])
     XCTAssertEqual(laid.labels, ["5000": [2, 3]])
