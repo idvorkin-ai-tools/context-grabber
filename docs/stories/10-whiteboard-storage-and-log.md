@@ -324,3 +324,33 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** iCloud refused a thread earlier this launch
 - **When:** the next sync runs
 - **Then:** boards with new ink go up without their threads, a board with nothing new but its thread isn't sent again, and the next launch offers the threads again, so they go up once production has the field
+
+---
+
+### User Story 1155:
+
+- **Summary:** Each picture the board sends Larry names its build and its own timings, and spoken words carry mic-off-to-text timing, so the Cockpit's board debug page can show them
+- **Status:** implemented in IMPLSHA; verified by host tests (`BoardDebugTimingTests`: the mic clock's gaps with the mic closed and still open, dropped and hook words untimed, the cap; the message's build, `post` and `mic` events; the events batch's build; a queued picture without a build still reads), the Mac build (rung 1.5), and the same JSON run through the Cockpit's own `chat_store.clean_marks`, `whiteboard_events` and `board_debug.payload` on a scratch data dir (accepted; the turn row keeps `post` and `mic`; the page does not show them yet, the Cockpit's part). Not yet seen on the iPad (rung 3 owed: real mic timings)
+- **Issues:** bead context-grabber-7zmj (Igor, 2026-11-22: "prioritize any missing logging for the debug page on the whiteboard")
+- **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
+
+#### Use Case:
+- **As someone** watching the Cockpit's board debug page while I write on the iPad
+- **I want to** see which build sent each picture, how long the iPad took to draw, encode and send it, and how long my spoken words took from mic off to text to going with a picture
+- **so that** a slow turn is pinned on the iPad or the Cockpit from the page, not guessed
+
+#### Acceptance Criteria:
+- **Scenario:** A picture handed to Larry
+- **Given:** a board whose responder is Larry
+- **When:** a picture goes to him, first or by *Retry*
+- **Then:** its message names the app's commit and branch, and its events end with one `post` event saying when it left, its draw, encode, strokes and upload times, its size and the build; a *Retry* carries its own, once
+
+- **Scenario:** Words spoken to the board
+- **Given:** the mic open on a board with Ghosts on
+- **When:** I speak, close the mic, and the words go with the next picture
+- **Then:** that picture's events carry one `mic` event with the mic on, first words, mic off, words ready and sent times and the gaps between them in milliseconds, and the count of characters, never the words
+
+- **Scenario:** Events sent between turns
+- **Given:** a tap on one of Larry's controls sends the events at once
+- **When:** they go
+- **Then:** the post names the build too, and any `mic` events waiting go with them

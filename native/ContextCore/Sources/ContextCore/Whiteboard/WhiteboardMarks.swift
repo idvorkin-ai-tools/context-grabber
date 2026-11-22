@@ -43,9 +43,11 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
 
   /// #1013: the folded sections the picture draws open, and how its places map onto the folded board.
   public var folds: BoardFoldMap?
+  /// The app's `<sha> <branch>`, on the chat message for the Cockpit's board debug page (story 1155).
+  public var build: String?
 
   enum CodingKeys: String, CodingKey {
-    case board, frame, title, report, folds
+    case board, frame, title, report, folds, build
     case pictureID = "picture_id"
   }
 
@@ -55,6 +57,7 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
       "frame": ["x": frame.x, "y": frame.y, "w": frame.w, "h": frame.h, "scale": frame.scale],
     ]
     if let folds, !folds.steps.isEmpty { out["picture_folds"] = folds.wire }
+    if let build, !build.isEmpty { out["build"] = build }
     return out
   }
 }

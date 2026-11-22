@@ -48,7 +48,10 @@ public enum BoardEventsSend {
 
   public static let timeout: TimeInterval = 5
 
-  public static func request(board: String, report: BoardTurnReport, cockpit: String) throws -> URLRequest {
+  /// `build`: the app's `<sha> <branch>`, for the Cockpit's board debug page (story 1155).
+  public static func request(board: String, report: BoardTurnReport, cockpit: String, build: String? = nil) throws
+    -> URLRequest
+  {
     guard let base = URL(string: cockpit) else { throw URLError(.badURL) }
     var request = URLRequest(url: base.appendingPathComponent("whiteboard").appendingPathComponent("events"))
     request.httpMethod = "POST"
@@ -57,6 +60,7 @@ public enum BoardEventsSend {
     request.setValue(InboxSend.origin(of: base), forHTTPHeaderField: "Origin")
     var body = report.wire
     body["board"] = board
+    if let build, !build.isEmpty { body["build"] = build }
     request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
     return request
   }

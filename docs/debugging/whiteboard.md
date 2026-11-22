@@ -69,7 +69,7 @@ to that event's own bullet; never join two events on one line.
   - mic_inputs with board, count — the microphones connected at an opening — and automatic: no microphone picked (story 1103)
   - mic_hears with board, input — the route's input, the system's pick under Automatic, none when there is none — why: listening (the mic opened) or route_change (a microphone plugged in, paired or pulled while open) and automatic (story 1103)
   - mic_picked with board, automatic — Automatic picked — and mic_open: whether the mic was open, so it closes and reopens on the pick (story 1103)
-  - spoke (chars — a count, never the words; went: now, held — for the next turn, or ghosts_off — dropped)
+  - spoke (chars — a count, never the words; went: now, held — for the next turn, or ghosts_off — dropped); since bead context-grabber-7zmj (story 1155) also to_words_ms (mic on, or the words before, to the first words heard), on_to_off_ms and off_to_text_ms (mic off to the words ready) when the mic had closed, the same gaps its `mic` event carries to the Cockpit
 - `whiteboard_turn` (who: claude — ghosts after a pause or words; board, ms — the whole answer, bytes of the picture, pause_ms (a pause's turn only), render_ms, encode_ms and upload_ms — the iPad's half, story 661, the first three also sent to the Cockpit; responder — who the Cockpit said answered, story 659; larry: hand — a Larry board's turn handed to his thread — held — he is still looking at the last one, story 662 — or why not (stale, first_send_waiting); said_chars: how much speech the turn carried, kept for the next turn when ok is false, stale: Igor sent the turn away first — a dismissal or Ghosts off — so the answer isn't shown; streamed: true when the Cockpit answered line by line, false for one JSON; broken: what cut the reading short — a dropped connection, the 10 s, the Cockpit's own error line, no last line — when it was; ok with shapes and first_shape_ms — how long until the first mark, the same as ms for one JSON; or ok: false with reason — too_soon: a ghost turn the Cockpit answered 429, skipped — and, for a refusal, status
   - who: larry — the picture handed to his thread, not his answer; board, ms, bytes, pixels — the picture's width x height — picture, new_thread, from: button, responder — a Larry board's pause — reply, timeout or done_no_reply — the one picture after his answer, 3 minutes without one, or his done mark with nothing written after it, story 662 — and said_chars; when the connection was lost under it (#1136, stories 908, 909): lost_step — upload or message — lost_code (-1005), lost_retried — the one quiet second try was made — lost_retry_ok, lost_app and retry_app — the app's state (active, inactive, background) when it was lost and when it went again
   - what became of the strokes: strokes_ok: true with strokes, strokes_new and strokes_erased, or strokes_ok: false with strokes_reason and, for a refusal, strokes_status; ok with thread, or ok: false with reason and, for a refusal, status)
@@ -223,7 +223,15 @@ to that event's own bullet; never join two events on one line.
   - a keep carries text_id for Larry's text, and room_cut, room_dy and landed_dy when it made room (#938)
   - a keep of his marks and **keep_group** carry picture_t (when the picture his reply answers was taken, unix ms, or null when this device doesn't know it) with covered_newer (how many things made after it the marks sat on) and late_cut and late_dy when they made room (#894)
   - `whiteboard_marks` **shown** carries picture_known
-- `whiteboard_turn` adds rev, events, op_result and folds
+- `whiteboard_turn` adds rev, events, op_result and folds; a Larry hand-off also render_ms, encode_ms, strokes_ms and upload_ms (bead context-grabber-7zmj, story 1155)
+
+## What goes to the Cockpit for its board debug page (story 1155, bead context-grabber-7zmj)
+
+Not session-log lines: fields on what the board sends, so the Cockpit's GET /debug/board can show what only the iPad knows. Each is kept by the Cockpit as sent (the events land in `whiteboard-events/<board>.jsonl`, a turn's on its `via: "turn"` row).
+
+- `build` (`<sha> <branch>`) on every board picture's chat message (the hand-off and *Send to Larry*) and on every `POST /whiteboard/events`
+- a `post` event among each hand-off's events: t (unix ms the message left), build, from (button, responder, retry, …), render_ms, encode_ms, strokes_ms, upload_ms and bytes; a *Retry* carries its own
+- a `mic` event for each spoken stretch taken for a turn: t (mic on, unix ms), words_t, off_t (absent while the mic stayed open), text_t, sent_t, to_words_ms, on_to_off_ms, off_to_text_ms, text_to_sent_ms and chars (never the words); it rides with the next picture handed to Larry, or the next events batch
 
 ## Connectors (stories 910–916, spec 2026-11-16-whiteboard-board-ops-design.md, *Step 5*)
 

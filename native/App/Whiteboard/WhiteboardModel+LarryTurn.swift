@@ -105,6 +105,8 @@ extension WhiteboardModel {
   func handToLarry(
     _ turn: WhiteboardLarryTurn.State, said: String?, from: String = "button", again: LarryOut? = nil
   ) async {
+    // Story 1155: spoken words waiting go among this picture's events (a Retry's already went with it).
+    if again == nil { micTimingsGo() }
     guard editable, let out = again ?? larryPicture(said: said) else {
       larry.failed(turn, words: said)
       return
@@ -131,11 +133,22 @@ extension WhiteboardModel {
       turnsLogged += 1
     }
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
+    let strokesStarted = ContinuousClock.now
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, folds: folds, picture: picture))) { $1 }
+    // Story 1155: the iPad's half of the send, among the picture's events for the Cockpit's debug page.
+    var post = BoardPostTiming(
+      t: 0, build: Self.buildLine, from: from, renderMs: out.renderMs, encodeMs: out.encodeMs,
+      strokesMs: WhiteboardTimings.ms(strokesStarted.duration(to: .now)), bytes: jpeg.count)
     if !folds.isEmpty { event["folds"] = folds.count }
     let outcome = await deliver(
       jpeg, picture: picture, thread: thread, note: said ?? WhiteboardNote.boardTurnNote, attempt: attempt,
-      facts: &event)
+      post: &post, facts: &event)
+    for (name, ms) in [
+      ("render_ms", post.renderMs), ("encode_ms", post.encodeMs), ("strokes_ms", post.strokesMs),
+      ("upload_ms", post.uploadMs),
+    ] {
+      if let ms { event[name] = ms }
+    }
     shipLog(why: "larry_turn")
     switch outcome {
     case .sent(let key, _):
@@ -292,9 +305,10 @@ extension WhiteboardModel {
   /// The picture uploaded, then the message that names it. #1136 (stories 908, 909): a connection lost under either is sent
   /// once more by itself, once the app is back on screen and if the hand-off still speaks for the board; `facts` gets
   /// what became of it, and the app's state when it was lost and when it went again.
+  /// `post`: the send's timing (story 1155), finished here as the message leaves and added to its events.
   private func deliver(
     _ jpeg: Data, picture: WhiteboardPicture, thread: String?, note: String, attempt: Int,
-    facts: inout [String: Any]
+    post: inout BoardPostTiming, facts: inout [String: Any]
   ) async -> ChatSend.Outcome {
     var lost: WhiteboardLostConnection.Record?
     var states: [String: Any] = [:]
@@ -309,6 +323,7 @@ extension WhiteboardModel {
       return back && self?.larryHandOffs.speaks(attempt) == true
     }
     do {
+      let uploading = ContinuousClock.now
       let (body, response) = try await WhiteboardLostConnection.run("upload", record: &lost, again: again) {
         try await URLSession.shared.data(for: try ChatSend.uploadRequest(image: jpeg, cockpit: self.cockpit))
       }
@@ -316,10 +331,15 @@ extension WhiteboardModel {
       case .refused(let status, let reason): return .refused(status: status, reason: reason)
       case .retry(let reason): return .retry(reason: "image upload: \(reason)")
       case .ref(let ref):
+        post.uploadMs = WhiteboardTimings.ms(uploading.duration(to: .now))
+        post.t = Self.unixMs()
+        // A copy: *Retry* sends the kept picture, and stamps its own send, never this one's.
+        var sending = picture
+        sending.build = Self.buildLine
+        sending.report?.events.append(.post(post))
         // The message's id is the picture's, so *Retry* sending it again is the same message to the Cockpit (story 775).
         let item = InboxItem(
-          id: picture.pictureID, kind: .image, sharedAt: Int64(Date().timeIntervalSince1970 * 1000), note: note,
-          thread: thread, whiteboard: picture)
+          id: picture.pictureID, kind: .image, sharedAt: post.t, note: note, thread: thread, whiteboard: sending)
         let (body, response) = try await WhiteboardLostConnection.run("message", record: &lost, again: again) {
           try await URLSession.shared.data(
             for: try ChatSend.messageRequest(item, attachment: ref, cockpit: self.cockpit))
@@ -635,18 +655,23 @@ extension WhiteboardModel {
     guard let (rect, scale) = pictureFrame() else { return nil }
     larryFrame = rect
     // ponytail: rendered and encoded on the main thread, as the ghost turn is.
+    let rendering = ContinuousClock.now
     let shot = shot(rect: rect, scale: scale)
+    let encoding = ContinuousClock.now
     let jpeg = shot.image.jpegData(compressionQuality: 0.85) ?? Data()
+    let encoded = ContinuousClock.now
     var picture = WhiteboardPicture(
       board: board.id, title: store.index.board(board.id)?.title ?? board.title, rect: shot.rect, scale: shot.scale,
       report: turnReport())
     picture.folds = shot.folds
+    picture.build = Self.buildLine
     pictureTimes.record(picture.pictureID, at: Self.unixMs(), board: board.id)
     pictureFolds.record(picture.pictureID, map: shot.folds, board: board.id)
     return LarryOut(
       jpeg: jpeg, strokes: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta),
       folds: foldsForLarry(), picture: picture, rect: shot.rect,
-      scale: shot.scale, said: said)
+      scale: shot.scale, said: said, renderMs: WhiteboardTimings.ms(rendering.duration(to: encoding)),
+      encodeMs: WhiteboardTimings.ms(encoding.duration(to: encoded)))
   }
 
   /// A picture handed to Larry, kept while his turn on it is out: *Retry* sends exactly this again (story 775).
@@ -660,6 +685,9 @@ extension WhiteboardModel {
     let scale: CGFloat
     /// The words that went with it, back in the queue if it is dismissed, or interrupted before the Cockpit has it.
     let said: String?
+    /// How long it took to draw and to encode (story 1155): a *Retry* sends these again with its own send's times.
+    var renderMs: Int?
+    var encodeMs: Int?
     /// The furthest the Cockpit's mark on its message has got, on the thread.
     var receipt = ChatMessage.Receipt.sent
     /// Its sending was answered: the Cockpit has it.
