@@ -264,6 +264,30 @@ final class WhiteboardNoteTests: XCTestCase {
       "no picture and no turn out: no chip")
   }
 
+  /// Story 1047, 801 (bead context-grabber-l9u): a reply of Larry's after the picture is his answer, and a Cockpit that
+  /// marks nothing never shows *Sent*.
+  func testAReplyIsAnsweredAndACockpitThatMarksNothingNeverSaysSent() {
+    let idle = WhiteboardLarryTurn()
+    func chip(_ thread: [ChatMessage]) -> String? {
+      WhiteboardNote.chip(thread: thread, larry: idle, now: at(0), cockpitAnswering: true)
+    }
+    let picture = message("a", "igor", "", attachments: ["img"])
+    XCTAssertEqual(chip([picture, message("b", "larry", "This is where it goes.")]), "Answered", "no mark, a reply")
+    XCTAssertEqual(chip([picture, message("b", "larry", "")]), "Answered", "marks alone are a reply too")
+    XCTAssertEqual(chip([picture]), "Larry has it", "no mark, no reply: never Sent")
+    let moved = ChatMessage(id: "s", ts: "", who: "system", text: "Moved to a new chat", movedTo: "chat:new")
+    XCTAssertEqual(chip([picture, moved]), "Larry has it", "the Cockpit's own line is no reply")
+    XCTAssertEqual(
+      chip([message("b", "larry", "earlier"), picture]), "Larry has it",
+      "a reply before the picture answers an older one")
+    XCTAssertEqual(
+      chip([message("a", "igor", "", receipt: .received, attachments: ["img"]), message("b", "larry", "ok")]),
+      "Answered", "a reply outranks the mark")
+    XCTAssertEqual(
+      chip([message("z", "igor", "", receipt: .done, attachments: ["img"]), message("y", "larry", "ok"), picture]),
+      "Sent", "on a Cockpit that marks, a missing mark still says Sent")
+  }
+
   func testThePanelHoldsTheLastTenMessages() {
     let thread = (1...14).map { message("m\($0)", $0.isMultiple(of: 2) ? "larry" : "igor", "line \($0)") }
     let rows = WhiteboardNote.recent(thread)

@@ -191,7 +191,10 @@ of the screen is just under the panel.
   a turn is out it says exactly what the closed line's state says, the clock and what waits to go next: *Your board ·
   Sent · 0:02* or *Your board · Larry · 0:36 · next: ink*. With no turn out it says where the last picture got to:
   *Sent* (on its way, or the Cockpit has it and Larry hasn't picked it up), *Larry has it*, or *Answered*; while Larry
-  is holding for more, the ear and his words for it instead (*Your board · Larry: waiting for more*). The chip
+  is holding for more, the ear and his words for it instead (*Your board · Larry: waiting for more*). A reply of
+  Larry's after the picture is *Answered* whatever its mark says, and a Cockpit that marks nothing never shows *Sent*:
+  there the picture on the thread with no reply yet reads *Larry has it* (bead context-grabber-l9u; Larry's
+  recommendation, Igor has not ruled on it). The chip
   replaces the *Now* and *Next* rows and each picture's *received*, *seen* and *done* marks, so the panel never shows
   two words for one state. With no picture on the thread and no turn out there is no chip.
 - **The Cockpit's own lines are left out** (*Moved to a new chat*, where a message was sent on to a chat of its own):
@@ -344,7 +347,8 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
 - Tap the line: the panel opens above the board and the page moves down by its height, so the top line of ink is
   just under the panel, not under it; Larry's whole reply can be read. Tap again: the page moves back up.
 - A thread of three pictures with no words and three replies: the panel shows Larry's three replies one after
-  another, no *You: Your turn on the board* rows, and one chip *Your board · Answered*.
+  another, no *You: Your turn on the board* rows, and one chip *Your board · Answered*. The same on a Cockpit that
+  marks nothing; there a picture with no reply yet reads *Your board · Larry has it*, never *Sent*.
 - Larry is looking at a picture with ink waiting: the chip reads *Your board · Larry · 0:12 · next: ink*, the same
   words as the closed line.
 - Larry's lines read in the main text colour; every other line in the panel and the note is at least 4.5:1.
