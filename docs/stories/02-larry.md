@@ -750,7 +750,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 278:
 
 - **Summary:** With the Cockpit out of reach, Chat says why and keeps what I wrote
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by simulator screenshots (*Not sent yet*, the copyable error with the Cockpit down); on the phone not yet; bead `context-grabber-exg6`, a stopped or overtaken read shows nothing, on this branch
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by simulator screenshots (*Not sent yet*, the copyable error with the Cockpit down); on the phone not yet; bead `context-grabber-exg6`, a stopped or overtaken read shows nothing, in [f3190178](https://github.com/idvorkin/context-grabber/commit/f3190178); verified by `ChatReadOrderTests` (host) and the Mac build; on the phone not yet
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), bead `context-grabber-exg6`
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -775,7 +775,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 279:
 
 - **Summary:** Larry's reply appears in the open thread while I watch
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by a simulator screenshot (Larry's reply appearing without a refresh); a thread that cannot be read logs once per spell in the review round, not yet verified on any rung; on the phone not yet; bead `context-grabber-exg6`, closing a thread mid-read leaves no problem and an older read never replaces a newer one, on this branch
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by a simulator screenshot (Larry's reply appearing without a refresh); a thread that cannot be read logs once per spell in the review round, not yet verified on any rung; on the phone not yet; bead `context-grabber-exg6`, closing a thread mid-read leaves no problem and an older read never replaces a newer one, in [f3190178](https://github.com/idvorkin/context-grabber/commit/f3190178); verified by `ChatReadOrderTests` (host) and the Mac build; on the phone not yet
 - **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), bead `context-grabber-exg6`
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
