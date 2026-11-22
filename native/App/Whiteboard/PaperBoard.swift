@@ -120,6 +120,10 @@ class PaperHost: UIViewController {
     guard drawsHere else { return }
     picker.addObserver(paper)
     picker.addObserver(self)
+    // Story 1098 (#1078): the picker opens on the tool picked last, on another board or in an earlier launch, and
+    // PaperKit hears only a change, so the paper would draw with its own black pen under a selected eraser. It starts
+    // on the picker's tool.
+    if let tool = decidingTool.tool { paper.drawingTool = tool }
     toolChanged()
     paper.pencilKitResponderState.activeToolPicker = picker
     paper.pencilKitResponderState.toolPickerVisibility = .visible

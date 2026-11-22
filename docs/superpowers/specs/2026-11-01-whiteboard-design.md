@@ -521,6 +521,19 @@ down, never from the tool the board says it holds (the log above shows those two
   says so, with both tools on the touch.
 - The log goes on naming both tools on every touch and every pick, so the iPad shows whether they agree.
 
+### A board opens drawing with the tool the picker shows (story 1098, #1078)
+
+The tool picker remembers the last tool picked, on another board or before the app last closed, and opens with it
+selected. The board used to start on a black pen whatever the picker showed, until the next pick: with the eraser
+showing, the first strokes drew ink (seen on the iPad simulator; on the iPad it followed a crash that closed the app
+with the eraser picked).
+
+- **The first stroke uses the tool the picker shows**: the eraser erases, the lasso selects, and a pen draws in its own
+  kind, colour and width, from the first touch on a board just opened, with no pick needed first.
+- **Every pick after that** changes the tool as it always did.
+- **The eraser draws no ink**, whether it was picked a moment ago, before BugKit's report sheet opened and closed, or
+  in an earlier launch.
+
 ### A pen touch's path is in the log, and a pulled log replays on the Mac (stories 1104, 1105; bead context-grabber-y544)
 
 A gesture bug on the iPad (a scratch-out that stayed ink, a shape that didn't snap, a margin hold that drew) has so far
