@@ -60,6 +60,23 @@ suggest changes the board until Igor keeps it.
       any group does at once.
     - The session log says, for each such tap, the group's name, how many strokes it selected, how a finger touches
       the paper then, whether fingers draw, and whether the group was still selected a beat later.
+  - **A finger tap on anything of Larry's he kept, outside a group, picks up that one thing alone** (#1171; Igor,
+    2026-11-22, on the iPad, with Larry's steps written inside a box of his: "I want to be able to click what Larry
+    wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"). A
+    text of Larry's (kept with Keep or Keep all, or written by a change of his), a mark of his or Claude's kept with
+    Keep or Keep all, and a stroke Larry drew on the board: the tap on it, within a fingertip of its line as for a
+    group, selects all of that one thing and nothing else, not his own ink under or beside it, nor Larry's other
+    marks; a finger drags it alone, and one Undo puts it back. A lasso still takes whatever it rings, his ink
+    included, and can split a text of Larry's.
+    - Under the same conditions as a group's tap (a board he can draw on, no marks or Larry's controls showing,
+      never in the margin); a thing of Larry's in a group is the group's, as above.
+    - **A text of Larry's**: the first tap selects it (its label reads *Text · tap to reword*); a second tap on it
+      while it is selected opens its words for rewording. A text of Igor's own (one he typed, or a To text result)
+      still opens at the first tap.
+    - Where his own ink is nearer the tap than Larry's, the tap is his ink's and does what it did.
+    - Not yet (non-goal): a mark still showing, not kept, is never dragged; it is kept first, then picked up.
+    - The session log says, for each such tap, that it was one thing of Larry's rather than a group, how many strokes
+      it selected, and whether it was still selected a beat later.
   - The buttons stay together, beside the mark and wholly on screen as before, and never under the board's top-right
     corner (? and Feedback, and *Larry's edit blocked* when it shows): placed there, they move below that corner. Each
     of the three takes at least 36 points each way, and a tap on any of them, or between them, never reaches the paper.

@@ -610,8 +610,10 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       return
     }
     // Story 947: with no marks or controls showing, a tap on a group's stroke selects all of it; with it selected, a tap
-    // on its text opens the words (story 940).
-    if count == 0, model.overlays.list.isEmpty, reword.editing == nil, let group = tappedGroup(at: at) {
+    // on its text opens the words (story 940). Story 1101: one thing of Larry's outside a group, the same way.
+    if count == 0, model.overlays.list.isEmpty, reword.editing == nil,
+      let group = tappedGroup(at: at) ?? tappedTheirs(at: at)
+    {
       if group.selected, rewordTapped(at: at) {
         noSelectionUntil = CACurrentMediaTime() + 0.8
         ghostTap = (at, CACurrentMediaTime(), PaperProbe.rewordDotSeconds)

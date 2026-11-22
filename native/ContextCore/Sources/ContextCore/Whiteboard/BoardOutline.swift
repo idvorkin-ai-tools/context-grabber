@@ -558,7 +558,30 @@ public struct BoardOutline: Sendable {
   /// of one of a group's strokes (a kept reply's, or one of Larry's own groups), and no other ink nearer. A text inside
   /// the group is the group's; a folded or header row, a bare text and his own writing are no group's. Nil off groups.
   public func group(at point: CGPoint, slop: CGFloat) -> (group: String, names: [String])? {
-    let named = Set(groups.values)
+    guard let hit = nearest(at: point, slop: slop), let tag = hit.tag, Set(groups.values).contains(tag), !isText(tag)
+    else { return nil }
+    return (tag, names(hit.members))
+  }
+
+  /// #1171 (story 1101): the one thing of Larry's (or Claude's) a finger tapped at `point`, outside any group: every
+  /// stroke made at the moment of the one tapped, when `theirs` lists that moment (a mark kept with Keep or Keep all, a
+  /// text of his, a stroke he drew). Nil when his own ink is nearer, on a group's (story 947) or a header's, and off ink.
+  public func theirs(at point: CGPoint, slop: CGFloat, moments theirs: Set<Int64>) -> (moment: Int64, names: [String])?
+  {
+    guard !theirs.isEmpty, let hit = nearest(at: point, slop: slop), hit.header == nil else { return nil }
+    if let tag = hit.tag, Set(groups.values).contains(tag) { return nil }
+    let nearestStroke = hit.members.min { inkDistance(point, strokes[$0]) < inkDistance(point, strokes[$1]) }
+    guard let tapped = nearestStroke, let moment = strokes[tapped].t, theirs.contains(moment) else { return nil }
+    // The whole of it: every loose stroke, or text, of that moment; none in a group, under a header or hidden.
+    let members = units().filter { u in
+      u.header == nil && !(u.tag.map(Set(groups.values).contains) ?? false)
+    }.flatMap(\.members).filter { strokes[$0].t == moment && !strokes[$0].hidden }
+    return members.isEmpty ? nil : (moment, names(members))
+  }
+
+  /// The thing that moves whole nearest `point`, within `slop` of a stroke's line (a text's box): the later in the
+  /// outline's order between two as near (by each one's first stroke). Nil off ink.
+  private func nearest(at point: CGPoint, slop: CGFloat) -> Unit? {
     var best: (unit: Unit, distance: CGFloat)?
     for u in units() {
       let d: CGFloat
@@ -568,11 +591,9 @@ public struct BoardOutline: Sendable {
       } else {
         d = u.members.map { inkDistance(point, strokes[$0]) }.min() ?? .infinity
       }
-      // Between two as near, the later in the outline's order (by each one's first stroke).
       if d <= slop, d <= (best?.distance ?? .infinity) { best = (u, d) }
     }
-    guard let hit = best?.unit, let tag = hit.tag, named.contains(tag), !isText(tag) else { return nil }
-    return (tag, names(hit.members))
+    return best?.unit
   }
 
   /// How far `point` is from a stroke's line; infinite for a hidden one.

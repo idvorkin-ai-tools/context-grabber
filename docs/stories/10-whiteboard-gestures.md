@@ -800,6 +800,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap it with a finger, change the words to "hello world" and press Return
 - **Then:** the text shows "hello world" from the same top-left in its own lettering, size and colour, wrapped by word to its width; one undo brings "hello" back
 
+- **Scenario:** A text of Larry's
+- **Given:** a text of Larry's I kept, or a text inside a group
+- **When:** I tap it with a finger
+- **Then:** the first tap selects it whole (stories 1101, 947) and a second tap opens its words
+
 ---
 
 ### User Story 941:
