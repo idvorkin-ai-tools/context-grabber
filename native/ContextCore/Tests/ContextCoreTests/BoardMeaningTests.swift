@@ -212,6 +212,24 @@ final class BoardMeaningTests: XCTestCase {
     XCTAssertEqual(told, 0, "touches and the batch in flight live only on this run")
   }
 
+  func testABatchNotYetOnTheBoardIsntSavedAsHandled() {
+    let batch = BoardOps.Batch(
+      key: "m1", source: "web", board: "b1", label: "push", baseRev: 0, ops: [])
+    var applier = BoardOpApplier()
+    _ = applier.receive(batch, board: "b1", editable: true, ready: false)
+    var meaning = BoardMeaning()
+    meaning.take(applier)
+    XCTAssertEqual(applier.handled, ["m1"], "the board itself won't take it twice")
+    XCTAssertEqual(meaning.handled, [], "held for the Pencil: offered again after a relaunch")
+    let released = applier.release(ready: true)
+    XCTAssertNotNil(released)
+    meaning.take(applier)
+    XCTAssertEqual(meaning.handled, [], "on its way to the canvas")
+    _ = applier.report(batch, .applied(BoardOps.Plan(pagesBefore: 1, pagesAfter: 1)))
+    meaning.take(applier)
+    XCTAssertEqual(meaning.handled, ["m1"], "once the canvas took it")
+  }
+
   // MARK: A delete forgets the device's keys
 
   func testADeleteForgetsEveryKeyOfThatBoardOnly() {

@@ -220,6 +220,8 @@ final class WhiteboardStore: ObservableObject {
 
   /// A board's meaning written when its ink didn't change (`BoardKeeping.saveMeaning`).
   func saveMeaning(_ meaning: BoardMeaning, board id: String) throws {
+    // A change arriving after the board was deleted (a card from a late read) leaves nothing behind.
+    guard index.board(id) != nil else { return }
     try keeping.saveMeaning(meaning, board: id)
   }
 

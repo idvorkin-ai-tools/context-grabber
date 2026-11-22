@@ -112,8 +112,9 @@ and put down real, readable text. Each change he makes is one undo for Igor.
 - **A change of Larry's is never lost to the app quitting** (bead context-grabber-cc75). What the board knows about
   his changes (the revision, the changes already taken, his kept texts and names, the headers and folds, the question
   cards) is saved with the ink, in the same save, never before it. If the app is killed in the moment after a change
-  landed and before the board saved, the change comes again on the next open and lands then, instead of being
-  remembered as done with its ink gone. At worst, a quit cut off in the middle of a save shows his change twice,
+  landed and before the board saved, or while it waited for the Pencil to lift, the change is offered again on the
+  next open: it lands, or, if the board has moved on since he looked, it is refused and Larry is told, as any stale
+  change is. It is never remembered as done with its ink gone. At worst, a quit cut off in the middle of a save shows his change twice,
   which one Undo takes back, and the session log says it happened.
 - **A deleted board leaves nothing behind on the device**: its ink, its picture, what it knows of Larry's changes and
   everything the device remembered about it (its thread, where the paper was scrolled, its lines and lettering).

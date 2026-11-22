@@ -5846,7 +5846,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A change of Larry's that landed just before the app quit is not lost
 - **Issues:** bead context-grabber-cc75 (the architecture review, 2026-11-21: a batch was remembered as handled about a second before its drawing saved, so a kill in that second lost it while Larry was told it applied)
-- **Status:** implemented on this branch; verified by host tests (`BoardMeaningTests`: the drawing is written before its meaning, a drawing that fails to save writes no meaning, the move from UserDefaults, a delete takes the meaning) and the Mac build (`just native-build-mac`); not yet seen on the iPad, where a kill in that second can't be staged; the `meaning_behind` log line says if a save is ever cut off between the two files
+- **Status:** implemented on this branch; verified by host tests (`BoardMeaningTests`: the drawing is written before its meaning, a batch held for the Pencil or on its way to the canvas isn't saved as handled, a drawing that fails to save writes no meaning, the move from UserDefaults, a delete takes the meaning) and the Mac build (`just native-build-mac`); not yet seen on the iPad, where a kill in that second can't be staged; the `meaning_behind` log line says if a save is ever cut off between the two files
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
 
 #### Use Case:
@@ -5858,7 +5858,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Scenario:** The app is killed right after Larry's change lands
 - **Given:** Larry's change has just appeared on my board and the board has not saved yet
 - **When:** the app is killed and I open the board again
-- **Then:** his change is offered again and lands, instead of being remembered as done with its ink gone
+- **Then:** his change is offered again, and either lands or Larry is told it couldn't, instead of being remembered as done with its ink gone
 
 ---
 

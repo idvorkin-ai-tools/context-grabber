@@ -54,9 +54,13 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   /// The applier as this was saved: a relaunch starts remembering touches afresh (story 961).
   public var applier: BoardOpApplier { BoardOpApplier(rev: rev, handled: handled, lastResult: lastResult) }
 
+  /// The applier as it is to be saved. A batch held for the Pencil or still on its way to the canvas isn't saved as
+  /// handled yet: its ink isn't on the board, so a relaunch offers it again (story 1106). Once the canvas has answered,
+  /// it is.
   public mutating func take(_ applier: BoardOpApplier) {
     rev = applier.rev
-    handled = applier.handled
+    let pending = Set([applier.held?.key, applier.applying].compactMap { $0 })
+    handled = applier.handled.filter { !pending.contains($0) }
     lastResult = applier.lastResult
   }
 

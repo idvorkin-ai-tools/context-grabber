@@ -288,6 +288,8 @@ public struct BoardKeeping {
       legacy.forget(board: id)
       return .success(old)
     } catch {
+      // A file that didn't read back as written goes, so the next launch moves the keys again.
+      try? disk.remove(url)
       return .failure(error)
     }
   }
