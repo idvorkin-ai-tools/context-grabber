@@ -109,6 +109,14 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   refused whole like any other change the board can't take: nothing moves, Larry is told why, the rest of his answer
   shows, and the board keeps running.
 - With no network, Igor's ink works as it does today. Larry's changes simply don't arrive until he can answer.
+- **A change of Larry's is never lost to the app quitting** (bead context-grabber-cc75). What the board knows about
+  his changes (the revision, the changes already taken, his kept texts and names, the headers and folds, the question
+  cards) is saved with the ink, in the same save, never before it. If the app is killed in the moment after a change
+  landed and before the board saved, the change comes again on the next open and lands then, instead of being
+  remembered as done with its ink gone. At worst, a quit cut off in the middle of a save shows his change twice,
+  which one Undo takes back, and the session log says it happened.
+- **A deleted board leaves nothing behind on the device**: its ink, its picture, what it knows of Larry's changes and
+  everything the device remembered about it (its thread, where the paper was scrolled, its lines and lettering).
 - Older builds that don't understand a change ignore it and show Larry's answer as they do today. Nothing breaks.
 
 ## Step 2: Larry edits the ink itself

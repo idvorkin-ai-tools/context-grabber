@@ -55,7 +55,8 @@ final class WhiteboardModel: ObservableObject {
   private var ops: BoardOpApplier {
     didSet { if ops != oldValue { opLedger.save(ops, board: board.id) } }
   }
-  private let opLedger = BoardOpLedger()
+  /// The board's meaning (`BoardMeaning`): saved with the drawing here, written at once on a board looked at.
+  private let opLedger: BoardMeaningLedger
   /// Where his changes come from: today his board replies; later his own rules inside the app (story 819).
   private var opSources: [any BoardOpSource] = [WebBoardOpSource()]
   /// The Pencil and taps since the last turn, for Larry (story 818).
@@ -233,7 +234,8 @@ final class WhiteboardModel: ObservableObject {
     }
     self.inbox = inbox
     self.cockpit = cockpit
-    questions = WhiteboardQuestionsModel(board: board.id, log: log, inbox: inbox, cockpit: cockpit)
+    opLedger = BoardMeaningLedger(board: board.id, meaning: store.meaning(board.id))
+    questions = WhiteboardQuestionsModel(board: board.id, log: log, inbox: inbox, cockpit: cockpit, ledger: opLedger)
     turns = WhiteboardGhostTurns(
       on: UserDefaults.standard.object(forKey: Self.ghostsKey) as? Bool ?? true, ghostLife: .seconds(Self.ghostSeconds))
     let lines = BoardLines().choice(board.id)
@@ -263,6 +265,46 @@ final class WhiteboardModel: ObservableObject {
       ])
     if LaunchHooks.current.whiteboard.grid { setGrid(true) }
     watchNotices()
+    checkMeaningBehind()
+    opLedger.onChange = { [weak self] in self?.meaningChanged() }
+  }
+
+  /// The meaning was saved with a drawing of another size: a save was cut off between the two files, so a batch of
+  /// Larry's in that drawing may come again. The log line settles whether it ever happens (story 1106).
+  private func checkMeaningBehind() {
+    guard let saved = opLedger.meaning.inkBytes, let read = store.drawingBytes(board.id), saved != read else { return }
+    log.event(
+      "whiteboard", ["action": "meaning_behind", "board": board.id, "meaning_ink_bytes": saved, "ink_bytes": read])
+  }
+
+  /// The board's meaning changed: drawn on here it goes with the next save of the drawing, a second on; looked at, it
+  /// is written now, as nothing of the ink is saved.
+  private func meaningChanged() {
+    guard editable else {
+      writeMeaning()
+      return
+    }
+    saveSoon()
+  }
+
+  private func writeMeaning() {
+    do {
+      try store.saveMeaning(opLedger.meaning, board: board.id)
+      opLedger.wrote(opLedger.meaning)
+    } catch {
+      log.event(
+        "error", ["where": "whiteboard_meaning", "board": board.id, "operation": "save", "message": "\(error)"])
+    }
+  }
+
+  /// The save a second after the last change, ink or meaning.
+  private func saveSoon() {
+    saveTask?.cancel()
+    saveTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(1))
+      guard !Task.isCancelled else { return }
+      self?.save(.debounce)
+    }
   }
 
   /// The board's drawing as it opens, and a copyable problem when it can't be read: moved aside, the board starts
@@ -392,12 +434,7 @@ final class WhiteboardModel: ObservableObject {
     inkMoved()
     pasteNote = nil
     dirty = true
-    saveTask?.cancel()
-    saveTask = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(1))
-      guard !Task.isCancelled else { return }
-      self?.save(.debounce)
-    }
+    saveSoon()
   }
 
   /// The ink changed: what's on screen may have too.
@@ -1755,7 +1792,7 @@ final class WhiteboardModel: ObservableObject {
   func flush() {
     stopWatchingLarry()
     saveTask?.cancel()
-    if editable, dirty { save(.background) }
+    if editable, dirty || opLedger.unsaved { save(.background) }
   }
 
   /// On screen: a delete from another device waits for `close`, which comes after the last save.
@@ -1851,7 +1888,7 @@ final class WhiteboardModel: ObservableObject {
         "board_ops", ["action": "refused", "board": board.id, "label": dropped.label, "reason": "board_closed"])
     }
     guard editable else { return }
-    if dirty {
+    if dirty || opLedger.unsaved {
       save(.close)
       log.event(
         "whiteboard", ["action": "close", "board": board.id, "strokes": drawing.strokes.count, "saved": !dirty])
@@ -1863,9 +1900,15 @@ final class WhiteboardModel: ObservableObject {
   // ponytail: serialised on the main thread; a board big enough to stutter here moves it to a background task.
   /// `trigger`: what set the save off, for its timing in the session log (#1044).
   private func save(_ trigger: BoardSaveTiming.Trigger) {
-    guard dirty else { return }
+    guard dirty || opLedger.unsaved else { return }
+    guard dirty else {
+      writeMeaning()
+      return
+    }
     do {
-      try store.save(drawing, board: board.id, trigger: trigger)
+      if let written = try store.save(drawing, meaning: opLedger.meaning, board: board.id, trigger: trigger) {
+        opLedger.wrote(written)
+      }
       dirty = false
       saveFailing = false
       if problem?.context == "WhiteboardView.save" { problem = nil }

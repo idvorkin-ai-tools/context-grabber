@@ -201,8 +201,9 @@ public struct BoardOpApplier: Equatable, Sendable {
   }
 }
 
-/// Each board's revision, handled batches, last result and kept texts on this device, by board id. ponytail:
-/// UserDefaults on this device, as `WhiteboardThreads`; it moves to the board's file if boards ever change hands.
+/// Where each board's meaning was kept before it had a file of its own (`BoardMeaning`): six UserDefaults keys per
+/// board on this device. Read now only to move them into the board's file, once (`BoardKeeping.migrateMeaning`), and
+/// as the fallback while that move hasn't happened.
 public struct BoardOpLedger: @unchecked Sendable {
   private let defaults: UserDefaults
 
@@ -236,6 +237,33 @@ public struct BoardOpLedger: @unchecked Sendable {
   private func idsKey(_ board: String) -> String { "whiteboard_stroke_ids_\(board)" }
   private func metaKey(_ board: String) -> String { "whiteboard_stroke_meta_\(board)" }
   private func headersKey(_ board: String) -> String { "whiteboard_headers_\(board)" }
+  private func questionsKey(_ board: String) -> String { "whiteboard_questions_\(board)" }
+
+  private func keys(_ board: String) -> [String] {
+    [key(board), textsKey(board), idsKey(board), metaKey(board), headersKey(board), questionsKey(board)]
+  }
+
+  /// The board's meaning as these keys hold it; nil when it has none of them.
+  public func meaning(board: String) -> BoardMeaning? {
+    guard keys(board).contains(where: { defaults.object(forKey: $0) != nil }) else { return nil }
+    var meaning = BoardMeaning()
+    meaning.take(applier(board: board))
+    meaning.texts = texts(board: board)
+    meaning.strokeIDs = strokeIDs(board: board)
+    meaning.strokeMeta = strokeMeta(board: board)
+    meaning.headers = headers(board: board)
+    meaning.questions =
+      defaults.data(forKey: questionsKey(board)).flatMap {
+        try? JSONDecoder().decode(WhiteboardQuestions.self, from: $0)
+      }
+      ?? WhiteboardQuestions()
+    return meaning
+  }
+
+  /// The board's keys, gone once its file holds what they did.
+  public func forget(board: String) {
+    for key in keys(board) { defaults.removeObject(forKey: key) }
+  }
 
   /// The board's headers and their folds (`BoardOutline`, story 855).
   public func headers(board: String) -> [BoardHeader] {

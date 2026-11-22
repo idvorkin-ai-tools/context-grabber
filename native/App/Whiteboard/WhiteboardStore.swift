@@ -81,6 +81,7 @@ final class WhiteboardStore: ObservableObject {
           + error.localizedDescription, context: "WhiteboardStore.load")
     }
     let migrated = migrateSingleBoard()
+    migrateMeanings()
     log.event(
       "whiteboard",
       [
@@ -120,6 +121,23 @@ final class WhiteboardStore: ObservableObject {
       log.event("error", ["where": "whiteboard_migrate", "message": "\(error)"])
       return false
     }
+  }
+
+  /// Once: each board's meaning moves from this device's UserDefaults into the board's own file (bead
+  /// context-grabber-cc75). One line says what moved; a board that failed keeps its keys and is tried next launch.
+  private func migrateMeanings() {
+    let legacy = BoardOpLedger()
+    var moved: [String: [String: Int]] = [:]
+    for board in index.boards {
+      switch keeping.migrateMeaning(board.id, from: legacy) {
+      case .success(let meaning)?: moved[board.id] = meaning.counts
+      case .failure(let error)?:
+        log.event(
+          "error", ["where": "whiteboard_meaning", "board": board.id, "operation": "migrate", "message": "\(error)"])
+      case nil: break
+      }
+    }
+    if !moved.isEmpty { log.event("whiteboard", ["action": "meaning_migrated", "boards": moved]) }
   }
 
   // MARK: - Boards
@@ -186,15 +204,42 @@ final class WhiteboardStore: ObservableObject {
     try keeping.drawing(id, decode: PKDrawing.init(data:)) ?? PKDrawing()
   }
 
+  /// A board's meaning (`BoardMeaning`) as it opens: its file, or before the file's first write the keys it moves from.
+  /// One that can't be read is set aside and logged, and the board opens with none.
+  func meaning(_ id: String) -> BoardMeaning {
+    do {
+      return try keeping.meaning(id) ?? BoardOpLedger().meaning(board: id) ?? BoardMeaning()
+    } catch {
+      log.event("error", ["where": "whiteboard_meaning", "board": id, "operation": "open", "message": "\(error)"])
+      return BoardMeaning()
+    }
+  }
+
+  /// The size of the board's drawing as it opened, to check against its meaning's.
+  func drawingBytes(_ id: String) -> Int? { keeping.drawingBytes(id) }
+
+  /// A board's meaning written when its ink didn't change (`BoardKeeping.saveMeaning`).
+  func saveMeaning(_ meaning: BoardMeaning, board id: String) throws {
+    try keeping.saveMeaning(meaning, board: id)
+  }
+
   /// A board drawn on: its drawing and picture on disk, the list told, iCloud asked to take it. Each stage's time goes
-  /// to the session log (`save_timing`, #1044), with what set it off, never the drawing.
-  func save(_ drawing: PKDrawing, board id: String, trigger: BoardSaveTiming.Trigger) throws {
+  /// to the session log (`save_timing`, #1044), with what set it off, never the drawing. With `meaning`, the board's
+  /// meaning is written after the drawing (story 1106); what was written comes back, with the drawing's size.
+  @discardableResult
+  func save(
+    _ drawing: PKDrawing, meaning: BoardMeaning? = nil, board id: String, trigger: BoardSaveTiming.Trigger
+  ) throws -> BoardMeaning? {
     var timing = BoardSaveTiming(board: id, trigger: trigger, strokes: drawing.strokes.count) {
       ProcessInfo.processInfo.systemUptime
     }
     defer { log.event("whiteboard", timing.fields) }
     let data = timing.time("encode") { drawing.dataRepresentation() }
-    if try timing.time("write", { try keeping.save(data, board: id) }), problem?.context == "WhiteboardView.save" {
+    var meaning = meaning
+    meaning?.inkBytes = data.count
+    if try timing.time("write", { try keeping.save(data, meaning: meaning, board: id) }),
+      problem?.context == "WhiteboardView.save"
+    {
       problem = nil
     }
     timing.time("picture") { writePicture(of: drawing, id: id) }
@@ -203,6 +248,7 @@ final class WhiteboardStore: ObservableObject {
       saveIndex()
     }
     timing.revision = index.board(id)?.updated
+    return meaning
   }
 
   func opened(_ id: String) { open.insert(id) }
@@ -237,8 +283,9 @@ final class WhiteboardStore: ObservableObject {
     keeping.removeFiles(id)
     BoardLines().forget(id)
     BoardLetteringChoice().forget(id)
+    let keys = BoardDeviceKeys.forget(id)
     pictures += 1
-    log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own])
+    log.event("whiteboard", ["action": "delete", "board": id, "why": reason, "own": own, "keys": keys])
     if !index.deleted.isEmpty { Task { await sync(reason: "delete") } }
   }
 
@@ -310,7 +357,10 @@ final class WhiteboardStore: ObservableObject {
       let merged = index.merge(
         cloud: listed.boards, device: device, unread: listed.unread, tombstones: listed.tombstones, open: open)
       if merged.resend { again = true }
-      for id in merged.dropped { keeping.removeFiles(id) }
+      for id in merged.dropped {
+        keeping.removeFiles(id)
+        BoardDeviceKeys.forget(id)
+      }
       // Each board on its own: one that fails is asked for again next sync, the rest still arrive.
       var failed: (any Error)?
       step = .download

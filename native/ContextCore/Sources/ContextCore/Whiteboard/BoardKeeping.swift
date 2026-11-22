@@ -115,6 +115,8 @@ public struct BoardKeeping {
   public private(set) var unsavedBoard: String?
   /// Boards whose unreadable drawing couldn't be moved aside: no save writes over it until it can be (#1042).
   private var heldBoards: Set<String> = []
+  /// The size of each drawing as last read, to check against what its meaning was saved with.
+  private var readBytes: [String: Int] = [:]
 
   public init(dir: URL?, disk: any BoardDisk = FileBoardDisk()) {
     self.dir = dir
@@ -123,6 +125,8 @@ public struct BoardKeeping {
 
   public func drawingURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).drawing") }
   public func pictureURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).png") }
+  /// The board's meaning (`BoardMeaning`), beside its drawing.
+  public func meaningURL(_ id: String) -> URL? { dir?.appendingPathComponent("boards/\(id).meaning.json") }
   var indexURL: URL? { dir?.appendingPathComponent("index.json") }
 
   // MARK: - The list
@@ -157,8 +161,10 @@ public struct BoardKeeping {
       return nil
     }
     do {
-      let drawing = try decode(disk.read(url))
+      let data = try disk.read(url)
+      let drawing = try decode(data)
       heldBoards.remove(id)
+      readBytes[id] = data.count
       return drawing
     } catch {
       switch setAside(url) {
@@ -172,16 +178,24 @@ public struct BoardKeeping {
     }
   }
 
+  /// The size in bytes of the board's drawing as `drawing` last read it; nil when it hasn't, or there was none.
+  public func drawingBytes(_ id: String) -> Int? { readBytes[id] }
+
   /// Whether this board's unreadable drawing is still where it was, so nothing may be saved over it (#1042).
   public func held(_ id: String) -> Bool { heldBoards.contains(id) }
 
   /// A board drawn on: its drawing written. When the write fails nothing else changes, and a board that closed
   /// unsaved stays so. A held board refuses (#1042). True when this was that board, so the list's problem about it
   /// goes (story 612).
-  public mutating func save(_ drawing: Data, board id: String) throws -> Bool {
+  ///
+  /// With `meaning`, the board's meaning is written after the drawing, in the same save (story 1106): a save cut off
+  /// between the two leaves the meaning a step behind the ink, never ahead of it, so a batch of Larry's is never
+  /// remembered as handled with its ink lost. `meaning` is written as given; the caller sets its `inkBytes`.
+  public mutating func save(_ drawing: Data, meaning: BoardMeaning? = nil, board id: String) throws -> Bool {
     guard let url = drawingURL(id) else { throw CocoaError(.fileNoSuchFile) }
     guard !heldBoards.contains(id) else { throw BoardHeld(board: id) }
     try disk.write(drawing, to: url)
+    if let meaning { try saveMeaning(meaning, board: id) }
     guard unsavedBoard == id else { return false }
     unsavedBoard = nil
     return true
@@ -229,10 +243,53 @@ public struct BoardKeeping {
     return board.updated == board.created && BoardIndex.editable(board, on: device)
   }
 
-  /// A deleted board's drawing and picture, gone from this device; a held board is let go, as asked.
+  /// A deleted board's drawing, picture and meaning, gone from this device; a held board is let go, as asked.
   public mutating func removeFiles(_ id: String) {
     heldBoards.remove(id)
-    for url in [drawingURL(id), pictureURL(id)].compactMap({ $0 }) { try? disk.remove(url) }
+    readBytes[id] = nil
+    for url in [drawingURL(id), pictureURL(id), meaningURL(id)].compactMap({ $0 }) { try? disk.remove(url) }
+  }
+
+  // MARK: - A board's meaning
+
+  /// The board's meaning as its file holds it; nil when it has none yet. A file that can't be read is set aside,
+  /// beside any older one, before the error goes up: the board opens with no meaning rather than none ever saved again.
+  public func meaning(_ id: String) throws -> BoardMeaning? {
+    guard let url = meaningURL(id), disk.exists(url) else { return nil }
+    do {
+      return try JSONDecoder().decode(BoardMeaning.self, from: disk.read(url))
+    } catch {
+      setAside(url)
+      throw error
+    }
+  }
+
+  /// The board's meaning written on its own, when nothing of the ink changed (a fold, a card, a batch refused), or on
+  /// a board not drawn on here. A held board's meaning is written too: it is the drawing nothing may overwrite.
+  public func saveMeaning(_ meaning: BoardMeaning, board id: String) throws {
+    guard let url = meaningURL(id) else { throw CocoaError(.fileNoSuchFile) }
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .sortedKeys
+    try disk.write(encoder.encode(meaning), to: url)
+  }
+
+  /// Once per board: the meaning this device kept in UserDefaults (`legacy`) moves into the board's file, which is read
+  /// back before the keys go. Never over a file already there, whose keys are let go. Nil when there was nothing to
+  /// move; the moved meaning, or why it couldn't be, when there was (the keys then stay, for next launch).
+  public func migrateMeaning(_ id: String, from legacy: BoardOpLedger) -> Result<BoardMeaning, any Error>? {
+    guard let url = meaningURL(id), let old = legacy.meaning(board: id) else { return nil }
+    if disk.exists(url) {
+      legacy.forget(board: id)
+      return nil
+    }
+    do {
+      try saveMeaning(old, board: id)
+      guard try meaning(id) == old else { throw CocoaError(.fileReadCorruptFile) }
+      legacy.forget(board: id)
+      return .success(old)
+    } catch {
+      return .failure(error)
+    }
   }
 
   /// A file that can't be read, moved beside it under a name no older one has, so an earlier one set aside stays too.
