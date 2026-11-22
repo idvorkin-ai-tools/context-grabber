@@ -176,7 +176,7 @@ final class WhiteboardLarryClockTests: XCTestCase {
       "Larry has been looking for 42 seconds")
   }
 
-  /// The copied problem's `mark`, in the words docs/DEBUGGING.md gives for each place the picture can be
+  /// The copied problem's `mark`, in the words docs/debugging/whiteboard.md gives for each place the picture can be
   /// (larry_turn_over: received, seen, none, unknown), read from the thread as the Cockpit sends it.
   func testHisSilenceSaysWhereThePictureWas() throws {
     let turn = sent()
