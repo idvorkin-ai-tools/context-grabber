@@ -7040,7 +7040,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 902:
 
 - **Summary:** The eraser across a fold's marker erases the whole section
-- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheEraserAcrossTheMarkerErasesTheWholeFoldAndClosesUp`, `testErasingAFoldTakesTheFoldsFoldedInsideIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4)
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheEraserAcrossTheMarkerErasesTheWholeFoldAndClosesUp`, `testErasingAFoldTakesTheFoldsFoldedInsideIt`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f)
 - **Issues:** context-grabber-0m2d
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
@@ -7079,7 +7079,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 903:
 
 - **Summary:** The eraser across a folded header erases the whole section
-- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4)
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f)
 - **Issues:** context-grabber-0m2d
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
@@ -7119,7 +7119,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 906:
 
 - **Summary:** An eraser stroke the iPad calls off takes no fold by its marker
-- **Status:** implemented in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; the called-off touch not yet seen on the iPad (its `erase_fold_cancelled` line will say)
+- **Status:** implemented in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; the called-off touch not yet seen on the iPad (its `erase_fold_cancelled` line will say)
 - **Issues:** context-grabber-0m2d
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
@@ -7139,7 +7139,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 907:
 
 - **Summary:** A called-off eraser stroke that took a folded header's ink takes its section too
-- **Status:** implemented in [8bb6f8e4](https://github.com/idvorkin/context-grabber/commit/8bb6f8e4); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; whether the iPad keeps the eraser's own erase when it calls the touch off is not yet seen (the `erase_fold_cancelled` line will say)
+- **Status:** implemented in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f); verified by the host test `BoardFoldEraseTests.testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent`, `just native-test` and `just native-build-mac`; whether the iPad keeps the eraser's own erase when it calls the touch off is not yet seen (the `erase_fold_cancelled` line will say)
 - **Issues:** context-grabber-0m2d
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
