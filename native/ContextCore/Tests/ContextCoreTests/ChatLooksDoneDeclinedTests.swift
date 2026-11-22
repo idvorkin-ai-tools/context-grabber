@@ -59,6 +59,15 @@ final class ChatLooksDoneDeclinedTests: XCTestCase {
     XCTAssertEqual(selection.declined(threads), [], "Archive ends the Review")
   }
 
+  func testAProposalThatArrivesMidReviewIsNotTurnedDown() {
+    var selection = ChatListSelection()
+    selection.review([row("a"), row("b", looksDone: true)])
+    let refreshed = [row("a", looksDone: true), row("b", looksDone: true), row("c", looksDone: true)]
+    XCTAssertEqual(selection.declined(refreshed), [], "never offered, so never unticked")
+    selection.tick("b")
+    XCTAssertEqual(selection.declined(refreshed), ["b"])
+  }
+
   func testSelectAndCancelTurnNothingDown() {
     let threads = [row("a"), row("b", looksDone: true)]
     var selection = ChatListSelection()
