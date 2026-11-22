@@ -29,7 +29,8 @@ log from a build before the fix proves nothing about the fix.
 - **Logs older than 30 days** are deleted at launch, except a file a report in `bugs.jsonl` names.
 - **Crashes**: MetricKit payloads land in `Documents/crashes/<stamp>.json`; the app's own `signal-<epoch>.txt` and
   `exception-<epoch>.txt` cover the days MetricKit takes on a development build. Each is announced once as
-  `crash_report`. A log that simply stops, with no crash file, is a kill from outside (memory).
+  `crash_report`. A log that simply stops, with no crash file, is a kill from outside (memory). On the simulator the
+  app's own file is the only report (BugKit 0.3.16): the Mac writes no `.ips` and shows no crash dialog for it.
 
 ```bash
 just pull-logs                  # phone → ~/tmp/agent/grabber-logs/ (logs/, bugs.jsonl, bugs/<stamp>/, crashes/); the phone's id: DEVICE=<udid> or scripts/native/phone-udid.local
