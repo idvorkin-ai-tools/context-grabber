@@ -359,4 +359,31 @@ public enum ChatDecisions {
   }
 
   public static func problem(_ verb: Verb, _ why: String) -> String { "Could not \(verb.word) this decision: \(why)" }
+
+  // MARK: Other: an answer in Igor's own words (story 1128, bead context-grabber-sm4l)
+
+  /// An option Larry labelled *Other*, in any case, with or without a trailing ellipsis or colon.
+  public static func isOther(_ option: ChatAsk.Option) -> Bool {
+    var label = option.label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    while let last = label.last, "….:".contains(last) { label.removeLast() }
+    return label.trimmingCharacters(in: .whitespaces) == "other"
+  }
+
+  /// Whether the card adds its own *Other…*: not when Larry's options already have one, which is the way in instead.
+  public static func addsOther(_ ask: ChatAsk) -> Bool { !ask.options.contains(where: isOther) }
+
+  /// What a tap on an option does: answer with it, or, for Larry's *Other*, open the own-words field. The bare word
+  /// *Other* is never an answer.
+  public enum Tap: Equatable, Sendable {
+    case answer(Verb)
+    case openOther
+  }
+
+  public static func tap(_ option: ChatAsk.Option) -> Tap { isOther(option) ? .openOther : .answer(.answer(option)) }
+
+  /// The `decision_shown` event's word on *Other*: the card's own, the ask's, or none (the board has its own field).
+  public static func otherLogName(_ ask: ChatAsk, offered: Bool) -> String {
+    guard offered else { return "none" }
+    return addsOther(ask) ? "added" : "ask"
+  }
 }

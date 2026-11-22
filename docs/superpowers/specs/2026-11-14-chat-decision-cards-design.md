@@ -19,12 +19,14 @@ chat's own bead), the thread carries the ask's card at its top and its row in th
 - Answer a decision in one tap from the phone, with the same effect as answering it on the Cockpit.
 - See from the list where a decision is waiting, and reach all of them at once.
 - Close, snooze or abandon an ask from the phone, as on the Cockpit's card.
+- Answer in Igor's own words when no option fits, or when he doesn't understand them, from every card (Igor,
+  2026-11-22: *"When we have a decision card it always needs to have an other so I can add another option."*)
 - A failure never loses the card: it stays, with a copyable problem.
 
 ## Non-goals
 
 - Making or editing asks (Larry files them).
-- Typing a note with an answer, or an answer in Igor's own words: talk in the ask's chat for that.
+- Typing a note alongside an option: talk in the ask's chat for that. (An answer in Igor's own words is *Other*, below.)
 - The Cockpit's *looks done?* chip on an ask.
 - Pictures on an option (later): an option with a picture shows its words only.
 - Notifications for a new ask. Larry's message about it, if he sends one, notifies as any reply does.
@@ -37,6 +39,14 @@ is marked *Default*; with no default, the one he recommends is marked *Recommend
 an expiry: *Expires in 5 h*, or *Expired 2 d ago* in orange. An expired ask is still open and still answerable: nothing
 happens by itself when it expires, as on the Cockpit. A **⋯** menu on the card holds the other ways to finish it.
 
+**Other.** Under the options, every card has one more button, *Other…*, for an answer in Igor's own words. A tap opens
+a text field under it with the microphone beside *Send*, as in a chat: he types or dictates, reads what he said, and
+*Send* answers the ask with his words. *Send* stays off until there are words. The words dictated here stay in this
+field; the thread's own message bar never takes them, nor this field the bar's. When Larry's own options already
+include one labelled *Other* (whatever its case, with or without a trailing ellipsis or colon), the card adds no second
+one: Larry's *Other* is the way in, and a tap on it opens the same field instead of answering. It never answers with
+the bare word *Other*; only Igor's words go. A card with no options at all still has *Other…*.
+
 **Answering.** A tap on an option answers at once; there is no second step. While it goes, the buttons are dimmed and
 can't be tapped again. Once the Cockpit has it, the ask is gone from *Decisions* and the row's mark goes. Larry receives
 the answer exactly as one given on the Cockpit's card (the same words, recorded on the ask), and the Cockpit's Inbox no
@@ -45,6 +55,11 @@ card gives way to that message, at the bottom of the conversation where Larry's 
 for good, on the laptop too. When the ask has no chat, or the Cockpit couldn't write the message, the card gives way to
 one line instead, *You decided: \<label>*, which stays on that screen until Igor leaves it. On *Decisions* an answered
 card always gives way to that line.
+
+**Answering in his own words.** *Send* under *Other…* answers as the Cockpit's Inbox does with a free-text answer: Larry
+receives *DECISION: \<the words\>*. Everything after is as for an option: the buttons and the field are dimmed while it
+goes, the answer becomes Igor's message *Decided: \<the words\>* in the ask's chat, or the card gives way to *You decided:
+\<the words\>*, and a refusal leaves the card, the words still in the field, with a copyable problem.
 
 **The menu.** **⋯** on the card offers:
 - *Snooze*: *Later today*, *Tomorrow morning* or *Next week*, the Cockpit's three. A snoozed ask leaves the card,
@@ -97,7 +112,9 @@ the list or in a thread (only *Decisions* says so), and is logged once until a r
 
 The session log says when a card was shown (which ask, where: thread or list), each answer and its outcome (answered,
 changed, already answered, refused, with the status and the Cockpit's reason), each menu action and its outcome,
-whether the answer went into the chat (and why not, when it didn't), and a failed read of the asks. Never the option's words or the reason typed for a close beyond its length. Every problem is
+whether the answer went into the chat (and why not, when it didn't), and a failed read of the asks. A shown card says
+whether it offered *Other…*, and a tap on *Other…* is logged; an answer in Igor's words is logged as an answer with its
+length. Never the option's words, Igor's own words or the reason typed for a close beyond their length. Every problem is
 copyable, naming the screen, the operation and the ask.
 
 ## Acceptance criteria
@@ -111,6 +128,11 @@ copyable, naming the screen, the operation and the ask.
   with *Open chat*; with no open ask there is no row.
 - A card answered, closed or abandoned on *Decisions* gives way to its line there at once, the last card too, and is
   not left on screen answered and still tappable (#1072).
+- Every card has *Other…* under its options; it opens a field with the microphone and *Send*, and *Send* answers the ask
+  with Igor's words exactly as the Inbox's free-text answer (*DECISION: \<the words\>*), giving way to *Decided: \<the
+  words\>* in the ask's chat as an option does. *Send* is off with no words.
+- An ask whose own options include one labelled *Other* shows no second *Other…*; a tap on Larry's *Other* opens the
+  same field, and the Cockpit never receives *DECISION: Other* from it, only Igor's words.
 - *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves; a close or
   an abandon is also Igor's message in the ask's chat.
 - A refused answer leaves the card with a copyable problem, and the buttons work again.

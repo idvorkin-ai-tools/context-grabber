@@ -347,4 +347,48 @@ final class ChatDecisionsTests: XCTestCase {
     XCTAssertEqual(ChatDecisions.Outcome.alreadyAnswered.logName, "already_answered")
     XCTAssertEqual(ChatDecisions.Outcome.refused("x").logName, "refused")
   }
+
+  // MARK: Other (story 1128, bead context-grabber-sm4l)
+
+  private func ask(_ labels: [String]) throws -> ChatAsk {
+    let options = labels.enumerated().map { ["key": "k\($0.offset)", "label": $0.element] }
+    let json: [String: Any] = ["id": "igor2-88g.1620", "title": "Which?", "options": options, "updated_at": "t1"]
+    return try JSONDecoder().decode(ChatAsk.self, from: JSONSerialization.data(withJSONObject: json))
+  }
+
+  func testAnOptionLabelledOtherIsLarrysOther() {
+    for label in ["Other", "other", " OTHER ", "Other…", "Other...", "Other:"] {
+      XCTAssertTrue(ChatDecisions.isOther(.init(key: "x", label: label)), label)
+    }
+    for label in ["Another", "Other team", "Others", "Something other", ""] {
+      XCTAssertFalse(ChatDecisions.isOther(.init(key: "x", label: label)), label)
+    }
+  }
+
+  func testTheCardAddsOtherUnlessLarrysOptionsHaveOne() throws {
+    XCTAssertTrue(ChatDecisions.addsOther(try ask(["Tacos", "Ramen"])))
+    XCTAssertTrue(ChatDecisions.addsOther(try ask([])), "a card with no options still has Other")
+    XCTAssertFalse(ChatDecisions.addsOther(try ask(["Tacos", "Other…"])), "no second Other")
+    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos"]), offered: true), "added")
+    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos", "other"]), offered: true), "ask")
+    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos"]), offered: false), "none")
+  }
+
+  /// Larry's *Other* opens the field: the Cockpit never gets the bare word, only Igor's words.
+  func testLarrysOtherNeverSendsTheLabelAlone() throws {
+    let ask = try ask(["Finger draw", "Other"])
+    XCTAssertEqual(ChatDecisions.tap(ask.options[0]), .answer(.answer(ask.options[0])))
+    XCTAssertEqual(ChatDecisions.tap(ask.options[1]), .openOther, "a tap on Other answers nothing")
+    let request = try ChatDecisions.request(.ownWords("  I don't get finger draw \n"), ask: ask, cockpit: cockpit)
+    let sent = try body(request)
+    XCTAssertEqual(request.url?.path, "/act")
+    XCTAssertEqual(sent["response"] as? String, "DECISION: I don't get finger draw")
+    XCTAssertEqual(sent["action"] as? String, "respond")
+    XCTAssertEqual(sent["post_to_chat"] as? Bool, true)
+    XCTAssertEqual(sent["base_updated_at"] as? String, "t1")
+    XCTAssertFalse(ChatDecisions.canSend(words: " \n"), "Send stays off with no words")
+    XCTAssertEqual(
+      ChatDecisions.doneLine(.ownWords(" I don't get finger draw "), snoozedUntil: nil),
+      "You decided: I don't get finger draw")
+  }
 }

@@ -18,10 +18,16 @@ final class ChatDecisionUITests: XCTestCase {
     ProcessInfo.processInfo.environment["GRABBER_FAKE_COCKPIT"].flatMap { $0.isEmpty ? nil : $0 }
   }
 
-  private func fakeCockpit() throws -> String {
+  private func fakeCockpit(other: Bool = false) throws -> String {
     guard let cockpit else { throw XCTSkip("needs the fake Cockpit: run scripts/native/test-chat-ui.sh") }
-    try post(cockpit, "/fake/asks", ["open": true])
+    try post(cockpit, "/fake/asks", ["open": true, "other": other])
     return cockpit
+  }
+
+  /// The own-words field, a text view or a text field depending on how SwiftUI draws a vertical one.
+  private func otherWords(_ app: XCUIApplication) -> XCUIElement {
+    app.textViews["decision-other-words"].exists
+      ? app.textViews["decision-other-words"] : app.textFields["decision-other-words"]
   }
 
   private func post(_ cockpit: String, _ path: String, _ body: [String: Any]) throws {
@@ -140,6 +146,70 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertTrue(app.navigationBars["Decisions"].exists, "still on Decisions: \(app.debugDescription)")
     let closed = try answers(cockpit).filter { $0["path"] as? String == "/close" }
     XCTAssertEqual(closed.count, 1, "abandoned once: \(closed)")
+  }
+
+  /// Story 1128: *Other…* in the card's chat opens a field with the mic beside Send; Igor's words answer the ask as the
+  /// Inbox's free-text answer and become his message in the chat.
+  func testOtherAnswersInIgorsOwnWords() throws {
+    let cockpit = try fakeCockpit()
+    let app = launch(cockpit, ["GRABBER_LINK": "grabbernative://chat?thread=igor2-88g.878"])
+
+    let card = app.otherElements["decision-card-igor2-88g.881"]
+    XCTAssertTrue(card.appears(within: 20), app.debugDescription)
+    let other = app.buttons["decision-other"]
+    XCTAssertTrue(other.exists, "every card has Other: \(app.debugDescription)")
+    XCTAssertFalse(app.buttons["decision-other-send"].exists, "the field opens only on a tap")
+    other.tap()
+    let send = app.buttons["decision-other-send"]
+    let mic = app.buttons["decision-other-mic"]
+    XCTAssertTrue(send.appears(within: 5), app.debugDescription)
+    XCTAssertTrue(mic.exists, "dictation beside Send")
+    XCTAssertLessThanOrEqual(mic.frame.maxX, send.frame.minX, "the mic comes before Send")
+    XCTAssertFalse(send.isEnabled, "no words, no Send")
+    let field = otherWords(app)
+    field.tap()
+    field.typeText("Pho on Thursday")
+    XCTAssertTrue(send.isEnabled)
+    send.tap()
+
+    let mine = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "chat-mine", "Decided: Pho on Thursday")
+    ).firstMatch
+    XCTAssertTrue(mine.appears(within: 10), "Igor's words are his message: \(app.debugDescription)")
+    XCTAssertFalse(card.exists, "the card gave way")
+    let posted = try answers(cockpit).filter { $0["path"] as? String == "/act" }
+    XCTAssertEqual(posted.count, 1, "\(posted)")
+    XCTAssertEqual(posted.first?["id"] as? String, "igor2-88g.881")
+    XCTAssertEqual(posted.first?["response"] as? String, "DECISION: Pho on Thursday")
+    XCTAssertEqual(posted.first?["post_to_chat"] as? Bool, true)
+  }
+
+  /// Story 1128: an ask that already offers Larry's own *Other* shows no second one, and his opens the field: the
+  /// Cockpit gets Igor's words, never the bare word.
+  func testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord() throws {
+    let cockpit = try fakeCockpit(other: true)
+    let app = launch(cockpit, ["GRABBER_INBOX": "open"])
+
+    let decisions = app.buttons["chat-decisions"]
+    XCTAssertTrue(decisions.appears(within: 20), app.debugDescription)
+    decisions.tap()
+    let card = app.otherElements["decision-card-igor2-88g.879"]
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    XCTAssertFalse(card.buttons["decision-other"].exists, "no second Other: \(app.debugDescription)")
+    let larrys = card.buttons["decision-option-other"]
+    XCTAssertTrue(larrys.exists, app.debugDescription)
+    larrys.tap()
+    let send = app.buttons["decision-other-send"]
+    XCTAssertTrue(send.appears(within: 5), "Larry's Other opened the field: \(app.debugDescription)")
+    XCTAssertTrue(card.exists, "nothing answered yet")
+    XCTAssertTrue(try answers(cockpit).isEmpty, "a tap on Other sends nothing")
+    let field = otherWords(app)
+    field.tap()
+    field.typeText("Month to month")
+    send.tap()
+    XCTAssertTrue(card.waitForNonExistence(timeout: 10), "the card gave way: \(app.debugDescription)")
+    let posted = try answers(cockpit).filter { $0["path"] as? String == "/act" }
+    XCTAssertEqual(posted.map { $0["response"] as? String }, ["DECISION: Month to month"], "\(posted)")
   }
 
   /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.
