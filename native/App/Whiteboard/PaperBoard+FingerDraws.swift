@@ -34,12 +34,18 @@ extension PaperBoardController {
   /// PaperKit's touch as the rule has it; a change is logged as `finger_draws`, with which rule decided.
   func settleFinger() {
     if Self.pencilThisLaunch, !finger.pencil { finger.pencilTouched() }
-    let usual = fingerUsually ?? (paper.directTouchMode, paper.directTouchAutomaticallyDraws)
-    fingerUsually = usual
     let verdict = finger.verdict
-    let mode = verdict.usual ? usual.mode : .selection
-    let autoDraws = verdict.usual ? usual.autoDraws : false
     defer { showFingerForTests(verdict) }
+    let mode: PaperMarkupViewController.TouchMode
+    let autoDraws: Bool
+    if verdict.usual {
+      guard let usual = fingerUsually else { return }
+      fingerUsually = nil
+      (mode, autoDraws) = (usual.mode, usual.autoDraws)
+    } else {
+      if fingerUsually == nil { fingerUsually = (paper.directTouchMode, paper.directTouchAutomaticallyDraws) }
+      (mode, autoDraws) = (.selection, false)
+    }
     guard mode != paper.directTouchMode || autoDraws != paper.directTouchAutomaticallyDraws else { return }
     paper.directTouchAutomaticallyDraws = autoDraws
     paper.directTouchMode = mode

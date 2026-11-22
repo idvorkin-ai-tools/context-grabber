@@ -111,7 +111,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?
   /// A Pencil or a drawing finger is down, as the pacer was told.
   var toolDown = false
-  /// What a finger does when no ghost shows, as PaperKit had it before the board first set it (PaperBoard+FingerDraws.swift).
+  /// What a finger does when no ghost shows; set while the board has it tapping instead (PaperBoard+FingerDraws.swift).
   var fingerUsually: (mode: PaperMarkupViewController.TouchMode, autoDraws: Bool)?
   /// Stories 354, 1152, 1153: whether a finger draws, by the marks showing, a tap off them and the Pencil.
   var finger = WhiteboardFinger(pencil: PaperBoardController.pencilThisLaunch)
@@ -649,8 +649,6 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
     }
     guard count > 0 else { return }
     model.tap(at: at, zoom: screenScale)
-    // Story 1152: a tap off the marks and his selection gives a finger with no Pencil in use its pen back.
-    fingerTappedWithMarks(onMark: onMark, onSelection: onSelection)
     log.event(
       "whiteboard",
       [
@@ -660,6 +658,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "touch_mode": name(paper.directTouchMode), "auto_draws": paper.directTouchAutomaticallyDraws,
         "screen_scale": Double(screenScale),
       ])
+    // Story 1152: a tap off the marks and his selection gives a finger with no Pencil in use its pen back.
+    fingerTappedWithMarks(onMark: onMark, onSelection: onSelection)
   }
 
   override func touchWentDown(_ touch: UITouch) {
