@@ -382,16 +382,15 @@ public enum ChatDecisions {
 
   /// The labels that mean "my own answer", lowercased, with no punctuation around them.
   static let ownAnswerLabels: Set<String> = [
-    "other", "something else", "type your own answer", "type your own", "your own answer", "my own answer",
-    "own answer", "write your own", "write your own answer", "none of these", "none of the above",
+    "other", "something else", "type your own answer", "your own answer", "none of these", "none of the above",
   ]
 
   /// Larry's own-answer option: keyed `other` (whatever its label), or labelled *Other*, *Something else*, *Type your
-  /// own answer* and the like, in any case and with any punctuation around it, alone or as one half of a label such as
-  /// *Something else / Type your own answer* (Igor, 2026-11-22: that one went as *DECISION: Something else*).
+  /// own answer*, *Your own answer*, *None of these* or *None of the above*, in any case and with any punctuation around
+  /// it, alone or as one half of a label such as *Something else / Type your own answer* (Igor, 2026-11-22: that one went as *DECISION: Something else*).
   public static func isOther(_ option: ChatAsk.Option) -> Bool {
     if option.key.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "other" { return true }
-    let halves = option.label.lowercased().components(separatedBy: CharacterSet(charactersIn: "/|()[]—–"))
+    let halves = option.label.lowercased().components(separatedBy: CharacterSet(charactersIn: "/|()—"))
       .flatMap { $0.components(separatedBy: " - ") }
     return halves.contains { half in
       let words = half.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }

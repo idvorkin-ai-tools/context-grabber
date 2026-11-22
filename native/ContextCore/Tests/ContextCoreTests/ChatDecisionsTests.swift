@@ -373,11 +373,14 @@ final class ChatDecisionsTests: XCTestCase {
     for label in [
       "Something else", "something else…", "Something else / Type your own answer", "Type your own answer",
       "Type your own answer:", "(Your own answer)", "None of these", "NONE OF THE ABOVE.", "Other — type below",
-      "Something else - Type your own answer", "Write your own",
+      "Something else - Type your own answer",
     ] {
       XCTAssertTrue(ChatDecisions.isOther(.init(key: "opt3", label: label)), label)
     }
-    for label in ["Something", "Something else entirely", "Type faster", "None", "Answer", "Ramen / Tacos"] {
+    for label in [
+      "Something", "Something else entirely", "Type faster", "None", "Answer", "Ramen / Tacos", "Write your own",
+      "Other team", "Another", "Something other",
+    ] {
       XCTAssertFalse(ChatDecisions.isOther(.init(key: "opt3", label: label)), label)
     }
   }
