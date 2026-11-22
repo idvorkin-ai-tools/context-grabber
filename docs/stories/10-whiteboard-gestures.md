@@ -7,7 +7,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 [paste](../superpowers/specs/2026-11-02-whiteboard-paste-design.md),
 [question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md),
 [to text and snap](../superpowers/specs/2026-11-16-whiteboard-to-text-and-snap-design.md),
-[reword and live snap](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md).
+[reword and live snap](../superpowers/specs/2026-11-17-whiteboard-reword-and-live-snap-design.md),
+[what's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md).
 
 ---
 
@@ -914,3 +915,28 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board on paper with a word written on it, and the eraser picked
 - **When:** I scrub the eraser back and forth fast over the word with the Pencil
 - **Then:** the eraser rubs out what it crosses, no scratch-out flash or *Nothing under the scribble to erase* shows, and the app stays up
+
+---
+
+### User Story 1108:
+
+- **Summary:** A small label on a selection says what I picked and what applies to it
+- **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
+- **Status:** implemented on this branch; not yet seen on the iPad
+- **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
+
+#### Use Case:
+- **As someone** whose board holds handwriting, Larry's kept texts and groups, and connectors that all look alike
+- **I want** a small label beside what I selected saying what it is (*Ink*, *Text*, *Group*, *Connector*) and what applies (*To text*, *tap to reword*, *moves as one*, *follows its two ends*)
+- **so that** my first action on it is the one I meant, not a try to find out what it is
+
+#### Acceptance Criteria:
+- **Scenario:** Ink, then a text that an erase turns to ink
+- **Given:** a board on paper with my handwriting and a kept text of Larry's
+- **When:** I lasso my handwriting, then select the kept text, then erase one of its letters and select the rest
+- **Then:** the label says *Ink · To text*, then *Text · tap to reword*, then *Ink · To text*; it sits just above the selection, never takes a touch (my next stroke draws), and is in no picture Larry gets
+
+- **Scenario:** A connected word
+- **Given:** a word of mine a connector ends on
+- **When:** I hold the Pencil on it and lift without moving
+- **Then:** the label says *Group · moves as one · a connector follows it*, and a selected connector says *Connector · follows its two ends*
