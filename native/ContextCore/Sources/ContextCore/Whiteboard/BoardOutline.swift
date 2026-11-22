@@ -554,6 +554,34 @@ public struct BoardOutline: Sendable {
     return names(line.filter { $0.bounds.minX >= left && $0.bounds.maxX <= right }.flatMap(\.members))
   }
 
+  /// Story 947 (#947): the group a finger tapped at `point`, by its name and its strokes' names: the tap within `slop`
+  /// of one of a group's strokes (a kept reply's, or one of Larry's own groups), and no other ink nearer. A text inside
+  /// the group is the group's; a folded or header row, a bare text and his own writing are no group's. Nil off groups.
+  public func group(at point: CGPoint, slop: CGFloat) -> (group: String, names: [String])? {
+    let named = Set(groups.values)
+    var best: (unit: Unit, distance: CGFloat)?
+    for u in units() {
+      let d: CGFloat
+      if isText(u.tag) {
+        let box = u.bounds
+        d = hypot(max(box.minX - point.x, 0, point.x - box.maxX), max(box.minY - point.y, 0, point.y - box.maxY))
+      } else {
+        d = u.members.map { inkDistance(point, strokes[$0]) }.min() ?? .infinity
+      }
+      // Between two as near, the one drawn later, on top.
+      if d <= slop, d <= (best?.distance ?? .infinity) { best = (u, d) }
+    }
+    guard let hit = best?.unit, let tag = hit.tag, named.contains(tag), !isText(tag) else { return nil }
+    return (tag, names(hit.members))
+  }
+
+  /// How far `point` is from a stroke's line; infinite for a hidden one.
+  private func inkDistance(_ point: CGPoint, _ s: BoardOps.Stroke) -> CGFloat {
+    guard !s.hidden, let first = s.points.first else { return .infinity }
+    if s.points.count == 1 { return hypot(point.x - first.x, point.y - first.y) }
+    return zip(s.points, s.points.dropFirst()).map { Self.distance(point, $0.0, $0.1) }.min() ?? .infinity
+  }
+
   /// A Pencil stroke that is a hold and drag: still within `holdStill` of where it went down for `holdMs`, on a word.
   /// Its points in board points with their time since the stroke began, seconds. The word and how far it is dragged.
   public func pickUp(_ path: [(point: CGPoint, time: Double)]) -> (names: [String], by: CGVector)? {

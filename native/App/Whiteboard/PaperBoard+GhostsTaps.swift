@@ -105,6 +105,8 @@ extension PaperBoardController {
           "dot": self.rect(added.first ?? .null), "ms": self.ms(since), "could_undo": could, "gone": gone,
           "strokes": self.inkFrames.count,
         ])
+      // Story 947: the dot of a tap that selected a group took the selection with it.
+      self.reselectGroupTap(why: "tap_dot")
     }
     return true
   }
