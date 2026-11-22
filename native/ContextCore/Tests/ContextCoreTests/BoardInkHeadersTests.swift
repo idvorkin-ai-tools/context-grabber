@@ -220,6 +220,7 @@ final class BoardInkHeadersTests: XCTestCase {
     // Along the underline, a few points under the words: near them, but PaperKit takes only the underline.
     let along = [CGPoint(x: 96, y: 129), CGPoint(x: 172, y: 130)]
     let hits = o.foldHits(along: along, onHeader: true)
+    XCTAssertEqual(hits.map(\.header), ["x"], "the path along the underline comes near the words")
     let live = o.liveNames.subtracting(["under"])
     XCTAssertTrue(o.foldsTaken(hits, by: .lifted, live: live).isEmpty, "the underline is no part of its words")
     XCTAssertTrue(o.foldsTaken(hits, by: .rubbed, live: live).isEmpty)
@@ -259,6 +260,7 @@ final class BoardInkHeadersTests: XCTestCase {
     XCTAssertEqual(try XCTUnwrap(o.header("x")).words, ["w0", "w1", "w2"])
     // Down the #'s upright bar: PaperKit takes that stroke and nothing of the words.
     let hits = o.foldHits(along: [CGPoint(x: 30, y: 98), CGPoint(x: 26, y: 128)], onHeader: true)
+    XCTAssertTrue(hits.isEmpty, "the # is no part of its words, and the bar is far from them")
     XCTAssertTrue(o.foldsTaken(hits, by: .lifted, live: o.liveNames.subtracting(["#u1"])).isEmpty)
     let left = BoardOutline(strokes: o.strokes.filter { $0.ids != ["#u1"] }, headers: o.headers)
     XCTAssertTrue(left.isFolded(try XCTUnwrap(left.header("x"))), "the fold stays with a bar of its # gone")

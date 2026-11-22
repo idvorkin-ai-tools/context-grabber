@@ -305,8 +305,8 @@ board differs, this says why.
   its words or its marker"). The eraser or a scratch-out across a folded header's underline, or across a stroke of
   its # (## and ### included), takes that stroke as any ink and leaves the header's words, the fold, its "▸ N lines
   folded" and every folded line as they were (the ink headers spec, *Undoing a wrong guess*). Across the words or the
-  marker it takes the section as above. By the words, the section goes when the eraser takes some of them, not when
-  it only passes near them, as along an underline drawn just under the words.
+  marker it takes the section as above. By the words, the section goes when the eraser or the scratch-out takes some of
+  them, not when it only passes near them, as along an underline drawn just under the words.
 - **The pixel eraser takes a fold by its words only once they are rubbed through.** Across the marker it takes the
   section as the eraser does. Across a folded header's words it takes the section only when every stroke of the words
   has been rubbed, as a called-off stroke does; a rub on the corner of one letter takes that corner and leaves the

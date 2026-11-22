@@ -2,7 +2,7 @@
 //  erases the whole section and closes up, one Undo named *Erase* (spec 2026-11-16-whiteboard-board-ops-design.md,
 //  *Headers fold their sections*; the Cockpit's `erase` with `foldHits`). PaperKit's eraser takes the ink it touches as
 //  ever; the fold goes when the touch lifts, worked out on the board as it was when the touch went down. A scratch-out
-//  over the marker or the folded header line takes the fold the same way, one Undo.
+//  over the marker, or one taking some of the folded header's words, takes the fold the same way, one Undo.
 
 import ContextCore
 import PaperKit
@@ -67,18 +67,20 @@ extension PaperBoardController {
     }
   }
 
-  /// Story 905: a scratch-out over a fold's marker or its folded header line takes the whole fold, and the other ink it
-  /// covered goes with it, one Undo back to before the zigzag (the web board's `scratchOut` with `foldHits`). False,
-  /// and scratch-out goes on as ever, when the zigzag crosses no fold.
+  /// Story 905: a scratch-out over a fold's marker, or one that takes some of its folded header's words (not only its
+  /// underline or #: context-grabber-bov), takes the whole fold, and the other ink it covered goes with it, one Undo
+  /// back to before the zigzag (the web board's `scratchOut` with `foldHits`). False, and scratch-out goes on as ever,
+  /// when the zigzag takes no fold.
   func scratchTakesFolds(_ scratch: PaperMarkup.Scratch, zigzag key: String) -> Bool {
     guard model.editable, model.headers.contains(where: { $0.fold != nil }),
       WhiteboardScratchOut.isZigzag(scratch.points, ms: scratch.ms)
     else { return false }
     let outline = model.outline(of: model.opStrokes(scratch.before.inkDrawing.strokes).strokes)
-    let hits = outline.foldHits(along: scratch.points, reach: 4, onHeader: true)
-    guard !hits.isEmpty else { return false }
-    // The zigzag's other ink, as scratch-out takes it; the header's own goes with its fold either way.
     let gone = Set(scratch.outcome.ok ? scratch.outcome.gone : [])
+    let live = model.outline(of: model.opStrokes(scratch.before.without(gone).inkDrawing.strokes).strokes).liveNames
+    let hits = outline.foldsTaken(
+      outline.foldHits(along: scratch.points, reach: 4, onHeader: true), by: .lifted, live: live)
+    guard !hits.isEmpty else { return false }
     Task { @MainActor [weak self] in
       guard let self else { return }
       // PaperKit's own step for the zigzag goes first, as for an ordinary scratch-out, so one Undo is the lot.
