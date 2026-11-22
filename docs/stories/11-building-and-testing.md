@@ -450,8 +450,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 770:
 
 - **Summary:** A UI test that only repeats a host test or another UI test is cut, after the host test is seen to fail
-- **Status:** implemented in [ebc153f](https://github.com/idvorkin/context-grabber/commit/ebc153f), [49d577c](https://github.com/idvorkin/context-grabber/commit/49d577c), [4abeb11](https://github.com/idvorkin/context-grabber/commit/4abeb11); verified on the host: before each delete the rule it held was broken by a one-line change and the host test that guards it was seen to fail, then the source restored (the mutations are in the PR). Where no host test held the rule it moved into `ContextCore` first (why a board can't open, what a table reads aloud), with host tests. The rest of the same trim is stories 757–759, 780 and 781
-- **Issues:** the simulator assessment of 2026-11-12 (`~/tmp/agent/notes/2026-11-12-sim-tests-down-the-ladder.md`); story 670
+- **Status:** implemented in [ebc153f](https://github.com/idvorkin/context-grabber/commit/ebc153f), [49d577c](https://github.com/idvorkin/context-grabber/commit/49d577c), [4abeb11](https://github.com/idvorkin/context-grabber/commit/4abeb11); verified on the host: before each delete the rule it held was broken by a one-line change and the host test that guards it was seen to fail, then the source restored (the mutations are in the PR). Where no host test held the rule it moved into `ContextCore` first (why a board can't open, what a table reads aloud), with host tests. The rest of the same trim is stories 757–759, 780 and 781. #905's pass over the call, export, home, drill and mirror suites: [105485e7](https://github.com/idvorkin/context-grabber/commit/105485e7) removes `HomeTodayCardUITests`' three-to-a-line checks, which `HomeGridUITests` makes on the same screen. Its other cuts are launches shared (story 757). The drill (`MetricDetailUITests`) and the strip sheets were already one launch each (49d29014). Export's one class, `HealthAccessUITests`, is the smoke's HealthKit grant and has nothing to cut
+- **Issues:** the simulator assessment of 2026-11-12 (`~/tmp/agent/notes/2026-11-12-sim-tests-down-the-ladder.md`); story 670; #905
 
 #### Use Case:
 - **As Igor,** waiting on a whiteboard or chat change to reach the iPad
@@ -469,8 +469,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 757:
 
 - **Summary:** Two UI tests that check one screen share a launch
-- **Status:** implemented in [ebc153f](https://github.com/idvorkin/context-grabber/commit/ebc153f) (the whiteboard's two ghost tests in one launch, the colours test checking one colour, Larry's marks without a reopen); verified on the host only (the UI tests typecheck); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code
-- **Issues:** the simulator assessment of 2026-11-12; story 770
+- **Status:** implemented in [ebc153f](https://github.com/idvorkin/context-grabber/commit/ebc153f) (the whiteboard's two ghost tests in one launch, the colours test checking one colour, Larry's marks without a reopen); verified on the host only (the UI tests typecheck); the simulator run of the changed UI tests and the smoke comes before the merge, on the final code. #905: [105485e7](https://github.com/idvorkin/context-grabber/commit/105485e7) applies it to the call, home and mirror suites. The Cockpit page's ☎ is the last step of `CockpitBackUITests`' launch, Report a problem's tile is checked in `HomeGridUITests`' launch, and the daily strip's two-week sheet shares the counters' launch: eight launches become five. Measured on the iPhone 17 simulator (rung 2), back to back on one lane, 2026-11-22: the seven classes' clean passes took 128.7 s and 142.7 s on main and 96.0 s after, about 40 s less in all. That is about 11 s less for a Cockpit change, 12 s for a daily strip change and 16 s for a `--full` or `--all` run's home classes, with nothing changed for the mirror
+- **Issues:** the simulator assessment of 2026-11-12; story 770; #905
 
 #### Use Case:
 - **As Igor,** waiting on a whiteboard change's simulator pass

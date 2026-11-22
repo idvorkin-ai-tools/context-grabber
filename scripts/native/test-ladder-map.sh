@@ -332,7 +332,7 @@ feature "the Health source" native/App/Mirror/HealthKitSource.swift "" "" "Breat
 feature places native/App/Places/PlacesView.swift $core/Places/StayClustering.swift " (places, the real export in Documents)" "PlaceIconUITests PlacesUnnamedUITests"
 feature mirror native/App/Mirror/MetricDetailView.swift $core/Mirror/MirrorGrab.swift "" "HomeTodayCardUITests MetricDetailUITests"
 feature card native/App/Card/CardView.swift $core/Card/CardDeal.swift "" "CardUITests TodaysHandUITests"
-feature cockpit native/App/Cockpit/CockpitView.swift $core/Cockpit/CockpitPage.swift "" "CockpitBackUITests CockpitCallUITests"
+feature cockpit native/App/Cockpit/CockpitView.swift $core/Cockpit/CockpitPage.swift "" "CockpitBackUITests"
 # The usage tile's test needs the real Cockpit, so only the usage files ask for it.
 feature usage native/App/Cockpit/UsageModel.swift $core/Cockpit/UsageSnapshot.swift "" "UsageTileUITests"
 feature "usage strip" native/App/Cockpit/UsageStripView.swift $core/Cockpit/CockpitUsage.swift "" "UsageTileUITests"

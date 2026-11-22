@@ -1,11 +1,13 @@
 //  #234: a page the Cockpit opens in place can be backed out of: Back takes one real step, Cockpit goes straight to the
 //  start page from two deep, Done leaves. Which buttons show when, and that the panel never outlives a failed page,
 //  are CockpitPageStateTests on the host; this keeps only what needs WebKit's own back list.
+//  Story 200: the page's ☎ opens Grabber Native's own Call screen, with one call, not Context Grabber. It was a class
+//  of its own; it shares this launch now (story 757, #905), opened again from the home screen after Done.
 
 import XCTest
 
 final class CockpitBackUITests: XCTestCase {
-  func testBackAndCockpitLeaveAPageTheDashboardOpened() throws {
+  func testBackAndCockpitLeaveAPageTheDashboardOpenedAndItsCallStaysInTheApp() throws {
     let app = XCUIApplication.forTests()
     app.launchEnvironment["GRABBER_COCKPIT_URL"] = "cockpit-bridge-test"
     app.launch()
@@ -33,5 +35,13 @@ final class CockpitBackUITests: XCTestCase {
 
     app.buttons["cockpit-done"].tap()
     XCTAssertTrue(row.appears(within: 5), "Done leaves the Cockpit")
+
+    // Story 200: the page's ☎ opens the app's own Call screen, and the app stays in front.
+    row.tap()
+    let phone = app.webViews.buttons["☎ Call"]
+    XCTAssertTrue(phone.appears(within: 20), app.debugDescription)
+    phone.tap()
+    XCTAssertTrue(app.staticTexts["call-status"].appears(within: 10), app.debugDescription)
+    XCTAssertEqual(app.state, .runningForeground)
   }
 }
