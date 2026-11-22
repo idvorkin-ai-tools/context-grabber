@@ -64,7 +64,8 @@ final class WhiteboardTurnUITests: XCTestCase {
     let talk = app.buttons["Talk to Claude"]
     XCTAssertTrue(talk.appears(within: 5), app.debugDescription)
     XCTAssertTrue(app.buttons["Automatic"].exists, app.debugDescription)
-    XCTAssertTrue(app.buttons["whiteboard-mic-find"].exists, app.debugDescription)
+    // A menu's rows keep their labels but not their identifiers.
+    XCTAssertTrue(app.buttons["Find microphones"].exists, app.debugDescription)
     shot("whiteboard-mic-hold")
     talk.tap()
     wait(ghosts, label: "Ghosts on, 1 showing", timeout: 8)

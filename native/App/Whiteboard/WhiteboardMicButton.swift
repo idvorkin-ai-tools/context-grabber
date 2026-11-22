@@ -20,7 +20,6 @@ struct WhiteboardMicButton: View {
         WhiteboardMicRows(menu: menu) { model.pickMicrophone($0) }
         if menu.canFind {
           Button("Find microphones", systemImage: "arrow.clockwise") { model.findMicrophones() }
-            .accessibilityIdentifier("whiteboard-mic-find")
         }
       }
     } label: {
