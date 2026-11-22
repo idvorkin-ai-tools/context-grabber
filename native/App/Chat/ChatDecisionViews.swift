@@ -46,9 +46,12 @@ struct ChatDecisionCard: View {
   /// thread or list, for the log and the problem's context.
   let place: String
   /// Chat's mic for *Other…* (story 1128); nil where the card has no *Other* of its own: the board's popup, whose own
-  /// answer sits under the card (story 882), and which draws no option of Larry's labelled *Other* either.
+  /// answer sits under the card (story 882). Larry's own-answer option is drawn there too (story 1130), and a tap on it
+  /// calls `ownAnswer` to put the cursor in that field.
   let voice: ChatVoiceModel?
   let logger: BugLogger
+  /// Where the board's popup takes a tap on Larry's own-answer option: its *Your own answer* field.
+  let ownAnswer: (() -> Void)?
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
   @State private var contextOpen = false
@@ -61,13 +64,14 @@ struct ChatDecisionCard: View {
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
+    ownAnswer: (() -> Void)? = nil, done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
     self.ask = ask
     self.place = place
     self.voice = voice
     self.logger = logger
+    self.ownAnswer = ownAnswer
     self.done = done
   }
 
@@ -87,7 +91,7 @@ struct ChatDecisionCard: View {
           .onTapGesture { contextOpen.toggle() }
           .accessibilityIdentifier("decision-context")
       }
-      ForEach(voice == nil ? ask.options.filter { !ChatDecisions.isOther($0) } : ask.options) { option in
+      ForEach(ask.options) { option in
         Button {
           switch ChatDecisions.tap(option) {
           case .answer(let verb): go(verb)
@@ -139,7 +143,7 @@ struct ChatDecisionCard: View {
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("decision-card-\(ask.id)")
     .task(id: ask.id) {
-      decisions.shown(ask, from: place, other: ChatDecisions.otherLogName(ask, offered: voice != nil))
+      decisions.shown(ask, from: place, other: ChatDecisions.otherLogName(ask, addsOwn: voice != nil))
     }
     .alert("Close this decision", isPresented: $closing) {
       TextField("What finished it", text: $closeReason)
@@ -175,8 +179,14 @@ struct ChatDecisionCard: View {
     .accessibilityIdentifier("decision-menu")
   }
 
-  /// *Other…*, or Larry's own *Other*: the field opens; nothing is answered until *Send*.
+  /// *Other…*, or Larry's own *Other*: the field opens (on the board, the popup's own field takes the cursor); nothing
+  /// is answered until *Send*.
   private func openOther() {
+    guard voice != nil else {
+      decisions.otherOpened(ask, from: place)
+      ownAnswer?()
+      return
+    }
     guard !otherOpen else { return }
     otherOpen = true
     decisions.otherOpened(ask, from: place)

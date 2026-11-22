@@ -43,9 +43,14 @@ happens by itself when it expires, as on the Cockpit. A **⋯** menu on the card
 a text field under it with the microphone beside *Send*, as in a chat: he types or dictates, reads what he said, and
 *Send* answers the ask with his words. *Send* stays off until there are words. The words dictated here stay in this
 field; the thread's own message bar never takes them, nor this field the bar's. When Larry's own options already
-include one labelled *Other* (whatever its case, with or without a trailing ellipsis or colon), the card adds no second
-one: Larry's *Other* is the way in, and a tap on it opens the same field instead of answering. It never answers with
-the bare word *Other*; only Igor's words go. A card with no options at all still has *Other…*.
+include an *own answer* option, the card adds no second one: Larry's is the way in, and a tap on it opens the same
+field instead of answering. An option is Larry's own answer when the Cockpit keys it *other*, whatever its label, or
+when its label means "my own answer": *Other*, *Something else*, *Type your own answer*, *Your own answer*, *None of
+these*, *None of the above*, in any case, with or without punctuation around it, alone or as one half of a label such
+as *Something else / Type your own answer* (Igor, 2026-11-22: he picked *Something else / Type your own answer*, the
+phone sent *DECISION: Something else* with no words, and no text box opened). A label that only contains the word,
+such as *Other team* or *Another*, is an ordinary option. It never answers with the option's bare label, nor with no
+words at all; only Igor's words go. A card with no options at all still has *Other…*.
 
 **Answering.** A tap on an option answers at once; there is no second step. While it goes, the buttons are dimmed and
 can't be tapped again. Once the Cockpit has it, the ask is gone from *Decisions* and the row's mark goes. Larry receives
@@ -131,8 +136,9 @@ copyable, naming the screen, the operation and the ask.
 - Every card has *Other…* under its options; it opens a field with the microphone and *Send*, and *Send* answers the ask
   with Igor's words exactly as the Inbox's free-text answer (*DECISION: \<the words\>*), giving way to *Decided: \<the
   words\>* in the ask's chat as an option does. *Send* is off with no words.
-- An ask whose own options include one labelled *Other* shows no second *Other…*; a tap on Larry's *Other* opens the
-  same field, and the Cockpit never receives *DECISION: Other* from it, only Igor's words.
+- An ask whose own options include an own-answer option (keyed *other*, or labelled *Other*, *Something else*, *Type
+  your own answer* and the like) shows no second *Other…*; a tap on Larry's opens the same field, and the Cockpit never
+  receives its bare label (*DECISION: Something else*) or an empty answer from it, only Igor's words.
 - *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves; a close or
   an abandon is also Igor's message in the ask's chat.
 - A refused answer leaves the card with a copyable problem, and the buttons work again.

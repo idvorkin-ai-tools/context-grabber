@@ -3135,38 +3135,38 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ### User Story 1129:
 
-- **Summary:** Larry's own *Other* opens the field instead of answering
+- **Summary:** Larry's own *Other*, *Something else* or *Type your own answer* opens the field instead of answering
 - **Status:** native app: implemented in [f779b0fb](https://github.com/idvorkin/context-grabber/commit/f779b0fb); verified on the host (`just native-test`: `ChatDecisionsTests`, which labels are Larry's *Other*, when the card adds its own, a tap on his opening the field and never answering, the words sent as *DECISION: \<words\>*), the Mac build (`just native-build-mac`) and the simulator (`just test-ladder --rung 2`, 2026-11-22): `ChatDecisionUITests.testOtherAnswersInIgorsOwnWords` and `testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord` on the iPhone 17 simulator against the fake Cockpit, the class green, and `WhiteboardQuestionUITests` on the iPad simulator (no *Other* in the popup); dictating into the field and the real Cockpit are the phone's to show
-- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate)
+- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate); bead context-grabber-sm4l reopened (Igor, 2026-11-22 14:14, Cockpit thread igor2-88g.1620: he picked Larry's *Something else / Type your own answer* (key *other*), the phone sent *DECISION: Something else* with no words, and no text box opened — *"when I type my own answer I [should get] a text box"*)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Other*, *Answering in his own words*
 
 #### Use Case:
-- **As** Igor, on a card where Larry already offered *Other*
-- **I want to** have his *Other* open the field for my own words
-- **so that** there is one *Other*, and Larry never gets the bare word *Other* as my answer
+- **As** Igor, on a card where Larry already offered his own way to answer in my words
+- **I want to** have his option open the field for my own words
+- **so that** there is one *Other*, and Larry never gets the option's bare label, or an empty answer, as my answer
 
 #### Acceptance Criteria:
 - **Scenario:** Larry already offered *Other*
-- **Given:** a card whose own options include one labelled *Other* (any case, with or without a trailing ellipsis or colon)
-- **When:** I look at it and tap Larry's *Other*
-- **Then:** there is no second *Other…*; Larry's *Other* opens the same field instead of answering, and the Cockpit never receives the bare *DECISION: Other*, only my words
+- **Given:** a card in Chat whose own options include an own-answer option: keyed *other*, or labelled *Other*, *Something else*, *Type your own answer*, *Your own answer*, *None of these* or *None of the above* (any case, any punctuation around it, alone or as half of a label like *Something else / Type your own answer*)
+- **When:** I look at it and tap Larry's option
+- **Then:** there is no second *Other…*; his option opens the same field instead of answering, *Send* is off until I have typed or dictated words, and the Cockpit never receives its bare label (*DECISION: Something else*) or an empty answer, only my words
 
 ---
 
 ### User Story 1130:
 
-- **Summary:** The board's question card draws no *Other*
+- **Summary:** On the board's question card, Larry's *Other* puts me in *Your own answer*
 - **Status:** native app: implemented in [f779b0fb](https://github.com/idvorkin/context-grabber/commit/f779b0fb); verified on the host (`just native-test`: `ChatDecisionsTests`, which labels are Larry's *Other*, when the card adds its own, a tap on his opening the field and never answering, the words sent as *DECISION: \<words\>*), the Mac build (`just native-build-mac`) and the simulator (`just test-ladder --rung 2`, 2026-11-22): `ChatDecisionUITests.testOtherAnswersInIgorsOwnWords` and `testLarrysOwnOtherOpensTheFieldAndNeverSendsTheBareWord` on the iPhone 17 simulator against the fake Cockpit, the class green, and `WhiteboardQuestionUITests` on the iPad simulator (no *Other* in the popup); dictating into the field and the real Cockpit are the phone's to show
-- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate)
+- **Issues:** bead context-grabber-sm4l (Igor, 2026-11-22, Cockpit thread igor2-88g.1620: *"When we have a decision card it always needs to have an other so I can add another option. In this case I didn't understand what finger draw was about."*); bead context-grabber-1zyc (the same request, closed as its duplicate); bead context-grabber-sm4l reopened (Igor, 2026-11-22 14:14, Cockpit thread igor2-88g.1620: he picked Larry's *Something else / Type your own answer* (key *other*), the phone sent *DECISION: Something else* with no words, and no text box opened — *"when I type my own answer I [should get] a text box"*)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Other*, *Answering in his own words*, [Question cards on the board](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md)
 
 #### Use Case:
 - **As** Igor, answering a question card on a board
-- **I want to** keep the popup's own *Your own answer* field as the only way to answer in my words
-- **so that** the popup never offers two fields for the same thing
+- **I want to** have Larry's *Other* (or *Something else*) take me to the popup's own *Your own answer* field
+- **so that** picking it lets me type or dictate my answer, and the popup never offers two fields for the same thing
 
 #### Acceptance Criteria:
 - **Scenario:** The board's question card
-- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882)
-- **When:** it opens
-- **Then:** the card in it shows neither *Other…* nor Larry's own *Other* option
+- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882), for an ask whose options include Larry's own-answer option (keyed *other*, or labelled as in story 1129)
+- **When:** I tap Larry's option
+- **Then:** nothing is sent; the cursor is in *Your own answer* with the keyboard up, *Send* stays off until there are words, and *Send* answers with my words; the card in the popup has no *Other…* of its own

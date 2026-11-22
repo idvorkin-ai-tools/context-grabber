@@ -38,7 +38,7 @@ Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-60
 Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with what was answered) three open asks for GET /asks, the shape of the
 Cockpit's normalize_ask with its `thread` (cockpit-7fr): igor2-88g.881 filed from chat igor2-88g.878 (thread names its
 parent's chat), igor2-88g.879 on no chat (thread null), and igor2-88g.880 on a chat of its own bead, whose answer is always
-refused (502, as bd failing); with "other": true too, igor2-88g.879 also has Larry's own option "Other…" (story 1128);
+refused (502, as bd failing); with "other": true too, igor2-88g.879 also has Larry's own option keyed "other", labelled "Something else" (stories 1129, 1130);
 {"open": false} removes them and their chats, so no other test sees an extra row. POST /act
 answers one (409 already closed, or changed with the fresh ask when base_updated_at is stale), POST /close closes or
 abandons, POST /snooze snoozes; GET /fake/answers lists every one of those posted. With "post_to_chat": true, a decided
@@ -46,7 +46,7 @@ abandons, POST /snooze snoozes; GET /fake/answers lists every one of those poste
 "Dismissed[: <reason>]") and the answer gains chat {posted, thread, message, duplicate}, or {posted: false, thread, error}
 for an ask with no chat, as serve.py's post_decision_to_chat.
 Question cards on a board (stories 880-886): GET /asks?snoozed=1 is GET /asks; POST /fake/larry-asks {"ask": id} opens
-the asks as /fake/asks does and has Larry put a question card for that ask on the newest board thread ({kind: question,
+the asks as /fake/asks does (with "other" as there) and has Larry put a question card for that ask on the newest board thread ({kind: question,
 ask, x, y} in the picture's pixels, with its frame); GET /ink/answers?ids=a,b answers with the question and answer of the
 asks decided here, as ink_store.decision_answer reads them, and lists the rest as unknown.
 Thread igor2-88g.629 holds one question from Larry, for the press-and-hold menu (stories 518-519, 540-541), apart from .900, where the simulator's outbox can hold leftover smoke items; the chat UI script and the ladder's chat step clear the outbox's own leftovers for .629 first (forget-chat-thread.sh, #801, #812).
@@ -222,7 +222,7 @@ def open_asks(on, other=False):
                                 default="tacos", expires_in=5 * 3600, thread="igor2-88g.878")
     ASKS["igor2-88g.879"] = ask("igor2-88g.879", "Renew the gym for a year?",
                                 [("yes", "Renew", ""), ("no", "Let it lapse", "")]
-                                + ([("other", "Other…", "")] if other else []))
+                                + ([("other", "Something else", "Type your own answer")] if other else []))
     ASKS["igor2-88g.880"] = ask("igor2-88g.880", "Move the review to Monday?",
                                 [("move", "Move it", ""), ("keep", "Keep Friday", "")], expires_in=-3600,
                                 thread="igor2-88g.880")
@@ -545,7 +545,7 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 if not BOARD_MESSAGES:
                     return self._json(404, {"ok": False, "error": "no board thread"})
-                open_asks(True)
+                open_asks(True, other=bool(data.get("other")))
                 key = list(BOARD_MESSAGES)[-1]
                 marks(key, "a question for you", [{"kind": "question", "ask": data.get("ask"), "x": 40, "y": 40}])
             return self._json(200, {"ok": True})

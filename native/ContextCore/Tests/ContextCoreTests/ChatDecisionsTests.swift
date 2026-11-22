@@ -365,13 +365,64 @@ final class ChatDecisionsTests: XCTestCase {
     }
   }
 
+  /// Igor, 2026-11-22: Larry's *Something else / Type your own answer*, keyed `other`, went as *DECISION: Something
+  /// else*. The key alone makes it his own answer, and so do the labels that mean one.
+  func testAnOwnAnswerOptionIsOtherByKeyOrByWhatItSays() {
+    XCTAssertTrue(ChatDecisions.isOther(.init(key: "other", label: "Something else")), "keyed other")
+    XCTAssertTrue(ChatDecisions.isOther(.init(key: " OTHER ", label: "Pick for me")), "the key decides, any case")
+    for label in [
+      "Something else", "something else…", "Something else / Type your own answer", "Type your own answer",
+      "Type your own answer:", "(Your own answer)", "None of these", "NONE OF THE ABOVE.", "Other — type below",
+      "Something else - Type your own answer", "Write your own",
+    ] {
+      XCTAssertTrue(ChatDecisions.isOther(.init(key: "opt3", label: label)), label)
+    }
+    for label in ["Something", "Something else entirely", "Type faster", "None", "Answer", "Ramen / Tacos"] {
+      XCTAssertFalse(ChatDecisions.isOther(.init(key: "opt3", label: label)), label)
+    }
+  }
+
+  /// The wire never carries an own-answer option's bare label, nor an own answer with no words.
+  func testAnEmptyOrBareOwnAnswerIsNeverSent() throws {
+    let ask = try ask(["Finger draw", "Something else / Type your own answer"])
+    XCTAssertEqual(ChatDecisions.tap(ask.options[1]), .openOther)
+    XCTAssertThrowsError(try ChatDecisions.request(.answer(ask.options[1]), ask: ask, cockpit: cockpit)) {
+      XCTAssertEqual($0 as? ChatDecisions.NotSent, .ownAnswerLabel)
+    }
+    let keyed = ChatAsk.Option(key: "other", label: "Something else")
+    XCTAssertThrowsError(try ChatDecisions.request(.answer(keyed), ask: ask, cockpit: cockpit))
+    for words in ["", "  ", " \n\t "] {
+      XCTAssertThrowsError(try ChatDecisions.request(.ownWords(words), ask: ask, cockpit: cockpit), words) {
+        XCTAssertEqual($0 as? ChatDecisions.NotSent, .noWords)
+      }
+      XCTAssertFalse(ChatDecisions.canSend(words: words))
+    }
+    XCTAssertNoThrow(try ChatDecisions.request(.answer(ask.options[0]), ask: ask, cockpit: cockpit))
+  }
+
+  /// Nothing reaches the transport for an empty own answer: the answer is refused on the phone, with why.
+  func testAnEmptyOwnAnswerNeverReachesTheCockpit() async throws {
+    let ask = try ask(["Finger draw"])
+    var calls = 0
+    let outcome = await ChatDecisions.run(.ownWords("  "), ask: ask, cockpit: cockpit) { _ in
+      calls += 1
+      return (Data(), 200)
+    }
+    XCTAssertEqual(calls, 0)
+    guard case .refused(let why) = outcome else { return XCTFail("\(outcome)") }
+    XCTAssertTrue(why.contains("needs words"), why)
+  }
+
   func testTheCardAddsOtherUnlessLarrysOptionsHaveOne() throws {
     XCTAssertTrue(ChatDecisions.addsOther(try ask(["Tacos", "Ramen"])))
     XCTAssertTrue(ChatDecisions.addsOther(try ask([])), "a card with no options still has Other")
     XCTAssertFalse(ChatDecisions.addsOther(try ask(["Tacos", "Other…"])), "no second Other")
-    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos"]), offered: true), "added")
-    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos", "other"]), offered: true), "ask")
-    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos"]), offered: false), "none")
+    XCTAssertFalse(ChatDecisions.addsOther(try ask(["Tacos", "Something else / Type your own answer"])))
+    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos"]), addsOwn: true), "added")
+    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos", "other"]), addsOwn: true), "ask")
+    XCTAssertEqual(
+      ChatDecisions.otherLogName(try ask(["Tacos", "Something else"]), addsOwn: false), "ask", "the board")
+    XCTAssertEqual(ChatDecisions.otherLogName(try ask(["Tacos"]), addsOwn: false), "none")
   }
 
   /// Larry's *Other* opens the field: the Cockpit never gets the bare word, only Igor's words.

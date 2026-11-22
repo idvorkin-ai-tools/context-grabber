@@ -42,8 +42,9 @@ final class WhiteboardQuestionUITests: XCTestCase {
     return try XCTUnwrap(json?["answers"] as? [[String: Any]])
   }
 
-  func testLarrysQuestionLandsAnswersAndFolds() throws {
-    guard let cockpit else { throw XCTSkip("needs the fake Cockpit: run scripts/native/test-whiteboard-ui.sh") }
+  /// A new board with a stroke and Larry's turn, then Larry's question for igor2-88g.879 on it (story 880): the app and
+  /// the card. `other` gives the ask Larry's own-answer option, keyed other and labelled *Something else*.
+  private func boardWithQuestion(_ cockpit: String, other: Bool = false) throws -> (XCUIApplication, XCUIElement) {
     let app = XCUIApplication.forTests(animated: true)
     app.launchEnvironment["GRABBER_WHITEBOARD"] = "open"
     app.launchEnvironment["GRABBER_SILENT"] = "1"
@@ -66,16 +67,22 @@ final class WhiteboardQuestionUITests: XCTestCase {
         .appears(within: 15), app.debugDescription)
 
     // Story 880: his question lands as a live card.
-    try post(cockpit, "/fake/larry-asks", ["ask": "igor2-88g.879"])
+    try post(cockpit, "/fake/larry-asks", ["ask": "igor2-88g.879", "other": other])
     let card = app.buttons["whiteboard-question-igor2-88g.879"]
     XCTAssertTrue(card.appears(within: 10), app.debugDescription)
     waitUntil(NSPredicate(format: "label == %@", "? Renew the gym for a year? ···"), card, timeout: 8)
+    return (app, card)
+  }
+
+  func testLarrysQuestionLandsAnswersAndFolds() throws {
+    guard let cockpit else { throw XCTSkip("needs the fake Cockpit: run scripts/native/test-whiteboard-ui.sh") }
+    let (app, card) = try boardWithQuestion(cockpit)
 
     // Story 882: a tap opens it; an option answers it as the Inbox would.
     card.tap()
     let option = app.buttons["decision-option-yes"]
     XCTAssertTrue(option.appears(within: 10), app.debugDescription)
-    // Story 1128: the board's card has no Other of its own; its own answer is the field under it.
+    // Story 1130: the board's card has no Other of its own; its own answer is the field under it.
     XCTAssertFalse(app.buttons["decision-other"].exists, app.debugDescription)
     // Story 889 (#625): the own answer's mic sits immediately beside Send, after the field, both a finger's size.
     let field =
@@ -117,5 +124,31 @@ final class WhiteboardQuestionUITests: XCTestCase {
     picture.name = "question-card-answered"
     picture.lifetime = .keepAlways
     add(picture)
+  }
+
+  /// Story 1130 (Igor, 2026-11-22): Larry's own-answer option, keyed other and labelled *Something else*, is in the
+  /// popup's card; a tap sends nothing and puts the cursor in *Your own answer*, and only his words go.
+  func testLarrysSomethingElseTakesTheCursorToTheOwnAnswer() throws {
+    guard let cockpit else { throw XCTSkip("needs the fake Cockpit: run scripts/native/test-whiteboard-ui.sh") }
+    let (app, card) = try boardWithQuestion(cockpit, other: true)
+    card.tap()
+    let larrys = app.buttons["decision-option-other"]
+    XCTAssertTrue(larrys.appears(within: 10), app.debugDescription)
+    XCTAssertTrue(larrys.label.contains("Something else"), larrys.label)
+    XCTAssertFalse(app.buttons["decision-other"].exists, "no second Other: \(app.debugDescription)")
+    let field =
+      app.textViews["whiteboard-question-words"].exists
+      ? app.textViews["whiteboard-question-words"] : app.textFields["whiteboard-question-words"]
+    let send = app.buttons["whiteboard-question-send"]
+    larrys.tap()
+    waitUntil(NSPredicate(format: "hasKeyboardFocus == true"), field, timeout: 5)
+    XCTAssertFalse(send.isEnabled, "Send is off until there are words")
+    XCTAssertTrue(try answers(cockpit).filter { $0["id"] as? String == "igor2-88g.879" }.isEmpty, "nothing sent")
+    field.typeText("Month to month")
+    XCTAssertTrue(send.isEnabled)
+    send.tap()
+    waitUntil(NSPredicate(format: "label == %@", "✓ Renew the gym for a year?, Month to month"), card, timeout: 10)
+    let posted = try answers(cockpit).filter { $0["id"] as? String == "igor2-88g.879" }
+    XCTAssertEqual(posted.map { $0["response"] as? String }, ["DECISION: Month to month"], "\(posted)")
   }
 }
