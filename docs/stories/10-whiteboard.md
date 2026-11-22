@@ -8310,7 +8310,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1091:
 
 - **Summary:** The board acts on the tool Igor picked, not the one it thinks it holds
-- **Status:** not implemented; bead context-grabber-ckv5
+- **Status:** implemented in [2b6d48ab](https://github.com/idvorkin/context-grabber/commit/2b6d48ab); verified by `just native-test` (lint, host tests, script checks) and the Mac build. No host or UI test can see the picker disagree with the board, so the fold, card, snap and hold choices wait for the iPad's log
 - **Issues:** [#1078](https://github.com/idvorkin/context-grabber/issues/1078); bead context-grabber-ckv5 (whiteboard arch 1): 7,313 iPad touches logged the board's tool as a black pen, including 11 that erased and strokes drawn blue, so every choice made from it (folds, cards, label width, snaps, holds, headers) followed a pen Igor wasn't holding
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The board acts on the tool Igor picked*
 
