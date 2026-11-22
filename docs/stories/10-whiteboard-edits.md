@@ -306,7 +306,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The board, not the device, remembers which ink is Larry's and which strokes are kept labels
 - **Issues:** bead context-grabber-p1pl (follow-up to context-grabber-cc75: the two lists were still kept on the device, apart from the board's file; this step moves them into it, and the file reaching other devices is a later step)
-- **Status:** implemented in [f46ba39](https://github.com/idvorkin/context-grabber/commit/f46ba39); verified by host tests (`BoardMeaningTests`: a file from before reads, the keys join a file already there and go, with no file they make one, what the file holds is only added to, a failed move leaves the file and the keys, a move that doesn't read back puts the file back as it was, a board whose six old keys haven't moved waits, the keys fill the board as it opens; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad, where the `meaning_migrated` line's labels and theirs counts show the move
+- **Status:** implemented in [e3775b8](https://github.com/idvorkin/context-grabber/commit/e3775b8f); verified by host tests (`BoardMeaningTests`: a file from before reads, the keys join a file already there and go, with no file they make one, what the file holds is only added to, a failed move leaves the file and the keys, a move that doesn't read back puts the file back as it was, a board whose six old keys haven't moved waits, the keys fill the board as it opens; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad, where the `meaning_migrated` line's labels and theirs counts show the move
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
 
 #### Use Case:
@@ -326,7 +326,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A label or a mark of Larry's kept now is remembered with the board's ink
 - **Issues:** bead context-grabber-p1pl
-- **Status:** implemented in [f46ba39](https://github.com/idvorkin/context-grabber/commit/f46ba39); verified by host tests (`BoardMeaningTests`: the ledger remembers labels and theirs, capped, and tells each change; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad
+- **Status:** implemented in [e3775b8](https://github.com/idvorkin/context-grabber/commit/e3775b8f); verified by host tests (`BoardMeaningTests`: the ledger remembers labels and theirs, capped, and tells each change; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
 
 #### Use Case:
