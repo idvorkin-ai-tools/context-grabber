@@ -63,6 +63,9 @@ final class PaperStage {
   }
 
   func close() {
+    if let pen = picker.toolItems.first(where: { ($0 as? PKToolPickerInkingItem)?.inkingTool.inkType == .pen }) {
+      picker.selectedToolItem = pen
+    }
     paper.pencilKitResponderState.toolPickerVisibility = .hidden
     window.isHidden = true
   }

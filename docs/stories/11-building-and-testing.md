@@ -1080,7 +1080,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1019:
 
 - **Summary:** What PaperKit itself does, that the whiteboard relies on, is checked on the simulator before it reaches the iPad
-- **Status:** implemented on branch `native/paperkit-contracts-0u3k`; verified on the simulator rung (iOS 27.2, 2026-11-21: `just native-test-contracts` on lane 1's *iPad Pro 11-inch (M5)*, 12 of 12 on each of two runs, after a run on lane 3's iPad failed two checks because the picker kept a pick from an earlier launch, so each run now starts it on the pen). Writing them found two things nobody knew: a set built from an older markup than the held one is refused and takes the held one's newer ink with it (the shape of #999 and #1015), and a pick made in code moves the picker but not the paper's tool (the shape of #1078)
+- **Status:** implemented in 5edb8156; verified on the simulator rung (iOS 27.2, 2026-11-21: `just native-test-contracts` on lane 1's *iPad Pro 11-inch (M5)*, 12 of 12 on each of two runs, after a run on lane 3's iPad failed two checks because the picker kept a pick from an earlier launch, so each run now starts it on the pen). Writing them found two things nobody knew: a set built from an older markup than the held one is refused and takes the held one's newer ink with it (the shape of #999 and #1015), and a pick made in code moves the picker but not the paper's tool (the shape of #1078)
 - **Issues:** bead `context-grabber-0u3k`
 
 #### Use Case:
