@@ -12,6 +12,7 @@ to that event's own bullet; never join two events on one line.
 - `ui` (action: open_whiteboard with from: home / hook / a link's source, such as chat or shortcut; close_whiteboard)
 - `whiteboard` (action:
   - unknown_ink with ink: the kind as the ink spells it, or none, where: strokes / tool / hide / fold and points: the stroke's point count, 0 off a stroke — a stroke of an ink the app has no name for, logged once per kind per launch (story 1063, #1083)
+  - unknown_ink_saved with board, kinds (each unknown kind the saved board holds), unreadable (those a saved board can't be read back with) and as_pen (the strokes saved as the pen in their own colour so the board opens again), on every save that holds one (story 1063, bead context-grabber-3b02)
   - tool_changed with board, picker_tool (what the tool picker shows selected: an ink's kind, colour and width, eraser, lasso, or the item's identifier), tool and tool_ink (what the board's drawingTool says): each pick in the tool picker, which can log it twice, and once as the board opens, and paper_touch carries picker_tool too, as drawingTool was seen to say a black pen while Igor erased or drew blue (story 1064, #1078)
   - ink_moved with board, strokes, moved, dx, dy, top_moved_y and zoom: strokes changed place with none added or removed, #624
   - list with boards, own — the ones this device draws —, migrated: the single board from before the list became its first row, and new_board: false on an iPhone, which offers no New board (story 746)

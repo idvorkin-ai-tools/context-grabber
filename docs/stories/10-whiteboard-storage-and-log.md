@@ -74,8 +74,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1063:
 
 - **Summary:** A stroke of an ink the app doesn't know never closes the board
-- **Status:** implemented in 61540121; verified by host tests (WhiteboardInkTests) and the Mac build; on the iPad and the iPhone since 2026-11-21 (311c4711); which ink it was is still owed, from the iPad's log
-- **Issues:** [#1083](https://github.com/idvorkin/context-grabber/issues/1083), with [#1080](https://github.com/idvorkin/context-grabber/issues/1080), [#1081](https://github.com/idvorkin/context-grabber/issues/1081), [#1082](https://github.com/idvorkin/context-grabber/issues/1082), [#1084](https://github.com/idvorkin/context-grabber/issues/1084), [#1085](https://github.com/idvorkin/context-grabber/issues/1085), [#1092](https://github.com/idvorkin/context-grabber/issues/1092)–[#1095](https://github.com/idvorkin/context-grabber/issues/1095): the iPad closed three times in two minutes on 2026-11-21, each just after a stroke landed, when the board asked that stroke's ink for its kind
+- **Status:** implemented in 61540121; verified by host tests (WhiteboardInkTests) and the Mac build; on the iPad and the iPhone since 2026-11-21 (311c4711); which ink it was is still owed, from the iPad's log; saving an ink that doesn't read back as the pen (context-grabber-3b02): implemented in COMMIT, verified by host tests (WhiteboardInkTests) and the Mac build
+- **Issues:** [#1083](https://github.com/idvorkin/context-grabber/issues/1083), with [#1080](https://github.com/idvorkin/context-grabber/issues/1080), [#1081](https://github.com/idvorkin/context-grabber/issues/1081), [#1082](https://github.com/idvorkin/context-grabber/issues/1082), [#1084](https://github.com/idvorkin/context-grabber/issues/1084), [#1085](https://github.com/idvorkin/context-grabber/issues/1085), [#1092](https://github.com/idvorkin/context-grabber/issues/1092)–[#1095](https://github.com/idvorkin/context-grabber/issues/1095): the iPad closed three times in two minutes on 2026-11-21, each just after a stroke landed, when the board asked that stroke's ink for its kind; bead context-grabber-3b02: a drawing holding an ink this PencilKit can't name saves but doesn't read back ("from a future version"), so its board wouldn't open
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink the app doesn't know never crashes the board*
 
 #### Use Case:
@@ -88,6 +88,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board open on the iPad
 - **When:** a stroke arrives whose ink is of a kind the app has no name for
 - **Then:** the board stays open, the stroke draws and saves, Larry gets it with its kind as the ink spells it, and the session log names that kind once
+
+- **Scenario:** A board holding an ink that doesn't read back is saved (context-grabber-3b02)
+- **Given:** a board on the iPad with a stroke of an ink the app has no name for, which this build can't read back from a saved board
+- **When:** the board is saved and opened again
+- **Then:** it opens to draw on, with that stroke where it was as the pen in its own colour and strength, it goes to Larry as *pen*, and the save's log line names the kind, that it didn't read back, and how many strokes were saved as the pen
 
 ---
 
