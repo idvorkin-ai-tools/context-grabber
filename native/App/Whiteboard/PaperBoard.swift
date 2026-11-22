@@ -105,7 +105,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   private var remembering: Task<Void, Never>?
   var redrawing: Task<Void, Never>?
   private var responding: Task<Void, Never>?
-  private var rules = PaperRules.none
+  private(set) var rules = PaperRules.none
   private var rulesLaid: (rules: PaperRules, pages: Int, step: CGFloat, y: ClosedRange<CGFloat>)?
   /// The window this board made light, and how it was.
   private var lightWindow: (window: UIWindow, style: UIUserInterfaceStyle)?

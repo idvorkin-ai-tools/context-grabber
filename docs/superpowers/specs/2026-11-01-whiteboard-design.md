@@ -627,7 +627,7 @@ stroke can be judged again on the Mac.
   tests holds each case to its expected verdict, so a gesture bug is fixed against Igor's real stroke on the Mac.
 - Nothing Igor sees changes.
 
-## Playing a board back, as Notability does (bead context-grabber-3tdv; stories 954, 956–959; the ink alone decided and built, the words and the sound still to choose)
+## Playing a board back, as Notability does (bead context-grabber-3tdv; stories 954–959; the ink alone decided and built, the words and the sound still to choose)
 
 Igor, 2026-11-22 (#1139, on the iPad): *"where is my replay button so I can rewatch it the way you do in Notability?
 Go do some research on Notability to see this."* Called **playback** here, so it isn't confused with the replays that
@@ -671,8 +671,8 @@ built; the words and the sound (options 2 and 3) wait for his choice below.
 
 - **Play** is a button beside *?* and *Feedback*, under the page number, on the iPad, the iPhone and the Mac, on any
   board with ink, a board only looked at too. (Not on the board's menu as first proposed: that menu has room for no
-  more rows, #848, and a look-only board has no menu.) It opens playback over the board where it was showing, empty,
-  and draws it again, stroke by stroke in the order they were drawn, each at the pace his hand drew it. A pause between
+  more rows, #848, and a look-only board has no menu.) It opens playback over the board where it was showing, on the board's own paper with the whole
+  board already there faint, a ghost of the finished page, and draws it again over that ghost, stroke by stroke in the order they were drawn, each at the pace his hand drew it. A pause between
   strokes longer than two seconds plays as half a second, so an evening's board doesn't take an evening. Strokes that
   share one moment (a kept text, a paste) appear together. An open mic stops when playback opens.
 - A bar along the bottom shows how far it is (the time played of the whole, and which stroke of how many), with play
@@ -681,9 +681,21 @@ built; the words and the sound (options 2 and 3) wait for his choice below.
   starts from the beginning. While playback shows, the board's own bar and tool picker are gone, so nothing can be
   drawn, undone, pasted or sent; a finger still pans and pinches the board.
 - **Tap a stroke while playing** (one already drawn again, at the moment playback is at) and playback jumps to the
-  moment it was drawn: the board as it was then, that stroke next, playing or paused as it was. A tap on bare paper does
-  nothing. Leaving playback (*Done*, or closing the board) shows the board as it is, with nothing changed: no save, no
+  moment it was drawn: the board as it was then, that stroke next, playing or paused as it was. A tap on faint ink not
+  drawn yet jumps on to the moment it was drawn the same way. A tap on bare paper does nothing. Leaving playback (*Done*, or closing the board) shows the board as it is, with nothing changed: no save, no
   undo step, nothing sent to Larry.
+- **The paper and the ghost** (Igor, 2026-11-22, #1169 on the iPad: *"when doing playback I need to start with a
+  pre-written ghost on the page and I also need to have whatever the default background is and maybe some indicator that
+  I'm writing above or below on a separate page"*). Playback shows the board's paper as the board has it: its colour, its
+  grid or ruled lines or neither, and the faint line where each page ends. Under the ink being drawn again, the whole
+  finished board shows faint from the first moment, so he sees the page he is heading to and where each stroke will land;
+  a stroke drawn again shows at full strength over its own ghost. (Taken as the finished board shown faint. The other
+  reading, Larry's ghosts on the page during playback, is not built: Larry's ghosts have no moment of their own, and
+  waits for Igor to ask.)
+- **Writing above or below.** When the stroke being drawn again is off the screen, above or below what shows, a small
+  label at that edge of the board says so and on which page: *Writing above, page 1* at the top, *Writing below, page 3*
+  at the bottom. A tap on it moves the board to that stroke. It goes as soon as the stroke being drawn is on the screen
+  again. Playback never moves the board by itself: a finger pans it, and the label shows where to go.
 - **With the words (option 2):** while the mic is open, the words it heard are kept with the board, each line with the
   moment it was said. In playback the line being said shows above the bar as the ink of that moment draws, and a tap on
   a stroke shows what he was saying as he drew it. The mic is still the one the board has today: open only with Ghosts

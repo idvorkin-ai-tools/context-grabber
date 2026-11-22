@@ -52,6 +52,16 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
   let bounds: CGRect
   /// Where the board was showing, board points, and its zoom.
   let opening: (visible: CGRect, zoom: CGFloat)?
+  /// Story 958 (#1169): the board's paper under playback, its lines as the board has them, its pages.
+  let rules: PaperRules
+  let column: BoardPages
+  let pageCount: Int
+  /// The whole board, faint, under the ink drawn again (#1169); nil for a board too big to draw.
+  let ghost: UIImage?
+  /// Story 955: the stroke being drawn, or drawn last, when it's wholly above or below the screen.
+  @Published private(set) var offScreen: BoardPlayback.OffScreen?
+  /// Story 955 for the log: how many times the label showed.
+  var offScreenShown = 0
   weak var canvas: PKCanvasView? {
     didSet { draw(force: true) }
   }
@@ -82,9 +92,13 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
     clock = BoardPlaybackClock(length: timeline.length)
     paperColor = model.paper.color
     let pages = BoardPages()
-    bounds =
-      controller.map { $0.board.bounds(pages: $0.pages) }
-      ?? pages.bounds(pages: pages.pagesNeeded(inkMaxY: drawing.bounds.maxY))
+    column = controller?.board ?? pages
+    pageCount = controller?.pages ?? pages.pagesNeeded(inkMaxY: drawing.bounds.maxY)
+    bounds = column.bounds(pages: pageCount)
+    rules = controller?.rules ?? .none
+    let ghostStarted = CACurrentMediaTime()
+    ghost = Self.ghost(of: drawing, in: bounds)
+    let ghostMs = Int((CACurrentMediaTime() - ghostStarted) * 1000)
     opening = model.canvas.map { ($0.visibleRect, $0.zoom) }
     log = model.log
     board = model.board.id
@@ -97,7 +111,7 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
         "action": "playback_start", "board": board, "strokes": timeline.count, "timed": timeline.timed,
         "shared": timeline.shared, "real_s": Self.tenths(timeline.realSpan), "plays_s": Self.tenths(timeline.length),
         "ms": Int((CACurrentMediaTime() - started) * 1000),
-      ])
+      ].merging(paperFields(ghostMs: ghostMs)) { first, _ in first })
     clock.play()
     startTicking()
   }
@@ -153,9 +167,10 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
     seeked("voiceover", from: from, stroke: index)
   }
 
-  /// Story 956: a tap on a stroke showing goes back (or on) to the moment it began; bare paper does nothing.
+  /// Story 956: a tap on a stroke, drawn again or still faint (#1169), goes back (or on) to the moment it began; bare
+  /// paper does nothing.
   func tapped(at point: CGPoint, reach: CGFloat) {
-    let showing = frame.shown.map { index in
+    let showing = strokes.indices.map { index in
       let stroke = stroke(index)
       let points = stroke.path.interpolatedPoints(by: .distance(4)).map { $0.location.applying(stroke.transform) }
       return (
@@ -183,7 +198,7 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
       [
         "action": "playback_end", "board": board, "watched_s": Self.tenths(watched), "reached_end": reachedEnd,
         "seeks": seeks, "at_s": Self.tenths(clock.position), "frames": frames,
-        "slowest_draw_ms": Self.tenths(slowestDrawMs),
+        "slowest_draw_ms": Self.tenths(slowestDrawMs), "offscreen_shown": offScreenShown,
       ])
   }
 
@@ -223,6 +238,7 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
     guard force || next != frame else { return }
     frame = next
     shown = next.shown.count
+    lookOffScreen()
     guard let canvas else { return }
     let started = CACurrentMediaTime()
     canvas.drawing = PKDrawing(strokes: next.shown.map(stroke))
@@ -240,7 +256,15 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
       transform: whole.transform, mask: whole.mask, randomSeed: whole.randomSeed)
   }
 
-  private static func tenths(_ t: TimeInterval) -> Double { (t * 10).rounded() / 10 }
+  static func tenths(_ t: TimeInterval) -> Double { (t * 10).rounded() / 10 }
+
+  var boardID: String { board }
+  var sessionLog: SessionLog { log }
+  var clockPosition: TimeInterval { clock.position }
+
+  func setOffScreen(_ next: BoardPlayback.OffScreen?) {
+    if next != offScreen { offScreen = next }
+  }
 }
 
 /// The playback's board and its bar.
@@ -251,6 +275,8 @@ struct WhiteboardPlaybackView: View {
   var body: some View {
     VStack(spacing: 0) {
       WhiteboardPlaybackCanvas(player: player)
+        .overlay(alignment: .top) { WhiteboardPlaybackOffScreenLabel(player: player, edge: .top) }
+        .overlay(alignment: .bottom) { WhiteboardPlaybackOffScreenLabel(player: player, edge: .bottom) }
       bar
     }
     .background(Color(player.paperColor))
@@ -337,23 +363,30 @@ private struct WhiteboardPlaybackCanvas: UIViewRepresentable {
   func updateUIView(_ view: PlaybackCanvasView, context: Context) {}
 }
 
-private final class PlaybackCanvasView: UIView, PKCanvasViewDelegate {
-  private let canvas = PKCanvasView()
-  private let player: WhiteboardPlaybackPlayer
+final class PlaybackCanvasView: UIView, PKCanvasViewDelegate {
+  let canvas = PKCanvasView()
+  let player: WhiteboardPlaybackPlayer
+  /// The paper's lines and the faint board, inside the canvas so they pan and zoom with it (#1169; +Paper).
+  let paperLines: PaperLines
+  let ghostView = UIImageView()
+  var laidStep: CGFloat = 0
   private var laidOut = false
 
   init(player: WhiteboardPlaybackPlayer) {
     self.player = player
+    paperLines = PaperLines(paper: player.paperColor)
     super.init(frame: .zero)
     overrideUserInterfaceStyle = .light
+    backgroundColor = player.paperColor
     canvas.drawingGestureRecognizer.isEnabled = false
-    canvas.backgroundColor = player.paperColor
-    canvas.isOpaque = true
+    canvas.backgroundColor = .clear
+    canvas.isOpaque = false
     canvas.contentInsetAdjustmentBehavior = .never
     canvas.delegate = self
     canvas.accessibilityIdentifier = "whiteboard-playback-board"
     canvas.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapped)))
     addSubview(canvas)
+    addPaper()
     player.canvas = canvas
   }
 
@@ -383,9 +416,12 @@ private final class PlaybackCanvasView: UIView, PKCanvasViewDelegate {
 
   func scrollViewDidZoom(_ scrollView: UIScrollView) { sizeContent() }
 
+  func scrollViewDidScroll(_ scrollView: UIScrollView) { player.lookOffScreen() }
+
   private func sizeContent() {
     canvas.contentSize = CGSize(
       width: player.bounds.maxX * canvas.zoomScale, height: player.bounds.maxY * canvas.zoomScale)
+    layPaper()
   }
 
   /// Each stroke showing as an element over its ink (story 956 for VoiceOver and the UI test): activated, it seeks there.
