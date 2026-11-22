@@ -886,8 +886,8 @@ apart."*
 ### User Story 228:
 
 - **Summary:** A link opens a board, or the boards
-- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator (a board no device has, against the fake Cockpit, stays on the boards with the problem) and by host tests (the link's parsing); a board that comes down from iCloud through the link, not yet
-- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603)
+- **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator (a board no device has, against the fake Cockpit, stays on the boards with the problem) and by host tests (the link's parsing); a board drawn here opening at once in [4933b0ba](https://github.com/idvorkin/context-grabber/commit/4933b0ba) (#1137, `BoardFindTests` on the host); a board that comes down from iCloud through the link, not yet
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603), [#1137](https://github.com/idvorkin/context-grabber/issues/1137)
 - **Spec:** [Native links](../superpowers/specs/2026-10-06-native-links-design.md)
 
 #### Use Case:
