@@ -564,7 +564,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 827:
 
 - **Summary:** The smoke skips its audio checks on a locked Mac, and says so
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by the script check `scripts/native/test-smoke-lock.sh` in `just native-test` (the lock probe faked); and by a real smoke run on a locked Mac (`SMOKE_ONLY=call just native-test-sim` at 76eb6552, 2026-11-19, for #364): the real-audio call printed *skipped: Mac screen locked*, the run's last lines counted it as skipped, and the synthetic and dropped calls still ran and passed; amended in a344919f (story 1022: a smoke asked for on a locked screen waits for an unlock, then exits 75)
+- **Status:** implemented on branch `native/batch-decided-1114`; verified by the script check `scripts/native/test-smoke-lock.sh` in `just native-test` (the lock probe faked); and by a real smoke run on a locked Mac (`SMOKE_ONLY=call just native-test-sim` at 76eb6552, 2026-11-19, for #364): the real-audio call printed *skipped: Mac screen locked*, the run's last lines counted it as skipped, and the synthetic and dropped calls still ran and passed; amended in a344919f (story 1022: a smoke asked for on a locked screen waits for an unlock, then exits 75); amended in 4ee1f8a0 (story 1025: the real-audio call is also skipped with the lid closed on the built-in mic)
 - **Issues:** [#419](https://github.com/idvorkin/context-grabber/issues/419) (a locked Mac starves the simulator's audio); [#364](https://github.com/idvorkin/context-grabber/issues/364) (the real-audio call's mic gave exact zeros and the clean call filed an automatic report; unlocked, it passes); Igor, 2026-11-14: skip them rather than rerun for 5 to 12 minutes
 
 #### Use Case:
@@ -1237,7 +1237,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1025:
 
 - **Summary:** The smoke skips the real-audio call while the Mac's lid is closed, and a held-back report still fails a clean call
-- **Status:** in progress on branch `native/smoke-lid-mic-qj5y`
+- **Status:** implemented in 4ee1f8a0 on branch `native/smoke-lid-mic-qj5y`; verified by the script check `scripts/native/test-smoke-lock.sh` in `just native-test` (the lid and input probes faked: closed on the built-in mic skips, open, a USB default input and no probe run), and on the simulator (rung 2, lane 1, 2026-11-22, lid closed): `SMOKE_ONLY=call just native-test-sim` before the fix failed the clean call on *the microphone is delivering silence*; after it, two runs printed the skip and passed, and two runs back to back with the lid probe forced to run both failed the real-audio call's clean check (the second's report held back by the window). A real-audio call with the lid open is not yet run on this branch
 - **Issues:** bead `context-grabber-qj5y` (a clean real-audio call filed *the microphone is delivering silence*; the rerun passed only because the ten-minute window held its report back)
 
 #### Use Case:
