@@ -452,7 +452,7 @@ are `__tests__/fixtures/locations.json` (36K real points), `context-grabber.db` 
 A gesture bug on the iPad (a scratch-out that stayed ink, a shape that didn't snap, a margin hold that drew) is settled on
 the host against Igor's real stroke (stories 1104, 1105). The iPad's session log keeps each drawing touch's path
 (`board_touch` path) and the stroke each gesture judged (the `path` on `scratch`, `shape_snap`, `shape_snap_none` and
-`hold_stroke`; docs/DEBUGGING.md). After `just pull-logs`:
+`hold_stroke`; docs/debugging/whiteboard.md). After `just pull-logs`:
 
 ```bash
 just touch-fixture ~/tmp/agent/grabber-logs/ipad/<log>.jsonl [--board <id>] [--all]
