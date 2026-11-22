@@ -98,6 +98,10 @@ struct BoardHelpSheet: View {
         Row(gesture: "Fast zigzag over ink", does: "Scratches it out. Undo brings it back."),
         Row(gesture: "Lasso, then To text", does: "Turns the handwriting into typed text."),
         Row(
+          gesture: "Select something",
+          does:
+            "A label above it says what it is and what applies: Ink · To text, Text · tap to reword, Group, Connector."),
+        Row(
           gesture: "Hold the Pencil at a stroke's end",
           does: "Snaps it to a straight line, a rectangle or an ellipse. Undo gives your stroke back."),
       ]

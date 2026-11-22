@@ -26,6 +26,7 @@ struct PaperBoardCanvas: View {
     .overlay { BoardHeaderMarks(controller: controller, place: controller.place) }
     .overlay { MarkChoiceButtons(model: model, mark: controller.choiceFrame) }
     .overlay { PastedButtons(controller: controller, pasted: controller.pastedFrame) }
+    .overlay { SelectionLabelView(state: controller.selectionLabel) }
     .overlay { ToTextButton(controller: controller, state: controller.toText) }
     .overlay { ConnectButton(controller: controller, arrow: controller.connectFrame, toText: controller.toText) }
     .overlay { RewordField(controller: controller, state: controller.reword) }
