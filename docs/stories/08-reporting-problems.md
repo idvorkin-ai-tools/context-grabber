@@ -104,7 +104,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 144:
 
 - **Summary:** A crash comes back with the logs (technical)
-- **Status:** implemented in [89da016](https://github.com/idvorkin/context-grabber/commit/89da016); verified by build only — the first real crash will verify it; one file per crash (the abort after an exception writes no second file) and a crash the app could not record still reaches the system's own report: [509da33](https://github.com/idvorkin/context-grabber/commit/509da33), verified by build only; via BugKit's `CrashReports` since [fc95657](https://github.com/idvorkin/context-grabber/commit/fc95657), verified by build and the simulator's launch only — the first real crash will verify it
+- **Status:** implemented in [89da016](https://github.com/idvorkin/context-grabber/commit/89da016); verified by build only — the first real crash will verify it; one file per crash (the abort after an exception writes no second file) and a crash the app could not record still reaches the system's own report: [509da33](https://github.com/idvorkin/context-grabber/commit/509da33), verified by build only; via BugKit's `CrashReports` since [fc95657](https://github.com/idvorkin/context-grabber/commit/fc95657), verified by build and the simulator's launch only — the first real crash will verify it; on the simulator a crash ends at its file with no system report and no Mac *quit unexpectedly* dialog since BugKit 0.3.16 (bug-kit #131, #132; the bump also brings 0.3.15): [0ed5715b](https://github.com/idvorkin/context-grabber/commit/0ed5715b), verified by BugKit's host tests, the host rung (`just native-test`), the Mac build (`just native-build-mac`, BugKit resolved at v0.3.16) and the simulator smoke (`just native-test-sim`, all passed; no crash happened, so a real simulator crash ending quietly at its file is not yet seen)
+- **Issues:** bead context-grabber-2xyj, idvorkin/bug-kit#131
 
 #### Use Case:
 - **As a** developer reading a session log that stops mid-work
@@ -116,6 +117,16 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the native app crashed
 - **When:** it is opened again and I run `just pull-logs`
 - **Then:** the new launch's log has one `crash_report` line naming a file under `crashes/` with the signal or exception and its stack, the file is pulled with the logs, and a later launch does not announce it again
+
+- **Scenario:** A crash the phone or the Mac app could not record
+- **Given:** the app on the phone or the Mac crashed before its own file was written
+- **When:** I look for the crash
+- **Then:** the system's own crash report still has it
+
+- **Scenario:** A crash on the simulator
+- **Given:** the app crashed in the simulator, under a UI test or by hand
+- **When:** I look for the crash
+- **Then:** its signal or exception and stack are in the crash folder of the app's container on the simulator, the Mac shows no *quit unexpectedly* dialog and keeps no crash report of its own for it, and the next launch announces it once as `crash_report`
 
 ---
 

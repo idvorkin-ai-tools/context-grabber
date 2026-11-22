@@ -68,7 +68,8 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
   data exposes.
 - **Never run `xcodebuild test` on a simulator outside the wrapper, and never while the Mac's screen is locked**
   (stories 1022–1024, bead `context-grabber-208e`). A locked Mac starves the simulator's audio server, the app aborts in
-  Apple's audio toolbox when a test opens the mic, and Igor finds a *quit unexpectedly* dialog for each crash.
+  Apple's audio toolbox when a test opens the mic, and the run is lost (before BugKit 0.3.16 each crash also left Igor a
+  *quit unexpectedly* dialog; now a simulator crash ends at `Documents/crashes/signal-*.txt` in the app's container).
   `scripts/native/xcodebuild-log.sh` (and every recipe, rung and script that runs tests or boots a simulator) waits up
   to two minutes for an unlock, then exits 75, and stops a run when the screen locks under it. A 75 there means unlock
   and rerun, not debug.

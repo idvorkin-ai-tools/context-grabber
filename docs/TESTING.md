@@ -246,12 +246,17 @@ wrapper every test run goes through looks at the lock every two seconds, and whe
 only on its retry) failed after the screen was first seen locked, the run stops with exit 75, saying when it was first
 seen locked and to unlock and rerun. A case that failed before the lock, or a failure that wasn't a test's (a build),
 fails the run as before, naming the lock; a pass stands, with a line that the screen locked.
-`scripts/native/test-xcodebuild-log.sh` checks it with the lock probe faked. The crash reports are
-`~/Library/Logs/DiagnosticReports/GrabberNative-*.ips` on the Mac; the screen's lock and unlock times are in the system
+`scripts/native/test-xcodebuild-log.sh` checks it with the lock probe faked. Since BugKit 0.3.16 (bug-kit #131, story
+144) a simulator crash ends at BugKit's own file in the app's container,
+`$(xcrun simctl get_app_container <udid> com.idvorkin.grabbernative data)/Documents/crashes/signal-<epoch>.txt`
+(renamed `.reported.txt` once the next launch has announced it as `crash_report`; `exception-<epoch>.txt` for an
+Objective-C exception); the Mac's ReportCrash no longer writes a `GrabberNative-*.ips` for it, so the older crashes
+are the only ones under `~/Library/Logs/DiagnosticReports/`. The screen's lock and unlock times are in the system
 log (`/usr/bin/log show --predicate 'process == "loginwindow" AND eventMessage CONTAINS "setScreenIsLocked"'`).
 
-Each of those crashes also puts a *GrabberNative quit unexpectedly* dialog on the Mac's screen (seven on the evening of
-2026-11-21, bead `context-grabber-208e`), so **no simulator test run starts on a locked Mac, and one is stopped when the
+Each of those crashes also put a *GrabberNative quit unexpectedly* dialog on the Mac's screen until BugKit 0.3.16 (seven
+on the evening of 2026-11-21, bead `context-grabber-208e`; since then a simulator crash ends quietly at its file), and the
+run is lost either way, so **no simulator test run starts on a locked Mac, and one is stopped when the
 screen locks under it** (stories 1022, 1023). The wrapper every test run goes through, `sim-boot.sh` (so the smoke, the Health
 grant and every UI test suite), rung 2 and `just native-test-contracts` look at the lock the way BugKit's signing guard
 does (`ioreg`'s `CGSSessionScreenIsLocked`) before they start: locked, they say so once and look again every 5 s
