@@ -262,6 +262,61 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 934:
+
+- **Summary:** Erasing a folded header's underline or # leaves the fold
+- **Status:** implemented in [9bf096bf](https://github.com/idvorkin/context-grabber/commit/9bf096bf); verified by host tests (`BoardInkHeadersTests.testTheEraserAcrossAFoldedHeadersUnderlineLeavesTheFold`, `testTheEraserAcrossAFoldedHeadersHashLeavesTheFold`), `just native-test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad (its `erase_fold_check` line will say)
+- **Issues:** context-grabber-bov
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*; [Headers drawn in ink](../superpowers/specs/2026-11-19-whiteboard-ink-headers-design.md), *Undoing a wrong guess*
+
+#### Use Case:
+- **As someone** tidying a folded header's underline or #
+- **I want to** erase just that mark and keep the section folded under the header's words
+- **so that** a fold is erased only by its words or its marker, never by the mark that made the header
+
+#### Acceptance Criteria:
+- **Scenario:** Erasing a folded header's underline
+- **Given:** a header I made by underlining a line, folded, with a line of ink below the fold
+- **When:** I draw the eraser along its underline, just under the words, without touching them
+- **Then:** only the underline goes: the header's words, "▸ N lines folded" and the folded lines stay, the ink below stays where it was, and the line stays a header until I unfold it
+
+- **Scenario:** Erasing a bar of a folded header's #
+- **Given:** a header I made with a #, folded
+- **When:** I erase one bar of the #
+- **Then:** only that bar goes and the section stays folded under the header's words
+
+- **Scenario:** The words or the marker still take the section
+- **Given:** a folded header
+- **When:** I draw the eraser across its words, or across its "▸ N lines folded"
+- **Then:** the header and everything folded under it are erased, as in stories 902 and 903
+
+---
+
+### User Story 955:
+
+- **Summary:** The pixel eraser takes a folded section by its words only once it has rubbed them through
+- **Status:** implemented in [9bf096bf](https://github.com/idvorkin/context-grabber/commit/9bf096bf); verified by the host test `BoardInkHeadersTests.testThePixelEraserTakesAFoldOnlyWhenItRubsThroughTheWords`, `just native-test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad (its `erase_fold_check` line, via `eraser_rub`, will say)
+- **Issues:** context-grabber-bov
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
+
+#### Use Case:
+- **As someone** rubbing out a stray mark with the pixel eraser near a folded header
+- **I want to** have the section go only when I have rubbed out the header's words
+- **so that** a rub on the corner of a letter never takes a whole folded section with it
+
+#### Acceptance Criteria:
+- **Scenario:** A rub on a corner of a letter
+- **Given:** a folded header and the pixel eraser
+- **When:** I rub out the corner of one letter of the header
+- **Then:** that corner goes and the section stays folded under what is left of the header
+
+- **Scenario:** Rubbing through the words
+- **Given:** a folded header and the pixel eraser
+- **When:** I rub through every stroke of the header's words, or rub across its "▸ N lines folded"
+- **Then:** the header and everything folded under it are erased and the ink below closes up
+
+---
+
 ### User Story 904:
 
 - **Summary:** One Undo brings a fold erased by its marker back, still folded
@@ -284,8 +339,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 903:
 
 - **Summary:** The eraser across a folded header erases the whole section
-- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f)
-- **Issues:** context-grabber-0m2d
+- **Status:** implemented in [040dbd8](https://github.com/idvorkin/context-grabber/commit/040dbd8), its file's import in [bbb34db](https://github.com/idvorkin/context-grabber/commit/bbb34db); verified by host tests (`BoardFoldEraseTests.testTheHeadersInkTakesTheFoldOnlyWhenAsked`); `just test` and the Mac build (`just native-build-mac`); not yet seen with the Pencil on the iPad. A called-off eraser stroke erased the fold anyway (context-grabber-0m2d): stories 906 and 907, fixed in [530ebf7a](https://github.com/idvorkin/context-grabber/commit/530ebf7a), its decision renamed in [cbf0304f](https://github.com/idvorkin/context-grabber/commit/cbf0304f). Its header's ink narrowed to its words, and taken only where the eraser took some of them, in [9bf096bf](https://github.com/idvorkin/context-grabber/commit/9bf096bf) (stories 934, 955)
+- **Issues:** context-grabber-0m2d, context-grabber-bov
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Headers fold their sections*
 
 #### Use Case:
@@ -297,7 +352,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Erasing a folded header's ink
 - **Given:** a folded header
 - **When:** I draw the eraser across the header's own ink
-- **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's)
+- **Then:** the header and everything folded under it are erased and the ink below closes up; Undo twice brings the header back still folded (the eraser's own step, then the fold's). The header's own ink is its words: the eraser across its underline or # alone leaves the fold (story 934), and the pixel eraser takes it only once it has rubbed through the words (story 955)
 
 ---
 
