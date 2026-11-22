@@ -386,6 +386,27 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   its button waits for that.
 - Words are heard by Apple's dictation, on the device when it can, and the words go to the Cockpit with the picture.
 
+### Which microphone, and what it hears (#1139, story 1103; Igor, 2026-11-22: "I need to have a mic selector and see the audio of it coming in because I want to be able to use my pocket mic")
+
+- **While the mic is open, the end of the note's line names the microphone it is hearing** (*Built-In Microphone*,
+  a pocket mic's receiver, AirPods) **and a small level bar that moves with the sound coming in.** A bar that stays
+  flat while he talks says his words aren't reaching that microphone. With *Automatic* picked, the name is the
+  microphone the system chose. Closed, both are gone.
+- **Tapping the name lists *Automatic* and every microphone connected now**, the picked one ticked. Picking another
+  while the mic is open closes it, its words so far still going as at any close, and opens it again on the new
+  microphone; the name and the bar follow.
+- **The list is read each time the mic opens**, so a pocket mic plugged in or paired since the last time shows up.
+  One connected while the mic is already open shows up at the next opening.
+- **The pick is kept** for the next opening, on any board, and after a relaunch. It is the same pick as Chat's and the
+  problem report's microphone. A picked microphone that is no longer connected falls back to *Automatic* when the
+  list is next read.
+- **Nothing moves for it**: the name and the bar sit in the note's line, which keeps its height, and the Pencil
+  doesn't act on them.
+- **The session log says** how many microphones each opening listed and which one the mic hears, and each pick:
+  whether it was *Automatic* and whether the mic was open.
+- **Not here: replaying a board with its sound**, as Notability plays a recording back with the ink (#1139's second
+  ask, `context-grabber-3tdv`). The board's mic is dictation; it keeps the words, not the sound.
+
 ## Where it runs
 
 On the Cockpit (Igor's pick: no model key on the device, and Larry is there). Claude's ghosts come from its ghost
@@ -416,6 +437,10 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
   Speak while he is looking: the words arrive with that next picture. Tap *Larry's turn* while he is looking, after a stroke: a picture
   goes at once (with nothing drawn or said since the last one, nothing goes: [story 765](2026-11-12-whiteboard-conversation-design.md)). Leave him unanswering for 3 minutes: the bar stops saying he is looking.
 - With the Cockpit unreachable, pick another responder: the tick goes back and a copyable problem says why.
+- With a pocket mic connected, open the board's mic: the note's line names a microphone and its bar moves as Igor
+  talks. Tap the name and pick the pocket mic: the mic closes and opens again, the line names the pocket mic, and the
+  bar moves with it, not with the iPad's own. Close the mic and open it again: the pocket mic again, and the session
+  log names it.
 - Every ghost turn's log line has the pause, render, encode and upload times in milliseconds, and the Cockpit's own log
   of that turn has the first three.
 - Write a column of notes down a tall board and tap Larry's turn: the Cockpit's render of the board (any page of it)
