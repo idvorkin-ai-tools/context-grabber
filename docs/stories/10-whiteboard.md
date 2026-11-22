@@ -8227,7 +8227,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 ### User Story 1064:
 
 - **Summary:** The log says which tool Igor picked, beside the one the board thinks it holds
-- **Status:** in progress
+- **Status:** implemented in 57255cf5; verified by `just native-test` (lint, host tests, script checks) and the Mac build; the iPad's log with both tools on a touch is still owed
 - **Issues:** [#1078](https://github.com/idvorkin/context-grabber/issues/1078): "Switched to eraser still drew normally"; every touch the iPad has logged names a black pen, including 11 that erased ink and the strokes Igor drew in blue
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *The log says which tool Igor picked*
 
