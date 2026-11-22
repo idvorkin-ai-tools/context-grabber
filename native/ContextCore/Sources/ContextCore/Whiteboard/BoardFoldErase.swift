@@ -12,9 +12,10 @@ extension BoardOutline {
   /// How near an eraser has to come to the marker or the header's ink to take the fold, board points.
   public static let eraseReach: CGFloat = 8
 
-  /// A fold a path took: the headers that go (it and every fold folded inside it), the strokes that go by name (their
-  /// rows and all they hide), and the header's top, where what was below closes up to.
+  /// A fold a path took: the header the path crossed, the headers that go (it and every fold folded inside it), the
+  /// strokes that go by name (their rows and all they hide), and the header's top, where what was below closes up to.
   public struct FoldHit: Equatable, Sendable {
+    public var header: String
     public var headers: Set<String>
     public var names: Set<String>
     public var top: CGFloat
@@ -71,7 +72,18 @@ extension BoardOutline {
         grew = true
       }
     }
-    return FoldHit(headers: gone, names: names, top: top)
+    return FoldHit(header: header.id, headers: gone, names: names, top: top)
+  }
+
+  /// The folds an eraser stroke the system called off (a palm, a system gesture taking the touch) takes, of the `hits`
+  /// it crossed. It takes none by its marker; across the header's own ink it takes the fold only if
+  /// that ink is gone from the board (`live`, the stroke names on it now), so folded lines are never left hidden under
+  /// no header (context-grabber-0m2d).
+  public func foldsTakenByCancelledStroke(_ hits: [FoldHit], live: Set<String>) -> [FoldHit] {
+    hits.filter { hit in
+      guard let ink = header(hit.header)?.ids, !ink.isEmpty else { return false }
+      return !ink.contains(where: live.contains)
+    }
   }
 
   /// The folds erased: their strokes go, their headers go, and what was below each closes up to where its header was,

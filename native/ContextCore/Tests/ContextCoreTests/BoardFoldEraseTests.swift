@@ -48,6 +48,21 @@ final class BoardFoldEraseTests: XCTestCase {
     XCTAssertTrue(BoardOutline.keeping(open.headers, previous: [header("h")], live: open.liveNames).isEmpty)
   }
 
+  /// context-grabber-0m2d: an eraser stroke the system calls off takes no fold by its marker, and by the header's ink
+  /// only where PaperKit's eraser took that ink anyway.
+  func testACalledOffEraserTakesAFoldOnlyWhereTheHeadersInkWent() {
+    let o = folded()
+    let marker = o.foldHits(along: [CGPoint(x: 200, y: 110), CGPoint(x: 260, y: 112)], onHeader: true)
+    XCTAssertEqual(marker.map(\.header), ["h"])
+    XCTAssertTrue(o.foldsTakenByCancelledStroke(marker, live: o.liveNames).isEmpty, "called off, the fold stays")
+    let ink = o.foldHits(along: [CGPoint(x: 105, y: 112), CGPoint(x: 165, y: 112)], onHeader: true)
+    XCTAssertTrue(o.foldsTakenByCancelledStroke(ink, live: o.liveNames).isEmpty, "its ink stayed, so does it")
+    let partly = o.liveNames.subtracting(["h0", "h1"])
+    XCTAssertTrue(o.foldsTakenByCancelledStroke(ink, live: partly).isEmpty, "some of the header is left to unfold by")
+    let gone = o.liveNames.subtracting(["h0", "h1", "h2"])
+    XCTAssertEqual(o.foldsTakenByCancelledStroke(ink, live: gone), ink, "its ink went anyway: the section goes with it")
+  }
+
   func testTheHeadersInkTakesTheFoldOnlyWhenAsked() {
     let o = folded()
     let across = [CGPoint(x: 105, y: 112), CGPoint(x: 165, y: 112)]

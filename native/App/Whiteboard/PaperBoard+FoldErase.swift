@@ -33,14 +33,34 @@ extension PaperBoardController {
     foldErasing?.path.append(lines.columnPoint(of: touch.location(in: lines)))
   }
 
+  /// The eraser touch coming up, or called off (context-grabber-0m2d): a called-off stroke takes a fold only where
+  /// PaperKit's eraser took the header's ink anyway.
   func foldEraserLifted(_ touch: UITouch) {
-    foldEraserMoved(touch)
+    let cancelled = touch.phase == .cancelled
+    if !cancelled { foldEraserMoved(touch) }
     guard let erasing = foldErasing, erasing.touch == ObjectIdentifier(touch) else { return }
     foldErasing = nil
     let hits = erasing.outline.foldHits(along: erasing.path, onHeader: true)
     guard !hits.isEmpty else { return }
     // A turn later: PaperKit's own erase of the header's ink is on the markup by then.
-    Task { @MainActor [weak self] in self?.eraseFolds(hits, via: "eraser", path: erasing.path.count) }
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      guard cancelled else {
+        self.eraseFolds(hits, via: "eraser", path: erasing.path.count)
+        return
+      }
+      let live = self.paper.markup.map { self.model.outline(of: self.model.opStrokes($0.inkDrawing.strokes).strokes) }
+      // No markup to read: the header's ink can't be seen gone, so nothing is taken.
+      let taken = live.map { erasing.outline.foldsTakenByCancelledStroke(hits, live: $0.liveNames) } ?? []
+      // What a called-off eraser stroke did to the header's ink, so the iPad's log says whether PaperKit keeps it.
+      self.log.event(
+        "board_outline",
+        [
+          "action": "erase_fold_cancelled", "board": self.model.board.id, "folds": hits.count, "taken": taken.count,
+          "path": erasing.path.count, "markup": live != nil,
+        ])
+      if !taken.isEmpty { self.eraseFolds(taken, via: "eraser_cancelled", path: erasing.path.count) }
+    }
   }
 
   /// Story 905: a scratch-out over a fold's marker or its folded header line takes the whole fold, and the other ink it

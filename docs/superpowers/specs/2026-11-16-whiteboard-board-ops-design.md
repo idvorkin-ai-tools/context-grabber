@@ -249,7 +249,9 @@ board differs, this says why.
   folded header's own ink, erases the header and everything folded under it (folds folded inside it included), and
   what was below closes up to where the header was, in whole lines. One Undo brings the section back, still folded,
   and what was below back where it was. (Across the header's ink the eraser takes those strokes itself first, so
-  there it is two Undos.) A scratch-out over the marker or the folded header line does the same, with one Undo, and what it took stays gone, on the sheet and to Larry, as he writes on (#1015).
+  there it is two Undos.) A scratch-out over the marker or the folded header line does the same, with one Undo, and what it took stays gone, on the sheet and to Larry, as he writes on (#1015). An eraser stroke the iPad calls off before it lifts (a palm, a system gesture taking the
+  touch) takes no fold by its marker; across the header's own ink it takes the fold only if that ink is gone from the
+  board, so folded lines are never left hidden under no header.
 - **Fold all and Unfold all**, and **collapse to a level**: from the hold menu on a header's mark, Fold all, 1, 2, 3
   and Unfold all. A header's level is how deep it nests with everything open. A ## or ### written at a header's start nests it under the # above it (the ink headers spec, *Header levels*). Collapsing to level *n* shows the
   headers down to level *n* and nothing deeper: every header at level *n* folds, and so does a shallower one with no
@@ -430,6 +432,8 @@ what a change would do except to send it to Igor's real board, and paused his ch
 - A mark of Larry's drawn on that picture under the folded section lands under the same ink on the folded board.
 - The eraser drawn across that marker erases the header and its folded lines, the ink below closes up to where the
   header was, and one Undo brings the section back folded with the ink below where it was.
+- An eraser stroke across that marker that the iPad calls off (a palm landing, a system gesture) leaves the fold, its
+  header and the ink below as they were.
 - A line written big or underlined shows a faint H; a margin tap there makes it a header.
 - A finger held in the margin and dragged down two lines opens two lines; held and lifted, or held on the page, it
   shows the menu. The Pencil held on a word for under half a second and dragged moves that word, and nothing else.
