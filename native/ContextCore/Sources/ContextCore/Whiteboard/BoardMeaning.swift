@@ -1,7 +1,7 @@
 //  What a board means beyond its ink, kept in one file beside its drawing (bead context-grabber-cc75, plan
 //  2026-11-21-whiteboard-board-meaning-plan.md): the revision Larry's changes are checked against and the batches
 //  already handled, his kept texts, the names moved strokes keep, his notes and groups, the headers and their folds,
-//  and the question cards. On the device that draws the board it is written with the drawing, in the same save, so a
+//  the question cards, the kept labels and which ink is Larry's. On the device that draws the board it is written with the drawing, in the same save, so a
 //  batch of Larry's is remembered as handled only once its ink is on disk (story 1106). It used to be six UserDefaults
 //  keys per board (`BoardOpLedger`), moved here once (`BoardKeeping.migrateMeaning`).
 
@@ -26,6 +26,14 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public var headers: [BoardHeader] = []
   /// The question cards (stories 880–886).
   public var questions = WhiteboardQuestions()
+  /// The creation moments (ms) of kept labels and pastes, the ink *Tidy overlaps* lays out (story 896).
+  public var labels: [Int64] = []
+  /// The creation moments (ms) of ink Larry or Claude made (a mark kept, his ink or text), so it never makes room as
+  /// Igor's (#894).
+  public var theirs: [Int64] = []
+  /// The most label and Larry's-ink moments remembered per board; the oldest go first.
+  public static let mostLabels = 2000
+  public static let mostTheirs = 4000
   /// The size in bytes of the drawing file this was last written with; nil before the first save with ink. Read on
   /// open against the drawing on disk: a difference means a save was cut off between the two files.
   public var inkBytes: Int?
@@ -33,7 +41,7 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public init() {}
 
   enum CodingKeys: String, CodingKey {
-    case version, rev, handled, lastResult, texts, strokeIDs, strokeMeta, headers, questions, inkBytes
+    case version, rev, handled, lastResult, texts, strokeIDs, strokeMeta, headers, questions, labels, theirs, inkBytes
   }
 
   /// Every part optional, so a file from an older or newer build still reads.
@@ -48,6 +56,8 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
     strokeMeta = try c.decodeIfPresent(BoardStrokeMeta.self, forKey: .strokeMeta) ?? BoardStrokeMeta()
     headers = try c.decodeIfPresent([BoardHeader].self, forKey: .headers) ?? []
     questions = try c.decodeIfPresent(WhiteboardQuestions.self, forKey: .questions) ?? WhiteboardQuestions()
+    labels = try c.decodeIfPresent([Int64].self, forKey: .labels) ?? []
+    theirs = try c.decodeIfPresent([Int64].self, forKey: .theirs) ?? []
     inkBytes = try c.decodeIfPresent(Int.self, forKey: .inkBytes)
   }
 
@@ -68,7 +78,7 @@ public struct BoardMeaning: Codable, Equatable, Sendable {
   public var counts: [String: Int] {
     [
       "rev": rev, "handled": handled.count, "texts": texts.count, "headers": headers.count,
-      "cards": questions.cards.count,
+      "cards": questions.cards.count, "labels": labels.count, "theirs": theirs.count,
     ]
   }
 }
@@ -126,15 +136,75 @@ public final class BoardMeaningLedger: @unchecked Sendable {
     change(board) { $0.texts = Array(texts.suffix(BoardOpLedger.mostTexts)) }
   }
 
+  public func labels(board: String) -> Set<Int64> { Set(meaning.labels) }
+  public func rememberLabels(_ moments: [Int64], board: String) {
+    guard !moments.isEmpty else { return }
+    change(board) { $0.labels = Array(($0.labels + moments).suffix(BoardMeaning.mostLabels)) }
+  }
+
+  public func theirs(board: String) -> Set<Int64> { Set(meaning.theirs) }
+  public func rememberTheirs(_ moments: [Int64], board: String) {
+    guard !moments.isEmpty else { return }
+    change(board) { $0.theirs = Array(($0.theirs + moments).suffix(BoardMeaning.mostTheirs)) }
+  }
+
   public func questions(board: String) -> WhiteboardQuestions { meaning.questions }
   public func setQuestions(_ questions: WhiteboardQuestions, board: String) {
     change(board) { $0.questions = questions }
   }
 }
 
+/// Where a board's kept labels and Larry's ink were remembered before they joined its meaning file (bead
+/// context-grabber-p1pl): two UserDefaults keys per board on this device, each a list of creation moments. Read now
+/// only to move them into the file (`BoardKeeping.migrateInkIdentity`), and to fill the board as it opens until then.
+public struct BoardInkKeys: @unchecked Sendable {
+  private let defaults: UserDefaults
+
+  public init(defaults: UserDefaults = .standard) {
+    self.defaults = defaults
+  }
+
+  public static func labelsKey(_ board: String) -> String { "whiteboard_labels_\(board)" }
+  public static func theirsKey(_ board: String) -> String { "whiteboard_theirs_\(board)" }
+
+  /// The moments a key holds; nil when the board has no such key.
+  public func labels(board: String) -> [Int64]? { moments(Self.labelsKey(board)) }
+  public func theirs(board: String) -> [Int64]? { moments(Self.theirsKey(board)) }
+
+  private func moments(_ key: String) -> [Int64]? {
+    guard let list = defaults.array(forKey: key) else { return nil }
+    return list.compactMap { ($0 as? NSNumber)?.int64Value }
+  }
+
+  /// Whether the board still has either key.
+  public func any(board: String) -> Bool { labels(board: board) != nil || theirs(board: board) != nil }
+
+  /// The keys' moments added to the meaning's, never in place of them: what the meaning already holds stays, in its
+  /// order, after the keys' older moments it lacks.
+  public func fill(_ meaning: inout BoardMeaning, board: String) {
+    if let labels = labels(board: board) {
+      meaning.labels = Array(Self.adding(labels, to: meaning.labels).suffix(BoardMeaning.mostLabels))
+    }
+    if let theirs = theirs(board: board) {
+      meaning.theirs = Array(Self.adding(theirs, to: meaning.theirs).suffix(BoardMeaning.mostTheirs))
+    }
+  }
+
+  private static func adding(_ old: [Int64], to held: [Int64]) -> [Int64] {
+    let have = Set(held)
+    return old.filter { !have.contains($0) } + held
+  }
+
+  /// The board's two keys, gone once its file holds what they did.
+  public func forget(board: String) {
+    defaults.removeObject(forKey: Self.labelsKey(board))
+    defaults.removeObject(forKey: Self.theirsKey(board))
+  }
+}
+
 /// Every UserDefaults key this device keeps for one board, its meaning's old keys and its own view of it alike: the
-/// board's thread, its pictures' times and folds, the marks settled, labels, Larry's ink, where the paper was, its
-/// lines and lettering. A delete forgets them all.
+/// board's thread, its pictures' times and folds, the marks settled, where the paper was, its lines and lettering (and
+/// labels and Larry's ink, until they move into the board's file). A delete forgets them all.
 public enum BoardDeviceKeys {
   public static func keys(of board: String, in defaults: UserDefaults) -> [String] {
     let suffix = "_\(board)"

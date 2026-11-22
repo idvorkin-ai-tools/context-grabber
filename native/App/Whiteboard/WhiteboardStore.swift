@@ -124,9 +124,11 @@ final class WhiteboardStore: ObservableObject {
   }
 
   /// Once: each board's meaning moves from this device's UserDefaults into the board's own file (bead
-  /// context-grabber-cc75). One line says what moved; a board that failed keeps its keys and is tried next launch.
+  /// context-grabber-cc75), then its kept labels and Larry's ink (bead context-grabber-p1pl). One line says what moved;
+  /// a board that failed keeps its keys and is tried next launch.
   private func migrateMeanings() {
     let legacy = BoardOpLedger()
+    let inkKeys = BoardInkKeys()
     var moved: [String: [String: Int]] = [:]
     for board in index.boards {
       switch keeping.migrateMeaning(board.id, from: legacy) {
@@ -134,6 +136,14 @@ final class WhiteboardStore: ObservableObject {
       case .failure(let error)?:
         log.event(
           "error", ["where": "whiteboard_meaning", "board": board.id, "operation": "migrate", "message": "\(error)"])
+      case nil: break
+      }
+      switch keeping.migrateInkIdentity(board.id, from: inkKeys, after: legacy) {
+      case .success(let meaning)?: moved[board.id] = meaning.counts
+      case .failure(let error)?:
+        log.event(
+          "error",
+          ["where": "whiteboard_meaning", "board": board.id, "operation": "migrate_ink", "message": "\(error)"])
       case nil: break
       }
     }
@@ -205,14 +215,18 @@ final class WhiteboardStore: ObservableObject {
   }
 
   /// A board's meaning (`BoardMeaning`) as it opens: its file, or before the file's first write the keys it moves from.
-  /// One that can't be read is set aside and logged, and the board opens with none.
+  /// Labels and Larry's ink still in their keys are added (`BoardInkKeys.fill`). One that can't be read is set aside
+  /// and logged, and the board opens with none.
   func meaning(_ id: String) -> BoardMeaning {
+    var meaning: BoardMeaning
     do {
-      return try keeping.meaning(id) ?? BoardOpLedger().meaning(board: id) ?? BoardMeaning()
+      meaning = try keeping.meaning(id) ?? BoardOpLedger().meaning(board: id) ?? BoardMeaning()
     } catch {
       log.event("error", ["where": "whiteboard_meaning", "board": id, "operation": "open", "message": "\(error)"])
-      return BoardMeaning()
+      meaning = BoardMeaning()
     }
+    BoardInkKeys().fill(&meaning, board: id)
+    return meaning
   }
 
   /// The size of the board's drawing as it opened, to check against its meaning's.

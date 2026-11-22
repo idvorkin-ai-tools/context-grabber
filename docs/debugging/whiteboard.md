@@ -23,7 +23,7 @@ to that event's own bullet; never join two events on one line.
   - paper with board and paper: the board's colour chosen
   - lettering with board and lettering: single / font, the Board menu's Real font switch (#950)
   - delete with board, own — false for a board another device drew — and why: asked, or empty — a new board closed without a stroke, and keys: how many of this device's whiteboard_*_<id> keys it forgot (story 1106)
-  - meaning_migrated with boards: each board whose meaning moved from this device's keys into its own file at launch, with its counts — rev, handled, texts, headers, cards — once, the launch it moves (story 1106)
+  - meaning_migrated with boards: each board whose meaning moved from this device's keys into its own file at launch, with its counts — rev, handled, texts, headers, cards, labels, theirs — once, the launch it moves (story 1106; labels and theirs, the kept labels and Larry's ink, move from their own keys, story 1099)
   - meaning_behind with board, meaning_ink_bytes and ink_bytes: as a board opens, its meaning was saved with a drawing of another size, so a save was cut off between the drawing and the meaning and a batch of Larry's in that drawing may come again (story 1106; a board of this device's own fetched back from iCloud can show it too)
   - ghosts_on, ghosts_off with board
   - grid_on, grid_off with board (stories 407, 408)
@@ -69,7 +69,7 @@ to that event's own bullet; never join two events on one line.
   - either result carries zone_error when making the boards' zone failed and the sync went on
   - a board that came down without a picture it could keep logs its own line with board, picture: drawn_here and message, the list's picture drawn on this device (story 1061, #1043))
 - `error` (where:
-  - whiteboard_index / whiteboard_migrate / whiteboard_meaning with board, operation: migrate / open / save, and message — a board's meaning file couldn't be moved, read or written; a failed migrate keeps its keys and tries again next launch (story 1106)
+  - whiteboard_index / whiteboard_migrate / whiteboard_meaning with board, operation: migrate / migrate_ink (story 1099) / open / save, and message — a board's meaning file couldn't be moved, read or written; a failed migrate keeps its keys and tries again next launch (story 1106)
   - whiteboard_load with board, message — why the drawing couldn't be read — set_aside, kept_at — the name it was moved aside to, null when it wasn't — and move_error: set_aside false with the move's error means the board was held, its original left in place and the board opened look only (story 1060, #1042)
   - whiteboard_save / whiteboard_send / whiteboard_responder with board, responder and message — a pick the Cockpit didn't take
   - whiteboard_turn with who, board and message, once when turns start failing, again only after one has succeeded

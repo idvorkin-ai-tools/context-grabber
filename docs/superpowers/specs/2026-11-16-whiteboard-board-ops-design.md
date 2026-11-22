@@ -116,6 +116,13 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   next open: it lands, or, if the board has moved on since he looked, it is refused and Larry is told, as any stale
   change is. It is never remembered as done with its ink gone. At worst, a quit cut off in the middle of a save shows his change twice,
   which one Undo takes back, and the session log says it happened.
+- **Which ink is Larry's goes with the board, not the device** (bead context-grabber-p1pl). The board remembers
+  which of its ink Larry or Claude made (kept marks, his ink and texts) and which strokes are kept labels, in the same
+  save as the ink. *Tidy overlaps* still finds every kept label, and kept marks still never make room as if they were
+  Igor's, after the app is reinstalled or the board comes back from iCloud (once the board's meaning syncs). What a
+  board learned before this lived on the device and moves into the board once, at launch, with nothing lost: what
+  the board already knew stays, and what the device knew is added. If the move fails it is tried again next launch,
+  and until then the board still knows its labels and Larry's ink.
 - **A deleted board leaves nothing behind on the device**: its ink, its picture, what it knows of Larry's changes and
   everything the device remembered about it (its thread, where the paper was scrolled, its lines and lettering).
 - Older builds that don't understand a change ignore it and show Larry's answer as they do today. Nothing breaks.

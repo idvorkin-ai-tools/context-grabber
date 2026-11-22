@@ -302,6 +302,31 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1099:
+
+- **Summary:** The board, not the device, remembers which ink is Larry's and which strokes are kept labels
+- **Issues:** bead context-grabber-p1pl (follow-up to context-grabber-cc75: the two lists were still kept on the device, so a reinstall or another device took Larry's kept marks for Igor's and *Tidy overlaps* found no labels)
+- **Status:** STATUS_PLACEHOLDER
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
+
+#### Use Case:
+- **As someone** who keeps Larry's marks and labels on a board and opens it again later
+- **I want to** have the board itself remember which of its ink is Larry's and which strokes are labels
+- **so that** his kept marks never make room as if they were mine, and *Tidy overlaps* still finds every label, whatever happened to the app in between
+
+#### Acceptance Criteria:
+- **Scenario:** A board from before this build
+- **Given:** a board whose labels and Larry's kept marks were remembered on this device
+- **When:** the app updates and I open the board
+- **Then:** *Tidy overlaps* lays out the same labels as before, and Larry's kept marks still never make room as mine; nothing the board already knew is lost
+
+- **Scenario:** A label kept just now
+- **Given:** I keep one of Larry's labels
+- **When:** the board saves its ink
+- **Then:** the label is remembered in the same save, and a later *Tidy overlaps* finds it
+
+---
+
 ### User Story 840:
 
 - **Summary:** Larry draws ink straight onto my board

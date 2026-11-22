@@ -230,6 +230,127 @@ final class BoardMeaningTests: XCTestCase {
     XCTAssertEqual(meaning.handled, ["m1"], "once the canvas took it")
   }
 
+  // MARK: Labels and Larry's ink join the file (bead context-grabber-p1pl)
+
+  private func inkKeys(labels: [Int64]? = [1, 2], theirs: [Int64]? = [7]) -> BoardInkKeys {
+    if let labels { defaults.set(labels, forKey: "whiteboard_labels_b1") }
+    if let theirs { defaults.set(theirs, forKey: "whiteboard_theirs_b1") }
+    return BoardInkKeys(defaults: defaults)
+  }
+
+  func testAFileFromBeforeLabelsStillReads() throws {
+    let old = Data(#"{"version":1,"rev":3,"handled":["m1"],"inkBytes":9}"#.utf8)
+    let meaning = try JSONDecoder().decode(BoardMeaning.self, from: old)
+    XCTAssertEqual(meaning.rev, 3)
+    XCTAssertEqual(meaning.labels, [])
+    XCTAssertEqual(meaning.theirs, [])
+  }
+
+  func testTheKeysJoinAFileAlreadyThereAndGo() throws {
+    let keys = inkKeys()
+    let keeping = keeping()
+    var held = try sample()
+    held.inkBytes = 12
+    try keeping.saveMeaning(held, board: "b1")
+    let moved = try XCTUnwrap(keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults)))
+      .get()
+    var expected = held
+    expected.labels = [1, 2]
+    expected.theirs = [7]
+    XCTAssertEqual(moved, expected, "every other part, and the drawing's size, as it was")
+    XCTAssertEqual(try keeping.meaning("b1"), expected)
+    XCTAssertFalse(keys.any(board: "b1"), "the keys go")
+    XCTAssertNil(keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults)), "once")
+  }
+
+  func testWithNoFileTheKeysMakeOne() throws {
+    let keys = inkKeys(labels: nil)
+    let keeping = keeping()
+    let moved = try XCTUnwrap(keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults)))
+      .get()
+    XCTAssertEqual(moved.theirs, [7])
+    XCTAssertEqual(try keeping.meaning("b1")?.theirs, [7])
+    XCTAssertFalse(keys.any(board: "b1"))
+  }
+
+  func testWhatTheFileHoldsIsNeverReplacedOnlyAddedTo() throws {
+    let keys = inkKeys(labels: [1, 2], theirs: [7])
+    let keeping = keeping()
+    var held = BoardMeaning()
+    held.labels = [2, 5]
+    held.theirs = [7]
+    try keeping.saveMeaning(held, board: "b1")
+    let moved = try XCTUnwrap(keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults)))
+      .get()
+    XCTAssertEqual(moved.labels, [1, 2, 5], "the key's older moment first, nothing doubled")
+    XCTAssertEqual(moved.theirs, [7])
+  }
+
+  func testKeysTheFileAlreadyHoldsGoWithNoWrite() throws {
+    let keys = inkKeys(labels: [1], theirs: nil)
+    let disk = TestDisk()
+    let keeping = keeping(disk)
+    var held = BoardMeaning()
+    held.labels = [1]
+    try keeping.saveMeaning(held, board: "b1")
+    disk.changes = []
+    XCTAssertNil(keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults)))
+    XCTAssertEqual(disk.changes, [])
+    XCTAssertFalse(keys.any(board: "b1"))
+  }
+
+  func testAMoveThatFailsLeavesTheFileAndTheKeys() throws {
+    let keys = inkKeys()
+    let disk = TestDisk()
+    let keeping = keeping(disk)
+    try keeping.saveMeaning(try sample(), board: "b1")
+    disk.refuse = ".meaning.json"
+    guard case .failure? = keeping.migrateInkIdentity("b1", from: keys, after: BoardOpLedger(defaults: defaults))
+    else { return XCTFail("should fail") }
+    XCTAssertEqual(try keeping.meaning("b1"), try sample(), "never removed: it holds the rest of the meaning")
+    XCTAssertEqual(keys.labels(board: "b1"), [1, 2], "tried again next launch")
+    XCTAssertEqual(keys.theirs(board: "b1"), [7])
+  }
+
+  func testABoardWhoseOldKeysHaventMovedWaits() throws {
+    let ledger = try legacy()
+    let keys = inkKeys()
+    let keeping = keeping()
+    XCTAssertNil(keeping.migrateInkIdentity("b1", from: keys, after: ledger))
+    XCTAssertNil(try keeping.meaning("b1"), "no file to make the six keys' move take them for stale")
+    XCTAssertTrue(keys.any(board: "b1"))
+    _ = try XCTUnwrap(keeping.migrateMeaning("b1", from: ledger)).get()
+    let moved = try XCTUnwrap(keeping.migrateInkIdentity("b1", from: keys, after: ledger)).get()
+    XCTAssertEqual(moved.headers, try sample().headers)
+    XCTAssertEqual(moved.labels, [1, 2])
+    XCTAssertTrue(BoardDeviceKeys.keys(of: "b1", in: defaults).isEmpty)
+  }
+
+  func testUntilTheyMoveTheKeysFillTheBoardAsItOpens() {
+    let keys = inkKeys()
+    var meaning = BoardMeaning()
+    meaning.labels = [9]
+    keys.fill(&meaning, board: "b1")
+    XCTAssertEqual(meaning.labels, [1, 2, 9])
+    XCTAssertEqual(meaning.theirs, [7])
+  }
+
+  func testTheLedgerRemembersLabelsAndTheirsCappedAndTellsEachChange() {
+    let ledger = BoardMeaningLedger(board: "b1", meaning: BoardMeaning())
+    var told = 0
+    ledger.onChange = { told += 1 }
+    ledger.rememberLabels([], board: "b1")
+    ledger.rememberTheirs([], board: "b1")
+    XCTAssertEqual(told, 0)
+    ledger.rememberLabels([5], board: "b1")
+    ledger.rememberTheirs(Array(1...Int64(BoardMeaning.mostTheirs + 3)), board: "b1")
+    XCTAssertEqual(told, 2)
+    XCTAssertEqual(ledger.labels(board: "b1"), [5])
+    XCTAssertEqual(ledger.meaning.theirs.count, BoardMeaning.mostTheirs)
+    XCTAssertFalse(ledger.theirs(board: "b1").contains(1), "the oldest go first")
+    XCTAssertTrue(ledger.unsaved)
+  }
+
   // MARK: A delete forgets the device's keys
 
   func testADeleteForgetsEveryKeyOfThatBoardOnly() {

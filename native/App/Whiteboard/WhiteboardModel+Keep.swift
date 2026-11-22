@@ -78,7 +78,7 @@ extension WhiteboardModel {
   /// Story 896: kept labels and pastes that sit on other ink laid out again, top to bottom; his ink stays. One undo.
   func tidyOverlaps() {
     guard editable else { return }
-    let known = Set(UserDefaults.standard.array(forKey: labelsKey) as? [Int64] ?? [])
+    let known = opLedger.labels(board: board.id)
     var labels: [String: [[CGPoint]]] = [:]
     var members: [String: [Int]] = [:]
     var ink: [[CGPoint]] = []
@@ -103,26 +103,17 @@ extension WhiteboardModel {
     _ = canvas?.moveStrokes(strokes)
   }
 
-  private var labelsKey: String { "whiteboard_labels_\(board.id)" }
-
-  /// A label's moment, kept on this device. ponytail: not synced, so another device's labels never tidy; the moments go
-  /// with the board's file if that is ever wanted.
+  /// A label's moment, kept in the board's meaning and saved with its ink (bead context-grabber-p1pl).
   func rememberLabel(_ made: Date) {
-    var known = UserDefaults.standard.array(forKey: labelsKey) as? [Int64] ?? []
-    known.append(Int64(made.timeIntervalSince1970 * 1000))
-    UserDefaults.standard.set(Array(known.suffix(2000)), forKey: labelsKey)
+    opLedger.rememberLabels([Int64(made.timeIntervalSince1970 * 1000)], board: board.id)
   }
 
-  private var theirsKey: String { "whiteboard_theirs_\(board.id)" }
-
-  /// #894: the moments of ink Larry or Claude made (a mark kept, Larry's ink or text), kept on this device, so it never
-  /// makes room as Igor's. ponytail: not synced, so a mark kept on another device is taken as Igor's.
+  /// #894: the moments of ink Larry or Claude made (a mark kept, Larry's ink or text), kept in the board's meaning, so it
+  /// never makes room as Igor's (bead context-grabber-p1pl).
   func rememberTheirs(_ strokes: [PKStroke]) { rememberTheirs(moments: strokes.map(Self.moment)) }
 
   func rememberTheirs(moments: [Int64]) {
-    guard !moments.isEmpty else { return }
-    let known = UserDefaults.standard.array(forKey: theirsKey) as? [Int64] ?? []
-    UserDefaults.standard.set(Array((known + moments).suffix(4000)), forKey: theirsKey)
+    opLedger.rememberTheirs(moments, board: board.id)
   }
 
   private static func moment(_ stroke: PKStroke) -> Int64 {
@@ -249,7 +240,7 @@ extension WhiteboardModel {
     guard let seen = marks.compactMap(\.seen).min() else { return nil }
     let boxes = marks.map { WhiteboardMarkChoice.bounds($0.lines).insetBy(dx: -$0.width / 2, dy: -$0.width / 2) }
     let strokes = opStrokes(drawing.strokes).strokes
-    let theirs = Set(UserDefaults.standard.array(forKey: theirsKey) as? [Int64] ?? [])
+    let theirs = opLedger.theirs(board: board.id)
     return BoardRoom.late(
       boxes, seen: seen, strokes: strokes, texts: texts, groups: strokeMeta.groups, folds: outline(of: strokes).tags,
       theirs: theirs)
