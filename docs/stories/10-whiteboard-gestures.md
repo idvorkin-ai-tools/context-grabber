@@ -922,7 +922,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** A small label on a selection says what I picked and what applies to it
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
-- **Status:** implemented in [13ab6905](https://github.com/idvorkin/context-grabber/commit/13ab6905); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); not yet seen on the iPad: a real lasso and the comparison #1045 asks for
+- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`), the Mac build (rung 1.5) and on the iPad simulator (rung 2, 2026-11-22: `WhiteboardToTextUITests.testToTextPutsTheWordsInTheInksPlace` reads *Selected: Ink, To text* and `WhiteboardConnectUITests.testALassoedArrowBetweenTwoWordsConnectsThem` *Selected: Arrow, Connect*, all 66 whiteboard UI tests passing); not yet seen on the iPad: a real lasso and the comparison #1045 asks for
 - **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
 
 #### Use Case:
@@ -942,7 +942,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The label on a kept text says it can be reworded, and an erase turns it to ink
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
-- **Status:** implemented in [13ab6905](https://github.com/idvorkin/context-grabber/commit/13ab6905); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a kept text, reworded or erased
+- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a kept text, reworded or erased
 - **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
 
 #### Use Case:
@@ -962,7 +962,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** The label on a connected word says a connector follows it
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
-- **Status:** implemented in [13ab6905](https://github.com/idvorkin/context-grabber/commit/13ab6905); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a connected word and a connector
+- **Status:** implemented in [a5a8bf80](https://github.com/idvorkin/context-grabber/commit/a5a8bf80); verified by host tests (`BoardSelectionLabelTests`; `just native-test`) and the Mac build (rung 1.5); not yet seen on the iPad: a connected word and a connector
 - **Spec:** [What's selected](../superpowers/specs/2026-11-22-whiteboard-selection-label-design.md)
 
 #### Use Case:
