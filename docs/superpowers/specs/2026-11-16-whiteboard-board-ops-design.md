@@ -104,6 +104,11 @@ with each picture:
   events says when the message left the iPad (to the millisecond), how long the picture took to draw and to encode,
   how long its strokes and its image took to go up, its size, the build, and whether it was a first send or a
   *Retry*. A *Retry* says its own times; it never repeats the first send's.
+- **The board's name.** Every picture the board sends Larry (the hand-off, *Send to Larry*, a *Retry*, and a picture
+  that waited to go) carries the board's name as it was when the picture was taken, not only the first one that starts
+  the chat. So a board renamed on the iPad renames its chat with the next picture (the Cockpit retitles a chat it named
+  itself to *Board: <name>* and keeps one Igor typed), and the debug page shows the board's name on each post. A
+  Cockpit that doesn't read the name ignores it. (Igor via Larry, 2026-11-22, bead context-grabber-8rei.)
 - **Mic off to text.** Each time words Igor spoke are taken for a turn, an event says when the mic opened, when the
   first words were heard, when the mic closed (none if it was still open), when the words were ready, and when they
   went with a picture, with the gaps between them in milliseconds and how many characters there were (never the

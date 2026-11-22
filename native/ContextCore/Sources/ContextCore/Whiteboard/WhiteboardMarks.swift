@@ -23,7 +23,8 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
   /// A new one for each picture.
   public let pictureID: String
   public let frame: Frame
-  /// The thread's title when this picture starts it.
+  /// The board's name when the picture was taken: the thread's title when this picture starts it, and `board_title` on
+  /// every picture, so a renamed board renames its chat (story 1158, bead context-grabber-8rei).
   public let title: String
   /// The board's half of the turn (story 818): its revision, what came of Larry's last change, the Pencil and taps. On
   /// the chat message only, never on the strokes.
@@ -58,6 +59,7 @@ public struct WhiteboardPicture: Codable, Equatable, Sendable {
     ]
     if let folds, !folds.steps.isEmpty { out["picture_folds"] = folds.wire }
     if let build, !build.isEmpty { out["build"] = build }
+    if !title.isEmpty { out["board_title"] = title }
     return out
   }
 }

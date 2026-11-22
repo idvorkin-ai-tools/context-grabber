@@ -367,6 +367,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1158:
+
+- **Summary:** Every picture a board sends Larry carries the board's name, so a renamed board renames its chat
+- **Status:** in progress
+- **Issues:** bead context-grabber-8rei (Igor via Larry, 2026-11-22: renamed boards should rename their chat and show on the debug page)
+- **Spec:** [Board ops](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *What the board says about its own sending, for the debug page*
+
+#### Use Case:
+- **As someone** who renames a board after it has started its chat with Larry
+- **I want to** have the chat take the board's new name
+- **so that** the chat list and the Cockpit's board debug page name the board I am looking at, not the day it began
+
+#### Acceptance Criteria:
+- **Scenario:** A board renamed after its first picture
+- **Given:** a board whose chat with Larry has started under its old name
+- **When:** I rename it and the next picture goes to Larry, by the hand-off, *Send to Larry* or a *Retry*, or from the outbox after waiting
+- **Then:** that picture's message carries the board's name as it was when the picture was taken, and a Cockpit that reads it retitles the chat *Board: <name>*; one that doesn't ignores it
+
+---
+
 ### User Story 1156:
 
 - **Summary:** Words spoken to the board carry their mic-on-to-sent timing to the Cockpit's board debug page, never the words
