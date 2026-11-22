@@ -163,8 +163,8 @@ public enum WhiteboardNote {
   /// device drew); `icloud`: the one the board carries through iCloud, which names where a thread came from.
   public static func tap(onPhone: Bool, thread: String?, icloud: String? = nil) -> Tap {
     guard onPhone else { return .toggle }
-    if let thread { return .openChat(thread, fromICloud: thread == icloud) }
-    return icloud.map { .openChat($0, fromICloud: true) } ?? .nothing
+    guard let thread else { return .nothing }
+    return .openChat(thread, fromICloud: thread == icloud)
   }
 
   /// #1161 (story 769): what the note says when a tap on an iPhone finds no thread. A board's thread is known only to

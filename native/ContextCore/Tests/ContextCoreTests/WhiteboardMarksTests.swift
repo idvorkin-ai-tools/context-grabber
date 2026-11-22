@@ -394,6 +394,20 @@ final class WhiteboardMarksTests: XCTestCase {
     XCTAssertNil(threads.board("b1", carried: "t-ipad", drawnHere: true))
     threads.set("t-next", board: "b1")
     XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: true), "t-next")
+    XCTAssertEqual(
+      threads.board("b1", carried: "t-ipad", drawnHere: false), "t-next",
+      "the board's copy still carries the dead one, and the phone's new thread is used instead")
+  }
+
+  /// A phone with an older thread of its own used the carried one, which the Cockpit then lost: it is gone too.
+  func testACarriedThreadLostBesideAnOlderOwnOneIsNeverUsed() throws {
+    let threads = try makeThreads()
+    threads.set("t-mine", board: "b1")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: false), "t-ipad")
+    XCTAssertTrue(threads.forget("t-ipad", board: "b1"))
+    XCTAssertFalse(threads.forget("t-ipad", board: "b1"), "already known gone")
+    XCTAssertEqual(threads.board("b1", carried: "t-ipad", drawnHere: false), "t-mine")
+    XCTAssertEqual(threads.thread(board: "b1"), "t-mine", "its own thread stays")
   }
 
   /// The Cockpit no longer has the thread: that picture is refused and the board's next one starts a new thread.
@@ -431,20 +445,21 @@ final class WhiteboardMarksTests: XCTestCase {
   func testForgettingAnOldThreadLeavesANewerOne() throws {
     let threads = try makeThreads()
     threads.set("new", board: "b1")
-    XCTAssertFalse(threads.forget("old", board: "b1"))
+    XCTAssertTrue(threads.forget("old", board: "b1"))
     XCTAssertEqual(threads.thread(board: "b1"), "new")
-    XCTAssertEqual(threads.gone(), [:], "nothing forgotten, nothing to clear from iCloud")
+    XCTAssertEqual(threads.gone(), ["b1": "old"])
   }
 
-  /// context-grabber-e3vb: a forgotten thread is remembered as gone until the board's next thread starts.
-  func testAForgottenThreadIsGoneUntilANewOneStarts() throws {
+  /// context-grabber-e3vb: a forgotten thread stays gone after the board's next thread starts, as the board's iCloud
+  /// copy may still carry it.
+  func testAForgottenThreadStaysGoneAfterANewOneStarts() throws {
     let threads = try makeThreads()
     threads.set("t1", board: "b1")
     XCTAssertTrue(threads.forget("t1", board: "b1"))
     XCTAssertEqual(threads.gone(), ["b1": "t1"])
     XCTAssertEqual(threads.all(), [:], "a gone thread is never read as the board's")
     threads.set("t2", board: "b1")
-    XCTAssertEqual(threads.gone(), [:])
+    XCTAssertEqual(threads.gone(), ["b1": "t1"])
     XCTAssertEqual(threads.all(), ["b1": "t2"])
   }
 

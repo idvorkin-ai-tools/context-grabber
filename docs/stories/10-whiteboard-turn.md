@@ -560,7 +560,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 385:
 
 - **Summary:** One board, one thread
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) on the device that started the thread, and on every device (a Send goes to the thread the board carries through iCloud) in [530442d2](https://github.com/idvorkin/context-grabber/commit/530442d2) (story 1158, bead context-grabber-da1), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b) on the device that started the thread, and on every device (a Send goes to the thread the board carries through iCloud) in [c1b960b5](https://github.com/idvorkin/context-grabber/commit/c1b960b5) (story 1158, bead context-grabber-da1), and a Send recording the thread as it lands, closed board or not, in the review fixes on this branch; verified by host tests (`WhiteboardMarksTests`: pictures queued with no thread share the one the first starts, a lost thread frees the board); the buttons holding each other back, and a Send's thread on the iPad, not yet tried
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
@@ -579,7 +579,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1158:
 
 - **Summary:** A Send from any device goes to the board's one conversation
-- **Status:** implemented in [530442d2](https://github.com/idvorkin/context-grabber/commit/530442d2) (bead context-grabber-da1); verified by host tests (`WhiteboardMarksTests`: `testASendWithNoThreadOfItsOwnUsesTheOneTheBoardCarries`, `testASendWithNeitherStartsOneAndRecordsIt`, `testTheBoardsThreadIsTheCarriedOneExceptOnTheDrawingDevice`, `testACarriedThreadTheCockpitLostIsNeverUsed`; `just native-test`) and the Mac build (`just native-build-mac`); the phone's Send on an iPad-drawn board is owed on the devices (iCloud carries the thread only between real devices, and no iPhone runs while the whiteboard work is in progress); a board with no thread sent from the iPhone first is bead context-grabber-2ezr
+- **Status:** implemented in [c1b960b5](https://github.com/idvorkin/context-grabber/commit/c1b960b5) (bead context-grabber-da1); verified by host tests (`WhiteboardMarksTests`: `testASendWithNoThreadOfItsOwnUsesTheOneTheBoardCarries`, `testASendWithNeitherStartsOneAndRecordsIt`, `testTheBoardsThreadIsTheCarriedOneExceptOnTheDrawingDevice`, `testACarriedThreadTheCockpitLostIsNeverUsed`, `testACarriedThreadLostBesideAnOlderOwnOneIsNeverUsed`; `just native-test`) and the Mac build (`just native-build-mac`); the phone's Send on an iPad-drawn board is owed on the devices (iCloud carries the thread only between real devices, and no iPhone runs while the whiteboard work is in progress); a board with no thread sent from the iPhone first is bead context-grabber-2ezr
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
 - **Issues:** bead context-grabber-da1 (Igor's pick on the design board, 2026-11-22: "a Send from any device goes to the board's one conversation"; read from the code: a Send used the thread this device started, so an iPhone's Send on an iPad's board started a second one)
 
@@ -592,22 +592,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A phone's Send on an iPad's board
 - **Given:** a board drawn on the iPad that already has a conversation with Larry, synced since, open on my iPhone
 - **When:** I tap *Send to Larry* on the phone
-- **Then:** the picture lands in that same conversation, the one the phone's note opens (story 1110), and no second thread is started; the phone's note and bubble open it after
-
-- **Scenario:** An older thread of the phone's own
-- **Given:** an iPad's board that this iPhone sent to Larry before this, starting a second thread then
-- **When:** I tap *Send to Larry*, the note's line or the list's bubble on the phone
-- **Then:** each goes to the thread the board carries, not the phone's older one
-
-- **Scenario:** A reinstalled iPad
-- **Given:** a board that carries its thread through iCloud, on an iPad reinstalled since, which knows no threads of its own
-- **When:** I send it to Larry, or take Larry's turn
-- **Then:** the picture goes to the thread the board carries, not a new one
-
-- **Scenario:** A thread the Cockpit lost
-- **Given:** a board whose carried thread the Cockpit no longer has
-- **When:** a picture to it is refused, and I send again
-- **Then:** the next picture starts a new thread; the dead one is never used again on that device
+- **Then:** the picture lands in that same conversation, the one the phone's note opens (story 1110), and no second thread is started, even when the phone started an older thread of its own for the board before; the phone's note and bubble open it after. The same holds on an iPad reinstalled since it drew the board, and a thread the Cockpit has lost is never used again on that device: the next picture starts a new one
 
 ---
 

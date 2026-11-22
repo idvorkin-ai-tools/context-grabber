@@ -87,13 +87,13 @@ public struct WhiteboardThreads: @unchecked Sendable {
     return drawnHere ? own ?? carried : carried ?? own
   }
 
-  /// A thread the Cockpit said is gone, kept until a new one starts (context-grabber-e3vb): the board's iCloud copy
-  /// still carries it, and the next sync clears it there. Its own prefix, so `all()` never reads it as a board.
+  /// A thread the Cockpit said is gone (context-grabber-e3vb): the board's iCloud copy may still carry it, and only the
+  /// drawing device's sync clears it there, so it stays gone after a new thread starts; a thread id is never reused.
+  /// Its own prefix, so `all()` never reads it as a board.
   private func goneKey(_ board: String) -> String { "whiteboard_gone_thread_\(board)" }
 
   public func set(_ thread: String, board: String) {
     defaults.set(thread, forKey: key(board))
-    defaults.removeObject(forKey: goneKey(board))
   }
 
   /// Every board this device has a thread for, board id to thread (#1091: a thread's *Board* finds its board).
@@ -106,19 +106,19 @@ public struct WhiteboardThreads: @unchecked Sendable {
     return out
   }
 
-  /// The Cockpit no longer has `thread`. A newer thread the board has moved to stays. True when this forgot it, which
-  /// also remembers it as gone, so the board's iCloud copy stops carrying it (context-grabber-e3vb). With no thread of
-  /// its own the board's carried one was used (story 1158), so it is remembered as gone too.
+  /// The Cockpit no longer has `thread`: it is remembered as gone, so it is never used again and the board's iCloud
+  /// copy stops carrying it (context-grabber-e3vb), whether it was this device's own or the one the board carries
+  /// (story 1158). A newer thread of this device's own stays. True when this learned something new.
   @discardableResult
   public func forget(_ thread: String, board: String) -> Bool {
-    let own = self.thread(board: board)
-    guard own == thread || own == nil else { return false }
-    defaults.removeObject(forKey: key(board))
+    let own = self.thread(board: board) == thread
+    let known = defaults.string(forKey: goneKey(board)) == thread
+    if own { defaults.removeObject(forKey: key(board)) }
     defaults.set(thread, forKey: goneKey(board))
-    return true
+    return own || !known
   }
 
-  /// Every board whose thread the Cockpit said is gone and no new one has started since, board id to that thread.
+  /// Every board with a thread the Cockpit said is gone, board id to that thread.
   public func gone() -> [String: String] {
     let prefix = goneKey("")
     var out: [String: String] = [:]
