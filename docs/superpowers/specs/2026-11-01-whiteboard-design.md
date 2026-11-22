@@ -88,7 +88,9 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     A meaning that arrives and can't be read is not taken; the device keeps what it had, and the next sync asks again.
   - **A device that couldn't read its own copy never sends an empty one.** If the drawing device's meaning was
     unreadable and set aside, its next uploads carry the ink without a meaning, so iCloud's copy stays, until that
-    device has taken iCloud's copy back down or made a new one from a change on the board.
+    device has taken iCloud's copy back down. A change on the board in the meantime (a fold opened, a card answered)
+    doesn't end that: it stays on the device and is replaced when iCloud's copy arrives. If iCloud has no meaning for
+    the board, the device's own becomes the one it sends.
   - A board last sent up by a build from before this has no meaning in iCloud: other devices open it with its ink, as
     today.
   - A change to the meaning alone (a fold opened, a card answered, a batch of Larry's handled) counts as a change: it
@@ -591,9 +593,12 @@ that ghosts need the tailnet.
 ## Acceptance
 
 - Picking the eraser, the lasso or another pen in the tool picker logs what the picker shows and what the board holds, and every pen touch after it names both (story 1064, #1078).
-- (Proposed, cc75 step 2.) A board drawn on the iPad with a fold, a header, a question card and a kept text of Larry's
-  opens on the iPhone with all four; a card left on the iPhone is gone after the next sync; an iPad whose meaning
-  file was unreadable sends up no empty meaning over iCloud's.
+- (Proposed, cc75 step 2, story 1109.) A board drawn on the iPad with a fold, a header, a question card and a kept
+  text of Larry's opens on the iPhone with all four; a card left on the iPhone is gone after the next sync; an iPad
+  whose meaning file was unreadable sends up no meaning over iCloud's, even after a fold is opened, until it has taken
+  iCloud's back; a newer version whose drawing fails to come down is not taken, and neither is one whose meaning
+  can't be read: the device keeps the pair it had and asks again on the next sync; a TestFlight build that sends the
+  meaning up isn't shipped until the CloudKit schema is deployed to production.
 - On the iPad, the Pencil draws, a finger pans, and the eraser removes strokes.
 - A stroke whose ink is of a kind the app has no name for draws, saves and goes to Larry like any other, and the board
   stays open; the log names that kind once (#1083).

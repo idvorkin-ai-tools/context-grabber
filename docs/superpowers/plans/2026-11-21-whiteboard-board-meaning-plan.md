@@ -59,24 +59,24 @@ Not built until Igor says yes to syncing the meaning at all, and to the producti
   the device couldn't read (set aside as `.unreadable` in step 1), leaves the key unset: with `savePolicy .allKeys`
   an unset key isn't sent, so iCloud's asset stays. Never upload an empty `BoardMeaning` written to stand in for an
   unreadable one; a per-board "meaning held" flag (like the drawing's #1042 hold) says the local file isn't
-  authoritative until a download replaces it or a real change is saved over it.
+  authoritative until a download of iCloud's copy replaces it. A change saved while held doesn't clear it.
 - **Meaning-only changes upload.** Step 1 saves the meaning alone without touching the index; step 2 makes that save
   call `index.drew(...)` (or a `meaningChanged`) so `updated` moves and `pendingUploads` picks the board up. It
   must stay clear of `dropsOnClose` (a board with meaning but no strokes is still dropped only by the strokes rule).
 - **Download.** `download` asks for `["drawing", "picture", "meaning"]`. `takeReplica` takes the pair: decode the
-  drawing and the meaning (`BoardMeaning` decode, every field optional) before replacing either; if the drawing
-  fails, take neither; if only the meaning fails, keep the drawing, keep the old meaning and leave the board's
-  `fetched` behind so the next sync asks again. A record with no `meaning` (an older build drew it) keeps the
-  local meaning, or none.
+  drawing and the meaning (`BoardMeaning` decode, every field optional) before replacing either; if either fails,
+  take neither, keep the old pair and leave the board's `fetched` behind so the next sync asks again. A record with
+  no `meaning` (an older build drew it) keeps the local meaning, or none.
 - **Replica wins over local.** On a look-only device the downloaded meaning replaces the local file whole (its own
   cards and refusals go). An open look-only board reloads its ledger from the new file as it reloads the drawing.
 - **Own board after a lost meaning.** On the drawing device, a held meaning is replaced by iCloud's on the next
   download of its own board (the merge already lists own boards; `takeReplica` today refuses this device's boards,
-  so the meaning needs its own path there, or the hold just clears once a change is saved).
+  so the meaning needs its own path there). Meaning changes made on the stand-in while held are replaced by
+  iCloud's; if iCloud's record has no `meaning`, the hold clears and the local file becomes the one sent up.
 - **Delete.** The record goes, so the asset goes; nothing new.
 - **Logs.** `whiteboard_sync` per board: `meaning` = `taken` | `missing` (no asset on the record) | `unreadable`
   | `held` (upload left it out). DEBUGGING's whiteboard rows get the field.
-- **Tests (host).** Upload leaves `meaning` out when held or absent; `takeReplica` takes the pair or neither; a
+- **Tests (host).** Upload leaves `meaning` out when held or absent, and a change saved while held doesn't clear the hold; `takeReplica` takes the pair or neither; a
   record without `meaning` keeps the local file; a meaning-only save moves `updated` and isn't dropped on close.
   CloudKit itself is phone- and iPad-only (the simulator has no iCloud account).
 

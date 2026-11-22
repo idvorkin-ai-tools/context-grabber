@@ -8411,7 +8411,7 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 
 - **Summary:** A board's folds, cards and Larry's names reach every device with its ink
 - **Issues:** bead context-grabber-cc75 step 2 (the architecture review, 2026-11-21: a board's meaning lived only on the iPad that drew it, so the iPhone, the Mac and a reinstalled iPad saw the ink without the folds, the cards, or the names Larry knows the strokes by)
-- **Status:** proposed: spec and plan only, waiting on Igor's decision to sync the meaning and on the CloudKit production-schema step for TestFlight builds; not built
+- **Status:** not implemented; asks: bead context-grabber-cc75 step 2 (proposed, waiting on Igor's decision to sync the meaning and on the CloudKit production-schema deploy for TestFlight builds)
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *A board's meaning goes through iCloud with its ink*
 
 #### Use Case:
@@ -8424,25 +8424,5 @@ Drawing on the iPad with the Pencil, Larry seeing the board, and Claude and Larr
 - **Given:** a board drawn on the iPad with a folded header, a question card and a kept text of Larry's
 - **When:** the iPhone syncs and I open the board there
 - **Then:** the header is folded, the card and the text are there, and Larry's text keeps its name
-
-- **Scenario:** The drawing device's copy wins
-- **Given:** Larry left a question card on that board while I looked at it on the iPhone
-- **When:** the iPad's next version of the board comes down
-- **Then:** the iPhone shows the iPad's cards, and the one left on the iPhone is gone
-
-- **Scenario:** An unreadable copy never goes up empty
-- **Given:** the iPad couldn't read its own meaning for a board and set it aside
-- **When:** the iPad sends the board's ink up
-- **Then:** iCloud keeps the meaning it had, and the other devices still show the folds and cards
-
-- **Scenario:** Ink and meaning come down as a pair
-- **Given:** a newer version of the board is in iCloud
-- **When:** its drawing fails to come down, or its meaning can't be read
-- **Then:** the device keeps the version it had and asks again on the next sync, never showing a new meaning over old ink
-
-- **Scenario:** A TestFlight build
-- **Given:** a TestFlight build that sends the meaning up
-- **When:** it is shipped before Igor has deployed the CloudKit schema to production
-- **Then:** its boards would stop syncing, so it isn't shipped until the deploy is done
 
 ---
