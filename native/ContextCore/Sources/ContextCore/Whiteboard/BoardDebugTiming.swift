@@ -1,5 +1,5 @@
 //  What the board says about its own sending, for the Cockpit's board debug page (spec 2026-11-16-whiteboard-board-ops-design.md,
-//  *What the board says about its own sending, for the debug page*; story 1155, bead context-grabber-7zmj): the iPad's half
+//  *What the board says about its own sending, for the debug page*; story 1112, bead context-grabber-7zmj): the iPad's half
 //  of a picture's way to Larry, and spoken words' mic-off-to-text timing. Both ride among the turn's events.
 
 import Foundation

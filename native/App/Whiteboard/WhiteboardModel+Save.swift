@@ -94,7 +94,7 @@ extension WhiteboardModel {
     draft.image = jpeg
     let title = store.index.board(board.id)?.title ?? board.title
     draft.text = words.map { "\(title): \($0)" } ?? title
-    // Story 1155: spoken words waiting go among this picture's events.
+    // Story 1112: spoken words waiting go among this picture's events.
     micTimingsGo()
     var sending = WhiteboardPicture(
       board: board.id, title: title, rect: shot.rect, scale: shot.scale, report: turnReport())

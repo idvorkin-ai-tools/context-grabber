@@ -120,7 +120,7 @@ extension WhiteboardModel {
   /// Story 846: the events so far go to the Cockpit now, not with the next turn. Taken, they're gone; not taken (no
   /// route yet, or no answer), they wait for the next turn, and the log says which.
   private func sendEventsNow(why: String) {
-    // Story 1155: spoken words waiting go with these events.
+    // Story 1112: spoken words waiting go with these events.
     micTimingsGo()
     let taken = events.take()
     let report = BoardTurnReport(

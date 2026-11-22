@@ -105,7 +105,7 @@ extension WhiteboardModel {
   func handToLarry(
     _ turn: WhiteboardLarryTurn.State, said: String?, from: String = "button", again: LarryOut? = nil
   ) async {
-    // Story 1155: spoken words waiting go among this picture's events (a Retry's already went with it).
+    // Story 1112: spoken words waiting go among this picture's events (a Retry's already went with it).
     if again == nil { micTimingsGo() }
     guard editable, let out = again ?? larryPicture(said: said) else {
       larry.failed(turn, words: said)
@@ -135,7 +135,7 @@ extension WhiteboardModel {
     // Story 419: the strokes first, under this picture's id; the picture goes whatever they answered.
     let strokesStarted = ContinuousClock.now
     event.merge(WhiteboardStrokes.logFields(await sendStrokes(strokes, folds: folds, picture: picture))) { $1 }
-    // Story 1155: the iPad's half of the send, among the picture's events for the Cockpit's debug page.
+    // Story 1112: the iPad's half of the send, among the picture's events for the Cockpit's debug page.
     var post = BoardPostTiming(
       t: 0, build: Self.buildLine, from: from, renderMs: out.renderMs, encodeMs: out.encodeMs,
       strokesMs: WhiteboardTimings.ms(strokesStarted.duration(to: .now)), bytes: jpeg.count)
@@ -305,7 +305,7 @@ extension WhiteboardModel {
   /// The picture uploaded, then the message that names it. #1136 (stories 908, 909): a connection lost under either is sent
   /// once more by itself, once the app is back on screen and if the hand-off still speaks for the board; `facts` gets
   /// what became of it, and the app's state when it was lost and when it went again.
-  /// `post`: the send's timing (story 1155), finished here as the message leaves and added to its events.
+  /// `post`: the send's timing (story 1112), finished here as the message leaves and added to its events.
   private func deliver(
     _ jpeg: Data, picture: WhiteboardPicture, thread: String?, note: String, attempt: Int,
     post: inout BoardPostTiming, facts: inout [String: Any]
@@ -718,7 +718,7 @@ extension WhiteboardModel {
     let scale: CGFloat
     /// The words that went with it, back in the queue if it is dismissed, or interrupted before the Cockpit has it.
     let said: String?
-    /// How long it took to draw and to encode (story 1155): a *Retry* sends these again with its own send's times.
+    /// How long it took to draw and to encode (story 1112): a *Retry* sends these again with its own send's times.
     var renderMs: Int?
     var encodeMs: Int?
     /// The furthest the Cockpit's mark on its message has got, on the thread.

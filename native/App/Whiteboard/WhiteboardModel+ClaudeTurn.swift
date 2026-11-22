@@ -30,7 +30,7 @@ extension WhiteboardModel {
     timings.render = rendering.duration(to: encoding)
     let png = image.pngData() ?? Data()
     timings.encode = encoding.duration(to: .now)
-    // Story 1155: spoken words this picture carries are sent now; their timing waits among the events for Larry.
+    // Story 1112: spoken words this picture carries are sent now; their timing waits among the events for Larry.
     if said != nil { micTimingsGo() }
     let started = Date()
     let answer: WhiteboardTurn.Answer
