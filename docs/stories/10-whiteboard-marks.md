@@ -443,7 +443,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** His earlier marks stay when he replies again
 - **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4). Host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`, `BoardMarksReplayTests`), the Mac build, and the simulator (`WhiteboardTurnUITests.testLarrysMarksArriveOnTheirOwnAndAStrayTapLeavesThem`) verified that his second reply's three marks join the first's two and a stray tap leaves all five. The iPad check is pending
 - **Issues:** bead `context-grabber-n8ab`: Igor, 2026-11-22 12:35 on board 8f986938 (iPad log): Larry's 12-mark sequence diagram (row 99edfb64758e) was showing; his next reply, a label with a question card (row 4d4bc5dd9efd), took the board from 12 marks to 1, and the reply after it replaced that one too
-- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A new reply adds his marks, never clears them*
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A new reply adds his marks, never clears them*; Igor's design-board decision 20 of 2026-11-22: his suggestions stay until kept or dismissed, across later replies and across closing and opening the board, and Claude's quick ghosts still fade (the answer dropped when the board was written past is story 350's)
 
 #### Use Case:
 - **As someone** thinking on the board with Larry
@@ -455,6 +455,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** twelve marks of his diagram are showing and I have kept or dismissed none
 - **When:** his next reply brings a label, and the one after a question card
 - **Then:** the diagram's twelve marks stay, the label shows beside them, and the count to keep is thirteen
+
+- **Scenario:** Closed and opened again
+- **Given:** marks from two of his replies are showing
+- **When:** I close the board and open it again
+- **Then:** both replies' marks are there, less any I kept or dismissed
 
 ---
 

@@ -11,7 +11,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1156:
+### User Story 1159:
 
 - **Summary:** The session log records which earlier replies stayed on the board
 - **Status:** implemented in [95c5ca4](https://github.com/idvorkin/context-grabber/commit/95c5ca4). The simulator verified that the earlier marks stayed (`WhiteboardTurnUITests`). The log fields were checked in source
