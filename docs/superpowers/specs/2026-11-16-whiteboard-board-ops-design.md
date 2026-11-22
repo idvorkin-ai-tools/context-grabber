@@ -90,6 +90,13 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   pushes ink mid-stroke.
 - Larry learns when Igor taps the board, and whether the tap landed on one of his marks. That is enough for him to
   offer tap-to-keep, or a tappable band where room will open.
+- **A long stretch of drawing never costs Larry what changed** (bead context-grabber-27sv, 2026-11-22: a two-minute
+  stretch of drawing and a kept reply between turns showed *5 events dropped* on the debug page). A turn carries up to
+  as many events as the Cockpit takes (200), leaving room for the picture's own sending event. Past that the board
+  lets go first of a view that a later view replaced, then of the Pencil's oldest downs and ups, and only then of the
+  oldest of anything else, so Igor's ink changes, selections, taps and undos, the outcome of Larry's change and the
+  debug timings are the last to go. Every event let go is still counted as dropped, and the board's session log says
+  how many of each kind went with each turn.
 
 ### What the board says about its own sending, for the debug page (Igor, 2026-11-22, bead context-grabber-7zmj)
 

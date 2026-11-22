@@ -75,13 +75,62 @@ public enum BoardEvent: Equatable, Codable, Sendable {
   }
 }
 
-/// The events since the last turn, at most `cap`: a long drawing session keeps its newest.
+extension BoardEvent {
+  /// The event's `type` on the wire, for counting the ones let go.
+  public var kind: String {
+    switch self {
+    case .pen: return "pen"
+    case .tap: return "tap"
+    case .strokesChanged: return "strokes_changed"
+    case .selection: return "selection"
+    case .margin: return "margin"
+    case .viewport: return "viewport"
+    case .undo: return "undo"
+    case .overlayTap: return "overlay_tap"
+    case .post: return "post"
+    case .mic: return "mic"
+    }
+  }
+
+  /// Which of `events` goes first when a turn has too many (bead context-grabber-27sv): a view a later one replaced,
+  /// then the Pencil's oldest down or up, and only then the oldest of anything. Igor's ink changes, selections, taps
+  /// and undos, and the debug timings, are the last to go.
+  public static func firstToGo(in events: [BoardEvent]) -> Int {
+    let isView = { (event: BoardEvent) -> Bool in
+      if case .viewport = event { return true }
+      return false
+    }
+    if let last = events.lastIndex(where: isView), let first = events.firstIndex(where: isView), first < last {
+      return first
+    }
+    if let pen = events.firstIndex(where: { if case .pen = $0 { return true } else { return false } }) { return pen }
+    return 0
+  }
+}
+
+/// The events since the last turn, at most `cap`: past it the least useful go first (`BoardEvent.firstToGo`).
 public struct BoardEvents: Equatable, Sendable {
-  public static let cap = 100
+  /// As many as the Cockpit takes in a turn, less one for the picture's own `post` event (bead context-grabber-27sv).
+  public static let cap = BoardTurnReport.maxEvents - 1
+
+  /// A turn's events as taken: those kept, how many went to stay under the cap, and how many of each kind.
+  public struct Taken: Equatable, Sendable {
+    public var events: [BoardEvent]
+    public var dropped: Int
+    public var droppedKinds: [String: Int]
+
+    public init(events: [BoardEvent], dropped: Int = 0, droppedKinds: [String: Int] = [:]) {
+      self.events = events
+      self.dropped = dropped
+      self.droppedKinds = droppedKinds
+    }
+  }
 
   public private(set) var list: [BoardEvent] = []
   /// Dropped since the last `take` to stay under the cap.
   public private(set) var dropped = 0
+  /// The dropped ones by kind, for the session log.
+  public private(set) var droppedKinds: [String: Int] = [:]
   private var lastPen: (down: Bool, t: Int64)?
 
   public init() {}
@@ -104,29 +153,33 @@ public struct BoardEvents: Equatable, Sendable {
   public mutating func record(_ event: BoardEvent) { add(event) }
 
   /// Events taken for a send that didn't get through: back in front of any since, under the cap.
-  public mutating func restore(_ taken: (events: [BoardEvent], dropped: Int)) {
+  public mutating func restore(_ taken: Taken) {
     list = taken.events + list
     dropped += taken.dropped
-    if list.count > Self.cap {
-      dropped += list.count - Self.cap
-      list.removeFirst(list.count - Self.cap)
-    }
+    droppedKinds.merge(taken.droppedKinds, uniquingKeysWith: +)
+    trim()
   }
 
   /// The events for a turn; the next turn gets only what happens after.
-  public mutating func take() -> (events: [BoardEvent], dropped: Int) {
+  public mutating func take() -> Taken {
     defer {
       list = []
       dropped = 0
+      droppedKinds = [:]
     }
-    return (list, dropped)
+    return Taken(events: list, dropped: dropped, droppedKinds: droppedKinds)
   }
 
   private mutating func add(_ event: BoardEvent) {
     list.append(event)
-    if list.count > Self.cap {
-      dropped += list.count - Self.cap
-      list.removeFirst(list.count - Self.cap)
+    trim()
+  }
+
+  private mutating func trim() {
+    while list.count > Self.cap {
+      let gone = list.remove(at: BoardEvent.firstToGo(in: list))
+      dropped += 1
+      droppedKinds[gone.kind, default: 0] += 1
     }
   }
 }
@@ -137,12 +190,25 @@ public struct BoardTurnReport: Equatable, Codable, Sendable {
   public var opResult: BoardOps.Result?
   public var events: [BoardEvent]
   public var eventsDropped: Int
+  /// The dropped ones by kind, for the session log only (never on the wire); nil in a report from before the count.
+  public var droppedKinds: [String: Int]?
 
-  public init(rev: Int, opResult: BoardOps.Result? = nil, events: [BoardEvent] = [], eventsDropped: Int = 0) {
+  public init(
+    rev: Int, opResult: BoardOps.Result? = nil, events: [BoardEvent] = [], eventsDropped: Int = 0,
+    droppedKinds: [String: Int]? = nil
+  ) {
     self.rev = rev
     self.opResult = opResult
     self.events = events
     self.eventsDropped = eventsDropped
+    self.droppedKinds = droppedKinds
+  }
+
+  /// The board's events as taken for a turn.
+  public init(rev: Int, opResult: BoardOps.Result? = nil, taken: BoardEvents.Taken) {
+    self.init(
+      rev: rev, opResult: opResult, events: taken.events, eventsDropped: taken.dropped,
+      droppedKinds: taken.droppedKinds.isEmpty ? nil : taken.droppedKinds)
   }
 
   /// The Cockpit's caps on `POST /whiteboard/events`: events per post, bytes per event, bytes per body.
@@ -152,16 +218,16 @@ public struct BoardTurnReport: Equatable, Codable, Sendable {
   /// What the events may take of a body, leaving room for the rest of the message (its picture goes separately).
   static let eventBudget = maxBodyBytes - 16 * 1024
 
-  /// Within the Cockpit's caps: an event over its size is dropped, and the oldest go until the rest fit. Every one
-  /// dropped is counted in `events_dropped`.
+  /// Within the Cockpit's caps: an event over its size is dropped, and the least useful go (`BoardEvent.firstToGo`)
+  /// until the rest fit. Every one dropped is counted in `events_dropped`.
   public var wire: [String: Any] {
-    let sized = events.map(\.wire).map { ($0, Self.bytes($0)) }
-    var kept = sized.filter { $0.1 <= Self.maxEventBytes }
-    var total = kept.reduce(0) { $0 + $1.1 + 1 }
+    let sized = events.map { ($0, $0.wire) }.map { ($0.0, $0.1, Self.bytes($0.1)) }
+    var kept = sized.filter { $0.2 <= Self.maxEventBytes }
+    var total = kept.reduce(0) { $0 + $1.2 + 1 }
     while !kept.isEmpty, kept.count > Self.maxEvents || total > Self.eventBudget {
-      total -= kept.removeFirst().1 + 1
+      total -= kept.remove(at: BoardEvent.firstToGo(in: kept.map(\.0))).2 + 1
     }
-    var out: [String: Any] = ["rev": rev, "events": kept.map(\.0)]
+    var out: [String: Any] = ["rev": rev, "events": kept.map(\.1)]
     if let opResult { out["op_result"] = opResult.wire }
     let dropped = eventsDropped + sized.count - kept.count
     if dropped > 0 { out["events_dropped"] = dropped }
