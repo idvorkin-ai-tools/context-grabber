@@ -15,9 +15,7 @@ extension WhiteboardModel {
   /// 825, 810, #883): a stray tap never keeps or dismisses a mark.
   func tap(at point: CGPoint, zoom: CGFloat) {
     // #941: the nearest mark takes the tap, a label anywhere on its words, so a box drawn first never steals its name's.
-    let reach = { (ghost: Ghost) in
-      WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
-    }
+    let reach = markReach(at: point, zoom: zoom)
     let within = turns.ghosts.filter { reach($0) != nil }.count
     switch turns.tapNearest(reach: reach) {
     case .nothing: return
@@ -30,6 +28,19 @@ extension WhiteboardModel {
         ])
     case .putAway:
       log.event("whiteboard", ["action": "mark_choice", "board": board.id, "choice": "away", "why": "tap_off"])
+    }
+  }
+
+  /// Whether a tap at `point` (board points) reaches any mark showing (story 1101).
+  func reachesMark(at point: CGPoint, zoom: CGFloat) -> Bool {
+    let reach = markReach(at: point, zoom: zoom)
+    return turns.ghosts.contains { reach($0) != nil }
+  }
+
+  /// How far a tap at `point` is from a mark, or nil out of a finger's reach.
+  private func markReach(at point: CGPoint, zoom: CGFloat) -> (Ghost) -> CGFloat? {
+    { ghost in
+      WhiteboardTurn.reach(ghost.lines, kind: ghost.kind, at: point, tolerance: WhiteboardTurn.tapReach / zoom)
     }
   }
 

@@ -112,6 +112,12 @@ suggest changes the board until Igor keeps it.
   of them appears; Larry's stay until kept or dismissed.
 - **A tap off the marks dismisses nothing** (#823, then #883): one stray tap must never lose a mark, least of all
   Larry's, which don't come back. Clearing a mark takes its own Dismiss.
+- **A tap on his own selection is still his, marks showing or not** (#1170; Igor, 2026-11-22: "Click, select, then
+  delete did nothing"). With ink selected, a finger tap inside the selection that reaches no mark keeps the selection
+  and brings up its menu (Cut, Copy, Delete and the rest), exactly as it does with no marks on the board. Only a tap
+  that reaches a mark chooses that mark (and lets the selection go), and a tap off both the marks and the selection
+  lets the selection go and puts Keep and Dismiss away, as before. The session log's tap line says whether the tap was
+  inside the selection and whether the selection was kept.
 - **Where a finger draws** (an iPhone, an iPad with no Pencil, or with the system's Pencil-only setting off), it stops
   drawing while ghosts show: it taps and pans, so a tap on a mark leaves no dot. With no ghost left (kept, dismissed or faded) it draws again.
 - A ghost turn gives up **10 s** after it was asked, however much has arrived by then (the Cockpit's model takes about
