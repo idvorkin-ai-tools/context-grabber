@@ -1368,3 +1368,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Then:** the mic is not restarted a second time; the bridge is asked about the rebuilt mic, and if it stays silent the line says *the microphone is not reaching Larry*
 
 ---
+
+---
+
+### User Story 1071:
+
+- **Summary:** The call keeps the microphone when I breathe or start the timer during it
+- **Status:** not implemented yet: built on branch native/call-keeps-mic-2r55; the phone not yet. Spec: [native call screen](../superpowers/specs/2026-08-28-native-call-screen-design.md), Breathing and the Gym Timer during a call
+- **Issues:** context-grabber-2r55 (a breathing session started during a call set the audio to playback, the route went to "no microphone · Speaker" and the call's mic re-armed against a 0 Hz input; #739's log)
+
+#### Use Case:
+- **As a** Larry's client on a call who wants to breathe or time a set while we talk
+- **I want to** have the call keep its microphone and its audio whatever I open beside it
+- **so that** Larry never loses me because I started a breathing session or a workout
+
+#### Acceptance Criteria:
+- **Scenario:** Breathing started by hand on a live call
+- **Given:** a call with Larry is live and he can hear me
+- **When:** I open Box breathing with Voice and Begin, or START a round on the Gym Timer
+- **Then:** the session runs on screen in silence with *Sounds are off during the call*, the devices line does not change, and Larry still hears me and I still hear him

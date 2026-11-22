@@ -474,3 +474,23 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** the breathing screen
 - **When:** I tap *4·4·6·2 ×3* and Begin
 - **Then:** I breathe in for 12 seconds, hold 12, breathe out for 18 and hold 6; the line under the title reads "In 12, hold 12, out 18, hold 6."; the summary counts cycles of 48 seconds; the finished session is named "Breathing · 4·4·6·2 ×3 · N cycles"; and *4·4·6·2 ×3* is still chosen the next time I open the screen
+
+
+---
+
+### User Story 281:
+
+- **Summary:** Breathing during a call is silent
+- **Status:** not implemented yet: built on branch native/call-keeps-mic-2r55; the phone not yet. Spec: [box breathing](../superpowers/specs/2026-10-04-box-breathing-design.md)
+- **Issues:** context-grabber-2r55
+
+#### Use Case:
+- **As a** someone breathing beside a call with Larry
+- **I want** the circle to guide me without its voice or tones
+- **so that** the session never takes the call's microphone or talks into the call
+
+#### Acceptance Criteria:
+- **Scenario:** Begin during a live call
+- **Given:** a call with Larry is live and the cue is Voice
+- **When:** I open Box breathing and Begin, then go Back
+- **Then:** the circle runs with nothing said, the screen reads *Sounds are off during the call*, and going Back leaves the call as it was

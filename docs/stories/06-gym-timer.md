@@ -591,7 +591,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Scenario:** Another session takes the audio
 - **Given:** a rounds workout is running and I have left the timer
 - **When:** I open Box breathing, the call with Larry, the Cockpit or the eulogy song's player
-- **Then:** the workout pauses where it was (its card and cues stop), and when I open the timer again it is paused there, ready to RESUME; a song opened in Suno plays alongside the workout like any music
+- **Then:** the workout pauses where it was (its card and cues stop), and when I open the timer again it is paused there, ready to RESUME; a song opened in Suno plays alongside the workout like any music; a workout started during the call counts in silence (story 193)
 
 ---
 
@@ -611,3 +611,22 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** I opened `grabbernative://timer?custom=20,10,8`, did not start it, and pressed *Done*
 - **When:** I open the Gym Timer from its home tile
 - **Then:** the Custom chip shows my saved Custom and the chip I last chose is selected, not the link's 20/10/8
+
+---
+
+### User Story 193:
+
+- **Summary:** A workout during a call counts in silence
+- **Status:** not implemented yet: built on branch native/call-keeps-mic-2r55; the phone not yet. Spec: [ducking](../superpowers/specs/2026-09-07-gym-timer-audio-ducking-design.md)
+- **Issues:** context-grabber-2r55
+
+#### Use Case:
+- **As a** lifter on a call with Larry
+- **I want** the timer to keep counting on its face without its cues
+- **so that** the timer never takes the call's microphone or plays into the call
+
+#### Acceptance Criteria:
+- **Scenario:** START during a live call, then hang up
+- **Given:** a call with Larry is live
+- **When:** I START a round on the Gym Timer, and later hang up mid-round
+- **Then:** the face counts with no count, cue or dip and reads *Sounds are off during the call* while the call lasts; within a couple of seconds of hanging up the note goes and the next cue sounds

@@ -779,6 +779,24 @@ reason — *a call is live in the Cockpit tab* — rather than opening a
 second microphone on the same phone. The reverse is not policed; the page
 does not know about the native call.
 
+### Breathing and the Gym Timer during a call
+
+**The call keeps the microphone** (Igor, 2026-11-21, bead context-grabber-2r55). Box breathing or the Gym Timer
+started while a call is connecting or live runs on screen as usual, **silently**: no voice, no tones, no count, no
+keepalive, and nothing about the phone's audio changes. The call's microphone, its echo cancellation and its route
+(the devices line) stay exactly as they were. Each screen says so in one line, **Sounds are off during the call**,
+for as long as the call lasts.
+
+- The same holds whichever came first: a breathing session or a workout already running when a call starts goes
+  quiet from the call's start, and leaving it (Back, RESET, Done) during the call does not touch the call's audio.
+- When the call ends, the note goes and the sounds come back by themselves within a couple of seconds, with the
+  keepalive, so a session still running keeps sounding with the phone locked.
+- Silent was chosen over playing the cues into the call: the call's audio is set up for a conversation, the
+  timer's cues dip and let go of the audio around each count, and either would reach Larry or end the call's audio.
+  Breathing in silence beside Larry, with the circle and the face on screen, keeps the call whole.
+- The session log says what was held back: each cue the call kept quiet, and each change to the audio the call
+  refused, names the call as the reason.
+
 ### Restart
 
 Igor, 2026-08-29 09:39: *"Including End Call, we should have Restart
@@ -1093,6 +1111,12 @@ delivers is separate and unchanged: once per dead burst.
     edge on it. Open Diagnostics: every level line while he spoke shows
     the mixer's peak under 1.0, and the count of rounded samples; a quiet
     reply shows that count at 0, played exactly as sent.
+
+48. **The call keeps the mic** (context-grabber-2r55). On a live call, open Box breathing with Voice and
+    Begin: the circle runs, nothing is said, the screen reads *Sounds are off during the call*, and Larry still
+    hears Igor and Igor still hears Larry; the devices line does not change. Back out: the call carries on. Same
+    with the Gym Timer: START a round mid-call, its face counts and stays silent, RESET, the call carries on. Hang
+    up with a workout running: within a couple of seconds the next cue sounds and the note is gone.
 
 ## Rationale and risks
 **Why native rather than fixing the web view.** WebKit on iOS suspends

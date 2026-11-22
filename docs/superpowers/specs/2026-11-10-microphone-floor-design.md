@@ -36,7 +36,8 @@ has it. A call beats everyone; anyone else waits for whoever got there first.
   board's mic closing. A recorder that never got going (a permission refused, a recognizer that would not start)
   holds nothing.
 - Playback (the timer's cues, the breathing's, the eulogy song, the card's voice) is not recording, and keeps its own
-  rules: a call refuses or pauses each as before.
+  rules: a call refuses or pauses each as before. Since context-grabber-2r55 a call also refuses the Gym Timer and
+  box breathing the audio: started during a call they run silently, so they never take the call's microphone.
 
 ## Not yet: the board's mic
 
