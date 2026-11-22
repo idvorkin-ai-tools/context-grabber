@@ -32,6 +32,8 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public private(set) var unsaid: String?
   /// The last turn in a line: Larry's words or ghosts not answering.
   public var note: String?
+  /// A stroke landed with Ghosts off since they last came on (story 1116).
+  public private(set) var writingUnwatched = false
   /// When Claude's ghosts go if nothing replaces them (story 358).
   public private(set) var fadeAt: ContinuousClock.Instant?
   public let ghostLife: Duration
@@ -54,6 +56,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public mutating func stroked() -> Bool {
     guard on else {
       note = WhiteboardTurn.writingGhostsOff
+      writingUnwatched = true
       return false
     }
     pacer.strokeAdded()
@@ -93,6 +96,7 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
   public mutating func setOn(_ new: Bool) {
     on = new
     guard !new else {
+      writingUnwatched = false
       if note == WhiteboardTurn.micGhostsOff || note == WhiteboardTurn.writingGhostsOff { note = nil }
       return
     }

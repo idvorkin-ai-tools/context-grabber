@@ -333,6 +333,25 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertTrue(turns.stroked(), "and the next stroke asks again")
   }
 
+  /// Stories 1114, 1116 (bead context-grabber-bozm): only the first unwatched stroke since Ghosts went off is new, however
+  /// often a mic tap or Larry's words take the bar's line in between.
+  func testOnlyTheFirstStrokeWithGhostsOffStartsTheUnwatchedSpell() {
+    var turns = turns()
+    turns.setOn(false)
+    XCTAssertFalse(turns.writingUnwatched)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertTrue(turns.writingUnwatched, "the first stroke begins it")
+    XCTAssertFalse(turns.micMayOpen())
+    XCTAssertEqual(turns.note, WhiteboardTurn.micGhostsOff)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertTrue(turns.writingUnwatched, "a mic tap between strokes doesn't begin another")
+    turns.setOn(true)
+    XCTAssertFalse(turns.writingUnwatched, "Ghosts on ends it")
+    turns.setOn(false)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertTrue(turns.writingUnwatched, "and the next time off begins a new one")
+  }
+
   func testGhostsOffMidTurnMakesItsAnswerStaleAndForgetsTheOwedAsk() {
     var turns = turns()
     let asked = asking(&turns)
