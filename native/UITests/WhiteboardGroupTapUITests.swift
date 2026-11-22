@@ -51,6 +51,10 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let ghosts = app.buttons["whiteboard-ghosts"]
     XCTAssertTrue(ghosts.appears(within: 10), app.debugDescription)
     if ghosts.label.hasPrefix("Ghosts on") { ghosts.tap() }  // Ghosts off: only Larry's marks show.
+    // The picker opens on the tool an earlier launch left (story 1098): the finger draws with the pen.
+    let pen = app.buttons["Pen"]
+    XCTAssertTrue(pen.appears(within: 10), "the tool picker: \(app.debugDescription)")
+    if !pen.isSelected { pen.tap() }  // a tap on the picked pen opens its options over the board
     sleep(2)
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5))
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))
@@ -94,8 +98,14 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     // A finger drags it down by a tenth of the window, from inside the selection (its edges are PaperKit's handles).
     let from = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y))
     let to = app.coordinate(withNormalizedOffset: CGVector(dx: kept.center.x, dy: kept.center.y + 0.1))
-    from.press(forDuration: 0.3, thenDragTo: to)
-    let moved = PaperScreen.showing(app, { $0.larryKept }, { abs($0.minY - kept.minY - 0.1) < 0.03 })
+    // Slow, and held before the lift: on a busy simulator a quick drag reached PaperKit as one late jump and the lift,
+    // and the selection moved 2 points or not at all (bead context-grabber-z93g).
+    from.press(forDuration: 0.3, thenDragTo: to, withVelocity: 200, thenHoldForDuration: 0.5)
+    let moved = PaperScreen.showing(
+      app, { $0.larryKept },
+      {
+        abs($0.minY - kept.minY - 0.1) < 0.03 && abs($0.width - kept.width) < 0.01  // all of it, drawn there
+      })
     shot(app, "dragged")
     let after = try XCTUnwrap(moved, "his group, after the drag")
     XCTAssertEqual(after.minY, kept.minY + 0.1, accuracy: 0.03, "moved down: \(kept) to \(after)")
@@ -105,7 +115,11 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     let undo = app.buttons["whiteboard-undo"]
     waitUntil(NSPredicate(format: "isEnabled == true"), undo, timeout: 5)
     undo.tap()
-    let back = PaperScreen.showing(app, { $0.larryKept }, { abs($0.minY - kept.minY) < 0.01 })
+    let back = PaperScreen.showing(
+      app, { $0.larryKept },
+      {
+        abs($0.minY - kept.minY) < 0.01 && abs($0.width - kept.width) < 0.01
+      })
     shot(app, "after one undo")
     XCTAssertEqual(try XCTUnwrap(back).minY, kept.minY, accuracy: 0.01, "one Undo put it back")
     XCTAssertEqual(back?.width ?? 0, kept.width, accuracy: 0.01)

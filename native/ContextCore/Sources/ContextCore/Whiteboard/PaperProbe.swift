@@ -132,4 +132,8 @@ public enum PaperProbe {
   /// Story 941: a tap that opens a kept text's field, and the keyboard with it, holds PaperKit's dot back: 0.68 and 1.3 s on
   /// the iPad simulator (2026-11-17), where the plain window let it stay as a stroke.
   public static let rewordDotSeconds = 2.0
+  /// Story 947 (bead context-grabber-z93g): a tap that selected a group holds its dot and its selection this long, or until
+  /// the next touch goes down. A busy iPad simulator held the dot back 0.86 to 1.17 s (2026-11-22), past `tapDotSeconds`,
+  /// and the dot that stayed took the group's selection with it.
+  public static let groupTapSeconds = 3.0
 }

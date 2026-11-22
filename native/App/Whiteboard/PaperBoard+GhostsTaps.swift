@@ -84,7 +84,21 @@ extension PaperBoardController {
     let since = CACurrentMediaTime() - tap.time
     let added = change.added.compactMap { frames[$0] }
     guard PaperProbe.isTapDot(added: added, tap: tap.at, secondsSince: since, zoom: screenScale, within: tap.within)
-    else { return false }
+    else {
+      // Bead context-grabber-z93g: ink a tap's window kept, near enough in time to have been its dot.
+      if !change.added.isEmpty, since < tap.within + 1 {
+        let box = added.first ?? .null
+        log.event(
+          "whiteboard",
+          [
+            "action": "paper_tap_dot_kept", "board": model.board.id, "at": point(tap.at), "added": change.added.count,
+            "framed": added.count, "dot": rect(box), "ms": ms(since), "within_ms": ms(tap.within),
+            "away": box.isNull ? -1 : Double(hypot(box.midX - tap.at.x, box.midY - tap.at.y)),
+            "zoom": Double(screenScale),
+          ])
+      }
+      return false
+    }
     ghostTap = nil
     let dot = change.added
     Task { @MainActor [weak self] in

@@ -37,13 +37,14 @@ extension PaperBoardController {
 
   /// The group selected, as a lasso round it would select it. PaperKit makes its own selection for the same tap after
   /// the lift, which goes back to the group (`holdsGroupTap`); a finger that draws leaves a dot, taken back as a
-  /// ghost tap's is. A beat later the log says whether it held.
+  /// ghost tap's is. Both hold until the next touch goes down (`touchWentDown`), or `groupTapSeconds` on a board slow
+  /// to answer the tap. A beat after that the log says whether it held.
   func select(_ group: TappedGroup, tappedAt at: CGPoint) {
     guard let markup = paper.markup else { return }
     let now = CACurrentMediaTime()
-    let until = now + 1.0
+    let until = now + PaperProbe.groupTapSeconds
     groupTap = (group.names, until)
-    if fingersDraw { ghostTap = (at, now, PaperProbe.tapDotSeconds) }
+    if fingersDraw { ghostTap = (at, now, PaperProbe.groupTapSeconds) }
     let ids = groupElements(group.names, in: markup)
     paper.selection = ids
     // As PaperKit's own selection callback would: Larry hears what is selected, and To text shows beside it.
@@ -56,7 +57,7 @@ extension PaperBoardController {
     ]
     log.event("whiteboard", event)
     Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(1.2))
+      try? await Task.sleep(for: .seconds(PaperProbe.groupTapSeconds + 0.2))
       guard let self else { return }
       let wanted = self.paper.markup.map { self.groupElements(group.names, in: $0) } ?? []
       let held = !wanted.isEmpty && self.paper.selection == wanted

@@ -656,6 +656,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   }
 
   override func touchWentDown(_ touch: UITouch) {
+    // Story 947: a group tap's dot window ends at the next touch, so a stroke begun after it is kept.
+    if groupTap != nil { ghostTap = nil }
     groupTap = nil
     // Story 1143: the turns logged as the touch began, so its line says how many came while it was down.
     if touchesDown == 0 { run?.turnsAtStart = model.turnsLogged }

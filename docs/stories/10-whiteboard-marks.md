@@ -1095,7 +1095,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Summary:** A finger tap on any stroke of a group selects the whole group, ready to drag
 - **Status:** implemented in [3175c799](https://github.com/idvorkin/context-grabber/commit/3175c799); verified by host tests (`BoardOutlineTests`: `testAFingerTapOnAGroupsStrokeTakesTheWholeGroup`, `testATextInsideAGroupIsTheGroupsAndABareTextIsNot`; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardGroupTapUITests`, rung 2, 2026-11-22: the tap selects all three kept marks and they stay selected past the tap's dot, a finger drag moves them whole, one Undo puts them back, a tap beside them selects nothing); a second tap opening a grouped text's words, and the tap with the Pencil paired (fingers not drawing), not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on a group)
-- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"
+- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"; bead context-grabber-z93g: `WhiteboardGroupTapUITests` passed only on its retry; under load the tap's dot landed 0.86 to 1.17 s after the tap, past the 0.6 s window, stayed as a stroke and took the group's selection with it
 
 #### Use Case:
 - **As someone** with a reply of Larry's kept as a group on the board
@@ -1107,6 +1107,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a reply of Larry's I kept as a group, no marks showing, on a board I can draw on
 - **When:** I tap one of its strokes with a finger
 - **Then:** every stroke of the group is selected, no dot is left where I tapped, and the Pencil still draws
+
+- **Scenario:** A busy moment after the tap
+- **Given:** a reply of Larry's I kept as a group, and the iPad slow to answer my tap (its dot landing a second or more after I lift)
+- **When:** I tap one of its strokes with a finger
+- **Then:** no dot is left and the whole group stays selected, until my next touch or a few seconds later; a stroke I begin after the tap is kept
 
 - **Scenario:** Dragged and put back
 - **Given:** the group selected by a tap
