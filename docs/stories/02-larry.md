@@ -2931,8 +2931,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 832:
 
 - **Summary:** Open every waiting decision from one row
-- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: *Open chat* by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, the order and the count), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); *Open chat* itself is not driven by a UI test; the phone not yet; 41071987: offline *Decisions* lists no asks, verified on the host and the Mac build, the simulator not yet
-- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: *Open chat* by the ask's `thread`); verified on the host (`just native-test`: `ChatDecisionsTests`, the order and the count), the Mac build (`just native-build-mac`) and the simulator: `ChatDecisionUITests` passed three runs of three on the iPhone 17 simulator against the fake Cockpit (8f5d70ca: the thread screen's identifier had hidden the card's; 6b5534a2: the ask's `thread` and `post_to_chat`); *Open chat* itself is not driven by a UI test; the phone not yet; 41071987: offline *Decisions* lists no asks, verified on the host and the Mac build, the simulator not yet; #1072: a card answered, closed or abandoned on *Decisions* gave way at once only in the model, its finished row taking over the card's view, in [5e547564](https://github.com/idvorkin/context-grabber/commit/5e547564); verified by `ChatDecisionUITests.testTheLastDecisionFinishedOnDecisionsLeavesItsLine` on the iPhone 17 simulator (red before, green after, the class green), the host and the Mac build; the Mac app itself not yet
+- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878), [#1072](https://github.com/idvorkin/context-grabber/issues/1072)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
 
 #### Use Case:
@@ -2944,15 +2944,15 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Opening *Decisions*
 - **Given:** open asks on the Cockpit, some continuing a chat and some on no chat
 - **When:** I tap *Decisions (N)*, the row under Larry's pinned thread
-- **Then:** every open ask shows as a card, soonest to expire first and those with no expiry after, each answerable as in its chat and each with *Open chat*, which opens the chat the ask continues (or else its own, empty) to talk it over; an answer given here leaves the line *You decided: \<label>*; an answered card leaves the list and the count drops; with no open ask there is no row; a list that can't be read shows a copyable problem
+- **Then:** every open ask shows as a card, soonest to expire first and those with no expiry after, each answerable as in its chat and each with *Open chat*, which opens the chat the ask continues (or else its own, empty) to talk it over; an answer given here leaves the line *You decided: \<label>*; an answered card leaves the list and the count drops; a card answered, closed or abandoned there gives way to its line at once, the last one too, never staying on screen answered and still tappable (#1072); with no open ask there is no row; a list that can't be read shows a copyable problem
 
 ---
 
 ### User Story 833:
 
 - **Summary:** Snooze, close or abandon a decision from its card
-- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: a close or an abandon writes Igor's message into the ask's chat); verified on the host (`just native-test`: `ChatDecisionsTests`, the requests, `post_to_chat` and what each answer means) and the Mac build (`just native-build-mac`); the menu is not driven on the simulator, against the real Cockpit or on the phone
-- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878)
+- **Status:** native app: implemented on branch `native/878-decision-cards` (6b5534a2: a close or an abandon writes Igor's message into the ask's chat); verified on the host (`just native-test`: `ChatDecisionsTests`, the requests, `post_to_chat` and what each answer means) and the Mac build (`just native-build-mac`); the menu is not driven on the simulator, against the real Cockpit or on the phone; #1072: a card answered, closed or abandoned on *Decisions* gave way at once only in the model, its finished row taking over the card's view, in [5e547564](https://github.com/idvorkin/context-grabber/commit/5e547564); verified by `ChatDecisionUITests.testTheLastDecisionFinishedOnDecisionsLeavesItsLine` on the iPhone 17 simulator (red before, green after, the class green), the host and the Mac build; the Mac app itself not yet
+- **Issues:** [#878](https://github.com/idvorkin/context-grabber/issues/878), [#1072](https://github.com/idvorkin/context-grabber/issues/1072)
 - **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md)
 
 #### Use Case:

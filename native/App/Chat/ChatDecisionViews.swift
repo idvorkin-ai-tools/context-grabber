@@ -141,6 +141,7 @@ struct ChatDecisionCard: View {
       Button("Close…") {
         closeReason = ""
         closing = true
+        decisions.closeAsked(ask, from: place)
       }
       Menu("Abandon") {
         ForEach(ChatDecisions.abandonReasons, id: \.self) { reason in
@@ -208,7 +209,9 @@ struct ChatDecisionsView: View {
             .padding(.leading, 12)
           }
         }
-        ForEach(decisions.finished, id: \.id) { done in
+        // #1072: keyed apart from the cards. Under the ask's own id, in the one lazy stack, an answered ask's row took over
+        // its card's view: the card stayed on screen, answered and still tappable, and nothing after it showed.
+        ForEach(decisions.finished.map { (key: "finished-" + $0.id, id: $0.id, title: $0.title) }, id: \.key) { done in
           VStack(alignment: .leading, spacing: 2) {
             Text(done.title).font(.subheadline).foregroundStyle(.secondary)
             if let line = decisions.card(done.id).line { ChatDecisionLine(text: line) }

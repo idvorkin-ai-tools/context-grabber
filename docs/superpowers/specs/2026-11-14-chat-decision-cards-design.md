@@ -85,6 +85,8 @@ expiry after (the Cockpit's own order). Each card answers and has its menu as in
 opens the ask's chat — the chat it continues, or else the thread on its own bead, empty if nobody has written there
 yet — to talk it over with Larry. Pull
 to refresh. A Decisions list that can't be read shows a copyable problem; *Select* mode in the list hides the row.
+On *Decisions* a finished card gives way to its line at once, the first as much as the last (#1072): it never stays on
+screen after the Cockpit has taken the answer, where a further tap would only answer it again.
 
 **When the asks are read.** When the Chat list opens or is pulled, when a thread opens, when *Decisions* opens, and after
 each answer, snooze, close or abandon. Not on the open thread's four-second poll. Offline, or with no Cockpit address,
@@ -107,6 +109,8 @@ copyable, naming the screen, the operation and the ask.
 - That thread's row says *Decision waiting* until the ask is answered, and not after.
 - *Decisions (N)* sits under Larry's thread with the count of open asks, opens them as cards, each answerable and each
   with *Open chat*; with no open ask there is no row.
+- A card answered, closed or abandoned on *Decisions* gives way to its line there at once, the last card too, and is
+  not left on screen answered and still tappable (#1072).
 - *Snooze*, *Close…* and *Abandon* from the card's menu do what they do on the Cockpit, and the card leaves; a close or
   an abandon is also Igor's message in the ask's chat.
 - A refused answer leaves the card with a copyable problem, and the buttons work again.
