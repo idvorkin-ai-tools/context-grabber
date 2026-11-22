@@ -51,7 +51,7 @@ extension PaperBoardController {
       }
       let live = self.paper.markup.map { self.model.outline(of: self.model.opStrokes($0.inkDrawing.strokes).strokes) }
       // No markup to read: the header's ink can't be seen gone, so nothing is taken.
-      let taken = live.map { erasing.outline.foldsTaken(hits, cancelled: true, live: $0.liveNames) } ?? []
+      let taken = live.map { erasing.outline.foldsTakenByCancelledStroke(hits, live: $0.liveNames) } ?? []
       // What a called-off eraser stroke did to the header's ink, so the iPad's log says whether PaperKit keeps it.
       self.log.event(
         "board_outline",

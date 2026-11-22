@@ -75,13 +75,12 @@ extension BoardOutline {
     return FoldHit(header: header.id, headers: gone, names: names, top: top)
   }
 
-  /// The folds an eraser stroke takes as it comes up, of the `hits` it crossed. A stroke the system called off (a palm,
-  /// a system gesture taking the touch) takes none by its marker; across the header's own ink it takes the fold only if
+  /// The folds an eraser stroke the system called off (a palm, a system gesture taking the touch) takes, of the `hits`
+  /// it crossed. It takes none by its marker; across the header's own ink it takes the fold only if
   /// that ink is gone from the board (`live`, the stroke names on it now), so folded lines are never left hidden under
   /// no header (context-grabber-0m2d).
-  public func foldsTaken(_ hits: [FoldHit], cancelled: Bool, live: Set<String>) -> [FoldHit] {
-    guard cancelled else { return hits }
-    return hits.filter { hit in
+  public func foldsTakenByCancelledStroke(_ hits: [FoldHit], live: Set<String>) -> [FoldHit] {
+    hits.filter { hit in
       guard let ink = header(hit.header)?.ids, !ink.isEmpty else { return false }
       return !ink.contains(where: live.contains)
     }
