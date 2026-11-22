@@ -285,6 +285,11 @@ strip of chips under the thread's title, so the PR Larry opened an hour ago is o
   link would. The Cockpit's long tailnet address never shows in the app: any other Cockpit link reads *Larry*, or
   *Larry: ai-journal* for a page on it, and *All links* spells a thread as `larry://inbox/<key>` and other Cockpit
   links with *Larry* in place of the address.
+- **Lavish is Larry's, not the blog** (Igor, 2026-11-22, #1138: *"on Larry's machine probably called Larry /
+  whatever it is"*). Lavish, the page Larry hands over for review on the Cockpit's host at port 8444, is a Cockpit link
+  and not a blog preview, though its port falls in the preview range: it reads *Larry: Lavish*, in a bubble, on the
+  strip, in *All links* and on the whiteboard's conversation; each Lavish page is its own chip. Every other port from
+  8400 to 8499 still reads *Preview* in a bubble.
 
 **Links in the thread list on an iPad or a Mac** (#736). Where the screen is wide — an iPad in full width (or a wide
 enough window) and the Mac — each row in the list also shows that thread's three newest link chips under its last

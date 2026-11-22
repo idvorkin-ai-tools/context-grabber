@@ -2932,6 +2932,26 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 ---
 
+### User Story 1127:
+
+- **Summary:** A link in the board's conversation is a chip a finger opens, and Lavish reads *Larry: Lavish*
+- **Status:** native app only: in progress on branch `native/board-link-chips-1138`
+- **Issues:** [#1138](https://github.com/idvorkin/context-grabber/issues/1138)
+- **Spec:** [Whiteboard conversation — Links are chips](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), [Chat with Larry in Grabber Native — Lavish is Larry's](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As** Igor, at the whiteboard on the iPad with the conversation open
+- **I want to** tap the link Larry wrote in his reply, shown as a short chip
+- **so that** I open the page he made without leaving for Chat or copying a long tailnet address
+
+#### Acceptance Criteria:
+- **Scenario:** Larry's reply with a Lavish page and a PR, on the board
+- **Given:** an open board conversation whose newest reply is "All three trees are there, plus AI multiplier: https://c-5004.squeaker-teeth.ts.net:8444/session/7d7f837c3898ed37 and https://github.com/idvorkin/context-grabber/pull/734."
+- **When:** I read it and tap a chip with a finger
+- **Then:** the reply reads "… plus AI multiplier: [Larry: Lavish] and [PR]." with no address showing; the tapped chip opens its page; a Pencil touch on a chip does nothing; copying the reply copies both full addresses; and in Chat the same message shows the same two chips, the Lavish one reading *Larry: Lavish* (not *Preview*) on the strip too, while a blog preview on port 8445 still reads *Preview*
+
+---
+
 ### User Story 747:
 
 - **Summary:** A table in Larry's message reads as a table
