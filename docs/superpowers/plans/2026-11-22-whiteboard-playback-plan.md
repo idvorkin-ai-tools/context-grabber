@@ -93,3 +93,19 @@ on the iPad and the iPhone.
 - **Verified**: the timeline on the host and the Mac build; `WhiteboardPlaybackUITests` (three strokes, Play, the end,
   a tap on the second stroke, the speed, Done with the board unchanged) is in the iPad simulator's whiteboard suite. The Pencil's real pace and a large board's
   frame rate only on the iPad.
+
+## The paper, the ghost and the label (#1169, 2026-11-22)
+
+Igor on the iPad, after the first playback: a 577-stroke, three-page board opened on page 2, its first strokes on page
+1, so he scrubbed to the start and watched a blank, plain page. Built:
+
+- **Paper**: `PaperLines` (the board's own view) inside the playback canvas, under its ink, sized to the column at the
+  zoom; the grid or ruled lines laid for the whole column when the zoom changes their spacing, the page ends always.
+  `PaperBoardController.rules` is readable for it. The canvas is clear over the paper's colour.
+- **Ghost**: the whole drawing rendered once at Play (`PKDrawing.image`, light, at most 8 M pixels) in an image view at
+  20 % opacity under the lines' layer stack; `ghost_ms` logs its cost. A tap seeks among all strokes, so a tap on the
+  ghost goes on to its moment.
+- **Label**: ContextCore `BoardPlayback.latest(at:)` and `offScreen(ink:visible:pages:)` (host tests
+  `BoardPlaybackOffScreenTests`); the player recomputes on each new frame and each scroll, logs `playback_offscreen`
+  on a change, and a tap scrolls the stroke to the middle (`playback_go`). Code in `WhiteboardPlayback+Paper.swift`.
+- **Not built**: Larry's ghosts in playback (the other reading of "pre-written ghost"); they have no moment of their own.

@@ -1102,8 +1102,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 958:
 
 - **Summary:** I watch a board draw itself again in the order I drew it, and jump to any stroke
-- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (Igor, 2026-11-22: "where is my replay button so I can rewatch it the way you do in Notability?")
-- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
+- **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (Igor, 2026-11-22: "where is my replay button so I can rewatch it the way you do in Notability?"); [#1169](https://github.com/idvorkin/context-grabber/issues/1169) (Igor, 2026-11-22: "start with a pre-written ghost on the page and … whatever the default background is")
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad; the paper and the ghost (#1169) verified by host tests (`BoardPlaybackTests`), `just test` and the Mac build (rung 1.5); rung 2 (`WhiteboardPlaybackUITests` on the iPad simulator) owed; not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
@@ -1115,7 +1115,12 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Play a board
 - **Given:** a board with three strokes drawn a minute apart
 - **When:** I tap *Play*, beside *?* and *Feedback*
-- **Then:** the board empties and the strokes draw again in their order, each at the pace I drew it, the minute between them half a second, and the board's own bar and tool picker are gone while it plays
+- **Then:** the board shows faint, the whole of it, on its own paper, and the strokes draw again over that ghost in their order, each at the pace I drew it, the minute between them half a second, and the board's own bar and tool picker are gone while it plays
+
+- **Scenario:** The board's paper and its ghost (#1169)
+- **Given:** a grid board of three pages, written on all three
+- **When:** I tap *Play*
+- **Then:** playback shows the same grid and the faint lines where the pages end, and the whole board faint from the first moment; each stroke drawn again shows at full strength over its own ghost, and at the end the board looks as it does outside playback
 
 - **Scenario:** A board with no ink
 - **Given:** a new board with nothing on it
@@ -1172,6 +1177,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap the second stroke
 - **Then:** playback goes back to the moment the second stroke began: the first stroke showing, the second next, playing or paused as it was
 
+- **Scenario:** Tap faint ink not drawn yet (#1169)
+- **Given:** a board with three strokes playing back, only the first drawn again, the third showing faint
+- **When:** I tap the third stroke's ghost
+- **Then:** playback goes on to the moment the third stroke began: the first two showing, the third next
+
 - **Scenario:** Tap bare paper
 - **Given:** a board playing back
 - **When:** I tap paper with no stroke near
@@ -1196,6 +1206,36 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board playing back
 - **When:** I choose *Done*
 - **Then:** the board shows as it was, with nothing saved, no undo step and nothing sent to Larry
+
+---
+
+### User Story 955:
+
+- **Summary:** In playback, a label says when the stroke being drawn is above or below the screen, and on which page
+- **Issues:** [#1169](https://github.com/idvorkin/context-grabber/issues/1169) (Igor, 2026-11-22: "maybe some indicator that I'm writing above or below on a separate page")
+- **Status:** implemented in this PR (#1169); verified by host tests (`BoardPlaybackTests`: the stroke being drawn above, below or on the screen, and its page), `just test` and the Mac build (rung 1.5); rung 2 (`WhiteboardPlaybackUITests` on the iPad simulator) owed; not yet seen on the iPad
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
+
+#### Use Case:
+- **As someone** watching a board of several pages play back
+- **I want to** know when the ink being drawn is off the screen, and where
+- **so that** I don't watch a still page while the thinking goes on somewhere else
+
+#### Acceptance Criteria:
+- **Scenario:** Writing above
+- **Given:** a three-page board playing back with page 2 on the screen
+- **When:** playback draws a stroke on page 1
+- **Then:** a label at the top of the board says *Writing above, page 1*; tapping it moves the board to that stroke, and the label goes
+
+- **Scenario:** Writing below
+- **Given:** the same board with page 1 on the screen
+- **When:** playback draws a stroke on page 3
+- **Then:** a label at the bottom says *Writing below, page 3*
+
+- **Scenario:** Writing on the screen
+- **Given:** a board playing back
+- **When:** the stroke being drawn, or between strokes the one drawn last, shows on the screen even in part, or nothing has been drawn yet
+- **Then:** there is no label, and playback never moves the board by itself
 
 ---
 

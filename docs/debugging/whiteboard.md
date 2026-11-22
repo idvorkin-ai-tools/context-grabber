@@ -10,11 +10,13 @@ to that event's own bullet; never join two events on one line.
 ## Whiteboard playback (stories 954, 956–958, bead context-grabber-3tdv)
 
 - `whiteboard` action:
-  - playback_start with board, strokes, timed (strokes drawn over time: their points have time offsets), shared (strokes that share one moment and appear together), real_s (first stroke's start to the last one's end, as drawn), plays_s (the playback's length) and ms (building the timeline): Play tapped. Timed far below strokes says a board's timestamps didn't survive
+  - playback_start with board, strokes, timed (strokes drawn over time: their points have time offsets), shared (strokes that share one moment and appear together), real_s (first stroke's start to the last one's end, as drawn), plays_s (the playback's length) and ms (building the timeline): Play tapped. Timed far below strokes says a board's timestamps didn't survive. Also (#1169) rules (none, grid, ruled), pages, ghost (the faint whole board drawn) and ghost_ms (its cost), opened_page (the page showing when Play was tapped) and first_page (the first stroke's page): opened_page past first_page is a playback that starts off the screen
+  - playback_offscreen with board, where (above, below, on_screen), page (the stroke's), visible_page, stroke and at_s: story 955's label appearing, changing or going
+  - playback_go with board, stroke and page: the label tapped, the board moved to the stroke
   - playback_seek with board, how (tap, scrub, back, forward, voiceover), from_s, to_s and stroke (a tap's or VoiceOver's stroke, its place in the drawing)
   - playback_tap with board, hit: false and showing: a tap in playback that found no stroke near
   - playback_speed with board and speed
-  - playback_end with board, watched_s, reached_end, seeks, at_s, frames (new drawings set) and slowest_draw_ms (the slowest of them, a big board's cost): Done, or the board closing
+  - playback_end with board, watched_s, reached_end, seeks, at_s, frames (new drawings set), slowest_draw_ms (the slowest of them, a big board's cost) and offscreen_shown (how often story 955's label showed): Done, or the board closing
 
 ## Whiteboard (stories 340–345, 347–369, 370–429, 663–665, 825, 228, 960, 962, 963, 1063, 1064, 1106)
 
