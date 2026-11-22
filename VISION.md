@@ -31,13 +31,13 @@ Coaching comes from Larry: the app carries his reminders to the front door and d
 
 ## Thinking on paper with Larry
 
-The whiteboard is the line to Larry in ink, and six principles hold it together.
+The whiteboard is the line to Larry in ink, and five principles hold it together.
 Nothing joins the board without Igor's say: what Larry or Claude draws is a suggestion until he keeps it, and a stray touch never keeps or loses anything.
 Igor's ink is his: nothing lands on top of his writing, it moves only to make room, and an erase takes only what he touched.
 One touch has one meaning: a tap picks up one thing, and he can tell beforehand what that thing is.
 He always knows who he is talking to and where: Larry answers a board unless he picks someone else, with one conversation per board.
-It is paper and ink: a board is pages of ink that the iPad draws and the phone only looks at, with no text boxes or layers, and it is not a notes app.
-Ink moves like the text it would have been if it were typed: it reflows like text.
+It is ink that behaves like text: handwriting reflows, folds and collapses like the sections of an outline, and has layers, his own ink, Larry's, suggestions and what is hidden.
+Marks stay inside the page and paper stays light; the iPad draws and the phone only looks.
 
 ## Practice that reports back
 
