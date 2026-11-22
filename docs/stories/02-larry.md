@@ -2494,12 +2494,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** Saying the message
 - **Given:** the share card is open on a page from Safari
 - **When:** I tap the keyboard's dictation key in the *Message* field and speak
-- **Then:** my words appear in the *Message* field after anything I typed, and nothing is sent until I tap *Start a chat* or *Send*
-
-- **Scenario:** No mic button that cannot work
-- **Given:** the share card is open
-- **When:** I look at the *Message* field
-- **Then:** it has no mic button of its own, and the card never asks for the microphone or speech recognition
+- **Then:** my words appear in the *Message* field after anything I typed, and nothing is sent until I tap *Start a chat* or *Send*; the field has no mic button of its own, and the card never asks for the microphone or speech recognition
 
 ---
 
