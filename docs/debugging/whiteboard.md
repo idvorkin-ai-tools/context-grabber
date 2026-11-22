@@ -7,6 +7,15 @@ is added are in [DEBUGGING.md](../DEBUGGING.md); this file only says what each w
 **Adding a line here**: a new event or action is a new bullet under its area (or a new area), and a new field is added
 to that event's own bullet; never join two events on one line.
 
+## Whiteboard playback (stories 954, 956–958, bead context-grabber-3tdv)
+
+- `whiteboard` action:
+  - playback_start with board, strokes, timed (strokes drawn over time: their points have time offsets), shared (strokes that share one moment and appear together), real_s (first stroke's start to the last one's end, as drawn), plays_s (the playback's length) and ms (building the timeline): Play tapped. Timed far below strokes says a board's timestamps didn't survive
+  - playback_seek with board, how (tap, scrub, back, forward, voiceover), from_s, to_s and stroke (a tap's or VoiceOver's stroke, its place in the drawing)
+  - playback_tap with board, hit: false and showing: a tap in playback that found no stroke near
+  - playback_speed with board and speed
+  - playback_end with board, watched_s, reached_end, seeks and at_s: Done
+
 ## Whiteboard (stories 340–345, 347–369, 370–429, 663–665, 825, 228, 960, 962, 963, 1063, 1064, 1106)
 
 - `ui` (action: open_whiteboard with from: home / hook / a link's source, such as chat or shortcut; close_whiteboard)

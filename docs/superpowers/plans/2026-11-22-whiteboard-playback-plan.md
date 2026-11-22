@@ -2,7 +2,7 @@
 
 Bead context-grabber-3tdv (from #1139: *"where is my replay button so I can rewatch it the way you do in Notability?"*).
 Spec: `2026-11-01-whiteboard-design.md`, *Playing a board back, as Notability does*; stories 958, 956, 957 (the ink) and 959
-(what was said). Docs only so far: nothing is built until Igor picks.
+(what was said). Option 1 (the ink alone) is decided and built (Igor, 2026-11-22: he asked for the replay button); options 2 and 3 wait.
 
 ## Research
 
@@ -68,3 +68,28 @@ on the iPad and the iPhone.
 1. Ink alone now? (Recommended: yes, it needs nothing from him and works on every board already drawn.)
 2. Then the words or the sound?
 3. If the sound: on the device, or through iCloud?
+
+## Built: option 1 (2026-11-22)
+
+- **ContextCore `BoardPlayback`** (host tests `BoardPlaybackTests`): takes each stroke's start (seconds since 1970)
+  and its points' offsets, in the drawing's order. Sorted by start with the drawing's index breaking ties; strokes that
+  share a start (within 1 ms) form a group that appears at once. Each gap is measured from the latest real end so far to
+  the next start; one over `longPause` (2 s) plays as `pausePlays` (0.5 s), a negative one as none, so the played
+  strokes never overlap and at most one is part-drawn. `frame(at:)` gives the strokes begun (start before the playhead,
+  or all of them at the end), in the drawing's order so the last frame stacks as the board does, and the one part-drawn
+  with how many of its points. `nearest(_:among:within:)` is the tap's stroke. `BoardPlaybackClock` is the playhead:
+  play, pause, ±10 s, seek, the speeds, stopping at the end and starting over from it.
+- **App `WhiteboardPlayback.swift`**: `WhiteboardPlaybackPlayer` (the model's `playback`, nil when closed) holds the
+  drawing as it opened (moved as `load()` moves an old-canvas board), the timeline and the clock, ticking at 30 Hz and
+  setting a new `PKDrawing` only when the strokes begun or the part-drawn stroke's points change. The partial stroke is
+  the stroke with its control points cut by `timeOffset`, its ink, transform and mask kept. `WhiteboardPlaybackHost`
+  (a modifier on the board's view) lays the playback over the whole board and hides the navigation and bottom bars; the
+  real canvas resigns first responder (the tool picker hides) and takes it back on *Done* when it draws. The playback
+  canvas is a `PKCanvasView` with its drawing gesture off, opened at the board's visible rect and zoom, in the paper's
+  colour, light. Play is a button in `BoardHelpButtons`.
+- **Session log**: `playback_start` (strokes, timed, shared, real and played seconds, build ms), `playback_seek` (how:
+  tap, scrub, back, forward; from, to, the stroke), `playback_speed`, `playback_end` (seconds watched, reached the
+  end, seeks). Timed against untimed strokes settles on the device whether a board's timestamps survived.
+- **Verified**: the timeline on the host; `WhiteboardPlaybackUITests` on the iPad simulator (three strokes, Play, the
+  end, pause, a tap on the second stroke, Done with the board unchanged). The Pencil's real pace and a large board's
+  frame rate only on the iPad.

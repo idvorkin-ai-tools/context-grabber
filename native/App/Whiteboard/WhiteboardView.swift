@@ -112,7 +112,8 @@ struct WhiteboardView: View {
       .overlay(alignment: .topTrailing) {
         VStack(alignment: .trailing, spacing: 8) {
           BoardHelpButtons(
-            editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved)
+            editable: model.editable, log: log, board: model.board.id, report: report, saved: reportSaved,
+            play: model.isEmpty ? nil : { model.startPlayback() })
           if model.blocked.showing { blockedChip.padding(.trailing, 20) }
         }
         // Story 1000: the chosen mark's buttons keep clear of this corner.
@@ -136,6 +137,8 @@ struct WhiteboardView: View {
     )
     .navigationTitle(model.board.title)
     .navigationBarTitleDisplayMode(.inline)
+    // Stories 954, 956–958: playback over the whole board, its bars hidden.
+    .modifier(WhiteboardPlaybackHost(model: model))
     .toolbar {
       // #965 (stories 1008, 1009): Undo and Redo where a finger reaches them, after the way back, whatever the tool picker
       // is doing.

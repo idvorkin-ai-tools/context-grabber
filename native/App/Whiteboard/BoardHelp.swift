@@ -13,6 +13,8 @@ struct BoardHelpButtons: View {
   let report: () -> Void
   /// BugKit's status after each save.
   let saved: AnyPublisher<String, Never>
+  /// Story 958: Play, on a board with ink (a look-only one too); nil on a board with none.
+  var play: (() -> Void)?
   @State private var helpOpen = false
   @State private var confirmation: String?
   @State private var clearing: Task<Void, Never>?
@@ -26,6 +28,11 @@ struct BoardHelpButtons: View {
           .padding(.vertical, 6)
           .background(.regularMaterial, in: Capsule())
           .accessibilityIdentifier("whiteboard-feedback-logged")
+      }
+      if let play {
+        Button("Play", systemImage: "play.fill", action: play)
+          .accessibilityHint("Draws the board again in the order it was drawn")
+          .accessibilityIdentifier("whiteboard-play")
       }
       if editable {
         Button {

@@ -120,6 +120,8 @@ final class WhiteboardModel: ObservableObject {
   @Published var micFinishing = false
   /// Story 1103 (#1139): the microphone the open mic hears, by name; nil while it is closed.
   @Published var micHears: String?
+  /// Stories 954, 956–958: the board playing back over itself (WhiteboardPlayback.swift); nil while it isn't.
+  @Published var playback: WhiteboardPlaybackPlayer?
   /// Story 1103: the mic is on its way to opening (its microphones being listed, or a new pick reopening it); a close
   /// meanwhile clears it, and the opening doesn't happen.
   var micOpening = false

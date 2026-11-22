@@ -624,7 +624,7 @@ stroke can be judged again on the Mac.
   tests holds each case to its expected verdict, so a gesture bug is fixed against Igor's real stroke on the Mac.
 - Nothing Igor sees changes.
 
-## Playing a board back, as Notability does (proposed, bead context-grabber-3tdv; stories 956–959; not built, waiting on Igor's choice)
+## Playing a board back, as Notability does (bead context-grabber-3tdv; stories 954, 956–959; the ink alone decided and built, the words and the sound still to choose)
 
 Igor, 2026-11-22 (#1139, on the iPad): *"where is my replay button so I can rewatch it the way you do in Notability?
 Go do some research on Notability to see this."* Called **playback** here, so it isn't confused with the replays that
@@ -661,17 +661,26 @@ handwriting from then. Recording is a paid feature there.
 | 2. And the words | the ink, with what he said shown as he said it | the words heard while the mic was open, with when | kilobytes an hour | his words kept on the board, and in iCloud if the board's meaning goes there |
 | 3. And the sound | the ink with the sound of the room, as Notability does | a recording of each time he records | megabytes an hour | the room's sound kept, other voices in it too |
 
+**Decided, 2026-11-22.** Igor asked for the replay button ("where is my replay button"), so the ink alone (option 1) is
+built; the words and the sound (options 2 and 3) wait for his choice below.
+
 **What Igor sees, for each.**
 
-- **Play** is on the board's menu, on the iPad, the iPhone and the Mac, on any board with ink. It clears the board and
-  draws it again, stroke by stroke in the order they were drawn, each at the pace his hand drew it. A long pause between
-  strokes plays as a short one, so an evening's board doesn't take an evening. Strokes that share one moment (a kept
-  text, a paste) appear together.
-- A bar along the bottom shows how far it is, with play and pause, 10 s back and on, a handle to drag to any moment,
-  and the speeds Notability has. While playing, the board can't be drawn on, and a finger still pans and pinches.
-- **Tap a stroke while playing** and playback jumps to the moment it was drawn: the board as it was then, that stroke
-  next. Leaving playback (*Done*, or closing the board) shows the board as it is, with nothing changed: no save, no
-  undo step, nothing sent to Larry.
+- **Play** is a button beside *?* and *Feedback*, under the page number, on the iPad, the iPhone and the Mac, on any
+  board with ink, a board only looked at too. (Not on the board's menu as first proposed: that menu has room for no
+  more rows, #848, and a look-only board has no menu.) It opens playback over the board where it was showing, empty,
+  and draws it again, stroke by stroke in the order they were drawn, each at the pace his hand drew it. A pause between
+  strokes longer than two seconds plays as half a second, so an evening's board doesn't take an evening. Strokes that
+  share one moment (a kept text, a paste) appear together. An open mic stops when playback opens.
+- A bar along the bottom shows how far it is (the time played of the whole, and which stroke of how many), with play
+  and pause, 10 s back and 10 s on, a handle to drag to any moment, and the speeds Notability has: one button steps
+  through 0.7×, 1×, 1.25×, 1.5× and 2×, starting at 1×. At the end it stops with the whole board shown; *Play* again
+  starts from the beginning. While playback shows, the board's own bar and tool picker are gone, so nothing can be
+  drawn, undone, pasted or sent; a finger still pans and pinches the board.
+- **Tap a stroke while playing** (one already drawn again, at the moment playback is at) and playback jumps to the
+  moment it was drawn: the board as it was then, that stroke next, playing or paused as it was. A tap on bare paper does
+  nothing. Leaving playback (*Done*) shows the board as it is, with nothing changed: no save, no undo step, nothing sent
+  to Larry.
 - **With the words (option 2):** while the mic is open, the words it heard are kept with the board, each line with the
   moment it was said. In playback the line being said shows above the bar as the ink of that moment draws, and a tap on
   a stroke shows what he was saying as he drew it. The mic is still the one the board has today: open only with Ghosts
@@ -687,7 +696,8 @@ handwriting from then. Recording is a paid feature there.
 
 **The choices that are Igor's** (the plan beside this spec has the arithmetic):
 
-1. Build the ink alone now? It needs nothing from him and changes nothing about what is kept.
+1. Build the ink alone now? It needs nothing from him and changes nothing about what is kept. **Decided: yes**
+   (2026-11-22, his replay button).
 2. Then the words or the sound? The words are small, readable and searchable later, but they're Apple's dictation, not
    what he said; the sound is what Notability has, and it is the room, other people's voices included, which they may
    need to agree to.
