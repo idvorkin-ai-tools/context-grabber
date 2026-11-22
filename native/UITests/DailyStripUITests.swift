@@ -1,6 +1,7 @@
 //  #236, #238: the daily strip under the Today card. Gym and Journal are checks; Balloons and Magic count, a tap for
 //  one more and a press and hold for the counter's week (#342). The simulator's database keeps the values between
-//  runs, so the test reads before it changes.
+//  runs, so the test reads before it changes. The counters, the checks and the two-week sheet share one launch (story
+//  757, #905).
 
 import XCTest
 
@@ -55,16 +56,10 @@ final class DailyStripUITests: XCTestCase {
     XCTAssertTrue(meditation.exists, app.debugDescription)
     XCTAssertEqual(meditation.frame.midY, journal.frame.midY, accuracy: 2, "one line")
     XCTAssertNotNil(meditation.value as? String)
-  }
 
-  /// #414, story 255: one round: a staged change says so, Done saves it and leaves today's mark alone, then it's taken
-  /// back so the next run finds the day as it was. Staging, Cancel and an unmark being saved are `CheckFortnightTests`,
-  /// on the host (story 770).
-  func testPressAndHoldEditsTwoWeeks() throws {
-    let app = XCUIApplication.forTests()
-    app.launch()
-    let journal = app.buttons["strip-journal"]
-    XCTAssertTrue(journal.appears(within: 15), app.debugDescription)
+    // #414, story 255: one round of a check's two weeks: a staged change says so, Done saves it and leaves today's mark
+    // alone, then it's taken back so the next run finds the day as it was. Staging, Cancel and an unmark being saved are
+    // `CheckFortnightTests`, on the host (story 770).
     journal.press(forDuration: 1.0)
     let yesterday = app.buttons["strip-day-1"]
     XCTAssertTrue(yesterday.appears(within: 5), app.debugDescription)

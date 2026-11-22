@@ -109,7 +109,7 @@ script's dry run:
 | Places, in the app or `ContextCore` | `PlaceIconUITests`, `PlacesUnnamedUITests`, in a run of their own: the ladder first installs the build, copies the real export to the app's `Documents/import-fixture.db` and launches the app once to import it, failing the rung if the import's event doesn't come |
 | The mirror (Today, a metric's detail), in the app or `ContextCore` | `HomeTodayCardUITests`, `MetricDetailUITests`; the Health source's file, `BreatheMindfulUITests` too: its 60 s session is the one check that a sample reaches Health (story 770). `AppModel.swift`'s save stays unmapped, as that file is in a fifth of changes |
 | The card, in the app or `ContextCore` | `CardUITests`, `TodaysHandUITests`; the role of the day's file, `TodaysHandUITests` alone |
-| The Cockpit, in the app or `ContextCore` | `CockpitBackUITests`, `CockpitCallUITests` |
+| The Cockpit, in the app or `ContextCore` | `CockpitBackUITests`: Back, Cockpit and Done, then the page's ☎ in the same launch (#905) |
 | The usage strip's files (`Usage*`, `CockpitUsage.swift`), in the app or `ContextCore` | `UsageTileUITests`, which needs the real Cockpit reachable from this Mac: a Cockpit change off the tailnet doesn't run it |
 | The daily strip, in the app or `ContextCore` | `DailyStripUITests` |
 | The eulogy, or the song's player or the blog's links in `ContextCore` | `EulogyUITests` |
@@ -343,7 +343,7 @@ What the native rungs can and cannot see of the home screen (story 147, [spec](s
 |---|---|---|
 | The remembered order and hidden rows read against this build's rows: a new row at the end, a gone one dropped, moves, store and read back | Host | `HomeLayoutTests` |
 | Hiding and moving a row on Settings → Launchers changes the home screen; Reset (what holds after a relaunch is `HomeLayoutTests`' on the host) | Simulator | `HomeSettingsUITests` (`xcodebuild … -only-testing:GrabberNativeUITests/HomeSettingsUITests test`), then the `ui` home_rows lines in the log |
-| Three tiles to a line, Recent beside Random, Settings the last tile (#284–#286) | Simulator | `HomeGridUITests` |
+| Three tiles to a line, Recent beside Random, Settings the last tile (#284–#286); the Report a problem tile opens the report sheet (story 252) | Simulator | `HomeGridUITests`, one launch |
 | The home screen and the sheet, drawn | Simulator screenshot | launch plain, and with `SIMCTL_CHILD_GRABBER_HOME=settings`, then `simctl io screenshot` |
 
 What the native rungs can and cannot see of the Gym Timer:

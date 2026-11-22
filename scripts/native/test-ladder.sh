@@ -69,7 +69,7 @@ health_write="BreatheMindfulUITests"
 places_area="PlaceIconUITests PlacesUnnamedUITests"
 mirror_area="HomeTodayCardUITests MetricDetailUITests"
 card_area="CardUITests TodaysHandUITests"
-cockpit_area="CockpitBackUITests CockpitCallUITests"
+cockpit_area="CockpitBackUITests"  # the ☎ call shares its launch (#905)
 # Apart from the Cockpit's: it asserts the real Cockpit answers, so it would fail every Cockpit change off the tailnet.
 usage_area="UsageTileUITests"
 daily_area="DailyStripUITests"

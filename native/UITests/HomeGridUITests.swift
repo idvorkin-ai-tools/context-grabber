@@ -1,5 +1,7 @@
 //  #284–#286: every launcher is the same small tile, three to a line, its drawn art (#304, no name); Recent and Random
-//  share a line; Settings is the last tile and opens the Home screen sheet (the floating cog is gone).
+//  share a line; Settings is the last tile and opens the Home screen sheet (the floating cog is gone). Story 252 (#340,
+//  #353): Report a problem is a tile, named for VoiceOver, and a tap opens the same report sheet a shake opens; it was a
+//  class of its own and shares this launch now (story 757, #905).
 
 import XCTest
 
@@ -59,6 +61,13 @@ final class HomeGridUITests: XCTestCase {
         || (abs(tile.frame.midY - settings.frame.midY) < 4 && tile.frame.maxX < settings.frame.minX)
       XCTAssertTrue(before, "\(tile.identifier) comes before Settings")
     }
+
+    // Story 252: the beetle tile opens the report sheet, and Cancel comes back to the tiles.
+    XCTAssertEqual(report.label, "Report a problem", "VoiceOver names the tile")
+    report.tap()
+    XCTAssertTrue(app.navigationBars["Report a problem"].appears(within: 10), app.debugDescription)
+    app.buttons["Cancel"].tap()
+    XCTAssertTrue(settings.appears(within: 5), app.debugDescription)
 
     settings.tap()
     XCTAssertTrue(app.navigationBars["Home screen"].appears(within: 5), app.debugDescription)
