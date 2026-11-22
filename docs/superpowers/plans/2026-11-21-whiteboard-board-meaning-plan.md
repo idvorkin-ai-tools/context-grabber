@@ -21,7 +21,7 @@ Larry's remembered as handled with its ink lost. None of the meaning reached iCl
 | `stroke_meta` | Larry's notes and groups | the meaning file |
 | `headers` | headers and folds | the meaning file |
 | `questions` | question cards | the meaning file |
-| `labels`, `theirs` | creation moments of kept labels and of Larry's ink | stay (follow-up bead: they're ink identity too) |
+| `labels`, `theirs` | creation moments of kept labels and of Larry's ink | the meaning file (step 1b, bead context-grabber-p1pl) |
 | `thread`, `picture_times`, `picture_folds`, `marks_settled`, `marks_settled_marks` | this device's chat with Larry about the board | stay: per device |
 | `paper_y`, `grid`, `ruled`, `lettering` | this device's view of the board | stay: per device |
 
@@ -48,6 +48,20 @@ A delete (here, or arriving from elsewhere) forgets every key of the board (`Boa
   One `whiteboard` `meaning_migrated` line with per-board counts.
 - An unreadable meaning file is set aside (`.unreadable`) and the board opens with none; logged as
   `error` `whiteboard_meaning`.
+
+## Step 1b (bead context-grabber-p1pl): labels and Larry's ink join the file
+
+- `BoardMeaning` gains `labels` and `theirs` (creation moments, ms; at most 2000 and 4000, oldest first to go),
+  optional on decode, so a #1116 file reads. The ledger's `labels`/`rememberLabels` and `theirs`/`rememberTheirs`
+  go through `change`, so they save with the ink as the other parts do.
+- Migration can't be #1116's: on every device that ran it the file already exists, and "a file already there wins,
+  its keys go" would drop these two. So it is its own step (`BoardKeeping.migrateInkIdentity`), after the six-key
+  one, for every board in the index: the keys' moments are added to what the file holds, never in place of it (what it
+  holds stays, in order; nothing is doubled). A board whose six keys haven't moved yet waits, so no file appears that
+  would make that move take its keys for stale. Written, read back and compared before the keys go. On a failure the file is put back as it
+  was (never removed: it holds the other six parts) and the keys stay. Its counts join the same `meaning_migrated` line.
+- Until the keys go, the board opens with their moments added (`BoardInkKeys.fill`), as the six keys did.
+- A delete already takes the file, and `BoardDeviceKeys.forget` any key still left.
 
 ## Step 2 (proposed; spec and story 1109 only, waiting on Igor): the file goes to iCloud as a third asset
 

@@ -302,6 +302,46 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1099:
+
+- **Summary:** The board, not the device, remembers which ink is Larry's and which strokes are kept labels
+- **Issues:** bead context-grabber-p1pl (follow-up to context-grabber-cc75: the two lists were still kept on the device, apart from the board's file; this step moves them into it, and the file reaching other devices is a later step)
+- **Status:** implemented in [e085eeb](https://github.com/idvorkin/context-grabber/commit/e085eeb9); verified by host tests (`BoardMeaningTests`: a file from before reads, the keys join a file already there and go, with no file they make one, what the file holds is only added to, a failed move leaves the file and the keys, a move that doesn't read back puts the file back as it was, a board whose six old keys haven't moved waits, the keys fill the board as it opens; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad, where the `meaning_migrated` line's labels and theirs counts show the move
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
+
+#### Use Case:
+- **As someone** who keeps Larry's marks and labels on a board and opens it again later
+- **I want to** have the board itself remember which of its ink is Larry's and which strokes are labels
+- **so that** his kept marks never make room as if they were mine, and *Tidy overlaps* still finds every label, after the app updates
+
+#### Acceptance Criteria:
+- **Scenario:** A board from before this build
+- **Given:** a board whose labels and Larry's kept marks were remembered on this device
+- **When:** the app updates and I open the board
+- **Then:** *Tidy overlaps* lays out the same labels as before, and Larry's kept marks still never make room as mine; nothing the board already knew is lost
+
+---
+
+### User Story 1100:
+
+- **Summary:** A label or a mark of Larry's kept now is remembered with the board's ink
+- **Issues:** bead context-grabber-p1pl
+- **Status:** implemented in [e085eeb](https://github.com/idvorkin/context-grabber/commit/e085eeb9); verified by host tests (`BoardMeaningTests`: the ledger remembers labels and theirs, capped, and tells each change; `just native-test`) and the Mac build (`just native-build-mac`); the iPad simulator's whiteboard UI tests couldn't start (the Mac's screen was locked); not yet seen on the iPad
+- **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Edge cases*
+
+#### Use Case:
+- **As someone** who keeps Larry's labels on a board
+- **I want to** have the board remember a label the moment I keep it
+- **so that** a later *Tidy overlaps* finds it, with nothing kept only on the device
+
+#### Acceptance Criteria:
+- **Scenario:** A label kept just now
+- **Given:** I keep one of Larry's labels
+- **When:** the board saves its ink
+- **Then:** the label is remembered in the same save, and a later *Tidy overlaps* finds it
+
+---
+
 ### User Story 840:
 
 - **Summary:** Larry draws ink straight onto my board
