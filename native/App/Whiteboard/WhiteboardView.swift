@@ -269,6 +269,7 @@ struct WhiteboardView: View {
       model.startWatchingLarry()
     }
     .onDisappear {
+      model.endPlayback()  // story 957: closing the board ends playback, changing nothing
       model.stopMic(why: "closed")
       model.close()
     }

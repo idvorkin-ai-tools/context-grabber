@@ -679,8 +679,8 @@ built; the words and the sound (options 2 and 3) wait for his choice below.
   drawn, undone, pasted or sent; a finger still pans and pinches the board.
 - **Tap a stroke while playing** (one already drawn again, at the moment playback is at) and playback jumps to the
   moment it was drawn: the board as it was then, that stroke next, playing or paused as it was. A tap on bare paper does
-  nothing. Leaving playback (*Done*) shows the board as it is, with nothing changed: no save, no undo step, nothing sent
-  to Larry.
+  nothing. Leaving playback (*Done*, or closing the board) shows the board as it is, with nothing changed: no save, no
+  undo step, nothing sent to Larry.
 - **With the words (option 2):** while the mic is open, the words it heard are kept with the board, each line with the
   moment it was said. In playback the line being said shows above the bar as the ink of that moment draws, and a tap on
   a stroke shows what he was saying as he drew it. The mic is still the one the board has today: open only with Ghosts

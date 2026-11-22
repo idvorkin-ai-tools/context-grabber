@@ -63,6 +63,9 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
   private var watched: TimeInterval = 0
   private var seeks = 0
   private var reachedEnd = false
+  /// Story 958 on a big board: how many new drawings playback set, and the slowest, for the log.
+  private var frames = 0
+  private var slowestDrawMs = 0.0
 
   init(model: WhiteboardModel, controller: PaperBoardController?) {
     let started = CACurrentMediaTime()
@@ -170,7 +173,7 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
     seeked("tap", from: from, stroke: index)
   }
 
-  /// Done: the ticking stops and the paper takes the tool picker back.
+  /// Done, or the board closing: the ticking stops and the paper takes the tool picker back.
   func finish() {
     ticker?.cancel()
     ticker = nil
@@ -179,7 +182,8 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
       "whiteboard",
       [
         "action": "playback_end", "board": board, "watched_s": Self.tenths(watched), "reached_end": reachedEnd,
-        "seeks": seeks, "at_s": Self.tenths(clock.position),
+        "seeks": seeks, "at_s": Self.tenths(clock.position), "frames": frames,
+        "slowest_draw_ms": Self.tenths(slowestDrawMs),
       ])
   }
 
@@ -219,7 +223,11 @@ final class WhiteboardPlaybackPlayer: ObservableObject {
     guard force || next != frame else { return }
     frame = next
     shown = next.shown.count
-    canvas?.drawing = PKDrawing(strokes: next.shown.map(stroke))
+    guard let canvas else { return }
+    let started = CACurrentMediaTime()
+    canvas.drawing = PKDrawing(strokes: next.shown.map(stroke))
+    frames += 1
+    slowestDrawMs = max(slowestDrawMs, (CACurrentMediaTime() - started) * 1000)
   }
 
   /// The stroke at this place in the drawing as it shows now: the one being drawn cut to the points drawn so far.
