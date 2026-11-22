@@ -214,6 +214,8 @@ final class AppModel: ObservableObject {
     tracker.onPoints = { [weak self] points in self?.liveContext.observe(points) }
     tracker.onStart = { [weak self] reason in if reason != "launch" { self?.liveContext.restart(reason: reason) } }
     inbox.didSend = { [weak self] in Task { await self?.chat.refreshList(reason: "sent") } }
+    // context-grabber-e3vb: a board's thread started (or lost) by the outbox goes up on its iCloud record now.
+    inbox.boardThreadsChanged = { [weak self] in Task { await self?.whiteboards.sync(reason: "outbox_thread") } }
     mirror = MirrorModel(app: self)
     reporter = makeReporter()
     startDelivery()

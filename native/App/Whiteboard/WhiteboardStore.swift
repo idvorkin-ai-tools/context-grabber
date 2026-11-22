@@ -389,9 +389,12 @@ final class WhiteboardStore: ObservableObject {
     syncedThisLaunch = true
     // #1161: this device's board threads, which go up on the board's record; none once iCloud refused one this launch.
     let threads = threadRefusal.offered(WhiteboardThreads().all())
-    let pending = index.pendingUploads(device: device, threads: threads).count
+    // context-grabber-e3vb: threads the Cockpit said are gone, which come off the board's record.
+    let gone = WhiteboardThreads().gone()
+    let pending = index.pendingUploads(device: device, threads: threads, gone: gone).count
     var threadsUp = 0
     var threadsDropped = 0
+    var threadsCleared = 0
     var step = BoardSyncStep.zone
     var stepBoard: String?
     var stepStrokes: Int?
@@ -405,16 +408,17 @@ final class WhiteboardStore: ObservableObject {
         index.deletedInCloud(id)
       }
       step = .upload
-      for board in index.pendingUploads(device: device, threads: threads) {
+      for board in index.pendingUploads(device: device, threads: threads, gone: gone) {
         guard let drawing = drawingURL(board.id), FileManager.default.fileExists(atPath: drawing.path) else { continue }
         let picture = pictureURL(board.id).flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
         stepBoard = board.id
         stepStrokes = board.strokes
         // A board waiting only on its thread waits for the next launch once iCloud refused a thread this sync.
         if threadRefusal.refused && board.uploaded == board.updated { continue }
-        var thread = threadRefusal.refused ? nil : (threads[board.id] ?? board.thread)
+        var thread = threadRefusal.refused ? nil : BoardIndex.thread(sending: board, threads: threads, gone: gone)
+        let clear = !threadRefusal.refused && thread == nil && board.thread != nil
         do {
-          try await cloud.upload(board, thread: thread, drawing: drawing, picture: picture)
+          try await cloud.upload(board, thread: thread, clearThread: clear, drawing: drawing, picture: picture)
         } catch
           where BoardThreadRefusal.retryWithoutThread(
             (error as? BoardCloud.WriteFailed)?.save ?? error, sentThread: thread != nil)
@@ -434,6 +438,10 @@ final class WhiteboardStore: ObservableObject {
         }
         index.uploaded(board.id, at: board.updated, thread: thread)
         if thread != nil { threadsUp += 1 }
+        if clear {
+          threadsCleared += 1
+          log.event("whiteboard_sync", ["board": board.id, "thread_cleared": board.thread ?? ""])
+        }
       }
       step = .list
       let listed = try await cloud.boards()
@@ -473,7 +481,7 @@ final class WhiteboardStore: ObservableObject {
         "ok": true, "why": reason, "boards": index.boards.count, "fetched": merged.fetch.count,
         "dropped": merged.dropped.count, "tombstones": listed.tombstones.count, "resend": merged.resend,
         // #1161: uploads that carried a thread, and other devices' boards that came with one.
-        "threads_up": threadsUp,
+        "threads_up": threadsUp, "threads_cleared": threadsCleared,
         "threads_in": listed.boards.filter { $0.device != device && $0.thread != nil }.count,
       ]
       if let zoneError { fields["zone_error"] = CloudErrorFields.item(zoneError) }
@@ -592,7 +600,10 @@ struct BoardCloud {
 
   /// `thread`: the board's chat thread with Larry (#1161), so another device opens its conversation. Left off the
   /// record when there is none, so a board that never talked with Larry carries no field production may lack.
-  func upload(_ board: BoardEntry, thread: String?, drawing: URL, picture: URL?) async throws {
+  /// `clearThread`: the record carried a thread the Cockpit lost, which is removed from it (context-grabber-e3vb).
+  func upload(_ board: BoardEntry, thread: String?, clearThread: Bool = false, drawing: URL, picture: URL?)
+    async throws
+  {
     let record = CKRecord(recordType: Self.recordType, recordID: id(board.id))
     record["title"] = board.title
     record["created"] = board.created
@@ -603,7 +614,11 @@ struct BoardCloud {
     record["paper"] = board.paperID
     // So a reinstall on the device that draws it reopens it on paper. A board from before has no value here.
     record["onPages"] = board.onPages == true ? 1 : nil
-    if let thread { record["thread"] = thread }
+    if let thread {
+      record["thread"] = thread
+    } else if clearThread {
+      record["thread"] = nil
+    }
     record["drawing"] = CKAsset(fileURL: drawing)
     record["picture"] = picture.map(CKAsset.init(fileURL:))
     // This device is the board's only writer, so its copy replaces iCloud's whatever iCloud holds. Ink beats a delete

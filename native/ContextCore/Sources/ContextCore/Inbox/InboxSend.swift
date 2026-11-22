@@ -114,6 +114,9 @@ public struct InboxSender: Sendable {
     public var retry: String?
     /// #565: the retry was the Cockpit not answering (a timeout, no connection), not an error it answered with.
     public var unreachable = false
+    /// Boards whose thread with Larry this send started, moved or forgot (context-grabber-e3vb): their iCloud copy
+    /// carries the thread, so the app syncs the boards now rather than at the next unrelated sync.
+    public var boardThreads: [String] = []
   }
 
   /// `log` gets one line per item: the event's fields, never the content. Chat (spec 2026-10-25): an item is a
@@ -221,7 +224,10 @@ public struct InboxSender: Sendable {
         try store.markSent(item.id, at: sentAt, thread: thread)
         fields.merge(["action": "sent", "duplicate": duplicate, "thread": thread]) { $1 }
         report.sent.append(item.id)
-        if let board = item.whiteboard?.board { threads.set(thread, board: board) }
+        if let board = item.whiteboard?.board {
+          if threads.thread(board: board) != thread { report.boardThreads.append(board) }
+          threads.set(thread, board: board)
+        }
         // #794: a link that started this chat; the share card recommends the chat when the link is shared again.
         if item.kind == .link, item.thread == nil, let url = item.url {
           do {
@@ -234,8 +240,11 @@ public struct InboxSender: Sendable {
         try store.markRefused(item.id, reason: reason)
         fields.merge(["action": "refused", "status": status, "reason": reason]) { $1 }
         report.refused.append(item.id)
-        if status == 404, let board = item.whiteboard?.board, let thread = item.thread {
+        if status == 404, let board = item.whiteboard?.board, let thread = item.thread,
           threads.forget(thread, board: board)
+        {
+          fields["thread_forgotten"] = true
+          report.boardThreads.append(board)
         }
       case .retry(let reason):
         fields.merge(["action": "failed", "reason": reason]) { $1 }

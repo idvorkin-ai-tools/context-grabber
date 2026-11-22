@@ -238,6 +238,16 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
   chats for one titled with the board's name, and open it only if one of its messages came from this very board, so a
   chat that only shares a name is never opened. That look is a stopgap for boards from before, to be dropped once
   they all carry their thread. A thread found once is remembered until the app closes.
+- **A thread started from the outbox goes up at once too** (bead context-grabber-e3vb). A board's first picture that
+  waited in the outbox (the Cockpit couldn't be reached when it was sent) starts the board's thread when the outbox
+  finally sends it; the board goes up to iCloud with that thread right then, not at the next return to the app or
+  close of the board.
+- **A thread the Cockpit no longer has comes off the board** (bead context-grabber-e3vb). When the Cockpit answers
+  that a board's thread is gone, the drawing device forgets it and the board's iCloud copy stops carrying it, on a
+  sync that runs at once, so the iPhone never opens a dead thread. Until the next picture starts a new thread (which
+  goes up as before), the iPhone treats the board as one carrying no thread and looks among the chats. Only a thread
+  the Cockpit said is gone is cleared: a reinstalled iPad, which starts out knowing no threads, never clears the one
+  a board carries. The session log says when a forgotten thread was cleared from the board's iCloud copy.
 - **This device's own thread wins.** A board this iPhone itself sent to Larry (a *Send to Larry* from the phone)
   opens the thread the phone started, as before, even when the board carries the drawing device's.
 - **While it looks** the bubble turns into a small spinner, and a second tap does nothing.
@@ -323,6 +333,12 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
   its note: Chat opens on that thread at once, and the session log says it came from iCloud.
 - A board that talked with Larry before this change: once the iPad has synced with this build, the iPhone opens its
   thread from iCloud too.
+- With the Cockpit unreachable, send a new board's first picture from the iPad; bring the Cockpit back: once the
+  outbox sends it, the board goes up to iCloud with its new thread without being closed, and the iPhone's bubble opens
+  it.
+- Delete a board's thread on the Cockpit and send the board's next picture from the iPad: the Cockpit refuses it, the
+  board's iCloud copy stops carrying the thread at once, and the iPhone's bubble no longer opens the dead thread.
+- Reinstall the app on the iPad: the boards that come back keep the threads they carry on iCloud.
 - Send Larry a picture, the Cockpit takes it and he hasn't picked it up: the note begins *Sent · 0:00* and counts.
 - He picks it up: the state changes to *Larry ·* and the clock doesn't restart.
 - Twenty seconds pass with the picture not picked up: the state adds *not picked up yet* and *Interrupt* shows.

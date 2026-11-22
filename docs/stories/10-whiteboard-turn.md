@@ -1528,7 +1528,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** On an iPhone a tap on the note opens the board's thread in Chat
 - **Status:** implemented in [eafb6ea](https://github.com/idvorkin/context-grabber/commit/eafb6ea); a tap that finds no thread says where the conversation is, and `conversation_chat` logs found, in [f5453423](https://github.com/idvorkin/context-grabber/commit/f5453423) (#1161), and it finds an iPad's board's thread among Larry's chats in [a43e6bf](https://github.com/idvorkin/context-grabber/commit/a43e6bfd) (#1163, story 1110); the board carries its thread through iCloud and the tap opens it first in [2f80d144](https://github.com/idvorkin/context-grabber/commit/2f80d144) (#1161, option B), verified by host tests (`BoardIndexTests`: a thread iCloud lacks sends the board up without new ink, one sent up without ink reaches the phone with no download; `WhiteboardNoteTests.testATapOnAPhoneOpensTheThreadTheBoardCarriesThroughICloud`; `just native-test`) and the Mac build (`just native-build-mac`); the CloudKit round trip (iPad up, iPhone down) is owed on the devices, and rung 2 is owed (the simulator has no iCloud account and was wedged on 2026-11-22); TestFlight needs the production schema deployed first; earlier, verified by host tests (`WhiteboardNoteTests`, `BoardThreadFindTests`: the tap on an iPhone with a thread and with none, `testATapWithNoThreadOnThisPhoneSaysWhereTheConversationIs`; `just native-test`) and the Mac build (`just native-build-mac`); not yet seen on the simulator or the iPhone
-- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("on the iPhone I should be able to interact with the chat": a tap on an iPad's board did nothing); [#1163](https://github.com/idvorkin/context-grabber/issues/1163), a board drawn on the iPad (story 1110)
+- **Issues:** [#879](https://github.com/idvorkin/context-grabber/issues/879) ("some kind of collapse expand conversation"); [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("on the iPhone I should be able to interact with the chat": a tap on an iPad's board did nothing); [#1163](https://github.com/idvorkin/context-grabber/issues/1163), a board drawn on the iPad (story 1110); bead context-grabber-e3vb, a thread the Cockpit lost stayed on the board's iCloud copy
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *One line that opens*
 
 #### Use Case:
@@ -1547,6 +1547,11 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I tap the note's line
 - **Then:** Chat opens on the board's thread at once, and the session log's `conversation_chat` says it was found in iCloud
 
+- **Scenario:** A thread the Cockpit no longer has
+- **Given:** a board drawn on the iPad whose thread the Cockpit has lost, so the iPad's next picture to it was refused
+- **When:** the iPad's sync that follows at once has run, and I tap the note's line on the iPhone
+- **Then:** Chat doesn't open the dead thread; the note looks among the chats or says where the conversation is, as for a board with no thread, and the iPad's `whiteboard_sync` counts the board in `threads_cleared`
+
 - **Scenario:** No thread on this phone
 - **Given:** a board drawn on the iPad, on an iPhone that never sent it to Larry, carrying no thread through iCloud, and no chat among Larry's that came from it (story 1110)
 - **When:** I tap the note's line
@@ -1563,7 +1568,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** On an iPhone every board in the list has a chat bubble that opens its thread
 - **Status:** implemented in [a43e6bf](https://github.com/idvorkin/context-grabber/commit/a43e6bfd); verified by host tests (`BoardThreadFindTests`; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) and the iPhone are owed. The thread from the board's iCloud record first, the chat search kept as a stopgap for boards not sent up since, in [2f80d144](https://github.com/idvorkin/context-grabber/commit/2f80d144) (#1161), verified by host tests (`BoardIndexTests`: a thread iCloud lacks sends the board up without new ink, one sent up without ink reaches the phone with no download; `WhiteboardNoteTests.testATapOnAPhoneOpensTheThreadTheBoardCarriesThroughICloud`; `just native-test`) and the Mac build (`just native-build-mac`); the CloudKit round trip (iPad up, iPhone down) is owed on the devices, and rung 2 is owed (the simulator has no iCloud account and was wedged on 2026-11-22); TestFlight needs the production schema deployed first
-- **Issues:** [#1163](https://github.com/idvorkin/context-grabber/issues/1163), [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("Maybe I should have a chat button on every board when I'm in this view on the iPhone … maybe something subtle")
+- **Issues:** [#1163](https://github.com/idvorkin/context-grabber/issues/1163), [#1161](https://github.com/idvorkin/context-grabber/issues/1161) ("Maybe I should have a chat button on every board when I'm in this view on the iPhone … maybe something subtle"); bead context-grabber-e3vb, a thread started from the outbox waited for an unrelated sync, and a lost one stayed on the board
 - **Spec:** [Larry's clock and the conversation strip](../superpowers/specs/2026-11-12-whiteboard-conversation-design.md), *The board's chat from the iPhone*
 
 #### Use Case:
@@ -1581,6 +1586,16 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board the iPad sent to Larry and has synced since
 - **When:** I tap its bubble on the iPhone
 - **Then:** Chat opens on its thread at once, with no looking among the chats, and the session log's `chat_lookup` says the thread came from iCloud
+
+- **Scenario:** A thread started from the outbox
+- **Given:** a new board's first picture that waited in the iPad's outbox while the Cockpit was away
+- **When:** the outbox sends it and its thread starts
+- **Then:** the iPad syncs at once (`whiteboard_sync` why `outbox_thread`), so the iPhone's bubble opens the new thread without waiting for the board to close
+
+- **Scenario:** A reinstall never clears a thread
+- **Given:** a board drawn on the iPad that carries its thread through iCloud
+- **When:** the app is reinstalled on the iPad and its boards come back from iCloud
+- **Then:** the board still carries its thread, since only a thread the Cockpit said is gone is cleared
 
 ---
 

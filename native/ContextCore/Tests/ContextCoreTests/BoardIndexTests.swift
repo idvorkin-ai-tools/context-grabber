@@ -153,8 +153,28 @@ final class BoardIndexTests: XCTestCase {
     XCTAssertEqual(ipad.board("a")?.thread, "t1")
     XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: ["a": "t1"]), [], "iCloud has it now")
     XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: ["a": "t2"]).map(\.id), ["a"], "a new thread goes up")
-    XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: [:]), [], "a thread forgotten here doesn't resend")
+    XCTAssertEqual(
+      ipad.pendingUploads(device: "ipad", threads: [:]), [],
+      "a thread this device doesn't know (a reinstall) doesn't resend, nor clear the one iCloud carries")
     XCTAssertEqual(ipad.pendingUploads(device: "phone", threads: ["a": "t3"]), [], "never another device's board")
+  }
+
+  // context-grabber-e3vb: a thread the Cockpit lost comes off the board's record.
+  func testAThreadTheCockpitLostComesOffTheRecord() {
+    var ipad = ipadList()
+    ipad.uploaded("a", at: 10, thread: "t1")
+    let board = ipad.board("a")!
+    XCTAssertEqual(BoardIndex.thread(sending: board, threads: [:]), "t1", "a reinstall keeps what iCloud carries")
+    XCTAssertEqual(BoardIndex.thread(sending: board, threads: ["a": "t2"], gone: ["a": "t1"]), "t2")
+    XCTAssertEqual(
+      BoardIndex.thread(sending: board, threads: [:], gone: ["a": "t0"]), "t1", "only the very thread said gone")
+    XCTAssertNil(BoardIndex.thread(sending: board, threads: [:], gone: ["a": "t1"]))
+    XCTAssertEqual(
+      ipad.pendingUploads(device: "ipad", threads: [:], gone: ["a": "t1"]).map(\.id), ["a"],
+      "goes up without new ink to clear it")
+    ipad.uploaded("a", at: 10, thread: nil)
+    XCTAssertNil(ipad.board("a")?.thread)
+    XCTAssertEqual(ipad.pendingUploads(device: "ipad", threads: [:], gone: ["a": "t1"]), [], "cleared once")
   }
 
   func testAThreadSentUpWithoutInkReachesThePhoneWithNoDownload() {
@@ -171,8 +191,9 @@ final class BoardIndexTests: XCTestCase {
     newer.thread = "igor2-88g.1700"
     _ = phone.merge(cloud: [newer], device: "phone")
     XCTAssertEqual(phone.board("a")?.thread, "igor2-88g.1700")
+    // context-grabber-e3vb: the same version sent up without its thread is the drawing device clearing a lost one.
     _ = phone.merge(cloud: [ipadBoard(updated: 11)], device: "phone")
-    XCTAssertEqual(phone.board("a")?.thread, "igor2-88g.1700", "a record without one never clears it")
+    XCTAssertNil(phone.board("a")?.thread, "the iPhone stops opening the dead thread")
   }
 
   func testAnOldListWithoutThreadsStillReads() throws {
