@@ -892,7 +892,7 @@ apart."*
 
 - **Summary:** A link opens a board, or the boards
 - **Status:** native app only: implemented in [f37d267](https://github.com/idvorkin/context-grabber/commit/f37d267); verified on the simulator (a board no device has, against the fake Cockpit, stays on the boards with the problem) and by host tests (the link's parsing); a board drawn here opening at once in [4933b0ba](https://github.com/idvorkin/context-grabber/commit/4933b0ba) (#1137, `BoardFindTests` on the host); a board that comes down from iCloud through the link, not yet
-- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603), [#1137](https://github.com/idvorkin/context-grabber/issues/1137)
+- **Issues:** [#603](https://github.com/idvorkin/context-grabber/issues/603), [#1137](https://github.com/idvorkin/context-grabber/issues/1137), bead context-grabber-4qel
 - **Spec:** [Native links](../superpowers/specs/2026-10-06-native-links-design.md)
 
 #### Use Case:
@@ -904,7 +904,7 @@ apart."*
 - **Scenario:** A link to a board
 - **Given:** I have a `grabbernative://whiteboard?board=<id>` link
 - **When:** I open it
-- **Then:** that board opens as it is now, at once when it is drawn on this device and after asking iCloud when it is another device's (#1137); a board that can't be opened leaves me on the boards with a copyable problem saying why
+- **Then:** that board opens as it is now, at once when it is drawn on this device and after asking iCloud when it is another device's (#1137), which gets about five seconds to answer before the link goes by what is here; a board that can't be opened leaves me on the boards with a copyable problem saying why
 
 ---
 
