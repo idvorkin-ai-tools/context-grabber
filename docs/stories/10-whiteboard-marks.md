@@ -1285,6 +1285,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **When:** I drag it
 - **Then:** everything I selected moves together, as before
 
+---
+
 ### User Story 1000:
 
 - **Summary:** The buttons beside a chosen mark sit clear of the board's corner and wholly on screen
