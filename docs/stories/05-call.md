@@ -654,6 +654,26 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
+### User Story 1070:
+
+- **Summary:** Turning Background tracking off stops Larry hearing about an arrival or departure not yet noticed
+- **Status:** implemented in [1e6fe81](https://github.com/idvorkin/context-grabber/commit/1e6fe81); verified by host tests (`LiveContextSendTests.testWithRecordingOffTheQuietSettlesNothing`, which did not build before the fix) and the Mac build; the phone not yet. Spec: [live context](../superpowers/specs/2026-10-17-native-live-context-design.md)
+
+#### Use Case:
+- **As a** Larry's client who turns Background tracking off
+- **I want to** have nothing about where I am reach Larry once recording is off
+- **so that** switching tracking off means the phone stops telling Larry where I go
+
+#### Acceptance Criteria:
+- **Scenario:** Background tracking turned off before the five minutes are up
+- **Given:** I walked into Kettlebility two minutes ago, *Tell Larry when I arrive and leave* is on, and I have just turned Background tracking off
+- **When:** I open the app an hour later
+- **Then:** nothing is sent about Kettlebility, while an arrival or departure noticed before tracking went off still goes
+
+- **Issues:** context-grabber-1zrt (a foreground after tracking went off let a pending arrival or departure settle and be sent)
+
+---
+
 ### User Story 335:
 
 - **Summary:** Larry hears that I left a known place, timed when I walked out

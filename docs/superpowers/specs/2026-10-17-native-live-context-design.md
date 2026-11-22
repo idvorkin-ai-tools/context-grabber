@@ -49,6 +49,10 @@ Cockpit is next reachable, with the time it happened.
   this, sends nothing about where Igor already is: the first place the phone settles in is taken as the starting point, and only changes from it are
   sent.
 - A departure names the place as it was called when he arrived, even if it was renamed or deleted since.
+- Turning location recording off stops the noticing there and then: an arrival or departure still inside its five
+  minutes when recording went off is never sent, not even when the app comes to the front after the five minutes
+  have run out. With recording off the silence is the phone no longer listening, not Igor staying put. What had
+  already settled before recording went off still goes.
 
 ### Sending
 
@@ -80,6 +84,8 @@ Cockpit is next reachable, with the time it happened.
 - Driving past the gym, or a position the phone itself reports as imprecise, sends nothing.
 - With the Cockpit unreachable, the arrival waits, and goes with its original time once the Cockpit answers.
 - Turning the switch on at home sends no *arrived at Home*.
+- Walking into the gym and turning Background tracking off within five minutes sends no *arrived at the gym*, even
+  when the app is opened an hour later; an arrival noticed before tracking went off still goes.
 
 ## Depends on
 

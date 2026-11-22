@@ -33,8 +33,11 @@ public struct LiveContext: Equatable, Sendable, Codable {
     return changes
   }
 
-  /// No new position by `now` (the app came to the front, or a timer): silence counts as staying.
-  public mutating func advance(to now: Double) -> [LiveContextDetector.Change] {
+  /// No new position by `now` (the app came to the front, or a timer): silence counts as staying, but only while
+  /// location recording runs. With it off the silence is the phone no longer listening, so nothing settles
+  /// (context-grabber-1zrt); what already waits still goes, and turning recording on again starts afresh.
+  public mutating func advance(to now: Double, recording: Bool) -> [LiveContextDetector.Change] {
+    guard recording else { return [] }
     let changes = detector.advance(to: now)
     hold(changes)
     return changes
