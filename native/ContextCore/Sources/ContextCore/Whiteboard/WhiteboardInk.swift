@@ -32,6 +32,54 @@
       return PKInk(kind, color: ink.color.withAlphaComponent(alpha))
     }
 
+    /// What saving a drawing found among its inks this build has no name for (bead context-grabber-3b02).
+    public struct SaveCheck: Equatable, Sendable {
+      /// Each unknown kind the drawing holds, as the ink spells it ("none" for no kind), sorted.
+      public var kinds: [String]
+      /// Of those, the ones a saved drawing can't be read back with.
+      public var unreadable: [String]
+      /// How many strokes were saved as the pen.
+      public var asPen: Int
+
+      public init(kinds: [String], unreadable: [String], asPen: Int) {
+        self.kinds = kinds
+        self.unreadable = unreadable
+        self.asPen = asPen
+      }
+    }
+
+    /// `drawing` as it can be saved and read back: a drawing holding an ink this PencilKit can't name is written but
+    /// refused when read ("from a future version"), so its board wouldn't open. Each unknown kind is tried once a launch
+    /// on a drawing of one stroke; a stroke of a kind that doesn't read back becomes the pen in its own colour and
+    /// alpha, its path, transform and mask kept. The check is nil when every ink has a name here.
+    public static func savable(_ drawing: PKDrawing) -> (PKDrawing, SaveCheck?) {
+      var strokes = drawing.strokes
+      var kinds: Set<String> = []
+      var unreadable: Set<String> = []
+      var asPen = 0
+      for index in strokes.indices {
+        let raw = rawType(strokes[index].ink)
+        guard raw.flatMap(PKInk.InkType.init(rawValue:)) == nil else { continue }
+        let kind = raw ?? "none"
+        kinds.insert(kind)
+        guard !readsBack(kind, stroke: strokes[index]) else { continue }
+        unreadable.insert(kind)
+        strokes[index].ink = PKInk(.pen, color: strokes[index].ink.color)
+        asPen += 1
+      }
+      guard !kinds.isEmpty else { return (drawing, nil) }
+      let check = SaveCheck(kinds: kinds.sorted(), unreadable: unreadable.sorted(), asPen: asPen)
+      return (asPen == 0 ? drawing : PKDrawing(strokes: strokes), check)
+    }
+
+    /// Whether a drawing of `stroke` alone reads back, remembered per kind for the launch.
+    private static func readsBack(_ kind: String, stroke: PKStroke) -> Bool {
+      if let known = box.withLock({ box.readsBack[kind] }) { return known }
+      let reads = (try? PKDrawing(data: PKDrawing(strokes: [stroke]).dataRepresentation())) != nil
+      box.withLock { box.readsBack[kind] = reads }
+      return reads
+    }
+
     private static func report(_ raw: String?, at place: String, points: Int) {
       let tell = box.withLock { () -> ((String?, String, Int) -> Void)? in
         box.reported.insert(raw ?? "").inserted ? box.onUnknown : nil
@@ -40,12 +88,18 @@
     }
 
     /// Forget which kinds were reported, for tests.
-    static func forgetReported() { box.withLock { box.reported = [] } }
+    static func forgetReported() {
+      box.withLock {
+        box.reported = []
+        box.readsBack = [:]
+      }
+    }
 
     private final class Box: @unchecked Sendable {
       let lock = NSLock()
       var onUnknown: ((String?, String, Int) -> Void)?
       var reported: Set<String> = []
+      var readsBack: [String: Bool] = [:]
       func withLock<T>(_ body: () -> T) -> T {
         lock.lock()
         defer { lock.unlock() }

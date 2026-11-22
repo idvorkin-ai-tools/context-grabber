@@ -236,7 +236,17 @@ final class WhiteboardStore: ObservableObject {
       ProcessInfo.processInfo.systemUptime
     }
     defer { log.event("whiteboard", timing.fields) }
-    let data = timing.time("encode") { drawing.dataRepresentation() }
+    // Bead context-grabber-3b02 (story 1092): an ink this build can't read back is saved as the pen, so the board opens.
+    let (saving, inks) = WhiteboardInk.savable(drawing)
+    if let inks {
+      log.event(
+        "whiteboard",
+        [
+          "action": "unknown_ink_saved", "board": id, "kinds": inks.kinds, "unreadable": inks.unreadable,
+          "as_pen": inks.asPen,
+        ])
+    }
+    let data = timing.time("encode") { saving.dataRepresentation() }
     var meaning = meaning
     meaning?.inkBytes = data.count
     if try timing.time("write", { try keeping.save(data, meaning: meaning, board: id) }),

@@ -91,6 +91,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1092:
+
+- **Summary:** A board holding an ink that doesn't read back opens again
+- **Status:** implemented in 9489f7c1; verified by host tests (WhiteboardInkTests), the Mac build and the whiteboard UI tests on the iPad simulator
+- **Issues:** bead context-grabber-3b02: a drawing holding an ink this PencilKit can't name saves but doesn't read back ("from a future version"), so its board wouldn't open
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Ink the app doesn't know never crashes the board*
+
+#### Use Case:
+- **As someone** writing on the iPad's board
+- **I want to** open a board again whatever ink its strokes carry
+- **so that** a stroke of an ink the app can't read back never locks me out of the board it is on
+
+#### Acceptance Criteria:
+- **Scenario:** A board holding an ink that doesn't read back is saved
+- **Given:** a board on the iPad with a stroke of an ink the app has no name for, which this build can't read back from a saved board
+- **When:** the board is saved and opened again
+- **Then:** it opens to draw on, with that stroke where it was as the pen in its own colour and strength, it goes to Larry as *pen*, and the save's log line names the kind, that it didn't read back, and how many strokes were saved as the pen
+
+---
+
 ### User Story 1064:
 
 - **Summary:** The log says which tool Igor picked, beside the one the board thinks it holds
