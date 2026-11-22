@@ -718,7 +718,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 791:
 
 - **Summary:** A new story's ID is reserved, never picked from the branch alone
-- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations started at once get six different IDs; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, against a fake gh and a fake main: an ID on the branch, on main, added by an open PR or reserved earlier is skipped; six reservations started at once get six different IDs; six reservations held open at once inside the ledger's lock get six different IDs, and a journey is found by a word from its row. This story's own ID, and 792 to 794, came from the command
 - **Issues:** bead context-grabber-jg3w (parallel PRs each took "the next free ID" from their own branch; each passed story 789's check alone, and main took duplicates four times on 2026-11-22: 955, 1101, 1155, 1113–1115)
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
@@ -738,7 +738,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 792:
 
 - **Summary:** A reservation lapses after a day, or once its story is on main
-- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: a reservation two days old is handed out again, one whose ID reached main is dropped from the ledger, a live one is kept
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: a reservation two days old is handed out again, one whose ID reached main is dropped from the ledger, a live one is kept
 - **Issues:** bead context-grabber-jg3w
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
@@ -758,7 +758,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 793:
 
 - **Summary:** Right before merging, the story IDs are checked on the branch merged with main as it is now
-- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, on a throwaway repository: a branch that passes alone but adds an ID main took since fails naming both places, a branch with a free ID passes, a branch that conflicts with main fails
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`, on a throwaway repository: a branch that passes alone but adds an ID main took since fails naming both places, a branch with a free ID passes, a branch that conflicts with main fails
 - **Issues:** bead context-grabber-jg3w
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
@@ -778,7 +778,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 794:
 
 - **Summary:** A reservation that can't see everything hands out nothing
-- **Status:** implemented on branch `native/story-id-reserve` (bead context-grabber-jg3w); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: with the fake gh failing to list the open PRs it prints no ID, exits 1 and leaves the ledger unwritten; a word that names two journeys and a journey with too few free IDs fail the same way, the last saying to add a block of twenty
+- **Status:** implemented in f50b4ddc, c195bb52 on branch `native/story-id-reserve` (bead context-grabber-jg3w); Mac build passes (rung 1.5); verified on the host rung by `scripts/native/test-story-ids.sh` in `just test`: with the fake gh failing to list the open PRs it prints no ID, exits 1 and leaves the ledger unwritten; a word that names two journeys and a journey with too few free IDs fail the same way, the last saying to add a block of twenty
 - **Issues:** bead context-grabber-jg3w
 - **Spec:** [Story ID reservations](../superpowers/specs/2026-11-22-story-id-reservations-design.md)
 
