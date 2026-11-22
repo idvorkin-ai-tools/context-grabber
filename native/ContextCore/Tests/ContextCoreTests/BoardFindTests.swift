@@ -55,4 +55,23 @@ final class BoardFindTests: XCTestCase {
     find.opens("a", now: 0)
     XCTAssertEqual(find.ask("a", index: here, device: "ipad", now: 60), .asked, "a jump abandoned a minute ago")
   }
+
+  /// Bead context-grabber-4qel: a find waits on iCloud only so long; the sync itself runs on to its end.
+  func testAWaitOnICloudIsCutShortButTheWorkRunsOn() async {
+    let ended = expectation(description: "the slow work still ends")
+    let slow = await BoardFind.finishes(within: 0.05) {
+      try? await Task.sleep(nanoseconds: 300_000_000)
+      ended.fulfill()
+    }
+    XCTAssertFalse(slow, "the wait gave up before the work ended")
+    await fulfillment(of: [ended], timeout: 5)
+    let quick = await BoardFind.finishes(within: 5) {}
+    XCTAssertTrue(quick, "work that ends in time is waited for")
+  }
+
+  func testTheWaitIsAFewSecondsWellAboveAUsualAnswer() {
+    XCTAssertGreaterThanOrEqual(BoardFind.answerSeconds, 2, "a usual answer takes under a second")
+    XCTAssertLessThan(BoardFind.answerSeconds, 20, "the UI tests give the problem 20 seconds")
+    XCTAssertEqual(BoardFind.Ask.noAnswer.rawValue, "no_answer")
+  }
 }

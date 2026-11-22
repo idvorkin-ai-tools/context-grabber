@@ -1339,7 +1339,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A board that can't be opened
 - **Given:** the thread's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
 - **When:** I tap *Board*
-- **Then:** the button reads *Looking for the board…* while it asks, then a copyable problem at the top of the thread says so, and the thread stays open
+- **Then:** the button reads *Looking for the board…* while it asks, for no more than about five seconds however slowly iCloud answers, then a copyable problem at the top of the thread says so (and that iCloud hadn't answered, when it hadn't), and the thread stays open
 
 ---
 
@@ -1539,7 +1539,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Scenario:** A board that can't be opened
 - **Given:** the picture's board was deleted, isn't on this device even after asking iCloud, or its latest drawing didn't come down
 - **When:** I tap *Jump to board*
-- **Then:** a copyable problem says so over the picture, which stays open until I close it
+- **Then:** within about five seconds however slowly iCloud answers, a copyable problem says so over the picture (and that iCloud hadn't answered, when it hadn't), which stays open until I close it
 
 ---
 

@@ -17,6 +17,30 @@ public struct BoardFind: Sendable {
     case ownHere = "own_here"
     /// Found for this same jump a moment ago: not asked again.
     case justAsked = "just_asked"
+    /// iCloud was asked and hadn't answered within `answerSeconds`: decided from what is here, the sync going on
+    /// (bead context-grabber-4qel). `ask` never returns it; the find logs it in place of `asked`.
+    case noAnswer = "no_answer"
+  }
+
+  /// How long a find waits on iCloud before going by what is here. An answer usually takes under one second; on the
+  /// simulator a launch's first answer took 11 to 19 (bead context-grabber-4qel).
+  public static let answerSeconds: Double = 5
+
+  /// Whether `work` finished within `seconds`. It runs on to its end either way; only the wait is cut short.
+  public static func finishes(within seconds: Double, _ work: @escaping @Sendable () async -> Void) async -> Bool {
+    let once = FirstOf()
+    return await withCheckedContinuation { continuation in
+      once.hold(continuation)
+      let timer = Task {
+        try? await Task.sleep(nanoseconds: UInt64(max(0, seconds) * 1_000_000_000))
+        once.settle(false)
+      }
+      Task {
+        await work()
+        once.settle(true)
+        timer.cancel()
+      }
+    }
   }
 
   /// How long a board found for a jump counts as just found: the cover going down and the boards coming up take about
@@ -40,5 +64,25 @@ public struct BoardFind: Sendable {
   public mutating func opens(_ id: String, now: Double) {
     found = id
     foundAt = now
+  }
+}
+
+/// Resumes a continuation once, with whichever answer comes first.
+private final class FirstOf: @unchecked Sendable {
+  private let lock = NSLock()
+  private var continuation: CheckedContinuation<Bool, Never>?
+
+  func hold(_ continuation: CheckedContinuation<Bool, Never>) {
+    lock.lock()
+    self.continuation = continuation
+    lock.unlock()
+  }
+
+  func settle(_ value: Bool) {
+    lock.lock()
+    let waiting = continuation
+    continuation = nil
+    lock.unlock()
+    waiting?.resume(returning: value)
   }
 }
