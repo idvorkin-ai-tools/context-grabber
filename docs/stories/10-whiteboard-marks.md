@@ -249,7 +249,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1101:
 
 - **Summary:** A tap on my selection brings up its menu while Larry's marks show
-- **Status:** in progress on branch `native/selection-tap-delete-1170`
+- **Status:** implemented in [69393b66](https://github.com/idvorkin/context-grabber/commit/69393b66); verified by host tests (`WhiteboardMarkChoiceTests`: the iPad's own selection box and tap keep the selection, a tap on a mark or off the box lets it go; `just native-test`) and the Mac build (`just native-build-mac`); the simulator (rung 2) is owed, as the simulator stack was wedged on 2026-11-22, and the iPad still to do
 - **Issues:** [#1170](https://github.com/idvorkin/context-grabber/issues/1170) (the iPad, 2026-11-22: ink selected, Larry's three marks landed, a finger tap on the selection cleared it, `paper_tap` `selected_at_tap` 6, and the menu came up as *Paste* and *Select All*, so there was no Delete)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on his own selection is still his*
 
