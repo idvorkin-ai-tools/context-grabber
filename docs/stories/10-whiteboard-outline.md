@@ -179,7 +179,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** An underlined line
 - **Given:** a line with a straight stroke under most of it that doesn't run far past it (no more than half as wide again as the line, plus a line's height)
 - **When:** it is drawn
-- **Then:** the faint H shows beside it
+- **Then:** the faint H shows beside it (for an underline drawn before story 1030's build; one drawn since makes the line a header at once)
 
 ---
 
@@ -198,7 +198,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A zigzag over a word just under a folded header
 - **Given:** a folded section whose hidden ink sits under the lines below its header, and a word on one of those lines
 - **When:** I scratch the word out
-- **Then:** only the word goes; unfolding the header shows all of its ink where it was
+- **Then:** only the word goes; unfolding the header shows all of its ink where it was (a zigzag that reaches the fold's marker or its header line takes the whole section instead, story 905)
 
 ---
 

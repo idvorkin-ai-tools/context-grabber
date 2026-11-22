@@ -242,7 +242,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A paste becomes ink
 - **Given:** a board I can draw on is open and the clipboard holds two lines of text
 - **When:** I tap Paste or press ⌘V
-- **Then:** both lines appear as thin ink, written in single strokes like Larry's labels (#996), in the middle of what's on screen with no *Allow Paste?* prompt, the board saves it, and about a second later Claude's ghosts come
+- **Then:** both lines appear as thin ink, written in single strokes like Larry's labels (#996), in the clear paper nearest the middle of what's on screen (story 852) with no *Allow Paste?* prompt, the board saves it, and about a second later Claude's ghosts come
 
 ---
 
@@ -508,7 +508,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ### User Story 402:
 
-- **Summary:** The Board menu on an iPhone's width
+- **Summary:** The Board menu on a narrow width
 - **Status:** implemented in [6d9f24f](https://github.com/idvorkin/context-grabber/commit/6d9f24f); the top bar with nothing under *More* verified on the simulator by `WhiteboardTurnUITests` (from the button tree); the menu's place at the bottom has not been looked at by eye
 - **Issues:** [#607](https://github.com/idvorkin/context-grabber/issues/607)
 
@@ -518,8 +518,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **so that** Larry's turn and Send stay where I can reach them
 
 #### Acceptance Criteria:
-- **Scenario:** On an iPhone's width
-- **Given:** a board of mine is open on a narrow screen
+- **Scenario:** On a narrow width
+- **Given:** a board of mine is open on a narrow screen (an iPad at a narrow width; an iPhone only looks and has no Board menu, story 746)
 - **When:** I look for the Board menu
 - **Then:** it is at the bottom of the screen, and Larry's turn and Send are still in the top bar, not under *More*
 

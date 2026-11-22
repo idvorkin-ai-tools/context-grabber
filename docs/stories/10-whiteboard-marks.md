@@ -115,7 +115,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** drawing on a board where Claude and Larry have both drawn back
-- **I want to** dismiss only Claude's ghosts when I tap off them
+- **I want to** have a tap off the ghosts dismiss nothing, Claude's or Larry's (first built as dismissing only Claude's; changed by story 825)
 - **so that** one stray tap can't lose Larry's marks, which can't come back
 
 #### Acceptance Criteria:
@@ -135,7 +135,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 #### Use Case:
 - **As someone** who has looked at Larry's marks and doesn't want them
-- **I want to** dismiss Larry's marks with a tap off them once they're all that's left
+- **I want to** dismiss Larry's marks only with the *Dismiss* beside each (first built as a tap off them once they were all that was left; changed by story 825)
 - **so that** clearing his always takes a tap of its own
 
 #### Acceptance Criteria:
@@ -169,7 +169,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 825:
 
 - **Summary:** Keep and Dismiss beside a tapped mark
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests`: the tap and where the buttons sit) and the Mac build. Fixed in [6754880](https://github.com/idvorkin/context-grabber/commit/6754880): the dot PaperKit draws under a finger's tap is taken back (`PaperProbeTests.testATapsDotIsTheSmallInkAtTheTapJustAfterIt`), and Keep and Dismiss carry their own names; verified on an iPad simulator by `WhiteboardPaperGhostsUITests`, three runs, every test passing first time. The iPad itself still to do
+- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests`: the tap and where the buttons sit) and the Mac build. Fixed in [6754880](https://github.com/idvorkin/context-grabber/commit/6754880): the dot PaperKit draws under a finger's tap is taken back (`PaperProbeTests.testATapsDotIsTheSmallInkAtTheTapJustAfterIt`), and Keep and Dismiss carry their own names; verified on an iPad simulator by `WhiteboardPaperGhostsUITests`, three runs, every test passing first time. The iPad itself still to do
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -189,7 +189,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 808:
 
 - **Summary:** Dismiss beside a mark removes only it
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests.testDismissRemovesOnlyThatMark`, `WhiteboardMarksTests.testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests.testDismissRemovesOnlyThatMark`, `WhiteboardMarksTests.testSettlingRemembersOnlyThatRowsKeptOrDismissedMarks`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -209,7 +209,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 809:
 
 - **Summary:** Keep beside a mark makes it ink
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests.testKeepTakesTheChosenMarkOffTheGhosts`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests.testKeepTakesTheChosenMarkOffTheGhosts`) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing); context-grabber-ikya (a kept text of Larry's drew black all but its first glyph, now and then on the iPad simulator, 2026-11-20 and 21: PaperKit held every stroke purple and drew one tile of it blank or black; the board now finds that and draws the mark again, story 650, since [ce66651b](https://github.com/idvorkin/context-grabber/commit/ce66651b))
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -229,7 +229,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 810:
 
 - **Summary:** A stray tap or a stroke puts Keep and Dismiss away
-- **Status:** implemented on branch `native/batch-decided-1114`; verified by host tests (`WhiteboardMarkChoiceTests`: the stray tap and the stroke) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
+- **Status:** implemented on branch `native/batch-decided-1114`, merged in #909 ([09171cae](https://github.com/idvorkin/context-grabber/commit/09171cae)); verified by host tests (`WhiteboardMarkChoiceTests`: the stray tap and the stroke) and the Mac build; the simulator (`WhiteboardPaperGhostsUITests`, compiled, not run) and the iPad still to do
 - **Issues:** [#883](https://github.com/idvorkin/context-grabber/issues/883) (a tap on Larry's writing kept it with nothing on screen saying so; Igor, 2026-11-14: Keep and Dismiss beside the mark, a stray tap does nothing)
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
@@ -280,7 +280,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** A purple ghost, kept
 - **Given:** Larry's faint purple shapes are showing
-- **When:** I tap one
+- **When:** I tap one, then *Keep* beside it (story 825)
 - **Then:** it becomes purple ink that my eraser and undo treat like mine
 
 ---
@@ -532,7 +532,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** My pen after a keep
 - **Given:** I'm writing with the picker's blue pen at its width
-- **When:** I tap one of Larry's ghosts to keep it and write again
+- **When:** I tap one of Larry's ghosts, then *Keep* beside it (story 825), and write again
 - **Then:** my next stroke is the same blue pen at the same width as before the keep
 
 ---
@@ -552,7 +552,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 #### Acceptance Criteria:
 - **Scenario:** Small letters
 - **Given:** a board on paper, and a label of Larry's with 12-point letters and no pen of its own
-- **When:** I tap it to keep it
+- **When:** I tap it, then *Keep* beside it (story 825)
 - **Then:** it stays on the board as purple ink, as thick as its ghost was, and the next picture Larry gets shows it
 
 ---
@@ -700,7 +700,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1005:
 
 - **Summary:** One kept mark of Larry's makes room for what I wrote since his picture
-- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Status:** implemented on branch `native/board-make-room-894`, merged in #987 ([900852be](https://github.com/idvorkin/context-grabber/commit/900852be)); verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
 - **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
 
@@ -720,7 +720,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1006:
 
 - **Summary:** Ink Larry saw never makes room for his reply
-- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Status:** implemented on branch `native/board-make-room-894`, merged in #987 ([900852be](https://github.com/idvorkin/context-grabber/commit/900852be)); verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
 - **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
 
@@ -740,7 +740,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1037:
 
 - **Summary:** A reply that lands with the board closed still makes room
-- **Status:** implemented on branch `native/board-make-room-894`; verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
+- **Status:** implemented on branch `native/board-make-room-894`, merged in #987 ([900852be](https://github.com/idvorkin/context-grabber/commit/900852be)); verified by host tests (`BoardRoomLateTests`, `BoardMarksReplayTests` on the family board with a line written after the picture; `just test`) and the Mac build (`just native-build-mac`); the simulator check (`WhiteboardPaperGhostsUITests.testKeepGroupPushesWhatIgorWroteSinceThePictureUnderTheReply`) and the iPad not yet run
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A reply of Larry's makes room for what Igor wrote after Larry looked*; [the object-layer design](https://github.com/idvorkin/context-grabber/pull/912), *A late reply*
 - **Issues:** [#894](https://github.com/idvorkin/context-grabber/issues/894): Igor, 2026-11-14, "push what he wrote since the picture down the page to make room for Larry's reply"; board 302d5345, 2026-11-19, "group pushes purple text out of the way"
 
@@ -895,7 +895,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 991:
 
 - **Summary:** A label Larry groups with his box lands with it, as ink
-- **Status:** implemented on branch `native/board-ops-937-grouped-label`; verified by host tests (`BoardOpsInkTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's Judge batch; not yet seen on the iPad
+- **Status:** implemented in [4d95846c](https://github.com/idvorkin/context-grabber/commit/4d95846c); verified by host tests (`BoardOpsInkTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's Judge batch; not yet seen on the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry groups ink*
 - **Issues:** [#937](https://github.com/idvorkin/context-grabber/issues/937)
 
@@ -917,7 +917,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 992:
 
 - **Summary:** Larry's text makes room instead of landing on my writing
-- **Status:** implemented on branch `native/board-ops-938-text-room`; verified by host tests (`BoardRoomTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's list batch; keeping a ghost with ink under it is not yet seen on the simulator or the iPad
+- **Status:** implemented in [090e7c9f](https://github.com/idvorkin/context-grabber/commit/090e7c9f); verified by host tests (`BoardRoomTests`, `BoardReplayTests`), `just test`, the Mac build (`just native-build-mac`) and `just board-ops` on the night's list batch; keeping a ghost with ink under it is not yet seen on the simulator or the iPad
 - **Spec:** [Larry edits the board](../superpowers/specs/2026-11-16-whiteboard-board-ops-design.md), *Larry writes plain text*
 - **Issues:** [#938](https://github.com/idvorkin/context-grabber/issues/938)
 
@@ -1066,7 +1066,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** It moves as one
 - **Given:** a reply I kept as a group
 - **When:** Larry moves it by the group's name, or a push opens room through it
-- **Then:** all of it moves together, and Larry hears its strokes under that one group
+- **Then:** all of it moves together (under a push all of it moves or all of it stays, by its top, story 842), and Larry hears its strokes under that one group
 
 ---
 
