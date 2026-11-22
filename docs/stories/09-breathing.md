@@ -481,7 +481,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 281:
 
 - **Summary:** Breathing during a call is silent
-- **Status:** not implemented yet: built on branch native/call-keeps-mic-2r55; the phone not yet. Spec: [box breathing](../superpowers/specs/2026-10-04-box-breathing-design.md)
+- **Status:** implemented in [7405d2fd](https://github.com/idvorkin/context-grabber/commit/7405d2fd); verified on the host rung (`AudioFloorTests.testTimerAndBreathingAreSilentDuringACall` and `testTheGateFollowsTheCall`, which failed against the old table) and the Mac build; the simulator rung not run (the Mac's screen was locked) and audio sessions exist only on the phone: the phone not yet. Spec: [box breathing](../superpowers/specs/2026-10-04-box-breathing-design.md)
 - **Issues:** context-grabber-2r55
 
 #### Use Case:

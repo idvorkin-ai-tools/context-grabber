@@ -579,8 +579,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 191:
 
 - **Summary:** Another session that needs the audio pauses a workout I left
-- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897) (breathing and the call; the Cockpit and the eulogy song's player added in review); verified by `just test` (lint + host) and the simulator's `LinksUITests` (a breathing link pauses the workout, which is found paused, ready to RESUME); the Cockpit and the song still to be checked by Igor on the phone; yielding off and on the screen, and breathing taking the card, are now host tests (`TimerSessionTests`, `TimerAndBreathingTests`): [131e96b](https://github.com/idvorkin/context-grabber/commit/131e96b), verified on the Linux rung (host tests); simulator/phone pending, needs the Mac
-- **Issues:** #791, #802
+- **Status:** native app only: implemented in [e5d4897](https://github.com/idvorkin/context-grabber/commit/e5d4897) (breathing and the call; the Cockpit and the eulogy song's player added in review); verified by `just test` (lint + host) and the simulator's `LinksUITests` (a breathing link pauses the workout, which is found paused, ready to RESUME); the Cockpit and the song still to be checked by Igor on the phone; yielding off and on the screen, and breathing taking the card, are now host tests (`TimerSessionTests`, `TimerAndBreathingTests`): [131e96b](https://github.com/idvorkin/context-grabber/commit/131e96b), verified on the Linux rung (host tests); simulator/phone pending, needs the Mac; a workout during a call counts in silence (story 193) in [7405d2fd](https://github.com/idvorkin/context-grabber/commit/7405d2fd), host and Mac build; the phone not yet
+- **Issues:** #791, #802, context-grabber-2r55
 
 #### Use Case:
 - **As a** lifter who left a workout running and then opened something with its own voice or microphone
@@ -617,7 +617,7 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 193:
 
 - **Summary:** A workout during a call counts in silence
-- **Status:** not implemented yet: built on branch native/call-keeps-mic-2r55; the phone not yet. Spec: [ducking](../superpowers/specs/2026-09-07-gym-timer-audio-ducking-design.md)
+- **Status:** implemented in [7405d2fd](https://github.com/idvorkin/context-grabber/commit/7405d2fd); verified on the host rung (`AudioFloorTests.testTimerAndBreathingAreSilentDuringACall` and `testTheGateFollowsTheCall`, which failed against the old table) and the Mac build; the simulator rung not run (the Mac's screen was locked) and audio sessions exist only on the phone: the phone not yet. Spec: [ducking](../superpowers/specs/2026-09-07-gym-timer-audio-ducking-design.md)
 - **Issues:** context-grabber-2r55
 
 #### Use Case:

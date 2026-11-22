@@ -1369,12 +1369,10 @@ Part of the [user stories](README.md); persona and format are described there.
 
 ---
 
----
-
 ### User Story 1071:
 
 - **Summary:** The call keeps the microphone when I breathe or start the timer during it
-- **Status:** not implemented yet: built on branch native/call-keeps-mic-2r55; the phone not yet. Spec: [native call screen](../superpowers/specs/2026-08-28-native-call-screen-design.md), Breathing and the Gym Timer during a call
+- **Status:** implemented in [7405d2fd](https://github.com/idvorkin/context-grabber/commit/7405d2fd); verified on the host rung (`AudioFloorTests.testTimerAndBreathingAreSilentDuringACall` and `testTheGateFollowsTheCall`, which failed against the old table) and the Mac build; the simulator rung not run (the Mac's screen was locked) and audio sessions exist only on the phone: the phone not yet. Spec: [native call screen](../superpowers/specs/2026-08-28-native-call-screen-design.md), Breathing and the Gym Timer during a call
 - **Issues:** context-grabber-2r55 (a breathing session started during a call set the audio to playback, the route went to "no microphone · Speaker" and the call's mic re-armed against a 0 Hz input; #739's log)
 
 #### Use Case:
