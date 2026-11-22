@@ -361,13 +361,24 @@ with a file alone. It waits on the phone and lands once like any message.
 Limits are said when the file is picked, in a copyable problem, and the draft stays as it was: over 10 MB (the Cockpit's
 limit), empty, or unreadable. Nothing is sent and the original file is untouched.
 
-**A file the Cockpit won't take.** The Cockpit can hold only pictures so far. A file it refuses stays on the phone in
+**A file the Cockpit won't take.** Since 2026-11-20 the Cockpit takes PDFs, plain text, and Word, Excel and PowerPoint
+files as well as pictures, judging each by what it holds rather than by its name (Cockpit story 167); anything else,
+a zip, a web page or a Pages file say, it refuses. A file it refuses stays on the phone in
 the thread (or under *Not sent yet* for a new chat), and a copyable problem names the file and gives the Cockpit's own
 reason, with *Send again* beside it. *Send again* tries the same message once more, so once the Cockpit takes files
 nothing needs picking again. A file stays until it is delivered or Igor deletes it. In a new chat whose first message
 is a refused file, the bar says the file stays under *Not sent yet* and that a new message starts a separate chat
 without it. If the phone can no longer read the kept file, the problem says that instead and offers no *Send again*:
 no request went, and picking it again is the only way on.
+
+**A delivered file in the thread** (#633). A message carrying a document, Igor's or Larry's, shows a file row above
+its words: a document symbol, the file's name (the first line of the message's words when that line is the file's
+name, as the phone sends it; otherwise the name the Cockpit gave it) and what it is: *PDF*, *Text*, *Word document*,
+*Excel spreadsheet* or *PowerPoint presentation*. Tapping the row fetches the file from the Cockpit, with a spinner on
+the row while it comes, and opens it in the system's preview, where it can be read, shared or saved. A file that
+can't be fetched (the Cockpit away, or the file gone from it) leaves a copyable problem under the row giving the reason
+and the address, and the row can be tapped again. A picture is still drawn as a picture; an attachment that is neither
+a picture nor a document the Cockpit makes shows nothing, as before.
 
 **A new chat** (#536). Igor, 2026-10-26: *"for the Plus, why don't we just make that a new chat versus having its own
 input dialog? That's probably a better UI."* The **+** opens an empty thread titled *New chat*, with the same bar every
@@ -721,6 +732,9 @@ leaves waiting never goes to Larry ([#680](2026-11-03-native-mac-app-design.md))
   again* retries the same message, and delivers it once the Cockpit takes files. A kept file the phone can't read says
   so and has no *Send again*.
 - A new chat that began with a refused file says where the file stays and that a new message starts a separate chat.
+- A PDF sent from the paperclip shows in its thread as a file row with its name and *PDF*; tapping it opens the PDF in
+  the system preview. A file the Cockpit no longer serves shows a copyable problem under the row, which can be tapped
+  again.
 - The share card lists *New chat* (ticked) and up to five recent live chats, with title and age, as soon as the Cockpit
   answers; a share into one lands as that chat's next message, once, with no new thread and no new title; with the
   Cockpit out of reach the card offers *New chat* alone, says why, and still closes at once on sending.
@@ -752,15 +766,16 @@ Two small changes there (a PR to idvorkin-ai-tools/cockpit), before the phone ha
 - Messages from the phone are recognised as the phone's, alongside the page, the command line and Telegram.
 - A message or new thread resent with the same id is recognised as one already taken, as Larry's inbox does today.
 
-Files (#633) need one more, not built yet; until then a file is refused and kept, as above:
+Files (#633) needed one more, built in the Cockpit on 2026-11-20 (cockpit-hdz, Cockpit story 167); a file of a kind
+it still doesn't take is refused and kept, as above:
 
 - The Cockpit's attachments accept PDFs and other documents, not only pictures, under the same 10 MB limit and the same
   rule that it names what it stores; a message can name one, Larry is told where it is, and asking for it returns it.
   The file's own name reaches Larry in the message's words. The Cockpit's web page shows such an attachment as something
   to open, not as a broken picture.
 
-Showing a delivered file in the phone's thread, as a row that opens it, is built with that change; no Cockpit sends one
-back today.
+Showing a delivered file in the phone's thread, as a row that opens it, followed that change (see *A delivered file in
+the thread*).
 
 *Send to new chat* needs the Cockpit to move one of Igor's messages, given its chat and its id, into a new chat made the
 way any new chat is, and answer with the new chat and its title; to refuse a message that isn't Igor's or was already

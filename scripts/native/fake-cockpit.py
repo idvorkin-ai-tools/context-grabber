@@ -20,7 +20,8 @@ across the gap below the picture and a green button under it whose tap_event is 
 /whiteboard/events takes the events a tap on one of his controls sends at once (stories 845, 846). GET /fake/ops says
 what each board message reported back (its rev and op_result) and every events post. Every request is a JSON line in
 REPORT.
-POST /attachments takes pictures only and answers anything else as the Cockpit does (400, #633).
+POST /attachments takes pictures, PDFs and plain text, and answers anything else as the Cockpit does (400, #633; Cockpit
+story 167, whose Word, Excel and PowerPoint files this stand-in doesn't tell apart, so refuses).
 FAKE_COCKPIT_NEW_DELAY=<seconds> holds each POST /chat that long first, so a new chat's waiting state can be seen.
 POST /chat/move {"thread", "message_id"} moves one of Igor's messages to a new thread, leaving a system row with moved_to
 where it was (404 for no such message, 409 for one of Larry's), and Larry answers it there.
@@ -29,7 +30,7 @@ offers Interrupt (story 777). FAKE_COCKPIT_BOARD_HOLD=<seconds> makes this a Coc
 picture's message done, and a later picture on that thread is held that long, once, before the Cockpit takes it, so past
 20 the board says it is stuck and a resend of it lands at once (stories 775, 776; under 30, the app's own limit on the
 request).
-Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
+Thread igor2-88g.593 is one Larry marks as looking done (#599). Thread igor2-88g.1268 is the pinned one, listed with no messages and refusing an archive (#598). By default this is a Cockpit with no skill threads (story 516). POST /fake/file-thread adds igor2-88g.633, titled The lease, whose one message from Igor carries a one-page PDF (story 1125). POST /fake/skill-thread is a test's way to add one (#632, cockpit#90), igor2-88g.632: pinned under Larry's, listed with no messages, refusing an archive, its replies from "idvorkin"; a message saying "fail" gets a failure row instead, with Igor's messages marked done either way, as on the Cockpit. Thread igor2-88g.592 holds one picture from Larry, all white and twice as tall as wide: on an iPhone it fills the
 full-size view, under its Done (story 306).
 Threads igor2-88g.603 and .604 hold the same picture from a whiteboard: board-603 (the UI test makes it with GRABBER_BOARD_FIXTURE) and board-gone-603, which no device has (stories 317, 319, #603).
 Decision cards (#878): POST /fake/asks {"open": true} adds (and resets, with what was answered) three open asks for GET /asks, the shape of the
@@ -122,6 +123,28 @@ IMAGES = {WHITE_PICTURE: base64.b64decode(
 def is_picture(raw):
     return (raw.startswith(b"\x89PNG\r\n\x1a\n") or raw.startswith(b"\xff\xd8\xff") or raw[:6] in (b"GIF87a", b"GIF89a")
             or (raw[:4] == b"RIFF" and raw[8:12] == b"WEBP"))
+
+
+def document(raw):
+    """The Cockpit's document sniff, cut down (Cockpit story 167): a PDF by its header, plain text by being UTF-8 with no
+    control bytes that doesn't open with markup."""
+    if raw.startswith(b"%PDF-"):
+        return "pdf"
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return None
+    if not text or re.search(r"[\x00-\x08\x0b\x0e-\x1f\x7f]", text) or text.lstrip().startswith("<"):
+        return None
+    return "txt"
+
+
+# One blank page, for the delivered file row's preview (story 1125).
+MINIMAL_PDF = (b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+               b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n")
+LEASE_PDF = "2026-11-21/0000000000000633.pdf"
+
+ATTACHMENT_TYPES = {"png": "image/png", "pdf": "application/pdf", "txt": "text/plain; charset=utf-8"}
 
 
 def now():
@@ -423,7 +446,7 @@ class Handler(BaseHTTPRequestHandler):
             if path.startswith("/attachments/") and path[len("/attachments/"):] in IMAGES:
                 data = IMAGES[path[len("/attachments/"):]]
                 self.send_response(200)
-                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Type", ATTACHMENT_TYPES[path.rsplit(".", 1)[1]])
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 return self.wfile.write(data)
@@ -434,9 +457,11 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0") or 0))
         if path == "/attachments":
             self._report({"bytes": len(raw), "origin": self.headers.get("Origin")})
-            if not is_picture(raw):
-                return self._json(400, {"ok": False, "error": "not an image Cockpit accepts (png, jpeg, gif or webp)"})
-            ref = "%s/%s.png" % (datetime.now().strftime("%Y-%m-%d"), secrets.token_hex(8))
+            ext = "png" if is_picture(raw) else document(raw)
+            if ext is None:
+                return self._json(400, {"ok": False, "error": "not an image or document Cockpit accepts (png, jpeg, gif, "
+                                        "webp, pdf, plain text, docx, xlsx or pptx)"})
+            ref = "%s/%s.%s" % (datetime.now().strftime("%Y-%m-%d"), secrets.token_hex(8), ext)
             with LOCK:
                 IMAGES[ref] = raw
             return self._json(200, {"ok": True, "ref": ref, "url": "/attachments/" + ref})
@@ -518,6 +543,13 @@ class Handler(BaseHTTPRequestHandler):
             global LARRY_OPS
             with LOCK:
                 LARRY_OPS = data
+            return self._json(200, {"ok": True})
+        if path == "/fake/file-thread":
+            # Story 1125 (#633): a PDF Igor sent, delivered, on a thread of its own so no other test sees it.
+            with LOCK:
+                IMAGES[LEASE_PDF] = MINIMAL_PDF
+                THREADS["igor2-88g.633"] = {"title": "The lease", "seen": "", "messages": [
+                    row("igor2-88g.633", "igor", "Lease.pdf\n\nread page 3", attachments=[LEASE_PDF])]}
             return self._json(200, {"ok": True})
         if path == "/fake/skill-thread":
             with LOCK:

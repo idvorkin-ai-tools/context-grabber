@@ -3,6 +3,7 @@
 
 import BugKit
 import ContextCore
+import QuickLook
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -804,7 +805,7 @@ struct ChatThreadView: View {
     .chatTextSize()
   }
 
-  /// #1091, story 1122: the board this thread belongs to, for *Board* in the bar.
+  /// #1091, story 1125: the board this thread belongs to, for *Board* in the bar.
   private var threadBoard: ChatThreadBoard? {
     ChatThreadBoard.find(thread: key, messages: messages, deviceThreads: WhiteboardThreads().all())
   }
@@ -999,7 +1000,14 @@ private struct MessageBubble: View {
         byline
         ForEach(message.attachments, id: \.self) { ref in
           if let url = ChatWire.attachmentURL(ref, cockpit: chat.cockpit) {
-            ChatImage(url: url, message: message.id, board: message.board, chat: chat, logger: logger)
+            switch ChatWire.attachment(ref) {
+            case .document(let ext, let label):
+              ChatDocument(
+                url: url, name: ChatWire.documentName(ref, text: message.text), ext: ext, label: label,
+                message: message.id, logger: logger)
+            default:
+              ChatImage(url: url, message: message.id, board: message.board, chat: chat, logger: logger)
+            }
           }
         }
         if !message.text.isEmpty {
@@ -1091,6 +1099,94 @@ private struct PendingBubble: View {
       }
     }
     .accessibilityIdentifier("chat-pending")
+  }
+}
+
+/// A delivered document (#633, spec "A delivered file in the thread"): a row that fetches it and opens the system's
+/// preview, with a copyable problem under it when the fetch fails.
+private struct ChatDocument: View {
+  let url: URL
+  let name: String
+  let ext: String
+  let label: String
+  let message: String
+  let logger: BugLogger
+  @State private var loading = false
+  @State private var preview: URL?
+  @State private var problem: BugProblem?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Button(action: open) {
+        HStack(spacing: 10) {
+          Image(systemName: ext == "pdf" ? "doc.richtext" : "doc.text").font(.title2).foregroundStyle(.secondary)
+          VStack(alignment: .leading, spacing: 2) {
+            Text(name).font(.callout).lineLimit(2).multilineTextAlignment(.leading)
+            Text(label).font(.caption).foregroundStyle(.secondary)
+          }
+          if loading { ProgressView() }
+        }
+        .padding(10)
+        .frame(maxWidth: 260, alignment: .leading)
+        .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.separator)))
+      }
+      .buttonStyle(.plain)
+      .disabled(loading)
+      .accessibilityLabel("\(name), \(label)")
+      .accessibilityIdentifier("chat-file")
+      if let problem { BugProblemView(problem: problem, logger: logger) }
+    }
+    .quickLookPreview($preview)
+  }
+
+  private func open() {
+    loading = true
+    problem = nil
+    Task {
+      var status: Int?
+      var data = Data()
+      var failure: String?
+      do {
+        let (body, response) = try await URLSession.shared.data(from: url)
+        status = (response as? HTTPURLResponse)?.statusCode
+        data = body
+      } catch {
+        failure = error.localizedDescription
+      }
+      var reason = ChatWire.documentProblem(name: name, status: status, bytes: data.count, error: failure)
+      var local: URL?
+      if reason == nil {
+        // A folder per message, so two files of one name never meet, and the preview shows the file's own name.
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("chat-files", isDirectory: true)
+          .appendingPathComponent(message, isDirectory: true)
+        let file = folder.appendingPathComponent(name)
+        do {
+          try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+          try data.write(to: file, options: .atomic)
+          local = file
+        } catch {
+          reason = "\(name) could not be kept on this device to open: \(error.localizedDescription)"
+        }
+      }
+      loading = false
+      var fields: [String: JSONValue] = [
+        "action": "open_chat_file", "message": .string(message), "file_type": .string(ext),
+        "bytes": .int(data.count), "ok": .bool(local != nil),
+      ]
+      if let status { fields["status"] = .int(status) }
+      logger("ui", fields)
+      if let local {
+        preview = local
+      } else {
+        problem = .grabber(
+          reason ?? "\(name) could not be opened.", context: "ChatThreadView.file",
+          extra: [
+            "url": .string(url.absoluteString), "message": .string(message),
+            "status": .string(status.map(String.init) ?? "none"),
+          ])
+      }
+    }
   }
 }
 
