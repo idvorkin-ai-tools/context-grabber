@@ -1492,7 +1492,8 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Reopened
 - **Given:** his marks showing
 - **When:** I close and open the board
-- **Then:** his newest set is there, and a set I dismissed stays gone
+- **Then:** his newest set is there, with any earlier set still showing when I closed it (story 1155), and a set I
+  dismissed stays gone
 
 ---
 

@@ -539,19 +539,19 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 386:
 
 - **Summary:** Larry draws unprompted
-- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note. Since story 770 the simulator keeps the unprompted marks and the reopen after a dismissal; the newest set on opening and a seen set never coming back are `WhiteboardMarksTests` on the host
+- **Status:** implemented in [b1e1b1b](https://github.com/idvorkin/context-grabber/commit/b1e1b1b); verified by the simulator (`WhiteboardTurnUITests`) against the fake Cockpit, read from the board's note. Since story 770 the simulator keeps the unprompted marks and the reopen after a dismissal; the newest set on opening and a seen set never coming back are `WhiteboardMarksTests` on the host. Changed in COMMIT_N8AB (bead `context-grabber-n8ab`, story 1155): his next marks join his unkept ones instead of replacing them; verified by host tests (`WhiteboardMarksTests`, `WhiteboardGhostTurnsTests`) and the Mac build
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
 #### Use Case:
 - **As someone** with Larry's marks on the board
-- **I want to** see his next marks take their place
-- **so that** the board shows where he has got to, not every draft
+- **I want to** see his next marks join the ones I haven't dealt with
+- **so that** nothing he drew leaves the board until I keep or dismiss it
 
 #### Acceptance Criteria:
 - **Scenario:** He draws unprompted
 - **Given:** his marks are showing and I asked for nothing
 - **When:** he posts another row of marks
-- **Then:** the new ones replace his unkept ones; Claude's stay
+- **Then:** the new ones show beside his unkept ones, which stay; Claude's stay
 
 ---
 

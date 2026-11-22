@@ -25,6 +25,25 @@ final class WhiteboardGroupTapUITests: XCTestCase {
     wait(for: [done], timeout: 5)
   }
 
+  /// Larry's answer to the turn is words alone (the fake Cockpit's `words_only`), so the three circles drawn after it are
+  /// the only marks to keep: a new reply joins his unkept marks rather than replacing them (story 1155).
+  private func larryAnswersInWords(_ cockpit: String) throws {
+    var request = URLRequest(url: try XCTUnwrap(URL(string: cockpit + "/fake/larry-ops")))
+    request.httpMethod = "POST"
+    request.httpBody = Data(#"{"kind": "words_only"}"#.utf8)
+    let done = expectation(description: "the fake Cockpit took it")
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+      done.fulfill()
+    }.resume()
+    wait(for: [done], timeout: 5)
+  }
+
+  /// His words in the note: his answer to the turn has landed.
+  private func larrySaid(_ app: XCUIApplication) -> XCUIElement {
+    app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "this is where it goes")).firstMatch
+  }
+
   private func toKeep(_ app: XCUIApplication, _ count: Int) -> XCUIElement {
     app.staticTexts.matching(NSPredicate(format: "label == %@", "\(count) to keep")).firstMatch
   }
@@ -56,8 +75,9 @@ final class WhiteboardGroupTapUITests: XCTestCase {
       .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))
     let send = app.buttons["whiteboard-send"]
     waitUntil(NSPredicate(format: "label == %@", "Send to Larry, 1 strokes"), send, timeout: 10)
+    try larryAnswersInWords(cockpit)
     app.buttons["whiteboard-larry"].tap()
-    XCTAssertTrue(toKeep(app, 2).appears(within: 15), app.debugDescription)
+    XCTAssertTrue(larrySaid(app).appears(within: 15), app.debugDescription)
     try larryDraws(3, cockpit)
     XCTAssertTrue(toKeep(app, 3).appears(within: 10), app.debugDescription)
     let marks = try XCTUnwrap(PaperScreen.settled(app) { $0.larryGhost }, "his three circles, faint")

@@ -191,6 +191,19 @@ final class BoardMarksReplayTests: XCTestCase {
     XCTAssertEqual(replay.marks, [])
   }
 
+  /// Story 1155: a second reply's marks join the first's, which stay.
+  func testASecondReplyJoinsTheFirstsMarks() throws {
+    var replay = BoardReplay(try BoardSnapshot(json: try fixture("family-board")))
+    let line = WhiteboardTurn.Shape(kind: .line, points: [.zero, CGPoint(x: 9, y: 9)])
+    let frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+    replay.run([
+      .marks(WhiteboardMarks.Row(id: "r1", shapes: [line, line], frame: frame)),
+      .marks(WhiteboardMarks.Row(id: "r2", shapes: [line], frame: frame)),
+    ])
+    XCTAssertEqual(replay.marks.map(\.id), ["r1#0", "r1#1", "r2#0"])
+    XCTAssertEqual(replay.outcomes.last?.marks, ["r2#0"])
+  }
+
   // MARK: The rule
 
   func testTheNearestMarkTakesTheTapAndTheLaterOneATie() {

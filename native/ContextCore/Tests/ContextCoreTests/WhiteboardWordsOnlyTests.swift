@@ -27,14 +27,14 @@ final class WhiteboardWordsOnlyTests: XCTestCase {
     var batches: [BoardOps.Batch] = []
     var panel: [WhiteboardNote.Row] = []
 
-    mutating func look(_ body: Data, settled: String? = nil) throws -> WhiteboardMarks.Update {
+    mutating func look(_ body: Data, settled: Set<String> = []) throws -> WhiteboardMarks.Update {
       let rows = try XCTUnwrap(WhiteboardMarks.rows(body))
       panel = WhiteboardNote.recent(try XCTUnwrap(ChatWire.messages(body)))
       let update = marks.take(rows, settled: settled)
-      turns.larrySaid(update.say, marks: update.marks != nil)
-      said.larrySaid(update.say, marks: update.marks != nil)
+      turns.larrySaid(update.say, marks: !update.marks.isEmpty)
+      said.larrySaid(update.say, marks: !update.marks.isEmpty)
       batches += source.batches(from: .rows(rows))
-      if let row = update.marks {
+      for row in update.marks {
         turns.larrysMarks(row.shapes.indices.map { G(id: WhiteboardMarks.mark($0, of: row.id), who: .larry) })
       }
       return update
@@ -66,12 +66,12 @@ final class WhiteboardWordsOnlyTests: XCTestCase {
     for words in wordsOnly {
       var board = Board()
       board.marks.threadStarted()
-      XCTAssertEqual(try board.look(thread(picture, marked)).marks?.id, "l1")
+      XCTAssertEqual(try board.look(thread(picture, marked)).marks.map(\.id), ["l1"])
       let ghosts = board.turns.ghosts
       XCTAssertEqual(ghosts.map(\.id), ["l1#0", "l1#1"])
 
       let update = try board.look(thread(picture, marked, words))
-      XCTAssertNil(update.marks, "nothing to draw: \(words)")
+      XCTAssertEqual(update.marks, [], "nothing to draw: \(words)")
       XCTAssertEqual(update.unplaced, [], "words aren't marks with nowhere to go")
       XCTAssertTrue(update.replied, "it is still his answer")
       XCTAssertEqual(board.turns.ghosts, ghosts, "his marks from before stay, and nothing new is offered to keep")
@@ -92,7 +92,7 @@ final class WhiteboardWordsOnlyTests: XCTestCase {
       var asked = Board()
       asked.marks.threadStarted()
       let update = try asked.look(thread(picture, words))
-      XCTAssertNil(update.marks)
+      XCTAssertEqual(update.marks, [])
       XCTAssertEqual(update.say, "That box is the bottleneck, not the queue.")
       for board in [opened, asked] {
         XCTAssertTrue(board.turns.ghosts.isEmpty, "nothing on the board: \(words)")
@@ -106,8 +106,8 @@ final class WhiteboardWordsOnlyTests: XCTestCase {
   /// bring none back.
   func testOpeningOnWordsAfterSettledMarksShowsNothing() throws {
     var board = Board()
-    let update = try board.look(thread(picture, marked, wordsOnly[0]), settled: "l1")
-    XCTAssertNil(update.marks)
+    let update = try board.look(thread(picture, marked, wordsOnly[0]), settled: ["l1"])
+    XCTAssertEqual(update.marks, [])
     XCTAssertTrue(board.turns.ghosts.isEmpty)
     XCTAssertTrue(board.batches.isEmpty)
   }

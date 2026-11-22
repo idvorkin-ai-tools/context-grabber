@@ -423,12 +423,12 @@ extension WhiteboardModel {
     if lookFailures > 0 { log.event("whiteboard_marks", ["action": "back", "board": board.id, "after": lookFailures]) }
     lookFailures = 0
     larryAway = false
-    let update = marks.take(rows, settled: UserDefaults.standard.string(forKey: settledKey))
+    let update = marks.take(rows, settled: Set(doneRows), showing: showingRows)
     for row in update.unplaced {
       log.event("whiteboard_marks", ["action": "unplaced", "board": board.id, "row": row])
     }
-    turns.larrySaid(update.say, marks: update.marks != nil)
-    lastSaid.larrySaid(update.say, marks: update.marks != nil)
+    turns.larrySaid(update.say, marks: !update.marks.isEmpty)
+    lastSaid.larrySaid(update.say, marks: !update.marks.isEmpty)
     // Story 762: his silence is said until he next answers.
     if update.replied, problem?.context == WhiteboardLarryClock.DidntAnswer.context { problem = nil }
     // A row landing while a picture is still going up answers an earlier one: the turn on its way stays out.
@@ -436,9 +436,16 @@ extension WhiteboardModel {
     // After the follow-up is decided (his own change to the board is never Igor moving on) and after the row's marks
     // show (his text joins them rather than being replaced by them).
     defer { takeOps(.rows(rows)) }
-    guard let row = update.marks, let frame = row.frame else { return }
-    // Each author's new marks replace only their own, placed by the row's own frame: where that picture was.
-    shownRow = row.id
+    for row in update.marks { showLarrys(row) }
+  }
+
+  /// One row of Larry's marks, placed by the row's own frame (where that picture was), joining his unkept ones from
+  /// earlier replies, which stay (story 1155, bead context-grabber-n8ab).
+  private func showLarrys(_ row: WhiteboardMarks.Row) {
+    guard let frame = row.frame else { return }
+    let earlier = turns.ghosts.filter {
+      $0.who == .larry && $0.text == nil && WhiteboardMarks.reply(of: $0.id) != row.id
+    }
     let settled = Set(UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [])
     let seen = pictureTimes.taken(row.pictureID, board: board.id)
     // Story 1046: a picture drawn with folds open maps back onto the folded board.
@@ -449,6 +456,10 @@ extension WhiteboardModel {
           shape, who: .larry, frame: frame, scale: row.scale, id: WhiteboardMarks.mark(index, of: row.id),
           hand: penInHand, seen: seen, folds: folds, lettering: lettering)
       }.filter { !settled.contains($0.id) })
+    // Remembered as showing before any of it is set aside, so a set-aside mark is remembered with its row.
+    if !marks.isEmpty || !nowhere.isEmpty {
+      UserDefaults.standard.set(WhiteboardMarks.showing(row.id, after: showingRows), forKey: showingKey)
+    }
     // Story 919: a connector naming nothing on the board shows nothing, and is set aside as if dismissed.
     turns.larrysMarks(marks)
     nowhere.forEach(settleLarrys)
@@ -457,6 +468,8 @@ extension WhiteboardModel {
       [
         "action": "shown", "board": board.id, "row": row.id, "shapes": row.shapes.count,
         "picture": row.pictureID ?? "", "picture_known": seen != nil, "folds_open": folds?.steps.count ?? 0,
+        "earlier_stayed": earlier.count,
+        "earlier_replies": Set(earlier.compactMap { WhiteboardMarks.reply(of: $0.id) }).count,
       ])
   }
 
@@ -692,12 +705,25 @@ extension WhiteboardModel {
   /// Igor kept or dismissed one of Larry's marks: it doesn't come back when the board opens again, and once none of his
   /// row is left, nor does the row.
   func settleLarrys(_ ghost: Ghost) {
-    guard ghost.who == .larry, ghost.text == nil, let shownRow else { return }
-    let settled = UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? []
-    UserDefaults.standard.set(WhiteboardMarks.settling(ghost.id, of: shownRow, after: settled), forKey: settledMarksKey)
-    if !turns.ghosts.contains(where: { $0.who == .larry }) { UserDefaults.standard.set(shownRow, forKey: settledKey) }
+    guard ghost.who == .larry, ghost.text == nil else { return }
+    let after = WhiteboardMarks.settle(
+      ghost.id, left: turns.ghosts.filter { $0.who == .larry }.map(\.id), showing: showingRows,
+      settled: UserDefaults.standard.stringArray(forKey: settledMarksKey) ?? [], done: doneRows)
+    UserDefaults.standard.set(after.showing, forKey: showingKey)
+    UserDefaults.standard.set(after.settled, forKey: settledMarksKey)
+    UserDefaults.standard.set(after.done, forKey: doneKey)
+  }
+
+  /// The rows of Larry's showing on this device when the board last closed (story 1155).
+  private var showingRows: [String] { UserDefaults.standard.stringArray(forKey: showingKey) ?? [] }
+  /// The rows Igor kept or dismissed every mark of; before story 1155 the one such row was a string under `settledKey`.
+  private var doneRows: [String] {
+    UserDefaults.standard.stringArray(forKey: doneKey)
+      ?? UserDefaults.standard.string(forKey: settledKey).map { [$0] } ?? []
   }
 
   private var settledKey: String { "whiteboard_marks_settled_\(board.id)" }
+  private var doneKey: String { "whiteboard_marks_done_rows_\(board.id)" }
+  private var showingKey: String { "whiteboard_marks_showing_\(board.id)" }
   private var settledMarksKey: String { "whiteboard_marks_settled_marks_\(board.id)" }
 }

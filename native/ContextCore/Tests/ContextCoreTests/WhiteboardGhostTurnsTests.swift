@@ -129,9 +129,12 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertEqual(turns.ghosts.filter { $0.who == .claude }, newer)
     XCTAssertEqual(count(turns, .larry), 2)
 
-    turns.larrysMarks(ghosts(.larry, 3))
-    XCTAssertEqual(count(turns, .larry), 3, "unprompted marks replace his unkept ones")
+    let three = ghosts(.larry, 3)
+    turns.larrysMarks(three)
+    XCTAssertEqual(count(turns, .larry), 5, "unprompted marks join his unkept ones (story 1155)")
     XCTAssertEqual(turns.ghosts.filter { $0.who == .claude }, newer)
+    turns.larrysMarks(three)
+    XCTAssertEqual(count(turns, .larry), 5, "a mark already showing replaces itself, never doubled")
   }
 
   func testLarrysWordsShowAndHisMarksAloneClearTheNote() {

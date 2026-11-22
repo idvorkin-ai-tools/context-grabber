@@ -321,7 +321,7 @@ public struct BoardReplay {
     return candidates.max { room($0) < room($1) }
   }
 
-  /// His reply's marks replace his unkept ones (story 357), placed by the reply's own frame, and each is tried with a tap.
+  /// His reply's marks join his unkept ones (story 1155), placed by the reply's own frame, and each is tried with a tap.
   private mutating func show(_ row: WhiteboardMarks.Row) {
     // #898 (story 1001): a reply of words alone is said, never drawn; only shapes with nowhere to go are unplaced.
     var outcome = Outcome(
@@ -331,14 +331,16 @@ public struct BoardReplay {
     if !WhiteboardTurn.hasLetters("A", .print) {
       outcome.why = "no fonts here: his labels are dropped, so mark ids and taps after one are not the iPad's"
     }
-    marks = row.shapes.enumerated().map { index, shape in
+    let shown = row.shapes.enumerated().map { index, shape in
       Mark(
         id: WhiteboardMarks.mark(index, of: row.id), kind: shape.kind, text: shape.text,
         lines: WhiteboardTurn.lines(shape, frame: frame, scale: row.scale),
         width: WhiteboardTurn.width(shape, scale: row.scale), color: shape.color ?? WhiteboardTurn.larryColor)
     }
-    outcome.marks = marks.map(\.id)
-    outcome.taps = marks.compactMap { mark in
+    let ids = Set(shown.map(\.id))
+    marks = marks.filter { !ids.contains($0.id) } + shown
+    outcome.marks = shown.map(\.id)
+    outcome.taps = shown.compactMap { mark in
       spot(on: mark).map { Tap(at: $0, mark: mark.id, chose: choose(at: $0)?.id) }
     }
   }

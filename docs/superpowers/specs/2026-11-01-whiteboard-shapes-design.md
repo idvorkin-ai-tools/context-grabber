@@ -121,7 +121,7 @@ suggest changes the board until Igor keeps it.
     next time the board opens. The other marks stay, and the rest of an answer still on its way still lands.
   - **A tap anywhere else puts the buttons away and changes nothing**: no mark is kept or dismissed by a stray tap.
     Starting to draw puts them away too, and the Pencil keeps drawing while they show. If their mark goes (Claude's
-    fade, a new set replaces it, Ghosts off) they go with it.
+    fade, a new set of Claude's replaces it, Ghosts off) they go with it.
 - **Ghosts stay while he draws** (Igor, 2026-11-02: drawing together, not taking turns). The Pencil touching down
   leaves them, and an answer that lands while he draws still shows. Each new answer from Claude replaces his unkept
   ghosts and leaves Larry's: the old set stays until the first new mark lands, so the board is never blank between
@@ -360,10 +360,18 @@ Larry draws through his chat thread, in his own time: the real Larry answers in 
   where its picture was is not shown (the session log says so).
 - **His words show in the bar**: the text of each new row of his, as his line; his clock goes (story 667).
   A row of marks with no words clears it. The talk carries on in Chat.
-- **What shows when a board opens:** only his newest row of marks, and its line, without the marks Igor already kept or
-  dismissed from it on this device; nothing, once he has kept or dismissed every mark in it. Older rows never come back:
-  they are in Chat. After that, every new row shows.
-- **Each new row of marks replaces his unkept ones** and leaves Claude's alone; Claude's ghosts never replace his. His
+- **What shows when a board opens:** his newest row of marks, and its line, and every earlier row of his that was still
+  showing on this device when the board closed; each without the marks Igor already kept or dismissed from it on this
+  device. A row whose every mark he kept or dismissed shows nothing. Rows this device never showed don't come back:
+  they are in Chat. The device remembers the last 20 rows it showed on a board; one older than that stays in Chat. After
+  that, every new row shows.
+- **A new reply adds his marks, never clears them** (Igor, 2026-11-22, bead `context-grabber-n8ab`: a 12-mark
+  sequence diagram of Larry's vanished when his next reply, a label and then a question card, came in). Each new row's
+  marks join the unkept ones from his earlier replies; those stay until Igor keeps or dismisses them (Keep, Keep
+  group, Keep all, Dismiss). Several rows that land between two looks all show. The count of marks to keep is all of
+  them, and Keep all keeps all of them. When he draws the same thing again, the copies show together: Igor clears the
+  one he doesn't want with Keep group or Dismiss, and Larry has no need to send a diagram again to keep it on the
+  board. Claude's ghosts never replace his, nor his Claude's. His
   marks stay until kept or dismissed: no timer, and the Ghosts switch doesn't touch them.
 - **A kept or dismissed mark doesn't come back**, on the next look or the next time the board opens. Only that mark:
   the ones of his row Igor left alone show again when the board opens, until each is kept or dismissed (#883).
@@ -510,8 +518,10 @@ hands them back; his rows carry shapes in the picture's pixels, in the ghost end
 - Tap Larry's turn: the bar's note begins with Larry's clock (*Larry · 0:00*, story 667) straight away and the Pencil keeps drawing. Chat has a thread
   named after the board holding the picture. Minutes later, with no tap, purple ghosts and his line appear on what he saw,
   even if the view has moved since.
-- He draws unprompted on the thread: the same, with no tap by Igor. His next marks replace the unkept ones.
+- He draws unprompted on the thread: the same, with no tap by Igor. His next marks join the unkept ones, which stay.
+- He answers twice, the second a label or a question card: the first reply's marks are still there beside the label,
+  and the count of marks to keep is both replies'.
 - Dismiss one of his marks: it doesn't return, not on the next look and not after closing and reopening the board. Leave them
-  and reopen: only his newest set shows.
+  and reopen: his newest set shows, and any earlier set of his still showing when the board closed.
 - Cockpit unreachable: drawing works as before and the bar says ghosts aren't answering, and that his marks aren't;
   Larry's turn shows a copyable problem; when the Cockpit is back the bar clears by itself.

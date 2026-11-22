@@ -232,9 +232,11 @@ public struct WhiteboardGhostTurns<Ghost: WhiteboardGhost> {
     ghosts.removeAll { $0.who == .claude }
   }
 
-  /// Larry's newest row: its marks replace his unkept ones and leave Claude's (stories 357, 382, 386).
+  /// A row of Larry's: its marks join his unkept ones from earlier replies, which stay until kept or dismissed, and
+  /// leave Claude's (stories 357, 382, 386, 1155). A mark already showing is replaced by itself, never doubled.
   public mutating func larrysMarks(_ new: [Ghost]) {
-    ghosts = ghosts.filter { $0.who != .larry } + new
+    let ids = Set(new.map(\.id))
+    ghosts = ghosts.filter { !ids.contains($0.id) } + new
   }
 
   /// Larry's text from a batch of his changes (story 817): it joins his marks, replacing only a ghost with the same id.
