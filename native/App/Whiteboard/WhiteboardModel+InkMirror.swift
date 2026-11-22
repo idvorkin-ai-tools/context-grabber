@@ -15,7 +15,7 @@ extension WhiteboardModel {
     logStrokesMoved(to: new)
     drawing = new
     if added, let last = new.strokes.last { vad.stroke(last.renderBounds) }
-    if added, turns.stroked() { startPause() }
+    if added { strokeLanded() }
     drawingMoved()
   }
 

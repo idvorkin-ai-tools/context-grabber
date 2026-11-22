@@ -713,6 +713,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1115:
+
+- **Summary:** A Send's message and its picture share one id
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified by the Mac build. A Send from the iPad against the Cockpit not yet seen
+- **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22 13:47: a Send's strokes were stored under its picture's id while its message had another, so a look-up by the message found no strokes, and Larry's reply to it was to a picture the board didn't know: `picture_known: false`)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who sends a board to Larry with *Send to Larry*
+- **I want to** have the message and its picture known by one id, as with *Larry's turn*
+- **so that** Larry, and anyone reading the Cockpit, finds the strokes of the message he is answering, and his marks land where the picture was
+
+#### Acceptance Criteria:
+- **Scenario:** Send to Larry
+- **Given:** a board with ink on it
+- **When:** I tap *Send to Larry*
+- **Then:** the chat message's id is the picture's id, the strokes are stored under that id, and Larry's reply to that message places its marks by the picture's frame and time
+
+---
+
 ### User Story 425:
 
 - **Summary:** Claude's ghost turn gets the same framing

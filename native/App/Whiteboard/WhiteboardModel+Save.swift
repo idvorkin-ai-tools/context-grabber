@@ -107,7 +107,8 @@ extension WhiteboardModel {
     draft.strokes = try? JSONSerialization.data(
       withJSONObject: WhiteboardStrokes.wire(strokesForLarry(), texts: texts, metas: strokeMeta))
     do {
-      try inbox.add(&draft, thread: threads.thread(board: board.id))
+      // Story 1115: the message is the picture's id, as on Larry's turn, so what names one finds the other's strokes.
+      try inbox.add(&draft, id: sending.pictureID, thread: threads.thread(board: board.id))
       if problem?.context == "WhiteboardView.send" { problem = nil }
       sent = "Sent to Larry: his reply shows in Chat"
       sentFrame = rect

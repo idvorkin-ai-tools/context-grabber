@@ -78,7 +78,7 @@ extension WhiteboardModel {
       return
     }
     land(strokes)
-    if turns.stroked() { startPause() }
+    strokeLanded()
     if let note = layout.note { pasteNote = note }
   }
 
@@ -91,6 +91,6 @@ extension WhiteboardModel {
     guard editable, !strokes.isEmpty else { return }
     log.event("whiteboard", ["action": "paste_strokes", "board": board.id, "strokes": strokes.count])
     land(strokes)
-    if turns.stroked() { startPause() }
+    strokeLanded()
   }
 }

@@ -318,6 +318,40 @@ final class WhiteboardGhostTurnsTests: XCTestCase {
     XCTAssertEqual(turns.spoke("draw a square"), .ghostsOff, "the last words aren't asked")
   }
 
+  /// Story 1114 (bead context-grabber-bozm): writing with Ghosts off asks nothing, and the bar says no one is watching
+  /// until Ghosts come back on.
+  func testWritingWithGhostsOffSaysNoOneIsWatchingUntilGhostsComeBack() {
+    var turns = turns()
+    turns.setOn(false)
+    XCTAssertNil(turns.note, "turning them off says nothing yet")
+    XCTAssertFalse(turns.stroked(), "nothing is asked")
+    XCTAssertEqual(turns.note, WhiteboardTurn.writingGhostsOff)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertEqual(turns.note, WhiteboardTurn.writingGhostsOff, "it stays while he writes")
+    turns.setOn(true)
+    XCTAssertNil(turns.note, "Ghosts on: the line goes")
+    XCTAssertTrue(turns.stroked(), "and the next stroke asks again")
+  }
+
+  /// Stories 1114, 1116 (bead context-grabber-bozm): only the first unwatched stroke since Ghosts went off is new, however
+  /// often a mic tap or Larry's words take the bar's line in between.
+  func testOnlyTheFirstStrokeWithGhostsOffStartsTheUnwatchedSpell() {
+    var turns = turns()
+    turns.setOn(false)
+    XCTAssertFalse(turns.writingUnwatched)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertTrue(turns.writingUnwatched, "the first stroke begins it")
+    XCTAssertFalse(turns.micMayOpen())
+    XCTAssertEqual(turns.note, WhiteboardTurn.micGhostsOff)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertTrue(turns.writingUnwatched, "a mic tap between strokes doesn't begin another")
+    turns.setOn(true)
+    XCTAssertFalse(turns.writingUnwatched, "Ghosts on ends it")
+    turns.setOn(false)
+    XCTAssertFalse(turns.stroked())
+    XCTAssertTrue(turns.writingUnwatched, "and the next time off begins a new one")
+  }
+
   func testGhostsOffMidTurnMakesItsAnswerStaleAndForgetsTheOwedAsk() {
     var turns = turns()
     let asked = asking(&turns)

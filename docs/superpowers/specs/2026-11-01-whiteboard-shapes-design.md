@@ -366,7 +366,11 @@ first piece of the live-whiteboard plan: a knob to compare who answers, and the 
   - A picture that can't reach him frees the turn, and its words wait for the next one. Ghosts off forgets what the
     pauses kept; a turn already out stays out.
   - A pause while the board's first *Send* waits in the outbox sends nothing, so it can't start a second thread.
-- With Ghosts off nothing is asked after a pause, whoever the responder is.
+- With Ghosts off nothing is asked after a pause, whoever the responder is. Writing with Ghosts off says so: the
+  first stroke puts *Ghosts are off, so no one is watching: turn Ghosts on for a look* in the bar's note, and it stays
+  there, past the note's usual few seconds, until Ghosts come back on. The session log notes that first unwatched
+  stroke. (Bead context-grabber-bozm: a tap meant for the mic landed on Ghosts beside it, and Igor wrote for 16 minutes
+  to a board nobody was watching, with nothing on screen saying so.)
 - **Every ghost turn is measured** (story 661). The session log says, for each one, how long the pause waited, how long
   the picture took to draw and to encode, and how long it took to upload, beside who answered. The Cockpit is told the
   first three with the turn itself, so its own log puts the iPad's half beside the model's; the upload is known only
@@ -427,6 +431,9 @@ A picture of a tall board shrinks the handwriting to a few pixels; the strokes d
   the Cockpit every stroke on the board, in board points, each with when it was drawn, its colour as it looks in
   light mode, its width, its tool and a stable id, under the picture's own id. The picture then goes as before: it is
   what Chat shows, and what Larry reads when the strokes did not get through.
+- **A picture and its message are one id** (bead context-grabber-bozm). A *Send to Larry* gives its chat message the
+  picture's own id, as *Larry's turn* does, so whatever names the message (Larry's reply, the Cockpit's debug page)
+  finds the strokes stored under it, and his marks on it land where the picture was.
 - **Larry reads any part sharp and knows what is new.** The Cockpit keeps the strokes per picture, renders any region
   at any size for him, and tells him which strokes were added or erased since the picture before his last reply.
   His marks come back as before, placed by the frame of whatever he drew on, so a page he rendered himself lands as

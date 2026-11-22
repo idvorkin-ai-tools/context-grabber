@@ -49,6 +49,66 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1114:
+
+- **Summary:** Writing with Ghosts off says no one is watching
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: the first stroke with Ghosts off sets the line and it stays; `WhiteboardNoteTests`: the line holds the middle) and the Mac build. Not yet seen on the iPad
+- **Issues:** bead `context-grabber-bozm` (iPad, 2026-11-22: a tap meant for the mic landed on Ghosts at 13:31; 16 minutes of writing went to no one, with nothing on screen saying so)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who turned Ghosts off, maybe without meaning to
+- **I want to** be told, as I write, that nobody is looking at the board
+- **so that** I don't write for minutes waiting for Larry or Claude to answer a board neither of them can see
+
+#### Acceptance Criteria:
+- **Scenario:** Writing with Ghosts off
+- **Given:** Ghosts are off on a board
+- **When:** I draw a stroke
+- **Then:** the bar's note says *Ghosts are off, so no one is watching: turn Ghosts on for a look*, and it stays there while I keep writing, past the note's usual few seconds; nothing is asked, as before
+
+---
+
+### User Story 1113:
+
+- **Summary:** Turning Ghosts back on takes the no-one-is-watching line away
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda); verified on the host (`WhiteboardGhostTurnsTests`: Ghosts on clears the line and the next stroke asks) and the Mac build. Not yet seen on the iPad
+- **Issues:** bead `context-grabber-bozm`
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** who was told no one is watching the board
+- **I want to** see the line go once I turn Ghosts back on
+- **so that** the bar never says no one is watching when someone is
+
+#### Acceptance Criteria:
+- **Scenario:** Ghosts back on
+- **Given:** the bar says no one is watching
+- **When:** I turn Ghosts on
+- **Then:** the line goes, and my next pause asks as usual
+
+---
+
+### User Story 1116:
+
+- **Summary:** The log marks when writing to no one began, once
+- **Status:** implemented in [ee309dda](https://github.com/idvorkin/context-grabber/commit/ee309dda), held to one line however the bar's note changes in the review round; verified on the host (`WhiteboardGhostTurnsTests`: only the first stroke since Ghosts went off begins the spell, a mic tap between strokes doesn't begin another) and the Mac build. Not yet seen on the iPad
+- **Issues:** bead `context-grabber-bozm` (the iPad log had no line at all for 16 minutes of unwatched writing)
+- **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
+
+#### Use Case:
+- **As someone** reading a session log after a board went quiet
+- **I want to** find one line where writing with Ghosts off began
+- **so that** I can tell when the board stopped being watched without wading through a line per stroke
+
+#### Acceptance Criteria:
+- **Scenario:** The log says when it began
+- **Given:** Ghosts are off, and a mic tap or Larry's words may have taken the bar's line since
+- **When:** I draw strokes after they went off
+- **Then:** the session log has one line, at the first of them, saying a pause was skipped because Ghosts are off, not one per stroke
+
+---
+
 ### User Story 352:
 
 - **Summary:** The board still draws when ghosts can't be reached
