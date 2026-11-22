@@ -31,10 +31,10 @@ extension PaperBoardController {
     guard !made.isEmpty else { return }
     let moments = Set(made.map { Self.keptMoment($0) })
     let box = PKDrawing(strokes: made).bounds
-    let darkBefore = before ?? max(drawnColours(in: keptSpot(box), ink: [0, 0, 0]).dark, 0)
+    let want = Self.inkRGB(made[0].ink.color)
+    let darkBefore = before ?? max(drawnColours(in: keptSpot(box), ink: want).dark, 0)
     let madeInks = Self.inkKinds(made)
     let heldNow = Self.inkKinds(heldStrokes(at: moments))
-    let want = Self.inkRGB(made[0].ink.color)
     Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(1))
       guard let self else { return }
@@ -73,7 +73,7 @@ extension PaperBoardController {
         let place = self.paper.contentVisibleFrame
         self.paper.contentVisibleFrame = place.offsetBy(dx: 0, dy: place.height)
         try? await Task.sleep(for: .seconds(0.1))
-        if self.touchesDown == 0 { self.paper.contentVisibleFrame = place }
+        self.paper.contentVisibleFrame = place
       }
       self.lookAtKeptInk(made, why: why, attempt: attempt + 1, before: darkBefore)
     }
@@ -91,17 +91,27 @@ extension PaperBoardController {
     return nil
   }
 
-  /// The markup set without the strokes made at `moments`, and a moment later with them again, as it was: their ids kept.
+  /// The markup set without the strokes made at `moments`, and a moment later with them again where they were, their ids
+  /// kept, in whatever the markup holds by then.
   private func readd(_ moments: Set<Int64>) async {
     guard let markup = paper.markup else { return }
     var without = markup
+    var removed: [(index: Int, element: MarkupOrderedSet.Element)] = []
     for stroke in markup.subelements.strokes where moments.contains(Self.keptMoment(stroke)) {
-      _ = without.subelements.removeElement(for: stroke.elementID)
+      guard let element = without.subelements.removeElement(for: stroke.elementID) else { continue }
+      removed.append((markup.subelements.firstIndex(of: element) ?? markup.subelements.count, element))
     }
-    guard without.subelements.count < markup.subelements.count else { return }
+    guard !removed.isEmpty else { return }
     setMarkup(without)
+    inkFrames = without.strokeFrames
     try? await Task.sleep(for: .seconds(0.1))
-    setMarkup(markup)
+    var back = paper.markup ?? without
+    for (index, element) in removed {
+      _ = back.subelements.insert(element, at: min(index, back.subelements.count))
+    }
+    let held = setMarkup(back).held
+    inkFrames = held.strokeFrames
+    model.settled(held.inkDrawing)
   }
 
   /// Where `box` (board points) is in this view's own points.

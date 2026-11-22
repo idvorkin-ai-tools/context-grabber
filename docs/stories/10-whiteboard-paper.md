@@ -1837,7 +1837,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** A kept mark only partly drawn
 - **Given:** a board on paper, and a mark of Larry's I keep
 - **When:** the screen shows only part of it in his colour a second later (the rest blank, or in another colour)
-- **Then:** the board draws it again on its own within a few seconds, every stroke in his colour; the mark may blink once, and the view stays where it is
+- **Then:** the board draws it again on its own within a few seconds, every stroke in his colour; the mark may blink once, and if that is not enough the view moves a screen away and back once, ending where it was
 
 ---
 

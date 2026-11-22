@@ -333,7 +333,8 @@ paper. That description is the requirement, and this lists only where paper need
   If the board ever finds such ink missing from the screen a second later, it draws it again on its own, within a few
   seconds, with no visible jump. Part of a kept mark missing counts too, and so does part of it drawn in a colour that
   isn't its own: a kept text of Larry's whose first letter showed in his purple and the rest blank or black is drawn
-  again on its own a second later (context-grabber-ikya); the mark may blink once as it does, and the view stays put.
+  again on its own a second later (context-grabber-ikya); the mark may blink once as it does. If that first try still
+  leaves it partly drawn, the view moves a screen away and straight back once, and always ends where it was.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
 - **Every keep is a step of Undo of its own, and keeps it** (#966). *Keep*, *Keep group*, *Keep all* and *Tidy overlaps*
   are each one step, named for what was done (with a keyboard, the menu's *Undo Keep group*). Nothing the board does on its
