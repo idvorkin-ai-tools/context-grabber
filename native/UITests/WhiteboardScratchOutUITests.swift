@@ -146,6 +146,27 @@ final class WhiteboardScratchOutUITests: XCTestCase {
     XCTAssertFalse(app.descendants(matching: .any)["whiteboard-scratch-nothing"].exists, "no word when it worked")
   }
 
+  /// Story 1108 (#1121): the eraser drawn across ink is the eraser, never a scratch-out, whatever its shape. On the iPad
+  /// PaperKit handed the board a passing stroke for the eraser's sweep; the board read a fast one as a zigzag, pressed
+  /// PaperKit's Undo for it, and PaperKit trapped inside that Undo. The hook reads the eraser's sweep, the second
+  /// stroke, as a zigzag.
+  func testTheEraserAcrossInkIsNeverAScratchOut() throws {
+    let app = try openBoard(zigzag: 2, seconds: 6)
+    let send = app.buttons["whiteboard-send"]
+    point(app, 0.20, 0.35).press(forDuration: 0.05, thenDragTo: point(app, 0.45, 0.35))
+    wait(send, label: "Send to Larry, 1 strokes")
+    app.buttons["Eraser"].tap()
+    sleep(1)
+    point(app, 0.18, 0.35).press(forDuration: 0.05, thenDragTo: point(app, 0.47, 0.35))
+    let flash = app.descendants(matching: .any)["whiteboard-scratch-flash"]
+    XCTAssertFalse(flash.appears(within: 3), "the eraser's sweep fired a scratch-out: \(app.debugDescription)")
+    XCTAssertFalse(
+      app.descendants(matching: .any)["whiteboard-scratch-nothing"].exists, "the eraser's sweep read as a zigzag")
+    shot(app, "the eraser drawn across a word")
+    XCTAssertEqual(app.state, .runningForeground, "the app is still up after the eraser's sweep")
+    app.buttons["Pen"].tap()
+  }
+
   /// Story 1051 (#1000): a zigzag on bare paper goes, with a word, and Redo brings it back as ink.
   func testAZigzagOverNothingSaysSoAndGoes() throws {
     let app = try openBoard(zigzag: 1, seconds: 6)

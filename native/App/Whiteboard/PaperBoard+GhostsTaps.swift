@@ -114,7 +114,11 @@ extension PaperBoardController {
   func scratchesOut(_ change: PaperProbe.InkChange, _ markup: PaperMarkup) -> Bool {
     // An Undo or Redo that brings a stroke back is never a new zigzag: Redo brings back one that found nothing (#1000).
     let undo = paper.undoManager
-    guard drawsHere, undo?.isUndoing != true, undo?.isRedoing != true, change.added.count == 1, change.removed.isEmpty,
+    // Story 1108 (#1121): only the pen scratches out. The eraser's sweep reaches the board as a passing stroke of its own
+    // (`com.apple.ink.eraser`); read as a zigzag, its take-back pressed PaperKit's Undo on the eraser's step, and PaperKit
+    // trapped inside that Undo on the iPad.
+    guard drawsHere, touchTool.ink != nil, undo?.isUndoing != true, undo?.isRedoing != true, change.added.count == 1,
+      change.removed.isEmpty,
       change.moved.isEmpty, let key = change.added.first,
       let scratch = markup.scratch(key, asZigzag: LaunchHooks.current.whiteboard.zigzagAt == inkFrames.count)
     else { return false }
