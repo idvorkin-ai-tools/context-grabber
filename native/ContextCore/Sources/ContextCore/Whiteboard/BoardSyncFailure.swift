@@ -72,10 +72,34 @@ public struct BoardSyncFailure {
       CloudErrorFields.partial($0, recordName: recordName)
     }
     if let first = partial.first { out["partial"] = first }
-    let retry = [error, saveError, deleteError].compactMap { $0 }.compactMap(CloudErrorFields.retryAfter).max()
-    if let retry { out["retry_after"] = retry }
+    if let retryAfter { out["retry_after"] = retryAfter }
     return out
   }
+
+  /// How long CloudKit asked to wait before trying again, in seconds: the longest any of the errors names.
+  public var retryAfter: Double? {
+    [error, saveError, deleteError].compactMap { $0 }.compactMap(CloudErrorFields.retryAfter).max()
+  }
+}
+
+/// When a failed whiteboard sync tries again by itself (#1002): 15 s after the first failure, twice as long after each
+/// failure in a row, at most five minutes, and never sooner than CloudKit asked. A sync that gets through starts over.
+public struct BoardSyncRetry: Sendable {
+  public static let first: Double = 15
+  public static let longest: Double = 300
+  /// Failed syncs in a row.
+  public private(set) var failures = 0
+
+  public init() {}
+
+  /// A sync failed: the wait before the next try, in seconds.
+  public mutating func failed(retryAfter: Double? = nil) -> Double {
+    failures += 1
+    let backoff = min(Self.longest, Self.first * pow(2, Double(min(failures - 1, 16))))
+    return max(backoff, retryAfter ?? 0)
+  }
+
+  public mutating func succeeded() { failures = 0 }
 }
 
 /// One CloudKit error as log fields.
