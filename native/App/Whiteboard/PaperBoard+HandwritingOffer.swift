@@ -76,8 +76,15 @@ extension PaperBoardController {
       try? await Task.sleep(for: .seconds(0.15))
       guard let self else { return }
       event["selected_after"] = self.paper.selection.count
-      event["over_board_after"] =
-        self.view.window?.rootViewController?.presentedViewController?.presentedViewController.map(Self.kind) ?? ""
+      var shown = self.view.window?.rootViewController?.presentedViewController
+      var over: [String] = []
+      while let next = shown {
+        if !next.isBeingDismissed, next !== self.view.window?.rootViewController?.presentedViewController {
+          over.append(Self.kind(next))
+        }
+        shown = next.presentedViewController
+      }
+      event["over_board_after"] = over
       self.log.event("whiteboard", event)
     }
   }
@@ -138,7 +145,11 @@ extension PaperBoardController {
       fake.popoverPresentationController?.sourceView = self.paper.view
       fake.popoverPresentationController?.sourceRect = CGRect(x: 40, y: 40, width: 200, height: 60)
       top.present(fake, animated: false)
+      // Silently, as on the iPad: no selection callback, which would put the group back by the older path.
+      let delegate = self.paper.delegate
+      self.paper.delegate = nil
       self.paper.selection = []
+      self.paper.delegate = delegate
     }
   }
 
