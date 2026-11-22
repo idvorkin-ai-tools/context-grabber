@@ -1128,7 +1128,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1140:
 
 - **Summary:** A finger tap on anything of Larry's I kept picks up that one thing alone, ready to drag
-- **Status:** implemented in [735407fe](https://github.com/idvorkin/context-grabber/commit/735407fe), [52ce6bd2](https://github.com/idvorkin/context-grabber/commit/52ce6bd2); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: one of two kept marks, his ink nearer and a group's left to the group; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardTheirsTapUITests`, rung 2, 2026-11-22: three circles kept with Keep all, a finger tap selects the first alone, its Delete leaves the other two, one Undo brings it back); the drag not yet seen on the iPad
+- **Status:** implemented in [e1a4e486](https://github.com/idvorkin/context-grabber/commit/e1a4e486), [c23bc731](https://github.com/idvorkin/context-grabber/commit/c23bc731); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: one of two kept marks, his ink nearer and a group's left to the group; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator against the fake Cockpit (`WhiteboardTheirsTapUITests`, rung 2, 2026-11-22: three circles kept with Keep all, a finger tap selects the first alone, its Delete leaves the other two, one Undo brings it back); the drag not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on anything of Larry's he kept)
 - **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"
 
@@ -1148,7 +1148,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1141:
 
 - **Summary:** A finger tap on a text of Larry's over my box takes his whole text and none of my box
-- **Status:** implemented in [735407fe](https://github.com/idvorkin/context-grabber/commit/735407fe), [52ce6bd2](https://github.com/idvorkin/context-grabber/commit/52ce6bd2); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: his text alone over his box; `just native-test`) and the Mac build (`just native-build-mac`); the selection, its drag and the second tap's reword not yet seen on the iPad simulator or the iPad
+- **Status:** implemented in [e1a4e486](https://github.com/idvorkin/context-grabber/commit/e1a4e486), [c23bc731](https://github.com/idvorkin/context-grabber/commit/c23bc731); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: his text alone over his box; `just native-test`) and the Mac build (`just native-build-mac`); the selection, its drag and the second tap's reword not yet seen on the iPad simulator or the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on anything of Larry's he kept)
 - **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"
 
@@ -1168,7 +1168,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1142:
 
 - **Summary:** Where my own ink is nearer, a finger tap stays mine
-- **Status:** implemented in [735407fe](https://github.com/idvorkin/context-grabber/commit/735407fe), [52ce6bd2](https://github.com/idvorkin/context-grabber/commit/52ce6bd2); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: his ink nearer; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator (`WhiteboardRewordUITests`, rung 2, 2026-11-22: a To text result still opens at the first tap); not yet seen on the iPad
+- **Status:** implemented in [e1a4e486](https://github.com/idvorkin/context-grabber/commit/e1a4e486), [c23bc731](https://github.com/idvorkin/context-grabber/commit/c23bc731); verified by host tests (`BoardOutlineTests.testAFingerTapOnOneThingOfLarrysTakesItAlone`: his ink nearer; `just native-test`), the Mac build (`just native-build-mac`), and on the iPad simulator (`WhiteboardRewordUITests`, rung 2, 2026-11-22: a To text result still opens at the first tap); not yet seen on the iPad
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on anything of Larry's he kept)
 - **Issues:** [#1171](https://github.com/idvorkin/context-grabber/issues/1171): Igor, 2026-11-22 17:21, on the iPad, Larry's steps written inside a box of his: "I want to be able to click what Larry wrote. I want to be able to keep that separate somehow and just pick that up and move it around by itself"
 
