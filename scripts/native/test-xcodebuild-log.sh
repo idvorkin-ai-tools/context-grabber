@@ -5,7 +5,8 @@
 # the result bundle to be written in full, so a failed test's screenshots can still be opened (story 790), and a case
 # that passed only on its retry fails the run unless it is quarantined with its bead (story 1017), and a failed run
 # during which the Mac's screen locked exits 75, asking for a rerun unlocked, while a passed one stands (story 1018), and
-# a simulator test run doesn't start on a locked screen, and one is stopped, its app ended, when the screen locks (stories 1022, 1023).
+# a simulator test run doesn't start on a locked screen, and one is stopped, its app ended, when the screen locks (stories 1022, 1023),
+# in any of its test targets, not only the first (bead context-grabber-i5x4).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 dir=$(mktemp -d)
@@ -25,6 +26,7 @@ if [ -n "${FAKE_NO_START:-}" ]; then  # a dark or locked Mac: the runner waits, 
   while :; do sleep 1; done
 fi
 echo "Test Suite 'Selected tests' started at now."
+[ -n "${FAKE_REOPEN:-}" ] && echo "Test Suite 'Selected tests' started at now."  # a runner that restarted, opening it again
 if [ -n "${FAKE_EARLY_FAIL:-}" ]; then  # a case fails while the screen is still unlocked
   c="Test Case '-[GrabberNativeUITests.SynthUITests testEarly]'"
   printf '%s\n' "$c started." "$c failed (1.000 seconds)."
@@ -43,6 +45,17 @@ if [ -n "${FAKE_FLAKY:-}" ]; then  # Class.test: fails, then passes on its retry
   printf '%s\n' "$c started." "$c failed (1.000 seconds)." "$c started." "$c passed (1.000 seconds)."
 fi
 echo "Test Suite 'Selected tests' ${FAKE_RESULT:-passed} at now."
+if [ -n "${FAKE_SECOND_TARGET:-}" ]; then  # a second test target, as the contract tests run (bead i5x4)
+  if [ -n "${FAKE_LOCK_BETWEEN:-}" ]; then  # the screen locks between the two targets, long enough to be seen
+    echo '"CGSSessionScreenIsLocked"=Yes' >"$FAKE_LOCK_BETWEEN"
+    sleep 3
+    [ -n "${FAKE_UNLOCK_BETWEEN:-}" ] && echo '"CGSSessionScreenIsLocked"=No' >"$FAKE_LOCK_BETWEEN" && sleep 3
+  fi
+  echo "Test Suite 'All tests' started at now."
+  for _ in $(seq "${FAKE_SECOND_HOLD:-1}"); do sleep 1; done  # short sleeps: a stop isn't held up by a long one
+  c="Test Case '-[GrabberNativeUITests.SecondTargetUITests testSecond]'"
+  printf '%s\n' "$c started." "$c passed (1.000 seconds)." "Test Suite 'All tests' passed at now."
+fi
 if [ -n "${FAKE_LOCK_AFTER:-}" ]; then  # the screen locks once the tests are done
   echo '"CGSSessionScreenIsLocked"=Yes' >"$FAKE_LOCK_AFTER"
   sleep 3
@@ -246,4 +259,32 @@ out=$(simrun FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "${sim[@]}" tes
 status=$?
 [ "$status" -eq 0 ] && ok "a lock once the tests are done doesn't stop the run, and its pass stands" || bad "a lock after the tests: $status $out"
 [ ! -s "$dir/xcrun" ] && ok "and ends no app" || bad "a lock after the tests ended apps: $(cat "$dir/xcrun")"
+# Bead context-grabber-i5x4: a run of two test targets closes a suite after each; the stop stays on to the last.
+: >"$dir/lock"
+start=$SECONDS
+out=$(simrun FAKE_SECOND_TARGET=1 FAKE_LOCK_BETWEEN="$dir/lock" FAKE_SECOND_HOLD=30 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+took=$((SECONDS - start))
+[ "$status" -eq 75 ] && ok "a lock between two test targets stops the run once the second starts (75)" ||
+  bad "a lock between targets exited $status: $out"
+[ "$took" -lt 20 ] && ok "within seconds (${took} s), not when the second target ends" || bad "the stop between targets took $took s"
+grep -q "testSecond" "$dir/logs/fake.log" && bad "the second target's test ran on a locked Mac" || ok "and its test never ran"
+grep -qxF "simctl terminate SIM-UDID-1022 com.idvorkin.grabbernative" "$dir/xcrun" && ok "and the app is ended" ||
+  bad "a stop between targets ended: $(cat "$dir/xcrun" 2>/dev/null)"
+: >"$dir/lock"
+out=$(simrun FAKE_SECOND_TARGET=1 FAKE_LOCK_BETWEEN="$dir/lock" FAKE_UNLOCK_BETWEEN=1 -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 0 ] && grep -q "testSecond.*passed" "$dir/logs/fake.log" &&
+  ok "unlocked again before the second target starts, the run goes on and passes" || bad "a lock lifted between targets: $status $out"
+case $out in *"screen locked during the run"*"passed anyway"*) ok "and says the screen locked";; *) bad "a lifted lock said: $out";; esac
+: >"$dir/lock"
+out=$(simrun FAKE_SECOND_TARGET=1 FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 0 ] && [ ! -s "$dir/xcrun" ] && ok "a lock after the last of two targets doesn't stop the run" ||
+  bad "a lock after the second target: $status $out"
+: >"$dir/lock"
+out=$(simrun FAKE_REOPEN=1 FAKE_LOCK_AFTER="$dir/lock" -- xcodebuild -scheme X "${sim[@]}" test-without-building)
+status=$?
+[ "$status" -eq 0 ] && [ ! -s "$dir/xcrun" ] && ok "a suite opened twice and closed once is finished: a lock after it stands" ||
+  bad "a lock after a reopened suite: $status $out"
 exit $fail

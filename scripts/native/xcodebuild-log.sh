@@ -116,6 +116,16 @@ stop_for_lock() {
   pkill -KILL -P $$ -f '/xcodebuild '
   end_sim_apps
 }
+# Story 1023 (bead context-grabber-i5x4): the tests are running until a closing suite line, and again whenever a target's
+# suite starts after the last one closed: a run of several test targets (the contract tests are two) opens and closes
+# its top suite once per target. Before the first suite starts, the app is being installed and launched: running too.
+# The last top suite line decides, not a count: a runner that restarts may open a suite twice and close it once.
+tests_running() {
+  case $(grep -E "^Test Suite '(All|Selected) tests' (started|passed|failed)" "$log" | tail -1) in
+    *" passed"* | *" failed"*) return 1 ;;
+  esac
+  return 0
+}
 : >"$log"
 if [ "$watch_start" -eq 1 ] && [ "$start_limit" -gt 0 ]; then
   (
@@ -156,12 +166,13 @@ watchdog=$!
 if [ "$is_test" -eq 1 ]; then
   (
     while kill -0 $$ 2>/dev/null; do
-      # When it was first seen locked, and how many cases had failed by then: those failed on an unlocked Mac.
-      if [ ! -e "$locked_at" ] && mac_locked; then
-        echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
+      if mac_locked; then
+        # When it was first seen locked, and how many cases had failed by then: those failed on an unlocked Mac.
+        [ -e "$locked_at" ] || echo "$(date "+%H:%M:%S") $(grep -cE "^Test Case '.+' failed" "$log")" >"$locked_at"
         # Story 1022: on a simulator, a run whose tests are still running stops here. Once the last suite has closed,
-        # no test can open the mic any more, and the result stands (story 1018 reads it).
-        if [ "$sim_test" -eq 1 ] && ! grep -qE "^Test Suite '(All|Selected) tests' (passed|failed)" "$log"; then
+        # no test can open the mic any more, and the result stands (story 1018 reads it). It keeps looking after a
+        # closing line: a run of several test targets closes one per target, and the next can start (bead i5x4).
+        if [ "$sim_test" -eq 1 ] && tests_running; then
           touch "$lock_stopped"
           stop_for_lock
           exit

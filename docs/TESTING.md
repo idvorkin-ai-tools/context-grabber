@@ -258,7 +258,9 @@ does (`ioreg`'s `CGSSessionScreenIsLocked`) before they start: locked, they say 
 (`SIM_LOCK_POLL`) for up to two minutes (`SIM_LOCK_WAIT`), then exit 75, having started nothing. During a simulator test
 run the wrapper's two-second look at the lock stops the run the moment it sees the screen locked: it ends xcodebuild and
 the app and its test runner on that simulator (`simctl terminate`), and exits 75 saying when, or 65 if a case had
-already failed before the lock. Once the run's last suite has closed, a lock no longer stops it. Builds, the Mac build
+already failed before the lock. A run of several test targets (`just native-test-contracts` is two) closes a suite after
+each, so the stop stays on to the last: a lock seen between two targets stops the run once the next one starts, if the
+screen is still locked then. Once the last target's suite has closed, a lock no longer stops it. Builds, the Mac build
 and test runs that aren't on a simulator are not held. An unreadable lock state counts as unlocked (Linux has no
 `ioreg`). So never run `xcodebuild test` on a simulator by hand: every `xcodebuild … test` in this file means through
 `scripts/native/xcodebuild-log.sh <name> "TEST SUCCEEDED" xcodebuild …`. `scripts/native/test-xcodebuild-log.sh`

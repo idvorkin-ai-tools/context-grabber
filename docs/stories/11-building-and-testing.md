@@ -1198,8 +1198,8 @@ Part of the [user stories](README.md); persona and format are described there.
 ### User Story 1023:
 
 - **Summary:** A simulator test run in flight is stopped when the Mac's screen locks, before a test can open the mic and crash the app
-- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run stops it within seconds, ends the app and its runner on that simulator and exits 75, or 65 after an earlier failure; a lock after the tests finished changes nothing). On the simulator (iPhone 17 lane 2, 2026-11-22, the probe reading a file flipped to locked 3 s into `GymTimerUITests`): the run was stopped and exited 75 with the line, no xcodebuild and no app left running, no new crash report; flipped back, the same class passed
-- **Issues:** bead `context-grabber-208e`, as story 1022
+- **Status:** implemented in a344919f (spec 73476853); verified on the host by `scripts/native/test-xcodebuild-log.sh` (the lock probe faked: a lock mid-run stops it within seconds, ends the app and its runner on that simulator and exits 75, or 65 after an earlier failure; a lock after the tests finished changes nothing). Amended on branch `native/sim-lock-targets-i5x4` (bead `context-grabber-i5x4`): a run of two test targets is guarded to its last, verified on the host by the same script (a lock between the targets stops the run once the second starts, exit 75; one lifted before it starts lets the run pass). On the simulator (iPhone 17 lane 2, 2026-11-22, the probe reading a file flipped to locked 3 s into `GymTimerUITests`): the run was stopped and exited 75 with the line, no xcodebuild and no app left running, no new crash report; flipped back, the same class passed
+- **Issues:** bead `context-grabber-208e`, as story 1022; bead `context-grabber-i5x4` (the stop stood down after the first of two test targets: `just native-test-contracts` closes a suite per target, two in slot 12's log of 2026-11-21, so a lock during the second wasn't stopped)
 
 #### Use Case:
 - **As Igor,** stepping away from the Mac while agents test
@@ -1211,6 +1211,7 @@ Part of the [user stories](README.md); persona and format are described there.
 - **Given:** a test run on a simulator whose tests are still running
 - **When:** the screen is seen locked (it is looked at every 2 s)
 - **Then:** the run is stopped within seconds: xcodebuild is ended and the app and its test runner are ended on that simulator before a test can open the mic, and the run exits 75 saying when the screen locked, that the run was stopped so the app could not crash, and to unlock and rerun; if a case had already failed before the lock, the run fails with exit 65 instead, naming the lock; once the run's tests have all finished, a lock no longer stops it, and its result stands
+- **And:** a run of several test targets (the contract tests are two) is guarded to the end of its last: a lock seen during any target stops the run as above, and one seen between two targets stops it as soon as the next target starts while the screen is still locked; unlocked by then, the run goes on, and its result stands with a line saying the screen locked
 
 ---
 
