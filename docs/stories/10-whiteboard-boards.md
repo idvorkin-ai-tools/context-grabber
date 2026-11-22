@@ -505,6 +505,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1107:
+
+- **Summary:** A pick in the open Board menu always takes
+- **Status:** implemented in [76e506aa](https://github.com/idvorkin/context-grabber/commit/76e506aa); verified on iPad Pro 11-inch (M5) simulators in three build lanes at once (rung 2): `testTidyOverlapsOnATidyBoardSaysNothingOverlaps` 30 of 30, no row tap cancelled and the on-screen keyboard never put up again behind the open menu (before it 9 of 12, 3 Tidy taps cancelled, 26 re-posts); `WhiteboardPaperGhostsUITests`, `WhiteboardTurnUITests` and `WhiteboardPaperLinesUITests` all passing, the last with no second tap (#880's). The cause, read from the simulator: every look at Larry's thread (each 3 s) and every save set the Board button's menu again, and UIKit swapped the open menu's rows under the finger. Not yet tried on the iPad, where it can only show on a board with a Larry thread
+- **Issues:** bead `context-grabber-664d`, [#880](https://github.com/idvorkin/context-grabber/issues/880), [#850](https://github.com/idvorkin/context-grabber/issues/850)
+- **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md)
+
+#### Use Case:
+- **As someone** choosing a colour, lines or *Tidy overlaps* on a board Larry has seen
+- **I want to** have my tap on a row in the Board menu take every time
+- **so that** I never pick something, see the menu stay open, and have to wonder whether it happened
+
+#### Acceptance Criteria:
+- **Scenario:** The board works behind an open menu
+- **Given:** a board of mine is open with its Board menu up, and the board is looking at Larry's thread every few seconds or has just saved
+- **When:** I tap any row in the menu, at any moment
+- **Then:** that row is chosen and the menu closes; the menu is never put up again while it stays open unless what it shows (the colour, the lines, the font or the responder) changed
+
+---
+
 ### User Story 403:
 
 - **Summary:** The colour follows light and dark mode
