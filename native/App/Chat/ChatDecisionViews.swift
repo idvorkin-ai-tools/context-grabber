@@ -14,7 +14,7 @@ struct ChatDecisionSlot: View {
 
   var body: some View {
     if let ask = decisions.ask(on: key) {
-      ChatDecisionCard(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
+      ChatDecisionFoldable(decisions: decisions, ask: ask, place: "thread", voice: voice, logger: logger)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color(.systemGroupedBackground))
@@ -54,6 +54,8 @@ struct ChatDecisionCard: View {
   let ownAnswer: (() -> Void)?
   /// What a verb came to, for a card that does more with it than Chat's: the board's question card (story 882).
   let done: (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void
+  /// Story 1130: the fold control's action; no control without one.
+  let fold: (() -> Void)?
   @State private var contextOpen = false
   @State private var closing = false
   @State private var closeReason = ""
@@ -64,14 +66,15 @@ struct ChatDecisionCard: View {
 
   init(
     decisions: ChatDecisionsModel, ask: ChatAsk, place: String, voice: ChatVoiceModel?, logger: @escaping BugLogger,
-    ownAnswer: (() -> Void)? = nil, done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
+    fold: (() -> Void)? = nil,
+    done: @escaping (ChatDecisions.Verb, ChatDecisions.Outcome) -> Void = { _, _ in }
   ) {
     self.decisions = decisions
     self.ask = ask
     self.place = place
     self.voice = voice
     self.logger = logger
-    self.ownAnswer = ownAnswer
+    self.fold = fold
     self.done = done
   }
 
@@ -81,6 +84,7 @@ struct ChatDecisionCard: View {
         Image(systemName: "questionmark.bubble").foregroundStyle(.orange)
         Text(ask.title).font(.headline).fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: 8)
+        if let fold { ChatDecisionFoldButton(fold: fold) }
         menu
       }
       if !ask.context.isEmpty {
@@ -235,7 +239,7 @@ struct ChatDecisionsView: View {
         }
         ForEach(decisions.shown) { ask in
           VStack(alignment: .leading, spacing: 4) {
-            ChatDecisionCard(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
+            ChatDecisionFoldable(decisions: decisions, ask: ask, place: "list", voice: voice, logger: logger)
             NavigationLink {
               ChatThreadView(chat: chat, voice: voice, key: ask.chatToOpen, title: ask.title, logger: logger)
                 .onAppear { decisions.openedChat(ask) }

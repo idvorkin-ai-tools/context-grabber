@@ -149,6 +149,26 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 1149:
+
+- **Summary:** An opened question folds back to its one line without answering
+- **Status:** implemented on branch `native/decision-fold-fjh0`; verification below
+- **Issues:** bead context-grabber-fjh0
+- **Spec:** [Question cards](../superpowers/specs/2026-11-16-whiteboard-question-cards-design.md), *Folding an open card*
+
+#### Use Case:
+- **As someone** who opened one of Larry's questions on a board and isn't ready to answer
+- **I want to** fold it back to its line on the board from the card itself
+- **so that** the drawing is back in view and the question still waits there
+
+#### Acceptance Criteria:
+- **Scenario:** I fold an opened question
+- **Given:** an open question card's popup over the board
+- **When:** I tap the chevron beside the decision card's **⋯**
+- **Then:** the popup closes, the card is its one open line *? \<question\> ···* again, nothing is answered, the session log says the card was collapsed unanswered, and a tap opens it whole
+
+---
+
 ### User Story 889:
 
 - **Summary:** I speak my own answer to a question card, with the mic beside Send

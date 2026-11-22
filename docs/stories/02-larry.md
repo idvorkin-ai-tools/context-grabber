@@ -3167,6 +3167,37 @@ Part of the [user stories](README.md); persona and format are described there. T
 
 #### Acceptance Criteria:
 - **Scenario:** The board's question card
-- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882), for an ask whose options include Larry's own-answer option (keyed *other*, or labelled as in story 1129)
-- **When:** I tap Larry's option
-- **Then:** nothing is sent; the cursor is in *Your own answer* with the keyboard up, *Send* stays off until there are words, and *Send* answers with my words; the card in the popup has no *Other…* of its own
+- **Given:** a question card's popup on a board, which already has *Your own answer* under the card (story 882)
+- **When:** it opens
+- **Then:** the card in it shows neither *Other…* nor Larry's own *Other* option
+
+---
+
+### User Story 1130:
+
+- **Summary:** Fold a decision card to one line, and open it again
+- **Status:** native app: implemented on branch `native/decision-fold-fjh0`; verification below
+- **Issues:** bead context-grabber-fjh0
+- **Spec:** [Decision cards in Chat](../superpowers/specs/2026-11-14-chat-decision-cards-design.md), *Folding a card*
+
+#### Use Case:
+- **As** Igor, with a decision I'm not ready to make sitting at the top of a thread or on *Decisions*
+- **I want to** fold its card to one line and open it again when I'm ready
+- **so that** it stops filling the screen without my answering, closing or snoozing it
+
+#### Acceptance Criteria:
+- **Scenario:** I fold a card
+- **Given:** a decision card, in its chat or under *Decisions*
+- **When:** I tap the chevron beside its **⋯**
+- **Then:** the card becomes one line, its question with a chevron pointing down; nothing is answered or sent, and the row's *Decision waiting* and *Decisions (N)* are unchanged
+
+- **Scenario:** The fold is remembered
+- **Given:** a card I folded
+- **When:** I leave and come back, open the ask from its other place (its thread or *Decisions*), or restart the app
+- **Then:** the card is still folded, on this device
+
+- **Scenario:** I open it again
+- **Given:** a folded card
+- **When:** I tap its line
+- **Then:** the whole card is back, its options answerable, and it stays open next time
+

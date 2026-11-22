@@ -26,6 +26,10 @@ final class ChatDecisionsModel: ObservableObject {
   @Published private(set) var cards: [String: Card] = [:]
   /// Asks finished from the Decisions screen while it is open, with their titles, so its card leaves a line.
   @Published private(set) var finished: [(id: String, title: String)] = []
+  /// Story 1130: the asks whose cards Igor folded to one line, kept on this device until he opens them.
+  @Published private(set) var folds = ChatDecisionFolds(
+    UserDefaults.standard.stringArray(forKey: ChatDecisionsModel.foldsKey) ?? [])
+  static let foldsKey = "chat_decision_folds"
 
   private let log: SessionLog
   private let inbox: InboxModel
@@ -45,6 +49,11 @@ final class ChatDecisionsModel: ObservableObject {
     self.log = log
     self.inbox = inbox
     self.cockpit = cockpit
+    // The UI tests start with every card whole: a fold one of them left behind would hide another's options.
+    if ProcessInfo.processInfo.environment["GRABBER_DECISION_FOLDS"] == "reset" {
+      folds = ChatDecisionFolds()
+      UserDefaults.standard.removeObject(forKey: Self.foldsKey)
+    }
   }
 
   private var reachable: Bool { !inbox.offline && cockpit != ChatCockpit.nowhere }
@@ -112,6 +121,13 @@ final class ChatDecisionsModel: ObservableObject {
   /// #1072: *Close…* opened its prompt; the close itself is logged only once it is sent.
   func closeAsked(_ ask: ChatAsk, from place: String) {
     log.event("chat", ["action": "decision_close_asked", "ask": ask.id, "from": place])
+  }
+
+  /// Story 1130: a card folded to its line or opened from it; nothing reaches the Cockpit.
+  func fold(_ ask: ChatAsk, _ folded: Bool, from place: String) {
+    guard folds.set(ask.id, folded: folded) else { return }
+    UserDefaults.standard.set(folds.ids, forKey: Self.foldsKey)
+    log.event("chat", ["action": folded ? "decision_fold" : "decision_unfold", "ask": ask.id, "from": place])
   }
 
   func openedChat(_ ask: ChatAsk) {

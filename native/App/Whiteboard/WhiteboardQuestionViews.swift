@@ -149,7 +149,7 @@ private struct WhiteboardQuestionPopup: View {
       answered(card, answer)
     } else if let ask = questions.asks[card.ask] {
       ChatDecisionCard(
-        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, ownAnswer: { wordsFocused = true },
+        decisions: decisions, ask: ask, place: "board", voice: nil, logger: logger, fold: { questions.fold(card) },
         done: { verb, outcome in questions.decided(card, ask: ask, verb: verb, outcome: outcome) })
       ownWords(card, ask)
     } else if questions.reading {

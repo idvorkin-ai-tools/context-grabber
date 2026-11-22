@@ -59,6 +59,8 @@ final class ChatDecisionUITests: XCTestCase {
     let app = XCUIApplication.forTests()
     app.launchEnvironment["GRABBER_CHAT_URL"] = cockpit
     app.launchEnvironment["GRABBER_SILENT"] = "1"
+    // Story 1130: every card whole at launch, unless a test keeps an earlier launch's folds.
+    app.launchEnvironment["GRABBER_DECISION_FOLDS"] = "reset"
     for (key, value) in environment { app.launchEnvironment[key] = value }
     app.launch()
     return app
@@ -213,6 +215,55 @@ final class ChatDecisionUITests: XCTestCase {
     XCTAssertTrue(card.waitForNonExistence(timeout: 10), "the card gave way: \(app.debugDescription)")
     let posted = try answers(cockpit).filter { $0["path"] as? String == "/act" }
     XCTAssertEqual(posted.map { $0["response"] as? String }, ["DECISION: Month to month"], "\(posted)")
+  }
+
+  /// Story 1130 (bead context-grabber-fjh0): a card folds to its line without answering, stays folded on Decisions, in
+  /// its thread and after a restart, and a tap on the line opens it again; the row's mark and the count stay.
+  func testACardFoldsToItsLineStaysFoldedAndOpensAgain() throws {
+    let cockpit = try fakeCockpit()
+    let before = try answers(cockpit).count
+    var app = launch(cockpit, ["GRABBER_INBOX": "open"])
+
+    var decisions = app.buttons["chat-decisions"]
+    XCTAssertTrue(decisions.appears(within: 20), app.debugDescription)
+    let three = NSPredicate(format: "label CONTAINS %@", "Decisions (3)")
+    wait(for: [expectation(for: three, evaluatedWith: decisions)], timeout: 10)
+    decisions.tap()
+    let card = app.otherElements["decision-card-igor2-88g.881"]
+    XCTAssertTrue(card.appears(within: 10), app.debugDescription)
+    card.buttons["decision-fold"].tap()
+    let folded = app.buttons["decision-folded-igor2-88g.881"]
+    XCTAssertTrue(folded.appears(within: 5), app.debugDescription)
+    XCTAssertFalse(card.exists, "folded to its line")
+    XCTAssertFalse(app.buttons["decision-option-ramen"].exists, "its options are folded away")
+    XCTAssertTrue(app.otherElements["decision-card-igor2-88g.879"].exists, "only that card")
+    let line = XCTAttachment(screenshot: app.screenshot())
+    line.name = "decision-card-folded"
+    line.lifetime = .keepAlways
+    add(line)
+
+    // The fold is the ask's: in its thread too, while the row still says a decision waits.
+    app.navigationBars.buttons.element(boundBy: 0).tap()
+    let row = app.buttons["chat-thread-igor2-88g.878"]
+    XCTAssertTrue(row.appears(within: 10), app.debugDescription)
+    wait(for: [expectation(for: three, evaluatedWith: decisions)], timeout: 10)
+    XCTAssertTrue(row.label.contains("Decision waiting"), row.label)
+    row.tap()
+    XCTAssertTrue(app.buttons["decision-folded-igor2-88g.881"].appears(within: 10), app.debugDescription)
+    XCTAssertFalse(app.otherElements["decision-card-igor2-88g.881"].exists)
+
+    // And after a restart, until a tap opens it again.
+    app.terminate()
+    app = launch(cockpit, ["GRABBER_INBOX": "open", "GRABBER_DECISION_FOLDS": "keep"])
+    decisions = app.buttons["chat-decisions"]
+    XCTAssertTrue(decisions.appears(within: 20), app.debugDescription)
+    decisions.tap()
+    let again = app.buttons["decision-folded-igor2-88g.881"]
+    XCTAssertTrue(again.appears(within: 10), app.debugDescription)
+    again.tap()
+    XCTAssertTrue(app.otherElements["decision-card-igor2-88g.881"].appears(within: 5), app.debugDescription)
+    XCTAssertTrue(app.buttons["decision-option-ramen"].exists, "whole again")
+    XCTAssertEqual(try answers(cockpit).count, before, "folding told the Cockpit nothing")
   }
 
   /// Story 830: a refused answer leaves the card, buttons live, with a copyable problem.

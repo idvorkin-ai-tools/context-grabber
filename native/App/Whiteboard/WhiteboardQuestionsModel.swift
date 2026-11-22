@@ -171,6 +171,13 @@ final class WhiteboardQuestionsModel: ObservableObject {
     log.event("whiteboard_questions", ["action": "collapse", "board": boardID, "ask": card.ask])
   }
 
+  /// Story 1149: the fold control on an opened card not yet answered: back to its one line on the paper, nothing
+  /// answered.
+  func fold(_ card: WhiteboardQuestion) {
+    opened = nil
+    log.event("whiteboard_questions", ["action": "collapse", "board": boardID, "ask": card.ask, "answered": false])
+  }
+
   /// What the popup's decision card came to. Chat's model has logged the verb and holds a refused one's problem.
   func decided(_ card: WhiteboardQuestion, ask: ChatAsk, verb: ChatDecisions.Verb, outcome: ChatDecisions.Outcome) {
     switch outcome {
