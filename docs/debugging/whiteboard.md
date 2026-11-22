@@ -157,8 +157,8 @@ to that event's own bullet; never join two events on one line.
 
 ## Larry's board ops (stories 814–819, 840–877, 961, 964, 965, 969, 970–979, spec 2026-11-16-whiteboard-board-ops-design.md)
 
-- `board_ops`, one per batch of Larry's changes, with board, label, source, key, ops, base_rev, rev and the count of each op kind, by action:
-  - **ignored** with why and for_board
+- `board_ops`, one per batch of Larry's changes, with board, label, source, key, ops, base_rev, rev and the count of each op kind:
+  - action **ignored** with why and for_board
   - **refused** with reason (stale, a cap, an unknown op, not_applied, board_closed), canvas when the canvas itself refused it (unavailable: no canvas laid out yet, or failed:<why>, e.g. failed:paper_ops_failed when PaperKit refused the moves; #1040) and, for a batch from an older look that names what Igor moved, erased or dissolved since, conflict_ids (story 964)
   - **late** when the canvas answered for a batch no longer being applied (a repeated answer, or one after the board closed), which records nothing (#1040)
   - **held** while the Pencil is down, with pen_down and replaced
@@ -194,8 +194,8 @@ to that event's own bullet; never join two events on one line.
   - **keep_text** when a kept text of Larry's opened room below it (#938), **keep_late** when a kept mark of his did for ink Igor made after its picture and **keep_group** when a Keep group did (#894, stories 1004–1006, 1037), each with cut, dy, moved, pages_before and pages
   - **band_shown** when the room handle's band came up (#1000, stories 1044, 1038, 1039, 1042), with tool and y, and **band_hidden** when it went, with tool, why (lifted or cancelled), kind (opening, closing, nothing_to_close) and lines
 - `board_word` (the Pencil held on a word): **picked_up** or **moved** with strokes, dx, dy, path_points and held_ms.
-- `whiteboard` with action:
-  - **paper_ops** (label, moved, erased, drawn, elements, pages_before, pages, can_undo, undo_name, ms)
+- `whiteboard` with:
+  - action **paper_ops** (label, moved, erased, drawn, elements, pages_before, pages, can_undo, undo_name, ms)
   - **paper_ops_failed** (label, elements_before, elements)
   - **paper_paste_landed** (strokes, at, view, clear, cut, dy, moved, pages_before, pages, selected, ms)
   - **paper_paste_deleted** (strokes)
@@ -206,8 +206,8 @@ to that event's own bullet; never join two events on one line.
 
 ## Connectors (stories 910–916, spec 2026-11-16-whiteboard-board-ops-design.md, *Step 5*)
 
-- `board_connectors`, by action:
-  - **connected** when Igor taps Connect, with board, id, from, to, elbow (the route bends), erased (his arrow's strokes) and rerouted, ms
+- `board_connectors`:
+  - action **connected** when Igor taps Connect, with board, id, from, to, elbow (the route bends), erased (his arrow's strokes) and rerouted, ms
   - **followed** after a change of Igor's own moved a connector's end, with board, rerouted (redrawn) and loosened (an end gone, now plain ink), ms
   - **select_newest_hook** when `GRABBER_WHITEBOARD_SELECT_NEWEST` selected the newest stroke, with board and strokes
   - **connect_pressed** when Connect is tapped, with board, keys (the lassoed strokes it holds) and selected
