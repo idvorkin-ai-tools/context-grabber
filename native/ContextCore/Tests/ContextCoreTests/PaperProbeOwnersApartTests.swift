@@ -5,7 +5,7 @@ import XCTest
   import CoreGraphics
 #endif
 
-/// Story 1144: the system's own move never carries Igor's ink and Larry's together.
+/// Story 1145: the system's own move never carries Igor's ink and Larry's together.
 final class PaperProbeOwnersApartTests: XCTestCase {
   private func moves(_ ids: [String], dx: CGFloat = 21, dy: CGFloat = -3) -> [PaperProbe.InkMove] {
     ids.map { PaperProbe.InkMove(id: $0, dx: dx, dy: dy, resized: false) }

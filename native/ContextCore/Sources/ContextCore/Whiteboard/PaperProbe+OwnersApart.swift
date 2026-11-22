@@ -1,4 +1,4 @@
-//  Story 1144 (bead context-grabber-eg7v): a move the system made on its own, PaperKit's handwriting reflow above all,
+//  Story 1145 (bead context-grabber-eg7v): a move the system made on its own, PaperKit's handwriting reflow above all,
 //  never carries Igor's ink and Larry's (or Claude's) together. On the iPad the reflow took Larry's 52-stroke text and two
 //  of Igor's strokes for one line, and a drag moved all 54; Igor kept the reflow but not the mixing.
 

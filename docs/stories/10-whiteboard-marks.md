@@ -1227,7 +1227,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1144:
+### User Story 1145:
 
 - **Summary:** PaperKit's handwriting reflow never moves my ink and Larry's together
 - **Status:** implemented in [c8df04bc](https://github.com/idvorkin/context-grabber/commit/c8df04bc); verified by host tests (`PaperProbeOwnersApartTests`: the iPad's 52 + 2 case, Igor's line with Larry's strokes caught, a tie, one owner, a selection, nothing known as Larry's; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, `just test-ladder`: every whiteboard UI test and the PaperKit contract tests pass, and a group's drag logs `apart: selected`, moved whole); the reflow itself can't be reached on the simulator, so the split, its take-back and its Undo are still owed on the iPad (rung 3: read `paper_ink`'s `apart` and the `paper_apart` line)
@@ -1247,7 +1247,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1145:
+### User Story 1146:
 
 - **Summary:** PaperKit's handwriting reflow on my line leaves Larry's strokes caught in it where they were
 - **Status:** implemented in [c8df04bc](https://github.com/idvorkin/context-grabber/commit/c8df04bc); verified by host tests (`PaperProbeOwnersApartTests`: Igor's line with Larry's strokes caught, a tie; `just native-test`) and the Mac build (`just native-build-mac`); the reflow can't be reached on the simulator, so the split is still owed on the iPad (rung 3: read `paper_ink`'s `apart` and the `paper_apart` line)
@@ -1267,7 +1267,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1146:
+### User Story 1147:
 
 - **Summary:** What I select and drag moves whole, my ink and Larry's together
 - **Status:** implemented in [c8df04bc](https://github.com/idvorkin/context-grabber/commit/c8df04bc); verified by host tests (`PaperProbeOwnersApartTests`: a selection; `just native-test`), the Mac build (`just native-build-mac`) and the iPad simulator (rung 2, `just test-ladder`: a group's drag logs `apart: selected`, moved whole)

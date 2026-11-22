@@ -1,5 +1,5 @@
 //  A board on paper: a move the system made on its own (PaperKit's handwriting reflow above all) never carries Igor's ink
-//  and Larry's or Claude's together (story 1144, bead context-grabber-eg7v). The owner with more of the moved strokes keeps
+//  and Larry's or Claude's together (story 1145, bead context-grabber-eg7v). The owner with more of the moved strokes keeps
 //  the move; the other's go back where they were, in one Undo with the move, through the board's edit lane.
 
 import ContextCore
@@ -7,7 +7,7 @@ import PaperKit
 import UIKit
 
 extension PaperBoardController {
-  /// Story 1144: what the rule made of `change`, for the change's log line; a split is put right once PaperKit's own
+  /// Story 1145: what the rule made of `change`, for the change's log line; a split is put right once PaperKit's own
   /// callback is over. `previous`: the strokes' frames before the change.
   func keepOwnersApart(
     _ change: PaperProbe.InkChange, markup: PaperMarkup, previous: [String: CGRect], undo: UndoManager?
