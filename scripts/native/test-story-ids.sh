@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Host test for scripts/native/story-ids.py (#993, story 789): hand-written story trees, each with the exact failures
-# a reader finds in it, then the repo's own docs/stories, which must pass. Runs anywhere with python3.
+# a reader finds in it; its reserve command against a fake gh and a fake main (stories 791, 792, 794); the pre-merge
+# check on a throwaway repository (story 793); then the repo's own docs/stories, which must pass. Runs anywhere with
+# python3 and git.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cg-story-ids.XXXXXX")
@@ -145,6 +147,90 @@ story tworows 01-a.md 1
 story tworows 02-b.md 10
 story tworows 01-x.md 2
 expect "a file linked by two journeys fails" tworows 1 "FAIL README.md:2: 01-x.md is listed twice"
+
+# --- reserve (stories 791, 792, 794; bead context-grabber-jg3w): a fake gh, a dir standing in for main, a ledger in $tmp.
+mkdir -p "$tmp/prs"
+cat >"$tmp/gh" <<'F'
+#!/usr/bin/env bash
+# The fake gh: open PRs are the files $FAKE_PRS/<n>.diff; FAKE_GH_FAIL makes the listing fail like gh offline.
+case "$1 $2" in
+  "pr list") [ -z "${FAKE_GH_FAIL:-}" ] || { echo "error connecting to api.github.com" >&2; exit 1; }
+    ls "$FAKE_PRS" | sed -n 's/\.diff$//p' | python3 -c 'import json,sys; print(json.dumps([{"number": int(l)} for l in sys.stdin]))' ;;
+  "pr diff") cat "$FAKE_PRS/$3.diff" ;;
+  *) exit 2 ;;
+esac
+F
+chmod +x "$tmp/gh"
+now=1800000000
+reserve() {  # reserve <ledger> <args>...: stdout only, the IDs
+  local ledger=$1
+  shift
+  FAKE_PRS=$tmp/prs STORY_IDS_GH=$tmp/gh STORY_IDS_MAIN=$tmp/main STORY_IDS_LEDGER=$ledger STORY_IDS_NOW=$now \
+    STORY_IDS_BRANCH=b scripts/native/story-ids.py reserve "$@" --dir "$tmp/res" 2>"$tmp/reserve.err"
+}
+check() {  # check <name> <got> <want>
+  if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1: got $(tr '\n' ' ' <<<"$2"), want $(tr '\n' ' ' <<<"$3")"; sed 's/^/     /' "$tmp/reserve.err"; fail=1; fi
+}
+tree res
+story res 01-a.md 1 2
+story res 02-b.md 10
+mkdir -p "$tmp/main"
+cp "$tmp/res/README.md" "$tmp/main/"
+story main 01-a.md 3 7
+printf 'diff --git a/docs/stories/01-a.md b/docs/stories/01-a.md\n+### User Story 4:\n ### User Story 11:\n-### User Story 12:\n' >"$tmp/prs/41.diff"
+cat >"$tmp/ledger.json" <<F
+{"reservations": [{"id": 5, "journey": "01-a.md", "branch": "x", "at": $((now - 100))},
+ {"id": 6, "journey": "01-a.md", "branch": "x", "at": $((now - 2 * 86400))},
+ {"id": 7, "journey": "01-a.md", "branch": "x", "at": $((now - 100))}]}
+F
+check "reserve skips the branch's stories, main's, an open PR's and a live reservation; takes an expired one's" \
+  "$(reserve "$tmp/ledger.json" 01-a.md 3)" "6
+8
+9"
+check "the ledger drops a reservation past 24 h and one whose ID is on main, and keeps the new ones" \
+  "$(python3 -c 'import json,sys; print(" ".join(str(r["id"]) for r in json.load(open(sys.argv[1]))["reservations"]))' "$tmp/ledger.json")" "5 6 8 9"
+check "a journey named by a word from its row" "$(reserve "$tmp/ledger2.json" second)" "11"
+check "an open PR's unchanged and removed story lines take no ID" "$(reserve "$tmp/ledger2.json" second 2)" "12
+13"
+out=$(reserve "$tmp/ledger.json" 01-a.md 2)
+check "a journey with too few free IDs hands out none and says to add a block" "$out|$?|$(grep -c 'next unused block of twenty' "$tmp/reserve.err")" "|1|1"
+out=$(reserve "$tmp/ledger3.json" the)
+check "a word that names two journeys fails" "$out|$?|$(grep -c 'names 2 journeys' "$tmp/reserve.err")" "|1|1"
+out=$(FAKE_GH_FAIL=1 reserve "$tmp/ledger3.json" second)
+check "with the open PRs unreadable it hands out nothing" "$out|$?|$([ -e "$tmp/ledger3.json" ] && echo written || echo untouched)" "|1|untouched"
+for k in 1 2 3 4 5 6; do STORY_IDS_HOLD=0.3 reserve "$tmp/race.json" 02-b.md >"$tmp/race.$k" & done
+wait
+check "six reservations at once, each holding the ledger a while, get six different IDs" "$(cat "$tmp"/race.? | sort -n | tr '\n' ' ')" "11 12 13 14 15 16 "
+
+# --- pre-merge (story 793): two branches that each pass alone but add the same ID fail once merged with main.
+g() { git -c user.name=t -c user.email=t@t -c core.hooksPath=/dev/null -c init.defaultBranch=main "$@"; }
+repo=$tmp/repo
+entry() { printf '### User Story %s:\n\n- **Summary:** s%s\n\n---\n\n' "$1" "$1"; }
+g init -q --bare "$tmp/origin.git"
+g clone -q "$tmp/origin.git" "$repo" 2>/dev/null
+split pm
+story pm 01-a.md 1
+story pm 01-a-more.md 3
+story pm 02-b.md 10
+mkdir -p "$repo/docs" && cp -R "$tmp/pm" "$repo/docs/stories"
+(cd "$repo" && g checkout -q -b main && g add -A && g commit -qm base && g push -q origin main
+ g checkout -q -b dup && entry 2 >>docs/stories/01-a-more.md && g commit -qam "story 2" && g push -q origin dup
+ g checkout -q main && g checkout -q -b fine && entry 4 >>docs/stories/01-a-more.md && g commit -qam "story 4" && g push -q origin fine
+ g checkout -q main && entry 2 >>docs/stories/01-a.md && g commit -qam "main: story 2" && g push -q origin main
+ g checkout -q -b clash origin/main~1 && sed -i.bak 's/s1$/one/' docs/stories/01-a.md && rm -f docs/stories/01-a.md.bak && g commit -qam clash
+ g checkout -q fine && g checkout -q -b behind && entry 2 >>docs/stories/01-a-more.md && g commit -qam "pipeline: story 2" && g push -q origin behind && g reset -q --hard HEAD~1
+ g checkout -q main && sed -i.bak 's/s1$/uno/' docs/stories/01-a.md && rm -f docs/stories/01-a.md.bak && g commit -qam uno && g push -q origin main) >/dev/null 2>&1
+premerge() { (cd "$repo" && g checkout -q "$1" && "$OLDPWD/scripts/native/pre-merge.sh"); }
+out=$(premerge dup 2>&1)
+check "pre-merge fails a branch that collides with main once merged, naming both places" \
+  "$?|$(grep '^FAIL story' <<<"$out")" "1|FAIL story 2 is used 2 times: 01-a-more.md:7, 01-a.md:7"
+out=$(premerge fine 2>&1)
+check "pre-merge passes a branch whose IDs are still free on main" "$?|$(grep -c '^ok   pre-merge' <<<"$out")" "0|1"
+out=$(premerge behind 2>&1)
+check "pre-merge judges the branch as pushed when the checkout is behind it" \
+  "$?|$(grep -c '^note pre-merge: checking origin/behind' <<<"$out")|$(grep -c '^FAIL story 2 is used 2 times' <<<"$out")" "1|1|1"
+out=$(premerge clash 2>&1)
+check "pre-merge fails a branch that conflicts with main" "$?|$(grep -c 'conflicts with origin/main' <<<"$out")" "1|1"
 
 if out=$(scripts/native/story-ids.py docs/stories); then
   echo "ok   docs/stories: ${out#ok   story-ids: }"
