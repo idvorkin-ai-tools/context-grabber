@@ -182,7 +182,7 @@ extension WhiteboardModel {
         "whiteboard",
         [
           "action": "mic_inputs", "board": board.id, "count": dictation.microphones.count,
-          "automatic": dictation.selectedMicrophoneID == nil, "why": "find",
+          "automatic": dictation.selectedMicrophoneID == nil, "why": callLive() ? "find_skipped" : "find",
         ])
     }
   }

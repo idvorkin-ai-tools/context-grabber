@@ -1915,7 +1915,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 ### User Story 1113:
 
 - **Summary:** Hold the mic to pick the microphone, even with the mic closed
-- **Status:** implemented in [c1c67a80](https://github.com/idvorkin/context-grabber/commit/c1c67a80); verified by the lint and host rungs (`BoardMicMenuTests`: the rows, the tick, a pick kept from before a relaunch, when *Find microphones* shows), the Mac build, and the iPad simulator (`WhiteboardTurnUITests.testHoldingTheMicPicksTheMicrophone`: holding the closed mic shows *Talk to Claude*, *Automatic* and *Find microphones*, and the row still talks; the rest of WhiteboardTurnUITests green, and the whole whiteboard suite green apart from this test before its fix). The simulator has no microphone to pick: the pocket mic in the list, *Find microphones* on a paired one, and what reading them does to music playing are the iPad's to show
+- **Status:** implemented in [b7a1cb54](https://github.com/idvorkin/context-grabber/commit/b7a1cb54) and [f0b27eb8](https://github.com/idvorkin/context-grabber/commit/f0b27eb8) (the dictation made at the board's opening, the *Find microphones* row matched by its label); verified by the lint and host rungs (`BoardMicMenuTests`: the rows, the tick, a pick kept from before a relaunch, when *Find microphones* shows), the Mac build, and the iPad simulator (`WhiteboardTurnUITests.testHoldingTheMicPicksTheMicrophone`: holding the closed mic shows *Talk to Claude*, *Automatic* and *Find microphones*, and the row still talks; the rest of WhiteboardTurnUITests green, and the whole whiteboard suite green apart from this test before its fix). The simulator has no microphone to pick: the pocket mic in the list, *Find microphones* on a paired one, and what reading them does to music playing are the iPad's to show
 - **Issues:** bead `context-grabber-h5c0`
 - **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
 
@@ -1929,6 +1929,43 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Given:** a board open with its mic closed, and a pocket mic connected
 - **When:** I press and hold the mic button
 - **Then:** the menu shows *Talk to Claude* under *Talk*, and under *Microphone* *Automatic* and the microphones the board knows, the picked one ticked, and *Find microphones*
-- **When:** I tap *Find microphones*, hold the mic button again and pick the pocket mic
+
+---
+
+### User Story 1114:
+
+- **Summary:** A microphone picked with the mic closed waits for the next opening
+- **Status:** implemented in [b7a1cb54](https://github.com/idvorkin/context-grabber/commit/b7a1cb54); verified by the lint and host rungs (`BoardMicMenuTests`: a pick kept from before a relaunch, when *Find microphones* shows) and the Mac build. The simulator has no microphone to find or pick: *Find microphones* on a paired pocket mic and the opening on it are the iPad's to show
+- **Issues:** bead `context-grabber-h5c0`
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
+
+#### Use Case:
+- **As someone** who just paired a pocket mic and hasn't opened the board's mic yet
+- **I want to** find it and pick it from the mic button's long press without opening the mic
+- **so that** the mic opens on the pocket mic the first time I tap it
+
+#### Acceptance Criteria:
+- **Scenario:** Finding and picking the pocket mic with the mic closed
+- **Given:** a board open with its mic closed, and a pocket mic paired since the board last read its microphones
+- **When:** I hold the mic button, tap *Find microphones*, hold it again and pick the pocket mic
 - **Then:** nothing opens; the next tap on the mic opens it on the pocket mic, on this board or any other
-- **And:** a plain tap on the mic still opens and closes it, and holding it with the mic open lists the same microphones, where a pick closes the mic and opens it again on the new one, as a pick from the note's line does
+
+---
+
+### User Story 1115:
+
+- **Summary:** Hold the open mic to switch microphones
+- **Status:** implemented in [b7a1cb54](https://github.com/idvorkin/context-grabber/commit/b7a1cb54); verified by the lint and host rungs (`BoardMicMenuTests`: the rows and the tick with the mic open) and the Mac build. The simulator has no second microphone: the switch itself is the iPad's to show
+- **Issues:** bead `context-grabber-h5c0`
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *Which microphone, and what it hears*
+
+#### Use Case:
+- **As someone** talking to the board whose words aren't reaching it
+- **I want to** hold the mic button and pick another microphone while the mic is open
+- **so that** I can switch without reaching for the note's line
+
+#### Acceptance Criteria:
+- **Scenario:** Switching to the pocket mic from the long press
+- **Given:** the board's mic is open on the iPad's own microphone, and a pocket mic is connected
+- **When:** I hold the mic button and pick the pocket mic
+- **Then:** the mic closes, its words so far still go, and it opens again on the pocket mic, as a pick from the note's line does
