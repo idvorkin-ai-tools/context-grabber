@@ -144,7 +144,7 @@ Lavish page with a working board: four rounds of drawing, and Igor's answers to 
     item: the bar hosts every button at its own height, whatever the button asks for). Each is dimmed when there is nothing to undo or redo, and taps then do nothing.
   - Each is the same step as the tool picker's Undo and Redo and a keyboard's ⌘Z and ⇧⌘Z: one press takes back one
     step, whether it was his stroke, a keep, a paste, a scratch-out or a batch of Larry's, and Redo brings it back.
-  - VoiceOver reads what the press will do: *Undo Keep group*, *Redo Paste*, or plain *Undo* and *Redo* for a step with
+  - VoiceOver reads what the press will do: *Undo Keep all*, *Redo Paste*, or plain *Undo* and *Redo* for a step with
     no name (his own stroke). Dimmed, it says so.
   - A press doesn't cost a stroke: the next stroke after it draws, as after the Board menu.
   - A board only looked at (another device's, or the old canvas's) has neither, as it has no tool picker.
@@ -367,8 +367,8 @@ paper. That description is the requirement, and this lists only where paper need
   same strokes drawn alone show it, is left as it is, with no blink and no move (context-grabber-qko5). The move a screen
   away only ever follows a redraw in place that left the mark still partly drawn.
 - **One undo takes a kept ghost back, whole.** A kept mark that needs a new page brings the page with it, in the same step.
-- **Every keep is a step of Undo of its own, and keeps it** (#966). *Keep*, *Keep group*, *Keep all* and *Tidy overlaps*
-  are each one step, named for what was done (with a keyboard, the menu's *Undo Keep group*). Nothing the board does on its
+- **Every keep is a step of Undo of its own, and keeps it** (#966). *Keep*, *Keep all* and *Tidy overlaps*
+  are each one step, named for what was done (with a keyboard, the menu's *Undo Keep all*). Nothing the board does on its
   own just after (taking back the dot a tap left, a zigzag's scratch-out, the room a dropped selection opens) ever takes
   that step in place of its own: however soon after the keep it comes, the keep stays on the stack, and one Undo still
   takes it back whole. The log says each time an Undo or Redo ran and what it was named, and each time the board's own
@@ -541,7 +541,7 @@ docks along the bottom and takes every tap there.
     ### make a level-2 and a level-3 header, whose sections nest), and Undo takes the mark and the header; a rule drawn across the page ends a section. A fast zigzag over ink scratches it out. The lasso, then *To text*,
     turns handwriting into typed text. The Pencil held still at a stroke's end snaps it to a straight line, a rectangle
     or an ellipse.
-  - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink, in order; *Tidy overlaps* in the Board
+  - *Larry's marks:* *Keep all* beside the count of marks keeps every one as ink where it showed, each reply as one group; *Tidy overlaps* in the Board
     menu moves kept labels off writing.
   - *In the bar:* *Ask at my pauses* (the sparkles) explains
     [what the switch does](2026-11-01-whiteboard-shapes-design.md).

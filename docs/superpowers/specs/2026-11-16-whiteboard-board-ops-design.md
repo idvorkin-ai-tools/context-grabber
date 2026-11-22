@@ -82,7 +82,7 @@ and put down real, readable text. Each change he makes is one undo for Igor.
   dismissed, is still missing.
 - **Keeping a ghost that ink has come under makes room too.** When Igor keeps one of Larry's text ghosts and his
   writing has since reached under it, the keep opens room the same way, and one Undo takes back both the kept text and
-  the room. Keep all is as before: a label on ink moves under it (story 895).
+  the room. Keep all keeps his marks where they showed and makes room for what Igor wrote after the picture, as for his other marks (story 895).
 
 ### Larry hears the pen and taps
 
@@ -469,8 +469,8 @@ what a change would do except to send it to Igor's real board, and paused his ch
   placed by the picture he answered) shows them where the iPad would, and says, for each, whether a finger tapping on
   it reaches it or which other mark of his takes the tap instead. A tap at a point can be part of the check, and says
   which mark it would choose.
-- **Keeping a reply as a group checks too** (#942): Igor's *Keep group* on one of the reply's marks can be part of the
-  check. The marks become his ink under one group named for the reply, and a later change of Larry's that moves or
+- **Keeping a reply as a group checks too** (#942): Igor's *Keep all* of the reply's marks (once *Keep group*) can be part of
+  the check. The marks become his ink under one group named for the reply, and a later change of Larry's that moves or
   erases that group by its name shows it moving or going as one.
 
 ### A recorded board session replays too (contract v1, bead context-grabber-09tx, stories 1173, 1174, 1182, 1183)
