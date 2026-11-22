@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// Story 1119, bead context-grabber-u1yy: the timings are the iPad's 2026-11-22 log (board ead78e80), where a 1 s
+/// Story 1118, bead context-grabber-u1yy: the timings are the iPad's 2026-11-22 log (board ead78e80), where a 1 s
 /// silence sent each of these cut.
 final class BoardSpeechEndTests: XCTestCase {
   func testASentenceGoesAfterAboutOneAndAHalfSeconds() {

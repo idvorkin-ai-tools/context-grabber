@@ -7,7 +7,7 @@ public struct WhiteboardSpeech: Sendable {
 
   public init() {}
 
-  /// True when the words changed: a callback that only repeats them doesn't restart the silence (story 1119).
+  /// True when the words changed: a callback that only repeats them doesn't restart the silence (story 1118).
   @discardableResult
   public mutating func heard(_ text: String) -> Bool {
     let before = words
@@ -18,7 +18,7 @@ public struct WhiteboardSpeech: Sendable {
     return words != before
   }
 
-  /// The words not yet taken, left in place: what the end-of-phrase wait reads (story 1119).
+  /// The words not yet taken, left in place: what the end-of-phrase wait reads (story 1118).
   public var pending: String? {
     sent < words.count ? words[sent...].joined(separator: " ") : nil
   }

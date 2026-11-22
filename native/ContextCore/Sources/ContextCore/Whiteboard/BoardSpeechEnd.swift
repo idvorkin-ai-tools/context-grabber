@@ -1,5 +1,5 @@
 //  When a spoken phrase on the board is finished (spec 2026-11-01-whiteboard-shapes-design.md, *Talking while drawing*;
-//  story 1119, bead context-grabber-u1yy): the silence after his last new words, longer for a phrase that doesn't end
+//  story 1118, bead context-grabber-u1yy): the silence after his last new words, longer for a phrase that doesn't end
 //  like a sentence, longest, and bounded, for one left hanging.
 
 import Foundation

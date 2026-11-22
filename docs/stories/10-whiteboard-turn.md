@@ -85,14 +85,14 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 - **Scenario:** Spoken direction
 - **Given:** the mic is open on the board, and I drew a curve
 - **When:** I say "this is my energy over the week, mark the dip"
-- **Then:** within about 5 s of my finishing (story 1119: the board waits for the end of a sentence), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point, without my lifting or drawing anything more
+- **Then:** within about 5 s of my finishing (story 1118: the board waits for the end of a sentence), faint orange ghosts answer what I said, such as a label "dip" with an arrow at the curve's low point, without my lifting or drawing anything more
 
 ---
 
-### User Story 1119:
+### User Story 1118:
 
 - **Summary:** A spoken turn waits until I have finished my sentence
-- **Status:** implemented in [0ebb998e](https://github.com/idvorkin/context-grabber/commit/0ebb998e); the rule verified on the host by `BoardSpeechEndTests` with the 2026-11-22 iPad log's timings, the app by `just native-build-mac`; real dictation on the iPad not yet
+- **Status:** implemented in [ea86e616](https://github.com/idvorkin/context-grabber/commit/ea86e616); the rule verified on the host by `BoardSpeechEndTests` with the 2026-11-22 iPad log's timings, the app by `just native-build-mac`; real dictation on the iPad not yet
 - **Issues:** bead `context-grabber-u1yy`
 - **Spec:** [Whiteboard: Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md)
 
