@@ -236,6 +236,19 @@ locked*, the run's last lines count them as skipped, not passed, and a rerun unl
 that locks during one of them can still fail it; the line at the end says so. `scripts/native/test-smoke-lock.sh`
 checks the skip with the lock probe faked (`SMOKE_LOCK_PROBE`), in `just native-test`.
 
+**A closed lid deafens the real-audio call** (story 1025, bead `context-grabber-qj5y`). The simulator's microphone
+is the Mac's default input, and with the lid closed (an external display, clamshell) the MacBook's built-in
+microphone delivers exact zeros. The call re-arms the mic, still hears zeros and files an automatic report, which is
+right for a real call. On 2026-11-22 all three real-audio calls run with the lid closed (10:03, 10:06 and 12:09 PST,
+the lid shut since 09:28) heard only zeros, and every real-audio call run with the lid open since 2026-11-19 heard
+the mic. So the smoke skips the real-audio call while the lid is closed and the default input is the built-in
+microphone: it prints *skipped: Mac lid closed, the built-in mic hears nothing*, the run's last lines count it as
+skipped, not passed, and a run with the lid open (or another input chosen as the default) is what checks it. The
+timer and breathing only play sound, so they still run. A clean call is judged on its own log (story 1026), and a report the
+ten-minute window held back counts as filed: the 10:06 rerun "passed" only because the window skipped its report.
+`scripts/native/test-smoke-lock.sh` checks the skip with the lid and input probes faked (`SMOKE_LID_PROBE`,
+`SMOKE_MIC_PROBE`).
+
 A locked Mac can crash the app, too (bead `context-grabber-2v63`). Opening the mic asks the simulator's audio server
 for the input, and on a locked Mac that call can go unanswered: after about ten seconds Apple's audio toolbox aborts
 the app (the crash report's top frames are `_ReportRPCTimeout` under `AVAudioEngine.inputNode`). That is how
