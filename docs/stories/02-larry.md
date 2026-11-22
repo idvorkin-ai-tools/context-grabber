@@ -1286,7 +1286,7 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 1122:
 
 - **Summary:** A board's thread has *Board* in its top bar, back to the board
-- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (the newest board message names it, else this device's record; none for a thread with no board), the Mac build, and the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testABoardsThreadHasBoardInItsBarBackToTheBoard` and `testAThreadWithNoBoardHasNoBoardInItsBar` against the fake Cockpit; the iPad and the phone not yet
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (the newest board message names it, else this device's record; none for a thread with no board), the Mac build, and the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testABoardsThreadHasBoardInItsBarBackToTheBoard` against the fake Cockpit; the iPad and the phone not yet
 - **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
 - **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
 
@@ -1301,6 +1301,21 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I open the thread and tap *Board*
 - **Then:** iCloud is asked first, the board opens with what is on it now, and its *Back* shows the boards
 
+---
+
+### User Story 1124:
+
+- **Summary:** A thread with no board has no *Board* in its top bar
+- **Status:** native app only: implemented in [2833e9b0](https://github.com/idvorkin/context-grabber/commit/2833e9b0) (#1091); verified on the host by `ChatThreadBoardTests` (none for a thread with no board) and on the simulator (rung 2, iPhone 17, 2026-11-21) by `ChatImageUITests.testAThreadWithNoBoardHasNoBoardInItsBar` against the fake Cockpit; the iPad and the phone not yet
+- **Issues:** [#1091](https://github.com/idvorkin/context-grabber/issues/1091)
+- **Spec:** [Native chat — A board's thread opens its board](../superpowers/specs/2026-10-25-native-chat-design.md)
+
+#### Use Case:
+- **As a** man reading a thread that never came from a board
+- **I want to** see no *Board* in its top bar
+- **so that** the bar never offers a way to a board that isn't there
+
+#### Acceptance Criteria:
 - **Scenario:** A thread with no board
 - **Given:** a thread with no message from a board, which no board of this device started
 - **When:** I open it

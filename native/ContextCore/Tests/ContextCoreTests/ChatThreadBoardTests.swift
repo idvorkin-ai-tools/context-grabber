@@ -2,7 +2,7 @@ import XCTest
 
 @testable import ContextCore
 
-/// #1091, stories 1122, 1123: which board a thread's *Board* opens.
+/// #1091, stories 1122–1124: which board a thread's *Board* opens.
 final class ChatThreadBoardTests: XCTestCase {
   private func message(_ id: String, board: String? = nil) -> ChatMessage {
     ChatMessage(id: id, ts: "", who: board == nil ? "larry" : "igor", text: "", board: board)

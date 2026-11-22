@@ -2,7 +2,7 @@
 //  (scripts/native/test-chat-ui.sh starts it), shows Done on a dark badge and closes with Done or a swipe down.
 //  Stories 821, 822 (#907): Share, and a double tap zooming so a swipe pans.
 //  Stories 317–319, 228 (#603): a picture from a board also jumps to that board; a missing board says so and the
-//  picture stays. Stories 1122, 1123 (#1091): the board's thread itself has *Board* in its bar, to the same ends. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
+//  picture stays. Stories 1122–1124 (#1091): the board's thread itself has *Board* in its bar, to the same ends. A link to a missing board staying on the boards and saying so is whiteboard code, not chat's:
 //  `WhiteboardRowDeleteUITests` ends on it, and why a board can't open is `BoardIndexTests` (story 770).
 
 import XCTest
@@ -143,7 +143,7 @@ final class ChatImageUITests: XCTestCase {
     XCTAssertTrue(app.buttons["whiteboard-done"].appears(within: 10), "Back shows the boards: \(app.debugDescription)")
   }
 
-  /// Story 1122: a thread with no board has no *Board*.
+  /// Story 1124: a thread with no board has no *Board*.
   func testAThreadWithNoBoardHasNoBoardInItsBar() throws {
     let app = try launchThread("igor2-88g.592", picture: false)
     let bubble = app.descendants(matching: .any).matching(identifier: "chat-larry").firstMatch
