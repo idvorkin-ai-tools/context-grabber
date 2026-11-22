@@ -15,7 +15,7 @@ extension WhiteboardModel {
     if !on {
       cancelPause()
       larry.dropped()
-      if micOn || micStarting {
+      if micOn || micStarting || micOpening {
         turns.micClosedByGhostsOff()
         stopMic(why: "ghosts_off")
       }

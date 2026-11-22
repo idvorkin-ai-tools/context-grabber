@@ -87,7 +87,13 @@ struct WhiteboardView: View {
     VStack(spacing: 0) {
       // Story 667: while Larry is looking the note begins with his clock, so it ticks once a second, as it does while a
       // message holds the middle (story 766); else it's still.
-      noteStrip
+      // Story 1103 (#1139): while the mic is open, the microphone it hears and its level end the line.
+      HStack(spacing: 0) {
+        noteStrip
+        if model.micOn {
+          WhiteboardMicChip(dictation: model.dictation, hears: model.micHears) { model.pickMicrophone($0) }
+        }
+      }
       if let problem = model.problem {
         WhiteboardProblemRow(
           problem: problem, logger: logger, dismissSilence: { model.dismissProblem() },

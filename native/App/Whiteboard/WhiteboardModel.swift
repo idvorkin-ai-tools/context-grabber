@@ -118,6 +118,11 @@ final class WhiteboardModel: ObservableObject {
   @Published var micOn = false
   @Published var micStarting = false
   @Published var micFinishing = false
+  /// Story 1103 (#1139): the microphone the open mic hears, by name; nil while it is closed.
+  @Published var micHears: String?
+  /// Story 1103: the mic is on its way to opening (its microphones being listed, or a new pick reopening it); a close
+  /// meanwhile clears it, and the opening doesn't happen.
+  var micOpening = false
   /// The newest thing said, by Larry or the mic: the middle of the note's line (story 766).
   @Published var lastSaid = WhiteboardSaid()
   /// The note's other messages and when they appeared: they take the line's middle for a few seconds, or for as long
