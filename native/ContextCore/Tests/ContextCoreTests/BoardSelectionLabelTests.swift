@@ -1,4 +1,4 @@
-//  Story 1108 (#1045): what the label on a selection says, for each thing the board can hold.
+//  Story 1095 (#1045): what the label on a selection says, for each thing the board can hold.
 
 import ContextCore
 import XCTest

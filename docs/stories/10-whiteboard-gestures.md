@@ -918,7 +918,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1108:
+### User Story 1095:
 
 - **Summary:** A small label on a selection says what I picked and what applies to it
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)
@@ -938,7 +938,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
-### User Story 1093:
+### User Story 1096:
 
 - **Summary:** The label on a kept text says it can be reworded, and an erase turns it to ink
 - **Issues:** [#1045](https://github.com/idvorkin/context-grabber/issues/1045)

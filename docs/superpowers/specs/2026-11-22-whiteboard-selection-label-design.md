@@ -1,6 +1,6 @@
 # What's selected: a label on the selection
 
-Issue [#1045](https://github.com/idvorkin/context-grabber/issues/1045). Stories 1108, 1093 and 1094
+Issue [#1045](https://github.com/idvorkin/context-grabber/issues/1045). Stories 1095, 1096 and 1094
 ([gestures](../../stories/10-whiteboard-gestures.md)). Related: #947 (selecting groups) and #1005 (the top bar's
 labels, whose one-word-plus-what-it-does naming this follows).
 

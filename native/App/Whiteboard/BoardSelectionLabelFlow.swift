@@ -1,4 +1,4 @@
-//  The label on a selection (spec 2026-11-22-whiteboard-selection-label-design.md, story 1108, #1045): what the lasso
+//  The label on a selection (spec 2026-11-22-whiteboard-selection-label-design.md, story 1095, #1045): what the lasso
 //  holds and what applies to it, just above it, over the board. It takes no touch and is in no picture. What it says is
 //  `BoardSelectionLabel` in ContextCore.
 
@@ -15,7 +15,7 @@ final class BoardSelectionLabelState: ObservableObject {
 }
 
 extension PaperBoardController {
-  /// Story 1108: says what the selection holds now. On every selection change, and after each change of Igor's own (an
+  /// Story 1095: says what the selection holds now. On every selection change, and after each change of Igor's own (an
   /// erase, a move, an undo), which can make a text plain ink under the same lasso.
   func nameSelection(connectReady: Bool) {
     var label: BoardSelectionLabel.Label?
@@ -62,7 +62,7 @@ extension PaperBoardController {
   }
 }
 
-/// Story 1108: the label, just above the selection (below it with no room above), its left edge on the selection's.
+/// Story 1095: the label, just above the selection (below it with no room above), its left edge on the selection's.
 struct SelectionLabelView: View {
   @ObservedObject var state: BoardSelectionLabelState
   private static let height: CGFloat = 24

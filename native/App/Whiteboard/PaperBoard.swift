@@ -82,7 +82,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   let log: SessionLog
   /// Stories 920–922: To text beside the lasso's ink (BoardToTextFlow.swift).
   let toText = BoardToTextState()
-  /// Story 1108: the label on the selection.
+  /// Story 1095: the label on the selection.
   let selectionLabel = BoardSelectionLabelState()
   /// Stories 923–925: a stroke held still at its end snaps to its shape (BoardShapeSnapping.swift).
   let snaps = BoardSnapWatch()

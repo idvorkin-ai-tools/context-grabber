@@ -1,5 +1,5 @@
 //  What a selection is, said on a small label beside it (spec 2026-11-22-whiteboard-selection-label-design.md, story
-//  1108, #1045): plain ink, a kept text, a group, a connector, or a mix, and what applies to it. Pure.
+//  1095, #1045): plain ink, a kept text, a group, a connector, or a mix, and what applies to it. Pure.
 
 import Foundation
 
