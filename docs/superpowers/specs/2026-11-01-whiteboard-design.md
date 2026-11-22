@@ -561,6 +561,28 @@ there, when, and what the menu belonged to, the log can't say. Before anything c
 - **Its going says how long it stayed**, so a cover that stayed up while Igor tapped shows as one long stay.
 - Nothing Igor sees changes: this is the evidence for the fix, not the fix.
 
+### The log says what a moving touch held and what moved (story 1143, bead context-grabber-eg7v)
+
+On the iPad a one-finger drag moved 54 strokes at once: a text of Larry's he had just kept and two of Igor's strokes
+written under it, with nothing selected, a moment after a Larry turn came back. The log could say the ink moved and that
+a touch was down, but not what the touch started on, what was selected when it went down, whose ink moved, or whether
+the board's own changes or Larry's answer arrived while the finger was down. The log that came before it does show
+something of the system's: after a finger tap on that text, a popover from PaperKit's handwriting tools appeared over
+exactly those 54 strokes, and the drag began on that tool's own view rather than on the paper. Before anything changes,
+the log has to settle that.
+
+- **Every touch says what it began on and what was selected**: the kind of view the first finger or the Pencil landed on,
+  how many strokes were selected as it went down, and whether a handwriting tool of PaperKit's (its reflow or a popover
+  over handwriting) was showing then and when the touch ended.
+- **Every touch says what the board changed under it**: how many times the board put its own change on the ink while the
+  touch was down, each by name (a kept mark, Larry's edits, a move, an undo step), and how many Larry or Claude turns came
+  back meanwhile.
+- **Every change that moves ink says what moved against what was held**: how many of the moved strokes were selected when
+  the touch began and how many weren't, how many are Larry's or Claude's and how many Igor's, the moved ink's box, and how
+  far the strokes went, least and most, so one drag (everything moved the same way) reads apart from writing rewrapped
+  (each word moved its own way). A selection made during the touch counts as not held.
+- Nothing Igor sees changes: this is the evidence for the fix, not the fix.
+
 ### The log says which tool Igor picked (story 1064, #1078; Igor, 2026-11-21: "Switched to eraser still drew normally")
 
 Igor picked the eraser and the Pencil went on drawing. The log couldn't say why: every touch it has ever written names a

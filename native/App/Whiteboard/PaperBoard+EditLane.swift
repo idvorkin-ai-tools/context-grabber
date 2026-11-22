@@ -22,6 +22,7 @@ extension PaperBoardController {
   @discardableResult
   func setMarkup(_ markup: PaperMarkup, stepBack: PaperMarkup? = nil, named name: String? = nil) -> PaperMarkupSet {
     if let stepBack { registerStepBack(to: stepBack, named: name) }
+    noteBoardSet(name ?? "set")
     quiet = true
     paper.markup = markup
     quiet = false
@@ -31,6 +32,7 @@ extension PaperBoardController {
   /// `body` with the change callback quiet, as the drop's take-back of PaperKit's step runs: set on and then off, never
   /// restored, so a step back inside it that sets the markup leaves it off as it always has.
   func quietly<T>(_ body: () -> T) -> T {
+    noteBoardSet("quietly")
     quiet = true
     let out = body()
     quiet = false

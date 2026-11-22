@@ -425,6 +425,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
       "ms": ms(CACurrentMediaTime() - started),
     ]
     event.merge(unheard(change, frames: frames, undo: controller.undoManager)) { $1 }
+    event.merge(moveAudit(change, markup: markup, frames: frames)) { $1 }
     // #999: scratched-out ink back without an Undo or Redo.
     if !scratched.isEmpty, controller.undoManager?.isUndoing != true, controller.undoManager?.isRedoing != true {
       let back = change.added.filter(scratched.contains).count
@@ -656,6 +657,8 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
 
   override func touchWentDown(_ touch: UITouch) {
     groupTap = nil
+    // Story 1143: the turns logged as the touch began, so its line says how many came while it was down.
+    if touchesDown == 0 { run?.turnsAtStart = model.turnsLogged }
     if touch.type == .pencil { toolWentDown() }
     lastDown = pencilDown ? .pencil : touch.type
     toolInHand(touchTool)
@@ -757,7 +760,7 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
         "auto_draws": paper.directTouchAutomaticallyDraws, "pages": pages,
         "page": board.page(at: CGPoint(x: 0, y: visible.midY)), "ghosts": model.ghosts.count,
         "ghost_slip": round(seat.worst), "ghost_checks": seat.checks,
-      ])
+      ].merging(touchAudit(run)) { $1 })
     seat = (0, 0)
   }
 }
