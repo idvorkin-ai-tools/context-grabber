@@ -253,7 +253,13 @@ nothing: that board had a thread with Larry, but only the iPad knew which one.
   production side, which refuses a board that carries a piece it hasn't been given, ink and all. So before the first
   TestFlight build with this: a cable build sends a board with a thread up, then the development schema is deployed
   to production in the CloudKit Console (the same step as the whiteboard spec's, *TestFlight builds need one step
-  from Igor first*). A board that never talked to Larry carries no thread and is unaffected.
+  from Igor first*). Until then a TestFlight build still syncs every board's ink (Igor, 2026-11-22, bead
+  context-grabber-irm0): when iCloud refuses a board for the thread it carries, the board goes up once more without
+  its thread, so its ink and every board after it still sync, and the session log says the thread was left off and
+  what iCloud said. For the rest of that launch boards go up without their threads, so a refused thread doesn't
+  send its board up again and again; the next launch offers the threads again, and once production has the piece
+  they go up on their own. Until then the other devices find the board's conversation among Larry's chats, as for a
+  board from before.
 - **Not here:** starting a chat from the iPhone for a board that has none. The iPhone only looks at boards (story
   746); a board's first picture goes from the device that draws it.
 

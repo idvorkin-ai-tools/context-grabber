@@ -30,6 +30,9 @@ final class WhiteboardStore: ObservableObject {
   private var again = false
   /// Whether this launch has synced yet: a failed first sync says so (#1002).
   private var syncedThisLaunch = false
+  /// Bead context-grabber-irm0: whether iCloud refused a board's thread this launch (a TestFlight build before the
+  /// production schema has the field), so the rest of the launch's boards go up without theirs.
+  private var threadRefusal = BoardThreadRefusal()
   /// #1137: whether a jump waits on iCloud, and the board just found for one.
   private var finding = BoardFind()
   /// A failed sync tries again by itself, later each time (#1002); the try waiting, if one is.
@@ -384,10 +387,11 @@ final class WhiteboardStore: ObservableObject {
     // Where a failure happened and what was in hand, for its log line (#1002); the sync itself doesn't read them.
     let firstOfLaunch = !syncedThisLaunch
     syncedThisLaunch = true
-    // #1161: this device's board threads, which go up on the board's record.
-    let threads = WhiteboardThreads().all()
+    // #1161: this device's board threads, which go up on the board's record; none once iCloud refused one this launch.
+    let threads = threadRefusal.offered(WhiteboardThreads().all())
     let pending = index.pendingUploads(device: device, threads: threads).count
     var threadsUp = 0
+    var threadsDropped = 0
     var step = BoardSyncStep.zone
     var stepBoard: String?
     var stepStrokes: Int?
@@ -406,8 +410,28 @@ final class WhiteboardStore: ObservableObject {
         let picture = pictureURL(board.id).flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
         stepBoard = board.id
         stepStrokes = board.strokes
-        let thread = threads[board.id] ?? board.thread
-        try await cloud.upload(board, thread: thread, drawing: drawing, picture: picture)
+        // A board waiting only on its thread waits for the next launch once iCloud refused a thread this sync.
+        if threadRefusal.refused && board.uploaded == board.updated { continue }
+        var thread = threadRefusal.refused ? nil : (threads[board.id] ?? board.thread)
+        do {
+          try await cloud.upload(board, thread: thread, drawing: drawing, picture: picture)
+        } catch
+          where BoardThreadRefusal.retryWithoutThread(
+            (error as? BoardCloud.WriteFailed)?.save ?? error, sentThread: thread != nil)
+        {
+          // Bead context-grabber-irm0: production lacks the thread field, so the ink goes up without it; a second
+          // refusal throws as before.
+          threadRefusal.dropped()
+          thread = nil
+          log.event(
+            "whiteboard_sync",
+            [
+              "board": board.id, "thread_dropped": true,
+              "error": CloudErrorFields.item((error as? BoardCloud.WriteFailed)?.save ?? error),
+            ])
+          try await cloud.upload(board, thread: nil, drawing: drawing, picture: picture)
+          threadsDropped += 1
+        }
         index.uploaded(board.id, at: board.updated, thread: thread)
         if thread != nil { threadsUp += 1 }
       }
@@ -453,6 +477,8 @@ final class WhiteboardStore: ObservableObject {
         "threads_in": listed.boards.filter { $0.device != device && $0.thread != nil }.count,
       ]
       if let zoneError { fields["zone_error"] = CloudErrorFields.item(zoneError) }
+      // Bead context-grabber-irm0: boards sent up without the thread iCloud refused.
+      if threadsDropped > 0 { fields["thread_dropped"] = threadsDropped }
       if retry.failures > 0 { fields["after_failures"] = retry.failures }
       retry.succeeded()
       retryTask?.cancel()
