@@ -90,6 +90,6 @@ on the iPad and the iPhone.
 - **Session log**: `playback_start` (strokes, timed, shared, real and played seconds, build ms), `playback_seek` (how:
   tap, scrub, back, forward; from, to, the stroke), `playback_speed`, `playback_end` (seconds watched, reached the
   end, seeks). Timed against untimed strokes settles on the device whether a board's timestamps survived.
-- **Verified**: the timeline on the host; `WhiteboardPlaybackUITests` on the iPad simulator (three strokes, Play, the
-  end, pause, a tap on the second stroke, Done with the board unchanged). The Pencil's real pace and a large board's
+- **Verified**: the timeline on the host and the Mac build; `WhiteboardPlaybackUITests` (three strokes, Play, the end,
+  a tap on the second stroke, the speed, Done with the board unchanged) is in the iPad simulator's whiteboard suite. The Pencil's real pace and a large board's
   frame rate only on the iPad.

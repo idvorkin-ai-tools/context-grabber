@@ -1103,7 +1103,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** I watch a board draw itself again in the order I drew it, and jump to any stroke
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139) (Igor, 2026-11-22: "where is my replay button so I can rewatch it the way you do in Notability?")
-- **Status:** STATUS_PLAYBACK
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
@@ -1128,7 +1128,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** In playback, a bar lets me pause, skip 10 s, scrub and change the speed
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
-- **Status:** STATUS_PLAYBACK
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
@@ -1158,7 +1158,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** In playback, a tap on a stroke jumps to the moment I drew it
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
-- **Status:** STATUS_PLAYBACK
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
@@ -1183,7 +1183,7 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 - **Summary:** Leaving playback shows the board as it was, with nothing changed
 - **Issues:** [#1139](https://github.com/idvorkin/context-grabber/issues/1139)
-- **Status:** STATUS_PLAYBACK
+- **Status:** implemented in [23568982](https://github.com/idvorkin/context-grabber/commit/23568982), [54484b30](https://github.com/idvorkin/context-grabber/commit/54484b30) (bead context-grabber-3tdv; the ink alone, Igor 2026-11-22); verified by host tests (`BoardPlaybackTests`: the order, the hand's pace, a pause over 2 s as 0.5 s, strokes sharing a moment together, the frames, a tap's stroke, the playhead's play, pause, ±10 s, seek, speeds and end), `just test` and the Mac build (`just native-build-mac`, rung 1.5); `WhiteboardPlaybackUITests` on the iPad simulator written but not yet run (the simulator stack hung on 2026-11-22); not yet seen on the iPad
 - **Spec:** [Whiteboard with Claude](../superpowers/specs/2026-11-01-whiteboard-design.md), *Playing a board back, as Notability does*
 
 #### Use Case:
