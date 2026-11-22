@@ -490,24 +490,9 @@ final class PaperBoardController: PaperHost, ObservableObject, PaperMarkupViewCo
   override func viewDidLoad() {
     super.viewDidLoad()
     paper.delegate = self
-    model.visibleRect = { [weak self] in self?.paperOnScreen ?? .null }
+    model.canvas = self
     model.questions.visibleRect = { [weak self] in self?.paperOnScreen ?? .null }
     model.pasteReach = board.pasteReach
-    model.zoom = { [weak self] in self?.screenScale ?? 1 }
-    model.draw = { [weak self] _, added, name in self?.keep(added, named: name) }
-    model.applyOps = { [weak self] batch in self?.applyOps(batch) ?? .unavailable }
-    model.landPaste = { [weak self] strokes in self?.land(paste: strokes) ?? false }
-    model.keepMakingRoom = { [weak self] strokes, push, why in self?.keep(strokes, making: push, why: why) ?? false }
-    model.changeOutline = { [weak self] label, change in self?.changeOutline(label, change) ?? false }
-    model.showOverlays = { [weak self] list in
-      guard let self else { return }
-      self.lines.showOverlays(list)
-      // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
-      self.fingerTaps(!self.model.ghosts.isEmpty || !list.isEmpty)
-    }
-    model.move = { [weak self] moves in self?.move(moves) }
-    model.menuChose = { [weak self] in self?.takeTheResponderBack() }
-    model.pressUndo = { [weak self] redo in self?.pressUndo(redo: redo) }
     if model.editable { view.addGestureRecognizer(holding) }
     if drawsHere { view.addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(hovering(_:)))) }
     NotificationCenter.default.addObserver(
@@ -2582,6 +2567,44 @@ private struct PastedButtons: View {
 
 /// What a board's paper is ruled with. A board has one or none.
 enum PaperRules { case none, grid, ruled }
+
+/// The canvas the model asks for its changes to the ink: each one the controller's own, as it was.
+extension PaperBoardController: BoardCanvas {
+  var visibleRect: CGRect { paperOnScreen }
+  var zoom: CGFloat { screenScale }
+
+  func draw(_ strokes: [PKStroke], named name: String) -> Bool {
+    let laidOut = paper.markup != nil
+    keep(strokes, named: name)
+    return laidOut
+  }
+
+  func apply(_ batch: BoardOps.Batch) -> BoardCanvasOutcome { applyOps(batch) }
+  func landPaste(_ strokes: [PKStroke]) -> Bool { land(paste: strokes) }
+
+  func keepMakingRoom(_ strokes: [PKStroke], push: BoardRoom.Push, why: String) -> Bool {
+    keep(strokes, making: push, why: why)
+  }
+
+  func changeOutline(named label: String, _ change: (inout BoardOutline) -> Bool) -> Bool {
+    changeOutline(label, on: nil, undoTo: nil, change)
+  }
+
+  func moveStrokes(_ moves: [Int: CGFloat]) -> Bool {
+    let laidOut = paper.markup != nil
+    move(moves)
+    return laidOut
+  }
+
+  func showOverlays(_ list: [BoardOverlay]) {
+    lines.showOverlays(list)
+    // Story 846: with his controls showing, a finger taps them, as it taps ghosts, rather than drawing.
+    fingerTaps(!model.ghosts.isEmpty || !list.isEmpty)
+  }
+
+  func menuChose() { takeTheResponderBack() }
+  func pressedUndo(redo: Bool) { pressUndo(redo: redo) }
+}
 
 /// Paper under the ink: its colour, its grid or ruled lines, a faint line where each page ends, and the ghosts. In PaperKit's content view, so it moves with the board and is in nothing else.
 final class PaperLines: UIView {
