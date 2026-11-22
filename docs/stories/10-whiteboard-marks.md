@@ -1070,6 +1070,41 @@ Design specs: [whiteboard](../superpowers/specs/2026-11-01-whiteboard-design.md)
 
 ---
 
+### User Story 947:
+
+- **Summary:** A finger tap on any stroke of a group selects the whole group, ready to drag
+- **Status:** in progress (PR pending)
+- **Spec:** [Claude and Larry draw back](../superpowers/specs/2026-11-01-whiteboard-shapes-design.md), *A tap on a mark offers Keep and Dismiss* (a finger tap on a group)
+- **Issues:** [#947](https://github.com/idvorkin/context-grabber/issues/947): Igor, 2026-11-18 about 05:42, via Larry: "when I click select-all, I want some notion of fixed object on finger-click to move"
+
+#### Use Case:
+- **As someone** with a reply of Larry's kept as a group on the board
+- **I want to** tap any stroke of it with a finger and have all of it selected
+- **so that** I can drag his drawing as one thing without drawing a lasso round it, while the Pencil keeps drawing
+
+#### Acceptance Criteria:
+- **Scenario:** A tap picks up the group
+- **Given:** a reply of Larry's I kept as a group, no marks showing, on a board I can draw on
+- **When:** I tap one of its strokes with a finger
+- **Then:** every stroke of the group is selected, no dot is left where I tapped, and the Pencil still draws
+
+- **Scenario:** Dragged and put back
+- **Given:** the group selected by a tap
+- **When:** I drag it with a finger, then press Undo once
+- **Then:** all of it moves together, and the one Undo puts it back where it was
+
+- **Scenario:** Off the group
+- **Given:** a group on the board
+- **When:** I tap blank paper beside it, my own writing, or the margin
+- **Then:** nothing of the group is selected, and the tap does what it did before
+
+- **Scenario:** A text inside a group
+- **Given:** a group holding a kept text
+- **When:** I tap the text once, and again with the group selected
+- **Then:** the first tap selects the group; the second opens the text's words for rewording (story 940)
+
+---
+
 ### User Story 1000:
 
 - **Summary:** The buttons beside a chosen mark sit clear of the board's corner and wholly on screen

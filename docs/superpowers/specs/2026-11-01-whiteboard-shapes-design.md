@@ -46,6 +46,20 @@ suggest changes the board until Igor keeps it.
     held on any of it picks up all of it, and Larry hears it as one group (its strokes carry the same group note, named
     for his reply) that he can move or erase by that one name. Tidy overlaps leaves it as it is. A mark of the reply
     Igor already kept or dismissed is not in it; Claude's marks, and Larry's text from a change of his, never are.
+  - **A finger tap on any stroke of a group selects the whole group, ready to drag** (#947; Igor, 2026-11-18: "when I
+    click select-all, I want some notion of fixed object on finger-click to move"). A group is a reply kept with
+    *Keep group*, or one of Larry's own groups. The tap must land on one of the group's strokes, within a finger's
+    reach of its line (a fingertip, about 22 screen points, whatever the zoom), not merely inside the group's box. All
+    of the group is then selected, as a lasso round it would select it, and a finger drags it as one; one Undo puts it
+    back where it was. The Pencil keeps drawing over it as before, and drawing fingers leave no dot for the tap.
+    - Only on a board he can draw on, with no marks of Claude's or Larry's showing and none of Larry's controls (with
+      them showing a tap chooses a mark, as above), and never in the margin (the outline's).
+    - A tap off every group, on his own writing or blank paper, does what it did.
+    - **A kept text inside a group** (decided 2026-11-22, Igor away, reversible): the first tap selects the group; a
+      second tap on the text while its group is selected opens its words for rewording, as a tap on a text outside
+      any group does at once.
+    - The session log says, for each such tap, the group's name, how many strokes it selected, how a finger touches
+      the paper then, whether fingers draw, and whether the group was still selected a beat later.
   - The buttons stay together, beside the mark and wholly on screen as before, and never under the board's top-right
     corner (? and Feedback, and *Larry's edit blocked* when it shows): placed there, they move below that corner. Each
     of the three takes at least 36 points each way, and a tap on any of them, or between them, never reaches the paper.
