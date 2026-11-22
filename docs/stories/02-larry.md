@@ -750,8 +750,8 @@ Part of the [user stories](README.md); persona and format are described there. T
 ### User Story 278:
 
 - **Summary:** With the Cockpit out of reach, Chat says why and keeps what I wrote
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by simulator screenshots (*Not sent yet*, the copyable error with the Cockpit down); on the phone not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by simulator screenshots (*Not sent yet*, the copyable error with the Cockpit down); on the phone not yet; bead `context-grabber-exg6`, a stopped or overtaken read shows nothing, on this branch
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), bead `context-grabber-exg6`
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -765,13 +765,18 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **When:** I open Chat
 - **Then:** a copyable line says the chats could not be read and why, and what I wrote that has not gone yet is still listed under *Not sent yet*; with no network at all the quiet offline line shows instead
 
+- **Scenario:** Leaving before the list is read, or reads that overlap (bead `context-grabber-exg6`)
+- **Given:** Chat is reading the list, and the app coming to the front or a closed thread reads it again
+- **When:** I leave the list before its read is answered, or an older read finishes after a newer one
+- **Then:** no problem appears for the read that was stopped, and the list shows the newest read that finished; an older answer or problem never replaces it
+
 ---
 
 ### User Story 279:
 
 - **Summary:** Larry's reply appears in the open thread while I watch
-- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by a simulator screenshot (Larry's reply appearing without a refresh); a thread that cannot be read logs once per spell in the review round, not yet verified on any rung; on the phone not yet
-- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438)
+- **Status:** native app only: implemented in [ff6e3b8](https://github.com/idvorkin/context-grabber/commit/ff6e3b8); verified by a simulator screenshot (Larry's reply appearing without a refresh); a thread that cannot be read logs once per spell in the review round, not yet verified on any rung; on the phone not yet; bead `context-grabber-exg6`, closing a thread mid-read leaves no problem and an older read never replaces a newer one, on this branch
+- **Issues:** [#438](https://github.com/idvorkin/context-grabber/issues/438), bead `context-grabber-exg6`
 - **Spec:** [Chat with Larry in Grabber Native](../superpowers/specs/2026-10-25-native-chat-design.md)
 
 #### Use Case:
@@ -784,6 +789,11 @@ Part of the [user stories](README.md); persona and format are described there. T
 - **Given:** the thread is open
 - **When:** Larry replies
 - **Then:** his reply appears within a few seconds with no pull or tap, and the thread stays read; if the thread cannot be read, a copyable line says why
+
+- **Scenario:** Closing the thread mid-read, or reads that overlap (bead `context-grabber-exg6`)
+- **Given:** the thread is open and its poll is reading it, and a send or an answered card reads it again
+- **When:** I leave the thread before the read is answered, or an older read finishes after a newer one
+- **Then:** the thread shows no problem when I come back for the read that was stopped, and it shows the newest read that finished; an older answer or problem never replaces it
 
 ---
 

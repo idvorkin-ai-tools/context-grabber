@@ -46,6 +46,9 @@ final class ChatModel: ObservableObject {
   @Published private(set) var rowLinks: [String: [ChatLink]] = [:]
   /// The row's last activity each thread's links were read for: read again only when it changes.
   private var rowLinksAt: [String: String] = [:]
+  /// Bead context-grabber-exg6: the list's reads, and each thread's, in order; only the newest finished one shows.
+  private var listOrder = ChatReadOrder()
+  private var threadOrder: [String: ChatReadOrder] = [:]
 
   static let backgroundTask = "com.idvorkin.grabbernative.chat"
   static let notifiedKey = "chat_notified"
@@ -192,8 +195,13 @@ final class ChatModel: ObservableObject {
     guard cockpit != ChatCockpit.nowhere else {
       return listFailed(ChatCockpit.noAddress, reason: reason, problem: ChatCockpit.noAddress)
     }
+    let ticket = listOrder.start()
     do {
       let (read, status) = try await readList()
+      // An older read finishing after a newer one has shown never puts its answer or problem back (exg6).
+      guard listOrder.mayShow(ticket) else {
+        return log.event("chat", ["action": "refresh_stale", "why": reason])
+      }
       guard let rows = read else {
         return listFailed("the Cockpit answered HTTP \(status)", reason: reason)
       }
@@ -210,7 +218,13 @@ final class ChatModel: ObservableObject {
           "action": "refreshed", "why": reason, "threads": rows.count,
           "unread": rows.filter { !$0.done && $0.unread > 0 }.count,
         ])
+    } catch  where ChatReadOrder.isCancellation(error) {
+      // Leaving the list mid-read, or iOS cutting it short, is not a failure: what the list showed stays (exg6).
+      log.event("chat", ["action": "refresh_cancelled", "why": reason])
     } catch {
+      guard listOrder.mayShow(ticket) else {
+        return log.event("chat", ["action": "refresh_stale", "why": reason])
+      }
       listFailed(
         error.localizedDescription, reason: reason,
         problem: CockpitReach.problem(error, otherwise: Self.listFailure))
@@ -323,8 +337,14 @@ final class ChatModel: ObservableObject {
       threadFailed(key, ChatCockpit.noAddress, why: ChatCockpit.noAddress)
       return false
     }
+    let ticket = threadOrder[key, default: ChatReadOrder()].start()
     do {
       let (data, response) = try await URLSession.shared.data(for: try ChatWire.threadRequest(key, cockpit: cockpit))
+      // A poll, a send and an answered card can read at once: only the newest finished read shows (exg6).
+      guard threadOrder[key, default: ChatReadOrder()].mayShow(ticket) else {
+        log.event("chat", ["action": "thread_read_dropped", "thread": key, "reason": "stale"])
+        return false
+      }
       let status = (response as? HTTPURLResponse)?.statusCode ?? 0
       guard status == 200, let rows = ChatWire.messages(data) else {
         threadFailed(key, "\(Self.threadFailure): HTTP \(status)", why: "HTTP \(status)")
@@ -350,7 +370,15 @@ final class ChatModel: ObservableObject {
         return await seen(key)
       }
       return true
+    } catch  where ChatReadOrder.isCancellation(error) {
+      // Closing the thread mid-read is not a failure: no problem waits for it when it opens again (exg6).
+      log.event("chat", ["action": "thread_read_dropped", "thread": key, "reason": "cancelled"])
+      return false
     } catch {
+      guard threadOrder[key, default: ChatReadOrder()].mayShow(ticket) else {
+        log.event("chat", ["action": "thread_read_dropped", "thread": key, "reason": "stale"])
+        return false
+      }
       threadFailed(
         key, CockpitReach.problem(error, otherwise: Self.threadFailure), why: error.localizedDescription)
       return false
@@ -538,12 +566,14 @@ final class ChatModel: ObservableObject {
   /// Reads the list and raises one notification per thread with a reply not yet shown or notified.
   @discardableResult
   func backgroundCheck() async -> Bool {
+    let ticket = listOrder.start()
     do {
       guard let rows = try await readList().rows else {
         log.event("chat", ["action": "background_check", "ok": false])
         return false
       }
-      threads = rows
+      // A newer list already shown stays (exg6); what is due is still worked out from this read.
+      if listOrder.mayShow(ticket) { threads = rows }
       let due = ChatNotify.due(rows, notified: notified)
       for summary in due { await notify(summary) }
       notified = ChatNotify.record(rows, into: notified)
