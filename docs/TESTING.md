@@ -178,10 +178,11 @@ simulator's are never touched (each device's state is read again just before its
 running ones stall: on 2026-11-16 the whiteboard step sat 17 minutes before its first test on a dark Mac, against about
 30 s once the display came on, and a run that morning spent two hours in tests that pass in ten minutes. `caffeinate -i`
 keeps the Mac awake but lets the display sleep, and with the lock set to "immediately" a sleeping display is a locked
-screen. So the simulator rung holds the display on (`caffeinate -d`), lights it first (`caffeinate -u`), and refuses a
-locked screen at once with exit 75 and a line saying so, rather than hold the build lock for an hour. Unlock the Mac and
-rerun. A screen locked by hand during the run is caught by the start watchdog below, or by the per-test time limit,
-and a test that fails after it locked sends the run back with exit 75 (story 1018, below).
+screen. So the simulator rung holds the display on (`caffeinate -d`), lights it first (`caffeinate -u`), and on a
+locked screen waits up to two minutes for an unlock, then refuses with exit 75 and a line saying so, rather than hold
+the build lock for an hour (story 1022, below). Unlock the Mac and rerun. A screen that locks during a simulator test
+run stops it (story 1022); a test that fails after a lock on any other run sends the run back with exit 75 (story 1018,
+below).
 
 **Never run a simulator rung while more xcodebuilds run than the Mac has lanes.** Startup waits fail under contention,
 and a run under contention counts as failed and is rerun, not debugged. The lock doesn't cover this, since a device
@@ -248,6 +249,20 @@ fails the run as before, naming the lock; a pass stands, with a line that the sc
 `scripts/native/test-xcodebuild-log.sh` checks it with the lock probe faked. The crash reports are
 `~/Library/Logs/DiagnosticReports/GrabberNative-*.ips` on the Mac; the screen's lock and unlock times are in the system
 log (`/usr/bin/log show --predicate 'process == "loginwindow" AND eventMessage CONTAINS "setScreenIsLocked"'`).
+
+Each of those crashes also puts a *GrabberNative quit unexpectedly* dialog on the Mac's screen (seven on the evening of
+2026-11-21, bead `context-grabber-208e`), so **no simulator test run starts on a locked Mac, and one is stopped when the
+screen locks under it** (story 1022). The wrapper every test run goes through, `sim-boot.sh` (so the smoke, the Health
+grant and every UI test suite), rung 2 and `just native-test-contracts` look at the lock the way BugKit's signing guard
+does (`ioreg`'s `CGSSessionScreenIsLocked`) before they start: locked, they say so once and look again every 5 s
+(`SIM_LOCK_POLL`) for up to two minutes (`SIM_LOCK_WAIT`), then exit 75, having started nothing. During a simulator test
+run the wrapper's two-second look at the lock stops the run the moment it sees the screen locked: it ends xcodebuild and
+the app and its test runner on that simulator (`simctl terminate`), and exits 75 saying when, or 65 if a case had
+already failed before the lock. Once the run's last suite has closed, a lock no longer stops it. Builds, the Mac build
+and test runs that aren't on a simulator are not held. An unreadable lock state counts as unlocked (Linux has no
+`ioreg`). So never run `xcodebuild test` on a simulator by hand: every `xcodebuild … test` in this file means through
+`scripts/native/xcodebuild-log.sh <name> "TEST SUCCEEDED" xcodebuild …`. `scripts/native/test-xcodebuild-log.sh`,
+`scripts/native/test-smoke-lock.sh` and `scripts/native/test-build-lane.sh` check it with the lock probe faked.
 
 **Only what the branch touched, and quietly** (Igor, 2026-11-01). The smoke runs only the sections for the features
 this branch changed since `origin/main`: cockpit, whiteboard, timer, breathe, places, call, mirror, drill or

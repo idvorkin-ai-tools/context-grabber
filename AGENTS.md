@@ -66,6 +66,12 @@ Mac, never by hand: watch `~/tmp/agent/bugs/inbox.jsonl` (or its Herdr notificat
 - **Sanity-check geometry thresholds against the real fixtures** (`__tests__/fixtures/locations.json`,
   `context-grabber.db`) before shipping clustering, place-matching or distance rules; synthetic tests miss what real
   data exposes.
+- **Never run `xcodebuild test` on a simulator outside the wrapper, and never while the Mac's screen is locked**
+  (story 1022, bead `context-grabber-208e`). A locked Mac starves the simulator's audio server, the app aborts in
+  Apple's audio toolbox when a test opens the mic, and Igor finds a *quit unexpectedly* dialog for each crash.
+  `scripts/native/xcodebuild-log.sh` (and every recipe, rung and script that runs tests or boots a simulator) waits up
+  to two minutes for an unlock, then exits 75, and stops a run when the screen locks under it. A 75 there means unlock
+  and rerun, not debug.
 - **Build lanes scale with RAM; one booted simulator per lane, left booted between runs** (stories 785, 980; #954).
   The Mac and simulator rungs run in `scripts/native/build-lane.sh run`: one job per lane, `BUILD_LANES` or one lane
   per 12 GB, at most four (4 on this 48 GB Mac, 1 on a 16 GB one, where everything is one job at a time as before).
@@ -139,8 +145,9 @@ just bugs-check           # unfiled reports on every plugged-in device
 
 Requires Xcode, an Apple ID signed into Xcode, Developer Mode on the iPhone, and the `just setup` tools
 (`native/.swiftlint.yml` pins SwiftLint's version; the tile-art check measures the art with `magick`). The phone's hardware UDID is `DEVICE=<udid>` or the gitignored
-`scripts/native/phone-udid.local`: the repo is public, so device ids are never committed. UI tests run with
-`xcodebuild … -only-testing:GrabberNativeUITests/<Test> test` ([TESTING.md](docs/TESTING.md)).
+`scripts/native/phone-udid.local`: the repo is public, so device ids are never committed. UI tests run through the
+wrapper, `scripts/native/xcodebuild-log.sh <name> "TEST SUCCEEDED" xcodebuild … -only-testing:GrabberNativeUITests/<Test> test`
+([TESTING.md](docs/TESTING.md)).
 
 ## Key Patterns
 
